@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 直播间档案</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <style>
+        .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
+        .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
+        .flow-box { margin: 14px 0; padding: 12px 14px; background: #fafafa; border: 1px solid #eee; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.65; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">直播间档案</button></div>
+            <hr class="content-divider">
+            <div class="content-title">基础数据中心 / 资源中心 / 直播间档案</div>
+
+<section class="search-section"><form class="search-form">
+<div class="form-group"><label>主体名称:</label><div class="input-wrapper"><input id="qSubjectName"><span class="clear-btn">×</span></div></div>
+<div class="form-group"><label>直播间名称:</label><div class="input-wrapper"><input id="qResourceName"><span class="clear-btn">×</span></div></div>
+<div class="form-group"><label>直播类型:</label><select id="qLiveType"><option value="">全部</option><option value="official">官方直播</option><option value="regional">区域直播</option><option value="targeted">定向直播</option></select></div>
+<div class="form-actions"><button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button><button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button><button type="button" id="mdmArchiveLiveAddBtn" class="btn btn-secondary">+ 新增直播间</button></div>
+</form></section>
+<section class="table-section"><div class="table-scroll-container"><table class="table"><thead><tr><th>直播间ID</th><th>主体名称</th><th>直播间名称</th><th>直播类型</th><th>主播ID</th><th>主播名称</th><th>负责人</th><th>手机号码</th><th>观看权限</th><th>创建时间</th><th>可提现手机号</th><th>状态</th><th>操作</th></tr></thead><tbody id="tableBody"><tr><td>LR-883001</td><td>品牌日播间-A</td><td>品牌日播间-A · 早场</td><td>官方直播</td><td>ANC5001</td><td>周琳</td><td>周琳</td><td>139****8899</td><td>全部用户可见</td><td>2026-04-24 09:00:00</td><td>139****8899</td><td><span class="status active">启用</span></td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr><tr><td>LR-883002</td><td>区域直播-沪南</td><td>区域直播-沪南 · 晚高峰</td><td>区域直播</td><td>ANC5002</td><td>吴悦</td><td>吴悦</td><td>136****6677</td><td>仅门店会员可见</td><td>2026-04-23 20:15:33</td><td>136****6677</td><td><span class="status active">启用</span></td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr><tr><td>LR-883003</td><td>工厂溯源专场</td><td>工厂溯源专场 · 溯源日</td><td>定向直播</td><td>ANC5003</td><td>郑可</td><td>郑可</td><td>135****5544</td><td>仅门店会员可见</td><td>2026-04-22 13:40:18</td><td>—</td><td><span class="status inactive">停用</span></td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr></tbody></table></div><div id="pagination-container"></div><p style="margin-top:10px;font-size:12px;color:#999;">维护直播间主数据；场次与货品在营运系统。</p></section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script src="../js/mdm-subject-pagemanager.js"></script>
+    <script src="../js/mdm-unified-onboarding-ui.js"></script>
+    <script src="../js/mdm-erp-lists.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        MdmErpLists.initArchiveLiveRoom();
+    });
+    </script>
+</body>
+</html>

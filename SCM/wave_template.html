@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 波次模板</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">波次模板</button>
+            </div>
+
+            <hr class="content-divider">
+
+            <div class="content-title">策略管理 / 波次模板</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group">
+                        <label>波次模板编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchTemplateCode" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>波次模板名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchTemplateName" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>流程类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchFlowType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchFlowTypeDropdown">
+                                <div class="select-option" data-value="先拣后分">先拣后分</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>出库类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchOutboundType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchOutboundTypeDropdown">
+                                <div class="select-option" data-value="销售出库">销售出库</div>
+                                <div class="select-option" data-value="仓配出库">仓配出库</div>
+                                <div class="select-option" data-value="返配出库">返配出库</div>
+                                <div class="select-option" data-value="退供出库">退供出库</div>
+                                <div class="select-option" data-value="调拨出库">调拨出库</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>出库业务类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchOutboundBizType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchOutboundBizTypeDropdown">
+                                <div class="select-option" data-value="直播订单">直播订单</div>
+                                <div class="select-option" data-value="货到即配">货到即配</div>
+                                <div class="select-option" data-value="门店退货">门店退货</div>
+                                <div class="select-option" data-value="仓库退供">仓库退供</div>
+                                <div class="select-option" data-value="仓库调拨">仓库调拨</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 100px;">是否启用:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchIsEnabled" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchIsEnabledDropdown">
+                                <div class="select-option" data-value="启用">启用</div>
+                                <div class="select-option" data-value="禁用">禁用</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="location.reload()">查询</button>
+                        <button type="button" class="btn btn-secondary" id="addBtn">新增</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>波次模板编码</th>
+                                <th>波次模板名称</th>
+                                <th>仓库</th>
+                                <th>流程类型</th>
+                                <th>出库类型</th>
+                                <th>出库业务类型</th>
+                                <th>是否启用</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>WT001</td>
+                                <td>先拣后分标准模板</td>
+                                <td>W001-南京仓</td>
+                                <td>先拣后分</td>
+                                <td>仓配出库</td>
+                                <td>货到即配</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2026-03-24 10:30:00</td>
+                                <td>张三</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const flowTypeOptions = [
+                { value: '先拣后分', text: '先拣后分' }
+            ];
+
+            const outboundTypeOptions = [
+                { value: '销售出库', text: '销售出库' },
+                { value: '仓配出库', text: '仓配出库' },
+                { value: '返配出库', text: '返配出库' },
+                { value: '退供出库', text: '退供出库' },
+                { value: '调拨出库', text: '调拨出库' }
+            ];
+
+            const outboundBizTypeOptions = [
+                { value: '直播订单', text: '直播订单' },
+                { value: '货到即配', text: '货到即配' },
+                { value: '门店退货', text: '门店退货' },
+                { value: '仓库退供', text: '仓库退供' },
+                { value: '仓库调拨', text: '仓库调拨' }
+            ];
+
+            const warehouseOptions = [
+                { value: 'W001', text: 'W001-南京仓' },
+                { value: 'W002', text: 'W002-嘉兴仓' },
+                { value: 'W003', text: 'W003-上海仓' },
+                { value: 'W004', text: 'W004-北京仓' }
+            ];
+
+            const isEnabledOptions = [
+                { value: '启用', text: '启用' },
+                { value: '禁用', text: '禁用' }
+            ];
+
+            const page = new PageManager({
+                entityName: '波次模板',
+                statusColumnIndex: 7,
+                detailView: { enabled: true },
+                customSelects: [
+                    { inputId: 'searchFlowType', dropdownId: 'searchFlowTypeDropdown' },
+                    { inputId: 'searchOutboundType', dropdownId: 'searchOutboundTypeDropdown' },
+                    { inputId: 'searchOutboundBizType', dropdownId: 'searchOutboundBizTypeDropdown' },
+                    { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' }
+                ],
+                fields: [
+                    { id: 'warehouse', label: '仓库', type: 'select', required: true, disabled: true, options: warehouseOptions },
+                    { id: 'templateCode', label: '波次模板编码', type: 'text', required: true },
+                    { id: 'templateName', label: '波次模板名称', type: 'text', required: true },
+                    { id: 'flowType', label: '流程类型', type: 'select', required: true, options: flowTypeOptions },
+                    { id: 'outboundType', label: '出库类型', type: 'select', required: true, options: outboundTypeOptions },
+                    { id: 'outboundBizType', label: '出库业务类型', type: 'select', required: true, options: outboundBizTypeOptions },
+                    { id: 'timerExpression', label: '定时器表达式', type: 'text' },
+                    { id: 'timerDesc', label: '定时器描述', type: 'text' },
+                    { id: 'groupByOwner', label: '按货主分组', type: 'select',
+                      options: [{ value: '是', text: '是' }, { value: '否', text: '否' }] },
+                    { id: 'maxOrderCount', label: '最大单量', type: 'number' },
+                    { id: 'minOrderCount', label: '最小单量', type: 'number' },
+                    { id: 'isEnabled', label: '是否启用', type: 'select', options: isEnabledOptions }
+                ],
+                addModal: {
+                    modalId: 'waveTemplateModal',
+                    cancelBtnId: 'cancelBtn',
+                    saveBtnId: 'saveBtn',
+                    triggerBtnId: null,
+                    defaults: { isEnabled: '启用' },
+                    validations: [
+                        { id: 'warehouse', message: '请选择仓库', required: true },
+                        { id: 'templateCode', message: '请输入波次模板编码', required: true },
+                        { id: 'templateName', message: '请输入波次模板名称', required: true },
+                        { id: 'flowType', message: '请选择流程类型', required: true },
+                        { id: 'outboundType', message: '请选择出库类型', required: true },
+                        { id: 'outboundBizType', message: '请选择出库业务类型', required: true },
+                        { id: 'isEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onOpen: () => {
+                        const currentWarehouse = getCurrentWarehouse();
+                        const warehouseInput = document.getElementById('warehouse');
+                        if (!warehouseInput) return;
+                        if (currentWarehouse) {
+                            warehouseInput.value = `${currentWarehouse.code}-${currentWarehouse.name}`;
+                            warehouseInput.dataset.value = currentWarehouse.code;
+                        } else {
+                            warehouseInput.value = '';
+                            warehouseInput.dataset.value = '';
+                        }
+                    },
+                    onSave: () => {
+                        const templateCode = document.getElementById('templateCode').value.trim();
+                        const templateName = document.getElementById('templateName').value.trim();
+                        const warehouse = document.getElementById('warehouse').value.trim();
+                        const flowType = document.getElementById('flowType').value.trim();
+                        const outboundType = document.getElementById('outboundType').value.trim();
+                        const outboundBizType = document.getElementById('outboundBizType').value.trim();
+                        const isEnabled = document.getElementById('isEnabled').value.trim();
+
+                        page.addTableRow({
+                            cells: [
+                                templateCode,
+                                templateName,
+                                warehouse,
+                                flowType,
+                                outboundType,
+                                outboundBizType,
+                                { value: isEnabled, isStatus: true },
+                                page.getCurrentTimeStr(),
+                                '当前用户'
+                            ]
+                        });
+                        showToast('波次模板已保存', 'success');
+                    }
+                },
+                editModal: {
+                    modalId: 'waveTemplateEditModal',
+                    cancelBtnId: 'editCancelBtn',
+                    saveBtnId: 'editSaveBtn',
+                    validations: [
+                        { id: 'editWarehouse', message: '请选择仓库', required: true },
+                        { id: 'editTemplateCode', message: '请输入波次模板编码', required: true },
+                        { id: 'editTemplateName', message: '请输入波次模板名称', required: true },
+                        { id: 'editFlowType', message: '请选择流程类型', required: true },
+                        { id: 'editOutboundType', message: '请选择出库类型', required: true },
+                        { id: 'editOutboundBizType', message: '请选择出库业务类型', required: true },
+                        { id: 'editIsEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        if (!page.currentEditRow) return;
+                        page.updateTableRow(page.currentEditRow, {
+                            1: document.getElementById('editTemplateCode').value.trim(),
+                            2: document.getElementById('editTemplateName').value.trim(),
+                            3: document.getElementById('editWarehouse').value.trim(),
+                            4: document.getElementById('editFlowType').value.trim(),
+                            5: document.getElementById('editOutboundType').value.trim(),
+                            6: document.getElementById('editOutboundBizType').value.trim(),
+                            7: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
+                            8: page.getCurrentTimeStr(),
+                            9: '当前用户'
+                        });
+                        showToast('波次模板已更新', 'success');
+                        page.currentEditRow = null;
+                    },
+                    mapRowToForm: (row) => {
+                        page.currentEditRow = row;
+                        const cells = row.querySelectorAll('td');
+                        return {
+                            editTemplateCode: cells[1].textContent,
+                            editTemplateName: cells[2].textContent,
+                            editWarehouse: cells[3].textContent,
+                            editFlowType: cells[4].textContent,
+                            editOutboundType: cells[5].textContent,
+                            editOutboundBizType: cells[6].textContent,
+                            editIsEnabled: cells[7].querySelector('.status').textContent
+                        };
+                    }
+                },
+                deleteModal: {
+                    modalId: 'confirmDeleteModal',
+                    closeBtnId: 'confirmDeleteCloseBtn',
+                    cancelBtnId: 'cancelDeleteBtn',
+                    confirmBtnId: 'confirmDeleteBtn'
+                }
+            });
+
+            page.init();
+            document.getElementById('editCloseBtn').addEventListener('click', () => page.closeModal('edit'));
+
+            // 新增时设置当前仓库
+            document.getElementById('addBtn').addEventListener('click', () => {
+                page.openModal('add', {
+                    defaults: { isEnabled: '启用' }
+                });
+            });
+
+            // 监听仓库切换，保持新增/编辑弹窗字段同步
+            document.addEventListener('warehouseChange', (e) => {
+                const { code, name } = e.detail;
+                const warehouseInput = document.getElementById('warehouse');
+                if (warehouseInput) {
+                    warehouseInput.value = `${code}-${name}`;
+                    warehouseInput.dataset.value = code;
+                }
+                const editWarehouseInput = document.getElementById('editWarehouse');
+                if (editWarehouseInput) {
+                    editWarehouseInput.value = `${code}-${name}`;
+                    editWarehouseInput.dataset.value = code;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

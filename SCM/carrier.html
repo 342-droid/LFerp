@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 承运商</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        /* 页面特定样式 - 承运商模态框label宽度 */
+        .modal-form-group label {
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏容器 -->
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+
+    <!-- 顶部导航栏容器 -->
+    <div id="header-container"></div>
+    
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">承运商</button>
+            </div>
+            
+            <hr class="content-divider">
+            
+            <div class="content-title">基础信息 / 承运商</div>
+            
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group">
+                        <label>承运商编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>承运商名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>是否启用:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchIsEnabled" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchIsEnabledDropdown">
+                                <div class="select-option" data-value="yes">启用</div>
+                                <div class="select-option" data-value="no">禁用</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="location.reload()">查询</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                            <th>承运商编码</th>
+                            <th>承运商名称</th>
+                            <th>是否启用</th>
+                            <th>公司名称</th>
+                            <th>地址</th>
+                            <th>联系人</th>
+                            <th>电话</th>
+                            <th>更新时间</th>
+                            <th>更新人</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>SF</td><td>顺丰速运</td><td><span class="status active">启用</span></td><td>顺丰速运有限公司</td><td>广东省深圳市福田区...</td><td>张三</td><td>18612341234</td><td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a></td></tr>
+                        <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>ZTO</td><td>中通快递</td><td><span class="status active">启用</span></td><td>中通快递股份有限公司</td><td>上海市青浦区...</td><td>李四</td><td>18612341235</td><td>2025-01-05 12:31:43</td><td>张三</td><td class="action-links"><a href="#" class="edit-btn">编辑</a></td></tr>
+                        <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>YTO</td><td>圆通速递</td><td><span class="status inactive">禁用</span></td><td>圆通速递有限公司</td><td>上海市青浦区...</td><td>王五</td><td>18612341236</td><td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a></td></tr>
+                        <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>YD</td><td>韵达快递</td><td><span class="status active">启用</span></td><td>韵达快递有限公司</td><td>上海市青浦区...</td><td>赵六</td><td>18612341237</td><td>2025-01-05 12:31:43</td><td>张三</td><td class="action-links"><a href="#" class="edit-btn">编辑</a></td></tr>
+                        <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>STO</td><td>申通快递</td><td><span class="status active">启用</span></td><td>申通快递有限公司</td><td>上海市青浦区...</td><td>钱七</td><td>18612341238</td><td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a></td></tr>
+                        <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>JD</td><td>京东物流</td><td><span class="status inactive">禁用</span></td><td>京东物流有限公司</td><td>北京市大兴区...</td><td>孙八</td><td>18612341239</td><td>2025-01-05 12:31:43</td><td>张三</td><td class="action-links"><a href="#" class="edit-btn">编辑</a></td></tr>
+                    </tbody>
+                </table>
+                
+                <!-- 分页组件容器 -->
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 引入公共脚本 -->
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        // 使用PageManager简化页面逻辑
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '承运商',
+                statusColumnIndex: 3,
+                detailView: { enabled: true },
+                
+                customSelects: [
+                    { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' }
+                ],
+                
+                fields: [
+                    { id: 'carrierCode', label: '承运商编码', type: 'text', required: true, editDisabled: true },
+                    { id: 'carrierName', label: '承运商名称', type: 'text', required: true, editDisabled: true },
+                    { id: 'isEnabled', label: '是否启用', type: 'select', required: true,
+                      options: [{ value: 'yes', text: '启用' }, { value: 'no', text: '禁用' }] },
+                    { id: 'companyName', label: '公司名称', type: 'text' },
+                    { id: 'address', label: '地址', type: 'text' },
+                    { id: 'contactPerson', label: '联系人', type: 'text' },
+                    { id: 'phone', label: '电话', type: 'text' },
+                    { id: 'remark', label: '备注', type: 'textarea', labelWidth: '100px' }
+                ],
+                
+                editModal: {
+                    comingSoon: true,
+                    modalId: 'carrierEditModal',
+                    cancelBtnId: 'editCancelBtn',
+                    saveBtnId: 'editSaveBtn',
+                    validations: [
+                        { id: 'editCarrierName', message: '请输入承运商名称', required: true },
+                        { id: 'editIsEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        if (!page.currentEditRow) return;
+                        page.updateTableRow(page.currentEditRow, {
+                            2: document.getElementById('editCarrierName').value.trim(),
+                            3: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
+                            4: document.getElementById('editCompanyName')?.value.trim() || '-',
+                            5: document.getElementById('editAddress')?.value.trim() || '-',
+                            6: document.getElementById('editContactPerson')?.value.trim() || '-',
+                            7: document.getElementById('editPhone')?.value.trim() || '-',
+                            8: page.getCurrentTimeStr(),
+                            9: '当前用户'
+                        });
+                        showToast('承运商信息已更新', 'success');
+                        page.currentEditRow = null;
+                    },
+                    mapRowToForm: (row) => {
+                        page.currentEditRow = row;
+                        const cells = row.querySelectorAll('td');
+                        return {
+                            editCarrierCode: cells[1].textContent,
+                            editCarrierName: cells[2].textContent,
+                            editIsEnabled: cells[3].querySelector('.status').textContent,
+                            editCompanyName: cells[4].textContent === '-' ? '' : cells[4].textContent,
+                            editAddress: cells[5].textContent === '-' ? '' : cells[5].textContent,
+                            editContactPerson: cells[6].textContent === '-' ? '' : cells[6].textContent,
+                            editPhone: cells[7].textContent === '-' ? '' : cells[7].textContent
+                        };
+                    }
+                }
+            });
+            
+            page.init();
+            document.getElementById('editCloseBtn').addEventListener('click', () => page.closeModal('edit'));
+        });
+    </script>
+</body>
+</html>

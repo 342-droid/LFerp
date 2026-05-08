@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 承运商档案</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <style>
+        .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
+        .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
+        .flow-box { margin: 14px 0; padding: 12px 14px; background: #fafafa; border: 1px solid #eee; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.65; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">承运商档案</button></div>
+            <hr class="content-divider">
+            <div class="content-title">基础数据中心 / 资源中心 / 承运商档案</div>
+
+<section class="search-section"><form class="search-form">
+<div class="form-group"><label>主体名称:</label><div class="input-wrapper"><input id="qSubjectName"><span class="clear-btn">×</span></div></div>
+<div class="form-group"><label>承运商名称:</label><div class="input-wrapper"><input id="qResourceName"><span class="clear-btn">×</span></div></div>
+<div class="form-group"><label>承运商状态:</label><select id="qResStatus"><option value="">全部</option><option value="normal">正常</option><option value="frozen">冻结</option></select></div>
+<div class="form-actions"><button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button><button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button><button type="button" id="mdmArchiveCarAddBtn" class="btn btn-secondary">+ 新增承运商</button></div>
+</form></section>
+<section class="table-section"><div class="table-scroll-container"><table class="table"><thead><tr><th>承运商ID</th><th>主体名称</th><th>承运商名称</th><th>承运商地址</th><th>承运商详细地址</th><th>承运类型</th><th>负责人姓名</th><th>手机号码</th><th>创建时间</th><th>服务区域</th><th>结算信息</th><th>可提现手机号</th><th>进件渠道</th><th>进件状态</th><th>承运商状态</th><th>操作</th></tr></thead><tbody id="tableBody"><tr><td>CAR20199001</td><td>顺丰同城承运</td><td>顺丰同城承运</td><td>上海市/市辖区/浦东新区</td><td>张江路88号集散中心</td><td>三方即时配</td><td>刘强</td><td>139****1100</td><td>2026-04-24 11:00:00</td><td>华东</td><td>对公 / 月结</td><td>139****1100</td><td>支付宝</td><td>已进件</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr><tr><td>CAR20199002</td><td>德邦干线承运</td><td>德邦干线承运</td><td>江苏省/苏州市/工业园区</td><td>星湖街328号</td><td>干线整车</td><td>马涛</td><td>137****2200</td><td>2026-04-23 16:30:22</td><td>长三角</td><td>对公 / T+1</td><td>137****2200</td><td>微信</td><td>进件中</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr><tr><td>CAR20199003</td><td>区域城配联盟</td><td>区域城配联盟</td><td>浙江省/杭州市/余杭区</td><td>文一西路969号</td><td>城配共配</td><td>周宁</td><td>186****3300</td><td>2026-04-22 09:15:40</td><td>浙江</td><td>对私 / 周结</td><td>—</td><td>线下</td><td>未进件</td><td><span class="status inactive">冻结</span></td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr></tbody></table></div><div id="pagination-container"></div></section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script src="../js/mdm-subject-pagemanager.js"></script>
+    <script src="../js/mdm-unified-onboarding-ui.js"></script>
+    <script src="../js/mdm-erp-lists.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        MdmErpLists.initArchiveCarrier();
+    });
+    </script>
+</body>
+</html>

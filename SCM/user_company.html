@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 用户-货主</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .modal-form-group label {
+            width: 110px;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+    
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">用户-货主</button>
+            </div>
+            
+            <hr class="content-divider">
+            
+            <div class="content-title">权限管理 / 用户-货主</div>
+            
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group">
+                        <label>用户编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchUserCode" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>货主:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchCompany" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchCompanyDropdown">
+                                <div class="select-option" data-value="Y001">Y001-南京货主</div>
+                                <div class="select-option" data-value="Y002">Y002-北京货主</div>
+                                <div class="select-option" data-value="Y003">Y003-上海货主</div>
+                                <div class="select-option" data-value="Y004">Y004-广州货主</div>
+                                <div class="select-option" data-value="Y005">Y005-深圳货主</div>
+                                <div class="select-option" data-value="Y006">Y006-杭州货主</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>是否启用:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchIsEnabled" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchIsEnabledDropdown">
+                                <div class="select-option" data-value="yes">启用</div>
+                                <div class="select-option" data-value="no">禁用</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="location.reload()">查询</button>
+                        <button type="button" class="btn btn-secondary" id="addBtn">新增</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>用户编码</th>
+                                <th>货主</th>
+                                <th>是否启用</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>U001</td>
+                                <td>Y001-南京货主</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>U002</td>
+                                <td>Y002-北京货主</td>
+                                <td><span class="status inactive">禁用</span></td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页组件容器 -->
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 引入公共脚本 -->
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '用户-货主',
+                statusColumnIndex: 3,
+                detailView: { enabled: true },
+                
+                customSelects: [
+                    { inputId: 'searchCompany', dropdownId: 'searchCompanyDropdown' },
+                    { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' }
+                ],
+                
+                fields: [
+                    { id: 'userCode', label: '用户编码', type: 'text', required: true, editDisabled: true },
+                    { id: 'company', label: '货主', type: 'select', required: true, options: CommonOptions.company },
+                    { id: 'isEnabled', label: '是否启用', type: 'select', required: true, options: CommonOptions.isEnabled },
+                    { id: 'remark', label: '备注', type: 'textarea', labelWidth: '110px' }
+                ],
+                
+                addModal: {
+                    modalId: 'addUserCompanyModal',
+                    saveBtnId: 'saveUserCompanyBtn',
+                    cancelBtnId: 'cancelUserCompanyBtn',
+                    triggerBtnId: 'addBtn',
+                    defaults: { isEnabled: '启用' },
+                    validations: [
+                        { id: 'userCode', message: '请输入用户编码', required: true },
+                        { id: 'company', message: '请选择货主', required: true },
+                        { id: 'isEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        const userCode = document.getElementById('userCode').value.trim();
+                        const company = document.getElementById('company').value.trim();
+                        const enabled = document.getElementById('isEnabled').value.trim();
+                        
+                        page.addTableRow({
+                            cells: [
+                                userCode,
+                                company,
+                                { value: enabled, isStatus: true },
+                                page.getCurrentTimeStr(),
+                                '当前用户'
+                            ]
+                        });
+                        showToast('用户-货主信息已保存', 'success');
+                    }
+                },
+                
+                editModal: {
+                    modalId: 'editUserCompanyModal',
+                    saveBtnId: 'editSaveUserCompanyBtn',
+                    cancelBtnId: 'editCancelUserCompanyBtn',
+                    validations: [
+                        { id: 'editCompany', message: '请选择货主', required: true },
+                        { id: 'editIsEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        if (!page.currentEditRow) return;
+                        page.updateTableRow(page.currentEditRow, {
+                            2: document.getElementById('editCompany').value.trim(),
+                            3: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
+                            4: page.getCurrentTimeStr(),
+                            5: '当前用户'
+                        });
+                        showToast('用户-货主信息已更新', 'success');
+                        page.currentEditRow = null;
+                    },
+                    mapRowToForm: (row) => {
+                        page.currentEditRow = row;
+                        const cells = row.querySelectorAll('td');
+                        return {
+                            editUserCode: cells[1].textContent,
+                            editCompany: cells[2].textContent,
+                            editIsEnabled: cells[3].querySelector('.status').textContent
+                        };
+                    }
+                },
+                
+                deleteModal: {}
+            });
+            
+            page.init();
+        });
+    </script>
+</body>
+</html>

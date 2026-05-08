@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 容器型号管理</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+    <!-- 侧边栏容器 -->
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+
+    <!-- 顶部导航栏容器 -->
+    <div id="header-container"></div>
+    
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">容器型号</button>
+            </div>
+            
+            <hr class="content-divider">
+            
+            <div class="content-title">基础信息 / 容器型号</div>
+            
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group">
+                        <label>容器型号编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>容器型号名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>容器类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchLpnType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchLpnTypeDropdown">
+                                <div class="select-option" data-value="carton">纸箱</div>
+                                <div class="select-option" data-value="box">周转箱</div>
+                                <div class="select-option" data-value="pallet">托盘</div>
+                                <div class="select-option" data-value="cart">笼车</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>是否启用:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchIsEnabled" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchIsEnabledDropdown">
+                                <div class="select-option" data-value="yes">启用</div>
+                                <div class="select-option" data-value="no">禁用</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="location.reload()">查询</button>
+                        <button type="button" class="btn btn-secondary" id="addBtn">新增</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>容器型号编码</th>
+                                <th>容器型号名称</th>
+                                <th>容器类型</th>
+                                <th>承载重量</th>
+                                <th>承载体积</th>
+                                <th>长(CM)</th>
+                                <th>宽(CM)</th>
+                                <th>高(CM)</th>
+                                <th>体积(m³)</th>
+                                <th>重量(KG)</th>
+                                <th>是否启用</th>
+                                <th>更新时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>PT001</td>
+                                <td>标准纸箱</td>
+                                <td>纸箱</td>
+                                <td>10</td>
+                                <td>0.1</td>
+                                <td>50</td>
+                                <td>40</td>
+                                <td>30</td>
+                                <td>0.06</td>
+                                <td>0.5</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>PT002</td>
+                                <td>塑料周转箱</td>
+                                <td>周转箱</td>
+                                <td>20</td>
+                                <td>0.2</td>
+                                <td>60</td>
+                                <td>50</td>
+                                <td>40</td>
+                                <td>0.12</td>
+                                <td>1.0</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页组件容器 -->
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 引入公共脚本 -->
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        // 使用PageManager简化页面逻辑
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '容器型号',
+                statusColumnIndex: 11,
+                detailView: { enabled: true },
+                
+                // 搜索区域下拉框
+                customSelects: [
+                    { inputId: 'searchLpnType', dropdownId: 'searchLpnTypeDropdown' },
+                    { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' }
+                ],
+                
+                // 字段定义 - 自动生成新增/编辑模态框
+                fields: [
+                    { id: 'modelCode', label: '容器型号编码', type: 'text', required: true, editDisabled: true },
+                    { id: 'modelName', label: '容器型号名称', type: 'text', required: true, editDisabled: true },
+                    { id: 'lpnType', label: '容器类型', type: 'select', required: true, options: CommonOptions.lpnType },
+                    { id: 'maxWeight', label: '承载重量', type: 'text' },
+                    { id: 'maxVolume', label: '承载体积', type: 'text' },
+                    { id: 'length', label: '长(CM)', type: 'text' },
+                    { id: 'width', label: '宽(CM)', type: 'text' },
+                    { id: 'height', label: '高(CM)', type: 'text' },
+                    { id: 'volume', label: '体积(m³)', type: 'text', disabled: true },
+                    { id: 'weight', label: '重量(KG)', type: 'text' },
+                    { id: 'isEnabled', label: '是否启用', type: 'select', required: true, options: CommonOptions.isEnabled },
+                    { id: 'remark', label: '备注', type: 'textarea', labelWidth: '80px' }
+                ],
+                
+                addModal: {
+                    modalId: 'addModelModal',
+                    saveBtnId: 'addModelSaveBtn',
+                    cancelBtnId: 'addModelCancelBtn',
+                    triggerBtnId: 'addBtn',
+                    defaults: { isEnabled: '启用' },
+                    validations: [
+                        { id: 'modelCode', message: '请输入容器型号编码', required: true },
+                        { id: 'modelName', message: '请输入容器型号名称', required: true },
+                        { id: 'lpnType', message: '请选择容器类型', required: true }
+                    ],
+                    onSave: () => {
+                        const code = document.getElementById('modelCode').value.trim();
+                        const name = document.getElementById('modelName').value.trim();
+                        const type = document.getElementById('lpnType').value.trim();
+                        const maxWeight = document.getElementById('maxWeight').value.trim();
+                        const maxVolume = document.getElementById('maxVolume').value.trim();
+                        const length = document.getElementById('length').value.trim();
+                        const width = document.getElementById('width').value.trim();
+                        const height = document.getElementById('height').value.trim();
+                        const volume = document.getElementById('volume').value.trim();
+                        const weight = document.getElementById('weight').value.trim();
+                        const enabled = document.getElementById('isEnabled').value.trim();
+                        
+                        page.addTableRow({
+                            cells: [
+                                code,
+                                name,
+                                type === 'carton' ? '纸箱' : type === 'box' ? '周转箱' : type === 'pallet' ? '托盘' : '笼车',
+                                maxWeight || '-',
+                                maxVolume || '-',
+                                length || '-',
+                                width || '-',
+                                height || '-',
+                                volume || '-',
+                                weight || '-',
+                                { value: enabled, isStatus: true },
+                                page.getCurrentTimeStr()
+                            ]
+                        });
+                        showToast('容器型号信息已保存', 'success');
+                    }
+                },
+                
+                editModal: {
+                    modalId: 'editModelModal',
+                    saveBtnId: 'editModelSaveBtn',
+                    cancelBtnId: 'editModelCancelBtn',
+                    validations: [
+                        { id: 'editModelName', message: '请输入容器型号名称', required: true },
+                        { id: 'editLpnType', message: '请选择容器类型', required: true },
+                        { id: 'editIsEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        if (!page.currentEditRow) return;
+                        
+                        const name = document.getElementById('editModelName').value.trim();
+                        const type = document.getElementById('editLpnType').value.trim();
+                        const maxWeight = document.getElementById('editMaxWeight').value.trim();
+                        const maxVolume = document.getElementById('editMaxVolume').value.trim();
+                        const length = document.getElementById('editLength').value.trim();
+                        const width = document.getElementById('editWidth').value.trim();
+                        const height = document.getElementById('editHeight').value.trim();
+                        const volume = document.getElementById('editVolume').value.trim();
+                        const weight = document.getElementById('editWeight').value.trim();
+                        const enabled = document.getElementById('editIsEnabled').value.trim();
+                        
+                        page.updateTableRow(page.currentEditRow, {
+                            1: document.getElementById('editModelCode').value.trim(),
+                            2: name,
+                            3: type === 'carton' ? '纸箱' : type === 'box' ? '周转箱' : type === 'pallet' ? '托盘' : '笼车',
+                            4: maxWeight || '-',
+                            5: maxVolume || '-',
+                            6: length || '-',
+                            7: width || '-',
+                            8: height || '-',
+                            9: volume || '-',
+                            10: weight || '-',
+                            11: { value: enabled, isStatus: true },
+                            12: page.getCurrentTimeStr()
+                        });
+                        showToast('容器型号信息已更新', 'success');
+                        page.currentEditRow = null;
+                    },
+                    mapRowToForm: (row) => {
+                        page.currentEditRow = row;
+                        const cells = row.querySelectorAll('td');
+                        const typeText = cells[3].textContent;
+                        const typeValue = typeText === '纸箱' ? 'carton' : typeText === '周转箱' ? 'box' : typeText === '托盘' ? 'pallet' : 'cart';
+                        
+                        return {
+                            editModelCode: cells[1].textContent,
+                            editModelName: cells[2].textContent,
+                            editLpnType: typeValue,
+                            editMaxWeight: cells[4].textContent === '-' ? '' : cells[4].textContent,
+                            editMaxVolume: cells[5].textContent === '-' ? '' : cells[5].textContent,
+                            editLength: cells[6].textContent === '-' ? '' : cells[6].textContent,
+                            editWidth: cells[7].textContent === '-' ? '' : cells[7].textContent,
+                            editHeight: cells[8].textContent === '-' ? '' : cells[8].textContent,
+                            editVolume: cells[9].textContent === '-' ? '' : cells[9].textContent,
+                            editWeight: cells[10].textContent === '-' ? '' : cells[10].textContent,
+                            editIsEnabled: cells[11].querySelector('.status').textContent
+                        };
+                    }
+                },
+                
+                deleteModal: {}
+            });
+            
+            page.init();
+            
+            // 体积自动计算 - 新增模态框
+            const lengthInput = document.getElementById('length');
+            const widthInput = document.getElementById('width');
+            const heightInput = document.getElementById('height');
+            const volumeInput = document.getElementById('volume');
+            
+            if (lengthInput && widthInput && heightInput && volumeInput) {
+                const calculateVolume = () => {
+                    const length = parseFloat(lengthInput.value);
+                    const width = parseFloat(widthInput.value);
+                    const height = parseFloat(heightInput.value);
+                    
+                    if (!isNaN(length) && !isNaN(width) && !isNaN(height)) {
+                        const volume = (length * width * height) / 1000000;
+                        volumeInput.value = volume.toFixed(4);
+                    } else {
+                        volumeInput.value = '';
+                    }
+                };
+                
+                lengthInput.addEventListener('input', calculateVolume);
+                widthInput.addEventListener('input', calculateVolume);
+                heightInput.addEventListener('input', calculateVolume);
+            }
+            
+            // 体积自动计算 - 编辑模态框
+            const editLengthInput = document.getElementById('editLength');
+            const editWidthInput = document.getElementById('editWidth');
+            const editHeightInput = document.getElementById('editHeight');
+            const editVolumeInput = document.getElementById('editVolume');
+            
+            if (editLengthInput && editWidthInput && editHeightInput && editVolumeInput) {
+                const calculateEditVolume = () => {
+                    const length = parseFloat(editLengthInput.value);
+                    const width = parseFloat(editWidthInput.value);
+                    const height = parseFloat(editHeightInput.value);
+                    
+                    if (!isNaN(length) && !isNaN(width) && !isNaN(height)) {
+                        const volume = (length * width * height) / 1000000;
+                        editVolumeInput.value = volume.toFixed(4);
+                    } else {
+                        editVolumeInput.value = '';
+                    }
+                };
+                
+                editLengthInput.addEventListener('input', calculateEditVolume);
+                editWidthInput.addEventListener('input', calculateEditVolume);
+                editHeightInput.addEventListener('input', calculateEditVolume);
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - C端会员</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <style>
+        .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
+        .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
+        .flow-box { margin: 14px 0; padding: 12px 14px; background: #fafafa; border: 1px solid #eee; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.65; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">C端会员</button></div>
+            <hr class="content-divider">
+            <div class="content-title">基础数据中心 / 会员中心 / C端会员列表</div>
+
+<section class="search-section"><form class="search-form">
+<div class="form-group"><label>会员ID:</label><div class="input-wrapper"><input id="qMemberId"><span class="clear-btn">×</span></div></div>
+<div class="form-group"><label>绑定方式:</label><select id="qBindWay"><option value="">全部</option><option value="微信">微信</option><option value="手机">手机</option><option value="隐私">隐私</option></select></div>
+<div class="form-group"><label>手机号码:</label><div class="input-wrapper"><input id="qPhone"></div></div>
+<div class="form-actions"><button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button><button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button></div>
+</form></section>
+<section class="table-section"><div class="table-scroll-container"><table class="table"><thead><tr><th>会员ID</th><th>会员昵称</th><th>会员头像</th><th>手机号码</th><th>性别</th><th>是否会员</th><th>会员标签</th><th>会员来源</th><th>绑定方式</th><th>绑定渠道数量</th><th>会员积分</th><th>满意度时长(分)</th><th>满意度反馈次数(建议)</th><th>会员成长分</th><th>成交金额</th><th>成交订单数</th><th>最近消费时间</th><th>状态</th><th>操作</th></tr></thead><tbody id="tableBody"><tr><td>U10001</td><td>小程序用户A</td><td><span style="display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;background:#e3f2fd;">程</span></td><td>138****2211</td><td>女</td><td>是</td><td>高活跃</td><td>微信小程序</td><td>微信</td><td>2</td><td>12580</td><td>128</td><td>3</td><td>860</td><td>3688.00</td><td>12</td><td>2026-04-25 14:20:03</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a>　<a href="#" class="mdm-mem-coupon">优惠券</a>　<a href="#" class="mdm-mem-points">积分</a></td></tr><tr><td>U10002</td><td>APP会员B</td><td><span style="display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;background:#e3f2fd;">B</span></td><td>139****9033</td><td>男</td><td>是</td><td>储值</td><td>APP</td><td>手机</td><td>1</td><td>5320</td><td>45</td><td>1</td><td>420</td><td>1299.50</td><td>5</td><td>2026-04-22 09:15:44</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a>　<a href="#" class="mdm-mem-coupon">优惠券</a>　<a href="#" class="mdm-mem-points">积分</a></td></tr><tr><td>U10003</td><td>访客C</td><td><span style="display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;background:#e3f2fd;">访</span></td><td>—</td><td>未知</td><td>否</td><td>—</td><td>微信小程序</td><td>隐私</td><td>0</td><td>0</td><td>0</td><td>0</td><td>10</td><td>0.00</td><td>0</td><td>—</td><td><span class="status inactive">冻结</span></td><td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a>　<a href="#" class="mdm-mem-coupon">优惠券</a>　<a href="#" class="mdm-mem-points">积分</a></td></tr><tr><td>U10004</td><td>演示会员4</td><td><span style="display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;background:#e3f2fd;">4</span></td><td>137****1004</td><td>男</td><td>是</td><td>复购</td><td>APP</td><td>微信</td><td>3</td><td>3280</td><td>44</td><td>4</td><td>180</td><td>798.00</td><td>6</td><td>2026-04-20 14:11:03</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a>　<a href="#" class="mdm-mem-coupon">优惠券</a>　<a href="#" class="mdm-mem-points">积分</a></td></tr><tr><td>U10005</td><td>演示会员5</td><td><span style="display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;background:#e3f2fd;">5</span></td><td>137****1005</td><td>女</td><td>否</td><td>新客</td><td>微信小程序</td><td>手机</td><td>2</td><td>820</td><td>22</td><td>2</td><td>320</td><td>399.00</td><td>4</td><td>2026-04-19 09:03:51</td><td><span class="status inactive">冻结</span></td><td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a>　<a href="#" class="mdm-mem-coupon">优惠券</a>　<a href="#" class="mdm-mem-points">积分</a></td></tr></tbody></table></div><div id="pagination-container"></div></section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script src="../js/mdm-subject-pagemanager.js"></script>
+    <script src="../js/mdm-unified-onboarding-ui.js"></script>
+    <script src="../js/mdm-member-c-ui.js"></script>
+    <script src="../js/mdm-erp-lists.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        MdmErpLists.initMemberC();
+    });
+    </script>
+</body>
+</html>

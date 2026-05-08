@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 任务引擎</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .modal-form-group label {
+            width: 140px;
+        }
+        /* 统一查询区域label宽度，使间距对齐 */
+        .search-form .form-group > label {
+            width: 100px;
+        }
+        .section-divider {
+            width: 100%;
+            height: 1px;
+            background-color: #eee;
+            margin: 15px 0;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+    
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">任务引擎</button>
+            </div>
+            
+            <hr class="content-divider">
+            
+            <div class="content-title">策略管理 / 任务引擎</div>
+            
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group custom-select-wrapper">
+                        <label>货主:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchCompany" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchCompanyDropdown">
+                                <div class="select-option" data-value="C001">货主A</div>
+                                <div class="select-option" data-value="C002">货主B</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>任务引擎编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>任务引擎名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>任务来源:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchTaskSource" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchTaskSourceDropdown">
+                                <div class="select-option" data-value="inbound">入库</div>
+                                <div class="select-option" data-value="outbound">出库</div>
+                                <div class="select-option" data-value="inventory">盘点</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>任务来源类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchTaskSourceType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchTaskSourceTypeDropdown">
+                                <div class="select-option" data-value="purchase">采购入库</div>
+                                <div class="select-option" data-value="return">退货入库</div>
+                                <div class="select-option" data-value="transfer">调拨入库</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>任务类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchTaskType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchTaskTypeDropdown">
+                                <div class="select-option" data-value="qc">质检任务</div>
+                                <div class="select-option" data-value="putaway">上架任务</div>
+                                <div class="select-option" data-value="picking">拣货任务</div>
+                                <div class="select-option" data-value="inventory">盘点任务</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>是否启用:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchIsEnabled" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchIsEnabledDropdown">
+                                <div class="select-option" data-value="yes">启用</div>
+                                <div class="select-option" data-value="no">禁用</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="location.reload()">查询</button>
+                        <button type="button" class="btn btn-secondary" id="addBtn">新增</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>任务引擎编码</th>
+                                <th>任务引擎名称</th>
+                                <th>仓库</th>
+                                <th>货主</th>
+                                <th>任务来源</th>
+                                <th>任务来源类型</th>
+                                <th>任务来源业务类型</th>
+                                <th>来源储位类型</th>
+                                <th>优先级</th>
+                                <th>任务类型</th>
+                                <th>是否启用</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>TE001</td>
+                                <td>入库质检任务</td>
+                                <td>南京仓</td>
+                                <td>货主A</td>
+                                <td>入库</td>
+                                <td>采购入库</td>
+                                <td>直送仓库</td>
+                                <td>收货位</td>
+                                <td>高</td>
+                                <td>质检任务</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>TE002</td>
+                                <td>出库拣货任务</td>
+                                <td>嘉兴仓</td>
+                                <td>货主B</td>
+                                <td>出库</td>
+                                <td>调拨入库</td>
+                                <td>仓库调拨</td>
+                                <td>拣选位</td>
+                                <td>中</td>
+                                <td>拣货任务</td>
+                                <td><span class="status inactive">禁用</span></td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>张三</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const priorityOptions = [
+                { value: 'high', text: '高' },
+                { value: 'medium', text: '中' },
+                { value: 'low', text: '低' }
+            ];
+            
+            const taskSourceOptions = [
+                { value: 'inbound', text: '入库' },
+                { value: 'outbound', text: '出库' },
+                { value: 'inventory', text: '盘点' },
+            ];
+            
+            const taskSourceTypeOptions = [
+                { value: 'purchase', text: '采购入库' },
+                { value: 'return', text: '退货入库' },
+                { value: 'transfer', text: '调拨入库' }
+            ];
+            
+            const taskSourceBizTypeOptions = [
+                { value: 'direct', text: '直送仓库' },
+                { value: 'storeReturn', text: '门店退货' },
+                { value: 'warehouseTransfer', text: '仓库调拨' }
+            ];
+            
+            const locationTypeOptions = [
+                { value: 'picking', text: '拣选位' },
+                { value: 'storage', text: '存储位' },
+                { value: 'staging', text: '暂存位' },
+                { value: 'receiving', text: '收货位' },
+                { value: 'shipping', text: '发货位' },
+                { value: 'crossdock', text: '越库位' },
+                { value: 'distribution', text: '集散位' },
+                { value: 'packing', text: '打包位' },
+                { value: 'exception', text: '异常位' },
+                { value: 'pending', text: '待处理位' },
+                { value: 'return', text: '退货位' }
+            ];
+            
+            const isEnabledOptions = [
+                { value: '启用', text: '启用' },
+                { value: '禁用', text: '禁用' }
+            ];
+            
+            const warehouseOptions = [
+                { value: 'W001', text: '南京仓' },
+                { value: 'W002', text: '嘉兴仓' },
+                { value: 'W003', text: '上海仓' }
+            ];
+            
+            const companyOptions = [
+                { value: 'C001', text: '货主A' },
+                { value: 'C002', text: '货主B' }
+            ];
+            
+            const taskTypeOptions = [
+                { value: 'qc', text: '质检任务' },
+                { value: 'putaway', text: '上架任务' },
+                { value: 'picking', text: '拣货任务' },
+                { value: 'inventory', text: '盘点任务' }
+            ];
+            
+            const fetchOptions = [
+                { value: 'sourceOrder', text: '来源单号' },
+                { value: 'sku', text: '商品' },
+                { value: 'sourceLocation', text: '来源储位' },
+                { value: 'targetLocation', text: '目的储位' }
+            ];
+            
+            const yesNoOptions = [
+                { value: 'yes', text: '是' },
+                { value: 'no', text: '否' }
+            ];
+            
+            const targetLocationRuleOptions = [
+                { value: 'source', text: '来源储位' },
+                { value: 'specified', text: '指定储位' }
+            ];
+            
+            const locationOptions = [
+                { value: 'L001', text: '储位A' },
+                { value: 'L002', text: '储位B' }
+            ];
+            
+            const mergeParamOptions = [
+                { value: 'detailId', text: '调用明细ID' },
+                { value: 'productionDate', text: '生产日期' },
+                { value: 'inboundDate', text: '入库日期' },
+                { value: 'batchNo', text: '批号' },
+                { value: 'skuCode', text: '商品编码' }
+            ];
+            
+            const dividerHtml = `<div class="section-divider"></div>`;
+            const detailSectionTitleHtml = `<div class="section-title">任务引擎明细</div>`;
+            
+            const page = new PageManager({
+                entityName: '任务引擎',
+                statusColumnIndex: 11,
+                detailView: { enabled: true },
+                
+                customSelects: [
+                    { inputId: 'searchCompany', dropdownId: 'searchCompanyDropdown' },
+                    { inputId: 'searchTaskSource', dropdownId: 'searchTaskSourceDropdown' },
+                    { inputId: 'searchTaskSourceType', dropdownId: 'searchTaskSourceTypeDropdown' },
+                    { inputId: 'searchTaskType', dropdownId: 'searchTaskTypeDropdown' },
+                    { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' }
+                ],
+                
+                fields: [
+                    { id: 'warehouse', label: '仓库', type: 'select', required: true, options: warehouseOptions, disabled: true },
+                    { id: 'company', label: '货主', type: 'select', required: true, options: companyOptions, editDisabled: true },
+                    { id: 'engineCode', label: '任务引擎编码', type: 'text', required: true, editDisabled: true },
+                    { id: 'engineName', label: '任务引擎名称', type: 'text', required: true, editDisabled: true },
+                    { id: 'priority', label: '优先级', type: 'select', required: true, options: priorityOptions },
+                    { id: 'taskSource', label: '任务来源', type: 'select', required: true, options: taskSourceOptions },
+                    { id: 'taskSourceType', label: '任务来源类型', type: 'select', required: true, options: taskSourceTypeOptions },
+                    { id: 'taskSourceBizType', label: '任务来源业务类型', type: 'select', required: true, options: taskSourceBizTypeOptions },
+                    { id: 'sourceLocationType', label: '来源储位类型', type: 'select', required: true, options: locationTypeOptions },
+                    { id: 'isEnabled', label: '是否启用', type: 'select', required: true, options: isEnabledOptions },
+                    { id: 'divider1', label: '', type: 'raw', html: dividerHtml, editHtml: dividerHtml },
+                    { id: 'detailTaskType', label: '任务类型', type: 'select', required: true, options: taskTypeOptions },
+                    { id: 'detailFetch1', label: '取用名1', type: 'select', required: true, options: fetchOptions },
+                    { id: 'detailFetch2', label: '取用名2', type: 'select', required: false, options: fetchOptions },
+                    { id: 'detailFetch3', label: '取用名3', type: 'select', required: false, options: fetchOptions },
+                    { id: 'detailFetch4', label: '取用名4', type: 'select', required: false, options: fetchOptions },
+                    { id: 'detailFetch5', label: '取用名5', type: 'select', required: false, options: fetchOptions },
+                    { id: 'detailGroup1', label: '分组名1', type: 'select', required: true, options: fetchOptions },
+                    { id: 'detailGroup2', label: '分组名2', type: 'select', required: false, options: fetchOptions },
+                    { id: 'detailGroup3', label: '分组名3', type: 'select', required: false, options: fetchOptions },
+                    { id: 'detailGroup4', label: '分组名4', type: 'select', required: false, options: fetchOptions },
+                    { id: 'detailGroup5', label: '分组名5', type: 'select', required: false, options: fetchOptions },
+                    { id: 'detailMergeParam1', label: '合并入参1', type: 'select', required: false, options: mergeParamOptions },
+                    { id: 'detailMergeParam2', label: '合并入参2', type: 'select', required: false, options: mergeParamOptions },
+                    { id: 'detailMergeParam3', label: '合并入参3', type: 'select', required: false, options: mergeParamOptions },
+                    { id: 'detailMergeParam4', label: '合并入参4', type: 'select', required: false, options: mergeParamOptions },
+                    { id: 'detailMergeParam5', label: '合并入参5', type: 'select', required: false, options: mergeParamOptions },
+                    { id: 'detailAutoRelease', label: '自动释放', type: 'select', required: true, options: yesNoOptions },
+                    { id: 'detailTargetLocationRule', label: '目的储位规则', type: 'select', required: true, options: targetLocationRuleOptions },
+                    { id: 'detailSpecifiedLocation', label: '指定目的储位', type: 'select', required: false, options: locationOptions },
+                    { id: 'detailMaxTaskCount', label: '任务组最大数量', type: 'number', required: false },
+                    { id: 'detailScanLocation', label: '是否扫储位', type: 'select', required: true, options: yesNoOptions },
+                    { id: 'detailScanSku', label: '是否扫商品', type: 'select', required: true, options: yesNoOptions }
+                ],
+                
+                addModal: {
+                    modalId: 'addTaskEngineModal',
+                    saveBtnId: 'saveTaskEngineBtn',
+                    cancelBtnId: 'cancelTaskEngineBtn',
+                    triggerBtnId: null,
+                    defaults: { isEnabled: '启用' },
+                    validations: [
+                        { id: 'warehouse', message: '请选择仓库', required: true },
+                        { id: 'company', message: '请选择货主', required: true },
+                        { id: 'engineCode', message: '请输入任务引擎编码', required: true },
+                        { id: 'engineName', message: '请输入任务引擎名称', required: true },
+                        { id: 'priority', message: '请选择优先级', required: true },
+                        { id: 'taskSource', message: '请选择任务来源', required: true },
+                        { id: 'taskSourceType', message: '请选择任务来源类型', required: true },
+                        { id: 'taskSourceBizType', message: '请选择任务来源业务类型', required: true },
+                        { id: 'sourceLocationType', message: '请选择来源储位类型', required: true },
+                        { id: 'isEnabled', message: '请选择是否启用', required: true },
+                        { id: 'detailTaskType', message: '请选择任务类型', required: true },
+                        { id: 'detailFetch1', message: '请选择取用名1', required: true },
+                        { id: 'detailGroup1', message: '请选择分组名1', required: true },
+                        { id: 'detailAutoRelease', message: '请选择自动释放', required: true },
+                        { id: 'detailTargetLocationRule', message: '请选择目的储位规则', required: true },
+                        { id: 'detailScanLocation', message: '请选择是否扫储位', required: true },
+                        { id: 'detailScanSku', message: '请选择是否扫商品', required: true }
+                    ],
+                    onOpen: () => {
+                        const currentWarehouse = getCurrentWarehouse();
+                        const warehouseInput = document.getElementById('warehouse');
+                        if (!warehouseInput) return;
+                        if (currentWarehouse) {
+                            warehouseInput.value = `${currentWarehouse.code}-${currentWarehouse.name}`;
+                            warehouseInput.dataset.value = currentWarehouse.code;
+                        } else {
+                            warehouseInput.value = '';
+                            warehouseInput.dataset.value = '';
+                        }
+                    },
+                    onSave: () => {
+                        const warehouse = document.getElementById('warehouse').value.trim();
+                        const company = document.getElementById('company').value.trim();
+                        const engineCode = document.getElementById('engineCode').value.trim();
+                        const engineName = document.getElementById('engineName').value.trim();
+                        const priority = document.getElementById('priority').value.trim();
+                        const taskSource = document.getElementById('taskSource').value.trim();
+                        const taskSourceType = document.getElementById('taskSourceType').value.trim();
+                        const taskSourceBizType = document.getElementById('taskSourceBizType').value.trim();
+                        const sourceLocationType = document.getElementById('sourceLocationType').value.trim();
+                        const isEnabled = document.getElementById('isEnabled').value.trim();
+                        
+                        page.addTableRow({
+                            cells: [
+                                engineCode,
+                                engineName,
+                                warehouse,
+                                company,
+                                taskSource,
+                                taskSourceType,
+                                taskSourceBizType,
+                                sourceLocationType,
+                                priority,
+                                '质检任务',
+                                { value: isEnabled, isStatus: true },
+                                page.getCurrentTimeStr(),
+                                '当前用户'
+                            ]
+                        });
+                        showToast('任务引擎信息已保存', 'success');
+                    }
+                },
+                
+                editModal: {
+                    modalId: 'editTaskEngineModal',
+                    saveBtnId: 'editSaveTaskEngineBtn',
+                    cancelBtnId: 'editCancelTaskEngineBtn',
+                    validations: [
+                        { id: 'editWarehouse', message: '请选择仓库', required: true },
+                        { id: 'editCompany', message: '请选择货主', required: true },
+                        { id: 'editEngineName', message: '请输入任务引擎名称', required: true },
+                        { id: 'editPriority', message: '请选择优先级', required: true },
+                        { id: 'editTaskSource', message: '请选择任务来源', required: true },
+                        { id: 'editTaskSourceType', message: '请选择任务来源类型', required: true },
+                        { id: 'editTaskSourceBizType', message: '请选择任务来源业务类型', required: true },
+                        { id: 'editSourceLocationType', message: '请选择来源储位类型', required: true },
+                        { id: 'editIsEnabled', message: '请选择是否启用', required: true },
+                        { id: 'editDetailTaskType', message: '请选择任务类型', required: true },
+                        { id: 'editDetailFetch1', message: '请选择取用名1', required: true },
+                        { id: 'editDetailGroup1', message: '请选择分组名1', required: true },
+                        { id: 'editDetailAutoRelease', message: '请选择自动释放', required: true },
+                        { id: 'editDetailTargetLocationRule', message: '请选择目的储位规则', required: true },
+                        { id: 'editDetailScanLocation', message: '请选择是否扫储位', required: true },
+                        { id: 'editDetailScanSku', message: '请选择是否扫商品', required: true }
+                    ],
+                    onSave: () => {
+                        if (!page.currentEditRow) return;
+                        page.updateTableRow(page.currentEditRow, {
+                            2: document.getElementById('editEngineName').value.trim(),
+                            3: document.getElementById('editWarehouse').value.trim(),
+                            4: document.getElementById('editCompany').value.trim(),
+                            5: document.getElementById('editTaskSource').value.trim(),
+                            6: document.getElementById('editTaskSourceType').value.trim(),
+                            7: document.getElementById('editTaskSourceBizType').value.trim(),
+                            8: document.getElementById('editSourceLocationType').value.trim(),
+                            9: document.getElementById('editPriority').value.trim(),
+                            11: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
+                            12: page.getCurrentTimeStr(),
+                            13: '当前用户'
+                        });
+                        showToast('任务引擎信息已更新', 'success');
+                        page.currentEditRow = null;
+                    },
+                    mapRowToForm: (row) => {
+                        page.currentEditRow = row;
+                        const cells = row.querySelectorAll('td');
+                        return {
+                            editEngineCode: cells[1].textContent,
+                            editEngineName: cells[2].textContent,
+                            editWarehouse: cells[3].textContent,
+                            editCompany: cells[4].textContent,
+                            editTaskSource: cells[5].textContent,
+                            editTaskSourceType: cells[6].textContent,
+                            editTaskSourceBizType: cells[7].textContent,
+                            editSourceLocationType: cells[8].textContent,
+                            editPriority: cells[9].textContent,
+                            editIsEnabled: cells[11].querySelector('.status').textContent
+                        };
+                    }
+                },
+                
+                deleteModal: {}
+            });
+            
+            page.init();
+
+            // 新增时设置当前仓库
+            document.getElementById('addBtn').addEventListener('click', () => {
+                page.openModal('add', {
+                    defaults: { isEnabled: '启用' }
+                });
+            });
+
+            // 监听仓库切换，保持新增/编辑弹窗字段同步
+            document.addEventListener('warehouseChange', (e) => {
+                const { code, name } = e.detail;
+                const warehouseInput = document.getElementById('warehouse');
+                if (warehouseInput) {
+                    warehouseInput.value = `${code}-${name}`;
+                    warehouseInput.dataset.value = code;
+                }
+                const editWarehouseInput = document.getElementById('editWarehouse');
+                if (editWarehouseInput) {
+                    editWarehouseInput.value = `${code}-${name}`;
+                    editWarehouseInput.dataset.value = code;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

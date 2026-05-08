@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 供应商档案</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <style>
+        .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
+        .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
+        .flow-box { margin: 14px 0; padding: 12px 14px; background: #fafafa; border: 1px solid #eee; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.65; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">供应商档案</button></div>
+            <hr class="content-divider">
+            <div class="content-title">基础数据中心 / 资源中心 / 供应商档案</div>
+
+<section class="search-section"><form class="search-form">
+<div class="form-group"><label>主体名称:</label><div class="input-wrapper"><input id="qSubjectName" type="text"><span class="clear-btn">×</span></div></div>
+<div class="form-group"><label>供应商名称:</label><div class="input-wrapper"><input id="qResourceName" type="text"><span class="clear-btn">×</span></div></div>
+<div class="form-group"><label>供应商状态:</label><select id="qResStatus" style="height:36px;border:1px solid #ddd;border-radius:3px;"><option value="">全部</option><option value="normal">正常</option><option value="frozen">冻结</option></select></div>
+<div class="form-actions"><button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button><button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button><button type="button" id="mdmArchiveSupAddBtn" class="btn btn-secondary">+ 新增供应商</button></div>
+</form></section>
+<section class="table-section"><div class="table-scroll-container"><table class="table"><thead><tr><th>供应商ID</th><th>主体名称</th><th>供应商名称</th><th>供应商地址</th><th>供应商详细地址</th><th>供应商类型</th><th>负责人姓名</th><th>手机号码</th><th>创建时间</th><th>供应商商品数量</th><th>结算信息</th><th>可提现手机号</th><th>进件渠道</th><th>进件状态</th><th>供应商状态</th><th>操作</th></tr></thead><tbody id="tableBody"><tr><td>SUP20188301</td><td>小牛供应链</td><td>超管创建仓库042402</td><td>上海市/市辖区/浦东新区</td><td>张江高科园区B座</td><td>品牌商</td><td>王敏</td><td>138****2210</td><td>2026-04-24 18:20:01</td><td>128</td><td>对公 / 月结</td><td>138****2210</td><td>支付宝</td><td>已进件</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr><tr><td>SUP20188302</td><td>小牛供应链</td><td>小牛供应链</td><td>江苏省/苏州市/工业园区</td><td>工业园区星湖街328号</td><td>代理商</td><td>牛强</td><td>159****7788</td><td>2026-04-23 12:11:09</td><td>56</td><td>对私 / 周结</td><td>159****7788</td><td>微信</td><td>进件中</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr><tr><td>SUP20188303</td><td>珠宝集采中心</td><td>珠宝集采中心</td><td>广东省/深圳市/罗湖区</td><td>罗湖区水贝一路</td><td>个人</td><td>钱多多</td><td>—</td><td>2026-04-22 09:45:33</td><td>902</td><td>对公 / T+1</td><td>—</td><td>线下</td><td>未进件</td><td><span class="status inactive">冻结</span></td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr></tbody></table></div><div id="pagination-container"></div></section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script src="../js/mdm-subject-pagemanager.js"></script>
+    <script src="../js/mdm-unified-onboarding-ui.js"></script>
+    <script src="../js/mdm-erp-lists.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        MdmErpLists.initArchiveSupplier();
+    });
+    </script>
+</body>
+</html>

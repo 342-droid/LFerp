@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 入库单</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .modal-form-group label {
+            width: 110px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .status-initial { background-color: #e6f7ff; color: #1890ff; }
+        .status-receiving { background-color: #f6ffed; color: #52c41a; }
+        .status-closed { background-color: #f0f0f0; color: #666; }
+        .status-canceled { background-color: #fff2e8; color: #fa8c16; }
+        
+        /* 入库单号链接样式 */
+        .order-number-link {
+            color: #2196F3;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.2s;
+        }
+        
+        .order-number-link:hover {
+            color: #1976D2;
+            text-decoration: underline;
+        }
+        
+        /* 加载状态样式 */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 16px;
+            color: #666;
+        }
+        
+        /* 模态框表单组样式 */
+        .modal-body .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .modal-body .form-group label {
+            width: 150px;
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .modal-body .form-group span {
+            flex: 1;
+            color: #333;
+        }
+        
+        /* 详情区域样式 */
+        .detail-section {
+            margin-bottom: 30px;
+        }
+        
+        .detail-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+        
+        /* 模态框表单样式 */
+        .modal-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .modal-form-group {
+            width: calc(33.33% - 10px);
+        }
+        
+        .modal-form-group label {
+            width: 90px;
+            display: inline-block;
+            margin-right: 10px;
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .modal-form-group input {
+            width: calc(100% - 100px);
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            outline: none;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+    
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">入库单</button>
+            </div>
+            
+            <hr class="content-divider">
+            
+            <div class="content-title">入库管理 / 入库单</div>
+            
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group">
+                        <label style="width: 120px;">单号:</label>
+                        <input type="text" id="searchOrderNo" placeholder="请输入单号">
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 100px;">货主:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchCompany" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchCompanyDropdown">
+                                <div class="select-option" data-value="Y001">Y001-南京货主</div>
+                                <div class="select-option" data-value="Y002">Y002-北京货主</div>
+                                <div class="select-option" data-value="Y003">Y003-上海货主</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 100px;">来源仓库:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchSourceWarehouse" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchSourceWarehouseDropdown">
+                                <div class="select-option" data-value="W001">W001-南京仓库</div>
+                                <div class="select-option" data-value="W002">W002-北京仓库</div>
+                                <div class="select-option" data-value="W003">W003-上海仓库</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 100px;">入库类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchOrderType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchOrderTypeDropdown">
+                                <div class="select-option" data-value="采购入库">采购入库</div>
+                                <div class="select-option" data-value="仓配入库">仓配入库</div>
+                                <div class="select-option" data-value="返配入库">返配入库</div>
+                                <div class="select-option" data-value="调拨入库">调拨入库</div>
+                                <div class="select-option" data-value="客退入库">客退入库</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 120px;">入库业务类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchBusinessType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchBusinessTypeDropdown">
+                                <div class="select-option" data-value="货到即配">货到即配</div>
+                                <div class="select-option" data-value="仓配入库">仓配入库</div>
+                                <div class="select-option" data-value="门店退货">门店退货</div>
+                                <div class="select-option" data-value="仓库调拨">仓库调拨</div>
+                                <div class="select-option" data-value="直播退货">直播退货</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 100px;">入库状态:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchStatus" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchStatusDropdown">
+                                <div class="select-option" data-value="初始">初始</div>
+                                <div class="select-option" data-value="收货中">收货中</div>
+                                <div class="select-option" data-value="已关闭">已关闭</div>
+                                <div class="select-option" data-value="已取消">已取消</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 100px;">供应商:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchSupplier" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchSupplierDropdown">
+                                <div class="select-option" data-value="S001">S001-南京供应商</div>
+                                <div class="select-option" data-value="S002">S002-上海供应商</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 100px;">承运商:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchCarrier" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchCarrierDropdown">
+                                <div class="select-option" data-value="SF">SF-顺丰</div>
+                                <div class="select-option" data-value="ZTO">ZTO-中通</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex: 0 0 100%; max-width: 100%; display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="width: 80px;">创建时间:</label>
+                            <div class="date-range">
+                                <div class="date-picker">
+                                    <input type="date" id="searchCreateTimeStart" data-type="start" placeholder="开始时间">
+                                </div>
+                                <span class="date-range-separator">至</span>
+                                <div class="date-picker">
+                                    <input type="date" id="searchCreateTimeEnd" data-type="end" placeholder="结束时间">
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="width: 80px;">关单时间:</label>
+                            <div class="date-range">
+                                <div class="date-picker">
+                                    <input type="date" id="searchCloseTimeStart" data-type="start" placeholder="开始时间">
+                                </div>
+                                <span class="date-range-separator">至</span>
+                                <div class="date-picker">
+                                    <input type="date" id="searchCloseTimeEnd" data-type="end" placeholder="结束时间">
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="width: 80px;">下单时间:</label>
+                            <div class="date-range">
+                                <div class="date-picker">
+                                    <input type="date" id="searchOrderTimeStart" data-type="start" placeholder="开始时间">
+                                </div>
+                                <span class="date-range-separator">至</span>
+                                <div class="date-picker">
+                                    <input type="date" id="searchOrderTimeEnd" data-type="end" placeholder="结束时间">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="location.reload()">查询</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>入库单号</th>
+                                <th>来源单号</th>
+                                <th>关联单号</th>
+                                <th>仓库</th>
+                                <th>来源仓库</th>
+                                <th>货主</th>
+                                <th>入库类型</th>
+                                <th>入库业务类型</th>
+                                <th>入库状态</th>
+                                <th>供应商</th>
+                                <th>承运商</th>
+                                <th>车牌号</th>
+                                <th>司机</th>
+                                <th>下单时间</th>
+                                <th>制单人</th>
+                                <th>关闭时间</th>
+                                <th>关闭人</th>
+                                <th>取消时间</th>
+                                <th>取消人</th>
+                                <th>备注</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td><a href="#" class="order-number-link" data-order-id="IBD2026022712345678">IBD2026022712345678</a></td>
+                                <td>PO20260227001</td>
+                                <td>SO20260227001</td>
+                                <td>W001-南京仓库</td>
+                                <td>W002-北京仓库</td>
+                                <td>Y001-南京货主</td>
+                                <td>采购入库</td>
+                                <td>货到即配</td>
+                                <td><span class="status-badge status-receiving">收货中</span></td>
+                                <td>S001-南京供应商</td>
+                                <td>SF-顺丰</td>
+                                <td>苏A12345</td>
+                                <td>张三</td>
+                                <td>2026-02-27 10:00:00</td>
+                                <td>李四</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>采购物料入库</td>
+                                <td>2026-02-27 09:00:00</td>
+                                <td>王五</td>
+                                <td>2026-02-27 09:30:00</td>
+                                <td>赵六</td>
+                                <td class="action-links">
+                                    <a href="#" class="receipt-record-btn" data-order-id="IBD2026022712345678">收货记录</a>
+                                    <a href="#" class="delete-btn">关闭</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td><a href="#" class="order-number-link" data-order-id="IBD2026022787654321">IBD2026022787654321</a></td>
+                                <td>TR20260227001</td>
+                                <td>TR20260227001</td>
+                                <td>W001-南京仓库</td>
+                                <td>W003-上海仓库</td>
+                                <td>Y002-北京货主</td>
+                                <td>调拨入库</td>
+                                <td>仓库调拨</td>
+                                <td><span class="status-badge status-closed">已关闭</span></td>
+                                <td>S002-上海供应商</td>
+                                <td>ZTO-中通</td>
+                                <td>苏B67890</td>
+                                <td>钱七</td>
+                                <td>2026-02-26 15:00:00</td>
+                                <td>孙八</td>
+                                <td>2026-02-27 08:00:00</td>
+                                <td>周九</td>
+                                <td></td>
+                                <td></td>
+                                <td>仓库间调拨</td>
+                                <td>2026-02-26 14:00:00</td>
+                                <td>吴十</td>
+                                <td>2026-02-27 08:00:00</td>
+                                <td>郑一</td>
+                                <td class="action-links">
+                                    <a href="#" class="receipt-record-btn" data-order-id="IBD2026022787654321">收货记录</a>
+                                    <a href="#" class="delete-btn">关闭</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页组件容器 -->
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 入库单详情模态框 -->
+    <div id="orderDetailModal" class="modal">
+        <div class="modal-content" style="width: 900px;">
+            <div class="modal-header">
+                <div class="modal-title">入库单 - 详情</div>
+                <span class="close" id="detailCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="orderDetailLoading" class="loading">加载中...</div>
+                <div id="orderDetailContent" style="display: none;">
+                    <!-- 基础信息 -->
+                    <form class="modal-form" style="gap: 15px;">
+                        <div class="modal-form-group">
+                            <label>入库单号</label>
+                            <input type="text" id="detailOrderNo" disabled>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>来源单号</label>
+                            <input type="text" id="detailSourceOrderNo" disabled>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>关联单号</label>
+                            <input type="text" id="detailRelatedOrderNo" disabled>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>仓库</label>
+                            <input type="text" id="detailWarehouse" disabled>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>来源仓库</label>
+                            <input type="text" id="detailSourceWarehouse" disabled>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>货主</label>
+                            <input type="text" id="detailCompany" disabled>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>入库类型</label>
+                            <input type="text" id="detailOrderType" disabled>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>入库业务类型</label>
+                            <input type="text" id="detailBusinessType" disabled>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>入库状态</label>
+                            <input type="text" id="detailStatus" disabled>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>供应商</label>
+                            <input type="text" id="detailSupplier" disabled>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>承运商</label>
+                            <input type="text" id="detailCarrier" disabled>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>车牌号</label>
+                            <input type="text" id="detailPlateNumber" disabled>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>司机</label>
+                            <input type="text" id="detailDriver" disabled>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>下单时间</label>
+                            <input type="text" id="detailOrderTime" disabled>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>制单人</label>
+                            <input type="text" id="detailCreator" disabled>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>关闭时间</label>
+                            <input type="text" id="detailCloseTime" disabled>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>关闭人</label>
+                            <input type="text" id="detailCloser" disabled>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>取消时间</label>
+                            <input type="text" id="detailCancelTime" disabled>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>取消人</label>
+                            <input type="text" id="detailCanceler" disabled>
+                        </div>
+                    </form>
+                    
+                    <!-- 分割线 -->
+                    <hr style="width: 100%; border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
+                    
+                    <!-- 商品明细 -->
+                    <div class="spec-section">
+                        <div class="spec-title" style="font-weight: bold; color: #333; margin-bottom: 10px;">商品明细</div>
+                        <div class="table-scroll-container">
+                            <table class="table" id="detailProductList">
+                                <thead>
+                                    <tr>
+                                        <th>商品编码</th>
+                                        <th>商品名称</th>
+                                        <th>单位</th>
+                                        <th>计划入库量</th>
+                                        <th>实际入库量</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- 商品明细将通过JavaScript动态添加 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeDetailModal">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 收货记录模态框 -->
+    <div id="receiptRecordModal" class="modal">
+        <div class="modal-content" style="width: 1200px;">
+            <div class="modal-header">
+                <div class="modal-title">入库单 - 收货记录<span id="receiptRecordOrderNo"></span></div>
+                <span class="close" id="receiptRecordCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <!-- 查询条件 -->
+                <div class="search-section" style="margin-bottom: 20px;">
+                    <form class="search-form">
+                        <div class="form-group custom-select-wrapper">
+                            <label style="width: 100px;">收货记录状态:</label>
+                            <div class="custom-select">
+                                <input type="text" id="searchReceiptStatus" placeholder="请选择">
+                                <span class="select-arrow">▼</span>
+                                <span class="clear-btn">×</span>
+                                <div class="select-dropdown" id="searchReceiptStatusDropdown">
+                                    <div class="select-option" data-value="initial">初始</div>
+                                    <div class="select-option" data-value="pendingPutaway">待上架</div>
+                                    <div class="select-option" data-value="putaway">已上架</div>
+                                    <div class="select-option" data-value="canceled">已取消</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label style="width: 40px;">商品:</label>
+                            <input type="text" id="searchReceiptProduct" placeholder="请输入商品编码或名称">
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary" id="searchReceiptBtn">查询</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- 收货记录列表 -->
+                <div class="table-scroll-container">
+                    <table class="table no-last-column-freeze">
+                        <thead>
+                            <tr>
+                                <th>收货记录状态</th>
+                                <th>商品编码</th>
+                                <th>商品名称</th>
+                                <th>单位</th>
+                                <th>收货量</th>
+                                <th>上架量</th>
+                                <th>收货储位</th>
+                                <th>供应商</th>
+                                <th>生产日期</th>
+                                <th>批次号</th>
+                                <th>上架任务号</th>
+                                <th>收货时间</th>
+                                <th>收货人</th>
+                                <th>取消时间</th>
+                                <th>取消人</th>
+                            </tr>
+                        </thead>
+                        <tbody id="receiptRecordTableBody">
+                            <!-- 收货记录将通过JavaScript动态添加 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeReceiptRecordModal">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入公共脚本 -->
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script src="../js/date-picker.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '入库单',
+                statusColumnIndex: 10,
+                
+                customSelects: [
+                    { inputId: 'searchCompany', dropdownId: 'searchCompanyDropdown' },
+                    { inputId: 'searchSourceWarehouse', dropdownId: 'searchSourceWarehouseDropdown' },
+                    { inputId: 'searchOrderType', dropdownId: 'searchOrderTypeDropdown' },
+                    { inputId: 'searchBusinessType', dropdownId: 'searchBusinessTypeDropdown' },
+                    { inputId: 'searchStatus', dropdownId: 'searchStatusDropdown' },
+                    { inputId: 'searchSupplier', dropdownId: 'searchSupplierDropdown' },
+                    { inputId: 'searchCarrier', dropdownId: 'searchCarrierDropdown' }
+                ],
+                
+                fields: [],
+                
+                addModal: {},
+                
+                editModal: {},
+                
+                deleteModal: {}
+            });
+            
+            page.init();
+            
+            // 初始化入库单详情模态框
+            initOrderDetailModal();
+            
+            // 初始化收货记录模态框
+            initReceiptRecordModal();
+        });
+        
+        function initOrderDetailModal() {
+            const modal = document.getElementById('orderDetailModal');
+            const closeBtn = document.getElementById('closeDetailModal');
+            const detailCloseBtn = document.getElementById('detailCloseBtn');
+            const loading = document.getElementById('orderDetailLoading');
+            const content = document.getElementById('orderDetailContent');
+            
+            // 为所有入库单号链接添加点击事件
+            document.querySelectorAll('.order-number-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const orderId = link.getAttribute('data-order-id');
+                    showOrderDetail(orderId);
+                });
+            });
+            
+            // 关闭按钮点击事件
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+            
+            // 模态框关闭按钮点击事件
+            detailCloseBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', (e) => {
+                if (e.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            // 显示入库单详情
+            function showOrderDetail(orderId) {
+                // 显示加载状态
+                loading.style.display = 'block';
+                content.style.display = 'none';
+                modal.style.display = 'block';
+                
+                // 模拟数据加载
+                setTimeout(() => {
+                    // 隐藏加载状态
+                    loading.style.display = 'none';
+                    content.style.display = 'block';
+                    
+                    // 填充基础信息
+                    fillOrderDetail(orderId);
+                    
+                    // 填充商品明细
+                    fillProductList(orderId);
+                }, 500);
+            }
+            
+            // 填充入库单基础信息
+            function fillOrderDetail(orderId) {
+                // 模拟数据 - 实际项目中应从后端获取
+                const orderData = {
+                    'IBD2026022712345678': {
+                        orderNo: 'IBD2026022712345678',
+                        sourceOrderNo: 'PO20260227001',
+                        relatedOrderNo: 'SO20260227001',
+                        warehouse: 'W001-南京仓库',
+                        sourceWarehouse: 'W002-北京仓库',
+                        company: 'Y001-南京货主',
+                        orderType: '采购入库',
+                        businessType: '货到即配',
+                        status: '收货中',
+                        supplier: 'S001-南京供应商',
+                        carrier: 'SF-顺丰',
+                        plateNumber: '苏A12345',
+                        driver: '张三',
+                        orderTime: '2026-02-27 10:00:00',
+                        creator: '李四',
+                        closeTime: '',
+                        closer: '',
+                        cancelTime: '',
+                        canceler: ''
+                    },
+                    'IBD2026022787654321': {
+                        orderNo: 'IBD2026022787654321',
+                        sourceOrderNo: 'TR20260227001',
+                        relatedOrderNo: 'TR20260227001',
+                        warehouse: 'W001-南京仓库',
+                        sourceWarehouse: 'W003-上海仓库',
+                        company: 'Y002-北京货主',
+                        orderType: '调拨入库',
+                        businessType: '仓库调拨',
+                        status: '已关闭',
+                        supplier: 'S002-上海供应商',
+                        carrier: 'ZTO-中通',
+                        plateNumber: '苏B67890',
+                        driver: '钱七',
+                        orderTime: '2026-02-26 15:00:00',
+                        creator: '孙八',
+                        closeTime: '2026-02-27 08:00:00',
+                        closer: '周九',
+                        cancelTime: '',
+                        canceler: ''
+                    }
+                };
+                
+                const data = orderData[orderId] || {};
+                
+                document.getElementById('detailOrderNo').value = data.orderNo || '';
+                document.getElementById('detailSourceOrderNo').value = data.sourceOrderNo || '';
+                document.getElementById('detailRelatedOrderNo').value = data.relatedOrderNo || '';
+                document.getElementById('detailWarehouse').value = data.warehouse || '';
+                document.getElementById('detailSourceWarehouse').value = data.sourceWarehouse || '';
+                document.getElementById('detailCompany').value = data.company || '';
+                document.getElementById('detailOrderType').value = data.orderType || '';
+                document.getElementById('detailBusinessType').value = data.businessType || '';
+                document.getElementById('detailStatus').value = data.status || '';
+                document.getElementById('detailSupplier').value = data.supplier || '';
+                document.getElementById('detailCarrier').value = data.carrier || '';
+                document.getElementById('detailPlateNumber').value = data.plateNumber || '';
+                document.getElementById('detailDriver').value = data.driver || '';
+                document.getElementById('detailOrderTime').value = data.orderTime || '';
+                document.getElementById('detailCreator').value = data.creator || '';
+                document.getElementById('detailCloseTime').value = data.closeTime || '';
+                document.getElementById('detailCloser').value = data.closer || '';
+                document.getElementById('detailCancelTime').value = data.cancelTime || '';
+                document.getElementById('detailCanceler').value = data.canceler || '';
+            }
+            
+            // 填充商品明细列表
+            function fillProductList(orderId) {
+                // 模拟数据 - 实际项目中应从后端获取
+                const productData = {
+                    'IBD2026022712345678': [
+                        { skuCode: 'SKU001', skuName: '商品1', unit: '件', planQty: 100, actualQty: 98 },
+                        { skuCode: 'SKU002', skuName: '商品2', unit: '箱', planQty: 50, actualQty: 50 },
+                        { skuCode: 'SKU003', skuName: '商品3', unit: '个', planQty: 200, actualQty: 195 }
+                    ],
+                    'IBD2026022787654321': [
+                        { skuCode: 'SKU004', skuName: '商品4', unit: '件', planQty: 150, actualQty: 150 },
+                        { skuCode: 'SKU005', skuName: '商品5', unit: '箱', planQty: 80, actualQty: 80 }
+                    ]
+                };
+                
+                const products = productData[orderId] || [];
+                const table = document.getElementById('detailProductList');
+                const tbody = table.querySelector('tbody');
+                
+                // 清空现有内容
+                tbody.innerHTML = '';
+                
+                // 添加商品明细
+                products.forEach(product => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${product.skuCode}</td>
+                        <td>${product.skuName}</td>
+                        <td>${product.unit}</td>
+                        <td>${product.planQty}</td>
+                        <td>${product.actualQty}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        }
+        
+        function initReceiptRecordModal() {
+            const modal = document.getElementById('receiptRecordModal');
+            const closeBtn = document.getElementById('closeReceiptRecordModal');
+            const receiptRecordCloseBtn = document.getElementById('receiptRecordCloseBtn');
+            const searchBtn = document.getElementById('searchReceiptBtn');
+            const statusInput = document.getElementById('searchReceiptStatus');
+            const statusDropdown = document.getElementById('searchReceiptStatusDropdown');
+            
+            // 为所有收货记录按钮添加点击事件
+            document.querySelectorAll('.receipt-record-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const orderId = btn.getAttribute('data-order-id');
+                    showReceiptRecord(orderId);
+                });
+            });
+            
+            // 关闭按钮点击事件
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+            
+            // 模态框关闭按钮点击事件
+            receiptRecordCloseBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', (e) => {
+                if (e.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            // 状态下拉框点击事件
+            statusInput.addEventListener('click', (e) => {
+                e.stopPropagation();
+                statusDropdown.style.display = statusDropdown.style.display === 'block' ? 'none' : 'block';
+            });
+            
+            // 选择状态选项
+            statusDropdown.querySelectorAll('.select-option').forEach(option => {
+                option.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const value = option.getAttribute('data-value');
+                    statusInput.value = option.textContent;
+                    statusDropdown.style.display = 'none';
+                });
+            });
+            
+            // 点击其他地方关闭下拉框
+            window.addEventListener('click', () => {
+                statusDropdown.style.display = 'none';
+            });
+            
+            // 搜索按钮点击事件
+            searchBtn.addEventListener('click', () => {
+                const status = statusInput.value;
+                const product = document.getElementById('searchReceiptProduct').value;
+                searchReceiptRecords(status, product);
+            });
+            
+            // 显示收货记录
+            function showReceiptRecord(orderId) {
+                modal.style.display = 'block';
+                
+                // 更新模态框标题
+                const orderNoElement = document.getElementById('receiptRecordOrderNo');
+                if (orderId) {
+                    orderNoElement.textContent = ' - ' + orderId;
+                } else {
+                    orderNoElement.textContent = '';
+                }
+                
+                // 加载默认数据
+                searchReceiptRecords('', '');
+            }
+            
+            // 搜索收货记录
+            function searchReceiptRecords(status, product) {
+                // 模拟数据 - 实际项目中应从后端获取
+                const receiptData = [
+                    {
+                        status: '初始',
+                        skuCode: 'SKU001',
+                        skuName: '商品1',
+                        unit: '件',
+                        receiptQty: 100,
+                        putawayQty: 0,
+                        location: 'A-01-01',
+                        supplier: 'S001-南京供应商',
+                        productionDate: '2026-02-20',
+                        batchNo: '20260227-001-SKU001',
+                        putawayTaskNo: '',
+                        receiptTime: '2026-02-27 09:00:00',
+                        receiver: '王五',
+                        cancelTime: '',
+                        canceler: ''
+                    },
+                    {
+                        status: '待上架',
+                        skuCode: 'SKU002',
+                        skuName: '商品2',
+                        unit: '箱',
+                        receiptQty: 50,
+                        putawayQty: 0,
+                        location: 'B-02-03',
+                        supplier: 'S001-南京供应商',
+                        productionDate: '2026-02-18',
+                        batchNo: '20260227-002-SKU002',
+                        receiptTime: '2026-02-27 09:30:00',
+                        receiver: '赵六',
+                        cancelTime: '',
+                        canceler: ''
+                    },
+                    {
+                        status: '已上架',
+                        skuCode: 'SKU003',
+                        skuName: '商品3',
+                        unit: '个',
+                        receiptQty: 200,
+                        putawayQty: 200,
+                        location: 'C-03-05',
+                        supplier: 'S001-南京供应商',
+                        productionDate: '2026-02-15',
+                        batchNo: '20260227-003-SKU003',
+                        receiptTime: '2026-02-27 10:00:00',
+                        receiver: '孙七',
+                        cancelTime: '',
+                        canceler: ''
+                    },
+                    {
+                        status: '已取消',
+                        skuCode: 'SKU004',
+                        skuName: '商品4',
+                        unit: '件',
+                        receiptQty: 0,
+                        putawayQty: 0,
+                        location: '',
+                        supplier: 'S001-南京供应商',
+                        productionDate: '',
+                        batchNo: '20260227-004-SKU004',
+                        receiptTime: '',
+                        receiver: '',
+                        cancelTime: '2026-02-27 10:30:00',
+                        canceler: '吴九'
+                    }
+                ];
+                
+                // 筛选数据
+                let filteredData = receiptData;
+                
+                // 按状态筛选
+                if (status) {
+                    filteredData = filteredData.filter(item => item.status === status);
+                }
+                
+                // 按商品筛选
+                if (product) {
+                    const productLower = product.toLowerCase();
+                    filteredData = filteredData.filter(item => 
+                        item.skuCode.toLowerCase().includes(productLower) || 
+                        item.skuName.toLowerCase().includes(productLower)
+                    );
+                }
+                
+                // 填充表格
+                const tbody = document.getElementById('receiptRecordTableBody');
+                tbody.innerHTML = '';
+                
+                filteredData.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.status}</td>
+                    <td>${record.skuCode}</td>
+                    <td>${record.skuName}</td>
+                    <td>${record.unit}</td>
+                    <td>${record.receiptQty}</td>
+                    <td>${record.putawayQty}</td>
+                    <td>${record.location || '-'}</td>
+                    <td>${record.supplier || '-'}</td>
+                    <td>${record.productionDate || '-'}</td>
+                    <td>${record.batchNo || '-'}</td>
+                    <td>${record.putawayTaskNo || '-'}</td>
+                    <td>${record.receiptTime || '-'}</td>
+                    <td>${record.receiver || '-'}</td>
+                    <td>${record.cancelTime || '-'}</td>
+                    <td>${record.canceler || '-'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            }
+        }
+    </script>
+</body>
+</html>

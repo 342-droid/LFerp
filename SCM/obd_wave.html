@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 波次管理</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .status-initial { background-color: #e6f7ff; color: #1890ff; }
+        .status-progress { background-color: #fff7e6; color: #fa8c16; }
+        .status-complete { background-color: #f6ffed; color: #52c41a; }
+        .status-canceled { background-color: #fff1f0; color: #f5222d; }
+        .wave-no-link {
+            color: #2196f3;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .wave-no-link:hover {
+            color: #1976d2;
+            text-decoration: underline;
+        }
+        .modal-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .modal-form-group {
+            width: calc(33.33% - 10px);
+        }
+        .modal-form-group label {
+            width: 120px;
+            display: inline-block;
+            margin-right: 8px;
+            color: #666;
+            font-weight: 600;
+        }
+        .modal-form-group input {
+            width: calc(100% - 132px);
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            color: #333;
+            outline: none;
+        }
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">波次管理</button>
+            </div>
+
+            <hr class="content-divider">
+            <div class="content-title">出库管理 / 波次管理</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 90px;">货主:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchCompany" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchCompanyDropdown">
+                                <div class="select-option" data-value="Y001-南京货主">Y001-南京货主</div>
+                                <div class="select-option" data-value="Y002-杭州货主">Y002-杭州货主</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 100px;">波次单号:</label>
+                        <input type="text" id="searchWaveNo" placeholder="请输入波次单号">
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 110px;">波次类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchWaveType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchWaveTypeDropdown">
+                                <div class="select-option" data-value="销售出库">销售出库</div>
+                                <div class="select-option" data-value="仓配出库">仓配出库</div>
+                                <div class="select-option" data-value="返配出库">返配出库</div>
+                                <div class="select-option" data-value="退供出库">退供出库</div>
+                                <div class="select-option" data-value="调拨出库">调拨出库</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 110px;">波次业务类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchBusinessType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchBusinessTypeDropdown">
+                                <div class="select-option" data-value="直播订单">直播订单</div>
+                                <div class="select-option" data-value="货到即配">货到即配</div>
+                                <div class="select-option" data-value="门店退货">门店退货</div>
+                                <div class="select-option" data-value="仓库退供">仓库退供</div>
+                                <div class="select-option" data-value="仓库调拨">仓库调拨</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 90px;">波次状态:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchStatus" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchStatusDropdown">
+                                <div class="select-option" data-value="已集波">已集波</div>
+                                <div class="select-option" data-value="开始分配">开始分配</div>
+                                <div class="select-option" data-value="部分分配">部分分配</div>
+                                <div class="select-option" data-value="分配完成">分配完成</div>
+                                <div class="select-option" data-value="已取消">已取消</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 100px;">是否补货中:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchReplenishing" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchReplenishingDropdown">
+                                <div class="select-option" data-value="是">是</div>
+                                <div class="select-option" data-value="否">否</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 110px;">是否全量分配:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchFullAllocated" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchFullAllocatedDropdown">
+                                <div class="select-option" data-value="是">是</div>
+                                <div class="select-option" data-value="否">否</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                        <label style="width: 90px;">创建时间:</label>
+                        <div class="date-range">
+                            <div class="date-picker">
+                                <input type="date" id="searchCreateTimeStart" data-type="start" placeholder="开始时间">
+                            </div>
+                            <span class="date-range-separator">至</span>
+                            <div class="date-picker">
+                                <input type="date" id="searchCreateTimeEnd" data-type="end" placeholder="结束时间">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="searchBtn">查询</button>
+                        <button type="button" class="btn btn-primary" id="addByTemplateBtn">按模板新增</button>
+                        <button type="button" class="btn btn-primary" id="allocateStockBtn">分配库存</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>波次单号</th>
+                                <th>仓库</th>
+                                <th>货主</th>
+                                <th>波次类型</th>
+                                <th>波次业务类型</th>
+                                <th>波次状态</th>
+                                <th>是否补货中</th>
+                                <th>是否全量分配</th>
+                                <th>波次模板</th>
+                                <th>波次流程</th>
+                                <th>备注</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="assignRecordModal" class="modal">
+        <div class="modal-content" style="width: 1300px;">
+            <div class="modal-header">
+                <div class="modal-title">波次单 - 分配记录<span id="assignRecordOrderNo"></span></div>
+                <span class="close" id="assignRecordCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="assignRecordListView">
+                    <div class="search-section" style="margin-bottom: 20px;">
+                        <form class="search-form">
+                            <div class="form-group custom-select-wrapper">
+                                <label style="width: 90px;">分配状态:</label>
+                                <div class="custom-select">
+                                    <input type="text" id="searchAssignStatus" placeholder="请选择">
+                                    <span class="select-arrow">▼</span>
+                                    <span class="clear-btn">×</span>
+                                    <div class="select-dropdown" id="searchAssignStatusDropdown">
+                                        <div class="select-option" data-value="初始">初始</div>
+                                        <div class="select-option" data-value="待拣货">待拣货</div>
+                                        <div class="select-option" data-value="已拣货">已拣货</div>
+                                        <div class="select-option" data-value="已取消">已取消</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label style="width: 60px;">商品:</label>
+                                <input type="text" id="searchAssignProduct" placeholder="请输入商品编码或商品名称">
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-primary" id="searchAssignBtn">查询</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="table-scroll-container">
+                        <table class="table no-last-column-freeze">
+                            <thead>
+                                <tr>
+                                    <th>分配批次</th>
+                                    <th>分配状态</th>
+                                    <th>出库单号</th>
+                                    <th>分配库存ID</th>
+                                    <th>商品编码</th>
+                                    <th>商品名称</th>
+                                    <th>单位</th>
+                                    <th>分配量</th>
+                                    <th>分配储位</th>
+                                    <th>生产日期</th>
+                                    <th>入库日期</th>
+                                    <th>批号</th>
+                                    <th>目的储位</th>
+                                    <th>拣货任务ID</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assignRecordTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="assignRecordDetailView" style="display: none;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeAssignRecordModal">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addByTemplateModal" class="modal">
+        <div class="modal-content" style="width: 1400px;">
+            <div class="modal-header">
+                <div class="modal-title">按模板新增</div>
+                <span class="close" id="addByTemplateCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <section class="search-section" style="margin-bottom: 20px;">
+                    <form class="search-form">
+                        <div class="form-group custom-select-wrapper">
+                            <label style="width: 100px;">波次模板:</label>
+                            <div class="custom-select">
+                                <input type="text" id="searchTemplateInModal" placeholder="请选择">
+                                <span class="select-arrow">▼</span>
+                                <span class="clear-btn">×</span>
+                                <div class="select-dropdown" id="searchTemplateInModalDropdown">
+                                    <div class="select-option" data-value="仓配出库-货到即配">仓配出库-货到即配</div>
+                                    <div class="select-option" data-value="调拨出库-仓库调拨">调拨出库-仓库调拨</div>
+                                    <div class="select-option" data-value="返配出库-门店退货">返配出库-门店退货</div>
+                                    <div class="select-option" data-value="退供出库-仓库退供">退供出库-仓库退供</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary" id="searchTemplateBtn">查询</button>
+                            <button type="button" class="btn btn-primary" id="generateWaveBtn">生成波次</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="table-section">
+                    <div class="table-scroll-container">
+                        <table class="table no-last-column-freeze">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                    <th>出库单号</th>
+                                    <th>来源单号</th>
+                                    <th>关联单号</th>
+                                    <th>仓库</th>
+                                    <th>货主</th>
+                                    <th>目的仓库</th>
+                                    <th>目的站点</th>
+                                    <th>详细地址</th>
+                                    <th>出库类型</th>
+                                    <th>出库业务类型</th>
+                                    <th>出库状态</th>
+                                    <th>承运商</th>
+                                    <th>车牌号</th>
+                                    <th>单据时间</th>
+                                    <th>制单人</th>
+                                </tr>
+                            </thead>
+                            <tbody id="templateAddTableBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeAddByTemplateModal">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmGenerateWaveModal" class="modal">
+        <div class="modal-content" style="width: 480px;">
+            <div class="modal-header">
+                <div class="modal-title">确认生成波次</div>
+                <span class="close" id="confirmGenerateWaveCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="confirmGenerateWaveText">本次集波共0单，确定生成波次吗？</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelGenerateWaveBtn">取消</button>
+                <button type="button" class="btn btn-primary" id="confirmGenerateWaveBtn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="waveDetailModal" class="modal">
+        <div class="modal-content" style="width: 1100px;">
+            <div class="modal-header">
+                <div class="modal-title">波次单 - 详情</div>
+                <span class="close" id="waveDetailCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="waveDetailLoading" class="loading">加载中...</div>
+                <div id="waveDetailContent" style="display: none;">
+                    <form class="modal-form">
+                        <div class="modal-form-group"><label>仓库</label><input type="text" id="detailWarehouse" disabled></div>
+                        <div class="modal-form-group"><label>货主</label><input type="text" id="detailCompany" disabled></div>
+                        <div class="modal-form-group"><label>波次单号</label><input type="text" id="detailWaveNo" disabled></div>
+                        <div class="modal-form-group"><label>波次类型</label><input type="text" id="detailWaveType" disabled></div>
+                        <div class="modal-form-group"><label>波次业务类型</label><input type="text" id="detailBusinessType" disabled></div>
+                        <div class="modal-form-group"><label>波次状态</label><input type="text" id="detailStatus" disabled></div>
+                        <div class="modal-form-group"><label>波次模板</label><input type="text" id="detailTemplate" disabled></div>
+                        <div class="modal-form-group"><label>波次流程</label><input type="text" id="detailFlow" disabled></div>
+                        <div class="modal-form-group"><label>备注</label><input type="text" id="detailRemark" disabled></div>
+                    </form>
+                    <hr style="width: 100%; border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
+                    <div class="spec-title" style="font-weight: 600; color: #333; margin-bottom: 10px;">商品明细</div>
+                    <div class="table-scroll-container">
+                        <table class="table no-last-column-freeze" id="detailProductList">
+                            <thead>
+                                <tr>
+                                    <th>出库单号</th>
+                                    <th>商品编码</th>
+                                    <th>商品名称</th>
+                                    <th>单位</th>
+                                    <th>计划分配量</th>
+                                    <th>已分配量</th>
+                                    <th>已取消量</th>
+                                    <th>是否补货中</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeWaveDetailModal">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        const waveData = [
+            {
+                waveNo: 'WAVE202603240001',
+                warehouse: 'W001-南京仓',
+                company: 'Y001-南京货主',
+                waveType: '销售出库',
+                businessType: '直播订单',
+                status: '开始分配',
+                replenishing: '是',
+                fullAllocated: '否',
+                closed: '否',
+                template: '仓配出库-货到即配',
+                flow: '标准出库流程',
+                remark: '直播大促优先',
+                createTime: '2026-03-24 09:10:00',
+                createUser: '王五',
+                updateTime: '2026-03-24 09:30:00',
+                updateUser: '赵六'
+            },
+            {
+                waveNo: 'WAVE202603240002',
+                warehouse: 'W001-南京仓',
+                company: 'Y002-杭州货主',
+                waveType: '调拨出库',
+                businessType: '仓库调拨',
+                status: '分配完成',
+                replenishing: '否',
+                fullAllocated: '是',
+                closed: '否',
+                template: 'T-WAVE-002',
+                flow: '调拨波次流程',
+                remark: '跨仓补货',
+                createTime: '2026-03-24 10:20:00',
+                createUser: '钱九',
+                updateTime: '2026-03-24 11:10:00',
+                updateUser: '钱九'
+            }
+        ];
+        const assignRecordDataByOrder = {
+            WAVE202603240001: [
+                {
+                    batchNo: 'AP20260324001',
+                    status: '待拣货',
+                    outboundNo: 'OBD202603240001',
+                    inventoryId: 'INV-20260324-0001',
+                    skuCode: 'SKU1001',
+                    skuName: '三文鱼切片 500g',
+                    unit: '盒',
+                    allocateQty: 80,
+                    fromLocation: 'A-01-01',
+                    productionDate: '2026-03-01',
+                    inboundDate: '2026-03-03',
+                    batchCode: 'BATCH-SY-260301',
+                    toLocation: 'PK-01-01',
+                    pickTaskId: 'PKT202603240001'
+                },
+                {
+                    batchNo: 'AP20260324001',
+                    status: '已拣货',
+                    outboundNo: 'OBD202603240001',
+                    inventoryId: 'INV-20260324-0002',
+                    skuCode: 'SKU1002',
+                    skuName: '牛排 300g',
+                    unit: '盒',
+                    allocateQty: 20,
+                    fromLocation: 'A-01-02',
+                    productionDate: '2026-02-28',
+                    inboundDate: '2026-03-02',
+                    batchCode: 'BATCH-NP-260228',
+                    toLocation: 'PK-01-02',
+                    pickTaskId: 'PKT202603240002'
+                },
+                {
+                    batchNo: 'AP20260324002',
+                    status: '初始',
+                    outboundNo: 'OBD202603240001',
+                    inventoryId: 'INV-20260324-0003',
+                    skuCode: 'SKU1001',
+                    skuName: '三文鱼切片 500g',
+                    unit: '盒',
+                    allocateQty: 20,
+                    fromLocation: 'A-01-03',
+                    productionDate: '2026-03-02',
+                    inboundDate: '2026-03-04',
+                    batchCode: 'BATCH-SY-260302',
+                    toLocation: 'PK-01-03',
+                    pickTaskId: ''
+                }
+            ],
+            WAVE202603240002: [
+                {
+                    batchNo: 'AP20260324003',
+                    status: '已拣货',
+                    outboundNo: 'OBD202603240002',
+                    inventoryId: 'INV-20260324-0004',
+                    skuCode: 'SKU2001',
+                    skuName: '冻虾仁 1kg',
+                    unit: '袋',
+                    allocateQty: 180,
+                    fromLocation: 'B-02-01',
+                    productionDate: '2026-02-20',
+                    inboundDate: '2026-02-25',
+                    batchCode: 'BATCH-XR-260220',
+                    toLocation: 'PK-02-01',
+                    pickTaskId: 'PKT202603240003'
+                },
+                {
+                    batchNo: 'AP20260324003',
+                    status: '已取消',
+                    outboundNo: 'OBD202603240002',
+                    inventoryId: 'INV-20260324-0005',
+                    skuCode: 'SKU2001',
+                    skuName: '冻虾仁 1kg',
+                    unit: '袋',
+                    allocateQty: 20,
+                    fromLocation: 'B-02-02',
+                    productionDate: '2026-02-19',
+                    inboundDate: '2026-02-24',
+                    batchCode: 'BATCH-XR-260219',
+                    toLocation: 'PK-02-02',
+                    pickTaskId: ''
+                }
+            ]
+        };
+        const waveDetailLineDataByWaveNo = {
+            WAVE202603240001: [
+                { outboundNo: 'OBD202603240001', skuCode: 'SKU1001', skuName: '三文鱼切片 500g', unit: '盒', planAllocateQty: 100, allocatedQty: 80, canceledQty: 0, replenishing: '是', allocateAbnormal: '否', closed: '否' },
+                { outboundNo: 'OBD202603240001', skuCode: 'SKU1002', skuName: '牛排 300g', unit: '盒', planAllocateQty: 60, allocatedQty: 20, canceledQty: 5, replenishing: '否', allocateAbnormal: '否', closed: '否' }
+            ],
+            WAVE202603240002: [
+                { outboundNo: 'OBD202603240002', skuCode: 'SKU2001', skuName: '冻虾仁 1kg', unit: '袋', planAllocateQty: 200, allocatedQty: 200, canceledQty: 0, replenishing: '否', allocateAbnormal: '是', closed: '否' }
+            ]
+        };
+        let currentAssignOrderId = '';
+        let currentAssignRecords = [];
+        let selectedTemplateOrderRows = [];
+        const outboundOrderDataForTemplate = [
+            {
+                template: '仓配出库-货到即配',
+                orderNo: 'OBD202603240001',
+                sourceOrderNo: 'SO202603240001',
+                relatedOrderNo: 'RO202603240001',
+                warehouse: 'W001-南京仓',
+                company: 'Y001-南京货主',
+                targetWarehouse: 'W003-上海仓',
+                targetSite: 'S001-上海虹桥站',
+                address: '上海市闵行区申虹路100号',
+                orderType: '销售出库',
+                businessType: '直播订单',
+                status: '开始分配',
+                carrier: '顺丰',
+                plateNumber: '沪A12345',
+                docTime: '2026-03-24 09:30:00',
+                creator: '王五'
+            },
+            {
+                template: '仓配出库-货到即配',
+                orderNo: 'OBD202603240003',
+                sourceOrderNo: 'SO202603240003',
+                relatedOrderNo: 'RO202603240003',
+                warehouse: 'W001-南京仓',
+                company: 'Y001-南京货主',
+                targetWarehouse: 'W003-上海仓',
+                targetSite: 'S002-上海浦东站',
+                address: '上海市浦东新区盛夏路80号',
+                orderType: '仓配出库',
+                businessType: '货到即配',
+                status: '初始',
+                carrier: '京东物流',
+                plateNumber: '沪B77889',
+                docTime: '2026-03-24 10:05:00',
+                creator: '赵六'
+            },
+            {
+                template: '调拨出库-仓库调拨',
+                orderNo: 'OBD202603240002',
+                sourceOrderNo: 'TR202603240002',
+                relatedOrderNo: 'TR202603240002',
+                warehouse: 'W001-南京仓',
+                company: 'Y002-杭州货主',
+                targetWarehouse: 'W004-杭州仓',
+                targetSite: 'S008-杭州下沙站',
+                address: '杭州市钱塘区学源街18号',
+                orderType: '调拨出库',
+                businessType: '仓库调拨',
+                status: '分配完成',
+                carrier: '中通',
+                plateNumber: '浙A88990',
+                docTime: '2026-03-24 11:00:00',
+                creator: '钱九'
+            },
+            {
+                template: '返配出库-门店退货',
+                orderNo: 'OBD202603240004',
+                sourceOrderNo: 'RT202603240004',
+                relatedOrderNo: 'RT202603240004',
+                warehouse: 'W001-南京仓',
+                company: 'Y002-杭州货主',
+                targetWarehouse: 'W001-南京仓',
+                targetSite: 'S010-南京江宁站',
+                address: '南京市江宁区秣周东路12号',
+                orderType: '返配出库',
+                businessType: '门店退货',
+                status: '初始',
+                carrier: '德邦',
+                plateNumber: '苏A66881',
+                docTime: '2026-03-24 12:10:00',
+                creator: '孙十'
+            },
+            {
+                template: '仓配出库-货到即配',
+                orderNo: 'OBD202603240005',
+                sourceOrderNo: 'SO202603240005',
+                relatedOrderNo: 'RO202603240005',
+                warehouse: 'W001-南京仓',
+                company: 'Y001-南京货主',
+                targetWarehouse: 'W003-上海仓',
+                targetSite: 'S003-上海松江站',
+                address: '上海市松江区新桥路66号',
+                orderType: '仓配出库',
+                businessType: '货到即配',
+                status: '初始',
+                carrier: '顺丰',
+                plateNumber: '沪C12876',
+                docTime: '2026-03-24 13:00:00',
+                creator: '王五'
+            },
+            {
+                template: '仓配出库-货到即配',
+                orderNo: 'OBD202603240006',
+                sourceOrderNo: 'SO202603240006',
+                relatedOrderNo: 'RO202603240006',
+                warehouse: 'W001-南京仓',
+                company: 'Y001-南京货主',
+                targetWarehouse: 'W003-上海仓',
+                targetSite: 'S004-上海嘉定站',
+                address: '上海市嘉定区宝安公路18号',
+                orderType: '仓配出库',
+                businessType: '货到即配',
+                status: '初始',
+                carrier: '京东物流',
+                plateNumber: '沪D33921',
+                docTime: '2026-03-24 13:15:00',
+                creator: '赵六'
+            },
+            {
+                template: '调拨出库-仓库调拨',
+                orderNo: 'OBD202603240007',
+                sourceOrderNo: 'TR202603240007',
+                relatedOrderNo: 'TR202603240007',
+                warehouse: 'W001-南京仓',
+                company: 'Y002-杭州货主',
+                targetWarehouse: 'W004-杭州仓',
+                targetSite: 'S009-杭州滨江站',
+                address: '杭州市滨江区江南大道99号',
+                orderType: '调拨出库',
+                businessType: '仓库调拨',
+                status: '初始',
+                carrier: '中通',
+                plateNumber: '浙B90871',
+                docTime: '2026-03-24 13:30:00',
+                creator: '钱九'
+            },
+            {
+                template: '调拨出库-仓库调拨',
+                orderNo: 'OBD202603240008',
+                sourceOrderNo: 'TR202603240008',
+                relatedOrderNo: 'TR202603240008',
+                warehouse: 'W001-南京仓',
+                company: 'Y002-杭州货主',
+                targetWarehouse: 'W004-杭州仓',
+                targetSite: 'S011-杭州拱墅站',
+                address: '杭州市拱墅区祥园路188号',
+                orderType: '调拨出库',
+                businessType: '仓库调拨',
+                status: '初始',
+                carrier: '德邦',
+                plateNumber: '浙C55623',
+                docTime: '2026-03-24 13:45:00',
+                creator: '钱九'
+            },
+            {
+                template: '返配出库-门店退货',
+                orderNo: 'OBD202603240009',
+                sourceOrderNo: 'RT202603240009',
+                relatedOrderNo: 'RT202603240009',
+                warehouse: 'W001-南京仓',
+                company: 'Y002-杭州货主',
+                targetWarehouse: 'W001-南京仓',
+                targetSite: 'S012-南京鼓楼站',
+                address: '南京市鼓楼区中央路120号',
+                orderType: '返配出库',
+                businessType: '门店退货',
+                status: '初始',
+                carrier: '圆通',
+                plateNumber: '苏B77129',
+                docTime: '2026-03-24 14:00:00',
+                creator: '孙十'
+            },
+            {
+                template: '返配出库-门店退货',
+                orderNo: 'OBD202603240010',
+                sourceOrderNo: 'RT202603240010',
+                relatedOrderNo: 'RT202603240010',
+                warehouse: 'W001-南京仓',
+                company: 'Y002-杭州货主',
+                targetWarehouse: 'W001-南京仓',
+                targetSite: 'S013-南京建邺站',
+                address: '南京市建邺区江东中路77号',
+                orderType: '返配出库',
+                businessType: '门店退货',
+                status: '初始',
+                carrier: '申通',
+                plateNumber: '苏C22891',
+                docTime: '2026-03-24 14:15:00',
+                creator: '孙十'
+            },
+            {
+                template: '仓配出库-货到即配',
+                orderNo: 'OBD202603240011',
+                sourceOrderNo: 'SO202603240011',
+                relatedOrderNo: 'RO202603240011',
+                warehouse: 'W001-南京仓',
+                company: 'Y001-南京货主',
+                targetWarehouse: 'W003-上海仓',
+                targetSite: 'S014-上海徐汇站',
+                address: '上海市徐汇区漕溪北路58号',
+                orderType: '仓配出库',
+                businessType: '货到即配',
+                status: '初始',
+                carrier: '顺丰',
+                plateNumber: '沪E66012',
+                docTime: '2026-03-24 14:30:00',
+                creator: '王五'
+            },
+            {
+                template: '调拨出库-仓库调拨',
+                orderNo: 'OBD202603240012',
+                sourceOrderNo: 'TR202603240012',
+                relatedOrderNo: 'TR202603240012',
+                warehouse: 'W001-南京仓',
+                company: 'Y002-杭州货主',
+                targetWarehouse: 'W004-杭州仓',
+                targetSite: 'S015-杭州余杭站',
+                address: '杭州市余杭区文一西路866号',
+                orderType: '调拨出库',
+                businessType: '仓库调拨',
+                status: '初始',
+                carrier: '中通',
+                plateNumber: '浙D88347',
+                docTime: '2026-03-24 14:45:00',
+                creator: '钱九'
+            },
+            {
+                template: '返配出库-门店退货',
+                orderNo: 'OBD202603240013',
+                sourceOrderNo: 'RT202603240013',
+                relatedOrderNo: 'RT202603240013',
+                warehouse: 'W001-南京仓',
+                company: 'Y002-杭州货主',
+                targetWarehouse: 'W001-南京仓',
+                targetSite: 'S016-南京玄武站',
+                address: '南京市玄武区珠江路399号',
+                orderType: '返配出库',
+                businessType: '门店退货',
+                status: '初始',
+                carrier: '韵达',
+                plateNumber: '苏D11563',
+                docTime: '2026-03-24 15:00:00',
+                creator: '孙十'
+            },
+            {
+                template: '仓配出库-货到即配',
+                orderNo: 'OBD202603240014',
+                sourceOrderNo: 'SO202603240014',
+                relatedOrderNo: 'RO202603240014',
+                warehouse: 'W001-南京仓',
+                company: 'Y001-南京货主',
+                targetWarehouse: 'W003-上海仓',
+                targetSite: 'S017-上海青浦站',
+                address: '上海市青浦区华徐公路360号',
+                orderType: '仓配出库',
+                businessType: '货到即配',
+                status: '初始',
+                carrier: '京东物流',
+                plateNumber: '沪F73105',
+                docTime: '2026-03-24 15:15:00',
+                creator: '赵六'
+            },
+            {
+                template: '退供出库-仓库退供',
+                orderNo: 'OBD202603240015',
+                sourceOrderNo: 'VG202603240015',
+                relatedOrderNo: 'VG202603240015',
+                warehouse: 'W001-南京仓',
+                company: 'Y001-南京货主',
+                targetWarehouse: '—',
+                targetSite: '供应商仓',
+                address: '南京市江宁区禄口物流园8号',
+                orderType: '退供出库',
+                businessType: '仓库退供',
+                status: '初始',
+                carrier: '专线',
+                plateNumber: '苏E99001',
+                docTime: '2026-03-24 15:30:00',
+                creator: '周十一'
+            }
+        ];
+
+        function getStatusClass(status) {
+            if (status === '已集波') return 'status-initial';
+            if (status === '开始分配' || status === '部分分配') return 'status-progress';
+            if (status === '分配完成') return 'status-complete';
+            if (status === '已取消') return 'status-canceled';
+            return 'status-progress';
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="checkbox" class="table-checkbox checkbox-row template-order-checkbox" data-order-no="${item.orderNo || ''}"></td>
+                    <td><a href="#" class="wave-no-link wave-detail-link" data-wave-no="${item.waveNo}">${item.waveNo}</a></td>
+                    <td>${item.warehouse}</td>
+                    <td>${item.company}</td>
+                    <td>${item.waveType}</td>
+                    <td>${item.businessType}</td>
+                    <td><span class="status-badge ${getStatusClass(item.status)}">${item.status}</span></td>
+                    <td>${item.replenishing}</td>
+                    <td>${item.fullAllocated}</td>
+                    <td>${item.template}</td>
+                    <td>${item.flow}</td>
+                    <td>${item.remark}</td>
+                    <td>${item.createTime}</td>
+                    <td>${item.createUser}</td>
+                    <td>${item.updateTime}</td>
+                    <td>${item.updateUser}</td>
+                    <td class="action-links">
+                        <a href="#" class="assign-record-btn" data-wave-no="${item.waveNo}">分配记录</a>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            document.querySelectorAll('.wave-detail-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const waveNo = link.getAttribute('data-wave-no');
+                    showWaveDetail(waveNo);
+                });
+            });
+            document.querySelectorAll('.assign-record-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const waveNo = btn.getAttribute('data-wave-no');
+                    showAssignRecord(waveNo);
+                });
+            });
+        }
+
+        function fillWaveDetail(wave) {
+            document.getElementById('detailWarehouse').value = wave.warehouse || '-';
+            document.getElementById('detailCompany').value = wave.company || '-';
+            document.getElementById('detailWaveNo').value = wave.waveNo || '-';
+            document.getElementById('detailWaveType').value = wave.waveType || '-';
+            document.getElementById('detailBusinessType').value = wave.businessType || '-';
+            document.getElementById('detailStatus').value = wave.status || '-';
+            document.getElementById('detailTemplate').value = wave.template || '-';
+            document.getElementById('detailFlow').value = wave.flow || '-';
+            document.getElementById('detailRemark').value = wave.remark || '-';
+
+            const tbody = document.querySelector('#detailProductList tbody');
+            tbody.innerHTML = '';
+            const lineData = waveDetailLineDataByWaveNo[wave.waveNo] || [];
+            lineData.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.outboundNo || '-'}</td>
+                    <td>${item.skuCode || '-'}</td>
+                    <td>${item.skuName || '-'}</td>
+                    <td>${item.unit || '-'}</td>
+                    <td>${item.planAllocateQty ?? '-'}</td>
+                    <td>${item.allocatedQty ?? '-'}</td>
+                    <td>${item.canceledQty ?? '-'}</td>
+                    <td>${item.replenishing || '-'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function showWaveDetail(waveNo) {
+            const modal = document.getElementById('waveDetailModal');
+            const loading = document.getElementById('waveDetailLoading');
+            const content = document.getElementById('waveDetailContent');
+            const wave = waveData.find(item => item.waveNo === waveNo) || {};
+
+            loading.style.display = 'block';
+            content.style.display = 'none';
+            modal.style.display = 'block';
+
+            setTimeout(() => {
+                fillWaveDetail(wave);
+                loading.style.display = 'none';
+                content.style.display = 'block';
+            }, 200);
+        }
+
+        function searchWaves() {
+            const filters = {
+                company: document.getElementById('searchCompany').value.trim(),
+                waveNo: document.getElementById('searchWaveNo').value.trim(),
+                waveType: document.getElementById('searchWaveType').value.trim(),
+                businessType: document.getElementById('searchBusinessType').value.trim(),
+                status: document.getElementById('searchStatus').value.trim(),
+                replenishing: document.getElementById('searchReplenishing').value.trim(),
+                fullAllocated: document.getElementById('searchFullAllocated').value.trim(),
+                createStartDate: document.getElementById('searchCreateTimeStart').value.trim(),
+                createEndDate: document.getElementById('searchCreateTimeEnd').value.trim()
+            };
+
+            const result = waveData.filter(item => {
+                const createDate = item.createTime ? item.createTime.slice(0, 10) : '';
+                return (!filters.company || item.company === filters.company) &&
+                    (!filters.waveNo || item.waveNo.includes(filters.waveNo)) &&
+                    (!filters.waveType || item.waveType === filters.waveType) &&
+                    (!filters.businessType || item.businessType === filters.businessType) &&
+                    (!filters.status || item.status === filters.status) &&
+                    (!filters.replenishing || item.replenishing === filters.replenishing) &&
+                    (!filters.fullAllocated || item.fullAllocated === filters.fullAllocated) &&
+                    (!filters.createStartDate || (createDate && createDate >= filters.createStartDate)) &&
+                    (!filters.createEndDate || (createDate && createDate <= filters.createEndDate));
+            });
+
+            renderTable(result);
+        }
+
+        function showAssignRecord(orderId) {
+            const modal = document.getElementById('assignRecordModal');
+            const orderNoElement = document.getElementById('assignRecordOrderNo');
+            currentAssignOrderId = orderId;
+            orderNoElement.textContent = orderId ? ` - ${orderId}` : '';
+            document.getElementById('searchAssignStatus').value = '';
+            document.getElementById('searchAssignProduct').value = '';
+            showAssignRecordListView();
+            searchAssignRecords();
+            modal.style.display = 'block';
+        }
+
+        function showAssignRecordListView() {
+            document.getElementById('assignRecordListView').style.display = 'block';
+        }
+
+        function searchAssignRecords() {
+            const status = document.getElementById('searchAssignStatus').value.trim();
+            const productKeyword = document.getElementById('searchAssignProduct').value.trim().toLowerCase();
+            const sourceData = assignRecordDataByOrder[currentAssignOrderId] || [];
+            currentAssignRecords = sourceData.filter(record => {
+                const productMatched = !productKeyword ||
+                    record.skuCode.toLowerCase().includes(productKeyword) ||
+                    record.skuName.toLowerCase().includes(productKeyword);
+                const statusMatched = !status || record.status === status;
+                return statusMatched && productMatched;
+            });
+            renderAssignRecordTable(currentAssignRecords);
+        }
+
+        function renderAssignRecordTable(records) {
+            const tbody = document.getElementById('assignRecordTableBody');
+            tbody.innerHTML = '';
+            records.forEach((record, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.batchNo || '-'}</td>
+                    <td>${record.status || '-'}</td>
+                    <td>${record.outboundNo || '-'}</td>
+                    <td>${record.inventoryId || '-'}</td>
+                    <td>${record.skuCode || '-'}</td>
+                    <td>${record.skuName || '-'}</td>
+                    <td>${record.unit || '-'}</td>
+                    <td>${record.allocateQty ?? '-'}</td>
+                    <td>${record.fromLocation || '-'}</td>
+                    <td>${record.productionDate || '-'}</td>
+                    <td>${record.inboundDate || '-'}</td>
+                    <td>${record.batchCode || '-'}</td>
+                    <td>${record.toLocation || '-'}</td>
+                    <td>${record.pickTaskId || '-'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderTemplateAddTable(data) {
+            const tbody = document.getElementById('templateAddTableBody');
+            tbody.innerHTML = '';
+            const selectAllCheckbox = document.querySelector('#addByTemplateModal thead .checkbox-all');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            }
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="checkbox" class="table-checkbox checkbox-row template-order-checkbox" data-order-no="${item.orderNo || ''}"></td>
+                    <td>${item.orderNo || '-'}</td>
+                    <td>${item.sourceOrderNo || '-'}</td>
+                    <td>${item.relatedOrderNo || '-'}</td>
+                    <td>${item.warehouse || '-'}</td>
+                    <td>${item.company || '-'}</td>
+                    <td>${item.targetWarehouse || '-'}</td>
+                    <td>${item.targetSite || '-'}</td>
+                    <td>${item.address || '-'}</td>
+                    <td>${item.orderType || '-'}</td>
+                    <td>${item.businessType || '-'}</td>
+                    <td>${item.status || '-'}</td>
+                    <td>${item.carrier || '-'}</td>
+                    <td>${item.plateNumber || '-'}</td>
+                    <td>${item.docTime || '-'}</td>
+                    <td>${item.creator || '-'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function searchByTemplateInModal() {
+            const template = document.getElementById('searchTemplateInModal').value.trim();
+            if (!template) {
+                renderTemplateAddTable([]);
+                if (typeof showToast === 'function') {
+                    showToast('请选择波次模板', 'warning');
+                }
+                return;
+            }
+            const result = outboundOrderDataForTemplate.filter(item => item.template === template && item.status === '初始');
+            renderTemplateAddTable(result);
+        }
+
+        function openAddByTemplateModal() {
+            const modal = document.getElementById('addByTemplateModal');
+            document.getElementById('searchTemplateInModal').value = '';
+            renderTemplateAddTable([]);
+            modal.style.display = 'block';
+        }
+
+        function syncTemplateSelectAllState() {
+            const selectAllCheckbox = document.querySelector('#addByTemplateModal thead .checkbox-all');
+            const rowCheckboxes = Array.from(document.querySelectorAll('#templateAddTableBody .template-order-checkbox'));
+            if (!selectAllCheckbox) return;
+            if (rowCheckboxes.length === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+                return;
+            }
+            const checkedCount = rowCheckboxes.filter(item => item.checked).length;
+            selectAllCheckbox.checked = checkedCount === rowCheckboxes.length;
+            selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < rowCheckboxes.length;
+        }
+
+        function openGenerateWaveConfirm() {
+            const template = document.getElementById('searchTemplateInModal').value.trim();
+            if (!template) {
+                if (typeof showToast === 'function') {
+                    showToast('请选择波次模板', 'warning');
+                }
+                return;
+            }
+            const checkedBoxes = Array.from(document.querySelectorAll('#templateAddTableBody .template-order-checkbox:checked'));
+            if (checkedBoxes.length === 0) {
+                if (typeof showToast === 'function') {
+                    showToast('请勾选至少一条出库单', 'warning');
+                }
+                return;
+            }
+            const checkedOrderNos = checkedBoxes.map(item => item.getAttribute('data-order-no'));
+            selectedTemplateOrderRows = outboundOrderDataForTemplate.filter(item => checkedOrderNos.includes(item.orderNo));
+            document.getElementById('confirmGenerateWaveText').textContent = `本次集波共${selectedTemplateOrderRows.length}单，确定生成波次吗？`;
+            document.getElementById('confirmGenerateWaveModal').style.display = 'block';
+        }
+
+        function generateWaveByTemplate() {
+            const template = document.getElementById('searchTemplateInModal').value.trim();
+            if (!template || selectedTemplateOrderRows.length === 0) {
+                document.getElementById('confirmGenerateWaveModal').style.display = 'none';
+                return;
+            }
+            const firstOrder = selectedTemplateOrderRows[0];
+            const now = new Date();
+            const pad = (num) => String(num).padStart(2, '0');
+            const nowStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+            const waveNo = `WAVE${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+            waveData.unshift({
+                waveNo,
+                warehouse: firstOrder.warehouse || 'W001-南京仓',
+                company: firstOrder.company || 'Y001-南京货主',
+                waveType: firstOrder.orderType || '仓配出库',
+                businessType: firstOrder.businessType || '货到即配',
+                status: '已集波',
+                replenishing: '否',
+                fullAllocated: '否',
+                closed: '否',
+                template,
+                flow: template.includes('调拨') ? '调拨波次流程' : '标准出库流程',
+                remark: `按模板新增，集波${selectedTemplateOrderRows.length}单`,
+                createTime: nowStr,
+                createUser: '当前用户',
+                updateTime: nowStr,
+                updateUser: '当前用户'
+            });
+            renderTable(waveData);
+            selectedTemplateOrderRows = [];
+            document.getElementById('confirmGenerateWaveModal').style.display = 'none';
+            document.getElementById('addByTemplateModal').style.display = 'none';
+            if (typeof showToast === 'function') {
+                showToast('波次生成成功', 'success');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '波次单',
+                customSelects: [
+                    { inputId: 'searchCompany', dropdownId: 'searchCompanyDropdown' },
+                    { inputId: 'searchWaveType', dropdownId: 'searchWaveTypeDropdown' },
+                    { inputId: 'searchBusinessType', dropdownId: 'searchBusinessTypeDropdown' },
+                    { inputId: 'searchStatus', dropdownId: 'searchStatusDropdown' },
+                    { inputId: 'searchReplenishing', dropdownId: 'searchReplenishingDropdown' },
+                    { inputId: 'searchFullAllocated', dropdownId: 'searchFullAllocatedDropdown' },
+                    { inputId: 'searchAssignStatus', dropdownId: 'searchAssignStatusDropdown' },
+                    { inputId: 'searchTemplateInModal', dropdownId: 'searchTemplateInModalDropdown' }
+                ],
+                fields: [],
+                addModal: {},
+                editModal: {},
+                deleteModal: {}
+            });
+            page.init();
+
+            renderTable(waveData);
+            document.getElementById('searchBtn').addEventListener('click', searchWaves);
+            document.getElementById('addByTemplateBtn').addEventListener('click', openAddByTemplateModal);
+            document.getElementById('allocateStockBtn').addEventListener('click', () => {
+                if (typeof showToast === 'function') {
+                    showToast('分配库存功能待接入', 'info');
+                }
+            });
+            const assignModal = document.getElementById('assignRecordModal');
+            document.getElementById('closeAssignRecordModal').addEventListener('click', () => { assignModal.style.display = 'none'; });
+            document.getElementById('assignRecordCloseBtn').addEventListener('click', () => { assignModal.style.display = 'none'; });
+            document.getElementById('searchAssignBtn').addEventListener('click', searchAssignRecords);
+            const addByTemplateModal = document.getElementById('addByTemplateModal');
+            const templateSelectAllCheckbox = document.querySelector('#addByTemplateModal thead .checkbox-all');
+            const templateTableBody = document.getElementById('templateAddTableBody');
+            if (templateSelectAllCheckbox) {
+                templateSelectAllCheckbox.addEventListener('change', () => {
+                    const rowCheckboxes = document.querySelectorAll('#templateAddTableBody .template-order-checkbox');
+                    rowCheckboxes.forEach(item => {
+                        item.checked = templateSelectAllCheckbox.checked;
+                    });
+                    syncTemplateSelectAllState();
+                });
+            }
+            if (templateTableBody) {
+                templateTableBody.addEventListener('change', (event) => {
+                    if (event.target && event.target.classList.contains('template-order-checkbox')) {
+                        syncTemplateSelectAllState();
+                    }
+                });
+            }
+            document.getElementById('searchTemplateBtn').addEventListener('click', searchByTemplateInModal);
+            document.getElementById('generateWaveBtn').addEventListener('click', openGenerateWaveConfirm);
+            document.getElementById('closeAddByTemplateModal').addEventListener('click', () => { addByTemplateModal.style.display = 'none'; });
+            document.getElementById('addByTemplateCloseBtn').addEventListener('click', () => { addByTemplateModal.style.display = 'none'; });
+            const confirmGenerateWaveModal = document.getElementById('confirmGenerateWaveModal');
+            document.getElementById('confirmGenerateWaveBtn').addEventListener('click', generateWaveByTemplate);
+            document.getElementById('cancelGenerateWaveBtn').addEventListener('click', () => { confirmGenerateWaveModal.style.display = 'none'; });
+            document.getElementById('confirmGenerateWaveCloseBtn').addEventListener('click', () => { confirmGenerateWaveModal.style.display = 'none'; });
+            const waveDetailModal = document.getElementById('waveDetailModal');
+            document.getElementById('closeWaveDetailModal').addEventListener('click', () => { waveDetailModal.style.display = 'none'; });
+            document.getElementById('waveDetailCloseBtn').addEventListener('click', () => { waveDetailModal.style.display = 'none'; });
+            window.addEventListener('click', e => {
+                if (e.target === assignModal) {
+                    assignModal.style.display = 'none';
+                }
+                if (e.target === addByTemplateModal) {
+                    addByTemplateModal.style.display = 'none';
+                }
+                if (e.target === confirmGenerateWaveModal) {
+                    confirmGenerateWaveModal.style.display = 'none';
+                }
+                if (e.target === waveDetailModal) {
+                    waveDetailModal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

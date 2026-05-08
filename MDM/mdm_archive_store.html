@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 门店档案</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <style>
+        .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
+        .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
+        .flow-box { margin: 14px 0; padding: 12px 14px; background: #fafafa; border: 1px solid #eee; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.65; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">门店档案</button></div>
+            <hr class="content-divider">
+            <div class="content-title">基础数据中心 / 资源中心 / 门店档案</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group"><label>主体名称:</label><div class="input-wrapper"><input type="text" id="qSubjectName" placeholder="请输入"><span class="clear-btn">×</span></div></div>
+                    <div class="form-group"><label>门店名称:</label><div class="input-wrapper"><input type="text" id="qStoreName" placeholder="请输入"><span class="clear-btn">×</span></div></div>
+                    <div class="form-group"><label>门店状态:</label>
+                        <select id="qStoreStatus" style="height:36px;min-width:120px;border:1px solid #ddd;border-radius:3px;padding:0 8px;">
+                            <option value="">全部</option><option value="normal">正常</option><option value="stopped">停用</option>
+                        </select></div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button>
+                        <button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button>
+                        <button type="button" class="btn btn-secondary" id="mdmArchiveStoreAddBtn">+ 新增门店</button>
+                    </div>
+                </form>
+            </section>
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table"><thead><tr><th>门店ID</th><th>主体名称</th><th>门店名称</th><th>门店合作类型</th><th>门店类型</th><th>绑定BD</th><th>联系人</th><th>手机号码</th><th>配送仓库</th><th>省市区</th><th>详细地址</th><th>经纬度</th><th>可提现手机号</th><th>运营状态</th><th>进件状态</th><th>结算类型</th><th>结算周期</th><th>分账服务</th><th>门店状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="tableBody"><tr><td>ONS307892038169264128</td><td>冷丰演示门店</td><td>测试通知</td><td>加盟店</td><td>社区生鲜店</td><td>—</td><td>夏利</td><td>178****4646</td><td>华东履约仓 / WH–SH–01</td><td>北京市/市辖区/东城区</td><td>地下车库</td><td>—</td><td>—</td><td>营业中</td><td>—</td><td>—</td><td>—</td><td>关闭</td><td><span class="status inactive">冻结</span></td><td>2026-04-29 22:53:02</td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr><tr><td>ONS303445581201</td><td>冷丰演示门店</td><td>111</td><td>合作店</td><td>团购自提点</td><td>公司11号</td><td>张三</td><td>138****2211</td><td>创建门店时选择的履约仓库</td><td>天津市/市辖区/河东区</td><td>长三角珠宝产业园A3栋</td><td>117.25,39.12</td><td>138****2211</td><td>营业中</td><td>已进件</td><td>T+1</td><td>自然周</td><td>开启</td><td><span class="status active">正常</span></td><td>2026-04-20 10:22:11</td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr><tr><td>ONS303445581202</td><td>五角场体验店</td><td>DDD</td><td>同行店</td><td>快闪零售</td><td>李四</td><td>李四</td><td>186****9001</td><td>沪东前置仓</td><td>上海市/市辖区/浦东新区</td><td>张江路88号</td><td>121.58,31.20</td><td>186****9001</td><td>营业中</td><td>进件中</td><td>D+1</td><td>自然月</td><td>关闭</td><td><span class="status active">正常</span></td><td>2026-04-19 15:01:44</td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr><tr><td>ONS303445581203</td><td>张江快闪店</td><td>张三</td><td>加盟店</td><td>社区便利店</td><td>张三</td><td>张三</td><td>—</td><td>—</td><td>浙江省/杭州市/余杭区</td><td>文一西路969号</td><td>120.05,30.28</td><td>—</td><td>筹备</td><td>未进件</td><td>—</td><td>—</td><td>关闭</td><td><span class="status active">正常</span></td><td>2026-04-18 09:33:02</td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr></tbody></table></div><div id="pagination-container"></div></section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script src="../js/mdm-subject-pagemanager.js"></script>
+    <script src="../js/mdm-unified-onboarding-ui.js"></script>
+    <script src="../js/mdm-erp-lists.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        MdmErpLists.initArchiveStore();
+    });
+    </script>
+</body>
+</html>

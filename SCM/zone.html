@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 库区管理</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+    <!-- 侧边栏容器 -->
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+
+    <!-- 顶部导航栏容器 -->
+    <div id="header-container"></div>
+    
+    <!-- 整体布局容器 -->
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">库区</button>
+            </div>
+            
+            <hr class="content-divider">
+            
+            <div class="content-title">基础信息 / 库区</div>
+            
+            <!-- 搜索区域 -->
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group custom-select-wrapper">
+                        <label>仓间:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchRoom" placeholder="请选择或输入搜索">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchRoomDropdown">
+                                <div class="select-option" data-value="">请选择</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>库区编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>库区名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>是否启用:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchIsEnabled" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchIsEnabledDropdown">
+                                <div class="select-option" data-value="yes">启用</div>
+                                <div class="select-option" data-value="no">禁用</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="location.reload()">查询</button>
+                        <button type="button" class="btn btn-secondary" id="addBtn">新增</button>
+                    </div>
+                </form>
+            </section>
+            
+            <!-- 表格区域 -->
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>库区编码</th>
+                                <th>库区名称</th>
+                                <th>仓间</th>
+                                <th>仓库</th>
+                                <th>是否启用</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>Z001</td>
+                                <td>南京仓-库存区</td>
+                                <td>R001-南京仓-综合仓间</td>
+                                <td>W001-南京仓</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>Z002</td>
+                                <td>南京仓-发货区</td>
+                                <td>R002-南京仓-加工仓间</td>
+                                <td>W001-南京仓</td>
+                                <td><span class="status inactive">禁用</span></td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页组件容器 -->
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 引入公共脚本 -->
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        // 页面特定数据
+        const roomData = [
+            { code: 'R001', name: '南京仓-综合仓间', warehouseCode: 'W001' },
+            { code: 'R002', name: '南京仓-加工仓间', warehouseCode: 'W001' },
+            { code: 'R003', name: '嘉兴仓-1号仓间', warehouseCode: 'W002' },
+            { code: 'R004', name: '嘉兴仓-2号仓间', warehouseCode: 'W002' },
+            { code: 'R005', name: '上海仓-1号仓间', warehouseCode: 'W003' },
+            { code: 'R006', name: '上海仓-2号仓间', warehouseCode: 'W003' },
+            { code: 'R007', name: '北京仓-1号仓间', warehouseCode: 'W004' },
+            { code: 'R008', name: '北京仓-2号仓间', warehouseCode: 'W004' },
+            { code: 'R009', name: '广州仓-1号仓间', warehouseCode: 'W005' },
+            { code: 'R010', name: '广州仓-2号仓间', warehouseCode: 'W005' }
+        ];
+
+        // 初始化仓间下拉框数据
+        function initRoomDropdowns(warehouseCode) {
+            const filteredRooms = roomData.filter(room => room.warehouseCode === warehouseCode);
+            
+            const dropdownIds = ['searchRoomDropdown', 'roomDropdown', 'editRoomDropdown'];
+            dropdownIds.forEach(dropdownId => {
+                const dropdown = document.getElementById(dropdownId);
+                if (dropdown) {
+                    dropdown.innerHTML = '';
+                    filteredRooms.forEach(room => {
+                        const option = document.createElement('div');
+                        option.className = 'select-option';
+                        option.setAttribute('data-value', room.code);
+                        option.textContent = `${room.code}-${room.name}`;
+                        dropdown.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        // 暂存储位双选择框HTML
+        const storageSelectHtml = `
+            <div class="modal-form-group custom-select-wrapper" style="width: 100%;">
+                <label style="width: 100px;">移入暂存储位</label>
+                <div class="custom-select" style="flex: 1;">
+                    <input type="text" id="inboundStorage" placeholder="请选择或输入搜索">
+                    <span class="select-arrow">▼</span>
+                    <span class="clear-btn">×</span>
+                    <div class="select-dropdown" id="inboundStorageDropdown">
+                        <div class="select-option" data-value="">请选择</div>
+                    </div>
+                </div>
+                <label style="width: 100px; margin-left: 20px;">移出暂存储位</label>
+                <div class="custom-select" style="flex: 1;">
+                    <input type="text" id="outboundStorage" placeholder="请选择或输入搜索">
+                    <span class="select-arrow">▼</span>
+                    <span class="clear-btn">×</span>
+                    <div class="select-dropdown" id="outboundStorageDropdown">
+                        <div class="select-option" data-value="">请选择</div>
+                    </div>
+                </div>
+            </div>`;
+
+        const editStorageSelectHtml = `
+            <div class="modal-form-group custom-select-wrapper" style="width: 100%;">
+                <label style="width: 100px;">移入暂存储位</label>
+                <div class="custom-select" style="flex: 1;">
+                    <input type="text" id="editInboundStorage" placeholder="请选择或输入搜索">
+                    <span class="select-arrow">▼</span>
+                    <span class="clear-btn">×</span>
+                    <div class="select-dropdown" id="editInboundStorageDropdown">
+                        <div class="select-option" data-value="">请选择</div>
+                    </div>
+                </div>
+                <label style="width: 100px; margin-left: 20px;">移出暂存储位</label>
+                <div class="custom-select" style="flex: 1;">
+                    <input type="text" id="editOutboundStorage" placeholder="请选择或输入搜索">
+                    <span class="select-arrow">▼</span>
+                    <span class="clear-btn">×</span>
+                    <div class="select-dropdown" id="editOutboundStorageDropdown">
+                        <div class="select-option" data-value="">请选择</div>
+                    </div>
+                </div>
+            </div>`;
+
+        // 使用PageManager简化页面逻辑
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化仓间下拉框数据
+            initRoomDropdowns('W001');
+            
+            const page = new PageManager({
+                entityName: '库区',
+                statusColumnIndex: 5,
+                detailView: { enabled: true },
+                
+                // 搜索区域下拉框
+                customSelects: [
+                    { inputId: 'searchRoom', dropdownId: 'searchRoomDropdown' },
+                    { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' },
+                    { inputId: 'inboundStorage', dropdownId: 'inboundStorageDropdown' },
+                    { inputId: 'outboundStorage', dropdownId: 'outboundStorageDropdown' },
+                    { inputId: 'editInboundStorage', dropdownId: 'editInboundStorageDropdown' },
+                    { inputId: 'editOutboundStorage', dropdownId: 'editOutboundStorageDropdown' }
+                ],
+                
+                // 字段定义 - 自动生成新增/编辑模态框
+                fields: [
+                    { id: 'warehouse', label: '仓库', type: 'select', required: true, disabled: true,
+                      options: [
+                          { value: 'W001', text: 'W001-南京仓' },
+                          { value: 'W002', text: 'W002-嘉兴仓' },
+                          { value: 'W003', text: 'W003-上海仓' },
+                          { value: 'W004', text: 'W004-北京仓' },
+                          { value: 'W005', text: 'W005-广州仓' }
+                      ] },
+                    { id: 'room', label: '仓间', type: 'select', required: true, editDisabled: true,
+                      options: [{ value: '', text: '请选择' }],
+                      placeholder: '请选择或输入搜索' },
+                    { id: 'zoneCode', label: '库区编码', type: 'text', required: true, editDisabled: true },
+                    { id: 'zoneName', label: '库区名称', type: 'text', required: true, editDisabled: true },
+                    { id: 'isEnabled', label: '是否启用', type: 'select', required: true,
+                      options: [{ value: 'yes', text: '启用' }, { value: 'no', text: '禁用' }] },
+                    { type: 'raw', html: storageSelectHtml, editHtml: editStorageSelectHtml },
+                    { id: 'remark', label: '备注', type: 'textarea' }
+                ],
+                
+                addModal: {
+                    modalId: 'zoneModal',
+                    cancelBtnId: 'cancelBtn',
+                    saveBtnId: 'saveBtn',
+                    triggerBtnId: null,
+                    defaults: { isEnabled: '启用' },
+                    validations: [
+                        { id: 'warehouse', message: '请选择仓库', required: true },
+                        { id: 'room', message: '请选择仓间', required: true },
+                        { id: 'zoneCode', message: '请输入库区编码', required: true },
+                        { id: 'zoneName', message: '请输入库区名称', required: true },
+                        { id: 'isEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onOpen: () => {
+                        const currentWarehouse = getCurrentWarehouse();
+                        const warehouseInput = document.getElementById('warehouse');
+                        if (!warehouseInput) return;
+                        if (currentWarehouse) {
+                            warehouseInput.value = `${currentWarehouse.code}-${currentWarehouse.name}`;
+                            warehouseInput.dataset.value = currentWarehouse.code;
+                            initRoomDropdowns(currentWarehouse.code);
+                        } else {
+                            warehouseInput.value = '';
+                            warehouseInput.dataset.value = '';
+                        }
+                    },
+                    onSave: () => {
+                        const code = document.getElementById('zoneCode').value.trim();
+                        const name = document.getElementById('zoneName').value.trim();
+                        const room = document.getElementById('room').value.trim();
+                        const warehouse = document.getElementById('warehouse').value.trim();
+                        const enabled = document.getElementById('isEnabled').value.trim();
+                        
+                        page.addTableRow({
+                            cells: [
+                                code,
+                                name,
+                                room,
+                                warehouse,
+                                { value: enabled, isStatus: true },
+                                page.getCurrentTimeStr(),
+                                '当前用户'
+                            ]
+                        });
+                        showToast('库区信息已保存', 'success');
+                    }
+                },
+                
+                editModal: {
+                    modalId: 'zoneEditModal',
+                    cancelBtnId: 'editCancelBtn',
+                    saveBtnId: 'editSaveBtn',
+                    validations: [
+                        { id: 'editZoneName', message: '请输入库区名称', required: true },
+                        { id: 'editIsEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        if (!page.currentEditRow) return;
+                        page.updateTableRow(page.currentEditRow, {
+                            2: document.getElementById('editZoneName').value.trim(),
+                            5: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
+                            6: page.getCurrentTimeStr(),
+                            7: '当前用户'
+                        });
+                        showToast('库区信息已更新', 'success');
+                        page.currentEditRow = null;
+                    },
+                    mapRowToForm: (row) => {
+                        page.currentEditRow = row;
+                        const cells = row.querySelectorAll('td');
+                        return {
+                            editZoneCode: cells[1].textContent,
+                            editZoneName: cells[2].textContent,
+                            editRoom: cells[3].textContent,
+                            editWarehouse: cells[4].textContent,
+                            editIsEnabled: cells[5].querySelector('.status').textContent
+                        };
+                    }
+                },
+                
+                deleteModal: {
+                    modalId: 'confirmDeleteModal',
+                    closeBtnId: 'confirmDeleteCloseBtn',
+                    cancelBtnId: 'cancelDeleteBtn',
+                    confirmBtnId: 'confirmDeleteBtn'
+                }
+            });
+            
+            page.init();
+            
+            // 绑定编辑模态框关闭按钮
+            document.getElementById('editCloseBtn').addEventListener('click', () => page.closeModal('edit'));
+            
+            // 新增时设置当前仓库
+            document.getElementById('addBtn').addEventListener('click', () => {
+                page.openModal('add', {
+                    defaults: { isEnabled: '启用' }
+                });
+            });
+
+            // 监听仓库切换，保持新增/编辑弹窗字段同步
+            document.addEventListener('warehouseChange', (e) => {
+                const { code, name } = e.detail;
+                const warehouseInput = document.getElementById('warehouse');
+                if (warehouseInput) {
+                    warehouseInput.value = `${code}-${name}`;
+                    warehouseInput.dataset.value = code;
+                    initRoomDropdowns(code);
+                }
+                const editWarehouseInput = document.getElementById('editWarehouse');
+                if (editWarehouseInput) {
+                    editWarehouseInput.value = `${code}-${name}`;
+                    editWarehouseInput.dataset.value = code;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

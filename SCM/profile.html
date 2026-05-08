@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 作业档案</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        /* 页面特定样式 - 作业档案模态框label宽度 */
+        .modal-form-group label {
+            width: 110px;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+    
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">作业档案</button>
+            </div>
+            
+            <hr class="content-divider">
+            
+            <div class="content-title">基础信息 / 作业档案</div>
+            
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group">
+                        <label>作业档案编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>作业档案名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>是否启用:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchIsEnabled" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchIsEnabledDropdown">
+                                <div class="select-option" data-value="yes">启用</div>
+                                <div class="select-option" data-value="no">禁用</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="location.reload()">查询</button>
+                        <button type="button" class="btn btn-secondary" id="addBtn">新增</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>作业档案编码</th>
+                                <th>作业档案名称</th>
+                                <th>仓库</th>
+                                <th>是否启用</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>P001</td>
+                                <td>标准作业档案</td>
+                                <td>W001-南京仓</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>P002</td>
+                                <td>冷链作业档案</td>
+                                <td>W001-南京仓</td>
+                                <td><span class="status inactive">禁用</span></td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页组件容器 -->
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 添加明细模态框 -->
+    <div id="detailModal" class="modal" style="display: none; align-items: flex-start; padding-top: 10%; z-index: 3001;">
+        <div class="modal-content" style="width: 400px; max-height: none; margin: 0 auto;">
+            <div class="modal-header" style="margin-bottom: 15px;">
+                <h2 class="modal-title">添加明细</h2>
+                <span class="close" id="detailCloseBtn">&times;</span>
+            </div>
+            <form class="modal-form" style="gap: 15px;">
+                <div class="modal-form-group custom-select-wrapper" style="width: 100%;">
+                    <label>作业区域 <span style="color: red;">*</span></label>
+                    <div class="custom-select">
+                        <input type="text" id="detailArea" placeholder="请选择">
+                        <span class="select-arrow">▼</span>
+                        <span class="clear-btn">×</span>
+                        <div class="select-dropdown" id="detailAreaDropdown">
+                            <div class="select-option" data-value="A001" data-name="南京仓-A区">A001-南京仓-A区</div>
+                            <div class="select-option" data-value="B001" data-name="南京仓-B区">B001-南京仓-B区</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-form-group" style="width: 100%; align-items: flex-start;">
+                    <label style="padding-top: 8px;">作业类型 <span style="color: red;">*</span></label>
+                    <div class="checkbox-group" id="workTypeCheckboxGroup">
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="workType" value="质检">
+                            <span>质检</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="workType" value="上架">
+                            <span>上架</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="workType" value="拣货">
+                            <span>拣货</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="workType" value="盘点">
+                            <span>盘点</span>
+                        </label>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer" style="margin-top: 15px;">
+                <button type="button" class="btn btn-secondary" id="detailCancelBtn">取消</button>
+                <button type="button" class="btn btn-primary" id="detailSaveBtn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入公共脚本 -->
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        // 使用PageManager简化页面逻辑
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '作业档案',
+                statusColumnIndex: 4,
+                detailView: { enabled: true },
+                
+                customSelects: [
+                    { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' }
+                ],
+                
+                fields: [
+                    { id: 'warehouse', label: '仓库', type: 'select', required: true, editDisabled: true, options: CommonOptions.warehouse },
+                    { id: 'profileCode', label: '作业档案编码', type: 'text', required: true, editDisabled: true },
+                    { id: 'profileName', label: '作业档案名称', type: 'text', required: true, editDisabled: true },
+                    { id: 'isEnabled', label: '是否启用', type: 'select', required: true, options: CommonOptions.isEnabled },
+                    { id: 'remark', label: '备注', type: 'textarea', labelWidth: '110px' },
+                    { 
+                        type: 'raw', 
+                        editHtml: `
+                            <div class="modal-form-group" style="width: 100%; flex-direction: column; align-items: flex-start; gap: 10px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                    <label style="width: auto;">作业档案明细</label>
+                                    <div style="display: flex; gap: 10px;">
+                                        <button type="button" class="btn btn-primary" id="editAddDetailBtn">添加明细</button>
+                                        <button type="button" class="btn btn-primary" id="editSaveProfileBtn">保存</button>
+                                        <button type="button" class="btn btn-secondary" id="editCancelProfileBtn">取消</button>
+                                    </div>
+                                </div>
+                                <div class="table-scroll-container" style="width: 100%; max-height: 200px; overflow-y: auto;">
+                                    <table class="table" id="editDetailTable">
+                                        <thead>
+                                            <tr>
+                                                <th>作业区域编码</th>
+                                                <th>作业区域名称</th>
+                                                <th>作业类型</th>
+                                                <th>更新时间</th>
+                                                <th>更新人</th>
+                                                <th>操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="editDetailTableBody">
+                                            <tr>
+                                                <td>A001</td>
+                                                <td>南京仓-A区</td>
+                                                <td>质检</td>
+                                                <td>2026-04-10 09:15:22</td>
+                                                <td>张三</td>
+                                                <td class="action-links">
+                                                    <a href="#" class="detail-delete-btn delete-btn">删除</a>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>A001</td>
+                                                <td>南京仓-A区</td>
+                                                <td>拣货</td>
+                                                <td>2026-04-11 14:30:00</td>
+                                                <td>李四</td>
+                                                <td class="action-links">
+                                                    <a href="#" class="detail-delete-btn delete-btn">删除</a>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>B001</td>
+                                                <td>南京仓-B区</td>
+                                                <td>上架</td>
+                                                <td>2026-04-12 11:20:45</td>
+                                                <td>王五</td>
+                                                <td class="action-links">
+                                                    <a href="#" class="detail-delete-btn delete-btn">删除</a>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>B001</td>
+                                                <td>南京仓-B区</td>
+                                                <td>盘点</td>
+                                                <td>2026-04-13 16:05:18</td>
+                                                <td>赵六</td>
+                                                <td class="action-links">
+                                                    <a href="#" class="detail-delete-btn delete-btn">删除</a>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <style>
+                                #editProfileModal .modal-footer {
+                                    display: none !important;
+                                }
+                            </style>
+                        `
+                    }
+                ],
+                
+                addModal: {
+                    modalId: 'addProfileModal',
+                    saveBtnId: 'saveProfileBtn',
+                    cancelBtnId: 'cancelProfileBtn',
+                    triggerBtnId: 'addBtn',
+                    defaults: { isEnabled: '启用' },
+                    validations: [
+                        { id: 'warehouse', message: '请选择仓库', required: true },
+                        { id: 'profileCode', message: '请输入作业档案编码', required: true },
+                        { id: 'profileName', message: '请输入作业档案名称', required: true },
+                        { id: 'isEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onOpen: () => {
+                        const currentWarehouse = getCurrentWarehouse();
+                        if (currentWarehouse) {
+                            const warehouseInput = document.getElementById('warehouse');
+                            if (warehouseInput) {
+                                warehouseInput.value = `${currentWarehouse.code}-${currentWarehouse.name}`;
+                                warehouseInput.dataset.value = currentWarehouse.code;
+                            }
+                        }
+                    },
+                    onSave: () => {
+                        const code = document.getElementById('profileCode').value.trim();
+                        const name = document.getElementById('profileName').value.trim();
+                        const warehouse = document.getElementById('warehouse').value.trim();
+                        const enabled = document.getElementById('isEnabled').value.trim();
+                        
+                        page.addTableRow({
+                            cells: [
+                                code,
+                                name,
+                                warehouse,
+                                { value: enabled, isStatus: true },
+                                page.getCurrentTimeStr(),
+                                '当前用户'
+                            ]
+                        });
+                        showToast('作业档案信息已保存', 'success');
+                    }
+                },
+                
+                editModal: {
+                    modalId: 'editProfileModal',
+                    saveBtnId: 'editSaveProfileBtn',
+                    cancelBtnId: 'editCancelProfileBtn',
+                    validations: [
+                        { id: 'editProfileName', message: '请输入作业档案名称', required: true },
+                        { id: 'editIsEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onOpen: () => {
+                        const readOnlyDetail = page.isDetailMode === true;
+                        const addDetailBtn = document.getElementById('editAddDetailBtn');
+                        if (addDetailBtn) {
+                            addDetailBtn.style.display = readOnlyDetail ? 'none' : '';
+                        }
+                        const detailTable = document.getElementById('editDetailTable');
+                        if (detailTable) {
+                            const opHeader = detailTable.querySelector('thead th:last-child');
+                            if (opHeader) {
+                                opHeader.style.display = readOnlyDetail ? 'none' : '';
+                            }
+                            detailTable.querySelectorAll('tbody tr td:last-child').forEach((td) => {
+                                td.style.display = readOnlyDetail ? 'none' : '';
+                            });
+                        }
+                    },
+                    onSave: () => {
+                        if (!page.currentEditRow) return;
+                        page.updateTableRow(page.currentEditRow, {
+                            2: document.getElementById('editProfileName').value.trim(),
+                            4: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
+                            5: page.getCurrentTimeStr(),
+                            6: '当前用户'
+                        });
+                        showToast('作业档案信息已更新', 'success');
+                        page.currentEditRow = null;
+                    },
+                    mapRowToForm: (row) => {
+                        page.currentEditRow = row;
+                        const cells = row.querySelectorAll('td');
+                        return {
+                            editWarehouse: cells[3].textContent,
+                            editProfileCode: cells[1].textContent,
+                            editProfileName: cells[2].textContent,
+                            editIsEnabled: cells[4].querySelector('.status').textContent
+                        };
+                    }
+                },
+                
+                deleteModal: {}
+            });
+            
+            page.init();
+            
+            // 初始化明细模态框的下拉框
+            if (typeof initCustomSelect === 'function') {
+                initCustomSelect('detailArea', 'detailAreaDropdown');
+            }
+            
+            // 明细模态框逻辑
+            const detailModal = document.getElementById('detailModal');
+            const detailCloseBtn = document.getElementById('detailCloseBtn');
+            const detailCancelBtn = document.getElementById('detailCancelBtn');
+            const detailSaveBtn = document.getElementById('detailSaveBtn');
+            
+            let currentDetailTarget = null; // 'edit'
+            
+            // 打开明细模态框
+            function openDetailModal(target) {
+                currentDetailTarget = target;
+                detailModal.style.display = 'flex';
+                // 清空表单
+                document.getElementById('detailArea').value = '';
+                document.getElementById('detailArea').dataset.value = '';
+                // 清空所有多选框
+                document.querySelectorAll('#workTypeCheckboxGroup input[type="checkbox"]').forEach(cb => {
+                    cb.checked = false;
+                });
+            }
+            
+            // 关闭明细模态框
+            function closeDetailModal() {
+                detailModal.style.display = 'none';
+                currentDetailTarget = null;
+            }
+            
+            // 明细模态框事件绑定（使用事件委托，因为按钮是动态生成的）
+            document.addEventListener('click', (e) => {
+                if (e.target.id === 'editAddDetailBtn') {
+                    e.preventDefault();
+                    openDetailModal('edit');
+                }
+            });
+            
+            if (detailCloseBtn) {
+                detailCloseBtn.addEventListener('click', closeDetailModal);
+            }
+            if (detailCancelBtn) {
+                detailCancelBtn.addEventListener('click', closeDetailModal);
+            }
+            
+            // 保存明细
+            if (detailSaveBtn) {
+                detailSaveBtn.addEventListener('click', () => {
+                    const areaInput = document.getElementById('detailArea');
+                    if (!areaInput) return;
+                    
+                    const areaCode = areaInput.dataset.value || '';
+                    const areaText = areaInput.value.trim();
+                    
+                    // 获取选中的作业类型
+                    const selectedWorkTypes = [];
+                    document.querySelectorAll('#workTypeCheckboxGroup input[name="workType"]:checked').forEach(cb => {
+                        selectedWorkTypes.push(cb.value);
+                    });
+                    
+                    if (!areaCode) {
+                        showToast('请选择作业区域', 'error');
+                        return;
+                    }
+                    if (selectedWorkTypes.length === 0) {
+                        showToast('请选择作业类型', 'error');
+                        return;
+                    }
+                    
+                    // 从选中的文本中提取区域名称（格式：A001-南京仓-A区）
+                    const areaName = areaText.substring(areaText.indexOf('-') + 1);
+                    
+                    // 检查重复数据
+                    const existingRows = document.querySelectorAll('#editDetailTableBody tr');
+                    const existingData = [];
+                    existingRows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length >= 3) {
+                            existingData.push({
+                                areaCode: cells[0].textContent,
+                                workType: cells[2].textContent
+                            });
+                        }
+                    });
+                    
+                    // 检查是否有重复
+                    const duplicates = selectedWorkTypes.filter(workType => 
+                        existingData.some(item => item.areaCode === areaCode && item.workType === workType)
+                    );
+                    
+                    if (duplicates.length > 0) {
+                        showToast('已存在重复内容，请检查！', 'error');
+                        return;
+                    }
+                    
+                    const now = new Date();
+                    const timeStr = now.getFullYear() + '-' + 
+                        String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                        String(now.getDate()).padStart(2, '0') + ' ' +
+                        String(now.getHours()).padStart(2, '0') + ':' +
+                        String(now.getMinutes()).padStart(2, '0') + ':' +
+                        String(now.getSeconds()).padStart(2, '0');
+                    
+                    // 根据作业区域+作业类型拆分多行
+                    selectedWorkTypes.forEach(workType => {
+                        const newRow = `
+                            <tr>
+                                <td>${areaCode}</td>
+                                <td>${areaName}</td>
+                                <td>${workType}</td>
+                                <td>${timeStr}</td>
+                                <td>当前用户</td>
+                                <td class="action-links">
+                                    <a href="#" class="detail-delete-btn delete-btn">删除</a>
+                                </td>
+                            </tr>
+                        `;
+                        const editDetailTableBody = document.getElementById('editDetailTableBody');
+                        if (editDetailTableBody) {
+                            editDetailTableBody.insertAdjacentHTML('beforeend', newRow);
+                        }
+                    });
+                    
+                    showToast('明细已添加', 'success');
+                    closeDetailModal();
+                });
+            }
+            
+            // 明细删除事件委托
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('detail-delete-btn')) {
+                    e.preventDefault();
+                    const row = e.target.closest('tr');
+                    if (row) {
+                        row.remove();
+                        showToast('明细已删除', 'success');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

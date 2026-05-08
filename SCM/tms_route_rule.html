@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰TMS - 路由规则</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .modal-form-group label {
+            width: 100px;
+        }
+
+        .route-rule-node-block {
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        .route-rule-node-block .modal-form-group {
+            margin-bottom: 15px;
+        }
+
+        .route-path-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .route-path-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            background: #fff;
+        }
+
+        .route-path-order {
+            min-width: 24px;
+            font-size: 12px;
+            color: #666;
+            flex-shrink: 0;
+        }
+
+        .route-path-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .route-path-name {
+            font-size: 13px;
+            color: #333;
+            font-weight: 400;
+        }
+
+        .route-path-meta {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .route-path-actions {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .route-path-actions a {
+            font-size: 12px;
+        }
+        
+        #routeRuleEditModal.detail-readonly .route-path-actions a {
+            color: #999;
+            pointer-events: none;
+            text-decoration: none;
+            cursor: not-allowed;
+        }
+
+        .route-path-empty {
+            padding: 12px 10px;
+            border: 1px dashed #d1d5db;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #999;
+            background: #fff;
+        }
+
+        .route-path-sequence-hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/tms-sidebar.js"></script>
+
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">路由规则</button>
+            </div>
+
+            <hr class="content-divider">
+
+            <div class="content-title">路由规则</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group">
+                        <label>规则编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>规则名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>起始节点:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchStartNode" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchStartNodeDropdown"></div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>结束节点:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchEndNode" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchEndNodeDropdown"></div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>是否启用:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchRuleIsEnabled" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchRuleIsEnabledDropdown">
+                                <div class="select-option" data-value="yes">启用</div>
+                                <div class="select-option" data-value="no">禁用</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="location.reload()">查询</button>
+                        <button type="button" class="btn btn-secondary" id="addBtn">新增</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>规则编码</th>
+                                <th>规则名称</th>
+                                <th>起始节点</th>
+                                <th>结束节点</th>
+                                <th>途经节点数</th>
+                                <th>途经节点顺序</th>
+                                <th>是否启用</th>
+                                <th>备注</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr data-node-chain='{"startCode":"W001","startName":"南京仓","endCode":"W004","endName":"北京仓","waypoints":[{"code":"W002","name":"嘉兴仓","updateTime":"2026-04-20 09:00:00","updater":"李四"},{"code":"W003","name":"上海仓","updateTime":"2026-04-20 09:05:00","updater":"李四"}]}'>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>RR001</td>
+                                <td>城东南向干线</td>
+                                <td>W001 南京仓</td>
+                                <td>W004 北京仓</td>
+                                <td>2</td>
+                                <td>W002 嘉兴仓 -> W003 上海仓</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>含 2 个途经节点</td>
+                                <td>2026-04-20 10:12:00</td>
+                                <td>李四</td>
+                                <td>2026-04-20 10:12:00</td>
+                                <td>李四</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td>
+                            </tr>
+                            <tr data-node-chain='{"startCode":"W002","startName":"嘉兴仓","endCode":"W003","endName":"上海仓","waypoints":[]}'>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>RR002</td>
+                                <td>嘉兴—上海直达</td>
+                                <td>W002 嘉兴仓</td>
+                                <td>W003 上海仓</td>
+                                <td>0</td>
+                                <td>-</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>-</td>
+                                <td>2026-04-18 16:40:22</td>
+                                <td>张三</td>
+                                <td>2026-04-18 16:40:22</td>
+                                <td>张三</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td>
+                            </tr>
+                            <tr data-node-chain='{"startCode":"W003","startName":"上海仓","endCode":"W001","endName":"南京仓","waypoints":[{"code":"W004","name":"北京仓","updateTime":"2026-04-10 11:00:00","updater":"赵六"}]}'>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>RR003</td>
+                                <td>沪宁返程（停用）</td>
+                                <td>W003 上海仓</td>
+                                <td>W001 南京仓</td>
+                                <td>1</td>
+                                <td>W004 北京仓</td>
+                                <td><span class="status inactive">禁用</span></td>
+                                <td>策略调整暂停</td>
+                                <td>2026-04-10 11:00:00</td>
+                                <td>赵六</td>
+                                <td>2026-04-10 11:00:00</td>
+                                <td>赵六</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td>
+                            </tr>
+                            <tr data-node-chain='{"startCode":"W001","startName":"南京仓","endCode":"W011","endName":"广州仓","waypoints":[{"code":"W001","name":"南京仓","updateTime":"2026-04-28 18:58:00","updater":"王五"},{"code":"W005","name":"杭州仓","updateTime":"2026-04-28 18:58:30","updater":"王五"},{"code":"W006","name":"苏州仓","updateTime":"2026-04-28 18:59:00","updater":"王五"},{"code":"W003","name":"上海仓","updateTime":"2026-04-28 18:59:30","updater":"王五"},{"code":"W009","name":"长沙仓","updateTime":"2026-04-28 19:00:00","updater":"王五"},{"code":"W008","name":"武汉仓","updateTime":"2026-04-28 19:00:30","updater":"王五"},{"code":"W010","name":"南昌仓","updateTime":"2026-04-28 19:01:00","updater":"王五"},{"code":"W011","name":"广州仓","updateTime":"2026-04-28 19:01:30","updater":"王五"}]}'>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>RR004</td>
+                                <td>华东-华南八节点线路</td>
+                                <td>W001 南京仓</td>
+                                <td>W011 广州仓</td>
+                                <td>8</td>
+                                <td>W001 南京仓 -> W005 杭州仓 -> W006 苏州仓 -> W003 上海仓 -> W009 长沙仓 -> W008 武汉仓 -> W010 南昌仓 -> W011 广州仓</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>8节点全链路Mock</td>
+                                <td>2026-04-28 19:02:00</td>
+                                <td>王五</td>
+                                <td>2026-04-28 19:02:00</td>
+                                <td>王五</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            /* 与 purchase_demand_summary.html 收货节点下拉 mock 一致 */
+            const TMS_RECEIVING_WAREHOUSE_OPTIONS = [
+                { value: 'W001', text: 'W001 南京仓' },
+                { value: 'W002', text: 'W002 嘉兴仓' },
+                { value: 'W003', text: 'W003 上海仓' },
+                { value: 'W004', text: 'W004 北京仓' },
+                { value: 'W005', text: 'W005 杭州仓' },
+                { value: 'W006', text: 'W006 苏州仓' },
+                { value: 'W007', text: 'W007 合肥仓' },
+                { value: 'W008', text: 'W008 武汉仓' },
+                { value: 'W009', text: 'W009 长沙仓' },
+                { value: 'W010', text: 'W010 南昌仓' },
+                { value: 'W011', text: 'W011 广州仓' },
+                { value: 'W012', text: 'W012 深圳仓' },
+                { value: 'W013', text: 'W013 成都仓' },
+                { value: 'W014', text: 'W014 重庆仓' }
+            ];
+
+            function formatWarehouseDisplay(code, name) {
+                if (!code) return '';
+                return name ? (code + ' ' + name) : code;
+            }
+
+            function formatWaypointSequence(waypoints) {
+                if (!Array.isArray(waypoints) || waypoints.length === 0) return '-';
+                return waypoints.map((item) => formatWarehouseDisplay(item.code, item.name)).join(' -> ');
+            }
+
+            const waypointContexts = {
+                add: {
+                    inputId: 'addWaypointInput',
+                    dropdownId: 'addWaypointDropdown',
+                    addBtnId: 'addWaypointAddBtn',
+                    pathListId: 'addWaypointPathList',
+                    pathHintId: 'addWaypointSequenceHint'
+                },
+                edit: {
+                    inputId: 'editWaypointInput',
+                    dropdownId: 'editWaypointDropdown',
+                    addBtnId: 'editWaypointAddBtn',
+                    pathListId: 'editWaypointPathList',
+                    pathHintId: 'editWaypointSequenceHint'
+                }
+            };
+            const waypointEditIndexByMode = { add: -1, edit: -1 };
+            const waypointState = { add: [], edit: [] };
+
+            function renderWarehouseOptions(dropdownId) {
+                const dropdown = document.getElementById(dropdownId);
+                if (!dropdown) return;
+                dropdown.innerHTML = TMS_RECEIVING_WAREHOUSE_OPTIONS.map((opt) =>
+                    '<div class="select-option" data-value="' + opt.value + '">' + opt.text + '</div>'
+                ).join('');
+            }
+
+            function parseNodeChainFromRow(row) {
+                if (!row) {
+                    return { startCode: '', startName: '', endCode: '', endName: '', waypoints: [] };
+                }
+                try {
+                    const parsed = JSON.parse(row.dataset.nodeChain || '{}');
+                    if (parsed && typeof parsed === 'object') {
+                        return {
+                            startCode: parsed.startCode || '',
+                            startName: parsed.startName || '',
+                            endCode: parsed.endCode || '',
+                            endName: parsed.endName || '',
+                            waypoints: Array.isArray(parsed.waypoints) ? parsed.waypoints : []
+                        };
+                    }
+                } catch (err) {
+                    /* ignore */
+                }
+                return { startCode: '', startName: '', endCode: '', endName: '', waypoints: [] };
+            }
+
+            function writeNodeChainToRow(row, chain) {
+                if (!row) return;
+                row.dataset.nodeChain = JSON.stringify(chain);
+            }
+
+            function getWaypointRows(mode) {
+                return Array.isArray(waypointState[mode]) ? waypointState[mode] : [];
+            }
+
+            function renderWaypointPath(mode) {
+                const ctx = waypointContexts[mode];
+                if (!ctx) return;
+                const list = getWaypointRows(mode);
+                const pathList = document.getElementById(ctx.pathListId);
+                const hint = document.getElementById(ctx.pathHintId);
+                if (!pathList) return;
+
+                if (list.length === 0) {
+                    pathList.innerHTML = mode === 'add' ? '' : '<div class="route-path-empty">暂无途经节点，当前为直达路径。</div>';
+                } else {
+                    pathList.innerHTML = list.map((item, idx) => `
+                        <div class="route-path-item" data-waypoint-index="${idx}">
+                            <span class="route-path-order">${idx + 1}</span>
+                            <div class="route-path-main">
+                                <div class="route-path-name">${formatWarehouseDisplay(item.code, item.name)}</div>
+                                <div class="route-path-meta">${item.updateTime} / ${item.updater || '当前用户'}</div>
+                            </div>
+                            <div class="route-path-actions action-links">
+                                <a href="#" class="waypoint-move-up-btn">上移</a>
+                                <a href="#" class="waypoint-move-down-btn">下移</a>
+                                <a href="#" class="waypoint-delete-btn">删除</a>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                if (hint) {
+                    hint.textContent = list.length
+                        ? `顺序：${formatWaypointSequence(list)}`
+                        : (mode === 'add' ? '' : '顺序：-');
+                }
+            }
+
+            function buildPathNodesFromChain(chain) {
+                const nodes = Array.isArray(chain && chain.waypoints) ? chain.waypoints.slice() : [];
+                if (nodes.length >= 2) return nodes;
+                const merged = [];
+                if (chain && chain.startCode) {
+                    merged.push({
+                        code: chain.startCode,
+                        name: chain.startName || '',
+                        updateTime: page.getCurrentTimeStr(),
+                        updater: '当前用户'
+                    });
+                }
+                nodes.forEach((item) => merged.push(item));
+                if (chain && chain.endCode && (!merged.length || merged[merged.length - 1].code !== chain.endCode)) {
+                    merged.push({
+                        code: chain.endCode,
+                        name: chain.endName || '',
+                        updateTime: page.getCurrentTimeStr(),
+                        updater: '当前用户'
+                    });
+                }
+                return merged;
+            }
+
+            function buildChainFromPathNodes(pathNodes) {
+                const list = Array.isArray(pathNodes) ? pathNodes : [];
+                const start = list[0] || { code: '', name: '' };
+                const end = list[list.length - 1] || { code: '', name: '' };
+                return {
+                    startCode: start.code || '',
+                    startName: start.name || '',
+                    endCode: end.code || '',
+                    endName: end.name || '',
+                    waypoints: list
+                };
+            }
+
+            function parseCodeNameFromSelectInput(input) {
+                if (!input) return { code: '', name: '' };
+                const text = input.value.trim();
+                let code = (input.dataset.value || '').trim();
+                let name = '';
+
+                if (code && text) {
+                    if (text.indexOf(code) === 0) {
+                        name = text.slice(code.length).trim().replace(/^\s+/, '');
+                    } else {
+                        name = text.includes('-')
+                            ? text.split('-').slice(1).join('-').trim()
+                            : text.replace(new RegExp('^' + code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), '').trim();
+                    }
+                } else if (text) {
+                    const sp = text.indexOf(' ');
+                    if (sp > 0) {
+                        code = text.slice(0, sp).trim();
+                        name = text.slice(sp + 1).trim();
+                    } else if (text.includes('-')) {
+                        code = text.split('-')[0].trim();
+                        name = text.split('-').slice(1).join('-').trim();
+                    }
+                }
+                return { code, name };
+            }
+
+            const page = new PageManager({
+                entityName: '路由规则',
+                statusColumnIndex: 7,
+                detailView: { enabled: true, columnIndex: 1 },
+
+                customSelects: [
+                    { inputId: 'searchStartNode', dropdownId: 'searchStartNodeDropdown' },
+                    { inputId: 'searchEndNode', dropdownId: 'searchEndNodeDropdown' },
+                    { inputId: 'searchRuleIsEnabled', dropdownId: 'searchRuleIsEnabledDropdown' },
+                    /* 途径节点：仅初始化一次，避免在 edit onOpen 里重复 initCustomSelect 导致多次 toggle 下拉打不开 */
+                    { inputId: 'editWaypointInput', dropdownId: 'editWaypointDropdown' }
+                ],
+
+                fields: [
+                    { id: 'ruleCode', label: '规则编码', type: 'text', required: true, editDisabled: true },
+                    { id: 'ruleName', label: '规则名称', type: 'text', required: true },
+                    { id: 'isEnabled', label: '是否启用', type: 'select', required: true, options: CommonOptions.isEnabled },
+                    { id: 'remark', label: '备注', type: 'textarea', labelWidth: '100px' },
+                    {
+                        type: 'raw',
+                        html: '',
+                        editHtml: `
+                            <div class="route-rule-node-block">
+                                <div class="modal-form-group custom-select-wrapper" style="width: 100%;">
+                                    <label>途径节点</label>
+                                    <div class="custom-select">
+                                        <input type="text" id="editWaypointInput" placeholder="请选择">
+                                        <span class="select-arrow">▼</span>
+                                        <span class="clear-btn">×</span>
+                                        <div class="select-dropdown" id="editWaypointDropdown"></div>
+                                    </div>
+                                    <button type="button" class="btn btn-primary" id="editWaypointAddBtn" style="margin-left: 10px; min-width: 88px;">添加</button>
+                                </div>
+                                <div id="editWaypointPathList" class="route-path-list"></div>
+                                <div id="editWaypointSequenceHint" class="route-path-sequence-hint">顺序：-</div>
+                            </div>
+                        `
+                    }
+                ],
+
+                addModal: {
+                    modalId: 'routeRuleModal',
+                    cancelBtnId: 'cancelBtn',
+                    saveBtnId: 'saveBtn',
+                    triggerBtnId: 'addBtn',
+                    defaults: { isEnabled: '启用' },
+                    onOpen: () => {
+                        waypointEditIndexByMode.add = -1;
+                        waypointState.add = [];
+                    },
+                    validations: [
+                        { id: 'ruleCode', message: '请输入规则编码', required: true },
+                        { id: 'ruleName', message: '请输入规则名称', required: true },
+                        { id: 'isEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        const code = document.getElementById('ruleCode').value.trim();
+                        const name = document.getElementById('ruleName').value.trim();
+                        const enabled = document.getElementById('isEnabled').value.trim();
+                        const remark = document.getElementById('remark').value.trim() || '-';
+                        const now = page.getCurrentTimeStr();
+                        const user = '当前用户';
+                        const pathNodes = [];
+                        const chain = buildChainFromPathNodes(pathNodes);
+
+                        const row = page.addTableRow({
+                            cells: [
+                                code,
+                                name,
+                                '-',
+                                '-',
+                                String(pathNodes.length),
+                                '-',
+                                { value: enabled, isStatus: true },
+                                remark,
+                                now,
+                                user,
+                                now,
+                                user
+                            ]
+                        });
+                        if (row) {
+                            writeNodeChainToRow(row, chain);
+                        }
+                        showToast('路由规则已保存', 'success');
+                    }
+                },
+
+                editModal: {
+                    modalId: 'routeRuleEditModal',
+                    cancelBtnId: 'editCancelBtn',
+                    saveBtnId: 'editSaveBtn',
+                    onDetailModeChange: (isDetailMode) => {
+                        const editModal = document.getElementById('routeRuleEditModal');
+                        if (editModal) {
+                            editModal.classList.toggle('detail-readonly', !!isDetailMode);
+                        }
+                        const addBtn = document.getElementById(waypointContexts.edit.addBtnId);
+                        if (addBtn) addBtn.disabled = !!isDetailMode;
+                    },
+                    validations: [
+                        { id: 'editRuleName', message: '请输入规则名称', required: true },
+                        { id: 'editIsEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onOpen: () => {
+                        renderWarehouseOptions(waypointContexts.edit.dropdownId);
+                        waypointEditIndexByMode.edit = -1;
+                        const chain = parseNodeChainFromRow(page.currentEditRow);
+                        waypointState.edit = buildPathNodesFromChain(chain);
+                        renderWaypointPath('edit');
+                        const input = document.getElementById(waypointContexts.edit.inputId);
+                        if (input) {
+                            input.value = '';
+                            input.dataset.value = '';
+                        }
+                    },
+                    onSave: () => {
+                        if (!page.currentEditRow) return;
+                        const row = page.currentEditRow;
+                        const pathNodes = getWaypointRows('edit');
+                        if (pathNodes.length < 2) {
+                            showToast('请至少维护2个途径节点（首节点为起始，尾节点为结束）', 'error');
+                            return false;
+                        }
+                        const chain = buildChainFromPathNodes(pathNodes);
+
+                        const nameVal = document.getElementById('editRuleName').value.trim();
+                        const enabled = document.getElementById('editIsEnabled').value.trim();
+                        const remark = document.getElementById('editRemark').value.trim() || '-';
+
+                        writeNodeChainToRow(row, chain);
+                        page.updateTableRow(row, {
+                            2: nameVal,
+                            3: formatWarehouseDisplay(chain.startCode, chain.startName),
+                            4: formatWarehouseDisplay(chain.endCode, chain.endName),
+                            5: String(pathNodes.length),
+                            6: formatWaypointSequence(pathNodes),
+                            7: { value: enabled, isStatus: true },
+                            8: remark,
+                            11: page.getCurrentTimeStr(),
+                            12: '当前用户'
+                        });
+                        showToast('路由规则已更新', 'success');
+                        page.currentEditRow = null;
+                    },
+                    mapRowToForm: (row) => {
+                        page.currentEditRow = row;
+                        const cells = row.querySelectorAll('td');
+                        const chain = parseNodeChainFromRow(row);
+                        return {
+                            editRuleCode: cells[1].textContent.trim(),
+                            editRuleName: cells[2].textContent.trim(),
+                            editIsEnabled: cells[7].querySelector('.status').textContent.trim(),
+                            editRemark: cells[8].textContent.trim() === '-' ? '' : cells[8].textContent.trim()
+                        };
+                    }
+                },
+
+                deleteModal: {
+                    modalId: 'confirmDeleteModal',
+                    closeBtnId: 'confirmDeleteCloseBtn',
+                    cancelBtnId: 'cancelDeleteBtn',
+                    confirmBtnId: 'confirmDeleteBtn'
+                }
+            });
+
+            renderWarehouseOptions('searchStartNodeDropdown');
+            renderWarehouseOptions('searchEndNodeDropdown');
+            page.init();
+            renderWarehouseOptions('editWaypointDropdown');
+
+            function addOrUpdateWaypoint(mode) {
+                const ctx = waypointContexts[mode];
+                if (!ctx) return;
+                const parsed = parseCodeNameFromSelectInput(document.getElementById(ctx.inputId));
+                if (!parsed.code) {
+                    showToast('请选择节点', 'error');
+                    return;
+                }
+
+                const list = getWaypointRows(mode).slice();
+                const editIndex = waypointEditIndexByMode[mode];
+                const duplicated = list.some((item, idx) => item.code === parsed.code && idx !== editIndex);
+                if (duplicated) {
+                    showToast('该节点已在途经列表中', 'error');
+                    return;
+                }
+
+                const entry = {
+                    code: parsed.code,
+                    name: parsed.name,
+                    updateTime: page.getCurrentTimeStr(),
+                    updater: '当前用户'
+                };
+                if (editIndex >= 0 && list[editIndex]) {
+                    list[editIndex] = entry;
+                } else {
+                    list.push(entry);
+                }
+
+                waypointState[mode] = list;
+                renderWaypointPath(mode);
+                waypointEditIndexByMode[mode] = -1;
+                const input = document.getElementById(ctx.inputId);
+                if (input) {
+                    input.value = '';
+                    input.dataset.value = '';
+                }
+                showToast(editIndex >= 0 ? '途经节点已更新' : '途经节点已添加', 'success');
+            }
+
+            document.addEventListener('click', (e) => {
+                if (e.target.id === waypointContexts.add.addBtnId) {
+                    e.preventDefault();
+                    addOrUpdateWaypoint('add');
+                    return;
+                }
+
+                if (e.target.id === waypointContexts.edit.addBtnId) {
+                    e.preventDefault();
+                    if (page.isDetailMode) return;
+                    addOrUpdateWaypoint('edit');
+                    return;
+                }
+
+                if (e.target.classList.contains('waypoint-edit-btn')) {
+                    e.preventDefault();
+                    const item = e.target.closest('.route-path-item');
+                    if (!item) return;
+                    const list = item.closest('.route-path-list');
+                    if (!list) return;
+                    const mode = list.id === waypointContexts.add.pathListId
+                        ? 'add'
+                        : list.id === waypointContexts.edit.pathListId
+                            ? 'edit'
+                            : '';
+                    if (!mode) return;
+                    if (mode === 'edit' && page.isDetailMode) return;
+                    const idx = parseInt(item.dataset.waypointIndex, 10);
+                    if (Number.isNaN(idx)) return;
+                    waypointEditIndexByMode[mode] = idx;
+                    const target = waypointState[mode][idx];
+                    const input = document.getElementById(waypointContexts[mode].inputId);
+                    if (input && target) {
+                        input.value = formatWarehouseDisplay(target.code, target.name);
+                        input.dataset.value = target.code;
+                    }
+                    return;
+                }
+
+                if (e.target.classList.contains('waypoint-move-up-btn') || e.target.classList.contains('waypoint-move-down-btn')) {
+                    e.preventDefault();
+                    const item = e.target.closest('.route-path-item');
+                    if (!item) return;
+                    const listNode = item.closest('.route-path-list');
+                    if (!listNode) return;
+                    const mode = listNode.id === waypointContexts.add.pathListId
+                        ? 'add'
+                        : listNode.id === waypointContexts.edit.pathListId
+                            ? 'edit'
+                            : '';
+                    if (!mode) return;
+                    if (mode === 'edit' && page.isDetailMode) return;
+                    const idx = parseInt(item.dataset.waypointIndex, 10);
+                    if (Number.isNaN(idx)) return;
+                    const list = waypointState[mode].slice();
+                    const targetIndex = e.target.classList.contains('waypoint-move-up-btn') ? idx - 1 : idx + 1;
+                    if (targetIndex < 0 || targetIndex >= list.length) return;
+                    const temp = list[idx];
+                    list[idx] = list[targetIndex];
+                    list[targetIndex] = temp;
+                    waypointState[mode] = list;
+                    renderWaypointPath(mode);
+                    return;
+                }
+
+                if (e.target.classList.contains('waypoint-delete-btn')) {
+                    e.preventDefault();
+                    const item = e.target.closest('.route-path-item');
+                    if (!item) return;
+                    const listNode = item.closest('.route-path-list');
+                    if (!listNode) return;
+                    const mode = listNode.id === waypointContexts.add.pathListId
+                        ? 'add'
+                        : listNode.id === waypointContexts.edit.pathListId
+                            ? 'edit'
+                            : '';
+                    if (!mode) return;
+                    if (mode === 'edit' && page.isDetailMode) return;
+                    const idx = parseInt(item.dataset.waypointIndex, 10);
+                    if (Number.isNaN(idx)) return;
+                    const list = waypointState[mode].slice();
+                    list.splice(idx, 1);
+                    waypointState[mode] = list;
+                    if (waypointEditIndexByMode[mode] === idx) {
+                        waypointEditIndexByMode[mode] = -1;
+                    }
+                    renderWaypointPath(mode);
+                    showToast('途经节点已删除', 'success');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

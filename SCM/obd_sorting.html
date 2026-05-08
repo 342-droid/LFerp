@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 分拣单</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .status-initial { background-color: #e6f7ff; color: #1890ff; }
+        .status-progress { background-color: #fff7e6; color: #fa8c16; }
+        .status-complete { background-color: #f6ffed; color: #52c41a; }
+
+        .order-link {
+            color: #2196f3;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .order-link:hover {
+            color: #1976d2;
+            text-decoration: underline;
+        }
+
+        .modal-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .modal-form-group {
+            width: calc(33.33% - 10px);
+        }
+        .modal-form-group label {
+            width: 120px;
+            display: inline-block;
+            margin-right: 8px;
+            color: #666;
+            font-weight: 600;
+        }
+        .modal-form-group input {
+            width: calc(100% - 132px);
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            color: #333;
+            outline: none;
+        }
+        .table-qty-summary {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 24px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            background: #fafafa;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #333;
+        }
+        .table-qty-summary strong {
+            color: #1890ff;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">分拣单</button>
+            </div>
+
+            <hr class="content-divider">
+            <div class="content-title">出库管理 / 分拣单</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 90px;">货主:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchCompany" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchCompanyDropdown">
+                                <div class="select-option" data-value="Y001-南京货主">Y001-南京货主</div>
+                                <div class="select-option" data-value="Y002-杭州货主">Y002-杭州货主</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 90px;">分拣单号:</label>
+                        <input type="text" id="searchSortingNo" placeholder="请输入分拣单号">
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 90px;">分拣单状态:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchStatus" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchStatusDropdown">
+                                <div class="select-option" data-value="初始">初始</div>
+                                <div class="select-option" data-value="分拣中">分拣中</div>
+                                <div class="select-option" data-value="已完成">已完成</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 90px;">波次号:</label>
+                        <input type="text" id="searchWaveNo" placeholder="请输入波次号">
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 90px;">出库单号:</label>
+                        <input type="text" id="searchOutboundNo" placeholder="请输入出库单号">
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 90px;">商品:</label>
+                        <input type="text" id="searchSkuKeyword" placeholder="请输入商品编码/名称">
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 90px;">站点编码:</label>
+                        <input type="text" id="searchStationCode" placeholder="请输入站点编码或名称">
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 90px;">是否分拣:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchIsSorted" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchIsSortedDropdown">
+                                <div class="select-option" data-value="是">是</div>
+                                <div class="select-option" data-value="否">否</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 90px;">分拣人:</label>
+                        <input type="text" id="searchSorter" placeholder="请输入分拣人">
+                    </div>
+                    <div class="form-group" style="flex: 0 0 100%; max-width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 20px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="width: 80px;">创建时间:</label>
+                            <div class="date-range">
+                                <div class="date-picker">
+                                    <input type="date" id="searchCreateTimeStart" data-type="start" placeholder="开始时间">
+                                </div>
+                                <span class="date-range-separator">至</span>
+                                <div class="date-picker">
+                                    <input type="date" id="searchCreateTimeEnd" data-type="end" placeholder="结束时间">
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="width: 80px;">更新时间:</label>
+                            <div class="date-range">
+                                <div class="date-picker">
+                                    <input type="date" id="searchUpdateTimeStart" data-type="start" placeholder="开始时间">
+                                </div>
+                                <span class="date-range-separator">至</span>
+                                <div class="date-picker">
+                                    <input type="date" id="searchUpdateTimeEnd" data-type="end" placeholder="结束时间">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="searchBtn">查询</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-qty-summary" id="sortingQtySummary" aria-live="polite">
+                    <span>查询结果：<strong id="sortingSummaryRowCount">0</strong> 条</span>
+                    <span>已拣货量合计：<strong id="sortingSummaryPicked">0</strong></span>
+                    <span>分拣量合计：<strong id="sortingSummarySorted">0</strong></span>
+                </div>
+                <div class="table-scroll-container">
+                    <table class="table no-last-column-freeze">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>分拣单号</th>
+                                <th>分拣单状态</th>
+                                <th>仓库</th>
+                                <th>货主</th>
+                                <th>波次号</th>
+                                <th>出库单号</th>
+                                <th>商品编码</th>
+                                <th>商品名称</th>
+                                <th>已拣货量</th>
+                                <th>分拣量</th>
+                                <th>是否分拣</th>
+                                <th>站点</th>
+                                <th>站点线路</th>
+                                <th>站点储位</th>
+                                <th>分拣人</th>
+                                <th>备注</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="sortingDetailModal" class="modal">
+        <div class="modal-content" style="width: 1200px;">
+            <div class="modal-header">
+                <div class="modal-title">分拣单 - 详情</div>
+                <span class="close" id="detailCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form class="modal-form">
+                    <div class="modal-form-group"><label>分拣单号</label><input type="text" id="detailSortingNo" disabled></div>
+                    <div class="modal-form-group"><label>分拣单状态</label><input type="text" id="detailStatus" disabled></div>
+                    <div class="modal-form-group"><label>仓库</label><input type="text" id="detailWarehouse" disabled></div>
+                    <div class="modal-form-group"><label>货主</label><input type="text" id="detailCompany" disabled></div>
+                    <div class="modal-form-group"><label>波次号</label><input type="text" id="detailWaveNo" disabled></div>
+                    <div class="modal-form-group"><label>出库单号</label><input type="text" id="detailOutboundNo" disabled></div>
+                    <div class="modal-form-group"><label>商品编码</label><input type="text" id="detailSkuCode" disabled></div>
+                    <div class="modal-form-group"><label>商品名称</label><input type="text" id="detailSkuName" disabled></div>
+                    <div class="modal-form-group"><label>已拣货量</label><input type="text" id="detailPickedQty" disabled></div>
+                    <div class="modal-form-group"><label>分拣量</label><input type="text" id="detailSortedQty" disabled></div>
+                    <div class="modal-form-group"><label>是否分拣</label><input type="text" id="detailIsSorted" disabled></div>
+                    <div class="modal-form-group"><label>站点</label><input type="text" id="detailStation" disabled></div>
+                    <div class="modal-form-group"><label>站点线路</label><input type="text" id="detailStationRoute" disabled></div>
+                    <div class="modal-form-group"><label>站点储位</label><input type="text" id="detailStationLocation" disabled></div>
+                    <div class="modal-form-group"><label>分拣人</label><input type="text" id="detailSorter" disabled></div>
+                    <div class="modal-form-group"><label>备注</label><input type="text" id="detailRemark" disabled></div>
+                    <div class="modal-form-group"><label>创建时间</label><input type="text" id="detailCreateTime" disabled></div>
+                    <div class="modal-form-group"><label>创建人</label><input type="text" id="detailCreateUser" disabled></div>
+                    <div class="modal-form-group"><label>更新时间</label><input type="text" id="detailUpdateTime" disabled></div>
+                    <div class="modal-form-group"><label>更新人</label><input type="text" id="detailUpdateUser" disabled></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeDetailModal">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        const sortingData = [
+            {
+                id: 'SORT1001',
+                sortingNo: 'FJ2026040109200037',
+                waveId: 'WAVE_ID_20260401001',
+                waveNo: 'WAVE20260401001',
+                waveDetailId: 'WAVE_D_20260401001',
+                sourceNo: 'SRC-OBD20260401001-SKU1001',
+                status: '初始',
+                warehouse: 'W001-南京仓',
+                company: 'Y001-南京货主',
+                outboundId: 'OBD_ID_20260401001',
+                outboundNo: 'OBD20260401001',
+                outboundDetailId: 'OBD_D_20260401001',
+                skuCode: 'SKU1001',
+                skuName: '三文鱼切片 500g',
+                pickedQty: 80,
+                sortedQty: 0,
+                isSorted: '否',
+                stationId: 'SITE_ID_001',
+                stationCode: 'S001',
+                stationName: '上海虹桥站',
+                stationRoute: '虹桥1线',
+                stationLocation: 'A01-01',
+                sorter: '',
+                remark: '待开始分拣',
+                enabled: '是',
+                createTime: '2026-04-01 09:20:00',
+                createUser: '系统',
+                updateTime: '2026-04-01 09:20:00',
+                updateUser: '系统'
+            },
+            {
+                id: 'SORT1002',
+                sortingNo: 'FJ2026040109400058',
+                waveId: 'WAVE_ID_20260401001',
+                waveNo: 'WAVE20260401001',
+                waveDetailId: 'WAVE_D_20260401002',
+                sourceNo: 'SRC-OBD20260401002-SKU1002',
+                status: '分拣中',
+                warehouse: 'W001-南京仓',
+                company: 'Y002-杭州货主',
+                outboundId: 'OBD_ID_20260401002',
+                outboundNo: 'OBD20260401002',
+                outboundDetailId: 'OBD_D_20260401002',
+                skuCode: 'SKU1002',
+                skuName: '牛排 300g',
+                pickedQty: 120,
+                sortedQty: 45,
+                isSorted: '否',
+                stationId: 'SITE_ID_008',
+                stationCode: 'S008',
+                stationName: '杭州下沙站',
+                stationRoute: '下沙2线',
+                stationLocation: 'B02-06',
+                sorter: '张三',
+                remark: '分批次分拣中',
+                enabled: '是',
+                createTime: '2026-04-01 09:40:00',
+                createUser: '王五',
+                updateTime: '2026-04-01 10:16:00',
+                updateUser: '张三'
+            },
+            {
+                id: 'SORT1003',
+                sortingNo: 'FJ2026040108500012',
+                waveId: 'WAVE_ID_20260401002',
+                waveNo: 'WAVE20260401002',
+                waveDetailId: 'WAVE_D_20260401003',
+                sourceNo: 'SRC-OBD20260401003-SKU2001',
+                status: '已完成',
+                warehouse: 'W004-杭州仓',
+                company: 'Y002-杭州货主',
+                outboundId: 'OBD_ID_20260401003',
+                outboundNo: 'OBD20260401003',
+                outboundDetailId: 'OBD_D_20260401003',
+                skuCode: 'SKU2001',
+                skuName: '冻虾仁 1kg',
+                pickedQty: 60,
+                sortedQty: 60,
+                isSorted: '是',
+                stationId: 'SITE_ID_010',
+                stationCode: 'S010',
+                stationName: '苏州园区站',
+                stationRoute: '园区冷链线',
+                stationLocation: 'C03-03',
+                sorter: '李四',
+                remark: '已完成并复核',
+                enabled: '是',
+                createTime: '2026-04-01 08:50:00',
+                createUser: '赵六',
+                updateTime: '2026-04-01 09:35:00',
+                updateUser: '李四'
+            }
+        ];
+
+        function getStatusClass(status) {
+            if (status === '初始') return 'status-initial';
+            if (status === '分拣中') return 'status-progress';
+            if (status === '已完成') return 'status-complete';
+            return 'status-initial';
+        }
+
+        function escapeHtml(text) {
+            return String(text == null ? '' : text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function formatSiteDisplay(code, name) {
+            const c = String(code == null ? '' : code).trim();
+            const n = String(name == null ? '' : name).trim();
+            if (c && n) return `${c}-${n}`;
+            return c || n;
+        }
+
+        function updateQtySummary(data) {
+            let picked = 0;
+            let sorted = 0;
+            data.forEach(item => {
+                picked += Number(item.pickedQty) || 0;
+                sorted += Number(item.sortedQty) || 0;
+            });
+            document.getElementById('sortingSummaryRowCount').textContent = String(data.length);
+            document.getElementById('sortingSummaryPicked').textContent = String(picked);
+            document.getElementById('sortingSummarySorted').textContent = String(sorted);
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                    <td><a href="#" class="order-link detail-link" data-id="${escapeHtml(item.id)}">${escapeHtml(item.sortingNo || '-')}</a></td>
+                    <td><span class="status-badge ${getStatusClass(item.status)}">${escapeHtml(item.status)}</span></td>
+                    <td>${escapeHtml(item.warehouse || '-')}</td>
+                    <td>${escapeHtml(item.company || '-')}</td>
+                    <td>${escapeHtml(item.waveNo)}</td>
+                    <td>${escapeHtml(item.outboundNo)}</td>
+                    <td>${escapeHtml(item.skuCode)}</td>
+                    <td>${escapeHtml(item.skuName)}</td>
+                    <td>${escapeHtml(item.pickedQty)}</td>
+                    <td>${escapeHtml(item.sortedQty)}</td>
+                    <td>${escapeHtml(item.isSorted)}</td>
+                    <td>${escapeHtml(formatSiteDisplay(item.stationCode, item.stationName))}</td>
+                    <td>${escapeHtml(item.stationRoute)}</td>
+                    <td>${escapeHtml(item.stationLocation)}</td>
+                    <td>${escapeHtml(item.sorter || '-')}</td>
+                    <td>${escapeHtml(item.remark)}</td>
+                    <td>${escapeHtml(item.createTime)}</td>
+                    <td>${escapeHtml(item.createUser)}</td>
+                    <td>${escapeHtml(item.updateTime)}</td>
+                    <td>${escapeHtml(item.updateUser)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            bindTableEvents();
+            updateQtySummary(data);
+        }
+
+        function fillDetail(item) {
+            document.getElementById('detailSortingNo').value = item.sortingNo || '';
+            document.getElementById('detailStatus').value = item.status || '';
+            document.getElementById('detailWarehouse').value = item.warehouse || '';
+            document.getElementById('detailCompany').value = item.company || '';
+            document.getElementById('detailWaveNo').value = item.waveNo || '';
+            document.getElementById('detailOutboundNo').value = item.outboundNo || '';
+            document.getElementById('detailSkuCode').value = item.skuCode || '';
+            document.getElementById('detailSkuName').value = item.skuName || '';
+            document.getElementById('detailPickedQty').value = item.pickedQty || 0;
+            document.getElementById('detailSortedQty').value = item.sortedQty || 0;
+            document.getElementById('detailIsSorted').value = item.isSorted || '';
+            document.getElementById('detailStation').value = formatSiteDisplay(item.stationCode, item.stationName);
+            document.getElementById('detailStationRoute').value = item.stationRoute || '';
+            document.getElementById('detailStationLocation').value = item.stationLocation || '';
+            document.getElementById('detailSorter').value = item.sorter || '';
+            document.getElementById('detailRemark').value = item.remark || '';
+            document.getElementById('detailCreateTime').value = item.createTime || '';
+            document.getElementById('detailCreateUser').value = item.createUser || '';
+            document.getElementById('detailUpdateTime').value = item.updateTime || '';
+            document.getElementById('detailUpdateUser').value = item.updateUser || '';
+        }
+
+        function showDetail(id) {
+            const item = sortingData.find(row => row.id === id);
+            if (!item) return;
+            fillDetail(item);
+            document.getElementById('sortingDetailModal').style.display = 'block';
+        }
+
+        function bindTableEvents() {
+            document.querySelectorAll('.detail-link').forEach(link => {
+                link.addEventListener('click', event => {
+                    event.preventDefault();
+                    showDetail(link.getAttribute('data-id'));
+                });
+            });
+        }
+
+        function searchOrders() {
+            const filters = {
+                company: document.getElementById('searchCompany').value.trim(),
+                sortingNo: document.getElementById('searchSortingNo').value.trim(),
+                waveNo: document.getElementById('searchWaveNo').value.trim(),
+                outboundNo: document.getElementById('searchOutboundNo').value.trim(),
+                skuKeyword: document.getElementById('searchSkuKeyword').value.trim().toLowerCase(),
+                stationCode: document.getElementById('searchStationCode').value.trim(),
+                status: document.getElementById('searchStatus').value.trim(),
+                isSorted: document.getElementById('searchIsSorted').value.trim(),
+                sorter: document.getElementById('searchSorter').value.trim(),
+                createTimeStart: document.getElementById('searchCreateTimeStart').value.trim(),
+                createTimeEnd: document.getElementById('searchCreateTimeEnd').value.trim(),
+                updateTimeStart: document.getElementById('searchUpdateTimeStart').value.trim(),
+                updateTimeEnd: document.getElementById('searchUpdateTimeEnd').value.trim()
+            };
+
+            const result = sortingData.filter(item => {
+                const skuMatched = !filters.skuKeyword ||
+                    item.skuCode.toLowerCase().includes(filters.skuKeyword) ||
+                    item.skuName.toLowerCase().includes(filters.skuKeyword);
+                const createDate = item.createTime ? item.createTime.slice(0, 10) : '';
+                const updateDate = item.updateTime ? item.updateTime.slice(0, 10) : '';
+                const createInRange =
+                    (!filters.createTimeStart || (createDate && createDate >= filters.createTimeStart)) &&
+                    (!filters.createTimeEnd || (createDate && createDate <= filters.createTimeEnd));
+                const updateInRange =
+                    (!filters.updateTimeStart || (updateDate && updateDate >= filters.updateTimeStart)) &&
+                    (!filters.updateTimeEnd || (updateDate && updateDate <= filters.updateTimeEnd));
+                return (!filters.company || item.company === filters.company) &&
+                    (!filters.sortingNo || (item.sortingNo || '').includes(filters.sortingNo)) &&
+                    (!filters.waveNo || item.waveNo.includes(filters.waveNo)) &&
+                    (!filters.outboundNo || item.outboundNo.includes(filters.outboundNo)) &&
+                    skuMatched &&
+                    (!filters.stationCode ||
+                        item.stationCode.includes(filters.stationCode) ||
+                        (item.stationName && item.stationName.includes(filters.stationCode))) &&
+                    (!filters.status || item.status === filters.status) &&
+                    (!filters.isSorted || item.isSorted === filters.isSorted) &&
+                    (!filters.sorter || (item.sorter || '').includes(filters.sorter)) &&
+                    createInRange &&
+                    updateInRange;
+            });
+
+            renderTable(result);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '分拣单',
+                customSelects: [
+                    { inputId: 'searchCompany', dropdownId: 'searchCompanyDropdown' },
+                    { inputId: 'searchStatus', dropdownId: 'searchStatusDropdown' },
+                    { inputId: 'searchIsSorted', dropdownId: 'searchIsSortedDropdown' }
+                ],
+                fields: [],
+                addModal: {},
+                editModal: {},
+                deleteModal: {}
+            });
+            page.init();
+
+            renderTable(sortingData);
+            document.getElementById('searchBtn').addEventListener('click', searchOrders);
+            document.getElementById('closeDetailModal').addEventListener('click', () => {
+                document.getElementById('sortingDetailModal').style.display = 'none';
+            });
+            document.getElementById('detailCloseBtn').addEventListener('click', () => {
+                document.getElementById('sortingDetailModal').style.display = 'none';
+            });
+            window.addEventListener('click', e => {
+                const modal = document.getElementById('sortingDetailModal');
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

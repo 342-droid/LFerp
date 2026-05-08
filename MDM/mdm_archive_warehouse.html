@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 仓库档案</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <style>
+        .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
+        .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
+        .flow-box { margin: 14px 0; padding: 12px 14px; background: #fafafa; border: 1px solid #eee; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.65; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">仓库档案</button></div>
+            <hr class="content-divider">
+            <div class="content-title">基础数据中心 / 资源中心 / 仓库档案</div>
+
+<section class="search-section"><form class="search-form">
+<div class="form-group"><label>主体名称:</label><div class="input-wrapper"><input id="qSubjectName"><span class="clear-btn">×</span></div></div>
+<div class="form-group"><label>仓库名称:</label><div class="input-wrapper"><input id="qResourceName"><span class="clear-btn">×</span></div></div>
+<div class="form-group"><label>仓库类型:</label><select id="qWhType"><option value="">全部</option><option value="w">仓库</option><option value="s">门店</option></select></div>
+<div class="form-group"><label>状态:</label><select id="qWhStatus"><option value="">全部</option><option value="on">启用</option><option value="off">停用</option></select></div>
+<div class="form-actions"><button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button><button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button><button type="button" id="mdmArchiveWhAddBtn" class="btn btn-secondary">+ 新增仓库</button></div>
+</form></section>
+<section class="table-section"><div class="table-scroll-container"><table class="table"><thead><tr><th>仓库编号</th><th>主体名称</th><th>仓库名称</th><th>仓库类型</th><th>关联门店</th><th>仓库管理员</th><th>手机号码</th><th>可提现手机号</th><th>仓库位置</th><th>仓库面积</th><th>创建时间</th><th>状态</th><th>操作</th></tr></thead><tbody id="tableBody"><tr><td>WH001</td><td>沪南一号仓</td><td>主仓库</td><td>仓库</td><td>仓库商家4.18</td><td>小牛</td><td>138****2211</td><td>138****2211</td><td>上海市浦东新区张江路88号</td><td>3200 m²</td><td>2026-04-24 10:22:11</td><td><span class="status active">启用</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">停用</a> <a href="#" class="edit-btn">编辑</a></td></tr><tr><td>WH304550231884821504</td><td>合作仓-苏州</td><td>前置仓-华东一号库演示超长名称</td><td>仓库</td><td>冷丰演示门店</td><td>周仓</td><td>137****0098</td><td>137****0098</td><td>上海市浦东新区张江路1688号</td><td>180 m²</td><td>2026-04-23 15:01:44</td><td><span class="status active">启用</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">停用</a> <a href="#" class="edit-btn">编辑</a></td></tr><tr><td>WH-ONS-88303</td><td>自建仓-杭州</td><td>合作仓-苏州</td><td>仓库</td><td>—</td><td>钱多多</td><td>159****7788</td><td>—</td><td>江苏省苏州市工业园区星湖街328号</td><td>5600 m²</td><td>2026-04-22 09:33:02</td><td><span class="status inactive">停用</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">启用</a> <a href="#" class="edit-btn">编辑</a></td></tr><tr><td>WH004</td><td>同城周转仓主体</td><td>同城周转仓</td><td>门店</td><td>五角场体验店</td><td>孙丽</td><td>188****7765</td><td>188****7765</td><td>上海市杨浦区国定路506号</td><td>96 m²</td><td>2026-04-21 08:30:00</td><td><span class="status active">启用</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">停用</a> <a href="#" class="edit-btn">编辑</a></td></tr></tbody></table></div><div id="pagination-container"></div><p style="margin-top:10px;font-size:12px;color:#999;">说明：仓库档案无进件；停用/启用二次确认。</p></section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script src="../js/mdm-subject-pagemanager.js"></script>
+    <script src="../js/mdm-unified-onboarding-ui.js"></script>
+    <script src="../js/mdm-erp-lists.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        MdmErpLists.initArchiveWarehouse();
+    });
+    </script>
+</body>
+</html>

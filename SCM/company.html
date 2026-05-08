@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 货主管理</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        /* 页面特定样式 - 货主模态框label宽度 */
+        .modal-form-group label {
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏容器 -->
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+
+    <!-- 顶部导航栏容器 -->
+    <div id="header-container"></div>
+    
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">货主</button>
+            </div>
+            
+            <hr class="content-divider">
+            
+            <div class="content-title">基础信息 / 货主</div>
+            
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group">
+                        <label>货主编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>货主名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>是否启用:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchIsEnabled" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchIsEnabledDropdown">
+                                <div class="select-option" data-value="yes">启用</div>
+                                <div class="select-option" data-value="no">禁用</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="location.reload()">查询</button>
+                        <button type="button" class="btn btn-secondary" id="addBtn">新增</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>货主编码</th>
+                                <th>货主名称</th>
+                                <th>是否启用</th>
+                                <th>公司名称</th>
+                                <th>地址</th>
+                                <th>联系人</th>
+                                <th>电话</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>Y001</td>
+                                <td>南京货主</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>南京公司</td>
+                                <td>江苏省南京市江陵区...</td>
+                                <td>张三</td>
+                                <td>18612341234</td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>Y002</td>
+                                <td>北京货主</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>北京公司</td>
+                                <td>北京市北京区...</td>
+                                <td>张三</td>
+                                <td>18612341236</td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>Y003</td>
+                                <td>上海货主</td>
+                                <td><span class="status inactive">禁用</span></td>
+                                <td>上海公司</td>
+                                <td>上海市上海区...</td>
+                                <td>李四</td>
+                                <td>18612341237</td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>张三</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>Y004</td>
+                                <td>广州货主</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>广州公司</td>
+                                <td>广州市广州区...</td>
+                                <td>张三</td>
+                                <td>18612341238</td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>Y005</td>
+                                <td>深圳货主</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>深圳公司</td>
+                                <td>深圳市深圳区...</td>
+                                <td>李四</td>
+                                <td>18612341239</td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>张三</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>Y006</td>
+                                <td>杭州货主</td>
+                                <td><span class="status inactive">禁用</span></td>
+                                <td>杭州公司</td>
+                                <td>杭州市杭州区...</td>
+                                <td>张三</td>
+                                <td>18612341240</td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页组件容器 -->
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 引入公共脚本 -->
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        // 使用PageManager简化页面逻辑
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '货主',
+                statusColumnIndex: 3,
+                detailView: { enabled: true },
+                
+                // 搜索区域下拉框
+                customSelects: [
+                    { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' }
+                ],
+                
+                // 字段定义 - 自动生成新增/编辑模态框
+                fields: [
+                    { id: 'companyCode', label: '货主编码', type: 'text', required: true, editDisabled: true },
+                    { id: 'companyName', label: '货主名称', type: 'text', required: true, editDisabled: true },
+                    { id: 'isEnabled', label: '是否启用', type: 'select', required: true,
+                      options: [{ value: 'yes', text: '启用' }, { value: 'no', text: '禁用' }] },
+                    { id: 'corpName', label: '公司名称', type: 'text' },
+                    { id: 'address', label: '地址', type: 'text' },
+                    { id: 'contactPerson', label: '联系人', type: 'text' },
+                    { id: 'phone', label: '电话', type: 'text' },
+                    { id: 'remark', label: '备注', type: 'textarea', labelWidth: '100px' }
+                ],
+                
+                addModal: {
+                    modalId: 'companyModal',
+                    cancelBtnId: 'cancelBtn',
+                    saveBtnId: 'saveBtn',
+                    triggerBtnId: 'addBtn',
+                    defaults: { isEnabled: '启用' },
+                    validations: [
+                        { id: 'companyCode', message: '请输入货主编码', required: true },
+                        { id: 'companyName', message: '请输入货主名称', required: true },
+                        { id: 'isEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        const code = document.getElementById('companyCode').value.trim();
+                        const name = document.getElementById('companyName').value.trim();
+                        const enabled = document.getElementById('isEnabled').value.trim();
+                        const corpName = document.getElementById('corpName')?.value.trim() || '-';
+                        const address = document.getElementById('address')?.value.trim() || '-';
+                        const contact = document.getElementById('contactPerson')?.value.trim() || '-';
+                        const phone = document.getElementById('phone')?.value.trim() || '-';
+                        
+                        page.addTableRow({
+                            cells: [
+                                code,
+                                name,
+                                { value: enabled, isStatus: true },
+                                corpName,
+                                address,
+                                contact,
+                                phone,
+                                page.getCurrentTimeStr(),
+                                '当前用户'
+                            ]
+                        });
+                        showToast('货主信息已保存', 'success');
+                    }
+                },
+                
+                editModal: {
+                    modalId: 'companyEditModal',
+                    cancelBtnId: 'editCancelBtn',
+                    saveBtnId: 'editSaveBtn',
+                    validations: [
+                        { id: 'editCompanyName', message: '请输入货主名称', required: true },
+                        { id: 'editIsEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        if (!page.currentEditRow) return;
+                        page.updateTableRow(page.currentEditRow, {
+                            2: document.getElementById('editCompanyName').value.trim(),
+                            3: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
+                            4: document.getElementById('editCorpName')?.value.trim() || '-',
+                            5: document.getElementById('editAddress')?.value.trim() || '-',
+                            6: document.getElementById('editContactPerson')?.value.trim() || '-',
+                            7: document.getElementById('editPhone')?.value.trim() || '-',
+                            8: page.getCurrentTimeStr(),
+                            9: '当前用户'
+                        });
+                        showToast('货主信息已更新', 'success');
+                        page.currentEditRow = null;
+                    },
+                    mapRowToForm: (row) => {
+                        page.currentEditRow = row;
+                        const cells = row.querySelectorAll('td');
+                        return {
+                            editCompanyCode: cells[1].textContent,
+                            editCompanyName: cells[2].textContent,
+                            editIsEnabled: cells[3].querySelector('.status').textContent,
+                            editCorpName: cells[4].textContent === '-' ? '' : cells[4].textContent,
+                            editAddress: cells[5].textContent === '-' ? '' : cells[5].textContent,
+                            editContactPerson: cells[6].textContent === '-' ? '' : cells[6].textContent,
+                            editPhone: cells[7].textContent === '-' ? '' : cells[7].textContent
+                        };
+                    }
+                },
+                
+                deleteModal: {
+                    modalId: 'confirmDeleteModal',
+                    closeBtnId: 'confirmDeleteCloseBtn',
+                    cancelBtnId: 'cancelDeleteBtn',
+                    confirmBtnId: 'confirmDeleteBtn'
+                }
+            });
+            
+            page.init();
+            document.getElementById('editCloseBtn').addEventListener('click', () => page.closeModal('edit'));
+        });
+    </script>
+</body>
+</html>

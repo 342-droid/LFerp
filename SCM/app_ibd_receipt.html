@@ -1,0 +1,2232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 查询入库单</title>
+    <link rel="stylesheet" href="../css/mobile-components.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 移动端容器 */
+        .mobile-container {
+            width: 393px;
+            height: 851px;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部导航栏 */
+        .header {
+            padding: 16px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 20px;
+            color: #333333;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333333;
+            flex: 1;
+            text-align: center;
+            margin-right: 32px;
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            flex: 1;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 扫一扫标题 */
+        .scan-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: #333333;
+            margin-bottom: 24px;
+        }
+
+        /* 输入框区域 */
+        .input-wrapper {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        /* 组件化后保持查询页扫码框与旧版一致 */
+        #scanPage #scanInputContainer {
+            width: 100%;
+        }
+
+        #scanPage #scanInputContainer .wms-mobile-scan-input__field {
+            width: 100%;
+            padding: 14px 56px 14px 56px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: #ffffff;
+            text-align: center;
+        }
+
+        #scanPage #scanInputContainer .wms-mobile-scan-input__field::placeholder {
+            text-align: center;
+        }
+
+        #scanPage #scanInputContainer .wms-mobile-scan-input__btn {
+            right: 4px;
+            width: 48px;
+            height: 40px;
+            border: none;
+            border-radius: 4px;
+            background-color: transparent;
+        }
+
+        #scanPage #scanInputContainer .wms-mobile-scan-input__btn svg {
+            width: 24px;
+            height: 24px;
+            color: #666666;
+        }
+
+        /* 入库单录入页扫描商品输入框与查询页保持一致 */
+        #scanContainerPage #containerInputContainer {
+            width: 100%;
+        }
+
+        #scanContainerPage #containerInputContainer .wms-mobile-scan-input__field {
+            width: 100%;
+            padding: 14px 56px 14px 56px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: #ffffff;
+            text-align: center;
+        }
+
+        #scanContainerPage #containerInputContainer .wms-mobile-scan-input__field::placeholder {
+            text-align: center;
+        }
+
+        #scanContainerPage #containerInputContainer .wms-mobile-scan-input__btn {
+            right: 4px;
+            width: 48px;
+            height: 40px;
+            border: none;
+            border-radius: 4px;
+            background-color: transparent;
+        }
+
+        #scanContainerPage #containerInputContainer .wms-mobile-scan-input__btn svg {
+            width: 24px;
+            height: 24px;
+            color: #666666;
+        }
+
+        .global-toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: calc(100vw - 32px);
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            font-size: 14px;
+            line-height: 1.5;
+            text-align: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .global-toast.active {
+            opacity: 1;
+        }
+
+
+
+        .scan-btn {
+            width: 48px;
+            height: 48px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .scan-btn svg {
+            width: 24px;
+            height: 24px;
+            color: #666666;
+        }
+
+        /* 提示文字 */
+        .hint-text {
+            font-size: 14px;
+            color: #999999;
+            margin-bottom: auto;
+        }
+
+        .claim-confirm-btn {
+            width: 100%;
+            max-width: 280px;
+            margin-top: 28px;
+            padding: 14px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            background-color: #2196f3;
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        .claim-confirm-btn:active {
+            opacity: 0.92;
+        }
+
+        /* 按类型查询 */
+        .query-by-type {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            color: #333333;
+            cursor: pointer;
+            padding: 16px;
+        }
+
+        .query-by-type .arrow {
+            font-size: 14px;
+            color: #999999;
+        }
+
+        /* 页面切换 */
+        .page {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        /* 按类型查询页面 */
+        .type-query-content {
+            flex: 1;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .type-query-title {
+            font-size: 18px;
+            color: #333333;
+            margin-bottom: 32px;
+        }
+
+        .type-buttons {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .type-btn {
+            width: 100%;
+            padding: 14px 20px;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            background-color: #ffffff;
+            color: #2196f3;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .type-btn:hover {
+            background-color: #e3f2fd;
+        }
+
+        /* 列表页面 */
+        .list-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .receipt-item {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            padding: 16px;
+            cursor: pointer;
+        }
+
+        .receipt-item:hover {
+            background-color: #f0f2f5;
+        }
+
+        .receipt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .receipt-type {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333333;
+        }
+
+        .receipt-status {
+            font-size: 14px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            background-color: #e3f2fd;
+            color: #2196f3;
+        }
+
+        .receipt-info {
+            font-size: 14px;
+            color: #666666;
+            line-height: 1.5;
+        }
+
+        .receipt-info div {
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .receipt-info div:before {
+            content: attr(data-label);
+            width: 65px;
+            flex-shrink: 0;
+            color: #666666;
+        }
+
+        .receipt-info span {
+            color: #333333;
+            font-weight: 500;
+        }
+
+        /* 入库单录入页面 */
+        .scan-container-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 入库单信息栏 */
+        .receipt-info-bar {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 16px 20px;
+        }
+
+        .receipt-info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .receipt-info-type {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333333;
+        }
+
+        .receipt-info-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 14px;
+            color: #666666;
+        }
+
+        .receipt-info-stats span {
+            font-weight: 500;
+        }
+
+        .receipt-info-detail {
+            font-size: 14px;
+            color: #666666;
+        }
+
+        /* 扫描区域 */
+        .scan-area {
+            flex: 1;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 容器值显示 */
+        .container-value {
+            display: none; /* 入库单录入页面不再展示容器扫描结果 */
+        }
+
+        /* 商品值显示 */
+        .product-value {
+            font-size: 18px;
+            font-weight: 500;
+            color: #666666;
+            margin-bottom: 24px;
+        }
+
+        /* 商品信息 */
+        .product-info {
+            width: 100%;
+            margin-top: 16px;
+            margin-bottom: 24px;
+        }
+
+        .product-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .product-info-label {
+            color: #666666;
+        }
+
+        .product-info-value {
+            color: #333333;
+            font-weight: 500;
+        }
+
+        .scan-complete-action {
+            padding: 0 20px 16px;
+        }
+
+        .scan-confirm-action {
+            width: 100%;
+            max-width: 280px;
+            margin-top: 24px;
+        }
+
+        .scan-complete-btn {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: #2196f3;
+            color: #ffffff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .scan-complete-btn:active {
+            opacity: 0.9;
+        }
+
+        /* 带扫描按钮的输入框 */
+        .input-with-scan {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 储位输入框 */
+        .location-input {
+            flex: 1;
+            padding: 8px 48px 8px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        /* 内部小型扫描按钮 */
+        .scan-btn.inside.small {
+            position: absolute;
+            right: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 28px;
+            border: none;
+            border-radius: 4px;
+            background-color: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .scan-btn.inside.small svg {
+            width: 16px;
+            height: 16px;
+            color: #666666;
+        }
+
+        /* 带单位的输入框 */
+        .input-with-unit {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* 收货量输入框 */
+        .receipt-qty-input {
+            padding: 8px 30px 8px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 210px;
+        }
+
+        /* 输入框单位 */
+        .input-unit {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666666;
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+
+
+        /* 小型扫描按钮 */
+        .scan-btn.small {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .scan-btn.small svg {
+            width: 16px;
+            height: 16px;
+            color: #666666;
+        }
+
+
+        /* 扫描提示 */
+        .scan-hint {
+            font-size: 14px;
+            color: #999999;
+            margin-top: 16px;
+        }
+
+        /* 底部按钮 */
+        .bottom-buttons {
+            display: flex;
+            padding: 20px;
+            gap: 12px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .bottom-btn {
+            flex: 1;
+            padding: 14px 20px;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            background-color: #ffffff;
+            color: #2196f3;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .bottom-btn:hover {
+            background-color: #e3f2fd;
+        }
+
+        /* 入库明细页面 */
+        .receipt-details-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .details-list {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .details-item {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            padding: 16px;
+        }
+
+        .details-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .details-item-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333333;
+        }
+
+        .details-item-qty {
+            font-size: 14px;
+            color: #666666;
+        }
+
+        .details-item-info {
+            font-size: 14px;
+            color: #666666;
+        }
+
+        .details-item-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+
+        .details-item-row .quantity-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .details-item-row .quantity-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .details-item-row .quantity-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .details-item-label {
+            width: 80px;
+            flex-shrink: 0;
+            color: #666666;
+        }
+
+        .details-item-value {
+            color: #333333;
+            font-weight: 500;
+        }
+
+        /* 页签导航 */
+        .tab-navigation {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            background-color: #ffffff;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background-color: #ffffff;
+            color: #666666;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            color: #2196f3;
+            border-bottom: 2px solid #2196f3;
+            font-weight: 500;
+        }
+
+        .tab-btn:hover {
+            color: #2196f3;
+        }
+
+        /* 页签内容 */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 收货按钮 */
+        .receive-btn {
+            padding: 6px 12px;
+            border: 1px solid #2196f3;
+            border-radius: 4px;
+            background-color: #2196f3;
+            color: #ffffff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .receive-btn:hover {
+            background-color: #1976d2;
+        }
+
+        .cancel-receive-btn {
+            background-color: #f44336;
+            border-color: #f44336;
+            flex-shrink: 0;
+        }
+
+        .cancel-receive-btn:hover {
+            background-color: #d32f2f;
+            border-color: #d32f2f;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999999;
+            font-size: 14px;
+        }
+
+        /* 关闭入库单按钮 */
+        .close-receipt-button {
+            position: sticky;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background-color: #ffffff;
+            border-top: 1px solid #e0e0e0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+
+        .close-receipt-btn {
+            padding: 12px 24px;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            background-color: #2196f3;
+            color: #ffffff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            max-width: 215px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .close-receipt-btn:hover {
+            background-color: #1976d2;
+        }
+
+        /* 收货记录项 */
+        .record-item {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            padding: 16px;
+        }
+
+        .record-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .record-item-container {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333333;
+            flex: 1;
+        }
+
+        .record-item-info {
+            font-size: 14px;
+            color: #666666;
+        }
+
+        .record-item-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+
+        .record-item-label {
+            width: 80px;
+            flex-shrink: 0;
+            color: #666666;
+        }
+
+        .record-item-value {
+            color: #333333;
+            font-weight: 500;
+        }
+
+        /* 商品名称样式（不含条码链接） */
+        .record-item-info .record-item-row:first-child .record-item-value:not(.barcode-link) {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        /* 收货人和收货量在同一行显示 */
+        .record-item-row.flex-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* 商品之间的分隔线 */
+        .product-divider {
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 12px 0;
+        }
+
+        /* 复选框样式 */
+        .record-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        /* 包含复选框的行样式 */
+        .record-item-row:first-child {
+            display: flex;
+            align-items: center;
+        }
+
+        /* 底部定位容器区域 */
+        .location-container {
+            position: sticky;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background-color: #ffffff;
+            border-top: 1px solid #e0e0e0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+
+        .location-container-content {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-with-scan-btn {
+            flex: 1;
+            position: relative;
+        }
+
+        .scan-input {
+            width: 100%;
+            padding: 12px 16px;
+            padding-right: 50px;
+            border: 1px solid #d0d0d0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .scan-btn.inside {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            background-color: #f0f0f0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666666;
+        }
+
+
+        /* 收货记录详情卡片 */
+        .record-detail-card {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .record-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .record-detail-product {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333333;
+        }
+
+        .record-detail-status {
+            font-size: 14px;
+            color: #666666;
+        }
+
+        .record-detail-body {
+            font-size: 14px;
+        }
+
+        .record-detail-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+
+        .record-detail-label {
+            width: 80px;
+            flex-shrink: 0;
+            color: #666666;
+        }
+
+        .record-detail-value {
+            color: #333333;
+            font-weight: 500;
+        }
+
+        .record-detail-empty {
+            text-align: center;
+            color: #999999;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+
+        /* 上架量和收货量在同一行显示 */
+        .record-detail-row.flex-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .record-detail-row.flex-row div {
+            display: flex;
+            align-items: center;
+        }
+
+        /* 可点击的商品条码（蓝色超链接） */
+        .barcode-link,
+        .record-item-info .record-item-value.barcode-link {
+            color: #2196f3;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .barcode-link:hover,
+        .record-item-info .record-item-value.barcode-link:hover {
+            color: #1976d2;
+        }
+
+        .shortage-modal {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.35);
+            z-index: 30;
+            padding: 20px;
+        }
+
+        .shortage-modal.active {
+            display: flex;
+        }
+
+        .shortage-modal-card {
+            width: 100%;
+            max-width: 320px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 18px 16px 14px;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+        }
+
+        .shortage-modal-message {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #333333;
+            margin-bottom: 16px;
+        }
+
+        .shortage-modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .shortage-modal-btn {
+            flex: 1;
+            border: 1px solid #d0d0d0;
+            border-radius: 8px;
+            background-color: #ffffff;
+            color: #555555;
+            font-size: 15px;
+            padding: 10px 0;
+            cursor: pointer;
+        }
+
+        .shortage-modal-btn--confirm {
+            border-color: #2196f3;
+            background-color: #2196f3;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- 顶部导航栏 -->
+        <div class="header">
+            <div class="back-btn" onclick="window.location.href='app_list.html'">
+                ←
+            </div>
+            <div class="header-title">查询入库单</div>
+        </div>
+
+        <!-- 查询入库单页面 -->
+        <div class="page active" id="scanPage">
+            <div class="main-content">
+                <!-- 扫一扫标题 -->
+                <div class="scan-title">扫一扫</div>
+
+                <!-- 输入框区域 -->
+                <div class="input-wrapper">
+                    <div id="scanInputContainer"></div>
+                </div>
+
+                <!-- 提示文字 -->
+                <div class="hint-text">支持入库单号、来源单号、关联单号</div>
+
+                <button type="button" class="claim-confirm-btn" onclick="confirmReceiptQuery()">确定</button>
+
+                <!-- 按类型查询 -->
+                <div class="query-by-type" onclick="showTypeQueryPage()">
+                    <span>按类型查询</span>
+                    <span class="arrow">›</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 按类型查询页面 -->
+        <div class="page" id="typeQueryPage">
+            <div class="type-query-content">
+                <div class="type-query-title">请选择类型</div>
+                <div class="type-buttons">
+                    <button class="type-btn" onclick="showListPage('采购入库')">采购入库</button>
+                    <button class="type-btn" onclick="showListPage('返配入库')">返配入库</button>
+                    <button class="type-btn" onclick="showListPage('调拨入库')">调拨入库</button>
+                    <button class="type-btn" onclick="showListPage('客退入库')">客退入库</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 列表页面 -->
+        <div class="page" id="listPage">
+            <div class="list-content">
+                <!-- 入库单1 -->
+                <div class="receipt-item" onclick="showScanContainerPage(window.currentReceiptType || '采购入库', 'IB020260228112499')">
+                    <div class="receipt-header">
+                        <div class="receipt-type">采购入库</div>
+                        <div class="receipt-status">初始</div>
+                    </div>
+                    <div class="receipt-info">
+                        <div data-label="入库单号:"><span>IB020260228112499</span></div>
+                        <div data-label="来源单号:"><span>P0202511190001</span></div>
+                        <div data-label="关联单号:"><span>S0202511190001</span></div>
+                        <div data-label="货主:"><span>Y001-南京货主</span></div>
+                        <div data-label="供应商:"><span>G001-浙江XX公司</span></div>
+                        <div data-label="承运商:"><span>京东物流</span></div>
+                        <div data-label="车牌号:"><span>沪A12345</span></div>
+                        <div data-label="来源地:"><span></span></div>
+                        <div data-label="备注:"><span></span></div>
+                    </div>
+                </div>
+
+                <!-- 入库单2 -->
+                <div class="receipt-item" onclick="showScanContainerPage(window.currentReceiptType || '采购入库', 'IB020260228112401')">
+                    <div class="receipt-header">
+                        <div class="receipt-type">采购入库</div>
+                        <div class="receipt-status">收货中</div>
+                    </div>
+                    <div class="receipt-info">
+                        <div data-label="入库单号:"><span>IB020260228112401</span></div>
+                        <div data-label="来源单号:"><span>P0202511190002</span></div>
+                        <div data-label="关联单号:"><span>S0202511190002</span></div>
+                        <div data-label="货主:"><span>Y001-南京货主</span></div>
+                        <div data-label="供应商:"><span>G001-浙江XX公司</span></div>
+                        <div data-label="承运商:"><span>京东物流</span></div>
+                        <div data-label="车牌号:"><span>沪A12345</span></div>
+                        <div data-label="来源地:"><span></span></div>
+                        <div data-label="备注:"><span></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 入库单录入页面 -->
+        <div class="page" id="scanContainerPage">
+            <div class="scan-container-content">
+                <!-- 入库单信息 -->
+                <div class="receipt-info-bar">
+                    <div class="receipt-info-header">
+                        <div class="receipt-info-type" id="scanReceiptType"></div>
+                        <div class="receipt-info-stats">
+                            <span>SKU <span id="scanSkuCount">0</span>/3</span>
+                            <span>数量 <span id="scanQuantityCount">0</span>/30</span>
+                        </div>
+                    </div>
+                    <div class="receipt-info-detail" id="scanReceiptId"></div>
+                </div>
+
+                <!-- 扫描区域 -->
+                <div class="scan-area">
+                    <div id="containerValue" class="container-value"></div>
+                    <div id="productValue" class="product-value"></div>
+                    <div class="scan-title" id="scanTitle">扫描商品</div>
+                    <div class="input-wrapper">
+                        <div id="containerInputContainer"></div>
+                    </div>
+                    <div id="productInfoCard" class="product-info" style="display: none;">
+                        <div class="product-info-item">
+                            <span class="product-info-label">商品条码</span>
+                            <span class="product-info-value" id="productBarcode"></span>
+                        </div>
+                        <div class="product-info-item">
+                            <span class="product-info-label">收货储位</span>
+                            <span class="product-info-value" id="productLocation"></span>
+                        </div>
+                        <div class="product-info-item">
+                            <span class="product-info-label">计划量</span>
+                            <span class="product-info-value" id="productPlanQty"></span>
+                        </div>
+                        <div class="product-info-item">
+                            <span class="product-info-label">已收量</span>
+                            <span class="product-info-value" id="productReceivedQty"></span>
+                        </div>
+                        <div class="product-info-item">
+                            <span class="product-info-label">生产日期</span>
+                            <span class="product-info-value">
+                                <div class="input-with-unit">
+                                    <input type="text" class="receipt-qty-input" id="productProductionDate" placeholder="请输入">
+                                    <span class="input-unit">YYYY-MM-DD</span>
+                                </div>
+                            </span>
+                        </div>
+                        <div class="product-info-item">
+                            <span class="product-info-label">收货量</span>
+                            <span class="product-info-value">
+                                <div class="input-with-unit">
+                                    <input type="text" class="receipt-qty-input" id="productReceiptQty" placeholder="请输入">
+                                    <span class="input-unit">斤</span>
+                                </div>
+                            </span>
+                        </div>
+                    </div>
+                    <div id="scanHint" class="scan-hint">支持商品编码、商品条码</div>
+                    <div class="scan-confirm-action" id="scanConfirmAction">
+                        <button type="button" class="claim-confirm-btn" onclick="confirmScanContainerInput()">确定</button>
+                    </div>
+                </div>
+
+                <div class="scan-complete-action" id="scanCompleteAction" style="display: none;">
+                    <button type="button" class="scan-complete-btn" onclick="completeProductReceiptQty()">完成</button>
+                </div>
+
+                <!-- 底部按钮 -->
+                <div class="bottom-buttons">
+                    <button class="bottom-btn" onclick="showReceiptRecords()">收货记录</button>
+                    <button class="bottom-btn" onclick="showReceiptDetails()">入库明细</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 入库明细页面 -->
+        <div class="page" id="receiptDetailsPage">
+            <div class="receipt-details-content">
+                <!-- 入库单信息 -->
+                <div class="receipt-info-bar">
+                    <div class="receipt-info-header">
+                        <div class="receipt-info-type" id="detailsReceiptType"></div>
+                        <div class="receipt-info-stats">
+                            <span>SKU <span id="detailsSkuCount">3</span>/3</span>
+                            <span>数量 <span id="detailsQuantityCount">30</span>/30</span>
+                        </div>
+                    </div>
+                    <div class="receipt-info-detail" id="detailsReceiptId"></div>
+                </div>
+
+                <!-- 页签导航 -->
+                <div class="tab-navigation">
+                    <button class="tab-btn active" onclick="switchTab('all')">全部(4)</button>
+                    <button class="tab-btn" onclick="switchTab('completed')">已完成(1)</button>
+                    <button class="tab-btn" onclick="switchTab('pending')">未完成(3)</button>
+                </div>
+
+                <!-- 商品明细列表 - 全部 -->
+                <div class="details-list tab-content active" id="allTab">
+                    <!-- 商品1 -->
+                    <div class="details-item">
+                        <div class="details-item-header">
+                            <div class="details-item-name">苹果</div>
+                        </div>
+                        <div class="details-item-info">
+                            <div class="details-item-row">
+                                <span class="details-item-label">商品条码:</span>
+                                <span class="details-item-value">6912345678901</span>
+                            </div>
+                            <div class="details-item-row">
+                                <div class="quantity-container">
+                                    <div class="quantity-left">
+                                        <span class="details-item-label">计划量:</span>
+                                        <span class="details-item-value">10斤</span>
+                                    </div>
+                                    <div class="quantity-right">
+                                        <span class="details-item-label">已收量:</span>
+                                        <span class="details-item-value">0斤</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 商品2 -->
+                    <div class="details-item">
+                        <div class="details-item-header">
+                            <div class="details-item-name">香蕉</div>
+                        </div>
+                        <div class="details-item-info">
+                            <div class="details-item-row">
+                                <span class="details-item-label">商品条码:</span>
+                                <span class="details-item-value">6912345678902</span>
+                            </div>
+                            <div class="details-item-row">
+                                <div class="quantity-container">
+                                    <div class="quantity-left">
+                                        <span class="details-item-label">计划量:</span>
+                                        <span class="details-item-value">10斤</span>
+                                    </div>
+                                    <div class="quantity-right">
+                                        <span class="details-item-label">已收量:</span>
+                                        <span class="details-item-value">0斤</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 商品3 -->
+                    <div class="details-item">
+                        <div class="details-item-header">
+                            <div class="details-item-name">橙子</div>
+                        </div>
+                        <div class="details-item-info">
+                            <div class="details-item-row">
+                                <span class="details-item-label">商品条码:</span>
+                                <span class="details-item-value">6912345678903</span>
+                            </div>
+                            <div class="details-item-row">
+                                <div class="quantity-container">
+                                    <div class="quantity-left">
+                                        <span class="details-item-label">计划量:</span>
+                                        <span class="details-item-value">10斤</span>
+                                    </div>
+                                    <div class="quantity-right">
+                                        <span class="details-item-label">已收量:</span>
+                                        <span class="details-item-value">0斤</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 商品明细列表 - 已完成 -->
+                <div class="details-list tab-content" id="completedTab">
+                    <!-- 商品1 -->
+                    <div class="details-item">
+                        <div class="details-item-header">
+                            <div class="details-item-name">葡萄</div>
+                        </div>
+                        <div class="details-item-info">
+                            <div class="details-item-row">
+                                <span class="details-item-label">商品条码:</span>
+                                <span class="details-item-value">6912345678904</span>
+                            </div>
+                            <div class="details-item-row">
+                                <div class="quantity-container">
+                                    <div class="quantity-left">
+                                        <span class="details-item-label">计划量:</span>
+                                        <span class="details-item-value">10斤</span>
+                                    </div>
+                                    <div class="quantity-right">
+                                        <span class="details-item-label">已收量:</span>
+                                        <span class="details-item-value">10斤</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 商品明细列表 - 未完成 -->
+                <div class="details-list tab-content" id="pendingTab">
+                    <!-- 商品1 -->
+                    <div class="details-item">
+                        <div class="details-item-header">
+                            <div class="details-item-name">苹果</div>
+                            <button class="receive-btn" onclick="goToScanContainerPage()">收货</button>
+                        </div>
+                        <div class="details-item-info">
+                            <div class="details-item-row">
+                                <span class="details-item-label">商品条码:</span>
+                                <span class="details-item-value">6912345678901</span>
+                            </div>
+                            <div class="details-item-row">
+                                <div class="quantity-container">
+                                    <div class="quantity-left">
+                                        <span class="details-item-label">计划量:</span>
+                                        <span class="details-item-value">10斤</span>
+                                    </div>
+                                    <div class="quantity-right">
+                                        <span class="details-item-label">已收量:</span>
+                                        <span class="details-item-value">0斤</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 商品2 -->
+                    <div class="details-item">
+                        <div class="details-item-header">
+                            <div class="details-item-name">香蕉</div>
+                            <button class="receive-btn" onclick="goToScanContainerPage()">收货</button>
+                        </div>
+                        <div class="details-item-info">
+                            <div class="details-item-row">
+                                <span class="details-item-label">商品条码:</span>
+                                <span class="details-item-value">6912345678902</span>
+                            </div>
+                            <div class="details-item-row">
+                                <div class="quantity-container">
+                                    <div class="quantity-left">
+                                        <span class="details-item-label">计划量:</span>
+                                        <span class="details-item-value">10斤</span>
+                                    </div>
+                                    <div class="quantity-right">
+                                        <span class="details-item-label">已收量:</span>
+                                        <span class="details-item-value">0斤</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 商品3 -->
+                    <div class="details-item">
+                        <div class="details-item-header">
+                            <div class="details-item-name">橙子</div>
+                            <button class="receive-btn" onclick="goToScanContainerPage()">收货</button>
+                        </div>
+                        <div class="details-item-info">
+                            <div class="details-item-row">
+                                <span class="details-item-label">商品条码:</span>
+                                <span class="details-item-value">6912345678903</span>
+                            </div>
+                            <div class="details-item-row">
+                                <div class="quantity-container">
+                                    <div class="quantity-left">
+                                        <span class="details-item-label">计划量:</span>
+                                        <span class="details-item-value">10斤</span>
+                                    </div>
+                                    <div class="quantity-right">
+                                        <span class="details-item-label">已收量:</span>
+                                        <span class="details-item-value">0斤</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- 关闭入库单按钮 -->
+                <div class="close-receipt-button">
+                    <button class="close-receipt-btn" onclick="closeReceipt()">关闭入库单</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 收货记录页面 -->
+        <div class="page" id="receiptRecordsPage">
+            <div class="receipt-details-content">
+                <!-- 入库单信息 -->
+                <div class="receipt-info-bar">
+                    <div class="receipt-info-header">
+                        <div class="receipt-info-type" id="recordsReceiptType"></div>
+                        <div class="receipt-info-stats">
+                            <span>SKU <span id="recordsSkuCount">0</span>/3</span>
+                            <span>数量 <span id="recordsQuantityCount">0</span>/30</span>
+                        </div>
+                    </div>
+                    <div class="receipt-info-detail" id="recordsReceiptId"></div>
+                </div>
+
+                <!-- 页签导航 -->
+                <div class="tab-navigation">
+                    <button class="tab-btn active" onclick="switchRecordsTab('initial')">初始(3)</button>
+                    <button class="tab-btn" onclick="switchRecordsTab('pending')">待上架(2)</button>
+                    <button class="tab-btn" onclick="switchRecordsTab('completed')">已上架(1)</button>
+                </div>
+
+                <!-- 收货记录列表 - 初始 -->
+                <div class="details-list tab-content active" id="recordsInitialTab">
+                    <!-- 初始状态的收货记录将通过JS动态生成 -->
+                </div>
+
+                <!-- 收货记录列表 - 待上架 -->
+                <div class="details-list tab-content" id="recordsPendingTab">
+                    <!-- 待上架状态的收货记录将通过JS动态生成 -->
+                </div>
+
+                <!-- 收货记录列表 - 已上架 -->
+                <div class="details-list tab-content" id="recordsCompletedTab">
+                    <!-- 已上架状态的收货记录将通过JS动态生成 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 收货记录详情页面 -->
+        <div class="page" id="receiptRecordDetailPage">
+            <div class="receipt-details-content">
+                <!-- 入库单信息 -->
+                <div class="receipt-info-bar">
+                    <div class="receipt-info-header">
+                        <div class="receipt-info-type" id="recordDetailReceiptType"></div>
+                    </div>
+                    <div class="receipt-info-detail" id="recordDetailReceiptId"></div>
+                </div>
+
+                <!-- 收货记录详情内容 -->
+                <div class="details-list">
+                    <div class="record-detail-card">
+                        <div class="record-detail-header">
+                            <div class="record-detail-product" id="recordDetailProduct"></div>
+                            <div class="record-detail-status" id="recordDetailStatus"></div>
+                        </div>
+                        <div class="record-detail-body">
+                            <div class="record-detail-row">
+                                <span class="record-detail-label">条码:</span>
+                                <span class="record-detail-value" id="recordDetailBarcode"></span>
+                            </div>
+                            <div class="record-detail-row">
+                                <span class="record-detail-label">容器:</span>
+                                <span class="record-detail-value" id="recordDetailContainer"></span>
+                            </div>
+                            <div class="record-detail-row">
+                                <span class="record-detail-label">收货储位:</span>
+                                <span class="record-detail-value" id="recordDetailLocation"></span>
+                            </div>
+                            <div class="record-detail-row">
+                                <span class="record-detail-label">供应商:</span>
+                                <span class="record-detail-value" id="recordDetailSupplier"></span>
+                            </div>
+                            <div class="record-detail-row">
+                                <span class="record-detail-label">生产日期:</span>
+                                <span class="record-detail-value" id="recordDetailProductionDate"></span>
+                            </div>
+                            <div class="record-detail-row">
+                                <span class="record-detail-label">入库日期:</span>
+                                <span class="record-detail-value" id="recordDetailStorageDate"></span>
+                            </div>
+                            <div class="record-detail-row">
+                                <span class="record-detail-label">收货时间:</span>
+                                <span class="record-detail-value" id="recordDetailTime"></span>
+                            </div>
+                            <div class="record-detail-row">
+                                <span class="record-detail-label">收货人:</span>
+                                <span class="record-detail-value" id="recordDetailReceiver"></span>
+                            </div>
+                            <div class="record-detail-row flex-row">
+                                <div>
+                                    <span class="record-detail-label">上架量:</span>
+                                    <span class="record-detail-value" id="recordDetailPutawayQuantity"></span>
+                                </div>
+                                <div>
+                                    <span class="record-detail-label">收货量:</span>
+                                    <span class="record-detail-value" id="recordDetailQuantity"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="record-detail-empty">没有更多数据了~</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="shortage-modal" id="cancelReceiptConfirmModal">
+        <div class="shortage-modal-card">
+            <div class="shortage-modal-message" id="cancelReceiptConfirmMessage"></div>
+            <div class="shortage-modal-actions">
+                <button type="button" class="shortage-modal-btn" onclick="closeCancelReceiptConfirmModal()">取消</button>
+                <button type="button" class="shortage-modal-btn shortage-modal-btn--confirm" onclick="confirmCancelReceipt()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="global-toast" id="globalToast"></div>
+
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mobile-components.js"></script>
+    <script>
+        if (window.WMSMobileComponents) {
+            window.WMSMobileComponents.mountScanBarcodeInput({
+                container: 'scanInputContainer',
+                inputId: 'scanInput',
+                placeholder: '请扫描/输入',
+                onScanClick: handleScan
+            });
+
+            window.WMSMobileComponents.mountScanBarcodeInput({
+                container: 'containerInputContainer',
+                inputId: 'containerInput',
+                placeholder: '请扫描/输入商品',
+                onScanClick: handleContainerScan
+            });
+        }
+
+        const scanInput = document.getElementById('scanInput');
+        const scanPage = document.getElementById('scanPage');
+        const typeQueryPage = document.getElementById('typeQueryPage');
+        const listPage = document.getElementById('listPage');
+        const headerTitle = document.querySelector('.header-title');
+        const backBtn = document.querySelector('.back-btn');
+        const cancelReceiptConfirmModal = document.getElementById('cancelReceiptConfirmModal');
+        const cancelReceiptConfirmMessage = document.getElementById('cancelReceiptConfirmMessage');
+        const globalToast = document.getElementById('globalToast');
+
+        let currentPage = 'scan';
+        let toastTimer = null;
+        let pendingCancelReceipt = null;
+        window.currentReceiptType = window.currentReceiptType || '';
+
+        function showToast(message) {
+            if (!message) return;
+            globalToast.textContent = String(message);
+            globalToast.classList.add('active');
+            if (toastTimer) {
+                clearTimeout(toastTimer);
+            }
+            toastTimer = setTimeout(() => {
+                globalToast.classList.remove('active');
+            }, 1800);
+        }
+
+        function closeCancelReceiptConfirmModal() {
+            cancelReceiptConfirmModal.classList.remove('active');
+            pendingCancelReceipt = null;
+        }
+
+        function confirmCancelReceipt() {
+            if (!pendingCancelReceipt) {
+                closeCancelReceiptConfirmModal();
+                return;
+            }
+            // TODO: 调用取消收货 API
+            showToast('取消收货成功');
+            closeCancelReceiptConfirmModal();
+            generateReceiptRecords();
+        }
+
+        // 处理扫描按钮点击
+        function handleScan() {
+            // 模拟扫码功能
+            showToast('扫码功能');
+        }
+
+        // 显示按类型查询页面
+        function showTypeQueryPage() {
+            currentPage = 'type';
+            scanPage.classList.remove('active');
+            listPage.classList.remove('active');
+            typeQueryPage.classList.add('active');
+            headerTitle.textContent = '按类型查询';
+            backBtn.setAttribute('onclick', 'showScanPage()');
+        }
+
+        // 显示扫码查询页面
+        function showScanPage() {
+            currentPage = 'scan';
+            typeQueryPage.classList.remove('active');
+            listPage.classList.remove('active');
+            document.getElementById('scanContainerPage').classList.remove('active');
+            document.getElementById('receiptDetailsPage').classList.remove('active');
+            document.getElementById('receiptRecordsPage').classList.remove('active');
+            scanPage.classList.add('active');
+            headerTitle.textContent = '查询入库单';
+            backBtn.setAttribute('onclick', "window.location.href='app_list.html'");
+        }
+
+        // 显示列表页面
+        function showListPage(type) {
+            currentPage = 'list';
+            typeQueryPage.classList.remove('active');
+            listPage.classList.add('active');
+            headerTitle.textContent = '查询入库单-列表';
+            backBtn.setAttribute('onclick', 'showTypeQueryPage()');
+
+            window.currentReceiptType = type;
+            
+            // 更新列表页面的收货单类型
+            updateReceiptType(type);
+            
+            //入库，显示来源地 如果是调拨
+            updateSourceWarehouse(type);
+        }
+        
+        // 更新收货单类型
+        function updateReceiptType(type) {
+            const receiptTypes = document.querySelectorAll('.receipt-type');
+            receiptTypes.forEach(element => {
+                element.textContent = type;
+            });
+        }
+        
+        // 更新来源地
+        function updateSourceWarehouse(type) {
+            const sourceWarehouses = document.querySelectorAll('[data-label="来源地:"] span');
+            sourceWarehouses.forEach(element => {
+                if (type === '调拨入库') {
+                    element.textContent = 'W002-嘉兴仓';
+                } else {
+                    element.textContent = '';
+                }
+            });
+        }
+
+        function confirmReceiptQuery() {
+            if (!scanInput) return;
+            const value = scanInput.value.trim();
+            if (!value) {
+                showToast('请先扫描/输入入库单号');
+                return;
+            }
+
+            currentPage = 'list';
+            scanPage.classList.remove('active');
+            typeQueryPage.classList.remove('active');
+            listPage.classList.add('active');
+            headerTitle.textContent = '查询入库单-列表';
+            backBtn.setAttribute('onclick', 'showScanPage()');
+        }
+
+        // 输入框回车事件
+        if (scanInput) {
+            scanInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    confirmReceiptQuery();
+                }
+            });
+        }
+
+        // 显示入库单录入页面
+        function showScanContainerPage(type, receiptId) {
+            currentPage = 'scanContainer';
+            listPage.classList.remove('active');
+            document.getElementById('scanContainerPage').classList.add('active');
+            headerTitle.textContent = '入库单录入';
+            backBtn.setAttribute('onclick', 'showListPageFromContainer()');
+
+            // 更新入库单录入页面的信息
+            document.getElementById('scanReceiptType').textContent = type;
+            document.getElementById('scanReceiptId').textContent = '入库单号: ' + receiptId;
+            
+            // 重置扫描区域（仅商品）
+            document.getElementById('productValue').textContent = '';
+            document.getElementById('scanTitle').textContent = '扫描商品';
+            document.getElementById('scanTitle').style.display = 'block';
+            document.getElementById('containerInput').placeholder = '请扫描/输入商品';
+            document.getElementById('scanHint').textContent = '支持商品编码、商品条码';
+            document.getElementById('scanHint').style.display = 'block';
+            document.getElementById('productInfoCard').style.display = 'none';
+            document.getElementById('scanCompleteAction').style.display = 'none';
+            document.getElementById('scanConfirmAction').style.display = 'block';
+            document.getElementById('containerInput').value = '';
+            
+            // 显示入库单录入页面的输入框和扫描按钮的父容器
+            const scanContainerPage = document.getElementById('scanContainerPage');
+            const inputWrapper = scanContainerPage.querySelector('.input-wrapper');
+            if (inputWrapper) {
+                inputWrapper.style.display = 'flex';
+            }
+            
+            // 重置统计信息
+            document.getElementById('scanSkuCount').textContent = '0';
+            document.getElementById('scanQuantityCount').textContent = '0';
+        }
+
+        // 从入库单录入页面返回列表页面
+        function showListPageFromContainer() {
+            currentPage = 'list';
+            document.getElementById('scanContainerPage').classList.remove('active');
+            listPage.classList.add('active');
+            headerTitle.textContent = '查询入库单-列表';
+            backBtn.setAttribute('onclick', 'showTypeQueryPage()');
+        }
+
+        // 处理商品扫描（入库单录入页面不再区分容器/商品，仅扫描商品）
+        function handleContainerScan() {
+            const containerInput = document.getElementById('containerInput');
+            const value = containerInput.value.trim();
+            if (value) {
+                const productValue = document.getElementById('productValue');
+                const scanTitle = document.getElementById('scanTitle');
+                const scanHint = document.getElementById('scanHint');
+                // 始终按“扫描商品”处理
+                scanTitle.textContent = '扫描商品';
+                scanTitle.style.display = 'block';
+                scanHint.textContent = '支持商品编码、商品条码';
+                scanHint.style.display = 'block';
+
+                // 显示商品值
+                productValue.textContent = value;
+                
+                // 加载并显示商品信息
+                loadProductInfo(value);
+                
+                // 清空输入框
+                containerInput.value = '';
+            }
+        }
+
+        // 加载商品信息
+        function loadProductInfo(productCode) {
+            // 模拟商品信息数据
+            const productInfo = {
+                barcode: '6912345678901',
+                location: 'SH01',
+                planQty: '10',
+                receivedQty: '0',
+                receiptQty: '请输入'
+            };
+            
+            // 显示商品信息卡片
+            const productInfoCard = document.getElementById('productInfoCard');
+            productInfoCard.style.display = 'block';
+            document.getElementById('scanCompleteAction').style.display = 'block';
+            document.getElementById('scanConfirmAction').style.display = 'none';
+            
+            // 隐藏入库单录入页面的扫描商品标题、输入框和提示
+            const scanContainerPage = document.getElementById('scanContainerPage');
+            
+            // 隐藏扫描标题
+            const scanTitle = scanContainerPage.querySelector('#scanTitle');
+            if (scanTitle) {
+                scanTitle.style.display = 'none';
+            }
+            
+            // 隐藏输入框和扫描按钮的父容器
+            const inputWrapper = scanContainerPage.querySelector('.input-wrapper');
+            if (inputWrapper) {
+                inputWrapper.style.display = 'none';
+            }
+            
+            // 隐藏扫描提示
+            const scanHint = scanContainerPage.querySelector('#scanHint');
+            if (scanHint) {
+                scanHint.style.display = 'none';
+            }
+            
+            
+            // 填充商品信息
+            document.getElementById('productBarcode').textContent = productInfo.barcode;
+            document.getElementById('productLocation').textContent = productInfo.location;
+            document.getElementById('productPlanQty').textContent = productInfo.planQty;
+            document.getElementById('productReceivedQty').textContent = productInfo.receivedQty;
+            // 清空输入框，让placeholder显示
+            document.getElementById('productProductionDate').value = '';
+            document.getElementById('productReceiptQty').value = '';
+        }
+
+        // 更新扫描统计信息
+        function updateScanStats() {
+            const skuCount = document.getElementById('scanSkuCount');
+            const quantityCount = document.getElementById('scanQuantityCount');
+            
+            // 模拟增加统计数据
+            let currentSku = parseInt(skuCount.textContent) || 0;
+            let currentQuantity = parseInt(quantityCount.textContent) || 0;
+            
+            currentSku = Math.min(currentSku + 1, 3);
+            currentQuantity = Math.min(currentQuantity + 10, 30);
+            
+            skuCount.textContent = currentSku;
+            quantityCount.textContent = currentQuantity;
+        }
+
+        // 显示收货记录
+        function showReceiptRecords() {
+            currentPage = 'receiptRecords';
+            document.getElementById('scanContainerPage').classList.remove('active');
+            document.getElementById('receiptRecordsPage').classList.add('active');
+            headerTitle.textContent = '收货记录';
+            backBtn.setAttribute('onclick', 'showScanContainerPageFromRecords()');
+
+            // 传递入库单信息到收货记录页面
+            const receiptType = document.getElementById('scanReceiptType').textContent;
+            const receiptId = document.getElementById('scanReceiptId').textContent;
+            const skuCount = document.getElementById('scanSkuCount').textContent;
+            const quantityCount = document.getElementById('scanQuantityCount').textContent;
+
+            // 更新收货记录页面的信息
+            document.getElementById('recordsReceiptType').textContent = receiptType;
+            document.getElementById('recordsReceiptId').textContent = receiptId;
+            document.getElementById('recordsSkuCount').textContent = skuCount;
+            document.getElementById('recordsQuantityCount').textContent = quantityCount;
+
+            // 生成收货记录列表
+            generateReceiptRecords();
+        }
+
+        // 从收货记录页面返回入库单录入页面
+        function showScanContainerPageFromRecords() {
+            currentPage = 'scanContainer';
+            document.getElementById('receiptRecordsPage').classList.remove('active');
+            document.getElementById('scanContainerPage').classList.add('active');
+            headerTitle.textContent = '入库单录入';
+            backBtn.setAttribute('onclick', 'showListPageFromContainer()');
+        }
+
+        // 切换收货记录页签
+        // 显示收货记录详情页面
+        function showRecordDetail(container, time, product, barcode, receiver, quantity, status, putawayQuantity) {
+            currentPage = 'recordDetail';
+            document.getElementById('receiptRecordsPage').classList.remove('active');
+            document.getElementById('receiptRecordDetailPage').classList.add('active');
+            headerTitle.textContent = '收货记录详情';
+            backBtn.setAttribute('onclick', 'showReceiptRecordsFromDetail()');
+
+            // 传递入库单信息到详情页面
+            const receiptType = document.getElementById('recordsReceiptType').textContent;
+            const receiptId = document.getElementById('recordsReceiptId').textContent;
+
+            // 更新详情页面的信息
+            document.getElementById('recordDetailReceiptType').textContent = receiptType;
+            document.getElementById('recordDetailReceiptId').textContent = receiptId;
+
+            // 填充收货记录详情
+            document.getElementById('recordDetailProduct').textContent = product;
+            document.getElementById('recordDetailStatus').textContent = status;
+            document.getElementById('recordDetailBarcode').textContent = barcode;
+            document.getElementById('recordDetailContainer').textContent = container;
+            document.getElementById('recordDetailLocation').textContent = 'SH001';
+            document.getElementById('recordDetailSupplier').textContent = 'S001-浙江XX公司';
+            document.getElementById('recordDetailProductionDate').textContent = '2020-11-20';
+            document.getElementById('recordDetailStorageDate').textContent = '2020-11-20';
+            document.getElementById('recordDetailTime').textContent = time;
+            document.getElementById('recordDetailReceiver').textContent = receiver;
+            document.getElementById('recordDetailPutawayQuantity').textContent = putawayQuantity || '';
+            document.getElementById('recordDetailQuantity').textContent = quantity;
+        }
+
+        // 从收货记录详情页面返回收货记录页面
+        function showReceiptRecordsFromDetail() {
+            currentPage = 'receiptRecords';
+            document.getElementById('receiptRecordDetailPage').classList.remove('active');
+            document.getElementById('receiptRecordsPage').classList.add('active');
+            headerTitle.textContent = '收货记录';
+            backBtn.setAttribute('onclick', 'showScanContainerPageFromRecords()');
+        }
+
+        // 取消收货（初始页签）
+        function cancelReceipt(container, barcode, product) {
+            pendingCancelReceipt = { container, barcode, product };
+            cancelReceiptConfirmMessage.textContent = `确定要取消收货「${product}」条码 ${barcode} 吗？`;
+            cancelReceiptConfirmModal.classList.add('active');
+        }
+
+        function switchRecordsTab(tabName) {
+            // 移除当前页面所有页签的active类
+            const tabBtns = document.querySelectorAll('#receiptRecordsPage .tab-btn');
+            tabBtns.forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // 移除当前页面所有页签内容的active类
+            const tabContents = document.querySelectorAll('#receiptRecordsPage .tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // 添加当前页签的active类
+            document.querySelector(`#receiptRecordsPage .tab-btn[onclick="switchRecordsTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`records${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Tab`).classList.add('active');
+        }
+
+        // 生成收货记录列表（按商品维度拆分卡片，卡片顶部展示商品名称）
+        function generateReceiptRecords() {
+            // 清空所有页签内容
+            document.getElementById('recordsInitialTab').innerHTML = '';
+            document.getElementById('recordsPendingTab').innerHTML = '';
+            document.getElementById('recordsCompletedTab').innerHTML = '';
+
+            // 模拟收货记录数据 - 初始状态
+            const initialRecords = [
+                {
+                    container: 'LPN001',
+                    time: '2026-02-28 10:30:25',
+                    products: [
+                        {
+                            product: '苹果',
+                            barcode: '6912345678901',
+                            receiver: '张三',
+                            quantity: '10斤'
+                        },
+                        {
+                            product: '橙子',
+                            barcode: '6912345678903',
+                            receiver: '王五',
+                            quantity: '10斤'
+                        }
+                    ]
+                },
+                {
+                    container: 'LPN002',
+                    time: '2026-02-28 11:15:30',
+                    products: [
+                        {
+                            product: '香蕉',
+                            barcode: '6912345678902',
+                            receiver: '李四',
+                            quantity: '10斤'
+                        }
+                    ]
+                }
+            ];
+
+            // 模拟收货记录数据 - 待上架状态
+            const pendingRecords = [
+                {
+                    container: 'LPN004',
+                    time: '2026-02-28 09:15:20',
+                    product: '葡萄',
+                    barcode: '6912345678904',
+                    receiver: '赵六',
+                    quantity: '5斤'
+                },
+                {
+                    container: 'LPN005',
+                    time: '2026-02-28 10:45:10',
+                    product: '草莓',
+                    barcode: '6912345678905',
+                    receiver: '孙七',
+                    quantity: '8斤'
+                }
+            ];
+
+            // 模拟收货记录数据 - 已上架状态
+            const completedRecords = [
+                {
+                    container: 'LPN006',
+                    time: '2026-02-28 08:30:00',
+                    product: '梨',
+                    barcode: '6912345678906',
+                    receiver: '周八',
+                    quantity: '12斤',
+                    putawayQuantity: '12斤'
+                }
+            ];
+
+            // 生成初始状态的收货记录（一个商品一张卡片）
+            initialRecords.forEach(record => {
+                record.products.forEach(product => {
+                    const recordItem = document.createElement('div');
+                    recordItem.className = 'record-item';
+
+                    recordItem.innerHTML = `
+                        <div class="record-item-header">
+                            <div class="record-item-container">${product.product}</div>
+                            <button class="receive-btn cancel-receive-btn" onclick="cancelReceipt('${record.container}', '${product.barcode}', '${product.product}')">取消收货</button>
+                        </div>
+                        <div class="record-item-info">
+                            <div class="record-item-row">
+                                <span class="record-item-label">商品条码:</span>
+                                <span class="record-item-value barcode-link" onclick="showRecordDetail('${record.container}', '${record.time}', '${product.product}', '${product.barcode}', '${product.receiver}', '${product.quantity}', '初始', '')">${product.barcode}</span>
+                            </div>
+                            <div class="record-item-row flex-row">
+                                <div>
+                                    <span class="record-item-label">收货人:</span>
+                                    <span class="record-item-value">${product.receiver}</span>
+                                </div>
+                                <div>
+                                    <span class="record-item-label">收货量:</span>
+                                    <span class="record-item-value">${product.quantity}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    document.getElementById('recordsInitialTab').appendChild(recordItem);
+                });
+            });
+
+            // 生成待上架状态的收货记录
+            pendingRecords.forEach(record => {
+                const recordItem = document.createElement('div');
+                recordItem.className = 'record-item';
+                recordItem.innerHTML = `
+                    <div class="record-item-header">
+                        <div class="record-item-container">${record.product}</div>
+                    </div>
+                    <div class="record-item-info">
+                        <div class="record-item-row">
+                            <span class="record-item-label">商品条码:</span>
+                            <span class="record-item-value barcode-link" onclick="showRecordDetail('${record.container}', '${record.time}', '${record.product}', '${record.barcode}', '${record.receiver}', '${record.quantity}', '待上架', '')">${record.barcode}</span>
+                        </div>
+                        <div class="record-item-row flex-row">
+                            <div>
+                                <span class="record-item-label">收货人:</span>
+                                <span class="record-item-value">${record.receiver}</span>
+                            </div>
+                            <div>
+                                <span class="record-item-label">收货量:</span>
+                                <span class="record-item-value">${record.quantity}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('recordsPendingTab').appendChild(recordItem);
+            });
+
+            // 生成已上架状态的收货记录
+            completedRecords.forEach(record => {
+                const recordItem = document.createElement('div');
+                recordItem.className = 'record-item';
+                recordItem.innerHTML = `
+                    <div class="record-item-header">
+                        <div class="record-item-container">${record.product}</div>
+                    </div>
+                    <div class="record-item-info">
+                        <div class="record-item-row">
+                            <span class="record-item-label">商品条码:</span>
+                            <span class="record-item-value barcode-link" onclick="showRecordDetail('${record.container}', '${record.time}', '${record.product}', '${record.barcode}', '${record.receiver}', '${record.quantity}', '已上架', '${record.putawayQuantity}')">${record.barcode}</span>
+                        </div>
+                        <div class="record-item-row flex-row">
+                            <div>
+                                <span class="record-item-label">收货人:</span>
+                                <span class="record-item-value">${record.receiver}</span>
+                            </div>
+                            <div>
+                                <span class="record-item-label">收货量:</span>
+                                <span class="record-item-value">${record.quantity}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('recordsCompletedTab').appendChild(recordItem);
+            });
+        }
+
+        // 显示入库明细
+        function showReceiptDetails() {
+            currentPage = 'receiptDetails';
+            document.getElementById('scanContainerPage').classList.remove('active');
+            document.getElementById('receiptDetailsPage').classList.add('active');
+            headerTitle.textContent = '入库单明细';
+            backBtn.setAttribute('onclick', 'showScanContainerPageFromDetails()');
+
+            // 传递入库单信息到明细页面
+            const receiptType = document.getElementById('scanReceiptType').textContent;
+            const receiptId = document.getElementById('scanReceiptId').textContent;
+            const skuCount = document.getElementById('scanSkuCount').textContent;
+            const quantityCount = document.getElementById('scanQuantityCount').textContent;
+
+            // 更新明细页面的信息
+            document.getElementById('detailsReceiptType').textContent = receiptType;
+            document.getElementById('detailsReceiptId').textContent = receiptId;
+            document.getElementById('detailsSkuCount').textContent = skuCount;
+            document.getElementById('detailsQuantityCount').textContent = quantityCount;
+        }
+
+        // 从入库明细页面返回入库单录入页面
+        function showScanContainerPageFromDetails() {
+            currentPage = 'scanContainer';
+            document.getElementById('receiptDetailsPage').classList.remove('active');
+            document.getElementById('scanContainerPage').classList.add('active');
+            headerTitle.textContent = '入库单录入';
+            backBtn.setAttribute('onclick', 'showListPageFromContainer()');
+        }
+
+        // 切换页签
+        function switchTab(tabName) {
+            // 移除所有页签的active类
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            tabBtns.forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // 移除所有页签内容的active类
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // 添加当前页签的active类
+            document.querySelector(`.tab-btn[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+        }
+
+        // 关闭入库单
+        function closeReceipt() {
+            // 模拟关闭入库单功能
+            showToast('关闭入库单成功');
+            // 导航返回至查询入库单页面
+            showScanPage();
+        }
+
+        // 从入库明细页面进入入库单录入页面
+        function goToScanContainerPage() {
+            currentPage = 'scanContainer';
+            document.getElementById('receiptDetailsPage').classList.remove('active');
+            document.getElementById('scanContainerPage').classList.add('active');
+            headerTitle.textContent = '入库单录入';
+            backBtn.setAttribute('onclick', 'showReceiptDetailsFromScanContainer()');
+        }
+
+        // 从入库单录入页面返回入库明细页面
+        function showReceiptDetailsFromScanContainer() {
+            currentPage = 'receiptDetails';
+            document.getElementById('scanContainerPage').classList.remove('active');
+            document.getElementById('receiptDetailsPage').classList.add('active');
+            headerTitle.textContent = '入库单明细';
+            backBtn.setAttribute('onclick', 'showScanContainerPageFromDetails()');
+        }
+
+        // 处理储位扫描
+        function scanLocation() {
+            // 模拟扫码功能
+            showToast('扫码功能');
+            // 模拟扫描结果
+            const location = 'SH01';
+            document.getElementById('productLocation').textContent = location;
+        }
+
+        // 容器输入框回车事件
+        const containerInputNode = document.getElementById('containerInput');
+        if (containerInputNode) {
+            containerInputNode.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    handleContainerScan();
+                }
+            });
+        }
+
+        function confirmScanContainerInput() {
+            handleContainerScan();
+        }
+
+        // 完成当前商品收货量填写，返回扫描商品
+        function completeProductReceiptQty() {
+            const scanContainerPage = document.getElementById('scanContainerPage');
+            document.getElementById('productValue').textContent = '';
+            const scanTitle = scanContainerPage.querySelector('#scanTitle');
+            if (scanTitle) {
+                scanTitle.textContent = '扫描商品';
+                scanTitle.style.display = 'block';
+            }
+
+            const containerInput = document.getElementById('containerInput');
+            containerInput.placeholder = '请扫描/输入商品';
+
+            const scanHint = scanContainerPage.querySelector('#scanHint');
+            if (scanHint) {
+                scanHint.textContent = '支持商品编码、商品条码';
+                scanHint.style.display = 'block';
+            }
+
+            document.getElementById('productInfoCard').style.display = 'none';
+            document.getElementById('scanCompleteAction').style.display = 'none';
+            document.getElementById('scanConfirmAction').style.display = 'block';
+            containerInput.value = '';
+
+            const inputWrapper = scanContainerPage.querySelector('.input-wrapper');
+            if (inputWrapper) {
+                inputWrapper.style.display = 'flex';
+            }
+        }
+
+        // 收货量输入框回车事件（与「完成」按钮一致）
+        document.getElementById('productReceiptQty').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                completeProductReceiptQty();
+            }
+        });
+    </script>
+</body>
+</html>

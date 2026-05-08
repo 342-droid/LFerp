@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 商户主体建档</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <style>
+        .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
+        .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
+        .flow-box { margin: 14px 0; padding: 12px 14px; background: #fafafa; border: 1px solid #eee; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.65; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">商户主体建档</button></div>
+            <hr class="content-divider">
+            <div class="content-title">基础数据中心 / 主体中心 / 商户主体建档</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group">
+                        <label>主体名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="qSubjectName" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>主体状态:</label>
+                        <select id="qStatus" style="height:36px;min-width:140px;border:1px solid #ddd;border-radius:3px;padding:0 8px;">
+                            <option value="">全部</option>
+                            <option value="normal">正常</option>
+                            <option value="frozen">冻结</option>
+                            <option value="stopped">停用</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button>
+                        <button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button>
+                        <button type="button" class="btn btn-secondary" id="mdmSubjectAddBtn">+ 新增商户主体</button>
+                    </div>
+                </form>
+            </section>
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead><tr>
+                            <th>主体ID</th><th>主体名称</th><th>绑定BD名称</th><th>主体类型</th><th>联系人</th>
+                            <th>手机号码</th><th>登录账号</th><th>创建时间</th><th>最后操作人</th><th>主体状态</th><th>操作</th>
+                        </tr></thead>
+                        <tbody id="tableBody">
+<tr><td>MCH88291001</td><td>超管创建仓库042402</td><td>—</td><td>仓库</td><td>王敏</td><td>138****2210</td><td>cg_ck042402</td><td>2026-04-24T19:12:08</td><td>系统</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
+<tr><td>MCH88291002</td><td>小九小九</td><td>李四</td><td>门店</td><td>赵小九</td><td>—</td><td>xj_store01</td><td>2026-04-23T11:03:41</td><td>张三</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
+<tr><td>MCH88291003</td><td>华东供应商一号</td><td>公司11号</td><td>供应商</td><td>刘洋</td><td>159****8891</td><td>sup_hz_01</td><td>2026-04-22T09:55:12</td><td>张三</td><td><span class="status inactive">冻结</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
+<tr><td>MCH88291004</td><td>冷丰演示门店</td><td>—</td><td>门店</td><td>陈晨</td><td>186****3321</td><td>demo_store</td><td>2026-04-21T16:40:00</td><td>系统</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
+<tr><td>MCH88291005</td><td>合作仓-沪南</td><td>李四</td><td>仓库</td><td>周仓</td><td>137****0098</td><td>wh_hz_nan</td><td>2026-04-20T14:22:19</td><td>李四</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
+<tr><td>MCH88291006</td><td>供应商-珠宝集采</td><td>公司11号</td><td>供应商</td><td>钱多多</td><td>—</td><td>sup_jewel</td><td>2026-04-19T10:08:33</td><td>王五</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
+<tr><td>MCH88291007</td><td>门店-五角场</td><td>张三</td><td>门店</td><td>孙丽</td><td>188****7765</td><td>store_wujc</td><td>2026-04-18T08:17:50</td><td>张三</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
+<tr><td>MCH88291008</td><td>测试停用商家</td><td>—</td><td>门店</td><td>测试</td><td>133****0000</td><td>test_off</td><td>2026-04-17T18:01:02</td><td>系统</td><td><span class="status inactive">停用</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">启用</a></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+                <p style="margin-top:12px;font-size:12px;color:#999;line-height:1.6;">
+                    说明：本页为 MDM 主体中心（原超管账号能力）。先建立「商家与组织」关系，再由业务生成首家档案。
+                </p>
+            </section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script src="../js/mdm-subject-pagemanager.js"></script>
+    <script src="../js/mdm-unified-onboarding-ui.js"></script>
+    <script src="../js/mdm-erp-lists.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        window.__mdmSaPm = MdmSubjectLf.init({
+            pageLabel: '商户',
+            subjectTypeLabel: '门店',
+            subjectTypeOptions: ['门店', '供应商', '仓库'],
+            bindColumnLabel: '绑定BD名称',
+            disableConfirmMessage: '确定禁用该商户主体吗？',
+            addModalId: 'mdmSuperAdminAdd',
+            editModalId: 'mdmSuperAdminDetail',
+            addButtonLabel: '+ 新增商户主体'
+        });
+    });
+    </script>
+</body>
+</html>

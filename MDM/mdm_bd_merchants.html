@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰 MDM · BD 商户模块</title>
+    <link rel="stylesheet" href="../css/mdm-bd-mobile.css">
+</head>
+<body class="mdm-bd-body" data-bd-base="">
+    <div class="bd-mobile-shell">
+        <div class="bd-user-strip">
+            <div class="avatar">李</div>
+            <div class="name">李泽峰 · 商户进件</div>
+        </div>
+        <div id="bd-merchants-root" class="bd-scroll" style="position:relative"></div>
+    </div>
+    <div class="bd-modal" id="bdMerRejectModal">
+        <div class="bd-modal-box" style="max-width:92vw">
+            <h3 style="margin:0 0 8px">驳回原因</h3>
+            <p style="margin:0 0 10px;font-size:12px;color:var(--bd-muted)">请说明需修改点，商户将收到通知。</p>
+            <textarea id="bdMerRejectTa" rows="4" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--bd-border);border-radius:10px;font-size:13px"></textarea>
+            <div class="bd-modal-actions" style="margin-top:14px">
+                <button type="button" data-close-rej style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--bd-border);background:#fff;cursor:pointer;font-weight:600">取消</button>
+                <button type="button" id="bdMerRejectOk" style="flex:1;padding:10px;border-radius:10px;border:none;background:var(--bd-primary);color:#fff;cursor:pointer;font-weight:600">确认驳回</button>
+            </div>
+        </div>
+    </div>
+    <div class="bd-modal" id="bdMerImgModal">
+        <div class="bd-modal-box" style="max-width:94vw;padding:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <span style="font-weight:700">图片预览</span>
+                <button type="button" id="bdMerImgClose" style="border:none;background:none;font-size:20px;line-height:1;cursor:pointer;color:var(--bd-muted)">×</button>
+            </div>
+            <img id="bdMerImgView" src="" alt="" style="width:100%;border-radius:12px;display:block;background:#f1f5f9"/>
+        </div>
+    </div>
+    <script src="../js/path-prefix.js"></script>
+    <script>window.bdPage = function (f) { return window.wmsPath && wmsPath.page ? wmsPath.page(f) : f; };</script>
+    <script src="../js/mdm-bd-common.js"></script>
+    <script src="../js/mdm-bd-data-merchants.js"></script>
+    <script src="../js/mdm-bd-merchants-app.js"></script>
+</body>
+</html>

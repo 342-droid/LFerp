@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 供应商主体</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
+        .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
+        .mdm-footnote { margin: 12px 0 0; font-size: 12px; color: #999; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">供应商主体</button></div>
+            <hr class="content-divider">
+            <div class="content-title">基础数据中心 / 主体中心 / 供应商主体管理 / 供应商主体列表</div>
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group">
+                        <label>主体名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="qSubjectName" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>状态:</label>
+                        <select id="qStatus" style="height:36px;min-width:140px;border:1px solid #ddd;border-radius:3px;padding:0 8px;">
+                            <option value="">全部</option>
+                            <option value="normal">正常</option>
+                            <option value="frozen">冻结</option>
+                            <option value="stopped">停用</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button>
+                        <button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button>
+                        <button type="button" class="btn btn-secondary" id="mdmSubjectAddBtn">新增</button>
+                    </div>
+                </form>
+            </section>
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>主体ID</th>
+                                <th>主体名称</th>
+                                <th>绑定BD名称</th>
+                                <th>主体类型</th>
+                                <th id="thContact">联系人</th>
+                                <th>手机号码</th>
+                                <th>登录账号</th>
+                                <th>创建时间</th>
+                                <th>最后操作人</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr><td>SUP-SUB-001</td><td>小牛供应链</td><td>公司11号</td><td>供应商</td><td>牛强</td><td>159****7788</td><td>sup_xn_01</td><td>2026-04-24 08:20:01</td><td>张三</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
+                            <tr><td>SUP-SUB-002</td><td>珠宝集采中心</td><td>公司11号</td><td>供应商</td><td>钱多多</td><td>177****9271</td><td>sup_jewel_01</td><td>2026-04-23 12:11:09</td><td>王五</td><td><span class="status inactive">冻结</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
+                            <tr><td>SUP-SUB-003</td><td>华东辅料仓配</td><td>李四</td><td>供应商</td><td>刘洋</td><td>176****0317</td><td>sup_hd_01</td><td>2026-04-22 09:45:33</td><td>李四</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
+
+                        </tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+                
+            </section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script src="../js/mdm-subject-pagemanager.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        MdmSubjectLf.init({
+            pageLabel: '供应商',
+            subjectTypeLabel: '供应商',
+            disableConfirmMessage: '确定禁用此供应商吗？',
+            addModalId: 'mdmSupSubjectAdd',
+            editModalId: 'mdmSupSubjectDetail'
+        });
+    });
+    </script>
+</body>
+</html>

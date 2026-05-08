@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 分拣任务</title>
+    <link rel="stylesheet" href="../css/mobile-components.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .mobile-container {
+            width: 393px;
+            height: 851px;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .header {
+            padding: 16px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 20px;
+            color: #333333;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333333;
+            flex: 1;
+            text-align: center;
+            margin-right: 32px;
+        }
+
+        .page {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .scan-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: #333333;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .claim-barcode-input-container {
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .claim-barcode-input-centered {
+            text-align: center;
+            padding-left: 56px;
+            padding-right: 56px;
+        }
+
+        .claim-barcode-input-centered::placeholder {
+            text-align: center;
+        }
+
+        .scan-hint {
+            font-size: 14px;
+            color: #999999;
+            margin-top: 16px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .claim-confirm-btn {
+            width: 100%;
+            max-width: 280px;
+            margin-top: 28px;
+            padding: 14px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            background-color: #2196f3;
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        .claim-confirm-btn:active {
+            opacity: 0.92;
+        }
+
+        .overview-content {
+            flex: 1;
+            padding: 16px 14px;
+            background-color: #f3f5f8;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .overview-main-scroll {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .overview-summary-card {
+            background-color: #ffffff;
+            border: 1px solid #e3e6ea;
+            border-radius: 2px;
+            padding: 14px 12px;
+        }
+
+        .overview-summary-title {
+            text-align: center;
+            font-size: 14px;
+            color: #333333;
+            margin-bottom: 14px;
+        }
+
+        .overview-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .overview-metric {
+            text-align: center;
+        }
+
+        .overview-metric-value {
+            font-size: 18px;
+            color: #2a8fce;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .overview-metric-label {
+            font-size: 12px;
+            color: #666666;
+        }
+
+        .overview-progress-section {
+            margin-top: 2px;
+            padding-top: 10px;
+            border-top: 1px solid #eef0f3;
+        }
+
+        .overview-progress-title {
+            font-size: 13px;
+            color: #333333;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .overview-progress-track {
+            width: 100%;
+            height: 26px;
+            border: 1px solid #33b5e5;
+            border-radius: 13px;
+            overflow: hidden;
+            background-color: #ffffff;
+        }
+
+        .overview-progress-fill {
+            height: 100%;
+            width: 0;
+            background-color: rgba(51, 181, 229, 0.2);
+            transition: width 0.25s ease;
+        }
+
+        .overview-progress-text {
+            margin-top: -26px;
+            height: 26px;
+            line-height: 26px;
+            text-align: center;
+            color: #2a8fce;
+            font-size: 14px;
+            font-weight: 600;
+            position: relative;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .overview-product-section {
+            margin-top: 10px;
+        }
+
+        .overview-product-section-title {
+            font-size: 13px;
+            color: #666666;
+            margin-bottom: 8px;
+        }
+
+        .overview-product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .overview-product-card {
+            background-color: #ffffff;
+            border: 1px solid #e3e6ea;
+            border-radius: 2px;
+            padding: 10px 12px;
+        }
+
+        .overview-product-row {
+            display: flex;
+            align-items: flex-start;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 4px;
+        }
+
+        .overview-product-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .overview-product-label {
+            width: 66px;
+            flex-shrink: 0;
+            color: #666666;
+        }
+
+        .overview-product-value {
+            flex: 1;
+            color: #222222;
+            word-break: break-all;
+        }
+
+        .overview-detail-btn {
+            width: 120px;
+            height: 30px;
+            display: block;
+            margin: 0 auto;
+            border: 1px solid #9ed3ef;
+            border-radius: 2px;
+            background-color: #e9f7ff;
+            color: #2a8fce;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .overview-bottom {
+            margin-top: auto;
+            padding-top: 6px;
+        }
+
+        .start-sort-btn {
+            width: 100%;
+            border: none;
+            border-radius: 2px;
+            background-color: #2a9ed9;
+            color: #ffffff;
+            font-size: 16px;
+            padding: 13px 12px;
+            cursor: pointer;
+        }
+
+        .task-detail-content {
+            flex: 1;
+            padding: 10px 12px 14px;
+            background-color: #f3f5f8;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .task-detail-top-card {
+            background-color: #ffffff;
+            border: 1px solid #e3e6ea;
+            border-radius: 2px;
+            padding: 10px 12px;
+        }
+
+        .task-detail-top-row {
+            font-size: 13px;
+            color: #333333;
+            line-height: 1.8;
+            display: flex;
+        }
+
+        .task-detail-top-label {
+            width: 72px;
+            color: #666666;
+            flex-shrink: 0;
+        }
+
+        .task-detail-list {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .task-detail-item {
+            background-color: #ffffff;
+            border: 1px solid #e3e6ea;
+            border-radius: 2px;
+            padding: 10px 10px 12px;
+            margin-bottom: 8px;
+        }
+
+        .task-detail-name {
+            font-size: 14px;
+            color: #333333;
+            margin-bottom: 4px;
+        }
+
+        .task-detail-location {
+            font-size: 13px;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+
+        .task-progress-track {
+            width: 100%;
+            height: 14px;
+            border-radius: 7px;
+            border: 1px solid #8ec7e2;
+            background-color: #edf7fd;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-progress-fill {
+            height: 100%;
+            background-color: #9fd7ef;
+            width: 0;
+        }
+
+        .task-progress-text {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 11px;
+            color: #4b9bc3;
+            white-space: nowrap;
+        }
+
+        #sortingPage {
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .sort-execute-body {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 18px 10px;
+        }
+
+        .sort-execute-scroll {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            text-align: center;
+        }
+
+        .sort-line-muted {
+            font-size: 14px;
+            color: #888888;
+            margin-bottom: 10px;
+        }
+
+        .sort-product-info-card {
+            background-color: #f7fbff;
+            border: 1px solid #d8e8f6;
+            border-radius: 2px;
+            padding: 12px 12px 10px;
+            margin-bottom: 12px;
+            text-align: left;
+        }
+
+        .sort-product-info-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: #111111;
+            line-height: 1.3;
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+
+        .sort-product-info-row {
+            display: flex;
+            align-items: flex-start;
+            font-size: 14px;
+            color: #1f1f1f;
+            line-height: 1.4;
+            margin-bottom: 6px;
+        }
+
+        .sort-product-info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .sort-product-info-label {
+            width: 84px;
+            flex-shrink: 0;
+            color: #333333;
+        }
+
+        .sort-product-info-label.emphasis {
+            font-weight: 700;
+        }
+
+        .sort-product-info-value {
+            flex: 1;
+            font-weight: 600;
+            color: #111111;
+            word-break: break-all;
+        }
+
+        .sort-product-info-row.muted {
+            font-size: 14px;
+            color: #4f4f4f;
+            margin-top: 2px;
+        }
+
+        .sort-product-info-row.muted .sort-product-info-value {
+            color: #2a2a2a;
+            font-weight: 500;
+        }
+
+        .sort-location-label-row {
+            font-size: 14px;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+
+        .sort-location-strong {
+            font-weight: 700;
+            color: #222222;
+            font-size: 16px;
+        }
+
+        .sort-field {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 15px;
+            border-radius: 4px;
+            margin-bottom: 14px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .sort-field:focus {
+            outline: none;
+        }
+
+        .sort-field:disabled {
+            background-color: #f3f3f3;
+            border-color: #dddddd;
+            color: #999999;
+            cursor: not-allowed;
+        }
+
+        .sort-field-slot {
+            border: 1px solid #7ec8e8;
+            background-color: #ffffff;
+        }
+
+        .sort-field-barcode {
+            border: 1px solid #7ec8e8;
+            background-color: #ffffff;
+        }
+
+        .sort-expected-box {
+            background-color: #eceff1;
+            color: #555555;
+            padding: 12px 14px;
+            border-radius: 4px;
+            border: 1px solid #d9d9d9;
+            font-size: 14px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .sort-expected-box:focus {
+            outline: none;
+            border-color: #7ec8e8;
+        }
+
+        .sort-confirm-btn {
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            background-color: #2196f3;
+            color: #ffffff;
+            margin-top: 4px;
+            cursor: pointer;
+        }
+
+        .sort-confirm-btn:active {
+            opacity: 0.9;
+        }
+
+        .sort-footer-btns {
+            display: flex;
+            gap: 10px;
+            padding: 14px 16px;
+            border-top: 1px solid #e0e0e0;
+            background-color: #fafafa;
+        }
+
+        .sort-footer-btn {
+            flex: 1;
+            padding: 12px 10px;
+            font-size: 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #ffffff;
+        }
+
+        .sort-footer-btn--muted {
+            border: 1px solid #cfcfcf;
+            color: #666666;
+        }
+
+        .sort-footer-btn--primary {
+            border: 1px solid #8ec7e2;
+            color: #2a8fce;
+        }
+
+        .shortage-modal {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.35);
+            z-index: 30;
+            padding: 20px;
+        }
+
+        .shortage-modal.active {
+            display: flex;
+        }
+
+        .shortage-modal-card {
+            width: 100%;
+            max-width: 320px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 18px 16px 14px;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+        }
+
+        .shortage-modal-message {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #333333;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .shortage-modal-input {
+            margin-bottom: 14px;
+            border: 1px solid #7ec8e8;
+            background-color: #ffffff;
+            text-align: center;
+        }
+
+        .shortage-modal-input::placeholder {
+            text-align: center;
+        }
+
+        .shortage-modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .shortage-modal-btn {
+            flex: 1;
+            border: 1px solid #d0d0d0;
+            border-radius: 8px;
+            background-color: #ffffff;
+            color: #555555;
+            font-size: 15px;
+            padding: 10px 0;
+            cursor: pointer;
+        }
+
+        .shortage-modal-btn--confirm {
+            border-color: #2196f3;
+            background-color: #2196f3;
+            color: #ffffff;
+        }
+
+        .sort-complete-page {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+        }
+
+        .sort-complete-topbar {
+            background-color: #1e90ff;
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+            padding: 14px 12px;
+        }
+
+        .sort-complete-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 22px 24px 16px;
+        }
+
+        .sort-complete-container {
+            font-size: 14px;
+            color: #808080;
+            margin-bottom: 16px;
+        }
+
+        .sort-complete-icon {
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
+            background-color: #e8f6ff;
+            border: 1px solid #c9ecff;
+            color: #1e90ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin-bottom: 14px;
+        }
+
+        .sort-complete-title {
+            font-size: 24px;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+
+        .sort-complete-target {
+            font-size: 20px;
+            color: #333333;
+            margin-bottom: 6px;
+        }
+
+        .sort-complete-target strong {
+            color: #00a2ff;
+            font-weight: 700;
+        }
+
+        .sort-complete-wave {
+            font-size: 14px;
+            color: #ff8f00;
+            font-weight: 600;
+        }
+
+        .sort-complete-action {
+            padding: 14px 12px 18px;
+        }
+
+        .sort-complete-btn {
+            width: 100%;
+            border: none;
+            border-radius: 2px;
+            background-color: #00a2ff;
+            color: #ffffff;
+            font-size: 20px;
+            padding: 12px 10px;
+            cursor: pointer;
+        }
+
+        .global-toast {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            max-width: calc(100% - 32px);
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            font-size: 14px;
+            line-height: 1.5;
+            text-align: center;
+            z-index: 60;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .global-toast.active {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="header" id="pageHeader">
+            <div class="back-btn" id="backBtn" onclick="window.location.href='app_list.html'">←</div>
+            <div class="header-title" id="headerTitle">分拣任务</div>
+        </div>
+
+        <!-- 扫描商品领取任务 -->
+        <div class="page active" id="scanPage">
+            <div class="main-content">
+                <div class="scan-title">请扫描/输入</div>
+                <div id="claimBarcodeInputContainer" class="claim-barcode-input-container"></div>
+                <p class="scan-hint">支持商品、分站、线路</p>
+                <button type="button" class="claim-confirm-btn" onclick="claimSortingTask()">确定</button>
+            </div>
+        </div>
+
+        <!-- 分拣任务总览 -->
+        <div class="page" id="overviewPage">
+            <div class="overview-content">
+                <div class="overview-main-scroll">
+                    <div class="overview-summary-card">
+                        <div class="overview-summary-title">共有 <span id="overviewTaskCount">0</span> 条分拣任务</div>
+                        <div class="overview-metrics">
+                            <div class="overview-metric">
+                                <div class="overview-metric-value" id="overviewPieces">0</div>
+                                <div class="overview-metric-label">件数</div>
+                            </div>
+                            <div class="overview-metric">
+                                <div class="overview-metric-value" id="overviewSku">0</div>
+                                <div class="overview-metric-label">品项数</div>
+                            </div>
+                            <div class="overview-metric">
+                                <div class="overview-metric-value" id="overviewWeight">0.00</div>
+                                <div class="overview-metric-label">重量(KG)</div>
+                            </div>
+                            <div class="overview-metric">
+                                <div class="overview-metric-value" id="overviewVolume">0.00</div>
+                                <div class="overview-metric-label">体积(m³)</div>
+                            </div>
+                        </div>
+                        <div class="overview-progress-section">
+                            <div class="overview-progress-title">分拣商品数量</div>
+                            <div class="overview-progress-track">
+                                <div class="overview-progress-fill" id="overviewProgressFill"></div>
+                            </div>
+                            <div class="overview-progress-text"><span id="overviewSortedQty">0</span>/<span id="overviewTotalQty">0</span></div>
+                        </div>
+                    </div>
+                    <div class="overview-product-section">
+                        <div class="overview-product-section-title">商品信息</div>
+                        <div class="overview-product-list" id="overviewProductList"></div>
+                    </div>
+                </div>
+
+                <div class="overview-bottom">
+                    <button type="button" class="start-sort-btn" onclick="startSortingFromOverview()">开始分拣</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分拣执行 -->
+        <div class="page" id="sortingPage">
+            <div class="sort-execute-body">
+                <div class="sort-execute-scroll">
+                    <div class="sort-product-info-card">
+                        <div class="sort-product-info-name" id="sortProductName"></div>
+                        <div class="sort-product-info-row">
+                            <span class="sort-product-info-label emphasis">商品条码:</span>
+                            <span class="sort-product-info-value" id="sortBarcodeMain"></span>
+                        </div>
+                        <div class="sort-product-info-row">
+                            <span class="sort-product-info-label emphasis">目的门店:</span>
+                            <span class="sort-product-info-value" id="sortTargetStore"></span>
+                        </div>
+                        <div class="sort-product-info-row muted">
+                            <span class="sort-product-info-label">目的储位:</span>
+                            <span class="sort-product-info-value" id="sortTargetLocation"></span>
+                        </div>
+                        <div class="sort-product-info-row muted">
+                            <span class="sort-product-info-label">出库单号:</span>
+                            <span class="sort-product-info-value" id="sortOutboundNo"></span>
+                        </div>
+                    </div>
+                    <div class="sort-location-label-row">目的储位</div>
+                    <input type="text" class="sort-field sort-field-slot" id="sortSlotInput" placeholder="请扫描/输入储位" autocomplete="off">
+                    <div class="sort-location-label-row">商品</div>
+                    <input type="text" class="sort-field sort-field-barcode" id="sortBarcodeInput" placeholder="请扫描/输入商品" autocomplete="off">
+                    <div id="sortExpectedBox" class="sort-expected-box" tabindex="0"></div>
+                    <div class="sort-line-muted">批次: <span id="sortBatchNo"></span></div>
+                </div>
+                <button type="button" class="sort-confirm-btn" onclick="confirmSortExecute()">确定</button>
+            </div>
+            <div class="sort-footer-btns">
+                <button type="button" class="sort-footer-btn sort-footer-btn--primary" onclick="registerSortingException()">异常登记</button>
+                <button type="button" class="sort-footer-btn sort-footer-btn--primary" onclick="printSortingLabel()">打印标贴</button>
+            </div>
+        </div>
+
+        <!-- 分拣完成 -->
+        <div class="page" id="sortingCompletePage">
+            <div class="sort-complete-page">
+                <div class="sort-complete-topbar" id="sortCompleteTopbar">分拣完成</div>
+                <div class="sort-complete-body">
+                    <div class="sort-complete-icon">✓</div>
+                    <div class="sort-complete-title">分拣完成</div>
+                </div>
+                <div class="sort-complete-action">
+                    <button type="button" class="sort-complete-btn" onclick="acknowledgeSortingComplete()">确定</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="shortage-modal" id="shortageQtyModal">
+            <div class="shortage-modal-card">
+                <div class="shortage-modal-message">请输入实际分拣数量</div>
+                <input type="number" class="sort-field shortage-modal-input" id="shortageSortedQtyInput" placeholder="请输入实际分拣数量" autocomplete="off" min="0" step="1">
+                <div class="shortage-modal-actions">
+                    <button type="button" class="shortage-modal-btn" onclick="closeShortageQtyModal()">取消</button>
+                    <button type="button" class="shortage-modal-btn shortage-modal-btn--confirm" onclick="submitShortageQty()">确认</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="shortage-modal" id="shortageConfirmModal">
+            <div class="shortage-modal-card">
+                <div class="shortage-modal-message">任务异常登记后将触发异常处理，请确认是否登记</div>
+                <div class="shortage-modal-actions">
+                    <button type="button" class="shortage-modal-btn" onclick="closeShortageConfirmModal()">取消</button>
+                    <button type="button" class="shortage-modal-btn shortage-modal-btn--confirm" onclick="confirmShortageAndContinue()">确认</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="global-toast" id="globalToast"></div>
+    </div>
+
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mobile-components.js"></script>
+    <script>
+        const headerTitle = document.getElementById('headerTitle');
+        const backBtn = document.getElementById('backBtn');
+        const pageHeader = document.getElementById('pageHeader');
+        const claimBarcodeComponent = window.WMSMobileComponents
+            ? window.WMSMobileComponents.mountScanBarcodeInput({
+                container: 'claimBarcodeInputContainer',
+                inputId: 'claimBarcodeInput',
+                inputClassName: 'wms-mobile-scan-input__field claim-barcode-input-centered',
+                placeholder: '请扫描/输入'
+            })
+            : null;
+        const claimBarcodeInput = claimBarcodeComponent
+            ? claimBarcodeComponent.input
+            : document.getElementById('claimBarcodeInput');
+        const sortSlotInput = document.getElementById('sortSlotInput');
+        const sortBarcodeInput = document.getElementById('sortBarcodeInput');
+        const sortExpectedBox = document.getElementById('sortExpectedBox');
+        const shortageQtyModal = document.getElementById('shortageQtyModal');
+        const shortageSortedQtyInput = document.getElementById('shortageSortedQtyInput');
+        const shortageConfirmModal = document.getElementById('shortageConfirmModal');
+        const globalToast = document.getElementById('globalToast');
+
+        let toastTimer = null;
+        window.shortageSortedQty = null;
+
+        window.currentTaskSummary = {
+            waveNo: 'WV19090576SORT01',
+            wallNo: 'SW-NJ-01',
+            taskGroupNo: 'TG19090577SORT0400',
+            targetStation: 'A01-冷丰南京水果市场店',
+            targetLocation: 'A01',
+            outboundNo: 'CK190905687B7560800',
+            taskCount: 3,
+            pieces: 36,
+            skuCount: 3,
+            weight: '2.88',
+            volume: '0.08'
+        };
+
+        window.sortingTaskDetails = [
+            { name: '任务1: 可口可乐600ml', slot: 'G01-01', done: 0, total: 12, unit: '件' },
+            { name: '任务2: 香蕉（把）', slot: 'G01-02', done: 0, total: 12, unit: '件' },
+            { name: '任务3: 橙子500g', slot: 'G01-03', done: 0, total: 12, unit: '件' }
+        ];
+
+        window.sortingLines = [
+            { slot: 'G01-01', productName: '可口可乐600ml', barcode: '6901939651605', expectedQty: 12, unit: '件', batch: '20190627_1' },
+            { slot: 'G01-02', productName: '香蕉（把）', barcode: '6912345678902', expectedQty: 12, unit: '件', batch: '20190628_1' },
+            { slot: 'G01-03', productName: '橙子500g', barcode: '6912345678903', expectedQty: 12, unit: '件', batch: '20190629_1' }
+        ];
+
+        window.sortingLineIndex = 0;
+        function setActivePage(pageId) {
+            document.querySelectorAll('.page').forEach((page) => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            pageHeader.style.display = pageId === 'sortingCompletePage' ? 'none' : 'flex';
+        }
+
+        function showToast(message) {
+            if (!message) return;
+            globalToast.textContent = String(message);
+            globalToast.classList.add('active');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => globalToast.classList.remove('active'), 1800);
+        }
+
+        function claimSortingTask() {
+            if (!claimBarcodeInput) {
+                showToast('商品条码输入框未初始化');
+                return;
+            }
+            const code = claimBarcodeInput.value.trim();
+            if (!code) {
+                showToast('请先扫描或输入商品条码');
+                claimBarcodeInput.focus();
+                return;
+            }
+            showToast('领取成功');
+            fillOverviewData();
+            setActivePage('overviewPage');
+            headerTitle.textContent = '分拣任务总览';
+            backBtn.setAttribute('onclick', 'showScanPage()');
+        }
+
+        function fillOverviewData() {
+            const data = window.currentTaskSummary;
+            document.getElementById('overviewTaskCount').textContent = String(data.taskCount);
+            document.getElementById('overviewPieces').textContent = String(data.pieces);
+            document.getElementById('overviewSku').textContent = String(data.skuCount);
+            document.getElementById('overviewWeight').textContent = data.weight;
+            document.getElementById('overviewVolume').textContent = data.volume;
+            renderOverviewProductCards();
+            updateOverviewProgress();
+        }
+
+        function renderOverviewProductCards() {
+            const listEl = document.getElementById('overviewProductList');
+            if (!listEl) return;
+            const lines = window.sortingLines || [];
+            const productMap = new Map();
+            const escapeHtml = (v) => String(v)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+
+            lines.forEach((line) => {
+                const productName = String((line && line.productName) || '--');
+                const barcode = String((line && line.barcode) || '--');
+                const qty = Number((line && (line.expectedQty ?? line.total ?? line.qty)) || 0);
+                const unit = String((line && line.unit) || '');
+                const key = productName + '__' + barcode;
+
+                if (!productMap.has(key)) {
+                    productMap.set(key, {
+                        productName,
+                        barcode,
+                        qty: 0,
+                        unit
+                    });
+                }
+                const item = productMap.get(key);
+                if (Number.isFinite(qty) && qty > 0) {
+                    item.qty += qty;
+                }
+                if (!item.unit && unit) {
+                    item.unit = unit;
+                }
+            });
+
+            const productItems = Array.from(productMap.values());
+            if (!productItems.length) {
+                listEl.innerHTML = '<div class="overview-product-card"><div class="overview-product-row"><span class="overview-product-value">暂无商品信息</span></div></div>';
+                return;
+            }
+
+            listEl.innerHTML = productItems.map((item) => {
+                const qtyText = item.qty + (item.unit ? ' ' + item.unit : '');
+                return '<div class="overview-product-card">'
+                    + '<div class="overview-product-row"><span class="overview-product-label">商品名称</span><span class="overview-product-value">' + escapeHtml(item.productName) + '</span></div>'
+                    + '<div class="overview-product-row"><span class="overview-product-label">商品条码</span><span class="overview-product-value">' + escapeHtml(item.barcode) + '</span></div>'
+                    + '<div class="overview-product-row"><span class="overview-product-label">分拣数量</span><span class="overview-product-value">' + escapeHtml(qtyText) + '</span></div>'
+                    + '</div>';
+            }).join('');
+        }
+
+        function updateOverviewProgress() {
+            const summary = window.currentTaskSummary || {};
+            const tasks = window.sortingTaskDetails || [];
+            let doneQty = 0;
+            let totalQtyFromTasks = 0;
+
+            tasks.forEach((task) => {
+                const taskDone = Number(task && task.done);
+                const taskTotal = Number(task && task.total);
+                if (Number.isFinite(taskTotal) && taskTotal > 0) {
+                    totalQtyFromTasks += taskTotal;
+                    const safeDone = Number.isFinite(taskDone) && taskDone > 0 ? Math.min(taskDone, taskTotal) : 0;
+                    doneQty += safeDone;
+                }
+            });
+
+            const summaryPieces = Number(summary.pieces);
+            const totalQty = Number.isFinite(summaryPieces) && summaryPieces > 0
+                ? summaryPieces
+                : totalQtyFromTasks;
+            const safeDoneQty = Math.max(0, Math.min(doneQty, totalQty));
+            const percent = totalQty > 0 ? (safeDoneQty / totalQty) * 100 : 0;
+
+            document.getElementById('overviewSortedQty').textContent = String(Math.round(safeDoneQty));
+            document.getElementById('overviewTotalQty').textContent = String(Math.round(totalQty));
+            document.getElementById('overviewProgressFill').style.width = percent.toFixed(2) + '%';
+        }
+
+        function showScanPage() {
+            setActivePage('scanPage');
+            headerTitle.textContent = '分拣任务';
+            backBtn.setAttribute('onclick', "window.location.href='app_list.html'");
+        }
+
+        function startSortingFromOverview() {
+            window.sortingLineIndex = 0;
+            setActivePage('sortingPage');
+            loadSortingLine(0);
+            headerTitle.textContent = '分拣任务执行';
+            backBtn.setAttribute('onclick', 'showOverviewFromSorting()');
+        }
+
+        function showOverviewFromSorting() {
+            setActivePage('overviewPage');
+            headerTitle.textContent = '分拣任务总览';
+            backBtn.setAttribute('onclick', 'showScanPage()');
+            updateOverviewProgress();
+        }
+
+        function setSortBarcodeDisplay(barcode) {
+            const el = document.getElementById('sortBarcodeMain');
+            el.textContent = String(barcode || '');
+        }
+
+        function updateSortingHeaderTitle() {
+            const lines = window.sortingLines || [];
+            const i = window.sortingLineIndex || 0;
+            if (lines.length) {
+                headerTitle.textContent = '分拣任务执行 ' + (i + 1) + '/' + lines.length;
+            } else {
+                headerTitle.textContent = '分拣任务执行';
+            }
+        }
+
+        function resetSortInputFlow() {
+            sortSlotInput.disabled = false;
+            sortBarcodeInput.disabled = true;
+            setTimeout(() => sortSlotInput.focus(), 0);
+        }
+
+        function loadSortingLine(index) {
+            const lines = window.sortingLines || [];
+            if (!lines.length || index < 0 || index >= lines.length) return;
+            window.sortingLineIndex = index;
+            const row = lines[index];
+            const summary = window.currentTaskSummary || {};
+            document.getElementById('sortProductName').textContent = row.productName;
+            setSortBarcodeDisplay(row.barcode);
+            document.getElementById('sortTargetStore').textContent = summary.targetStation || '--';
+            document.getElementById('sortTargetLocation').textContent = summary.targetLocation || '--';
+            document.getElementById('sortOutboundNo').textContent = summary.outboundNo || '--';
+            document.getElementById('sortExpectedBox').textContent = '应分拣数量 ' + row.expectedQty + ' (' + row.unit + ')';
+            document.getElementById('sortBatchNo').textContent = row.batch;
+            sortSlotInput.value = '';
+            sortBarcodeInput.value = '';
+            resetSortInputFlow();
+            updateSortingHeaderTitle();
+        }
+
+        function validateSlotStep() {
+            const lines = window.sortingLines || [];
+            const idx = window.sortingLineIndex || 0;
+            const row = lines[idx];
+            if (!row) return false;
+            const displayedTargetLocation = (document.getElementById('sortTargetLocation') || {}).textContent;
+            const expectedLocation = String(displayedTargetLocation || '').trim();
+            const v = sortSlotInput.value.trim();
+            if (!v) {
+                showToast('请先扫描/输入储位');
+                sortSlotInput.focus();
+                return false;
+            }
+            if (!expectedLocation || expectedLocation === '--') {
+                showToast('目的储位未配置');
+                sortSlotInput.focus();
+                return false;
+            }
+            if (v !== expectedLocation) {
+                showToast('储位与当前任务不一致');
+                sortSlotInput.focus();
+                return false;
+            }
+            sortSlotInput.disabled = true;
+            sortBarcodeInput.disabled = false;
+            sortBarcodeInput.focus();
+            return true;
+        }
+
+        function validateBarcodeStep() {
+            const lines = window.sortingLines || [];
+            const idx = window.sortingLineIndex || 0;
+            const row = lines[idx];
+            if (!row) return false;
+            if (!sortSlotInput.disabled && !validateSlotStep()) return false;
+            const scanned = sortBarcodeInput.value.trim();
+            if (!scanned) {
+                showToast('请扫描商品条码');
+                sortBarcodeInput.focus();
+                return false;
+            }
+            if (scanned !== String(row.barcode || '')) {
+                showToast('商品条码校验失败，非当前任务商品');
+                sortBarcodeInput.focus();
+                return false;
+            }
+            sortBarcodeInput.disabled = true;
+            sortExpectedBox.focus();
+            return true;
+        }
+
+        function validateQtyStep() {
+            const lines = window.sortingLines || [];
+            const idx = window.sortingLineIndex || 0;
+            const row = lines[idx];
+            if (!row) return null;
+            if (!sortBarcodeInput.disabled && !validateBarcodeStep()) return null;
+            const qtyVal = Number(row.expectedQty || 0);
+            if (!Number.isFinite(qtyVal) || qtyVal <= 0) {
+                showToast('应分拣数量异常');
+                return null;
+            }
+            return qtyVal;
+        }
+
+        function confirmSortExecute() {
+            const lines = window.sortingLines || [];
+            const idx = window.sortingLineIndex || 0;
+            if (!lines.length || !lines[idx]) return;
+            if (validateQtyStep() === null) return;
+            showToast('分拣确认成功');
+            const tasks = window.sortingTaskDetails || [];
+            if (tasks[idx]) {
+                tasks[idx].done = tasks[idx].total;
+            }
+            updateOverviewProgress();
+            const next = idx + 1;
+            if (next < lines.length) {
+                loadSortingLine(next);
+            } else {
+                showSortingCompletePage();
+            }
+        }
+
+        function showSortingCompletePage() {
+            document.getElementById('sortCompleteTopbar').textContent = '分拣完成';
+            setActivePage('sortingCompletePage');
+        }
+
+        function acknowledgeSortingComplete() {
+            if (claimBarcodeInput) claimBarcodeInput.value = '';
+            (window.sortingTaskDetails || []).forEach((t) => {
+                t.done = 0;
+            });
+            window.sortingLineIndex = 0;
+            showScanPage();
+        }
+
+        function registerSortingException() {
+            const lines = window.sortingLines || [];
+            const idx = window.sortingLineIndex || 0;
+            if (!lines.length || !lines[idx]) {
+                showToast('暂无可执行的分拣任务');
+                return;
+            }
+            window.shortageSortedQty = null;
+            shortageSortedQtyInput.value = '';
+            shortageQtyModal.classList.add('active');
+            setTimeout(() => {
+                shortageSortedQtyInput.focus();
+            }, 0);
+        }
+
+        function closeShortageQtyModal() {
+            shortageQtyModal.classList.remove('active');
+        }
+
+        function submitShortageQty() {
+            const lines = window.sortingLines || [];
+            const idx = window.sortingLineIndex || 0;
+            const row = lines[idx];
+            const sortedQty = Number(shortageSortedQtyInput.value.trim());
+            const expectedQty = Number((row && row.expectedQty) || 0);
+            if (!lines.length || !row) {
+                showToast('暂无可执行的分拣任务');
+                return;
+            }
+            if (!Number.isFinite(sortedQty) || sortedQty < 0) {
+                showToast('请输入有效的实际分拣数量');
+                shortageSortedQtyInput.focus();
+                return;
+            }
+            if (sortedQty === expectedQty) {
+                showToast('分拣量等于应分拣量，无法异常登记');
+                shortageSortedQtyInput.focus();
+                return;
+            }
+            if (sortedQty > expectedQty) {
+                showToast('分拣量大于应分拣量，无法异常登记');
+                shortageSortedQtyInput.focus();
+                return;
+            }
+            window.shortageSortedQty = sortedQty;
+            closeShortageQtyModal();
+            shortageConfirmModal.classList.add('active');
+        }
+
+        function closeShortageConfirmModal() {
+            shortageConfirmModal.classList.remove('active');
+        }
+
+        function confirmShortageAndContinue() {
+            const lines = window.sortingLines || [];
+            const idx = window.sortingLineIndex || 0;
+            const row = lines[idx];
+            const sortedQty = Number(window.shortageSortedQty);
+            const expectedQty = Number((row && row.expectedQty) || 0);
+
+            if (!lines.length || !row) {
+                closeShortageConfirmModal();
+                showToast('暂无可执行的分拣任务');
+                return;
+            }
+            if (!Number.isFinite(sortedQty) || sortedQty < 0) {
+                closeShortageConfirmModal();
+                showToast('请输入有效的实际分拣数量');
+                return;
+            }
+            if (sortedQty >= expectedQty) {
+                closeShortageConfirmModal();
+                showToast('异常登记校验失败，请重新登记');
+                return;
+            }
+
+            closeShortageConfirmModal();
+            const tasks = window.sortingTaskDetails || [];
+            if (tasks[idx]) {
+                tasks[idx].done = sortedQty;
+            }
+            window.shortageSortedQty = null;
+            updateOverviewProgress();
+            showToast('登记成功');
+            const next = idx + 1;
+            if (next < lines.length) {
+                loadSortingLine(next);
+            } else {
+                showSortingCompletePage();
+            }
+        }
+
+        function printSortingLabel() {
+            showToast('打印标贴功能开发中');
+        }
+
+        if (claimBarcodeInput) {
+            claimBarcodeInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') claimSortingTask();
+            });
+        }
+
+        sortSlotInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') validateSlotStep();
+        });
+
+        sortBarcodeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') validateBarcodeStep();
+        });
+
+        sortExpectedBox.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                confirmSortExecute();
+            }
+        });
+
+        shortageSortedQtyInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitShortageQty();
+            }
+        });
+    </script>
+</body>
+</html>

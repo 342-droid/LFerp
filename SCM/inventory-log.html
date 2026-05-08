@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 库存日志</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        /* 覆盖默认样式，使库存日志表格最后一列不冻结 */
+        .table th:last-child,
+        .table td:last-child {
+            position: static;
+            box-shadow: none;
+            min-width: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏容器 -->
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+
+    <!-- 顶部导航栏容器 -->
+    <div id="header-container"></div>
+    
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">库存日志</button>
+            </div>
+            
+            <hr class="content-divider">
+            
+            <div class="content-title">库存管理 / 库存日志</div>
+            
+            <section class="search-section">
+                <form class="search-form">
+
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 70px;">货主:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchCompany" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchCompanyDropdown">
+                                <div class="select-option" data-value="C001 货主1">C001 货主1</div>
+                                <div class="select-option" data-value="C002 货主2">C002 货主2</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 70px;">商品编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 70px;">商品名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 70px;">储位:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 70px;">容器:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 70px;">单号:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 70px;">规则编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 70px;">来源触发:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchSourceTrigger" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchSourceTriggerDropdown">
+                                <div class="select-option" data-value="收货确认">收货确认</div>
+                                <div class="select-option" data-value="收货取消">收货取消</div>
+                                <div class="select-option" data-value="异常恢复">异常恢复</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 70px;">规则类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchRuleType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchRuleTypeDropdown">
+                                <div class="select-option" data-value="来源库存">来源库存</div>
+                                <div class="select-option" data-value="目的库存">目的库存</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 70px;">变更类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchChangeType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchChangeTypeDropdown">
+                                <div class="select-option" data-value="库存量">库存量</div>
+                                <div class="select-option" data-value="占用量">占用量</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 70px;">变更方向:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchChangeDirection" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchChangeDirectionDropdown">
+                                <div class="select-option" data-value="增加">增加</div>
+                                <div class="select-option" data-value="减少">减少</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex: 0 0 100%; max-width: 100%; display: flex; align-items: center; gap: 10px;">
+                        <label style="width: 70px;">更新时间:</label>
+                        <div class="date-range">
+                            <div class="date-picker">
+                                <input type="date" id="searchUpdateTimeStart" data-type="start" placeholder="开始时间">
+                            </div>
+                            <span class="date-range-separator">至</span>
+                            <div class="date-picker">
+                                <input type="date" id="searchUpdateTimeEnd" data-type="end" placeholder="结束时间">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="location.reload()">查询</button>
+                        <button type="button" class="btn btn-secondary">导出</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>仓库</th>
+                                <th>货主</th>
+                                <th>商品编码</th>
+                                <th>商品名称</th>
+                                <th>储位</th>
+                                <th>容器</th>
+                                <th>入库日期</th>
+                                <th>生产日期</th>
+                                <th>来源类型</th>
+                                <th>来源单号</th>
+                                <th>规则类型</th>
+                                <th>变更类型</th>
+                                <th>变更方向</th>
+                                <th>变更数量</th>
+                                <th>变更前数量</th>
+                                <th>来源触发</th>
+                                <th>调用单号</th>
+                                <th>调用单明细ID</th>
+                                <th>关联单号</th>
+                                <th>来源单号</th>
+                                <th>库存ID</th>
+                                <th>规则编码</th>
+                                <th>规则明细ID</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- 数据行将由系统自动填充 -->
+                            <tr>
+                                <td>W001 南京仓</td>
+                                <td>C001 冷丰食品</td>
+                                <td>SKU001</td>
+                                <td>冷冻牛肉</td>
+                                <td>A01-01-01</td>
+                                <td>LPN001</td>
+                                <td>2025-01-01</td>
+                                <td>2024-12-01</td>
+                                <td>上架</td>
+                                <td>PO001</td>
+                                <td>来源库存</td>
+                                <td>库存量</td>
+                                <td>增加</td>
+                                <td>100</td>
+                                <td>0</td>
+                                <td>收货确认</td>
+                                <td>GRN001</td>
+                                <td>1</td>
+                                <td>PO001</td>
+                                <td>PO001</td>
+                                <td>1</td>
+                                <td>RULE001</td>
+                                <td>1</td>
+                                <td>2025-01-01 12:00:00</td>
+                                <td>张三</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页组件容器 -->
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 引入公共脚本 -->
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        // 使用PageManager简化页面逻辑
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '库存日志',
+                
+                // 搜索区域下拉框
+                customSelects: [
+                    { inputId: 'searchCompany', dropdownId: 'searchCompanyDropdown' },
+                    { inputId: 'searchSourceTrigger', dropdownId: 'searchSourceTriggerDropdown' },
+                    { inputId: 'searchRuleType', dropdownId: 'searchRuleTypeDropdown' },
+                    { inputId: 'searchChangeType', dropdownId: 'searchChangeTypeDropdown' },
+                    { inputId: 'searchChangeDirection', dropdownId: 'searchChangeDirectionDropdown' }
+                ],
+                
+                // 字段定义
+                fields: [
+                    // 库存日志不需要新增/编辑功能，因此不需要定义字段
+                ],
+                
+                // 由于库存日志是只读的，不需要新增、编辑和删除功能
+            });
+            
+            page.init();
+        });
+    </script>
+</body>
+</html>

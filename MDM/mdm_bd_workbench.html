@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰 MDM · BD 工作台</title>
+    <link rel="stylesheet" href="../css/mdm-bd-mobile.css">
+</head>
+<body class="mdm-bd-body" data-bd-base="">
+    <div class="bd-mobile-shell">
+        <div class="bd-user-strip">
+            <div class="avatar">李</div>
+            <div class="name">李泽峰 · BD 工作台</div>
+        </div>
+        <div id="bdWorkbenchMain" class="bd-scroll" style="position:relative"></div>
+        <div id="bd-bottom-tab-slot"></div>
+        <button type="button" id="bdFabQr" aria-label="二维码"
+            style="position:absolute;bottom:calc(64px + env(safe-area-inset-bottom, 0px));right:16px;width:48px;height:48px;border:none;border-radius:50%;background:var(--bd-primary);color:#fff;font-size:20px;box-shadow:0 4px 14px rgba(37,99,235,.4);cursor:pointer;z-index:60">▦</button>
+    </div>
+    <div class="bd-modal" id="bdQrMenu">
+        <div class="bd-modal-box">
+            <h3>选择二维码类型</h3>
+            <p style="font-size:12px;color:var(--bd-muted);margin:0 0 12px">请选择本次要展示的二维码用途。</p>
+            <button type="button" class="bd-store-card" style="margin-bottom:10px;cursor:pointer;text-align:left;padding:12px" data-qr-store>
+                <strong>门店入驻二维码</strong>
+                <div style="font-size:11px;color:var(--bd-muted);margin-top:6px">店长扫码创建门店并绑定 BD</div>
+            </button>
+            <button type="button" class="bd-store-card" style="cursor:pointer;text-align:left;padding:12px" data-qr-inv>
+                <strong>邀请好友成为 BD</strong>
+                <div style="font-size:11px;color:var(--bd-muted);margin-top:6px">邀请码与专属二维码</div>
+            </button>
+            <div class="bd-modal-actions" style="margin-top:14px">
+                <button type="button" id="bdQrClose" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--bd-border);background:#fff;cursor:pointer;font-weight:600">关闭</button>
+            </div>
+        </div>
+    </div>
+    <script src="../js/path-prefix.js"></script>
+    <script>window.bdPage = function (f) { return window.wmsPath && wmsPath.page ? wmsPath.page(f) : f; };</script>
+    <script src="../js/mdm-bd-common.js"></script>
+    <script src="../js/mdm-bd-data-revenue.js"></script>
+    <script src="../js/mdm-bd-data-reportcharts.js"></script>
+    <script src="../js/mdm-bd-workbench-app.js"></script>
+    <script>
+        (function () {
+            var menu = document.getElementById('bdQrMenu');
+            document.getElementById('bdFabQr').onclick = function () {
+                menu.classList.add('bd-show');
+            };
+            document.getElementById('bdQrClose').onclick = function () {
+                menu.classList.remove('bd-show');
+            };
+            menu.addEventListener('click', function (e) {
+                if (e.target === menu) menu.classList.remove('bd-show');
+            });
+            document.querySelector('[data-qr-store]').onclick = function () {
+                menu.classList.remove('bd-show');
+                location.href = (window.bdPage || function (x) { return x; })('mdm_bd_personal.html#store-qr');
+            };
+            document.querySelector('[data-qr-inv]').onclick = function () {
+                menu.classList.remove('bd-show');
+                location.href = (window.bdPage || function (x) { return x; })('mdm_bd_personal.html#invite');
+            };
+        })();
+    </script>
+</body>
+</html>

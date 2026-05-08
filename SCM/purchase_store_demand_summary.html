@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰采购 - 门店订货汇总</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .purchase-dimension-block {
+            width: 100%;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .purchase-dimension-block .dimension-hint {
+            margin: 8px 0 0;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .wh-param-tabs {
+            display: flex;
+            width: 100%;
+            margin-bottom: 0;
+            border-bottom: 1px solid #e8e8e8;
+            box-sizing: border-box;
+        }
+
+        .wh-param-tab {
+            flex: 1 1 0;
+            min-width: 0;
+            text-align: center;
+            padding: 6px 4px 10px;
+            margin-bottom: -1px;
+            font-size: 13px;
+            color: #666;
+            text-decoration: none;
+            cursor: pointer;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        .wh-param-tab,
+        .wh-param-tab:visited {
+            color: #666;
+        }
+
+        .wh-param-tab:hover {
+            color: #333;
+        }
+
+        .wh-param-tab.active,
+        .wh-param-tab.active:visited {
+            font-weight: 600;
+            color: #333;
+            border-bottom-color: #333;
+        }
+
+        .wh-param-tab.active:hover {
+            color: #333;
+        }
+
+        .aggregate-summary {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .detail-link {
+            color: #2196F3;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .detail-link:hover {
+            text-decoration: underline;
+        }
+
+        .detail-modal .modal-content {
+            width: 95%;
+            max-width: 1280px;
+            max-height: 88vh;
+            overflow: auto;
+        }
+
+        .detail-modal .modal-title {
+            font-weight: 600;
+        }
+
+        .detail-header-tip {
+            margin: 10px 0 14px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .detail-table-wrap .table {
+            min-width: 980px;
+        }
+
+        .detail-actual-input {
+            width: 56px;
+            height: 28px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 0 8px;
+            outline: none;
+        }
+
+        .detail-unit-text {
+            margin-left: 6px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏容器 -->
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/purchase-sidebar.js"></script>
+
+    <!-- 顶部导航栏容器 -->
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button type="button" class="active">门店订货汇总</button>
+            </div>
+
+            <hr class="content-divider">
+
+            <div class="content-title">采购 / 门店订货汇总</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="purchase-dimension-block">
+                        <div class="wh-param-tabs" id="dimensionTabs" role="tablist">
+                            <button type="button" class="wh-param-tab active" data-dimension="product" role="tab">商品</button>
+                            <button type="button" class="wh-param-tab" data-dimension="store" role="tab">门店</button>
+                            <button type="button" class="wh-param-tab" data-dimension="spec" role="tab">规格</button>
+                        </div>
+                        <p class="dimension-hint" id="dimensionHint">按商品维度汇总各门店的订货需求，数量已合并。</p>
+                    </div>
+
+                    <div class="form-group custom-select-wrapper">
+                        <label>直播时段:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchLiveSession" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchLiveSessionDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="ZB20260420-晚场">ZB20260420-晚场</div>
+                                <div class="select-option" data-value="ZB20260420-早场">ZB20260420-早场</div>
+                                <div class="select-option" data-value="ZB20260421-晚场">ZB20260421-晚场</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>订单来源:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchOrderSource" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchOrderSourceDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="商城">商城</div>
+                                <div class="select-option" data-value="直播间">直播间</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>订单状态:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchOrderStatus" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchOrderStatusDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="待发货">待发货</div>
+                                <div class="select-option" data-value="退款中">退款中</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>商品编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchSkuCode" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>商品名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchSkuName" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>商品来源:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchSkuSource" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchSkuSourceDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="正常商品">正常商品</div>
+                                <div class="select-option" data-value="积分商品">积分商品</div>
+                                <div class="select-option" data-value="福袋商品">福袋商品</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>商品分类:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchSkuCategory" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchSkuCategoryDropdown"></div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 70px;">门店:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchStore" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchStoreDropdown"></div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>配送仓库:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchDeliveryWarehouse" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchDeliveryWarehouseDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="W001 南京仓">W001 南京仓</div>
+                                <div class="select-option" data-value="W002 嘉兴仓">W002 嘉兴仓</div>
+                                <div class="select-option" data-value="W003 上海仓">W003 上海仓</div>
+                                <div class="select-option" data-value="W004 北京仓">W004 北京仓</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>收货仓库:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchReceivingWarehouse" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchReceivingWarehouseDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="W001 南京仓">W001 南京仓</div>
+                                <div class="select-option" data-value="W002 嘉兴仓">W002 嘉兴仓</div>
+                                <div class="select-option" data-value="W003 上海仓">W003 上海仓</div>
+                                <div class="select-option" data-value="W004 北京仓">W004 北京仓</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex: 0 0 100%; max-width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
+                        <label>下单时间:</label>
+                        <div class="date-range">
+                            <div class="date-picker">
+                                <input type="date" id="searchOrderDateStart" data-type="start" title="下单开始日期">
+                            </div>
+                            <span class="date-range-separator">至</span>
+                            <div class="date-picker">
+                                <input type="date" id="searchOrderDateEnd" data-type="end" title="下单结束日期">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex: 0 0 100%; max-width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
+                        <label>支付时间:</label>
+                        <div class="date-range">
+                            <div class="date-picker">
+                                <input type="date" id="searchPaymentTimeStart" data-type="start" title="支付开始日期">
+                            </div>
+                            <span class="date-range-separator">至</span>
+                            <div class="date-picker">
+                                <input type="date" id="searchPaymentTimeEnd" data-type="end" title="支付结束日期">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="btnSearch">查询</button>
+                        <button type="button" class="btn btn-secondary" id="btnCutoffGenerate">截单并生成门店订货单</button>
+                    </div>
+                </form>
+            </section>
+
+            <div class="aggregate-summary">共 <strong id="groupCount">0</strong> 条门店订货汇总记录</div>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead id="aggregateThead"></thead>
+                        <tbody id="aggregateTbody"></tbody>
+                    </table>
+                </div>
+
+                <!-- 分页组件容器 -->
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="storeOrderDetailModal" class="modal detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">门店订货汇总详情</div>
+                <span class="close" id="storeOrderDetailCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="detail-table-wrap table-scroll-container">
+                    <table class="table no-last-column-freeze">
+                        <thead>
+                            <tr>
+                                <th>门店</th>
+                                <th>商品编码</th>
+                                <th>商品名称</th>
+                                <th>商品分类</th>
+                                <th>销售数量</th>
+                                <th>配送仓库</th>
+                                <th>收货仓库</th>
+                                <th>实际订货量</th>
+                            </tr>
+                        </thead>
+                        <tbody id="storeOrderDetailTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入公共脚本（订货明细数据与门店订货单页共用，见 purchase-store-order-data.js） -->
+    <script src="../js/purchase-store-order-data.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script>
+(function() {
+    const SKU_CATEGORY_TREE = window.SKU_CATEGORY_TREE;
+    const storeOrderLines = window.PURCHASE_STORE_ORDER_LINES;
+
+    const hints = {
+        product: '按商品维度汇总各门店的订货需求，数量已合并。',
+        store: '按门店维度汇总各店订货需求，便于按店跟进。',
+        spec: '按商品规格维度汇总订货需求，区分不同包装/规格。'
+    };
+
+    let currentDimension = 'product';
+    let filteredLines = storeOrderLines.slice();
+
+    function getLiveSessionFilter() {
+        const el = document.getElementById('searchLiveSession');
+        if (!el) return '';
+        if (el.dataset.value !== undefined && el.dataset.value !== '') {
+            return el.dataset.value.trim();
+        }
+        if (el.dataset.value === '') {
+            return '';
+        }
+        return el.value.trim();
+    }
+
+    function getOrderSourceFilter() {
+        const el = document.getElementById('searchOrderSource');
+        if (!el) return '';
+        if (el.dataset.value !== undefined && el.dataset.value !== '') {
+            return el.dataset.value.trim();
+        }
+        if (el.dataset.value === '') {
+            return '';
+        }
+        return el.value.trim();
+    }
+
+    function getOrderStatusFilter() {
+        const el = document.getElementById('searchOrderStatus');
+        if (!el) return '';
+        if (el.dataset.value !== undefined && el.dataset.value !== '') {
+            return el.dataset.value.trim();
+        }
+        if (el.dataset.value === '') {
+            return '';
+        }
+        return el.value.trim();
+    }
+
+    function getDeliveryWarehouseFilter() {
+        const el = document.getElementById('searchDeliveryWarehouse');
+        if (!el) return '';
+        if (el.dataset.value !== undefined && el.dataset.value !== '') {
+            return el.dataset.value.trim();
+        }
+        if (el.dataset.value === '') {
+            return '';
+        }
+        return el.value.trim();
+    }
+
+    function getReceivingWarehouseFilter() {
+        const el = document.getElementById('searchReceivingWarehouse');
+        if (!el) return '';
+        if (el.dataset.value !== undefined && el.dataset.value !== '') {
+            return el.dataset.value.trim();
+        }
+        if (el.dataset.value === '') {
+            return '';
+        }
+        return el.value.trim();
+    }
+
+    function getSkuSourceFilter() {
+        const el = document.getElementById('searchSkuSource');
+        if (!el) return '';
+        if (el.dataset.value !== undefined && el.dataset.value !== '') {
+            return el.dataset.value.trim();
+        }
+        if (el.dataset.value === '') {
+            return '';
+        }
+        return el.value.trim();
+    }
+
+    function getStoreFilter() {
+        const el = document.getElementById('searchStore');
+        if (!el) return '';
+        if (el.dataset.value !== undefined && el.dataset.value !== '') {
+            return el.dataset.value.trim();
+        }
+        if (el.dataset.value === '') {
+            return '';
+        }
+        return el.value.trim();
+    }
+
+    function getCascadeSelectValue(inputId) {
+        const el = document.getElementById(inputId);
+        if (!el) return '';
+        if (el.dataset.value !== undefined && el.dataset.value !== '') {
+            return el.dataset.value.trim();
+        }
+        if (el.dataset.value === '') {
+            return '';
+        }
+        return el.value.trim();
+    }
+
+    function escapeAttr(s) {
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function collectAllCategoryPaths(tree) {
+        const paths = [];
+        Object.keys(tree || {}).forEach(function(l1) {
+            const l2obj = tree[l1];
+            if (!l2obj) return;
+            Object.keys(l2obj).forEach(function(l2) {
+                (l2obj[l2] || []).forEach(function(l3) {
+                    paths.push(l1 + ' / ' + l2 + ' / ' + l3);
+                });
+            });
+        });
+        return paths;
+    }
+
+    function fillCategoryDropdown(dropdownId, optionLabels) {
+        const dd = document.getElementById(dropdownId);
+        if (!dd) return;
+        var html = '<div class="select-option" data-value="">全部</div>';
+        (optionLabels || []).forEach(function(v) {
+            html += '<div class="select-option" data-value="' + escapeAttr(v) + '">' + escapeHtml(v) + '</div>';
+        });
+        dd.innerHTML = html;
+    }
+
+    function initSkuCategoryOptions() {
+        fillCategoryDropdown('searchSkuCategoryDropdown', collectAllCategoryPaths(SKU_CATEGORY_TREE));
+    }
+
+    function initStoreOptions() {
+        const dd = document.getElementById('searchStoreDropdown');
+        if (!dd) return;
+        const storeMap = new Map();
+        (storeOrderLines || []).forEach(function(row) {
+            const code = row && row.storeCode ? String(row.storeCode).trim() : '';
+            const name = row && row.storeName ? String(row.storeName).trim() : '';
+            if (!code) return;
+            if (!storeMap.has(code)) {
+                storeMap.set(code, name);
+            }
+        });
+
+        var html = '<div class="select-option" data-value="">全部</div>';
+        Array.from(storeMap.entries())
+            .sort(function(a, b) { return a[0].localeCompare(b[0], 'zh-CN'); })
+            .forEach(function(entry) {
+                const code = entry[0];
+                const name = entry[1];
+                const text = name ? (code + ' ' + name) : code;
+                html += '<div class="select-option" data-value="' + escapeAttr(code) + '">' + escapeHtml(text) + '</div>';
+            });
+        dd.innerHTML = html;
+    }
+
+    function getSearchFilters() {
+        function val(id) {
+            const el = document.getElementById(id);
+            return el ? el.value.trim() : '';
+        }
+        return {
+            liveSession: getLiveSessionFilter(),
+            orderSource: getOrderSourceFilter(),
+            orderStatus: getOrderStatusFilter(),
+            skuCode: val('searchSkuCode'),
+            skuName: val('searchSkuName'),
+            skuSource: getSkuSourceFilter(),
+            skuCategory: getCascadeSelectValue('searchSkuCategory'),
+            storeCode: getStoreFilter(),
+            deliveryWarehouse: getDeliveryWarehouseFilter(),
+            receivingWarehouse: getReceivingWarehouseFilter(),
+            placeOrderDateStart: val('searchOrderDateStart'),
+            placeOrderDateEnd: val('searchOrderDateEnd'),
+            paymentTimeStart: val('searchPaymentTimeStart'),
+            paymentTimeEnd: val('searchPaymentTimeEnd')
+        };
+    }
+
+    function rowInDateFieldRange(row, startStr, endStr, fieldKey) {
+        if (!startStr && !endStr) return true;
+        var d = row[fieldKey];
+        if (!d) return false;
+        if (startStr && d < startStr) return false;
+        if (endStr && d > endStr) return false;
+        return true;
+    }
+
+    function applyFilters(lines) {
+        const f = getSearchFilters();
+        return lines.filter(function(row) {
+            if (f.liveSession && (!row.liveSession || row.liveSession.indexOf(f.liveSession) === -1)) return false;
+            if (f.orderSource && row.orderSource !== f.orderSource) return false;
+            if (f.orderStatus && row.orderStatus !== f.orderStatus) return false;
+            if (f.skuCode && row.skuCode.indexOf(f.skuCode) === -1) return false;
+            if (f.skuName && row.skuName.indexOf(f.skuName) === -1) return false;
+            if (f.skuSource && row.skuSource !== f.skuSource) return false;
+            if (f.skuCategory && row.skuCategoryPath !== f.skuCategory) return false;
+            if (f.storeCode && row.storeCode !== f.storeCode) return false;
+            if (f.deliveryWarehouse && row.deliveryWarehouse !== f.deliveryWarehouse) return false;
+            if (f.receivingWarehouse && row.receivingWarehouse !== f.receivingWarehouse) return false;
+            if (!rowInDateFieldRange(row, f.placeOrderDateStart, f.placeOrderDateEnd, 'placeOrderDate')) return false;
+            if (!rowInDateFieldRange(row, f.paymentTimeStart, f.paymentTimeEnd, 'paymentDate')) return false;
+            return true;
+        });
+    }
+
+    /** 合法计量单位：件、份、箱；汇总行单位不一致时默认按「件」展示 */
+    function mergeQtyUnit(existingUnit, rowUnit) {
+        const a = rowUnit || '件';
+        if (!existingUnit) return a;
+        if (existingUnit === a) return a;
+        return '件';
+    }
+
+    function aggregateByProduct(lines) {
+        const map = new Map();
+        for (const row of lines) {
+            const key = row.skuCode;
+            if (!map.has(key)) {
+                map.set(key, {
+                    skuCode: row.skuCode,
+                    skuName: row.skuName,
+                    totalQty: 0,
+                    storeKeys: new Set(),
+                    qtyUnit: null
+                });
+            }
+            const g = map.get(key);
+            g.totalQty += row.qty;
+            g.storeKeys.add(row.storeCode);
+            g.qtyUnit = mergeQtyUnit(g.qtyUnit, row.qtyUnit);
+        }
+        return Array.from(map.values()).map(function(g) {
+            return {
+                skuCode: g.skuCode,
+                skuName: g.skuName,
+                totalQty: g.totalQty,
+                storeCount: g.storeKeys.size,
+                qtyUnit: g.qtyUnit || '件'
+            };
+        });
+    }
+
+    function aggregateByStore(lines) {
+        const map = new Map();
+        for (const row of lines) {
+            const key = row.storeCode;
+            if (!map.has(key)) {
+                map.set(key, {
+                    storeCode: row.storeCode,
+                    storeName: row.storeName,
+                    totalQty: 0,
+                    lineCount: 0,
+                    qtyUnit: null
+                });
+            }
+            const g = map.get(key);
+            g.totalQty += row.qty;
+            g.lineCount += 1;
+            g.qtyUnit = mergeQtyUnit(g.qtyUnit, row.qtyUnit);
+        }
+        return Array.from(map.values()).map(function(g) {
+            return {
+                storeCode: g.storeCode,
+                storeName: g.storeName,
+                totalQty: g.totalQty,
+                lineCount: g.lineCount,
+                qtyUnit: g.qtyUnit || '件'
+            };
+        });
+    }
+
+    function aggregateBySpec(lines) {
+        const map = new Map();
+        for (const row of lines) {
+            const key = row.skuCode + '\0' + row.spec;
+            if (!map.has(key)) {
+                map.set(key, {
+                    skuCode: row.skuCode,
+                    skuName: row.skuName,
+                    spec: row.spec,
+                    totalQty: 0,
+                    qtyUnit: null
+                });
+            }
+            const g = map.get(key);
+            g.totalQty += row.qty;
+            g.qtyUnit = mergeQtyUnit(g.qtyUnit, row.qtyUnit);
+        }
+        return Array.from(map.values()).map(function(g) {
+            return {
+                skuCode: g.skuCode,
+                skuName: g.skuName,
+                spec: g.spec,
+                totalQty: g.totalQty,
+                qtyUnit: g.qtyUnit || '件'
+            };
+        });
+    }
+
+    function escapeHtml(s) {
+        if (s == null) return '';
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function formatQtyTotal(qty, unit) {
+        var u = unit || '件';
+        return escapeHtml(String(qty) + u);
+    }
+
+    function getDetailRowsForDimension(dimension, key, spec) {
+        if (dimension === 'store') {
+            return filteredLines.filter(function(row) {
+                return row.storeCode === key;
+            });
+        }
+        if (dimension === 'spec') {
+            return filteredLines.filter(function(row) {
+                return row.skuCode === key && row.spec === spec;
+            });
+        }
+        return filteredLines.filter(function(row) {
+            return row.skuCode === key;
+        });
+    }
+
+    function renderStoreOrderDetailRows(rows) {
+        const tbody = document.getElementById('storeOrderDetailTbody');
+        if (!tbody) return;
+        if (!rows || rows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#999;">暂无明细数据</td></tr>';
+            return;
+        }
+        tbody.innerHTML = rows.map(function(row) {
+            var salesQty = (row.qty || 0) + (row.qtyUnit || '件');
+            var skuCategory = row.skuCategoryPath || '-';
+            var storeText = (row.storeName && row.storeCode)
+                ? (row.storeCode + ' ' + row.storeName)
+                : (row.storeCode || row.storeName || '-');
+            return '' +
+                '<tr>' +
+                '<td>' + escapeHtml(storeText) + '</td>' +
+                '<td>' + escapeHtml(row.skuCode || '-') + '</td>' +
+                '<td>' + escapeHtml(row.skuName || '-') + '</td>' +
+                '<td>' + escapeHtml(skuCategory) + '</td>' +
+                '<td>' + escapeHtml(salesQty) + '</td>' +
+                '<td>' + escapeHtml(row.deliveryWarehouse || '-') + '</td>' +
+                '<td>' + escapeHtml(row.receivingWarehouse || '-') + '</td>' +
+                '<td><input class="detail-actual-input" type="number" min="0" value="' + escapeAttr(String(row.qty || 0)) + '"><span class="detail-unit-text">' + escapeHtml(row.qtyUnit || '件') + '</span></td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    function openStoreOrderDetailModal(dimension, key, spec) {
+        const rows = getDetailRowsForDimension(dimension, key, spec);
+        renderStoreOrderDetailRows(rows);
+        const modal = document.getElementById('storeOrderDetailModal');
+        if (modal) modal.style.display = 'block';
+    }
+
+    function closeStoreOrderDetailModal() {
+        const modal = document.getElementById('storeOrderDetailModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function renderTable() {
+        const thead = document.getElementById('aggregateThead');
+        const tbody = document.getElementById('aggregateTbody');
+        const hintEl = document.getElementById('dimensionHint');
+        const countEl = document.getElementById('groupCount');
+
+        hintEl.textContent = hints[currentDimension];
+
+        const lines = filteredLines;
+        let rows;
+        let headHtml;
+        if (currentDimension === 'product') {
+            rows = aggregateByProduct(lines);
+            headHtml = '<tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>商品编码</th><th>商品名称</th><th>订货量合计</th><th>涉及门店数</th></tr>';
+            tbody.innerHTML = rows.map(function(r) {
+                return '<tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td><a href="#" class="detail-link js-open-order-detail" data-dimension="product" data-key="' + escapeAttr(r.skuCode) + '">' + escapeHtml(r.skuCode) + '</a></td><td>' + escapeHtml(r.skuName) + '</td><td>' + formatQtyTotal(r.totalQty, r.qtyUnit) + '</td><td>' + r.storeCount + '</td></tr>';
+            }).join('');
+        } else if (currentDimension === 'store') {
+            rows = aggregateByStore(lines);
+            headHtml = '<tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>门店</th><th>订货量合计</th><th>订货明细行数</th></tr>';
+            tbody.innerHTML = rows.map(function(r) {
+                var storeText = (r.storeName && r.storeCode)
+                    ? (r.storeCode + ' ' + r.storeName)
+                    : (r.storeCode || r.storeName || '-');
+                return '<tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td><a href="#" class="detail-link js-open-order-detail" data-dimension="store" data-key="' + escapeAttr(r.storeCode) + '">' + escapeHtml(storeText) + '</a></td><td>' + escapeHtml(String(r.totalQty)) + '</td><td>' + r.lineCount + '</td></tr>';
+            }).join('');
+        } else {
+            rows = aggregateBySpec(lines);
+            headHtml = '<tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>商品编码</th><th>商品名称</th><th>商品规格</th><th>订货量合计</th></tr>';
+            tbody.innerHTML = rows.map(function(r) {
+                return '<tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td><a href="#" class="detail-link js-open-order-detail" data-dimension="spec" data-key="' + escapeAttr(r.skuCode) + '" data-spec="' + escapeAttr(r.spec) + '">' + escapeHtml(r.skuCode) + '</a></td><td>' + escapeHtml(r.skuName) + '</td><td>' + escapeHtml(r.spec) + '</td><td>' + formatQtyTotal(r.totalQty, r.qtyUnit) + '</td></tr>';
+            }).join('');
+        }
+
+        thead.innerHTML = headHtml;
+        countEl.textContent = String(rows.length);
+    }
+
+    document.querySelector('.table-section').addEventListener('change', function(e) {
+        const t = e.target;
+        if (!t || !t.classList.contains('checkbox-all')) return;
+        const table = t.closest('table');
+        if (!table) return;
+        table.querySelectorAll('.checkbox-row').forEach(function(cb) {
+            cb.checked = t.checked;
+        });
+    });
+
+    document.getElementById('aggregateTbody').addEventListener('click', function(e) {
+        const link = e.target.closest('.js-open-order-detail');
+        if (!link) return;
+        e.preventDefault();
+        openStoreOrderDetailModal(
+            link.getAttribute('data-dimension') || 'product',
+            link.getAttribute('data-key') || '',
+            link.getAttribute('data-spec') || ''
+        );
+    });
+
+    document.getElementById('storeOrderDetailCloseBtn').addEventListener('click', closeStoreOrderDetailModal);
+    document.getElementById('storeOrderDetailModal').addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'storeOrderDetailModal') {
+            closeStoreOrderDetailModal();
+        }
+    });
+
+    document.getElementById('dimensionTabs').addEventListener('click', function(e) {
+        const btn = e.target.closest('button[data-dimension]');
+        if (!btn) return;
+        currentDimension = btn.getAttribute('data-dimension');
+        document.querySelectorAll('#dimensionTabs .wh-param-tab').forEach(function(b) {
+            b.classList.toggle('active', b === btn);
+        });
+        renderTable();
+    });
+
+    document.getElementById('btnSearch').addEventListener('click', function() {
+        filteredLines = applyFilters(storeOrderLines);
+        renderTable();
+    });
+
+    document.getElementById('btnCutoffGenerate').addEventListener('click', function() {
+        var d = new Date();
+        var p = function(n) { return String(n).padStart(2, '0'); };
+        var ts = d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+        var rnd2 = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+        var mdh = 'MDH' + ts + rnd2;
+        if (typeof showToast === 'function') {
+            showToast('截单成功，已根据门店订货汇总生成门店订货单，单号 ' + mdh, 'success');
+        } else {
+            alert('截单成功，已根据门店订货汇总生成门店订货单，单号 ' + mdh);
+        }
+    });
+
+    filteredLines = applyFilters(storeOrderLines);
+    renderTable();
+
+    initSkuCategoryOptions();
+    initStoreOptions();
+
+    if (typeof initCustomSelect === 'function') {
+        initCustomSelect('searchLiveSession', 'searchLiveSessionDropdown');
+        initCustomSelect('searchOrderSource', 'searchOrderSourceDropdown');
+        initCustomSelect('searchOrderStatus', 'searchOrderStatusDropdown');
+        initCustomSelect('searchSkuSource', 'searchSkuSourceDropdown');
+        initCustomSelect('searchSkuCategory', 'searchSkuCategoryDropdown');
+        initCustomSelect('searchStore', 'searchStoreDropdown');
+        initCustomSelect('searchDeliveryWarehouse', 'searchDeliveryWarehouseDropdown');
+        initCustomSelect('searchReceivingWarehouse', 'searchReceivingWarehouseDropdown');
+    }
+})();
+    </script>
+</body>
+</html>

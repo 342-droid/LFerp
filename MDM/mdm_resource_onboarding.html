@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 支付进件</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <style>
+        .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
+        .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
+        .flow-box { margin: 14px 0; padding: 12px 14px; background: #fafafa; border: 1px solid #eee; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.65; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">支付进件</button></div>
+            <hr class="content-divider">
+            <div class="content-title">基础数据中心 / 资源中心 / 支付进件</div>
+
+            <div class="flow-box">
+                <strong>说明：</strong>与门店 / 供应商 / 直播间 / 承运商档案中的「去进件」共用同一套<strong>统一进件</strong>流程（演示）。提交后不会调用真实支付渠道，仅用于界面联调与培训。
+            </div>
+
+            <section class="search-section">
+                <div class="form-actions" style="padding: 0;">
+                    <button type="button" class="btn btn-primary" id="btnOpenOnboard">打开统一进件表单</button>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-unified-onboarding-ui.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('btnOpenOnboard').addEventListener('click', function () {
+            if (window.MdmUnifiedOnboardingUi) {
+                MdmUnifiedOnboardingUi.openModal({
+                    title: '统一支付进件',
+                    merchantShortNameDefault: '',
+                    variant: 'resource'
+                });
+            }
+        });
+    });
+    </script>
+</body>
+</html>

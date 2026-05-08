@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰采购 - 采购单</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .order-no-link {
+            color: #2196F3;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.2s;
+        }
+
+        .order-no-link:hover {
+            color: #1976D2;
+            text-decoration: underline;
+        }
+
+        .detail-modal .modal-content {
+            width: 95%;
+            max-width: 1200px;
+            max-height: 88vh;
+            overflow: auto;
+        }
+
+        .detail-table-wrap .table {
+            min-width: 1220px;
+        }
+
+        /* 新增采购单优先完整展示明细表 */
+        #addPoModal .modal-content {
+            width: 98%;
+            max-width: 1420px;
+        }
+
+        #addPoModal .detail-table-wrap .table {
+            min-width: 1080px;
+        }
+
+        #addPoModal .table th,
+        #addPoModal .table td {
+            padding: 6px 8px;
+            white-space: nowrap;
+        }
+
+        .detail-section {
+            margin-bottom: 16px;
+        }
+
+        .detail-section-title {
+            margin: 0 0 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .detail-info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(220px, 1fr));
+            gap: 8px 16px;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .detail-info-item {
+            display: flex;
+            align-items: center;
+            min-height: 24px;
+        }
+
+        .detail-info-item .label {
+            color: #666;
+            margin-right: 6px;
+            white-space: nowrap;
+        }
+
+        .detail-amount-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(220px, 1fr));
+            gap: 8px 16px;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .aggregate-summary {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .status.doc-initial {
+            background-color: #f5f5f5;
+            color: #616161;
+        }
+
+        .status.doc-partial {
+            background-color: #fff3e0;
+            color: #e65100;
+        }
+
+        .status.doc-done {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .add-po-form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(220px, 1fr));
+            gap: 10px 16px;
+        }
+
+        .add-po-form-item {
+            display: flex;
+            align-items: center;
+            min-height: 32px;
+        }
+
+        .add-po-form-item .label {
+            width: 78px;
+            color: #666;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .add-po-form-item input {
+            width: 100%;
+            height: 32px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 0 8px;
+            font-size: 13px;
+            box-sizing: border-box;
+            background: #fff;
+        }
+
+        .add-po-form-item input[readonly] {
+            background: #f7f7f7;
+            color: #666;
+        }
+
+        /* 自定义下拉触发框为 readonly，但不使用灰底，与其它表单项一致 */
+        .add-po-form-item .custom-select input,
+        .add-po-form-item .custom-select input[readonly] {
+            background: #fff;
+            color: #333;
+        }
+
+        .add-po-form-item .custom-select {
+            width: 100%;
+        }
+
+        .add-po-form-item .custom-select.is-disabled input,
+        .add-po-form-item .custom-select.is-disabled input[readonly] {
+            background: #f5f5f5;
+            color: #999;
+            border-color: #e0e0e0;
+            cursor: not-allowed;
+        }
+
+        .add-po-form-item .custom-select.is-disabled .select-arrow,
+        .add-po-form-item .custom-select.is-disabled .clear-btn {
+            color: #bbb;
+        }
+
+        .add-po-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 0;
+            position: relative;
+            top: -10px;
+        }
+
+        .add-po-line-input {
+            width: 100%;
+            min-width: 56px;
+            height: 30px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 0 8px;
+            box-sizing: border-box;
+            font-size: 13px;
+        }
+
+        .add-po-line-input[readonly] {
+            background: #f7f7f7;
+            color: #666;
+        }
+
+        .add-po-line-actions {
+            width: 70px;
+            text-align: center;
+        }
+
+        .line-delete-btn {
+            color: #d32f2f;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/purchase-sidebar.js"></script>
+
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button type="button" class="active">采购单</button>
+            </div>
+
+            <hr class="content-divider">
+
+            <div class="content-title">采购 / 采购单</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 70px;">收货仓库:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchWarehouse" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchWarehouseDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="W001 南京仓">W001 南京仓</div>
+                                <div class="select-option" data-value="W002 嘉兴仓">W002 嘉兴仓</div>
+                                <div class="select-option" data-value="W003 上海仓">W003 上海仓</div>
+                                <div class="select-option" data-value="W004 北京仓">W004 北京仓</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>采购单号:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchPoNo" placeholder="如 PO2026042012000001">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>商品编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchSkuCode" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>商品名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchSkuName" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>单据状态:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchDocStatus" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchDocStatusDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="初始">初始</div>
+                                <div class="select-option" data-value="部分收货">部分收货</div>
+                                <div class="select-option" data-value="已完成">已完成</div>
+                                <div class="select-option" data-value="已取消">已取消</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>单据来源:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchDocSource" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchDocSourceDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="采购需求汇总生成">采购需求汇总生成</div>
+                                <div class="select-option" data-value="手动新增">手动新增</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex: 0 0 100%; max-width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
+                        <label>交货时间:</label>
+                        <div class="date-range">
+                            <div class="date-picker">
+                                <input type="date" id="searchDeliveryDateStart" data-type="start" title="交货开始时间">
+                            </div>
+                            <span class="date-range-separator">至</span>
+                            <div class="date-picker">
+                                <input type="date" id="searchDeliveryDateEnd" data-type="end" title="交货结束时间">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex: 0 0 100%; max-width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
+                        <label>创建时间:</label>
+                        <div class="date-range">
+                            <div class="date-picker">
+                                <input type="date" id="searchCreatedAtStart" data-type="start" title="创建开始时间">
+                            </div>
+                            <span class="date-range-separator">至</span>
+                            <div class="date-picker">
+                                <input type="date" id="searchCreatedAtEnd" data-type="end" title="创建结束时间">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="btnSearch">查询</button>
+                        <button type="button" class="btn btn-secondary" id="btnAddPurchaseOrder">新增采购单</button>
+                    </div>
+                </form>
+            </section>
+
+            <div class="aggregate-summary">共 <strong id="poListCount">0</strong> 条采购单</div>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>采购单号</th>
+                                <th>供应商</th>
+                                <th>收货仓库</th>
+                                <th>单据状态</th>
+                                <th>单据来源</th>
+                                <th>交货时间</th>
+                                <th>采购员</th>
+                                <th>备注</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="poListTbody"></tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="poDetailModal" class="modal detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">采购单详情</div>
+                <span class="close" id="poDetailCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="detail-section">
+                    <div class="detail-section-title">采购单信息</div>
+                    <div class="detail-info-grid" id="poDetailInfo"></div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-section-title">金额信息</div>
+                    <div class="detail-amount-grid" id="poDetailAmountInfo"></div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-section-title">商品明细列表</div>
+                    <div class="detail-table-wrap table-scroll-container">
+                        <table class="table no-last-column-freeze">
+                            <thead>
+                                <tr>
+                                    <th>商品编码</th>
+                                    <th>商品名称</th>
+                                    <th>商品分类</th>
+                                    <th>采购量</th>
+                                    <th>收货量</th>
+                                    <th>建议采购单价</th>
+                                    <th>实际采购单价</th>
+                                    <th>采购金额</th>
+                                    <th>预付金额</th>
+                                    <th>备注</th>
+                                </tr>
+                            </thead>
+                            <tbody id="poDetailLinesTbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addPoModal" class="modal detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">采购单新增</div>
+                <span class="close" id="addPoCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="detail-section">
+                    <div class="detail-section-title">采购单信息</div>
+                    <div class="add-po-form-grid">
+                        <div class="add-po-form-item">
+                            <span class="label">收货仓库:</span>
+                            <div class="custom-select">
+                                <input type="text" id="addPoWarehouse" placeholder="请选择" readonly>
+                                <span class="select-arrow">▼</span>
+                                <span class="clear-btn">×</span>
+                                <div class="select-dropdown" id="addPoWarehouseDropdown"></div>
+                            </div>
+                        </div>
+                        <div class="add-po-form-item">
+                            <span class="label">供应商:</span>
+                            <div class="custom-select">
+                                <input type="text" id="addPoSupplier" placeholder="请选择" readonly>
+                                <span class="select-arrow">▼</span>
+                                <span class="clear-btn">×</span>
+                                <div class="select-dropdown" id="addPoSupplierDropdown"></div>
+                            </div>
+                        </div>
+                        <div class="add-po-form-item">
+                            <span class="label">交货时间:</span>
+                            <input type="date" id="addPoDeliveryDate">
+                        </div>
+                        <div class="add-po-form-item">
+                            <span class="label">采购员:</span>
+                            <div class="custom-select">
+                                <input type="text" id="addPoBuyer" placeholder="请选择" readonly>
+                                <span class="select-arrow">▼</span>
+                                <span class="clear-btn">×</span>
+                                <div class="select-dropdown" id="addPoBuyerDropdown"></div>
+                            </div>
+                        </div>
+                        <div class="add-po-form-item">
+                            <span class="label">物流单号:</span>
+                            <input type="text" id="addPoLogisticsNo" placeholder="请输入物流单号">
+                        </div>
+                        <div class="add-po-form-item" style="grid-column: span 2;">
+                            <span class="label">备注:</span>
+                            <input type="text" id="addPoRemark" placeholder="请输入备注">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-section-title">金额信息</div>
+                    <div class="detail-amount-grid" id="addPoAmountInfo"></div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-section-title">商品明细列表</div>
+                    <div class="add-po-actions">
+                        <button type="button" class="btn btn-secondary" id="addPoAddLineBtn">新增明细行</button>
+                    </div>
+                    <div class="detail-table-wrap table-scroll-container">
+                        <table class="table no-last-column-freeze">
+                            <thead>
+                                <tr>
+                                    <th>商品编码</th>
+                                    <th>商品名称</th>
+                                    <th>商品分类</th>
+                                    <th>采购量</th>
+                                    <th>建议采购单价</th>
+                                    <th>实际采购单价</th>
+                                    <th>采购金额</th>
+                                    <th>预付金额</th>
+                                    <th>备注</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="addPoLinesTbody"></tbody>
+                        </table>
+                    </div>
+                    <datalist id="poProductNameList"></datalist>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="addPoSaveBtn">保存</button>
+                <button type="button" class="btn btn-secondary" id="addPoCancelBtn">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/purchase-order-mock-data.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script>
+(function() {
+    var allRows = (window.PURCHASE_ORDERS || []).slice();
+    var filteredRows = allRows.slice();
+    var currentPage = 1;
+    var pageSize = 10;
+    var addPoLines = [];
+    var currentAddPoNo = '';
+    var addPoMode = 'add';
+    var editingPoNo = '';
+    var productMaster = buildProductMaster(allRows);
+
+    function escapeHtml(s) {
+        if (s == null) return '';
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function formatYuan(amount) {
+        var n = Number(amount);
+        if (isNaN(n)) return '—';
+        var fixed = n.toFixed(2);
+        var parts = fixed.split('.');
+        var intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return intPart + '.' + parts[1] + ' 元';
+    }
+
+    function formatUnitPrice(amount) {
+        var n = Number(amount);
+        if (isNaN(n)) return '—';
+        return n.toFixed(2) + ' 元';
+    }
+
+    function detailInfoItemHtml(label, value) {
+        return '<div class="detail-info-item"><span class="label">' + escapeHtml(label) + ':</span><span>' + escapeHtml(value == null || value === '' ? '—' : value) + '</span></div>';
+    }
+
+    function lineQtyUnit(l) {
+        if (l && l.qtyUnit != null && String(l.qtyUnit).trim() !== '') {
+            return String(l.qtyUnit).trim();
+        }
+        return '件';
+    }
+
+    function qtyWithUnit(qty, l) {
+        if (qty == null || qty === '') return '—';
+        var n = Number(qty);
+        if (isNaN(n)) return '—';
+        return String(n) + ' ' + lineQtyUnit(l);
+    }
+
+    function lineTotals(lines) {
+        var tQty = 0;
+        var tAmt = 0;
+        (lines || []).forEach(function(l) {
+            tQty += Number(l.purchaseQty) || 0;
+            tAmt += Number(l.purchaseAmount) || 0;
+        });
+        return { totalPurchaseQty: tQty, totalPurchaseAmount: tAmt };
+    }
+
+    function toFixed2Number(v) {
+        var n = Number(v);
+        if (isNaN(n)) return 0;
+        return Number(n.toFixed(2));
+    }
+
+    function nowDateText() {
+        var d = new Date();
+        function p(n) { return String(n).padStart(2, '0'); }
+        return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+    }
+
+    function nowDateTimeText() {
+        var d = new Date();
+        function p(n) { return String(n).padStart(2, '0'); }
+        return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+    }
+
+    function generatePurchaseOrderNo() {
+        var d = new Date();
+        function p(n) { return String(n).padStart(2, '0'); }
+        var ts = d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+        var rnd2 = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+        return 'PO' + ts + rnd2;
+    }
+
+    function uniqueValues(list) {
+        var seen = {};
+        var res = [];
+        (list || []).forEach(function(item) {
+            var s = String(item || '').trim();
+            if (!s || seen[s]) return;
+            seen[s] = true;
+            res.push(s);
+        });
+        return res;
+    }
+
+    function buildProductMaster(rows) {
+        var map = {};
+        (rows || []).forEach(function(r) {
+            (r.lines || []).forEach(function(l) {
+                var code = String(l.skuCode || '').trim();
+                var name = String(l.skuName || '').trim();
+                if (!code || !name) return;
+                if (!map[code]) {
+                    map[code] = {
+                        skuCode: code,
+                        skuName: name,
+                        skuCategory: String(l.skuCategory || '').trim(),
+                        suggestedUnitPrice: Number(l.suggestedUnitPrice) || 0,
+                        qtyUnit: String(l.qtyUnit || '件').trim() || '件'
+                    };
+                }
+            });
+        });
+        return map;
+    }
+
+    function findProductByName(name) {
+        var target = String(name || '').trim();
+        if (!target) return null;
+        var keys = Object.keys(productMaster);
+        for (var i = 0; i < keys.length; i++) {
+            var p = productMaster[keys[i]];
+            if (p.skuName === target) return p;
+        }
+        return null;
+    }
+
+    function renderSelectOptions(inputId, dropdownId, options) {
+        var input = document.getElementById(inputId);
+        var dropdown = document.getElementById(dropdownId);
+        if (!input || !dropdown) return;
+        input.value = '';
+        input.dataset.value = '';
+        var html = '<div class="select-option" data-value="">全部</div>';
+        html += (options || []).map(function(op) {
+            return '<div class="select-option" data-value="' + escapeHtml(op) + '">' + escapeHtml(op) + '</div>';
+        }).join('');
+        dropdown.innerHTML = html;
+    }
+
+    function setCustomSelectValue(inputId, value) {
+        var input = document.getElementById(inputId);
+        if (!input) return;
+        var text = value == null ? '' : String(value);
+        input.value = text;
+        input.dataset.value = text;
+    }
+
+    function setAddPoHeaderTitle() {
+        var titleEl = document.querySelector('#addPoModal .modal-title');
+        if (!titleEl) return;
+        titleEl.textContent = addPoMode === 'edit' ? '采购单编辑' : '采购单新增';
+    }
+
+    function setAddPoSelectLocked(locked) {
+        ['addPoWarehouse', 'addPoSupplier'].forEach(function(inputId) {
+            var input = document.getElementById(inputId);
+            if (!input) return;
+            var wrap = input.closest('.custom-select');
+            input.disabled = !!locked;
+            if (wrap) {
+                wrap.classList.toggle('is-disabled', !!locked);
+                wrap.style.pointerEvents = locked ? 'none' : '';
+                wrap.style.opacity = '';
+            }
+        });
+    }
+
+    function renderProductNameDatalist() {
+        var box = document.getElementById('poProductNameList');
+        if (!box) return;
+        box.innerHTML = Object.keys(productMaster).map(function(code) {
+            var p = productMaster[code];
+            return '<option value="' + escapeHtml(p.skuName) + '"></option>';
+        }).join('');
+    }
+
+    function newAddLine() {
+        return {
+            skuCode: '',
+            skuName: '',
+            skuCategory: '',
+            qtyUnit: '件',
+            purchaseQty: 0,
+            suggestedUnitPrice: 0,
+            actualUnitPrice: 0,
+            purchaseAmount: 0,
+            prepaidAmount: '',
+            lineRemark: ''
+        };
+    }
+
+    function recalcLine(line) {
+        var qty = Number(line.purchaseQty);
+        var actual = Number(line.actualUnitPrice);
+        if (isNaN(qty) || qty < 0) qty = 0;
+        if (isNaN(actual) || actual < 0) actual = 0;
+        line.purchaseQty = qty;
+        line.actualUnitPrice = toFixed2Number(actual);
+        line.purchaseAmount = toFixed2Number(qty * actual);
+    }
+
+    function renderAddAmountInfo() {
+        var amountBox = document.getElementById('addPoAmountInfo');
+        if (!amountBox) return;
+        var totals = lineTotals(addPoLines);
+        amountBox.innerHTML = [
+            detailInfoItemHtml('采购量合计', String(totals.totalPurchaseQty)),
+            detailInfoItemHtml('采购总价', formatYuan(totals.totalPurchaseAmount))
+        ].join('');
+    }
+
+    function applyProductToLine(idx, product) {
+        if (!addPoLines[idx] || !product) return;
+        var line = addPoLines[idx];
+        line.skuCode = product.skuCode;
+        line.skuName = product.skuName;
+        line.skuCategory = product.skuCategory;
+        line.qtyUnit = product.qtyUnit || '件';
+        line.suggestedUnitPrice = toFixed2Number(product.suggestedUnitPrice);
+        if (!(Number(line.actualUnitPrice) > 0)) {
+            line.actualUnitPrice = line.suggestedUnitPrice;
+        }
+        recalcLine(line);
+    }
+
+    function clearProductOnLine(idx) {
+        if (!addPoLines[idx]) return;
+        var line = addPoLines[idx];
+        line.skuCategory = '';
+        line.qtyUnit = '件';
+        line.suggestedUnitPrice = 0;
+        line.actualUnitPrice = 0;
+        line.purchaseAmount = 0;
+    }
+
+    function renderAddLinesTable() {
+        var tbody = document.getElementById('addPoLinesTbody');
+        if (!tbody) return;
+        if (!addPoLines.length) {
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#999;">暂无明细，请新增明细行</td></tr>';
+            renderAddAmountInfo();
+            return;
+        }
+        tbody.innerHTML = addPoLines.map(function(line, idx) {
+            return (
+                '<tr data-line-index="' + idx + '">' +
+                '<td><input type="text" class="add-po-line-input" data-field="skuCode" value="' + escapeHtml(line.skuCode) + '" placeholder="请输入商品编码"></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="skuName" list="poProductNameList" value="' + escapeHtml(line.skuName) + '" placeholder="可模糊查询商品名称"></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="skuCategory" value="' + escapeHtml(line.skuCategory) + '" readonly></td>' +
+                '<td><input type="number" class="add-po-line-input" data-field="purchaseQty" min="0" step="1" value="' + escapeHtml(String(line.purchaseQty)) + '"></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="suggestedUnitPrice" value="' + escapeHtml(toFixed2Number(line.suggestedUnitPrice).toFixed(2)) + '" readonly></td>' +
+                '<td><input type="number" class="add-po-line-input" data-field="actualUnitPrice" min="0" step="0.01" value="' + escapeHtml(toFixed2Number(line.actualUnitPrice).toFixed(2)) + '"></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="purchaseAmount" value="' + escapeHtml(toFixed2Number(line.purchaseAmount).toFixed(2)) + '" readonly></td>' +
+                '<td><input type="number" class="add-po-line-input" data-field="prepaidAmount" min="0" step="0.01" value="' + escapeHtml(String(line.prepaidAmount)) + '"></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="lineRemark" value="' + escapeHtml(line.lineRemark || '') + '"></td>' +
+                '<td class="add-po-line-actions"><a href="#" class="line-delete-btn" data-action="delete-line">删除</a></td>' +
+                '</tr>'
+            );
+        }).join('');
+        renderAddAmountInfo();
+    }
+
+    function openAddPoModal() {
+        addPoMode = 'add';
+        editingPoNo = '';
+        setAddPoHeaderTitle();
+        setAddPoSelectLocked(false);
+        currentAddPoNo = generatePurchaseOrderNo();
+        addPoLines = [newAddLine()];
+        var suppliers = uniqueValues(allRows.map(function(r) { return r.supplier; }));
+        var buyers = uniqueValues(allRows.map(function(r) { return r.buyer; }));
+        var warehouses = uniqueValues(allRows.map(function(r) { return r.warehouse; }));
+        renderSelectOptions('addPoWarehouse', 'addPoWarehouseDropdown', warehouses);
+        renderSelectOptions('addPoSupplier', 'addPoSupplierDropdown', suppliers);
+        renderSelectOptions('addPoBuyer', 'addPoBuyerDropdown', buyers);
+        renderProductNameDatalist();
+        var deliveryDateEl = document.getElementById('addPoDeliveryDate');
+        if (deliveryDateEl) deliveryDateEl.value = nowDateText();
+        var logisticsNoEl = document.getElementById('addPoLogisticsNo');
+        if (logisticsNoEl) logisticsNoEl.value = '';
+        var remarkEl = document.getElementById('addPoRemark');
+        if (remarkEl) remarkEl.value = '';
+        renderAddLinesTable();
+        var modal = document.getElementById('addPoModal');
+        if (modal) modal.style.display = 'block';
+    }
+
+    function mapRowLinesToAddLines(lines) {
+        return (lines || []).map(function(l) {
+            return {
+                skuCode: l.skuCode || '',
+                skuName: l.skuName || '',
+                skuCategory: l.skuCategory || '',
+                qtyUnit: l.qtyUnit || '件',
+                purchaseQty: Number(l.purchaseQty) || 0,
+                suggestedUnitPrice: Number(l.suggestedUnitPrice) || 0,
+                actualUnitPrice: Number(l.actualUnitPrice) || 0,
+                purchaseAmount: Number(l.purchaseAmount) || 0,
+                prepaidAmount: l.prepaidAmount == null ? '' : Number(l.prepaidAmount) || 0,
+                lineRemark: l.lineRemark || ''
+            };
+        });
+    }
+
+    function openEditPoModal(poNo) {
+        var row = findOrderByPoNo(poNo);
+        if (!row) return;
+        if (row.docStatus !== '初始') {
+            if (typeof showToast === 'function') {
+                showToast('仅初始状态采购单可编辑', 'error');
+            }
+            return;
+        }
+        addPoMode = 'edit';
+        editingPoNo = row.poNo;
+        currentAddPoNo = row.poNo;
+        setAddPoHeaderTitle();
+
+        var suppliers = uniqueValues(allRows.map(function(r) { return r.supplier; }));
+        var buyers = uniqueValues(allRows.map(function(r) { return r.buyer; }));
+        var warehouses = uniqueValues(allRows.map(function(r) { return r.warehouse; }));
+        renderSelectOptions('addPoWarehouse', 'addPoWarehouseDropdown', warehouses);
+        renderSelectOptions('addPoSupplier', 'addPoSupplierDropdown', suppliers);
+        renderSelectOptions('addPoBuyer', 'addPoBuyerDropdown', buyers);
+        renderProductNameDatalist();
+
+        setCustomSelectValue('addPoWarehouse', row.warehouse || '');
+        setCustomSelectValue('addPoSupplier', row.supplier || '');
+        setCustomSelectValue('addPoBuyer', row.buyer || '');
+        setAddPoSelectLocked(true);
+
+        var deliveryDateEl = document.getElementById('addPoDeliveryDate');
+        if (deliveryDateEl) deliveryDateEl.value = row.deliveryDate || '';
+        var logisticsNoEl = document.getElementById('addPoLogisticsNo');
+        if (logisticsNoEl) logisticsNoEl.value = row.logisticsNo || '';
+        var remarkEl = document.getElementById('addPoRemark');
+        if (remarkEl) remarkEl.value = row.remark || '';
+
+        addPoLines = mapRowLinesToAddLines(row.lines);
+        if (!addPoLines.length) addPoLines = [newAddLine()];
+        renderAddLinesTable();
+
+        var modal = document.getElementById('addPoModal');
+        if (modal) modal.style.display = 'block';
+    }
+
+    function closeAddPoModal() {
+        var modal = document.getElementById('addPoModal');
+        if (modal) modal.style.display = 'none';
+        addPoMode = 'add';
+        editingPoNo = '';
+        setAddPoHeaderTitle();
+        setAddPoSelectLocked(false);
+    }
+
+    function isAddFormValid() {
+        var wh = document.getElementById('addPoWarehouse');
+        var sp = document.getElementById('addPoSupplier');
+        var dt = document.getElementById('addPoDeliveryDate');
+        var by = document.getElementById('addPoBuyer');
+        if (!wh || !sp || !dt || !by) return false;
+        if (!getCustomSelectValue('addPoWarehouse')) return false;
+        if (!getCustomSelectValue('addPoSupplier')) return false;
+        if (!dt.value) return false;
+        if (!getCustomSelectValue('addPoBuyer')) return false;
+        if (!addPoLines.length) return false;
+        for (var i = 0; i < addPoLines.length; i++) {
+            var l = addPoLines[i];
+            if (!l.skuCode || !l.skuName || !(Number(l.purchaseQty) > 0)) return false;
+        }
+        return true;
+    }
+
+    function saveAddPo() {
+        if (!isAddFormValid()) {
+            if (typeof showToast === 'function') {
+                showToast('请完整填写采购单信息，且商品明细采购量需大于0', 'error');
+            }
+            return;
+        }
+        var wh = getCustomSelectValue('addPoWarehouse');
+        var sp = getCustomSelectValue('addPoSupplier');
+        var dt = document.getElementById('addPoDeliveryDate').value;
+        var by = getCustomSelectValue('addPoBuyer');
+        var logisticsNo = (document.getElementById('addPoLogisticsNo').value || '').trim();
+        var remark = (document.getElementById('addPoRemark').value || '').trim();
+        var createdAt = nowDateTimeText();
+        var lines = addPoLines.map(function(l) {
+            recalcLine(l);
+            return {
+                skuCode: l.skuCode,
+                skuName: l.skuName,
+                skuCategory: l.skuCategory,
+                qtyUnit: l.qtyUnit || '件',
+                purchaseQty: Number(l.purchaseQty) || 0,
+                receivedQty: 0,
+                suggestedUnitPrice: Number(l.suggestedUnitPrice) || 0,
+                actualUnitPrice: Number(l.actualUnitPrice) || 0,
+                purchaseAmount: Number(l.purchaseAmount) || 0,
+                prepaidAmount: Number(l.prepaidAmount) || 0,
+                lineRemark: l.lineRemark || ''
+            };
+        });
+        if (addPoMode === 'edit' && editingPoNo) {
+            var row = findOrderByPoNo(editingPoNo);
+            if (!row) {
+                if (typeof showToast === 'function') {
+                    showToast('编辑失败，未找到采购单', 'error');
+                }
+                return;
+            }
+            if (row.docStatus !== '初始') {
+                if (typeof showToast === 'function') {
+                    showToast('仅初始状态采购单可编辑', 'error');
+                }
+                return;
+            }
+            row.deliveryDate = dt;
+            row.buyer = by;
+            row.logisticsNo = logisticsNo;
+            row.remark = remark;
+            row.lines = lines;
+            row.updatedAt = nowDateTimeText();
+            row.updatedBy = by;
+        } else {
+            allRows.unshift({
+                poNo: currentAddPoNo || generatePurchaseOrderNo(),
+                warehouse: wh,
+                supplier: sp,
+                docStatus: '初始',
+                docSource: '手动新增',
+                deliveryDate: dt,
+                buyer: by,
+                logisticsNo: logisticsNo,
+                remark: remark,
+                createdAt: createdAt,
+                createdBy: by,
+                updatedAt: createdAt,
+                updatedBy: by,
+                lines: lines
+            });
+        }
+        var savedMode = addPoMode;
+        var savedPoNo = editingPoNo;
+        var savedAddPoNo = currentAddPoNo;
+        filteredRows = applyFilters();
+        currentPage = 1;
+        renderTable();
+        closeAddPoModal();
+        if (typeof showToast === 'function') {
+            if (savedMode === 'edit') {
+                showToast('采购单已编辑，单号 ' + (savedPoNo || ''), 'success');
+            } else {
+                showToast('采购单已新增，单号 ' + (savedAddPoNo || ''), 'success');
+            }
+        }
+    }
+
+    function findOrderByPoNo(poNo) {
+        var i;
+        for (i = 0; i < filteredRows.length; i++) {
+            if (filteredRows[i].poNo === poNo) return filteredRows[i];
+        }
+        for (i = 0; i < allRows.length; i++) {
+            if (allRows[i].poNo === poNo) return allRows[i];
+        }
+        return null;
+    }
+
+    function cancelPurchaseOrder(poNo) {
+        var row = findOrderByPoNo(poNo);
+        if (!row) {
+            if (typeof showToast === 'function') {
+                showToast('取消失败，未找到采购单', 'error');
+            }
+            return;
+        }
+        if (row.docStatus !== '初始') {
+            if (typeof showToast === 'function') {
+                showToast('仅初始状态采购单可取消', 'error');
+            }
+            return;
+        }
+        row.docStatus = '已取消';
+        filteredRows = applyFilters();
+        currentPage = 1;
+        renderTable();
+        if (typeof showToast === 'function') {
+            showToast('采购单已取消，单号 ' + poNo, 'success');
+        }
+    }
+
+    function openPoDetailModal(poNo) {
+        var row = findOrderByPoNo(poNo);
+        if (!row) return;
+        var totals = lineTotals(row.lines);
+        var infoBox = document.getElementById('poDetailInfo');
+        if (infoBox) {
+            infoBox.innerHTML = [
+                detailInfoItemHtml('采购单号', row.poNo),
+                detailInfoItemHtml('供应商', row.supplier),
+                detailInfoItemHtml('收货仓库', row.warehouse),
+                detailInfoItemHtml('单据状态', row.docStatus),
+                detailInfoItemHtml('单据来源', row.docSource),
+                detailInfoItemHtml('交货时间', row.deliveryDate),
+                detailInfoItemHtml('采购员', row.buyer),
+                detailInfoItemHtml('物流单号', row.logisticsNo),
+                detailInfoItemHtml('备注', row.remark),
+                detailInfoItemHtml('创建时间', row.createdAt),
+                detailInfoItemHtml('创建人', row.createdBy),
+                detailInfoItemHtml('更新时间', row.updatedAt || row.createdAt),
+                detailInfoItemHtml('更新人', row.updatedBy || row.createdBy)
+            ].join('');
+        }
+        var amountBox = document.getElementById('poDetailAmountInfo');
+        if (amountBox) {
+            amountBox.innerHTML = [
+                detailInfoItemHtml('采购量合计', String(totals.totalPurchaseQty)),
+                detailInfoItemHtml('采购总价', formatYuan(totals.totalPurchaseAmount))
+            ].join('');
+        }
+        var lineBody = document.getElementById('poDetailLinesTbody');
+        if (lineBody) {
+            lineBody.innerHTML = (row.lines || []).map(function(l) {
+                return (
+                    '<tr>' +
+                    '<td>' + escapeHtml(l.skuCode) + '</td>' +
+                    '<td>' + escapeHtml(l.skuName) + '</td>' +
+                    '<td>' + escapeHtml(l.skuCategory || '') + '</td>' +
+                    '<td>' + escapeHtml(qtyWithUnit(l.purchaseQty, l)) + '</td>' +
+                    '<td>' + escapeHtml(qtyWithUnit(l.receivedQty, l)) + '</td>' +
+                    '<td>' + escapeHtml(formatUnitPrice(l.suggestedUnitPrice)) + '</td>' +
+                    '<td>' + escapeHtml(formatUnitPrice(l.actualUnitPrice)) + '</td>' +
+                    '<td>' + escapeHtml(formatYuan(l.purchaseAmount)) + '</td>' +
+                    '<td>' + escapeHtml(formatYuan(l.prepaidAmount)) + '</td>' +
+                    '<td>' + escapeHtml(l.lineRemark || '') + '</td>' +
+                    '</tr>'
+                );
+            }).join('');
+        }
+        var modal = document.getElementById('poDetailModal');
+        if (modal) modal.style.display = 'block';
+    }
+
+    function closePoDetailModal() {
+        var modal = document.getElementById('poDetailModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function getCustomSelectValue(inputId) {
+        var el = document.getElementById(inputId);
+        if (!el) return '';
+        if (el.dataset && el.dataset.value !== undefined && el.dataset.value !== '') {
+            return el.dataset.value.trim();
+        }
+        if (el.dataset && el.dataset.value === '') {
+            return '';
+        }
+        return (el.value || '').trim();
+    }
+
+    function getTextFilter(id) {
+        var el = document.getElementById(id);
+        return el ? (el.value || '').trim() : '';
+    }
+
+    function getDateRangeFilter(startId, endId) {
+        var sEl = document.getElementById(startId);
+        var eEl = document.getElementById(endId);
+        return {
+            start: sEl && sEl.value ? sEl.value.trim() : '',
+            end: eEl && eEl.value ? eEl.value.trim() : ''
+        };
+    }
+
+    function createdAtDatePart(row) {
+        var s = row.createdAt || '';
+        return s.length >= 10 ? s.slice(0, 10) : '';
+    }
+
+    function lineMatchesProduct(row, codeQ, nameQ) {
+        var lines = row.lines || [];
+        if (codeQ) {
+            var okC = lines.some(function(l) {
+                return (l.skuCode || '').indexOf(codeQ) !== -1;
+            });
+            if (!okC) return false;
+        }
+        if (nameQ) {
+            var okN = lines.some(function(l) {
+                return String(l.skuName || '').indexOf(nameQ) !== -1;
+            });
+            if (!okN) return false;
+        }
+        return true;
+    }
+
+    function inDateRange(d, range) {
+        if (!d) return false;
+        if (range.start && d < range.start) return false;
+        if (range.end && d > range.end) return false;
+        return true;
+    }
+
+    function applyFilters() {
+        var wh = getCustomSelectValue('searchWarehouse');
+        var po = getTextFilter('searchPoNo');
+        var skuC = getTextFilter('searchSkuCode');
+        var skuN = getTextFilter('searchSkuName');
+        var st = getCustomSelectValue('searchDocStatus');
+        var src = getCustomSelectValue('searchDocSource');
+        var delR = getDateRangeFilter('searchDeliveryDateStart', 'searchDeliveryDateEnd');
+        var hasDel = !!(delR.start || delR.end);
+        var crR = getDateRangeFilter('searchCreatedAtStart', 'searchCreatedAtEnd');
+        var hasCr = !!(crR.start || crR.end);
+        return allRows.filter(function(r) {
+            if (wh && r.warehouse !== wh) return false;
+            if (po && String(r.poNo || '').indexOf(po) === -1) return false;
+            if (!lineMatchesProduct(r, skuC, skuN)) return false;
+            if (st && r.docStatus !== st) return false;
+            if (src && r.docSource !== src) return false;
+            if (hasDel && !inDateRange(r.deliveryDate, delR)) return false;
+            if (hasCr) {
+                var cd = createdAtDatePart(r);
+                if (!inDateRange(cd, crR)) return false;
+            }
+            return true;
+        });
+    }
+
+    function statusCellHtml(text) {
+        if (text === '初始') {
+            return '<span class="status doc-initial">初始</span>';
+        }
+        if (text === '部分收货') {
+            return '<span class="status doc-partial">部分收货</span>';
+        }
+        if (text === '已完成') {
+            return '<span class="status doc-done">已完成</span>';
+        }
+        if (text === '已取消') {
+            return '<span class="status inactive">已取消</span>';
+        }
+        return escapeHtml(text);
+    }
+
+    function renderTable() {
+        var tbody = document.getElementById('poListTbody');
+        var countEl = document.getElementById('poListCount');
+        if (!tbody) return;
+        if (countEl) countEl.textContent = String(filteredRows.length);
+
+        var totalItems = filteredRows.length;
+        var totalPages = Math.max(1, Math.ceil(totalItems / pageSize) || 1);
+        if (currentPage > totalPages) currentPage = totalPages;
+        var start = (currentPage - 1) * pageSize;
+        var pageRows = filteredRows.slice(start, start + pageSize);
+
+        if (pageRows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;color:#999;">暂无数据</td></tr>';
+        } else {
+            tbody.innerHTML = pageRows.map(function(r) {
+                return (
+                    '<tr data-po-no="' + escapeHtml(r.poNo) + '">' +
+                    '<td><input type="checkbox" class="table-checkbox checkbox-row"></td>' +
+                    '<td><a href="#" class="order-no-link js-open-po-detail" data-po-no="' + escapeHtml(r.poNo) + '">' + escapeHtml(r.poNo) + '</a></td>' +
+                    '<td>' + escapeHtml(r.supplier) + '</td>' +
+                    '<td>' + escapeHtml(r.warehouse || '') + '</td>' +
+                    '<td>' + statusCellHtml(r.docStatus) + '</td>' +
+                    '<td>' + escapeHtml(r.docSource) + '</td>' +
+                    '<td>' + escapeHtml(r.deliveryDate) + '</td>' +
+                    '<td>' + escapeHtml(r.buyer) + '</td>' +
+                    '<td>' + escapeHtml(r.remark || '') + '</td>' +
+                    '<td>' + escapeHtml(r.createdAt) + '</td>' +
+                    '<td>' + escapeHtml(r.createdBy) + '</td>' +
+                    '<td>' + escapeHtml(r.updatedAt || r.createdAt || '') + '</td>' +
+                    '<td>' + escapeHtml(r.updatedBy || r.createdBy || '') + '</td>' +
+                    '<td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">取消</a></td>' +
+                    '</tr>'
+                );
+            }).join('');
+        }
+
+        if (typeof createPagination === 'function') {
+            createPagination({
+                containerId: 'pagination-container',
+                totalItems: totalItems,
+                currentPage: currentPage,
+                pageSize: pageSize,
+                onPageChange: function(page) {
+                    currentPage = page;
+                    renderTable();
+                },
+                onPageSizeChange: function(newSize) {
+                    pageSize = newSize;
+                    currentPage = 1;
+                    renderTable();
+                }
+            });
+        }
+    }
+
+    document.getElementById('btnSearch').addEventListener('click', function() {
+        filteredRows = applyFilters();
+        currentPage = 1;
+        renderTable();
+    });
+
+    document.getElementById('btnAddPurchaseOrder').addEventListener('click', openAddPoModal);
+
+    document.querySelector('.table-section').addEventListener('change', function(e) {
+        var t = e.target;
+        if (!t || !t.classList.contains('checkbox-all')) return;
+        var table = t.closest('table');
+        if (!table) return;
+        table.querySelectorAll('.checkbox-row').forEach(function(cb) {
+            cb.checked = t.checked;
+        });
+    });
+
+    document.getElementById('poListTbody').addEventListener('click', function(e) {
+        var link = e.target.closest('.js-open-po-detail');
+        if (link) {
+            e.preventDefault();
+            var no = link.getAttribute('data-po-no');
+            if (no) openPoDetailModal(no);
+            return;
+        }
+        var editBtn = e.target.closest('.edit-btn');
+        if (editBtn) {
+            e.preventDefault();
+            var tr = editBtn.closest('tr');
+            var poNo = tr ? tr.getAttribute('data-po-no') : '';
+            if (poNo) openEditPoModal(poNo);
+            return;
+        }
+        var cancelBtn = e.target.closest('.delete-btn');
+        if (cancelBtn) {
+            e.preventDefault();
+            var cancelTr = cancelBtn.closest('tr');
+            var cancelPoNo = cancelTr ? cancelTr.getAttribute('data-po-no') : '';
+            if (cancelPoNo) cancelPurchaseOrder(cancelPoNo);
+        }
+    });
+
+    document.getElementById('poDetailCloseBtn').addEventListener('click', closePoDetailModal);
+    document.getElementById('poDetailModal').addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'poDetailModal') {
+            closePoDetailModal();
+        }
+    });
+
+    document.getElementById('addPoAddLineBtn').addEventListener('click', function() {
+        addPoLines.push(newAddLine());
+        renderAddLinesTable();
+    });
+
+    document.getElementById('addPoLinesTbody').addEventListener('input', function(e) {
+        var input = e.target;
+        if (!input || !input.matches('.add-po-line-input')) return;
+        var tr = input.closest('tr');
+        if (!tr) return;
+        var idx = Number(tr.getAttribute('data-line-index'));
+        if (isNaN(idx) || !addPoLines[idx]) return;
+        var field = input.getAttribute('data-field');
+        var line = addPoLines[idx];
+        var v = input.value;
+        if (field === 'purchaseQty' || field === 'actualUnitPrice' || field === 'prepaidAmount') {
+            line[field] = v === '' ? 0 : Number(v);
+            recalcLine(line);
+            renderAddLinesTable();
+            return;
+        }
+        if (field === 'lineRemark' || field === 'skuCode' || field === 'skuName') {
+            line[field] = v.trim();
+        }
+    });
+
+    document.getElementById('addPoLinesTbody').addEventListener('change', function(e) {
+        var input = e.target;
+        if (!input || !input.matches('.add-po-line-input')) return;
+        var tr = input.closest('tr');
+        if (!tr) return;
+        var idx = Number(tr.getAttribute('data-line-index'));
+        if (isNaN(idx) || !addPoLines[idx]) return;
+        var field = input.getAttribute('data-field');
+        var line = addPoLines[idx];
+        if (field === 'skuCode') {
+            var pByCode = productMaster[(line.skuCode || '').trim()];
+            if (!pByCode) {
+                clearProductOnLine(idx);
+                if (line.skuCode && typeof showToast === 'function') showToast('商品编码不存在，请重新输入', 'error');
+            } else {
+                applyProductToLine(idx, pByCode);
+            }
+            renderAddLinesTable();
+            return;
+        }
+        if (field === 'skuName') {
+            var pByName = findProductByName(line.skuName);
+            if (!pByName) {
+                clearProductOnLine(idx);
+                if (line.skuName && typeof showToast === 'function') showToast('商品名称不存在，请从下拉建议中选择', 'error');
+            } else {
+                applyProductToLine(idx, pByName);
+            }
+            renderAddLinesTable();
+        }
+    });
+
+    document.getElementById('addPoLinesTbody').addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-action="delete-line"]');
+        if (!btn) return;
+        e.preventDefault();
+        var tr = btn.closest('tr');
+        if (!tr) return;
+        var idx = Number(tr.getAttribute('data-line-index'));
+        if (isNaN(idx)) return;
+        addPoLines.splice(idx, 1);
+        if (!addPoLines.length) addPoLines.push(newAddLine());
+        renderAddLinesTable();
+    });
+
+    document.getElementById('addPoCloseBtn').addEventListener('click', closeAddPoModal);
+    document.getElementById('addPoCancelBtn').addEventListener('click', closeAddPoModal);
+    document.getElementById('addPoSaveBtn').addEventListener('click', saveAddPo);
+    document.getElementById('addPoModal').addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'addPoModal') {
+            closeAddPoModal();
+        }
+    });
+
+    if (typeof initCustomSelect === 'function') {
+        initCustomSelect('searchWarehouse', 'searchWarehouseDropdown');
+        initCustomSelect('searchDocStatus', 'searchDocStatusDropdown');
+        initCustomSelect('searchDocSource', 'searchDocSourceDropdown');
+        initCustomSelect('addPoWarehouse', 'addPoWarehouseDropdown');
+        initCustomSelect('addPoSupplier', 'addPoSupplierDropdown');
+        initCustomSelect('addPoBuyer', 'addPoBuyerDropdown');
+    }
+
+    filteredRows = allRows.slice();
+    renderTable();
+})();
+    </script>
+</body>
+</html>

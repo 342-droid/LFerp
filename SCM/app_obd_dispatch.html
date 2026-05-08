@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 装载发货</title>
+    <link rel="stylesheet" href="../css/mobile-components.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .mobile-container {
+            width: 393px;
+            height: 851px;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .header {
+            padding: 16px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 20px;
+            color: #333333;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333333;
+            flex: 1;
+            text-align: center;
+            margin-right: 32px;
+            min-width: 0;
+        }
+
+        .main-content--scan {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            align-self: stretch;
+        }
+
+        .scan-ongoing-link {
+            margin-top: auto;
+            padding: 28px 8px 12px;
+            border: none;
+            background: none;
+            font-size: 14px;
+            color: #2196f3;
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .scan-ongoing-link:active {
+            opacity: 0.8;
+        }
+
+        .ongoing-dispatch-body {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 12px 14px 16px;
+            background-color: #eef0f4;
+        }
+
+        .ongoing-dispatch-card {
+            background-color: #ffffff;
+            border: 1px solid #e3e6ea;
+            border-radius: 8px;
+            padding: 14px 14px 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+
+        .ongoing-dispatch-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .ongoing-dispatch-card--clickable {
+            cursor: pointer;
+        }
+
+        .ongoing-dispatch-card--clickable:active {
+            opacity: 0.92;
+        }
+
+        .ongoing-dispatch-no {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+            line-height: 1.4;
+            word-break: break-all;
+        }
+
+        .ongoing-dispatch-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 14px;
+            line-height: 1.55;
+            margin-bottom: 8px;
+        }
+
+        .ongoing-dispatch-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .ongoing-dispatch-label {
+            color: #666666;
+            flex-shrink: 0;
+        }
+
+        .ongoing-dispatch-value {
+            color: #1a1a1a;
+            text-align: right;
+            word-break: break-all;
+        }
+
+        .page {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .scan-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: #333333;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .scan-input-container {
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .scan-input-centered {
+            text-align: center;
+            padding-left: 56px;
+            padding-right: 56px;
+        }
+
+        .scan-input-centered::placeholder {
+            text-align: center;
+        }
+
+        .scan-hint {
+            font-size: 14px;
+            color: #999999;
+            margin-top: 16px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .primary-btn {
+            width: 100%;
+            max-width: 280px;
+            margin-top: 28px;
+            padding: 14px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            background-color: #2196f3;
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        .primary-btn:active {
+            opacity: 0.92;
+        }
+
+        .dispatch-execute-body {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 14px;
+            background-color: #f3f5f8;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dispatch-execute-body-main {
+            flex-shrink: 0;
+        }
+
+        .dispatch-info-card {
+            background-color: #ffffff;
+            border: 1px solid #e3e6ea;
+            border-radius: 2px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .dispatch-info-title {
+            font-size: 14px;
+            color: #333333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .dispatch-info-row {
+            display: flex;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 4px;
+            color: #333333;
+        }
+
+        .dispatch-info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .dispatch-info-label {
+            color: #666666;
+            width: 84px;
+            flex-shrink: 0;
+        }
+
+        .dispatch-info-value {
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .dispatch-info-row--shipment {
+            align-items: flex-start;
+        }
+
+        .dispatch-info-shipment-cell {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .dispatch-pending-link {
+            flex-shrink: 0;
+            border: none;
+            background: none;
+            padding: 0;
+            font-size: 13px;
+            color: #2196f3;
+            cursor: pointer;
+            white-space: nowrap;
+            line-height: 1.5;
+        }
+
+        .dispatch-pending-link:active {
+            opacity: 0.75;
+        }
+
+        .dispatch-field-label {
+            margin: 10px 2px 8px;
+            font-size: 13px;
+            color: #666666;
+        }
+
+        .dispatch-scan-input-container {
+            width: 100%;
+        }
+
+        .dispatch-field {
+            width: 100%;
+            height: 44px;
+            border: 1px solid #dcdfe3;
+            border-radius: 8px;
+            padding: 0 12px;
+            font-size: 15px;
+            color: #333333;
+            background-color: #ffffff;
+            outline: none;
+        }
+
+        .dispatch-field:focus {
+            border-color: #42a5f5;
+            box-shadow: 0 0 0 2px rgba(66, 165, 245, 0.15);
+        }
+
+        .dispatch-execute-load-btn {
+            width: 100%;
+            height: 44px;
+            margin-top: auto;
+            flex-shrink: 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            color: #ffffff;
+            background-color: #2196f3;
+        }
+
+        .dispatch-execute-load-btn:active {
+            opacity: 0.92;
+        }
+
+        .dispatch-bottom-bar {
+            flex-shrink: 0;
+            display: flex;
+            align-items: stretch;
+            min-height: 52px;
+            background-color: #f0f2f5;
+            border-top: 1px solid #e4e7ec;
+        }
+
+        .dispatch-bar-left {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px 8px 14px;
+            min-width: 0;
+        }
+
+        .dispatch-bar-icon-btn {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            border: none;
+            border-radius: 50%;
+            background-color: #2196f3;
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .dispatch-bar-icon-btn:active {
+            opacity: 0.9;
+        }
+
+        .dispatch-bar-icon-btn svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .dispatch-bar-count {
+            font-size: 15px;
+            color: #1a1a1a;
+            font-weight: 400;
+            white-space: nowrap;
+        }
+
+        .dispatch-bar-ship {
+            flex-shrink: 0;
+            min-width: 96px;
+            padding: 0 20px;
+            border: none;
+            border-radius: 0;
+            font-size: 16px;
+            font-weight: 500;
+            color: #ffffff;
+            background-color: #2196f3;
+            cursor: pointer;
+        }
+
+        .dispatch-bar-ship:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .dispatch-bar-ship:not(:disabled):active {
+            opacity: 0.92;
+        }
+
+        .loaded-packages-inner {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            background-color: #f3f5f8;
+        }
+
+        .loaded-packages-toolbar {
+            flex-shrink: 0;
+            padding: 10px 14px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #e4e7ec;
+        }
+
+        .loaded-packages-search {
+            width: 100%;
+            height: 38px;
+            border: 1px solid #64b5f6;
+            border-radius: 6px;
+            padding: 0 10px;
+            font-size: 14px;
+            color: #333333;
+            outline: none;
+            background-color: #ffffff;
+        }
+
+        .loaded-packages-search:focus {
+            border-color: #2196f3;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.15);
+        }
+
+        .loaded-packages-scroll {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 14px;
+        }
+
+        .loaded-packages-empty {
+            text-align: center;
+            font-size: 14px;
+            color: #999999;
+            padding: 48px 16px;
+        }
+
+        .loaded-packages-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .loaded-package-item {
+            position: relative;
+            background-color: #ffffff;
+            border: 1px solid #e3e6ea;
+            border-radius: 2px;
+            padding: 12px 56px 12px 12px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #333333;
+        }
+
+        .loaded-package-unload {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            border: 1px solid #ef9a9a;
+            color: #c62828;
+            background-color: #ffffff;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            line-height: 1.3;
+        }
+
+        .loaded-package-unload:active {
+            opacity: 0.85;
+        }
+
+        .loaded-package-item .lp-row {
+            display: flex;
+            margin-bottom: 4px;
+        }
+
+        .loaded-package-item .lp-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .loaded-package-item .lp-label {
+            color: #666666;
+            width: 72px;
+            flex-shrink: 0;
+        }
+
+        .loaded-package-item .lp-value {
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .loaded-package-item .lp-value-route {
+            color: #2196f3;
+            font-weight: 500;
+        }
+
+        .dispatch-complete-page {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+        }
+
+        .dispatch-complete-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dispatch-complete-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background-color: #2e7d32;
+            color: #ffffff;
+            font-size: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .dispatch-complete-title {
+            font-size: 24px;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+
+        .dispatch-complete-subtitle {
+            font-size: 14px;
+            color: #999999;
+        }
+
+        .dispatch-complete-action {
+            padding: 14px;
+            border-top: 1px solid #e8ebef;
+        }
+
+        .dispatch-complete-btn {
+            width: 100%;
+            height: 44px;
+            border: none;
+            border-radius: 8px;
+            background-color: #2196f3;
+            color: #ffffff;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .consumable-modal {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.35);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            padding: 16px;
+        }
+
+        .consumable-modal.active {
+            display: flex;
+        }
+
+        .consumable-modal-card {
+            width: 100%;
+            max-width: 340px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 16px 14px;
+        }
+
+        .consumable-modal-title {
+            font-size: 15px;
+            color: #333333;
+            line-height: 1.5;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .consumable-station-nav {
+            display: flex;
+            align-items: stretch;
+            gap: 8px;
+            margin-bottom: 14px;
+            user-select: none;
+        }
+
+        .consumable-nav-btn {
+            flex: 0 0 40px;
+            min-height: 72px;
+            border: 1px solid #e0e4e8;
+            border-radius: 8px;
+            background: #f5f7fa;
+            color: #2196f3;
+            font-size: 28px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .consumable-nav-btn:disabled {
+            color: #c0c4cc;
+            cursor: not-allowed;
+            background: #fafafa;
+        }
+
+        .consumable-station-nav-center {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 4px 0;
+        }
+
+        .consumable-station-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333333;
+            line-height: 1.35;
+            word-break: break-all;
+        }
+
+        .consumable-station-sub {
+            font-size: 12px;
+            color: #888888;
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+
+        .consumable-station-pager {
+            font-size: 12px;
+            color: #aaaaaa;
+            margin-top: 6px;
+        }
+
+        .consumable-swipe-hint {
+            font-size: 11px;
+            color: #bbbbbb;
+            text-align: center;
+            margin: -6px 0 12px;
+        }
+
+        .consumable-field-wrap {
+            margin-bottom: 12px;
+        }
+
+        .consumable-field-wrap:last-of-type {
+            margin-bottom: 0;
+        }
+
+        .consumable-label {
+            display: block;
+            font-size: 13px;
+            color: #666666;
+            margin-bottom: 6px;
+        }
+
+        .consumable-input {
+            width: 100%;
+            height: 42px;
+            border: 1px solid #dcdfe3;
+            border-radius: 8px;
+            padding: 0 10px;
+            font-size: 15px;
+            color: #333333;
+            outline: none;
+        }
+
+        .consumable-input:focus {
+            border-color: #42a5f5;
+            box-shadow: 0 0 0 2px rgba(66, 165, 245, 0.15);
+        }
+
+        .consumable-actions {
+            margin-top: 16px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .consumable-btn {
+            flex: 1;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            color: #ffffff;
+            background-color: #9e9e9e;
+        }
+
+        .consumable-btn--confirm {
+            background-color: #2196f3;
+        }
+
+        .global-toast {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            max-width: calc(100% - 32px);
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            font-size: 14px;
+            line-height: 1.5;
+            text-align: center;
+            z-index: 60;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .global-toast.active {
+            opacity: 1;
+        }
+
+        .pending-packages-inner {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            background-color: #eef0f4;
+        }
+
+        .pending-toolbar {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #e4e7ec;
+        }
+
+        .pending-search {
+            flex: 1;
+            min-width: 0;
+            height: 38px;
+            border: 1px solid #64b5f6;
+            border-radius: 6px;
+            padding: 0 10px;
+            font-size: 14px;
+            color: #333333;
+            outline: none;
+            background-color: #ffffff;
+        }
+
+        .pending-search:focus {
+            border-color: #2196f3;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.15);
+        }
+
+        .pending-route-select {
+            flex-shrink: 0;
+            width: 108px;
+            height: 38px;
+            border: 1px solid #cfd4dc;
+            border-radius: 6px;
+            padding: 0 8px;
+            font-size: 13px;
+            color: #333333;
+            background-color: #ffffff;
+            outline: none;
+        }
+
+        .pending-list-scroll {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 10px 12px 12px;
+        }
+
+        .pending-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background-color: #ffffff;
+            border: 1px solid #e3e6ea;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+
+        .pending-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .pending-card-cb {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .pending-card-body {
+            flex: 1;
+            min-width: 0;
+            font-size: 14px;
+            line-height: 1.65;
+            color: #1a1a1a;
+        }
+
+        .pending-card-row {
+            word-break: break-all;
+        }
+
+        .pending-card-station {
+            color: #ff9800;
+            font-weight: 500;
+        }
+
+        .pending-card-route {
+            color: #2196f3;
+            font-weight: 500;
+        }
+
+        .pending-empty-hint {
+            text-align: center;
+            font-size: 14px;
+            color: #999999;
+            padding: 36px 12px;
+        }
+
+        .pending-bottom-bar {
+            flex-shrink: 0;
+            display: flex;
+            align-items: stretch;
+            min-height: 52px;
+            background-color: #f5f6f8;
+            border-top: 1px solid #e4e7ec;
+        }
+
+        .pending-select-all {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 14px;
+            font-size: 15px;
+            color: #333333;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .pending-select-all input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .pending-load-btn {
+            flex-shrink: 0;
+            min-width: 120px;
+            padding: 0 16px;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            color: #ffffff;
+            background-color: #2196f3;
+            cursor: pointer;
+        }
+
+        .pending-load-btn:active {
+            opacity: 0.92;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="header" id="pageHeader">
+            <div class="back-btn" id="backBtn" onclick="window.location.href='app_list.html'">←</div>
+            <div class="header-title" id="headerTitle">装载发货</div>
+        </div>
+
+        <div class="page active" id="scanPlatePage">
+            <div class="main-content main-content--scan">
+                <div class="scan-title">请扫描/输入车牌号</div>
+                <div id="plateInputContainer" class="scan-input-container"></div>
+                
+                <button type="button" class="primary-btn" onclick="confirmPlateAndStart()">确定</button>
+                <button type="button" class="scan-ongoing-link" onclick="openOngoingDispatchQueryPage()">查看进行中的发货单</button>
+            </div>
+        </div>
+
+        <div class="page" id="ongoingDispatchQueryPage">
+            <div class="ongoing-dispatch-body">
+                <div id="ongoingDispatchCards"></div>
+            </div>
+        </div>
+
+        <div class="page" id="dispatchExecutePage">
+            <div class="dispatch-execute-body">
+                <div class="dispatch-execute-body-main">
+                    <div class="dispatch-info-card">
+                        <div class="dispatch-info-title">装载任务信息</div>
+                        <div class="dispatch-info-row">
+                            <span class="dispatch-info-label">发货单号</span>
+                            <span class="dispatch-info-value" id="executeShipmentNo">--</span>
+                        </div>
+                        <div class="dispatch-info-row">
+                            <span class="dispatch-info-label">车牌号</span>
+                            <span class="dispatch-info-value" id="executePlateNo">--</span>
+                        </div>
+                        <div class="dispatch-info-row">
+                            <span class="dispatch-info-label">承运商</span>
+                            <span class="dispatch-info-value" id="executeCarrier">--</span>
+                        </div>
+                        <div class="dispatch-info-row dispatch-info-row--shipment">
+                            <span class="dispatch-info-label">车型</span>
+                            <div class="dispatch-info-shipment-cell">
+                                <span class="dispatch-info-value" id="executeVehicleType">--</span>
+                                <button type="button" class="dispatch-pending-link" onclick="openPendingPackagesPage()">查看待装载包裹</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dispatch-field-label">分站号或包裹号</div>
+                    <div id="dispatchScanInputContainer" class="dispatch-scan-input-container"></div>
+                </div>
+                <button type="button" class="dispatch-execute-load-btn" onclick="executeDispatchLoad()">执行装载</button>
+            </div>
+            <div class="dispatch-bottom-bar">
+                <div class="dispatch-bar-left">
+                    <button type="button" class="dispatch-bar-icon-btn" id="loadedPackagesIconBtn" onclick="openLoadedPackagesPage()" aria-label="已装载包裹" title="已装载包裹">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                            <path d="M3.27 6.96 12 12.01 20.73 6.96" />
+                            <path d="M12 22.08V12" />
+                        </svg>
+                    </button>
+                    <span class="dispatch-bar-count" id="loadedPackageCountLabel">包裹数: 0</span>
+                </div>
+                <button type="button" class="dispatch-bar-ship" id="shipBtn" onclick="openConsumableModal()" disabled>发货</button>
+            </div>
+        </div>
+
+        <div class="page" id="pendingPackagesPage">
+            <div class="pending-packages-inner">
+                <div class="pending-toolbar">
+                    <input type="text" id="pendingStationSearch" class="pending-search" placeholder="搜索分站号或名称" autocomplete="off">
+                    <select id="pendingRouteFilter" class="pending-route-select" aria-label="线路筛选">
+                        <option value="">全部线路</option>
+                    </select>
+                </div>
+                <div class="pending-list-scroll">
+                    <div id="pendingPackagesCards"></div>
+                    <div id="pendingPackagesEmpty" class="pending-empty-hint" style="display: none;">暂无符合条件的包裹</div>
+                </div>
+                <div class="pending-bottom-bar">
+                    <label class="pending-select-all">
+                        <input type="checkbox" id="pendingSelectAll">
+                        <span>全选</span>
+                    </label>
+                    <button type="button" class="pending-load-btn" onclick="confirmPendingLoad()">装载</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="loadedPackagesPage">
+            <div class="loaded-packages-inner">
+                <div class="loaded-packages-toolbar">
+                    <input type="text" id="loadedStationSearch" class="loaded-packages-search" placeholder="搜索分站号或名称" autocomplete="off" aria-label="按分站号或名称查询">
+                </div>
+                <div class="loaded-packages-scroll">
+                    <div id="loadedPackagesEmpty" class="loaded-packages-empty">暂无已装载包裹</div>
+                    <ul id="loadedPackagesList" class="loaded-packages-list"></ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="dispatchCompletePage">
+            <div class="dispatch-complete-page">
+                <div class="dispatch-complete-body">
+                    <div class="dispatch-complete-icon">✓</div>
+                    <div class="dispatch-complete-title">发货完成</div>
+                    <div class="dispatch-complete-subtitle">本次装车已完成并提交</div>
+                </div>
+                <div class="dispatch-complete-action">
+                    <button type="button" class="dispatch-complete-btn" onclick="finishAndBack()">确定</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="consumable-modal" id="consumableModal">
+            <div class="consumable-modal-card" id="consumableModalCard">
+                <div class="consumable-modal-title">请输入本次装车耗材数量</div>
+                <div class="consumable-station-nav">
+                    <button type="button" class="consumable-nav-btn" id="consumableNavPrev" aria-label="上一分站">‹</button>
+                    <div class="consumable-station-nav-center">
+                        <div class="consumable-station-title" id="consumableStationTitle">--</div>
+                        <div class="consumable-station-sub" id="consumableStationSub"></div>
+                        <div class="consumable-station-pager" id="consumableStationPager">1 / 1</div>
+                    </div>
+                    <button type="button" class="consumable-nav-btn" id="consumableNavNext" aria-label="下一分站">›</button>
+                </div>
+                <div class="consumable-swipe-hint">当前分站填写后点「确认」将自动进入下一分站；最后一站确认后提交并发货。也可使用左右箭头或滑动切换</div>
+                <div class="consumable-field-wrap">
+                    <label class="consumable-label" for="normalBoxQtyInput">常温框数量</label>
+                    <input type="number" id="normalBoxQtyInput" class="consumable-input" placeholder="请输入常温框数量" min="0" step="1" value="0">
+                </div>
+                <div class="consumable-field-wrap">
+                    <label class="consumable-label" for="insulatedBoxQtyInput">保温箱数量</label>
+                    <input type="number" id="insulatedBoxQtyInput" class="consumable-input" placeholder="请输入保温箱数量" min="0" step="1" value="0">
+                </div>
+                <div class="consumable-field-wrap">
+                    <label class="consumable-label" for="palletQtyInput">托盘数量</label>
+                    <input type="number" id="palletQtyInput" class="consumable-input" placeholder="请输入托盘数量" min="0" step="1" value="0">
+                </div>
+                <div class="consumable-actions">
+                    <button type="button" class="consumable-btn" onclick="closeConsumableModal()">取消</button>
+                    <button type="button" class="consumable-btn consumable-btn--confirm" onclick="confirmConsumableCurrentStation()">确认</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="global-toast" id="globalToast"></div>
+    </div>
+
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mobile-components.js"></script>
+    <script>
+        const headerTitle = document.getElementById('headerTitle');
+        const backBtn = document.getElementById('backBtn');
+        const pageHeader = document.getElementById('pageHeader');
+        const shipBtn = document.getElementById('shipBtn');
+        const globalToast = document.getElementById('globalToast');
+        const consumableModal = document.getElementById('consumableModal');
+        const consumableModalCard = document.getElementById('consumableModalCard');
+        const consumableNavPrev = document.getElementById('consumableNavPrev');
+        const consumableNavNext = document.getElementById('consumableNavNext');
+        const consumableStationTitle = document.getElementById('consumableStationTitle');
+        const consumableStationSub = document.getElementById('consumableStationSub');
+        const consumableStationPager = document.getElementById('consumableStationPager');
+        const normalBoxQtyInput = document.getElementById('normalBoxQtyInput');
+        const insulatedBoxQtyInput = document.getElementById('insulatedBoxQtyInput');
+        const palletQtyInput = document.getElementById('palletQtyInput');
+
+        const plateInputComponent = window.WMSMobileComponents
+            ? window.WMSMobileComponents.mountScanBarcodeInput({
+                container: 'plateInputContainer',
+                inputId: 'plateInput',
+                inputClassName: 'wms-mobile-scan-input__field scan-input-centered',
+                placeholder: '请扫描/输入车牌号'
+            })
+            : null;
+        const dispatchScanInputComponent = window.WMSMobileComponents
+            ? window.WMSMobileComponents.mountScanBarcodeInput({
+                container: 'dispatchScanInputContainer',
+                inputId: 'dispatchScanInput',
+                inputClassName: 'wms-mobile-scan-input__field dispatch-field',
+                placeholder: '请扫描/输入分站号或包裹号'
+            })
+            : null;
+        const plateInput = plateInputComponent ? plateInputComponent.input : document.getElementById('plateInput');
+        const dispatchScanInput = dispatchScanInputComponent ? dispatchScanInputComponent.input : document.getElementById('dispatchScanInput');
+
+        let toastTimer = null;
+        let currentPlateNo = '';
+
+        const PENDING_PACKAGE_SEED = [
+            { id: 'pp1', packageNo: '19090200012', stationNo: '9D14', stationName: '浦东分拨站', route: '1号线' },
+            { id: 'pp2', packageNo: '19090200013', stationNo: '9D14', stationName: '浦东分拨站', route: '1号线' },
+            { id: 'pp3', packageNo: '19090200014', stationNo: '8C02', stationName: '松江集散点', route: '2号线' },
+            { id: 'pp4', packageNo: '19090200015', stationNo: '7B11', stationName: '嘉定服务站', route: '2号线' },
+            { id: 'pp5', packageNo: '19090200016', stationNo: '6A03', stationName: '青浦分拨站', route: '3号线' },
+            { id: 'pp6', packageNo: '19090200017', stationNo: '5E22', stationName: '宝山营业所', route: '1号线' },
+            { id: 'pp7', packageNo: '19090200018', stationNo: '4F08', stationName: '闵行服务站', route: '3号线' },
+            { id: 'pp8', packageNo: '19090200019', stationNo: '3G19', stationName: '奉贤集散点', route: '2号线' },
+            { id: 'pp9', packageNo: '19090200020', stationNo: '2H07', stationName: '金山分拨站', route: '1号线' },
+            { id: 'pp10', packageNo: '19090200021', stationNo: '1J33', stationName: '崇明服务站', route: '3号线' },
+            { id: 'pp11', packageNo: '19090200022', stationNo: '9K44', stationName: '虹桥枢纽站', route: '2号线' },
+            { id: 'pp12', packageNo: '19090200023', stationNo: '8L55', stationName: '临港新片区站', route: '1号线' },
+            { id: 'pp13', packageNo: '19090200024', stationNo: '7M66', stationName: '张江科技园站', route: '3号线' }
+        ];
+
+        function cloneDispatchLinesFromSeed() {
+            return PENDING_PACKAGE_SEED.map((p) => ({
+                stationNo: p.stationNo,
+                stationName: p.stationName || '',
+                packageNo: p.packageNo,
+                route: p.route,
+                loaded: false
+            }));
+        }
+
+        function clonePendingFromSeed() {
+            return PENDING_PACKAGE_SEED.map((p) => ({ ...p }));
+        }
+
+        const dispatchTask = {
+            shipmentNo: 'FH202604080001',
+            carrier: '',
+            vehicleType: '',
+            lines: cloneDispatchLinesFromSeed(),
+            consumables: {
+                /** stationNo -> { stationName, normalBoxQty, insulatedBoxQty, palletQty } */
+                byStation: {}
+            }
+        };
+
+        let enteredExecuteFromOngoingList = false;
+
+        function setActivePage(pageId) {
+            document.querySelectorAll('.page').forEach((page) => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            const hideHeader = pageId === 'dispatchCompletePage';
+            pageHeader.style.display = hideHeader ? 'none' : 'flex';
+        }
+
+        const ONGOING_DISPATCH_ORDERS = [
+            {
+                dispatchNo: 'FH1909057D2D68A0300',
+                carrier: '中通物流',
+                plateNo: '沪A00001',
+                vehicleType: '大卡车'
+            },
+            {
+                dispatchNo: 'FH1909058E3E79B1401',
+                carrier: '顺丰速运',
+                plateNo: '沪B88888',
+                vehicleType: '厢式货车'
+            },
+            {
+                dispatchNo: 'FH1909059F4F80C2502',
+                carrier: '京东物流',
+                plateNo: '苏E12345',
+                vehicleType: '冷藏车'
+            }
+        ];
+
+        function renderOngoingDispatchCards() {
+            const host = document.getElementById('ongoingDispatchCards');
+            if (!host) return;
+            host.innerHTML = ONGOING_DISPATCH_ORDERS.map((o, idx) => (
+                '<div class="ongoing-dispatch-card ongoing-dispatch-card--clickable" data-ongoing-index="' + idx + '" role="button" tabindex="0">'
+                + '<div class="ongoing-dispatch-no">' + escapeHtml(o.dispatchNo) + '</div>'
+                + '<div class="ongoing-dispatch-row"><span class="ongoing-dispatch-label">承运商</span><span class="ongoing-dispatch-value">' + escapeHtml(o.carrier) + '</span></div>'
+                + '<div class="ongoing-dispatch-row"><span class="ongoing-dispatch-label">车牌号</span><span class="ongoing-dispatch-value">' + escapeHtml(o.plateNo) + '</span></div>'
+                + '<div class="ongoing-dispatch-row"><span class="ongoing-dispatch-label">车型</span><span class="ongoing-dispatch-value">' + escapeHtml(o.vehicleType) + '</span></div>'
+                + '</div>'
+            )).join('');
+        }
+
+        function openExecuteLoadFromOngoingOrder(index) {
+            const order = ONGOING_DISPATCH_ORDERS[index];
+            if (!order) return;
+            enteredExecuteFromOngoingList = true;
+            resetDispatchLines();
+            dispatchTask.shipmentNo = order.dispatchNo;
+            dispatchTask.carrier = order.carrier;
+            dispatchTask.vehicleType = order.vehicleType;
+            currentPlateNo = order.plateNo;
+            fillDispatchHeader();
+            updateDispatchProgress();
+            setActivePage('dispatchExecutePage');
+            headerTitle.textContent = '执行装载';
+            backBtn.setAttribute('onclick', 'backFromDispatchExecutePage()');
+            setTimeout(() => dispatchScanInput.focus(), 0);
+        }
+
+        function backFromDispatchExecutePage() {
+            if (enteredExecuteFromOngoingList) {
+                enteredExecuteFromOngoingList = false;
+                setActivePage('ongoingDispatchQueryPage');
+                headerTitle.textContent = '进行中发货单查询';
+                backBtn.setAttribute('onclick', 'backFromOngoingDispatchQueryPage()');
+            } else {
+                backToScanPlatePage();
+            }
+        }
+
+        function openOngoingDispatchQueryPage() {
+            renderOngoingDispatchCards();
+            setActivePage('ongoingDispatchQueryPage');
+            headerTitle.textContent = '进行中发货单查询';
+            backBtn.setAttribute('onclick', 'backFromOngoingDispatchQueryPage()');
+        }
+
+        function backFromOngoingDispatchQueryPage() {
+            setActivePage('scanPlatePage');
+            headerTitle.textContent = '装载发货';
+            backBtn.setAttribute('onclick', "window.location.href='app_list.html'");
+        }
+
+        function escapeHtml(v) {
+            return String(v)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function formatStationNoDashName(stationNo, stationName) {
+            const name = (stationName && String(stationName).trim()) || '--';
+            return String(stationNo) + '-' + name;
+        }
+
+        let pendingPackagesSource = clonePendingFromSeed();
+
+        let pendingSelected = {};
+
+        function getFilteredPendingPackages() {
+            const q = (document.getElementById('pendingStationSearch') && document.getElementById('pendingStationSearch').value.trim().toLowerCase()) || '';
+            const route = (document.getElementById('pendingRouteFilter') && document.getElementById('pendingRouteFilter').value) || '';
+            return pendingPackagesSource.filter((p) => {
+                if (route && p.route !== route) return false;
+                if (q) {
+                    const sn = String(p.stationNo).toLowerCase();
+                    const snm = (p.stationName && String(p.stationName).toLowerCase()) || '';
+                    const combined = formatStationNoDashName(p.stationNo, p.stationName).toLowerCase();
+                    if (!sn.includes(q) && !snm.includes(q) && !combined.includes(q)) return false;
+                }
+                return true;
+            });
+        }
+
+        function populatePendingRouteOptions() {
+            const sel = document.getElementById('pendingRouteFilter');
+            const prev = sel.value;
+            const routes = [...new Set(pendingPackagesSource.map((p) => p.route))].sort((a, b) => a.localeCompare(b, 'zh-CN'));
+            sel.innerHTML = '<option value="">全部线路</option>'
+                + routes.map((r) => '<option value="' + escapeHtml(r) + '">' + escapeHtml(r) + '</option>').join('');
+            if (prev === '' || routes.includes(prev)) {
+                sel.value = prev;
+            } else {
+                sel.value = '';
+            }
+        }
+
+        function syncPendingSelectAll() {
+            const selAll = document.getElementById('pendingSelectAll');
+            const visible = getFilteredPendingPackages();
+            if (!visible.length) {
+                selAll.checked = false;
+                selAll.indeterminate = false;
+                return;
+            }
+            const ids = visible.map((p) => p.id);
+            const allChecked = ids.every((id) => pendingSelected[id]);
+            const someChecked = ids.some((id) => pendingSelected[id]);
+            selAll.checked = allChecked;
+            selAll.indeterminate = someChecked && !allChecked;
+        }
+
+        function renderPendingPackagesList() {
+            const list = getFilteredPendingPackages();
+            const host = document.getElementById('pendingPackagesCards');
+            const empty = document.getElementById('pendingPackagesEmpty');
+            if (!list.length) {
+                host.innerHTML = '';
+                empty.style.display = 'block';
+                syncPendingSelectAll();
+                return;
+            }
+            empty.style.display = 'none';
+            host.innerHTML = list.map((p) => (
+                '<div class="pending-card">'
+                + '<input type="checkbox" class="pending-card-cb" data-id="' + escapeHtml(p.id) + '" '
+                + (pendingSelected[p.id] ? 'checked' : '') + '>'
+                + '<div class="pending-card-body">'
+                + '<div class="pending-card-row">包裹号：' + escapeHtml(p.packageNo) + '</div>'
+                + '<div class="pending-card-row">分站：<span class="pending-card-station">' + escapeHtml(formatStationNoDashName(p.stationNo, p.stationName)) + '</span></div>'
+                + '<div class="pending-card-row">线路：<span class="pending-card-route">' + escapeHtml(p.route) + '</span></div>'
+                + '</div></div>'
+            )).join('');
+            syncPendingSelectAll();
+        }
+
+        function updatePendingPageHeaderTitle() {
+            headerTitle.textContent = '待装载包裹(' + pendingPackagesSource.length + ')';
+        }
+
+        function openPendingPackagesPage() {
+            pendingSelected = {};
+            const searchEl = document.getElementById('pendingStationSearch');
+            if (searchEl) searchEl.value = '';
+            populatePendingRouteOptions();
+            renderPendingPackagesList();
+            updatePendingPageHeaderTitle();
+            setActivePage('pendingPackagesPage');
+            backBtn.setAttribute('onclick', 'backFromPendingPackagesPage()');
+        }
+
+        function backFromPendingPackagesPage() {
+            setActivePage('dispatchExecutePage');
+            headerTitle.textContent = '执行装载';
+            backBtn.setAttribute('onclick', 'backFromDispatchExecutePage()');
+        }
+
+        function findDispatchLineForPending(p) {
+            return dispatchTask.lines.find((item) => !item.loaded
+                && (item.stationNo === p.stationNo || item.packageNo === p.packageNo));
+        }
+
+        function confirmPendingLoad() {
+            const ids = Object.keys(pendingSelected).filter((id) => pendingSelected[id]);
+            if (!ids.length) {
+                showToast('请先勾选需要装载的包裹');
+                return;
+            }
+            const toRemoveIds = [];
+            let fail = 0;
+            ids.forEach((id) => {
+                const p = pendingPackagesSource.find((x) => x.id === id);
+                if (!p) return;
+                const line = findDispatchLineForPending(p);
+                if (line) {
+                    line.loaded = true;
+                    toRemoveIds.push(id);
+                } else {
+                    fail++;
+                }
+            });
+            if (!toRemoveIds.length) {
+                showToast('所选包裹在当前任务中无待装载记录，请核对分站号或包裹号');
+                return;
+            }
+            pendingPackagesSource = pendingPackagesSource.filter((x) => toRemoveIds.indexOf(x.id) === -1);
+            toRemoveIds.forEach((id) => {
+                delete pendingSelected[id];
+            });
+            populatePendingRouteOptions();
+            renderPendingPackagesList();
+            updatePendingPageHeaderTitle();
+            updateDispatchProgress();
+            const ok = toRemoveIds.length;
+            if (fail) {
+                showToast('装载成功 ' + ok + ' 件，' + fail + ' 件未匹配到任务');
+            } else {
+                showToast('装载成功 ' + ok + ' 件');
+            }
+            const allLoaded = dispatchTask.lines.length > 0 && dispatchTask.lines.every((l) => l.loaded);
+            if (allLoaded && ok) {
+                showToast('装载完成，请点击发货');
+            }
+        }
+
+        function getFilteredLoadedLines() {
+            const input = document.getElementById('loadedStationSearch');
+            const q = (input && input.value.trim().toLowerCase()) || '';
+            const loaded = dispatchTask.lines.filter((line) => line.loaded);
+            if (!q) return loaded;
+            return loaded.filter((line) => {
+                const sn = String(line.stationNo).toLowerCase();
+                const snm = (line.stationName && String(line.stationName).toLowerCase()) || '';
+                const combined = formatStationNoDashName(line.stationNo, line.stationName).toLowerCase();
+                return sn.includes(q) || snm.includes(q) || combined.includes(q);
+            });
+        }
+
+        function renderLoadedPackagesList() {
+            const listEl = document.getElementById('loadedPackagesList');
+            const emptyEl = document.getElementById('loadedPackagesEmpty');
+            const loadedAll = dispatchTask.lines.filter((line) => line.loaded);
+            const loaded = getFilteredLoadedLines();
+            if (!loadedAll.length) {
+                emptyEl.textContent = '暂无已装载包裹';
+                emptyEl.style.display = 'block';
+                listEl.innerHTML = '';
+                return;
+            }
+            if (!loaded.length) {
+                emptyEl.textContent = '暂无符合分站条件的已装载包裹';
+                emptyEl.style.display = 'block';
+                listEl.innerHTML = '';
+                return;
+            }
+            emptyEl.style.display = 'none';
+            listEl.innerHTML = loaded.map((line) => (
+                '<li class="loaded-package-item">'
+                + '<button type="button" class="loaded-package-unload" data-station-no="' + escapeHtml(line.stationNo) + '" data-package-no="' + escapeHtml(line.packageNo) + '">卸载</button>'
+                + '<div class="lp-row"><span class="lp-label">分站</span><span class="lp-value">' + escapeHtml(formatStationNoDashName(line.stationNo, line.stationName)) + '</span></div>'
+                + '<div class="lp-row"><span class="lp-label">包裹号</span><span class="lp-value">' + escapeHtml(line.packageNo) + '</span></div>'
+                + '<div class="lp-row"><span class="lp-label">线路</span><span class="lp-value lp-value-route">' + escapeHtml(line.route || '--') + '</span></div>'
+                + '</li>'
+            )).join('');
+        }
+
+        function unloadLoadedPackage(stationNo, packageNo) {
+            const line = dispatchTask.lines.find((item) => item.loaded
+                && item.stationNo === stationNo && item.packageNo === packageNo);
+            if (!line) {
+                showToast('未找到该装载记录');
+                return;
+            }
+            line.loaded = false;
+            renderLoadedPackagesList();
+            updateDispatchProgress();
+            showToast('已取消装载');
+        }
+
+        function openLoadedPackagesPage() {
+            const searchEl = document.getElementById('loadedStationSearch');
+            if (searchEl) searchEl.value = '';
+            renderLoadedPackagesList();
+            setActivePage('loadedPackagesPage');
+            headerTitle.textContent = '已装载包裹';
+            backBtn.setAttribute('onclick', 'backFromLoadedPackagesPage()');
+        }
+
+        function backFromLoadedPackagesPage() {
+            setActivePage('dispatchExecutePage');
+            headerTitle.textContent = '执行装载';
+            backBtn.setAttribute('onclick', 'backFromDispatchExecutePage()');
+        }
+
+        function showToast(message) {
+            if (!message) return;
+            globalToast.textContent = String(message);
+            globalToast.classList.add('active');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => globalToast.classList.remove('active'), 1800);
+        }
+
+        function confirmPlateAndStart() {
+            if (!plateInput) {
+                showToast('车牌号输入框未初始化');
+                return;
+            }
+            const plateNo = plateInput.value.trim();
+            if (!plateNo) {
+                showToast('请先扫描/输入车牌号');
+                plateInput.focus();
+                return;
+            }
+            currentPlateNo = plateNo;
+            resetDispatchLines();
+            fillDispatchHeader();
+            updateDispatchProgress();
+            enteredExecuteFromOngoingList = false;
+            setActivePage('dispatchExecutePage');
+            headerTitle.textContent = '执行装载';
+            backBtn.setAttribute('onclick', 'backFromDispatchExecutePage()');
+            setTimeout(() => dispatchScanInput.focus(), 0);
+        }
+
+        function resetDispatchLines() {
+            dispatchTask.shipmentNo = 'FH202604080001';
+            dispatchTask.carrier = '';
+            dispatchTask.vehicleType = '';
+            dispatchTask.lines.length = 0;
+            cloneDispatchLinesFromSeed().forEach((line) => dispatchTask.lines.push(line));
+            pendingPackagesSource = clonePendingFromSeed();
+            pendingSelected = {};
+            dispatchTask.consumables.byStation = {};
+            normalBoxQtyInput.value = '0';
+            insulatedBoxQtyInput.value = '0';
+            palletQtyInput.value = '0';
+            dispatchScanInput.value = '';
+            shipBtn.disabled = true;
+        }
+
+        function fillDispatchHeader() {
+            document.getElementById('executePlateNo').textContent = currentPlateNo || '--';
+            document.getElementById('executeShipmentNo').textContent = dispatchTask.shipmentNo || '--';
+            document.getElementById('executeCarrier').textContent = dispatchTask.carrier || '--';
+            document.getElementById('executeVehicleType').textContent = dispatchTask.vehicleType || '--';
+        }
+
+        function updateDispatchProgress() {
+            const loadedCount = dispatchTask.lines.filter((line) => line.loaded).length;
+            const countLabel = document.getElementById('loadedPackageCountLabel');
+            if (countLabel) {
+                countLabel.textContent = '包裹数: ' + String(loadedCount);
+            }
+            shipBtn.disabled = loadedCount === 0;
+        }
+
+        function executeDispatchLoad() {
+            const code = dispatchScanInput.value.trim();
+            if (!code) {
+                showToast('请扫描/输入分站号或包裹号');
+                dispatchScanInput.focus();
+                return;
+            }
+            const line = dispatchTask.lines.find((item) => !item.loaded && (item.stationNo === code || item.packageNo === code));
+            if (!line) {
+                const duplicate = dispatchTask.lines.find((item) => item.loaded && (item.stationNo === code || item.packageNo === code));
+                if (duplicate) {
+                    showToast('该分站/包裹已装载');
+                } else {
+                    showToast('未匹配到装载任务，请核对后重试');
+                }
+                dispatchScanInput.focus();
+                dispatchScanInput.select();
+                return;
+            }
+            line.loaded = true;
+            dispatchScanInput.value = '';
+            updateDispatchProgress();
+            showToast('装载成功');
+            const allLoaded = dispatchTask.lines.length > 0 && dispatchTask.lines.every((l) => l.loaded);
+            if (allLoaded) {
+                showToast('装载完成，请点击发货');
+            }
+            dispatchScanInput.focus();
+        }
+
+        let consumableModalGroups = [];
+        let consumableModalIndex = 0;
+        /** stationNo string -> { normal, insulated, pallet } */
+        let consumableModalValues = {};
+        function buildConsumableStationGroups() {
+            const loaded = dispatchTask.lines.filter((line) => line.loaded);
+            const map = new Map();
+            for (const line of loaded) {
+                const key = String(line.stationNo);
+                if (!map.has(key)) {
+                    map.set(key, {
+                        stationNo: line.stationNo,
+                        stationName: (line.stationName && String(line.stationName).trim()) || '--',
+                        lines: []
+                    });
+                }
+                map.get(key).lines.push(line);
+            }
+            return Array.from(map.values())
+                .map((g) => {
+                    const routes = [...new Set(g.lines.map((l) => l.route).filter(Boolean))];
+                    return {
+                        stationNo: g.stationNo,
+                        stationName: g.stationName,
+                        packageCount: g.lines.length,
+                        routeLabel: routes.length ? routes.join('、') : '--'
+                    };
+                })
+                .sort((a, b) => String(a.stationNo).localeCompare(String(b.stationNo), 'zh-CN'));
+        }
+
+        function consumableSaveCurrentStationInputs() {
+            if (!consumableModalGroups.length) return;
+            const g = consumableModalGroups[consumableModalIndex];
+            if (!g) return;
+            const key = String(g.stationNo);
+            consumableModalValues[key] = {
+                normal: normalBoxQtyInput.value,
+                insulated: insulatedBoxQtyInput.value,
+                pallet: palletQtyInput.value
+            };
+        }
+
+        function consumableLoadStationInputs(stationKey) {
+            const v = consumableModalValues[stationKey] || { normal: '0', insulated: '0', pallet: '0' };
+            normalBoxQtyInput.value = v.normal;
+            insulatedBoxQtyInput.value = v.insulated;
+            palletQtyInput.value = v.pallet;
+        }
+
+        function consumableUpdateStationNav() {
+            const n = consumableModalGroups.length;
+            if (!n) {
+                consumableStationTitle.textContent = '--';
+                consumableStationSub.textContent = '';
+                consumableStationPager.textContent = '';
+                if (consumableNavPrev) consumableNavPrev.disabled = true;
+                if (consumableNavNext) consumableNavNext.disabled = true;
+                return;
+            }
+            const g = consumableModalGroups[consumableModalIndex];
+            consumableStationTitle.textContent = g.stationNo + ' · ' + g.stationName;
+            consumableStationSub.textContent = '已装 ' + g.packageCount + ' 件包裹 · 线路 ' + g.routeLabel;
+            consumableStationPager.textContent = (consumableModalIndex + 1) + ' / ' + n;
+            if (consumableNavPrev) consumableNavPrev.disabled = consumableModalIndex <= 0;
+            if (consumableNavNext) consumableNavNext.disabled = consumableModalIndex >= n - 1;
+        }
+
+        function consumableGoPrev() {
+            consumableSaveCurrentStationInputs();
+            if (consumableModalIndex <= 0) return;
+            consumableModalIndex -= 1;
+            const g = consumableModalGroups[consumableModalIndex];
+            consumableLoadStationInputs(String(g.stationNo));
+            consumableUpdateStationNav();
+        }
+
+        function consumableGoNext() {
+            consumableSaveCurrentStationInputs();
+            if (consumableModalIndex >= consumableModalGroups.length - 1) return;
+            consumableModalIndex += 1;
+            const g = consumableModalGroups[consumableModalIndex];
+            consumableLoadStationInputs(String(g.stationNo));
+            consumableUpdateStationNav();
+        }
+
+        function parseConsumableNonNegInt(str) {
+            const t = String(str).trim();
+            const v = Number(t === '' ? '0' : t);
+            if (!Number.isFinite(v) || v < 0 || !Number.isInteger(v)) return null;
+            return v;
+        }
+
+        function validateConsumableRawForStation(raw, stationNo) {
+            const normalVal = parseConsumableNonNegInt(raw.normal);
+            if (normalVal === null) {
+                return { ok: false, field: 'normal', msg: '分站 ' + stationNo + ' 常温框数量无效' };
+            }
+            const insulatedVal = parseConsumableNonNegInt(raw.insulated);
+            if (insulatedVal === null) {
+                return { ok: false, field: 'insulated', msg: '分站 ' + stationNo + ' 保温箱数量无效' };
+            }
+            const palletVal = parseConsumableNonNegInt(raw.pallet);
+            if (palletVal === null) {
+                return { ok: false, field: 'pallet', msg: '分站 ' + stationNo + ' 托盘数量无效' };
+            }
+            return { ok: true, normalVal, insulatedVal, palletVal };
+        }
+
+        function focusConsumableField(field) {
+            if (field === 'insulated') insulatedBoxQtyInput.focus();
+            else if (field === 'pallet') palletQtyInput.focus();
+            else normalBoxQtyInput.focus();
+        }
+
+        function confirmConsumableCurrentStation() {
+            consumableSaveCurrentStationInputs();
+            const g = consumableModalGroups[consumableModalIndex];
+            if (!g) return;
+            const key = String(g.stationNo);
+            const raw = consumableModalValues[key] || { normal: '0', insulated: '0', pallet: '0' };
+            const vr = validateConsumableRawForStation(raw, g.stationNo);
+            if (!vr.ok) {
+                showToast(vr.msg);
+                focusConsumableField(vr.field);
+                return;
+            }
+            if (consumableModalIndex < consumableModalGroups.length - 1) {
+                showToast('提交成功');
+                consumableModalIndex += 1;
+                consumableLoadStationInputs(String(consumableModalGroups[consumableModalIndex].stationNo));
+                consumableUpdateStationNav();
+                setTimeout(() => normalBoxQtyInput.focus(), 0);
+                return;
+            }
+            finishConsumablesAndShip();
+        }
+
+        function finishConsumablesAndShip() {
+            consumableSaveCurrentStationInputs();
+            const byStation = {};
+            for (let i = 0; i < consumableModalGroups.length; i++) {
+                const g = consumableModalGroups[i];
+                const key = String(g.stationNo);
+                const raw = consumableModalValues[key] || { normal: '0', insulated: '0', pallet: '0' };
+                const vr = validateConsumableRawForStation(raw, g.stationNo);
+                if (!vr.ok) {
+                    consumableModalIndex = i;
+                    consumableLoadStationInputs(key);
+                    consumableUpdateStationNav();
+                    showToast(vr.msg);
+                    focusConsumableField(vr.field);
+                    return;
+                }
+                byStation[key] = {
+                    stationName: g.stationName,
+                    normalBoxQty: vr.normalVal,
+                    insulatedBoxQty: vr.insulatedVal,
+                    palletQty: vr.palletVal
+                };
+            }
+            dispatchTask.consumables.byStation = byStation;
+            closeConsumableModal();
+            showDispatchCompletePage();
+        }
+
+        function openConsumableModal() {
+            const loadedCount = dispatchTask.lines.filter((line) => line.loaded).length;
+            if (loadedCount === 0) {
+                showToast('请先装载至少一件包裹');
+                return;
+            }
+            consumableModalGroups = buildConsumableStationGroups();
+            if (!consumableModalGroups.length) {
+                showToast('暂无已装载分站数据');
+                return;
+            }
+            consumableModalIndex = 0;
+            consumableModalValues = {};
+            consumableModalGroups.forEach((g) => {
+                const key = String(g.stationNo);
+                const prev = dispatchTask.consumables.byStation && dispatchTask.consumables.byStation[key];
+                consumableModalValues[key] = prev ? {
+                    normal: String(prev.normalBoxQty),
+                    insulated: String(prev.insulatedBoxQty),
+                    pallet: String(prev.palletQty)
+                } : { normal: '0', insulated: '0', pallet: '0' };
+            });
+            consumableLoadStationInputs(String(consumableModalGroups[0].stationNo));
+            consumableUpdateStationNav();
+            consumableModal.classList.add('active');
+            setTimeout(() => normalBoxQtyInput.focus(), 0);
+        }
+
+        function closeConsumableModal() {
+            consumableModal.classList.remove('active');
+        }
+
+        function showDispatchCompletePage() {
+            setActivePage('dispatchCompletePage');
+        }
+
+        function backToScanPlatePage() {
+            enteredExecuteFromOngoingList = false;
+            setActivePage('scanPlatePage');
+            headerTitle.textContent = '装载发货';
+            backBtn.setAttribute('onclick', "window.location.href='app_list.html'");
+            if (plateInput) plateInput.focus();
+        }
+
+        function finishAndBack() {
+            if (plateInput) plateInput.value = '';
+            currentPlateNo = '';
+            backToScanPlatePage();
+        }
+
+        if (plateInput) {
+            plateInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') confirmPlateAndStart();
+            });
+        }
+
+        dispatchScanInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') executeDispatchLoad();
+        });
+
+        normalBoxQtyInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') confirmConsumableCurrentStation();
+        });
+
+        insulatedBoxQtyInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') confirmConsumableCurrentStation();
+        });
+
+        palletQtyInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') confirmConsumableCurrentStation();
+        });
+
+        if (consumableNavPrev) consumableNavPrev.addEventListener('click', consumableGoPrev);
+        if (consumableNavNext) consumableNavNext.addEventListener('click', consumableGoNext);
+
+        (function bindConsumableModalSwipe() {
+            if (!consumableModalCard) return;
+            let touchStartX = null;
+            consumableModalCard.addEventListener('touchstart', (e) => {
+                if (e.changedTouches.length !== 1) return;
+                if (e.target.closest('input, button, textarea, select, label')) {
+                    touchStartX = null;
+                    return;
+                }
+                touchStartX = e.changedTouches[0].clientX;
+            }, { passive: true });
+            consumableModalCard.addEventListener('touchend', (e) => {
+                if (touchStartX === null || e.changedTouches.length !== 1) return;
+                if (e.target.closest('input, button, textarea, select, label')) {
+                    touchStartX = null;
+                    return;
+                }
+                const dx = e.changedTouches[0].clientX - touchStartX;
+                touchStartX = null;
+                if (Math.abs(dx) < 48) return;
+                if (dx > 0) consumableGoPrev();
+                else consumableGoNext();
+            }, { passive: true });
+        })();
+
+        (function bindLoadedPackagesUnload() {
+            const listEl = document.getElementById('loadedPackagesList');
+            if (!listEl) return;
+            listEl.addEventListener('click', (e) => {
+                const btn = e.target.closest('.loaded-package-unload');
+                if (!btn) return;
+                const sn = btn.getAttribute('data-station-no');
+                const pn = btn.getAttribute('data-package-no');
+                if (sn === null || pn === null) return;
+                unloadLoadedPackage(sn, pn);
+            });
+        })();
+
+        (function bindLoadedPackagesStationSearch() {
+            const input = document.getElementById('loadedStationSearch');
+            if (!input) return;
+            input.addEventListener('input', () => {
+                renderLoadedPackagesList();
+            });
+        })();
+
+        (function bindOngoingDispatchCardClicks() {
+            const body = document.querySelector('.ongoing-dispatch-body');
+            if (!body) return;
+            body.addEventListener('click', (e) => {
+                const card = e.target.closest('.ongoing-dispatch-card--clickable');
+                if (!card) return;
+                const idx = card.getAttribute('data-ongoing-index');
+                if (idx === null || idx === '') return;
+                openExecuteLoadFromOngoingOrder(parseInt(idx, 10));
+            });
+            body.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter') return;
+                const card = e.target.closest('.ongoing-dispatch-card--clickable');
+                if (!card || e.target !== card) return;
+                const idx = card.getAttribute('data-ongoing-index');
+                if (idx === null || idx === '') return;
+                e.preventDefault();
+                openExecuteLoadFromOngoingOrder(parseInt(idx, 10));
+            });
+        })();
+
+        (function bindPendingPackagesPage() {
+            const searchEl = document.getElementById('pendingStationSearch');
+            const routeEl = document.getElementById('pendingRouteFilter');
+            const selAll = document.getElementById('pendingSelectAll');
+            const scroll = document.querySelector('.pending-list-scroll');
+            if (!searchEl || !routeEl || !selAll || !scroll) return;
+            searchEl.addEventListener('input', () => {
+                renderPendingPackagesList();
+            });
+            routeEl.addEventListener('change', () => {
+                renderPendingPackagesList();
+            });
+            selAll.addEventListener('change', (e) => {
+                const visible = getFilteredPendingPackages();
+                const on = e.target.checked;
+                visible.forEach((p) => {
+                    pendingSelected[p.id] = on;
+                });
+                renderPendingPackagesList();
+            });
+            scroll.addEventListener('change', (e) => {
+                if (!e.target.classList.contains('pending-card-cb')) return;
+                const id = e.target.getAttribute('data-id');
+                if (!id) return;
+                pendingSelected[id] = e.target.checked;
+                syncPendingSelectAll();
+            });
+        })();
+    </script>
+</body>
+</html>

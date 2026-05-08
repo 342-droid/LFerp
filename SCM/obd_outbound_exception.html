@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 出库异常</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .status-initial { background-color: #e6f7ff; color: #1890ff; }
+        .status-progress { background-color: #fff7e6; color: #fa8c16; }
+        .status-complete { background-color: #f6ffed; color: #52c41a; }
+        .status-canceled { background-color: #fff1f0; color: #f5222d; }
+
+        .exception-no-link {
+            color: #2196f3;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .exception-no-link:hover {
+            color: #1976d2;
+            text-decoration: underline;
+        }
+
+        .modal-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .modal-form-group {
+            width: calc(33.33% - 10px);
+        }
+        .modal-form-group label {
+            width: 120px;
+            display: inline-block;
+            margin-right: 8px;
+            color: #666;
+            font-weight: 600;
+        }
+        .modal-form-group input {
+            width: calc(100% - 132px);
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            color: #333;
+            outline: none;
+        }
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+        }
+        .detail-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .detail-actions .btn {
+            padding: 4px 14px;
+        }
+        .detail-actions .btn-accept {
+            background-color: #1677ff;
+            border-color: #1677ff;
+            color: #fff;
+        }
+        .detail-actions .btn-confirm-stock {
+            background-color: #52c41a;
+            border-color: #52c41a;
+            color: #fff;
+        }
+        .detail-actions .btn-confirm-short {
+            background-color: #fa8c16;
+            border-color: #fa8c16;
+            color: #fff;
+        }
+        .detail-actions .btn:disabled {
+            background-color: #d9d9d9 !important;
+            border-color: #d9d9d9 !important;
+            color: #999 !important;
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">出库异常</button>
+            </div>
+
+            <hr class="content-divider">
+            <div class="content-title">异常管理 / 出库异常</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 80px;">货主:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchCompany" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchCompanyDropdown">
+                                <div class="select-option" data-value="Y001-南京货主">Y001-南京货主</div>
+                                <div class="select-option" data-value="Y002-杭州货主">Y002-杭州货主</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 80px;">出库单号:</label>
+                        <input type="text" id="searchOutboundNo" placeholder="请输入出库单号">
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 110px;">来源单号:</label>
+                        <input type="text" id="searchSourceNo" placeholder="请输入来源单号">
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 80px;">关联单号:</label>
+                        <input type="text" id="searchRelatedNo" placeholder="请输入关联单号">
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 80px;">出库状态:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchOutboundStatus" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchOutboundStatusDropdown">
+                                <div class="select-option" data-value="初始">初始</div>
+                                <div class="select-option" data-value="已集波">已集波</div>
+                                <div class="select-option" data-value="开始分配">开始分配</div>
+                                <div class="select-option" data-value="分配完成">分配完成</div>
+                                <div class="select-option" data-value="开始拣货">开始拣货</div>
+                                <div class="select-option" data-value="拣货完成">拣货完成</div>
+                                <div class="select-option" data-value="开始分拣">开始分拣</div>
+                                <div class="select-option" data-value="分拣完成">分拣完成</div>
+                                <div class="select-option" data-value="开始复核">开始复核</div>
+                                <div class="select-option" data-value="复核完成">复核完成</div>
+                                <div class="select-option" data-value="开始装载">开始装载</div>
+                                <div class="select-option" data-value="装载完成">装载完成</div>
+                                <div class="select-option" data-value="开始发货">开始发货</div>
+                                <div class="select-option" data-value="发货完成">发货完成</div>
+                                <div class="select-option" data-value="已取消">已取消</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 80px;">出库类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchOrderType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchOrderTypeDropdown">
+                                <div class="select-option" data-value="销售出库">销售出库</div>
+                                <div class="select-option" data-value="仓配出库">仓配出库</div>
+                                <div class="select-option" data-value="返配出库">返配出库</div>
+                                <div class="select-option" data-value="退供出库">退供出库</div>
+                                <div class="select-option" data-value="调拨出库">调拨出库</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 110px;">出库业务类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchBusinessType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchBusinessTypeDropdown">
+                                <div class="select-option" data-value="直播订单">直播订单</div>
+                                <div class="select-option" data-value="货到即配">货到即配</div>
+                                <div class="select-option" data-value="门店退货">门店退货</div>
+                                <div class="select-option" data-value="仓库退供">仓库退供</div>
+                                <div class="select-option" data-value="仓库调拨">仓库调拨</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 80px;">异常单号:</label>
+                        <input type="text" id="searchExceptionNo" placeholder="请输入异常单号">
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 80px;">异常状态:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchExceptionStatus" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchExceptionStatusDropdown">
+                                <div class="select-option" data-value="初始">初始</div>
+                                <div class="select-option" data-value="已受理">已受理</div>
+                                <div class="select-option" data-value="确认有货">确认有货</div>
+                                <div class="select-option" data-value="确认缺货">确认缺货</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 80px;">异常类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchExceptionType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchExceptionTypeDropdown">
+                                <div class="select-option" data-value="缺货/货损">缺货/货损</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 110px;">异常来源:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchExceptionSource" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchExceptionSourceDropdown">
+                                <div class="select-option" data-value="拣货">拣货</div>
+                                <div class="select-option" data-value="分拣">分拣</div>
+                                <div class="select-option" data-value="复核">复核</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 80px;">目的仓库:</label>
+                        <input type="text" id="searchTargetWarehouse" placeholder="请输入目的仓库">
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 80px;">站点编码:</label>
+                        <input type="text" id="searchHubSiteCode" placeholder="请输入站点编码">
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 110px;">是否处理完成:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchProcessed" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchProcessedDropdown">
+                                <div class="select-option" data-value="是">是</div>
+                                <div class="select-option" data-value="否">否</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="searchBtn">查询</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table no-last-column-freeze">
+                        <thead>
+                            <tr>
+                                <th>货主</th>
+                                <th>异常单号</th>
+                                <th>异常状态</th>
+                                <th>异常来源</th>
+                                <th>异常类型</th>
+                                <th>出库单号</th>
+                                <th>来源单号</th>
+                                <th>关联单号</th>
+                                <th>出库类型</th>
+                                <th>出库业务类型</th>
+                                <th>出库单状态</th>
+                                <th>目的仓库</th>
+                                <th>站点</th>
+                                <th>是否处理完成</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="exceptionDetailModal" class="modal">
+        <div class="modal-content" style="width: 1300px;">
+            <div class="modal-header">
+                <div class="modal-title">出库异常-详情</div>
+                <span class="close" id="closeExceptionDetailBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="exceptionDetailLoading" class="loading">加载中...</div>
+                <div id="exceptionDetailContent" style="display: none;">
+                    <form class="modal-form">
+                        <div class="modal-form-group"><label>货主</label><input id="d_company" disabled></div>
+                        <div class="modal-form-group"><label>异常单号</label><input id="d_exceptionNo" disabled></div>
+                        <div class="modal-form-group"><label>异常状态</label><input id="d_exceptionStatus" disabled></div>
+                        <div class="modal-form-group"><label>异常来源</label><input id="d_exceptionSource" disabled></div>
+                        <div class="modal-form-group"><label>异常类型</label><input id="d_exceptionType" disabled></div>
+                        <div class="modal-form-group"><label>出库单号</label><input id="d_outboundNo" disabled></div>
+                        <div class="modal-form-group"><label>来源单号</label><input id="d_sourceNo" disabled></div>
+                        <div class="modal-form-group"><label>关联单号</label><input id="d_relatedNo" disabled></div>
+                        <div class="modal-form-group"><label>出库类型</label><input id="d_orderType" disabled></div>
+                        <div class="modal-form-group"><label>出库业务类型</label><input id="d_businessType" disabled></div>
+                        <div class="modal-form-group"><label>出库状态</label><input id="d_outboundStatus" disabled></div>
+                        <div class="modal-form-group"><label>目的仓库</label><input id="d_targetWarehouse" disabled></div>
+                        <div class="modal-form-group"><label>站点</label><input id="d_substation" disabled></div>
+                        <div class="modal-form-group"><label>是否处理完成</label><input id="d_processed" disabled></div>
+                        <div class="modal-form-group"><label>异常来源单类型</label><input id="d_exceptionSourceDocType" disabled></div>
+                        <div class="modal-form-group"><label>异常来源单号</label><input id="d_exceptionSourceDocNo" disabled></div>
+                    </form>
+
+                    <hr style="width: 100%; border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
+                    <div class="detail-actions">
+                        <button type="button" class="btn btn-primary btn-accept" id="btnAccept">受理</button>
+                        <button type="button" class="btn btn-primary btn-confirm-stock" id="btnConfirmStock">确认有货</button>
+                        <button type="button" class="btn btn-primary btn-confirm-short" id="btnConfirmShort">确认缺货</button>
+                    </div>
+                    <div class="table-scroll-container">
+                        <table class="table no-last-column-freeze">
+                            <thead>
+                                <tr>
+                                    <th>商品编码</th>
+                                    <th>商品名称</th>
+                                    <th>单位</th>
+                                <th>异常量</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detailTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeExceptionDetailFooterBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        const exceptionMockData = [
+            {
+                company: 'Y001-南京货主',
+                outboundNo: 'OBD202603230001',
+                sourceNo: 'SO202603230001',
+                relatedNo: 'REL001',
+                outboundStatus: '复核完成',
+                businessType: '仓库调拨',
+                orderType: '调拨出库',
+                exceptionStatus: '确认有货',
+                targetWarehouse: 'W004-杭州仓',
+                hubSiteCode: 'S008',
+                hubSiteName: '田林路会员店',
+                exceptionType: '缺货/货损',
+                exceptionSource: '复核',
+                exceptionNo: 'YC2026041610301501',
+                exceptionSourceDocType: '拣货任务',
+                exceptionSourceDocNo: 'PKT202604160001',
+                processed: '是'
+            },
+            {
+                company: 'Y002-杭州货主',
+                outboundNo: 'OBD202604010012',
+                sourceNo: 'PO20260401088',
+                relatedNo: '',
+                outboundStatus: '拣货完成',
+                businessType: '直播订单',
+                orderType: '销售出库',
+                exceptionStatus: '已受理',
+                targetWarehouse: 'W003-上海仓',
+                hubSiteCode: 'S001',
+                hubSiteName: '上海虹桥站',
+                exceptionType: '缺货/货损',
+                exceptionSource: '拣货',
+                exceptionNo: 'YC2026041610302502',
+                exceptionSourceDocType: '分拣单',
+                exceptionSourceDocNo: 'SRT202604010012',
+                processed: '否'
+            },
+            {
+                company: 'Y001-南京货主',
+                outboundNo: 'OBD202604020003',
+                sourceNo: 'SO20260402001',
+                relatedNo: 'REL-H02',
+                outboundStatus: '开始复核',
+                businessType: '货到即配',
+                orderType: '仓配出库',
+                exceptionStatus: '初始',
+                targetWarehouse: 'W001-南京仓',
+                hubSiteCode: 'S002',
+                hubSiteName: '南京河西站',
+                exceptionType: '缺货/货损',
+                exceptionSource: '分拣',
+                exceptionNo: 'YC2026041610303503',
+                exceptionSourceDocType: '包裹',
+                exceptionSourceDocNo: 'CTN202604020003',
+                processed: '否'
+            },
+            {
+                company: 'Y002-杭州货主',
+                outboundNo: 'OBD202604030045',
+                sourceNo: 'RT2026040301',
+                relatedNo: '',
+                outboundStatus: '分拣完成',
+                businessType: '门店退货',
+                orderType: '返配出库',
+                exceptionStatus: '确认缺货',
+                targetWarehouse: 'W004-杭州仓',
+                hubSiteCode: 'S008',
+                hubSiteName: '田林路会员店',
+                exceptionType: '缺货/货损',
+                exceptionSource: '复核',
+                exceptionNo: 'YC2026041610304504',
+                exceptionSourceDocType: '分拣单',
+                exceptionSourceDocNo: 'SRT202604030045',
+                processed: '否'
+            },
+            {
+                company: 'Y001-南京货主',
+                outboundNo: 'OBD202604040018',
+                sourceNo: 'TB2026040402',
+                relatedNo: 'REL-TB01',
+                outboundStatus: '分配完成',
+                businessType: '仓库调拨',
+                orderType: '调拨出库',
+                exceptionStatus: '已受理',
+                targetWarehouse: 'W003-上海仓',
+                hubSiteCode: 'S005',
+                hubSiteName: '上海浦东站',
+                exceptionType: '缺货/货损',
+                exceptionSource: '拣货',
+                exceptionNo: 'YC2026041610305505',
+                exceptionSourceDocType: '拣货任务',
+                exceptionSourceDocNo: 'PKT202604040018',
+                processed: '否'
+            },
+            {
+                company: 'Y001-南京货主',
+                outboundNo: 'OBD202604050007',
+                sourceNo: 'SO20260405011',
+                relatedNo: '',
+                outboundStatus: '已集波',
+                businessType: '仓库退供',
+                orderType: '退供出库',
+                exceptionStatus: '初始',
+                targetWarehouse: 'W001-南京仓',
+                hubSiteCode: 'S003',
+                hubSiteName: '南京江宁站',
+                exceptionType: '缺货/货损',
+                exceptionSource: '复核',
+                exceptionNo: 'YC2026041610310506',
+                exceptionSourceDocType: '包裹',
+                exceptionSourceDocNo: 'CTN202604050007',
+                processed: '否'
+            },
+            {
+                company: 'Y002-杭州货主',
+                outboundNo: 'OBD202604060029',
+                sourceNo: 'CP2026040603',
+                relatedNo: 'REL-CP99',
+                outboundStatus: '开始拣货',
+                businessType: '货到即配',
+                orderType: '仓配出库',
+                exceptionStatus: '确认有货',
+                targetWarehouse: 'W004-杭州仓',
+                hubSiteCode: 'S009',
+                hubSiteName: '杭州萧山站',
+                exceptionType: '缺货/货损',
+                exceptionSource: '分拣',
+                exceptionNo: 'YC2026041610311507',
+                exceptionSourceDocType: '分拣单',
+                exceptionSourceDocNo: 'SRT202604060029',
+                processed: '是'
+            },
+            {
+                company: 'Y001-南京货主',
+                outboundNo: 'OBD202604070031',
+                sourceNo: 'SO20260407005',
+                relatedNo: '',
+                outboundStatus: '装载完成',
+                businessType: '直播订单',
+                orderType: '销售出库',
+                exceptionStatus: '已受理',
+                targetWarehouse: 'W003-上海仓',
+                hubSiteCode: 'S001',
+                hubSiteName: '上海虹桥站',
+                exceptionType: '缺货/货损',
+                exceptionSource: '拣货',
+                exceptionNo: 'YC2026041610312508',
+                exceptionSourceDocType: '拣货任务',
+                exceptionSourceDocNo: 'PKT202604070031',
+                processed: '否'
+            },
+            {
+                company: 'Y002-杭州货主',
+                outboundNo: 'OBD202604080014',
+                sourceNo: 'DB2026040801',
+                relatedNo: 'REL-DB08',
+                outboundStatus: '复核完成',
+                businessType: '仓库调拨',
+                orderType: '调拨出库',
+                exceptionStatus: '确认有货',
+                targetWarehouse: 'W001-南京仓',
+                hubSiteCode: 'S006',
+                hubSiteName: '杭州拱墅站',
+                exceptionType: '缺货/货损',
+                exceptionSource: '复核',
+                exceptionNo: 'YC2026041610313509',
+                exceptionSourceDocType: '包裹',
+                exceptionSourceDocNo: 'CTN202604080014',
+                processed: '是'
+            },
+            {
+                company: 'Y001-南京货主',
+                outboundNo: 'OBD202604090022',
+                sourceNo: 'SO20260409002',
+                relatedNo: '',
+                outboundStatus: '开始分拣',
+                businessType: '门店退货',
+                orderType: '返配出库',
+                exceptionStatus: '确认缺货',
+                targetWarehouse: 'W004-杭州仓',
+                hubSiteCode: 'S008',
+                hubSiteName: '田林路会员店',
+                exceptionType: '缺货/货损',
+                exceptionSource: '分拣',
+                exceptionNo: 'YC2026041610314510',
+                exceptionSourceDocType: '分拣单',
+                exceptionSourceDocNo: 'SRT202604090022',
+                processed: '否'
+            },
+            {
+                company: 'Y002-杭州货主',
+                outboundNo: 'OBD202604100036',
+                sourceNo: 'PO20260410020',
+                relatedNo: 'REL-P100',
+                outboundStatus: '发货完成',
+                businessType: '仓库退供',
+                orderType: '退供出库',
+                exceptionStatus: '确认有货',
+                targetWarehouse: 'W003-上海仓',
+                hubSiteCode: 'S007',
+                hubSiteName: '上海青浦站',
+                exceptionType: '缺货/货损',
+                exceptionSource: '拣货',
+                exceptionNo: 'YC2026041610315511',
+                exceptionSourceDocType: '拣货任务',
+                exceptionSourceDocNo: 'PKT202604100036',
+                processed: '是'
+            },
+            {
+                company: 'Y001-南京货主',
+                outboundNo: 'OBD202604110008',
+                sourceNo: 'SO20260411008',
+                relatedNo: '',
+                outboundStatus: '初始',
+                businessType: '直播订单',
+                orderType: '销售出库',
+                exceptionStatus: '初始',
+                targetWarehouse: 'W001-南京仓',
+                hubSiteCode: 'S004',
+                hubSiteName: '南京浦口站',
+                exceptionType: '缺货/货损',
+                exceptionSource: '复核',
+                exceptionNo: 'YC2026041610320512',
+                exceptionSourceDocType: '包裹',
+                exceptionSourceDocNo: 'CTN202604110008',
+                processed: '否'
+            }
+        ];
+
+        exceptionMockData.forEach((item, index) => {
+            const seq = String(index + 1).padStart(2, '0');
+            item.createUser = item.createUser || `系统用户${seq}`;
+            item.createTime = item.createTime || `2026-04-${seq} 09:00:00`;
+            item.updateUser = item.updateUser || `系统用户${seq}`;
+            item.updateTime = item.updateTime || `2026-04-${seq} 10:00:00`;
+        });
+
+        function getExceptionStatusClass(status) {
+            if (!status) return 'status-initial';
+            if (status === '确认缺货') return 'status-canceled';
+            if (status === '确认有货') return 'status-complete';
+            if (status === '已受理') return 'status-progress';
+            return 'status-initial';
+        }
+
+        function formatSiteDisplay(siteCode, siteName) {
+            const code = String(siteCode || '').trim();
+            const name = String(siteName || '').trim();
+            if (code && name) return `${code}-${name}`;
+            return code || name;
+        }
+
+        const pickTaskNos = [
+            'TK20260319001'
+        ];
+        const sortingNos = [
+            'FJ2026040109200037',
+            'FJ2026040109400058',
+            'FJ2026040108500012'
+        ];
+        const cartonNos = [
+            'CTN202604140001',
+            'CTN202604140002',
+            'CTN202604140003'
+        ];
+
+        function getSourceDocByExceptionSource(exceptionSource, rowIndex) {
+            const idx = Math.abs(rowIndex || 0);
+            if (exceptionSource === '拣货') {
+                return {
+                    type: '拣货任务',
+                    no: pickTaskNos[idx % pickTaskNos.length]
+                };
+            }
+            if (exceptionSource === '分拣') {
+                return {
+                    type: '分拣单',
+                    no: sortingNos[idx % sortingNos.length]
+                };
+            }
+            if (exceptionSource === '复核') {
+                return {
+                    type: '包裹',
+                    no: cartonNos[idx % cartonNos.length]
+                };
+            }
+            return {
+                type: '',
+                no: ''
+            };
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                const st = item.outboundStatus || '';
+                const exSt = item.exceptionStatus || '';
+                row.innerHTML = `
+                    <td>${item.company || ''}</td>
+                    <td><a href="#" class="exception-no-link" data-exception-no="${item.exceptionNo}">${item.exceptionNo || ''}</a></td>
+                    <td>${exSt ? `<span class="status-badge ${getExceptionStatusClass(exSt)}">${exSt}</span>` : ''}</td>
+                    <td>${item.exceptionSource || ''}</td>
+                    <td>${item.exceptionType || ''}</td>
+                    <td>${item.outboundNo || ''}</td>
+                    <td>${item.sourceNo || ''}</td>
+                    <td>${item.relatedNo || ''}</td>
+                    <td>${item.orderType || ''}</td>
+                    <td>${item.businessType || ''}</td>
+                    <td>${st || ''}</td>
+                    <td>${item.targetWarehouse || ''}</td>
+                    <td>${formatSiteDisplay(item.hubSiteCode, item.hubSiteName)}</td>
+                    <td>${item.processed || ''}</td>
+                    <td>${item.createTime || ''}</td>
+                    <td>${item.createUser || ''}</td>
+                    <td>${item.updateTime || ''}</td>
+                    <td>${item.updateUser || ''}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            document.querySelectorAll('.exception-no-link').forEach(link => {
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+                    const no = link.getAttribute('data-exception-no');
+                    openExceptionDetail(no);
+                });
+            });
+        }
+
+        function renderDetailLines(lines) {
+            const tbody = document.getElementById('detailTableBody');
+            tbody.innerHTML = '';
+            lines.forEach((line, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${line.skuCode || ''}</td>
+                    <td>${line.skuName || ''}</td>
+                    <td>${line.unit || ''}</td>
+                    <td>${line.abnormalQty ?? line.qty ?? ''}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateDetailActionButtons(exceptionStatus) {
+            const btnAccept = document.getElementById('btnAccept');
+            const btnConfirmStock = document.getElementById('btnConfirmStock');
+            const btnConfirmShort = document.getElementById('btnConfirmShort');
+            if (!btnAccept || !btnConfirmStock || !btnConfirmShort) return;
+
+            const status = String(exceptionStatus || '').trim();
+
+            if (status === '初始') {
+                btnAccept.disabled = false;
+                btnConfirmStock.disabled = true;
+                btnConfirmShort.disabled = true;
+                return;
+            }
+
+            if (status === '已受理') {
+                btnAccept.disabled = true;
+                btnConfirmStock.disabled = false;
+                btnConfirmShort.disabled = false;
+                return;
+            }
+
+            if (status === '确认有货' || status === '确认缺货') {
+                btnAccept.disabled = true;
+                btnConfirmStock.disabled = true;
+                btnConfirmShort.disabled = true;
+                return;
+            }
+
+            // 未识别状态默认全部禁用，避免误操作
+            btnAccept.disabled = true;
+            btnConfirmStock.disabled = true;
+            btnConfirmShort.disabled = true;
+        }
+
+        function openExceptionDetail(exceptionNo) {
+            const rowIndex = exceptionMockData.findIndex(item => item.exceptionNo === exceptionNo);
+            const row = rowIndex > -1 ? exceptionMockData[rowIndex] : null;
+            if (!row) return;
+            const modal = document.getElementById('exceptionDetailModal');
+            const loading = document.getElementById('exceptionDetailLoading');
+            const content = document.getElementById('exceptionDetailContent');
+            const sourceDoc = getSourceDocByExceptionSource(row.exceptionSource, rowIndex);
+
+            loading.style.display = 'block';
+            content.style.display = 'none';
+            modal.style.display = 'block';
+
+            document.getElementById('d_outboundNo').value = row.outboundNo || '';
+            document.getElementById('d_sourceNo').value = row.sourceNo || '';
+            document.getElementById('d_orderType').value = row.orderType || '';
+            document.getElementById('d_relatedNo').value = row.relatedNo || '';
+            document.getElementById('d_businessType').value = row.businessType || '';
+            document.getElementById('d_outboundStatus').value = row.outboundStatus || '';
+            document.getElementById('d_exceptionStatus').value = row.exceptionStatus || '';
+            document.getElementById('d_exceptionSource').value = row.exceptionSource || '';
+            document.getElementById('d_company').value = row.company || '';
+            document.getElementById('d_targetWarehouse').value = row.targetWarehouse || '';
+            document.getElementById('d_exceptionType').value = row.exceptionType || '';
+            document.getElementById('d_exceptionNo').value = row.exceptionNo || '';
+            document.getElementById('d_substation').value = formatSiteDisplay(row.hubSiteCode, row.hubSiteName);
+            document.getElementById('d_exceptionSourceDocType').value = sourceDoc.type;
+            document.getElementById('d_exceptionSourceDocNo').value = sourceDoc.no;
+            document.getElementById('d_processed').value = row.processed || '';
+
+            const defaultLines = [
+                { lineNo: 1, skuCode: '45292', skuName: '可口可乐香草味汽水600ml', unit: '瓶', qty: 40, allocatedQty: 40, pickedQty: 0, checkedQty: 0, shippedQty: 0, price: '5.80' }
+            ];
+            updateDetailActionButtons(row.exceptionStatus);
+            setTimeout(() => {
+                renderDetailLines(row.details || defaultLines);
+                loading.style.display = 'none';
+                content.style.display = 'block';
+            }, 150);
+        }
+
+        function closeExceptionDetail() {
+            document.getElementById('exceptionDetailModal').style.display = 'none';
+        }
+
+        function initExceptionDetailModalEvents() {
+            const modal = document.getElementById('exceptionDetailModal');
+            document.getElementById('closeExceptionDetailBtn').addEventListener('click', closeExceptionDetail);
+            document.getElementById('closeExceptionDetailFooterBtn').addEventListener('click', closeExceptionDetail);
+            modal.addEventListener('click', e => {
+                if (e.target === modal) {
+                    closeExceptionDetail();
+                }
+            });
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && modal.style.display === 'block') {
+                    e.preventDefault();
+                    closeExceptionDetail();
+                }
+            });
+        }
+
+        function searchExceptions() {
+            const filters = {
+                company: document.getElementById('searchCompany').value.trim(),
+                outboundNo: document.getElementById('searchOutboundNo').value.trim(),
+                outboundStatus: document.getElementById('searchOutboundStatus').value.trim(),
+                businessType: document.getElementById('searchBusinessType').value.trim(),
+                sourceNo: document.getElementById('searchSourceNo').value.trim(),
+                relatedNo: document.getElementById('searchRelatedNo').value.trim(),
+                orderType: document.getElementById('searchOrderType').value.trim(),
+                exceptionStatus: document.getElementById('searchExceptionStatus').value.trim(),
+                targetWarehouse: document.getElementById('searchTargetWarehouse').value.trim(),
+                hubSiteCode: document.getElementById('searchHubSiteCode').value.trim(),
+                exceptionType: document.getElementById('searchExceptionType').value.trim(),
+                exceptionSource: document.getElementById('searchExceptionSource').value.trim(),
+                exceptionNo: document.getElementById('searchExceptionNo').value.trim(),
+                processed: document.getElementById('searchProcessed').value.trim()
+            };
+
+            const result = exceptionMockData.filter(item => {
+                return (!filters.company || item.company === filters.company) &&
+                    (!filters.outboundNo || (item.outboundNo && item.outboundNo.includes(filters.outboundNo))) &&
+                    (!filters.outboundStatus || item.outboundStatus === filters.outboundStatus) &&
+                    (!filters.businessType || item.businessType === filters.businessType) &&
+                    (!filters.sourceNo || (item.sourceNo && item.sourceNo.includes(filters.sourceNo))) &&
+                    (!filters.relatedNo || (item.relatedNo && item.relatedNo.includes(filters.relatedNo))) &&
+                    (!filters.orderType || item.orderType === filters.orderType) &&
+                    (!filters.exceptionStatus || item.exceptionStatus === filters.exceptionStatus) &&
+                    (!filters.targetWarehouse || (item.targetWarehouse && item.targetWarehouse.includes(filters.targetWarehouse))) &&
+                    (!filters.hubSiteCode || (item.hubSiteCode && item.hubSiteCode.includes(filters.hubSiteCode))) &&
+                    (!filters.exceptionType || item.exceptionType === filters.exceptionType) &&
+                    (!filters.exceptionSource || item.exceptionSource === filters.exceptionSource) &&
+                    (!filters.exceptionNo || (item.exceptionNo && item.exceptionNo.includes(filters.exceptionNo))) &&
+                    (!filters.processed || item.processed === filters.processed);
+            });
+
+            renderTable(result);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '出库异常',
+                customSelects: [
+                    { inputId: 'searchCompany', dropdownId: 'searchCompanyDropdown' },
+                    { inputId: 'searchOutboundStatus', dropdownId: 'searchOutboundStatusDropdown' },
+                    { inputId: 'searchBusinessType', dropdownId: 'searchBusinessTypeDropdown' },
+                    { inputId: 'searchOrderType', dropdownId: 'searchOrderTypeDropdown' },
+                    { inputId: 'searchExceptionStatus', dropdownId: 'searchExceptionStatusDropdown' },
+                    { inputId: 'searchExceptionType', dropdownId: 'searchExceptionTypeDropdown' },
+                    { inputId: 'searchExceptionSource', dropdownId: 'searchExceptionSourceDropdown' },
+                    { inputId: 'searchProcessed', dropdownId: 'searchProcessedDropdown' }
+                ],
+                fields: [],
+                addModal: {},
+                editModal: {},
+                deleteModal: {}
+            });
+            page.init();
+
+            renderTable(exceptionMockData);
+            initExceptionDetailModalEvents();
+            document.getElementById('searchBtn').addEventListener('click', searchExceptions);
+        });
+    </script>
+</body>
+</html>

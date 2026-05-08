@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 商品</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        /* 页面特定样式 - 商品详情模态框 */
+        #skuDetailModal .modal-form-group {
+            width: calc(33.33% - 10px);
+        }
+        #skuDetailModal .modal-form-group label {
+            width: 90px;
+        }
+        /* 商品规格信息表格样式 - 防止文字换行 */
+        #skuDetailModal #specTable {
+            table-layout: auto;
+        }
+        #skuDetailModal #specTable th,
+        #skuDetailModal #specTable td {
+            white-space: nowrap;
+            padding: 8px 10px;
+            text-align: center;
+        }
+        #skuDetailModal #specTable th {
+            font-size: 13px;
+        }
+        #skuDetailModal #specTable td {
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+    
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">商品</button>
+            </div>
+            
+            <hr class="content-divider">
+            
+            <div class="content-title">基础信息 / 商品</div>
+            
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group custom-select-wrapper">
+                        <label>货主:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchOwner" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchOwnerDropdown">
+                                <div class="select-option" data-value="Y001">Y001-南京货主</div>
+                                <div class="select-option" data-value="Y002">Y002-北京货主</div>
+                                <div class="select-option" data-value="Y003">Y003-上海货主</div>
+                                <div class="select-option" data-value="Y004">Y004-广州货主</div>
+                                <div class="select-option" data-value="Y005">Y005-深圳货主</div>
+                                <div class="select-option" data-value="Y006">Y006-杭州货主</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>商品编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>商品条码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>商品名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="searchBtn" onclick="location.reload()">查询</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>商品编码</th>
+                                <th>商品条码</th>
+                                <th>商品名称</th>
+                                <th>仓库</th>
+                                <th>货主</th>
+                                <th>商品类目</th>
+                                <th>基本单位</th>
+                                <th>保质期（天）</th>
+                                <th>存储条件</th>
+                                <th>是否计重</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>SKU001</td>
+                                <td>6901234567890</td>
+                                <td>冷冻牛肉卷</td>
+                                <td>W001-南京仓</td>
+                                <td>Y001-南京货主</td>
+                                <td>冷冻肉类</td>
+                                <td>kg</td>
+                                <td>180</td>
+                                <td>冷冻</td>
+                                <td><span class="status active">是</span></td>
+                                <td>2025-01-07 10:30:00</td>
+                                <td>张三</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>SKU002</td>
+                                <td>6901234567891</td>
+                                <td>冷藏酸奶</td>
+                                <td>W001-南京仓</td>
+                                <td>Y002-北京货主</td>
+                                <td>乳制品</td>
+                                <td>盒</td>
+                                <td>21</td>
+                                <td>冷藏</td>
+                                <td><span class="status inactive">否</span></td>
+                                <td>2025-01-07 09:15:00</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>SKU003</td>
+                                <td>6901234567892</td>
+                                <td>速冻水饺</td>
+                                <td>W003-上海仓</td>
+                                <td>Y003-上海货主</td>
+                                <td>速冻食品</td>
+                                <td>袋</td>
+                                <td>365</td>
+                                <td>冷冻</td>
+                                <td><span class="status inactive">否</span></td>
+                                <td>2025-01-06 14:20:00</td>
+                                <td>王五</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>SKU004</td>
+                                <td>6901234567893</td>
+                                <td>常温饼干</td>
+                                <td>W004-北京仓</td>
+                                <td>Y004-广州货主</td>
+                                <td>休闲食品</td>
+                                <td>包</td>
+                                <td>270</td>
+                                <td>常温</td>
+                                <td><span class="status inactive">否</span></td>
+                                <td>2025-01-06 11:00:00</td>
+                                <td>赵六</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>SKU005</td>
+                                <td>6901234567894</td>
+                                <td>冷藏鲜奶</td>
+                                <td>W002-嘉兴仓</td>
+                                <td>Y005-深圳货主</td>
+                                <td>乳制品</td>
+                                <td>瓶</td>
+                                <td>7</td>
+                                <td>冷藏</td>
+                                <td><span class="status inactive">否</span></td>
+                                <td>2025-01-05 16:45:00</td>
+                                <td>钱七</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页组件容器 -->
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 商品详情弹窗 -->
+    <div id="skuDetailModal" class="modal">
+        <div class="modal-content" style="width: 95vw; max-width: 1300px;">
+            <div class="modal-header">
+                <div class="modal-title">商品 - 详情</div>
+                <span class="close" id="detailCloseBtn">&times;</span>
+            </div>
+            <!-- 商品详情信息 -->
+            <form class="modal-form" style="gap: 15px;">
+                <div class="modal-form-group">
+                    <label>仓库</label>
+                    <input type="text" id="detailWarehouse" disabled>
+                </div>
+                <div class="modal-form-group">
+                    <label>货主</label>
+                    <input type="text" id="detailOwner" disabled>
+                </div>
+                <div class="modal-form-group">
+                    <label>商品编码</label>
+                    <input type="text" id="detailSkuCode" disabled>
+                </div>
+                <div class="modal-form-group">
+                    <label>商品条码</label>
+                    <input type="text" id="detailBarcode" disabled>
+                </div>
+                <div class="modal-form-group">
+                    <label>商品名称</label>
+                    <input type="text" id="detailSkuName" disabled>
+                </div>
+                <div class="modal-form-group">
+                    <label>商品类目</label>
+                    <input type="text" id="detailCategory" disabled>
+                </div>
+                <div class="modal-form-group">
+                    <label>基本单位</label>
+                    <input type="text" id="detailUnit" disabled>
+                </div>
+                <div class="modal-form-group">
+                    <label>保质期（天）</label>
+                    <input type="text" id="detailShelfLife" disabled>
+                </div>
+                <div class="modal-form-group">
+                    <label>存储条件</label>
+                    <input type="text" id="detailStorageCondition" disabled>
+                </div>
+                <div class="modal-form-group">
+                    <label>是否计重</label>
+                    <input type="text" id="detailIsWeighed" disabled>
+                </div>
+            </form>
+            
+            <!-- 分割线 -->
+            <hr style="width: 100%; border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
+            
+            <!-- 商品规格信息 - 列表形式 -->
+            <div class="spec-section">
+                <div class="spec-title" style="font-weight: bold; color: #333; margin-bottom: 10px;">商品规格信息</div>
+                <table class="table no-last-column-freeze" id="specTable">
+                    <thead>
+                        <tr>
+                            <th>规格单位</th>
+                            <th>包装数量</th>
+                            <th>长</th>
+                            <th>宽</th>
+                            <th>高</th>
+                            <th>体积</th>
+                            <th>毛重</th>
+                            <th>皮重</th>
+                            <th>净重</th>
+                        </tr>
+                    </thead>
+                    <tbody id="specTableBody">
+                        <tr>
+                            <td id="detailPackUnit">-</td>
+                            <td id="detailPackQty">-</td>
+                            <td id="detailLength">-</td>
+                            <td id="detailWidth">-</td>
+                            <td id="detailHeight">-</td>
+                            <td id="detailVolume">-</td>
+                            <td id="detailGrossWeight">-</td>
+                            <td id="detailTareWeight">-</td>
+                            <td id="detailNetWeight">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="detailCancelBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入公共脚本 -->
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        // 模拟商品详情数据
+        const skuDetails = {
+            'SKU001': {
+                warehouse: 'W001-南京仓', owner: 'Y001-南京货主', skuCode: 'SKU001', barcode: '6901234567890',
+                skuName: '冷冻牛肉卷', category: '食品/肉类/冷冻肉类',
+                unit: 'kg', shelfLife: '180', storageCondition: '冷冻', isWeighed: '是',
+                packSpec: '1*10', packUnit: '箱', packQty: '10',
+                length: '30', width: '20', height: '15', volume: '0.009', grossWeight: '10.5', tareWeight: '0.5', netWeight: '10'
+            },
+            'SKU002': {
+                warehouse: 'W001-南京仓', owner: 'Y002-北京货主', skuCode: 'SKU002', barcode: '6901234567891',
+                skuName: '冷藏酸奶', category: '食品/乳制品/乳制品',
+                unit: '盒', shelfLife: '21', storageCondition: '冷藏', isWeighed: '否',
+                packSpec: '1*24', packUnit: '箱', packQty: '24',
+                length: '40', width: '30', height: '20', volume: '0.024', grossWeight: '6', tareWeight: '0.5', netWeight: '5.5'
+            },
+            'SKU003': {
+                warehouse: 'W003-上海仓', owner: 'Y003-上海货主', skuCode: 'SKU003', barcode: '6901234567892',
+                skuName: '速冻水饺', category: '食品/速冻食品/速冻食品',
+                unit: '袋', shelfLife: '365', storageCondition: '冷冻', isWeighed: '否',
+                packSpec: '1*20', packUnit: '箱', packQty: '20',
+                length: '50', width: '40', height: '30', volume: '0.06', grossWeight: '12', tareWeight: '1', netWeight: '11'
+            },
+            'SKU004': {
+                warehouse: 'W004-北京仓', owner: 'Y004-广州货主', skuCode: 'SKU004', barcode: '6901234567893',
+                skuName: '常温饼干', category: '食品/休闲食品/休闲食品',
+                unit: '包', shelfLife: '270', storageCondition: '常温', isWeighed: '否',
+                packSpec: '1*12', packUnit: '箱', packQty: '12',
+                length: '35', width: '25', height: '20', volume: '0.0175', grossWeight: '4', tareWeight: '0.4', netWeight: '3.6'
+            },
+            'SKU005': {
+                warehouse: 'W002-嘉兴仓', owner: 'Y005-深圳货主', skuCode: 'SKU005', barcode: '6901234567894',
+                skuName: '冷藏鲜奶', category: '食品/乳制品/乳制品',
+                unit: '瓶', shelfLife: '7', storageCondition: '冷藏', isWeighed: '否',
+                packSpec: '1*12', packUnit: '箱', packQty: '12',
+                length: '30', width: '25', height: '25', volume: '0.01875', grossWeight: '13', tareWeight: '1', netWeight: '12'
+            }
+        };
+
+        // 打开详情弹窗
+        function openDetailModal(skuCode) {
+            const detail = skuDetails[skuCode];
+            if (detail) {
+                document.getElementById('detailWarehouse').value = detail.warehouse;
+                document.getElementById('detailOwner').value = detail.owner;
+                document.getElementById('detailSkuCode').value = detail.skuCode;
+                document.getElementById('detailBarcode').value = detail.barcode;
+                document.getElementById('detailSkuName').value = detail.skuName;
+                document.getElementById('detailCategory').value = detail.category;
+                document.getElementById('detailUnit').value = detail.unit;
+                document.getElementById('detailShelfLife').value = detail.shelfLife;
+                document.getElementById('detailStorageCondition').value = detail.storageCondition;
+                document.getElementById('detailIsWeighed').value = detail.isWeighed;
+                document.getElementById('detailPackUnit').textContent = detail.packUnit;
+                document.getElementById('detailPackQty').textContent = detail.packQty;
+                document.getElementById('detailLength').textContent = detail.length;
+                document.getElementById('detailWidth').textContent = detail.width;
+                document.getElementById('detailHeight').textContent = detail.height;
+                document.getElementById('detailVolume').textContent = detail.volume;
+                document.getElementById('detailGrossWeight').textContent = detail.grossWeight;
+                document.getElementById('detailTareWeight').textContent = detail.tareWeight;
+                document.getElementById('detailNetWeight').textContent = detail.netWeight;
+                document.getElementById('skuDetailModal').style.display = 'block';
+            }
+        }
+
+        // 使用PageManager简化页面逻辑
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '商品',
+                statusColumnIndex: -1, // 商品页面没有状态列用于删除检查
+                detailView: {
+                    enabled: true,
+                    onOpenDetail: (row) => {
+                        const skuCode = row.querySelectorAll('td')[1].textContent.trim();
+                        openDetailModal(skuCode);
+                    }
+                },
+                
+                customSelects: [
+                    { inputId: 'searchOwner', dropdownId: 'searchOwnerDropdown' }
+                ],
+                
+                // 商品页面使用查看模态框而不是编辑/删除
+                onView: (element) => {
+                    const row = element.closest('tr');
+                    const skuCode = row.querySelectorAll('td')[1].textContent;
+                    openDetailModal(skuCode);
+                }
+            });
+            
+            page.init();
+            
+            // 商品详情弹窗关闭事件
+            const skuDetailModal = document.getElementById('skuDetailModal');
+            const detailCloseBtn = document.getElementById('detailCloseBtn');
+            const detailCancelBtn = document.getElementById('detailCancelBtn');
+            
+            function closeDetailModal() {
+                skuDetailModal.style.display = 'none';
+            }
+            
+            detailCloseBtn.addEventListener('click', closeDetailModal);
+            detailCancelBtn.addEventListener('click', closeDetailModal);
+            skuDetailModal.addEventListener('click', (e) => {
+                if (e.target === skuDetailModal) closeDetailModal();
+            });
+            
+            // ESC键关闭弹窗
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeDetailModal();
+            });
+            
+            // 编辑按钮事件
+            document.querySelector('.table').addEventListener('click', (e) => {
+                const editBtn = e.target.closest('.edit-btn');
+                if (editBtn) {
+                    e.preventDefault();
+                    showToast('编辑功能开发中', 'info');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 仓库-货主</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .modal-form-group label {
+            width: 110px;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+    
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">仓库-货主</button>
+            </div>
+            
+            <hr class="content-divider">
+            
+            <div class="content-title">策略管理 / 仓库-货主</div>
+            
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 70px;">仓库:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchWarehouse" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchWarehouseDropdown">
+                                <div class="select-option" data-value="W001">W001-南京仓库</div>
+                                <div class="select-option" data-value="W002">W002-北京仓库</div>
+                                <div class="select-option" data-value="W003">W003-上海仓库</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 70px;">货主:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchCompany" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchCompanyDropdown">
+                                <div class="select-option" data-value="Y001">Y001-南京货主</div>
+                                <div class="select-option" data-value="Y002">Y002-北京货主</div>
+                                <div class="select-option" data-value="Y003">Y003-上海货主</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 70px;">公司:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchCompanyDetail" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchCompanyDetailDropdown">
+                                <div class="select-option" data-value="C001">C001-南京公司</div>
+                                <div class="select-option" data-value="C002">C002-北京公司</div>
+                                <div class="select-option" data-value="C003">C003-上海公司</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 70px;">地点:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchLocation" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchLocationDropdown">
+                                <div class="select-option" data-value="L001">L001-南京地点</div>
+                                <div class="select-option" data-value="L002">L002-北京地点</div>
+                                <div class="select-option" data-value="L003">L003-上海地点</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="location.reload()">查询</button>
+                        <button type="button" class="btn btn-secondary" id="addBtn">新增</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>仓库</th>
+                                <th>货主</th>
+                                <th>公司</th>
+                                <th>地点</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W001-南京仓库</td>
+                                <td>Y001-南京货主</td>
+                                <td>C001-南京公司</td>
+                                <td>L001-南京地点</td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W002-北京仓库</td>
+                                <td>Y002-北京货主</td>
+                                <td>C002-北京公司</td>
+                                <td>L002-北京地点</td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页组件容器 -->
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 引入公共脚本 -->
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '仓库-货主',
+                statusColumnIndex: -1,
+                detailView: { enabled: true },
+                
+                customSelects: [
+                    { inputId: 'searchWarehouse', dropdownId: 'searchWarehouseDropdown' },
+                    { inputId: 'searchCompany', dropdownId: 'searchCompanyDropdown' },
+                    { inputId: 'searchCompanyDetail', dropdownId: 'searchCompanyDetailDropdown' },
+                    { inputId: 'searchLocation', dropdownId: 'searchLocationDropdown' }
+                ],
+                
+                fields: [
+                    { id: 'warehouse', label: '仓库', type: 'select', required: true, editDisabled: true, options: CommonOptions.warehouse },
+                    { id: 'company', label: '货主', type: 'select', required: true, editDisabled: true, options: CommonOptions.company },
+                    { id: 'companyDetail', label: '公司', type: 'select', options: CommonOptions.company },
+                    { id: 'location', label: '地点', type: 'select', required: true, options: CommonOptions.location },
+                    { id: 'remark', label: '备注', type: 'textarea', labelWidth: '110px' }
+                ],
+                
+                addModal: {
+                    modalId: 'addWarehouseCompanyModal',
+                    saveBtnId: 'saveWarehouseCompanyBtn',
+                    cancelBtnId: 'cancelWarehouseCompanyBtn',
+                    triggerBtnId: 'addBtn',
+                    validations: [
+                        { id: 'warehouse', message: '请选择仓库', required: true },
+                        { id: 'company', message: '请选择货主', required: true },
+                        { id: 'location', message: '请选择地点', required: true }
+                    ],
+                    onSave: () => {
+                        const warehouse = document.getElementById('warehouse').value.trim();
+                        const company = document.getElementById('company').value.trim();
+                        const companyDetail = document.getElementById('companyDetail').value.trim();
+                        const location = document.getElementById('location').value.trim();
+                        
+                        page.addTableRow({
+                            cells: [
+                                warehouse,
+                                company,
+                                companyDetail,
+                                location,
+                                page.getCurrentTimeStr(),
+                                '当前用户'
+                            ]
+                        });
+                        showToast('仓库-货主信息已保存', 'success');
+                    }
+                },
+                
+                editModal: {
+                    modalId: 'editWarehouseCompanyModal',
+                    saveBtnId: 'editSaveWarehouseCompanyBtn',
+                    cancelBtnId: 'editCancelWarehouseCompanyBtn',
+                    validations: [
+                        { id: 'warehouse', message: '请选择仓库', required: true },
+                        { id: 'company', message: '请选择货主', required: true },
+                        { id: 'location', message: '请选择地点', required: true }
+                    ],
+                    onSave: () => {
+                        if (!page.currentEditRow) return;
+                        page.updateTableRow(page.currentEditRow, {
+                            1: document.getElementById('editWarehouse').value.trim(),
+                            2: document.getElementById('editCompany').value.trim(),
+                            3: document.getElementById('editCompanyDetail').value.trim(),
+                            4: document.getElementById('editLocation').value.trim(),
+                            5: page.getCurrentTimeStr(),
+                            6: '当前用户'
+                        });
+                        showToast('仓库-货主信息已更新', 'success');
+                        page.currentEditRow = null;
+                    },
+                    mapRowToForm: (row) => {
+                        page.currentEditRow = row;
+                        const cells = row.querySelectorAll('td');
+                        return {
+                            editWarehouse: cells[1].textContent,
+                            editCompany: cells[2].textContent,
+                            editCompanyDetail: cells[3].textContent,
+                            editLocation: cells[4].textContent
+                        };
+                    }
+                },
+                
+                deleteModal: {}
+            });
+            
+            page.init();
+        });
+    </script>
+</body>
+</html>

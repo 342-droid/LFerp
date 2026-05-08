@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 出库单</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .status-initial { background-color: #e6f7ff; color: #1890ff; }
+        .status-progress { background-color: #fff7e6; color: #fa8c16; }
+        .status-complete { background-color: #f6ffed; color: #52c41a; }
+        .status-canceled { background-color: #fff1f0; color: #f5222d; }
+
+        .order-number-link {
+            color: #2196f3;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .order-number-link:hover {
+            color: #1976d2;
+            text-decoration: underline;
+        }
+
+        .modal-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .modal-form-group {
+            width: calc(33.33% - 10px);
+        }
+        .modal-form-group label {
+            width: 120px;
+            display: inline-block;
+            margin-right: 8px;
+            color: #666;
+            font-weight: 600;
+        }
+        .modal-form-group input {
+            width: calc(100% - 132px);
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            color: #333;
+            outline: none;
+        }
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">出库单</button>
+            </div>
+
+            <hr class="content-divider">
+            <div class="content-title">出库管理 / 出库单</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 80px;">货主:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchCompany" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchCompanyDropdown">
+                                <div class="select-option" data-value="Y001-南京货主">Y001-南京货主</div>
+                                <div class="select-option" data-value="Y002-杭州货主">Y002-杭州货主</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 110px;">单号:</label>
+                        <input type="text" id="searchOrderNo" placeholder="请输入单号">
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 80px;">目的仓库:</label>
+                        <input type="text" id="searchTargetWarehouse" placeholder="请输入仓库编码或名称">
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 90px;">站点编码:</label>
+                        <input type="text" id="searchSiteCode" placeholder="请输入站点编码">
+                    </div>
+                    
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 80px;">出库类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchOrderType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchOrderTypeDropdown">
+                                <div class="select-option" data-value="销售出库">销售出库</div>
+                                <div class="select-option" data-value="仓配出库">仓配出库</div>
+                                <div class="select-option" data-value="返配出库">返配出库</div>
+                                <div class="select-option" data-value="退供出库">退供出库</div>
+                                <div class="select-option" data-value="调拨出库">调拨出库</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 110px;">出库业务类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchBusinessType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchBusinessTypeDropdown">
+                                <div class="select-option" data-value="直播订单">直播订单</div>
+                                <div class="select-option" data-value="货到即配">货到即配</div>
+                                <div class="select-option" data-value="门店退货">门店退货</div>
+                                <div class="select-option" data-value="仓库退供">仓库退供</div>
+                                <div class="select-option" data-value="仓库调拨">仓库调拨</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 80px;">出库状态:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchStatus" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchStatusDropdown">
+                                <div class="select-option" data-value="初始">初始</div>
+                                <div class="select-option" data-value="已集波">已集波</div>
+                                <div class="select-option" data-value="开始分配">开始分配</div>
+                                <div class="select-option" data-value="分配完成">分配完成</div>
+                                <div class="select-option" data-value="开始拣货">开始拣货</div>
+                                <div class="select-option" data-value="拣货完成">拣货完成</div>
+                                <div class="select-option" data-value="开始分拣">开始分拣</div>
+                                <div class="select-option" data-value="分拣完成">分拣完成</div>
+                                <div class="select-option" data-value="开始复核">开始复核</div>
+                                <div class="select-option" data-value="复核完成">复核完成</div>
+                                <div class="select-option" data-value="开始装载">开始装载</div>
+                                <div class="select-option" data-value="装载完成">装载完成</div>
+                                <div class="select-option" data-value="开始发货">开始发货</div>
+                                <div class="select-option" data-value="发货完成">发货完成</div>
+                                <div class="select-option" data-value="已取消">已取消</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex: 0 0 100%; max-width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 20px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="width: 80px;">创建时间:</label>
+                            <div class="date-range">
+                                <div class="date-picker">
+                                    <input type="date" id="searchCreateTimeStart" data-type="start" placeholder="开始时间">
+                                </div>
+                                <span class="date-range-separator">至</span>
+                                <div class="date-picker">
+                                    <input type="date" id="searchCreateTimeEnd" data-type="end" placeholder="结束时间">
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="width: 80px;">关单时间:</label>
+                            <div class="date-range">
+                                <div class="date-picker">
+                                    <input type="date" id="searchCloseTimeStart" data-type="start" placeholder="开始时间">
+                                </div>
+                                <span class="date-range-separator">至</span>
+                                <div class="date-picker">
+                                    <input type="date" id="searchCloseTimeEnd" data-type="end" placeholder="结束时间">
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="width: 80px;">单据时间:</label>
+                            <div class="date-range">
+                                <div class="date-picker">
+                                    <input type="date" id="searchDocTimeStart" data-type="start" placeholder="开始时间">
+                                </div>
+                                <span class="date-range-separator">至</span>
+                                <div class="date-picker">
+                                    <input type="date" id="searchDocTimeEnd" data-type="end" placeholder="结束时间">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="searchBtn">查询</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>出库单号</th>
+                                <th>来源单号</th>
+                                <th>关联单号</th>
+                                <th>单据时间</th>
+                                <th>仓库</th>
+                                <th>货主</th>
+                                <th>目的仓库</th>
+                                <th>目的站点</th>
+                                <th>详细地址</th>
+                                <th>联系人</th>
+                                <th>电话</th>
+                                <th>出库类型</th>
+                                <th>出库业务类型</th>
+                                <th>出库状态</th>
+                                <th>要求出库时间</th>
+                                <th>要求送达时间</th>
+                                <th>是否拣货异常</th>
+                                <th>是否分拣异常</th>
+                                <th>是否复核异常</th>
+                                <th>制单人</th>
+                                <th>关闭时间</th>
+                                <th>关闭人</th>
+                                <th>取消时间</th>
+                                <th>取消人</th>
+                                <th>备注</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="orderDetailModal" class="modal">
+        <div class="modal-content" style="width: 1100px;">
+            <div class="modal-header">
+                <div class="modal-title">出库单 - 详情</div>
+                <span class="close" id="detailCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="orderDetailLoading" class="loading">加载中...</div>
+                <div id="orderDetailContent" style="display: none;">
+                    <form class="modal-form">
+                        <div class="modal-form-group"><label>出库单号</label><input type="text" id="detailOrderNo" disabled></div>
+                        <div class="modal-form-group"><label>来源单号</label><input type="text" id="detailSourceOrderNo" disabled></div>
+                        <div class="modal-form-group"><label>关联单号</label><input type="text" id="detailRelatedOrderNo" disabled></div>
+                        <div class="modal-form-group"><label>仓库</label><input type="text" id="detailWarehouse" disabled></div>
+                        <div class="modal-form-group"><label>货主</label><input type="text" id="detailCompany" disabled></div>
+                        <div class="modal-form-group"><label>目的仓库</label><input type="text" id="detailTargetWarehouse" disabled></div>
+                        <div class="modal-form-group"><label>目的站点</label><input type="text" id="detailTargetSite" disabled></div>
+                        <div class="modal-form-group"><label>详细地址</label><input type="text" id="detailAddress" disabled></div>
+                        <div class="modal-form-group"><label>联系人</label><input type="text" id="detailContact" disabled></div>
+                        <div class="modal-form-group"><label>电话</label><input type="text" id="detailPhone" disabled></div>
+                        <div class="modal-form-group"><label>波次号</label><input type="text" id="detailWaveNo" disabled></div>
+                        <div class="modal-form-group"><label>出库类型</label><input type="text" id="detailOrderType" disabled></div>
+                        <div class="modal-form-group"><label>出库业务类型</label><input type="text" id="detailBusinessType" disabled></div>
+                        <div class="modal-form-group"><label>出库状态</label><input type="text" id="detailStatus" disabled></div>
+                        <div class="modal-form-group"><label>要求出库时间</label><input type="text" id="detailRequiredOutboundTime" disabled></div>
+                        <div class="modal-form-group"><label>要求送达时间</label><input type="text" id="detailRequiredDeliveryTime" disabled></div>
+                        <div class="modal-form-group"><label>是否拣货异常</label><input type="text" id="detailPickAbnormal" disabled></div>
+                        <div class="modal-form-group"><label>是否分拣异常</label><input type="text" id="detailAllocateAbnormal" disabled></div>
+                        <div class="modal-form-group"><label>是否复核异常</label><input type="text" id="detailReviewAbnormal" disabled></div>
+                        <div class="modal-form-group"><label>单据时间</label><input type="text" id="detailDocTime" disabled></div>
+                        <div class="modal-form-group"><label>制单人</label><input type="text" id="detailCreator" disabled></div>
+                        <div class="modal-form-group"><label>是否关闭</label><input type="text" id="detailIsClosed" disabled></div>
+                        <div class="modal-form-group"><label>关闭时间</label><input type="text" id="detailCloseTime" disabled></div>
+                        <div class="modal-form-group"><label>关闭人</label><input type="text" id="detailCloser" disabled></div>
+                        <div class="modal-form-group"><label>取消时间</label><input type="text" id="detailCancelTime" disabled></div>
+                        <div class="modal-form-group"><label>取消人</label><input type="text" id="detailCanceler" disabled></div>
+                        <div class="modal-form-group"><label>集波时间</label><input type="text" id="detailWaveTime" disabled></div>
+                        <div class="modal-form-group"><label>开始分配时间</label><input type="text" id="detailAllocateStartTime" disabled></div>
+                        <div class="modal-form-group"><label>完成分配时间</label><input type="text" id="detailAllocateEndTime" disabled></div>
+                        <div class="modal-form-group"><label>开始拣货时间</label><input type="text" id="detailPickStartTime" disabled></div>
+                        <div class="modal-form-group"><label>完成拣货时间</label><input type="text" id="detailPickEndTime" disabled></div>
+                        <div class="modal-form-group"><label>开始分拣时间</label><input type="text" id="detailSortStartTime" disabled></div>
+                        <div class="modal-form-group"><label>完成分拣时间</label><input type="text" id="detailSortEndTime" disabled></div>
+                        <div class="modal-form-group"><label>开始复核时间</label><input type="text" id="detailReviewStartTime" disabled></div>
+                        <div class="modal-form-group"><label>完成复核时间</label><input type="text" id="detailReviewEndTime" disabled></div>
+                        <div class="modal-form-group"><label>开始装载时间</label><input type="text" id="detailLoadStartTime" disabled></div>
+                        <div class="modal-form-group"><label>完成装载时间</label><input type="text" id="detailLoadEndTime" disabled></div>
+                        <div class="modal-form-group"><label>开始发货时间</label><input type="text" id="detailShipStartTime" disabled></div>
+                        <div class="modal-form-group"><label>完成发货时间</label><input type="text" id="detailShipEndTime" disabled></div>
+                        <div class="modal-form-group"><label>备注</label><input type="text" id="detailRemark" disabled></div>
+                    </form>
+
+                    <hr style="width: 100%; border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
+                    <div class="spec-title" style="font-weight: 600; color: #333; margin-bottom: 10px;">商品明细</div>
+                    <div class="table-scroll-container">
+                        <table class="table no-last-column-freeze" id="detailProductList">
+                            <thead>
+                                <tr>
+                                    <th>商品编码</th>
+                                    <th>商品名称</th>
+                                    <th>单位</th>
+                                    <th>计划出库量</th>
+                                    <th>已分配量</th>
+                                    <th>已拣货量</th>
+                                    <th>已分拣量</th>
+                                    <th>已复核量</th>
+                                    <th>已装载量</th>
+                                    <th>已发货量</th>
+                                    <th>已取消量</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeDetailModal">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="assignRecordModal" class="modal">
+        <div class="modal-content" style="width: 1300px;">
+            <div class="modal-header">
+                <div class="modal-title">出库单 - 分配记录<span id="assignRecordOrderNo"></span></div>
+                <span class="close" id="assignRecordCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="assignRecordListView">
+                    <div class="search-section" style="margin-bottom: 20px;">
+                        <form class="search-form">
+                            <div class="form-group custom-select-wrapper">
+                                <label style="width: 90px;">分配状态:</label>
+                                <div class="custom-select">
+                                    <input type="text" id="searchAssignStatus" placeholder="请选择">
+                                    <span class="select-arrow">▼</span>
+                                    <span class="clear-btn">×</span>
+                                    <div class="select-dropdown" id="searchAssignStatusDropdown">
+                                        <div class="select-option" data-value="初始">初始</div>
+                                        <div class="select-option" data-value="待拣货">待拣货</div>
+                                        <div class="select-option" data-value="已拣货">已拣货</div>
+                                        <div class="select-option" data-value="已取消">已取消</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label style="width: 60px;">商品:</label>
+                                <input type="text" id="searchAssignProduct" placeholder="请输入商品编码或商品名称">
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-primary" id="searchAssignBtn">查询</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="table-scroll-container">
+                        <table class="table no-last-column-freeze">
+                            <thead>
+                                <tr>
+                                    <th>分配批次</th>
+                                    <th>分配状态</th>
+                                    <th>分配库存ID</th>
+                                    <th>商品编码</th>
+                                    <th>商品名称</th>
+                                    <th>单位</th>
+                                    <th>分配量</th>
+                                    <th>分配储位</th>
+                                    <th>生产日期</th>
+                                    <th>入库日期</th>
+                                    <th>批号</th>
+                                    <th>目的储位</th>
+                                    <th>拣货任务ID</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assignRecordTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="assignRecordDetailView" style="display: none;">
+                    <div class="detail-section">
+                        <div class="detail-title">分配记录详情</div>
+                        <form class="modal-form">
+                            <div class="modal-form-group"><label>分配批次</label><input type="text" id="assignDetailBatchNo" disabled></div>
+                            <div class="modal-form-group"><label>分配状态</label><input type="text" id="assignDetailStatus" disabled></div>
+                            <div class="modal-form-group"><label>分配库存ID</label><input type="text" id="assignDetailInventoryId" disabled></div>
+                            <div class="modal-form-group"><label>商品编码</label><input type="text" id="assignDetailSkuCode" disabled></div>
+                            <div class="modal-form-group"><label>商品名称</label><input type="text" id="assignDetailSkuName" disabled></div>
+                            <div class="modal-form-group"><label>单位</label><input type="text" id="assignDetailUnit" disabled></div>
+                            <div class="modal-form-group"><label>分配量</label><input type="text" id="assignDetailQty" disabled></div>
+                            <div class="modal-form-group"><label>分配储位</label><input type="text" id="assignDetailFromLocation" disabled></div>
+                            <div class="modal-form-group"><label>生产日期</label><input type="text" id="assignDetailProductionDate" disabled></div>
+                            <div class="modal-form-group"><label>入库日期</label><input type="text" id="assignDetailInboundDate" disabled></div>
+                            <div class="modal-form-group"><label>批号</label><input type="text" id="assignDetailBatchCode" disabled></div>
+                            <div class="modal-form-group"><label>目的储位</label><input type="text" id="assignDetailToLocation" disabled></div>
+                            <div class="modal-form-group"><label>拣货任务ID</label><input type="text" id="assignDetailPickTaskId" disabled></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="backAssignListBtn" style="display: none;">返回列表</button>
+                <button type="button" class="btn btn-secondary" id="closeAssignRecordModal">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        const outboundData = [
+            {
+                orderNo: 'OBD202603230001',
+                sourceOrderNo: 'SO202603230001',
+                relatedOrderNo: 'RO202603230001',
+                docTime: '2026-03-23 09:30:00',
+                warehouse: 'W001-南京仓',
+                company: 'Y001-南京货主',
+                targetWarehouse: 'W003-上海仓',
+                targetSite: 'S001-上海虹桥站',
+                address: '上海市闵行区申虹路100号',
+                contact: '张三',
+                phone: '13800138000',
+                waveNo: 'WAVE20260323001',
+                orderType: '销售出库',
+                businessType: '直播订单',
+                status: '开始拣货',
+                requiredOutboundTime: '2026-03-23 10:30:00',
+                requiredDeliveryTime: '2026-03-23 18:00:00',
+                allocateAbnormal: '否',
+                pickAbnormal: '否',
+                reviewAbnormal: '否',
+                creator: '王五',
+                closeTime: '',
+                closer: '',
+                cancelTime: '',
+                canceler: '',
+                remark: '直播大促优先发运',
+                createTime: '2026-03-23 09:10:00',
+                createUser: '王五',
+                updateTime: '2026-03-23 09:45:00',
+                updateUser: '赵六',
+                isClosed: '否',
+                waveTime: '2026-03-23 09:35:00',
+                allocateStartTime: '2026-03-23 09:36:00',
+                allocateEndTime: '2026-03-23 09:40:00',
+                pickStartTime: '2026-03-23 09:42:00',
+                pickEndTime: '',
+                sortStartTime: '',
+                sortEndTime: '',
+                reviewStartTime: '',
+                reviewEndTime: '',
+                loadStartTime: '',
+                loadEndTime: '',
+                shipStartTime: '',
+                shipEndTime: '',
+                products: [
+                    { skuCode: 'SKU1001', skuName: '三文鱼切片 500g', unit: '盒', planQty: 100, allocatedQty: 100, pickedQty: 40, sortedQty: 0, reviewedQty: 0, loadedQty: 0, shippedQty: 0, canceledQty: 0 },
+                    { skuCode: 'SKU1002', skuName: '牛排 300g', unit: '盒', planQty: 60, allocatedQty: 60, pickedQty: 20, sortedQty: 0, reviewedQty: 0, loadedQty: 0, shippedQty: 0, canceledQty: 0 }
+                ]
+            },
+            {
+                orderNo: 'OBD202603230002',
+                sourceOrderNo: 'TR202603230002',
+                relatedOrderNo: 'TR202603230002',
+                docTime: '2026-03-23 11:00:00',
+                warehouse: 'W001-南京仓',
+                company: 'Y002-杭州货主',
+                targetWarehouse: 'W004-杭州仓',
+                targetSite: 'S008-杭州下沙站',
+                address: '杭州市钱塘区学源街18号',
+                contact: '王小明',
+                phone: '13900139000',
+                waveNo: 'WAVE20260323002',
+                orderType: '调拨出库',
+                businessType: '仓库调拨',
+                status: '发货完成',
+                requiredOutboundTime: '2026-03-23 13:00:00',
+                requiredDeliveryTime: '2026-03-23 20:00:00',
+                allocateAbnormal: '否',
+                pickAbnormal: '否',
+                reviewAbnormal: '否',
+                creator: '钱九',
+                closeTime: '',
+                closer: '',
+                cancelTime: '',
+                canceler: '',
+                remark: '跨仓补货',
+                createTime: '2026-03-23 10:30:00',
+                createUser: '钱九',
+                updateTime: '2026-03-23 15:30:00',
+                updateUser: '钱九',
+                isClosed: '否',
+                waveTime: '2026-03-23 11:05:00',
+                allocateStartTime: '2026-03-23 11:06:00',
+                allocateEndTime: '2026-03-23 11:20:00',
+                pickStartTime: '2026-03-23 11:21:00',
+                pickEndTime: '2026-03-23 12:00:00',
+                sortStartTime: '2026-03-23 12:05:00',
+                sortEndTime: '2026-03-23 12:20:00',
+                reviewStartTime: '2026-03-23 12:25:00',
+                reviewEndTime: '2026-03-23 12:35:00',
+                loadStartTime: '2026-03-23 12:40:00',
+                loadEndTime: '2026-03-23 12:50:00',
+                shipStartTime: '2026-03-23 13:00:00',
+                shipEndTime: '2026-03-23 13:05:00',
+                products: [
+                    { skuCode: 'SKU2001', skuName: '冻虾仁 1kg', unit: '袋', planQty: 200, allocatedQty: 200, pickedQty: 200, sortedQty: 200, reviewedQty: 200, loadedQty: 200, shippedQty: 200, canceledQty: 20 }
+                ]
+            }
+        ];
+        const assignRecordDataByOrder = {
+            OBD202603230001: [
+                {
+                    batchNo: 'AP20260323001',
+                    status: '待拣货',
+                    inventoryId: 'INV-20260323-0001',
+                    skuCode: 'SKU1001',
+                    skuName: '三文鱼切片 500g',
+                    unit: '盒',
+                    allocateQty: 80,
+                    fromLocation: 'A-01-01',
+                    productionDate: '2026-03-01',
+                    inboundDate: '2026-03-03',
+                    batchCode: 'BATCH-SY-260301',
+                    toLocation: 'PK-01-01',
+                    pickTaskId: 'PKT202603230001'
+                },
+                {
+                    batchNo: 'AP20260323001',
+                    status: '已拣货',
+                    inventoryId: 'INV-20260323-0002',
+                    skuCode: 'SKU1002',
+                    skuName: '牛排 300g',
+                    unit: '盒',
+                    allocateQty: 20,
+                    fromLocation: 'A-01-02',
+                    productionDate: '2026-02-28',
+                    inboundDate: '2026-03-02',
+                    batchCode: 'BATCH-NP-260228',
+                    toLocation: 'PK-01-02',
+                    pickTaskId: 'PKT202603230002'
+                },
+                {
+                    batchNo: 'AP20260323002',
+                    status: '初始',
+                    inventoryId: 'INV-20260323-0003',
+                    skuCode: 'SKU1001',
+                    skuName: '三文鱼切片 500g',
+                    unit: '盒',
+                    allocateQty: 20,
+                    fromLocation: 'A-01-03',
+                    productionDate: '2026-03-02',
+                    inboundDate: '2026-03-04',
+                    batchCode: 'BATCH-SY-260302',
+                    toLocation: 'PK-01-03',
+                    pickTaskId: ''
+                }
+            ],
+            OBD202603230002: [
+                {
+                    batchNo: 'AP20260323003',
+                    status: '已拣货',
+                    inventoryId: 'INV-20260323-0004',
+                    skuCode: 'SKU2001',
+                    skuName: '冻虾仁 1kg',
+                    unit: '袋',
+                    allocateQty: 180,
+                    fromLocation: 'B-02-01',
+                    productionDate: '2026-02-20',
+                    inboundDate: '2026-02-25',
+                    batchCode: 'BATCH-XR-260220',
+                    toLocation: 'PK-02-01',
+                    pickTaskId: 'PKT202603230003'
+                },
+                {
+                    batchNo: 'AP20260323003',
+                    status: '已取消',
+                    inventoryId: 'INV-20260323-0005',
+                    skuCode: 'SKU2001',
+                    skuName: '冻虾仁 1kg',
+                    unit: '袋',
+                    allocateQty: 20,
+                    fromLocation: 'B-02-02',
+                    productionDate: '2026-02-19',
+                    inboundDate: '2026-02-24',
+                    batchCode: 'BATCH-XR-260219',
+                    toLocation: 'PK-02-02',
+                    pickTaskId: ''
+                }
+            ]
+        };
+        let currentAssignOrderId = '';
+        let currentAssignRecords = [];
+
+        function getStatusClass(status) {
+            if (status === '初始' || status === '已集波') return 'status-initial';
+            if (status.indexOf('开始') === 0) return 'status-progress';
+            if (status.indexOf('完成') > -1 || status === '发货完成') return 'status-complete';
+            if (status === '已取消') return 'status-canceled';
+            return 'status-progress';
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                    <td><a href="#" class="order-number-link" data-order-id="${item.orderNo}">${item.orderNo}</a></td>
+                    <td>${item.sourceOrderNo}</td>
+                    <td>${item.relatedOrderNo}</td>
+                    <td>${item.docTime}</td>
+                    <td>${item.warehouse}</td>
+                    <td>${item.company}</td>
+                    <td>${item.targetWarehouse}</td>
+                    <td>${item.targetSite}</td>
+                    <td>${item.address}</td>
+                    <td>${item.contact}</td>
+                    <td>${item.phone}</td>
+                    <td>${item.orderType}</td>
+                    <td>${item.businessType}</td>
+                    <td><span class="status-badge ${getStatusClass(item.status)}">${item.status}</span></td>
+                    <td>${item.requiredOutboundTime}</td>
+                    <td>${item.requiredDeliveryTime}</td>
+                    <td>${item.pickAbnormal}</td>
+                    <td>${item.allocateAbnormal}</td>
+                    <td>${item.reviewAbnormal}</td>
+                    <td>${item.creator}</td>
+                    <td>${item.closeTime}</td>
+                    <td>${item.closer}</td>
+                    <td>${item.cancelTime}</td>
+                    <td>${item.canceler}</td>
+                    <td>${item.remark}</td>
+                    <td>${item.createTime}</td>
+                    <td>${item.createUser}</td>
+                    <td>${item.updateTime}</td>
+                    <td>${item.updateUser}</td>
+                    <td class="action-links">
+                        <a href="#" class="assign-record-btn" data-order-id="${item.orderNo}">分配记录</a>
+                        <a href="#" class="close-order-btn" data-order-id="${item.orderNo}">关闭</a>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            bindDetailEvents();
+        }
+
+        function bindDetailEvents() {
+            document.querySelectorAll('.order-number-link, .view-detail-btn').forEach(link => {
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+                    const orderId = link.getAttribute('data-order-id');
+                    showOrderDetail(orderId);
+                });
+            });
+            document.querySelectorAll('.assign-record-btn').forEach(link => {
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+                    const orderId = link.getAttribute('data-order-id');
+                    showAssignRecord(orderId);
+                });
+            });
+            document.querySelectorAll('.close-order-btn').forEach(link => {
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+                    if (typeof showToast === 'function') {
+                        showToast('关闭功能待接入', 'info');
+                    }
+                });
+            });
+        }
+
+        function fillDetail(order) {
+            document.getElementById('detailOrderNo').value = order.orderNo || '';
+            document.getElementById('detailSourceOrderNo').value = order.sourceOrderNo || '';
+            document.getElementById('detailRelatedOrderNo').value = order.relatedOrderNo || '';
+            document.getElementById('detailWarehouse').value = order.warehouse || '';
+            document.getElementById('detailCompany').value = order.company || '';
+            document.getElementById('detailTargetWarehouse').value = order.targetWarehouse || '';
+            document.getElementById('detailTargetSite').value = order.targetSite || '';
+            document.getElementById('detailAddress').value = order.address || '';
+            document.getElementById('detailContact').value = order.contact || '';
+            document.getElementById('detailPhone').value = order.phone || '';
+            document.getElementById('detailWaveNo').value = order.waveNo || '';
+            document.getElementById('detailOrderType').value = order.orderType || '';
+            document.getElementById('detailBusinessType').value = order.businessType || '';
+            document.getElementById('detailStatus').value = order.status || '';
+            document.getElementById('detailRequiredOutboundTime').value = order.requiredOutboundTime || '';
+            document.getElementById('detailRequiredDeliveryTime').value = order.requiredDeliveryTime || '';
+            document.getElementById('detailPickAbnormal').value = order.pickAbnormal || '';
+            document.getElementById('detailAllocateAbnormal').value = order.allocateAbnormal || '';
+            document.getElementById('detailReviewAbnormal').value = order.reviewAbnormal || '';
+            document.getElementById('detailDocTime').value = order.docTime || '';
+            document.getElementById('detailCreator').value = order.creator || '';
+            document.getElementById('detailIsClosed').value = order.isClosed || '';
+            document.getElementById('detailCloseTime').value = order.closeTime || '';
+            document.getElementById('detailCloser').value = order.closer || '';
+            document.getElementById('detailCancelTime').value = order.cancelTime || '';
+            document.getElementById('detailCanceler').value = order.canceler || '';
+            document.getElementById('detailWaveTime').value = order.waveTime || '';
+            document.getElementById('detailAllocateStartTime').value = order.allocateStartTime || '';
+            document.getElementById('detailAllocateEndTime').value = order.allocateEndTime || '';
+            document.getElementById('detailPickStartTime').value = order.pickStartTime || '';
+            document.getElementById('detailPickEndTime').value = order.pickEndTime || '';
+            document.getElementById('detailSortStartTime').value = order.sortStartTime || '';
+            document.getElementById('detailSortEndTime').value = order.sortEndTime || '';
+            document.getElementById('detailReviewStartTime').value = order.reviewStartTime || '';
+            document.getElementById('detailReviewEndTime').value = order.reviewEndTime || '';
+            document.getElementById('detailLoadStartTime').value = order.loadStartTime || '';
+            document.getElementById('detailLoadEndTime').value = order.loadEndTime || '';
+            document.getElementById('detailShipStartTime').value = order.shipStartTime || '';
+            document.getElementById('detailShipEndTime').value = order.shipEndTime || '';
+            document.getElementById('detailRemark').value = order.remark || '';
+
+            const tbody = document.querySelector('#detailProductList tbody');
+            tbody.innerHTML = '';
+            (order.products || []).forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.skuCode}</td>
+                    <td>${product.skuName}</td>
+                    <td>${product.unit}</td>
+                    <td>${product.planQty}</td>
+                    <td>${product.allocatedQty}</td>
+                    <td>${product.pickedQty}</td>
+                    <td>${product.sortedQty}</td>
+                    <td>${product.reviewedQty}</td>
+                    <td>${product.loadedQty}</td>
+                    <td>${product.shippedQty}</td>
+                    <td>${product.canceledQty ?? 0}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function showOrderDetail(orderId) {
+            const modal = document.getElementById('orderDetailModal');
+            const loading = document.getElementById('orderDetailLoading');
+            const content = document.getElementById('orderDetailContent');
+            const order = outboundData.find(item => item.orderNo === orderId) || {};
+
+            loading.style.display = 'block';
+            content.style.display = 'none';
+            modal.style.display = 'block';
+
+            setTimeout(() => {
+                fillDetail(order);
+                loading.style.display = 'none';
+                content.style.display = 'block';
+            }, 200);
+        }
+
+        function searchOrders() {
+            const filters = {
+                orderNo: document.getElementById('searchOrderNo').value.trim(),
+                targetWarehouse: document.getElementById('searchTargetWarehouse').value.trim(),
+                siteCode: document.getElementById('searchSiteCode').value.trim(),
+                company: document.getElementById('searchCompany').value.trim(),
+                orderType: document.getElementById('searchOrderType').value.trim(),
+                businessType: document.getElementById('searchBusinessType').value.trim(),
+                status: document.getElementById('searchStatus').value.trim(),
+                startDate: document.getElementById('searchDocTimeStart').value.trim(),
+                endDate: document.getElementById('searchDocTimeEnd').value.trim(),
+                createStartDate: document.getElementById('searchCreateTimeStart').value.trim(),
+                createEndDate: document.getElementById('searchCreateTimeEnd').value.trim(),
+                closeStartDate: document.getElementById('searchCloseTimeStart').value.trim(),
+                closeEndDate: document.getElementById('searchCloseTimeEnd').value.trim()
+            };
+
+            const result = outboundData.filter(item => {
+                const docDate = item.docTime.slice(0, 10);
+                const createDate = item.createTime ? item.createTime.slice(0, 10) : '';
+                const closeDate = item.closeTime ? item.closeTime.slice(0, 10) : '';
+                return (!filters.orderNo || item.orderNo.includes(filters.orderNo)) &&
+                    (!filters.targetWarehouse || item.targetWarehouse.includes(filters.targetWarehouse)) &&
+                    (!filters.siteCode || item.targetSite.includes(filters.siteCode)) &&
+                    (!filters.company || item.company === filters.company) &&
+                    (!filters.orderType || item.orderType === filters.orderType) &&
+                    (!filters.businessType || item.businessType === filters.businessType) &&
+                    (!filters.status || item.status === filters.status) &&
+                    (!filters.startDate || docDate >= filters.startDate) &&
+                    (!filters.endDate || docDate <= filters.endDate) &&
+                    (!filters.createStartDate || (createDate && createDate >= filters.createStartDate)) &&
+                    (!filters.createEndDate || (createDate && createDate <= filters.createEndDate)) &&
+                    (!filters.closeStartDate || (closeDate && closeDate >= filters.closeStartDate)) &&
+                    (!filters.closeEndDate || (closeDate && closeDate <= filters.closeEndDate));
+            });
+
+            renderTable(result);
+        }
+
+        function showAssignRecord(orderId) {
+            const modal = document.getElementById('assignRecordModal');
+            const orderNoElement = document.getElementById('assignRecordOrderNo');
+            currentAssignOrderId = orderId;
+            orderNoElement.textContent = orderId ? ` - ${orderId}` : '';
+            document.getElementById('searchAssignStatus').value = '';
+            document.getElementById('searchAssignProduct').value = '';
+            showAssignRecordListView();
+            searchAssignRecords();
+            modal.style.display = 'block';
+        }
+
+        function showAssignRecordListView() {
+            document.getElementById('assignRecordListView').style.display = 'block';
+            document.getElementById('assignRecordDetailView').style.display = 'none';
+            document.getElementById('backAssignListBtn').style.display = 'none';
+        }
+
+        function showAssignRecordDetailView(record) {
+            document.getElementById('assignRecordListView').style.display = 'none';
+            document.getElementById('assignRecordDetailView').style.display = 'block';
+            document.getElementById('backAssignListBtn').style.display = 'inline-block';
+            document.getElementById('assignDetailBatchNo').value = record.batchNo || '-';
+            document.getElementById('assignDetailStatus').value = record.status || '-';
+            document.getElementById('assignDetailInventoryId').value = record.inventoryId || '-';
+            document.getElementById('assignDetailSkuCode').value = record.skuCode || '-';
+            document.getElementById('assignDetailSkuName').value = record.skuName || '-';
+            document.getElementById('assignDetailUnit').value = record.unit || '-';
+            document.getElementById('assignDetailQty').value = record.allocateQty ?? '-';
+            document.getElementById('assignDetailFromLocation').value = record.fromLocation || '-';
+            document.getElementById('assignDetailProductionDate').value = record.productionDate || '-';
+            document.getElementById('assignDetailInboundDate').value = record.inboundDate || '-';
+            document.getElementById('assignDetailBatchCode').value = record.batchCode || '-';
+            document.getElementById('assignDetailToLocation').value = record.toLocation || '-';
+            document.getElementById('assignDetailPickTaskId').value = record.pickTaskId || '-';
+        }
+
+        function searchAssignRecords() {
+            const status = document.getElementById('searchAssignStatus').value.trim();
+            const productKeyword = document.getElementById('searchAssignProduct').value.trim().toLowerCase();
+            const sourceData = assignRecordDataByOrder[currentAssignOrderId] || [];
+            currentAssignRecords = sourceData.filter(record => {
+                const productMatched = !productKeyword ||
+                    record.skuCode.toLowerCase().includes(productKeyword) ||
+                    record.skuName.toLowerCase().includes(productKeyword);
+                const statusMatched = !status || record.status === status;
+                return statusMatched && productMatched;
+            });
+            renderAssignRecordTable(currentAssignRecords);
+        }
+
+        function renderAssignRecordTable(records) {
+            const tbody = document.getElementById('assignRecordTableBody');
+            tbody.innerHTML = '';
+            records.forEach((record, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.batchNo || '-'}</td>
+                    <td>${record.status || '-'}</td>
+                    <td><a href="#" class="order-number-link assign-inventory-link" data-index="${index}">${record.inventoryId || '-'}</a></td>
+                    <td>${record.skuCode || '-'}</td>
+                    <td>${record.skuName || '-'}</td>
+                    <td>${record.unit || '-'}</td>
+                    <td>${record.allocateQty ?? '-'}</td>
+                    <td>${record.fromLocation || '-'}</td>
+                    <td>${record.productionDate || '-'}</td>
+                    <td>${record.inboundDate || '-'}</td>
+                    <td>${record.batchCode || '-'}</td>
+                    <td>${record.toLocation || '-'}</td>
+                    <td>${record.pickTaskId || '-'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            bindAssignRecordDetailEvents();
+        }
+
+        function bindAssignRecordDetailEvents() {
+            document.querySelectorAll('.assign-inventory-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const index = Number(link.getAttribute('data-index'));
+                    const record = currentAssignRecords[index];
+                    if (record) {
+                        showAssignRecordDetailView(record);
+                    }
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '出库单',
+                customSelects: [
+                    { inputId: 'searchCompany', dropdownId: 'searchCompanyDropdown' },
+                    { inputId: 'searchOrderType', dropdownId: 'searchOrderTypeDropdown' },
+                    { inputId: 'searchBusinessType', dropdownId: 'searchBusinessTypeDropdown' },
+                    { inputId: 'searchStatus', dropdownId: 'searchStatusDropdown' },
+                    { inputId: 'searchAssignStatus', dropdownId: 'searchAssignStatusDropdown' }
+                ],
+                fields: [],
+                addModal: {},
+                editModal: {},
+                deleteModal: {}
+            });
+            page.init();
+
+            renderTable(outboundData);
+            document.getElementById('searchBtn').addEventListener('click', searchOrders);
+
+            const modal = document.getElementById('orderDetailModal');
+            document.getElementById('closeDetailModal').addEventListener('click', () => { modal.style.display = 'none'; });
+            document.getElementById('detailCloseBtn').addEventListener('click', () => { modal.style.display = 'none'; });
+            const assignModal = document.getElementById('assignRecordModal');
+            document.getElementById('closeAssignRecordModal').addEventListener('click', () => { assignModal.style.display = 'none'; });
+            document.getElementById('assignRecordCloseBtn').addEventListener('click', () => { assignModal.style.display = 'none'; });
+            document.getElementById('searchAssignBtn').addEventListener('click', searchAssignRecords);
+            document.getElementById('backAssignListBtn').addEventListener('click', showAssignRecordListView);
+            window.addEventListener('click', e => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+                if (e.target === assignModal) {
+                    assignModal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

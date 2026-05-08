@@ -1,0 +1,40 @@
+/* 设计令牌：与冷丰 ERP 原型主色一致（橙 + 深侧栏） */
+:root {
+  /* 主色 / 高亮 */
+  --color-primary: #ff7019;
+  --color-primary-hover: #e85f10;
+  --color-primary-soft: rgba(255, 106, 0, 0.12);
+
+  /* 侧栏 */
+  --color-sidebar-bg: #2c313c;
+  --color-sidebar-text: #ffffff;
+  --color-sidebar-active-bg: var(--color-primary);
+
+  /* 顶栏与内容 */
+  --color-header-bg: #ffffff;
+  --color-bg-page: #f0f2f5;
+  --color-bg-content: #fafafa;
+  --color-border: #e8e8e8;
+  --color-text: #333333;
+  --color-text-secondary: #666666;
+  --color-text-muted: #999999;
+
+  /* Logo 辅助色（示意） */
+  --color-logo-purple: #6b4cff;
+  --color-logo-yellow: #ffc53d;
+
+  /* 间距与圆角 */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --shadow-header: 0 1px 4px rgba(0, 0, 0, 0.06);
+
+  /* 布局尺寸 */
+  --layout-sidebar-width: 200px;
+  /* 顶栏模块为「上图标下文字」，略增高避免拥挤 */
+  --layout-header-height: 60px;
+  --layout-tabs-height: 40px;
+}

@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 库存规则</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        /* 页面特定样式 - 库存规则模态框label宽度 */
+        .modal-form-group label {
+            width: 120px;
+        }
+        /* 详情模式：隐藏添加明细与明细表操作列 */
+        #editInventoryRuleModal.inventory-rule-detail-readonly #editAddDetailBtn {
+            display: none !important;
+        }
+        #editInventoryRuleModal.inventory-rule-detail-readonly #editDetailTable th:last-child,
+        #editInventoryRuleModal.inventory-rule-detail-readonly #editDetailTable td:last-child {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+    
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">库存规则</button>
+            </div>
+            
+            <hr class="content-divider">
+            
+            <div class="content-title">策略管理 / 库存规则</div>
+            
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group">
+                        <label>规则编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>来源触发:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchSourceTrigger" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchSourceTriggerDropdown">
+                                <div class="select-option" data-value="receive_confirm">收货确认</div>
+                                <div class="select-option" data-value="receive_cancel">收货取消</div>
+                                <div class="select-option" data-value="pick_occupied">库存占用</div>
+                                <div class="select-option" data-value="occupy_cancel">取消占用</div>
+                                <div class="select-option" data-value="pick_finish">拣货完成</div>
+                                <div class="select-option" data-value="sort_finish">分拣完成</div>
+                                <div class="select-option" data-value="ship_finish">发货完成</div>
+                                <div class="select-option" data-value="exception_accept">异常受理</div>
+                                <div class="select-option" data-value="exception_recover">异常恢复</div>
+                                <div class="select-option" data-value="exception_shortage">异常缺货</div>
+                                <div class="select-option" data-value="in_warehouse_reshelf">库内返架</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>是否启用:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchIsEnabled" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchIsEnabledDropdown">
+                                <div class="select-option" data-value="yes">启用</div>
+                                <div class="select-option" data-value="no">禁用</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="location.reload()">查询</button>
+                        <button type="button" class="btn btn-secondary" id="addBtn">新增</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>规则编码</th>
+                                <th>来源触发</th>
+                                <th>备注</th>
+                                <th>是否启用</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W001</td>
+                                <td>收货确认</td>
+                                <td>收货确认规则</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W002</td>
+                                <td>收货取消</td>
+                                <td>收货取消规则</td>
+                                <td><span class="status inactive">禁用</span></td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W003</td>
+                                <td>库存占用</td>
+                                <td>库存占用规则</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W004</td>
+                                <td>取消占用</td>
+                                <td>取消占用规则</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2026-04-16 09:00:00</td>
+                                <td>当前用户</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W005</td>
+                                <td>拣货完成</td>
+                                <td>拣货完成规则</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2026-04-01 17:11:52</td>
+                                <td>当前用户</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W006</td>
+                                <td>分拣完成</td>
+                                <td>分拣完成规则</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2026-04-13 15:29:42</td>
+                                <td>当前用户</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W007</td>
+                                <td>发货完成</td>
+                                <td>发货完成规则</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2026-04-13 21:01:45</td>
+                                <td>当前用户</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W008</td>
+                                <td>异常受理</td>
+                                <td>异常受理规则</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2026-04-16 17:11:41</td>
+                                <td>当前用户</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W009</td>
+                                <td>异常恢复</td>
+                                <td>异常恢复规则</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2026-04-16 20:52:23</td>
+                                <td>当前用户</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W010</td>
+                                <td>异常缺货</td>
+                                <td>异常缺货规则</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2026-04-17 14:28:03</td>
+                                <td>当前用户</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W011</td>
+                                <td>库内返架</td>
+                                <td>库内返架规则</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2026-05-07 15:04:11</td>
+                                <td>当前用户</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页组件容器 -->
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 添加明细模态框 -->
+    <div id="detailModal" class="modal" style="display: none; align-items: flex-start; padding-top: 10%; z-index: 3001;">
+        <div class="modal-content" style="width: 400px; max-height: none; margin: 0 auto;">
+            <div class="modal-header" style="margin-bottom: 15px;">
+                <h2 class="modal-title">库存规则明细</h2>
+                <span class="close" id="detailCloseBtn">&times;</span>
+            </div>
+            <form class="modal-form" style="gap: 15px;">
+                <div class="modal-form-group custom-select-wrapper" style="width: 100%;">
+                    <label>规则类型 <span style="color: red;">*</span></label>
+                    <div class="custom-select">
+                        <input type="text" id="detailRuleType" placeholder="请选择">
+                        <span class="select-arrow">▼</span>
+                        <span class="clear-btn">×</span>
+                        <div class="select-dropdown" id="detailRuleTypeDropdown">
+                            <div class="select-option" data-value="source">来源库存</div>
+                            <div class="select-option" data-value="target">目的库存</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-form-group custom-select-wrapper" style="width: 100%;">
+                    <label>变更类型 <span style="color: red;">*</span></label>
+                    <div class="custom-select">
+                        <input type="text" id="detailChangeType" placeholder="请选择">
+                        <span class="select-arrow">▼</span>
+                        <span class="clear-btn">×</span>
+                        <div class="select-dropdown" id="detailChangeTypeDropdown">
+                            <div class="select-option" data-value="stock">库存量</div>
+                            <div class="select-option" data-value="occupied">占用量</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-form-group custom-select-wrapper" style="width: 100%;">
+                    <label>变更方向 <span style="color: red;">*</span></label>
+                    <div class="custom-select">
+                        <input type="text" id="detailChangeDirection" placeholder="请选择">
+                        <span class="select-arrow">▼</span>
+                        <span class="clear-btn">×</span>
+                        <div class="select-dropdown" id="detailChangeDirectionDropdown">
+                            <div class="select-option" data-value="increase">增加</div>
+                            <div class="select-option" data-value="decrease">减少</div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer" style="margin-top: 15px;">
+                <button type="button" class="btn btn-secondary" id="detailCancelBtn">取消</button>
+                <button type="button" class="btn btn-primary" id="detailSaveBtn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入公共脚本 -->
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        // 使用PageManager简化页面逻辑
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '库存规则',
+                statusColumnIndex: 4,
+                detailView: { enabled: true },
+                
+                customSelects: [
+                    { inputId: 'searchSourceTrigger', dropdownId: 'searchSourceTriggerDropdown' },
+                    { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' }
+                ],
+                
+                fields: [
+                    { id: 'ruleCode', label: '规则编码', type: 'text', required: true, editDisabled: true },
+                    { id: 'sourceTrigger', label: '来源触发', type: 'select', required: true, options: CommonOptions.sourceTrigger },
+                    { id: 'isEnabled', label: '是否启用', type: 'select', required: true, options: CommonOptions.isEnabled },
+                    { id: 'remark', label: '备注', type: 'textarea', labelWidth: '120px' },
+                    { 
+                        type: 'raw', 
+                        editHtml: `
+                            <div class="modal-form-group" style="width: 100%; flex-direction: column; align-items: flex-start; gap: 10px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                    <label style="width: auto;">库存规则明细</label>
+                                    <div style="display: flex; gap: 10px;">
+                                        <button type="button" class="btn btn-primary" id="editAddDetailBtn">添加明细</button>
+                                        <button type="button" class="btn btn-primary" id="editSaveInventoryRuleBtn">保存</button>
+                                        <button type="button" class="btn btn-secondary" id="editCancelInventoryRuleBtn">取消</button>
+                                    </div>
+                                </div>
+                                <div class="table-scroll-container" style="width: 100%; max-height: 200px; overflow-y: auto;">
+                                    <table class="table" id="editDetailTable">
+                                        <thead>
+                                            <tr>
+                                                <th>规则类型</th>
+                                                <th>变更类型</th>
+                                                <th>变更方向</th>
+                                                <th>更新时间</th>
+                                                <th>更新人</th>
+                                                <th>操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="editDetailTableBody">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <style>
+                                #editInventoryRuleModal .modal-footer {
+                                    display: none !important;
+                                }
+                            </style>
+                        `
+                    }
+                ],
+                
+                addModal: {
+                    modalId: 'addInventoryRuleModal',
+                    saveBtnId: 'saveInventoryRuleBtn',
+                    cancelBtnId: 'cancelInventoryRuleBtn',
+                    triggerBtnId: 'addBtn',
+                    defaults: { isEnabled: '启用' },
+                    validations: [
+                        { id: 'ruleCode', message: '请输入规则编码', required: true },
+                        { id: 'sourceTrigger', message: '请选择来源触发', required: true },
+                        { id: 'isEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        const code = document.getElementById('ruleCode').value.trim();
+                        const sourceTrigger = document.getElementById('sourceTrigger').value.trim();
+                        const remark = document.getElementById('remark').value.trim();
+                        const enabled = document.getElementById('isEnabled').value.trim();
+                        
+                        page.addTableRow({
+                            cells: [
+                                code,
+                                sourceTrigger,
+                                remark,
+                                { value: enabled, isStatus: true },
+                                page.getCurrentTimeStr(),
+                                '当前用户'
+                            ]
+                        });
+                        showToast('库存规则信息已保存', 'success');
+                    }
+                },
+                
+                editModal: {
+                    modalId: 'editInventoryRuleModal',
+                    saveBtnId: 'editSaveInventoryRuleBtn',
+                    cancelBtnId: 'editCancelInventoryRuleBtn',
+                    onDetailModeChange: (isDetail) => {
+                        const modal = document.getElementById('editInventoryRuleModal');
+                        if (modal) {
+                            modal.classList.toggle('inventory-rule-detail-readonly', !!isDetail);
+                        }
+                    },
+                    validations: [
+                        { id: 'editSourceTrigger', message: '请选择来源触发', required: true },
+                        { id: 'editIsEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        if (!page.currentEditRow) return;
+                        page.updateTableRow(page.currentEditRow, {
+                            2: document.getElementById('editSourceTrigger').value.trim(),
+                            3: document.getElementById('editRemark').value.trim(),
+                            4: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
+                            5: page.getCurrentTimeStr(),
+                            6: '当前用户'
+                        });
+                        showToast('库存规则信息已更新', 'success');
+                        page.currentEditRow = null;
+                    },
+                    mapRowToForm: (row) => {
+                        page.currentEditRow = row;
+                        const cells = row.querySelectorAll('td');
+                        const ruleCode = cells[1].textContent.trim();
+                        renderEditDetailRows(ruleCode);
+                        return {
+                            editRuleCode: ruleCode,
+                            editSourceTrigger: cells[2].textContent,
+                            editRemark: cells[3].textContent,
+                            editIsEnabled: cells[4].querySelector('.status').textContent
+                        };
+                    }
+                },
+                
+                deleteModal: {}
+            });
+            
+            const mockDetailDataByRule = {
+                W001: [
+                    { ruleType: '来源库存', changeType: '库存量', changeDirection: '增加' }
+                ],
+                W002: [
+                    { ruleType: '来源库存', changeType: '库存量', changeDirection: '减少' }
+                ],
+                W003: [
+                    { ruleType: '来源库存', changeType: '占用量', changeDirection: '增加' }
+                ],
+                W004: [
+                    { ruleType: '来源库存', changeType: '占用量', changeDirection: '减少' }
+                ],
+                W005: [
+                    { ruleType: '来源库存', changeType: '占用量', changeDirection: '减少' },
+                    { ruleType: '来源库存', changeType: '库存量', changeDirection: '减少' },
+                    { ruleType: '目的库存', changeType: '库存量', changeDirection: '增加' }
+                ],
+                W006: [
+                    { ruleType: '来源库存', changeType: '库存量', changeDirection: '减少' },
+                    { ruleType: '目的库存', changeType: '库存量', changeDirection: '增加' }
+                ],
+                W007: [
+                    {
+                        ruleType: '来源库存',
+                        changeType: '库存量',
+                        changeDirection: '减少',
+                        updateTime: '2026-04-13 21:01:45'
+                    }
+                ],
+                W008: [
+                
+                    {
+                        ruleType: '来源库存',
+                        changeType: '库存量',
+                        changeDirection: '减少',
+                        updateTime: '2026-04-16 17:11:35'
+                    },
+                    {
+                        ruleType: '目的库存',
+                        changeType: '库存量',
+                        changeDirection: '增加',
+                        updateTime: '2026-04-16 17:11:41'
+                    }
+                ],
+                W009: [
+                    {
+                        ruleType: '来源库存',
+                        changeType: '库存量',
+                        changeDirection: '减少',
+                        updateTime: '2026-04-16 20:52:18'
+                    },
+                    {
+                        ruleType: '目的库存',
+                        changeType: '库存量',
+                        changeDirection: '增加',
+                        updateTime: '2026-04-16 20:52:23'
+                    }
+                ],
+                W010: [
+                    {
+                        ruleType: '来源库存',
+                        changeType: '库存量',
+                        changeDirection: '减少',
+                        updateTime: '2026-04-17 14:28:03'
+                    }
+                ],
+                W011: [
+                    {
+                        ruleType: '来源库存',
+                        changeType: '库存量',
+                        changeDirection: '减少',
+                        updateTime: '2026-05-07 15:04:06'
+                    },
+                    {
+                        ruleType: '目的库存',
+                        changeType: '库存量',
+                        changeDirection: '增加',
+                        updateTime: '2026-05-07 15:04:11'
+                    }
+                ]
+            };
+            
+            function renderEditDetailRows(ruleCode) {
+                const editDetailTableBody = document.getElementById('editDetailTableBody');
+                if (!editDetailTableBody) return;
+                
+                const details = mockDetailDataByRule[ruleCode] || [];
+                if (details.length === 0) {
+                    editDetailTableBody.innerHTML = '';
+                    return;
+                }
+                
+                const timeStr = page.getCurrentTimeStr();
+                editDetailTableBody.innerHTML = details.map((item) => `
+                    <tr>
+                        <td>${item.ruleType}</td>
+                        <td>${item.changeType}</td>
+                        <td>${item.changeDirection}</td>
+                        <td>${item.updateTime || timeStr}</td>
+                        <td>当前用户</td>
+                        <td class="action-links">
+                            <a href="#" class="detail-delete-btn delete-btn">删除</a>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+            
+            page.init();
+
+            // 分页切换会重绘tbody，监听后重新装饰“规则编码”详情链接
+            const tableBody = document.getElementById('tableBody');
+            if (tableBody && typeof MutationObserver !== 'undefined') {
+                const detailLinkObserver = new MutationObserver(() => {
+                    page.decorateAllDetailLinkCells();
+                });
+                detailLinkObserver.observe(tableBody, { childList: true });
+            }
+            
+            // 初始化明细模态框的下拉框
+            if (typeof initCustomSelect === 'function') {
+                initCustomSelect('detailRuleType', 'detailRuleTypeDropdown');
+                initCustomSelect('detailChangeType', 'detailChangeTypeDropdown');
+                initCustomSelect('detailChangeDirection', 'detailChangeDirectionDropdown');
+            }
+            
+            // 明细模态框逻辑
+            const detailModal = document.getElementById('detailModal');
+            const detailCloseBtn = document.getElementById('detailCloseBtn');
+            const detailCancelBtn = document.getElementById('detailCancelBtn');
+            const detailSaveBtn = document.getElementById('detailSaveBtn');
+            
+            let currentDetailTarget = null; // 'edit'
+            
+            // 打开明细模态框
+            function openDetailModal(target) {
+                currentDetailTarget = target;
+                detailModal.style.display = 'flex';
+                // 清空表单
+                document.getElementById('detailRuleType').value = '';
+                document.getElementById('detailRuleType').dataset.value = '';
+                document.getElementById('detailChangeType').value = '';
+                document.getElementById('detailChangeType').dataset.value = '';
+                document.getElementById('detailChangeDirection').value = '';
+                document.getElementById('detailChangeDirection').dataset.value = '';
+            }
+            
+            // 关闭明细模态框
+            function closeDetailModal() {
+                detailModal.style.display = 'none';
+                currentDetailTarget = null;
+            }
+            
+            // 明细模态框事件绑定（使用事件委托，因为按钮是动态生成的）
+            document.addEventListener('click', (e) => {
+                if (e.target.id === 'editAddDetailBtn') {
+                    e.preventDefault();
+                    openDetailModal('edit');
+                }
+            });
+            
+            if (detailCloseBtn) {
+                detailCloseBtn.addEventListener('click', closeDetailModal);
+            }
+            if (detailCancelBtn) {
+                detailCancelBtn.addEventListener('click', closeDetailModal);
+            }
+            
+            // 保存明细
+            if (detailSaveBtn) {
+                detailSaveBtn.addEventListener('click', () => {
+                    const ruleTypeInput = document.getElementById('detailRuleType');
+                    const changeTypeInput = document.getElementById('detailChangeType');
+                    const changeDirectionInput = document.getElementById('detailChangeDirection');
+                    
+                    const ruleTypeCode = ruleTypeInput.dataset.value || '';
+                    const ruleTypeText = ruleTypeInput.value.trim();
+                    const changeTypeCode = changeTypeInput.dataset.value || '';
+                    const changeTypeText = changeTypeInput.value.trim();
+                    const changeDirectionCode = changeDirectionInput.dataset.value || '';
+                    const changeDirectionText = changeDirectionInput.value.trim();
+                    
+                    if (!ruleTypeCode) {
+                        showToast('请选择规则类型', 'error');
+                        return;
+                    }
+                    if (!changeTypeCode) {
+                        showToast('请选择变更类型', 'error');
+                        return;
+                    }
+                    if (!changeDirectionCode) {
+                        showToast('请选择变更方向', 'error');
+                        return;
+                    }
+                    
+                    // 检查重复数据
+                    const existingRows = document.querySelectorAll('#editDetailTableBody tr');
+                    const existingData = [];
+                    existingRows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length >= 3) {
+                            existingData.push({
+                                ruleType: cells[0].textContent,
+                                changeType: cells[1].textContent,
+                                changeDirection: cells[2].textContent
+                            });
+                        }
+                    });
+                    
+                    // 检查是否有重复
+                    const isDuplicate = existingData.some(item => 
+                        item.ruleType === ruleTypeText && 
+                        item.changeType === changeTypeText && 
+                        item.changeDirection === changeDirectionText
+                    );
+                    
+                    if (isDuplicate) {
+                        showToast('已存在重复内容，请检查！', 'error');
+                        return;
+                    }
+                    
+                    const now = new Date();
+                    const timeStr = now.getFullYear() + '-' + 
+                        String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                        String(now.getDate()).padStart(2, '0') + ' ' +
+                        String(now.getHours()).padStart(2, '0') + ':' +
+                        String(now.getMinutes()).padStart(2, '0') + ':' +
+                        String(now.getSeconds()).padStart(2, '0');
+                    
+                    const newRow = `
+                        <tr>
+                            <td>${ruleTypeText}</td>
+                            <td>${changeTypeText}</td>
+                            <td>${changeDirectionText}</td>
+                            <td>${timeStr}</td>
+                            <td>当前用户</td>
+                            <td class="action-links">
+                                <a href="#" class="detail-delete-btn delete-btn">删除</a>
+                            </td>
+                        </tr>
+                    `;
+                    const editDetailTableBody = document.getElementById('editDetailTableBody');
+                    if (editDetailTableBody) {
+                        editDetailTableBody.insertAdjacentHTML('beforeend', newRow);
+                    }
+                    
+                    showToast('明细已添加', 'success');
+                    closeDetailModal();
+                });
+            }
+            
+            // 明细删除事件委托
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('detail-delete-btn')) {
+                    e.preventDefault();
+                    const row = e.target.closest('tr');
+                    if (row) {
+                        row.remove();
+                        showToast('明细已删除', 'success');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

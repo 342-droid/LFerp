@@ -1,0 +1,19 @@
+{
+  "revenueList": [
+    { "id": 1, "date": "2024-03-26", "merchant": "某某某餐饮店", "amount": 15000, "ratio": "1.5%", "profit": 225, "status": "settled", "settleTime": "2024-03-27 09:00", "newUsers": 100, "orders": 100, "volume": 100 },
+    { "id": 2, "date": "2024-03-26", "merchant": "好味来火锅店", "amount": 22000, "ratio": "1.2%", "profit": 264, "status": "settled", "settleTime": "2024-03-27 09:00", "newUsers": 85, "orders": 120, "volume": 220 },
+    { "id": 3, "date": "2024-03-25", "merchant": "鲜果时光水果店", "amount": 8500, "ratio": "1.5%", "profit": 127.5, "status": "pending", "settleTime": "", "newUsers": 45, "orders": 60, "volume": 85 },
+    { "id": 4, "date": "2024-03-25", "merchant": "优品便利超市", "amount": 31000, "ratio": "1.0%", "profit": 310, "status": "settled", "settleTime": "2024-03-26 10:30", "newUsers": 120, "orders": 200, "volume": 310 },
+    { "id": 5, "date": "2024-03-24", "merchant": "星辰咖啡馆", "amount": 12000, "ratio": "1.5%", "profit": 180, "status": "failed", "settleTime": "", "newUsers": 30, "orders": 80, "volume": 120 },
+    { "id": 6, "date": "2024-03-24", "merchant": "美甲美睫工作室", "amount": 6800, "ratio": "2.0%", "profit": 136, "status": "settled", "settleTime": "2024-03-25 09:00", "newUsers": 25, "orders": 40, "volume": 68 },
+    { "id": 7, "date": "2024-03-23", "merchant": "老北京涮肉馆", "amount": 45000, "ratio": "1.2%", "profit": 540, "status": "pending", "settleTime": "", "newUsers": 150, "orders": 300, "volume": 450 },
+    { "id": 8, "date": "2024-03-23", "merchant": "乐购生活超市", "amount": 18500, "ratio": "1.0%", "profit": 185, "status": "settled", "settleTime": "2024-03-24 09:00", "newUsers": 60, "orders": 90, "volume": 185 }
+  ],
+  "storeList": [
+    { "id": "all", "name": "默认全部" },
+    { "id": "1", "name": "某某某餐饮店" },
+    { "id": "2", "name": "好味来火锅店" },
+    { "id": "3", "name": "鲜果时光水果店" },
+    { "id": "4", "name": "优品便利超市" }
+  ]
+}

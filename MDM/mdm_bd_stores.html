@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰 MDM · BD 门店模块</title>
+    <link rel="stylesheet" href="../css/mdm-bd-mobile.css">
+</head>
+<body class="mdm-bd-body" data-bd-base="">
+    <div class="bd-mobile-shell">
+        <div class="bd-user-strip">
+            <div class="avatar">李</div>
+            <div class="name">李泽峰 · BD 门店</div>
+        </div>
+        <div id="bd-stores-root" class="bd-scroll"></div>
+    </div>
+
+    <div class="bd-modal" id="bdModalReject">
+        <div class="bd-modal-box">
+            <h3>驳回</h3>
+            <p style="margin:0;font-size:12px;color:var(--bd-muted)">请填写驳回说明（必填）。提交后门店状态将变为审核失败。</p>
+            <textarea id="bdRejectTa" placeholder="请输入驳回原因与修改建议…"></textarea>
+            <div class="bd-modal-actions">
+                <button type="button" data-close>取消</button>
+                <button type="button" class="ok" id="bdConfirmReject">确定驳回</button>
+            </div>
+        </div>
+    </div>
+    <div class="bd-modal" id="bdModalApprove">
+        <div class="bd-modal-box">
+            <h3>审核通过</h3>
+            <p style="margin:0;font-size:12px;color:var(--bd-muted)">请填写通过说明（选填）；不填则在档案中记为「—」。</p>
+            <textarea id="bdApproveTa" placeholder="请输入通过说明…"></textarea>
+            <div class="bd-modal-actions">
+                <button type="button" data-close>取消</button>
+                <button type="button" class="ok" id="bdConfirmApprove">确定通过</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/path-prefix.js"></script>
+    <script>window.bdPage = function (f) { return window.wmsPath && wmsPath.page ? wmsPath.page(f) : f; };</script>
+    <script src="../js/mdm-bd-common.js"></script>
+    <script src="../js/mdm-bd-data-stores.js"></script>
+    <script src="../js/mdm-bd-stores-app.js"></script>
+</body>
+</html>

@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰TMS - 线路管理</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .modal-form-group label {
+            width: 100px;
+        }
+
+        .route-detail-block {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .route-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .route-detail-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/tms-sidebar.js"></script>
+
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">线路</button>
+            </div>
+
+            <hr class="content-divider">
+
+            <div class="content-title">线路管理</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group">
+                        <label>线路编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>线路名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>是否启用:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchIsEnabled" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchIsEnabledDropdown">
+                                <div class="select-option" data-value="yes">启用</div>
+                                <div class="select-option" data-value="no">禁用</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="location.reload()">查询</button>
+                        <button type="button" class="btn btn-secondary" id="addBtn">新增</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>线路编码</th>
+                                <th>线路名称</th><th>站点数量</th>
+                                <th>分拣顺序</th>
+                                <th>是否启用</th>
+                                <th>备注</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>R001</td>
+                                <td>城东配送干线</td>
+                                <td>28</td>
+                                <td>10</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>主城区上午批次</td>
+                                <td>2026-04-18 14:20:00</td>
+                                <td>李四</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>R002</td>
+                                <td>城西冷链线</td>
+                                <td>16</td>
+                                <td>20</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>-</td>
+                                <td>2026-04-17 10:05:33</td>
+                                <td>李四</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>R003</td>
+                                <td>郊区支线</td>
+                                <td>9</td>
+                                <td>-</td>
+                                <td><span class="status inactive">禁用</span></td>
+                                <td>暂停使用</td>
+                                <td>2026-04-10 16:00:00</td>
+                                <td>赵六</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>R004</td>
+                                <td>夜间分拣线</td>
+                                <td>12</td>
+                                <td>5</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>夜间波次</td>
+                                <td>2026-04-19 09:12:00</td>
+                                <td>张三</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>R005</td>
+                                <td>同城即时线</td>
+                                <td>35</td>
+                                <td>1</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>优先级最高</td>
+                                <td>2026-04-19 11:30:45</td>
+                                <td>孙八</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="routeDetailModal" class="modal" style="display: none; align-items: flex-start; padding-top: 10%; z-index: 3001;">
+        <div class="modal-content" style="width: 420px; max-height: none; margin: 0 auto;">
+            <div class="modal-header" style="margin-bottom: 15px;">
+                <h2 class="modal-title">添加明细</h2>
+                <span class="close" id="routeDetailCloseBtn">&times;</span>
+            </div>
+            <form class="modal-form">
+                <div class="modal-form-group custom-select-wrapper" style="width: 100%;">
+                    <label>站点 <span style="color: red;">*</span></label>
+                    <div class="custom-select">
+                        <input type="text" id="detailStore" placeholder="请选择">
+                        <span class="select-arrow">▼</span>
+                        <span class="clear-btn">×</span>
+                        <div class="select-dropdown" id="detailStoreDropdown">
+                            <div class="select-option" data-value="S001" data-name="南京建邺店">S001-南京建邺店</div>
+                            <div class="select-option" data-value="S002" data-name="南京鼓楼店">S002-南京鼓楼店</div>
+                            <div class="select-option" data-value="S003" data-name="南京雨花店">S003-南京雨花店</div>
+                            <div class="select-option" data-value="S004" data-name="南京栖霞店">S004-南京栖霞店</div>
+                            <div class="select-option" data-value="S005" data-name="南京江宁店">S005-南京江宁店</div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer" style="margin-top: 15px;">
+                <button type="button" class="btn btn-secondary" id="routeDetailCancelBtn">取消</button>
+                <button type="button" class="btn btn-primary" id="routeDetailSaveBtn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '线路',
+                statusColumnIndex: 5,
+                detailView: { enabled: true, columnIndex: 1 },
+
+                customSelects: [
+                    { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' }
+                ],
+
+                fields: [
+                    { id: 'routeCode', label: '线路编码', type: 'text', required: true, editDisabled: true },
+                    { id: 'routeName', label: '线路名称', type: 'text', required: true, editDisabled: true },
+                    { id: 'sortOrder', label: '分拣顺序', type: 'number', step: '1' },
+                    { id: 'isEnabled', label: '是否启用', type: 'select', required: true,
+                      options: CommonOptions.isEnabled },
+                    { id: 'remark', label: '备注', type: 'textarea', labelWidth: '100px' },
+                    {
+                        type: 'raw',
+                        editHtml: `
+                            <div class="route-detail-block">
+                                <div class="route-detail-header">
+                                    <span class="route-detail-title">站点明细</span>
+                                    <div style="display: flex; gap: 10px;">
+                                        <button type="button" class="btn btn-primary" id="editAddStoreBtn">添加明细</button>
+                                        <button type="button" class="btn btn-primary" id="editRouteHeaderSaveBtn">保存</button>
+                                        <button type="button" class="btn btn-secondary" id="editRouteHeaderCancelBtn">取消</button>
+                                    </div>
+                                </div>
+                                <div class="table-scroll-container" style="width: 100%; max-height: 220px; overflow-y: auto;">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>站点编码</th>
+                                                <th>站点名称</th>
+                                                <th>更新时间</th>
+                                                <th>更新人</th>
+                                                <th>操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="routeStoreTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <style>
+                                #routeEditModal .modal-footer {
+                                    display: none !important;
+                                }
+                            </style>
+                        `
+                    }
+                ],
+
+                addModal: {
+                    modalId: 'routeModal',
+                    cancelBtnId: 'cancelBtn',
+                    saveBtnId: 'saveBtn',
+                    triggerBtnId: 'addBtn',
+                    defaults: { isEnabled: '启用' },
+                    validations: [
+                        { id: 'routeCode', message: '请输入线路编码', required: true },
+                        { id: 'routeName', message: '请输入线路名称', required: true },
+                        { id: 'isEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        const code = document.getElementById('routeCode').value.trim();
+                        const name = document.getElementById('routeName').value.trim();
+                        const sortRaw = document.getElementById('sortOrder').value.trim();
+                        const sortDisplay = sortRaw === '' ? '-' : sortRaw;
+                        const enabled = document.getElementById('isEnabled').value.trim();
+                        const remark = document.getElementById('remark').value.trim() || '-';
+                        const now = page.getCurrentTimeStr();
+                        const user = '当前用户';
+
+                        page.addTableRow({
+                            cells: [
+                                code,
+                                name,
+                                '-',
+                                sortDisplay,
+                                { value: enabled, isStatus: true },
+                                remark,
+                                now,
+                                user
+                            ]
+                        });
+                        showToast('线路已保存', 'success');
+                    }
+                },
+
+                editModal: {
+                    modalId: 'routeEditModal',
+                    cancelBtnId: 'editCancelBtn',
+                    saveBtnId: 'editSaveBtn',
+                    validations: [
+                        { id: 'editRouteName', message: '请输入线路名称', required: true },
+                        { id: 'editIsEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        if (!page.currentEditRow) return;
+                        const row = page.currentEditRow;
+                        const details = getRouteStoreDetails();
+                        const sortRaw = document.getElementById('editSortOrder').value.trim();
+                        const sortDisplay = sortRaw === '' ? '-' : sortRaw;
+                        row.dataset.storeDetails = JSON.stringify(details);
+                        page.updateTableRow(row, {
+                            2: document.getElementById('editRouteName').value.trim(),
+                            3: String(details.length),
+                            4: sortDisplay,
+                            5: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
+                            6: document.getElementById('editRemark').value.trim() || '-',
+                            7: page.getCurrentTimeStr(),
+                            8: '当前用户'
+                        });
+                        showToast('线路已更新', 'success');
+                        page.currentEditRow = null;
+                    },
+                    onOpen: () => {
+                        renderRouteStoreDetailsFromCurrentRow();
+                        updateRouteDetailActionMode(page.isDetailMode === true);
+                    },
+                    onDetailModeChange: (isDetailMode) => {
+                        updateRouteDetailActionMode(isDetailMode);
+                    },
+                    mapRowToForm: (row) => {
+                        page.currentEditRow = row;
+                        const cells = row.querySelectorAll('td');
+                        return {
+                            editRouteCode: cells[1].textContent.trim(),
+                            editRouteName: cells[2].textContent.trim(),
+                            editSortOrder: cells[4].textContent.trim() === '-' ? '' : cells[4].textContent.trim(),
+                            editIsEnabled: cells[5].querySelector('.status').textContent.trim(),
+                            editRemark: cells[6].textContent.trim() === '-' ? '' : cells[6].textContent.trim()
+                        };
+                    }
+                },
+
+                deleteModal: {
+                    modalId: 'confirmDeleteModal',
+                    closeBtnId: 'confirmDeleteCloseBtn',
+                    cancelBtnId: 'cancelDeleteBtn',
+                    confirmBtnId: 'confirmDeleteBtn'
+                }
+            });
+
+            page.init();
+
+            if (typeof initCustomSelect === 'function') {
+                initCustomSelect('detailStore', 'detailStoreDropdown');
+            }
+
+            const routeDetailModal = document.getElementById('routeDetailModal');
+            const routeDetailCloseBtn = document.getElementById('routeDetailCloseBtn');
+            const routeDetailCancelBtn = document.getElementById('routeDetailCancelBtn');
+            const routeDetailSaveBtn = document.getElementById('routeDetailSaveBtn');
+
+            function getRouteStoreDetails() {
+                const tbody = document.getElementById('routeStoreTableBody');
+                if (!tbody) return [];
+                return Array.from(tbody.querySelectorAll('tr')).map((tr) => {
+                    const tds = tr.querySelectorAll('td');
+                    return {
+                        storeCode: tds[0]?.textContent.trim() || '',
+                        storeName: tds[1]?.textContent.trim() || '',
+                        updateTime: tds[2]?.textContent.trim() || '',
+                        updater: tds[3]?.textContent.trim() || '当前用户'
+                    };
+                });
+            }
+
+            function renderRouteStoreTable(details) {
+                const tbody = document.getElementById('routeStoreTableBody');
+                if (!tbody) return;
+
+                tbody.innerHTML = details.map((item) => `
+                    <tr>
+                        <td>${item.storeCode}</td>
+                        <td>${item.storeName}</td>
+                        <td>${item.updateTime}</td>
+                        <td>${item.updater || '当前用户'}</td>
+                        <td class="action-links">
+                            <a href="#" class="route-store-delete-btn delete-btn">删除</a>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            function updateRouteDetailActionMode(isDetailMode) {
+                const addBtn = document.getElementById('editAddStoreBtn');
+                const headerSaveBtn = document.getElementById('editRouteHeaderSaveBtn');
+                const headerCancelBtn = document.getElementById('editRouteHeaderCancelBtn');
+                if (addBtn) addBtn.style.display = isDetailMode ? 'none' : '';
+                if (headerSaveBtn) headerSaveBtn.style.display = isDetailMode ? 'none' : '';
+                if (headerCancelBtn) headerCancelBtn.textContent = isDetailMode ? '关闭' : '取消';
+
+                const table = document.querySelector('#routeStoreTableBody')?.closest('table');
+                if (table) {
+                    const opHead = table.querySelector('thead th:last-child');
+                    if (opHead) opHead.style.display = isDetailMode ? 'none' : '';
+                    table.querySelectorAll('tbody tr td:last-child').forEach((td) => {
+                        td.style.display = isDetailMode ? 'none' : '';
+                    });
+                }
+            }
+
+            function renderRouteStoreDetailsFromCurrentRow() {
+                if (!page.currentEditRow) return;
+                const row = page.currentEditRow;
+                let details = [];
+
+                if (row.dataset.storeDetails) {
+                    try {
+                        const parsed = JSON.parse(row.dataset.storeDetails);
+                        if (Array.isArray(parsed)) {
+                            details = parsed;
+                        }
+                    } catch (e) {
+                        details = [];
+                    }
+                }
+
+                if (details.length === 0) {
+                    const count = parseInt(row.querySelectorAll('td')[3]?.textContent.trim() || '0', 10);
+                    if (!Number.isNaN(count) && count > 0) {
+                        const now = page.getCurrentTimeStr();
+                        details = Array.from({ length: count }).map((_, idx) => ({
+                            storeCode: `S${String(idx + 1).padStart(3, '0')}`,
+                            storeName: `站点${idx + 1}`,
+                            updateTime: now,
+                            updater: '当前用户'
+                        }));
+                    }
+                }
+
+                row.dataset.storeDetails = JSON.stringify(details);
+                renderRouteStoreTable(details);
+            }
+
+            function openRouteDetailModal() {
+                if (!routeDetailModal) return;
+                if (page.isDetailMode === true) return;
+                const detailStore = document.getElementById('detailStore');
+                if (detailStore) {
+                    detailStore.value = '';
+                    detailStore.dataset.value = '';
+                    detailStore.dataset.name = '';
+                }
+                routeDetailModal.style.display = 'flex';
+            }
+
+            function closeRouteDetailModal() {
+                if (!routeDetailModal) return;
+                routeDetailModal.style.display = 'none';
+            }
+
+            document.addEventListener('click', (e) => {
+                if (e.target.id === 'editAddStoreBtn') {
+                    e.preventDefault();
+                    openRouteDetailModal();
+                    return;
+                }
+
+                if (e.target.id === 'editRouteHeaderSaveBtn') {
+                    e.preventDefault();
+                    const hiddenSaveBtn = document.getElementById('editSaveBtn');
+                    if (hiddenSaveBtn) hiddenSaveBtn.click();
+                    return;
+                }
+
+                if (e.target.id === 'editRouteHeaderCancelBtn') {
+                    e.preventDefault();
+                    const hiddenCancelBtn = document.getElementById('editCancelBtn');
+                    if (hiddenCancelBtn) hiddenCancelBtn.click();
+                    return;
+                }
+
+                if (e.target.classList.contains('route-store-delete-btn')) {
+                    e.preventDefault();
+                    const tr = e.target.closest('tr');
+                    if (!tr) return;
+                    tr.remove();
+                    showToast('站点明细已删除', 'success');
+                }
+            });
+
+            if (routeDetailCloseBtn) {
+                routeDetailCloseBtn.addEventListener('click', closeRouteDetailModal);
+            }
+            if (routeDetailCancelBtn) {
+                routeDetailCancelBtn.addEventListener('click', closeRouteDetailModal);
+            }
+            if (routeDetailSaveBtn) {
+                routeDetailSaveBtn.addEventListener('click', () => {
+                    const input = document.getElementById('detailStore');
+                    if (!input) return;
+                    const code = input.dataset.value || '';
+                    const text = input.value.trim();
+                    const nameFromData = input.dataset.name || '';
+                    const name = nameFromData || (text.includes('-') ? text.split('-').slice(1).join('-') : text);
+
+                    if (!code) {
+                        showToast('请选择站点', 'error');
+                        return;
+                    }
+
+                    const details = getRouteStoreDetails();
+                    const duplicated = details.some((item) => item.storeCode === code);
+                    if (duplicated) {
+                        showToast('站点已存在，请勿重复添加', 'error');
+                        return;
+                    }
+
+                    details.push({
+                        storeCode: code,
+                        storeName: name,
+                        updateTime: page.getCurrentTimeStr(),
+                        updater: '当前用户'
+                    });
+
+                    renderRouteStoreTable(details);
+                    showToast('站点明细已添加', 'success');
+                    closeRouteDetailModal();
+                });
+            }
+        });
+    </script>
+</body>
+</html>

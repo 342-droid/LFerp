@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 发货管理</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            border: 1px solid transparent;
+        }
+        /* 发货单状态：各状态独立配色 */
+        .dist-st-initial { background-color: #fafafa; color: #595959; border-color: #d9d9d9; }
+        .dist-st-review-start { background-color: #e6f4ff; color: #1677ff; border-color: #91caff; }
+        .dist-st-review-done { background-color: #e6fffb; color: #08979c; border-color: #87e8de; }
+        .dist-st-load-start { background-color: #fffbe6; color: #d48806; border-color: #ffd591; }
+        .dist-st-load-done { background-color: #fff7e6; color: #d46b08; border-color: #ffc069; }
+        .dist-st-ship-start { background-color: #f9f0ff; color: #722ed1; border-color: #d3adf7; }
+        .dist-st-ship-done { background-color: #f6ffed; color: #389e0d; border-color: #95de64; }
+        .dist-st-canceled { background-color: #fff1f0; color: #cf1322; border-color: #ffa39e; }
+        .dist-st-default { background-color: #f0f0f0; color: #434343; border-color: #d9d9d9; }
+        /* 包裹状态（详情子表） */
+        .status-initial { background-color: #e6f7ff; color: #1890ff; border-color: #91d5ff; }
+        .status-progress { background-color: #fff7e6; color: #fa8c16; border-color: #ffd591; }
+        .status-complete { background-color: #f6ffed; color: #52c41a; border-color: #b7eb8f; }
+        .status-canceled { background-color: #fff1f0; color: #f5222d; border-color: #ffa39e; }
+
+        .distribution-no-link {
+            color: #2196f3;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .distribution-no-link:hover {
+            color: #1976d2;
+            text-decoration: underline;
+        }
+
+        .modal-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .modal-form-group {
+            width: calc(33.33% - 10px);
+        }
+        .modal-form-group label {
+            width: 120px;
+            display: inline-block;
+            margin-right: 8px;
+            color: #666;
+            font-weight: 600;
+        }
+        .modal-form-group input,
+        .modal-form-group textarea {
+            width: calc(100% - 132px);
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            color: #333;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .modal-form-group textarea {
+            min-height: 56px;
+            resize: vertical;
+            vertical-align: top;
+        }
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">发货管理</button>
+            </div>
+
+            <hr class="content-divider">
+            <div class="content-title">出库管理 / 发货管理</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group">
+                        <label style="width: 90px;">发货单号:</label>
+                        <input type="text" id="searchDistributionNo" placeholder="请输入发货单号">
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 100px;">发货单状态:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchStatus" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchStatusDropdown">
+                                <div class="select-option" data-value="初始">初始</div>
+                                <div class="select-option" data-value="开始复核">开始复核</div>
+                                <div class="select-option" data-value="复核完成">复核完成</div>
+                                <div class="select-option" data-value="开始装载">开始装载</div>
+                                <div class="select-option" data-value="装载完成">装载完成</div>
+                                <div class="select-option" data-value="开始发货">开始发货</div>
+                                <div class="select-option" data-value="发货完成">发货完成</div>
+                                <div class="select-option" data-value="已取消">已取消</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 80px;">承运商:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchCarrier" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchCarrierDropdown">
+                                <div class="select-option" data-value="顺丰">顺丰</div>
+                                <div class="select-option" data-value="中通">中通</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 80px;">车牌号:</label>
+                        <input type="text" id="searchPlateNumber" placeholder="请输入车牌号">
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 90px;">司机:</label>
+                        <input type="text" id="searchDriver" placeholder="请输入司机">
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 100px;">目的仓库:</label>
+                        <input type="text" id="searchTargetWarehouse" placeholder="请输入目的仓库">
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 80px;">站点编码:</label>
+                        <input type="text" id="searchSiteCode" placeholder="请输入站点编码或名称">
+                    </div>
+                    <div class="form-group" style="flex: 0 0 100%; max-width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 20px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="width: 90px;">创建时间:</label>
+                            <div class="date-range">
+                                <div class="date-picker">
+                                    <input type="date" id="searchCreateTimeStart" data-type="start" placeholder="开始时间">
+                                </div>
+                                <span class="date-range-separator">至</span>
+                                <div class="date-picker">
+                                    <input type="date" id="searchCreateTimeEnd" data-type="end" placeholder="结束时间">
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="width: 90px;">发货时间:</label>
+                            <div class="date-range">
+                                <div class="date-picker">
+                                    <input type="date" id="searchShipTimeStart" data-type="start" placeholder="开始时间">
+                                </div>
+                                <span class="date-range-separator">至</span>
+                                <div class="date-picker">
+                                    <input type="date" id="searchShipTimeEnd" data-type="end" placeholder="结束时间">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="searchBtn">查询</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table no-last-column-freeze">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>发货单号</th>
+                                <th>发货单状态</th>
+                                <th>仓库</th>
+                                <th>承运商</th>
+                                <th>车牌号</th>
+                                <th>司机</th>
+                                <th>体积(m³)</th>
+                                <th>重量(kg)</th>
+                                <th>包裹总数</th>
+                                <th>装载时间</th>
+                                <th>发货时间</th>
+                                <th>交接单打印次数</th>
+                                <th>备注</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="distributionDetailModal" class="modal">
+        <div class="modal-content" style="width: 1100px;">
+            <div class="modal-header">
+                <div class="modal-title">发货单 - 详情</div>
+                <span class="close" id="detailCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="distributionDetailLoading" class="loading">加载中...</div>
+                <div id="distributionDetailContent" style="display: none;">
+                    <form class="modal-form">
+                        <div class="modal-form-group"><label>仓库</label><input type="text" id="detailWarehouse" disabled></div>
+                        <div class="modal-form-group"><label>发货单号</label><input type="text" id="detailDistributionNo" disabled></div>
+                        <div class="modal-form-group"><label>发货单状态</label><input type="text" id="detailStatus" disabled></div>
+                        <div class="modal-form-group"><label>承运商</label><input type="text" id="detailCarrier" disabled></div>
+                        <div class="modal-form-group"><label>车牌号</label><input type="text" id="detailPlateNumber" disabled></div>
+                        <div class="modal-form-group"><label>司机</label><input type="text" id="detailDriver" disabled></div>
+                        <div class="modal-form-group"><label>体积(m³)</label><input type="text" id="detailVolume" disabled></div>
+                        <div class="modal-form-group"><label>重量(kg)</label><input type="text" id="detailWeight" disabled></div>
+                        <div class="modal-form-group"><label>包裹总数</label><input type="text" id="detailCartonCount" disabled></div>
+                        <div class="modal-form-group"><label>装载时间</label><input type="text" id="detailLoadTime" disabled></div>
+                        <div class="modal-form-group"><label>发货时间</label><input type="text" id="detailShipTime" disabled></div>
+                        <div class="modal-form-group"><label>交接单打印次数</label><input type="text" id="detailHandoverPrintCount" disabled></div>
+                        <div class="modal-form-group"><label>创建时间</label><input type="text" id="detailCreateTime" disabled></div>
+                        <div class="modal-form-group"><label>创建人</label><input type="text" id="detailCreateUser" disabled></div>
+                        <div class="modal-form-group"><label>更新时间</label><input type="text" id="detailUpdateTime" disabled></div>
+                        <div class="modal-form-group"><label>更新人</label><input type="text" id="detailUpdateUser" disabled></div>
+                        <div class="modal-form-group" style="width: 100%;"><label>备注</label><textarea id="detailRemark" disabled></textarea></div>
+                    </form>
+
+                    <hr style="width: 100%; border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
+                    <div class="spec-title" style="font-weight: 600; color: #333; margin-bottom: 10px;">包裹信息</div>
+                    <div class="table-scroll-container">
+                        <table class="table no-last-column-freeze" id="detailCartonTable">
+                            <thead>
+                                <tr>
+                                    <th>包裹号</th>
+                                    <th>包裹状态</th>
+                                    <th>货主</th>
+                                    <th>出库单号</th>
+                                    <th>目的仓库</th>
+                                    <th>站点</th>
+                                    <th>重量(kg)</th>
+                                    <th>体积(m³)</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeDetailModal">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        /**
+         * 发货单号：FH + 年月日时分秒(14位) + 2位随机数
+         */
+        function generateDistributionNo() {
+            const d = new Date();
+            const p = n => String(n).padStart(2, '0');
+            const ts = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+            const rnd = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+            return `FH${ts}${rnd}`;
+        }
+
+        /**
+         * 发货单主表 + 挂载包裹（与 obd_carton 发货单表主键/发货单号关联）
+         */
+        const distributionMockData = [
+            {
+                id: 'DIST-202604140001',
+                warehouse: 'W001-南京仓',
+                warehouseCode: 'W001',
+                distributionNo: 'FH2026041410200015',
+                status: '装载完成',
+                carrier: '顺丰',
+                carrierCode: 'SF',
+                plateNumber: '沪A12345',
+                driver: '李四',
+                volume: '1.15',
+                weight: '57.5',
+                cartonCount: 2,
+                loadTime: '2026-04-14 10:20:00',
+                shipTime: '',
+                handoverPrintCount: 0,
+                recyclableConsumables: '{"站点1":{"保温箱":3,"周转筐":2},"站点2":{"保温箱":1}}',
+                remark: '待排车',
+                isValid: '是',
+                createTime: '2026-04-14 09:00:00',
+                createUser: '王五',
+                updateTime: '2026-04-14 10:20:00',
+                updateUser: '王五',
+                cartons: [
+                    {
+                        cartonNo: 'CTN202604140001',
+                        cartonStatus: '复核完成',
+                        company: 'Y001-南京货主',
+                        outboundOrderNos: 'OBD202603230001',
+                        targetWarehouse: '',
+                        siteCode: 'S001',
+                        siteName: '上海虹桥站',
+                        weight: '12.5',
+                        volume: '0.35',
+                        shipTime: ''
+                    },
+                    {
+                        cartonNo: 'CTN202604140003',
+                        cartonStatus: '装载完成',
+                        company: 'Y001-南京货主',
+                        outboundOrderNos: 'OBD202603230003',
+                        targetWarehouse: 'W003-上海仓',
+                        siteCode: 'S002',
+                        siteName: '浦东站',
+                        weight: '45',
+                        volume: '0.8',
+                        shipTime: ''
+                    }
+                ]
+            },
+            {
+                id: 'DIST-202603230002',
+                warehouse: 'W001-南京仓',
+                warehouseCode: 'W001',
+                distributionNo: 'FH2026032312450033',
+                status: '发货完成',
+                carrier: '中通',
+                carrierCode: 'ZTO',
+                plateNumber: '浙A88990',
+                driver: '周八',
+                volume: '0.8',
+                weight: '45',
+                cartonCount: 1,
+                loadTime: '2026-03-23 12:45:00',
+                shipTime: '2026-03-23 13:05:00',
+                handoverPrintCount: 2,
+                recyclableConsumables: '{"站点1":{"保温箱":2}}',
+                remark: '跨仓补货整车',
+                isValid: '是',
+                createTime: '2026-03-23 12:00:00',
+                createUser: '钱九',
+                updateTime: '2026-03-23 13:05:00',
+                updateUser: '周八',
+                cartons: [
+                    {
+                        cartonNo: 'CTN202604140002',
+                        cartonStatus: '发货完成',
+                        company: 'Y002-杭州货主',
+                        outboundOrderNos: 'OBD202603230002',
+                        targetWarehouse: 'W004-杭州仓',
+                        siteCode: '',
+                        siteName: '',
+                        weight: '45',
+                        volume: '0.8',
+                        shipTime: '2026-03-23 13:05:00'
+                    }
+                ]
+            }
+        ];
+
+        let filteredDistributionData = distributionMockData.slice();
+
+        const distributionStatusBadgeClass = {
+            '初始': 'dist-st-initial',
+            '开始复核': 'dist-st-review-start',
+            '复核完成': 'dist-st-review-done',
+            '开始装载': 'dist-st-load-start',
+            '装载完成': 'dist-st-load-done',
+            '开始发货': 'dist-st-ship-start',
+            '发货完成': 'dist-st-ship-done',
+            '已取消': 'dist-st-canceled'
+        };
+
+        function getDistributionStatusClass(status) {
+            if (!status) return 'dist-st-default';
+            return distributionStatusBadgeClass[status] || 'dist-st-default';
+        }
+
+        function getCartonStatusClass(status) {
+            if (status === '初始') return 'status-initial';
+            if (status === '开始复核' || status === '复核完成') return 'status-progress';
+            if (status === '装载完成' || status === '发货完成') return 'status-complete';
+            if (status === '已取消') return 'status-canceled';
+            return 'status-progress';
+        }
+
+        /** 按挂载包裹的目的仓库、站点编码/名称筛选（同一包裹需同时满足已填条件） */
+        function matchesCartonSearch(item, targetWarehouse, siteCode) {
+            if (!targetWarehouse && !siteCode) return true;
+            const cartons = item.cartons || [];
+            return cartons.some(c => {
+                const okTw = !targetWarehouse || (c.targetWarehouse && c.targetWarehouse.includes(targetWarehouse));
+                const okSc = !siteCode ||
+                    (c.siteCode && c.siteCode.includes(siteCode)) ||
+                    (c.siteName && c.siteName.includes(siteCode));
+                return okTw && okSc;
+            });
+        }
+
+        function formatSiteDisplay(code, name) {
+            const c = String(code == null ? '' : code).trim();
+            const n = String(name == null ? '' : name).trim();
+            if (c && n) return `${c}-${n}`;
+            return c || n;
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                    <td><a href="#" class="distribution-no-link" data-distribution-no="${item.distributionNo}">${item.distributionNo}</a></td>
+                    <td><span class="status-badge ${getDistributionStatusClass(item.status)}">${item.status}</span></td>
+                    <td>${item.warehouse}</td>
+                    <td>${item.carrier}</td>
+                    <td>${item.plateNumber || ''}</td>
+                    <td>${item.driver || ''}</td>
+                    <td>${item.volume || ''}</td>
+                    <td>${item.weight || ''}</td>
+                    <td>${item.cartonCount != null ? item.cartonCount : (item.cartons || []).length}</td>
+                    <td>${item.loadTime || ''}</td>
+                    <td>${item.shipTime || ''}</td>
+                    <td>${item.handoverPrintCount != null ? item.handoverPrintCount : ''}</td>
+                    <td>${item.remark || ''}</td>
+                    <td>${item.createTime}</td>
+                    <td>${item.createUser}</td>
+                    <td>${item.updateTime}</td>
+                    <td>${item.updateUser}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            bindDetailEvents();
+        }
+
+        function bindDetailEvents() {
+            document.querySelectorAll('.distribution-no-link').forEach(link => {
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+                    const no = link.getAttribute('data-distribution-no');
+                    showDistributionDetail(no);
+                });
+            });
+        }
+
+        function fillDetail(row) {
+            document.getElementById('detailWarehouse').value = row.warehouse || '';
+            document.getElementById('detailDistributionNo').value = row.distributionNo || '';
+            document.getElementById('detailStatus').value = row.status || '';
+            document.getElementById('detailCarrier').value = row.carrier || '';
+            document.getElementById('detailPlateNumber').value = row.plateNumber || '';
+            document.getElementById('detailDriver').value = row.driver || '';
+            document.getElementById('detailVolume').value = row.volume || '';
+            document.getElementById('detailWeight').value = row.weight || '';
+            document.getElementById('detailCartonCount').value = row.cartonCount != null ? String(row.cartonCount) : String((row.cartons || []).length);
+            document.getElementById('detailLoadTime').value = row.loadTime || '';
+            document.getElementById('detailShipTime').value = row.shipTime || '';
+            document.getElementById('detailHandoverPrintCount').value = row.handoverPrintCount != null ? String(row.handoverPrintCount) : '';
+            document.getElementById('detailCreateTime').value = row.createTime || '';
+            document.getElementById('detailCreateUser').value = row.createUser || '';
+            document.getElementById('detailUpdateTime').value = row.updateTime || '';
+            document.getElementById('detailUpdateUser').value = row.updateUser || '';
+            document.getElementById('detailRemark').value = row.remark || '';
+
+            const tbody = document.querySelector('#detailCartonTable tbody');
+            tbody.innerHTML = '';
+            (row.cartons || []).forEach(c => {
+                const tr = document.createElement('tr');
+                const st = c.cartonStatus || '';
+                tr.innerHTML = `
+                    <td>${c.cartonNo || ''}</td>
+                    <td>${st ? `<span class="status-badge ${getCartonStatusClass(st)}">${st}</span>` : ''}</td>
+                    <td>${c.company || ''}</td>
+                    <td>${c.outboundOrderNos || ''}</td>
+                    <td>${c.targetWarehouse || ''}</td>
+                    <td>${formatSiteDisplay(c.siteCode, c.siteName)}</td>
+                    <td>${c.weight ?? ''}</td>
+                    <td>${c.volume ?? ''}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function showDistributionDetail(distributionNo) {
+            const modal = document.getElementById('distributionDetailModal');
+            const loading = document.getElementById('distributionDetailLoading');
+            const content = document.getElementById('distributionDetailContent');
+            const row = distributionMockData.find(item => item.distributionNo === distributionNo) || {};
+
+            loading.style.display = 'block';
+            content.style.display = 'none';
+            modal.style.display = 'block';
+
+            setTimeout(() => {
+                fillDetail(row);
+                loading.style.display = 'none';
+                content.style.display = 'block';
+            }, 200);
+        }
+
+        function searchDistributions() {
+            const filters = {
+                distributionNo: document.getElementById('searchDistributionNo').value.trim(),
+                status: document.getElementById('searchStatus').value.trim(),
+                carrier: document.getElementById('searchCarrier').value.trim(),
+                plateNumber: document.getElementById('searchPlateNumber').value.trim(),
+                driver: document.getElementById('searchDriver').value.trim(),
+                createStart: document.getElementById('searchCreateTimeStart').value.trim(),
+                createEnd: document.getElementById('searchCreateTimeEnd').value.trim(),
+                shipStart: document.getElementById('searchShipTimeStart').value.trim(),
+                shipEnd: document.getElementById('searchShipTimeEnd').value.trim(),
+                targetWarehouse: document.getElementById('searchTargetWarehouse').value.trim(),
+                siteCode: document.getElementById('searchSiteCode').value.trim()
+            };
+
+            filteredDistributionData = distributionMockData.filter(item => {
+                const createDate = item.createTime ? item.createTime.slice(0, 10) : '';
+                const shipDate = item.shipTime ? item.shipTime.slice(0, 10) : '';
+                return (!filters.distributionNo || item.distributionNo.includes(filters.distributionNo)) &&
+                    (!filters.status || item.status === filters.status) &&
+                    (!filters.carrier || item.carrier === filters.carrier) &&
+                    (!filters.plateNumber || (item.plateNumber && item.plateNumber.includes(filters.plateNumber))) &&
+                    (!filters.driver || (item.driver && item.driver.includes(filters.driver))) &&
+                    matchesCartonSearch(item, filters.targetWarehouse, filters.siteCode) &&
+                    (!filters.createStart || (createDate && createDate >= filters.createStart)) &&
+                    (!filters.createEnd || (createDate && createDate <= filters.createEnd)) &&
+                    (!filters.shipStart || (shipDate && shipDate >= filters.shipStart)) &&
+                    (!filters.shipEnd || (shipDate && shipDate <= filters.shipEnd));
+            });
+
+            renderTable(filteredDistributionData);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '发货单',
+                customSelects: [
+                    { inputId: 'searchStatus', dropdownId: 'searchStatusDropdown' },
+                    { inputId: 'searchCarrier', dropdownId: 'searchCarrierDropdown' }
+                ],
+                fields: [],
+                addModal: {},
+                editModal: {},
+                deleteModal: {}
+            });
+            page.init();
+
+            renderTable(filteredDistributionData);
+            document.getElementById('searchBtn').addEventListener('click', searchDistributions);
+
+            const modal = document.getElementById('distributionDetailModal');
+            document.getElementById('closeDetailModal').addEventListener('click', () => { modal.style.display = 'none'; });
+            document.getElementById('detailCloseBtn').addEventListener('click', () => { modal.style.display = 'none'; });
+            window.addEventListener('click', e => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

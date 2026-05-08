@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 移动端工作台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 移动端容器 */
+        .mobile-container {
+            width: 393px;
+            height: 851px;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部用户信息区域 */
+        .user-info {
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: #e3f2fd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: #2196f3;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333333;
+        }
+
+        /* 仓库选择区域 */
+        .warehouse-selector {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .warehouse-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: #f8f9fa;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        /* 仓库选择弹窗 */
+        .warehouse-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .warehouse-modal.show {
+            display: flex;
+        }
+
+        .warehouse-modal-content {
+            width: 300px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .warehouse-modal-header {
+            padding: 16px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .warehouse-list {
+            list-style: none;
+        }
+
+        .warehouse-item {
+            padding: 16px;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.2s ease;
+        }
+
+        .warehouse-item:last-child {
+            border-bottom: none;
+        }
+
+        .warehouse-item:hover {
+            background-color: #e3f2fd;
+        }
+
+        .warehouse-item.selected {
+            background-color: #e3f2fd;
+            color: #2196f3;
+            font-weight: 600;
+        }
+
+        /* 功能网格区域 */
+        .function-grid {
+            flex: 1;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 16px;
+        }
+
+        .function-item {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            font-size: 14px;
+            color: #333333;
+            transition: all 0.2s ease;
+        }
+
+        .function-item:hover {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .function-item .icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .function-item .icon img {
+            width: 24px;
+            height: 24px;
+            display: block;
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- 顶部用户信息区域 -->
+        <div class="user-info">
+            <div class="user-avatar">
+                <span>张</span>
+            </div>
+            <div class="user-name">张三</div>
+        </div>
+
+        <!-- 仓库选择区域 -->
+        <div class="warehouse-selector">
+            <input type="text" class="warehouse-input" id="warehouseInput" value="W001-南京仓" readonly>
+        </div>
+
+        <!-- 仓库选择弹窗 -->
+        <div class="warehouse-modal" id="warehouseModal">
+            <div class="warehouse-modal-content">
+                <div class="warehouse-modal-header">选择仓库</div>
+                <ul class="warehouse-list">
+                    <li class="warehouse-item selected" data-value="W001-南京仓">W001-南京仓</li>
+                    <li class="warehouse-item" data-value="W002-嘉兴仓">W002-嘉兴仓</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 功能网格区域 -->
+        <div class="function-grid">
+            <div class="function-item" onclick="window.location.href='app_ibd_receipt.html'">
+                <div class="icon"><img src="../image/APP收货.svg" alt="收货"></div>
+                <div>收货</div>
+            </div>
+            <div class="function-item" onclick="window.location.href='app_obd_picking.html'">
+                <div class="icon"><img src="../image/APP拣货.svg" alt="拣货"></div>
+                <div>拣货</div>
+            </div>
+            <div class="function-item" onclick="window.location.href='app_obd_sorting.html'">
+                <div class="icon"><img src="../image/APP分拣.svg" alt="分拣"></div>
+                <div>分拣</div>
+            </div>
+            <div class="function-item" onclick="window.location.href='app_obd_recheck.html'">
+                <div class="icon">✓</div>
+                <div>复核</div>
+            </div>
+            <div class="function-item" onclick="window.location.href='app_obd_dispatch.html'">
+                <div class="icon">🚚</div>
+                <div>装载发货</div>
+            </div>
+            <div class="function-item">
+                <div class="icon">⬜</div>
+            </div>
+            <div class="function-item">
+                <div class="icon">⬜</div>
+            </div>
+            <div class="function-item">
+                <div class="icon">⬜</div>
+            </div>
+            <div class="function-item">
+                <div class="icon">⬜</div>
+            </div>
+            <div class="function-item">
+                <div class="icon">⬜</div>
+            </div>
+            <div class="function-item">
+                <div class="icon">⬜</div>
+            </div>
+            <div class="function-item">
+                <div class="icon">⬜</div>
+            </div>
+            <div class="function-item">
+                <div class="icon">⬜</div>
+            </div>
+            <div class="function-item">
+                <div class="icon">⬜</div>
+            </div>
+            <div class="function-item">
+                <div class="icon">⬜</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/path-prefix.js"></script>
+    <script>
+        const warehouseInput = document.getElementById('warehouseInput');
+        const warehouseModal = document.getElementById('warehouseModal');
+        const warehouseItems = document.querySelectorAll('.warehouse-item');
+
+        // 点击仓库输入框打开弹窗
+        warehouseInput.addEventListener('click', () => {
+            warehouseModal.classList.add('show');
+        });
+
+        // 点击弹窗背景关闭弹窗
+        warehouseModal.addEventListener('click', (e) => {
+            if (e.target === warehouseModal) {
+                warehouseModal.classList.remove('show');
+            }
+        });
+
+        // 点击仓库选项
+        warehouseItems.forEach(item => {
+            item.addEventListener('click', () => {
+                // 移除所有选中状态
+                warehouseItems.forEach(i => i.classList.remove('selected'));
+                // 添加选中状态
+                item.classList.add('selected');
+                // 更新输入框值
+                warehouseInput.value = item.dataset.value;
+                // 关闭弹窗
+                warehouseModal.classList.remove('show');
+            });
+        });
+    </script>
+</body>
+</html>

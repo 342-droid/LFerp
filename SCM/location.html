@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 储位</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        /* 页面特定样式 - 储位页面单选框标签宽度 */
+        .modal-form-group:has(.radio-group) > label {
+            width: 150px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏容器 -->
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    
+    <!-- 顶部导航栏容器 -->
+    <div id="header-container"></div>
+    
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">储位</button>
+            </div>
+            
+            <hr class="content-divider">
+            
+            <div class="content-title">基础信息 / 储位</div>
+            
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 70px;">库区:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchZone" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchZoneDropdown">
+                                <div class="select-option" data-value="Z001">Z001-南京仓-库存区</div>
+                                <div class="select-option" data-value="Z002">Z002-南京仓-发货区</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>作业区域:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchArea" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchAreaDropdown">
+                                <div class="select-option" data-value="A001">A001-南京仓-A区</div>
+                                <div class="select-option" data-value="B001">B001-南京仓-B区</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>储位编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>储位名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>储位类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchLocationType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchLocationTypeDropdown">
+                                <div class="select-option" data-value="picking">拣选位</div>
+                                <div class="select-option" data-value="storage">存储位</div>
+                                <div class="select-option" data-value="temporary">暂存位</div>
+                                <div class="select-option" data-value="receiving">收货位</div>
+                                <div class="select-option" data-value="shipping">发货位</div>
+                                <div class="select-option" data-value="crossdock">越库位</div>
+                                <div class="select-option" data-value="distribution">集散位</div>
+                                <div class="select-option" data-value="packing">打包位</div>
+                                <div class="select-option" data-value="exception">异常位</div>
+                                <div class="select-option" data-value="pending">待处理位</div>
+                                <div class="select-option" data-value="return">退货位</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>是否启用:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchIsEnabled" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchIsEnabledDropdown">
+                                <div class="select-option" data-value="yes">启用</div>
+                                <div class="select-option" data-value="no">禁用</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="searchBtn" onclick="location.reload()">查询</button>
+                        <button type="button" class="btn btn-secondary" id="addBtn">新增</button>
+                    </div>
+                </form>
+            </section>
+            
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr style="text-align: center;">
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>储位编码</th>
+                                <th>储位名称</th>
+                                <th>储位类型</th>
+                                <th>库区</th>
+                                <th>作业区域</th>
+                                <th>温层</th>
+                                <th>是否启用</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>L001</td><td>L001储位</td><td>拣选位</td>
+                                <td>Z001-南京仓-库存区</td><td>A001-南京仓-A区</td><td>常温</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2025-01-05 12:31:43</td><td>李四</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>L002</td><td>L002储位</td><td>存储位</td>
+                                <td>Z001-南京仓-库存区</td><td>A001-南京仓-A区</td><td>冷藏</td>
+                                <td><span class="status inactive">禁用</span></td>
+                                <td>2025-01-05 12:31:43</td><td>李四</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>L003</td><td>L003储位</td><td>暂存位</td>
+                                <td>Z001-南京仓-库存区</td><td>A001-南京仓-A区</td><td>冷冻</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2025-01-05 12:31:43</td><td>李四</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>L004</td><td>L004储位</td><td>收货位</td>
+                                <td>Z002-南京仓-发货区</td><td>B001-南京仓-B区</td><td>常温</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2025-01-05 12:31:43</td><td>李四</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>L005</td><td>L005储位</td><td>发货位</td>
+                                <td>Z002-南京仓-发货区</td><td>B001-南京仓-B区</td><td>冷藏</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2025-01-05 12:31:43</td><td>李四</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页组件容器 -->
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 引入公共脚本 -->
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        // 储位类型选项
+        const locationTypeOptions = [
+            { value: 'picking', text: '拣选位' }, { value: 'storage', text: '存储位' },
+            { value: 'temporary', text: '暂存位' }, { value: 'receiving', text: '收货位' },
+            { value: 'shipping', text: '发货位' }, { value: 'crossdock', text: '越库位' },
+            { value: 'distribution', text: '集散位' }, { value: 'packing', text: '打包位' },
+            { value: 'exception', text: '异常位' }, { value: 'pending', text: '待处理位' },
+            { value: 'return', text: '退货位' }
+        ];
+
+        // 设置单选按钮默认值的辅助函数
+        function setRadioDefaults(prefix = '') {
+            try {
+                if (prefix === 'edit') {
+                    const editAllowMixedProductsYes = document.getElementById('editAllowMixedProductsyes');
+                    if (editAllowMixedProductsYes) editAllowMixedProductsYes.checked = true;
+                    const editAllowMixedBatchYes = document.getElementById('editAllowMixedBatchyes');
+                    if (editAllowMixedBatchYes) editAllowMixedBatchYes.checked = true;
+                    const editAllowMixedOwnerYes = document.getElementById('editAllowMixedOwneryes');
+                    if (editAllowMixedOwnerYes) editAllowMixedOwnerYes.checked = true;
+                    const editReleaseContainerYes = document.getElementById('editReleaseContaineryes');
+                    if (editReleaseContainerYes) editReleaseContainerYes.checked = true;
+                    const editReleaseSourceNumberYes = document.getElementById('editReleaseSourceNumberyes');
+                    if (editReleaseSourceNumberYes) editReleaseSourceNumberYes.checked = true;
+                } else {
+                    const allowMixedProductsYes = document.getElementById('allowMixedProductsyes');
+                    if (allowMixedProductsYes) allowMixedProductsYes.checked = true;
+                    const allowMixedBatchYes = document.getElementById('allowMixedBatchyes');
+                    if (allowMixedBatchYes) allowMixedBatchYes.checked = true;
+                    const allowMixedOwnerYes = document.getElementById('allowMixedOwneryes');
+                    if (allowMixedOwnerYes) allowMixedOwnerYes.checked = true;
+                    const releaseContainerYes = document.getElementById('releaseContaineryes');
+                    if (releaseContainerYes) releaseContainerYes.checked = true;
+                    const releaseSourceNumberYes = document.getElementById('releaseSourceNumberyes');
+                    if (releaseSourceNumberYes) releaseSourceNumberYes.checked = true;
+                }
+            } catch (error) {
+                console.error('Error setting radio defaults:', error);
+            }
+        }
+
+        // 使用PageManager简化页面逻辑
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '储位',
+                statusColumnIndex: 7,
+                tableBodyId: 'tableBody',
+                detailView: { enabled: true },
+                
+                // 搜索区域下拉框
+                customSelects: [
+                    { inputId: 'searchZone', dropdownId: 'searchZoneDropdown' },
+                    { inputId: 'searchArea', dropdownId: 'searchAreaDropdown' },
+                    { inputId: 'searchLocationType', dropdownId: 'searchLocationTypeDropdown' },
+                    { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' }
+                ],
+                
+                // 字段定义 - 自动生成新增/编辑模态框
+                fields: [
+                    { id: 'warehouse', label: '仓库', type: 'select', required: true, disabled: true,
+                      options: [
+                          { value: 'W001', text: 'W001-南京仓' },
+                          { value: 'W002', text: 'W002-嘉兴仓' },
+                          { value: 'W003', text: 'W003-上海仓' }
+                      ] },
+                    { id: 'room', label: '仓间', type: 'select', required: true, editDisabled: true,
+                      options: [
+                          { value: 'R001', text: 'R001-南京仓-综合仓间' },
+                          { value: 'R002', text: 'R002-南京仓-加工仓间' }
+                      ] },
+                    { id: 'zone', label: '库区', type: 'select', required: true, editDisabled: true,
+                      options: [
+                          { value: 'Z001', text: 'Z001-南京仓-库存区' },
+                          { value: 'Z002', text: 'Z002-南京仓-发货区' }
+                      ] },
+                    { id: 'area', label: '作业区域', type: 'select', required: true, editDisabled: true,
+                      options: [
+                          { value: 'A001', text: 'A001-南京仓-A区' },
+                          { value: 'B001', text: 'B001-南京仓-B区' }
+                      ] },
+                    { id: 'locationCode', label: '储位编码', type: 'text', required: true, editDisabled: true },
+                    { id: 'locationName', label: '储位名称', type: 'text', required: true, editDisabled: true },
+                    { id: 'locationType', label: '储位类型', type: 'select', required: true, editDisabled: true,
+                      options: locationTypeOptions },
+                    { id: 'locationCategory', label: '储位类别', type: 'select', required: true,
+                      options: [
+                          { value: 'floor', text: '地推' },
+                          { value: 'heavy', text: '重型货架' },
+                          { value: 'light', text: '轻型货架' }
+                      ] },
+                    { id: 'temperatureLayer', label: '温层', type: 'select', required: true,
+                      options: [
+                          { value: 'normal', text: '常温' },
+                          { value: 'cold', text: '冷藏' },
+                          { value: 'frozen', text: '冷冻' }
+                      ] },
+                    { id: 'rowColumnLayer', label: '排-列-层', type: 'triple-input',
+                      inputs: [
+                          { id: 'row', placeholder: '排' },
+                          { id: 'column', placeholder: '列' },
+                          { id: 'layer', placeholder: '层' }
+                      ] },
+                    { id: 'lengthWidthHeight', label: '长-宽-高', type: 'triple-input',
+                      inputs: [
+                          { id: 'length', placeholder: '长', step: '0.01' },
+                          { id: 'width', placeholder: '宽', step: '0.01' },
+                          { id: 'height', placeholder: '高', step: '0.01' }
+                      ] },
+                    { id: 'pickingOrderGroup', label: '动线顺序', type: 'triple-input', required: true,
+                      inputs: [
+                          { id: 'pickingOrder', placeholder: '拣货' },
+                          { id: 'putawayOrder', placeholder: '上架' },
+                          { id: 'inventoryOrder', placeholder: '盘点' }
+                      ] },
+                    { id: 'volume', label: '容积', type: 'number', step: '0.01' },
+                    { id: 'weight', label: '承重', type: 'number', step: '0.01' },
+                    { id: 'volumeValidationRule', label: '容积校验规则', type: 'select', required: true,
+                      options: [
+                          { value: 'volume', text: '按体积' },
+                          { value: 'specification', text: '按规格' },
+                          { value: 'none', text: '不校验' }
+                      ] },
+                    { id: 'isEnabled', label: '是否启用', type: 'select', required: true,
+                      options: [{ value: 'yes', text: '启用' }, { value: 'no', text: '禁用' }] },
+                    { type: 'raw', html: '<hr style="width: 100%; border: none; border-top: 1px solid #e0e0e0; margin: 10px 0;">' },
+                    { id: 'allowMixedProducts', label: '允许混放商品', type: 'radio', required: true,
+                      options: [{ value: 'yes', text: '是' }, { value: 'no', text: '否' }] },
+                    { id: 'allowMixedBatch', label: '允许混放批号', type: 'radio', required: true,
+                      options: [{ value: 'yes', text: '是' }, { value: 'no', text: '否' }] },
+                    { id: 'allowMixedOwner', label: '允许混放货主', type: 'radio', required: true,
+                      options: [{ value: 'yes', text: '是' }, { value: 'no', text: '否' }] },
+                    { id: 'releaseContainer', label: '是否释放容器', type: 'radio', required: true,
+                      options: [{ value: 'yes', text: '是' }, { value: 'no', text: '否' }] },
+                    { id: 'releaseSourceNumber', label: '是否释放来源单号', type: 'radio', required: true,
+                      options: [{ value: 'yes', text: '是' }, { value: 'no', text: '否' }] }
+                ],
+                
+                addModal: {
+                    modalId: 'locationModal',
+                    cancelBtnId: 'cancelBtn',
+                    saveBtnId: 'saveBtn',
+                    triggerBtnId: null,
+                    defaults: { isEnabled: '启用' },
+                    validations: [
+                        { id: 'warehouse', message: '请选择仓库', required: true },
+                        { id: 'room', message: '请选择仓间', required: true },
+                        { id: 'zone', message: '请选择库区', required: true },
+                        { id: 'area', message: '请选择作业区域', required: true },
+                        { id: 'locationCode', message: '请输入储位编码', required: true },
+                        { id: 'locationName', message: '请输入储位名称', required: true },
+                        { id: 'locationType', message: '请选择储位类型', required: true },
+                        { id: 'locationCategory', message: '请选择储位类别', required: true },
+                        { id: 'temperatureLayer', message: '请选择温层', required: true },
+                        { id: 'pickingOrder', message: '请输入拣货顺序', required: true },
+                        { id: 'putawayOrder', message: '请输入上架顺序', required: true },
+                        { id: 'inventoryOrder', message: '请输入盘点顺序', required: true },
+                        { id: 'volumeValidationRule', message: '请选择容积校验规则', required: true },
+                        { id: 'isEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        const code = document.getElementById('locationCode').value.trim();
+                        const name = document.getElementById('locationName').value.trim();
+                        const locationType = document.getElementById('locationType').value.trim();
+                        const zone = document.getElementById('zone').value.trim();
+                        const area = document.getElementById('area').value.trim();
+                        const tempLayer = document.getElementById('temperatureLayer').value.trim();
+                        const enabled = document.getElementById('isEnabled').value.trim();
+                        
+                        page.addTableRow({
+                            cells: [
+                                code, name, locationType, zone, area, tempLayer,
+                                { value: enabled, isStatus: true },
+                                page.getCurrentTimeStr(), '当前用户'
+                            ]
+                        });
+                        showToast('储位信息已保存', 'success');
+                    }
+                },
+                
+                editModal: {
+                    modalId: 'locationEditModal',
+                    cancelBtnId: 'editCancelBtn',
+                    saveBtnId: 'editSaveBtn',
+                    validations: [
+                        { id: 'editLocationName', message: '请输入储位名称', required: true },
+                        { id: 'editArea', message: '请选择作业区域', required: true },
+                        { id: 'editLocationCategory', message: '请选择储位类别', required: true },
+                        { id: 'editTemperatureLayer', message: '请选择温层', required: true },
+                        { id: 'editPickingOrder', message: '请输入拣货顺序', required: true },
+                        { id: 'editPutawayOrder', message: '请输入上架顺序', required: true },
+                        { id: 'editInventoryOrder', message: '请输入盘点顺序', required: true },
+                        { id: 'editVolumeValidationRule', message: '请选择容积校验规则', required: true },
+                        { id: 'editIsEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        if (!page.currentEditRow) return;
+                        page.updateTableRow(page.currentEditRow, {
+                            2: document.getElementById('editLocationName').value.trim(),
+                            5: document.getElementById('editArea').value.trim(),
+                            6: document.getElementById('editTemperatureLayer').value.trim(),
+                            7: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
+                            8: page.getCurrentTimeStr(),
+                            9: '当前用户'
+                        });
+                        showToast('储位信息已更新', 'success');
+                        page.currentEditRow = null;
+                    },
+                    mapRowToForm: (row) => {
+                        page.currentEditRow = row;
+                        const cells = row.querySelectorAll('td');
+                        setRadioDefaults('edit');
+                        const currentWarehouse = getCurrentWarehouse();
+                        let warehouseText = '';
+                        if (currentWarehouse) {
+                            warehouseText = `${currentWarehouse.code}-${currentWarehouse.name}`;
+                        }
+                        return {
+                            editWarehouse: warehouseText,
+                            editLocationCode: cells[1].textContent,
+                            editLocationName: cells[2].textContent,
+                            editLocationType: cells[3].textContent,
+                            editZone: cells[4].textContent,
+                            editArea: cells[5].textContent,
+                            editTemperatureLayer: cells[6].textContent,
+                            editIsEnabled: cells[7].querySelector('.status').textContent
+                        };
+                    }
+                },
+                
+                deleteModal: {
+                    modalId: 'confirmDeleteModal',
+                    closeBtnId: 'confirmDeleteCloseBtn',
+                    cancelBtnId: 'cancelDeleteBtn',
+                    confirmBtnId: 'confirmDeleteBtn'
+                }
+            });
+            
+            page.init();
+            
+            // 手动绑定新增按钮（因为需要设置单选按钮默认值）
+            document.getElementById('addBtn').addEventListener('click', () => {
+                setRadioDefaults('');
+                const currentWarehouse = getCurrentWarehouse();
+                if (currentWarehouse) {
+                    const warehouseInput = document.getElementById('warehouse');
+                    warehouseInput.value = `${currentWarehouse.code}-${currentWarehouse.name}`;
+                    warehouseInput.dataset.value = currentWarehouse.code;
+                } else {
+                    // 没有选择仓库时清空字段
+                    const warehouseInput = document.getElementById('warehouse');
+                    warehouseInput.value = '';
+                    warehouseInput.dataset.value = '';
+                }
+                page.openModal('add', { 
+                    defaults: { isEnabled: '启用' },
+                    reset: false
+                });
+            });
+            
+            document.getElementById('editCloseBtn').addEventListener('click', () => page.closeModal('edit'));
+            
+            // 监听仓库选择变化事件
+            document.addEventListener('warehouseChange', (e) => {
+                const { code, name } = e.detail;
+                // 更新新增模态框的仓库字段
+                const warehouseInput = document.getElementById('warehouse');
+                if (warehouseInput) {
+                    warehouseInput.value = `${code}-${name}`;
+                    warehouseInput.dataset.value = code;
+                }
+                // 更新编辑模态框的仓库字段
+                const editWarehouseInput = document.getElementById('editWarehouse');
+                if (editWarehouseInput) {
+                    editWarehouseInput.value = `${code}-${name}`;
+                    editWarehouseInput.dataset.value = code;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

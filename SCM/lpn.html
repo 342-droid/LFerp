@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 容器管理</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+    <!-- 侧边栏容器 -->
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+
+    <!-- 顶部导航栏容器 -->
+    <div id="header-container"></div>
+    
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">容器</button>
+            </div>
+            
+            <hr class="content-divider">
+            
+            <div class="content-title">基础信息 / 容器</div>
+            
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group">
+                        <label>容器编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>容器状态:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchLpnStatus" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchLpnStatusDropdown">
+                                <div class="select-option" data-value="idle">空闲</div>
+                                <div class="select-option" data-value="occupied">占用</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>容器类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchLpnType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchLpnTypeDropdown">
+                                <div class="select-option" data-value="carton">纸箱</div>
+                                <div class="select-option" data-value="box">周转箱</div>
+                                <div class="select-option" data-value="pallet">托盘</div>
+                                <div class="select-option" data-value="cart">笼车</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>管理模式:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchManageMode" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchManageModeDropdown">
+                                <div class="select-option" data-value="once">一次使用</div>
+                                <div class="select-option" data-value="cycle">循环使用</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>是否启用:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchIsEnabled" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchIsEnabledDropdown">
+                                <div class="select-option" data-value="yes">启用</div>
+                                <div class="select-option" data-value="no">禁用</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="location.reload()">查询</button>
+                        <button type="button" class="btn btn-secondary" id="addBtn">新增</button>
+                        <button type="button" class="btn btn-secondary" id="modelBtn">维护容器型号</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>容器编码</th>
+                                <th>容器状态</th>
+                                <th>容器类型</th>
+                                <th>管理模式</th>
+                                <th>容器型号编码</th>
+                                <th>容器型号名称</th>
+                                <th>仓库</th>
+                                <th>占用人</th>
+                                <th>占用时间</th>
+                                <th>占用单据</th>
+                                <th>是否启用</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>LPN001</td>
+                                <td><span class="status active">空闲</span></td>
+                                <td>纸箱</td>
+                                <td>一次使用</td>
+                                <td>PT001</td>
+                                <td>标准纸箱</td>
+                                <td>W001-南京仓</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>LPN002</td>
+                                <td><span class="status inactive">占用</span></td>
+                                <td>周转箱</td>
+                                <td>循环使用</td>
+                                <td>PT002</td>
+                                <td>塑料周转箱</td>
+                                <td>W002-嘉兴仓</td>
+                                <td>张三</td>
+                                <td>2025-01-05 10:20:30</td>
+                                <td>IN001</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2025-01-05 12:31:43</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页组件容器 -->
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 引入公共脚本 -->
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        // 使用PageManager简化页面逻辑
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '容器',
+                statusColumnIndex: 11,
+                detailView: { enabled: true },
+                
+                // 搜索区域下拉框
+                customSelects: [
+                    { inputId: 'searchLpnStatus', dropdownId: 'searchLpnStatusDropdown' },
+                    { inputId: 'searchLpnType', dropdownId: 'searchLpnTypeDropdown' },
+                    { inputId: 'searchManageMode', dropdownId: 'searchManageModeDropdown' },
+                    { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' }
+                ],
+                
+                // 字段定义 - 自动生成新增/编辑模态框
+                fields: [
+                    { id: 'warehouse', label: '仓库', type: 'select', required: true, disabled: true, options: CommonOptions.warehouse },
+                    { id: 'lpnCode', label: '容器编码', type: 'text', required: true, editDisabled: true },
+                    { id: 'lpnStatus', label: '容器状态', type: 'select', required: true, options: CommonOptions.lpnStatus },
+                    { id: 'lpnModel', label: '容器型号', type: 'select', required: true, options: CommonOptions.lpnModel },
+                    { id: 'lpnType', label: '容器类型', type: 'select', required: true, disabled: true, options: CommonOptions.lpnType },
+                    { id: 'manageMode', label: '管理模式', type: 'select', required: true, options: CommonOptions.manageMode },
+                    { id: 'isEnabled', label: '是否启用', type: 'select', required: true, options: CommonOptions.isEnabled },
+                    { id: 'remark', label: '备注', type: 'textarea', labelWidth: '80px' }
+                ],
+                
+                addModal: {
+                    modalId: 'addContainerModal',
+                    saveBtnId: 'saveContainerBtn',
+                    cancelBtnId: 'cancelContainerBtn',
+                    triggerBtnId: 'addBtn',
+                    defaults: { isEnabled: '启用' },
+                    validations: [
+                        { id: 'warehouse', message: '请选择仓库', required: true },
+                        { id: 'lpnCode', message: '请输入容器编码', required: true },
+                        { id: 'lpnStatus', message: '请选择容器状态', required: true },
+                        { id: 'lpnModel', message: '请选择容器型号', required: true },
+                        { id: 'manageMode', message: '请选择管理模式', required: true },
+                        { id: 'isEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        const code = document.getElementById('lpnCode').value.trim();
+                        const status = document.getElementById('lpnStatus').value.trim();
+                        const model = document.getElementById('lpnModel').value.trim();
+                        const type = document.getElementById('lpnType').value.trim();
+                        const manageMode = document.getElementById('manageMode').value.trim();
+                        const warehouse = document.getElementById('warehouse').value.trim();
+                        const enabled = document.getElementById('isEnabled').value.trim();
+                        
+                        // 提取容器型号编码和名称
+                        const modelCode = model.split('-')[0];
+                        const modelName = model.includes('纸箱') ? '标准纸箱' : model.includes('周转箱') ? '塑料周转箱' : '';
+                        
+                        page.addTableRow({
+                            cells: [
+                                code,
+                                { value: status === 'idle' ? '空闲' : '占用', isStatus: true },
+                                type === 'carton' ? '纸箱' : type === 'box' ? '周转箱' : type === 'pallet' ? '托盘' : '笼车',
+                                manageMode === 'once' ? '一次使用' : '循环使用',
+                                modelCode,
+                                modelName,
+                                warehouse,
+                                '-',
+                                '-',
+                                '-',
+                                { value: enabled, isStatus: true },
+                                page.getCurrentTimeStr(),
+                                '当前用户'
+                            ]
+                        });
+                        showToast('容器信息已保存', 'success');
+                    }
+                },
+                
+                editModal: {
+                    modalId: 'editContainerModal',
+                    saveBtnId: 'editContainerSaveBtn',
+                    cancelBtnId: 'editContainerCancelBtn',
+                    validations: [
+                        { id: 'editIsEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        if (!page.currentEditRow) return;
+                        const model = document.getElementById('editLpnModel').value.trim();
+                        const newStatus = document.getElementById('editIsEnabled').value.trim();
+                        const currentStatus = page.currentEditRow.querySelectorAll('td')[11].querySelector('.status').textContent;
+                        const containerStatus = page.currentEditRow.querySelectorAll('td')[2].querySelector('.status').textContent;
+                        
+                        // 检查是否从启用变更为禁用
+                        if (currentStatus === '启用' && newStatus === '禁用') {
+                            // 检查容器状态是否为占用
+                            if (containerStatus === '占用') {
+                                showToast('当前容器为占用状态，不允许禁用');
+                                return;
+                            }
+                        }
+                        
+                        // 提取容器型号编码和名称
+                        const modelCode = model.split('-')[0];
+                        const modelName = model.includes('纸箱') ? '标准纸箱' : model.includes('周转箱') ? '塑料周转箱' : '';
+                        
+                        page.updateTableRow(page.currentEditRow, {
+                            2: { value: document.getElementById('editLpnStatus').value.trim(), isStatus: true },
+                            3: document.getElementById('editLpnType').value.trim(),
+                            4: document.getElementById('editManageMode').value.trim(),
+                            5: modelCode,
+                            6: modelName,
+                            11: { value: newStatus, isStatus: true },
+                            12: page.getCurrentTimeStr(),
+                            13: '当前用户'
+                        });
+                        showToast('容器信息已更新', 'success');
+                        page.currentEditRow = null;
+                    },
+                    mapRowToForm: (row) => {
+                        page.currentEditRow = row;
+                        const cells = row.querySelectorAll('td');
+                        const modelCode = cells[5].textContent;
+                        const type = cells[3].textContent;
+                        const modelValue = `${modelCode}-${type}`;
+                        return {
+                            editLpnCode: cells[1].textContent,
+                            editLpnStatus: cells[2].querySelector('.status').textContent,
+                            editLpnModel: modelValue,
+                            editLpnType: type,
+                            editManageMode: cells[4].textContent,
+                            editWarehouse: cells[7].textContent,
+                            editIsEnabled: cells[11].querySelector('.status').textContent
+                        };
+                    }
+                },
+                
+                deleteModal: {}
+            });
+            
+            page.init();
+            
+            // 新增时设置当前仓库
+            document.getElementById('addBtn').addEventListener('click', () => {
+                const currentWarehouse = getCurrentWarehouse();
+                if (currentWarehouse) {
+                    const warehouseInput = document.getElementById('warehouse');
+                    warehouseInput.value = `${currentWarehouse.code}-${currentWarehouse.name}`;
+                    warehouseInput.dataset.value = currentWarehouse.code;
+                }
+            });
+            
+            // 容器型号选择事件 - 新增模态框
+            const lpnModelInput = document.getElementById('lpnModel');
+            if (lpnModelInput) {
+                lpnModelInput.addEventListener('change', function() {
+                    const modelValue = this.value;
+                    const lpnTypeInput = document.getElementById('lpnType');
+                    if (modelValue.includes('纸箱')) {
+                        lpnTypeInput.value = '纸箱';
+                        lpnTypeInput.dataset.value = 'carton';
+                    } else if (modelValue.includes('周转箱')) {
+                        lpnTypeInput.value = '周转箱';
+                        lpnTypeInput.dataset.value = 'box';
+                    } else if (modelValue.includes('托盘')) {
+                        lpnTypeInput.value = '托盘';
+                        lpnTypeInput.dataset.value = 'pallet';
+                    } else if (modelValue.includes('笼车')) {
+                        lpnTypeInput.value = '笼车';
+                        lpnTypeInput.dataset.value = 'cart';
+                    }
+                });
+            }
+            
+            // 容器型号选择事件 - 编辑模态框
+            const editLpnModelInput = document.getElementById('editLpnModel');
+            if (editLpnModelInput) {
+                editLpnModelInput.addEventListener('change', function() {
+                    const modelValue = this.value;
+                    const editLpnTypeInput = document.getElementById('editLpnType');
+                    if (modelValue.includes('纸箱')) {
+                        editLpnTypeInput.value = '纸箱';
+                        editLpnTypeInput.dataset.value = 'carton';
+                    } else if (modelValue.includes('周转箱')) {
+                        editLpnTypeInput.value = '周转箱';
+                        editLpnTypeInput.dataset.value = 'box';
+                    } else if (modelValue.includes('托盘')) {
+                        editLpnTypeInput.value = '托盘';
+                        editLpnTypeInput.dataset.value = 'pallet';
+                    } else if (modelValue.includes('笼车')) {
+                        editLpnTypeInput.value = '笼车';
+                        editLpnTypeInput.dataset.value = 'cart';
+                    }
+                });
+            }
+            
+            // 维护容器型号按钮事件
+            const modelBtn = document.getElementById('modelBtn');
+            if (modelBtn) {
+                modelBtn.addEventListener('click', function() {
+                    window.location.href = 'lpn_model.html';
+                });
+            }
+
+        });
+    </script>
+
+</body>
+</html>

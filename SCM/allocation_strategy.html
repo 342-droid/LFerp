@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 分配策略</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .modal-form-group label {
+            width: 130px;
+        }
+
+        .search-form .form-group > label {
+            width: 110px;
+        }
+
+        .detail-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .detail-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        #editAllocationStrategyModal .modal-footer {
+            display: none !important;
+        }
+
+        #detailModal .modal-content {
+            width: 520px;
+            max-height: none;
+        }
+
+        #detailModal .modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        #detailModal .modal-form-group {
+            width: 100%;
+        }
+
+        #detailModal .modal-form-group > label {
+            width: 160px;
+            white-space: nowrap;
+        }
+
+        #detailModal .modal-form-group .custom-select,
+        #detailModal .modal-form-group .input-wrapper {
+            flex: 0 0 calc(100% - 160px);
+            width: calc(100% - 160px) !important;
+        }
+
+        /* 分配策略-详情：明细子表隐藏「操作」列 */
+        #editAllocationStrategyModal.allocation-detail-readonly .table-scroll-container .table thead th:nth-child(10),
+        #editAllocationStrategyModal.allocation-detail-readonly .table-scroll-container .table tbody td:nth-child(10) {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">分配策略</button>
+            </div>
+
+            <hr class="content-divider">
+
+            <div class="content-title">策略管理 / 分配策略</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group custom-select-wrapper">
+                        <label>货主:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchCompany" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchCompanyDropdown">
+                                <div class="select-option" data-value="Y001-南京货主">Y001-南京货主</div>
+                                <div class="select-option" data-value="Y002-北京货主">Y002-北京货主</div>
+                                <div class="select-option" data-value="Y003-上海货主">Y003-上海货主</div>
+                                <div class="select-option" data-value="Y004-广州货主">Y004-广州货主</div>
+                                <div class="select-option" data-value="Y005-深圳货主">Y005-深圳货主</div>
+                                <div class="select-option" data-value="Y006-杭州货主">Y006-杭州货主</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>分配策略编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchStrategyCode" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>分配策略名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchStrategyName" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>是否启用:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchIsEnabled" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchIsEnabledDropdown">
+                                <div class="select-option" data-value="yes">启用</div>
+                                <div class="select-option" data-value="no">禁用</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="location.reload()">查询</button>
+                        <button type="button" class="btn btn-secondary" id="addBtn">新增</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>分配策略编码</th>
+                                <th>分配策略名称</th>
+                                <th>仓库</th>
+                                <th>货主</th>
+                                <th>是否启用</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr data-remark="常规分配策略">
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>ALC001</td>
+                                <td>电商订单分配策略</td>
+                                <td>W001-南京仓</td>
+                                <td>Y001-南京货主</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2026-03-25 10:12:36</td>
+                                <td>张三</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr data-remark="调拨业务分配策略">
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>ALC002</td>
+                                <td>仓间调拨分配策略</td>
+                                <td>W002-嘉兴仓</td>
+                                <td>Y003-上海货主</td>
+                                <td><span class="status inactive">禁用</span></td>
+                                <td>2026-03-25 11:24:08</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="detailModal" class="modal" style="display: none; align-items: flex-start; padding-top: 10%; z-index: 3001;">
+        <div class="modal-content" style="margin: 0 auto;">
+            <div class="modal-header">
+                <h2 class="modal-title" id="detailModalTitle">分配策略明细-新增</h2>
+                <span class="close" id="detailCloseBtn">&times;</span>
+            </div>
+            <form class="modal-form" style="gap: 15px;">
+                <div class="modal-form-group">
+                    <label>优先级 <span style="color: red;">*</span></label>
+                    <div class="input-wrapper">
+                        <input type="text" id="detailPriority" placeholder="请输入">
+                        <span class="clear-btn">×</span>
+                    </div>
+                </div>
+                <div class="modal-form-group custom-select-wrapper">
+                    <label>分配来源类型 <span style="color: red;">*</span></label>
+                    <div class="custom-select">
+                        <input type="text" id="detailSourceType" placeholder="请选择">
+                        <span class="select-arrow">▼</span>
+                        <span class="clear-btn">×</span>
+                        <div class="select-dropdown" id="detailSourceTypeDropdown">
+                            <div class="select-option" data-value="sales_outbound">销售出库</div>
+                            <div class="select-option" data-value="distribution_outbound">仓配出库</div>
+                            <div class="select-option" data-value="return_distribution_outbound">返配出库</div>
+                            <div class="select-option" data-value="return_supply_outbound">退供出库</div>
+                            <div class="select-option" data-value="transfer_outbound">调拨出库</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-form-group custom-select-wrapper">
+                    <label>分配来源业务类型 <span style="color: red;">*</span></label>
+                    <div class="custom-select">
+                        <input type="text" id="detailSourceBizType" placeholder="请选择">
+                        <span class="select-arrow">▼</span>
+                        <span class="clear-btn">×</span>
+                        <div class="select-dropdown" id="detailSourceBizTypeDropdown">
+                            <div class="select-option" data-value="live_order">直播订单</div>
+                            <div class="select-option" data-value="deliver_now">货到即配</div>
+                            <div class="select-option" data-value="store_return">门店退货</div>
+                            <div class="select-option" data-value="warehouse_return_supply">仓库退供</div>
+                            <div class="select-option" data-value="warehouse_transfer">仓库调拨</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-form-group custom-select-wrapper">
+                    <label>拣货储位类型 <span style="color: red;">*</span></label>
+                    <div class="custom-select">
+                        <input type="text" id="detailPickLocationType" placeholder="请选择">
+                        <span class="select-arrow">▼</span>
+                        <span class="clear-btn">×</span>
+                        <div class="select-dropdown" id="detailPickLocationTypeDropdown">
+                            <div class="select-option" data-value="picking">拣选位</div>
+                            <div class="select-option" data-value="storage">存储位</div>
+                            <div class="select-option" data-value="temporary">暂存位</div>
+                            <div class="select-option" data-value="receiving">收货位</div>
+                            <div class="select-option" data-value="shipping">发货位</div>
+                            <div class="select-option" data-value="crossdock">越库位</div>
+                            <div class="select-option" data-value="distribution">集散位</div>
+                            <div class="select-option" data-value="packing">打包位</div>
+                            <div class="select-option" data-value="exception">异常位</div>
+                            <div class="select-option" data-value="pending">待处理位</div>
+                            <div class="select-option" data-value="return">退货位</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-form-group custom-select-wrapper">
+                    <label>是否补货 <span style="color: red;">*</span></label>
+                    <div class="custom-select">
+                        <input type="text" id="detailIsReplenish" placeholder="请选择">
+                        <span class="select-arrow">▼</span>
+                        <span class="clear-btn">×</span>
+                        <div class="select-dropdown" id="detailIsReplenishDropdown">
+                            <div class="select-option" data-value="yes">是</div>
+                            <div class="select-option" data-value="no">否</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-form-group custom-select-wrapper">
+                    <label>补货储位类型</label>
+                    <div class="custom-select">
+                        <input type="text" id="detailReplenishLocationType" placeholder="请选择">
+                        <span class="select-arrow">▼</span>
+                        <span class="clear-btn">×</span>
+                        <div class="select-dropdown" id="detailReplenishLocationTypeDropdown">
+                            <div class="select-option" data-value="picking">拣选位</div>
+                            <div class="select-option" data-value="storage">存储位</div>
+                            <div class="select-option" data-value="temporary">暂存位</div>
+                            <div class="select-option" data-value="receiving">收货位</div>
+                            <div class="select-option" data-value="shipping">发货位</div>
+                            <div class="select-option" data-value="crossdock">越库位</div>
+                            <div class="select-option" data-value="distribution">集散位</div>
+                            <div class="select-option" data-value="packing">打包位</div>
+                            <div class="select-option" data-value="exception">异常位</div>
+                            <div class="select-option" data-value="pending">待处理位</div>
+                            <div class="select-option" data-value="return">退货位</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-form-group custom-select-wrapper">
+                    <label>周转策略 <span style="color: red;">*</span></label>
+                    <div class="custom-select">
+                        <input type="text" id="detailTurnoverStrategy" placeholder="请选择">
+                        <span class="select-arrow">▼</span>
+                        <span class="clear-btn">×</span>
+                        <div class="select-dropdown" id="detailTurnoverStrategyDropdown">
+                            <div class="select-option" data-value="fifo">先进先出</div>
+                            <div class="select-option" data-value="lifo">后进先出</div>
+                            <div class="select-option" data-value="fefo">效期优先</div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="detailCancelBtn">取消</button>
+                <button type="button" class="btn btn-primary" id="detailSaveBtn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const enableOptions = [
+                { value: '启用', text: '启用' },
+                { value: '禁用', text: '禁用' }
+            ];
+            const yesNoOptions = [
+                { value: 'yes', text: '是' },
+                { value: 'no', text: '否' }
+            ];
+            const sourceTypeOptions = [
+                { value: 'sales_outbound', text: '销售出库' },
+                { value: 'distribution_outbound', text: '仓配出库' },
+                { value: 'return_distribution_outbound', text: '返配出库' },
+                { value: 'return_supply_outbound', text: '退供出库' },
+                { value: 'transfer_outbound', text: '调拨出库' }
+            ];
+            const sourceBizTypeOptions = [
+                { value: 'live_order', text: '直播订单' },
+                { value: 'deliver_now', text: '货到即配' },
+                { value: 'store_return', text: '门店退货' },
+                { value: 'warehouse_return_supply', text: '仓库退供' },
+                { value: 'warehouse_transfer', text: '仓库调拨' }
+            ];
+            const turnoverStrategyOptions = [
+                { value: 'fifo', text: '先进先出' },
+                { value: 'lifo', text: '后进先出' },
+                { value: 'fefo', text: '效期优先' }
+            ];
+
+            const page = new PageManager({
+                entityName: '分配策略',
+                statusColumnIndex: 5,
+                detailView: { enabled: true },
+                customSelects: [
+                    { inputId: 'searchCompany', dropdownId: 'searchCompanyDropdown' },
+                    { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' }
+                ],
+                fields: [
+                    { id: 'warehouse', label: '仓库', type: 'select', required: true, options: CommonOptions.warehouse, disabled: true },
+                    { id: 'company', label: '货主', type: 'select', required: true, options: CommonOptions.company, editDisabled: true },
+                    { id: 'strategyCode', label: '分配策略编码', type: 'text', required: true, editDisabled: true },
+                    { id: 'strategyName', label: '分配策略名称', type: 'text', required: true, editDisabled: true },
+                    { id: 'isEnabled', label: '是否启用', type: 'select', required: true, options: enableOptions },
+                    {
+                        type: 'raw',
+                        html: '',
+                        editHtml: `
+                            <div class="modal-form-group" style="width: 100%;">
+                                <label>备注</label>
+                                <textarea id="editRemark" placeholder="请输入" rows="3" style="flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 3px; outline: none; resize: vertical;"></textarea>
+                            </div>
+                            <div class="modal-form-group" style="width: 100%; flex-direction: column; align-items: flex-start;">
+                                <div class="detail-toolbar">
+                                    <span class="detail-title">分配策略明细</span>
+                                    <div style="display: flex; gap: 10px;">
+                                        <button type="button" class="btn btn-primary" id="editAddDetailBtn">添加明细</button>
+                                        <button type="button" class="btn btn-primary" id="editSaveAllocationStrategyBtn">保存</button>
+                                        <button type="button" class="btn btn-secondary" id="editCancelAllocationStrategyBtn">取消</button>
+                                    </div>
+                                </div>
+                                <div class="table-scroll-container" style="width: 100%; max-height: 220px; overflow-y: auto;">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>优先级</th>
+                                                <th>分配来源类型</th>
+                                                <th>分配来源业务类型</th>
+                                                <th>拣货储位类型</th>
+                                                <th>是否补货</th>
+                                                <th>补货储位类型</th>
+                                                <th>周转策略</th>
+                                                <th>更新时间</th>
+                                                <th>更新人</th>
+                                                <th>操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="editDetailTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        `
+                    }
+                ],
+                addModal: {
+                    modalId: 'addAllocationStrategyModal',
+                    saveBtnId: 'saveAllocationStrategyBtn',
+                    cancelBtnId: 'cancelAllocationStrategyBtn',
+                    triggerBtnId: null,
+                    defaults: { isEnabled: '启用' },
+                    validations: [
+                        { id: 'warehouse', message: '请选择仓库', required: true },
+                        { id: 'company', message: '请选择货主', required: true },
+                        { id: 'strategyCode', message: '请输入分配策略编码', required: true },
+                        { id: 'strategyName', message: '请输入分配策略名称', required: true },
+                        { id: 'isEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onOpen: () => {
+                        const currentWarehouse = getCurrentWarehouse();
+                        const warehouseInput = document.getElementById('warehouse');
+                        if (!warehouseInput) return;
+                        if (currentWarehouse) {
+                            warehouseInput.value = `${currentWarehouse.code}-${currentWarehouse.name}`;
+                            warehouseInput.dataset.value = currentWarehouse.code;
+                        } else {
+                            warehouseInput.value = '';
+                            warehouseInput.dataset.value = '';
+                        }
+                    },
+                    onSave: () => {
+                        const warehouse = document.getElementById('warehouse').value.trim();
+                        const company = document.getElementById('company').value.trim();
+                        const strategyCode = document.getElementById('strategyCode').value.trim();
+                        const strategyName = document.getElementById('strategyName').value.trim();
+                        const isEnabled = document.getElementById('isEnabled').value.trim();
+
+                        const newRow = page.addTableRow({
+                            cells: [
+                                strategyCode,
+                                strategyName,
+                                warehouse,
+                                company,
+                                { value: isEnabled, isStatus: true },
+                                page.getCurrentTimeStr(),
+                                '当前用户'
+                            ]
+                        });
+                        if (newRow) {
+                            newRow.dataset.remark = '';
+                            newRow.dataset.details = '[]';
+                        }
+                        showToast('分配策略已保存', 'success');
+                    }
+                },
+                editModal: {
+                    modalId: 'editAllocationStrategyModal',
+                    saveBtnId: 'editSaveAllocationStrategyBtn',
+                    cancelBtnId: 'editCancelAllocationStrategyBtn',
+                    validations: [
+                        { id: 'editWarehouse', message: '请选择仓库', required: true },
+                        { id: 'editCompany', message: '请选择货主', required: true },
+                        { id: 'editStrategyCode', message: '请输入分配策略编码', required: true },
+                        { id: 'editStrategyName', message: '请输入分配策略名称', required: true },
+                        { id: 'editIsEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        if (!page.currentEditRow) return;
+                        page.updateTableRow(page.currentEditRow, {
+                            5: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
+                            6: page.getCurrentTimeStr(),
+                            7: '当前用户'
+                        });
+                        page.currentEditRow.dataset.remark = document.getElementById('editRemark').value.trim();
+                        showToast('分配策略已更新', 'success');
+                        page.currentEditRow = null;
+                    },
+                    mapRowToForm: (row) => {
+                        page.currentEditRow = row;
+                        renderDetailTable(getDetailsFromRow(row));
+                        const cells = row.querySelectorAll('td');
+                        return {
+                            editStrategyCode: cells[1].textContent.trim(),
+                            editStrategyName: cells[2].textContent.trim(),
+                            editWarehouse: cells[3].textContent.trim(),
+                            editCompany: cells[4].textContent.trim(),
+                            editIsEnabled: cells[5].querySelector('.status').textContent.trim(),
+                            editRemark: row.dataset.remark || ''
+                        };
+                    }
+                },
+                deleteModal: {}
+            });
+
+            page.init();
+
+            const editStrategyModal = document.getElementById('editAllocationStrategyModal');
+            const editAddDetailBtn = document.getElementById('editAddDetailBtn');
+
+            function syncAllocationStrategyDetailViewUi(isDetailMode) {
+                if (editStrategyModal) {
+                    editStrategyModal.classList.toggle('allocation-detail-readonly', !!isDetailMode);
+                }
+                if (editAddDetailBtn) {
+                    editAddDetailBtn.style.display = isDetailMode ? 'none' : '';
+                }
+            }
+
+            const origUpdateEditModalMode = page.updateEditModalMode.bind(page);
+            page.updateEditModalMode = function(isDetailMode) {
+                origUpdateEditModalMode(isDetailMode);
+                syncAllocationStrategyDetailViewUi(isDetailMode);
+            };
+
+            // 新增时设置当前仓库
+            document.getElementById('addBtn').addEventListener('click', () => {
+                page.openModal('add', {
+                    defaults: { isEnabled: '启用' }
+                });
+            });
+
+            // 监听仓库切换，保持新增/编辑弹窗字段同步
+            document.addEventListener('warehouseChange', (e) => {
+                const { code, name } = e.detail;
+                const warehouseInput = document.getElementById('warehouse');
+                if (warehouseInput) {
+                    warehouseInput.value = `${code}-${name}`;
+                    warehouseInput.dataset.value = code;
+                }
+                const editWarehouseInput = document.getElementById('editWarehouse');
+                if (editWarehouseInput) {
+                    editWarehouseInput.value = `${code}-${name}`;
+                    editWarehouseInput.dataset.value = code;
+                }
+            });
+
+            const tableRows = document.querySelectorAll('#tableBody tr');
+            if (tableRows[0]) {
+                tableRows[0].dataset.details = JSON.stringify([
+                    {
+                        priority: '1',
+                        sourceType: '销售出库',
+                        sourceBizType: '直播订单',
+                        pickLocationType: '拣选位',
+                        isReplenish: '是',
+                        replenishLocationType: '存储位',
+                        turnoverStrategy: '先进先出',
+                        updateTime: '2026-03-25 10:12:36',
+                        updateUser: '张三'
+                    }
+                ]);
+            }
+            if (tableRows[1]) {
+                tableRows[1].dataset.details = JSON.stringify([
+                    {
+                        priority: '2',
+                        sourceType: '调拨出库',
+                        sourceBizType: '仓库调拨',
+                        pickLocationType: '暂存位',
+                        isReplenish: '否',
+                        replenishLocationType: '',
+                        turnoverStrategy: '后进先出',
+                        updateTime: '2026-03-25 11:24:08',
+                        updateUser: '李四'
+                    }
+                ]);
+            }
+
+            if (typeof initCustomSelect === 'function') {
+                initCustomSelect('detailSourceType', 'detailSourceTypeDropdown');
+                initCustomSelect('detailSourceBizType', 'detailSourceBizTypeDropdown');
+                initCustomSelect('detailPickLocationType', 'detailPickLocationTypeDropdown');
+                initCustomSelect('detailIsReplenish', 'detailIsReplenishDropdown');
+                initCustomSelect('detailReplenishLocationType', 'detailReplenishLocationTypeDropdown');
+                initCustomSelect('detailTurnoverStrategy', 'detailTurnoverStrategyDropdown');
+            }
+
+            const detailModal = document.getElementById('detailModal');
+            const detailModalTitle = document.getElementById('detailModalTitle');
+            const detailCloseBtn = document.getElementById('detailCloseBtn');
+            const detailCancelBtn = document.getElementById('detailCancelBtn');
+            const detailSaveBtn = document.getElementById('detailSaveBtn');
+            const detailIsReplenish = document.getElementById('detailIsReplenish');
+            const detailReplenishLocationType = document.getElementById('detailReplenishLocationType');
+            const detailReplenishLocationTypeWrapper = detailReplenishLocationType.closest('.modal-form-group');
+
+            let detailMode = 'add';
+            let currentDetailEditIndex = -1;
+
+            function getCurrentTimeStr() {
+                const now = new Date();
+                return now.getFullYear() + '-' +
+                    String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(now.getDate()).padStart(2, '0') + ' ' +
+                    String(now.getHours()).padStart(2, '0') + ':' +
+                    String(now.getMinutes()).padStart(2, '0') + ':' +
+                    String(now.getSeconds()).padStart(2, '0');
+            }
+
+            function getDetailsFromRow(row) {
+                try {
+                    return JSON.parse(row.dataset.details || '[]');
+                } catch (error) {
+                    return [];
+                }
+            }
+
+            function setDetailsToRow(row, details) {
+                row.dataset.details = JSON.stringify(details);
+            }
+
+            function renderDetailTable(details) {
+                const detailTableBody = document.getElementById('editDetailTableBody');
+                if (!detailTableBody) return;
+                if (!details || details.length === 0) {
+                    detailTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="10" style="text-align: center; color: #999;">暂无明细数据</td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                detailTableBody.innerHTML = details.map((item, index) => `
+                    <tr data-index="${index}">
+                        <td>${item.priority || ''}</td>
+                        <td>${item.sourceType || ''}</td>
+                        <td>${item.sourceBizType || ''}</td>
+                        <td>${item.pickLocationType || ''}</td>
+                        <td>${item.isReplenish || ''}</td>
+                        <td>${item.replenishLocationType || ''}</td>
+                        <td>${item.turnoverStrategy || ''}</td>
+                        <td>${item.updateTime || ''}</td>
+                        <td>${item.updateUser || ''}</td>
+                        <td class="action-links">
+                            <a href="#" class="detail-edit-btn">编辑</a>
+                            <a href="#" class="detail-delete-btn delete-btn">删除</a>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            function resetDetailForm() {
+                document.getElementById('detailPriority').value = '';
+                document.getElementById('detailSourceType').value = '';
+                document.getElementById('detailSourceBizType').value = '';
+                document.getElementById('detailPickLocationType').value = '';
+                document.getElementById('detailIsReplenish').value = '';
+                document.getElementById('detailReplenishLocationType').value = '';
+                document.getElementById('detailTurnoverStrategy').value = '';
+            }
+
+            function toggleReplenishLocationField() {
+                const isReplenishValue = detailIsReplenish.value.trim().toLowerCase();
+                const isReplenishYes = isReplenishValue === '是' || isReplenishValue === 'yes';
+                const isDisabled = !isReplenishYes;
+                detailReplenishLocationType.disabled = isDisabled;
+                if (isDisabled) {
+                    detailReplenishLocationType.value = '';
+                }
+                detailReplenishLocationTypeWrapper.style.opacity = isDisabled ? '0.65' : '1';
+            }
+
+            function openDetailModal(mode, detailData = null, index = -1) {
+                detailMode = mode;
+                currentDetailEditIndex = index;
+                detailModalTitle.textContent = mode === 'edit' ? '分配策略明细-编辑' : '分配策略明细-新增';
+
+                if (mode === 'edit' && detailData) {
+                    document.getElementById('detailPriority').value = detailData.priority || '';
+                    document.getElementById('detailSourceType').value = detailData.sourceType || '';
+                    document.getElementById('detailSourceBizType').value = detailData.sourceBizType || '';
+                    document.getElementById('detailPickLocationType').value = detailData.pickLocationType || '';
+                    document.getElementById('detailIsReplenish').value = detailData.isReplenish || '';
+                    document.getElementById('detailReplenishLocationType').value = detailData.replenishLocationType || '';
+                    document.getElementById('detailTurnoverStrategy').value = detailData.turnoverStrategy || '';
+                } else {
+                    resetDetailForm();
+                }
+
+                toggleReplenishLocationField();
+                detailModal.style.display = 'flex';
+            }
+
+            function closeDetailModal() {
+                detailModal.style.display = 'none';
+                detailMode = 'add';
+                currentDetailEditIndex = -1;
+            }
+
+            if (detailCloseBtn) {
+                detailCloseBtn.addEventListener('click', closeDetailModal);
+            }
+            if (detailCancelBtn) {
+                detailCancelBtn.addEventListener('click', closeDetailModal);
+            }
+            detailModal.addEventListener('click', (event) => {
+                if (event.target === detailModal) {
+                    closeDetailModal();
+                }
+            });
+
+            if (detailIsReplenish) {
+                detailIsReplenish.addEventListener('change', toggleReplenishLocationField);
+                detailIsReplenish.addEventListener('input', toggleReplenishLocationField);
+            }
+
+            document.addEventListener('click', (event) => {
+                if (event.target.id === 'editAddDetailBtn') {
+                    event.preventDefault();
+                    if (!page.currentEditRow) {
+                        showToast('请先选择要编辑的分配策略', 'warning');
+                        return;
+                    }
+                    openDetailModal('add');
+                    return;
+                }
+
+                if (event.target.classList.contains('detail-edit-btn')) {
+                    event.preventDefault();
+                    if (!page.currentEditRow) {
+                        showToast('请先选择要编辑的分配策略', 'warning');
+                        return;
+                    }
+                    const detailRow = event.target.closest('tr');
+                    const editIndex = Number(detailRow.dataset.index);
+                    const detailList = getDetailsFromRow(page.currentEditRow);
+                    const currentDetail = detailList[editIndex];
+                    if (!currentDetail) return;
+                    openDetailModal('edit', currentDetail, editIndex);
+                    return;
+                }
+
+                if (event.target.classList.contains('detail-delete-btn')) {
+                    event.preventDefault();
+                    if (!page.currentEditRow) {
+                        showToast('请先选择要编辑的分配策略', 'warning');
+                        return;
+                    }
+                    const detailRow = event.target.closest('tr');
+                    const deleteIndex = Number(detailRow.dataset.index);
+                    const detailList = getDetailsFromRow(page.currentEditRow);
+                    detailList.splice(deleteIndex, 1);
+                    setDetailsToRow(page.currentEditRow, detailList);
+                    renderDetailTable(detailList);
+                    showToast('明细已删除', 'success');
+                    return;
+                }
+
+                if (event.target.closest('#detailIsReplenishDropdown .select-option')) {
+                    setTimeout(toggleReplenishLocationField, 0);
+                }
+            });
+
+            if (detailSaveBtn) {
+                detailSaveBtn.addEventListener('click', () => {
+                    if (!page.currentEditRow) {
+                        showToast('请先选择要编辑的分配策略', 'warning');
+                        return;
+                    }
+
+                    const priority = document.getElementById('detailPriority').value.trim();
+                    const sourceType = document.getElementById('detailSourceType').value.trim();
+                    const sourceBizType = document.getElementById('detailSourceBizType').value.trim();
+                    const pickLocationType = document.getElementById('detailPickLocationType').value.trim();
+                    const isReplenish = detailIsReplenish.value.trim();
+                    const replenishLocationType = document.getElementById('detailReplenishLocationType').value.trim();
+                    const turnoverStrategy = document.getElementById('detailTurnoverStrategy').value.trim();
+                    const isReplenishYes = isReplenish === '是' || isReplenish.toLowerCase() === 'yes';
+
+                    if (!priority) {
+                        showToast('请输入优先级', 'error');
+                        return;
+                    }
+                    if (!sourceType) {
+                        showToast('请选择分配来源类型', 'error');
+                        return;
+                    }
+                    if (!sourceBizType) {
+                        showToast('请选择分配来源业务类型', 'error');
+                        return;
+                    }
+                    if (!pickLocationType) {
+                        showToast('请选择拣货储位类型', 'error');
+                        return;
+                    }
+                    if (!isReplenish) {
+                        showToast('请选择是否补货', 'error');
+                        return;
+                    }
+                    if (isReplenishYes && !replenishLocationType) {
+                        showToast('请选择补货储位类型', 'error');
+                        return;
+                    }
+                    if (!turnoverStrategy) {
+                        showToast('请选择周转策略', 'error');
+                        return;
+                    }
+
+                    const detailList = getDetailsFromRow(page.currentEditRow);
+                    const detailData = {
+                        priority,
+                        sourceType,
+                        sourceBizType,
+                        pickLocationType,
+                        isReplenish,
+                        replenishLocationType: isReplenishYes ? replenishLocationType : '',
+                        turnoverStrategy,
+                        updateTime: getCurrentTimeStr(),
+                        updateUser: '当前用户'
+                    };
+
+                    if (detailMode === 'edit' && currentDetailEditIndex > -1) {
+                        detailList[currentDetailEditIndex] = detailData;
+                        showToast('明细已更新', 'success');
+                    } else {
+                        detailList.push(detailData);
+                        showToast('明细已添加', 'success');
+                    }
+
+                    setDetailsToRow(page.currentEditRow, detailList);
+                    renderDetailTable(detailList);
+                    closeDetailModal();
+                });
+            }
+
+            document.addEventListener('click', (event) => {
+                if (event.target.id === 'editSaveAllocationStrategyBtn') {
+                    const details = getDetailsFromRow(page.currentEditRow || { dataset: { details: '[]' } });
+                    if (details.length === 0) {
+                        showToast('请至少添加一条分配策略明细', 'warning');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

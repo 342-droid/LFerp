@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 拣货任务</title>
+    <link rel="stylesheet" href="../css/mobile-components.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .mobile-container {
+            width: 393px;
+            height: 851px;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .header {
+            padding: 16px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 20px;
+            color: #333333;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333333;
+            flex: 1;
+            text-align: center;
+            margin-right: 32px;
+        }
+
+        .page {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        #listPage {
+            min-height: 0;
+        }
+
+        .main-content,
+        .type-query-content,
+        .pick-area {
+            flex: 1;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .scan-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: #333333;
+            margin-bottom: 24px;
+        }
+
+        .input-wrapper {
+            width: 100%;
+            margin-bottom: 16px;
+        }
+
+        .input-with-scan-btn {
+            position: relative;
+            width: 100%;
+        }
+
+        .scan-input {
+            width: 100%;
+            padding: 14px 56px 14px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .scan-input:focus {
+            outline: none;
+            border-color: #2196f3;
+        }
+
+        .scan-btn.inside {
+            position: absolute;
+            right: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 48px;
+            height: 40px;
+            border: none;
+            border-radius: 4px;
+            background-color: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .scan-btn.inside svg {
+            width: 24px;
+            height: 24px;
+            color: #666666;
+        }
+
+        .hint-text,
+        .scan-hint {
+            font-size: 14px;
+            color: #999999;
+        }
+
+        .hint-text {
+            margin-bottom: auto;
+        }
+
+        .query-by-type {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            color: #333333;
+            cursor: pointer;
+            padding: 16px;
+        }
+
+        .query-by-type .arrow {
+            font-size: 14px;
+            color: #999999;
+        }
+
+        .claim-task-area {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .claim-btn {
+            width: 168px;
+            height: 168px;
+            border-radius: 50%;
+            border: 1px solid #cfe4f8;
+            background-color: #eaf3fb;
+            color: #6c8faa;
+            font-size: 34px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.12);
+        }
+
+        .claim-btn:hover {
+            background-color: #deedf9;
+        }
+
+        .type-query-title {
+            font-size: 18px;
+            color: #333333;
+            margin-bottom: 32px;
+        }
+
+        .type-buttons {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .type-btn,
+        .bottom-btn,
+        .pick-btn {
+            width: 100%;
+            padding: 14px 20px;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            background-color: #ffffff;
+            color: #2196f3;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .type-btn:hover,
+        .bottom-btn:hover,
+        .pick-btn:hover {
+            background-color: #e3f2fd;
+        }
+
+        .list-content,
+        .details-list {
+            flex: 1;
+            height: 100%;
+            min-height: 0;
+            padding: 20px;
+            overflow-y: auto;
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+
+        .order-item,
+        .details-item,
+        .record-item {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            padding: 16px;
+        }
+
+        .order-item {
+            cursor: pointer;
+        }
+
+        .order-header,
+        .details-item-header,
+        .record-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .order-type,
+        .details-item-name,
+        .record-item-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333333;
+        }
+
+        .order-status {
+            font-size: 14px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            background-color: #e3f2fd;
+            color: #2196f3;
+        }
+
+        .order-info,
+        .details-item-info,
+        .record-item-info {
+            font-size: 14px;
+            color: #666666;
+            line-height: 1.5;
+        }
+
+        .order-info div {
+            margin-bottom: 4px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .order-info div:before {
+            content: attr(data-label);
+            width: 80px;
+            flex-shrink: 0;
+            color: #666666;
+        }
+
+        .order-info div span {
+            flex: 1;
+            min-width: 0;
+            word-break: break-all;
+        }
+
+        .order-info span,
+        .details-item-value,
+        .record-item-value {
+            color: #333333;
+            font-weight: 500;
+        }
+
+        .task-info-bar {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 16px 20px;
+        }
+
+        .task-info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .task-info-type {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333333;
+        }
+
+        .task-info-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 14px;
+            color: #666666;
+        }
+
+        .task-info-stats span {
+            font-weight: 500;
+        }
+
+        .task-info-detail {
+            font-size: 14px;
+            color: #666666;
+        }
+
+        #pickingPage {
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .pick-execute-body {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 18px 10px;
+        }
+
+        .pick-execute-scroll {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            text-align: center;
+        }
+
+        .pick-line-muted {
+            font-size: 14px;
+            color: #888888;
+            margin-bottom: 10px;
+        }
+
+        .pick-location-label-row {
+            font-size: 14px;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+
+        .pick-location-strong {
+            font-weight: 700;
+            color: #222222;
+            font-size: 16px;
+        }
+
+        .pick-field {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 15px;
+            border-radius: 4px;
+            margin-bottom: 14px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .pick-field::placeholder {
+            text-align: center;
+        }
+
+        .pick-field:focus {
+            outline: none;
+        }
+
+        .pick-field:disabled {
+            background-color: #f3f3f3;
+            border-color: #dddddd;
+            color: #999999;
+            cursor: not-allowed;
+        }
+
+        .pick-field-location {
+            border: 1px solid #7ec8e8;
+            background-color: #ffffff;
+        }
+
+        .pick-field-barcode,
+        .pick-field-qty {
+            border: 1px solid #7ec8e8;
+            background-color: #ffffff;
+        }
+
+        #pickingPage #pickLocationInputContainer,
+        #pickingPage #pickBarcodeInputContainer {
+            width: 100%;
+            margin-bottom: 14px;
+        }
+
+        #pickingPage #pickLocationInputContainer .wms-mobile-scan-input__field,
+        #pickingPage #pickBarcodeInputContainer .wms-mobile-scan-input__field {
+            width: 100%;
+            padding: 14px 56px 14px 56px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: #ffffff;
+            text-align: center;
+            margin-bottom: 0;
+        }
+
+        #pickingPage #pickLocationInputContainer .wms-mobile-scan-input__field::placeholder,
+        #pickingPage #pickBarcodeInputContainer .wms-mobile-scan-input__field::placeholder {
+            text-align: center;
+        }
+
+        #pickingPage #pickLocationInputContainer .wms-mobile-scan-input__btn,
+        #pickingPage #pickBarcodeInputContainer .wms-mobile-scan-input__btn {
+            right: 4px;
+            width: 48px;
+            height: 40px;
+            top: calc(50% - 5px);
+            border: none;
+            border-radius: 4px;
+            background-color: transparent;
+        }
+
+        #pickingPage #pickLocationInputContainer .wms-mobile-scan-input__btn svg,
+        #pickingPage #pickBarcodeInputContainer .wms-mobile-scan-input__btn svg {
+            width: 24px;
+            height: 24px;
+            color: #666666;
+            display: block;
+        }
+
+        .pick-product-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: #111111;
+            margin: 6px 0 12px;
+            line-height: 1.35;
+        }
+
+        .pick-barcode-row {
+            font-size: 14px;
+            color: #333333;
+            margin-bottom: 10px;
+        }
+
+        .pick-barcode-tail {
+            color: #e53935;
+            font-weight: 600;
+        }
+
+        .pick-expected-box {
+            background-color: #eceff1;
+            color: #555555;
+            padding: 12px 14px;
+            border-radius: 4px;
+            border: 1px solid #d9d9d9;
+            font-size: 14px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .pick-expected-box:focus {
+            outline: none;
+            border-color: #7ec8e8;
+        }
+
+        .pick-confirm-btn {
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            background-color: #2196f3;
+            color: #ffffff;
+            margin-top: 4px;
+            cursor: pointer;
+        }
+
+        .pick-confirm-btn:active {
+            opacity: 0.9;
+        }
+
+        .pick-footer-btns {
+            display: flex;
+            gap: 10px;
+            padding: 14px 16px;
+            border-top: 1px solid #e0e0e0;
+            background-color: #fafafa;
+        }
+
+        .pick-footer-btn {
+            flex: 1;
+            padding: 12px 10px;
+            font-size: 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #ffffff;
+        }
+
+        .pick-footer-btn--muted {
+            border: 1px solid #cfcfcf;
+            color: #666666;
+        }
+
+        .pick-footer-btn--primary {
+            border: 1px solid #8ec7e2;
+            color: #2a8fce;
+        }
+
+        .shortage-modal {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.35);
+            z-index: 30;
+            padding: 20px;
+        }
+
+        .shortage-modal.active {
+            display: flex;
+        }
+
+        .shortage-modal-card {
+            width: 100%;
+            max-width: 320px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 18px 16px 14px;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+        }
+
+        .shortage-modal-message {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #333333;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .shortage-modal-input {
+            margin-bottom: 14px;
+            border: 1px solid #7ec8e8;
+            background-color: #ffffff;
+            text-align: center;
+        }
+
+        .shortage-modal-input::placeholder {
+            text-align: center;
+        }
+
+        .shortage-modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .shortage-modal-btn {
+            flex: 1;
+            border: 1px solid #d0d0d0;
+            border-radius: 8px;
+            background-color: #ffffff;
+            color: #555555;
+            font-size: 15px;
+            padding: 10px 0;
+            cursor: pointer;
+        }
+
+        .shortage-modal-btn--confirm {
+            border-color: #2196f3;
+            background-color: #2196f3;
+            color: #ffffff;
+        }
+
+        .global-toast {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            max-width: calc(100% - 32px);
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            font-size: 14px;
+            line-height: 1.5;
+            text-align: center;
+            z-index: 60;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .global-toast.active {
+            opacity: 1;
+        }
+
+        .pick-complete-page {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+        }
+
+        .pick-complete-topbar {
+            background-color: #1e90ff;
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+            padding: 14px 12px;
+        }
+
+        .pick-complete-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 22px 24px 16px;
+        }
+
+        .pick-complete-container {
+            font-size: 14px;
+            color: #808080;
+            margin-bottom: 16px;
+        }
+
+        .pick-complete-icon {
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
+            background-color: #e8f6ff;
+            border: 1px solid #c9ecff;
+            color: #1e90ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin-bottom: 14px;
+        }
+
+        .pick-complete-title {
+            font-size: 24px;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+
+        .pick-complete-target {
+            font-size: 20px;
+            color: #333333;
+            margin-bottom: 6px;
+        }
+
+        .pick-complete-target strong {
+            color: #00a2ff;
+            font-weight: 700;
+        }
+
+        .pick-complete-station {
+            font-size: 14px;
+            color: #555555;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .pick-complete-wave {
+            font-size: 14px;
+            color: #ff8f00;
+            font-weight: 600;
+        }
+
+        .pick-complete-action {
+            padding: 14px 12px 18px;
+        }
+
+        .pick-complete-btn {
+            width: 100%;
+            border: none;
+            border-radius: 2px;
+            background-color: #00a2ff;
+            color: #ffffff;
+            font-size: 20px;
+            padding: 12px 10px;
+            cursor: pointer;
+        }
+
+        .pick-complete-btn:active {
+            opacity: 0.92;
+        }
+
+        .bottom-buttons {
+            display: flex;
+            padding: 20px;
+            gap: 12px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .tab-navigation {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            background-color: #ffffff;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background-color: #ffffff;
+            color: #666666;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            color: #2196f3;
+            border-bottom: 2px solid #2196f3;
+            font-weight: 500;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .details-item-row,
+        .record-item-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+
+        .details-item-label,
+        .record-item-label {
+            width: 80px;
+            color: #666666;
+            flex-shrink: 0;
+        }
+
+        .overview-content {
+            flex: 1;
+            padding: 16px 14px;
+            background-color: #f3f5f8;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .overview-top-card,
+        .overview-summary-card {
+            background-color: #ffffff;
+            border: 1px solid #e3e6ea;
+            border-radius: 2px;
+            padding: 14px 12px;
+        }
+
+        .overview-info-row {
+            font-size: 13px;
+            color: #333333;
+            line-height: 1.8;
+        }
+
+        .overview-info-label {
+            color: #666666;
+            display: inline-block;
+            width: 66px;
+        }
+
+        .overview-summary-title {
+            text-align: center;
+            font-size: 14px;
+            color: #333333;
+            margin-bottom: 14px;
+        }
+
+        .overview-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .overview-metric {
+            text-align: center;
+        }
+
+        .overview-metric-value {
+            font-size: 18px;
+            color: #2a8fce;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .overview-metric-label {
+            font-size: 12px;
+            color: #666666;
+        }
+
+        .overview-detail-btn {
+            width: 120px;
+            height: 30px;
+            display: block;
+            margin: 0 auto;
+            border: 1px solid #9ed3ef;
+            border-radius: 2px;
+            background-color: #e9f7ff;
+            color: #2a8fce;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .overview-bottom {
+            margin-top: auto;
+            padding-top: 6px;
+        }
+
+        .start-pick-btn {
+            width: 100%;
+            border: none;
+            border-radius: 2px;
+            background-color: #2a9ed9;
+            color: #ffffff;
+            font-size: 16px;
+            padding: 13px 12px;
+            cursor: pointer;
+        }
+
+        .task-detail-content {
+            flex: 1;
+            padding: 10px 12px 14px;
+            background-color: #f3f5f8;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .task-detail-top-card {
+            background-color: #ffffff;
+            border: 1px solid #e3e6ea;
+            border-radius: 2px;
+            padding: 10px 12px;
+        }
+
+        .task-detail-top-row {
+            font-size: 13px;
+            color: #333333;
+            line-height: 1.8;
+            display: flex;
+        }
+
+        .task-detail-top-label {
+            width: 58px;
+            color: #666666;
+            flex-shrink: 0;
+        }
+
+        .task-detail-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .task-detail-item {
+            background-color: #ffffff;
+            border: 1px solid #e3e6ea;
+            border-radius: 2px;
+            padding: 10px 10px 12px;
+            margin-bottom: 8px;
+        }
+
+        .task-detail-name {
+            font-size: 14px;
+            color: #333333;
+            margin-bottom: 4px;
+        }
+
+        .task-detail-location {
+            font-size: 13px;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+
+        .task-progress-track {
+            width: 100%;
+            height: 14px;
+            border-radius: 7px;
+            border: 1px solid #8ec7e2;
+            background-color: #edf7fd;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-progress-fill {
+            height: 100%;
+            background-color: #9fd7ef;
+            width: 0;
+        }
+
+        .task-progress-text {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 11px;
+            color: #4b9bc3;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="header">
+            <div class="back-btn" id="backBtn" onclick="window.location.href='app_list.html'">←</div>
+            <div class="header-title" id="headerTitle">拣货任务</div>
+        </div>
+
+        <div class="page active" id="scanPage">
+            <div class="main-content">
+                <div class="claim-task-area">
+                    <button class="claim-btn" onclick="claimTask()">领取</button>
+                </div>
+                <div class="query-by-type" onclick="showTypeQueryPage()">
+                    <span>任务列表</span>
+                    <span class="arrow">›</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="overviewPage">
+            <div class="overview-content">
+                <div class="overview-top-card">
+                    <div class="overview-info-row"><span class="overview-info-label">波次单号:</span><span id="overviewWaveNo"></span></div>
+                    <div class="overview-info-row"><span class="overview-info-label">目的储位:</span><span id="overviewTargetLocation"></span></div>
+                    <div class="overview-info-row"><span class="overview-info-label">任务组号:</span><span id="overviewTaskGroup"></span></div>
+                    <div class="overview-info-row"><span class="overview-info-label">目的站点:</span><span id="overviewTargetStation"></span></div>
+                </div>
+
+                <div class="overview-summary-card">
+                    <div class="overview-summary-title">共有 <span id="overviewTaskCount">0</span> 条拣货任务</div>
+                    <div class="overview-metrics">
+                        <div class="overview-metric">
+                            <div class="overview-metric-value" id="overviewPieces">0</div>
+                            <div class="overview-metric-label">件数</div>
+                        </div>
+                        <div class="overview-metric">
+                            <div class="overview-metric-value" id="overviewSku">0</div>
+                            <div class="overview-metric-label">品项数</div>
+                        </div>
+                        <div class="overview-metric">
+                            <div class="overview-metric-value" id="overviewWeight">0.00</div>
+                            <div class="overview-metric-label">重量(KG)</div>
+                        </div>
+                        <div class="overview-metric">
+                            <div class="overview-metric-value" id="overviewVolume">0.00</div>
+                            <div class="overview-metric-label">体积(m³)</div>
+                        </div>
+                    </div>
+                    <button class="overview-detail-btn" onclick="viewTaskDetailFromOverview()">查看任务明细</button>
+                </div>
+
+                <div class="overview-bottom">
+                    <button class="start-pick-btn" onclick="startPickingFromOverview()">开始拣货</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="taskDetailPage">
+            <div class="task-detail-content">
+                <div class="task-detail-top-card">
+                    <div class="task-detail-top-row"><span class="task-detail-top-label">任务组号:</span><span id="detailTaskGroupNo"></span></div>
+                    <div class="task-detail-top-row"><span class="task-detail-top-label">波次单号:</span><span id="detailWaveNo"></span></div>
+                </div>
+                <div class="task-detail-list" id="taskDetailList"></div>
+            </div>
+        </div>
+
+        <div class="page" id="typeQueryPage">
+            <div class="type-query-content">
+                <div class="type-query-title">请选择类型</div>
+                <div class="type-buttons">
+                    <button class="type-btn" onclick="showListPage('销售出库')">销售出库</button>
+                    <button class="type-btn" onclick="showListPage('仓配出库')">仓配出库</button>
+                    <button class="type-btn" onclick="showListPage('退供出库')">退供出库</button>
+                    <button class="type-btn" onclick="showListPage('调拨出库')">调拨出库</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="listPage">
+            <div class="list-content">
+                <div class="order-item" onclick="openOverviewFromList('OB0202603300002')">
+                    <div class="order-header">
+                        <div class="order-type">销售出库</div>
+                        <div class="order-status">已释放</div>
+                    </div>
+                    <div class="order-info">
+                        <div data-label="波次单号:"><span>WV19090576DE1E20300</span></div>
+                        <div data-label="目的储位:"><span>A01</span></div>
+                        <div data-label="任务组号:"><span>TG190905776F29E0400</span></div>
+                        <div data-label="目的站点:"><span>A01-冷丰南京水果市场店</span></div>
+                    </div>
+                </div>
+
+                <div class="order-item" onclick="openOverviewFromList('OB0202603300003')">
+                    <div class="order-header">
+                        <div class="order-type">销售出库</div>
+                        <div class="order-status">已指派</div>
+                    </div>
+                    <div class="order-info">
+                        <div data-label="波次单号:"><span>WV19090576DE1E20300</span></div>
+                        <div data-label="目的储位:"><span>A01</span></div>
+                        <div data-label="任务组号:"><span>TG190905776F29E0400</span></div>
+                        <div data-label="目的站点:"><span>A01-冷丰南京水果市场店</span></div>
+                    </div>
+                </div>
+
+                <div class="order-item" onclick="openOverviewFromList('OB0202603300004')">
+                    <div class="order-header">
+                        <div class="order-type">销售出库</div>
+                        <div class="order-status">执行中</div>
+                    </div>
+                    <div class="order-info">
+                        <div data-label="波次单号:"><span>WV19090576DE1E20300</span></div>
+                        <div data-label="目的储位:"><span>A01</span></div>
+                        <div data-label="任务组号:"><span>TG190905776F29E0400</span></div>
+                        <div data-label="目的站点:"><span>A01-冷丰南京水果市场店</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="pickingPage">
+            <div class="pick-execute-body">
+                <div class="pick-execute-scroll">
+                    <div class="pick-location-label-row">储位: <span id="pickLocationDisplay" class="pick-location-strong"></span></div>
+                    <div id="pickLocationInputContainer"></div>
+                    <div id="pickProductName" class="pick-product-name"></div>
+                    <div class="pick-barcode-row">商品条码: <span id="pickBarcodeMain"></span></div>
+                    <div id="pickBarcodeInputContainer"></div>
+                    <div id="pickExpectedBox" class="pick-expected-box" tabindex="0"></div>
+                    <div class="pick-line-muted">批次: <span id="pickBatchNo"></span></div>
+                </div>
+                <button type="button" class="pick-confirm-btn" onclick="confirmPickExecute()">确定</button>
+            </div>
+            <div class="pick-footer-btns">
+                <button type="button" class="pick-footer-btn pick-footer-btn--primary" onclick="registerPickingException()">缺货登记</button>
+                <button type="button" class="pick-footer-btn pick-footer-btn--primary" onclick="showTaskDetailFromPicking()">查看任务明细</button>
+            </div>
+        </div>
+
+        <div class="page" id="pickingCompletePage">
+            <div class="pick-complete-page">
+                <div class="pick-complete-topbar" id="pickCompleteTopbar">拣货完成</div>
+                <div class="pick-complete-body">
+                    <div class="pick-complete-container">任务组: <span id="pickCompleteTaskGroup"></span></div>
+                    <div class="pick-complete-icon">✓</div>
+                    <div class="pick-complete-title">拣货完成</div>
+                    <div class="pick-complete-target">请送至 <strong id="pickCompleteTargetLocation"></strong></div>
+                    <div class="pick-complete-wave">波次号: <span id="pickCompleteWaveNo"></span></div>
+                </div>
+                <div class="pick-complete-action">
+                    <button type="button" class="pick-complete-btn" onclick="acknowledgePickingComplete()">确定</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="detailsPage">
+            <div class="task-info-bar">
+                <div class="task-info-header">
+                    <div class="task-info-type" id="detailsTaskType"></div>
+                    <div class="task-info-stats">
+                        <span>SKU <span id="detailsSkuCount">0</span>/3</span>
+                        <span>数量 <span id="detailsQtyCount">0</span>/30</span>
+                    </div>
+                </div>
+                <div class="task-info-detail" id="detailsOrderNo"></div>
+            </div>
+
+            <div class="tab-navigation">
+                <button class="tab-btn active" onclick="switchDetailsTab('all')">全部(3)</button>
+                <button class="tab-btn" onclick="switchDetailsTab('done')">已完成(1)</button>
+                <button class="tab-btn" onclick="switchDetailsTab('todo')">未完成(2)</button>
+            </div>
+
+            <div class="details-list tab-content active" id="allTab">
+                <div class="details-item">
+                    <div class="details-item-header"><div class="details-item-name">苹果</div></div>
+                    <div class="details-item-info">
+                        <div class="details-item-row"><span class="details-item-label">商品条码:</span><span class="details-item-value">6912345678901</span></div>
+                        <div class="details-item-row"><span class="details-item-label">计划/已拣:</span><span class="details-item-value">10 / 10</span></div>
+                    </div>
+                </div>
+                <div class="details-item">
+                    <div class="details-item-header"><div class="details-item-name">香蕉</div></div>
+                    <div class="details-item-info">
+                        <div class="details-item-row"><span class="details-item-label">商品条码:</span><span class="details-item-value">6912345678902</span></div>
+                        <div class="details-item-row"><span class="details-item-label">计划/已拣:</span><span class="details-item-value">10 / 0</span></div>
+                    </div>
+                </div>
+                <div class="details-item">
+                    <div class="details-item-header"><div class="details-item-name">橙子</div></div>
+                    <div class="details-item-info">
+                        <div class="details-item-row"><span class="details-item-label">商品条码:</span><span class="details-item-value">6912345678903</span></div>
+                        <div class="details-item-row"><span class="details-item-label">计划/已拣:</span><span class="details-item-value">10 / 0</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="details-list tab-content" id="doneTab">
+                <div class="details-item">
+                    <div class="details-item-header"><div class="details-item-name">苹果</div></div>
+                    <div class="details-item-info">
+                        <div class="details-item-row"><span class="details-item-label">商品条码:</span><span class="details-item-value">6912345678901</span></div>
+                        <div class="details-item-row"><span class="details-item-label">计划/已拣:</span><span class="details-item-value">10 / 10</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="details-list tab-content" id="todoTab">
+                <div class="details-item">
+                    <div class="details-item-header">
+                        <div class="details-item-name">香蕉</div>
+                        <button class="pick-btn" style="width:auto;padding:6px 12px;" onclick="backToPickingFromDetails()">拣货</button>
+                    </div>
+                    <div class="details-item-info">
+                        <div class="details-item-row"><span class="details-item-label">商品条码:</span><span class="details-item-value">6912345678902</span></div>
+                        <div class="details-item-row"><span class="details-item-label">计划/已拣:</span><span class="details-item-value">10 / 0</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="recordsPage">
+            <div class="task-info-bar">
+                <div class="task-info-header">
+                    <div class="task-info-type" id="recordsTaskType"></div>
+                </div>
+                <div class="task-info-detail" id="recordsOrderNo"></div>
+            </div>
+
+            <div class="tab-navigation">
+                <button class="tab-btn active" onclick="switchRecordTab('initial')">初始(1)</button>
+                <button class="tab-btn" onclick="switchRecordTab('pending')">待复核(1)</button>
+                <button class="tab-btn" onclick="switchRecordTab('checked')">已复核(1)</button>
+            </div>
+
+            <div class="details-list tab-content active" id="recordInitialTab">
+                <div class="record-item">
+                    <div class="record-item-header"><div class="record-item-name">苹果</div><div class="order-status">初始</div></div>
+                    <div class="record-item-info">
+                        <div class="record-item-row"><span class="record-item-label">储位:</span><span class="record-item-value">A01-01-01</span></div>
+                        <div class="record-item-row"><span class="record-item-label">拣货量:</span><span class="record-item-value">10</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="details-list tab-content" id="recordPendingTab">
+                <div class="record-item">
+                    <div class="record-item-header"><div class="record-item-name">香蕉</div><div class="order-status">待复核</div></div>
+                    <div class="record-item-info">
+                        <div class="record-item-row"><span class="record-item-label">储位:</span><span class="record-item-value">A01-01-02</span></div>
+                        <div class="record-item-row"><span class="record-item-label">拣货量:</span><span class="record-item-value">6</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="details-list tab-content" id="recordCheckedTab">
+                <div class="record-item">
+                    <div class="record-item-header"><div class="record-item-name">橙子</div><div class="order-status">已复核</div></div>
+                    <div class="record-item-info">
+                        <div class="record-item-row"><span class="record-item-label">储位:</span><span class="record-item-value">A01-01-03</span></div>
+                        <div class="record-item-row"><span class="record-item-label">拣货量:</span><span class="record-item-value">10</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="shortage-modal" id="shortageQtyModal">
+            <div class="shortage-modal-card">
+                <div class="shortage-modal-message">请输入实际拣货数量</div>
+                <input type="number" class="pick-field shortage-modal-input" id="shortagePickedQtyInput" placeholder="请输入实际拣货数量" autocomplete="off" min="0" step="1">
+                <div class="shortage-modal-actions">
+                    <button type="button" class="shortage-modal-btn" onclick="closeShortageQtyModal()">取消</button>
+                    <button type="button" class="shortage-modal-btn shortage-modal-btn--confirm" onclick="submitShortageQty()">确认</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="shortage-modal" id="shortageConfirmModal">
+            <div class="shortage-modal-card">
+                <div class="shortage-modal-message">任务缺货登记后将触发异常处理，请确认是否登记</div>
+                <div class="shortage-modal-actions">
+                    <button type="button" class="shortage-modal-btn" onclick="closeShortageConfirmModal()">取消</button>
+                    <button type="button" class="shortage-modal-btn shortage-modal-btn--confirm" onclick="confirmShortageAndContinue()">确认</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="global-toast" id="globalToast"></div>
+    </div>
+
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mobile-components.js"></script>
+    <script>
+        if (window.WMSMobileComponents) {
+            window.WMSMobileComponents.mountScanBarcodeInput({
+                container: 'pickLocationInputContainer',
+                inputId: 'pickLocationInput',
+                inputClassName: 'pick-field pick-field-location',
+                placeholder: '请扫描/输入储位',
+                onScanClick: validateLocationStep
+            });
+
+            window.WMSMobileComponents.mountScanBarcodeInput({
+                container: 'pickBarcodeInputContainer',
+                inputId: 'pickBarcodeOrQtyInput',
+                inputClassName: 'pick-field pick-field-barcode',
+                placeholder: '请扫描/输入商品',
+                onScanClick: validateBarcodeStep
+            });
+        }
+
+        const headerTitle = document.getElementById('headerTitle');
+        const backBtn = document.getElementById('backBtn');
+        const pageHeader = document.querySelector('.header');
+        const pickLocationInput = document.getElementById('pickLocationInput');
+        const pickBarcodeOrQtyInput = document.getElementById('pickBarcodeOrQtyInput');
+        const pickExpectedBox = document.getElementById('pickExpectedBox');
+        const shortageQtyModal = document.getElementById('shortageQtyModal');
+        const shortagePickedQtyInput = document.getElementById('shortagePickedQtyInput');
+        const shortageConfirmModal = document.getElementById('shortageConfirmModal');
+        const globalToast = document.getElementById('globalToast');
+
+        window.currentOrderType = '';
+        window.currentOrderNo = '';
+        window.overviewBackMode = 'scan';
+        window.pickingSkuCount = 0;
+        window.pickingQtyCount = 0;
+        window.shortagePickedQty = null;
+        let toastTimer = null;
+        window.currentTaskSummary = {
+            waveNo: 'WV19090576DE1E20300',
+            targetLocation: 'A01',
+            targetLocationName: '分拣区',
+            taskGroupNo: 'TG190905776F29E0400',
+            targetStation: 'A01-冷丰南京水果市场店',
+            taskCount: 2,
+            pieces: 42,
+            skuCount: 2,
+            weight: '3.36',
+            volume: '0.09'
+        };
+        window.currentTaskDetails = [
+            { name: '任务1: 可口可乐600ml', location: '1WK110532', done: 0, total: 21, unit: '箱' },
+            { name: '任务2: 李锦记财神蚝油510g', location: '1WK110552', done: 0, total: 21, unit: '瓶' }
+        ];
+        window.pickingLines = [
+            { location: '1WK110532', productName: '可口可乐600ml', barcode: '6901939651605', expectedQty: 21, unit: '箱', batch: '20190627_1' },
+            { location: '1WK110552', productName: '李锦记财神蚝油510g', barcode: '6912345678902', expectedQty: 21, unit: '瓶', batch: '20190628_1' }
+        ];
+        window.pickingLineIndex = 0;
+
+        function setActivePage(pageId) {
+            document.querySelectorAll('.page').forEach((page) => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            pageHeader.style.display = pageId === 'pickingCompletePage' ? 'none' : 'flex';
+        }
+
+        function claimTask() {
+            window.currentOrderType = '销售出库';
+            window.currentOrderNo = 'OB0202603300002';
+            window.overviewBackMode = 'scan';
+            showOverviewPage();
+        }
+
+        function openOverviewFromList(orderNo) {
+            window.currentOrderNo = orderNo;
+            window.overviewBackMode = 'list';
+            showOverviewPage();
+        }
+
+        function showListPageFromOverview() {
+            showListPage(window.currentOrderType || '销售出库');
+        }
+
+        function fillOverviewData() {
+            const data = window.currentTaskSummary;
+            document.getElementById('overviewWaveNo').textContent = data.waveNo;
+            document.getElementById('overviewTargetLocation').textContent = data.targetLocation;
+            document.getElementById('overviewTaskGroup').textContent = data.taskGroupNo;
+            document.getElementById('overviewTargetStation').textContent = data.targetStation;
+            document.getElementById('overviewTaskCount').textContent = String(data.taskCount);
+            document.getElementById('overviewPieces').textContent = String(data.pieces);
+            document.getElementById('overviewSku').textContent = String(data.skuCount);
+            document.getElementById('overviewWeight').textContent = data.weight;
+            document.getElementById('overviewVolume').textContent = data.volume;
+        }
+
+        function showOverviewPage() {
+            setActivePage('overviewPage');
+            headerTitle.textContent = '拣货总览';
+            if (window.overviewBackMode === 'list') {
+                backBtn.setAttribute('onclick', 'showListPageFromOverview()');
+            } else {
+                backBtn.setAttribute('onclick', 'showScanPage()');
+            }
+            fillOverviewData();
+        }
+
+        function viewTaskDetailFromOverview() {
+            showTaskDetailPage();
+        }
+
+        function startPickingFromOverview() {
+            showPickingPage(
+                window.currentOrderType || '销售出库',
+                window.currentOrderNo || 'OB0202603300002'
+            );
+            window.pickingPageBackHandler = 'overview';
+            backBtn.setAttribute('onclick', 'showOverviewPage()');
+        }
+
+        function fillTaskDetailData() {
+            const summary = window.currentTaskSummary;
+            const tasks = window.currentTaskDetails || [];
+
+            document.getElementById('detailTaskGroupNo').textContent = summary.taskGroupNo;
+            document.getElementById('detailWaveNo').textContent = summary.waveNo;
+
+            const listNode = document.getElementById('taskDetailList');
+            listNode.innerHTML = '';
+            tasks.forEach((task, index) => {
+                const item = document.createElement('div');
+                item.className = 'task-detail-item';
+                item.style.cursor = 'pointer';
+                const percent = task.total > 0 ? Math.min((task.done / task.total) * 100, 100) : 0;
+                item.innerHTML = `
+                    <div class="task-detail-name">${task.name}</div>
+                    <div class="task-detail-location">储位: ${task.location}</div>
+                    <div class="task-progress-track">
+                        <div class="task-progress-fill" style="width:${percent}%;"></div>
+                        <div class="task-progress-text">${task.done} / ${task.total}${task.unit}</div>
+                    </div>
+                `;
+                item.addEventListener('click', () => jumpToPickingFromTaskDetail(index));
+                listNode.appendChild(item);
+            });
+        }
+
+        function showTaskDetailPage() {
+            setActivePage('taskDetailPage');
+            window.taskDetailBackSource = 'overview';
+            headerTitle.textContent = '拣货任务明细';
+            backBtn.setAttribute('onclick', 'showOverviewPage()');
+            fillTaskDetailData();
+        }
+
+        function showTaskDetailFromPicking() {
+            setActivePage('taskDetailPage');
+            window.taskDetailBackSource = 'picking';
+            headerTitle.textContent = '拣货任务明细';
+            backBtn.setAttribute('onclick', 'backToPickingFromTaskDetail()');
+            fillTaskDetailData();
+        }
+
+        function jumpToPickingFromTaskDetail(taskIndex) {
+            const lines = window.pickingLines || [];
+            if (!lines.length) {
+                showToast('暂无可执行的拣货任务');
+                return;
+            }
+            const nextIndex = Math.max(0, Math.min(taskIndex, lines.length - 1));
+            setActivePage('pickingPage');
+            loadPickingLine(nextIndex);
+            if (window.taskDetailBackSource === 'overview') {
+                window.pickingPageBackHandler = 'overview';
+                backBtn.setAttribute('onclick', 'showOverviewPage()');
+            } else if (window.pickingPageBackHandler === 'overview') {
+                backBtn.setAttribute('onclick', 'showOverviewPage()');
+            } else {
+                backBtn.setAttribute('onclick', 'showListPageFromPicking()');
+            }
+        }
+
+        function backToPickingFromTaskDetail() {
+            setActivePage('pickingPage');
+            updatePickingHeaderTitle();
+            if (window.pickingPageBackHandler === 'overview') {
+                backBtn.setAttribute('onclick', 'showOverviewPage()');
+            } else {
+                backBtn.setAttribute('onclick', 'showListPageFromPicking()');
+            }
+        }
+
+        function showToast(message) {
+            if (!message) {
+                return;
+            }
+            globalToast.textContent = String(message);
+            globalToast.classList.add('active');
+            if (toastTimer) {
+                clearTimeout(toastTimer);
+            }
+            toastTimer = setTimeout(() => {
+                globalToast.classList.remove('active');
+            }, 1800);
+        }
+
+        function registerPickingException() {
+            const lines = window.pickingLines || [];
+            const idx = window.pickingLineIndex || 0;
+            if (!lines.length || !lines[idx]) {
+                showToast('暂无可执行的拣货任务');
+                return;
+            }
+            window.shortagePickedQty = null;
+            shortagePickedQtyInput.value = '';
+            shortageQtyModal.classList.add('active');
+            setTimeout(() => {
+                shortagePickedQtyInput.focus();
+            }, 0);
+        }
+
+        function closeShortageQtyModal() {
+            shortageQtyModal.classList.remove('active');
+        }
+
+        function submitShortageQty() {
+            const lines = window.pickingLines || [];
+            const idx = window.pickingLineIndex || 0;
+            const row = lines[idx];
+            const pickedQty = Number(shortagePickedQtyInput.value.trim());
+            const expectedQty = Number((row && row.expectedQty) || 0);
+            if (!lines.length || !row) {
+                showToast('暂无可执行的拣货任务');
+                return;
+            }
+            if (!Number.isFinite(pickedQty) || pickedQty < 0) {
+                showToast('请输入有效的实际拣货数量');
+                shortagePickedQtyInput.focus();
+                return;
+            }
+            if (pickedQty === expectedQty) {
+                showToast('拣货量等于应拣量，无法异常登记');
+                shortagePickedQtyInput.focus();
+                return;
+            }
+            if (pickedQty > expectedQty) {
+                showToast('拣货量大于应拣量，无法异常登记');
+                shortagePickedQtyInput.focus();
+                return;
+            }
+            window.shortagePickedQty = pickedQty;
+            closeShortageQtyModal();
+            shortageConfirmModal.classList.add('active');
+        }
+
+        function closeShortageConfirmModal() {
+            shortageConfirmModal.classList.remove('active');
+        }
+
+        function confirmShortageAndContinue() {
+            const lines = window.pickingLines || [];
+            const idx = window.pickingLineIndex || 0;
+            const row = lines[idx];
+            const pickedQty = Number(window.shortagePickedQty);
+            const expectedQty = Number((row && row.expectedQty) || 0);
+
+            if (!lines.length || !lines[idx]) {
+                closeShortageConfirmModal();
+                showToast('暂无可执行的拣货任务');
+                return;
+            }
+
+            if (!Number.isFinite(pickedQty) || pickedQty < 0) {
+                closeShortageConfirmModal();
+                showToast('请输入有效的实际拣货数量');
+                return;
+            }
+            if (pickedQty >= expectedQty) {
+                closeShortageConfirmModal();
+                showToast('缺货登记校验失败，请重新登记');
+                return;
+            }
+
+            closeShortageConfirmModal();
+            window.pickingSkuCount = Math.min((window.pickingSkuCount || 0) + 1, 999);
+            window.pickingQtyCount = Math.min((window.pickingQtyCount || 0) + pickedQty, 999);
+            window.shortagePickedQty = null;
+            showToast('登记成功');
+            const next = idx + 1;
+            if (next < lines.length) {
+                loadPickingLine(next);
+            } else {
+                showPickingCompletePage();
+            }
+        }
+
+        function setPickBarcodeDisplay(barcode) {
+            const el = document.getElementById('pickBarcodeMain');
+            const s = String(barcode || '');
+            if (s.length >= 4) {
+                el.innerHTML = s.slice(0, -4) + '<span class="pick-barcode-tail">' + s.slice(-4) + '</span>';
+            } else {
+                el.textContent = s;
+            }
+        }
+
+        function updatePickingHeaderTitle() {
+            const lines = window.pickingLines || [];
+            const i = window.pickingLineIndex || 0;
+            if (lines.length) {
+                headerTitle.textContent = '拣货任务执行 ' + (i + 1) + '/' + lines.length;
+            } else {
+                headerTitle.textContent = '拣货任务执行';
+            }
+        }
+
+        function resetPickingInputFlow() {
+            pickLocationInput.disabled = false;
+            pickBarcodeOrQtyInput.disabled = true;
+            setTimeout(() => {
+                pickLocationInput.focus();
+            }, 0);
+        }
+
+        function validateLocationStep() {
+            const lines = window.pickingLines || [];
+            const idx = window.pickingLineIndex || 0;
+            const row = lines[idx];
+            if (!row) {
+                return false;
+            }
+            const locVal = pickLocationInput.value.trim();
+            if (!locVal) {
+                showToast('请先扫描/输入储位');
+                pickLocationInput.focus();
+                return false;
+            }
+            if (locVal !== row.location) {
+                showToast('储位与当前任务不一致');
+                pickLocationInput.focus();
+                return false;
+            }
+            pickLocationInput.disabled = true;
+            pickBarcodeOrQtyInput.disabled = false;
+            pickBarcodeOrQtyInput.focus();
+            return true;
+        }
+
+        function validateBarcodeStep() {
+            const lines = window.pickingLines || [];
+            const idx = window.pickingLineIndex || 0;
+            const row = lines[idx];
+            if (!row) {
+                return false;
+            }
+            if (!pickLocationInput.disabled && !validateLocationStep()) {
+                return false;
+            }
+            const scannedBarcode = pickBarcodeOrQtyInput.value.trim();
+            if (!scannedBarcode) {
+                showToast('请扫描商品条码');
+                pickBarcodeOrQtyInput.focus();
+                return false;
+            }
+            if (scannedBarcode !== String(row.barcode || '')) {
+                showToast('商品条码校验失败，非当前任务商品');
+                pickBarcodeOrQtyInput.focus();
+                return false;
+            }
+            pickBarcodeOrQtyInput.disabled = true;
+            pickExpectedBox.focus();
+            return true;
+        }
+
+        function validateQtyStep() {
+            const lines = window.pickingLines || [];
+            const idx = window.pickingLineIndex || 0;
+            const row = lines[idx];
+            if (!row) {
+                return null;
+            }
+            if (!pickBarcodeOrQtyInput.disabled && !validateBarcodeStep()) {
+                return null;
+            }
+            const qtyVal = Number(row.expectedQty || 0);
+            if (!Number.isFinite(qtyVal) || qtyVal <= 0) {
+                showToast('应拣数量异常，无法确认拣货');
+                return null;
+            }
+            return qtyVal;
+        }
+
+        function loadPickingLine(index) {
+            const lines = window.pickingLines || [];
+            if (!lines.length || index < 0 || index >= lines.length) {
+                return;
+            }
+            window.pickingLineIndex = index;
+            const row = lines[index];
+            document.getElementById('pickLocationDisplay').textContent = row.location;
+            document.getElementById('pickProductName').textContent = row.productName;
+            setPickBarcodeDisplay(row.barcode);
+            document.getElementById('pickExpectedBox').textContent = '应拣数量 ' + row.expectedQty + ' (' + row.unit + ')';
+            document.getElementById('pickBatchNo').textContent = row.batch;
+            pickLocationInput.value = '';
+            pickBarcodeOrQtyInput.value = '';
+            resetPickingInputFlow();
+            updatePickingHeaderTitle();
+        }
+
+        function confirmPickExecute() {
+            const lines = window.pickingLines || [];
+            const idx = window.pickingLineIndex || 0;
+            if (!lines.length || !lines[idx]) {
+                return;
+            }
+            const pickedQty = validateQtyStep();
+            if (pickedQty === null) {
+                return;
+            }
+            window.pickingSkuCount = Math.min((window.pickingSkuCount || 0) + 1, 999);
+            window.pickingQtyCount = Math.min((window.pickingQtyCount || 0) + pickedQty, 999);
+            showToast('商品条码校验通过，拣货确认成功');
+            pickBarcodeOrQtyInput.value = '';
+            const next = idx + 1;
+            if (next < lines.length) {
+                loadPickingLine(next);
+            } else {
+                showPickingCompletePage();
+            }
+        }
+
+        function showPickingCompletePage() {
+            const summary = window.currentTaskSummary || {};
+            const targetLocation = summary.targetLocation || '--';
+            const targetLocationName = summary.targetLocationName || '';
+            const targetLocationDisplay = targetLocationName ? `${targetLocation}-${targetLocationName}` : targetLocation;
+            document.getElementById('pickCompleteTopbar').textContent = '拣货完成';
+            document.getElementById('pickCompleteTaskGroup').textContent = summary.taskGroupNo || '--';
+            document.getElementById('pickCompleteTargetLocation').textContent = targetLocationDisplay;
+            document.getElementById('pickCompleteWaveNo').textContent = summary.waveNo || '--';
+            setActivePage('pickingCompletePage');
+        }
+
+        function acknowledgePickingComplete() {
+            showScanPage();
+        }
+
+        function showTypeQueryPage() {
+            setActivePage('typeQueryPage');
+            headerTitle.textContent = '按类型查询';
+            backBtn.setAttribute('onclick', 'showScanPage()');
+        }
+
+        function showScanPage() {
+            setActivePage('scanPage');
+            headerTitle.textContent = '拣货任务';
+            backBtn.setAttribute('onclick', "window.location.href='app_list.html'");
+        }
+
+        function showListPage(type) {
+            window.currentOrderType = type;
+            setActivePage('listPage');
+            headerTitle.textContent = '拣货任务-列表';
+            backBtn.setAttribute('onclick', 'showTypeQueryPage()');
+            document.querySelectorAll('.order-type').forEach((node) => {
+                node.textContent = type;
+            });
+        }
+
+        function showPickingPage(type, orderNo) {
+            window.currentOrderType = type;
+            window.currentOrderNo = orderNo;
+            setActivePage('pickingPage');
+            window.pickingPageBackHandler = 'list';
+            backBtn.setAttribute('onclick', 'showListPageFromPicking()');
+
+            window.pickingSkuCount = 0;
+            window.pickingQtyCount = 0;
+            loadPickingLine(0);
+        }
+
+        function showListPageFromPicking() {
+            setActivePage('listPage');
+            headerTitle.textContent = '拣货任务-列表';
+            backBtn.setAttribute('onclick', 'showTypeQueryPage()');
+        }
+
+        function showPickDetails() {
+            setActivePage('detailsPage');
+            headerTitle.textContent = '出库明细';
+            backBtn.setAttribute('onclick', 'backToPickingFromDetails()');
+
+            document.getElementById('detailsTaskType').textContent = window.currentOrderType || '销售出库';
+            document.getElementById('detailsOrderNo').textContent = '出库单号: ' + (window.currentOrderNo || 'OB0202603300002');
+            document.getElementById('detailsSkuCount').textContent = String(window.pickingSkuCount || 0);
+            document.getElementById('detailsQtyCount').textContent = String(window.pickingQtyCount || 0);
+        }
+
+        function backToPickingFromDetails() {
+            setActivePage('pickingPage');
+            updatePickingHeaderTitle();
+            backBtn.setAttribute('onclick', 'showListPageFromPicking()');
+        }
+
+        function showPickRecords() {
+            setActivePage('recordsPage');
+            headerTitle.textContent = '拣货记录';
+            backBtn.setAttribute('onclick', 'backToPickingFromRecords()');
+
+            document.getElementById('recordsTaskType').textContent = window.currentOrderType || '销售出库';
+            document.getElementById('recordsOrderNo').textContent = '出库单号: ' + (window.currentOrderNo || 'OB0202603300002');
+        }
+
+        function backToPickingFromRecords() {
+            setActivePage('pickingPage');
+            updatePickingHeaderTitle();
+            backBtn.setAttribute('onclick', 'showListPageFromPicking()');
+        }
+
+        function switchDetailsTab(tabName) {
+            const btns = document.querySelectorAll('#detailsPage .tab-btn');
+            const tabs = ['all', 'done', 'todo'];
+            btns.forEach((btn) => btn.classList.remove('active'));
+            document.querySelector(`#detailsPage .tab-btn[onclick="switchDetailsTab('${tabName}')"]`).classList.add('active');
+            tabs.forEach((name) => {
+                document.getElementById(name + 'Tab').classList.remove('active');
+            });
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+
+        function switchRecordTab(tabName) {
+            const btns = document.querySelectorAll('#recordsPage .tab-btn');
+            const map = {
+                initial: 'recordInitialTab',
+                pending: 'recordPendingTab',
+                checked: 'recordCheckedTab'
+            };
+            btns.forEach((btn) => btn.classList.remove('active'));
+            document.querySelector(`#recordsPage .tab-btn[onclick="switchRecordTab('${tabName}')"]`).classList.add('active');
+            Object.values(map).forEach((id) => document.getElementById(id).classList.remove('active'));
+            document.getElementById(map[tabName]).classList.add('active');
+        }
+
+        pickLocationInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                validateLocationStep();
+            }
+        });
+
+        pickBarcodeOrQtyInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                validateBarcodeStep();
+            }
+        });
+
+        pickExpectedBox.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                confirmPickExecute();
+            }
+        });
+
+        shortagePickedQtyInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitShortageQty();
+            }
+        });
+
+    </script>
+</body>
+</html>

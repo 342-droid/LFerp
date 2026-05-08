@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - MDM工作台</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .mdm-wb-intro { max-width: 720px; line-height: 1.65; color: #333; font-size: 14px; }
+        .mdm-wb-intro h2 { font-size: 16px; margin: 0 0 10px; color: #111; font-weight: 600; }
+        .mdm-wb-intro p { margin: 0 0 14px; }
+        .mdm-wb-intro ul { margin: 8px 0 0 1.15em; padding: 0; }
+        .mdm-wb-intro li { margin-bottom: 6px; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">MDM工作台</button></div>
+            <hr class="content-divider">
+            <div class="content-title">基础数据中心 / MDM工作台</div>
+            <section class="table-section" style="padding-top: 8px;">
+                <div class="mdm-wb-intro">
+                    <h2>说明</h2>
+                    <p>
+                        本页为「主数据管理（MDM）」入口说明。业务数据请在左侧菜单进入对应列表页维护；
+                        当前演示环境使用本地表格与弹窗，未接真实接口。
+                    </p>
+                    <h2>主体中心</h2>
+                    <p>以下页面按主体类型拆分，列结构与历史 LF 演示一致（10 列数据 + 操作）：</p>
+                    <ul>
+                        <li>仓库主体、门店主体、供应商主体、直播间主体、承运商主体</li>
+                    </ul>
+                    <h2>其他 MDM 模块</h2>
+                    <p>门店档案、人员与会员、审核等页面可在侧栏继续打开；若某页仍为占位或旧版布局，以后续迭代为准。</p>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+</body>
+</html>

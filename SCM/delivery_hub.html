@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 站点</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+    <!-- 侧边栏容器 -->
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+
+    <!-- 顶部导航栏容器 -->
+    <div id="header-container"></div>
+    
+    <!-- 整体布局容器 -->
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">站点</button>
+            </div>
+            
+            <hr class="content-divider">
+            
+            <div class="content-title">基础信息 / 站点</div>
+            
+            <!-- 搜索区域 -->
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group">
+                        <label>站点编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchHubCode" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>站点名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchHubName" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>站点类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchHubType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchHubTypeDropdown">
+                                <div class="select-option" data-value="">请选择</div>
+                                <div class="select-option" data-value="warehouse">仓库</div>
+                                <div class="select-option" data-value="store">门店</div>
+                                <div class="select-option" data-value="carrier">承运商</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>是否启用:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchIsEnabled" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchIsEnabledDropdown">
+                                <div class="select-option" data-value="">请选择</div>
+                                <div class="select-option" data-value="yes">启用</div>
+                                <div class="select-option" data-value="no">禁用</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="location.reload()">查询</button>
+                    </div>
+                </form>
+            </section>
+            
+            <!-- 表格区域 -->
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>站点编码</th>
+                                <th>站点名称</th>
+                                <th>站点线路</th>
+                                <th>站点储位</th>
+                                <th>仓库</th>
+                                <th>站点类型</th>
+                                <th>地址</th>
+                                <th>联系人</th>
+                                <th>电话</th>
+                                <th>是否启用</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>DH001</td><td>南京分站</td><td>L001-华东干线</td><td>NJ01</td><td>W001-南京仓</td><td>仓库</td>
+                                <td>南京市江宁区XX路XX号</td><td>张三</td><td>13800138001</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2025-01-05 12:31:43</td><td>李四</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a></td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>DH002</td><td>上海门店</td><td>L002-沪宁线路</td><td>SH01</td><td>W003-上海仓</td><td>门店</td>
+                                <td>上海市浦东新区XX路XX号</td><td>王五</td><td>13800138002</td>
+                                <td><span class="status inactive">禁用</span></td>
+                                <td>2025-01-05 12:31:43</td><td>李四</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页组件容器 -->
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 引入公共脚本 -->
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const page = new PageManager({
+                entityName: '站点',
+                statusColumnIndex: 10,
+                detailView: { enabled: true },
+                
+                customSelects: [
+                    { inputId: 'searchHubType', dropdownId: 'searchHubTypeDropdown' },
+                    { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' }
+                ],
+                
+                fields: [
+                    { id: 'warehouse', label: '仓库', type: 'select', required: true, disabled: true,
+                      options: [
+                          { value: 'W001', text: 'W001-南京仓' }, { value: 'W002', text: 'W002-嘉兴仓' },
+                          { value: 'W003', text: 'W003-上海仓' }, { value: 'W004', text: 'W004-北京仓' },
+                          { value: 'W005', text: 'W005-广州仓' }
+                      ] },
+                    { id: 'hubCode', label: '站点编码', type: 'text', required: true, editDisabled: true },
+                    { id: 'hubName', label: '站点名称', type: 'text', required: true, editDisabled: true },
+                    { id: 'hubType', label: '站点类型', type: 'select', required: true, editDisabled: true,
+                      options: [
+                          { value: 'warehouse', text: '仓库' },
+                          { value: 'store', text: '门店' },
+                          { value: 'carrier', text: '承运商' }
+                      ] },
+                    { id: 'route', label: '站点线路', type: 'text', editDisabled: true },
+                    { id: 'hubLocation', label: '站点储位', type: 'select',
+                      options: [
+                          { value: '', text: '请选择' },
+                          { value: 'A01-B02-C03', text: 'A01-B02-C03' },
+                          { value: 'B03-C01-A02', text: 'B03-C01-A02' },
+                          { value: 'C02-A03-B01', text: 'C02-A03-B01' }
+                      ] },
+                    { id: 'address', label: '地址', type: 'text', editDisabled: true },
+                    { id: 'contact', label: '联系人', type: 'text', editDisabled: true },
+                    { id: 'phone', label: '电话', type: 'text', editDisabled: true },
+                    { id: 'isEnabled', label: '是否启用', type: 'select', required: true, editDisabled: true,
+                      options: [{ value: 'yes', text: '启用' }, { value: 'no', text: '禁用' }] },
+                    { id: 'remark', label: '备注', type: 'textarea', editDisabled: true }
+                ],
+                
+                editModal: {
+                    modalId: 'hubEditModal',
+                    cancelBtnId: 'editCancelBtn',
+                    saveBtnId: 'editSaveBtn',
+                    validations: [],
+                    onDetailModeChange: (isDetailMode) => {
+                        const hideFieldIds = ['editAddress', 'editContact', 'editPhone', 'editIsEnabled', 'editRemark'];
+                        hideFieldIds.forEach((id) => {
+                            const input = document.getElementById(id);
+                            const formGroup = input ? input.closest('.modal-form-group') : null;
+                            if (formGroup) {
+                                formGroup.style.display = isDetailMode ? '' : 'none';
+                            }
+                        });
+                    },
+                    onSave: () => {
+                        if (!page.currentEditRow) return;
+                        page.updateTableRow(page.currentEditRow, {
+                            4: document.getElementById('editHubLocation')?.value.trim() || '-',
+                            11: page.getCurrentTimeStr(),
+                            12: '当前用户'
+                        });
+                        showToast('站点信息已更新', 'success');
+                        page.currentEditRow = null;
+                    },
+                    mapRowToForm: (row) => {
+                        page.currentEditRow = row;
+                        const cells = row.querySelectorAll('td');
+                        return {
+                            editHubCode: cells[1].textContent,
+                            editHubName: cells[2].textContent,
+                            editRoute: cells[3].textContent,
+                            editHubLocation: cells[4].textContent,
+                            editWarehouse: cells[5].textContent,
+                            editHubType: cells[6].textContent,
+                            editAddress: cells[7].textContent === '-' ? '' : cells[7].textContent,
+                            editContact: cells[8].textContent === '-' ? '' : cells[8].textContent,
+                            editPhone: cells[9].textContent === '-' ? '' : cells[9].textContent,
+                            editIsEnabled: cells[10].querySelector('.status').textContent
+                        };
+                    }
+                }
+            });
+            
+            page.init();
+            document.getElementById('editCloseBtn').addEventListener('click', () => page.closeModal('edit'));
+
+            // 监听仓库切换，保持编辑弹窗字段同步
+            document.addEventListener('warehouseChange', (e) => {
+                const { code, name } = e.detail;
+                const warehouseInput = document.getElementById('warehouse');
+                if (warehouseInput) {
+                    warehouseInput.value = `${code}-${name}`;
+                    warehouseInput.dataset.value = code;
+                }
+                const editWarehouseInput = document.getElementById('editWarehouse');
+                if (editWarehouseInput) {
+                    editWarehouseInput.value = `${code}-${name}`;
+                    editWarehouseInput.dataset.value = code;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

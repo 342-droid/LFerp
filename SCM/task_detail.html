@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 任务详情</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .detail-card {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 16px;
+        }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(280px, 1fr));
+            gap: 12px 20px;
+        }
+        .detail-item {
+            display: flex;
+            align-items: flex-start;
+            line-height: 1.6;
+        }
+        .detail-item-label {
+            width: 150px;
+            color: #666;
+            flex-shrink: 0;
+        }
+        .detail-item-value {
+            color: #222;
+            word-break: break-all;
+        }
+        .toolbar {
+            margin-bottom: 12px;
+        }
+        @media (max-width: 1400px) {
+            .detail-grid {
+                grid-template-columns: repeat(2, minmax(260px, 1fr));
+            }
+        }
+        @media (max-width: 900px) {
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">任务详情</button>
+            </div>
+
+            <hr class="content-divider">
+
+            <div class="content-title">任务管理 / 任务 / 任务详情</div>
+
+            <div class="toolbar">
+                <button class="btn btn-secondary" type="button" onclick="window.location.href='task.html'">返回任务列表</button>
+            </div>
+
+            <section class="detail-card">
+                <div class="detail-grid" id="detailGrid"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        const taskDetailDataMap = {
+            T20260319001: {
+                warehouse: 'W001-南京仓',
+                company: '货主1',
+                taskNo: 'T20260319001',
+                taskGroupNo: 'TG20260319001',
+                taskStatus: '已释放',
+                taskType: '拣货任务',
+                taskSource: '出库',
+                taskSourceType: '调拨入库',
+                taskSourceBizType: '仓库调拨',
+                invokeNo: 'INV001',
+                invokeDetailId: 'INVD-001',
+                sourceNo: 'SO001',
+                relatedNo: 'RO001',
+                autoRelease: '是',
+                priority: '高',
+                skuCode: 'SKU001',
+                skuName: '冷冻牛肉',
+                uom: '箱',
+                planQty: '120',
+                doneQty: '60',
+                executor: '张三',
+                planStartTime: '2026-03-19 09:00:00',
+                planFinishTime: '2026-03-19 12:00:00',
+                startTime: '2026-03-19 09:10:00',
+                finishTime: '',
+                sourceLocation: 'A01-01-01',
+                targetLocation: 'B01-02-01',
+                sourceZone: 'A库区',
+                targetZone: 'B库区',
+                sourceWorkArea: '入库作业区',
+                targetWorkArea: '出库作业区',
+                sourceBatchNo: 'BN001',
+                targetBatchNo: 'BN001',
+                sourceProductionDate: '2026-01-10',
+                targetProductionDate: '2026-01-10',
+                sourcePickOrder: '10',
+                targetPutawayOrder: '20',
+                sourceInventoryOrder: '30',
+                preTaskId: 'PRE-T001',
+                preTaskGroupId: 'PRE-TG001',
+                groupName1: '分组名1',
+                groupName2: '分组名2',
+                groupName3: '分组名3',
+                groupName4: '分组名4',
+                groupName5: '分组名5',
+                groupValue1: '冷链',
+                groupValue2: '华东',
+                groupValue3: '',
+                groupValue4: '',
+                groupValue5: '',
+                fetchName1: '取用名1',
+                fetchName2: '取用名2',
+                fetchName3: '取用名3',
+                fetchName4: '取用名4',
+                fetchName5: '取用名5',
+                fetchValue1: '来源单号',
+                fetchValue2: '商品',
+                fetchValue3: '',
+                fetchValue4: '',
+                fetchValue5: '',
+                mergeParam1: '调用明细ID',
+                mergeParam2: '生产日期',
+                mergeParam3: '',
+                mergeParam4: '',
+                mergeParam5: ''
+            }
+        };
+
+        function getQueryTaskNo() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('taskNo') || 'T20260319001';
+        }
+
+        function renderTaskDetail(detail) {
+            const detailGrid = document.getElementById('detailGrid');
+            if (!detailGrid) return;
+            const fields = [
+                ['仓库', detail.warehouse],
+                ['货主', detail.company],
+                ['任务号', detail.taskNo],
+                ['任务组号', detail.taskGroupNo],
+                ['任务状态', detail.taskStatus],
+                ['任务类型', detail.taskType],
+                ['任务来源', detail.taskSource],
+                ['任务来源类型', detail.taskSourceType],
+                ['任务来源业务类型', detail.taskSourceBizType],
+                ['调用单号', detail.invokeNo],
+                ['调用明细ID', detail.invokeDetailId],
+                ['来源单号', detail.sourceNo],
+                ['关联单号', detail.relatedNo],
+                ['自动释放', detail.autoRelease],
+                ['优先级', detail.priority],
+                ['商品编码', detail.skuCode],
+                ['商品名称', detail.skuName],
+                ['单位', detail.uom],
+                ['计划数量', detail.planQty],
+                ['完成数量', detail.doneQty],
+                ['执行人', detail.executor],
+                ['计划开始时间', detail.planStartTime],
+                ['计划完成时间', detail.planFinishTime],
+                ['开始时间', detail.startTime],
+                ['完成时间', detail.finishTime],
+                ['来源储位', detail.sourceLocation],
+                ['目的储位', detail.targetLocation],
+                ['来源库区', detail.sourceZone],
+                ['目的库区', detail.targetZone],
+                ['来源作业区域', detail.sourceWorkArea],
+                ['目的作业区域', detail.targetWorkArea],
+                ['来源商品批号', detail.sourceBatchNo],
+                ['目的商品批号', detail.targetBatchNo],
+                ['来源生产日期', detail.sourceProductionDate],
+                ['目的生产日期', detail.targetProductionDate],
+                ['来源储位拣货顺序', detail.sourcePickOrder],
+                ['目的储位上架顺序', detail.targetPutawayOrder],
+                ['来源储位盘点顺序', detail.sourceInventoryOrder],
+                ['前置任务ID', detail.preTaskId],
+                ['前置任务组ID', detail.preTaskGroupId],
+                ['分组名1', detail.groupName1],
+                ['分组名2', detail.groupName2],
+                ['分组名3', detail.groupName3],
+                ['分组名4', detail.groupName4],
+                ['分组名5', detail.groupName5],
+                ['分组值1', detail.groupValue1],
+                ['分组值2', detail.groupValue2],
+                ['分组值3', detail.groupValue3],
+                ['分组值4', detail.groupValue4],
+                ['分组值5', detail.groupValue5],
+                ['取用名1', detail.fetchName1],
+                ['取用名2', detail.fetchName2],
+                ['取用名3', detail.fetchName3],
+                ['取用名4', detail.fetchName4],
+                ['取用名5', detail.fetchName5],
+                ['取用值1', detail.fetchValue1],
+                ['取用值2', detail.fetchValue2],
+                ['取用值3', detail.fetchValue3],
+                ['取用值4', detail.fetchValue4],
+                ['取用值5', detail.fetchValue5],
+                ['合并入参1', detail.mergeParam1],
+                ['合并入参2', detail.mergeParam2],
+                ['合并入参3', detail.mergeParam3],
+                ['合并入参4', detail.mergeParam4],
+                ['合并入参5', detail.mergeParam5]
+            ];
+
+            detailGrid.innerHTML = fields.map(field => `
+                <div class="detail-item">
+                    <div class="detail-item-label">${field[0]}:</div>
+                    <div class="detail-item-value">${field[1] || ''}</div>
+                </div>
+            `).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const taskNo = getQueryTaskNo();
+            const detail = taskDetailDataMap[taskNo] || taskDetailDataMap.T20260319001;
+            renderTaskDetail(detail);
+        });
+    </script>
+</body>
+</html>
