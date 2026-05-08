@@ -92,6 +92,8 @@ function loadHeader() {
         const isMdmPage = /\/MDM\//i.test(path) || /\/MDM$/i.test(path) || pageFile.startsWith('mdm_');
         const isMdmAuditPage = pageFile.startsWith('mdm_audit_');
         const isMdmBasePage = isMdmPage && !isMdmAuditPage;
+        const isMdmWorkbenchPage = pageFile === 'mdm_workbench.html';
+        const isMdmDataCenterPage = isMdmBasePage && !isMdmWorkbenchPage;
         // 直接使用 header HTML 内容，避免 fetch 问题
         const headerHtml = `
             <!-- 顶部导航栏组件 -->
@@ -101,7 +103,8 @@ function loadHeader() {
                 </button>
                 
                 <nav class="nav-tabs">
-                    <a href="${wp.page('mdm_workbench.html')}" class="${isMdmBasePage ? 'active' : ''}">基础数据中心</a>
+                    <a href="${wp.page('mdm_workbench.html')}" class="${isMdmWorkbenchPage ? 'active' : ''}">工作台</a>
+                    <a href="${wp.page('mdm_party_store.html')}" class="${isMdmDataCenterPage ? 'active' : ''}">基础数据中心</a>
                     <a href="${wp.page('mdm_audit_store_registration.html')}" class="${isMdmAuditPage ? 'active' : ''}">审核中心</a>
                     <a href="${wp.page('index.html')}" class="${!isTmsPage && !isPurchasePage && !isAppPage && !isMdmPage ? 'active' : ''}">仓储</a>
                     <a href="${wp.page('TMS_index.html')}" class="${isTmsPage ? 'active' : ''}">物流</a>

@@ -13,8 +13,7 @@
 
     /** 工作台 / 首页类入口（对齐 SPA dashboard） */
     const overviewItems = [
-        { href: 'mdm_workbench.html', text: 'MDM工作台' },
-        { href: 'mdm_super_admin_accounts.html', text: '商户主体建档' }
+        { href: 'mdm_workbench.html', text: '工作台' }
     ];
 
     const partyItems = [
@@ -30,8 +29,7 @@
         { href: 'mdm_archive_supplier.html', text: '供应商档案' },
         { href: 'mdm_archive_warehouse.html', text: '仓库档案' },
         { href: 'mdm_archive_live_room.html', text: '直播间档案' },
-        { href: 'mdm_archive_carrier.html', text: '承运商档案' },
-        { href: 'mdm_resource_onboarding.html', text: '支付进件' }
+        { href: 'mdm_archive_carrier.html', text: '承运商档案' }
     ];
 
     const peopleItems = [
