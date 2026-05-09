@@ -7,11 +7,21 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <style>
-        .mdm-wb-intro { max-width: 720px; line-height: 1.65; color: #333; font-size: 14px; }
-        .mdm-wb-intro h2 { font-size: 16px; margin: 0 0 10px; color: #111; font-weight: 600; }
-        .mdm-wb-intro p { margin: 0 0 14px; }
-        .mdm-wb-intro ul { margin: 8px 0 0 1.15em; padding: 0; }
-        .mdm-wb-intro li { margin-bottom: 6px; }
+        .welcome-page { display: flex; flex-direction: column; gap: 20px; padding: 20px 20px 28px; max-width: 880px; }
+        .welcome-page__header { padding: 12px 0; }
+        .welcome-page__title { font-size: 24px; font-weight: 700; color: #111; margin: 0 0 8px; }
+        .welcome-page__sub { font-size: 14px; line-height: 1.6; color: #666; margin: 0; }
+        .welcome-page__section { padding: 16px; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; }
+        .welcome-page__section-title { font-size: 16px; font-weight: 600; color: #111; margin: 0 0 12px; }
+        .welcome-page__tree {
+            margin: 0; padding: 12px; background: #fafafa; border: 1px solid #e8e8e8; border-radius: 4px;
+            font-size: 13px; line-height: 1.65; color: #444; overflow-x: auto; white-space: pre;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+        .welcome-page__spec-list { margin: 0; padding-left: 1.25rem; color: #555; font-size: 14px; line-height: 1.65; }
+        .welcome-page__spec-item { margin-bottom: 8px; }
+        .welcome-page__spec-item:last-child { margin-bottom: 0; }
+        .welcome-page__note { font-size: 13px; color: #777; line-height: 1.5; margin: 0; }
     </style>
 </head>
 <body>
@@ -24,24 +34,58 @@
             <div class="content-tabs"><button class="active">工作台</button></div>
             <hr class="content-divider">
             <div class="content-title">工作台</div>
-            <section class="table-section" style="padding-top: 8px;">
-                <div class="mdm-wb-intro">
-                    <h2>说明</h2>
-                    <p>
-                        本页为「主数据管理（MDM）」入口说明。业务数据请在左侧菜单进入对应列表页维护；
-                        当前演示环境使用本地表格与弹窗，未接真实接口。
+            <section class="table-section" style="padding-top: 0;">
+                <div class="welcome-page">
+                    <header class="welcome-page__header">
+                        <h1 class="welcome-page__title">冷丰 ERP · 工作台</h1>
+                        <p class="welcome-page__sub">
+                            基础数据中心（MDM）承载门店、供应商、运力与内容生产等主数据；以下为模块导航与界面说明，列表数据为前端演示数据集。
+                        </p>
+                    </header>
+                    <section class="welcome-page__section">
+                        <h2 class="welcome-page__section-title">基础数据中心（MDM）</h2>
+                        <pre class="welcome-page__tree" id="mdmWelcomeTree"></pre>
+                    </section>
+                    <section class="welcome-page__section">
+                        <h2 class="welcome-page__section-title">开发说明</h2>
+                        <ul class="welcome-page__spec-list" id="mdmWelcomeSpec"></ul>
+                    </section>
+                    <p class="welcome-page__note">
+                        默认页签路由为 dashboard；从顶栏切换到「基础数据中心」后，侧栏首项为「主体中心 — 门店」。
                     </p>
-                    <h2>主体中心</h2>
-                    <p>以下页面按主体类型拆分，列结构与历史 LF 演示一致（10 列数据 + 操作）：</p>
-                    <ul>
-                        <li>仓库主体、门店主体、供应商主体、直播间主体、承运商主体</li>
-                    </ul>
-                    <h2>其他 MDM 模块</h2>
-                    <p>门店档案、人员与会员、审核等页面可在侧栏继续打开；若某页仍为占位或旧版布局，以后续迭代为准。</p>
                 </div>
             </section>
         </main>
     </div>
     <script src="../js/common.js"></script>
+    <script>
+    (function () {
+        var tree = [
+            '基础数据中心（MDM）',
+            '├── 主体中心：门店、供应商、仓库、直播间、承运商',
+            '├── 资源中心：门店档案、供应商档案、仓库档案、直播间档案、承运商档案',
+            '├── 人员中心：BD、司机、主播',
+            '└── 会员中心：C 端会员'
+        ];
+        var specItems = [
+            '顶栏「基础数据中心」进入 MDM 侧栏；路由在 js/router.js 注册，侧栏在 js/components/layout.js。',
+            '列表页样式：css/pages/erp-records.css；通用控件：js/utils/erp-ui.js。',
+            '本地开发：npm run dev（Vite），勿用 file:// 打开。'
+        ];
+        document.addEventListener('DOMContentLoaded', function () {
+            var pre = document.getElementById('mdmWelcomeTree');
+            if (pre) pre.textContent = tree.join('\n');
+            var ul = document.getElementById('mdmWelcomeSpec');
+            if (ul) {
+                specItems.forEach(function (text) {
+                    var li = document.createElement('li');
+                    li.className = 'welcome-page__spec-item';
+                    li.textContent = text;
+                    ul.appendChild(li);
+                });
+            }
+        });
+    })();
+    </script>
 </body>
 </html>

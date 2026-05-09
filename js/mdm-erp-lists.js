@@ -2,6 +2,40 @@
  * MDM — 资源档案 / 人员 / 会员 / 审核 等列表的 PageManager 启动脚本
  */
 (function () {
+    function maskBdPhoneForCell(raw) {
+        var d = String(raw || '').replace(/\D/g, '');
+        if (d.length < 7) return raw || '—';
+        return d.slice(0, 3) + '****' + d.slice(-4);
+    }
+
+    function openBdSettleInfoModal(bdName) {
+        var ex = document.getElementById('mdmBdSettleModal');
+        if (ex) ex.remove();
+        document.body.insertAdjacentHTML(
+            'beforeend',
+            '<div id="mdmBdSettleModal" class="modal" style="display:block">' +
+                '<div class="modal-content" style="width:440px">' +
+                '<div class="modal-header">' +
+                '<h2 class="modal-title">结算信息</h2>' +
+                '<span class="close" id="mdmBdSettleCloseX">&times;</span></div>' +
+                '<div class="modal-body" style="padding:16px 20px;line-height:1.65;color:#333">' +
+                (bdName || '—') +
+                '：结算周期 T+1；开户行演示支行；账户名与 BD 实名一致（原型）。</div>' +
+                '<div class="modal-footer">' +
+                '<button type="button" class="btn btn-primary" id="mdmBdSettleOk">知道了</button>' +
+                '</div></div></div>'
+        );
+        function hide() {
+            var m = document.getElementById('mdmBdSettleModal');
+            if (m) m.remove();
+        }
+        document.getElementById('mdmBdSettleCloseX').addEventListener('click', hide);
+        document.getElementById('mdmBdSettleOk').addEventListener('click', hide);
+        document.getElementById('mdmBdSettleModal').addEventListener('click', function (e) {
+            if (e.target.id === 'mdmBdSettleModal') hide();
+        });
+    }
+
     function openArchiveOnboardingFromRow(tr, kind) {
         if (
             !window.MdmUnifiedOnboardingUi ||
@@ -41,22 +75,72 @@
             });
     }
 
+    function openWithdrawPhoneDemo(storeName, displayPhone) {
+        var ex = document.getElementById('mdmWithdrawPhoneModal');
+        if (ex) ex.remove();
+        var sub =
+            isWithdrawPhoneUnset(displayPhone) ?
+                '当前未绑定可提现手机号，可按原型流程添加（演示）。'
+            :   '当前：' + displayPhone + '。更换需短信验证（演示）。';
+        document.body.insertAdjacentHTML(
+            'beforeend',
+            '<div id="mdmWithdrawPhoneModal" class="modal" style="display:block">' +
+                '<div class="modal-content" style="width:440px">' +
+                '<div class="modal-header">' +
+                '<h2 class="modal-title">可提现手机号</h2>' +
+                '<span class="close" id="mdmWithdrawPhoneX">&times;</span></div>' +
+                '<div class="modal-body" style="padding:16px 20px;line-height:1.65;color:#333">' +
+                '<p style="margin:0 0 8px"><strong>' +
+                (storeName || '门店') +
+                '</strong></p><p style="margin:0">' +
+                sub +
+                '</p></div>' +
+                '<div class="modal-footer">' +
+                '<button type="button" class="btn btn-primary" id="mdmWithdrawPhoneOk">知道了</button>' +
+                '</div></div></div>'
+        );
+        function hide() {
+            var m = document.getElementById('mdmWithdrawPhoneModal');
+            if (m) m.remove();
+        }
+        document.getElementById('mdmWithdrawPhoneX').addEventListener('click', hide);
+        document.getElementById('mdmWithdrawPhoneOk').addEventListener('click', hide);
+        document.getElementById('mdmWithdrawPhoneModal').addEventListener('click', function (e) {
+            if (e.target.id === 'mdmWithdrawPhoneModal') hide();
+        });
+    }
+
+    function isWithdrawPhoneUnset(v) {
+        if (v == null) return true;
+        var s = String(v).trim();
+        return !s || s === '—' || s === '--' || s === '-' || s === '添加';
+    }
+
     function storeArchiveFilter(pm) {
         var tbody = document.getElementById(pm.config.tableBodyId);
         if (!tbody) return;
         var qSub = (document.getElementById('qSubjectName') || {}).value.trim();
         var qStore = (document.getElementById('qStoreName') || {}).value.trim();
+        var qOp = (document.getElementById('qStoreOpStatus') || {}).value.trim();
+        var qSplit = (document.getElementById('qStoreSplit') || {}).value.trim();
         var qSt = (document.getElementById('qStoreStatus') || {}).value.trim();
+        var opMap = { '1': '营业中', '2': '筹备', '3': '停业' };
         tbody.querySelectorAll('tr').forEach(function (tr) {
             var cells = tr.querySelectorAll('td');
             if (cells.length < 21) return;
             var sub = cells[1].textContent.trim();
+            /* 门店名称列可能含链接，取纯文本 */
             var sn = cells[2].textContent.trim();
+            var opTxt = cells[13].textContent.trim();
+            var splitTxt = cells[17].textContent.trim();
             var stSpan = cells[18].querySelector('.status');
             var stTxt = stSpan ? stSpan.textContent.trim() : '';
             var ok = true;
             if (qSub && sub.indexOf(qSub) === -1) ok = false;
             if (qStore && sn.indexOf(qStore) === -1) ok = false;
+            if (qOp && opTxt !== opMap[qOp]) ok = false;
+            if (qSplit === 'on' && splitTxt !== '开启') ok = false;
+            if (qSplit === 'off' && splitTxt !== '关闭' && splitTxt !== '未开通') ok = false;
             if (qSt === 'normal' && stTxt !== '正常') ok = false;
             if (qSt === 'stopped' && stTxt !== '停用') ok = false;
             tr.style.display = ok ? '' : 'none';
@@ -134,14 +218,38 @@
         ];
         var pm = new PageManager({
             entityName: '门店档案',
+            addModalTitle: '新增门店',
+            editModalTitle: '编辑门店',
+            detailModalTitle: '门店详情',
             modalWidth: '720px',
             checkboxColumn: false,
             statusColumnIndex: 18,
             actionColumnMode: 'editOnboard',
             pageSize: 10,
-            detailView: { enabled: true, columnIndex: 2, linkClass: 'subject-name-link' },
+            detailView: {
+                enabled: true,
+                columnIndex: 2,
+                linkClass: 'subject-name-link',
+                onOpenDetail: function (row) {
+                    if (window.MdmArchiveDetailDrawer) {
+                        window.MdmArchiveDetailDrawer.openStore(row);
+                    } else if (typeof showToast === 'function') {
+                        showToast('详情抽屉未加载，请确认已引入 mdm-archive-detail-drawer.js', 'error');
+                    }
+                }
+            },
             fields: fields,
             customRowActions: [
+                {
+                    selector: '.mdm-store-withdraw',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        var tr = el.closest('tr');
+                        var c = tr.querySelectorAll('td');
+                        var storeName = c[2].textContent.trim();
+                        openWithdrawPhoneDemo(storeName, el.textContent.trim());
+                    }
+                },
                 {
                     selector: '.mdm-onboard-btn',
                     handler: function (e, el) {
@@ -195,10 +303,26 @@
             }
         });
         pm.init();
-        bindSimpleFilter(pm, { filterFn: storeArchiveFilter });
+        bindSimpleFilter(pm, {
+            resetFields: [
+                'qSubjectName',
+                'qStoreName',
+                'qStoreOpStatus',
+                'qStoreSplit',
+                'qStoreStatus'
+            ],
+            filterFn: storeArchiveFilter
+        });
         document.getElementById('mdmArchiveStoreAddBtn') &&
             document.getElementById('mdmArchiveStoreAddBtn').addEventListener('click', function () {
-                showToast('演示：请在业务侧创建门店后同步至档案', 'info');
+                if (
+                    window.MdmResourceArchiveForms &&
+                    typeof window.MdmResourceArchiveForms.openStoreAdd === 'function'
+                ) {
+                    window.MdmResourceArchiveForms.openStoreAdd();
+                } else if (typeof showToast === 'function') {
+                    showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                }
             });
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
@@ -230,7 +354,18 @@
             statusColumnIndex: 14,
             actionColumnMode: 'editOnboard',
             fields: fields,
-            detailView: { enabled: true, columnIndex: 2, linkClass: 'subject-name-link' },
+            detailView: {
+                enabled: true,
+                columnIndex: 2,
+                linkClass: 'subject-name-link',
+                onOpenDetail: function (row) {
+                    if (window.MdmArchiveDetailDrawer) {
+                        window.MdmArchiveDetailDrawer.openSupplier(row);
+                    } else if (typeof showToast === 'function') {
+                        showToast('详情抽屉未加载，请确认已引入 mdm-archive-detail-drawer.js', 'error');
+                    }
+                }
+            },
             customRowActions: [
                 {
                     selector: '.mdm-onboard-btn',
@@ -287,7 +422,14 @@
         });
         document.getElementById('mdmArchiveSupAddBtn') &&
             document.getElementById('mdmArchiveSupAddBtn').addEventListener('click', function () {
-                showToast('演示：请到资源中心流程新建供应商', 'info');
+                if (
+                    window.MdmResourceArchiveForms &&
+                    typeof window.MdmResourceArchiveForms.openSupplierAdd === 'function'
+                ) {
+                    window.MdmResourceArchiveForms.openSupplierAdd();
+                } else if (typeof showToast === 'function') {
+                    showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                }
             });
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
@@ -312,7 +454,18 @@
             actionColumnMode: 'disableTogglePlusEdit',
             disableToggleVerb: 'enableStop',
             fields: fields,
-            detailView: { enabled: true, columnIndex: 2, linkClass: 'subject-name-link' },
+            detailView: {
+                enabled: true,
+                columnIndex: 2,
+                linkClass: 'subject-name-link',
+                onOpenDetail: function (row) {
+                    if (window.MdmArchiveDetailDrawer) {
+                        window.MdmArchiveDetailDrawer.openWarehouse(row);
+                    } else if (typeof showToast === 'function') {
+                        showToast('详情抽屉未加载，请确认已引入 mdm-archive-detail-drawer.js', 'error');
+                    }
+                }
+            },
             onDisableToggle: function (row, status, page) {
                 if (String(status).trim() === '停用') {
                     page.updateTableRow(row, { 11: { value: '启用', isStatus: true } });
@@ -368,7 +521,14 @@
         });
         document.getElementById('mdmArchiveWhAddBtn') &&
             document.getElementById('mdmArchiveWhAddBtn').addEventListener('click', function () {
-                showToast('演示：请到资源中心新建仓库档案', 'info');
+                if (
+                    window.MdmResourceArchiveForms &&
+                    typeof window.MdmResourceArchiveForms.openWarehouseAdd === 'function'
+                ) {
+                    window.MdmResourceArchiveForms.openWarehouseAdd();
+                } else if (typeof showToast === 'function') {
+                    showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                }
             });
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
@@ -404,7 +564,18 @@
             statusColumnIndex: 11,
             actionColumnMode: 'editOnboard',
             fields: fields,
-            detailView: { enabled: true, columnIndex: 2, linkClass: 'subject-name-link' },
+            detailView: {
+                enabled: true,
+                columnIndex: 2,
+                linkClass: 'subject-name-link',
+                onOpenDetail: function (row) {
+                    if (window.MdmArchiveDetailDrawer) {
+                        window.MdmArchiveDetailDrawer.openLiveRoom(row);
+                    } else if (typeof showToast === 'function') {
+                        showToast('详情抽屉未加载，请确认已引入 mdm-archive-detail-drawer.js', 'error');
+                    }
+                }
+            },
             customRowActions: [
                 {
                     selector: '.mdm-onboard-btn',
@@ -480,7 +651,14 @@
         });
         document.getElementById('mdmArchiveLiveAddBtn') &&
             document.getElementById('mdmArchiveLiveAddBtn').addEventListener('click', function () {
-                showToast('演示：请到资源中心新建直播间', 'info');
+                if (
+                    window.MdmResourceArchiveForms &&
+                    typeof window.MdmResourceArchiveForms.openLiveRoomAdd === 'function'
+                ) {
+                    window.MdmResourceArchiveForms.openLiveRoomAdd();
+                } else if (typeof showToast === 'function') {
+                    showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                }
             });
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
@@ -512,7 +690,18 @@
             statusColumnIndex: 14,
             actionColumnMode: 'editOnboard',
             fields: fields,
-            detailView: { enabled: true, columnIndex: 2, linkClass: 'subject-name-link' },
+            detailView: {
+                enabled: true,
+                columnIndex: 2,
+                linkClass: 'subject-name-link',
+                onOpenDetail: function (row) {
+                    if (window.MdmArchiveDetailDrawer) {
+                        window.MdmArchiveDetailDrawer.openCarrier(row);
+                    } else if (typeof showToast === 'function') {
+                        showToast('详情抽屉未加载，请确认已引入 mdm-archive-detail-drawer.js', 'error');
+                    }
+                }
+            },
             customRowActions: [
                 {
                     selector: '.mdm-onboard-btn',
@@ -569,7 +758,14 @@
         });
         document.getElementById('mdmArchiveCarAddBtn') &&
             document.getElementById('mdmArchiveCarAddBtn').addEventListener('click', function () {
-                showToast('演示：请到资源中心新建承运商', 'info');
+                if (
+                    window.MdmResourceArchiveForms &&
+                    typeof window.MdmResourceArchiveForms.openCarrierAdd === 'function'
+                ) {
+                    window.MdmResourceArchiveForms.openCarrierAdd();
+                } else if (typeof showToast === 'function') {
+                    showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                }
             });
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
@@ -577,14 +773,48 @@
     }
 
     var bdFields = [
-        { id: 'bdId', label: 'BD推广员ID', type: 'text', editDisabled: true },
-        { id: 'bdName', label: 'BD姓名', type: 'text', required: true },
-        { id: 'bdPhone', label: '手机号码', type: 'text', required: true },
+        { id: 'bdId', label: 'BD推广员ID', type: 'text', editDisabled: true, hiddenInAdd: true },
+        {
+            id: 'bdName',
+            label: 'BD姓名',
+            type: 'text',
+            required: true,
+            placeholder: '请输入BD姓名',
+            editDisabled: true
+        },
+        {
+            type: 'raw',
+            html:
+                '<div class="modal-form-group" style="width:100%">' +
+                '<label style="min-width:100px"><span style="color:red">*</span>手机号码</label>' +
+                '<div style="flex:1;display:flex;gap:8px;align-items:center">' +
+                '<div class="input-wrapper" style="flex:1">' +
+                '<input type="text" id="bdAddPhone" placeholder="请输入手机号码" inputmode="numeric" maxlength="11">' +
+                '<span class="clear-btn">×</span></div>' +
+                '<button type="button" class="btn btn-secondary btn-sm" id="bdSmsBtn">获取验证码</button>' +
+                '</div></div>',
+            editHtml:
+                '<div class="modal-form-group"><label style="min-width:100px">手机号码</label>' +
+                '<div class="input-wrapper">' +
+                '<input type="text" id="editBdPhone" disabled>' +
+                '<span class="clear-btn">×</span></div></div>'
+        },
+        {
+            id: 'bdSmsCode',
+            label: '验证码',
+            type: 'text',
+            required: true,
+            editDisabled: true,
+            placeholder: '请输入验证码'
+        },
         {
             id: 'bdCategory',
             label: 'BD分类',
             type: 'select',
+            required: true,
+            editDisabled: true,
             options: [
+                { value: '', text: '请选择' },
                 { value: '一级BD', text: '一级BD' },
                 { value: '二级BD', text: '二级BD' },
                 { value: '渠道BD', text: '渠道BD' }
@@ -594,7 +824,10 @@
             id: 'bdIdentity',
             label: 'BD身份',
             type: 'select',
+            required: true,
+            editDisabled: true,
             options: [
+                { value: '', text: '请选择' },
                 { value: '正式', text: '正式' },
                 { value: '试用', text: '试用' },
                 { value: '合作', text: '合作' }
@@ -604,7 +837,10 @@
             id: 'bdSuperior',
             label: 'BD上级',
             type: 'select',
+            required: true,
+            editDisabled: true,
             options: [
+                { value: '', text: '请选择' },
                 { value: '李总监', text: '李总监' },
                 { value: '王经理', text: '王经理' },
                 { value: '无上级', text: '无上级' }
@@ -620,17 +856,21 @@
         var qCat = (document.getElementById('qBdCategory') || {}).value.trim();
         var qId = (document.getElementById('qBdIdentity') || {}).value.trim();
         var qEn = (document.getElementById('qEnabled') || {}).value.trim();
+        var catMap = { l1: '一级BD', l2: '二级BD', channel: '渠道BD' };
+        var idMap = { formal: '正式', probation: '试用', partner: '合作' };
         tbody.querySelectorAll('tr').forEach(function (tr) {
             var cells = tr.querySelectorAll('td');
             if (cells.length < 14) return;
             var ok = true;
             var nm = cells[1].textContent.trim();
-            var ph = cells[2].textContent.trim().replace(/\D/g, '');
             if (qName && nm.indexOf(qName) === -1) ok = false;
-            if (qPhoneRaw && ph.indexOf(qPhoneRaw) === -1 && cells[2].textContent.indexOf(qPhoneRaw) === -1)
-                ok = false;
-            if (qCat && cells[3].textContent.trim().indexOf(qCat) === -1) ok = false;
-            if (qId && cells[4].textContent.trim().indexOf(qId) === -1) ok = false;
+            if (qPhoneRaw) {
+                var phTxt = cells[2].textContent.trim();
+                var phDig = phTxt.replace(/\D/g, '');
+                if (phDig.indexOf(qPhoneRaw) === -1 && phTxt.indexOf(qPhoneRaw) === -1) ok = false;
+            }
+            if (qCat && cells[3].textContent.trim() !== catMap[qCat]) ok = false;
+            if (qId && cells[4].textContent.trim() !== idMap[qId]) ok = false;
             var stTxt = (cells[12].querySelector('.status') || {}).textContent.trim();
             if (qEn === 'on' && stTxt !== '开启') ok = false;
             if (qEn === 'off' && stTxt !== '禁用') ok = false;
@@ -642,6 +882,9 @@
     function initPeopleBd() {
         var pm = new PageManager({
             entityName: 'BD推广员',
+            addModalTitle: '添加BD推广员',
+            editModalTitle: '编辑BD推广员',
+            detailModalTitle: 'BD推广员详情',
             modalWidth: '560px',
             checkboxColumn: false,
             actionColumnMode: 'editDetail',
@@ -650,9 +893,11 @@
             customRowActions: [
                 {
                     selector: '.mdm-bd-settle',
-                    handler: function (e) {
+                    handler: function (e, el) {
                         e.preventDefault();
-                        showToast('结算周期 T+1；开户行演示支行（原型）', 'info');
+                        var row = el.closest('tr');
+                        var nm = row ? row.querySelectorAll('td')[1].textContent.trim() : '';
+                        openBdSettleInfoModal(nm);
                     }
                 },
                 {
@@ -669,21 +914,26 @@
                 saveBtnId: 'mdmBdAddSaveBtn',
                 triggerBtnId: 'mdmPeopleBdAddBtn',
                 validations: [
-                    { id: 'bdId', message: '请填写BD ID', required: true },
                     { id: 'bdName', message: '请输入BD姓名', required: true },
-                    { id: 'bdPhone', message: '请输入手机号码', required: true }
+                    { id: 'bdAddPhone', message: '请输入手机号码', required: true },
+                    { id: 'bdSmsCode', message: '请输入验证码', required: true },
+                    { id: 'bdCategory', message: '请选择BD分类', required: true },
+                    { id: 'bdIdentity', message: '请选择BD身份', required: true },
+                    { id: 'bdSuperior', message: '请选择BD上级', required: true }
                 ],
-                onOpen: function () {
-                    var el = document.getElementById('bdId');
-                    if (el) el.value = 'BD-PROMO-' + String(Date.now()).slice(-6);
-                },
                 onSave: function () {
-                    var id = document.getElementById('bdId').value.trim();
+                    var raw = document.getElementById('bdAddPhone').value.replace(/\D/g, '');
+                    if (raw.length !== 11) {
+                        showToast('请输入11位手机号码', 'error');
+                        return false;
+                    }
+                    var id = 'BD-PROMO-' + String(Date.now()).slice(-6);
+                    var masked = maskBdPhoneForCell(raw);
                     pm.addTableRow({
                         cells: [
                             id,
                             document.getElementById('bdName').value.trim(),
-                            document.getElementById('bdPhone').value.trim(),
+                            masked,
                             document.getElementById('bdCategory').value.trim(),
                             document.getElementById('bdIdentity').value.trim(),
                             document.getElementById('bdSuperior').value.trim(),
@@ -691,7 +941,7 @@
                             '¥0',
                             '¥0',
                             '<a href="#" class="mdm-bd-settle">查看信息</a>',
-                            document.getElementById('bdPhone').value.trim(),
+                            masked,
                             pm.getCurrentTimeStr(),
                             { value: '开启', isStatus: true }
                         ]
@@ -705,7 +955,9 @@
                 saveBtnId: 'mdmBdEditSaveBtn',
                 validations: [
                     { id: 'editBdName', message: '请输入BD姓名', required: true },
-                    { id: 'editBdPhone', message: '请输入手机号码', required: true }
+                    { id: 'editBdCategory', message: '请选择BD分类', required: true },
+                    { id: 'editBdIdentity', message: '请选择BD身份', required: true },
+                    { id: 'editBdSuperior', message: '请选择BD上级', required: true }
                 ],
                 mapRowToForm: function (row) {
                     pm.currentEditRow = row;
@@ -716,7 +968,8 @@
                         editBdPhone: c[2].textContent.trim(),
                         editBdCategory: c[3].textContent.trim(),
                         editBdIdentity: c[4].textContent.trim(),
-                        editBdSuperior: c[5].textContent.trim()
+                        editBdSuperior: c[5].textContent.trim(),
+                        editBdSmsCode: ''
                     };
                 },
                 onSave: function () {
@@ -732,6 +985,10 @@
                     pm.decorateDetailLinkCell(row);
                     showToast('BD 资料已保存（演示）', 'success');
                     pm.currentEditRow = null;
+                },
+                onDetailModeChange: function (isDetail) {
+                    var g = document.getElementById('editBdSmsCode');
+                    if (g && g.closest) g.closest('.modal-form-group').style.display = isDetail ? 'none' : '';
                 }
             }
         });
@@ -739,6 +996,17 @@
         bindSimpleFilter(pm, {
             resetFields: ['qPersonName', 'qPhone', 'qBdCategory', 'qBdIdentity', 'qEnabled'],
             filterFn: bdFilter
+        });
+        document.body.addEventListener('click', function (e) {
+            if (e.target && e.target.id === 'bdSmsBtn') {
+                var inp = document.getElementById('bdAddPhone');
+                var d = inp ? inp.value.replace(/\D/g, '') : '';
+                if (d.length !== 11) {
+                    showToast('请先输入11位手机号', 'info');
+                    return;
+                }
+                showToast('验证码已发送（演示）', 'info');
+            }
         });
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();

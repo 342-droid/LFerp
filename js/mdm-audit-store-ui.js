@@ -34,6 +34,17 @@
         return inp;
     }
 
+    function textareaInput(placeholder, value, rows) {
+        var ta = document.createElement('textarea');
+        ta.className = 'erp-textarea';
+        ta.rows = rows || 3;
+        ta.style.width = '100%';
+        ta.style.boxSizing = 'border-box';
+        ta.placeholder = placeholder || '';
+        ta.value = value != null ? String(value) : '';
+        return ta;
+    }
+
     function selectInput(opts, value) {
         var sel = document.createElement('select');
         sel.className = 'erp-select';
@@ -227,43 +238,151 @@
         row.mdmStatus = '未生成';
     }
 
-    function editRow(label, control) {
+    function editRow(label, control, fieldKey) {
         var row = el('div', 'audit-detail-row');
         row.appendChild(el('span', 'audit-detail-row__label', label));
         var value = el('span', 'audit-detail-row__value');
+        if (fieldKey) control.setAttribute('data-audit-field', fieldKey);
         value.appendChild(control);
         row.appendChild(value);
         return row;
     }
 
-    function appendEditableFields(body, row) {
+    /** 与 appendRegistrationFields 同结构：可编辑项用表单控件，附件类与审核详情一致为只读预览。 */
+    function appendEditableFields(body, row, opts) {
+        opts = opts || {};
+        var onPartnerChange = opts.onPartnerChange;
+
+        var isFranchiseOrPartner = row.partnerDivision === '加盟店' || row.partnerDivision === '合作店';
+        var isPeerStore = row.partnerDivision === '同行店';
+
         body.appendChild(el('div', 'supplier-detail-section-title', '主体字段'));
-        body.appendChild(editRow('主体名称', textInput('请输入主体名称', row.subjectName)));
-        body.appendChild(editRow('绑定BD', textInput('请输入绑定BD', row.bd)));
+        body.appendChild(editRow('主体名称', textInput('请输入主体名称', row.subjectName), 'subjectName'));
+        body.appendChild(editRow('绑定BD', textInput('请输入绑定BD', row.bd), 'bd'));
         body.appendChild(detailRow('主体类型', '门店'));
-        body.appendChild(editRow('联系人', textInput('请输入联系人', row.contact)));
-        body.appendChild(editRow('手机号码', textInput('请输入手机号码', row.phone)));
+        body.appendChild(editRow('联系人', textInput('请输入联系人', row.contact), 'contact'));
+        body.appendChild(editRow('手机号码', textInput('请输入手机号码', row.phone), 'phone'));
 
         body.appendChild(el('div', 'supplier-detail-section-title', '门店档案字段'));
-        body.appendChild(editRow('门店名称', textInput('请输入门店名称', row.storeName)));
-        body.appendChild(editRow('门店简称', textInput('请输入门店简称', row.shortName)));
+        body.appendChild(editRow('门店名称', textInput('请输入门店名称', row.storeName), 'storeName'));
+        body.appendChild(editRow('门店简称', textInput('请输入门店简称', row.shortName), 'shortName'));
+        var partnerSel = selectInput(
+            [
+                { value: '加盟店', label: '加盟店' },
+                { value: '合作店', label: '合作店' },
+                { value: '同行店', label: '同行店' }
+            ],
+            row.partnerDivision
+        );
+        partnerSel.setAttribute('data-audit-field', 'partnerDivision');
+        body.appendChild(editRow('门店合作类型', partnerSel));
+        body.appendChild(editRow('门店类型', textInput('请输入门店类型', row.storeType), 'storeType'));
+        body.appendChild(editRow('配送仓库', textInput('请输入配送仓库', row.warehouse), 'warehouse'));
+        body.appendChild(editRow('省市区', textInput('请输入省市区', row.region), 'region'));
+        body.appendChild(editRow('详细地址', textInput('请输入详细地址', row.address), 'address'));
+        body.appendChild(editRow('经纬度', textInput('例如 120.09,30.28', row.latlng), 'latlng'));
+        body.appendChild(detailRow('门店门头照', mediaGrid(row.facadePhoto)));
         body.appendChild(
             editRow(
-                '门店合作类型',
+                '有无冷藏柜',
                 selectInput(
                     [
-                        { value: '加盟店', label: '加盟店' },
-                        { value: '合作店', label: '合作店' },
-                        { value: '同行店', label: '同行店' }
+                        { value: '有', label: '有' },
+                        { value: '无', label: '无' }
                     ],
-                    row.partnerDivision
-                )
+                    row.hasRefrigeratedCabinet
+                ),
+                'hasRefrigeratedCabinet'
             )
         );
-        body.appendChild(editRow('门店类型', textInput('请输入门店类型', row.storeType)));
-        body.appendChild(editRow('配送仓库', textInput('请输入配送仓库', row.warehouse)));
-        body.appendChild(editRow('省市区', textInput('请输入省市区', row.region)));
-        body.appendChild(editRow('详细地址', textInput('请输入详细地址', row.address)));
+        body.appendChild(detailRow('冷藏柜照片', mediaGrid(row.refrigeratedPhotos)));
+        body.appendChild(
+            editRow(
+                '有无冷冻柜',
+                selectInput(
+                    [
+                        { value: '有', label: '有' },
+                        { value: '无', label: '无' }
+                    ],
+                    row.hasFreezerCabinet
+                ),
+                'hasFreezerCabinet'
+            )
+        );
+        body.appendChild(detailRow('冷冻柜照片', mediaGrid(row.freezerPhotos)));
+
+        if (isFranchiseOrPartner) {
+            body.appendChild(el('div', 'supplier-detail-section-title', '加盟店 / 合作店补充资料'));
+            body.appendChild(editRow('门店面积（㎡）', textInput('', row.storeArea), 'storeArea'));
+            body.appendChild(editRow('门店楼层', textInput('', row.storeFloors), 'storeFloors'));
+            body.appendChild(detailRow('店门口口述视频', mediaGrid(row.videoStorefrontIntro)));
+            body.appendChild(detailRow('店内口述视频', mediaGrid(row.videoInteriorIntro)));
+            body.appendChild(
+                editRow('门店方圆500米入住户数', textInput('', row.householdsWithin500m), 'householdsWithin500m')
+            );
+            body.appendChild(editRow('日均客单量', textInput('', row.dailyOrderVolume), 'dailyOrderVolume'));
+            body.appendChild(editRow('店内工作人员总数', textInput('', row.staffCount), 'staffCount'));
+            body.appendChild(
+                editRow(
+                    '实际经营者对直播业务的理解',
+                    textareaInput('', row.liveCommerceUnderstanding, 3),
+                    'liveCommerceUnderstanding'
+                )
+            );
+            body.appendChild(
+                editRow(
+                    '门店日常运营服务理解与配合',
+                    textareaInput('', row.dailyOpsCooperationNote, 3),
+                    'dailyOpsCooperationNote'
+                )
+            );
+            body.appendChild(
+                editRow(
+                    '私域直播投入产出期望',
+                    textareaInput('', row.privateLiveRoiExpectation, 3),
+                    'privateLiveRoiExpectation'
+                )
+            );
+            body.appendChild(
+                editRow(
+                    '私域直播/社区团购熟悉程度',
+                    textareaInput('', row.privateCommerceFamiliarity, 3),
+                    'privateCommerceFamiliarity'
+                )
+            );
+            body.appendChild(
+                editRow(
+                    '周边小区及居住人群描述',
+                    textareaInput('', row.surroundingCommunityNote, 3),
+                    'surroundingCommunityNote'
+                )
+            );
+            body.appendChild(
+                editRow('拉到1000人信心说明', textareaInput('', row.confidenceReach1000, 3), 'confidenceReach1000')
+            );
+            body.appendChild(
+                editRow('特殊情况说明', textareaInput('', row.specialCircumstancesNote, 3), 'specialCircumstancesNote')
+            );
+            body.appendChild(detailRow('特殊情况配图', mediaGrid(row.specialCircumstancesPhotos)));
+        }
+
+        if (isPeerStore) {
+            body.appendChild(el('div', 'supplier-detail-section-title', '同行店补充资料'));
+            body.appendChild(
+                editRow(
+                    '已合作其他平台情况',
+                    textareaInput('', row.otherPlatformsCooperation, 3),
+                    'otherPlatformsCooperation'
+                )
+            );
+            body.appendChild(detailRow('近三天上播及销量截图', mediaGrid(row.broadcastSalesScreenshots)));
+        }
+
+        if (typeof onPartnerChange === 'function') {
+            partnerSel.addEventListener('change', function () {
+                onPartnerChange(partnerSel);
+            });
+        }
     }
 
     var AUDIT_ROWS = [
@@ -352,6 +471,45 @@
             ]
         },
         {
+            id: 'WF-STORE-20260506001',
+            source: 'PC 创建门店',
+            subjectName: '滨江便民店',
+            storeName: '滨江便民店春晓路店',
+            shortName: '滨江-春晓路',
+            bd: '王强',
+            contact: '刘芳',
+            phone: '139****3308',
+            auditStatus: '审核失败',
+            mdmStatus: '未生成',
+            submittedAt: '2026-05-06 09:12',
+            storeType: '社区便利店',
+            partnerDivision: '加盟店',
+            warehouse: '华东 RDC-杭州',
+            region: '浙江省 / 杭州市 / 滨江区',
+            address: '春晓路 198 号',
+            latlng: '120.2120,30.2080',
+            facadePhoto: [{ type: 'image', name: '滨江门头.jpg' }],
+            hasRefrigeratedCabinet: '有',
+            refrigeratedPhotos: [{ type: 'image', name: '滨江冷藏.jpg' }],
+            hasFreezerCabinet: '无',
+            freezerPhotos: '—',
+            storeArea: '88',
+            storeFloors: '1F',
+            videoStorefrontIntro: [{ type: 'video', name: '滨江店门口.mp4' }],
+            videoInteriorIntro: [{ type: 'video', name: '滨江店内.mp4' }],
+            householdsWithin500m: '约 800 户',
+            dailyOrderVolume: '约 50 单',
+            staffCount: '3',
+            liveCommerceUnderstanding: '愿意尝试直播，配合店内讲解。',
+            dailyOpsCooperationNote: '可配合日常售后与交接。',
+            privateLiveRoiExpectation: '先试运营再看投入产出。',
+            privateCommerceFamiliarity: '对私域团购了解有限。',
+            surroundingCommunityNote: '周边新建小区与沿街商铺混合。',
+            confidenceReach1000: '需补充社群拉新方案。',
+            specialCircumstancesNote: '需补充门头清晰照与视频。',
+            specialCircumstancesPhotos: '—'
+        },
+        {
             id: 'WF-STORE-20260506008',
             source: 'PC 创建门店',
             subjectName: '张江快闪店',
@@ -416,6 +574,11 @@
     function applyRowToDom(tr, rec) {
         var cells = tr.querySelectorAll('td');
         if (cells.length < 11) return;
+        cells[2].textContent = rec.subjectName || '';
+        cells[3].textContent = rec.storeName || '';
+        cells[4].textContent = rec.bd || '';
+        cells[5].textContent = rec.contact || '';
+        cells[6].textContent = rec.phone || '';
         cells[7].innerHTML = statusCellHtml(rec.auditStatus);
         cells[8].innerHTML = statusCellHtml(rec.mdmStatus);
         cells[10].className = 'action-links';
@@ -462,26 +625,19 @@
     }
 
     function readEditableFromBody(body) {
-        var vals = [];
-        body.querySelectorAll('input.erp-input, select.erp-select').forEach(function (inp) {
-            vals.push(inp.value);
+        var out = {};
+        body.querySelectorAll('[data-audit-field]').forEach(function (inp) {
+            var k = inp.getAttribute('data-audit-field');
+            if (k) out[k] = inp.value;
         });
-        return vals;
+        return out;
     }
 
-    function applyEditableToRow(row, vals) {
-        if (vals.length < 11) return;
-        row.subjectName = vals[0];
-        row.bd = vals[1];
-        row.contact = vals[2];
-        row.phone = vals[3];
-        row.storeName = vals[4];
-        row.shortName = vals[5];
-        row.partnerDivision = vals[6];
-        row.storeType = vals[7];
-        row.warehouse = vals[8];
-        row.region = vals[9];
-        row.address = vals[10];
+    function applyEditableToRow(row, patch) {
+        if (!patch || typeof patch !== 'object') return;
+        Object.keys(patch).forEach(function (k) {
+            row[k] = patch[k];
+        });
     }
 
     function openAuditReview(row, pm, startInEdit) {
@@ -524,12 +680,15 @@
         function renderReview() {
             body.innerHTML = '';
             footer.innerHTML = '';
-            body.appendChild(
-                detailRow(
-                    '当前环节',
-                    row.auditStatus === '待审核' ? 'BD 审核' : 'BD 总监终审'
-                )
-            );
+            var phaseLabel =
+                row.auditStatus === '待审核'
+                    ? 'BD 审核'
+                    : row.auditStatus === '待总监审核'
+                      ? 'BD 总监终审'
+                      : row.auditStatus === '审核失败'
+                        ? '审核失败（待修改资料）'
+                        : '—';
+            body.appendChild(detailRow('当前环节', phaseLabel));
             body.appendChild(detailRow('审核状态', row.auditStatus));
             appendRegistrationFields(body, row);
 
@@ -576,6 +735,10 @@
                 });
                 footer.appendChild(reject2);
                 footer.appendChild(approve2);
+            } else if (row.auditStatus === '审核失败') {
+                var editFail = mkBtn('编辑资料', false);
+                editFail.addEventListener('click', renderEdit);
+                footer.appendChild(editFail);
             }
         }
 
@@ -583,7 +746,18 @@
             body.innerHTML = '';
             footer.innerHTML = '';
             body.appendChild(detailRow('当前状态', '编辑资料'));
-            appendEditableFields(body, row);
+
+            function partnerChangeHandler(partnerSel) {
+                var patch = readEditableFromBody(body);
+                applyEditableToRow(row, patch);
+                row.partnerDivision = partnerSel.value;
+                while (body.children.length > 1) {
+                    body.removeChild(body.lastElementChild);
+                }
+                appendEditableFields(body, row, { onPartnerChange: partnerChangeHandler });
+            }
+
+            appendEditableFields(body, row, { onPartnerChange: partnerChangeHandler });
 
             var cancel = mkBtn('取消', false);
             cancel.addEventListener('click', function () {
@@ -594,9 +768,9 @@
             save.addEventListener('click', function () {
                 var vals = readEditableFromBody(body);
                 applyEditableToRow(row, vals);
+                onDone();
                 if (startInEdit && row.auditStatus === '审核失败') {
                     backdrop.remove();
-                    onDone();
                 } else renderReview();
             });
             var submit = mkBtn('保存并提交', true);

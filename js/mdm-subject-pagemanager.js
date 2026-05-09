@@ -87,6 +87,28 @@
      *   subjectTypeOptions?: string[]
      * }} spec
      */
+    function nextSubjectRowId(prefix, pm) {
+        var tbody = document.getElementById(pm.config.tableBodyId);
+        var max = 0;
+        if (!tbody) return prefix + '-SUB-001';
+        var re = new RegExp(
+            '^' + String(prefix).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '-SUB-(\\d+)$'
+        );
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+            var c0 = tr.querySelectorAll('td')[0];
+            if (!c0) return;
+            var m = String(c0.textContent || '').trim().match(re);
+            if (m) max = Math.max(max, parseInt(m[1], 10));
+        });
+        return prefix + '-SUB-' + String(max + 1).padStart(3, '0');
+    }
+
+    function maskPhoneForTable(phoneRaw) {
+        var d = String(phoneRaw || '').replace(/\D/g, '');
+        if (d.length < 7) return phoneRaw || '—';
+        return d.slice(0, 3) + '****' + d.slice(-4);
+    }
+
     function init(spec) {
         var showBindBd = !!spec.showBindBd;
         var compactLogin = !!spec.compactStoreSubjectForm;
@@ -102,6 +124,14 @@
                   return { value: x, text: x };
               })
             : [{ value: spec.subjectTypeLabel, text: spec.subjectTypeLabel }];
+        var idPrefixMap = {
+            门店: 'STORE',
+            供应商: 'SUP',
+            仓库: 'WH',
+            直播间: 'LIVE',
+            承运商: 'CAR'
+        };
+        var subjectIdPrefix = spec.subjectIdPrefix || idPrefixMap[spec.pageLabel] || 'SUB';
 
         var fields = [
             {
@@ -109,14 +139,16 @@
                 label: '主体ID',
                 type: 'text',
                 required: true,
-                editDisabled: true
+                editDisabled: true,
+                hiddenInAdd: true
             },
             {
                 id: 'subjectName',
                 label: '主体名称',
                 type: 'text',
                 required: true,
-                editDisabled: true
+                editDisabled: true,
+                placeholder: '请输入主体名称'
             }
         ];
 
@@ -128,11 +160,11 @@
                 required: true,
                 editDisabled: true,
                 options: [
+                    { value: '', text: '请选择绑定BD' },
                     { value: '赵小九', text: '赵小九' },
                     { value: '李四', text: '李四' },
                     { value: '张三', text: '张三' },
-                    { value: '王五', text: '王五' },
-                    { value: '—', text: '—' }
+                    { value: '王五', text: '王五' }
                 ]
             });
         } else {
@@ -140,7 +172,8 @@
                 id: 'dockPerson',
                 label: bindHdr,
                 type: 'text',
-                editDisabled: true
+                editDisabled: true,
+                hiddenInAdd: true
             });
         }
 
@@ -159,7 +192,8 @@
                 label: contactLabel,
                 type: 'text',
                 required: true,
-                editDisabled: true
+                editDisabled: true,
+                placeholder: '请输入' + contactLabel
             },
             {
                 type: 'raw',
@@ -192,7 +226,8 @@
                           id: 'loginAccount',
                           label: '登录账号',
                           type: 'text',
-                          editDisabled: true
+                          editDisabled: true,
+                          placeholder: '请输入登录账号'
                       }
                   ]),
             {
@@ -200,13 +235,15 @@
                 label: '创建时间',
                 type: 'text',
                 editDisabled: true,
-                disabled: true
+                disabled: true,
+                hiddenInAdd: true
             },
             {
                 id: 'lastOperator',
                 label: '最后操作人',
                 type: 'text',
-                editDisabled: true
+                editDisabled: true,
+                hiddenInAdd: true
             },
             {
                 id: 'rowStatus',
@@ -214,6 +251,7 @@
                 type: 'select',
                 required: true,
                 editDisabled: true,
+                hiddenInAdd: true,
                 options: [
                     { value: '正常', text: '正常' },
                     { value: '冻结', text: '冻结' },
@@ -224,6 +262,9 @@
 
         var pm = new PageManager({
             entityName: spec.entityName || spec.pageLabel + '主体',
+            addModalTitle: spec.addModalTitle || '添加' + spec.pageLabel + '主体',
+            editModalTitle: spec.editModalTitle || '编辑' + spec.pageLabel + '主体',
+            detailModalTitle: spec.detailModalTitle || spec.pageLabel + '详情',
             statusColumnIndex: 9,
             checkboxColumn: false,
             actionColumnMode: 'disableToggle',
@@ -250,11 +291,19 @@
                 cancelBtnId: addModalId + 'CancelBtn',
                 saveBtnId: addModalId + 'SaveBtn',
                 triggerBtnId: 'mdmSubjectAddBtn',
+                onOpen: function () {
+                    if (!multiSubjectType) {
+                        var st = document.getElementById('subjectType');
+                        if (st) st.value = spec.subjectTypeLabel;
+                    }
+                },
                 validations: [
-                    { id: 'subjectId', message: '请输入主体ID', required: true },
                     { id: 'subjectName', message: '请输入主体名称', required: true },
                     ...(showBindBd
                         ? [{ id: 'dockPerson', message: '请选择绑定BD', required: true }]
+                        : []),
+                    ...(multiSubjectType
+                        ? [{ id: 'subjectType', message: '请选择主体类型', required: true }]
                         : []),
                     {
                         id: 'contactPerson',
@@ -277,17 +326,28 @@
                         : document.getElementById('loginAccount')
                           ? document.getElementById('loginAccount').value.trim() || '—'
                           : '—';
-                    var dockEl = document.getElementById('dockPerson');
-                    var dockVal = dockEl ? dockEl.value.trim() || '—' : '—';
+                    if (!compactLogin && (!loginVal || loginVal === '—')) {
+                        showToast('请输入登录账号');
+                        return false;
+                    }
+                    var dockVal = '—';
+                    if (showBindBd) {
+                        var dockEl = document.getElementById('dockPerson');
+                        dockVal = dockEl ? dockEl.value.trim() : '';
+                        if (!dockVal) {
+                            showToast('请选择绑定BD');
+                            return false;
+                        }
+                    }
                     var typeEl = document.getElementById('subjectType');
                     var typeVal = typeEl ? typeEl.value.trim() : spec.subjectTypeLabel;
                     var cells = [
-                        document.getElementById('subjectId').value.trim(),
+                        nextSubjectRowId(subjectIdPrefix, pm),
                         document.getElementById('subjectName').value.trim(),
                         dockVal,
                         typeVal || spec.subjectTypeLabel,
                         document.getElementById('contactPerson').value.trim(),
-                        pv,
+                        maskPhoneForTable(pv),
                         loginVal,
                         pm.getCurrentTimeStr(),
                         '当前用户',

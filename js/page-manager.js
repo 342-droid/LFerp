@@ -448,22 +448,27 @@ class PageManager {
         if (this.config.addModal && this.config.addModal.modalId) {
             const addModalId = this.config.addModal.modalId;
             if (!document.getElementById(addModalId)) {
-                const addFieldsHtml = fields.map(field => 
-                    this.generateFieldHTML(field, false, labelWidth)
-                ).join('');
+                const addTitle =
+                    this.config.addModalTitle ||
+                    this.config.addModal?.title ||
+                    `${entityName}-新增`;
+                const addFieldsHtml = fields
+                    .filter((field) => !field.hiddenInAdd)
+                    .map((field) => this.generateFieldHTML(field, false, labelWidth))
+                    .join('');
                 const addModalHtml = `
                     <div id="${addModalId}" class="modal">
                         <div class="modal-content" style="width: ${modalWidth};">
                             <div class="modal-header">
-                                <h2 class="modal-title">${entityName}-新增</h2>
+                                <h2 class="modal-title">${addTitle}</h2>
                                 <span class="close">&times;</span>
                             </div>
                             <form class="modal-form">
                                 ${addFieldsHtml}
                             </form>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-primary" id="${this.config.addModal.saveBtnId || 'saveBtn'}">保存</button>
                                 <button type="button" class="btn btn-secondary" id="${this.config.addModal.cancelBtnId || 'cancelBtn'}">取消</button>
+                                <button type="button" class="btn btn-primary" id="${this.config.addModal.saveBtnId || 'saveBtn'}">保存</button>
                             </div>
                         </div>
                     </div>`;
@@ -489,8 +494,8 @@ class PageManager {
                                 ${editFieldsHtml}
                             </form>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-primary" id="${this.config.editModal.saveBtnId || 'editSaveBtn'}">保存</button>
                                 <button type="button" class="btn btn-secondary" id="${this.config.editModal.cancelBtnId || 'editCancelBtn'}">取消</button>
+                                <button type="button" class="btn btn-primary" id="${this.config.editModal.saveBtnId || 'editSaveBtn'}">保存</button>
                             </div>
                         </div>
                     </div>`;
@@ -505,8 +510,8 @@ class PageManager {
         const existingSelectIds = new Set(this.config.customSelects.map(s => s.inputId));
         fields.forEach(field => {
             if (field.type === 'select' && field.options) {
-                // 新增模态框的下拉框
-                if (field.id && !existingSelectIds.has(field.id)) {
+                // 新增模态框的下拉框（未出现在新增 DOM 中的字段不注册）
+                if (field.id && !field.hiddenInAdd && !existingSelectIds.has(field.id)) {
                     this.config.customSelects.push({ inputId: field.id, dropdownId: field.id + 'Dropdown' });
                     existingSelectIds.add(field.id);
                 }
@@ -902,7 +907,15 @@ class PageManager {
         const entityName = this.config.entityName || '信息';
 
         if (titleEl) {
-            titleEl.textContent = isDetailMode ? `${entityName}-详情` : `${entityName}-编辑`;
+            const detailTitle =
+                this.config.detailModalTitle != null
+                    ? this.config.detailModalTitle
+                    : `${entityName}-详情`;
+            const editTitle =
+                this.config.editModalTitle != null
+                    ? this.config.editModalTitle
+                    : `${entityName}-编辑`;
+            titleEl.textContent = isDetailMode ? detailTitle : editTitle;
         }
         if (saveBtn) {
             saveBtn.style.display = isDetailMode ? 'none' : '';

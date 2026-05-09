@@ -25,9 +25,9 @@
             <section class="search-section">
                 <form class="search-form">
                     <div class="form-group">
-                        <label>主体名称:</label>
+                        <label>主体名称</label>
                         <div class="input-wrapper">
-                            <input type="text" id="qSubjectName" placeholder="请输入">
+                            <input type="text" id="qSubjectName" placeholder="请输入主体名称">
                             <span class="clear-btn">×</span>
                         </div>
                     </div>
@@ -43,7 +43,7 @@
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button>
                         <button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button>
-                        <button type="button" class="btn btn-secondary" id="mdmSubjectAddBtn">新增</button>
+                        <button type="button" class="btn btn-primary" id="mdmSubjectAddBtn">新增</button>
                     </div>
                 </form>
             </section>
@@ -56,7 +56,7 @@
                                 <th>主体名称</th>
                                 <th>归属分组</th>
                                 <th>主体类型</th>
-                                <th id="thContact">联系人</th>
+                                <th>负责人</th>
                                 <th>手机号码</th>
                                 <th>登录账号</th>
                                 <th>创建时间</th>
@@ -74,7 +74,7 @@
                     </table>
                 </div>
                 <div id="pagination-container"></div>
-                <p class="mdm-footnote">说明：本页为直播间签约主体（MDM）。具体「直播间」主数据在资源中心「直播间档案」维护并关联本主体。</p>
+                <p class="mdm-footnote">说明：本页为直播间签约主体（MDM）。具体「直播间」主数据（名称、直播类型、主播、观看权限等）在资源中心「直播间档案」维护并关联本主体；业务系统在该直播间下创建场次与配置场次商品。</p>
             </section>
         </main>
     </div>
@@ -86,7 +86,6 @@
     <script src="../js/mdm-subject-pagemanager.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-        document.getElementById('thContact').textContent = '负责人';
         MdmSubjectLf.init({
             pageLabel: '直播间',
             subjectTypeLabel: '直播间',

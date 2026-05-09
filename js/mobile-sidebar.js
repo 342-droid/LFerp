@@ -12,7 +12,6 @@
     }
 
     const mobileAppItems = [
-        { href: 'app_login.html', text: '仓储APP' },
         { href: 'mdm_bd_workbench.html', text: 'BD APP' },
         { href: 'shop-h5/h5/store/register.html', text: '门店H5' }
     ];

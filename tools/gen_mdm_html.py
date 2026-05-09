@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import html
+import os
 
-LF = "/Users/fuhongbin/Desktop/冷丰Wrok/SOLO Coder/LF/MDM"
+_HERE = os.path.dirname(os.path.abspath(__file__))
+LF = os.path.normpath(os.path.join(_HERE, "..", "MDM"))
 
 
 def esc(s):
@@ -30,15 +32,16 @@ SCRIPTS_CORE = """    <script src="../js/common.js"></script>
     <script src="../js/mdm-unified-onboarding-ui.js"></script>
 """
 
-SCRIPTS_PM = (
+SCRIPTS_ARCHIVE = (
     SCRIPTS_CORE
-    + """    <script src="../js/mdm-erp-lists.js"></script>"""
+    + """    <script src="../js/mdm-resource-archive-forms.js"></script>
+    <script src="../js/mdm-archive-detail-drawer.js"></script>
+    <script src="../js/mdm-erp-lists.js"></script>"""
 )
 
-SCRIPTS_LIST = (
-    SCRIPTS_CORE
-    + """    <script src="../js/mdm-erp-lists.js"></script>"""
-)
+SCRIPTS_PM = SCRIPTS_CORE + """    <script src="../js/mdm-erp-lists.js"></script>"""
+
+SCRIPTS_LIST = SCRIPTS_PM
 
 SCRIPTS_MEMBER_C = (
     SCRIPTS_CORE
@@ -53,9 +56,24 @@ SCRIPTS_AUDIT_STORE = (
 )
 
 
+def _is_resource_archive_init(tail_js):
+    return any(
+        name in tail_js
+        for name in (
+            "initArchiveStore",
+            "initArchiveSupplier",
+            "initArchiveWarehouse",
+            "initArchiveLiveRoom",
+            "initArchiveCarrier",
+        )
+    )
+
+
 def pick_script_bundle(tail_js):
     if "MdmSubjectLf" in tail_js:
         return SCRIPTS_PM
+    if _is_resource_archive_init(tail_js):
+        return SCRIPTS_ARCHIVE
     if "initMemberC" in tail_js:
         return SCRIPTS_MEMBER_C
     if "initAuditStoreRegistration" in tail_js:

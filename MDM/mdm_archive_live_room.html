@@ -28,7 +28,7 @@
 <div class="form-group"><label>主体名称:</label><div class="input-wrapper"><input id="qSubjectName"><span class="clear-btn">×</span></div></div>
 <div class="form-group"><label>直播间名称:</label><div class="input-wrapper"><input id="qResourceName"><span class="clear-btn">×</span></div></div>
 <div class="form-group"><label>直播类型:</label><select id="qLiveType"><option value="">全部</option><option value="official">官方直播</option><option value="regional">区域直播</option><option value="targeted">定向直播</option></select></div>
-<div class="form-actions"><button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button><button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button><button type="button" id="mdmArchiveLiveAddBtn" class="btn btn-secondary">+ 新增直播间</button></div>
+<div class="form-actions"><button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button><button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button><button type="button" id="mdmArchiveLiveAddBtn" class="btn btn-primary">+ 新增直播间</button></div>
 </form></section>
 <section class="table-section"><div class="table-scroll-container"><table class="table"><thead><tr><th>直播间ID</th><th>主体名称</th><th>直播间名称</th><th>直播类型</th><th>主播ID</th><th>主播名称</th><th>负责人</th><th>手机号码</th><th>观看权限</th><th>创建时间</th><th>可提现手机号</th><th>状态</th><th>操作</th></tr></thead><tbody id="tableBody"><tr><td>LR-883001</td><td>品牌日播间-A</td><td>品牌日播间-A · 早场</td><td>官方直播</td><td>ANC5001</td><td>周琳</td><td>周琳</td><td>139****8899</td><td>全部用户可见</td><td>2026-04-24 09:00:00</td><td>139****8899</td><td><span class="status active">启用</span></td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr><tr><td>LR-883002</td><td>区域直播-沪南</td><td>区域直播-沪南 · 晚高峰</td><td>区域直播</td><td>ANC5002</td><td>吴悦</td><td>吴悦</td><td>136****6677</td><td>仅门店会员可见</td><td>2026-04-23 20:15:33</td><td>136****6677</td><td><span class="status active">启用</span></td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr><tr><td>LR-883003</td><td>工厂溯源专场</td><td>工厂溯源专场 · 溯源日</td><td>定向直播</td><td>ANC5003</td><td>郑可</td><td>郑可</td><td>135****5544</td><td>仅门店会员可见</td><td>2026-04-22 13:40:18</td><td>—</td><td><span class="status inactive">停用</span></td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr></tbody></table></div><div id="pagination-container"></div><p style="margin-top:10px;font-size:12px;color:#999;">维护直播间主数据；场次与货品在营运系统。</p></section>
         </main>
@@ -40,6 +40,8 @@
     <script src="../js/page-manager.js"></script>
     <script src="../js/mdm-subject-pagemanager.js"></script>
     <script src="../js/mdm-unified-onboarding-ui.js"></script>
+    <script src="../js/mdm-resource-archive-forms.js"></script>
+    <script src="../js/mdm-archive-detail-drawer.js"></script>
     <script src="../js/mdm-erp-lists.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
