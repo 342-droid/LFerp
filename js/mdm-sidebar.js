@@ -51,6 +51,7 @@
         { href: 'mdm_bd_stores.html', text: 'BD·门店与协议（列表/档案/审核/协议）' },
         { href: 'mdm_bd_merchants.html', text: 'BD·商户进件（列表/进件/我的商户）' },
         { href: 'mdm_bd_personal.html', text: 'BD·我的（钱包/消息/素材/设置）' },
+        { href: 'BD APP/门店H5/index.html', text: 'BD·门店H5' },
         { href: 'mdm_bd_h5.html', text: 'BD·扫码H5（注册/状态）' },
         { href: 'mdm_bd_not_found.html', text: 'BD·404占位' }
     ];
@@ -108,7 +109,7 @@
         renderCollapsibleGroup('资源中心', '策略管理', archiveItems, isArchivePage) +
         renderCollapsibleGroup('人员中心', '权限管理', peopleItems, isPeoplePage) +
         renderCollapsibleGroup('会员中心', '基础信息', memberItems, isMemberPage) +
-        renderCollapsibleGroup('BD 运营管理', '基础信息', bdMenuItems, isBdPage);
+        renderCollapsibleGroup('BD APP', '基础信息', bdMenuItems, isBdPage);
 
     var sidebarContainer = document.getElementById('sidebar-container');
     if (!sidebarContainer) {

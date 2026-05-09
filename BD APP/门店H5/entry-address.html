@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>门店地址 · 门店 H5</title>
+    <link rel="stylesheet" href="store-h5-common.css">
+    <style>
+        .sh5-sticky-sub {
+            position: sticky;
+            top: calc(var(--sh5-head-h) + var(--sh5-safe-t));
+            z-index: 90;
+            margin: 0 -16px 12px;
+        }
+    </style>
+</head>
+<body class="sh5">
+    <header class="sh5-head">
+        <div class="sh5-head-inner">
+            <button type="button" class="sh5-back" onclick="history.back()" aria-label="返回">‹</button>
+            <h1 class="sh5-title">门店地址</h1>
+        </div>
+    </header>
+    <main class="sh5-main">
+        <section class="sh5-section">
+            <div class="sh5-block-head"><span class="sh5-sec-icon" style="display:inline-flex;width:28px;height:28px;">🏢</span> 基础信息</div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">门店名称</span></div>
+                <input class="sh5-input" type="text" placeholder="请输入门店名称" data-sh5-bind="storeName" />
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">门店简称</span></div>
+                <input class="sh5-input" type="text" placeholder="请输入门店简称" data-sh5-bind="storeAbbrev" />
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">门店分类</span></div>
+                <select class="sh5-select"><option>请选择</option><option>便利店</option><option>餐饮</option></select>
+            </div>
+        </section>
+        <div class="sh5-sticky-sub sh5-blue-strip" style="margin-left:0;margin-right:0;border-radius:0;">门店地址</div>
+        <section class="sh5-section">
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">所在地区</span></div>
+                <select class="sh5-select"><option>请选择省市区</option></select>
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>详细地址</span></div>
+                <input class="sh5-input" type="text" placeholder="请输入详细地址" />
+            </div>
+        </section>
+        <section class="sh5-section">
+            <div class="sh5-block-head"><span class="sh5-sec-icon" style="display:inline-flex;width:28px;height:28px;">📄</span> 营业执照信息</div>
+            <p style="margin:0 0 12px;font-size:12px;color:var(--sh5-muted)">上传营业执照照片，系统自动识别，请核对信息</p>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">营业执照</span></div>
+                <div class="sh5-placeholder-area"><span style="font-size:28px">📷</span>点击上传</div>
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">社会信用代码</span></div>
+                <input class="sh5-input" type="text" placeholder="请输入" />
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">注册名称</span></div>
+                <input class="sh5-input" type="text" placeholder="请输入" />
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">法人姓名</span></div>
+                <input class="sh5-input" type="text" placeholder="请输入" />
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">证件类型</span></div>
+                <select class="sh5-select"><option selected>身份证</option></select>
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">证件号码</span></div>
+                <input class="sh5-input" type="text" placeholder="请输入" />
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">有效期</span></div>
+                <input class="sh5-input" type="text" placeholder="请选择日期" />
+            </div>
+        </section>
+        <section class="sh5-section">
+            <div class="sh5-block-head"><span class="sh5-sec-icon" style="display:inline-flex;width:28px;height:28px;">📁</span> 资质证件</div>
+            <p style="margin:0 0 12px;font-size:12px;color:var(--sh5-muted)">请上传以下证件，确保清晰可见，无反光，无遮挡</p>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>食品经营许可证</span></div>
+                <div class="sh5-placeholder-area" style="min-height:72px;">上传</div>
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>卫生许可证</span></div>
+                <div class="sh5-placeholder-area" style="min-height:72px;">上传</div>
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>其他证件</span></div>
+                <div class="sh5-placeholder-area" style="min-height:72px;">上传</div>
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>证件有效期</span></div>
+                <input class="sh5-input" type="text" placeholder="请选择" />
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>备注</span></div>
+                <textarea class="sh5-input" placeholder="请输入备注信息"></textarea>
+            </div>
+        </section>
+        <section class="sh5-section">
+            <div class="sh5-block-head"><span class="sh5-sec-icon" style="display:inline-flex;width:28px;height:28px;">🏪</span> 门店门头</div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">门店门头照</span></div>
+                <div class="sh5-placeholder-area" style="min-height:140px">🏪 示例门头</div>
+            </div>
+        </section>
+        <section class="sh5-section">
+            <div class="sh5-block-head"><span class="sh5-sec-icon" style="display:inline-flex;width:28px;height:28px;">👤</span> 账户信息</div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">统一社会信用代码</span></div>
+                <input class="sh5-input" type="text" placeholder="请输入" />
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">开户名称</span></div>
+                <input class="sh5-input" type="text" placeholder="请输入" />
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">开户银行</span></div>
+                <select class="sh5-select"><option>请选择</option></select>
+            </div>
+        </section>
+        <section class="sh5-section">
+            <div class="sh5-block-head"><span class="sh5-sec-icon" style="display:inline-flex;width:28px;height:28px;">💳</span> 结算信息</div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">结算银行卡号</span></div>
+                <input class="sh5-input" type="text" placeholder="请输入" />
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">持卡人姓名</span></div>
+                <input class="sh5-input" type="text" placeholder="请输入" />
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">持卡人身份证号</span></div>
+                <input class="sh5-input" type="text" placeholder="请输入" />
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span class="sh5-req">手机号</span></div>
+                <input class="sh5-input" type="tel" placeholder="请输入" />
+            </div>
+        </section>
+        <section class="sh5-section">
+            <div class="sh5-block-head"><span class="sh5-sec-icon" style="display:inline-flex;width:28px;height:28px;">📝</span> 合同/协议签署</div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>合同编号</span></div>
+                <input class="sh5-input" type="text" placeholder="请输入" />
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>起始日期</span></div>
+                <input class="sh5-input" type="text" placeholder="请选择" />
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>结束日期</span></div>
+                <input class="sh5-input" type="text" placeholder="请选择" />
+            </div>
+        </section>
+        <section class="sh5-section">
+            <div class="sh5-block-head"><span class="sh5-sec-icon" style="display:inline-flex;width:28px;height:28px;">ℹ️</span> 补充信息</div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>补充说明</span></div>
+                <textarea class="sh5-input" placeholder="请输入"></textarea>
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>上传附件</span></div>
+                <button type="button" class="sh5-upload">选择文件</button>
+            </div>
+        </section>
+        <div class="sh5-checkbox-line" style="justify-content:flex-start;margin-bottom:20px;">
+            <input type="checkbox" id="agr" /><label for="agr">已阅读并同意<span style="color:var(--sh5-blue)">《门店入驻协议》</span></label>
+        </div>
+    </main>
+    <footer class="sh5-foot">
+        <div class="sh5-foot-inner">
+            <button type="button" class="sh5-btn sh5-btn-outline" onclick="location.reload()">重置</button>
+            <button type="button" class="sh5-btn sh5-btn-primary sh5-btn-wide" onclick="StoreH5Sync.set(StoreH5Sync.collectForm());location.href='entry-contact.html'">下一步</button>
+        </div>
+    </footer>
+    <script src="../../js/path-prefix.js"></script>
+    <script src="store-h5-sync.js"></script>
+</body>
+</html>

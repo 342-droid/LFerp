@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>门店详情 · 门店 H5</title>
+    <link rel="stylesheet" href="store-h5-common.css">
+</head>
+<body class="sh5 sh5-singlefoot">
+    <header class="sh5-head">
+        <div class="sh5-head-inner">
+            <button type="button" class="sh5-back" onclick="history.back()" aria-label="返回">‹</button>
+            <h1 class="sh5-title">门店详情</h1>
+        </div>
+    </header>
+    <main class="sh5-main">
+        <section class="sh5-section">
+            <div class="sh5-sec-head">
+                <div class="sh5-sec-icon">🏪</div>
+                <div class="sh5-sec-titles"><h3>门店信息</h3></div>
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>门店名称</span></div>
+                <input class="sh5-input" type="text" data-sh5-bind="storeName" />
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>门店地址</span><span class="sh5-hint" style="color:var(--sh5-blue)">📍</span></div>
+                <input class="sh5-input" type="text" data-sh5-bind="detailAddress" />
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>详细地址</span></div>
+                <textarea class="sh5-input" placeholder="楼栋、门牌等"></textarea>
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>所属区域</span></div>
+                <select class="sh5-select"><option>请选择</option></select>
+            </div>
+        </section>
+        <section class="sh5-section">
+            <div class="sh5-sec-head">
+                <div class="sh5-sec-icon">📊</div>
+                <div class="sh5-sec-titles"><h3>经营信息</h3></div>
+            </div>
+            <div class="sh5-tabs">
+                <div class="sh5-tab">零售</div>
+                <div class="sh5-tab on">批发</div>
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>经营状态</span></div>
+                <select class="sh5-select"><option>请选择</option></select>
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>主营品类</span></div>
+                <select class="sh5-select"><option>请选择</option></select>
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>营业时间</span></div>
+                <input class="sh5-input" type="text" placeholder="请选择时段" />
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>联系人</span></div>
+                <input class="sh5-input" type="text" data-sh5-bind="contactName" />
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>联系电话</span></div>
+                <input class="sh5-input" type="tel" placeholder="请输入" />
+            </div>
+        </section>
+        <section class="sh5-section">
+            <div class="sh5-sec-head">
+                <div class="sh5-sec-icon">📋</div>
+                <div class="sh5-sec-titles">
+                    <h3>门店资质</h3>
+                    <p>请上传清晰、完整的证照与门头照片；与进件页资质模块联动。</p>
+                </div>
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>营业执照</span></div>
+                <div class="sh5-placeholder-area" style="min-height:100px">上传</div>
+            </div>
+            <div class="sh5-field">
+                <div class="sh5-field-hd"><span>门店门头照</span></div>
+                <div class="sh5-placeholder-area" style="min-height:140px">🏪</div>
+            </div>
+            <p class="sh5-red-note">注：请上传清晰、完整的照片，确保文字清晰可见，避免反光、遮挡等影响审核。</p>
+        </section>
+        <section class="sh5-section">
+            <div class="sh5-sec-head"><div class="sh5-sec-icon">👤</div><div class="sh5-sec-titles"><h3>联系人信息</h3></div></div>
+            <div class="sh5-field"><div class="sh5-field-hd"><span>姓名</span></div><input class="sh5-input" type="text" /></div>
+            <div class="sh5-field"><div class="sh5-field-hd"><span>电话</span></div><input class="sh5-input" type="tel" /></div>
+            <div class="sh5-field"><div class="sh5-field-hd"><span>职位</span></div><input class="sh5-input" type="text" /></div>
+        </section>
+        <section class="sh5-section">
+            <div class="sh5-sec-head"><div class="sh5-sec-icon">🚚</div><div class="sh5-sec-titles"><h3>收货地址信息</h3></div></div>
+            <div class="sh5-field"><div class="sh5-field-hd"><span>收货人姓名</span></div><input class="sh5-input" type="text" /></div>
+            <div class="sh5-field"><div class="sh5-field-hd"><span>联系电话</span></div><input class="sh5-input" type="tel" /></div>
+            <div class="sh5-field"><div class="sh5-field-hd"><span>详细地址</span></div><textarea class="sh5-input" placeholder="请输入"></textarea></div>
+        </section>
+        <section class="sh5-section">
+            <div class="sh5-sec-head"><div class="sh5-sec-icon">🧾</div><div class="sh5-sec-titles"><h3>开票信息</h3></div></div>
+            <div class="sh5-field"><div class="sh5-field-hd"><span>企业名称</span></div><input class="sh5-input" /></div>
+            <div class="sh5-field"><div class="sh5-field-hd"><span>纳税人识别号</span></div><input class="sh5-input" /></div>
+            <div class="sh5-field"><div class="sh5-field-hd"><span>注册地址</span></div><input class="sh5-input" /></div>
+            <div class="sh5-field"><div class="sh5-field-hd"><span>注册电话</span></div><input class="sh5-input" /></div>
+            <div class="sh5-field"><div class="sh5-field-hd"><span>开户银行</span></div><select class="sh5-select"><option>请选择</option></select></div>
+            <div class="sh5-field"><div class="sh5-field-hd"><span>银行账号</span></div><input class="sh5-input" /></div>
+        </section>
+        <section class="sh5-section">
+            <div class="sh5-sec-head"><div class="sh5-sec-icon">📃</div><div class="sh5-sec-titles"><h3>合同信息</h3></div></div>
+            <div class="sh5-field"><div class="sh5-field-hd"><span>合同编号</span></div><input class="sh5-input" /></div>
+            <div class="sh5-field"><div class="sh5-field-hd"><span>合同有效期</span></div><input class="sh5-input" placeholder="请选择" /></div>
+        </section>
+        <section class="sh5-section">
+            <div class="sh5-sec-head"><div class="sh5-sec-icon">⋯</div><div class="sh5-sec-titles"><h3>其他信息</h3></div></div>
+            <div class="sh5-field"><textarea class="sh5-input" placeholder="备注" style="min-height:100px"></textarea></div>
+        </section>
+    </main>
+    <footer class="sh5-foot">
+        <div class="sh5-foot-inner">
+            <button type="button" class="sh5-btn sh5-btn-primary" style="flex:1" onclick="StoreH5Sync.set(StoreH5Sync.collectForm());location.href='status-approved.html'">提交</button>
+        </div>
+    </footer>
+    <script src="../../js/path-prefix.js"></script>
+    <script src="store-h5-sync.js"></script>
+</body>
+</html>

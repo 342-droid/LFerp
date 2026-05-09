@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>门店 H5 · 页面索引</title>
+    <link rel="stylesheet" href="store-h5-common.css">
+    <style>
+        .hub-list { list-style: none; padding: 0; margin: 0; }
+        .hub-list a {
+            display: block;
+            padding: 14px 16px;
+            background: var(--sh5-card);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            color: var(--sh5-blue);
+            text-decoration: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,.04);
+            font-weight: 500;
+        }
+        .hub-list a:active { opacity: .9; }
+    </style>
+</head>
+<body class="sh5 sh5-nofooter">
+    <header class="sh5-head"><div class="sh5-head-inner"><h1 class="sh5-title">门店 H5</h1></div></header>
+    <main class="sh5-main">
+        <p class="sh5-note" style="padding-top:8px;text-align:left">以下为设计稿对齐页面，字段通过 <code>store-h5-sync.js</code> 在会话内同步。</p>
+        <ul class="hub-list">
+            <li><a href="status-approved.html">审核通过</a></li>
+            <li><a href="status-updated.html">资料已更新</a></li>
+            <li><a href="status-submitted.html">申请已提交</a></li>
+            <li><a href="status-cancelled.html">已取消</a></li>
+            <li><a href="material-not-found.html">门店资料 · 链接失效</a></li>
+            <li><a href="material-idle.html">门店资料 · 无需补充</a></li>
+            <li><a href="register.html">门店注册</a></li>
+            <li><a href="register-jiameng.html">门店注册 · 加盟店字段</a></li>
+            <li><a href="register-hezuo.html">门店注册 · 合作店字段</a></li>
+            <li><a href="register-tonghang.html">门店注册 · 同行店字段</a></li>
+            <li><a href="supplement.html">补充门店资料</a></li>
+            <li><a href="entry-address.html">进件 · 门店地址（超长表单）</a></li>
+            <li><a href="entry-contact.html">进件 · 联系人/营业执照（超长表单）</a></li>
+            <li><a href="store-detail-marketing.html">门店详情 · 营销配置（重置/保存）</a></li>
+            <li><a href="store-detail-classic.html">门店详情 · 经典表单（提交）</a></li>
+        </ul>
+    </main>
+    <script src="../../js/path-prefix.js"></script>
+    <script src="store-h5-sync.js"></script>
+</body>
+</html>
