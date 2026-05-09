@@ -127,7 +127,7 @@
 
   function renderBlocked(title, msg) {
     return (
-      '<div class="h5-head-bar"><h1>' +
+      '<div class="h5-block-title-bar"><h1>' +
       esc(title) +
       '</h1></div>' +
       '<div class="h5-block-msg"><p>' +
@@ -290,8 +290,8 @@
       contactName: rec.contactName || '',
       storeArea: rec.storeArea || '',
       storeFloors: rec.storeFloors || '',
-      vidF: '',
-      vidI: '',
+      vidF: rec.videoStorefrontIntroUrl || '',
+      vidI: rec.videoInteriorIntroUrl || '',
       householdsWithin500m: rec.householdsWithin500m || '',
       dailyOrderVolume: rec.dailyOrderVolume || '',
       staffCount: rec.staffCount || '',
@@ -383,6 +383,10 @@
       privateCommerceFamiliarity: st.privateCommerceFamiliarity,
       surroundingCommunityNote: st.surroundingCommunityNote,
       confidenceReach1000: st.confidenceReach1000,
+      videoStorefrontIntroUrl: st.vidF || rec.videoStorefrontIntroUrl || undefined,
+      videoInteriorIntroUrl: st.vidI || rec.videoInteriorIntroUrl || undefined,
+      videoStorefrontIntroDone: !!(st.vidF || rec.videoStorefrontIntroDone),
+      videoInteriorIntroDone: !!(st.vidI || rec.videoInteriorIntroDone),
       specialCircumstancesNote: (st.specialCircumstancesNote || '').trim() || '—',
       otherPlatformsCooperation: (st.otherPlatforms || '').trim() || '—',
       companyCallbackNotified: !!st.companyCb,
@@ -458,13 +462,18 @@
     if (window.__BD_STORE_AUDITS__) {
       paint(window.__BD_STORE_AUDITS__);
     } else {
+      root.innerHTML =
+        '<p class="bd-empty" style="margin:24px;text-align:center;font-size:14px;color:var(--bd-muted)">加载中…</p>';
       fetch(storesUrl)
         .then(function (r) {
+          if (!r.ok) throw new Error('bad status');
           return r.json();
         })
         .then(paint)
         .catch(function () {
-          root.innerHTML = '<p class="bd-empty" style="margin:16px">无法加载门店数据</p>';
+          root.innerHTML =
+            '<div class="h5-block-title-bar"><h1>提示</h1></div>' +
+            '<div class="h5-block-msg"><p style="margin:16px;color:var(--bd-muted);font-size:14px;text-align:center">无法加载门店数据。</p></div>';
         });
     }
     if (!mountBdStoreFormPage._wired) {
@@ -603,6 +612,7 @@
     }
 
     function mapMarkerStyle() {
+      if (st.selectedPoiId === 'legacy') return 'left:50%;top:50%;';
       var p = MOCK_POIS.find(function (x) {
         return x.id === st.selectedPoiId;
       });
@@ -631,7 +641,9 @@
 
       var html =
         '<div class="h5-form-root">' +
-        '<div class="h5-head-bar"><h1>' +
+        '<div class="h5-head-bar">' +
+        '<button type="button" class="h5-back" id="h5HeadBack" aria-label="返回">‹</button>' +
+        '<h1>' +
         esc(pageTitle) +
         '</h1></div>' +
         '<div class="h5-hero-card">' +
@@ -648,7 +660,16 @@
         secBuilding() +
         secDelivery() +
         (!policyOn() ? '<div class="h5-dash-hint">请先选择「门店合作类型」，系统将展示对应的资料项。</div>' : '') +
-        (policyOn() ? secAddr() + secFacade() + secContact() + secFranchise() + secPeer() + secCompany() : '') +
+        (policyOn()
+          ? secAddr() +
+            secFacade() +
+            secContact() +
+            secFranchiseMedia() +
+            secFranchiseOps() +
+            secFranchiseSpecial() +
+            secPeer() +
+            secCompany()
+          : '') +
         '</div>' +
         '<div class="h5-footer-bar">' +
         (isBdApp
@@ -669,16 +690,30 @@
         '<section class="h5-sec"><div class="h5-sec-head"><span class="h5-sec-ic">■</span><div><h3 class="h5-sec-t">基础信息</h3>' +
         '<p class="h5-sec-s">名称与负责 BD</p></div></div>' +
         '<div class="h5-sec-body">' +
-        field('门店主体', true, '<input type="text" class="h5-input" id="f_subject" placeholder="营业执照主体" />') +
-        field('门店名称', true, '<input type="text" class="h5-input" id="f_name" placeholder="请输入门店名称" />') +
-        field('门店简称', false, '<input type="text" class="h5-input" id="f_short" placeholder="如：鲜丰-文一西路店" />') +
+        field(
+          '门店主体',
+          true,
+          '<input type="text" class="h5-input" id="f_subject" placeholder="请输入门店主体" />',
+          '营业执照主体 / 实际经营主体'
+        ) +
+        field(
+          '门店名称',
+          true,
+          '<input type="text" class="h5-input" id="f_name" placeholder="请输入门店名称" />',
+          '尽量以小区、道路或原店铺名为准'
+        ) +
+        field('门店简称', false, '<input type="text" class="h5-input" id="f_short" placeholder="如：鲜丰-文一西路店" />', '对外简称，≠ 标签') +
         field(
           '绑定 BD',
           false,
           '<input type="text" class="h5-input h5-input-dis" readonly value="' +
           esc(boundBd) +
           '" />',
-          isBdApp ? '默认当前登录账号，不可更改' : '由链接参数确定'
+          isBdApp
+            ? '默认当前登录账号，不可更改'
+            : supplementMode
+              ? '由 BD 转发链接确定，不可更改'
+              : '默认当前登录账号，不可更改'
         ) +
         '</div></section>'
       );
@@ -689,7 +724,7 @@
       if (st.warehouse && whOpts.indexOf(st.warehouse) < 0) whOpts.unshift(st.warehouse);
       return (
         '<section class="h5-sec"><div class="h5-sec-head"><span class="h5-sec-ic">◆</span><div><h3 class="h5-sec-t">配送与分类</h3>' +
-        '<p class="h5-sec-s">配送仓库默认随绑定 BD；合作类型与设备</p></div></div>' +
+        '<p class="h5-sec-s">配送仓库默认随绑定 BD，可手动调整；门店合作类型与设备归类</p></div></div>' +
         '<div class="h5-sec-body">' +
         field(
           '配送仓库',
@@ -701,7 +736,7 @@
             })
             .join('') +
           '</select>',
-          '默认：' + esc(defaultWarehouse(boundBd))
+          '默认：' + esc(defaultWarehouse(boundBd)) + '（与当前 BD 关联）'
         ) +
         field(
           '门店合作类型',
@@ -715,18 +750,21 @@
           ? field(
               '门店类型',
               true,
-              '<input type="text" class="h5-input" id="f_storetype" placeholder="如社区生鲜店、团购自提点" />'
+              '<input type="text" class="h5-input" id="f_storetype" placeholder="请填写实际业态" />',
+              '如社区生鲜店、团购自提点等'
             )
           : '') +
         field(
           '有无冷藏柜',
           false,
-          '<select class="h5-input" id="f_hasref"><option value="">可选填</option><option value="有">有</option><option value="无">无</option></select>'
+          '<select class="h5-input" id="f_hasref"><option value="">可选填</option><option value="有">有</option><option value="无">无</option></select>',
+          '选填'
         ) +
         field(
           '有无冷冻柜',
           false,
-          '<select class="h5-input" id="f_hasfre"><option value="">可选填</option><option value="有">有</option><option value="无">无</option></select>'
+          '<select class="h5-input" id="f_hasfre"><option value="">可选填</option><option value="有">有</option><option value="无">无</option></select>',
+          '选填'
         ) +
         refPhotoRow('冷藏柜照片', 'ref', MAX_REF) +
         refPhotoRow('冷冻柜照片', 'fre', MAX_REF) +
@@ -735,8 +773,10 @@
     }
 
     function refPhotoRow(label, kind, max) {
-      var count = kind === 'ref' ? st.refPhotos.length : st.freezerPhotos.length;
+      var count = kind === 'ref' ? st.refPhotos.length : st.frePhotos.length;
       var dis = (kind === 'ref' ? st.hasRef : st.hasFre) !== '有';
+      var btnLabel =
+        kind === 'ref' ? '上传冷藏柜照片' : kind === 'fre' ? '上传冷冻柜照片' : '上传照片';
       return (
         '<div class="h5-field"><label class="h5-lab">' +
         esc(label) +
@@ -751,7 +791,9 @@
         kind +
         '"' +
         (dis ? ' disabled' : '') +
-        '>上传照片</button>' +
+        '>' +
+        btnLabel +
+        '</button>' +
         '<span class="h5-hint-r">' +
         count +
         '/' +
@@ -767,11 +809,19 @@
       var ph = prot();
       return (
         '<section class="h5-sec">' +
-        '<div class="h5-sec-head"><span class="h5-sec-ic">📍</span><div><h3 class="h5-sec-t">地址与定位</h3>' +
-        '<p class="h5-sec-s">搜索选点、省市区与详细地址</p></div></div>' +
+        secHead(
+          '📍',
+          '地址与定位',
+          '搜索选点、省市区与详细地址均为必填。模糊搜索门店名称或地址，选中后自动写入省市区与详细地址；坐标与重叠校验由系统落档至后台。'
+        ) +
         '<div class="h5-sec-body">' +
-        '<p class="h5-rule">同行店无地域保护：同区域内已有同行店时，可继续在同区域开设同行店；同区域内已有加盟店或合作店时，该区域不得再开设加盟店、合作店或同行店。</p>' +
-        field('搜索门店位置', false, '<input type="text" class="h5-input" id="f_mapq" placeholder="鲜丰、武林、山姆…" />') +
+        '<p class="h5-rule">同行店无地域保护：同区域内已有同行店时，可继续在同区域开设同行店；同区域内已有加盟店或合作店时，该区域不得再开设加盟店、合作店或同行店。若拟在同区域开设加盟店或合作店，而此前同区域已存在同行店，则该同行店须无条件退出。</p>' +
+        field(
+          '搜索门店位置',
+          false,
+          '<input type="text" class="h5-input" id="f_mapq" placeholder="如：鲜丰、武林、山姆、道路或小区名…" />',
+          '输入关键字，从下列结果中选点'
+        ) +
         '<div class="h5-poi-list" id="poiList">' +
         poiListHtml() +
         '</div>' +
@@ -781,6 +831,9 @@
         '"></div>' +
         (!st.selectedPoiId ? '<span class="h5-map-ph">完成选点后在此显示示意位置</span>' : '') +
         '</div></div>' +
+        (st.selectedPoiId === 'legacy'
+          ? '<p class="h5-legacy-map-hint">当前为历史资料落点示意；新建门店请在列表中选择 POI。</p>'
+          : '') +
         field(
           '归属于城市区域（省 / 市 / 区）',
           true,
@@ -788,83 +841,197 @@
           REGION_PRESETS.map(function (r) {
             return '<option value="' + esc(r) + '">' + esc(r) + '</option>';
           }).join('') +
-          '</select>'
+          '</select>',
+          '选点后自动带出，可再微调'
         ) +
-        field('详细地址', true, '<input type="text" class="h5-input" id="f_detail" placeholder="街道、门牌号" />') +
+        field(
+          '详细地址',
+          true,
+          '<input type="text" class="h5-input" id="f_detail" placeholder="街道、门牌号等" />',
+          '选点后自动带出，可与现场核对修改'
+        ) +
         (ph.show
           ? '<div class="h5-alert h5-alert-warn"><strong>区域保护提醒</strong><p>' + esc(ph.msg) + '</p></div>'
           : '') +
-        '<p class="h5-note2">「区域地图 · 保护范围」可视化示意安排在二期；现阶段请以列表选点与 PC 后台区域规则为准。</p>' +
+        '<p class="h5-note2">「区域地图 · 保护范围」可视化示意安排在<strong class="h5-note2-strong">二期</strong>开发；现阶段请以列表选点与 PC 后台区域规则为准。</p>' +
         '</div></section>'
+      );
+    }
+
+    function secHead(ic, title, sub) {
+      return (
+        '<div class="h5-sec-head"><span class="h5-sec-ic">' +
+        ic +
+        '</span><div><h3 class="h5-sec-t">' +
+        esc(title) +
+        '</h3>' +
+        (sub ? '<p class="h5-sec-s">' + esc(sub) + '</p>' : '') +
+        '</div></div>'
+      );
+    }
+
+    function fieldTa(lab, id, placeholder, hint) {
+      return field(
+        lab,
+        false,
+        '<textarea class="h5-ta" id="' + id + '" placeholder="' + esc(placeholder) + '"></textarea>',
+        hint || ''
       );
     }
 
     function secFacade() {
       return (
-        '<section class="h5-sec"><div class="h5-sec-head"><span class="h5-sec-ic">▣</span><div><h3 class="h5-sec-t">门头照</h3>' +
-        '<p class="h5-sec-s">必传，城管报备</p></div></div>' +
+        '<section class="h5-sec">' +
+        secHead('▣', '门头照', '必传。用于便于放货和城管报备。') +
         '<div class="h5-sec-body">' +
-        '<div class="h5-facade"><div class="h5-facade-img"></div>' +
-        (st.frontPhoto ? '<span class="h5-facade-badge">已上传</span>' : '') +
-        '</div>' +
-        '<button type="button" class="bd-btn bd-btn-outline" style="width:100%" id="f_front">' +
-        (st.frontPhoto ? '更换正门头照片' : '上传正门头照片') +
-        '</button></div></section>'
-      );
-    }
-
-    function secContact() {
-      return (
-        '<section class="h5-sec"><div class="h5-sec-head"><span class="h5-sec-ic">◎</span><div><h3 class="h5-sec-t">老板 / 联系人</h3>' +
-        '<p class="h5-sec-s">手机号验证</p></div></div>' +
-        '<div class="h5-sec-body">' +
-        '<div class="h5-field"><label class="h5-lab"><span class="req">*</span>老板 / 负责人联系电话</label>' +
-        '<div class="h5-row2"><input type="tel" class="h5-input" id="f_phone" placeholder="手机号" />' +
-        '<button type="button" class="bd-btn bd-btn-outline" id="f_sms">获取验证码</button></div></div>' +
-        field('短信验证码', true, '<input type="text" class="h5-input" id="f_code" maxlength="6" placeholder="4–6 位" />', supplementMode ? '店长补充可演示跳过' : '') +
-        field('老板 / 联系人姓名', true, '<input type="text" class="h5-input" id="f_cname" />') +
+        field(
+          '正门头照片',
+          true,
+          '<div class="h5-facade"><div class="h5-facade-img"></div>' +
+            (st.frontPhoto ? '<span class="h5-facade-badge">已上传</span>' : '') +
+            '</div>' +
+            '<button type="button" class="bd-btn bd-btn-outline" style="width:100%;margin-top:8px" id="f_front">' +
+            (st.frontPhoto ? '更换正门头照片' : '上传正门头照片') +
+            '</button>',
+          '需上传清晰的门店正面外观'
+        ) +
         '</div></section>'
       );
     }
 
-    function secFranchise() {
+    function secContact() {
+      var codeHint = supplementMode ? '店长补充可演示跳过' : '4–6 位';
+      return (
+        '<section class="h5-sec">' +
+        secHead('◎', '老板 / 联系人', '手机号验证与姓名') +
+        '<div class="h5-sec-body">' +
+        '<div class="h5-field"><label class="h5-lab"><span class="req">*</span>老板 / 负责人联系电话</label>' +
+        '<div class="h5-row2"><input type="tel" class="h5-input" id="f_phone" placeholder="手机号" />' +
+        '<button type="button" class="bd-btn bd-btn-outline" id="f_sms">获取验证码</button></div></div>' +
+        field(
+          '短信验证码',
+          true,
+          '<input type="text" class="h5-input" id="f_code" maxlength="6" inputmode="numeric" placeholder="请输入验证码" />',
+          codeHint
+        ) +
+        field(
+          '老板 / 联系人姓名',
+          true,
+          '<input type="text" class="h5-input" id="f_cname" placeholder="请输入姓名" />'
+        ) +
+        '</div></section>'
+      );
+    }
+
+    function vidCell(which) {
+      var isF = which === 'f';
+      var lbl = isF ? '门店店前左右两分钟（口述介绍）视频' : '门店店内一分钟视频（口述介绍）';
+      var bt = isF ? '上传店前视频' : '上传店内视频';
+      return (
+        '<div class="h5-vid-cell">' +
+        '<input type="file" accept="video/*" class="h5-hidden" id="f_vid_' +
+        which +
+        '" />' +
+        '<button type="button" class="bd-btn bd-btn-outline h5-vid-btn" id="btn_vid_' +
+        which +
+        '">' +
+        bt +
+        '</button>' +
+        '<video class="h5-vid-preview" id="preview_vid_' +
+        which +
+        '" controls playsinline preload="metadata"></video>' +
+        '</div>'
+      );
+    }
+
+    function secFranchiseMedia() {
       if (!isFP()) return '';
       return (
-        '<section class="h5-sec"><div class="h5-sec-head"><span class="h5-sec-ic">☰</span><div><h3 class="h5-sec-t">加盟店/合作店补充</h3>' +
-        '<p class="h5-sec-s">面积、视频与经营认知</p></div></div>' +
+        '<section class="h5-sec">' +
+        secHead('☰', '影像与门店信息', '门店面积、楼层与店前店内口述视频') +
         '<div class="h5-sec-body">' +
-        field('门店面积（㎡）', true, '<input type="text" class="h5-input" id="f_area" inputmode="decimal" />') +
-        field('门店楼层', true, '<input type="text" class="h5-input" id="f_floor" placeholder="如 1F" />') +
-        ta('实际经营者对直播业务的理解', 'f_liveu') +
-        ta('门店日常运营的服务理解与配合', 'f_daily') +
-        ta('老板对私域直播投入产出的期望', 'f_roi') +
-        ta('了解私域直播或社区团购的程度', 'f_fam') +
-        ta('周边小区及居住人群描述', 'f_surr') +
-        ta('对是否拉到1000人有信心', 'f_conf') +
-        '<div class="h5-field"><label class="h5-lab">特殊情况说明</label>' +
-        '<textarea class="h5-ta" id="f_spec" placeholder="如无特殊情况可填写：无"></textarea></div>' +
+        field('门店店前左右两分钟（口述介绍）视频', false, vidCell('f')) +
+        field('门店店内一分钟视频（口述介绍）', false, vidCell('i')) +
+        field(
+          '门店面积（㎡）',
+          true,
+          '<input type="text" class="h5-input" id="f_area" inputmode="decimal" placeholder="请输入门店面积，如 120" />'
+        ) +
+        field(
+          '门店楼层',
+          true,
+          '<input type="text" class="h5-input" id="f_floor" placeholder="如：1 层临街" />',
+          '与面积对应，如 1F、1–2F'
+        ) +
+        '</div></section>'
+      );
+    }
+
+    function secFranchiseOps() {
+      if (!isFP()) return '';
+      return (
+        '<section class="h5-sec">' +
+        secHead('☰', '门店经营与认知', '门店经营情况与认知说明') +
+        '<div class="h5-sec-body">' +
+        field(
+          '门店方圆五百米的总户数（实际入住户数）',
+          false,
+          '<input type="text" class="h5-input" id="f_h500" inputmode="numeric" placeholder="按实际入住户数填写" />'
+        ) +
+        field(
+          '门店日均客单量',
+          false,
+          '<input type="text" class="h5-input" id="f_ordervol" placeholder="如：工作日约 ** 单，周末约 ** 单" />'
+        ) +
+        field(
+          '店内工作人员总数',
+          false,
+          '<input type="text" class="h5-input" id="f_staff" inputmode="numeric" placeholder="实际在岗人数" />'
+        ) +
+        fieldTa('实际经营者对直播业务的理解', 'f_liveu', '口述要点整理为文字') +
+        fieldTa('门店日常运营的服务理解与配合', 'f_daily', '配送、售后、客服等配合意愿与能力') +
+        fieldTa(
+          '老板对私域直播投入产出的期望（文字描述）',
+          'f_roi',
+          '文字描述预期产出周期与可投入精力/费用'
+        ) +
+        fieldTa(
+          '老板了解私域直播或社区团购的程度（文字描述）',
+          'f_fam',
+          '有无实操经验、是否参加过类似培训等'
+        ) +
+        fieldTa(
+          '店老板对周边小区的描述：（主要是周边小区类型和居住人群的描述）',
+          'f_surr',
+          '周边小区档次、入住率、年龄段与消费习惯等'
+        ) +
+        fieldTa('店老板对是否拉到1000人有信心', 'f_conf', '信心来源或顾虑说明') +
+        '</div></section>'
+      );
+    }
+
+    function secFranchiseSpecial() {
+      if (!isFP()) return '';
+      return (
+        '<section class="h5-sec">' +
+        secHead('☰', '特殊情况说明', '选填；触发区域保护提醒时须用文字或图片补充说明。') +
+        '<div class="h5-sec-body">' +
+        field(
+          '说明内容',
+          false,
+          '<textarea class="h5-ta" id="f_spec" placeholder="如无特殊情况可填写：无"></textarea>',
+          '如无特殊情况可填写：无'
+        ) +
         specPhotosRow() +
         '</div></section>'
       );
     }
 
-    function ta(lab, id) {
-      return (
-        '<div class="h5-field"><label class="h5-lab">' +
-        esc(lab) +
-        '</label><textarea class="h5-ta" id="' +
-        id +
-        '"></textarea></div>'
-      );
-    }
-
     function specPhotosRow() {
       return (
-        '<div class="h5-field"><label class="h5-lab">特殊情况配图 <span class="h5-hint-r">' +
-        st.specialPhotos.length +
-        '/' +
+        '<div class="h5-field"><div class="h5-labrow"><label class="h5-lab">特殊情况配图</label><span class="h5-hint-r">最多 ' +
         MAX_SP +
-        '</span></label>' +
+        ' 张</span></div>' +
         '<input type="file" accept="image/*" multiple class="h5-hidden" id="f_specph" />' +
         '<button type="button" class="bd-btn bd-btn-outline" id="f_specbtn">上传图片</button>' +
         '<div class="h5-thumb-grid" id="th_spec"></div></div>'
@@ -874,15 +1041,17 @@
     function secPeer() {
       if (!isPeer()) return '';
       return (
-        '<section class="h5-sec"><div class="h5-sec-head"><span class="h5-sec-ic">☰</span><div><h3 class="h5-sec-t">同行店补充</h3></div></div>' +
+        '<section class="h5-sec">' +
+        secHead('☰', '同行店补充资料', '请如实填写以下资料') +
         '<div class="h5-sec-body">' +
-        '<div class="h5-field"><label class="h5-lab">合作平台现状</label>' +
-        '<textarea class="h5-ta" id="f_plat" placeholder="美团、多多买菜等"></textarea></div>' +
-        '<div class="h5-field"><label class="h5-lab">近三天上播及销量截图 <span class="h5-hint-r">' +
-        st.broadcastPhotos.length +
-        '/' +
+        field(
+          '合作平台现状：说明目前门店已合作的其他平台情况。',
+          false,
+          '<textarea class="h5-ta" id="f_plat" placeholder="如实填写美团、多多买菜、其他团购或直播平台等"></textarea>'
+        ) +
+        '<div class="h5-field"><div class="h5-labrow"><label class="h5-lab">经营数据截图：需提供手机后台截图，包含前三天的上播数据及销量明细。</label><span class="h5-hint-r">最多 ' +
         MAX_BR +
-        '</span></label>' +
+        ' 张</span></div>' +
         '<input type="file" accept="image/*" multiple class="h5-hidden" id="f_broad" />' +
         '<button type="button" class="bd-btn bd-btn-outline" id="f_broadbtn">上传经营截图</button>' +
         '<div class="h5-thumb-grid" id="th_broad"></div></div>' +
@@ -892,9 +1061,11 @@
 
     function secCompany() {
       return (
-        '<section class="h5-sec h5-sec--flat"><label class="h5-cb">' +
+        '<section class="h5-sec h5-sec--company-wrap">' +
+        '<div class="h5-company-inner">' +
+        '<label class="h5-cb h5-cb-company">' +
         '<input type="checkbox" id="f_company" />' +
-        '<span><strong class="req">*</strong> 已知晓需接听公司公务来电（17316440268、17339691157）。</span></label></section>'
+        '<span><strong class="req">*</strong> 已知晓需接听公司公务来电（17316440268、17339691157）。</span></label></div></section>'
       );
     }
 
@@ -931,6 +1102,9 @@
       if (el('f_cname')) st.contactName = el('f_cname').value;
       if (el('f_area')) st.storeArea = el('f_area').value;
       if (el('f_floor')) st.storeFloors = el('f_floor').value;
+      if (el('f_h500')) st.householdsWithin500m = el('f_h500').value;
+      if (el('f_ordervol')) st.dailyOrderVolume = el('f_ordervol').value;
+      if (el('f_staff')) st.staffCount = el('f_staff').value;
       if (el('f_liveu')) st.liveCommerceUnderstanding = el('f_liveu').value;
       if (el('f_daily')) st.dailyOpsCooperationNote = el('f_daily').value;
       if (el('f_roi')) st.privateLiveRoiExpectation = el('f_roi').value;
@@ -968,6 +1142,9 @@
       if (el('f_cname')) el('f_cname').value = st.contactName;
       if (el('f_area')) el('f_area').value = st.storeArea;
       if (el('f_floor')) el('f_floor').value = st.storeFloors;
+      if (el('f_h500')) el('f_h500').value = st.householdsWithin500m;
+      if (el('f_ordervol')) el('f_ordervol').value = st.dailyOrderVolume;
+      if (el('f_staff')) el('f_staff').value = st.staffCount;
       if (el('f_liveu')) el('f_liveu').value = st.liveCommerceUnderstanding;
       if (el('f_daily')) el('f_daily').value = st.dailyOpsCooperationNote;
       if (el('f_roi')) el('f_roi').value = st.privateLiveRoiExpectation;
@@ -978,9 +1155,26 @@
       if (el('f_plat')) el('f_plat').value = st.otherPlatforms;
       if (el('f_company')) el('f_company').checked = st.companyCb;
       renderThumbs('th_ref', st.refPhotos);
-      renderThumbs('th_fre', st.freezerPhotos);
+      renderThumbs('th_fre', st.frePhotos);
       renderThumbs('th_spec', st.specialPhotos);
       renderThumbs('th_broad', st.broadcastPhotos);
+      syncVideoPreviews();
+    }
+
+    function syncVideoPreviews() {
+      ['f', 'i'].forEach(function (w) {
+        var key = w === 'f' ? 'vidF' : 'vidI';
+        var vel = document.getElementById('preview_vid_' + w);
+        if (!vel) return;
+        var u = st[key];
+        if (u) {
+          vel.src = u;
+          vel.style.display = 'block';
+        } else {
+          vel.removeAttribute('src');
+          vel.style.display = 'none';
+        }
+      });
     }
 
     function renderThumbs(hostId, urls) {
@@ -1138,6 +1332,28 @@
         return document.getElementById(id);
       };
 
+      var hb = el('h5HeadBack');
+      if (hb) {
+        hb.onclick = function () {
+          if (isBdApp && bdCtx) {
+            if (window.history.length > 1) {
+              window.history.back();
+              return;
+            }
+            location.href = bdStoresPageHref() + (bdCtx.isCreate ? '#list' : '#workspace/' + bdCtx.record.id);
+            return;
+          }
+          if (window.history.length > 1) {
+            window.history.back();
+            return;
+          }
+          var bp = window.bdPage || function (x) {
+            return x;
+          };
+          window.location.href = bp('mdm_bd_h5.html').split('?')[0] + '#register';
+        };
+      }
+
       function onInp(ids, fn) {
         ids.forEach(function (id) {
           var n = el(id);
@@ -1164,6 +1380,9 @@
           'f_cname',
           'f_area',
           'f_floor',
+          'f_h500',
+          'f_ordervol',
+          'f_staff',
           'f_liveu',
           'f_daily',
           'f_roi',
@@ -1194,6 +1413,33 @@
         el('f_wh').onchange = function () {
           readFormToState();
         };
+
+      ['f', 'i'].forEach(function (w) {
+        var key = w === 'f' ? 'vidF' : 'vidI';
+        var inp = el('f_vid_' + w);
+        var btn = el('btn_vid_' + w);
+        if (btn && inp) {
+          btn.onclick = function () {
+            inp.click();
+          };
+        }
+        if (inp) {
+          inp.onchange = function () {
+            var file = inp.files && inp.files[0];
+            if (!file) return;
+            var prev = st[key];
+            if (prev && String(prev).indexOf('blob:') === 0) {
+              try {
+                URL.revokeObjectURL(prev);
+              } catch (eRev) {}
+            }
+            st[key] = URL.createObjectURL(file);
+            syncVideoPreviews();
+            window.bdToast && bdToast('已添加视频', file.name);
+            inp.value = '';
+          };
+        }
+      });
 
       document.querySelectorAll('.h5-poi-item').forEach(function (b) {
         b.onclick = function () {
@@ -1226,7 +1472,7 @@
         inp.onchange = function () {
           readFormToState();
           var files = inp.files;
-          var arr = idx === 0 ? st.refPhotos : st.freezerPhotos;
+          var arr = idx === 0 ? st.refPhotos : st.frePhotos;
           var kind = idx === 0 ? 'ref' : 'fre';
           var max = MAX_REF;
           if (kind === 'ref' && st.hasRef !== '有') return;
@@ -1280,7 +1526,7 @@
           var hid = x.getAttribute('data-x');
           var i = parseInt(x.getAttribute('data-i'), 10);
           if (hid === 'th_ref') st.refPhotos.splice(i, 1);
-          else if (hid === 'th_fre') st.freezerPhotos.splice(i, 1);
+          else if (hid === 'th_fre') st.frePhotos.splice(i, 1);
           else if (hid === 'th_spec') st.specialPhotos.splice(i, 1);
           else if (hid === 'th_broad') st.broadcastPhotos.splice(i, 1);
           fullRender();
