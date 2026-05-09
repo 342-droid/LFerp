@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>门店注册 · Shop H5</title>
+  <link rel="stylesheet" href="../../css/shop-h5-app-shell.css">
+  <link rel="stylesheet" href="../../css/shop-h5-store-pages.css">
+</head>
+<body class="shop-h5-app-list">
+  <div class="shop-h5-mobile-container">
+    <header class="shop-h5-head">
+      <div class="shop-h5-head-inner">
+        <button type="button" class="shop-h5-back" id="btnBack" aria-label="返回">‹</button>
+        <h1 class="shop-h5-title" id="pageTitle">门店注册</h1>
+      </div>
+    </header>
+
+    <div class="shop-h5-scroll shop-h5-hidden" id="notfoundView">
+      <main class="shop-h5-main">
+        <p class="shop-h5-note">未找到该门店，链接可能已失效。请联系拓展 BD 重新获取补充资料链接。</p>
+      </main>
+    </div>
+
+    <div class="shop-h5-scroll shop-h5-hidden" id="phaseBlockView">
+      <main class="shop-h5-main">
+        <p class="shop-h5-note">当前门店状态无需店长在此补充资料；若有疑问请联系拓展 BD。</p>
+      </main>
+    </div>
+
+    <div class="shop-h5-scroll" id="formScroll">
+      <main class="shop-h5-main" id="formMain">
+        <div class="shop-h5-hero">
+          <div class="shop-h5-hero-tag" id="heroTag">扫码注册</div>
+          <h2 class="shop-h5-hero-title" id="heroTitle">未命名门店</h2>
+          <p class="shop-h5-hero-desc" id="heroDesc">请按实际情况填写门店注册资料，提交后将进入审核流程。</p>
+        </div>
+
+        <section class="shop-h5-section">
+          <div class="shop-h5-sec-head">
+            <div class="shop-h5-sec-icon">🏢</div>
+            <div class="shop-h5-sec-titles">
+              <h3>基础信息</h3>
+              <p>名称与负责 BD</p>
+            </div>
+          </div>
+          <div class="shop-h5-field">
+            <div class="shop-h5-field-hd"><span class="shop-h5-req">门店主体</span><span class="shop-h5-hint">营业执照主体 / 实际经营主体</span></div>
+            <input class="shop-h5-input" id="storeSubject" type="text" placeholder="请输入门店主体" autocomplete="organization">
+          </div>
+          <div class="shop-h5-field">
+            <div class="shop-h5-field-hd"><span class="shop-h5-req">门店名称</span><span class="shop-h5-hint">尽量以小区、道路或原店铺名为准</span></div>
+            <input class="shop-h5-input" id="name" type="text" placeholder="请输入门店名称" autocomplete="off">
+          </div>
+          <div class="shop-h5-field">
+            <div class="shop-h5-field-hd"><span>门店简称</span><span class="shop-h5-hint">对外简称，≠ 标签</span></div>
+            <input class="shop-h5-input" id="shortName" type="text" placeholder="如：鲜丰-文一西路店">
+          </div>
+          <div class="shop-h5-field">
+            <div class="shop-h5-field-hd"><span>绑定 BD</span><span class="shop-h5-hint" id="bdHint">默认当前登录账号，不可更改</span></div>
+            <input class="shop-h5-input" id="boundBd" type="text" readonly disabled value="">
+          </div>
+        </section>
+
+        <section class="shop-h5-section">
+          <div class="shop-h5-sec-head">
+            <div class="shop-h5-sec-icon">📦</div>
+            <div class="shop-h5-sec-titles">
+              <h3>配送与分类</h3>
+              <p>配送仓库默认随绑定 BD，可手动调整；门店合作类型与设备归类</p>
+            </div>
+          </div>
+          <div class="shop-h5-field">
+            <div class="shop-h5-field-hd"><span>配送仓库</span><span class="shop-h5-hint" id="warehouseHint">默认：华东 RDC-杭州（与当前 BD 关联）</span></div>
+            <select class="shop-h5-select" id="warehouse"></select>
+          </div>
+          <div class="shop-h5-field">
+            <div class="shop-h5-field-hd"><span class="shop-h5-req">门店合作类型</span><span class="shop-h5-hint">加盟店/合作店享受区域保护</span></div>
+            <select class="shop-h5-select" id="partnerDivision">
+              <option value="">加盟店 / 合作店 / 同行店</option>
+              <option value="加盟店">加盟店</option>
+              <option value="合作店">合作店</option>
+              <option value="同行店">同行店</option>
+            </select>
+          </div>
+          <div id="storeTypeRow" class="shop-h5-field shop-h5-hidden">
+            <div class="shop-h5-field-hd"><span class="shop-h5-req">门店类型</span><span class="shop-h5-hint">如社区生鲜店、团购自提点等</span></div>
+            <input class="shop-h5-input" id="storeTypeDetail" type="text" placeholder="请填写实际业态">
+          </div>
+          <div class="shop-h5-field">
+            <div class="shop-h5-field-hd"><span>有无冷藏柜</span><span class="shop-h5-hint">选填</span></div>
+            <select class="shop-h5-select" id="hasRefrigeratedCabinet">
+              <option value="">可选填</option>
+              <option value="有">有</option>
+              <option value="无">无</option>
+            </select>
+          </div>
+          <div class="shop-h5-field">
+            <div class="shop-h5-field-hd"><span>有无冷冻柜</span><span class="shop-h5-hint">选填</span></div>
+            <select class="shop-h5-select" id="hasFreezerCabinet">
+              <option value="">可选填</option>
+              <option value="有">有</option>
+              <option value="无">无</option>
+            </select>
+          </div>
+          <div class="shop-h5-field">
+            <div class="shop-h5-field-hd"><span>冷藏柜照片</span><span class="shop-h5-hint">最多 5 张</span></div>
+            <input type="file" id="refrigeratedFiles" class="shop-h5-hidden" accept="image/*" multiple>
+            <div class="shop-h5-upload-row">
+              <button type="button" class="shop-h5-upload-btn" id="btnRefrigeratedPick">上传冷藏柜照片</button>
+              <span class="shop-h5-hint" style="margin:0"><span id="refrigeratedCount">0</span>/5</span>
+            </div>
+            <div class="shop-h5-photo-grid" id="refrigeratedGrid"></div>
+          </div>
+          <div class="shop-h5-field">
+            <div class="shop-h5-field-hd"><span>冷冻柜照片</span><span class="shop-h5-hint">最多 5 张</span></div>
+            <input type="file" id="freezerFiles" class="shop-h5-hidden" accept="image/*" multiple>
+            <div class="shop-h5-upload-row">
+              <button type="button" class="shop-h5-upload-btn" id="btnFreezerPick">上传冷冻柜照片</button>
+              <span class="shop-h5-hint" style="margin:0"><span id="freezerCount">0</span>/5</span>
+            </div>
+            <div class="shop-h5-photo-grid" id="freezerGrid"></div>
+          </div>
+        </section>
+
+        <p class="shop-h5-placeholder" id="policyPlaceholder">请先选择「门店合作类型」，系统将展示对应的资料项。</p>
+
+        <div id="policyPanels" class="shop-h5-hidden">
+          <section class="shop-h5-section">
+            <div class="shop-h5-sec-head">
+              <div class="shop-h5-sec-icon">📍</div>
+              <div class="shop-h5-sec-titles">
+                <h3>地址与定位</h3>
+                <p>搜索选点、省市区与详细地址均为必填。模糊搜索门店名称或地址，选中后自动写入省市区与详细地址；坐标与重叠校验由系统落档至后台。</p>
+              </div>
+            </div>
+            <p class="shop-h5-tip-box">同行店无地域保护：同区域内已有同行店时，可继续在同区域开设同行店；同区域内已有加盟店或合作店时，该区域不得再开设加盟店、合作店或同行店。若拟在同区域开设加盟店或合作店，而此前同区域已存在同行店，则该同行店须无条件退出。</p>
+            <div class="shop-h5-field">
+              <div class="shop-h5-field-hd"><span>搜索门店位置</span><span class="shop-h5-hint">输入关键字，从下列结果中选点</span></div>
+              <input class="shop-h5-input" id="mapPoiQuery" type="text" placeholder="如：鲜丰、武林、山姆、道路或小区名…" autocomplete="off">
+            </div>
+            <div id="poiListWrap" class="shop-h5-hidden">
+              <div class="shop-h5-poi-list" id="poiList"></div>
+            </div>
+            <p class="shop-h5-tip-box" id="poiEmptyHint">输入关键字展示候选列表；点选一行即可完成地图选点。</p>
+
+            <div class="shop-h5-field">
+              <div class="shop-h5-field-hd"><span>地图落点示意</span></div>
+              <div class="shop-h5-map" id="mapCanvas">
+                <div class="shop-h5-map-grid"></div>
+                <div id="mapPin" class="shop-h5-map-pin shop-h5-hidden" style="left:50%;top:50%">
+                  <span class="shop-h5-map-pin-dot"></span>
+                  <span class="shop-h5-map-pin-stick"></span>
+                </div>
+                <p id="mapPlaceholder" class="shop-h5-note" style="padding:48px 16px;font-size:11px">完成选点后在此显示示意位置</p>
+              </div>
+              <p class="shop-h5-tip-box shop-h5-hidden" id="legacyPoiNote">当前为历史资料落点示意；新建门店请在列表中选择 POI。</p>
+            </div>
+
+            <div class="shop-h5-field">
+              <div class="shop-h5-field-hd"><span class="shop-h5-req">归属于城市区域（省 / 市 / 区）</span><span class="shop-h5-hint">选点后自动带出，可再微调</span></div>
+              <select class="shop-h5-select" id="regionCascade">
+                <option value="">请选择省市区</option>
+                <option>浙江省 / 杭州市 / 西湖区</option>
+                <option>浙江省 / 杭州市 / 拱墅区</option>
+                <option>浙江省 / 杭州市 / 滨江区</option>
+                <option>浙江省 / 杭州市 / 上城区</option>
+                <option>浙江省 / 杭州市 / 余杭区</option>
+                <option>—</option>
+              </select>
+            </div>
+            <div class="shop-h5-field">
+              <div class="shop-h5-field-hd"><span class="shop-h5-req">详细地址</span><span class="shop-h5-hint">选点后自动带出，可与现场核对修改</span></div>
+              <input class="shop-h5-input" id="detailAddress" type="text" placeholder="街道、门牌号等">
+            </div>
+            <div id="protectionAlert" class="shop-h5-alert shop-h5-hidden">
+              <div class="shop-h5-alert-title">区域保护提醒</div>
+              <div class="shop-h5-alert-desc" id="protectionAlertMsg"></div>
+            </div>
+            <p class="shop-h5-tip-box">「区域地图 · 保护范围」可视化示意安排在<strong>二期</strong>开发；现阶段请以列表选点与 PC 后台区域规则为准。</p>
+          </section>
+
+          <section class="shop-h5-section">
+            <div class="shop-h5-sec-head">
+              <div class="shop-h5-sec-icon">🖼</div>
+              <div class="shop-h5-sec-titles">
+                <h3>门头照</h3>
+                <p>必传。用于便于放货和城管报备。</p>
+              </div>
+            </div>
+            <div class="shop-h5-field">
+              <div class="shop-h5-field-hd"><span class="shop-h5-req">正门头照片</span><span class="shop-h5-hint">需上传清晰的门店正面外观</span></div>
+              <div class="shop-h5-storefront-wrap shop-h5-relative">
+                <img src="../../assets/storefront-demo.svg" alt="门头示意">
+                <span id="frontUploadedBadge" class="shop-h5-badge-uploaded shop-h5-hidden">已上传</span>
+              </div>
+              <button type="button" class="shop-h5-upload-btn" style="margin-top:10px;width:100%" id="btnFrontPhoto">上传正门头照片</button>
+            </div>
+          </section>
+
+          <section class="shop-h5-section">
+            <div class="shop-h5-sec-head">
+              <div class="shop-h5-sec-icon">👤</div>
+              <div class="shop-h5-sec-titles">
+                <h3>老板 / 联系人</h3>
+                <p>手机号验证与姓名</p>
+              </div>
+            </div>
+            <div class="shop-h5-field">
+              <div class="shop-h5-field-hd"><span class="shop-h5-req">老板 / 负责人联系电话</span></div>
+              <div style="display:flex;gap:8px">
+                <input class="shop-h5-input" id="contactPhone" type="tel" inputmode="tel" placeholder="手机号" style="flex:1">
+                <button type="button" class="shop-h5-btn shop-h5-btn-outline" style="flex:0 0 auto;width:104px;height:44px" id="btnSms">获取验证码</button>
+              </div>
+            </div>
+            <div class="shop-h5-field" id="verifyRow">
+              <div class="shop-h5-field-hd"><span class="shop-h5-req">短信验证码</span><span class="shop-h5-hint">4–6 位</span></div>
+              <input class="shop-h5-input" id="verifyCode" type="text" inputmode="numeric" maxlength="6" placeholder="请输入验证码">
+            </div>
+            <div class="shop-h5-field">
+              <div class="shop-h5-field-hd"><span class="shop-h5-req">老板 / 联系人姓名</span></div>
+              <input class="shop-h5-input" id="contactName" type="text" placeholder="请输入姓名">
+            </div>
+          </section>
+
+          <div id="blockFranchise" class="shop-h5-hidden">
+            <section class="shop-h5-section">
+              <div class="shop-h5-sec-head">
+                <div class="shop-h5-sec-icon">🎬</div>
+                <div class="shop-h5-sec-titles">
+                  <h3>影像与门店信息</h3>
+                  <p>门店面积、楼层与店前店内口述视频</p>
+                </div>
+              </div>
+              <div class="shop-h5-field">
+                <div class="shop-h5-field-hd"><span>门店店前左右两分钟（口述介绍）视频</span></div>
+                <input type="file" id="videoStorefrontFile" class="shop-h5-hidden" accept="video/*">
+                <button type="button" class="shop-h5-upload-btn" id="btnVideoStorefront">上传店前视频</button>
+                <video id="videoStorefrontPreview" class="shop-h5-hidden" controls style="margin-top:10px;width:100%;max-height:192px;border-radius:12px;background:#00000010"></video>
+              </div>
+              <div class="shop-h5-field">
+                <div class="shop-h5-field-hd"><span>门店店内一分钟视频（口述介绍）</span></div>
+                <input type="file" id="videoInteriorFile" class="shop-h5-hidden" accept="video/*">
+                <button type="button" class="shop-h5-upload-btn" id="btnVideoInterior">上传店内视频</button>
+                <video id="videoInteriorPreview" class="shop-h5-hidden" controls style="margin-top:10px;width:100%;max-height:192px;border-radius:12px;background:#00000010"></video>
+              </div>
+              <div class="shop-h5-field">
+                <div class="shop-h5-field-hd"><span class="shop-h5-req">门店面积（㎡）</span></div>
+                <input class="shop-h5-input" id="storeArea" type="text" inputmode="decimal" placeholder="请输入门店面积，如 120">
+              </div>
+              <div class="shop-h5-field">
+                <div class="shop-h5-field-hd"><span class="shop-h5-req">门店楼层</span><span class="shop-h5-hint">与面积对应，如 1F、1–2F</span></div>
+                <input class="shop-h5-input" id="storeFloors" type="text" placeholder="如：1 层临街">
+              </div>
+            </section>
+
+            <section class="shop-h5-section">
+              <div class="shop-h5-sec-head">
+                <div class="shop-h5-sec-icon">📋</div>
+                <div class="shop-h5-sec-titles">
+                  <h3>门店经营与认知</h3>
+                  <p>门店经营情况与认知说明</p>
+                </div>
+              </div>
+              <div class="shop-h5-field">
+                <div class="shop-h5-field-hd"><span>门店方圆五百米的总户数（实际入住户数）</span></div>
+                <input class="shop-h5-input" id="householdsWithin500m" type="text" inputmode="numeric" placeholder="按实际入住户数填写">
+              </div>
+              <div class="shop-h5-field">
+                <div class="shop-h5-field-hd"><span>门店日均客单量</span></div>
+                <input class="shop-h5-input" id="dailyOrderVolume" type="text" placeholder="如：工作日约 ** 单，周末约 ** 单">
+              </div>
+              <div class="shop-h5-field">
+                <div class="shop-h5-field-hd"><span>店内工作人员总数</span></div>
+                <input class="shop-h5-input" id="staffCount" type="text" inputmode="numeric" placeholder="实际在岗人数">
+              </div>
+              <div class="shop-h5-field">
+                <div class="shop-h5-field-hd"><span>实际经营者对直播业务的理解</span></div>
+                <textarea class="shop-h5-textarea" id="liveCommerceUnderstanding" placeholder="口述要点整理为文字"></textarea>
+              </div>
+              <div class="shop-h5-field">
+                <div class="shop-h5-field-hd"><span>门店日常运营的服务理解与配合</span></div>
+                <textarea class="shop-h5-textarea" id="dailyOpsCooperationNote" placeholder="配送、售后、客服等配合意愿与能力"></textarea>
+              </div>
+              <div class="shop-h5-field">
+                <div class="shop-h5-field-hd"><span>老板对私域直播投入产出的期望（文字描述）</span></div>
+                <textarea class="shop-h5-textarea" id="privateLiveRoiExpectation" placeholder="文字描述预期产出周期与可投入精力/费用"></textarea>
+              </div>
+              <div class="shop-h5-field">
+                <div class="shop-h5-field-hd"><span>老板了解私域直播或社区团购的程度（文字描述）</span></div>
+                <textarea class="shop-h5-textarea" id="privateCommerceFamiliarity" placeholder="有无实操经验、是否参加过类似培训等"></textarea>
+              </div>
+              <div class="shop-h5-field">
+                <div class="shop-h5-field-hd"><span>店老板对周边小区的描述：（主要是周边小区类型和居住人群的描述）</span></div>
+                <textarea class="shop-h5-textarea" id="surroundingCommunityNote" placeholder="周边小区档次、入住率、年龄段与消费习惯等"></textarea>
+              </div>
+              <div class="shop-h5-field">
+                <div class="shop-h5-field-hd"><span>店老板对是否拉到1000人有信心</span></div>
+                <textarea class="shop-h5-textarea" id="confidenceReach1000" placeholder="信心来源或顾虑说明"></textarea>
+              </div>
+            </section>
+
+            <section class="shop-h5-section">
+              <div class="shop-h5-sec-head">
+                <div class="shop-h5-sec-icon">⚠</div>
+                <div class="shop-h5-sec-titles">
+                  <h3>特殊情况说明</h3>
+                  <p>选填；触发区域保护提醒时须用文字或图片补充说明。</p>
+                </div>
+              </div>
+              <div class="shop-h5-field">
+                <div class="shop-h5-field-hd"><span>说明内容</span><span class="shop-h5-hint">如无特殊情况可填写：无</span></div>
+                <textarea class="shop-h5-textarea" id="specialCircumstancesNote" placeholder="如无特殊情况可填写：无"></textarea>
+              </div>
+              <div class="shop-h5-field">
+                <input type="file" id="specialPhotosFiles" class="shop-h5-hidden" accept="image/*" multiple>
+                <div class="shop-h5-upload-row">
+                  <button type="button" class="shop-h5-upload-btn" id="btnSpecialPhotos">上传图片</button>
+                  <span class="shop-h5-hint" style="margin:0"><span id="specialPhotosCount">0</span>/6</span>
+                </div>
+                <div class="shop-h5-photo-grid cols-6" id="specialPhotosGrid"></div>
+              </div>
+            </section>
+          </div>
+
+          <div id="blockPeer" class="shop-h5-hidden">
+            <section class="shop-h5-section">
+              <div class="shop-h5-sec-head">
+                <div class="shop-h5-sec-icon">📋</div>
+                <div class="shop-h5-sec-titles">
+                  <h3>同行店补充资料</h3>
+                  <p>请如实填写以下资料</p>
+                </div>
+              </div>
+              <div class="shop-h5-field">
+                <div class="shop-h5-field-hd"><span>合作平台现状：说明目前门店已合作的其他平台情况。</span></div>
+                <textarea class="shop-h5-textarea" id="otherPlatformsCooperation" placeholder="如实填写美团、多多买菜、其他团购或直播平台等"></textarea>
+              </div>
+              <div class="shop-h5-field">
+                <div class="shop-h5-field-hd"><span>经营数据截图：需提供手机后台截图，包含前三天的上播数据及销量明细。</span><span class="shop-h5-hint">最多 6 张</span></div>
+                <input type="file" id="broadcastFiles" class="shop-h5-hidden" accept="image/*" multiple>
+                <div class="shop-h5-upload-row">
+                  <button type="button" class="shop-h5-upload-btn" id="btnBroadcastPick">上传经营截图</button>
+                  <span class="shop-h5-hint" style="margin:0"><span id="broadcastCount">0</span>/6</span>
+                </div>
+                <div class="shop-h5-photo-grid cols-6" id="broadcastGrid"></div>
+              </div>
+            </section>
+          </div>
+
+          <div class="shop-h5-checkbox-card">
+            <div class="shop-h5-check-row">
+              <input type="checkbox" id="companyCallbackNotified">
+              <label for="companyCallbackNotified"><span class="shop-h5-req" style="display:inline">已知晓需接听公司公务来电（17316440268、17339691157）。</span></label>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <footer class="shop-h5-foot" id="formFooter">
+      <div class="shop-h5-foot-inner">
+        <button type="button" class="shop-h5-btn shop-h5-btn-outline" id="btnCancel">取消</button>
+        <button type="button" class="shop-h5-btn shop-h5-btn-primary shop-h5-btn-wide" id="btnSubmit">提交申请</button>
+      </div>
+    </footer>
+  </div>
+
+  <script src="../../../js/path-prefix.js"></script>
+  <script src="../../js/shop-h5-register.js"></script>
+</body>
+</html>

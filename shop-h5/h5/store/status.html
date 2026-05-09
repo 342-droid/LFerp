@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>门店状态 · Shop H5</title>
+  <link rel="stylesheet" href="../../css/shop-h5-app-shell.css">
+  <link rel="stylesheet" href="../../css/shop-h5-store-pages.css">
+</head>
+<body class="shop-h5-app-list">
+  <div class="shop-h5-mobile-container">
+    <div class="shop-h5-scroll shop-h5-status-scroll">
+      <main class="shop-h5-main" style="padding-top:20px">
+        <div class="shop-h5-status-card">
+          <div class="shop-h5-status-icon" id="statusIconWrap"></div>
+          <h1 class="shop-h5-status-title" id="statusTitle"></h1>
+          <p class="shop-h5-status-desc" id="statusDesc"></p>
+
+          <div class="shop-h5-status-panel">
+            <div class="shop-h5-status-panel-hd">
+              <span style="color:#6b7280;font-size:13px">当前状态</span>
+              <span class="shop-h5-pill" id="statusBadge"></span>
+            </div>
+            <div class="shop-h5-meta-row">
+              <span class="shop-h5-meta-k">门店名称</span>
+              <span class="shop-h5-meta-v" id="metaStoreName"></span>
+            </div>
+            <div class="shop-h5-meta-row">
+              <span class="shop-h5-meta-k">绑定 BD</span>
+              <span class="shop-h5-meta-v">
+                <span id="metaBdName"></span>
+                <span class="shop-h5-meta-sub shop-h5-hidden" id="metaBdSub"></span>
+              </span>
+            </div>
+            <div class="shop-h5-meta-row">
+              <span class="shop-h5-meta-k">提交时间</span>
+              <span class="shop-h5-meta-v tabular-nums" id="metaTime"></span>
+            </div>
+          </div>
+
+          <div class="shop-h5-foot-inner shop-h5-hidden" id="statusActions" style="margin-top:20px;padding:0">
+            <button type="button" class="shop-h5-btn shop-h5-btn-outline" id="btnRefresh">刷新状态</button>
+            <button type="button" class="shop-h5-btn shop-h5-btn-primary shop-h5-btn-wide" id="btnContinue">继续填写</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../../../js/path-prefix.js"></script>
+  <script src="../../js/shop-h5-status.js"></script>
+</body>
+</html>
