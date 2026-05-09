@@ -1,6 +1,7 @@
 /**
- * 资源中心档案「新增」宽屏表单 — 与 vendor/lf-master-erp 中 store-archive-ui /
+ * 资源中心档案「新增 / 编辑」宽屏表单 — 与 vendor/lf-master-erp 中 store-archive-ui /
  * resource-archive-ui / warehouse-archive-ui 的字段与分区一致（静态演示）。
+ * 编辑入口由 mdm-erp-lists 拦截列表「编辑」，按行预填后打开与新增相同的 erp-modal--store-wide。
  */
 (function (global) {
     function removeArchiveFormModals() {
@@ -232,6 +233,32 @@
         document.body.appendChild(backdrop);
     }
 
+    function cellPlainText(td) {
+        if (!td) return '';
+        return String(td.textContent || '')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    function selectOptionByLabelText(selectEl, labelText) {
+        if (!selectEl || labelText == null || labelText === '') return false;
+        var t = String(labelText).trim();
+        for (var i = 0; i < selectEl.options.length; i++) {
+            if (selectEl.options[i].text.trim() === t) {
+                selectEl.selectedIndex = i;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function guessWarehouseSelectValue(whCellText) {
+        var s = String(whCellText || '');
+        if (/苏州|苏/.test(s)) return 'wh2';
+        if (/沪|上海|华东|SH|仓|履约/.test(s)) return 'wh1';
+        return '';
+    }
+
     var STORE_SUBJECTS = [
         { value: '', label: '请选择主体名称' },
         { value: '307892034956427264', label: '冷丰演示门店' },
@@ -280,16 +307,23 @@
         { value: 'ANC5003', label: '郑可' }
     ];
 
-    function buildStoreAddBody() {
+    function createStoreFormBundle() {
+        var refs = {};
         var body = document.createElement('div');
         body.appendChild(sectionTitle('基础信息'));
-        body.appendChild(formRow('主体名称', true, sel(STORE_SUBJECTS, '')));
-        body.appendChild(formRow('联系人', true, txt('请输入联系人', '')));
-        body.appendChild(formRow('手机号码', true, smsRow()));
-        body.appendChild(formRow('验证码', true, txt('请输入验证码', '')));
+        refs.subjectSel = sel(STORE_SUBJECTS, '');
+        body.appendChild(formRow('主体名称', true, refs.subjectSel));
+        refs.contactInp = txt('请输入联系人', '');
+        body.appendChild(formRow('联系人', true, refs.contactInp));
+        var phoneRowWrap = smsRow();
+        refs.phoneInp = phoneRowWrap.querySelector('input');
+        body.appendChild(formRow('手机号码', true, phoneRowWrap));
+        refs.verifyInp = txt('请输入验证码', '');
+        body.appendChild(formRow('验证码', true, refs.verifyInp));
         var nameWrap = document.createElement('div');
         nameWrap.className = 'store-form__input-count';
         var nameInp = txt('请输入门店名称', '');
+        refs.nameInp = nameInp;
         nameInp.maxLength = 50;
         var nc = document.createElement('span');
         nc.className = 'store-form__counter';
@@ -300,7 +334,8 @@
         nameWrap.appendChild(nameInp);
         nameWrap.appendChild(nc);
         body.appendChild(formRow('门店名称', true, nameWrap));
-        body.appendChild(formRow('门店简称', false, txt('请输入门店简称', '')));
+        refs.shortNameInp = txt('请输入门店简称', '');
+        body.appendChild(formRow('门店简称', false, refs.shortNameInp));
         var partnerSel = sel(
             [
                 { value: '', label: '请选择门店合作类型' },
@@ -310,24 +345,19 @@
             ],
             ''
         );
+        refs.partnerSel = partnerSel;
         body.appendChild(formRow('门店合作类型', true, partnerSel));
-        body.appendChild(
-            formRow('门店类型', true, txt('如社区生鲜店、团购自提点等', ''))
+        refs.storeTypeInp = txt('如社区生鲜店、团购自提点等', '');
+        body.appendChild(formRow('门店类型', true, refs.storeTypeInp));
+        refs.warehouseSel = sel(
+            [
+                { value: '', label: '请选择配送仓库' },
+                { value: 'wh1', label: '沪南一号仓' },
+                { value: 'wh2', label: '苏州合作仓' }
+            ],
+            ''
         );
-        body.appendChild(
-            formRow(
-                '配送仓库',
-                true,
-                sel(
-                    [
-                        { value: '', label: '请选择配送仓库' },
-                        { value: 'wh1', label: '沪南一号仓' },
-                        { value: 'wh2', label: '苏州合作仓' }
-                    ],
-                    ''
-                )
-            )
-        );
+        body.appendChild(formRow('配送仓库', true, refs.warehouseSel));
         var regionRow = document.createElement('div');
         regionRow.className = 'store-form__row';
         regionRow.appendChild(sfLabel('门店地址', true));
@@ -337,10 +367,13 @@
         regHint.type = 'text';
         regHint.className = 'erp-input';
         regHint.placeholder = '省 / 市 / 区（与 LF 级联选择器一致 · 演示可手输）';
+        refs.regionInp = regHint;
         rc.appendChild(regHint);
         regionRow.appendChild(rc);
         body.appendChild(regionRow);
-        body.appendChild(formRow('详细地址', true, txtAreaWithCount('请输入详细地址，输入后将自动在地图上定位', 200, '')));
+        var addressWrap = txtAreaWithCount('请输入详细地址，输入后将自动在地图上定位', 200, '');
+        refs.addressTa = addressWrap.querySelector('textarea');
+        body.appendChild(formRow('详细地址', true, addressWrap));
         body.appendChild(mapMockRow(false));
         body.appendChild(formRow('门店门头照', true, uploadMock('+ 点击上传')));
         body.appendChild(formRow('有无冷藏柜', false, yesNoSelect('请选择有无冷藏柜')));
@@ -409,42 +442,69 @@
         partnerSel.addEventListener('change', syncPartner);
         syncPartner();
 
-        return body;
+        function fillFromArchiveRow(tr) {
+            var c = tr.querySelectorAll('td');
+            if (c.length < 11) return;
+            selectOptionByLabelText(refs.subjectSel, cellPlainText(c[1]));
+            refs.contactInp.value = cellPlainText(c[6]);
+            if (refs.phoneInp) refs.phoneInp.value = cellPlainText(c[7]);
+            refs.verifyInp.value = '';
+            refs.nameInp.value = cellPlainText(c[2]);
+            refs.shortNameInp.value = '';
+            var pmap = { 加盟店: 'franchise', 合作店: 'partner', 同行店: 'peer' };
+            refs.partnerSel.value = pmap[cellPlainText(c[3])] || '';
+            refs.storeTypeInp.value = cellPlainText(c[4]);
+            refs.warehouseSel.value = guessWarehouseSelectValue(cellPlainText(c[8]));
+            refs.regionInp.value = cellPlainText(c[9]);
+            if (refs.addressTa) refs.addressTa.value = cellPlainText(c[10]);
+            syncPartner();
+        }
+
+        return { body: body, fillFromArchiveRow: fillFromArchiveRow };
     }
 
-    function buildSupplierAddBody() {
+    function buildStoreAddBody() {
+        return createStoreFormBundle().body;
+    }
+
+    function createSupplierFormBundle() {
+        var refs = {};
         var body = document.createElement('div');
         var kind = 'supplier';
-        body.appendChild(formRow('主体名称', true, sel(SUP_SUBJECTS, '')));
-        body.appendChild(formRow('供应商名称', true, txt('请输入供应商名称', '')));
-        body.appendChild(
-            formRow(
-                '供应商类型',
-                true,
-                sel(
-                    [
-                        { value: '', label: '请选择供应商类型' },
-                        { value: 'brand', label: '品牌商' },
-                        { value: 'agent', label: '代理商' },
-                        { value: 'person', label: '个人' }
-                    ],
-                    ''
-                )
-            )
+        refs.subjectSel = sel(SUP_SUBJECTS, '');
+        body.appendChild(formRow('主体名称', true, refs.subjectSel));
+        refs.nameInp = txt('请输入供应商名称', '');
+        body.appendChild(formRow('供应商名称', true, refs.nameInp));
+        refs.typeSel = sel(
+            [
+                { value: '', label: '请选择供应商类型' },
+                { value: 'brand', label: '品牌商' },
+                { value: 'agent', label: '代理商' },
+                { value: 'person', label: '个人' }
+            ],
+            ''
         );
+        body.appendChild(formRow('供应商类型', true, refs.typeSel));
         var regRow = document.createElement('div');
         regRow.className = 'store-form__row';
         regRow.appendChild(sfLabel('供应商地址', true));
         var regC = document.createElement('div');
         regC.className = 'store-form__control';
-        regC.appendChild(txt('省 / 市 / 区（级联示意）', ''));
+        refs.regionInp = txt('省 / 市 / 区（级联示意）', '');
+        regC.appendChild(refs.regionInp);
         regRow.appendChild(regC);
         body.appendChild(regRow);
-        body.appendChild(formRow('详细地址', true, txtAreaWithCount('请输入详细地址，输入后将自动在地图上定位', 200, '')));
+        var detailWrap = txtAreaWithCount('请输入详细地址，输入后将自动在地图上定位', 200, '');
+        refs.detailTa = detailWrap.querySelector('textarea');
+        body.appendChild(formRow('详细地址', true, detailWrap));
         body.appendChild(mapMockRow(false));
-        body.appendChild(formRow('手机号码', true, smsRow()));
-        body.appendChild(formRow('验证码', true, txt('请输入验证码', '')));
-        body.appendChild(formRow('联系人', true, txt('请输入联系人', '')));
+        var supPhoneWrap = smsRow();
+        refs.phoneInp = supPhoneWrap.querySelector('input');
+        body.appendChild(formRow('手机号码', true, supPhoneWrap));
+        refs.verifyInp = txt('请输入验证码', '');
+        body.appendChild(formRow('验证码', true, refs.verifyInp));
+        refs.contactInp = txt('请输入联系人', '');
+        body.appendChild(formRow('联系人', true, refs.contactInp));
         body.appendChild(
             radioGroup('结算类型', true, kind + '-settle', [
                 ['purchase', '采购结算'],
@@ -472,42 +532,66 @@
                 ['month', '月结']
             ], 'now')
         );
-        return body;
+
+        function fillFromArchiveRow(tr) {
+            var c = tr.querySelectorAll('td');
+            if (c.length < 8) return;
+            selectOptionByLabelText(refs.subjectSel, cellPlainText(c[1]));
+            refs.nameInp.value = cellPlainText(c[2]);
+            refs.regionInp.value = cellPlainText(c[3]);
+            if (refs.detailTa) refs.detailTa.value = cellPlainText(c[4]);
+            var tmap = { 品牌商: 'brand', 代理商: 'agent', 个人: 'person' };
+            refs.typeSel.value = tmap[cellPlainText(c[5])] || '';
+            refs.contactInp.value = cellPlainText(c[6]);
+            if (refs.phoneInp) refs.phoneInp.value = cellPlainText(c[7]);
+            refs.verifyInp.value = '';
+        }
+
+        return { body: body, fillFromArchiveRow: fillFromArchiveRow };
     }
 
-    function buildCarrierAddBody() {
+    function buildSupplierAddBody() {
+        return createSupplierFormBundle().body;
+    }
+
+    function createCarrierFormBundle() {
+        var refs = {};
         var body = document.createElement('div');
         var kind = 'carrier';
-        body.appendChild(formRow('主体名称', true, sel(CAR_SUBJECTS, '')));
-        body.appendChild(formRow('承运商名称', true, txt('请输入承运商名称', '')));
-        body.appendChild(
-            formRow(
-                '承运类型',
-                true,
-                sel(
-                    [
-                        { value: '', label: '请选择承运类型' },
-                        { value: 'instant', label: '三方即时配' },
-                        { value: 'line', label: '干线整车' },
-                        { value: 'city', label: '城配共配' }
-                    ],
-                    ''
-                )
-            )
+        refs.subjectSel = sel(CAR_SUBJECTS, '');
+        body.appendChild(formRow('主体名称', true, refs.subjectSel));
+        refs.nameInp = txt('请输入承运商名称', '');
+        body.appendChild(formRow('承运商名称', true, refs.nameInp));
+        refs.typeSel = sel(
+            [
+                { value: '', label: '请选择承运类型' },
+                { value: 'instant', label: '三方即时配' },
+                { value: 'line', label: '干线整车' },
+                { value: 'city', label: '城配共配' }
+            ],
+            ''
         );
+        body.appendChild(formRow('承运类型', true, refs.typeSel));
         var regRow = document.createElement('div');
         regRow.className = 'store-form__row';
         regRow.appendChild(sfLabel('承运商地址', true));
         var regC = document.createElement('div');
         regC.className = 'store-form__control';
-        regC.appendChild(txt('省 / 市 / 区（级联示意）', ''));
+        refs.regionInp = txt('省 / 市 / 区（级联示意）', '');
+        regC.appendChild(refs.regionInp);
         regRow.appendChild(regC);
         body.appendChild(regRow);
-        body.appendChild(formRow('详细地址', true, txtAreaWithCount('请输入详细地址，输入后将自动在地图上定位', 200, '')));
+        var detailWrap = txtAreaWithCount('请输入详细地址，输入后将自动在地图上定位', 200, '');
+        refs.detailTa = detailWrap.querySelector('textarea');
+        body.appendChild(formRow('详细地址', true, detailWrap));
         body.appendChild(mapMockRow(false));
-        body.appendChild(formRow('手机号码', true, smsRow()));
-        body.appendChild(formRow('验证码', true, txt('请输入验证码', '')));
-        body.appendChild(formRow('联系人', true, txt('请输入联系人', '')));
+        var carPhoneWrap = smsRow();
+        refs.phoneInp = carPhoneWrap.querySelector('input');
+        body.appendChild(formRow('手机号码', true, carPhoneWrap));
+        refs.verifyInp = txt('请输入验证码', '');
+        body.appendChild(formRow('验证码', true, refs.verifyInp));
+        refs.contactInp = txt('请输入联系人', '');
+        body.appendChild(formRow('联系人', true, refs.contactInp));
         body.appendChild(
             radioGroup('结算类型', true, kind + '-settle', [
                 ['purchase', '采购结算'],
@@ -535,30 +619,48 @@
                 ['month', '月结']
             ], 'now')
         );
-        return body;
+
+        function fillFromArchiveRow(tr) {
+            var c = tr.querySelectorAll('td');
+            if (c.length < 8) return;
+            selectOptionByLabelText(refs.subjectSel, cellPlainText(c[1]));
+            refs.nameInp.value = cellPlainText(c[2]);
+            refs.regionInp.value = cellPlainText(c[3]);
+            if (refs.detailTa) refs.detailTa.value = cellPlainText(c[4]);
+            var tmap = { 三方即时配: 'instant', 干线整车: 'line', 城配共配: 'city' };
+            refs.typeSel.value = tmap[cellPlainText(c[5])] || '';
+            refs.contactInp.value = cellPlainText(c[6]);
+            if (refs.phoneInp) refs.phoneInp.value = cellPlainText(c[7]);
+            refs.verifyInp.value = '';
+        }
+
+        return { body: body, fillFromArchiveRow: fillFromArchiveRow };
     }
 
-    function buildLiveRoomAddBody() {
+    function buildCarrierAddBody() {
+        return createCarrierFormBundle().body;
+    }
+
+    function createLiveRoomFormBundle() {
+        var refs = {};
         var body = document.createElement('div');
         body.appendChild(sectionTitle('基础信息'));
-        body.appendChild(formRow('主体名称', true, sel(LIVE_SUBJECTS, '')));
-        body.appendChild(formRow('直播间名称', true, txt('请输入直播间名称', '')));
-        body.appendChild(
-            formRow(
-                '直播类型',
-                true,
-                sel(
-                    [
-                        { value: '', label: '请选择直播类型' },
-                        { value: 'official', label: '官方直播' },
-                        { value: 'regional', label: '区域直播' },
-                        { value: 'targeted', label: '定向直播' }
-                    ],
-                    ''
-                )
-            )
+        refs.subjectSel = sel(LIVE_SUBJECTS, '');
+        body.appendChild(formRow('主体名称', true, refs.subjectSel));
+        refs.nameInp = txt('请输入直播间名称', '');
+        body.appendChild(formRow('直播间名称', true, refs.nameInp));
+        refs.typeSel = sel(
+            [
+                { value: '', label: '请选择直播类型' },
+                { value: 'official', label: '官方直播' },
+                { value: 'regional', label: '区域直播' },
+                { value: 'targeted', label: '定向直播' }
+            ],
+            ''
         );
-        body.appendChild(formRow('主播名称', false, sel(LIVE_ANCHORS, '')));
+        body.appendChild(formRow('直播类型', true, refs.typeSel));
+        refs.anchorSel = sel(LIVE_ANCHORS, '');
+        body.appendChild(formRow('主播名称', false, refs.anchorSel));
         var coverRow = document.createElement('div');
         coverRow.className = 'store-form__row';
         coverRow.appendChild(sfLabel('直播封面', false));
@@ -574,7 +676,9 @@
         cc.appendChild(note);
         coverRow.appendChild(cc);
         body.appendChild(coverRow);
-        body.appendChild(formRow('直播简介', false, txtAreaWithCount('请输入直播简介（可选）', 500, '')));
+        var introWrap = txtAreaWithCount('请输入直播简介（可选）', 500, '');
+        refs.introTa = introWrap.querySelector('textarea');
+        body.appendChild(formRow('直播简介', false, introWrap));
         body.appendChild(sectionTitle('分发与可见范围'));
         body.appendChild(
             radioGroup('观看权限', true, 'liveRoom-mdm-view', [
@@ -583,18 +687,49 @@
             ], 'all')
         );
         body.appendChild(sectionTitle('联系与核验'));
-        body.appendChild(formRow('手机号码', true, smsRow()));
-        body.appendChild(formRow('验证码', true, txt('请输入验证码', '')));
-        body.appendChild(formRow('负责人', true, txt('请输入负责人', '')));
-        return body;
+        var livePhoneWrap = smsRow();
+        refs.phoneInp = livePhoneWrap.querySelector('input');
+        body.appendChild(formRow('手机号码', true, livePhoneWrap));
+        refs.verifyInp = txt('请输入验证码', '');
+        body.appendChild(formRow('验证码', true, refs.verifyInp));
+        refs.contactInp = txt('请输入负责人', '');
+        body.appendChild(formRow('负责人', true, refs.contactInp));
+
+        function fillFromArchiveRow(tr) {
+            var c = tr.querySelectorAll('td');
+            if (c.length < 9) return;
+            selectOptionByLabelText(refs.subjectSel, cellPlainText(c[1]));
+            refs.nameInp.value = cellPlainText(c[2]);
+            var typMap = { 官方直播: 'official', 区域直播: 'regional', 定向直播: 'targeted' };
+            refs.typeSel.value = typMap[cellPlainText(c[3])] || '';
+            var aid = cellPlainText(c[4]);
+            if (aid) refs.anchorSel.value = aid;
+            refs.verifyInp.value = '';
+            refs.contactInp.value = cellPlainText(c[6]);
+            if (refs.phoneInp) refs.phoneInp.value = cellPlainText(c[7]);
+            var vm = { 全部用户可见: 'all', 仅门店会员可见: 'store_members' };
+            var vv = vm[cellPlainText(c[8])] || 'all';
+            body.querySelectorAll('input[name="liveRoom-mdm-view"]').forEach(function (r) {
+                r.checked = r.value === vv;
+            });
+        }
+
+        return { body: body, fillFromArchiveRow: fillFromArchiveRow };
     }
 
-    function buildWarehouseAddBody() {
+    function buildLiveRoomAddBody() {
+        return createLiveRoomFormBundle().body;
+    }
+
+    function createWarehouseFormBundle() {
+        var refs = {};
         var body = document.createElement('div');
-        body.appendChild(formRow('主体名称', true, sel(WH_SUBJECTS, '')));
+        refs.subjectSel = sel(WH_SUBJECTS, '');
+        body.appendChild(formRow('主体名称', true, refs.subjectSel));
         var nameWrap = document.createElement('div');
         nameWrap.className = 'store-form__input-count';
         var nameInp = txt('请输入仓库名称', '');
+        refs.nameInp = nameInp;
         nameInp.maxLength = 100;
         var nc = document.createElement('span');
         nc.className = 'store-form__counter';
@@ -605,37 +740,29 @@
         nameWrap.appendChild(nameInp);
         nameWrap.appendChild(nc);
         body.appendChild(formRow('仓库名称', true, nameWrap));
-        body.appendChild(
-            formRow(
-                '仓库类型',
-                true,
-                sel(
-                    [
-                        { value: '', label: '请选择仓库类型' },
-                        { value: 'warehouse', label: '仓库' },
-                        { value: 'store', label: '门店' }
-                    ],
-                    ''
-                )
-            )
+        refs.typeSel = sel(
+            [
+                { value: '', label: '请选择仓库类型' },
+                { value: 'warehouse', label: '仓库' },
+                { value: 'store', label: '门店' }
+            ],
+            ''
         );
-        body.appendChild(
-            formRow(
-                '关联门店',
-                true,
-                sel(
-                    [
-                        { value: '', label: '请选择门店（单选，按照当前权限展示）' },
-                        { value: '1', label: '冷丰演示门店' },
-                        { value: '2', label: '五角场体验店' },
-                        { value: '3', label: '仓库商家4.18' }
-                    ],
-                    ''
-                )
-            )
+        body.appendChild(formRow('仓库类型', true, refs.typeSel));
+        refs.relatedSel = sel(
+            [
+                { value: '', label: '请选择门店（单选，按照当前权限展示）' },
+                { value: '1', label: '冷丰演示门店' },
+                { value: '2', label: '五角场体验店' },
+                { value: '3', label: '仓库商家4.18' }
+            ],
+            ''
         );
-        body.appendChild(formRow('仓库管理员', true, txt('请输入仓库管理员名称', '')));
-        body.appendChild(formRow('手机号码', true, txt('请输入手机号码', '')));
+        body.appendChild(formRow('关联门店', true, refs.relatedSel));
+        refs.adminInp = txt('请输入仓库管理员名称', '');
+        body.appendChild(formRow('仓库管理员', true, refs.adminInp));
+        refs.phoneInp = txt('请输入手机号码', '');
+        body.appendChild(formRow('手机号码', true, refs.phoneInp));
         var div = document.createElement('div');
         div.className = 'warehouse-form__divider';
         div.appendChild(document.createTextNode('地址与面积（选填）'));
@@ -645,43 +772,105 @@
         regRow.appendChild(sfLabel('仓库地址', false));
         var regC = document.createElement('div');
         regC.className = 'store-form__control';
-        regC.appendChild(txt('省 / 市 / 区（级联示意）', ''));
+        refs.regionInp = txt('省 / 市 / 区（级联示意）', '');
+        regC.appendChild(refs.regionInp);
         regRow.appendChild(regC);
         body.appendChild(regRow);
-        body.appendChild(formRow('详细地址', false, txtAreaWithCount('请输入详细地址，输入后将自动在地图上定位', 200, '')));
+        var whDetailWrap = txtAreaWithCount('请输入详细地址，输入后将自动在地图上定位', 200, '');
+        refs.detailTa = whDetailWrap.querySelector('textarea');
+        body.appendChild(formRow('详细地址', false, whDetailWrap));
         body.appendChild(mapMockRow(false));
         var areaRow = document.createElement('div');
         areaRow.className = 'store-form__row';
         areaRow.appendChild(sfLabel('仓库面积（m²）', false));
         var areaC = document.createElement('div');
         areaC.className = 'store-form__control';
-        var areaInp = document.createElement('input');
-        areaInp.type = 'number';
-        areaInp.className = 'erp-input';
-        areaInp.min = '0';
-        areaInp.step = 'any';
-        areaInp.placeholder = '请输入仓库面积';
-        areaC.appendChild(areaInp);
+        refs.areaInp = document.createElement('input');
+        refs.areaInp.type = 'number';
+        refs.areaInp.className = 'erp-input';
+        refs.areaInp.min = '0';
+        refs.areaInp.step = 'any';
+        refs.areaInp.placeholder = '请输入仓库面积';
+        areaC.appendChild(refs.areaInp);
         areaRow.appendChild(areaC);
         body.appendChild(areaRow);
-        return body;
+
+        function fillFromArchiveRow(tr) {
+            var c = tr.querySelectorAll('td');
+            if (c.length < 8) return;
+            selectOptionByLabelText(refs.subjectSel, cellPlainText(c[1]));
+            refs.nameInp.value = cellPlainText(c[2]);
+            var wht = cellPlainText(c[3]);
+            refs.typeSel.value = wht === '门店' ? 'store' : wht === '仓库' ? 'warehouse' : '';
+            var relTxt = cellPlainText(c[4]);
+            if (relTxt && relTxt !== '—') {
+                selectOptionByLabelText(refs.relatedSel, relTxt);
+            } else {
+                refs.relatedSel.value = '';
+            }
+            refs.adminInp.value = cellPlainText(c[5]);
+            refs.phoneInp.value = cellPlainText(c[6]);
+            if (refs.regionInp) refs.regionInp.value = '';
+            if (refs.detailTa) refs.detailTa.value = '';
+            if (refs.areaInp) {
+                var a9 = cellPlainText(c[9]);
+                var num = parseFloat(String(a9).replace(/[^\d.]/g, ''));
+                refs.areaInp.value = !isNaN(num) ? String(num) : '';
+            }
+        }
+
+        return { body: body, fillFromArchiveRow: fillFromArchiveRow };
+    }
+
+    function buildWarehouseAddBody() {
+        return createWarehouseFormBundle().body;
     }
 
     global.MdmResourceArchiveForms = {
         openStoreAdd: function () {
             attachWideModal('添加门店', buildStoreAddBody());
         },
+        openStoreEdit: function (tr) {
+            if (!tr) return;
+            var bundle = createStoreFormBundle();
+            bundle.fillFromArchiveRow(tr);
+            attachWideModal('编辑门店', bundle.body);
+        },
         openSupplierAdd: function () {
             attachWideModal('新增供应商', buildSupplierAddBody());
+        },
+        openSupplierEdit: function (tr) {
+            if (!tr) return;
+            var bundle = createSupplierFormBundle();
+            bundle.fillFromArchiveRow(tr);
+            attachWideModal('编辑供应商', bundle.body);
         },
         openLiveRoomAdd: function () {
             attachWideModal('新增直播间', buildLiveRoomAddBody());
         },
+        openLiveRoomEdit: function (tr) {
+            if (!tr) return;
+            var bundle = createLiveRoomFormBundle();
+            bundle.fillFromArchiveRow(tr);
+            attachWideModal('编辑直播间', bundle.body);
+        },
         openCarrierAdd: function () {
             attachWideModal('新增承运商', buildCarrierAddBody());
         },
+        openCarrierEdit: function (tr) {
+            if (!tr) return;
+            var bundle = createCarrierFormBundle();
+            bundle.fillFromArchiveRow(tr);
+            attachWideModal('编辑承运商', bundle.body);
+        },
         openWarehouseAdd: function () {
             attachWideModal('新增仓库', buildWarehouseAddBody());
+        },
+        openWarehouseEdit: function (tr) {
+            if (!tr) return;
+            var bundle = createWarehouseFormBundle();
+            bundle.fillFromArchiveRow(tr);
+            attachWideModal('编辑仓库', bundle.body);
         },
         close: removeArchiveFormModals
     };

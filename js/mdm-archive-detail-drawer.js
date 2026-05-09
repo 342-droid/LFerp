@@ -70,13 +70,28 @@
         return block;
     }
 
-    function gridItemDt(label, value) {
-        var item = el('div', 'store-detail-grid__item');
-        item.appendChild(el('dt', '', label));
-        var dd = el('dd', '');
-        dd.textContent = nz(value);
-        item.appendChild(dd);
-        return item;
+    /** 资源档案状态类字段 → 标签样式（与 ERP 语义色一致） */
+    function archiveStatusVariant(text) {
+        var s = String(text || '');
+        if (/正常|启用|已进件|营业|审核/.test(s)) return 'success';
+        if (/冻结|停用/.test(s)) return 'danger';
+        if (/进件中|未进件|筹备|停业/.test(s)) return 'warning';
+        return 'neutral';
+    }
+
+    function detailCellTagged(label, raw, preferTag) {
+        var c = el('div', 'supplier-detail-cell');
+        c.appendChild(el('div', 'supplier-detail-cell__label', label));
+        var b = el('div', 'supplier-detail-cell__body');
+        if (preferTag) {
+            var sp = el('span', 'mdm-detail-tag mdm-detail-tag--' + archiveStatusVariant(raw));
+            sp.textContent = nz(raw);
+            b.appendChild(sp);
+        } else {
+            b.textContent = nz(raw);
+        }
+        c.appendChild(b);
+        return c;
     }
 
     function dataTable(headers, rows) {
@@ -298,7 +313,7 @@
 
         grid.appendChild(detailCell('结算周期', store.settleCycle));
         grid.appendChild(detailCell('分账服务', store.splitService));
-        grid.appendChild(detailCell('门店状态', store.storeStatus));
+        grid.appendChild(detailCellTagged('门店状态', store.storeStatus, true));
         grid.appendChild(detailCell('可提现手机号', store.withdrawPhone));
 
         var thumbRow = el('div', 'supplier-detail-cell');
@@ -343,19 +358,21 @@
         p.appendChild(grid);
 
         p.appendChild(sectionTitle('商户进件'));
+        var onboardBlock = el('div', 'store-onboard-section store-onboard-section--white');
         var bar = el('div', 'erp-actions-row supplier-detail-onboard-actions');
         var go = mkBtn('去进件', true);
         go.addEventListener('click', function () {
             openOnboardStore(store.name);
         });
         bar.appendChild(go);
-        p.appendChild(bar);
-        p.appendChild(dataTable(STORE_ONBOARD_HEADERS, [buildStoreOnboardRow(store)]));
+        onboardBlock.appendChild(bar);
+        onboardBlock.appendChild(dataTable(STORE_ONBOARD_HEADERS, [buildStoreOnboardRow(store)]));
+        p.appendChild(onboardBlock);
         return p;
     }
 
     function panelStoreCustomers() {
-        var root = el('div', '');
+        var root = el('div', 'supplier-detail-tab');
         root.appendChild(
             toolbarFilters(['用户ID', '手机号码'], true)
         );
@@ -381,7 +398,7 @@
     }
 
     function panelCommProdPerf(kind) {
-        var root = el('div', '');
+        var root = el('div', 'supplier-detail-tab');
         if (kind === 'comm') {
             root.appendChild(summaryBar(['累计分佣：¥—', '订单数：—', '商品销售数：—']));
             root.appendChild(toolbarFilters(['商品名称', '订单ID'], true));
@@ -459,7 +476,7 @@
         removeArchiveDrawers();
         var backdrop = el('div', 'store-drawer-backdrop');
         backdrop.setAttribute('data-mdm-archive-drawer', '1');
-        var drawer = el('aside', 'store-drawer');
+        var drawer = el('aside', 'store-drawer store-drawer--interactive');
         drawer.setAttribute('data-mdm-archive-drawer', '1');
         if (opts.wideClass) drawer.classList.add(opts.wideClass);
 
@@ -467,15 +484,21 @@
         header.appendChild(el('h2', 'store-drawer__title', opts.title));
         var btnClose = el('button', 'store-drawer__close');
         btnClose.type = 'button';
+        btnClose.setAttribute('aria-label', '关闭');
         btnClose.innerHTML = '&times;';
         function shut() {
+            document.removeEventListener('keydown', onDocKey);
             backdrop.remove();
             drawer.remove();
         }
+        function onDocKey(ev) {
+            if (ev.key === 'Escape') shut();
+        }
+        document.addEventListener('keydown', onDocKey);
         btnClose.addEventListener('click', shut);
         header.appendChild(btnClose);
 
-        var hero = el('div', 'store-drawer__hero');
+        var hero = el('div', 'store-drawer__hero store-drawer__hero--elevated');
         var nameRow = el('div', 'store-drawer__name-row');
         nameRow.appendChild(el('span', 'store-drawer__name', opts.heroName));
         (opts.heroTags || []).forEach(function (t) {
@@ -488,11 +511,8 @@
             hero.appendChild(el('div', 'store-drawer__meta', line));
         });
 
-        var tabsWrap = el('div', 'store-drawer__tabs');
+        var tabsWrap = el('div', 'store-drawer__tabs store-drawer__tabs--sticky');
         var bodyHost = el('div', 'store-drawer__body');
-        bodyHost.style.overflow = 'auto';
-        bodyHost.style.flex = '1';
-        bodyHost.style.padding = '12px var(--space-md)';
 
         var tabIds = opts.tabIds;
         var tabLabels = opts.tabLabels;
@@ -505,6 +525,7 @@
             });
             empty(bodyHost);
             bodyHost.appendChild(bodies[id]);
+            bodyHost.scrollTop = 0;
         }
 
         tabIds.forEach(function (id, i) {
@@ -593,42 +614,47 @@
     }
 
     function panelResourceBaseSupplier(r) {
-        var p = el('div', '');
-        var grid = el('dl', 'store-detail-grid');
-        [
-            ['供应商ID', r.id],
-            ['主体名称', r.subjectName],
-            ['供应商名称', r.name],
-            ['供应商类型', r.typeLabel],
-            ['供应商地址', r.region],
-            ['详细地址', r.detailAddress],
-            ['负责人姓名', r.contactName],
-            ['手机号码', r.phone],
-            ['创建时间', r.createTime],
-            ['供应商品数量', r.productCount],
-            ['结算信息', r.settleInfo],
-            ['可提现手机号', r.withdrawPhone],
-            ['进件渠道', r.channel],
-            ['进件状态', r.onboard],
-            ['供应商状态', r.status]
-        ].forEach(function (pair) {
-            grid.appendChild(gridItemDt(pair[0], pair[1]));
-        });
+        var p = el('div', 'supplier-detail-tab');
+        p.appendChild(sectionTitle('基础信息'));
+        var grid = el('div', 'supplier-detail-grid');
+        grid.appendChild(detailCell('供应商ID', r.id));
+        grid.appendChild(detailCell('主体名称', r.subjectName));
+        grid.appendChild(detailCell('供应商名称', r.name));
+        grid.appendChild(detailCell('供应商类型', r.typeLabel));
+        grid.appendChild(detailCell('供应商地址', r.region));
+        var addr = el('div', 'supplier-detail-cell supplier-detail-cell--span4');
+        addr.appendChild(el('div', 'supplier-detail-cell__label', '详细地址'));
+        var addrBody = el('div', 'supplier-detail-cell__body supplier-detail-cell__body--multiline');
+        addrBody.textContent = nz(r.detailAddress);
+        addr.appendChild(addrBody);
+        grid.appendChild(addr);
+        grid.appendChild(detailCell('负责人姓名', r.contactName));
+        grid.appendChild(detailCell('手机号码', r.phone));
+        grid.appendChild(detailCell('创建时间', r.createTime));
+        grid.appendChild(detailCell('供应商品数量', r.productCount));
+        grid.appendChild(detailCell('结算信息', r.settleInfo));
+        grid.appendChild(detailCell('可提现手机号', r.withdrawPhone));
+        grid.appendChild(detailCell('进件渠道', r.channel));
+        grid.appendChild(detailCell('进件状态', r.onboard));
+        grid.appendChild(detailCellTagged('供应商状态', r.status, true));
         p.appendChild(grid);
+
         p.appendChild(sectionTitle('供应商进件'));
-        var bar = el('div', 'erp-actions-row');
+        var onboard = el('div', 'store-onboard-section store-onboard-section--white');
+        var bar = el('div', 'erp-actions-row supplier-detail-onboard-actions');
         var go = mkBtn('去进件', true);
         go.addEventListener('click', function () {
             openOnboardResource('供应商进件', r.name);
         });
         bar.appendChild(go);
-        p.appendChild(bar);
-        p.appendChild(
+        onboard.appendChild(bar);
+        onboard.appendChild(
             dataTable(
                 ['主体名称', '入网渠道', '子商户号', '银行卡号', '进件类型', '非法人结算授权', '操作'],
                 []
             )
         );
+        p.appendChild(onboard);
         return p;
     }
 
@@ -682,35 +708,32 @@
     }
 
     function panelLiveBase(r) {
-        var p = el('div', '');
-        var grid = el('dl', 'store-detail-grid');
-        [
-            ['直播间ID', r.id],
-            ['主体名称', r.subjectName],
-            ['直播间名称', r.name],
-            ['直播类型', r.typeLabel],
-            ['主播ID', r.anchorId],
-            ['主播名称', r.anchorName],
-            ['负责人', r.contactName],
-            ['手机号码', r.phone],
-            ['观看权限', r.viewPermissionLabel],
-            ['创建时间', r.createTime],
-            ['可提现手机号', r.withdrawPhone],
-            ['状态', r.status]
-        ].forEach(function (pair) {
-            grid.appendChild(gridItemDt(pair[0], pair[1]));
-        });
+        var p = el('div', 'supplier-detail-tab');
+        p.appendChild(sectionTitle('基础信息'));
+        var grid = el('div', 'supplier-detail-grid');
+        grid.appendChild(detailCell('直播间ID', r.id));
+        grid.appendChild(detailCell('主体名称', r.subjectName));
+        grid.appendChild(detailCell('直播间名称', r.name));
+        grid.appendChild(detailCell('直播类型', r.typeLabel));
+        grid.appendChild(detailCell('主播ID', r.anchorId));
+        grid.appendChild(detailCell('主播名称', r.anchorName));
+        grid.appendChild(detailCell('负责人', r.contactName));
+        grid.appendChild(detailCell('手机号码', r.phone));
+        grid.appendChild(detailCell('观看权限', r.viewPermissionLabel));
+        grid.appendChild(detailCell('创建时间', r.createTime));
+        grid.appendChild(detailCell('可提现手机号', r.withdrawPhone));
+        grid.appendChild(detailCellTagged('状态', r.status, true));
         p.appendChild(grid);
         return p;
     }
 
     function panelLiveSessions() {
-        var d = el('div', '');
+        var d = el('div', 'supplier-detail-tab');
         d.appendChild(sectionTitle('直播场次（业务系统）'));
         d.appendChild(
             el(
                 'p',
-                'erp-page__note',
+                'erp-page__note mdm-detail-note',
                 '业务系统在本直播间下创建场次；列表需业务侧同步后展示（原型示意）。'
             )
         );
@@ -720,10 +743,10 @@
     }
 
     function panelLiveSessionProducts() {
-        var d = el('div', '');
+        var d = el('div', 'supplier-detail-tab');
         d.appendChild(sectionTitle('场次商品（业务系统）'));
         d.appendChild(
-            el('p', 'erp-page__note', '商品挂在场次下，随场次关联展示（原型示意）。')
+            el('p', 'erp-page__note mdm-detail-note', '商品挂在场次下，随场次关联展示（原型示意）。')
         );
         d.appendChild(dataTable(['场次编号', '商品ID', '商品名称', '挂场状态'], []));
         d.appendChild(emptyNote('暂无同步数据'));
@@ -731,23 +754,25 @@
     }
 
     function panelLiveOnboard(r) {
-        var d = el('div', '');
+        var d = el('div', 'supplier-detail-tab');
         d.appendChild(sectionTitle('直播间进件'));
-        var bar = el('div', 'erp-actions-row');
+        var wrap = el('div', 'store-onboard-section store-onboard-section--white');
+        var bar = el('div', 'erp-actions-row supplier-detail-onboard-actions');
         var go = mkBtn('去进件', true);
         go.addEventListener('click', function () {
             openOnboardResource('直播间进件', r.name);
         });
         bar.appendChild(go);
-        d.appendChild(bar);
-        d.appendChild(
+        wrap.appendChild(bar);
+        wrap.appendChild(
             dataTable(
                 ['主体名称', '入网渠道', '子商户号', '银行卡号', '进件类型', '非法人结算授权', '操作'],
                 []
             )
         );
+        d.appendChild(wrap);
         d.appendChild(
-            el('p', 'erp-page__note', '进件与结算信息走统一进件流程（原型示意）。')
+            el('p', 'erp-page__note mdm-detail-note', '进件与结算信息走统一进件流程（原型示意）。')
         );
         return d;
     }
@@ -804,42 +829,47 @@
     }
 
     function panelCarrierBase(r) {
-        var p = el('div', '');
-        var grid = el('dl', 'store-detail-grid');
-        [
-            ['承运商ID', r.id],
-            ['主体名称', r.subjectName],
-            ['承运商名称', r.name],
-            ['承运类型', r.typeLabel],
-            ['承运商地址', r.region],
-            ['详细地址', r.detailAddress],
-            ['负责人姓名', r.contactName],
-            ['手机号码', r.phone],
-            ['创建时间', r.createTime],
-            ['服务区域', r.serviceArea],
-            ['结算信息', r.settleInfo],
-            ['可提现手机号', r.withdrawPhone],
-            ['进件渠道', r.channel],
-            ['进件状态', r.onboard],
-            ['承运商状态', r.status]
-        ].forEach(function (pair) {
-            grid.appendChild(gridItemDt(pair[0], pair[1]));
-        });
+        var p = el('div', 'supplier-detail-tab');
+        p.appendChild(sectionTitle('基础信息'));
+        var grid = el('div', 'supplier-detail-grid');
+        grid.appendChild(detailCell('承运商ID', r.id));
+        grid.appendChild(detailCell('主体名称', r.subjectName));
+        grid.appendChild(detailCell('承运商名称', r.name));
+        grid.appendChild(detailCell('承运类型', r.typeLabel));
+        grid.appendChild(detailCell('承运商地址', r.region));
+        var addr = el('div', 'supplier-detail-cell supplier-detail-cell--span4');
+        addr.appendChild(el('div', 'supplier-detail-cell__label', '详细地址'));
+        var addrBody = el('div', 'supplier-detail-cell__body supplier-detail-cell__body--multiline');
+        addrBody.textContent = nz(r.detailAddress);
+        addr.appendChild(addrBody);
+        grid.appendChild(addr);
+        grid.appendChild(detailCell('负责人姓名', r.contactName));
+        grid.appendChild(detailCell('手机号码', r.phone));
+        grid.appendChild(detailCell('创建时间', r.createTime));
+        grid.appendChild(detailCell('服务区域', r.serviceArea));
+        grid.appendChild(detailCell('结算信息', r.settleInfo));
+        grid.appendChild(detailCell('可提现手机号', r.withdrawPhone));
+        grid.appendChild(detailCell('进件渠道', r.channel));
+        grid.appendChild(detailCell('进件状态', r.onboard));
+        grid.appendChild(detailCellTagged('承运商状态', r.status, true));
         p.appendChild(grid);
+
         p.appendChild(sectionTitle('承运商进件'));
-        var bar = el('div', 'erp-actions-row');
+        var onboard = el('div', 'store-onboard-section store-onboard-section--white');
+        var bar = el('div', 'erp-actions-row supplier-detail-onboard-actions');
         var go = mkBtn('去进件', true);
         go.addEventListener('click', function () {
             openOnboardResource('承运商进件', r.name);
         });
         bar.appendChild(go);
-        p.appendChild(bar);
-        p.appendChild(
+        onboard.appendChild(bar);
+        onboard.appendChild(
             dataTable(
                 ['主体名称', '入网渠道', '子商户号', '银行卡号', '进件类型', '非法人结算授权', '操作'],
                 []
             )
         );
+        p.appendChild(onboard);
         return p;
     }
 
@@ -889,33 +919,35 @@
     }
 
     function panelWarehouseBase(r) {
-        var p = el('div', '');
-        var grid = el('dl', 'store-detail-grid');
-        [
-            ['仓库编号', r.code],
-            ['主体名称', r.subjectName],
-            ['仓库名称', r.name],
-            ['仓库类型', r.typeLabel],
-            ['关联门店', r.relatedStore],
-            ['仓库管理员', r.admin],
-            ['手机号码', r.phone],
-            ['可提现手机号', r.withdrawPhone],
-            ['仓库位置', r.location],
-            ['仓库面积', r.area],
-            ['创建时间', r.createTime],
-            ['状态', r.status]
-        ].forEach(function (pair) {
-            grid.appendChild(gridItemDt(pair[0], pair[1]));
-        });
+        var p = el('div', 'supplier-detail-tab');
+        p.appendChild(sectionTitle('基础信息'));
+        var grid = el('div', 'supplier-detail-grid');
+        grid.appendChild(detailCell('仓库编号', r.code));
+        grid.appendChild(detailCell('主体名称', r.subjectName));
+        grid.appendChild(detailCell('仓库名称', r.name));
+        grid.appendChild(detailCell('仓库类型', r.typeLabel));
+        grid.appendChild(detailCell('关联门店', r.relatedStore));
+        grid.appendChild(detailCell('仓库管理员', r.admin));
+        grid.appendChild(detailCell('手机号码', r.phone));
+        grid.appendChild(detailCell('可提现手机号', r.withdrawPhone));
+        var loc = el('div', 'supplier-detail-cell supplier-detail-cell--span4');
+        loc.appendChild(el('div', 'supplier-detail-cell__label', '仓库位置'));
+        var locBody = el('div', 'supplier-detail-cell__body supplier-detail-cell__body--multiline');
+        locBody.textContent = nz(r.location);
+        loc.appendChild(locBody);
+        grid.appendChild(loc);
+        grid.appendChild(detailCell('仓库面积', r.area));
+        grid.appendChild(detailCell('创建时间', r.createTime));
+        grid.appendChild(detailCellTagged('状态', r.status, true));
         p.appendChild(grid);
         return p;
     }
 
     function panelWarehouseExtra(title, tableHeaders) {
-        var d = el('div', '');
+        var d = el('div', 'supplier-detail-tab');
         d.appendChild(sectionTitle(title));
         d.appendChild(
-            el('p', 'erp-page__note', '仓库主数据由 MDM 维护；此页签为业务侧数据占位（原型）。')
+            el('p', 'erp-page__note mdm-detail-note', '仓库主数据由 MDM 维护；此页签为业务侧数据占位（原型）。')
         );
         d.appendChild(dataTable(tableHeaders, []));
         d.appendChild(emptyNote('暂无数据'));

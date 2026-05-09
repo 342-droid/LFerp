@@ -241,6 +241,20 @@
             fields: fields,
             customRowActions: [
                 {
+                    selector: '.edit-btn',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (
+                            window.MdmResourceArchiveForms &&
+                            typeof window.MdmResourceArchiveForms.openStoreEdit === 'function'
+                        ) {
+                            window.MdmResourceArchiveForms.openStoreEdit(el.closest('tr'));
+                        } else if (typeof showToast === 'function') {
+                            showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                        }
+                    }
+                },
+                {
                     selector: '.mdm-store-withdraw',
                     handler: function (e, el) {
                         e.preventDefault();
@@ -368,6 +382,20 @@
             },
             customRowActions: [
                 {
+                    selector: '.edit-btn',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (
+                            window.MdmResourceArchiveForms &&
+                            typeof window.MdmResourceArchiveForms.openSupplierEdit === 'function'
+                        ) {
+                            window.MdmResourceArchiveForms.openSupplierEdit(el.closest('tr'));
+                        } else if (typeof showToast === 'function') {
+                            showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                        }
+                    }
+                },
+                {
                     selector: '.mdm-onboard-btn',
                     handler: function (e, el) {
                         e.preventDefault();
@@ -466,6 +494,22 @@
                     }
                 }
             },
+            customRowActions: [
+                {
+                    selector: '.edit-btn',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (
+                            window.MdmResourceArchiveForms &&
+                            typeof window.MdmResourceArchiveForms.openWarehouseEdit === 'function'
+                        ) {
+                            window.MdmResourceArchiveForms.openWarehouseEdit(el.closest('tr'));
+                        } else if (typeof showToast === 'function') {
+                            showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                        }
+                    }
+                }
+            ],
             onDisableToggle: function (row, status, page) {
                 if (String(status).trim() === '停用') {
                     page.updateTableRow(row, { 11: { value: '启用', isStatus: true } });
@@ -577,6 +621,20 @@
                 }
             },
             customRowActions: [
+                {
+                    selector: '.edit-btn',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (
+                            window.MdmResourceArchiveForms &&
+                            typeof window.MdmResourceArchiveForms.openLiveRoomEdit === 'function'
+                        ) {
+                            window.MdmResourceArchiveForms.openLiveRoomEdit(el.closest('tr'));
+                        } else if (typeof showToast === 'function') {
+                            showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                        }
+                    }
+                },
                 {
                     selector: '.mdm-onboard-btn',
                     handler: function (e, el) {
@@ -703,6 +761,20 @@
                 }
             },
             customRowActions: [
+                {
+                    selector: '.edit-btn',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (
+                            window.MdmResourceArchiveForms &&
+                            typeof window.MdmResourceArchiveForms.openCarrierEdit === 'function'
+                        ) {
+                            window.MdmResourceArchiveForms.openCarrierEdit(el.closest('tr'));
+                        } else if (typeof showToast === 'function') {
+                            showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                        }
+                    }
+                },
                 {
                     selector: '.mdm-onboard-btn',
                     handler: function (e, el) {

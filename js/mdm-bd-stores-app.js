@@ -798,41 +798,6 @@
     );
   }
 
-  function renderEdit(id) {
-    var store = getStore(id);
-    if (!store) return '<p class="bd-empty">门店不存在</p>';
-    return (
-      '<div class="bd-page-bar"><button type="button" class="bd-back" data-back-ws>‹</button><h1>编辑资料</h1></div>' +
-      '<div style="padding:12px 14px 80px">' +
-      '<p style="font-size:12px;color:var(--bd-muted);margin:0 0 12px">演示：以下为关键字段编辑，对齐 bd-guanli StoreEditPage 主信息。</p>' +
-      '<div class="bd-field" style="margin-bottom:14px">' +
-      '<label class="lab"><span class="req">*</span> 门店主体</label>' +
-      '<input id="edf_subject" style="margin-top:6px;width:100%;padding:10px;border:1px solid var(--bd-border);border-radius:10px;font-size:14px" value="' +
-      escapeHtml(store.storeSubject || '') +
-      '"/></div>' +
-      '<div class="bd-field" style="margin-bottom:14px">' +
-      '<label class="lab">门店名称</label>' +
-      '<input id="edf_name" style="margin-top:6px;width:100%;padding:10px;border:1px solid var(--bd-border);border-radius:10px;font-size:14px" value="' +
-      escapeHtml(store.name || '') +
-      '"/></div>' +
-      '<div class="bd-field" style="margin-bottom:14px">' +
-      '<label class="lab">详细地址</label>' +
-      '<input id="edf_detail" style="margin-top:6px;width:100%;padding:10px;border:1px solid var(--bd-border);border-radius:10px;font-size:14px" value="' +
-      escapeHtml(store.detailAddress || '') +
-      '"/></div>' +
-      '<div class="bd-field" style="margin-bottom:14px">' +
-      '<label class="lab">绑定 BD（只读）</label>' +
-      '<input readonly style="margin-top:6px;width:100%;padding:10px;border:1px solid var(--bd-border);border-radius:10px;font-size:14px;background:#f9fafb" value="' +
-      escapeHtml(store.boundBd || '') +
-      '"/></div>' +
-      '</div>' +
-      '<div class="bd-audit-actions" style="display:flex;gap:8px">' +
-      '<button type="button" class="bd-btn bd-btn-outline" style="flex:1;border-radius:12px;box-shadow:none;font-size:14px" id="edfSaveDraft">保存草稿</button>' +
-      '<button type="button" class="bd-btn bd-btn-primary" style="flex:1;border-radius:12px;font-size:14px" id="edfSubmit">保存并提交</button>' +
-      '</div>'
-    );
-  }
-
   function mount() {
     var root = qs('#bd-stores-root');
     if (!root) return;
@@ -842,7 +807,6 @@
     else if (route.name === 'audit') html = renderAudit(route.id);
     else if (route.name === 'history') html = renderHistory(route.id);
     else if (route.name === 'agreements') html = renderAgreements();
-    else if (route.name === 'edit') html = renderEdit(route.id);
     root.innerHTML = html;
     wire();
   }
@@ -916,8 +880,9 @@
     var btnAdd = qs('#bdBtnAdd');
     if (btnAdd) {
       btnAdd.onclick = function () {
-        route = { name: 'edit', id: getStore(8) ? 8 : stores[stores.length - 1].id };
-        mount();
+        location.href = (window.bdPage || function (x) {
+          return x;
+        })('mdm_bd_store_form.html#new');
       };
     }
     root.querySelectorAll('[data-go-audit]').forEach(function (b) {
@@ -942,8 +907,10 @@
     });
     root.querySelectorAll('[data-edit],[data-ed]').forEach(function (b) {
       b.onclick = function () {
-        route = { name: 'edit', id: route.id };
-        mount();
+        location.href =
+          (window.bdPage || function (x) {
+            return x;
+          })('mdm_bd_store_form.html#edit/' + route.id);
       };
     });
     root.querySelectorAll('[data-share],[data-fw]').forEach(function (b) {
@@ -988,40 +955,6 @@
         mount();
       };
     });
-    var saveD = qs('#edfSaveDraft');
-    if (saveD) {
-      saveD.onclick = function () {
-        var st = getStore(route.id);
-        if (!st) return;
-        st.storeSubject = (qs('#edf_subject') || {}).value;
-        st.name = (qs('#edf_name') || {}).value;
-        st.detailAddress = (qs('#edf_detail') || {}).value;
-        st.address =
-          String(st.regionCascade || '').replace(/\s*\/\s*/g, '') && st.detailAddress
-            ? String(st.regionCascade).replace(/\//g, ' / ') + ' ' + st.detailAddress
-            : st.address;
-        window.bdToast && window.bdToast('草稿已保存（演示）');
-        route = { name: 'workspace', id: st.id };
-        mount();
-      };
-    }
-    var saveS = qs('#edfSubmit');
-    if (saveS) {
-      saveS.onclick = function () {
-        var st = getStore(route.id);
-        if (!st) return;
-        st.storeSubject = (qs('#edf_subject') || {}).value;
-        st.name = (qs('#edf_name') || {}).value;
-        st.detailAddress = (qs('#edf_detail') || {}).value;
-        if (st.phase === 'draft') {
-          st.phase = 'awaiting_bd';
-          st.submittedAt = fmtTs();
-        }
-        window.bdToast && window.bdToast('已提交审核（演示）');
-        route = { name: 'workspace', id: st.id };
-        mount();
-      };
-    }
   }
 
   function openModalClose() {
@@ -1046,6 +979,9 @@
     store.rejectReason = ta.value.trim();
     store.systemFailureDetail = undefined;
     openModalClose();
+    try {
+      sessionStorage.setItem('lf_bd_stores_v1', JSON.stringify(stores));
+    } catch (e) {}
     window.bdToast && window.bdToast('已驳回');
     route = { name: 'list' };
     mount();
@@ -1088,6 +1024,9 @@
       window.bdToast && window.bdToast('审核完成', '已生成合作协议（演示）');
     }
     openModalClose();
+    try {
+      sessionStorage.setItem('lf_bd_stores_v1', JSON.stringify(stores));
+    } catch (e) {}
     route = { name: 'workspace', id: store.id };
     mount();
   }
@@ -1098,12 +1037,23 @@
     else if (h === 'list' || !h) route = { name: 'list' };
     else if (h.indexOf('workspace/') === 0) route = { name: 'workspace', id: Number(h.split('/')[1]) };
     else if (h.indexOf('audit/') === 0) route = { name: 'audit', id: Number(h.split('/')[1]) };
-    else if (h.indexOf('edit/') === 0) route = { name: 'edit', id: Number(h.split('/')[1]) };
     else if (h.indexOf('history/') === 0) route = { name: 'history', id: Number(h.split('/')[1]) };
   }
 
   function init() {
     function bootstrap(data) {
+      var raw = sessionStorage.getItem('lf_bd_stores_v1');
+      if (raw) {
+        try {
+          var o = JSON.parse(raw);
+          if (Array.isArray(o) && o.length) {
+            stores = JSON.parse(JSON.stringify(o));
+            parseHash();
+            mount();
+            return;
+          }
+        } catch (e) {}
+      }
       stores = JSON.parse(JSON.stringify(Array.isArray(data) ? data : []));
       parseHash();
       mount();

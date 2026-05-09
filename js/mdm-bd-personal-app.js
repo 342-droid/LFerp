@@ -18,6 +18,15 @@
     { id: 3, applyTime: '2024-03-10 16:20', amount: 3000, status: 'processing', arriveTime: '', bank: '工商银行 **** 1234' },
   ];
   var route = 'profile';
+  /** 对齐 bd-guanli InvitePage / getCurrentBdEmployeeCode */
+  var BD_EMPLOYEE_CODE = 'BD20240001';
+  var INVITE_CODE = 'BD2024LZF';
+  var inviteRecords = [
+    { name: '张明', date: '2024-03-20', status: '已激活', reward: '¥200', phone: '138****1234', activateTime: '2024-03-21 10:30' },
+    { name: '王丽', date: '2024-03-15', status: '已激活', reward: '¥200', phone: '139****5678', activateTime: '2024-03-16 14:20' },
+    { name: '刘伟', date: '2024-03-10', status: '待激活', reward: '—', phone: '137****9012', activateTime: '—' },
+    { name: '陈静', date: '2024-02-28', status: '已激活', reward: '¥200', phone: '136****3456', activateTime: '2024-03-01 09:15' },
+  ];
 
   function $(s) {
     return document.querySelector(s);
@@ -29,6 +38,84 @@
     return (window.bdPage || function (a) {
       return a;
     })(x);
+  }
+
+  function absBdHtml(name) {
+    var u = page(name);
+    if (/^https?:/i.test(u)) return u.replace(/#.*$/, '');
+    var loc = window.location.pathname.replace(/[^/]+$/, '');
+    if (u.indexOf('/') === 0) return window.location.origin + u;
+    return window.location.origin + loc + u;
+  }
+
+  /** 对齐 getStoreCreateH5Url（mdm_bd_h5.html 为门店入驻页） */
+  function getStoreCreateH5Url() {
+    var base = absBdHtml('mdm_bd_h5.html').replace(/\/$/, '');
+    return base + '?bdId=' + encodeURIComponent(BD_EMPLOYEE_CODE) + '&channel=' + encodeURIComponent('bd_wechat_scan');
+  }
+
+  /** 对齐 getBdInviteRegisterH5Url */
+  function getBdInviteRegisterH5Url(code) {
+    var base = 'https://h5.example.com/bd/register'.replace(/\/$/, '');
+    return base + '?inviteCode=' + encodeURIComponent(String(code).trim()) + '&channel=bd_invite_qr';
+  }
+
+  function getQrImageSrc(url, size) {
+    size = size || 220;
+    return (
+      'https://api.qrserver.com/v1/create-qr-code/?size=' + size + 'x' + size + '&data=' + encodeURIComponent(url)
+    );
+  }
+
+  function storeEntryClipboard(url) {
+    return '【冷丰】邀请你注册门店\n请打开链接并完成入驻：\n' + url;
+  }
+
+  function bdInviteClipboard(url) {
+    return '【冷丰】邀请你成为 BD\n请打开链接并完成注册：\n' + url;
+  }
+
+  function clipboardWrite(text, okTitle) {
+    okTitle = okTitle || '【复制成功】';
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        function () {
+          bdToast(okTitle);
+        },
+        function () {
+          bdToast('复制失败', '请手动复制');
+        }
+      );
+    } else {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        bdToast(okTitle);
+      } catch (e) {
+        bdToast('复制失败', '请手动复制');
+      }
+    }
+  }
+
+  function shareActionsThreeHtml(scene) {
+    var isStore = scene === 'store';
+    return (
+      '<div class="bd-share-poster-bar">' +
+      '<button type="button" class="bd-share-circle" data-share-action="' +
+      (isStore ? 'wechat-store' : 'wechat-invite') +
+      '"><span class="bd-sc-ico bd-sc-wechat">💬</span><span class="bd-sc-lab">微信好友</span></button>' +
+      '<button type="button" class="bd-share-circle" data-share-action="' +
+      (isStore ? 'copy-store' : 'copy-invite') +
+      '"><span class="bd-sc-ico bd-sc-orange">🔗</span><span class="bd-sc-lab">复制链接</span></button>' +
+      '<button type="button" class="bd-share-circle" data-share-action="' +
+      (isStore ? 'poster-store' : 'poster-invite') +
+      '"><span class="bd-sc-ico bd-sc-yellow">🖼</span><span class="bd-sc-lab">分享海报</span></button>' +
+      '</div>'
+    );
   }
 
   function barBack(label, target) {
@@ -300,13 +387,178 @@
   }
 
   function renderStoreQr() {
+    var u = getStoreCreateH5Url();
+    var qr = getQrImageSrc(u, 220);
     return (
-      barBack('门店入驻码', 'profile') +
-      '<div class="bd-scroll" style="padding:24px;text-align:center;font-size:14px;line-height:1.7;color:var(--bd-text)">' +
-      '<div style="width:220px;height:220px;margin:12px auto;background:#f9fafb;border:1px solid var(--bd-border);border-radius:14px;display:flex;align-items:center;justify-content:center;color:var(--bd-muted);font-size:13px">' +
-      '二维码占位<br>（对齐 StoreCreateQrPage）</div>' +
-      '<button type="button" class="bd-btn bd-btn-primary" onclick="bdToast(\'链接已复制\')" style="margin-top:14px;border-radius:12px">复制分享链接</button></div>'
+      barBack('门店入驻二维码', 'profile') +
+      '<div class="bd-scroll" style="padding:16px 16px 88px">' +
+      '<div style="border-radius:12px;border:1px solid var(--bd-border);background:#fff;padding:16px">' +
+      '<div style="display:flex;gap:12px;align-items:flex-start">' +
+      '<div style="width:40px;height:40px;border-radius:10px;background:rgba(37,99,235,.1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🏪</div>' +
+      '<div style="min-width:0;flex:1">' +
+      '<p style="margin:0;font-size:14px;font-weight:700">邀请店长注册门店</p>' +
+      '<p style="margin:6px 0 0;font-size:11px;line-height:1.55;color:var(--bd-muted)">对方可扫码或打开分享链接，在浏览器内完成门店创建与认证。创建成功后，系统将门店绑定为您的拓展门店（BD：<span style="font-weight:600;color:var(--bd-text)">' +
+      esc(BD_EMPLOYEE_CODE) +
+      '</span>）。</p></div></div></div>' +
+      '<div style="display:flex;flex-direction:column;align-items:center;border-radius:16px;border:1px solid var(--bd-border);background:rgba(249,250,251,.5);padding:28px 16px;margin-top:14px">' +
+      '<img src="' +
+      esc(qr) +
+      '" width="220" height="220" alt="门店入驻" style="display:block;border-radius:12px;background:#fff"/>' +
+      '</div>' +
+      '<div style="margin-top:16px">' +
+      shareActionsThreeHtml('store') +
+      '</div></div>'
     );
+  }
+
+  function inviteDetailRow(label, val, withBorder) {
+    return (
+      '<div style="display:flex;justify-content:space-between;gap:12px;padding:12px 0' +
+      (withBorder ? ';border-bottom:1px solid var(--bd-border)' : '') +
+      ';font-size:13px">' +
+      '<span style="color:var(--bd-muted)">' +
+      esc(label) +
+      '</span><span style="font-weight:500;text-align:right">' +
+      esc(val) +
+      '</span></div>'
+    );
+  }
+
+  function renderInvite() {
+    var inviteH5Url = getBdInviteRegisterH5Url(INVITE_CODE);
+    var inviteQr = getQrImageSrc(inviteH5Url, 200);
+    var rows = inviteRecords
+      .map(function (r, i) {
+        var stCls = r.status === '已激活' ? 'color:var(--bd-success)' : 'color:var(--bd-warning)';
+        return (
+          '<button type="button" class="bd-invite-row" data-invite-i="' +
+          i +
+          '" style="width:100%;border:none;background:none;display:flex;gap:12px;align-items:center;padding:14px 16px;cursor:pointer;text-align:left;border-bottom:1px solid var(--bd-border)">' +
+          '<span style="width:32px;height:32px;border-radius:999px;background:var(--bd-bg-page);display:flex;align-items:center;justify-content:center">👥</span>' +
+          '<div style="flex:1;min-width:0"><p style="margin:0;font-size:14px">' +
+          esc(r.name) +
+          '</p><p style="margin:4px 0 0;font-size:11px;color:var(--bd-muted)">' +
+          esc(r.date) +
+          '</p></div>' +
+          '<div style="text-align:right"><p style="margin:0;font-size:12px;font-weight:600;' +
+          stCls +
+          '">' +
+          esc(r.status) +
+          '</p><p style="margin:4px 0 0;font-size:11px;color:var(--bd-muted)">' +
+          esc(r.reward) +
+          '</p></div><span style="opacity:.25">›</span></button>'
+        );
+      })
+      .join('');
+    return (
+      barBack('邀请好友', 'profile') +
+      '<div class="bd-scroll" style="padding-bottom:88px">' +
+      '<div style="margin:16px;padding:20px;border-radius:12px;background:linear-gradient(160deg, var(--bd-primary), #1d4ed8);color:#fff;position:relative;overflow:hidden">' +
+      '<div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.06)"></div>' +
+      '<div style="display:flex;gap:12px;margin-bottom:16px;align-items:center">' +
+      '<span style="font-size:26px">🎁</span>' +
+      '<div><p style="margin:0;font-size:14px;font-weight:700">邀请好友加入</p><p style="margin:4px 0 0;font-size:11px;opacity:.75">每成功邀请一人奖励 ¥200</p></div></div>' +
+      '<div style="background:rgba(255,255,255,.12);border-radius:10px;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:12px">' +
+      '<div><p style="margin:0;font-size:11px;opacity:.75">我的邀请码</p><p style="margin:6px 0 0;font-size:18px;font-weight:800;letter-spacing:.06em">' +
+      esc(INVITE_CODE) +
+      '</p></div>' +
+      '<button type="button" id="bdCopyInviteCode" style="width:40px;height:40px;border:none;border-radius:10px;background:rgba(255,255,255,.2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px" title="复制邀请码">📋</button></div></div>' +
+      '<div style="margin:0 16px;border-radius:12px;border:1px solid var(--bd-border);background:#fff;padding:20px 18px">' +
+      '<p style="margin:0;font-size:14px;font-weight:700">专属二维码</p>' +
+      '<p style="margin:6px 0 0;font-size:11px;line-height:1.55;color:var(--bd-muted)">好友可扫码或打开分享链接，在浏览器内完成注册加入。</p>' +
+      '<div style="margin-top:16px;display:flex;justify-content:center">' +
+      '<img src="' +
+      esc(inviteQr) +
+      '" width="200" height="200" alt="邀请注册" style="display:block;border-radius:12px;background:#fff"/>' +
+      '</div>' +
+      '<div style="margin-top:16px">' +
+      shareActionsThreeHtml('invite') +
+      '</div></div>' +
+      '<div style="margin:16px;border-radius:12px;border:1px solid var(--bd-border);background:#fff;padding:16px;display:flex;justify-content:space-around;align-items:center">' +
+      '<div style="text-align:center"><p style="margin:0;font-size:20px;font-weight:800">12</p><p style="margin:6px 0 0;font-size:11px;color:var(--bd-muted)">已邀请</p></div>' +
+      '<div style="width:1px;height:36px;background:var(--bd-border)"></div>' +
+      '<div style="text-align:center"><p style="margin:0;font-size:20px;font-weight:800;color:var(--bd-success)">9</p><p style="margin:6px 0 0;font-size:11px;color:var(--bd-muted)">已激活</p></div>' +
+      '<div style="width:1px;height:36px;background:var(--bd-border)"></div>' +
+      '<div style="text-align:center"><p style="margin:0;font-size:20px;font-weight:800">¥1,800</p><p style="margin:6px 0 0;font-size:11px;color:var(--bd-muted)">获得奖励</p></div></div>' +
+      '<div style="padding:0 16px 16px">' +
+      '<p style="margin:0 0 10px;font-size:14px;font-weight:600">邀请记录</p>' +
+      '<div style="border-radius:12px;border:1px solid var(--bd-border);overflow:hidden;background:#fff">' +
+      rows +
+      '</div></div>' +
+      '<div class="bd-modal" id="bdInviteDetailModal">' +
+      '<div class="bd-modal-box" style="max-width:380px;border-radius:16px" onclick="event.stopPropagation()">' +
+      '<h3 style="margin:0 0 4px;font-size:16px">邀请详情</h3>' +
+      '<p style="margin:0 0 12px;font-size:12px;color:var(--bd-muted)">被邀请人信息</p>' +
+      '<div id="bdInviteDetailBody"></div>' +
+      '<div class="bd-modal-actions" style="margin-top:12px"><button type="button" class="ok" id="bdInviteDetailClose" style="flex:1">关闭</button></div></div></div>' +
+      '</div>'
+    );
+  }
+
+  function bindStoreQrPage(host) {
+    var u = getStoreCreateH5Url();
+    var clip = storeEntryClipboard(u);
+    host.querySelectorAll('[data-share-action]').forEach(function (btn) {
+      btn.onclick = function () {
+        var a = btn.getAttribute('data-share-action');
+        if (a === 'wechat-store')
+          bdToast('微信好友', '演示环境：真实环境将调起微信发送链接卡片');
+        else if (a === 'copy-store') clipboardWrite(clip);
+        else if (a === 'poster-store')
+          bdToast('分享海报', '演示环境：真实环境将生成海报并可分享到微信');
+      };
+    });
+  }
+
+  function bindInvitePage(host) {
+    var inviteUrl = getBdInviteRegisterH5Url(INVITE_CODE);
+    var clipInvite = bdInviteClipboard(inviteUrl);
+    var copyBtn = host.querySelector('#bdCopyInviteCode');
+    if (copyBtn)
+      copyBtn.onclick = function () {
+        clipboardWrite(INVITE_CODE, '【复制成功】');
+      };
+    host.querySelectorAll('[data-share-action]').forEach(function (btn) {
+      btn.onclick = function () {
+        var a = btn.getAttribute('data-share-action');
+        if (a === 'wechat-invite')
+          bdToast('微信好友', '演示环境：真实环境将调起微信发送链接卡片');
+        else if (a === 'copy-invite') clipboardWrite(clipInvite);
+        else if (a === 'poster-invite')
+          bdToast('分享海报', '演示环境：真实环境将生成海报并可分享到微信');
+      };
+    });
+    host.querySelectorAll('.bd-invite-row').forEach(function (rowBtn) {
+      rowBtn.onclick = function () {
+        var i = parseInt(rowBtn.getAttribute('data-invite-i'), 10);
+        var r = inviteRecords[i];
+        if (!r) return;
+        var body = host.querySelector('#bdInviteDetailBody');
+        if (body) {
+          body.innerHTML =
+            inviteDetailRow('姓名', r.name, true) +
+            inviteDetailRow('手机号码', r.phone, true) +
+            inviteDetailRow('邀请时间', r.date, true) +
+            inviteDetailRow('激活时间', r.activateTime, true) +
+            inviteDetailRow('状态', r.status, true) +
+            inviteDetailRow('奖励金额', r.reward, false);
+        }
+        var modal = host.querySelector('#bdInviteDetailModal');
+        if (modal) modal.classList.add('bd-show');
+      };
+    });
+    var modal = host.querySelector('#bdInviteDetailModal');
+    if (modal) {
+      modal.onclick = function () {
+        modal.classList.remove('bd-show');
+      };
+    }
+    var cls = host.querySelector('#bdInviteDetailClose');
+    if (cls)
+      cls.onclick = function (e) {
+        e.stopPropagation();
+        if (modal) modal.classList.remove('bd-show');
+      };
   }
 
   function mount() {
@@ -328,12 +580,7 @@
         '拓店数、交易额、转化率与 Trends 与 bd-guanli MyPerformancePage 数据源一致。',
         '本月预估分佣：¥4,862.35',
       ]);
-    else if (route === 'invite')
-      html =
-        barBack('邀请好友', 'profile') +
-        '<div style="padding:18px;line-height:1.75;font-size:14px"><p>您的邀请码：<strong>LFG2026</strong>（演示）</p>' +
-        '<p>分享给好友扫码注册 BD，即可获得奖励。</p>' +
-        '<div style="width:200px;height:200px;margin:16px auto;border:1px solid var(--bd-border);border-radius:14px;display:flex;align-items:center;justify-content:center;color:var(--bd-muted);font-size:12px;text-align:center">邀请二维码占位</div></div>';
+    else if (route === 'invite') html = renderInvite();
     else if (route === 'store-qr') html = renderStoreQr();
     else if (route === 'bank')
       html = simplePage('我的银行卡', [
@@ -350,6 +597,8 @@
       html = simplePage('关于我们', ['冷丰 BD 管理端本地静态还原 · 内容与交互对齐 bd-guanli-main']);
     else html = renderProfile();
     host.innerHTML = html;
+    if (route === 'store-qr') bindStoreQrPage(host);
+    if (route === 'invite') bindInvitePage(host);
     window.bdRenderBottomTabs(route === 'profile' ? 'profile' : 'profile');
     host.querySelectorAll('[data-nav]').forEach(function (b) {
       b.onclick = function () {
