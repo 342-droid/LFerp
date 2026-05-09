@@ -104,13 +104,13 @@ function loadHeader() {
                 </button>
                 
                 <nav class="nav-tabs">
+                    <a href="${wp.page('mobile_index.html')}" class="${isMobilePage ? 'active' : ''}">移动端</a>
                     <a href="${wp.page('mdm_workbench.html')}" class="${isMdmWorkbenchPage ? 'active' : ''}">工作台</a>
                     <a href="${wp.page('mdm_party_store.html')}" class="${isMdmDataCenterPage ? 'active' : ''}">基础数据中心</a>
                     <a href="${wp.page('mdm_audit_store_registration.html')}" class="${isMdmAuditPage ? 'active' : ''}">审核中心</a>
                     <a href="${wp.page('index.html')}" class="${!isTmsPage && !isPurchasePage && !isMdmPage && !isMobilePage ? 'active' : ''}">仓储</a>
                     <a href="${wp.page('TMS_index.html')}" class="${isTmsPage ? 'active' : ''}">物流</a>
                     <a href="${wp.page('purchase_index.html')}" class="${isPurchasePage ? 'active' : ''}">采购</a>
-                    <a href="${wp.page('mobile_index.html')}" class="${isMobilePage ? 'active' : ''}">移动端</a>
                 </nav>
                 
                 <div class="header-right">
