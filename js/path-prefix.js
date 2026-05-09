@@ -1,5 +1,5 @@
 /**
- * 首页 index.html 位于项目根目录，mdm*.html 位于 MDM/，其余业务页位于 SCM/；BD APP/ 下为门店 H5 等静态页。
+ * 首页 index.html 位于项目根目录，mdm*.html 位于 MDM/，其余业务页位于 SCM/；shop-h5/、BD APP/ 等为根目录下静态页。
  * 本文件必须在 wms-sidebar / mdm-sidebar / common 等脚本之前加载。
  */
 (function () {
@@ -16,8 +16,8 @@
     }
     function page(filename) {
         filename = normPath(filename);
-        /** BD APP 下门店 H5 等静态目录：自根目录起的相对路径 */
-        if (/^BD APP\//.test(filename)) {
+        /** shop-h5、BD APP 等静态目录：自根目录起的相对路径（兼容历史大写 SHOP-H5/） */
+        if (/^shop-h5\//i.test(filename) || /^BD APP\//.test(filename)) {
             var up = (inScmFolder() || inMdmFolder()) ? '../' : '';
             return up + filename;
         }
