@@ -131,6 +131,100 @@
         .po-dimension-modal .modal-form-group .radio-group {
             flex-wrap: wrap;
         }
+
+        .po-preview-modal .modal-content {
+            width: 99%;
+            max-width: 1560px;
+            max-height: 88vh;
+            overflow: auto;
+        }
+
+        .po-preview-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .po-preview-summary strong {
+            color: #111;
+        }
+
+        .po-preview-edit-input {
+            width: 100%;
+            min-width: 70px;
+            height: 26px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 0 6px;
+            box-sizing: border-box;
+            font-size: 12px;
+        }
+
+        .po-preview-modal .detail-table-wrap .table {
+            width: 100%;
+            min-width: 0;
+            table-layout: fixed;
+        }
+
+        .po-preview-modal .detail-table-wrap .table th,
+        .po-preview-modal .detail-table-wrap .table td {
+            padding: 6px 6px;
+            font-size: 12px;
+            white-space: normal;
+            word-break: break-word;
+            vertical-align: middle;
+        }
+
+        .po-preview-modal .detail-table-wrap .table th {
+            white-space: nowrap;
+        }
+
+        .po-preview-modal .detail-table-wrap .table th:first-child,
+        .po-preview-modal .detail-table-wrap .table td:first-child {
+            width: 220px;
+        }
+
+        .po-preview-modal .detail-section {
+            margin-bottom: 16px;
+        }
+
+        .po-preview-modal .detail-section-title {
+            margin: 0 0 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .po-preview-modal .detail-info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(220px, 1fr));
+            gap: 8px 16px;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .po-preview-modal .detail-amount-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(220px, 1fr));
+            gap: 8px 16px;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .po-preview-modal .detail-info-item {
+            display: flex;
+            align-items: center;
+            min-height: 24px;
+        }
+
+        .po-preview-modal .detail-info-item .label {
+            color: #666;
+            margin-right: 6px;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -187,6 +281,25 @@
                         <div class="input-wrapper">
                             <input type="text" id="searchSkuName" placeholder="请输入">
                             <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>供应商:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchSupplier" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchSupplierDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="鲜果源商贸">鲜果源商贸</div>
+                                <div class="select-option" data-value="绿园果蔬">绿园果蔬</div>
+                                <div class="select-option" data-value="柑橘专营">柑橘专营</div>
+                                <div class="select-option" data-value="零食汇">零食汇</div>
+                                <div class="select-option" data-value="鲜蔬达">鲜蔬达</div>
+                                <div class="select-option" data-value="根茎优选">根茎优选</div>
+                                <div class="select-option" data-value="岭南农鲜">岭南农鲜</div>
+                                <div class="select-option" data-value="北方精选供应">北方精选供应</div>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -283,7 +396,6 @@
                                 <th>待采购量</th>
                                 <th>销售单价</th>
                                 <th>建议采购单价</th>
-                                <th>实际采购量</th>
                                 <th>门店</th>
                                 <th>收货仓库</th>
                                 <th>供应商</th>
@@ -324,6 +436,56 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="generatePoDimensionCancelBtn">取消</button>
                 <button type="button" class="btn btn-primary" id="generatePoDimensionConfirmBtn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="generatePoPreviewModal" class="modal detail-modal po-preview-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">采购单生成预览</div>
+                <span class="close" id="generatePoPreviewCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="detail-section">
+                    <div class="detail-section-title">采购单信息</div>
+                    <div class="detail-info-grid" id="poPreviewInfo"></div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-section-title">金额信息</div>
+                    <div class="detail-amount-grid" id="poPreviewAmount"></div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-section-title">采购单预览列表</div>
+                </div>
+                <div class="po-preview-summary" style="margin-top: -6px;">
+                    <div>生成维度：<strong id="poPreviewDimensionLabel">-</strong></div>
+                    <div>生成采购单：<strong id="poPreviewCount">0</strong> 单</div>
+                </div>
+                <div class="detail-table-wrap table-scroll-container">
+                    <table class="table no-last-column-freeze">
+                        <thead>
+                            <tr>
+                                <th id="poPreviewNameHeader">采购单预览名称</th>
+                                <th id="poPreviewOwnerHeader">归属主体</th>
+                                <th>收货仓库</th>
+                                <th>采购员</th>
+                                <th>明细行数</th>
+                                <th>待采购量合计</th>
+                                <th>建议采购单价</th>
+                                <th>实际采购单价</th>
+                                <th>采购金额</th>
+                                <th>销售金额</th>
+                                <th>预付金额</th>
+                            </tr>
+                        </thead>
+                        <tbody id="poPreviewTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="generatePoPreviewCancelBtn">取消</button>
+                <button type="button" class="btn btn-primary" id="generatePoPreviewConfirmBtn">确认生成采购单</button>
             </div>
         </div>
     </div>
@@ -403,6 +565,10 @@
             .replace(/"/g, '&quot;');
     }
 
+    function detailInfoItemHtml(label, value) {
+        return '<div class="detail-info-item"><span class="label">' + escapeHtml(label) + ':</span><span>' + escapeHtml(value == null || value === '' ? '-' : value) + '</span></div>';
+    }
+
     function collectAllCategoryPaths(tree) {
         const paths = [];
         Object.keys(tree || {}).forEach(function(l1) {
@@ -460,6 +626,7 @@
         return {
             skuCode: val('searchSkuCode'),
             skuName: val('searchSkuName'),
+            supplier: getCustomSelectValue('searchSupplier'),
             skuSource: getCustomSelectValue('searchSkuSource'),
             skuCategory: getCustomSelectValue('searchSkuCategory'),
             storeCode: getCustomSelectValue('searchStore'),
@@ -484,6 +651,7 @@
         return lines.filter(function(row) {
             if (f.skuCode && row.skuCode.indexOf(f.skuCode) === -1) return false;
             if (f.skuName && row.skuName.indexOf(f.skuName) === -1) return false;
+            if (f.supplier && row.supplier !== f.supplier) return false;
             if (f.skuSource && row.skuSource !== f.skuSource) return false;
             if (f.skuCategory && row.skuCategoryPath !== f.skuCategory) return false;
             if (f.storeCode && row.storeCode !== f.storeCode) return false;
@@ -684,13 +852,12 @@
         const tbody = document.getElementById('demandDetailTbody');
         if (!tbody) return;
         if (!rows || rows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:#999;">暂无明细数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#999;">暂无明细数据</td></tr>';
             return;
         }
         tbody.innerHTML = rows.map(function(row) {
             var qtyUnit = getRowQtyUnit(row);
             var pendingDisplay = row.pendingQty != null ? formatQtyWithUnit(row.pendingQty, qtyUnit) : '-';
-            var pendingForInput = row.pendingQty != null ? String(row.pendingQty) : '';
             var saleUnitPrice = row.salePrice != null ? formatMoney(row.salePrice) : '-';
             var suggestUnitPrice = row.unitPrice != null ? formatMoney(row.unitPrice) : '-';
             return '' +
@@ -701,7 +868,6 @@
                 '<td>' + escapeHtml(pendingDisplay) + '</td>' +
                 '<td>' + escapeHtml(saleUnitPrice) + '</td>' +
                 '<td>' + escapeHtml(suggestUnitPrice) + '</td>' +
-                '<td><input class="detail-actual-purchase-input" type="number" min="0" step="1" value="' + escapeAttr(pendingForInput) + '" title="默认等于待采购量，可修改"><span class="detail-unit-text">' + escapeHtml(qtyUnit) + '</span></td>' +
                 '<td>' + escapeHtml(storeLabel(row).trim() || '-') + '</td>' +
                 '<td>' + escapeHtml(row.receivingWarehouse || '-') + '</td>' +
                 '<td>' + escapeHtml(row.supplier || '-') + '</td>' +
@@ -725,6 +891,8 @@
         product: '按商品维度',
         store: '按门店维度'
     };
+    var pendingPoGenDimension = 'product';
+    var poPreviewRowsCache = [];
 
     function openGeneratePoDimensionModal() {
         var modal = document.getElementById('generatePoDimensionModal');
@@ -744,29 +912,273 @@
     }
 
     function countPurchaseOrdersByGenDimension(dim, lines) {
-        if (dim === 'store') {
-            var storeKeys = new Set();
-            for (var i = 0; i < lines.length; i++) {
-                var row = lines[i];
-                var key = (row.storeCode || '').trim() || (row.storeName || '').trim() || '';
-                if (key) storeKeys.add(key);
-            }
-            return storeKeys.size;
-        }
-        return buildProductAggregates(lines).length;
+        return buildPoPreviewRows(dim, lines).length;
     }
 
-    function confirmGeneratePurchaseOrder() {
-        var dim = getSelectedPoGenDimension();
+    function buildStorePreviewRows(lines) {
+        var supplierBuyerMap = {
+            '鲜果源商贸': '张敏',
+            '绿园果蔬': '李强',
+            '柑橘专营': '王华',
+            '零食汇': '赵刚',
+            '鲜蔬达': '刘洋',
+            '根茎优选': '陈晨'
+        };
+        var map = new Map();
+        for (var i = 0; i < lines.length; i++) {
+            var row = lines[i] || {};
+            var storeCode = (row.storeCode || '').trim();
+            var storeName = (row.storeName || '').trim();
+            var ownerText = (storeCode + ' ' + storeName).trim() || '未标记门店';
+            var storeDisplayName = ownerText;
+            var supplierName = String(row.supplier || '').trim() || '-';
+            var receivingWarehouse = (row.receivingWarehouse || '').trim() || '未标记收货仓库';
+            var key = (storeCode || storeName || ownerText) + '\0' + receivingWarehouse + '\0' + supplierName;
+            if (!map.has(key)) {
+                map.set(key, {
+                    rowKey: key,
+                    previewName: storeDisplayName,
+                    ownerText: supplierName,
+                    receivingWarehouse: receivingWarehouse,
+                    lineCount: 0,
+                    pendingQtySum: 0,
+                    purchaseAmountSum: 0,
+                    salesAmountSum: 0,
+                    buyerMap: {},
+                    qtyUnit: null
+                });
+            }
+            var g = map.get(key);
+            g.lineCount += 1;
+            var pendingQty = Number(row.pendingQty) || 0;
+            g.pendingQtySum += pendingQty;
+            g.purchaseAmountSum += pendingQty * (Number(row.unitPrice) || 0);
+            g.salesAmountSum += pendingQty * (Number(row.salePrice) || 0);
+            var buyer = supplierBuyerMap[row.supplier] || '';
+            if (buyer) g.buyerMap[buyer] = true;
+            g.qtyUnit = mergeQtyUnit(g.qtyUnit, getRowQtyUnit(row));
+        }
+        return Array.from(map.values()).map(function(g) {
+            var suggestedPrice = g.pendingQtySum > 0 ? (g.purchaseAmountSum / g.pendingQtySum) : 0;
+            var actualPrice = suggestedPrice;
+            var prepayAmount = g.purchaseAmountSum * 0.30;
+            return {
+                rowKey: g.rowKey,
+                previewName: g.previewName,
+                ownerText: g.ownerText || '-',
+                receivingWarehouse: g.receivingWarehouse || '-',
+                buyer: Object.keys(g.buyerMap).join('、') || '-',
+                lineCount: g.lineCount,
+                pendingQtySum: g.pendingQtySum,
+                suggestedUnitPrice: suggestedPrice,
+                actualUnitPrice: actualPrice,
+                purchaseAmountSum: g.purchaseAmountSum,
+                salesAmountSum: g.salesAmountSum,
+                prepaidAmount: prepayAmount,
+                qtyUnit: g.qtyUnit || '件'
+            };
+        });
+    }
+
+    function buildProductPreviewRows(lines) {
+        var supplierBuyerMap = {
+            '鲜果源商贸': '张敏',
+            '绿园果蔬': '李强',
+            '柑橘专营': '王华',
+            '零食汇': '赵刚',
+            '鲜蔬达': '刘洋',
+            '根茎优选': '陈晨'
+        };
+        var map = new Map();
+        (lines || []).forEach(function(line) {
+            var row = line || {};
+            var skuCode = String(row.skuCode || '').trim();
+            var skuName = String(row.skuName || '').trim();
+            var supplier = String(row.supplier || '').trim() || '-';
+            var receivingWarehouse = String(row.receivingWarehouse || '').trim() || '未标记收货仓库';
+            if (!skuCode) return;
+            var key = skuCode + '\0' + supplier + '\0' + receivingWarehouse;
+            if (!map.has(key)) {
+                map.set(key, {
+                    rowKey: key,
+                    previewName: skuName || skuCode,
+                    ownerText: supplier,
+                    receivingWarehouse: receivingWarehouse,
+                    buyer: supplierBuyerMap[supplier] || '-',
+                    lineCount: 0,
+                    pendingQtySum: 0,
+                    purchaseAmountSum: 0,
+                    salesAmountSum: 0,
+                    qtyUnit: null
+                });
+            }
+            var g = map.get(key);
+            var pendingQty = Number(row.pendingQty) || 0;
+            g.lineCount += 1;
+            g.pendingQtySum += pendingQty;
+            g.purchaseAmountSum += pendingQty * (Number(row.unitPrice) || 0);
+            g.salesAmountSum += pendingQty * (Number(row.salePrice) || 0);
+            g.qtyUnit = mergeQtyUnit(g.qtyUnit, getRowQtyUnit(row));
+        });
+        return Array.from(map.values()).map(function(row) {
+            var suggestedPrice = row.pendingQtySum > 0 ? (row.purchaseAmountSum / row.pendingQtySum) : 0;
+            var actualPrice = suggestedPrice;
+            return {
+                rowKey: row.rowKey,
+                previewName: row.previewName,
+                ownerText: row.ownerText,
+                receivingWarehouse: row.receivingWarehouse,
+                buyer: row.buyer,
+                lineCount: row.lineCount,
+                pendingQtySum: row.pendingQtySum,
+                suggestedUnitPrice: suggestedPrice,
+                actualUnitPrice: actualPrice,
+                purchaseAmountSum: row.purchaseAmountSum,
+                salesAmountSum: row.salesAmountSum,
+                prepaidAmount: row.purchaseAmountSum * 0.30,
+                qtyUnit: row.qtyUnit || '件'
+            };
+        });
+    }
+
+    function buildPoPreviewRows(dim, lines) {
+        return dim === 'store'
+            ? buildStorePreviewRows(lines)
+            : buildProductPreviewRows(lines);
+    }
+
+    function clonePreviewRows(rows) {
+        return (rows || []).map(function(row) {
+            return Object.assign({}, row);
+        });
+    }
+
+    function normalizePreviewRows(rows) {
+        (rows || []).forEach(function(row) {
+            var pendingQty = Number(row.pendingQtySum) || 0;
+            var suggested = Number(row.suggestedUnitPrice) || 0;
+            var actual = Number(row.actualUnitPrice);
+            if (isNaN(actual) || actual < 0) actual = suggested;
+            row.actualUnitPrice = actual;
+            row.purchaseAmountSum = pendingQty * actual;
+            var prepaid = Number(row.prepaidAmount);
+            if (isNaN(prepaid) || prepaid < 0) {
+                prepaid = row.purchaseAmountSum * 0.30;
+            }
+            row.prepaidAmount = prepaid;
+        });
+    }
+
+    function renderPoPreviewFromRows(dim, rows) {
+        var infoBox = document.getElementById('poPreviewInfo');
+        var amountBox = document.getElementById('poPreviewAmount');
+        var nameHeaderEl = document.getElementById('poPreviewNameHeader');
+        var ownerHeaderEl = document.getElementById('poPreviewOwnerHeader');
+        var dimLabelEl = document.getElementById('poPreviewDimensionLabel');
+        var countEl = document.getElementById('poPreviewCount');
+        var tbody = document.getElementById('poPreviewTbody');
+        var confirmBtn = document.getElementById('generatePoPreviewConfirmBtn');
+        if (!tbody) return;
         var dimLabel = poGenDimensionLabels[dim] || dim;
-        closeGeneratePoDimensionModal();
+        var totalLineCount = rows.reduce(function(sum, row) {
+            return sum + (Number(row.lineCount) || 0);
+        }, 0);
+        var totalPendingQty = rows.reduce(function(sum, row) {
+            return sum + (Number(row.pendingQtySum) || 0);
+        }, 0);
+        var totalPurchaseAmount = rows.reduce(function(sum, row) {
+            return sum + (Number(row.purchaseAmountSum) || 0);
+        }, 0);
+        var totalSalesAmount = rows.reduce(function(sum, row) {
+            return sum + (Number(row.salesAmountSum) || 0);
+        }, 0);
+        var totalProfit = totalPurchaseAmount - totalSalesAmount;
+        if (dimLabelEl) dimLabelEl.textContent = dimLabel;
+        if (countEl) countEl.textContent = String(rows.length);
+        if (nameHeaderEl) {
+            nameHeaderEl.textContent = dim === 'product'
+                ? '商品名称'
+                : (dim === 'store' ? '门店名称' : '采购单预览名称');
+        }
+        if (ownerHeaderEl) {
+            ownerHeaderEl.textContent = dim === 'product' || dim === 'store'
+                ? '供应商'
+                : '归属主体';
+        }
+        if (infoBox) {
+            infoBox.innerHTML = [
+                detailInfoItemHtml('生成维度', dimLabel),
+                detailInfoItemHtml('生成采购单', String(rows.length) + ' 单'),
+                detailInfoItemHtml('预览明细行数', String(totalLineCount))
+            ].join('');
+        }
+        if (amountBox) {
+            amountBox.innerHTML = [
+                detailInfoItemHtml('待采购量合计', formatQtyWithUnit(totalPendingQty, '件')),
+                detailInfoItemHtml('采购总价', formatMoney(totalPurchaseAmount)),
+                detailInfoItemHtml('销售总价', formatMoney(totalSalesAmount)),
+                detailInfoItemHtml('预估利润', formatMoney(totalProfit))
+            ].join('');
+        }
+        if (confirmBtn) confirmBtn.disabled = rows.length === 0;
+        if (!rows.length) {
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:#999;">暂无可生成采购单数据</td></tr>';
+            return;
+        }
+        tbody.innerHTML = rows.map(function(row) {
+            return '' +
+                '<tr data-row-key="' + escapeAttr(row.rowKey || '') + '">' +
+                '<td>' + escapeHtml(row.previewName) + '</td>' +
+                '<td>' + escapeHtml(row.ownerText) + '</td>' +
+                '<td>' + escapeHtml(row.receivingWarehouse || '-') + '</td>' +
+                '<td><input type="text" class="po-preview-edit-input" data-field="buyer" value="' + escapeAttr(row.buyer || '') + '"></td>' +
+                '<td>' + escapeHtml(String(row.lineCount)) + '</td>' +
+                '<td>' + escapeHtml(formatQtyWithUnit(row.pendingQtySum, row.qtyUnit)) + '</td>' +
+                '<td>' + escapeHtml(formatMoney(row.suggestedUnitPrice)) + '</td>' +
+                '<td><input type="number" class="po-preview-edit-input" data-field="actualUnitPrice" min="0" step="0.01" value="' + escapeAttr((Number(row.actualUnitPrice) || 0).toFixed(2)) + '"></td>' +
+                '<td>' + escapeHtml(formatMoney(row.purchaseAmountSum)) + '</td>' +
+                '<td>' + escapeHtml(formatMoney(row.salesAmountSum)) + '</td>' +
+                '<td><input type="number" class="po-preview-edit-input" data-field="prepaidAmount" min="0" step="0.01" value="' + escapeAttr((Number(row.prepaidAmount) || 0).toFixed(2)) + '"></td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    function renderPoPreview(dim, lines) {
+        var rows = clonePreviewRows(buildPoPreviewRows(dim, lines));
+        normalizePreviewRows(rows);
+        poPreviewRowsCache = rows;
+        renderPoPreviewFromRows(dim, poPreviewRowsCache);
+    }
+
+    function openGeneratePoPreviewModal(dim) {
+        pendingPoGenDimension = dim === 'store' ? 'store' : 'product';
+        renderPoPreview(pendingPoGenDimension, filteredLines);
+        var modal = document.getElementById('generatePoPreviewModal');
+        if (modal) modal.style.display = 'block';
+    }
+
+    function closeGeneratePoPreviewModal() {
+        var modal = document.getElementById('generatePoPreviewModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function confirmGeneratePurchaseOrderFromPreview() {
+        var dim = pendingPoGenDimension;
+        var dimLabel = poGenDimensionLabels[dim] || dim;
         var count = countPurchaseOrdersByGenDimension(dim, filteredLines);
+        closeGeneratePoPreviewModal();
         var msg = '已按「' + dimLabel + '」生成采购单，共' + String(count) + '单';
         if (typeof showToast === 'function') {
             showToast(msg, 'success');
         } else {
             alert(msg);
         }
+    }
+
+    function confirmGeneratePurchaseOrder() {
+        var dim = getSelectedPoGenDimension();
+        closeGeneratePoDimensionModal();
+        openGeneratePoPreviewModal(dim);
     }
 
     document.getElementById('summaryTbody').addEventListener('click', function(e) {
@@ -814,12 +1226,49 @@
             closeGeneratePoDimensionModal();
         }
     });
+    document.getElementById('generatePoPreviewCloseBtn').addEventListener('click', closeGeneratePoPreviewModal);
+    document.getElementById('generatePoPreviewCancelBtn').addEventListener('click', closeGeneratePoPreviewModal);
+    document.getElementById('generatePoPreviewConfirmBtn').addEventListener('click', confirmGeneratePurchaseOrderFromPreview);
+    document.getElementById('generatePoPreviewModal').addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'generatePoPreviewModal') {
+            closeGeneratePoPreviewModal();
+        }
+    });
+    document.getElementById('poPreviewTbody').addEventListener('change', function(e) {
+        var input = e.target;
+        if (!input || !input.classList.contains('po-preview-edit-input')) return;
+        var tr = input.closest('tr');
+        if (!tr) return;
+        var rowKey = tr.getAttribute('data-row-key') || '';
+        if (!rowKey) return;
+        var row = poPreviewRowsCache.find(function(item) {
+            return String(item.rowKey || '') === rowKey;
+        });
+        if (!row) return;
+        var field = input.getAttribute('data-field');
+        var rawValue = input.value;
+        if (field === 'buyer') {
+            row.buyer = String(rawValue || '').trim();
+        } else if (field === 'actualUnitPrice') {
+            var actual = Number(rawValue);
+            if (isNaN(actual) || actual < 0) actual = 0;
+            row.actualUnitPrice = actual;
+            row.purchaseAmountSum = (Number(row.pendingQtySum) || 0) * actual;
+        } else if (field === 'prepaidAmount') {
+            var prepaid = Number(rawValue);
+            if (isNaN(prepaid) || prepaid < 0) prepaid = 0;
+            row.prepaidAmount = prepaid;
+        }
+        normalizePreviewRows(poPreviewRowsCache);
+        renderPoPreviewFromRows(pendingPoGenDimension, poPreviewRowsCache);
+    });
 
     fillCategoryDropdown('searchSkuCategoryDropdown', collectAllCategoryPaths(SKU_CATEGORY_TREE));
     fillStoreDropdown();
 
     if (typeof initCustomSelect === 'function') {
         initCustomSelect('searchSkuSource', 'searchSkuSourceDropdown');
+        initCustomSelect('searchSupplier', 'searchSupplierDropdown');
         initCustomSelect('searchSkuCategory', 'searchSkuCategoryDropdown');
         initCustomSelect('searchStore', 'searchStoreDropdown');
         initCustomSelect('searchReceivingWarehouse', 'searchReceivingWarehouseDropdown');
