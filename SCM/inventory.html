@@ -121,6 +121,7 @@
                                 <th>容器</th>
                                 <th>供应商</th>
                                 <th>入库日期</th>
+                                <th>批次</th>
                                 <th>生产日期</th>
                                 <th>来源类型</th>
                                 <th>来源单号</th>
@@ -229,7 +230,10 @@
                     const tbody = document.querySelector('#tableBody');
                     tbody.innerHTML = '';
                     
-                    inventoryData.forEach(item => {
+                    inventoryData.forEach((item, index) => {
+                        const receiptDate = item.receiveDate || item.inDate || '';
+                        const receiptDatePlain = receiptDate.replace(/-/g, '');
+                        const batch = `${receiptDatePlain}-${String(index + 1).padStart(3, '0')}-${item.skuCode}`;
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
@@ -243,6 +247,7 @@
                             <td>${item.lpn}</td>
                             <td>${item.supplier}</td>
                             <td>${item.inDate}</td>
+                            <td>${batch}</td>
                             <td>${item.productionDate}</td>
                             <td>${item.sourceType}</td>
                             <td>${item.sourceOrder}</td>
@@ -299,7 +304,7 @@
                 // 使用PageManager简化页面逻辑
                 const page = new PageManager({
                     entityName: '库存',
-                    statusColumnIndex: 14,
+                    statusColumnIndex: 15,
                     
                     // 搜索区域下拉框
                     customSelects: [
