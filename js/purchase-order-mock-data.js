@@ -18,8 +18,8 @@
             createdAt: '2026-04-20 10:12:00',
             createdBy: '张敏',
             lines: [
-                { skuCode: 'SKU001', skuName: '红富士苹果', skuCategory: '生鲜 / 水果 / 仁果类', qtyUnit: '件', purchaseQty: 100, receivedQty: 0, suggestedUnitPrice: 5.2, actualUnitPrice: 5.0, purchaseAmount: 500, prepaidAmount: 100, lineRemark: '' },
-                { skuCode: 'SKU002', skuName: '香蕉', skuCategory: '生鲜 / 水果 / 浆果类', qtyUnit: '箱', purchaseQty: 50, receivedQty: 0, suggestedUnitPrice: 4.5, actualUnitPrice: 4.3, purchaseAmount: 215, prepaidAmount: 0, lineRemark: '按箱' }
+                { skuCode: 'SKU001', skuName: '红富士苹果', skuCategory: '生鲜 / 水果 / 仁果类', qtyUnit: '件', purchaseQty: 100, receivedQty: 0, suggestedUnitPrice: 5.2, actualUnitPrice: 5.0, saleUnitPrice: 4.2, purchaseAmount: 500, saleAmount: 420, prepaidAmount: 100, lineRemark: '' },
+                { skuCode: 'SKU002', skuName: '香蕉', skuCategory: '生鲜 / 水果 / 浆果类', qtyUnit: '箱', purchaseQty: 50, receivedQty: 0, suggestedUnitPrice: 4.5, actualUnitPrice: 4.3, saleUnitPrice: 4.0, purchaseAmount: 215, saleAmount: 200, prepaidAmount: 0, lineRemark: '按箱' }
             ]
         },
         {
@@ -34,7 +34,7 @@
             createdAt: '2026-04-20 15:30:22',
             createdBy: '李强',
             lines: [
-                { skuCode: 'SKU003', skuName: '脐橙', skuCategory: '生鲜 / 水果 / 柑橘类', qtyUnit: '箱', purchaseQty: 80, receivedQty: 45, suggestedUnitPrice: 6.8, actualUnitPrice: 6.5, purchaseAmount: 520, prepaidAmount: 150, lineRemark: '礼盒优先发' }
+                { skuCode: 'SKU003', skuName: '脐橙', skuCategory: '生鲜 / 水果 / 柑橘类', qtyUnit: '箱', purchaseQty: 80, receivedQty: 45, suggestedUnitPrice: 6.8, actualUnitPrice: 6.5, saleUnitPrice: 6.2, purchaseAmount: 520, saleAmount: 496, prepaidAmount: 150, lineRemark: '礼盒优先发' }
             ]
         },
         {
@@ -49,8 +49,8 @@
             createdAt: '2026-04-21 10:30:00',
             createdBy: '王华',
             lines: [
-                { skuCode: 'SKU001', skuName: '红富士苹果', skuCategory: '生鲜 / 水果 / 仁果类', qtyUnit: '件', purchaseQty: 60, receivedQty: 60, suggestedUnitPrice: 5.2, actualUnitPrice: 5.1, purchaseAmount: 306, prepaidAmount: 60, lineRemark: '' },
-                { skuCode: 'SKU004', skuName: '山东大蒜', skuCategory: '生鲜 / 蔬菜 / 根茎类', qtyUnit: '斤', purchaseQty: 200, receivedQty: 200, suggestedUnitPrice: 3.0, actualUnitPrice: 2.95, purchaseAmount: 590, prepaidAmount: 200, lineRemark: '净重计价' }
+                { skuCode: 'SKU001', skuName: '红富士苹果', skuCategory: '生鲜 / 水果 / 仁果类', qtyUnit: '件', purchaseQty: 60, receivedQty: 60, suggestedUnitPrice: 5.2, actualUnitPrice: 5.1, saleUnitPrice: 4.8, purchaseAmount: 306, saleAmount: 288, prepaidAmount: 60, lineRemark: '' },
+                { skuCode: 'SKU004', skuName: '山东大蒜', skuCategory: '生鲜 / 蔬菜 / 根茎类', qtyUnit: '斤', purchaseQty: 200, receivedQty: 200, suggestedUnitPrice: 3.0, actualUnitPrice: 2.95, saleUnitPrice: 2.8, purchaseAmount: 590, saleAmount: 560, prepaidAmount: 200, lineRemark: '净重计价' }
             ]
         },
         {
@@ -65,7 +65,7 @@
             createdAt: '2026-04-21 14:00:18',
             createdBy: '赵刚',
             lines: [
-                { skuCode: 'SKU005', skuName: '精品番茄', skuCategory: '生鲜 / 蔬菜 / 茄果类', qtyUnit: '件', purchaseQty: 40, receivedQty: 0, suggestedUnitPrice: 8.0, actualUnitPrice: 7.8, purchaseAmount: 312, prepaidAmount: 0, lineRemark: '' }
+                { skuCode: 'SKU005', skuName: '精品番茄', skuCategory: '生鲜 / 蔬菜 / 茄果类', qtyUnit: '件', purchaseQty: 40, receivedQty: 0, suggestedUnitPrice: 8.0, actualUnitPrice: 7.8, saleUnitPrice: 7.2, purchaseAmount: 312, saleAmount: 288, prepaidAmount: 0, lineRemark: '' }
             ]
         },
         {
@@ -80,7 +80,7 @@
             createdAt: '2026-04-22 09:00:45',
             createdBy: '刘洋',
             lines: [
-                { skuCode: 'SKU002', skuName: '香蕉', skuCategory: '生鲜 / 水果 / 浆果类', qtyUnit: '件', purchaseQty: 120, receivedQty: 0, suggestedUnitPrice: 4.5, actualUnitPrice: 4.5, purchaseAmount: 540, prepaidAmount: 100, lineRemark: '冷链车' }
+                { skuCode: 'SKU002', skuName: '香蕉', skuCategory: '生鲜 / 水果 / 浆果类', qtyUnit: '件', purchaseQty: 120, receivedQty: 0, suggestedUnitPrice: 4.5, actualUnitPrice: 4.5, saleUnitPrice: 4.2, purchaseAmount: 540, saleAmount: 504, prepaidAmount: 100, lineRemark: '冷链车' }
             ]
         },
         {
@@ -95,8 +95,8 @@
             createdAt: '2026-04-22 11:05:00',
             createdBy: '陈晨',
             lines: [
-                { skuCode: 'SKU001', skuName: '红富士苹果', skuCategory: '生鲜 / 水果 / 仁果类', qtyUnit: '件', purchaseQty: 90, receivedQty: 90, suggestedUnitPrice: 5.2, actualUnitPrice: 5.0, purchaseAmount: 450, prepaidAmount: 0, lineRemark: '' },
-                { skuCode: 'SKU003', skuName: '脐橙', skuCategory: '生鲜 / 水果 / 柑橘类', qtyUnit: '箱', purchaseQty: 70, receivedQty: 20, suggestedUnitPrice: 6.8, actualUnitPrice: 6.6, purchaseAmount: 462, prepaidAmount: 100, lineRemark: '第二批待收' }
+                { skuCode: 'SKU001', skuName: '红富士苹果', skuCategory: '生鲜 / 水果 / 仁果类', qtyUnit: '件', purchaseQty: 90, receivedQty: 90, suggestedUnitPrice: 5.2, actualUnitPrice: 5.0, saleUnitPrice: 4.8, purchaseAmount: 450, saleAmount: 432, prepaidAmount: 0, lineRemark: '' },
+                { skuCode: 'SKU003', skuName: '脐橙', skuCategory: '生鲜 / 水果 / 柑橘类', qtyUnit: '箱', purchaseQty: 70, receivedQty: 20, suggestedUnitPrice: 6.8, actualUnitPrice: 6.6, saleUnitPrice: 6.4, purchaseAmount: 462, saleAmount: 448, prepaidAmount: 100, lineRemark: '第二批待收' }
             ]
         },
         {
@@ -111,7 +111,7 @@
             createdAt: '2026-04-23 08:15:30',
             createdBy: '张敏',
             lines: [
-                { skuCode: 'SKU006', skuName: '精品黄瓜', skuCategory: '生鲜 / 蔬菜 / 叶菜类', qtyUnit: '斤', purchaseQty: 150, receivedQty: 150, suggestedUnitPrice: 2.2, actualUnitPrice: 2.1, purchaseAmount: 315, prepaidAmount: 50, lineRemark: '' }
+                { skuCode: 'SKU006', skuName: '精品黄瓜', skuCategory: '生鲜 / 蔬菜 / 叶菜类', qtyUnit: '斤', purchaseQty: 150, receivedQty: 150, suggestedUnitPrice: 2.2, actualUnitPrice: 2.1, saleUnitPrice: 2.0, purchaseAmount: 315, saleAmount: 300, prepaidAmount: 50, lineRemark: '' }
             ]
         },
         {
@@ -126,7 +126,7 @@
             createdAt: '2026-04-23 16:20:00',
             createdBy: '李强',
             lines: [
-                { skuCode: 'SKU007', skuName: '进口车厘子', skuCategory: '生鲜 / 水果 / 浆果类', qtyUnit: '箱', purchaseQty: 30, receivedQty: 0, suggestedUnitPrice: 88, actualUnitPrice: 85, purchaseAmount: 2550, prepaidAmount: 500, lineRemark: 'J级' }
+                { skuCode: 'SKU007', skuName: '进口车厘子', skuCategory: '生鲜 / 水果 / 浆果类', qtyUnit: '箱', purchaseQty: 30, receivedQty: 0, suggestedUnitPrice: 88, actualUnitPrice: 85, saleUnitPrice: 80, purchaseAmount: 2550, saleAmount: 2400, prepaidAmount: 500, lineRemark: 'J级' }
             ]
         }
     ];
