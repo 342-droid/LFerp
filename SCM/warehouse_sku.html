@@ -30,6 +30,48 @@
         #skuDetailModal #specTable td {
             font-size: 13px;
         }
+        #skuDetailModal .detail-tabs {
+            display: flex;
+            width: 100%;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e8e8e8;
+            box-sizing: border-box;
+        }
+        #skuDetailModal .detail-tab-btn {
+            flex: 1 1 0;
+            min-width: 0;
+            text-align: center;
+            padding: 6px 4px 10px;
+            margin-bottom: -1px;
+            font-size: 13px;
+            color: #666;
+            text-decoration: none;
+            cursor: pointer;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        #skuDetailModal .detail-tab-btn:hover {
+            color: #333;
+        }
+        #skuDetailModal .detail-tab-btn.active {
+            font-weight: 600;
+            color: #333;
+            border-bottom-color: #333;
+        }
+        #skuDetailModal .detail-tab-btn.active:hover {
+            color: #333;
+        }
+        #skuDetailModal .detail-tab-panel {
+            display: none;
+        }
+        #skuDetailModal .detail-tab-panel.active {
+            display: block;
+        }
+        #skuDetailModal .rule-form .modal-form-group {
+            width: calc(33.33% - 10px);
+        }
     </style>
 </head>
 <body>
@@ -269,37 +311,60 @@
             <!-- 分割线 -->
             <hr style="width: 100%; border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
             
-            <!-- 商品规格信息 - 列表形式 -->
-            <div class="spec-section">
-                <div class="spec-title" style="font-weight: bold; color: #333; margin-bottom: 10px;">商品规格信息</div>
-                <table class="table no-last-column-freeze" id="specTable">
-                    <thead>
-                        <tr>
-                            <th>规格单位</th>
-                            <th>包装数量</th>
-                            <th>长</th>
-                            <th>宽</th>
-                            <th>高</th>
-                            <th>体积</th>
-                            <th>毛重</th>
-                            <th>皮重</th>
-                            <th>净重</th>
-                        </tr>
-                    </thead>
-                    <tbody id="specTableBody">
-                        <tr>
-                            <td id="detailPackUnit">-</td>
-                            <td id="detailPackQty">-</td>
-                            <td id="detailLength">-</td>
-                            <td id="detailWidth">-</td>
-                            <td id="detailHeight">-</td>
-                            <td id="detailVolume">-</td>
-                            <td id="detailGrossWeight">-</td>
-                            <td id="detailTareWeight">-</td>
-                            <td id="detailNetWeight">-</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <!-- 商品规格信息 / 商品仓库规则 - 页签 -->
+            <div class="detail-tabs" id="detailTabs">
+                <button type="button" class="detail-tab-btn active" data-tab="spec">商品规格信息</button>
+                <button type="button" class="detail-tab-btn" data-tab="rule">商品仓库规则</button>
+            </div>
+            <div class="detail-tab-panel active" id="detailTabSpec">
+                <div class="spec-section">
+                    <table class="table no-last-column-freeze" id="specTable">
+                        <thead>
+                            <tr>
+                                <th>规格单位</th>
+                                <th>长</th>
+                                <th>宽</th>
+                                <th>高</th>
+                                <th>体积</th>
+                                <th>毛重</th>
+                                <th>皮重</th>
+                                <th>净重</th>
+                            </tr>
+                        </thead>
+                        <tbody id="specTableBody">
+                            <tr>
+                                <td id="detailPackUnit">-</td>
+                                <td id="detailLength">-</td>
+                                <td id="detailWidth">-</td>
+                                <td id="detailHeight">-</td>
+                                <td id="detailVolume">-</td>
+                                <td id="detailGrossWeight">-</td>
+                                <td id="detailTareWeight">-</td>
+                                <td id="detailNetWeight">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="detail-tab-panel" id="detailTabRule">
+                <form class="modal-form rule-form" style="gap: 15px;">
+                    <div class="modal-form-group">
+                        <label>商品上限量</label>
+                        <input type="text" id="detailSkuUpperLimit" placeholder="请输入">
+                    </div>
+                    <div class="modal-form-group">
+                        <label>商品下限量</label>
+                        <input type="text" id="detailSkuLowerLimit" placeholder="请输入">
+                    </div>
+                    <div class="modal-form-group">
+                        <label>默认拣选面</label>
+                        <select id="detailDefaultPickFace">
+                            <option value="">请选择</option>
+                            <option value="JX01-拣选位">JX01-拣选位</option>
+                            <option value="CC01-存储位">CC01-存储位</option>
+                        </select>
+                    </div>
+                </form>
             </div>
             
             <div class="modal-footer">
@@ -321,41 +386,55 @@
                 warehouse: 'W001-南京仓', owner: 'Y001-南京货主', skuCode: 'SKU001', barcode: '6901234567890',
                 skuName: '冷冻牛肉卷', category: '食品/肉类/冷冻肉类',
                 unit: 'kg', shelfLife: '180', storageCondition: '冷冻', isWeighed: '是',
-                packSpec: '1*10', packUnit: '箱', packQty: '10',
+                skuUpperLimit: '500', skuLowerLimit: '80', defaultPickFace: 'JX01-拣选位',
+                packSpec: '1*10', packUnit: '箱',
                 length: '30', width: '20', height: '15', volume: '0.009', grossWeight: '10.5', tareWeight: '0.5', netWeight: '10'
             },
             'SKU002': {
                 warehouse: 'W001-南京仓', owner: 'Y002-北京货主', skuCode: 'SKU002', barcode: '6901234567891',
                 skuName: '冷藏酸奶', category: '食品/乳制品/乳制品',
                 unit: '盒', shelfLife: '21', storageCondition: '冷藏', isWeighed: '否',
-                packSpec: '1*24', packUnit: '箱', packQty: '24',
+                skuUpperLimit: '800', skuLowerLimit: '100', defaultPickFace: 'CC01-存储位',
+                packSpec: '1*24', packUnit: '箱',
                 length: '40', width: '30', height: '20', volume: '0.024', grossWeight: '6', tareWeight: '0.5', netWeight: '5.5'
             },
             'SKU003': {
                 warehouse: 'W003-上海仓', owner: 'Y003-上海货主', skuCode: 'SKU003', barcode: '6901234567892',
                 skuName: '速冻水饺', category: '食品/速冻食品/速冻食品',
                 unit: '袋', shelfLife: '365', storageCondition: '冷冻', isWeighed: '否',
-                packSpec: '1*20', packUnit: '箱', packQty: '20',
+                skuUpperLimit: '300', skuLowerLimit: '40', defaultPickFace: 'JX01-拣选位',
+                packSpec: '1*20', packUnit: '箱',
                 length: '50', width: '40', height: '30', volume: '0.06', grossWeight: '12', tareWeight: '1', netWeight: '11'
             },
             'SKU004': {
                 warehouse: 'W004-北京仓', owner: 'Y004-广州货主', skuCode: 'SKU004', barcode: '6901234567893',
                 skuName: '常温饼干', category: '食品/休闲食品/休闲食品',
                 unit: '包', shelfLife: '270', storageCondition: '常温', isWeighed: '否',
-                packSpec: '1*12', packUnit: '箱', packQty: '12',
+                skuUpperLimit: '1200', skuLowerLimit: '150', defaultPickFace: 'CC01-存储位',
+                packSpec: '1*12', packUnit: '箱',
                 length: '35', width: '25', height: '20', volume: '0.0175', grossWeight: '4', tareWeight: '0.4', netWeight: '3.6'
             },
             'SKU005': {
                 warehouse: 'W002-嘉兴仓', owner: 'Y005-深圳货主', skuCode: 'SKU005', barcode: '6901234567894',
                 skuName: '冷藏鲜奶', category: '食品/乳制品/乳制品',
                 unit: '瓶', shelfLife: '7', storageCondition: '冷藏', isWeighed: '否',
-                packSpec: '1*12', packUnit: '箱', packQty: '12',
+                skuUpperLimit: '650', skuLowerLimit: '60', defaultPickFace: 'JX01-拣选位',
+                packSpec: '1*12', packUnit: '箱',
                 length: '30', width: '25', height: '25', volume: '0.01875', grossWeight: '13', tareWeight: '1', netWeight: '12'
             }
         };
 
+        function setDetailTab(tab) {
+            const targetTab = tab === 'rule' ? 'rule' : 'spec';
+            document.querySelectorAll('#detailTabs .detail-tab-btn').forEach((button) => {
+                button.classList.toggle('active', button.dataset.tab === targetTab);
+            });
+            document.getElementById('detailTabSpec').classList.toggle('active', targetTab === 'spec');
+            document.getElementById('detailTabRule').classList.toggle('active', targetTab === 'rule');
+        }
+
         // 打开详情弹窗
-        function openDetailModal(skuCode) {
+        function openDetailModal(skuCode, defaultTab = 'spec') {
             const detail = skuDetails[skuCode];
             if (detail) {
                 document.getElementById('detailWarehouse').value = detail.warehouse;
@@ -369,7 +448,6 @@
                 document.getElementById('detailStorageCondition').value = detail.storageCondition;
                 document.getElementById('detailIsWeighed').value = detail.isWeighed;
                 document.getElementById('detailPackUnit').textContent = detail.packUnit;
-                document.getElementById('detailPackQty').textContent = detail.packQty;
                 document.getElementById('detailLength').textContent = detail.length;
                 document.getElementById('detailWidth').textContent = detail.width;
                 document.getElementById('detailHeight').textContent = detail.height;
@@ -377,6 +455,10 @@
                 document.getElementById('detailGrossWeight').textContent = detail.grossWeight;
                 document.getElementById('detailTareWeight').textContent = detail.tareWeight;
                 document.getElementById('detailNetWeight').textContent = detail.netWeight;
+                document.getElementById('detailSkuUpperLimit').value = detail.skuUpperLimit || '';
+                document.getElementById('detailSkuLowerLimit').value = detail.skuLowerLimit || '';
+                document.getElementById('detailDefaultPickFace').value = detail.defaultPickFace || '';
+                setDetailTab(defaultTab);
                 document.getElementById('skuDetailModal').style.display = 'block';
             }
         }
@@ -412,6 +494,11 @@
             const skuDetailModal = document.getElementById('skuDetailModal');
             const detailCloseBtn = document.getElementById('detailCloseBtn');
             const detailCancelBtn = document.getElementById('detailCancelBtn');
+            document.querySelectorAll('#detailTabs .detail-tab-btn').forEach((button) => {
+                button.addEventListener('click', () => {
+                    setDetailTab(button.dataset.tab);
+                });
+            });
             
             function closeDetailModal() {
                 skuDetailModal.style.display = 'none';
@@ -433,7 +520,9 @@
                 const editBtn = e.target.closest('.edit-btn');
                 if (editBtn) {
                     e.preventDefault();
-                    showToast('编辑功能开发中', 'info');
+                    const row = editBtn.closest('tr');
+                    const skuCode = row.querySelectorAll('td')[1].textContent.trim();
+                    openDetailModal(skuCode, 'rule');
                 }
             });
         });
