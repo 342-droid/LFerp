@@ -1770,6 +1770,21 @@
             else normalBoxQtyInput.focus();
         }
 
+        function saveSingleStationConsumables(stationGroup, validatedValues) {
+            if (!stationGroup || !validatedValues || !validatedValues.ok) return;
+            const key = String(stationGroup.stationNo);
+            const byStation = {
+                ...((dispatchTask.consumables && dispatchTask.consumables.byStation) || {})
+            };
+            byStation[key] = {
+                stationName: stationGroup.stationName,
+                normalBoxQty: validatedValues.normalVal,
+                insulatedBoxQty: validatedValues.insulatedVal,
+                palletQty: validatedValues.palletVal
+            };
+            dispatchTask.consumables.byStation = byStation;
+        }
+
         function bindConsumableInputSelectAll(inputEl) {
             if (!inputEl) return;
             inputEl.addEventListener('focus', () => {
@@ -1796,6 +1811,7 @@
                 focusConsumableField(vr.field);
                 return;
             }
+            saveSingleStationConsumables(g, vr);
             if (consumableModalIndex < consumableModalGroups.length - 1) {
                 showToast('提交成功');
                 consumableModalIndex += 1;
@@ -1874,6 +1890,7 @@
 
         function closeConsumableModal() {
             consumableModal.classList.remove('active');
+            renderLoadedPackagesList();
         }
 
         function submitDispatchShipment() {
