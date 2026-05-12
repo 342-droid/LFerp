@@ -39,9 +39,12 @@
                 bank_name: String(cardInfo.bank_name || '').trim(),
                 bank_branch: String(cardInfo.bank_branch || '').trim()
             },
+            license_info: r.license_info || {},
+            legal_info: r.legal_info || {},
             license_pic: String(r.license_pic || '').trim(),
             legal_cert_front_pic: String(r.legal_cert_front_pic || '').trim(),
             legal_cert_back_pic: String(r.legal_cert_back_pic || '').trim(),
+            open_license_pic: String(r.open_license_pic || '').trim(),
             store_header_pic: String(r.store_header_pic || '').trim(),
             store_indoor_pic: String(r.store_indoor_pic || '').trim(),
             store_cashier_desk_pic: String(r.store_cashier_desk_pic || '').trim()
@@ -84,6 +87,9 @@
                 contact_mobile_no: contactMobile.trim(),
                 legal_mobile_no: '',
                 contact_email: '',
+                open_license_pic: '',
+                license_info: {},
+                legal_info: {},
                 store_header_pic: options.storeHeaderPic || '',
                 card_info: {}
             };

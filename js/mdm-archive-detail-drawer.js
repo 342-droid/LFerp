@@ -274,6 +274,8 @@
         var ext = rec.ext || {};
         var f = summary.fields || {};
         var card = f.card_info || {};
+        var lic = f.license_info || {};
+        var legal = f.legal_info || {};
         var auditStatus = summary.auditStatus || onboardStatusText(summary.status);
         var node = summary.nextAuditNode || rec.nextAuditNode || '';
 
@@ -366,45 +368,36 @@
         ]);
         appendSection('执照信息', [
             ['营业执照', f.license_pic, 'image'],
-            ['营业执照名称', rec.regName || ext.regName || '—'],
-            ['注册号/统一信用代码', rec.licenseCode || ext.licenseCode || '—'],
-            ['公司类型', rec.entType || ext.entType || '—'],
-            ['成立日期', rec.foundDate || ext.foundDate || '—'],
-            ['执照有效期', (rec.licenseBeginDate || ext.licenseBeginDate || '—') + ' ~ ' + (rec.licenseEndDate || ext.licenseEndDate || '—')],
-            ['注册地址', rec.regDetail || ext.regDetail || '—'],
-            ['实际经营地址', f.detail_addr || '—']
+            ['营业执照名称', lic.name || rec.regName || ext.regName || '—'],
+            ['证件代码', lic.code || rec.licenseCode || ext.licenseCode || '—'],
+            ['执照起始日期', lic.start_date || rec.licenseBeginDate || ext.licenseBeginDate || '—'],
+            ['执照有效期', lic.valid_date || rec.licenseEndDate || ext.licenseEndDate || '—'],
+            ['注册地址', lic.address || rec.regDetail || ext.regDetail || '—']
         ]);
-        appendSection('法人信息', [
-            ['法人姓名', rec.legalName || ext.legalName || '—'],
-            ['法人手机号', f.legal_mobile_no || '—'],
-            ['证件类型', rec.legalCertType || ext.legalCertType || '—'],
-            ['身份证号', maskMiddle(rec.legalIdNo || ext.legalIdNo)],
-            ['证件有效期', (rec.legalCertBeginDate || ext.legalCertBeginDate || '—') + ' ~ ' + (rec.legalCertEndDate || ext.legalCertEndDate || '—')],
-            ['身份证地址', rec.legalAddr || ext.legalAddr || '—'],
+        appendSection('法人基本信息', [
             ['身份证人像面', f.legal_cert_front_pic, 'image'],
-            ['身份证国徽面', f.legal_cert_back_pic, 'image']
+            ['身份证国徽面', f.legal_cert_back_pic, 'image'],
+            ['法人姓名', legal.legal_name || rec.legalName || ext.legalName || '—'],
+            ['身份证号', legal.id_no || maskMiddle(rec.legalIdNo || ext.legalIdNo)],
+            ['身份证起始日期', legal.id_start_date || rec.legalCertBeginDate || ext.legalCertBeginDate || '—'],
+            ['身份证有效期', legal.id_valid_date || rec.legalCertEndDate || ext.legalCertEndDate || '—']
         ]);
-        appendSection('经营信息', [
+        appendSection('商户信息', [
             ['商户简称', f.short_name || '—'],
             ['小票名称', f.receipt_name || '—'],
-            ['场景类型', rec.sceneType || ext.sceneType || '—'],
-            ['经营类型', rec.businessType || ext.businessType || '—']
-        ]);
-        appendSection('联系人信息', [
-            ['管理员姓名', rec.contactName || ext.contactName || '—'],
+            ['实际经营地址', f.detail_addr || '—'],
+            ['法人手机号', f.legal_mobile_no || '—'],
             ['管理员手机号', f.contact_mobile_no || m.contactMobile || '—'],
-            ['管理员邮箱', f.contact_email || '—'],
-            ['登录账号', rec.loginName || ext.loginName || '—']
+            ['管理员邮箱', f.contact_email || '—']
         ]);
         appendSection('结算信息', [
+            ['开户许可证', f.open_license_pic || rec.openLicencePic || ext.openLicencePic || '', 'image'],
             ['开户名/结算户名', card.account_name || '—'],
             ['银行账号', maskBank(card.card_no)],
             ['开户银行', card.bank_name || '—'],
-            ['开户支行', card.bank_branch || '—'],
-            ['开户许可证', rec.openLicencePic || ext.openLicencePic || '', 'image'],
-            ['开户许可证核准号', rec.openLicenceNo || ext.openLicenceNo || '—']
+            ['开户支行', card.bank_branch || '—']
         ]);
-        appendSection('经营场地信息', [
+        appendSection('门店场地', [
             ['经营场所名称', m.merchantName || rec.placeName || ext.placeName || '—'],
             ['门头/场地照', f.store_header_pic, 'image'],
             ['内景/工作区域照', f.store_indoor_pic, 'image'],
@@ -489,9 +482,12 @@
                 bank_name: '',
                 bank_branch: ''
             },
+            license_info: {},
+            legal_info: {},
             license_pic: '',
             legal_cert_front_pic: '',
             legal_cert_back_pic: '',
+            open_license_pic: '',
             store_header_pic: '档案门头照',
             store_indoor_pic: '',
             store_cashier_desk_pic: ''
@@ -512,9 +508,12 @@
                 bank_name: '',
                 bank_branch: ''
             },
+            license_info: {},
+            legal_info: {},
             license_pic: '',
             legal_cert_front_pic: '',
             legal_cert_back_pic: '',
+            open_license_pic: '',
             store_header_pic: '',
             store_indoor_pic: '',
             store_cashier_desk_pic: ''
@@ -546,6 +545,8 @@
 
     function firstMissingOnboardingField(fields) {
         var f = fields || {};
+        var lic = f.license_info || {};
+        var legal = f.legal_info || {};
         var checks = [
             { key: 'short_name', label: '商户简称' },
             { key: 'receipt_name', label: '小票名称' },
@@ -554,16 +555,27 @@
             { key: 'contact_mobile_no', label: '管理员手机号' },
             { key: 'contact_email', label: '管理员邮箱' },
             { key: 'license_pic', label: '营业执照(F07)' },
+            { key: 'name', label: '营业执照名称', bucket: lic },
+            { key: 'code', label: '证件代码', bucket: lic },
+            { key: 'start_date', label: '执照起始日期', bucket: lic },
+            { key: 'valid_date', label: '执照有效期', bucket: lic },
+            { key: 'address', label: '注册地址', bucket: lic },
             { key: 'legal_cert_front_pic', label: '法人身份证人像面(F02)' },
             { key: 'legal_cert_back_pic', label: '法人身份证国徽面(F03)' },
+            { key: 'legal_name', label: '法人姓名', bucket: legal },
+            { key: 'id_no', label: '身份证号', bucket: legal },
+            { key: 'id_start_date', label: '身份证起始日期', bucket: legal },
+            { key: 'id_valid_date', label: '身份证有效期', bucket: legal },
+            { key: 'open_license_pic', label: '开户许可证' },
             { key: 'store_header_pic', label: '门头/场地照(F22)' },
             { key: 'store_indoor_pic', label: '内景/工作区域照(F24)' },
             { key: 'store_cashier_desk_pic', label: '收银台/前台照(F105)' }
         ];
         var i;
         for (i = 0; i < checks.length; i++) {
-            var val = f[checks[i].key];
-            if (!val || !String(val).trim()) return checks[i].label;
+            var check = checks[i];
+            var val = check.bucket ? check.bucket[check.key] : f[check.key];
+            if (!val || !String(val).trim()) return check.label;
         }
         var card = f.card_info || {};
         if (!card.account_name || !String(card.account_name).trim()) return '银行卡户名';
@@ -688,6 +700,8 @@
     function onboardingDetailCells(fields) {
         var f = fields || {};
         var card = f.card_info || {};
+        var lic = f.license_info || {};
+        var legal = f.legal_info || {};
         return [
             detailCell('商户简称', f.short_name || '—'),
             detailCell('小票名称', f.receipt_name || '—'),
@@ -697,8 +711,18 @@
             detailCell('管理员邮箱', f.contact_email || '—'),
             detailCell('银行卡信息配置', cardInfoText(card)),
             detailCell('营业执照(F07)', f.license_pic ? '已上传' : '待上传'),
+            detailCell('营业执照名称', lic.name || '—'),
+            detailCell('证件代码', lic.code || '—'),
+            detailCell('执照起始日期', lic.start_date || '—'),
+            detailCell('执照有效期', lic.valid_date || '—'),
+            detailCell('注册地址', lic.address || '—'),
             detailCell('法人身份证人像面(F02)', f.legal_cert_front_pic ? '已上传' : '待上传'),
             detailCell('法人身份证国徽面(F03)', f.legal_cert_back_pic ? '已上传' : '待上传'),
+            detailCell('法人姓名', legal.legal_name || '—'),
+            detailCell('身份证号', legal.id_no || '—'),
+            detailCell('身份证起始日期', legal.id_start_date || '—'),
+            detailCell('身份证有效期', legal.id_valid_date || '—'),
+            detailCell('开户许可证', f.open_license_pic ? '已上传' : '待上传'),
             detailCell('门头/场地照(F22)', f.store_header_pic ? '已上传' : '待上传'),
             detailCell('内景/工作区域照(F24)', f.store_indoor_pic ? '已上传' : '待上传'),
             detailCell('收银台/前台照(F105)', f.store_cashier_desk_pic ? '已上传' : '待上传')
