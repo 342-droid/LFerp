@@ -474,16 +474,23 @@
             background-color: #ffffff;
             border: 1px solid #e3e6ea;
             border-radius: 2px;
-            padding: 12px 56px 12px 12px;
+            padding: 12px 88px 12px 12px;
             font-size: 13px;
             line-height: 1.6;
             color: #333333;
         }
 
-        .loaded-package-unload {
+        .loaded-package-actions {
             position: absolute;
             top: 8px;
             right: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-end;
+        }
+
+        .loaded-package-unload {
             border: 1px solid #ef9a9a;
             color: #c62828;
             background-color: #ffffff;
@@ -496,6 +503,42 @@
 
         .loaded-package-unload:active {
             opacity: 0.85;
+        }
+
+        .loaded-package-consumable {
+            border: 1px solid #90caf9;
+            color: #1565c0;
+            background-color: #ffffff;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            line-height: 1.3;
+        }
+
+        .loaded-package-consumable:active {
+            opacity: 0.85;
+        }
+
+        .loaded-package-consumable-note {
+            border: 1px solid #d6dbe3;
+            color: #9aa3af;
+            background-color: #f8fafc;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            line-height: 1.3;
+            cursor: default;
+        }
+
+        .loaded-package-item .lp-value-consumable {
+            color: #2e7d32;
+            font-weight: 500;
+        }
+
+        .loaded-package-item .lp-value-consumable--empty {
+            color: #999999;
+            font-weight: 400;
         }
 
         .loaded-package-item .lp-row {
@@ -971,7 +1014,7 @@
                     </button>
                     <span class="dispatch-bar-count" id="loadedPackageCountLabel">包裹数: 0</span>
                 </div>
-                <button type="button" class="dispatch-bar-ship" id="shipBtn" onclick="openConsumableModal()" disabled>发货</button>
+                <button type="button" class="dispatch-bar-ship" id="shipBtn" onclick="submitDispatchShipment()" disabled>发货</button>
             </div>
         </div>
 
@@ -1341,6 +1384,7 @@
                 return;
             }
             const toRemoveIds = [];
+            const loadedStationNoSet = new Set();
             let fail = 0;
             ids.forEach((id) => {
                 const p = pendingPackagesSource.find((x) => x.id === id);
@@ -1348,6 +1392,7 @@
                 const line = findDispatchLineForPending(p);
                 if (line) {
                     line.loaded = true;
+                    loadedStationNoSet.add(String(line.stationNo));
                     toRemoveIds.push(id);
                 } else {
                     fail++;
@@ -1358,6 +1403,8 @@
                 return;
             }
             pendingPackagesSource = pendingPackagesSource.filter((x) => toRemoveIds.indexOf(x.id) === -1);
+            const loadedStationNos = Array.from(loadedStationNoSet);
+            clearConsumablesForStations(loadedStationNos);
             toRemoveIds.forEach((id) => {
                 delete pendingSelected[id];
             });
@@ -1371,9 +1418,9 @@
             } else {
                 showToast('装载成功 ' + ok + ' 件');
             }
-            const allLoaded = dispatchTask.lines.length > 0 && dispatchTask.lines.every((l) => l.loaded);
-            if (allLoaded && ok) {
-                showToast('装载完成，请点击发货');
+            if (ok) {
+                showToast('装载成功，请录入耗材');
+                setTimeout(() => openConsumableModal(loadedStationNos), 120);
             }
         }
 
@@ -1388,6 +1435,28 @@
                 const combined = formatStationNoDashName(line.stationNo, line.stationName).toLowerCase();
                 return sn.includes(q) || snm.includes(q) || combined.includes(q);
             });
+        }
+
+        function getConsumableSummaryByStation(stationNo) {
+            const byStation = (dispatchTask.consumables && dispatchTask.consumables.byStation) || {};
+            const data = byStation[String(stationNo)];
+            if (!data) {
+                return {
+                    text: '未录入',
+                    empty: true
+                };
+            }
+            const normal = Number(data.normalBoxQty) || 0;
+            const insulated = Number(data.insulatedBoxQty) || 0;
+            const pallet = Number(data.palletQty) || 0;
+            const parts = [];
+            if (normal > 0) parts.push('常温框 ' + String(normal));
+            if (insulated > 0) parts.push('保温箱 ' + String(insulated));
+            if (pallet > 0) parts.push('托盘 ' + String(pallet));
+            return {
+                text: parts.length ? parts.join('，') : '无',
+                empty: false
+            };
         }
 
         function renderLoadedPackagesList() {
@@ -1408,13 +1477,30 @@
                 return;
             }
             emptyEl.style.display = 'none';
+            const stationFirstCardRendered = new Set();
             listEl.innerHTML = loaded.map((line) => (
-                '<li class="loaded-package-item">'
+                (() => {
+                    const stationKey = String(line.stationNo);
+                    const isFirstCardForStation = !stationFirstCardRendered.has(stationKey);
+                    if (isFirstCardForStation) {
+                        stationFirstCardRendered.add(stationKey);
+                    }
+                    const consumableSummary = getConsumableSummaryByStation(line.stationNo);
+                    return '<li class="loaded-package-item">'
+                + '<div class="loaded-package-actions">'
                 + '<button type="button" class="loaded-package-unload" data-station-no="' + escapeHtml(line.stationNo) + '" data-package-no="' + escapeHtml(line.packageNo) + '">卸载</button>'
+                + (isFirstCardForStation
+                    ? '<button type="button" class="loaded-package-consumable" data-station-no="' + escapeHtml(line.stationNo) + '">' + (consumableSummary.empty ? '录入耗材' : '修改耗材') + '</button>'
+                    : '<span class="loaded-package-consumable-note">同分站在上方修改</span>')
+                + '</div>'
                 + '<div class="lp-row"><span class="lp-label">分站</span><span class="lp-value">' + escapeHtml(formatStationNoDashName(line.stationNo, line.stationName)) + '</span></div>'
                 + '<div class="lp-row"><span class="lp-label">包裹号</span><span class="lp-value">' + escapeHtml(line.packageNo) + '</span></div>'
                 + '<div class="lp-row"><span class="lp-label">线路</span><span class="lp-value lp-value-route">' + escapeHtml(line.route || '--') + '</span></div>'
-                + '</li>'
+                + (isFirstCardForStation
+                    ? '<div class="lp-row"><span class="lp-label">耗材</span><span class="lp-value lp-value-consumable ' + (consumableSummary.empty ? 'lp-value-consumable--empty' : '') + '">' + escapeHtml(consumableSummary.text) + '</span></div>'
+                    : '')
+                + '</li>';
+                })()
             )).join('');
         }
 
@@ -1426,9 +1512,15 @@
                 return;
             }
             line.loaded = false;
+            clearConsumablesForStations([line.stationNo]);
             renderLoadedPackagesList();
             updateDispatchProgress();
             showToast('已取消装载');
+        }
+
+        function openConsumableEditorForStation(stationNo) {
+            if (!stationNo) return;
+            openConsumableModal([stationNo]);
         }
 
         function openLoadedPackagesPage() {
@@ -1499,6 +1591,33 @@
             document.getElementById('executeVehicleType').textContent = dispatchTask.vehicleType || '--';
         }
 
+        function hasValidConsumablesForCurrentLoadedStations() {
+            const groups = buildConsumableStationGroups();
+            if (!groups.length) return false;
+            const byStation = (dispatchTask.consumables && dispatchTask.consumables.byStation) || {};
+            for (let i = 0; i < groups.length; i++) {
+                const g = groups[i];
+                const key = String(g.stationNo);
+                const saved = byStation[key];
+                if (!saved) return false;
+                const vr = validateConsumableRawForStation({
+                    normal: String(saved.normalBoxQty),
+                    insulated: String(saved.insulatedBoxQty),
+                    pallet: String(saved.palletQty)
+                }, g.stationNo);
+                if (!vr.ok) return false;
+            }
+            return true;
+        }
+
+        function clearConsumablesForStations(stationNos) {
+            if (!dispatchTask.consumables || !dispatchTask.consumables.byStation) return;
+            if (!Array.isArray(stationNos) || !stationNos.length) return;
+            stationNos.forEach((stationNo) => {
+                delete dispatchTask.consumables.byStation[String(stationNo)];
+            });
+        }
+
         function updateDispatchProgress() {
             const loadedCount = dispatchTask.lines.filter((line) => line.loaded).length;
             const countLabel = document.getElementById('loadedPackageCountLabel');
@@ -1528,13 +1647,11 @@
                 return;
             }
             line.loaded = true;
+            clearConsumablesForStations([line.stationNo]);
             dispatchScanInput.value = '';
             updateDispatchProgress();
-            showToast('装载成功');
-            const allLoaded = dispatchTask.lines.length > 0 && dispatchTask.lines.every((l) => l.loaded);
-            if (allLoaded) {
-                showToast('装载完成，请点击发货');
-            }
+            showToast('装载成功，请录入耗材');
+            setTimeout(() => openConsumableModal([line.stationNo]), 120);
             dispatchScanInput.focus();
         }
 
@@ -1653,6 +1770,20 @@
             else normalBoxQtyInput.focus();
         }
 
+        function bindConsumableInputSelectAll(inputEl) {
+            if (!inputEl) return;
+            inputEl.addEventListener('focus', () => {
+                // Defer selection to ensure focus is settled on mobile browsers.
+                setTimeout(() => {
+                    try {
+                        inputEl.select();
+                    } catch (err) {
+                        // Ignore selection errors for unsupported input behaviors.
+                    }
+                }, 0);
+            });
+        }
+
         function confirmConsumableCurrentStation() {
             consumableSaveCurrentStationInputs();
             const g = consumableModalGroups[consumableModalIndex];
@@ -1673,12 +1804,14 @@
                 setTimeout(() => normalBoxQtyInput.focus(), 0);
                 return;
             }
-            finishConsumablesAndShip();
+            finishConsumablesOnly();
         }
 
-        function finishConsumablesAndShip() {
+        function finishConsumablesOnly() {
             consumableSaveCurrentStationInputs();
-            const byStation = {};
+            const byStation = {
+                ...((dispatchTask.consumables && dispatchTask.consumables.byStation) || {})
+            };
             for (let i = 0; i < consumableModalGroups.length; i++) {
                 const g = consumableModalGroups[i];
                 const key = String(g.stationNo);
@@ -1701,16 +1834,23 @@
             }
             dispatchTask.consumables.byStation = byStation;
             closeConsumableModal();
-            showDispatchCompletePage();
+            renderLoadedPackagesList();
+            showToast('耗材提交成功，请点击发货');
         }
 
-        function openConsumableModal() {
+        function openConsumableModal(targetStationNos) {
             const loadedCount = dispatchTask.lines.filter((line) => line.loaded).length;
             if (loadedCount === 0) {
                 showToast('请先装载至少一件包裹');
                 return;
             }
-            consumableModalGroups = buildConsumableStationGroups();
+            const loadedGroups = buildConsumableStationGroups();
+            if (Array.isArray(targetStationNos) && targetStationNos.length) {
+                const stationSet = new Set(targetStationNos.map((stationNo) => String(stationNo)));
+                consumableModalGroups = loadedGroups.filter((g) => stationSet.has(String(g.stationNo)));
+            } else {
+                consumableModalGroups = loadedGroups;
+            }
             if (!consumableModalGroups.length) {
                 showToast('暂无已装载分站数据');
                 return;
@@ -1734,6 +1874,20 @@
 
         function closeConsumableModal() {
             consumableModal.classList.remove('active');
+        }
+
+        function submitDispatchShipment() {
+            const loadedCount = dispatchTask.lines.filter((line) => line.loaded).length;
+            if (loadedCount === 0) {
+                showToast('请先装载至少一件包裹');
+                return;
+            }
+            if (!hasValidConsumablesForCurrentLoadedStations()) {
+                showToast('请先录入耗材数量');
+                openConsumableModal();
+                return;
+            }
+            showDispatchCompletePage();
         }
 
         function showDispatchCompletePage() {
@@ -1776,6 +1930,10 @@
             if (e.key === 'Enter') confirmConsumableCurrentStation();
         });
 
+        bindConsumableInputSelectAll(normalBoxQtyInput);
+        bindConsumableInputSelectAll(insulatedBoxQtyInput);
+        bindConsumableInputSelectAll(palletQtyInput);
+
         if (consumableNavPrev) consumableNavPrev.addEventListener('click', consumableGoPrev);
         if (consumableNavNext) consumableNavNext.addEventListener('click', consumableGoNext);
 
@@ -1808,6 +1966,12 @@
             const listEl = document.getElementById('loadedPackagesList');
             if (!listEl) return;
             listEl.addEventListener('click', (e) => {
+                const consumableBtn = e.target.closest('.loaded-package-consumable');
+                if (consumableBtn) {
+                    const stationNo = consumableBtn.getAttribute('data-station-no');
+                    if (stationNo) openConsumableEditorForStation(stationNo);
+                    return;
+                }
                 const btn = e.target.closest('.loaded-package-unload');
                 if (!btn) return;
                 const sn = btn.getAttribute('data-station-no');
