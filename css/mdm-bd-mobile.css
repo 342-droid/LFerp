@@ -235,6 +235,91 @@
   font-variant-numeric: tabular-nums;
 }
 
+.bd-onboard-steps {
+  position: sticky;
+  top: 53px;
+  z-index: 15;
+  margin: -4px -4px 14px;
+  padding: 10px 6px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  border: 1px solid rgba(229, 231, 235, 0.85);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+  backdrop-filter: blur(8px);
+}
+
+.bd-onboard-steps button {
+  position: relative;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #8b8b8b;
+  cursor: pointer;
+  text-align: center;
+}
+
+.bd-onboard-steps button::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: -50%;
+  width: 100%;
+  height: 2px;
+  background: #e5e7eb;
+  z-index: 0;
+}
+
+.bd-onboard-steps button:first-child::before {
+  display: none;
+}
+
+.bd-onboard-steps button.done::before,
+.bd-onboard-steps button.active::before {
+  background: rgba(47, 143, 240, 0.55);
+}
+
+.bd-onboard-steps span {
+  position: relative;
+  z-index: 1;
+  width: 24px;
+  height: 24px;
+  margin: 0 auto 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #edf2f7;
+  color: #7b8794;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.bd-onboard-steps em {
+  display: block;
+  overflow: hidden;
+  color: inherit;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.bd-onboard-steps button.done span,
+.bd-onboard-steps button.active span {
+  background: linear-gradient(180deg, #2f9bf4, #2b83e8);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(47, 143, 240, 0.3);
+}
+
+.bd-onboard-steps button.active em {
+  color: #2f93df;
+}
+
 /* === 门店卡片（Leads）=== */
 .bd-store-card-list {
   padding: 0 16px 120px;
@@ -521,6 +606,330 @@
   border-radius: 14px;
   background: linear-gradient(135deg, #e5e7eb, #f3f4f6);
   display: block;
+}
+
+.bd-license-section {
+  margin: 0 0 12px;
+  padding: 0 2px;
+}
+
+.bd-form-module-body {
+  padding: 12px 14px 6px;
+}
+
+.bd-form-module-body > .bd-license-photo-card,
+.bd-form-module-body > .bd-license-param-card,
+.bd-form-module-body > .bd-legal-cert-type-card,
+.bd-form-module-body > .bd-open-license-bank-fields {
+  box-shadow: none;
+}
+
+.bd-form-module-body > .bd-license-photo-card {
+  border-radius: 0;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.6);
+}
+
+.bd-form-module-body > .bd-license-param-card,
+.bd-form-module-body > .bd-open-license-bank-fields {
+  border-radius: 0;
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.bd-form-module-body > .bd-legal-cert-type-card {
+  height: 52px;
+  margin-bottom: 0;
+  padding-right: 0;
+  padding-left: 0;
+  border-radius: 0;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.6);
+}
+
+.bd-license-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 2px 0 14px;
+  color: #2f93df;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.bd-license-title span {
+  width: 8px;
+  height: 20px;
+  border-radius: 0 11px 11px 0;
+  background: linear-gradient(180deg, #2f8ff0, #7aa9ff);
+  box-shadow: 0 5px 12px rgba(47, 143, 240, 0.22);
+}
+
+.bd-license-photo-card,
+.bd-license-param-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(31, 99, 194, 0.05);
+}
+
+.bd-license-photo-card {
+  min-height: 164px;
+  padding: 31px 17px 28px 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.bd-license-photo-copy {
+  flex: 1 1 auto;
+  min-width: 112px;
+}
+
+.bd-license-photo-copy h3 {
+  margin: 0 0 16px;
+  font-size: 22px;
+  line-height: 1;
+  color: #222;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.bd-license-photo-copy p {
+  margin: 0;
+  color: #707070;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.bd-license-photo-copy i,
+.bd-license-param-label i {
+  margin-right: 4px;
+  color: #df2638;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.bd-license-photo-frame {
+  position: relative;
+  width: 174px;
+  height: 111px;
+  flex: 0 0 174px;
+  margin-top: 5px;
+  padding: 9px 10px 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.bd-license-photo-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: #eadfc9;
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.16);
+}
+
+.bd-license-photo-frame .corner {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: #2b8cf0;
+  border-style: solid;
+  z-index: 2;
+}
+
+.bd-license-photo-frame .tl {
+  top: 0;
+  left: 0;
+  border-width: 4px 0 0 4px;
+}
+
+.bd-license-photo-frame .tr {
+  top: 0;
+  right: 0;
+  border-width: 4px 4px 0 0;
+}
+
+.bd-license-photo-frame .bl {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 4px 4px;
+}
+
+.bd-license-photo-frame .br {
+  right: 0;
+  bottom: 0;
+  border-width: 0 4px 4px 0;
+}
+
+.bd-license-view {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  z-index: 3;
+  color: #2d94e5;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.bd-license-param-card {
+  margin-top: 12px;
+  padding: 17px 15px 16px;
+}
+
+.bd-license-param-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 15px 0;
+  min-height: 50px;
+}
+
+.bd-license-param-row:first-child {
+  padding-top: 0;
+}
+
+.bd-license-param-row:last-child {
+  padding-bottom: 0;
+}
+
+.bd-license-param-label {
+  flex: 0 0 116px;
+  color: #707070;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.bd-license-param-row strong {
+  flex: 1;
+  min-width: 0;
+  color: #333;
+  text-align: right;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.bd-legal-id-section {
+  margin-top: 14px;
+}
+
+.bd-legal-cert-type-card {
+  height: 76px;
+  margin-bottom: 12px;
+  padding: 0 18px 0 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(31, 99, 194, 0.05);
+}
+
+.bd-legal-cert-type-card span {
+  flex: 1;
+  color: #4e4e4e;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.bd-legal-cert-type-card i {
+  margin-right: 4px;
+  color: #df2638;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.bd-legal-cert-type-card strong {
+  color: #333;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.bd-legal-cert-type-card b {
+  color: #888;
+  font-size: 28px;
+  line-height: 1;
+  font-family: Arial, sans-serif;
+  font-weight: 300;
+}
+
+.bd-id-photo-card {
+  min-height: 162px;
+  margin-bottom: 12px;
+  padding-top: 31px;
+}
+
+.bd-id-photo-frame {
+  width: 176px;
+  height: 112px;
+  flex-basis: 176px;
+}
+
+.bd-id-param-card {
+  margin-top: 0;
+}
+
+.bd-id-param-card .bd-license-param-label {
+  flex-basis: 126px;
+}
+
+.bd-id-param-card .bd-license-param-row:last-child strong {
+  color: #8a6f23;
+}
+
+.bd-open-license-section {
+  margin-top: 14px;
+}
+
+.bd-open-license-card {
+  min-height: 164px;
+  margin-bottom: 12px;
+}
+
+.bd-open-license-frame {
+  width: 190px;
+  height: 125px;
+  flex-basis: 190px;
+  margin-top: 0;
+}
+
+.bd-open-license-frame img {
+  object-fit: cover;
+  filter: saturate(0.92) contrast(0.98);
+}
+
+.bd-open-license-upload {
+  margin-top: 14px;
+  padding: 5px 10px;
+  border: 1px solid rgba(47, 143, 240, 0.28);
+  border-radius: 999px;
+  background: rgba(47, 143, 240, 0.08);
+  color: #2f93df;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bd-open-license-bank-fields {
+  margin-top: 0;
+  padding: 17px 15px 16px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(31, 99, 194, 0.05);
+}
+
+.bd-open-license-bank-fields.editable {
+  padding: 14px 15px 2px;
+}
+
+.bd-open-license-bank-fields .bd-license-param-label {
+  flex-basis: 96px;
 }
 
 .bd-audit-banner {

@@ -12,12 +12,32 @@
   var search = '';
   var onboardStep = 0;
   var onboardDraft = null;
-  var STEPS = ['商户信息', '联系方式', '结算账户', '资质上传', '门店照片', '确认提交'];
+  var STEPS = ['执照信息', '商户信息', '结算信息', '门店场地'];
 
   var DEMO_IMG =
     'data:image/svg+xml,' +
     encodeURIComponent(
       '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200"><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#e2e8f0"/><stop offset="100%" style="stop-color:#cbd5e1"/></linearGradient><rect fill="url(#g)" width="100%" height="100%" rx="8"/><text x="50%" y="50%" text-anchor="middle" fill="#64748b" font-size="13">证照演示图</text></svg>'
+    );
+  var BUSINESS_LICENSE_IMG =
+    'data:image/svg+xml,' +
+    encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="300" viewBox="0 0 480 300"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#efe3c9"/><stop offset=".55" stop-color="#f8f1df"/><stop offset="1" stop-color="#dcccae"/></linearGradient><pattern id="wm" width="80" height="42" patternUnits="userSpaceOnUse"><text x="0" y="24" font-size="14" fill="#d6ba82" opacity=".32">SCJDG</text></pattern></defs><rect width="480" height="300" fill="#d8d8d8"/><rect x="25" y="24" width="430" height="252" rx="4" fill="url(#bg)" stroke="#9e9279" stroke-width="5"/><rect x="42" y="42" width="396" height="218" fill="url(#wm)" opacity=".8"/><circle cx="240" cy="48" r="22" fill="#d72929"/><text x="240" y="54" text-anchor="middle" font-size="12" fill="#ffe7aa">国徽</text><text x="240" y="93" text-anchor="middle" font-size="30" font-weight="700" fill="#6f4f26">营业执照</text><text x="240" y="119" text-anchor="middle" font-size="12" fill="#8b6f43">（副本）</text><g font-size="13" fill="#53483b"><text x="78" y="142">名称  云南立扬后勤管理服务有限公司</text><text x="78" y="166">类型  有限责任公司</text><text x="78" y="190">统一社会信用代码  91530602MADJAY451L</text><text x="78" y="214">住所  云南省昭通市昭阳区太平街道办事处昭通大道</text></g><g font-size="10" fill="#675a49"><text x="78" y="238">经营范围：单位后勤管理服务；餐饮管理；物业管理；日用百货销售。</text><text x="78" y="253">登记机关：昭通市昭阳区市场监督管理局</text></g><rect x="365" y="70" width="48" height="48" fill="#1f2937"/><rect x="371" y="76" width="8" height="8" fill="#fff"/><rect x="390" y="76" width="16" height="8" fill="#fff"/><rect x="371" y="96" width="16" height="16" fill="#fff"/><rect x="397" y="101" width="9" height="17" fill="#fff"/><circle cx="357" cy="230" r="34" fill="none" stroke="#c94b38" stroke-width="5" opacity=".75"/><text x="360" y="235" text-anchor="middle" font-size="11" fill="#c94b38" opacity=".85">登记机关</text><text x="385" y="257" font-size="12" fill="#675a49">2024年5月13日</text></svg>'
+    );
+  var LEGAL_ID_FRONT_IMG =
+    'data:image/svg+xml,' +
+    encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="420" height="260" viewBox="0 0 420 260"><defs><linearGradient id="card" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c7edf4"/><stop offset=".5" stop-color="#e6f8fb"/><stop offset="1" stop-color="#b9e1ef"/></linearGradient><pattern id="line" width="24" height="18" patternUnits="userSpaceOnUse"><path d="M0 14C8 6 15 23 24 10" fill="none" stroke="#8ccddf" stroke-width="1" opacity=".35"/></pattern></defs><rect width="420" height="260" rx="10" fill="url(#card)"/><rect width="420" height="260" rx="10" fill="url(#line)"/><g fill="#247c9a" font-size="15" font-weight="700"><text x="58" y="63">姓名  陈大华</text><text x="58" y="96">性别  男       民族  汉</text><text x="58" y="129">出生  1990 年 3 月 14 日</text><text x="58" y="163">住址  云南省昭通市昭阳区田坝乡</text><text x="100" y="187">幸福村民委员会上马发山村18号</text></g><rect x="292" y="48" width="90" height="112" rx="4" fill="#d8e8eb" stroke="#71bfd2" stroke-width="3"/><circle cx="337" cy="83" r="22" fill="#1f2937"/><path d="M300 158c9-37 65-37 74 0" fill="#7aa6ac"/><path d="M315 77c12-22 49-10 41 16-8 22-33 15-41-16z" fill="#111827" opacity=".45"/><g fill="#1e6c87"><text x="58" y="228" font-size="16" font-weight="700">公民身份号码</text><text x="183" y="229" font-size="19" font-weight="800" letter-spacing="2">532101199003145212</text></g></svg>'
+    );
+  var LEGAL_ID_BACK_IMG =
+    'data:image/svg+xml,' +
+    encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="420" height="260" viewBox="0 0 420 260"><defs><linearGradient id="card" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d2f0f2"/><stop offset=".55" stop-color="#f1fbfb"/><stop offset="1" stop-color="#bfe4eb"/></linearGradient><pattern id="wave" width="36" height="22" patternUnits="userSpaceOnUse"><path d="M0 16C12 4 24 26 36 10" fill="none" stroke="#8ec9d4" stroke-width="1" opacity=".32"/></pattern></defs><rect width="420" height="260" rx="10" fill="url(#card)"/><rect width="420" height="260" rx="10" fill="url(#wave)"/><circle cx="72" cy="76" r="34" fill="#d53b42"/><text x="72" y="83" text-anchor="middle" font-size="13" fill="#ffe6aa">国徽</text><text x="250" y="74" text-anchor="middle" font-size="22" fill="#333" font-weight="700" letter-spacing="8">中华人民共和国</text><text x="254" y="118" text-anchor="middle" font-size="36" fill="#333" font-weight="800" letter-spacing="12">居民身份证</text><g fill="#333" font-size="15" font-weight="700"><text x="115" y="178">签发机关  昭通市公安局昭阳分局</text><text x="115" y="211">有效期限  2022.03.07-2042.03.07</text></g></svg>'
+    );
+  var OPEN_LICENSE_IMG =
+    'data:image/svg+xml,' +
+    encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="300" viewBox="0 0 480 300"><defs><linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2f0ea"/><stop offset=".55" stop-color="#faf8f2"/><stop offset="1" stop-color="#ded9ce"/></linearGradient><pattern id="wave" width="36" height="22" patternUnits="userSpaceOnUse"><path d="M0 16C10 5 22 26 36 9" fill="none" stroke="#c9c2b6" stroke-width="1" opacity=".28"/></pattern></defs><rect width="480" height="300" fill="#e6e2d8"/><rect x="38" y="20" width="404" height="260" rx="2" fill="url(#paper)" stroke="#bfb7aa" stroke-width="2"/><rect x="38" y="20" width="404" height="260" fill="url(#wave)"/><g fill="#877e72" font-size="15"><text x="72" y="55">账户名称： 云南立扬后勤管理服务有限公司</text><text x="72" y="93">账号： 53050163613700000992</text><text x="72" y="131">开户银行： 中国建设银行股份有限公司昭通珠泉支行</text><text x="72" y="169">法定代表人： 陈大华</text><text x="72" y="207">基本存款账户编号： J3450003001011</text></g><circle cx="250" cy="229" r="47" fill="none" stroke="#bd3f47" stroke-width="6" opacity=".7"/><path d="M410 20c-18 54-18 142 0 260" fill="none" stroke="#cbc5bc" stroke-width="3"/><path d="M58 20v260" stroke="#85827d" stroke-width="3"/></svg>'
     );
 
   function $(s) {
@@ -149,9 +169,10 @@
         bank_name: src.bankName || '',
         bank_branch: src.branchName || '',
       },
-      license_pic: false,
-      legal_cert_front_pic: false,
-      legal_cert_back_pic: false,
+      license_pic: !!(src.licenseName || src.businessLicense || src.registrationCode),
+      legal_cert_front_pic: !!(src.legalPerson || src.idNumber),
+      legal_cert_back_pic: !!(src.legalPerson || src.idNumber),
+      open_license_pic: !!(src.openLicencePic || src.settlementAccountName || src.bankAccount),
       store_header_pic: !!src.storeName,
       store_indoor_pic: false,
       store_cashier_desk_pic: false,
@@ -175,8 +196,8 @@
         bank_branch: ext.card_info.bank_branch || base.card_info.bank_branch,
       };
     }
-    ['license_pic', 'legal_cert_front_pic', 'legal_cert_back_pic', 'store_header_pic', 'store_indoor_pic', 'store_cashier_desk_pic'].forEach(function (k) {
-      if (typeof ext[k] === 'boolean') base[k] = ext[k];
+    ['license_pic', 'legal_cert_front_pic', 'legal_cert_back_pic', 'open_license_pic', 'store_header_pic', 'store_indoor_pic', 'store_cashier_desk_pic'].forEach(function (k) {
+      if (typeof ext[k] === 'boolean' || typeof ext[k] === 'string') base[k] = ext[k];
     });
     if (window.MdmUnifiedOnboardingUi && typeof window.MdmUnifiedOnboardingUi.getSummary === 'function') {
       var key = 'bdapp::merchant::' + String((src && (src.merchantNo || src.id)) || '');
@@ -262,6 +283,20 @@
     );
   }
 
+  function formModuleCard(title, inner) {
+    return (
+      '<div class="bd-archive-card bd-form-module-card" style="margin-bottom:12px">' +
+      '<div style="padding:11px 14px;background:rgba(249,250,251,.85);border-bottom:1px solid var(--bd-border)">' +
+      '<h3 style="margin:0;font-size:14px;font-weight:700">' +
+      esc(title) +
+      '</h3>' +
+      '</div>' +
+      '<div class="bd-form-module-body">' +
+      inner +
+      '</div></div>'
+    );
+  }
+
   function photoThumb(label) {
     return (
       '<button type="button" class="bd-mer-photo" data-mer-photo="1" style="width:100%;border:none;background:none;padding:12px 0;text-align:left;cursor:pointer">' +
@@ -274,6 +309,183 @@
       '" alt="" style="width:100%;height:100%;object-fit:cover"/>' +
       '<span style="position:absolute;bottom:10px;right:10px;font-size:9px;background:rgba(255,255,255,.94);padding:3px 8px;border-radius:6px;color:var(--bd-muted);font-weight:600">查看大图</span>' +
       '</div></button>'
+    );
+  }
+
+  function businessLicenseData(m) {
+    m = m || {};
+    var validTo = m.licenseValidTo || m.licenseEndDate || '';
+    return {
+      name: m.licenseName || m.regName || m.name || '云南立扬后勤管理服务有限公司',
+      code: m.registrationCode || m.licenseCode || m.businessLicense || '91530602MADJAY451L',
+      startDate: m.licenseValidFrom || m.licenseBeginDate || m.foundDate || '2024-05-13',
+      validDate: validTo === '长期' ? '长期有效' : validTo || '长期有效',
+      address: m.registeredDetailAddress || m.regDetail || m.registeredRegion || '云南省昭通市昭阳区太平街道办事处昭通大道',
+      image: BUSINESS_LICENSE_IMG,
+    };
+  }
+
+  function licenseParamRow(label, value, required) {
+    return (
+      '<div class="bd-license-param-row">' +
+      '<span class="bd-license-param-label">' +
+      (required ? '<i>*</i>' : '') +
+      esc(label) +
+      '</span>' +
+      '<strong>' +
+      esc(value || '—') +
+      '</strong></div>'
+    );
+  }
+
+  function businessLicensePhotoCard(data) {
+    return (
+      '<div class="bd-license-photo-card">' +
+      '<div class="bd-license-photo-copy">' +
+      '<h3>营业执照</h3>' +
+      '<p><i>*</i> 上传营业执照</p>' +
+      '</div>' +
+      '<button type="button" class="bd-license-photo-frame" data-on-preview="' +
+      esc(data.image) +
+      '">' +
+      '<span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+      '<img src="' +
+      esc(data.image) +
+      '" alt="营业执照">' +
+      '<span class="bd-license-view">查看图片</span>' +
+      '</button>' +
+      '</div>'
+    );
+  }
+
+  function renderBusinessLicenseInfo(m) {
+    var data = businessLicenseData(m);
+    return formModuleCard(
+      '营业执照信息',
+      businessLicensePhotoCard(data) +
+      '<div class="bd-license-param-card">' +
+      licenseParamRow('营业执照名称', data.name, true) +
+      licenseParamRow('证件代码', data.code, true) +
+      licenseParamRow('执照起始日期', data.startDate, true) +
+      licenseParamRow('执照有效期', data.validDate, true) +
+      licenseParamRow('注册地址', data.address, true) +
+      '</div>'
+    );
+  }
+
+  function legalIdData(m) {
+    m = m || {};
+    var validTo = m.idValidTo || m.legalCertEndDate || '2042-03-07';
+    return {
+      certType: m.legalCertType || m.legalIdDocType || '身份证',
+      name: m.legalPerson || m.legalName || '陈大华',
+      number: m.idNumber || m.legalCertNo || '532101199003145212',
+      startDate: m.idValidFrom || m.legalCertBeginDate || '2022-03-07',
+      validDate: validTo === '长期' ? '长期有效' : validTo,
+      frontImage: LEGAL_ID_FRONT_IMG,
+      backImage: LEGAL_ID_BACK_IMG,
+    };
+  }
+
+  function legalIdPhotoCard(title, desc, src) {
+    return (
+      '<div class="bd-license-photo-card bd-id-photo-card">' +
+      '<div class="bd-license-photo-copy">' +
+      '<h3>' +
+      esc(title) +
+      '</h3>' +
+      '<p><i>*</i> ' +
+      esc(desc) +
+      '</p>' +
+      '</div>' +
+      '<button type="button" class="bd-license-photo-frame bd-id-photo-frame" data-on-preview="' +
+      esc(src) +
+      '">' +
+      '<span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+      '<img src="' +
+      esc(src) +
+      '" alt="' +
+      esc(title) +
+      '">' +
+      '<span class="bd-license-view">查看图片</span>' +
+      '</button>' +
+      '</div>'
+    );
+  }
+
+  function renderLegalIdInfo(m) {
+    var data = legalIdData(m);
+    return formModuleCard(
+      '法人基本信息',
+      '<div class="bd-legal-cert-type-card">' +
+      '<span><i>*</i>证件类型</span>' +
+      '<strong>' +
+      esc(data.certType) +
+      '</strong><b>›</b></div>' +
+      legalIdPhotoCard('人像面', '上传身份证人像面', data.frontImage) +
+      legalIdPhotoCard('国徽面', '上传身份证国徽面', data.backImage) +
+      '<div class="bd-license-param-card bd-id-param-card">' +
+      licenseParamRow('法人姓名', data.name, true) +
+      licenseParamRow('身份证号', data.number, true) +
+      licenseParamRow('身份证起始日期', data.startDate, true) +
+      licenseParamRow('身份证有效期', data.validDate, true) +
+      '</div>'
+    );
+  }
+
+  function openLicenseData(m, fields) {
+    m = m || {};
+    fields = fields || resolveOnboardingFields(m);
+    var card = fields.card_info || {};
+    var current = fields.open_license_pic || m.openLicencePic;
+    var src =
+      typeof current === 'string' && /^(data:image|https?:\/\/)/.test(current)
+        ? current
+        : OPEN_LICENSE_IMG;
+    return {
+      accountName: card.account_name || m.settlementAccountName || '云南立扬后勤管理服务有限公司',
+      cardNo: card.card_no || m.bankAccount || '53050163613700000992',
+      bankName: card.bank_name || m.bankName || '中国建设银行',
+      bankBranch: card.bank_branch || m.branchName || '中国建设银行股份有限公司昭通珠泉支行',
+      settlementType: m.settlementType || '对公',
+      image: src,
+    };
+  }
+
+  function renderOpenLicenseInfo(m, fields, editable) {
+    var data = openLicenseData(m, fields);
+    var bankFields = editable
+      ? fieldFull('开户名', 'on_card_account_name', '银行卡户名', data.accountName, 'card_info.account_name') +
+        fieldFull('银行卡号', 'on_card_no', '结算账户', data.cardNo, 'card_info.card_no') +
+        fieldFull('开户银行', 'on_card_bank_name', '银行名称', data.bankName, 'card_info.bank_name') +
+        fieldFull('开户支行', 'on_card_branch_name', '支行名称', data.bankBranch, 'card_info.bank_branch')
+      : licenseParamRow('开户名', data.accountName, true) +
+        licenseParamRow('银行卡号', data.cardNo, true) +
+        licenseParamRow('开户银行', data.bankName, true) +
+        licenseParamRow('开户支行', data.bankBranch, true);
+    return formModuleCard(
+      '开户许可证',
+      '<div class="bd-license-photo-card bd-open-license-card">' +
+      '<div class="bd-license-photo-copy">' +
+      '<h3>开户许可证</h3>' +
+      '<p><i>*</i> 上传开户许可证</p>' +
+      (editable ? '<button type="button" class="bd-open-license-upload" data-on-upload="open_license_pic">更换图片</button>' : '') +
+      '</div>' +
+      '<button type="button" class="bd-license-photo-frame bd-open-license-frame" data-on-preview="' +
+      esc(data.image) +
+      '">' +
+      '<span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+      '<img src="' +
+      esc(data.image) +
+      '" alt="开户许可证">' +
+      '<span class="bd-license-view">查看图片</span>' +
+      '</button>' +
+      '</div>' +
+      '<div class="bd-open-license-bank-fields' +
+      (editable ? ' editable' : '') +
+      '">' +
+      bankFields +
+      '</div>'
     );
   }
 
@@ -520,26 +732,6 @@
       detailRow('上级汇付号', esc(nz(m.headHuifuId))) +
       detailRow('结算主体类型', esc(nz(m.settlementBodyType || (m.isLegalPersonSettlement ? '独立结算' : '集团结算'))));
 
-    var licenseInner =
-      detailRow('营业执照', esc(onboardingUploadText(ob.license_pic))) +
-      detailRow('营业执照名称', esc(nz(m.licenseName || m.regName))) +
-      detailRow('注册号/统一信用代码', esc(nz(m.registrationCode || m.licenseCode))) +
-      detailRow('公司类型', esc(nz(m.entType || m.merchantCategory))) +
-      detailRow('成立日期', esc(nz(m.foundDate))) +
-      detailRow('执照有效期', esc(nz((m.licenseValidFrom || m.licenseBeginDate || '—') + ' ~ ' + (m.licenseValidTo || m.licenseEndDate || '—')))) +
-      detailRow('注册地址', esc(nz(m.registeredDetailAddress || m.regDetail || m.registeredRegion))) +
-      detailRow('实际经营地址', esc(nz(ob.detail_addr)));
-
-    var legalInner =
-      detailRow('法人姓名', esc(nz(m.legalPerson || m.legalName))) +
-      detailRow('法人手机号', esc(nz(ob.legal_mobile_no))) +
-      detailRow('证件类型', esc(nz(m.legalCertType || m.legalIdDocType))) +
-      detailRow('身份证号', esc(maskMiddle(m.idNumber))) +
-      detailRow('证件有效期', esc(nz((m.idValidFrom || m.legalCertBeginDate || '—') + ' ~ ' + (m.idValidTo || m.legalCertEndDate || '—')))) +
-      detailRow('身份证地址', esc(nz(m.legalAddr))) +
-      detailRow('身份证人像面', esc(onboardingUploadText(ob.legal_cert_front_pic))) +
-      detailRow('身份证国徽面', esc(onboardingUploadText(ob.legal_cert_back_pic)));
-
     var opInner =
       detailRow('商户简称', esc(nz(ob.short_name))) +
       detailRow('小票名称', esc(nz(ob.receipt_name))) +
@@ -551,15 +743,6 @@
       detailRow('管理员手机号', esc(nz(ob.contact_mobile_no))) +
       detailRow('管理员邮箱', esc(nz(ob.contact_email))) +
       detailRow('登录账号', esc(nz(m.loginName || m.loginAccount)));
-
-    var card = ob.card_info || {};
-    var settleInner =
-      detailRow('开户名/结算户名', esc(nz(card.account_name || m.settlementAccountName))) +
-      detailRow('银行账号', esc(maskBank(card.card_no || m.bankAccount))) +
-      detailRow('开户银行', esc(nz(card.bank_name || m.bankName))) +
-      detailRow('开户支行', esc(nz(card.bank_branch || m.branchName))) +
-      detailRow('开户许可证', esc(onboardingUploadText(m.openLicencePic))) +
-      detailRow('开户许可证核准号', esc(nz(m.openLicenceNo)));
 
     var placeInner =
       detailRow('经营场所名称', esc(nz(m.storeName || m.operatingName || m.name))) +
@@ -576,11 +759,11 @@
       headerTop +
       sectionCard('进件流程信息', '审核流转与关键时间', onboardInfoInner) +
       sectionCard('主体关系', '主体复用与结算关系', relationInner) +
-      sectionCard('营业执照信息', '营业执照与地址信息', licenseInner) +
-      sectionCard('法人实名信息', '法人身份与证件信息', legalInner) +
+      renderBusinessLicenseInfo(m) +
+      renderLegalIdInfo(m) +
       sectionCard('经营配置', '商户经营基础信息', opInner) +
       sectionCard('联系人与账号', '管理员联系方式与登录账号', contactInner) +
-      sectionCard('结算账户信息', '开户与结算资料', settleInner) +
+      renderOpenLicenseInfo(m, ob) +
       sectionCard('经营场地资料', '场地名称与图片资料', placeInner) +
       '</div>';
 
@@ -610,6 +793,7 @@
   function fieldFull(label, id, placeholder, value, draftKey) {
     return (
       '<label style="display:block;margin-bottom:14px;font-size:13px;font-weight:600;color:var(--bd-text)">' +
+      '<i style="margin-right:4px;color:var(--bd-destructive);font-style:normal;font-weight:900">*</i>' +
       esc(label) +
       '<input id="' +
       id +
@@ -644,11 +828,10 @@
   }
 
   function requiredStepFields(step) {
-    if (step === 0) return ['short_name', 'receipt_name', 'detail_addr', 'contact_mobile_no'];
-    if (step === 1) return ['legal_mobile_no', 'contact_email'];
-    if (step === 2) return ['card_info.account_name', 'card_info.card_no', 'card_info.bank_name', 'card_info.bank_branch'];
-    if (step === 3) return ['license_pic', 'legal_cert_front_pic', 'legal_cert_back_pic'];
-    if (step === 4) return ['store_header_pic', 'store_indoor_pic', 'store_cashier_desk_pic'];
+    if (step === 0) return ['license_pic', 'legal_cert_front_pic', 'legal_cert_back_pic'];
+    if (step === 1) return ['short_name', 'receipt_name', 'detail_addr', 'legal_mobile_no', 'contact_mobile_no', 'contact_email'];
+    if (step === 2) return ['card_info.account_name', 'card_info.card_no', 'card_info.bank_name', 'card_info.bank_branch', 'open_license_pic'];
+    if (step === 3) return ['store_header_pic', 'store_indoor_pic', 'store_cashier_desk_pic'];
     return [];
   }
 
@@ -664,6 +847,7 @@
       'card_info.card_no': '银行卡号',
       'card_info.bank_name': '开户银行',
       'card_info.bank_branch': '开户支行',
+      open_license_pic: '开户许可证',
       license_pic: '营业执照(F07)',
       legal_cert_front_pic: '法人身份证人像面(F02)',
       legal_cert_back_pic: '法人身份证国徽面(F03)',
@@ -705,6 +889,7 @@
       '<div style="border:1px solid var(--bd-border);border-radius:12px;padding:12px;background:#fff">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px">' +
       '<span style="font-size:13px;font-weight:700">' +
+      '<i style="margin-right:4px;color:var(--bd-destructive);font-style:normal;font-weight:900">*</i>' +
       esc(label) +
       '</span>' +
       '<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:' +
@@ -736,9 +921,31 @@
     );
   }
 
+  function renderOnboardSteps() {
+    return (
+      '<div class="bd-onboard-steps">' +
+      STEPS.map(function (label, idx) {
+        return (
+          '<button type="button" class="' +
+          (idx === onboardStep ? 'active' : idx < onboardStep ? 'done' : '') +
+          '" data-on-step="' +
+          idx +
+          '">' +
+          '<span>' +
+          (idx + 1) +
+          '</span><em>' +
+          esc(label) +
+          '</em></button>'
+        );
+      }).join('') +
+      '</div>'
+    );
+  }
+
   function renderOnboard() {
     if (!onboardDraft) onboardDraft = makeOnboardDraft();
     var target = route.id ? merchantById(route.id) : null;
+    var licenseSource = target || merchants[0] || {};
     var canDeleteDraft = !!(target && target.onboardingStatus === 'draft');
     function card(title, inner) {
       return (
@@ -753,54 +960,55 @@
         '</div></div>'
       );
     }
-    var cards =
-      card(
-        '商户信息',
+    if (onboardStep < 0) onboardStep = 0;
+    if (onboardStep >= STEPS.length) onboardStep = STEPS.length - 1;
+    var stepBody = '';
+    if (onboardStep === 0) {
+      stepBody = renderBusinessLicenseInfo(licenseSource) + renderLegalIdInfo(licenseSource);
+    } else if (onboardStep === 1) {
+      stepBody =
+        card(
+          '商户信息',
         fieldFull('商户简称', 'on_short_name', '账单展示名称', getDraftField('short_name'), 'short_name') +
           fieldFull('小票名称', 'on_receipt_name', '小票展示名称', getDraftField('receipt_name'), 'receipt_name') +
           fieldFull('实际经营地址', 'on_detail_addr', '经营详细地址', getDraftField('detail_addr'), 'detail_addr') +
           fieldFull('法人手机号', 'on_legal_mobile_no', '法人联系方式', getDraftField('legal_mobile_no'), 'legal_mobile_no')
-      ) +
-      card(
-        '联系人信息',
-        fieldFull('管理员手机号', 'on_contact_mobile_no', '登录/通知手机号', getDraftField('contact_mobile_no'), 'contact_mobile_no') +
-          fieldFull('管理员邮箱', 'on_contact_email', '汇付通知邮箱', getDraftField('contact_email'), 'contact_email')
-      ) +
-      card(
-        '银行卡信息配置',
-        fieldFull('开户名', 'on_card_account_name', '银行卡户名', getDraftField('card_info.account_name'), 'card_info.account_name') +
-          fieldFull('银行卡号', 'on_card_no', '结算账户', getDraftField('card_info.card_no'), 'card_info.card_no') +
-          fieldFull('开户银行', 'on_card_bank_name', '银行名称', getDraftField('card_info.bank_name'), 'card_info.bank_name') +
-          fieldFull('开户支行', 'on_card_branch_name', '支行名称', getDraftField('card_info.bank_branch'), 'card_info.bank_branch')
-      ) +
-      card(
-        '资质上传',
-        '<div style="display:flex;flex-direction:column;gap:10px">' +
-          uploadCard('营业执照 F07', 'license_pic') +
-          uploadCard('法人身份证人像面 F02', 'legal_cert_front_pic') +
-          uploadCard('法人身份证国徽面 F03', 'legal_cert_back_pic') +
-          '</div>'
-      ) +
-      card(
-        '经营场地照片',
+        ) +
+        card(
+          '联系人信息',
+          fieldFull('管理员手机号', 'on_contact_mobile_no', '登录/通知手机号', getDraftField('contact_mobile_no'), 'contact_mobile_no') +
+            fieldFull('管理员邮箱', 'on_contact_email', '汇付通知邮箱', getDraftField('contact_email'), 'contact_email')
+        );
+    } else if (onboardStep === 2) {
+      stepBody = renderOpenLicenseInfo(licenseSource, onboardDraft, true);
+    } else {
+      stepBody = card(
+        '门店场地',
         '<div style="display:flex;flex-direction:column;gap:10px">' +
           uploadCard('门头/场地照 F22', 'store_header_pic') +
           uploadCard('内景/工作区域照 F24', 'store_indoor_pic') +
           uploadCard('收银台/前台照 F105', 'store_cashier_desk_pic') +
           '</div>'
       );
+    }
     var bottomBar =
       '<div style="position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:120;width:min(393px,100vw);border-top:1px solid var(--bd-border);background:rgba(255,255,255,.97);backdrop-filter:blur(8px);padding:12px;display:flex;gap:10px;padding-bottom:max(12px,env(safe-area-inset-bottom));box-shadow:0 -6px 18px rgba(15,23,42,.08)">' +
       '<button type="button" class="bd-btn bd-btn-outline" data-on-save style="flex:1;border-radius:12px;box-shadow:none">保存</button>' +
       (canDeleteDraft
         ? '<button type="button" class="bd-btn bd-btn-outline" data-on-delete style="flex:1;border-radius:12px;box-shadow:none;color:var(--bd-destructive);border-color:rgba(248,113,113,.45)">删除</button>'
         : '') +
-      '<button type="button" class="bd-btn bd-btn-primary" id="onSubmit" style="flex:1;border-radius:12px">提交审核</button>' +
+      (onboardStep > 0
+        ? '<button type="button" class="bd-btn bd-btn-outline" data-on-prev style="flex:1;border-radius:12px;box-shadow:none">上一步</button>'
+        : '') +
+      (onboardStep < STEPS.length - 1
+        ? '<button type="button" class="bd-btn bd-btn-primary" data-on-next style="flex:1;border-radius:12px">下一步</button>'
+        : '<button type="button" class="bd-btn bd-btn-primary" id="onSubmit" style="flex:1;border-radius:12px">提交审核</button>') +
       '</div>';
     return (
       '<div class="bd-page-bar"><button type="button" class="bd-back" data-backlist>‹</button><h1>商户进件</h1></div>' +
       '<div style="padding:16px 16px calc(108px + env(safe-area-inset-bottom));font-size:13px">' +
-      cards +
+      renderOnboardSteps() +
+      stepBody +
       '</div>' +
       bottomBar
     );
@@ -950,7 +1158,7 @@
     var sub = $('#onSubmit');
     if (sub) {
       sub.onclick = function () {
-        for (var step = 0; step <= 4; step++) {
+        for (var step = 0; step < STEPS.length; step++) {
           if (!validateStep(step)) return;
         }
         var target = route.id ? merchantById(route.id) : null;
@@ -991,6 +1199,32 @@
         mount();
       };
     }
+    r.querySelectorAll('[data-on-step]').forEach(function (b) {
+      b.onclick = function () {
+        var nextStep = Number(b.getAttribute('data-on-step'));
+        if (isNaN(nextStep) || nextStep === onboardStep) return;
+        if (nextStep > onboardStep) {
+          for (var step = onboardStep; step < nextStep; step++) {
+            if (!validateStep(step)) return;
+          }
+        }
+        onboardStep = nextStep;
+        mount();
+      };
+    });
+    r.querySelectorAll('[data-on-prev]').forEach(function (b) {
+      b.onclick = function () {
+        onboardStep = Math.max(0, onboardStep - 1);
+        mount();
+      };
+    });
+    r.querySelectorAll('[data-on-next]').forEach(function (b) {
+      b.onclick = function () {
+        if (!validateStep(onboardStep)) return;
+        onboardStep = Math.min(STEPS.length - 1, onboardStep + 1);
+        mount();
+      };
+    });
     r.querySelectorAll('[data-on-save]').forEach(function (b) {
       b.onclick = function () {
         var target = route.id ? merchantById(route.id) : null;
@@ -1050,7 +1284,8 @@
     r.querySelectorAll('[data-on-upload]').forEach(function (btn) {
       btn.onclick = function () {
         var key = btn.getAttribute('data-on-upload');
-        setDraftField(key, DEMO_IMG + '#up=' + Date.now());
+        var demoSrc = key === 'open_license_pic' ? OPEN_LICENSE_IMG : DEMO_IMG;
+        setDraftField(key, demoSrc + '#up=' + Date.now());
         window.bdToast && window.bdToast('已上传（演示）');
         mount();
       };
