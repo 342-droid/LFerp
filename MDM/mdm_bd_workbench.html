@@ -18,19 +18,26 @@
             style="position:absolute;bottom:calc(64px + env(safe-area-inset-bottom, 0px));right:16px;width:48px;height:48px;border:none;border-radius:50%;background:var(--bd-primary);color:#fff;font-size:20px;box-shadow:0 4px 14px rgba(37,99,235,.4);cursor:pointer;z-index:60">▦</button>
     </div>
     <div class="bd-modal" id="bdQrMenu">
-        <div class="bd-modal-box">
-            <h3>选择二维码类型</h3>
-            <p style="font-size:12px;color:var(--bd-muted);margin:0 0 12px">请选择本次要展示的二维码用途。</p>
-            <button type="button" class="bd-store-card" style="margin-bottom:10px;cursor:pointer;text-align:left;padding:12px" data-qr-store>
-                <strong>门店入驻二维码</strong>
-                <div style="font-size:11px;color:var(--bd-muted);margin-top:6px">店长扫码创建门店并绑定 BD</div>
-            </button>
-            <button type="button" class="bd-store-card" style="cursor:pointer;text-align:left;padding:12px" data-qr-inv>
-                <strong>邀请好友成为 BD</strong>
-                <div style="font-size:11px;color:var(--bd-muted);margin-top:6px">邀请码与专属二维码</div>
-            </button>
-            <div class="bd-modal-actions" style="margin-top:14px">
-                <button type="button" id="bdQrClose" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--bd-border);background:#fff;cursor:pointer;font-weight:600">关闭</button>
+        <div class="bd-modal-box" style="max-width:340px;border-radius:16px;padding:20px 18px 16px">
+            <h3 style="margin:0 0 4px;font-size:16px;font-weight:700">选择二维码类型</h3>
+            <p style="font-size:12px;color:var(--bd-muted);margin:0 0 14px;line-height:1.45">请选择本次要展示的二维码用途。</p>
+            <div style="display:flex;flex-direction:column;gap:12px;padding-top:4px">
+                <button type="button" class="bd-qr-type-row" data-qr-store>
+                    <span class="bd-qr-ic bg-p">🏪</span>
+                    <span class="bd-qr-mid">
+                        <span class="bd-qr-t">门店入驻二维码</span>
+                        <span class="bd-qr-d">店长扫码或打开分享链接 → 浏览器内创建门店，完成后绑定您的 BD</span>
+                    </span>
+                    <span class="bd-qr-ch" aria-hidden="true">›</span>
+                </button>
+                <button type="button" class="bd-qr-type-row" data-qr-inv>
+                    <span class="bd-qr-ic bg-e">👥</span>
+                    <span class="bd-qr-mid">
+                        <span class="bd-qr-t">邀请好友成为 BD</span>
+                        <span class="bd-qr-d">进入邀请页查看邀请码与专属二维码</span>
+                    </span>
+                    <span class="bd-qr-ch" aria-hidden="true">›</span>
+                </button>
             </div>
         </div>
     </div>
@@ -43,20 +50,22 @@
     <script>
         (function () {
             var menu = document.getElementById('bdQrMenu');
-            document.getElementById('bdFabQr').onclick = function () {
+            var fab = document.getElementById('bdFabQr');
+            var closeBtn = document.getElementById('bdQrClose');
+            fab.onclick = function () {
                 menu.classList.add('bd-show');
             };
-            document.getElementById('bdQrClose').onclick = function () {
+            if (closeBtn) closeBtn.onclick = function () {
                 menu.classList.remove('bd-show');
             };
             menu.addEventListener('click', function (e) {
                 if (e.target === menu) menu.classList.remove('bd-show');
             });
-            document.querySelector('[data-qr-store]').onclick = function () {
+            menu.querySelector('[data-qr-store]').onclick = function () {
                 menu.classList.remove('bd-show');
                 location.href = (window.bdPage || function (x) { return x; })('mdm_bd_personal.html#store-qr');
             };
-            document.querySelector('[data-qr-inv]').onclick = function () {
+            menu.querySelector('[data-qr-inv]').onclick = function () {
                 menu.classList.remove('bd-show');
                 location.href = (window.bdPage || function (x) { return x; })('mdm_bd_personal.html#invite');
             };

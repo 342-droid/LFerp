@@ -7,8 +7,20 @@
     const currentPage = pathForMatch.split('/').pop() || 'mdm_workbench.html';
 
     function hrefMatchesCurrentPage(href) {
-        if (href === currentPage) return true;
-        return pathForMatch.endsWith('/' + href) || pathForMatch.endsWith(href);
+        var full = String(href || '');
+        var seg = full.split('#');
+        var path = seg[0] || '';
+        var hash = seg[1] || '';
+        var samePath =
+            path === currentPage ||
+            pathForMatch.endsWith('/' + path) ||
+            pathForMatch.endsWith(path);
+        if (!samePath) return false;
+        var curHash = String(window.location.hash || '').replace(/^#/, '');
+        if (!hash) {
+            return !curHash || curHash === 'store-registration';
+        }
+        return curHash === hash;
     }
 
     /** 工作台 / 首页类入口（对齐 SPA dashboard） */
@@ -43,7 +55,8 @@
     ];
 
     const auditItems = [
-        { href: 'mdm_audit_store_registration.html', text: '门店注册审核' }
+        { href: 'mdm_audit_store_registration.html', text: '门店注册审核' },
+        { href: 'mdm_audit_store_registration.html#onboarding-review', text: '进件审核' }
     ];
 
     function groupHasActive(items) {

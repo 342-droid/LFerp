@@ -63,11 +63,13 @@
         parent.appendChild(r);
     }
 
-    function uploadClickBox(caption) {
+    function uploadClickBox(caption, prefilledHint) {
         var wrap = el('div', '');
         var box = el('div', 'store-upload-box onboard-upload--click', '点击上传');
         wrap.appendChild(box);
         if (caption) wrap.appendChild(el('div', 'store-upload-box__cap', caption));
+        if (prefilledHint)
+            wrap.appendChild(el('div', 'store-form__upload-hint', prefilledHint));
         return wrap;
     }
 
@@ -107,11 +109,129 @@
         });
     }
 
+    var ONBOARDING_RECORDS_KEY = 'mdm_unified_onboarding_records_v1';
+
+    function readOnboardingRecords() {
+        try {
+            var raw = localStorage.getItem(ONBOARDING_RECORDS_KEY);
+            return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function writeOnboardingRecords(map) {
+        try {
+            localStorage.setItem(ONBOARDING_RECORDS_KEY, JSON.stringify(map || {}));
+        } catch (e) {}
+    }
+
+    function copyObj(obj) {
+        return JSON.parse(JSON.stringify(obj || {}));
+    }
+
+    function makeRecordKey(opts) {
+        if (opts && opts.recordKey) return String(opts.recordKey);
+        var variant = (opts && opts.variant) || 'resource';
+        var title = (opts && opts.title) || '进件';
+        var shortName = (opts && opts.merchantShortNameDefault) || '';
+        return [variant, title, shortName].join('::');
+    }
+
+    function readRecord(recordKey) {
+        var all = readOnboardingRecords();
+        var one = all[recordKey];
+        return one ? copyObj(one) : null;
+    }
+
+    function saveRecord(recordKey, data) {
+        var all = readOnboardingRecords();
+        all[recordKey] = copyObj(data);
+        writeOnboardingRecords(all);
+    }
+
+    function removeRecord(recordKey) {
+        var all = readOnboardingRecords();
+        delete all[recordKey];
+        writeOnboardingRecords(all);
+    }
+
+    function buildDefaultFields(opts, existingRecord) {
+        var defaults = copyObj((opts && opts.fieldDefaults) || {});
+        var existing = existingRecord && existingRecord.fields ? existingRecord.fields : {};
+        var cardDef = defaults.card_info || {};
+        var cardExisting = existing.card_info || {};
+        return {
+            short_name: String(
+                existing.short_name ||
+                    defaults.short_name ||
+                    (opts && opts.merchantShortNameDefault) ||
+                    ''
+            ).trim(),
+            receipt_name: String(
+                existing.receipt_name ||
+                    defaults.receipt_name ||
+                    defaults.short_name ||
+                    (opts && opts.merchantShortNameDefault) ||
+                    ''
+            ).trim(),
+            detail_addr: String(existing.detail_addr || defaults.detail_addr || '').trim(),
+            legal_mobile_no: String(existing.legal_mobile_no || defaults.legal_mobile_no || '').trim(),
+            contact_mobile_no: String(
+                existing.contact_mobile_no || defaults.contact_mobile_no || ''
+            ).trim(),
+            contact_email: String(existing.contact_email || defaults.contact_email || '').trim(),
+            card_info: {
+                account_name: String(
+                    cardExisting.account_name || cardDef.account_name || ''
+                ).trim(),
+                card_no: String(cardExisting.card_no || cardDef.card_no || '').trim(),
+                bank_name: String(cardExisting.bank_name || cardDef.bank_name || '').trim(),
+                bank_branch: String(
+                    cardExisting.bank_branch || cardDef.bank_branch || ''
+                ).trim()
+            },
+            license_pic:
+                typeof existing.license_pic === 'boolean' ?
+                    existing.license_pic :
+                    !!defaults.license_pic,
+            legal_cert_front_pic:
+                typeof existing.legal_cert_front_pic === 'boolean' ?
+                    existing.legal_cert_front_pic :
+                    !!defaults.legal_cert_front_pic,
+            legal_cert_back_pic:
+                typeof existing.legal_cert_back_pic === 'boolean' ?
+                    existing.legal_cert_back_pic :
+                    !!defaults.legal_cert_back_pic,
+            store_header_pic:
+                typeof existing.store_header_pic === 'boolean' ?
+                    existing.store_header_pic :
+                    !!defaults.store_header_pic,
+            store_indoor_pic:
+                typeof existing.store_indoor_pic === 'boolean' ?
+                    existing.store_indoor_pic :
+                    !!defaults.store_indoor_pic,
+            store_cashier_desk_pic:
+                typeof existing.store_cashier_desk_pic === 'boolean' ?
+                    existing.store_cashier_desk_pic :
+                    !!defaults.store_cashier_desk_pic
+        };
+    }
+
     /**
-     * @param {{ title: string, merchantShortNameDefault?: string, variant?: string }} opts
+     * @param {{
+     *   title: string,
+     *   merchantShortNameDefault?: string,
+     *   variant?: string,
+     *   fieldDefaults?: Record<string, any>
+     * }} opts
      */
     function openUnifiedOnboardingModal(opts) {
+        opts = opts || {};
         removeUnifiedOnboardingModals();
+        var recordKey = makeRecordKey(opts || {});
+        var existingRecord = readRecord(recordKey);
+        var formFields = buildDefaultFields(opts || {}, existingRecord);
 
         var variant = opts.variant || 'store';
         var backdrop = el(
@@ -148,304 +268,325 @@
         header.appendChild(ha);
 
         var body = el('div', 'erp-modal__body');
+        var inputMap = {};
+        var uploadState = {
+            license_pic: !!formFields.license_pic,
+            legal_cert_front_pic: !!formFields.legal_cert_front_pic,
+            legal_cert_back_pic: !!formFields.legal_cert_back_pic,
+            store_header_pic: !!formFields.store_header_pic,
+            store_indoor_pic: !!formFields.store_indoor_pic,
+            store_cashier_desk_pic: !!formFields.store_cashier_desk_pic
+        };
+        var editMode = opts.forceView ? false : !(existingRecord && existingRecord.status === 'submitted');
+        var recordStatus = existingRecord ? existingRecord.status : '';
+        var uploadRenders = [];
+
+        function inputRow(parent, label, key, placeholder, val) {
+            var inp = textInput(placeholder, val);
+            inp.setAttribute('data-onboard-key', key);
+            inp.disabled = !editMode;
+            inputMap[key] = inp;
+            ogRow(parent, label, true, inp);
+        }
+
+        function uploadRow(parent, label, key, caption) {
+            var row = el('div', 'store-form__row');
+            row.appendChild(sfLabel(label, true));
+            var ctrl = el('div', 'store-form__control');
+            var seeded = uploadState[key] ? caption : '';
+
+            function markUploaded() {
+                if (!editMode) return;
+                uploadState[key] = true;
+                if (!seeded) seeded = '本地上传文件';
+                showToast('已选择文件（演示）', 'success');
+                render();
+            }
+
+            function render() {
+                clearNode(ctrl);
+                if (!uploadState[key]) {
+                    if (editMode) {
+                        var wrap = uploadClickBox(caption);
+                        wrap.addEventListener('click', markUploaded);
+                        ctrl.appendChild(wrap);
+                    } else {
+                        ctrl.appendChild(el('div', 'store-form__upload-hint', '未上传'));
+                    }
+                    return;
+                }
+
+                var preview = el('div', 'store-upload-box');
+                preview.style.width = '100%';
+                preview.style.minHeight = '110px';
+                preview.style.display = 'flex';
+                preview.style.alignItems = 'center';
+                preview.style.justifyContent = 'center';
+                preview.style.background = '#f8fafc';
+                preview.style.color = '#666';
+                preview.style.fontSize = '12px';
+                preview.textContent = seeded || caption || '已上传';
+                ctrl.appendChild(preview);
+
+                var actions = el('div', 'store-form__upload-hint');
+                actions.style.marginTop = '8px';
+                actions.appendChild(el('span', '', '已上传'));
+                if (editMode) {
+                    actions.appendChild(document.createTextNode('  '));
+                    var rep = el('a', '', '更换');
+                    rep.href = '#';
+                    rep.addEventListener('click', function (ev) {
+                        ev.preventDefault();
+                        markUploaded();
+                    });
+                    actions.appendChild(rep);
+                }
+                ctrl.appendChild(actions);
+            }
+
+            render();
+            uploadRenders.push(render);
+            row.appendChild(ctrl);
+            parent.appendChild(row);
+        }
 
         var s1 = el('section', 'store-onboard-section store-onboard-section--white');
-        s1.appendChild(sectionTitle('商户类型'));
-        var catRow = el('div', 'store-form__row');
-        catRow.appendChild(sfLabel('商户类别', true));
-        var radioWrap = el('div', 'store-form__control');
-        var radioRow = el('div', 'store-radio-row');
-        [
-            ['enterprise', '企业'],
-            ['indi', '个体户']
-        ].forEach(function (pair, idx) {
-            var labEl = el('label', '');
-            var inp = el('input');
-            inp.type = 'radio';
-            inp.name = 'uo-merchant-cat';
-            inp.value = pair[0];
-            if (idx === 0) inp.checked = true;
-            labEl.appendChild(inp);
-            labEl.appendChild(document.createTextNode(' ' + pair[1]));
-            radioRow.appendChild(labEl);
-        });
-        radioWrap.appendChild(radioRow);
-        catRow.appendChild(radioWrap);
-        s1.appendChild(catRow);
-
-        s1.appendChild(sectionTitle('营业执照信息'));
-        var licRow = el('div', 'store-form__row');
-        licRow.appendChild(sfLabel('营业执照', true));
-        var licCtrl = el('div', 'store-form__control');
-        licCtrl.appendChild(uploadClickBox());
-        licCtrl.appendChild(el('div', 'store-form__upload-hint', '支持 JPG/PNG，单张不超过 5MB'));
-        licRow.appendChild(licCtrl);
-        s1.appendChild(licRow);
-
-        var gLic = el('div', 'unified-onboard-grid');
-        s1.appendChild(gLic);
-        ogRow(gLic, '营业执照名称', false, textInput('请输入营业执照名称'));
-        ogRow(gLic, '证件代码', false, textInput('请输入证件代码'));
-        ogRow(gLic, '执照起始日期', true, textInput('请选择起始日期'));
-
-        var licExpRow = el('div', 'store-form__row unified-onboard-grid__full');
-        licExpRow.appendChild(sfLabel('执照有效期', false));
-        var licExpCtrl = el('div', 'store-form__control store-form__phone-row');
-        licExpCtrl.appendChild(textInput('请选择有效期'));
-        var longLab = el('label', '');
-        var longChk = document.createElement('input');
-        longChk.type = 'checkbox';
-        longLab.appendChild(longChk);
-        longLab.appendChild(document.createTextNode(' 长期'));
-        licExpCtrl.appendChild(longLab);
-        licExpRow.appendChild(licExpCtrl);
-        gLic.appendChild(licExpRow);
-
-        ogRow(gLic, '注册地址', false, textInput('请输入注册地址'));
+        s1.appendChild(sectionTitle('商户进件字段'));
+        var gMer = el('div', 'unified-onboard-grid');
+        s1.appendChild(gMer);
+        inputRow(
+            gMer,
+            '商户简称',
+            'short_name',
+            '账单展示名称',
+            formFields.short_name
+        );
+        inputRow(
+            gMer,
+            '小票名称',
+            'receipt_name',
+            '小票展示名称',
+            formFields.receipt_name
+        );
+        inputRow(
+            gMer,
+            '实际经营地址',
+            'detail_addr',
+            '经营详细地址',
+            formFields.detail_addr
+        );
+        inputRow(gMer, '法人手机号', 'legal_mobile_no', '法人联系方式', formFields.legal_mobile_no);
+        inputRow(
+            gMer,
+            '管理员手机号',
+            'contact_mobile_no',
+            '登录/通知手机号',
+            formFields.contact_mobile_no
+        );
+        inputRow(
+            gMer,
+            '管理员邮箱',
+            'contact_email',
+            '汇付通知邮箱',
+            formFields.contact_email
+        );
         body.appendChild(s1);
 
         var s2 = el('section', 'store-onboard-section');
-        s2.appendChild(sectionTitle('法人基本信息'));
-        var idTypeRow = el('div', 'store-form__row');
-        idTypeRow.appendChild(sfLabel('证件类型', true));
-        var idTypeCtrl = el('div', 'store-form__control');
-        var idRadio = el('div', 'store-radio-row');
-        [
-            ['idcard', '身份证'],
-            ['passport', '护照'],
-            ['hkmo', '港澳通行证']
-        ].forEach(function (pair, idx) {
-            var lb = el('label', '');
-            var inp = el('input');
-            inp.type = 'radio';
-            inp.name = 'uo-id-doc-type';
-            inp.value = pair[0];
-            if (idx === 0) inp.checked = true;
-            lb.appendChild(inp);
-            lb.appendChild(document.createTextNode(' ' + pair[1]));
-            idRadio.appendChild(lb);
-        });
-        idTypeCtrl.appendChild(idRadio);
-        idTypeRow.appendChild(idTypeCtrl);
-        s2.appendChild(idTypeRow);
-
-        var idUpRow = el('div', 'store-form__row');
-        idUpRow.appendChild(sfLabel('上传证件', true));
-        var idUpCtrl = el('div', 'store-form__control');
-        var idPair = el('div', 'store-upload-grid');
-        idPair.appendChild(uploadClickBox('上传身份证人像面'));
-        idPair.appendChild(uploadClickBox('上传身份证国徽面'));
-        idUpCtrl.appendChild(idPair);
-        idUpRow.appendChild(idUpCtrl);
-        s2.appendChild(idUpRow);
-
-        var gLegal = el('div', 'unified-onboard-grid');
-        s2.appendChild(gLegal);
-        ogRow(gLegal, '法人姓名', true, textInput('请输入法人姓名'));
-        ogRow(gLegal, '身份证号', true, textInput('请输入证件号码'));
-        ogRow(gLegal, '身份证起始日期', true, textInput('请选择起始日期'));
-        ogRow(gLegal, '身份证有效期', true, textInput('请选择有效期'));
+        s2.appendChild(sectionTitle('银行卡信息配置'));
+        var gCard = el('div', 'unified-onboard-grid');
+        s2.appendChild(gCard);
+        inputRow(
+            gCard,
+            '开户名',
+            'card_info.account_name',
+            '结算账户户名',
+            formFields.card_info.account_name
+        );
+        inputRow(gCard, '银行卡号', 'card_info.card_no', '结算账户', formFields.card_info.card_no);
+        inputRow(gCard, '开户银行', 'card_info.bank_name', '银行名称', formFields.card_info.bank_name);
+        inputRow(
+            gCard,
+            '开户支行',
+            'card_info.bank_branch',
+            '支行名称',
+            formFields.card_info.bank_branch
+        );
         body.appendChild(s2);
 
         var s3 = el('section', 'store-onboard-section store-onboard-section--white');
-        s3.appendChild(sectionTitle('商户信息'));
-        var gMer = el('div', 'unified-onboard-grid');
-        s3.appendChild(gMer);
-        ogRow(
-            gMer,
-            '商户简称',
-            false,
-            textInput('可输入10个汉字，或20个字母', opts.merchantShortNameDefault || '')
-        );
-
-        var regionOb = el('div', 'store-form__row');
-        regionOb.appendChild(sfLabel('商户所在地区', true));
-        var rc = el('div', 'store-form__control');
-        rc.appendChild(
-            textInput('请输入省 / 市 / 区，例如：浙江省 / 杭州市 / 西湖区')
-        );
-        regionOb.appendChild(rc);
-        s3.appendChild(regionOb);
-
-        ogRow(gMer, '详细地址', true, textInput('请输入详细地址'));
-        ogRow(gMer, '成立时间', false, textInput('请选择成立时间'));
-        ogRow(gMer, '企业类型', true, enterpriseTypeSelect());
-        ogRow(gMer, '联系人姓名', true, textInput('请输入联系人姓名'));
-        ogRow(gMer, '手机号码', true, textInput('请输入手机号码'));
-        ogRow(gMer, '场景类型', true, scenarioTypeSelect());
-        ogRow(gMer, '电子邮箱', true, textInput('请输入电子邮箱'));
+        s3.appendChild(sectionTitle('资质上传'));
+        uploadRow(s3, '营业执照', 'license_pic', 'F07');
+        uploadRow(s3, '法人身份证人像面', 'legal_cert_front_pic', 'F02');
+        uploadRow(s3, '法人身份证国徽面', 'legal_cert_back_pic', 'F03');
         body.appendChild(s3);
 
         var s4 = el('section', 'store-onboard-section');
-        s4.appendChild(sectionTitle('结算信息'));
-
-        var settleIntro = el('div', 'store-form__row');
-        settleIntro.appendChild(sfLabel('进件类型', true));
-        var settleIntroCtrl = el('div', 'store-form__control');
-        var cardRow = el('div', 'onboard-settle-cards');
-        var settleRadios = [];
-        [
-            ['pub', '法人对公进件'],
-            ['private', '法人对私进件'],
-            ['nonlegal', '非法人进件']
-        ].forEach(function (pair, i) {
-            var card = el('label', 'onboard-settle-card');
-            var inp = el('input');
-            inp.type = 'radio';
-            inp.name = 'uo-settle-type';
-            inp.value = pair[0];
-            if (i === 0) inp.checked = true;
-            settleRadios.push(inp);
-            card.appendChild(inp);
-            card.appendChild(el('div', 'onboard-settle-card__label', pair[1]));
-            cardRow.appendChild(card);
-        });
-        settleIntroCtrl.appendChild(cardRow);
-        settleIntro.appendChild(settleIntroCtrl);
-        s4.appendChild(settleIntro);
-
-        function syncSettleCards() {
-            var cards = cardRow.querySelectorAll('.onboard-settle-card');
-            for (var i = 0; i < cards.length; i++) {
-                var inp = settleRadios[i];
-                if (inp)
-                    cards[i].classList.toggle('is-selected', !!inp.checked);
-            }
-        }
-        settleRadios.forEach(function (inp, i) {
-            inp.addEventListener('change', function () {
-                syncSettleCards();
-                renderSettleDynamic();
-            });
-            var cardEl = cardRow.children[i];
-            if (cardEl)
-                cardEl.addEventListener('click', function (ev) {
-                    if (ev.target.tagName === 'INPUT' && ev.target.type === 'radio') return;
-                    inp.checked = true;
-                    syncSettleCards();
-                    renderSettleDynamic();
-                });
-        });
-        syncSettleCards();
-
-        var settleDynamic = el('div', 'onboard-settle-dynamic');
-        s4.appendChild(settleDynamic);
-
-        function renderSettleDynamic() {
-            clearNode(settleDynamic);
-            var checked = body.querySelector('input[name="uo-settle-type"]:checked');
-            var val = checked ? checked.value : 'pub';
-
-            if (val === 'pub') {
-                ogRow(settleDynamic, '开户许可证', true, uploadClickBox());
-                ogRow(settleDynamic, '开户名', false, textInput('请输入开户名'));
-                ogRow(settleDynamic, '开户城市', false, textInput('请输入开户城市'));
-                ogRow(settleDynamic, '银行卡号', false, textInput('请输入银行卡号'));
-                ogRow(settleDynamic, '开户支行', false, textInput('请输入开户支行'));
-                return;
-            }
-
-            if (val === 'private') {
-                ogRow(settleDynamic, '银行卡照片', true, uploadClickBox());
-                ogRow(settleDynamic, '开户名', false, textInput('请输入开户名'));
-                ogRow(settleDynamic, '开户支行', false, textInput('请输入开户支行'));
-                ogRow(settleDynamic, '银行卡号', false, textInput('请输入银行卡号'));
-                return;
-            }
-
-            ogRow(settleDynamic, '银行卡照片', true, uploadClickBox());
-            var idPair2 = el('div', 'store-form__row');
-            idPair2.appendChild(sfLabel('身份证照片', true));
-            var idc = el('div', 'store-form__control');
-            var grid = el('div', 'store-upload-grid');
-            grid.appendChild(uploadClickBox('上传身份证人像面'));
-            grid.appendChild(uploadClickBox('上传身份证国徽面'));
-            idc.appendChild(grid);
-            idPair2.appendChild(idc);
-            settleDynamic.appendChild(idPair2);
-
-            var authRow = el('div', 'store-form__row');
-            authRow.appendChild(sfLabel('法人授权函', true));
-            var authCtrl = el('div', 'store-form__control');
-            authCtrl.appendChild(uploadClickBox());
-            authCtrl.appendChild(
-                el(
-                    'div',
-                    'store-form__upload-hint',
-                    '下载模板并打印，填写信息并授权签章'
-                )
-            );
-            var btnRow = el('div', 'onboard-auth-actions');
-            var bTpl = mkBtn('下载模板', false, true);
-            var bEx = mkBtn('下载示例', false, true);
-            bTpl.addEventListener('click', function () {
-                showToast('模板下载（演示）', 'info');
-            });
-            bEx.addEventListener('click', function () {
-                showToast('示例下载（演示）', 'info');
-            });
-            btnRow.appendChild(bTpl);
-            btnRow.appendChild(bEx);
-            authCtrl.appendChild(btnRow);
-            authRow.appendChild(authCtrl);
-            settleDynamic.appendChild(authRow);
-
-            ogRow(settleDynamic, '身份证号', false, textInput('请输入身份证号'));
-            ogRow(settleDynamic, '身份证起始日期', false, textInput('请选择起始日期'));
-            ogRow(settleDynamic, '身份证有效期', false, textInput('请选择有效期'));
-            ogRow(settleDynamic, '开户名', false, textInput('请输入开户名'));
-            ogRow(settleDynamic, '银行卡号', false, textInput('请输入银行卡号'));
-            ogRow(settleDynamic, '开户城市', false, textInput('请输入开户城市'));
-            ogRow(settleDynamic, '开户支行', false, textInput('请输入开户支行'));
-        }
-
-        renderSettleDynamic();
+        s4.appendChild(sectionTitle('门店照片'));
+        uploadRow(s4, '门头/场地照', 'store_header_pic', 'F22');
+        uploadRow(s4, '内景/工作区域照', 'store_indoor_pic', 'F24');
+        uploadRow(s4, '收银台/前台照', 'store_cashier_desk_pic', 'F105');
         body.appendChild(s4);
 
-        var s5 = el('section', 'store-onboard-section store-onboard-section--white');
-        s5.appendChild(sectionTitle('门店信息'));
-        var tri = el('div', 'store-upload-grid');
-        [
-            ['门头照', '门头照'],
-            ['内设照', '内设照'],
-            ['收银台照', '收银台照']
-        ].forEach(function (pair) {
-            var w = el('div', '');
-            w.appendChild(sfLabel(pair[0], true));
-            w.appendChild(uploadClickBox(pair[1]));
-            tri.appendChild(w);
-        });
-        s5.appendChild(tri);
+        function getInputVal(key) {
+            var inp = inputMap[key];
+            return inp ? inp.value.trim() : '';
+        }
 
-        s5.appendChild(sectionTitle('门店协议'));
-        var agreeRow = el('div', 'store-form__row');
-        agreeRow.appendChild(sfLabel('电子协议', false));
-        var agreeCtrl = el('div', 'store-form__control');
-        var genBtn = mkBtn('生成电子协议', true, false);
-        genBtn.addEventListener('click', function () {
-            showToast('电子协议生成（演示）', 'info');
-        });
-        agreeCtrl.appendChild(genBtn);
-        agreeRow.appendChild(agreeCtrl);
-        s5.appendChild(agreeRow);
-        body.appendChild(s5);
+        function collectFields() {
+            return {
+                short_name: getInputVal('short_name'),
+                receipt_name: getInputVal('receipt_name'),
+                detail_addr: getInputVal('detail_addr'),
+                legal_mobile_no: getInputVal('legal_mobile_no'),
+                contact_mobile_no: getInputVal('contact_mobile_no'),
+                contact_email: getInputVal('contact_email'),
+                card_info: {
+                    account_name: getInputVal('card_info.account_name'),
+                    card_no: getInputVal('card_info.card_no'),
+                    bank_name: getInputVal('card_info.bank_name'),
+                    bank_branch: getInputVal('card_info.bank_branch')
+                },
+                license_pic: !!uploadState.license_pic,
+                legal_cert_front_pic: !!uploadState.legal_cert_front_pic,
+                legal_cert_back_pic: !!uploadState.legal_cert_back_pic,
+                store_header_pic: !!uploadState.store_header_pic,
+                store_indoor_pic: !!uploadState.store_indoor_pic,
+                store_cashier_desk_pic: !!uploadState.store_cashier_desk_pic
+            };
+        }
+
+        function validateBeforeSubmit() {
+            var requiredTextFields = [
+                { key: 'short_name', label: '商户简称' },
+                { key: 'receipt_name', label: '小票名称' },
+                { key: 'detail_addr', label: '实际经营地址' },
+                { key: 'legal_mobile_no', label: '法人手机号' },
+                { key: 'contact_mobile_no', label: '管理员手机号' },
+                { key: 'contact_email', label: '管理员邮箱' },
+                { key: 'card_info.account_name', label: '开户名' },
+                { key: 'card_info.card_no', label: '银行卡号' },
+                { key: 'card_info.bank_name', label: '开户银行' },
+                { key: 'card_info.bank_branch', label: '开户支行' }
+            ];
+            for (var i = 0; i < requiredTextFields.length; i++) {
+                var f = requiredTextFields[i];
+                if (!getInputVal(f.key)) {
+                    showToast('请填写' + f.label, 'error');
+                    return false;
+                }
+            }
+            var requiredUploads = [
+                ['license_pic', '营业执照'],
+                ['legal_cert_front_pic', '法人身份证人像面'],
+                ['legal_cert_back_pic', '法人身份证国徽面'],
+                ['store_header_pic', '门头/场地照'],
+                ['store_indoor_pic', '内景/工作区域照'],
+                ['store_cashier_desk_pic', '收银台/前台照']
+            ];
+            for (var j = 0; j < requiredUploads.length; j++) {
+                var up = requiredUploads[j];
+                if (!uploadState[up[0]]) {
+                    showToast('请上传' + up[1], 'error');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function persist(status) {
+            var now = Date.now();
+            var payload = {
+                recordKey: recordKey,
+                status: status,
+                title: opts.title || '进件',
+                variant: variant,
+                merchantShortName: opts.merchantShortNameDefault || '',
+                fields: collectFields(),
+                updatedAt: now,
+                submittedAt: status === 'submitted' ? now : null
+            };
+            saveRecord(recordKey, payload);
+            recordStatus = status;
+            if (typeof opts.onRecordChange === 'function') {
+                try {
+                    opts.onRecordChange(copyObj(payload));
+                } catch (e) {}
+            }
+            return payload;
+        }
+
+        function refreshEditable() {
+            Object.keys(inputMap).forEach(function (k) {
+                inputMap[k].disabled = !editMode;
+            });
+            uploadRenders.forEach(function (fn) {
+                fn();
+            });
+            if (opts.forceView) {
+                bEdit.style.display = 'none';
+                bSave.style.display = 'none';
+                bSubmit.style.display = 'none';
+                bDelete.style.display = 'none';
+                return;
+            }
+            bEdit.style.display = !editMode && recordStatus === 'submitted' ? '' : 'none';
+            bSave.style.display = editMode ? '' : 'none';
+            bSubmit.style.display = editMode ? '' : 'none';
+            bDelete.style.display = editMode && recordStatus === 'draft' ? '' : 'none';
+        }
 
         var footer = el('div', 'erp-modal__footer');
         var bBack = mkBtn('返回', false, true);
-        var bOk = mkBtn('确定', true, false);
+        var bDelete = mkBtn('删除', false, true);
+        var bEdit = mkBtn('编辑', false, true);
+        var bSave = mkBtn('保存', false, true);
+        var bSubmit = mkBtn('提交进件', true, false);
         bBack.addEventListener('click', function () {
             backdrop.remove();
         });
-        bOk.addEventListener('click', function () {
-            showToast('进件资料已保存（演示，未提交渠道）', 'success');
+        bDelete.addEventListener('click', function () {
+            if (recordStatus !== 'draft') {
+                showToast('仅草稿支持删除', 'error');
+                return;
+            }
+            removeRecord(recordKey);
+            recordStatus = '';
+            if (typeof opts.onRecordChange === 'function') {
+                try {
+                    opts.onRecordChange(null);
+                } catch (e) {}
+            }
+            showToast('草稿已删除', 'success');
+            backdrop.remove();
+        });
+        bEdit.addEventListener('click', function () {
+            editMode = true;
+            refreshEditable();
+        });
+        bSave.addEventListener('click', function () {
+            persist('draft');
+            showToast('已保存草稿', 'success');
+            refreshEditable();
+        });
+        bSubmit.addEventListener('click', function () {
+            if (!validateBeforeSubmit()) return;
+            persist('submitted');
+            editMode = false;
+            refreshEditable();
+            showToast('已提交进件（演示）', 'success');
             backdrop.remove();
         });
         footer.appendChild(bBack);
-        footer.appendChild(bOk);
+        footer.appendChild(bDelete);
+        footer.appendChild(bEdit);
+        footer.appendChild(bSave);
+        footer.appendChild(bSubmit);
 
         modal.appendChild(header);
         modal.appendChild(body);
         modal.appendChild(footer);
+        refreshEditable();
         backdrop.appendChild(modal);
         backdrop.addEventListener('click', function (ev) {
             if (ev.target === backdrop) backdrop.remove();
@@ -455,6 +596,25 @@
 
     window.MdmUnifiedOnboardingUi = {
         openModal: openUnifiedOnboardingModal,
-        removeModals: removeUnifiedOnboardingModals
+        removeModals: removeUnifiedOnboardingModals,
+        makeRecordKey: makeRecordKey,
+        getRecord: readRecord,
+        removeRecord: removeRecord,
+        upsertRecord: function (recordKey, record) {
+            if (!recordKey || !record) return;
+            saveRecord(String(recordKey), record);
+        },
+        getSummary: function (recordKey, fallbackDefaults) {
+            var rec = readRecord(recordKey);
+            var fields = rec && rec.fields ? rec.fields : copyObj(fallbackDefaults || {});
+            return {
+                status: rec && rec.status ? rec.status : '',
+                auditStatus: rec && rec.auditStatus ? rec.auditStatus : '',
+                nextAuditNode: rec && rec.nextAuditNode ? rec.nextAuditNode : '',
+                submittedAt: rec && rec.submittedAt ? rec.submittedAt : null,
+                updatedAt: rec && rec.updatedAt ? rec.updatedAt : null,
+                fields: fields
+            };
+        }
     };
 })();

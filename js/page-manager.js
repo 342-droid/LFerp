@@ -123,6 +123,11 @@ class PageManager {
             return `<td class="action-links"><a href="#" class="mdm-disable-toggle">${label}</a> <a href="#" class="edit-btn">编辑</a></td>`;
         }
 
+        if (mode === 'disableTogglePlusOnboard') {
+            const label = this.disableToggleLinkLabel(pickStatusFromCells());
+            return `<td class="action-links"><a href="#" class="mdm-disable-toggle">${label}</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>`;
+        }
+
         if (mode === 'editOnboard') {
             return `<td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>`;
         }
@@ -219,7 +224,8 @@ class PageManager {
         }
         if (
             this.config.actionColumnMode === 'disableToggle' ||
-            this.config.actionColumnMode === 'disableTogglePlusEdit'
+            this.config.actionColumnMode === 'disableTogglePlusEdit' ||
+            this.config.actionColumnMode === 'disableTogglePlusOnboard'
         ) {
             this.refreshDisableToggleLabel(row);
         }
@@ -788,7 +794,8 @@ class PageManager {
             if (
                 mdmTog &&
                 (this.config.actionColumnMode === 'disableToggle' ||
-                    this.config.actionColumnMode === 'disableTogglePlusEdit')
+                    this.config.actionColumnMode === 'disableTogglePlusEdit' ||
+                    this.config.actionColumnMode === 'disableTogglePlusOnboard')
             ) {
                 e.preventDefault();
                 const row = mdmTog.closest('tr');

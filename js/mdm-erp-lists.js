@@ -2,6 +2,104 @@
  * MDM — 资源档案 / 人员 / 会员 / 审核 等列表的 PageManager 启动脚本
  */
 (function () {
+    var RESOURCE_ARCHIVE_CACHE_KEY = 'mdm_resource_archive_first_by_subject_v1';
+
+    function readResourceArchiveCache() {
+        try {
+            var raw = localStorage.getItem(RESOURCE_ARCHIVE_CACHE_KEY);
+            return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function writeResourceArchiveCache(cache) {
+        try {
+            localStorage.setItem(RESOURCE_ARCHIVE_CACHE_KEY, JSON.stringify(cache || {}));
+        } catch (e) {}
+    }
+
+    function copyObj(obj) {
+        return JSON.parse(JSON.stringify(obj || {}));
+    }
+
+    function normalizeOnboardingDefaults(raw) {
+        var r = raw || {};
+        var cardInfo = r.card_info || {};
+        return {
+            short_name: String(r.short_name || '').trim(),
+            receipt_name: String(r.receipt_name || '').trim(),
+            detail_addr: String(r.detail_addr || '').trim(),
+            legal_mobile_no: String(r.legal_mobile_no || '').trim(),
+            contact_mobile_no: String(r.contact_mobile_no || '').trim(),
+            contact_email: String(r.contact_email || '').trim(),
+            card_info: {
+                account_name: String(cardInfo.account_name || '').trim(),
+                card_no: String(cardInfo.card_no || '').trim(),
+                bank_name: String(cardInfo.bank_name || '').trim(),
+                bank_branch: String(cardInfo.bank_branch || '').trim()
+            },
+            license_pic: String(r.license_pic || '').trim(),
+            legal_cert_front_pic: String(r.legal_cert_front_pic || '').trim(),
+            legal_cert_back_pic: String(r.legal_cert_back_pic || '').trim(),
+            store_header_pic: String(r.store_header_pic || '').trim(),
+            store_indoor_pic: String(r.store_indoor_pic || '').trim(),
+            store_cashier_desk_pic: String(r.store_cashier_desk_pic || '').trim()
+        };
+    }
+
+    function resolveFirstArchiveDefaults(kind, subjectName) {
+        var all = readResourceArchiveCache();
+        var bucket = all[kind] || {};
+        var bySubject = bucket.bySubject || {};
+        var firstRows = bucket.firstRows || [];
+        var picked = null;
+        var key = String(subjectName || '').trim();
+        if (key && bySubject[key]) picked = bySubject[key];
+        if (!picked && firstRows.length) picked = firstRows[0];
+        if (!picked) return null;
+        return normalizeOnboardingDefaults(copyObj(picked));
+    }
+
+    function cacheFirstResourceRows(kind, options) {
+        var tbody = document.getElementById(options.tableBodyId || 'tableBody');
+        if (!tbody) return;
+        var rows = tbody.querySelectorAll('tr');
+        if (!rows.length) return;
+        var firstRows = [];
+        var bySubject = {};
+        rows.forEach(function (tr) {
+            var c = tr.querySelectorAll('td');
+            if (!c.length) return;
+            var subjectName = (c[options.subjectCol] || {}).textContent || '';
+            subjectName = subjectName.trim();
+            var resourceName = (c[options.resourceNameCol] || {}).textContent || '';
+            var detailAddr = (c[options.detailAddrCol] || {}).textContent || '';
+            var contactMobile = (c[options.contactMobileCol] || {}).textContent || '';
+            var one = {
+                subject_name: subjectName,
+                short_name: resourceName.trim(),
+                receipt_name: resourceName.trim(),
+                detail_addr: detailAddr.trim(),
+                contact_mobile_no: contactMobile.trim(),
+                legal_mobile_no: '',
+                contact_email: '',
+                store_header_pic: options.storeHeaderPic || '',
+                card_info: {}
+            };
+            firstRows.push(one);
+            if (subjectName && !bySubject[subjectName]) bySubject[subjectName] = one;
+        });
+        if (!firstRows.length) return;
+        var all = readResourceArchiveCache();
+        all[kind] = {
+            updatedAt: Date.now(),
+            firstRows: firstRows,
+            bySubject: bySubject
+        };
+        writeResourceArchiveCache(all);
+    }
+
     function maskBdPhoneForCell(raw) {
         var d = String(raw || '').replace(/\D/g, '');
         if (d.length < 7) return raw || '—';
@@ -45,7 +143,24 @@
             return;
         }
         var c = tr.querySelectorAll('td');
+        var recordId = c[0] ? c[0].textContent.trim() : '';
         var shortName = c[2] ? c[2].textContent.trim() : '';
+        var detailAddrIdx = 4;
+        var contactMobileIdx = 7;
+        if (kind === 'store') {
+            detailAddrIdx = 10;
+            contactMobileIdx = 7;
+        } else if (kind === 'warehouse') {
+            detailAddrIdx = 8;
+            contactMobileIdx = 6;
+        } else if (kind === 'liveRoom') {
+            detailAddrIdx = 2;
+            contactMobileIdx = 7;
+        }
+        var detailAddr = c[detailAddrIdx] ? c[detailAddrIdx].textContent.trim() : '';
+        var contactMobile = c[contactMobileIdx]
+            ? c[contactMobileIdx].textContent.trim()
+            : '';
         var title = '支付进件';
         if (kind === 'store') title = '门店进件';
         else if (kind === 'supplier') title = '供应商进件';
@@ -54,9 +169,21 @@
         window.MdmUnifiedOnboardingUi.openModal({
             title: title,
             merchantShortNameDefault: shortName,
+            fieldDefaults: {
+                short_name: shortName,
+                receipt_name: shortName,
+                detail_addr: detailAddr,
+                contact_mobile_no: contactMobile,
+                store_header_pic: kind === 'store' ? '档案门头照' : ''
+            },
+            recordKey: 'archive::' + kind + '::' + recordId,
             variant: 'resource'
         });
     }
+
+    window.MdmResourceArchiveOnboardingDefaults = {
+        resolveFirstBySubject: resolveFirstArchiveDefaults
+    };
 
     function bindSimpleFilter(pm, ids) {
         var resetId = ids.reset || 'btnFilterReset';
@@ -241,6 +368,20 @@
             fields: fields,
             customRowActions: [
                 {
+                    selector: '.edit-btn',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (
+                            window.MdmResourceArchiveForms &&
+                            typeof window.MdmResourceArchiveForms.openStoreEdit === 'function'
+                        ) {
+                            window.MdmResourceArchiveForms.openStoreEdit(el.closest('tr'));
+                        } else if (typeof showToast === 'function') {
+                            showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                        }
+                    }
+                },
+                {
                     selector: '.mdm-store-withdraw',
                     handler: function (e, el) {
                         e.preventDefault();
@@ -326,6 +467,13 @@
             });
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
+            cacheFirstResourceRows('store', {
+                subjectCol: 1,
+                resourceNameCol: 2,
+                detailAddrCol: 10,
+                contactMobileCol: 7,
+                storeHeaderPic: '档案门头照'
+            });
         }, 0);
     }
 
@@ -367,6 +515,20 @@
                 }
             },
             customRowActions: [
+                {
+                    selector: '.edit-btn',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (
+                            window.MdmResourceArchiveForms &&
+                            typeof window.MdmResourceArchiveForms.openSupplierEdit === 'function'
+                        ) {
+                            window.MdmResourceArchiveForms.openSupplierEdit(el.closest('tr'));
+                        } else if (typeof showToast === 'function') {
+                            showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                        }
+                    }
+                },
                 {
                     selector: '.mdm-onboard-btn',
                     handler: function (e, el) {
@@ -433,6 +595,12 @@
             });
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
+            cacheFirstResourceRows('supplier', {
+                subjectCol: 1,
+                resourceNameCol: 2,
+                detailAddrCol: 4,
+                contactMobileCol: 7
+            });
         }, 0);
     }
 
@@ -466,6 +634,22 @@
                     }
                 }
             },
+            customRowActions: [
+                {
+                    selector: '.edit-btn',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (
+                            window.MdmResourceArchiveForms &&
+                            typeof window.MdmResourceArchiveForms.openWarehouseEdit === 'function'
+                        ) {
+                            window.MdmResourceArchiveForms.openWarehouseEdit(el.closest('tr'));
+                        } else if (typeof showToast === 'function') {
+                            showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                        }
+                    }
+                }
+            ],
             onDisableToggle: function (row, status, page) {
                 if (String(status).trim() === '停用') {
                     page.updateTableRow(row, { 11: { value: '启用', isStatus: true } });
@@ -535,6 +719,12 @@
             document.querySelectorAll('#tableBody tr').forEach(function (tr) {
                 pm.refreshDisableToggleLabel(tr);
             });
+            cacheFirstResourceRows('warehouse', {
+                subjectCol: 1,
+                resourceNameCol: 2,
+                detailAddrCol: 8,
+                contactMobileCol: 6
+            });
         }, 0);
     }
 
@@ -577,6 +767,20 @@
                 }
             },
             customRowActions: [
+                {
+                    selector: '.edit-btn',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (
+                            window.MdmResourceArchiveForms &&
+                            typeof window.MdmResourceArchiveForms.openLiveRoomEdit === 'function'
+                        ) {
+                            window.MdmResourceArchiveForms.openLiveRoomEdit(el.closest('tr'));
+                        } else if (typeof showToast === 'function') {
+                            showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                        }
+                    }
+                },
                 {
                     selector: '.mdm-onboard-btn',
                     handler: function (e, el) {
@@ -662,6 +866,12 @@
             });
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
+            cacheFirstResourceRows('liveRoom', {
+                subjectCol: 1,
+                resourceNameCol: 2,
+                detailAddrCol: 2,
+                contactMobileCol: 7
+            });
         }, 0);
     }
 
@@ -703,6 +913,20 @@
                 }
             },
             customRowActions: [
+                {
+                    selector: '.edit-btn',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (
+                            window.MdmResourceArchiveForms &&
+                            typeof window.MdmResourceArchiveForms.openCarrierEdit === 'function'
+                        ) {
+                            window.MdmResourceArchiveForms.openCarrierEdit(el.closest('tr'));
+                        } else if (typeof showToast === 'function') {
+                            showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                        }
+                    }
+                },
                 {
                     selector: '.mdm-onboard-btn',
                     handler: function (e, el) {
@@ -769,6 +993,12 @@
             });
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
+            cacheFirstResourceRows('carrier', {
+                subjectCol: 1,
+                resourceNameCol: 2,
+                detailAddrCol: 4,
+                contactMobileCol: 7
+            });
         }, 0);
     }
 

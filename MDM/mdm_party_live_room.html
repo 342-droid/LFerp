@@ -6,6 +6,7 @@
     <title>冷丰WMS - 直播间主体</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <style>
         .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
         .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
@@ -21,7 +22,7 @@
         <main class="main-content">
             <div class="content-tabs"><button class="active">直播间主体</button></div>
             <hr class="content-divider">
-            <div class="content-title">基础数据中心 / 主体中心 / 直播间主体管理 / 直播间主体列表</div>
+            <div class="content-title">基础数据中心 / 主体中心 / 直播间</div>
             <section class="search-section">
                 <form class="search-form">
                     <div class="form-group">
@@ -66,9 +67,9 @@
                             </tr>
                         </thead>
                         <tbody id="tableBody">
-                            <tr><td>LIVE-SUB-001</td><td>品牌日播间-A</td><td>官方直播组</td><td>直播间</td><td>周琳</td><td>139****8899</td><td>live_a_01</td><td>2026-04-24 09:00:00</td><td>系统</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
-                            <tr><td>LIVE-SUB-002</td><td>区域直播-沪南</td><td>区域直播组</td><td>直播间</td><td>吴悦</td><td>136****6677</td><td>live_hn_01</td><td>2026-04-23 20:15:33</td><td>李四</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
-                            <tr><td>LIVE-SUB-003</td><td>工厂溯源专场</td><td>定向直播组</td><td>直播间</td><td>郑可</td><td>135****5544</td><td>live_trace_01</td><td>2026-04-22 13:40:18</td><td>王五</td><td><span class="status inactive">停用</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">启用</a></td></tr>
+                            <tr><td>LIVE-SUB-001</td><td>品牌日播间-A</td><td>官方直播组</td><td>直播间</td><td>周琳</td><td>139****8899</td><td>live_a_01</td><td>2026-04-24 09:00:00</td><td>系统</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr>
+                            <tr><td>LIVE-SUB-002</td><td>区域直播-沪南</td><td>区域直播组</td><td>直播间</td><td>吴悦</td><td>136****6677</td><td>live_hn_01</td><td>2026-04-23 20:15:33</td><td>李四</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr>
+                            <tr><td>LIVE-SUB-003</td><td>工厂溯源专场</td><td>定向直播组</td><td>直播间</td><td>郑可</td><td>135****5544</td><td>live_trace_01</td><td>2026-04-22 13:40:18</td><td>王五</td><td><span class="status inactive">停用</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">启用</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr>
 
                         </tbody>
                     </table>
@@ -83,11 +84,13 @@
     <script src="../js/form-utils.js"></script>
     <script src="../js/modal-manager.js"></script>
     <script src="../js/page-manager.js"></script>
+    <script src="../js/mdm-unified-onboarding-ui.js"></script>
     <script src="../js/mdm-subject-pagemanager.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         MdmSubjectLf.init({
             pageLabel: '直播间',
+            enableSubjectOnboarding: true,
             subjectTypeLabel: '直播间',
             contactPersonLabel: '负责人',
             bindColumnLabel: '归属分组',

@@ -10,6 +10,8 @@
     <style>
         .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
         .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
+        .audit-panel-hidden { display: none; }
+        .audit-empty-note { padding: 24px 0; color: #94a3b8; text-align: center; }
     </style>
 </head>
 <body>
@@ -19,9 +21,10 @@
     <div id="header-container"></div>
     <div class="container">
         <main class="main-content">
-            <div class="content-tabs"><button class="active">门店注册审核</button></div>
+            <div class="content-tabs"><button type="button" class="active" id="auditCurrentTab">门店注册审核</button></div>
             <hr class="content-divider">
             <div class="content-title">审核中心 / 门店审核 / 门店注册审核</div>
+<div id="audit-store-registration-panel">
 <section class="search-section"><form class="search-form">
 <div class="form-group"><label>主体名称:</label><div class="input-wrapper"><input id="qSubjectName"><span class="clear-btn">×</span></div></div>
 <div class="form-group"><label>门店名称:</label><div class="input-wrapper"><input id="qStoreName"><span class="clear-btn">×</span></div></div>
@@ -35,6 +38,23 @@
 <div class="audit-flow__step"><div class="audit-flow__num">4</div><div class="audit-flow__title">MDM 生效</div><div class="audit-flow__desc">生成主体 Org、门店 Store，并建立 Org-Store 关系</div></div>
 </div>
 <section class="table-section"><div class="table-scroll-container"><table class="table"><thead><tr><th>申请单号</th><th>来源</th><th>主体名称</th><th>门店名称</th><th>绑定BD</th><th>联系人</th><th>手机号码</th><th>审核状态</th><th>MDM状态</th><th>提交时间</th><th>操作</th></tr></thead><tbody id="tableBody"><tr><td>WF-STORE-20260507001</td><td>PC 创建门店</td><td>冷丰演示门店</td><td>冷丰演示门店文一西路店</td><td>王强</td><td>周敏</td><td>138****2201</td><td><span class="status inactive">待审核</span></td><td><span class="status inactive">未生成</span></td><td>2026-05-07 15:20</td><td class="action-links"><a href="#" class="mdm-audit-detail">详情</a>　<a href="#" class="mdm-audit-review">审核</a></td></tr><tr><td>WF-STORE-20260507002</td><td>PC 创建门店</td><td>五角场体验店</td><td>五角场体验店</td><td>李四</td><td>孙丽</td><td>188****7765</td><td><span class="status inactive">待总监审核</span></td><td><span class="status inactive">未生成</span></td><td>2026-05-07 14:58</td><td class="action-links"><a href="#" class="mdm-audit-detail">详情</a>　<a href="#" class="mdm-audit-review">审核</a></td></tr><tr><td>WF-STORE-20260506001</td><td>PC 创建门店</td><td>滨江便民店</td><td>滨江便民店春晓路店</td><td>王强</td><td>刘芳</td><td>139****3308</td><td><span class="status inactive">审核失败</span></td><td><span class="status inactive">未生成</span></td><td>2026-05-06 09:12</td><td class="action-links"><a href="#" class="mdm-audit-detail">详情</a>　<a href="#" class="mdm-audit-edit">编辑</a></td></tr><tr><td>WF-STORE-20260506008</td><td>PC 创建门店</td><td>张江快闪店</td><td>张江快闪店</td><td>赵小九</td><td>陈晨</td><td>186****9001</td><td><span class="status active">审核成功</span></td><td><span class="status active">已生成主体与门店档案</span></td><td>2026-05-06 18:36</td><td class="action-links"><a href="#" class="mdm-audit-detail">详情</a></td></tr></tbody></table></div><div id="pagination-container"></div></section>
+</div>
+
+<div id="audit-onboarding-panel" class="audit-panel-hidden">
+<section class="search-section"><form class="search-form">
+<div class="form-group"><label>商户名称:</label><div class="input-wrapper"><input id="qOnbMerchant"><span class="clear-btn">×</span></div></div>
+<div class="form-group"><label>主体类型:</label><select id="qOnbKind"><option value="">全部</option><option value="store">门店</option><option value="supplier">供应商</option><option value="warehouse">仓库</option><option value="liveRoom">直播间</option><option value="carrier">承运商</option></select></div>
+<div class="form-group"><label>审核状态:</label><select id="qOnbAuditStatus"><option value="">全部</option><option value="审核中">审核中</option><option value="审核成功">审核成功</option><option value="审核失败">审核失败</option></select></div>
+<div class="form-actions"><button type="button" class="btn btn-secondary" id="btnOnbFilterReset">重置</button><button type="button" class="btn btn-primary" id="btnOnbFilterQuery">查询</button></div>
+</form></section>
+<div class="audit-flow">
+<div class="audit-flow__step"><div class="audit-flow__num">1</div><div class="audit-flow__title">发起进件</div><div class="audit-flow__desc">门店 / BD 提交进件资料</div></div>
+<div class="audit-flow__step"><div class="audit-flow__num">2</div><div class="audit-flow__title">BD 审核</div><div class="audit-flow__desc">包含 BD 预审与 BD 总监审核，驳回则回写审核失败</div></div>
+<div class="audit-flow__step"><div class="audit-flow__num">3</div><div class="audit-flow__title">财务审核</div><div class="audit-flow__desc">复核资料与结算信息，通过后流转汇付</div></div>
+<div class="audit-flow__step"><div class="audit-flow__num">4</div><div class="audit-flow__title">汇付审核</div><div class="audit-flow__desc">审核成功后回写进件状态</div></div>
+</div>
+<section class="table-section"><div class="table-scroll-container"><table class="table"><thead><tr><th>进件单号</th><th>商户名称</th><th>主体类型</th><th>审核状态</th><th>当前环节</th><th>提交时间</th><th>更新时间</th><th>操作</th></tr></thead><tbody id="onboardingAuditTableBody"></tbody></table></div><div id="onboarding-audit-pagination"></div><div id="onboarding-audit-empty" class="audit-empty-note">暂无待审核进件单</div></section>
+</div>
         </main>
     </div>
     <script src="../js/common.js"></script>
@@ -45,10 +65,17 @@
     <script src="../js/mdm-subject-pagemanager.js"></script>
     <script src="../js/mdm-unified-onboarding-ui.js"></script>
     <script src="../js/mdm-audit-store-ui.js"></script>
+    <script src="../js/mdm-audit-onboarding-ui.js"></script>
     <script src="../js/mdm-erp-lists.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-        MdmErpLists.initAuditStoreRegistration();
+        var hash = String(window.location.hash || '').replace(/^#/, '');
+        if (hash !== 'onboarding-review') {
+            MdmErpLists.initAuditStoreRegistration();
+        }
+        if (window.MdmAuditOnboardingUi && typeof window.MdmAuditOnboardingUi.init === 'function') {
+            window.MdmAuditOnboardingUi.init();
+        }
     });
     </script>
 </body>

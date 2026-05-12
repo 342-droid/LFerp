@@ -6,6 +6,7 @@
     <title>冷丰WMS - 门店主体</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <style>
         .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
         .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
@@ -21,7 +22,7 @@
         <main class="main-content">
             <div class="content-tabs"><button class="active">门店主体</button></div>
             <hr class="content-divider">
-            <div class="content-title">基础数据中心 / 主体中心 / 门店主体管理 / 门店主体列表</div>
+            <div class="content-title">基础数据中心 / 主体中心 / 门店</div>
             <section class="search-section">
                 <form class="search-form">
                     <div class="form-group">
@@ -66,9 +67,9 @@
                             </tr>
                         </thead>
                         <tbody id="tableBody">
-                            <tr><td>STORE-SUB-001</td><td>冷丰演示门店</td><td>张三</td><td>门店</td><td>赵小九</td><td>138****2211</td><td>store_demo_01</td><td>2026-04-24 10:22:11</td><td>系统</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
-                            <tr><td>STORE-SUB-002</td><td>五角场体验店</td><td>李四</td><td>门店</td><td>孙丽</td><td>188****7765</td><td>store_wjc_01</td><td>2026-04-23 15:01:44</td><td>李四</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
-                            <tr><td>STORE-SUB-003</td><td>张江快闪店</td><td>—</td><td>门店</td><td>陈晨</td><td>186****9001</td><td>store_zj_01</td><td>2026-04-22 09:33:02</td><td>系统</td><td><span class="status inactive">停用</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">启用</a></td></tr>
+                            <tr><td>STORE-SUB-001</td><td>冷丰演示门店</td><td>张三</td><td>门店</td><td>赵小九</td><td>138****2211</td><td>store_demo_01</td><td>2026-04-24 10:22:11</td><td>系统</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr>
+                            <tr><td>STORE-SUB-002</td><td>五角场体验店</td><td>李四</td><td>门店</td><td>孙丽</td><td>188****7765</td><td>store_wjc_01</td><td>2026-04-23 15:01:44</td><td>李四</td><td><span class="status active">正常</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr>
+                            <tr><td>STORE-SUB-003</td><td>张江快闪店</td><td>—</td><td>门店</td><td>陈晨</td><td>186****9001</td><td>store_zj_01</td><td>2026-04-22 09:33:02</td><td>系统</td><td><span class="status inactive">停用</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">启用</a> <a href="#" class="mdm-onboard-btn">去进件</a></td></tr>
 
                         </tbody>
                     </table>
@@ -83,11 +84,13 @@
     <script src="../js/form-utils.js"></script>
     <script src="../js/modal-manager.js"></script>
     <script src="../js/page-manager.js"></script>
+    <script src="../js/mdm-unified-onboarding-ui.js"></script>
     <script src="../js/mdm-subject-pagemanager.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         MdmSubjectLf.init({
             pageLabel: '门店',
+            enableSubjectOnboarding: true,
             subjectTypeLabel: '门店',
             showBindBd: true,
             compactStoreSubjectForm: true,
