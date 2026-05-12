@@ -161,6 +161,15 @@
         var existing = existingRecord && existingRecord.fields ? existingRecord.fields : {};
         var cardDef = defaults.card_info || {};
         var cardExisting = existing.card_info || {};
+        var licenseDef = defaults.license_info || {};
+        var licenseExisting = existing.license_info || {};
+        var legalDef = defaults.legal_info || {};
+        var legalExisting = existing.legal_info || {};
+        function uploadDefault(key) {
+            if (typeof existing[key] === 'boolean' || typeof existing[key] === 'string')
+                return existing[key];
+            return !!defaults[key];
+        }
         return {
             short_name: String(
                 existing.short_name ||
@@ -191,30 +200,27 @@
                     cardExisting.bank_branch || cardDef.bank_branch || ''
                 ).trim()
             },
-            license_pic:
-                typeof existing.license_pic === 'boolean' ?
-                    existing.license_pic :
-                    !!defaults.license_pic,
-            legal_cert_front_pic:
-                typeof existing.legal_cert_front_pic === 'boolean' ?
-                    existing.legal_cert_front_pic :
-                    !!defaults.legal_cert_front_pic,
-            legal_cert_back_pic:
-                typeof existing.legal_cert_back_pic === 'boolean' ?
-                    existing.legal_cert_back_pic :
-                    !!defaults.legal_cert_back_pic,
-            store_header_pic:
-                typeof existing.store_header_pic === 'boolean' ?
-                    existing.store_header_pic :
-                    !!defaults.store_header_pic,
-            store_indoor_pic:
-                typeof existing.store_indoor_pic === 'boolean' ?
-                    existing.store_indoor_pic :
-                    !!defaults.store_indoor_pic,
-            store_cashier_desk_pic:
-                typeof existing.store_cashier_desk_pic === 'boolean' ?
-                    existing.store_cashier_desk_pic :
-                    !!defaults.store_cashier_desk_pic
+            license_info: {
+                name: String(licenseExisting.name || licenseDef.name || '').trim(),
+                code: String(licenseExisting.code || licenseDef.code || '').trim(),
+                start_date: String(licenseExisting.start_date || licenseDef.start_date || '').trim(),
+                valid_date: String(licenseExisting.valid_date || licenseDef.valid_date || '').trim(),
+                address: String(licenseExisting.address || licenseDef.address || '').trim()
+            },
+            legal_info: {
+                cert_type: String(legalExisting.cert_type || legalDef.cert_type || '身份证').trim(),
+                legal_name: String(legalExisting.legal_name || legalDef.legal_name || '').trim(),
+                id_no: String(legalExisting.id_no || legalDef.id_no || '').trim(),
+                id_start_date: String(legalExisting.id_start_date || legalDef.id_start_date || '').trim(),
+                id_valid_date: String(legalExisting.id_valid_date || legalDef.id_valid_date || '').trim()
+            },
+            license_pic: uploadDefault('license_pic'),
+            legal_cert_front_pic: uploadDefault('legal_cert_front_pic'),
+            legal_cert_back_pic: uploadDefault('legal_cert_back_pic'),
+            open_license_pic: uploadDefault('open_license_pic'),
+            store_header_pic: uploadDefault('store_header_pic'),
+            store_indoor_pic: uploadDefault('store_indoor_pic'),
+            store_cashier_desk_pic: uploadDefault('store_cashier_desk_pic')
         };
     }
 
@@ -273,6 +279,7 @@
             license_pic: !!formFields.license_pic,
             legal_cert_front_pic: !!formFields.legal_cert_front_pic,
             legal_cert_back_pic: !!formFields.legal_cert_back_pic,
+            open_license_pic: !!formFields.open_license_pic,
             store_header_pic: !!formFields.store_header_pic,
             store_indoor_pic: !!formFields.store_indoor_pic,
             store_cashier_desk_pic: !!formFields.store_cashier_desk_pic
@@ -289,8 +296,36 @@
             ogRow(parent, label, true, inp);
         }
 
-        function uploadRow(parent, label, key, caption) {
+        function ocrDemoValue(key) {
+            var demo = {
+                'license_info.name': '云南立扬后勤管理服务有限公司',
+                'license_info.code': '91530602MADJAY451L',
+                'license_info.start_date': '2024-05-13',
+                'license_info.valid_date': '长期有效',
+                'license_info.address': '云南省昭通市昭阳区太平街道办事处昭通大道',
+                'legal_info.legal_name': '陈大华',
+                'legal_info.id_no': '532101199003145212',
+                'legal_info.id_start_date': '2022-03-07',
+                'legal_info.id_valid_date': '2042-03-07',
+                'card_info.account_name': '云南立扬后勤管理服务有限公司',
+                'card_info.card_no': '53050163613700000992',
+                'card_info.bank_name': '中国建设银行',
+                'card_info.bank_branch': '中国建设银行股份有限公司昭通珠泉支行'
+            };
+            return demo[key] || '';
+        }
+
+        function seedOcrFields(fields) {
+            (fields || []).forEach(function (f) {
+                var inp = inputMap[f.key];
+                if (inp && !inp.value.trim()) inp.value = f.value || ocrDemoValue(f.key);
+            });
+        }
+
+        function uploadRow(parent, label, key, caption, ocrFields, opts) {
+            opts = opts || {};
             var row = el('div', 'store-form__row');
+            if (ocrFields && ocrFields.length) row.classList.add('store-form__row--ocr');
             row.appendChild(sfLabel(label, true));
             var ctrl = el('div', 'store-form__control');
             var seeded = uploadState[key] ? caption : '';
@@ -299,8 +334,30 @@
                 if (!editMode) return;
                 uploadState[key] = true;
                 if (!seeded) seeded = '本地上传文件';
+                seedOcrFields(ocrFields);
                 showToast('已选择文件（演示）', 'success');
                 render();
+            }
+
+            function appendOcrFields(parentNode) {
+                if (!ocrFields || !ocrFields.length) return;
+                var grid = el('div', 'unified-onboard-ocr-grid');
+                if (opts.ocrColumns) grid.style.gridTemplateColumns = opts.ocrColumns;
+                ocrFields.forEach(function (f) {
+                    var wrap = el('div', 'unified-onboard-ocr-field');
+                    wrap.appendChild(sfLabel(f.label, true));
+                    var val =
+                        inputMap[f.key] && inputMap[f.key].value ?
+                            inputMap[f.key].value :
+                            f.value || (uploadState[key] ? ocrDemoValue(f.key) : '');
+                    var inp = textInput(f.placeholder || f.label, val);
+                    inp.setAttribute('data-onboard-key', f.key);
+                    inp.disabled = !editMode;
+                    inputMap[f.key] = inp;
+                    wrap.appendChild(inp);
+                    grid.appendChild(wrap);
+                });
+                parentNode.appendChild(grid);
             }
 
             function render() {
@@ -309,9 +366,29 @@
                     if (editMode) {
                         var wrap = uploadClickBox(caption);
                         wrap.addEventListener('click', markUploaded);
-                        ctrl.appendChild(wrap);
+                        if (ocrFields && ocrFields.length) {
+                            var emptyCombo = el('div', 'unified-onboard-ocr-wrap');
+                            if (opts.mediaWidth) emptyCombo.style.gridTemplateColumns = opts.mediaWidth + ' minmax(0, 1fr)';
+                            var emptyMedia = el('div', 'unified-onboard-ocr-media');
+                            emptyMedia.appendChild(wrap);
+                            emptyCombo.appendChild(emptyMedia);
+                            appendOcrFields(emptyCombo);
+                            ctrl.appendChild(emptyCombo);
+                        } else {
+                            ctrl.appendChild(wrap);
+                        }
                     } else {
-                        ctrl.appendChild(el('div', 'store-form__upload-hint', '未上传'));
+                        if (ocrFields && ocrFields.length) {
+                            var viewCombo = el('div', 'unified-onboard-ocr-wrap');
+                            if (opts.mediaWidth) viewCombo.style.gridTemplateColumns = opts.mediaWidth + ' minmax(0, 1fr)';
+                            var viewMedia = el('div', 'unified-onboard-ocr-media');
+                            viewMedia.appendChild(el('div', 'store-form__upload-hint', '未上传'));
+                            viewCombo.appendChild(viewMedia);
+                            appendOcrFields(viewCombo);
+                            ctrl.appendChild(viewCombo);
+                        } else {
+                            ctrl.appendChild(el('div', 'store-form__upload-hint', '未上传'));
+                        }
                     }
                     return;
                 }
@@ -326,7 +403,17 @@
                 preview.style.color = '#666';
                 preview.style.fontSize = '12px';
                 preview.textContent = seeded || caption || '已上传';
-                ctrl.appendChild(preview);
+                if (ocrFields && ocrFields.length) {
+                    var combo = el('div', 'unified-onboard-ocr-wrap');
+                    if (opts.mediaWidth) combo.style.gridTemplateColumns = opts.mediaWidth + ' minmax(0, 1fr)';
+                    var media = el('div', 'unified-onboard-ocr-media');
+                    media.appendChild(preview);
+                    combo.appendChild(media);
+                    appendOcrFields(combo);
+                    ctrl.appendChild(combo);
+                } else {
+                    ctrl.appendChild(preview);
+                }
 
                 var actions = el('div', 'store-form__upload-hint');
                 actions.style.marginTop = '8px';
@@ -350,8 +437,106 @@
             parent.appendChild(row);
         }
 
-        var s1 = el('section', 'store-onboard-section store-onboard-section--white');
-        s1.appendChild(sectionTitle('商户进件字段'));
+        function idCardUploadRow(parent) {
+            var row = el('div', 'store-form__row store-form__row--ocr');
+            row.appendChild(sfLabel('身份证上传', true));
+            var ctrl = el('div', 'store-form__control');
+            var ocrFields = [
+                { label: '法人姓名', key: 'legal_info.legal_name', value: formFields.legal_info.legal_name },
+                { label: '身份证号', key: 'legal_info.id_no', value: formFields.legal_info.id_no },
+                { label: '身份证起始日期', key: 'legal_info.id_start_date', value: formFields.legal_info.id_start_date },
+                { label: '身份证有效期', key: 'legal_info.id_valid_date', value: formFields.legal_info.id_valid_date }
+            ];
+            var uploadKeys = [
+                { key: 'legal_cert_front_pic', caption: '上传身份证人像面' },
+                { key: 'legal_cert_back_pic', caption: '上传身份证国徽面' }
+            ];
+
+            function markUploaded(key) {
+                if (!editMode) return;
+                uploadState[key] = true;
+                seedOcrFields(ocrFields);
+                showToast('已选择文件（演示）', 'success');
+                render();
+            }
+
+            function renderUploadBox(item) {
+                var box;
+                if (!uploadState[item.key]) {
+                    if (!editMode) return el('div', 'store-form__upload-hint', '未上传');
+                    box = uploadClickBox(item.caption);
+                    box.addEventListener('click', function () {
+                        markUploaded(item.key);
+                    });
+                    return box;
+                }
+                box = el('div', 'store-upload-box');
+                box.style.width = '100%';
+                box.style.minHeight = '110px';
+                box.style.display = 'flex';
+                box.style.alignItems = 'center';
+                box.style.justifyContent = 'center';
+                box.style.background = '#f8fafc';
+                box.style.color = '#666';
+                box.style.fontSize = '12px';
+                box.textContent = item.caption;
+                if (editMode) {
+                    box.style.cursor = 'pointer';
+                    box.addEventListener('click', function () {
+                        markUploaded(item.key);
+                    });
+                }
+                return box;
+            }
+
+            function render() {
+                clearNode(ctrl);
+                var combo = el('div', 'unified-onboard-ocr-wrap unified-onboard-ocr-wrap--idcard');
+                var media = el('div', 'unified-onboard-ocr-media unified-onboard-ocr-media--idcard');
+                uploadKeys.forEach(function (item) {
+                    media.appendChild(renderUploadBox(item));
+                });
+                combo.appendChild(media);
+                var grid = el('div', 'unified-onboard-ocr-grid');
+                grid.style.gridTemplateColumns = '1fr';
+                ocrFields.forEach(function (f) {
+                    var wrap = el('div', 'unified-onboard-ocr-field');
+                    wrap.appendChild(sfLabel(f.label, true));
+                    var val =
+                        inputMap[f.key] && inputMap[f.key].value ?
+                            inputMap[f.key].value :
+                            f.value || ((uploadState.legal_cert_front_pic || uploadState.legal_cert_back_pic) ? ocrDemoValue(f.key) : '');
+                    var inp = textInput(f.label, val);
+                    inp.setAttribute('data-onboard-key', f.key);
+                    inp.disabled = !editMode;
+                    inputMap[f.key] = inp;
+                    wrap.appendChild(inp);
+                    grid.appendChild(wrap);
+                });
+                combo.appendChild(grid);
+                ctrl.appendChild(combo);
+            }
+
+            render();
+            uploadRenders.push(render);
+            row.appendChild(ctrl);
+            parent.appendChild(row);
+        }
+
+        var s0 = el('section', 'store-onboard-section store-onboard-section--white');
+        s0.appendChild(sectionTitle('执照信息'));
+        uploadRow(s0, '营业执照', 'license_pic', 'F07', [
+            { label: '营业执照名称', key: 'license_info.name', value: formFields.license_info.name },
+            { label: '证件代码', key: 'license_info.code', value: formFields.license_info.code },
+            { label: '执照起始日期', key: 'license_info.start_date', value: formFields.license_info.start_date },
+            { label: '执照有效期', key: 'license_info.valid_date', value: formFields.license_info.valid_date },
+            { label: '注册地址', key: 'license_info.address', value: formFields.license_info.address }
+        ], { mediaWidth: '260px', ocrColumns: '1fr' });
+        idCardUploadRow(s0);
+        body.appendChild(s0);
+
+        var s1 = el('section', 'store-onboard-section');
+        s1.appendChild(sectionTitle('商户信息'));
         var gMer = el('div', 'unified-onboard-grid');
         s1.appendChild(gMer);
         inputRow(
@@ -392,37 +577,18 @@
         );
         body.appendChild(s1);
 
-        var s2 = el('section', 'store-onboard-section');
-        s2.appendChild(sectionTitle('银行卡信息配置'));
-        var gCard = el('div', 'unified-onboard-grid');
-        s2.appendChild(gCard);
-        inputRow(
-            gCard,
-            '开户名',
-            'card_info.account_name',
-            '结算账户户名',
-            formFields.card_info.account_name
-        );
-        inputRow(gCard, '银行卡号', 'card_info.card_no', '结算账户', formFields.card_info.card_no);
-        inputRow(gCard, '开户银行', 'card_info.bank_name', '银行名称', formFields.card_info.bank_name);
-        inputRow(
-            gCard,
-            '开户支行',
-            'card_info.bank_branch',
-            '支行名称',
-            formFields.card_info.bank_branch
-        );
+        var s2 = el('section', 'store-onboard-section store-onboard-section--white');
+        s2.appendChild(sectionTitle('结算信息'));
+        uploadRow(s2, '开户许可证', 'open_license_pic', '开户许可证', [
+            { label: '开户名', key: 'card_info.account_name', value: formFields.card_info.account_name },
+            { label: '银行卡号', key: 'card_info.card_no', value: formFields.card_info.card_no },
+            { label: '开户银行', key: 'card_info.bank_name', value: formFields.card_info.bank_name },
+            { label: '开户支行', key: 'card_info.bank_branch', value: formFields.card_info.bank_branch }
+        ], { mediaWidth: '260px', ocrColumns: '1fr' });
         body.appendChild(s2);
 
-        var s3 = el('section', 'store-onboard-section store-onboard-section--white');
-        s3.appendChild(sectionTitle('资质上传'));
-        uploadRow(s3, '营业执照', 'license_pic', 'F07');
-        uploadRow(s3, '法人身份证人像面', 'legal_cert_front_pic', 'F02');
-        uploadRow(s3, '法人身份证国徽面', 'legal_cert_back_pic', 'F03');
-        body.appendChild(s3);
-
         var s4 = el('section', 'store-onboard-section');
-        s4.appendChild(sectionTitle('门店照片'));
+        s4.appendChild(sectionTitle('门店场地'));
         uploadRow(s4, '门头/场地照', 'store_header_pic', 'F22');
         uploadRow(s4, '内景/工作区域照', 'store_indoor_pic', 'F24');
         uploadRow(s4, '收银台/前台照', 'store_cashier_desk_pic', 'F105');
@@ -447,9 +613,24 @@
                     bank_name: getInputVal('card_info.bank_name'),
                     bank_branch: getInputVal('card_info.bank_branch')
                 },
+                license_info: {
+                    name: getInputVal('license_info.name'),
+                    code: getInputVal('license_info.code'),
+                    start_date: getInputVal('license_info.start_date'),
+                    valid_date: getInputVal('license_info.valid_date'),
+                    address: getInputVal('license_info.address')
+                },
+                legal_info: {
+                    cert_type: getInputVal('legal_info.cert_type'),
+                    legal_name: getInputVal('legal_info.legal_name'),
+                    id_no: getInputVal('legal_info.id_no'),
+                    id_start_date: getInputVal('legal_info.id_start_date'),
+                    id_valid_date: getInputVal('legal_info.id_valid_date')
+                },
                 license_pic: !!uploadState.license_pic,
                 legal_cert_front_pic: !!uploadState.legal_cert_front_pic,
                 legal_cert_back_pic: !!uploadState.legal_cert_back_pic,
+                open_license_pic: !!uploadState.open_license_pic,
                 store_header_pic: !!uploadState.store_header_pic,
                 store_indoor_pic: !!uploadState.store_indoor_pic,
                 store_cashier_desk_pic: !!uploadState.store_cashier_desk_pic
@@ -457,6 +638,22 @@
         }
 
         function validateBeforeSubmit() {
+            var requiredUploads = [
+                ['license_pic', '营业执照'],
+                ['legal_cert_front_pic', '法人身份证人像面'],
+                ['legal_cert_back_pic', '法人身份证国徽面'],
+                ['open_license_pic', '开户许可证'],
+                ['store_header_pic', '门头/场地照'],
+                ['store_indoor_pic', '内景/工作区域照'],
+                ['store_cashier_desk_pic', '收银台/前台照']
+            ];
+            for (var j = 0; j < requiredUploads.length; j++) {
+                var up = requiredUploads[j];
+                if (!uploadState[up[0]]) {
+                    showToast('请上传' + up[1], 'error');
+                    return false;
+                }
+            }
             var requiredTextFields = [
                 { key: 'short_name', label: '商户简称' },
                 { key: 'receipt_name', label: '小票名称' },
@@ -464,6 +661,15 @@
                 { key: 'legal_mobile_no', label: '法人手机号' },
                 { key: 'contact_mobile_no', label: '管理员手机号' },
                 { key: 'contact_email', label: '管理员邮箱' },
+                { key: 'license_info.name', label: '营业执照名称' },
+                { key: 'license_info.code', label: '证件代码' },
+                { key: 'license_info.start_date', label: '执照起始日期' },
+                { key: 'license_info.valid_date', label: '执照有效期' },
+                { key: 'license_info.address', label: '注册地址' },
+                { key: 'legal_info.legal_name', label: '法人姓名' },
+                { key: 'legal_info.id_no', label: '身份证号' },
+                { key: 'legal_info.id_start_date', label: '身份证起始日期' },
+                { key: 'legal_info.id_valid_date', label: '身份证有效期' },
                 { key: 'card_info.account_name', label: '开户名' },
                 { key: 'card_info.card_no', label: '银行卡号' },
                 { key: 'card_info.bank_name', label: '开户银行' },
@@ -473,21 +679,6 @@
                 var f = requiredTextFields[i];
                 if (!getInputVal(f.key)) {
                     showToast('请填写' + f.label, 'error');
-                    return false;
-                }
-            }
-            var requiredUploads = [
-                ['license_pic', '营业执照'],
-                ['legal_cert_front_pic', '法人身份证人像面'],
-                ['legal_cert_back_pic', '法人身份证国徽面'],
-                ['store_header_pic', '门头/场地照'],
-                ['store_indoor_pic', '内景/工作区域照'],
-                ['store_cashier_desk_pic', '收银台/前台照']
-            ];
-            for (var j = 0; j < requiredUploads.length; j++) {
-                var up = requiredUploads[j];
-                if (!uploadState[up[0]]) {
-                    showToast('请上传' + up[1], 'error');
                     return false;
                 }
             }
