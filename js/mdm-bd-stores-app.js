@@ -6,7 +6,7 @@
   var CURRENT_BD = '李泽峰';
   var AUDIT_ROLE = 'bd';
 
-  var STATUS_TABS = ['全部', '待提交', '待审核', '待总监审核', '审核中', '审核成功', '审核失败'];
+  var STATUS_TABS = ['全部', '待提交', '待审核', '待总监审核', '审核成功', '审核失败'];
   var stores = [];
   var statusFilter = '全部';
   var searchQuery = '';
@@ -41,6 +41,16 @@
     return store.onboardingStatus || '—';
   }
 
+  function onboardingDisplayBySummary(store, summary) {
+    if (store.phase === 'awaiting_bd') return '待进件';
+    var s = summary || {};
+    if (s.auditStatus === '审核成功') return '进件成功';
+    if (s.auditStatus === '审核失败') return '进件失败';
+    if (s.status === 'submitted') return '进件中';
+    if (s.status === 'draft') return '待进件';
+    return store.onboardingStatus || '—';
+  }
+
   function canSee(store) {
     if (AUDIT_ROLE === 'leader' && store.phase === 'awaiting_bd') return false;
     return true;
@@ -70,6 +80,125 @@
       return String(n).padStart(2, '0');
     };
     return now.getFullYear() + '-' + p(now.getMonth() + 1) + '-' + p(now.getDate()) + ' ' + p(now.getHours()) + ':' + p(now.getMinutes());
+  }
+
+  function formatTsFromAny(v) {
+    if (!v) return '—';
+    var d = new Date(v);
+    if (isNaN(d.getTime())) return archiveText(v);
+    var p = function (n) {
+      return String(n).padStart(2, '0');
+    };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+
+  function onboardingStatusText(st) {
+    if (st === 'submitted') return '已提交';
+    if (st === 'draft') return '未提交';
+    return st || '未发起';
+  }
+
+  function onboardingCardInfoText(card) {
+    var c = card || {};
+    var parts = [];
+    if (c.account_name) parts.push(c.account_name);
+    if (c.card_no) parts.push(c.card_no);
+    if (c.bank_name) parts.push(c.bank_name);
+    if (c.bank_branch) parts.push(c.bank_branch);
+    return parts.length ? parts.join(' / ') : '—';
+  }
+
+  function onboardingUploadText(v) {
+    return v ? '已上传' : '—';
+  }
+
+  function resolveStoreOnboardingSummary(store) {
+    var fallback = {
+      short_name: store.shortName || store.name || '',
+      receipt_name: store.shortName || store.name || '',
+      detail_addr: store.detailAddress || store.address || '',
+      legal_mobile_no: '',
+      contact_mobile_no: store.contactPhone || '',
+      contact_email: '',
+      card_info: { account_name: '', card_no: '', bank_name: '', bank_branch: '' },
+      license_pic: false,
+      legal_cert_front_pic: false,
+      legal_cert_back_pic: false,
+      store_header_pic: !!store.frontPhotoUploaded,
+      store_indoor_pic: false,
+      store_cashier_desk_pic: false,
+    };
+    var summary = {
+      status: store.onboardingStatus || '',
+      auditStatus: '',
+      nextAuditNode: '',
+      submittedAt: store.onboardingSubmittedAt || '',
+      updatedAt: store.onboardingUpdatedAt || '',
+      fields: fallback,
+    };
+    var keys = [
+      'bdapp::merchant::' + String(store.merchantUid || ''),
+      'bdapp::merchant::' + String(store.id || ''),
+      'archive::store::' + String(store.merchantUid || ''),
+      'archive::store::' + String(store.id || ''),
+      'subject::store::' + String(store.storeSubject || ''),
+    ];
+
+    function applySummary(got) {
+      if (!got || !got.status) return false;
+      summary.status = got.status;
+      summary.auditStatus = got.auditStatus || summary.auditStatus || '';
+      summary.nextAuditNode = got.nextAuditNode || summary.nextAuditNode || '';
+      summary.submittedAt = got.submittedAt;
+      summary.updatedAt = got.updatedAt;
+      summary.fields = Object.assign({}, fallback, got.fields || {});
+      summary.fields.card_info = Object.assign(
+        {},
+        fallback.card_info,
+        ((got.fields || {}).card_info || {})
+      );
+      return true;
+    }
+
+    if (
+      window.MdmUnifiedOnboardingUi &&
+      typeof window.MdmUnifiedOnboardingUi.getSummary === 'function'
+    ) {
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        if (!k || k.endsWith('::')) continue;
+        if (applySummary(window.MdmUnifiedOnboardingUi.getSummary(k, fallback))) {
+          return summary;
+        }
+      }
+    }
+
+    // 兜底：页面未加载 unified-onboarding-ui.js 时，直接读本地进件记录。
+    try {
+      var raw = localStorage.getItem('mdm_unified_onboarding_records_v1');
+      var all = raw ? JSON.parse(raw) : {};
+      // 先按 key 精确命中
+      for (var j = 0; j < keys.length; j++) {
+        var exact = all[keys[j]];
+        if (applySummary(exact)) return summary;
+      }
+      // 再按 short_name / merchantShortName 做匹配，取最近提交记录
+      var wantedA = String(store.shortName || '').trim();
+      var wantedB = String(store.name || '').trim();
+      var picked = null;
+      Object.keys(all || {}).forEach(function (rk) {
+        var one = all[rk];
+        if (!one || one.status !== 'submitted') return;
+        var s1 = String(((one.fields || {}).short_name || '')).trim();
+        var s2 = String(one.merchantShortName || '').trim();
+        var ok = (wantedA && (s1 === wantedA || s2 === wantedA)) || (wantedB && (s1 === wantedB || s2 === wantedB));
+        if (!ok) return;
+        if (!picked || Number(one.submittedAt || 0) > Number(picked.submittedAt || 0)) picked = one;
+      });
+      if (applySummary(picked)) return summary;
+    } catch (e) {}
+
+    return summary;
   }
 
   function getStore(id) {
@@ -181,6 +310,7 @@
     var cards = fr.list
       .map(function (store) {
         var d = accountDisplayStatus(store);
+        var onbSummary = resolveStoreOnboardingSummary(store);
         var showAudit = canAudit(store);
         var whClass = store.warehouseNeedsAttention ? ' style="color:var(--bd-destructive);font-weight:700"' : '';
         return (
@@ -204,7 +334,7 @@
           chipsHTML(store) +
           '</div></div>' +
           '<div class="bd-info-grid">' +
-          cell('进件状态', onboardingDisplay(store)) +
+          cell('进件状态', onboardingDisplayBySummary(store, onbSummary)) +
           cell('门店联系人', dash(store.contact)) +
           cell('绑定 BD', dash(store.boundBd)) +
           cell('门店主体', dash(store.storeSubject)) +
@@ -485,7 +615,8 @@
     var store = getStore(id);
     if (!store) return '<p class="bd-empty">门店不存在</p>';
     var d = accountDisplayStatus(store);
-    var onb = onboardingDisplay(store);
+    var onboardingSummary = resolveStoreOnboardingSummary(store);
+    var onb = onboardingDisplayBySummary(store, onboardingSummary);
     var auditApproved = d === '审核成功';
     var alerts = '';
     if (store.phase === 'approved' && store.onboardingStatus === '待进件') {
@@ -578,6 +709,41 @@
         '</div>';
     }
 
+    var onbSuccess =
+      onb === '进件成功' || onboardingSummary.auditStatus === '审核成功';
+    var onbShortName =
+      (onboardingSummary.fields && onboardingSummary.fields.short_name) ||
+      store.shortName ||
+      store.name ||
+      '';
+    var onbPayloadEscaped = escapeHtml(
+      JSON.stringify({
+        name: store.name || '',
+        shortName: onbShortName || '',
+        merchantNo: store.merchantUid || '',
+        phone: store.contactPhone || '',
+        address: store.detailAddress || store.address || '',
+        onboardingStatus: onboardingSummary.status || '',
+        onboardingAuditStatus: onboardingSummary.auditStatus || '',
+        onboardingNextAuditNode: onboardingSummary.nextAuditNode || '',
+        onboardingSubmittedAt: onboardingSummary.submittedAt || '',
+        onboardingFields: onboardingSummary.fields || {},
+      })
+    );
+    var onbChip = onbSuccess
+      ? '<button type="button" data-go-onboard-detail style="border:none;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;' +
+        badgeClass('审核成功') +
+        '">进件 · ' +
+        escapeHtml(onb) +
+        '<span class="bd-onboard-payload" style="display:none">' +
+        onbPayloadEscaped +
+        '</span></button>'
+      : '<span style="border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700' +
+        (onb === '进件中' ? badgeClass('审核中') : 'background:rgba(100,116,139,.08);color:#475569') +
+        '">进件 · ' +
+        escapeHtml(onb) +
+        '</span>';
+
     return (
       '<div class="bd-page-bar"><button type="button" class="bd-back" data-back-list>‹</button><h1>门店档案</h1>' +
       '<button type="button" style="margin-left:auto;border:none;background:none;font-size:12px;color:var(--bd-muted);cursor:pointer" data-open-history="' +
@@ -605,11 +771,8 @@
       '">资料审核 · ' +
       escapeHtml(d) +
       '</button>' +
-      '<span style="border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700' +
-      (onb === '进件成功' ? badgeClass('审核成功') : onb === '进件中' ? badgeClass('审核中') : 'background:rgba(100,116,139,.08);color:#475569') +
-      '">进件 · ' +
-      escapeHtml(onb) +
-      '</span></div></div></div></div>' +
+      onbChip +
+      '</div></div></div></div>' +
       agreementCard +
       statsBlock +
       archiveBody(store, false) +
@@ -896,6 +1059,25 @@
         location.href = (window.bdPage || function (x) {
           return x;
         })('mdm_bd_merchants.html#onboarding');
+      };
+    });
+    root.querySelectorAll('[data-go-onboard-detail]').forEach(function (b) {
+      b.onclick = function () {
+        var payloadEl = b.querySelector('.bd-onboard-payload');
+        var payload = payloadEl ? payloadEl.textContent || '' : '';
+        location.href = (window.bdPage || function (x) {
+          return x;
+        })(
+          'mdm_bd_merchants.html#detail-by-payload/' + encodeURIComponent(payload)
+        );
+      };
+    });
+    root.querySelectorAll('[data-go-onboard-list]').forEach(function (b) {
+      b.onclick = function (e) {
+        e.preventDefault();
+        location.href = (window.bdPage || function (x) {
+          return x;
+        })('mdm_bd_merchants.html');
       };
     });
     root.querySelectorAll('[data-open-history]').forEach(function (b) {

@@ -11,7 +11,8 @@
   var route = { view: 'list', tab: 'all', id: null };
   var search = '';
   var onboardStep = 0;
-  var STEPS = ['商户信息', '法人信息', '补充信息', '门店信息', '结算信息', '商户认证'];
+  var onboardDraft = null;
+  var STEPS = ['商户信息', '联系方式', '结算账户', '资质上传', '门店照片', '确认提交'];
 
   var DEMO_IMG =
     'data:image/svg+xml,' +
@@ -52,6 +53,174 @@
     return merchants.find(function (x) {
       return String(x.id) === String(id);
     });
+  }
+
+  function merchantByShortName(shortName) {
+    var q = String(shortName || '').trim();
+    if (!q) return null;
+    return merchants.find(function (x) {
+      return (
+        String(x.shortName || '').trim() === q ||
+        String(x.name || '').trim() === q ||
+        String(x.merchantNo || '').trim() === q
+      );
+    }) || null;
+  }
+
+  function ensureMerchantFromPayload(payload) {
+    var p = payload || {};
+    var shortName = String(p.shortName || p.name || '').trim();
+    var byName = merchantByShortName(shortName);
+    if (byName) {
+      if (p.onboardingFields) byName.onboardingFields = cloneObj(p.onboardingFields);
+      if (p.onboardingStatus) byName.onboardingStatus = p.onboardingStatus;
+      if (p.onboardingSubmittedAt) byName.onboardingSubmittedAt = p.onboardingSubmittedAt;
+      return byName;
+    }
+    var id = 'virtual-' + String(p.merchantNo || shortName || Date.now());
+    var one = {
+      id: id,
+      name: p.name || shortName || '未命名商户',
+      shortName: shortName || p.name || '—',
+      businessLicense: '—',
+      merchantNo: p.merchantNo || '—',
+      status: p.onboardingStatus === 'submitted' ? '进件成功' : '审核中',
+      rate: '—',
+      paymentAuth: '—',
+      channel: '汇付天下',
+      applicationDate: p.onboardingSubmittedAt || '—',
+      merchantDate: '—',
+      contact: '—',
+      phone: p.phone || '—',
+      legalPerson: '—',
+      idNumber: '—',
+      industry: '—',
+      address: p.address || '—',
+      bankAccount: '—',
+      bankName: '—',
+      settlementType: '对公',
+      merchantCategory: '—',
+      licenseName: '—',
+      registrationCode: '—',
+      licenseValidFrom: '—',
+      licenseValidTo: '—',
+      licenseDocumentType: '—',
+      registeredRegion: '—',
+      registeredDetailAddress: '—',
+      legalIdDocType: '—',
+      idValidFrom: '—',
+      idValidTo: '—',
+      idIssuingAuthority: '—',
+      operatingName: p.name || shortName || '—',
+      operatingRegion: '—',
+      operatingDetailAddress: p.address || '—',
+      merchantTypeLabel: '—',
+      settlementAccountName: '—',
+      branchName: '—',
+      isLegalPersonSettlement: true,
+      storeName: p.name || shortName || '—',
+      agreementType: '电子协议',
+      eSignStatus: '—',
+      realNameAuthStatus: '—',
+      onboardingFields: cloneObj(p.onboardingFields || {}),
+      onboardingStatus: p.onboardingStatus || '',
+      onboardingSubmittedAt: p.onboardingSubmittedAt || '',
+    };
+    merchants.unshift(one);
+    return one;
+  }
+
+  function cloneObj(obj) {
+    return JSON.parse(JSON.stringify(obj || {}));
+  }
+
+  function buildOnboardingFieldsFromMerchant(src) {
+    src = src || {};
+    return {
+      short_name: src.shortName || src.name || '',
+      receipt_name: src.shortName || src.name || '',
+      detail_addr: src.operatingDetailAddress || src.address || '',
+      legal_mobile_no: '',
+      contact_mobile_no: src.phone || '',
+      contact_email: '',
+      card_info: {
+        account_name: src.settlementAccountName || '',
+        card_no: src.bankAccount || '',
+        bank_name: src.bankName || '',
+        bank_branch: src.branchName || '',
+      },
+      license_pic: false,
+      legal_cert_front_pic: false,
+      legal_cert_back_pic: false,
+      store_header_pic: !!src.storeName,
+      store_indoor_pic: false,
+      store_cashier_desk_pic: false,
+    };
+  }
+
+  function resolveOnboardingFields(src) {
+    var base = buildOnboardingFieldsFromMerchant(src);
+    var ext = src && src.onboardingFields ? src.onboardingFields : {};
+    if (ext.short_name) base.short_name = ext.short_name;
+    if (ext.receipt_name) base.receipt_name = ext.receipt_name;
+    if (ext.detail_addr) base.detail_addr = ext.detail_addr;
+    if (ext.legal_mobile_no) base.legal_mobile_no = ext.legal_mobile_no;
+    if (ext.contact_mobile_no) base.contact_mobile_no = ext.contact_mobile_no;
+    if (ext.contact_email) base.contact_email = ext.contact_email;
+    if (ext.card_info) {
+      base.card_info = {
+        account_name: ext.card_info.account_name || base.card_info.account_name,
+        card_no: ext.card_info.card_no || base.card_info.card_no,
+        bank_name: ext.card_info.bank_name || base.card_info.bank_name,
+        bank_branch: ext.card_info.bank_branch || base.card_info.bank_branch,
+      };
+    }
+    ['license_pic', 'legal_cert_front_pic', 'legal_cert_back_pic', 'store_header_pic', 'store_indoor_pic', 'store_cashier_desk_pic'].forEach(function (k) {
+      if (typeof ext[k] === 'boolean') base[k] = ext[k];
+    });
+    if (window.MdmUnifiedOnboardingUi && typeof window.MdmUnifiedOnboardingUi.getSummary === 'function') {
+      var key = 'bdapp::merchant::' + String((src && (src.merchantNo || src.id)) || '');
+      var sum = window.MdmUnifiedOnboardingUi.getSummary(key, base);
+      if (sum && sum.fields) {
+        base = Object.assign({}, base, sum.fields);
+        base.card_info = Object.assign({}, base.card_info || {}, sum.fields.card_info || {});
+      }
+    }
+    return base;
+  }
+
+  function resolveOnboardingMeta(src) {
+    var m = src || {};
+    var out = {
+      status: m.onboardingStatus || '',
+      auditStatus: m.onboardingAuditStatus || '',
+      nextAuditNode: m.onboardingNextAuditNode || '',
+      submittedAt: m.onboardingSubmittedAt || '',
+      updatedAt: m.onboardingUpdatedAt || '',
+    };
+    if (window.MdmUnifiedOnboardingUi && typeof window.MdmUnifiedOnboardingUi.getSummary === 'function') {
+      var key = 'bdapp::merchant::' + String((m && (m.merchantNo || m.id)) || '');
+      var sum = window.MdmUnifiedOnboardingUi.getSummary(key, {});
+      if (sum && sum.status) out.status = sum.status;
+      if (sum && sum.auditStatus) out.auditStatus = sum.auditStatus;
+      if (sum && sum.nextAuditNode) out.nextAuditNode = sum.nextAuditNode;
+      if (sum && sum.submittedAt) out.submittedAt = sum.submittedAt;
+      if (sum && sum.updatedAt) out.updatedAt = sum.updatedAt;
+    }
+    return out;
+  }
+
+  function makeOnboardDraft() {
+    var src = merchantById(route.id) || merchants[0] || {};
+    return resolveOnboardingFields(src);
+  }
+
+  function goOnboardEditor() {
+    if (!route.id && merchants.length) route.id = merchants[0].id;
+    route.view = 'onboard';
+    onboardStep = 0;
+    onboardDraft = makeOnboardDraft();
+    mount();
   }
 
   function filteredList() {
@@ -172,8 +341,6 @@
           '<div style="display:flex;gap:16px;margin-top:8px;font-size:11px;color:var(--bd-muted)">' +
           '<span>简称: ' +
           esc(m.shortName) +
-          '</span><span>费率: ' +
-          esc(m.rate) +
           '</span></div>' +
           '<div style="display:flex;gap:16px;margin-top:4px;font-size:11px;color:var(--bd-muted)">' +
           '<span>渠道: ' +
@@ -197,8 +364,8 @@
       '<div style="padding:12px 14px 96px">' +
       cards +
       '</div>' +
-      '<div style="position:absolute;bottom:calc(12px + env(safe-area-inset-bottom, 0px));right:16px;z-index:40">' +
-      '<button type="button" class="bd-btn bd-btn-primary" data-onboard style="border-radius:999px;box-shadow:0 4px 16px rgba(37,99,235,.35)">＋ 商户进件</button></div>'
+      '<div style="position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom, 0px));z-index:120;width:min(393px,100vw);display:flex;justify-content:flex-end;padding:0 16px;pointer-events:none">' +
+      '<button type="button" class="bd-btn bd-btn-primary" data-onboard style="border-radius:999px;box-shadow:0 4px 16px rgba(37,99,235,.35);pointer-events:auto">＋ 商户进件</button></div>'
     );
   }
 
@@ -209,6 +376,49 @@
     return '';
   }
 
+  function onboardingUploadText(flag) {
+    return flag ? '已上传' : '待上传';
+  }
+
+  function onboardingCardInfoText(card) {
+    var c = card || {};
+    var parts = [];
+    if (c.account_name) parts.push(c.account_name);
+    if (c.card_no) parts.push(c.card_no);
+    if (c.bank_name) parts.push(c.bank_name);
+    if (c.bank_branch) parts.push(c.bank_branch);
+    return parts.length ? parts.join(' / ') : '待填写';
+  }
+
+  function onboardingStatusText(st) {
+    if (st === '待BD审核') return '待BD审核';
+    if (st === '待财务审核') return '待财务审核';
+    if (st === '待汇付审核') return '待汇付审核';
+    if (st === '审核成功') return '审核成功';
+    if (st === '审核失败') return '审核失败';
+    if (st === 'submitted') return '已提交';
+    if (st === 'draft') return '未提交';
+    if (st === 'rejected') return '审核失败';
+    return '未发起';
+  }
+
+  function formatTs(ts) {
+    if (!ts) return '—';
+    var d = new Date(ts);
+    if (isNaN(d.getTime())) return '—';
+    return (
+      d.getFullYear() +
+      '-' +
+      String(d.getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(d.getDate()).padStart(2, '0') +
+      ' ' +
+      String(d.getHours()).padStart(2, '0') +
+      ':' +
+      String(d.getMinutes()).padStart(2, '0')
+    );
+  }
+
   function renderDetail(id) {
     var m = merchantById(id);
     if (!m)
@@ -217,17 +427,18 @@
       );
     var effPhase =
       m.reviewPhase || (m.status === '待审核' ? 'awaiting_bd' : undefined);
+    var om = resolveOnboardingMeta(m);
     var bdCanAct = m.status === '待审核' && effPhase === 'awaiting_bd';
     var awaitingLeader = m.status === '审核中' && effPhase === 'awaiting_leader';
     var auditStepLabel =
       m.status === '待审核' && effPhase === 'awaiting_bd'
         ? 'BD 预审'
         : m.status === '审核中' && effPhase === 'awaiting_leader'
-          ? 'BD 负责人终审'
+          ? 'BD 总监审核'
           : m.status === '审核中'
-            ? '渠道/后台审核'
+            ? (om.nextAuditNode || '财务审核')
             : m.status === '进件成功'
-              ? '已通过'
+              ? '汇付审核通过'
               : m.status === '已驳回'
                 ? '已驳回'
                 : '—';
@@ -235,36 +446,57 @@
       bdCanAct || awaitingLeader || m.status === '已驳回' ? 'calc(120px + env(safe-area-inset-bottom))' : '24px';
 
     var banner = '';
-    if (awaitingLeader) {
+    if (m.status === '审核中' || awaitingLeader) {
       banner =
-        '<div style="margin:12px;padding:11px;border-radius:12px;border:1px solid rgba(251,191,36,.65);background:rgba(254,249,231,.95);font-size:12px;line-height:1.55;margin-bottom:12px">您已完成 <strong>BD 预审</strong>，资料已流转至<strong> BD 负责人</strong>终审。对外仍为<strong>「审核中」</strong>；驳回/终审由负责人操作，本账号只读。</div>';
+        '<div style="margin:12px;padding:11px;border-radius:12px;border:1px solid rgba(251,191,36,.65);background:rgba(254,249,231,.95);font-size:12px;line-height:1.55;margin-bottom:12px">' +
+        '审核链路：<strong>商户提交</strong> → <strong>BD 预审（支持编辑）</strong> → <strong>BD 总监审核</strong> → <strong>财务审核</strong> → <strong>汇付系统审核</strong>。' +
+        '对外仍为<strong>「审核中」</strong>；驳回/终审由商户负责人或BD操作。' +
+        '</div>';
     }
 
-    var rejectBlk = '';
-    if (m.rejectReason && String(m.rejectReason).trim()) {
-      rejectBlk =
-        '<div style="border:1px solid rgba(248,113,113,.45);border-radius:16px;padding:14px;background:rgba(254,226,226,.35);margin-bottom:12px">' +
-        '<p style="margin:0;font-size:12px;font-weight:700;color:var(--bd-destructive)">驳回原因</p>' +
-        '<p style="margin:8px 0 0;font-size:13px;line-height:1.55">' +
-        esc(m.rejectReason) +
-        '</p></div>';
+    var ob = resolveOnboardingFields(m);
+    function nz(v) {
+      var t = String(v == null ? '' : v).trim();
+      return t ? t : '—';
+    }
+    function maskMiddle(v) {
+      var s = String(v == null ? '' : v).replace(/\s+/g, '');
+      if (!s) return '—';
+      if (s.length <= 7) return s;
+      return s.slice(0, 3) + '****' + s.slice(-4);
+    }
+    function maskBank(v) {
+      var s = String(v == null ? '' : v).replace(/\s+/g, '');
+      if (!s) return '—';
+      if (s.length <= 8) return s;
+      return s.slice(0, 4) + ' **** **** ' + s.slice(-4);
+    }
+    function flowStatusText() {
+      var a = om.auditStatus || '';
+      if (a === '审核成功') return '成功';
+      if (a === '审核失败') return '失败';
+      if (a === '待BD审核' || a === '待总监审核' || a === '待财务审核' || a === '待汇付审核') return '审核中';
+      if (om.status === 'draft') return '草稿';
+      if (om.status === 'submitted') return '审核中';
+      if (om.status === 'rejected') return '失败';
+      return '草稿';
     }
 
-    var head =
+    var headerTop =
       '<div style="border:1px solid var(--bd-border);border-radius:16px;padding:14px;background:#fff;margin-bottom:12px;box-shadow:0 1px 10px rgba(15,23,42,.06)">' +
       '<p style="margin:0;font-size:15px;font-weight:800;line-height:1.3">' +
-      esc(m.name) +
+      esc(nz(m.licenseName || m.name)) +
       '</p>' +
       '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--bd-muted);align-items:center">' +
       '<span>商户编号 ' +
-      esc(m.merchantNo) +
+      esc(nz(m.merchantNo)) +
       '</span>' +
       '<button type="button" data-copy-no="' +
-      esc(m.merchantNo) +
+      esc(nz(m.merchantNo)) +
       '" style="border:none;background:rgba(37,99,235,.08);color:var(--bd-primary);font-size:10px;padding:3px 8px;border-radius:6px;cursor:pointer">复制</button></div>' +
       '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;font-size:11px;align-items:center">' +
       '<span>简称 ' +
-      esc(m.shortName) +
+      esc(nz(ob.short_name || m.shortName)) +
       '</span>' +
       '<span style="font-size:10px;font-weight:700;padding:4px 9px;border-radius:999px;white-space:nowrap' +
       statusStyle(m.status) +
@@ -272,99 +504,68 @@
       esc(m.status) +
       '</span></div></div>';
 
-    var s1 =
-      detailRow('审核环节', '<span>' + esc(auditStepLabel) + '</span>') +
-      detailRow('进件渠道', esc(m.channel)) +
-      detailRow('进件日期', esc(m.applicationDate)) +
-      detailRow('商户落地日期', esc((m.merchantDate || '').trim() ? m.merchantDate : '—')) +
-      detailRow('签约费率', esc(m.rate)) +
-      detailRow('支付认证', esc(m.paymentAuth)) +
-      detailRow('行业（参考）', esc(m.industry));
+    var onboardInfoInner =
+      detailRow('审核环节', esc(nz(om.nextAuditNode || auditStepLabel))) +
+      detailRow('进件渠道', esc(nz(m.onboardingChannel || m.channel || 'BD APP'))) +
+      detailRow('创建时间', esc(nz(formatTs(m.onboardingCreatedAt || m.applicationDate)))) +
+      detailRow('提交汇付时间', esc(nz(formatTs(om.submittedAt || m.onboardingSubmittedAt)))) +
+      detailRow('汇付审核完成时间', esc(nz(formatTs(m.onboardingCompletedAt || m.huifuAuditCompletedAt)))) +
+      detailRow('MCC行业', esc(nz(m.mccIndustry || m.industry))) +
+      detailRow('请求流水号', esc(nz(m.reqSeqId))) +
+      detailRow('外部商户号', esc(nz(m.extMerId))) +
+      detailRow('创建人', esc(nz(m.creator || m.createdBy || m.contact))) +
+      detailRow('备注', esc(nz(m.remarks)));
 
-    var licInner =
-      detailRow('商户类别', esc(m.merchantCategory)) +
-      '<div style="border-bottom:1px solid rgba(229,231,235,.6)">' +
-      photoThumb('营业执照') +
-      '</div>' +
-      detailRow('营业执照名称', esc(m.licenseName)) +
-      detailRow('注册号/代码', '<span style="font-family:monospace;font-size:11px">' + esc(m.registrationCode) + '</span>') +
-      detailRow('执照有效期', esc(m.licenseValidFrom + ' 至 ' + m.licenseValidTo)) +
-      detailRow('注册地址', esc(m.registeredRegion)) +
-      detailRow('详细地址', esc(m.registeredDetailAddress)) +
-      detailRow('证件类型', esc(m.licenseDocumentType));
+    var relationInner =
+      detailRow('上级汇付号', esc(nz(m.headHuifuId))) +
+      detailRow('结算主体类型', esc(nz(m.settlementBodyType || (m.isLegalPersonSettlement ? '独立结算' : '集团结算'))));
+
+    var licenseInner =
+      detailRow('营业执照', esc(onboardingUploadText(ob.license_pic))) +
+      detailRow('营业执照名称', esc(nz(m.licenseName || m.regName))) +
+      detailRow('注册号/统一信用代码', esc(nz(m.registrationCode || m.licenseCode))) +
+      detailRow('公司类型', esc(nz(m.entType || m.merchantCategory))) +
+      detailRow('成立日期', esc(nz(m.foundDate))) +
+      detailRow('执照有效期', esc(nz((m.licenseValidFrom || m.licenseBeginDate || '—') + ' ~ ' + (m.licenseValidTo || m.licenseEndDate || '—')))) +
+      detailRow('注册地址', esc(nz(m.registeredDetailAddress || m.regDetail || m.registeredRegion))) +
+      detailRow('实际经营地址', esc(nz(ob.detail_addr)));
 
     var legalInner =
-      detailRow('证件类型', esc(m.legalIdDocType)) +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;border-bottom:1px solid rgba(229,231,235,.55);padding-bottom:8px;margin-bottom:4px">' +
-      '<div>' +
-      photoThumb('身份证人像面') +
-      '</div><div>' +
-      photoThumb('身份证国徽面') +
-      '</div></div>' +
-      detailRow('法人姓名', esc(m.legalPerson)) +
-      detailRow('身份证号', '<span style="font-family:monospace;font-size:11px">' + esc(m.idNumber) + '</span>') +
-      detailRow(
-        '证件有效期限',
-        esc(m.idValidFrom + ' 至 ' + m.idValidTo)
-      ) +
-      detailRow('签发机关', esc(m.idIssuingAuthority));
+      detailRow('法人姓名', esc(nz(m.legalPerson || m.legalName))) +
+      detailRow('法人手机号', esc(nz(ob.legal_mobile_no))) +
+      detailRow('证件类型', esc(nz(m.legalCertType || m.legalIdDocType))) +
+      detailRow('身份证号', esc(maskMiddle(m.idNumber))) +
+      detailRow('证件有效期', esc(nz((m.idValidFrom || m.legalCertBeginDate || '—') + ' ~ ' + (m.idValidTo || m.legalCertEndDate || '—')))) +
+      detailRow('身份证地址', esc(nz(m.legalAddr))) +
+      detailRow('身份证人像面', esc(onboardingUploadText(ob.legal_cert_front_pic))) +
+      detailRow('身份证国徽面', esc(onboardingUploadText(ob.legal_cert_back_pic)));
 
-    var baseInner =
-      detailRow('商户经营名称', esc(m.operatingName)) +
-      detailRow('商户经营地区', esc(m.operatingRegion)) +
-      detailRow('经营详细地址', esc(m.operatingDetailAddress)) +
-      detailRow('商户类型', esc(m.merchantTypeLabel)) +
-      detailRow('联系人姓名', esc(m.contact)) +
-      detailRow('手机号码', esc(m.phone));
+    var opInner =
+      detailRow('商户简称', esc(nz(ob.short_name))) +
+      detailRow('小票名称', esc(nz(ob.receipt_name))) +
+      detailRow('场景类型', esc(nz(m.sceneType))) +
+      detailRow('经营类型', esc(nz(m.businessType)));
 
+    var contactInner =
+      detailRow('管理员姓名', esc(nz(m.contactName || m.contact))) +
+      detailRow('管理员手机号', esc(nz(ob.contact_mobile_no))) +
+      detailRow('管理员邮箱', esc(nz(ob.contact_email))) +
+      detailRow('登录账号', esc(nz(m.loginName || m.loginAccount)));
+
+    var card = ob.card_info || {};
     var settleInner =
-      detailRow('账户类型', esc(settlementAccountLabel(m.settlementType))) +
-      '<div style="border-bottom:1px solid rgba(229,231,235,.6)">' +
-      photoThumb(settlementCredLabel(m)) +
-      '</div>' +
-      detailRow('开户名/结算户名', esc(m.settlementAccountName)) +
-      detailRow(
-        '开户账号/结算账号',
-        '<span style="font-family:monospace;font-size:11px">' + esc(m.bankAccount) + '</span>'
-      ) +
-      detailRow('开户银行', esc(m.bankName)) +
-      detailRow('开户支行', esc(m.branchName)) +
-      detailRow('是否法人结算', m.isLegalPersonSettlement ? '是' : '否');
+      detailRow('开户名/结算户名', esc(nz(card.account_name || m.settlementAccountName))) +
+      detailRow('银行账号', esc(maskBank(card.card_no || m.bankAccount))) +
+      detailRow('开户银行', esc(nz(card.bank_name || m.bankName))) +
+      detailRow('开户支行', esc(nz(card.bank_branch || m.branchName))) +
+      detailRow('开户许可证', esc(onboardingUploadText(m.openLicencePic))) +
+      detailRow('开户许可证核准号', esc(nz(m.openLicenceNo)));
 
-    if (!m.isLegalPersonSettlement && (m.settlorName || m.settlorIdNumber)) {
-      settleInner +=
-        '<div style="border-top:1px dashed rgba(229,231,235,.95);margin-top:10px;padding-top:10px"><p style="margin:0 0 10px;font-size:11px;font-weight:700">非法人结算补充</p>';
-      if (m.settlorName) settleInner += detailRow('结算人姓名', esc(m.settlorName));
-      if (m.settlorIdNumber)
-        settleInner += detailRow(
-          '结算人证件号',
-          '<span style="font-family:monospace;font-size:11px">' +
-            esc(m.settlorIdNumber) +
-            '</span>'
-        );
-      settleInner +=
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">' +
-        photoThumb('结算人人像面') +
-        photoThumb('结算人国徽面') +
-        '</div>' +
-        photoThumb('法人授权函') +
-        '</div>';
-    }
-
-    var storeInner =
-      '<div style="display:flex;flex-direction:column;gap:12px;padding:10px 0">' +
-      photoThumb('门头照') +
-      photoThumb('内景照') +
-      photoThumb('收银台照') +
-      '</div>' +
-      '<div>' +
-      detailRow('门店名称', esc(m.storeName)) +
-      '</div>';
-
-    var agreeInner =
-      detailRow('商户协议类型', esc(m.agreementType)) +
-      detailRow('电子签名', esc(m.eSignStatus)) +
-      detailRow('实名认证', esc(m.realNameAuthStatus));
+    var placeInner =
+      detailRow('经营场所名称', esc(nz(m.storeName || m.operatingName || m.name))) +
+      detailRow('门头/场地照', esc(onboardingUploadText(ob.store_header_pic))) +
+      detailRow('内景/工作区域照', esc(onboardingUploadText(ob.store_indoor_pic))) +
+      detailRow('收银台/前台照', esc(onboardingUploadText(ob.store_cashier_desk_pic)));
 
     var body =
       '<div class="bd-page-bar"><button type="button" class="bd-back" data-backlist>‹</button><h1>商户详情</h1></div>' +
@@ -372,40 +573,41 @@
       '<div style="padding:12px;padding-bottom:' +
       bottomPad +
       '">' +
-      head +
-      rejectBlk +
-      sectionCard('进件概要', '渠道与审核进度相关字段', s1) +
-      sectionCard('执照信息', '主体与营业执照', licInner) +
-      sectionCard('法人信息', '法人身份证件', legalInner) +
-      sectionCard('基本信息', '门店经营与联系人', baseInner) +
-      sectionCard('结算信息', '结算账户与开户行', settleInner) +
-      sectionCard('门店信息', '门头、内景与收银台', storeInner) +
-      sectionCard('协议与认证', '签约与实名状态', agreeInner) +
+      headerTop +
+      sectionCard('进件流程信息', '审核流转与关键时间', onboardInfoInner) +
+      sectionCard('主体关系', '主体复用与结算关系', relationInner) +
+      sectionCard('营业执照信息', '营业执照与地址信息', licenseInner) +
+      sectionCard('法人实名信息', '法人身份与证件信息', legalInner) +
+      sectionCard('经营配置', '商户经营基础信息', opInner) +
+      sectionCard('联系人与账号', '管理员联系方式与登录账号', contactInner) +
+      sectionCard('结算账户信息', '开户与结算资料', settleInner) +
+      sectionCard('经营场地资料', '场地名称与图片资料', placeInner) +
       '</div>';
 
     var bar = '';
     if (bdCanAct) {
       bar =
-        '<div style="position:absolute;bottom:0;left:0;right:0;z-index:42;border-top:1px solid var(--bd-border);background:rgba(255,255,255,.97);backdrop-filter:blur(8px);padding:12px;display:flex;gap:10px;padding-bottom:max(12px,env(safe-area-inset-bottom))">' +
+        '<div style="position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:120;width:min(393px,100vw);border-top:1px solid var(--bd-border);background:rgba(255,255,255,.97);backdrop-filter:blur(8px);padding:12px;display:flex;gap:10px;padding-bottom:max(12px,env(safe-area-inset-bottom));box-shadow:0 -6px 18px rgba(15,23,42,.08)">' +
         '<button type="button" class="bd-btn bd-btn-outline" style="flex:1;border-radius:12px;box-shadow:none;color:var(--bd-destructive);border-color:rgba(248,113,113,.5)" data-mer-reject>驳回</button>' +
-        '<button type="button" class="bd-btn bd-btn-primary" style="flex:1;border-radius:12px" data-mer-pass>预审通过</button>' +
+        '<button type="button" class="bd-btn bd-btn-primary" style="flex:1;border-radius:12px" data-mer-pass>审核通过</button>' +
+        '<button type="button" class="bd-btn bd-btn-outline" style="flex:1;border-radius:12px;box-shadow:none" data-mer-edit>编辑</button>' +
         '</div>';
     } else if (awaitingLeader) {
       bar =
-        '<div style="position:absolute;bottom:0;left:0;right:0;z-index:42;border-top:1px solid var(--bd-border);background:rgba(255,255,255,.97);padding:12px;display:flex;gap:10px;padding-bottom:max(12px,env(safe-area-inset-bottom))">' +
+        '<div style="position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:120;width:min(393px,100vw);border-top:1px solid var(--bd-border);background:rgba(255,255,255,.97);padding:12px;display:flex;gap:10px;padding-bottom:max(12px,env(safe-area-inset-bottom));box-shadow:0 -6px 18px rgba(15,23,42,.08)">' +
         '<button type="button" class="bd-btn bd-btn-outline" style="flex:1;border-radius:12px;box-shadow:none;opacity:.45" disabled>驳回</button>' +
         '<button type="button" class="bd-btn bd-btn-primary" style="flex:1;border-radius:12px;opacity:.45" disabled>审核通过</button>' +
         '</div>';
     } else if (m.status === '已驳回') {
       bar =
-        '<div style="position:absolute;bottom:0;left:0;right:0;z-index:42;border-top:1px solid var(--bd-border);background:rgba(255,255,255,.97);padding:12px;padding-bottom:max(12px,env(safe-area-inset-bottom))">' +
+        '<div style="position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:120;width:min(393px,100vw);border-top:1px solid var(--bd-border);background:rgba(255,255,255,.97);padding:12px;padding-bottom:max(12px,env(safe-area-inset-bottom));box-shadow:0 -6px 18px rgba(15,23,42,.08)">' +
         '<button type="button" class="bd-btn bd-btn-primary" style="width:100%;border-radius:12px" data-mer-resubmit>⟳ 重新提交</button></div>';
     }
 
     return body + bar;
   }
 
-  function fieldFull(label, id, placeholder) {
+  function fieldFull(label, id, placeholder, value, draftKey) {
     return (
       '<label style="display:block;margin-bottom:14px;font-size:13px;font-weight:600;color:var(--bd-text)">' +
       esc(label) +
@@ -413,88 +615,194 @@
       id +
       '" placeholder="' +
       esc(placeholder || '') +
-      '" style="display:block;width:100%;margin-top:6px;padding:11px;border:1px solid var(--bd-border);border-radius:12px;font-size:14px;font-weight:400"/></label>'
+      '" value="' +
+      esc(value || '') +
+      '"' +
+      (draftKey ? ' data-on-field="' + esc(draftKey) + '"' : '') +
+      ' style="display:block;width:100%;margin-top:6px;padding:11px;border:1px solid var(--bd-border);border-radius:12px;font-size:14px;font-weight:400"/></label>'
+    );
+  }
+
+  function getDraftField(path) {
+    var cur = onboardDraft || {};
+    String(path || '').split('.').forEach(function (k) {
+      if (cur == null) return;
+      cur = cur[k];
+    });
+    return cur == null ? '' : cur;
+  }
+
+  function setDraftField(path, value) {
+    if (!onboardDraft) onboardDraft = makeOnboardDraft();
+    var keys = String(path || '').split('.');
+    var cur = onboardDraft;
+    for (var i = 0; i < keys.length - 1; i++) {
+      if (!cur[keys[i]] || typeof cur[keys[i]] !== 'object') cur[keys[i]] = {};
+      cur = cur[keys[i]];
+    }
+    cur[keys[keys.length - 1]] = value;
+  }
+
+  function requiredStepFields(step) {
+    if (step === 0) return ['short_name', 'receipt_name', 'detail_addr', 'contact_mobile_no'];
+    if (step === 1) return ['legal_mobile_no', 'contact_email'];
+    if (step === 2) return ['card_info.account_name', 'card_info.card_no', 'card_info.bank_name', 'card_info.bank_branch'];
+    if (step === 3) return ['license_pic', 'legal_cert_front_pic', 'legal_cert_back_pic'];
+    if (step === 4) return ['store_header_pic', 'store_indoor_pic', 'store_cashier_desk_pic'];
+    return [];
+  }
+
+  function fieldLabelMap(key) {
+    var map = {
+      short_name: '商户简称',
+      receipt_name: '小票名称',
+      detail_addr: '实际经营地址',
+      legal_mobile_no: '法人手机号',
+      contact_mobile_no: '管理员手机号',
+      contact_email: '管理员邮箱',
+      'card_info.account_name': '开户名',
+      'card_info.card_no': '银行卡号',
+      'card_info.bank_name': '开户银行',
+      'card_info.bank_branch': '开户支行',
+      license_pic: '营业执照(F07)',
+      legal_cert_front_pic: '法人身份证人像面(F02)',
+      legal_cert_back_pic: '法人身份证国徽面(F03)',
+      store_header_pic: '门头/场地照(F22)',
+      store_indoor_pic: '内景/工作区域照(F24)',
+      store_cashier_desk_pic: '收银台/前台照(F105)',
+    };
+    return map[key] || key;
+  }
+
+  function validateStep(step) {
+    var req = requiredStepFields(step);
+    for (var i = 0; i < req.length; i++) {
+      var k = req[i];
+      var v = getDraftField(k);
+      if (typeof v === 'boolean') {
+        if (!v) {
+          window.bdToast && window.bdToast('请补全' + fieldLabelMap(k));
+          return false;
+        }
+      } else if (!String(v || '').trim()) {
+        window.bdToast && window.bdToast('请填写' + fieldLabelMap(k));
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function uploadCard(label, key, tip) {
+    var current = onboardDraft && getDraftField(key);
+    var uploaded = !!current;
+    var src =
+      typeof current === 'string' && /^(data:image|https?:\/\/)/.test(current)
+        ? current
+        : uploaded
+          ? DEMO_IMG
+          : '';
+    return (
+      '<div style="border:1px solid var(--bd-border);border-radius:12px;padding:12px;background:#fff">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px">' +
+      '<span style="font-size:13px;font-weight:700">' +
+      esc(label) +
+      '</span>' +
+      '<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:' +
+      (uploaded ? 'rgba(22,163,74,.12);color:#15803d' : 'rgba(148,163,184,.12);color:#64748b') +
+      '">' +
+      (uploaded ? '已上传' : '未上传') +
+      '</span></div>' +
+      '<div style="margin-top:8px;font-size:11px;color:var(--bd-muted)">' +
+      esc(tip || '点击上传（演示）') +
+      '</div>' +
+      (uploaded
+        ? '<button type="button" data-on-preview="' +
+          esc(src) +
+          '" style="margin-top:10px;width:100%;border:none;background:none;padding:0;cursor:pointer;text-align:left">' +
+          '<div style="position:relative;width:100%;aspect-ratio:16/10;border-radius:10px;overflow:hidden;border:1px solid var(--bd-border);background:#f8fafc">' +
+          '<img src="' +
+          esc(src) +
+          '" alt="" style="width:100%;height:100%;object-fit:cover;display:block"/>' +
+          '<span style="position:absolute;right:10px;bottom:10px;font-size:10px;background:rgba(255,255,255,.95);padding:3px 8px;border-radius:6px;color:var(--bd-muted)">点击放大</span>' +
+          '</div></button>'
+        : '') +
+      '<div style="margin-top:10px;display:flex;justify-content:flex-end">' +
+      '<button type="button" class="bd-btn bd-btn-outline" data-on-upload="' +
+      esc(key) +
+      '" style="border-radius:10px;box-shadow:none;padding:6px 12px;font-size:12px">' +
+      (uploaded ? '更换照片' : '上传照片') +
+      '</button></div>' +
+      '</div>'
     );
   }
 
   function renderOnboard() {
-    var dots = STEPS.map(function (_, i) {
+    if (!onboardDraft) onboardDraft = makeOnboardDraft();
+    var target = route.id ? merchantById(route.id) : null;
+    var canDeleteDraft = !!(target && target.onboardingStatus === 'draft');
+    function card(title, inner) {
       return (
-        '<div style="display:flex;align-items:center">' +
-        '<div style="width:24px;height:24px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:' +
-        (i <= onboardStep ? 'var(--bd-primary)' : '#e5e7eb') +
-        ';color:' +
-        (i <= onboardStep ? '#fff' : '#9ca3af') +
-        '">' +
-        (i + 1) +
+        '<div class="bd-archive-card" style="margin-bottom:12px">' +
+        '<div style="padding:11px 14px;background:rgba(249,250,251,.85);border-bottom:1px solid var(--bd-border)">' +
+        '<h3 style="margin:0;font-size:14px;font-weight:700">' +
+        esc(title) +
+        '</h3>' +
         '</div>' +
-        (i < STEPS.length - 1
-          ? '<div style="width:10px;height:3px;background:' +
-            (i < onboardStep ? 'var(--bd-primary)' : '#e5e7eb') +
-            ';border-radius:2px;margin:0 4px"></div>'
-          : '') +
-        '</div>'
+        '<div style="padding:12px 14px 6px">' +
+        inner +
+        '</div></div>'
       );
-    }).join('');
-    var stepBody = '';
-    if (onboardStep === 0)
-      stepBody =
-        '<label style="display:block;margin-bottom:12px;font-size:13px;font-weight:600">商户类型<select id="on_mertype" style="display:block;width:100%;margin-top:6px;padding:11px;border:1px solid var(--bd-border);border-radius:12px">' +
-        '<option>企业</option><option>个人</option><option>小微商户</option></select></label>' +
-        '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:8px">营业执照</label>' +
-        '<div style="border:2px dashed var(--bd-border);border-radius:14px;padding:36px;text-align:center;color:var(--bd-muted);font-size:12px;background:#fafafa">📷 点击上传（演示）</div>' +
-        fieldFull('企业名称', 'on_ent', '与企业执照一致');
-    else if (onboardStep === 1)
-      stepBody =
-        fieldFull('法人姓名', 'on_lp', '') +
-        fieldFull('身份证号码', 'on_idcard', '') +
-        fieldFull('手机号', 'on_mob', '');
-    else if (onboardStep === 2)
-      stepBody =
-        fieldFull('行业', 'on_industry', '') + fieldFull('经营地址摘要', 'on_addr', '');
-    else if (onboardStep === 3)
-      stepBody =
-        '<label style="font-weight:600;font-size:13px;display:block;margin-bottom:8px">门店照片</label>' +
-        '<div style="border:2px dashed var(--bd-border);border-radius:14px;padding:26px;text-align:center;font-size:12px;color:var(--bd-muted);margin-bottom:14px;background:#fafafa">门头 / 内景 / 收银台（演示）</div>' +
-        fieldFull('门店名称', 'on_store', '');
-    else if (onboardStep === 4)
-      stepBody =
-        '<label style="display:block;margin-bottom:12px;font-size:13px;font-weight:600">结算账户类型<select id="on_stype" style="display:block;width:100%;margin-top:6px;padding:11px;border:1px solid var(--bd-border);border-radius:12px">' +
-        '<option>对公</option><option>对私法人</option></select></label>' +
-        fieldFull('开户名', 'on_accname', '') +
-        fieldFull('银行账号', 'on_accnum', '');
-    else
-      stepBody =
-        '<p style="margin:0 0 14px;font-size:13px;color:var(--bd-muted);line-height:1.55">勾选以下事项即表示信息与证照一致并已阅读进件须知。</p>' +
-        '<label style="display:flex;gap:10px;margin-bottom:10px;font-size:13px;line-height:1.45"><input type="checkbox"/> 资料属实，如遇虚假愿承担法律责任</label>' +
-        '<label style="display:flex;gap:10px;margin-bottom:10px;font-size:13px;line-height:1.45"><input type="checkbox"/> 已收款账户与报备一致</label>';
-    var navBtns =
-      '<div style="display:flex;gap:10px;margin-top:20px">' +
-      (onboardStep > 0
-        ? '<button type="button" class="bd-btn bd-btn-outline" data-on-prev style="flex:1;border-radius:12px;box-shadow:none">上一步</button>'
-        : '<span style="flex:1"></span>') +
-      (onboardStep < STEPS.length - 1
-        ? '<button type="button" class="bd-btn bd-btn-primary" data-on-next style="flex:1;border-radius:12px">下一步</button>'
-        : '<button type="button" class="bd-btn bd-btn-primary" id="onSubmit" style="flex:1;border-radius:12px">提交审核</button>') +
+    }
+    var cards =
+      card(
+        '商户信息',
+        fieldFull('商户简称', 'on_short_name', '账单展示名称', getDraftField('short_name'), 'short_name') +
+          fieldFull('小票名称', 'on_receipt_name', '小票展示名称', getDraftField('receipt_name'), 'receipt_name') +
+          fieldFull('实际经营地址', 'on_detail_addr', '经营详细地址', getDraftField('detail_addr'), 'detail_addr') +
+          fieldFull('法人手机号', 'on_legal_mobile_no', '法人联系方式', getDraftField('legal_mobile_no'), 'legal_mobile_no')
+      ) +
+      card(
+        '联系人信息',
+        fieldFull('管理员手机号', 'on_contact_mobile_no', '登录/通知手机号', getDraftField('contact_mobile_no'), 'contact_mobile_no') +
+          fieldFull('管理员邮箱', 'on_contact_email', '汇付通知邮箱', getDraftField('contact_email'), 'contact_email')
+      ) +
+      card(
+        '银行卡信息配置',
+        fieldFull('开户名', 'on_card_account_name', '银行卡户名', getDraftField('card_info.account_name'), 'card_info.account_name') +
+          fieldFull('银行卡号', 'on_card_no', '结算账户', getDraftField('card_info.card_no'), 'card_info.card_no') +
+          fieldFull('开户银行', 'on_card_bank_name', '银行名称', getDraftField('card_info.bank_name'), 'card_info.bank_name') +
+          fieldFull('开户支行', 'on_card_branch_name', '支行名称', getDraftField('card_info.bank_branch'), 'card_info.bank_branch')
+      ) +
+      card(
+        '资质上传',
+        '<div style="display:flex;flex-direction:column;gap:10px">' +
+          uploadCard('营业执照 F07', 'license_pic') +
+          uploadCard('法人身份证人像面 F02', 'legal_cert_front_pic') +
+          uploadCard('法人身份证国徽面 F03', 'legal_cert_back_pic') +
+          '</div>'
+      ) +
+      card(
+        '经营场地照片',
+        '<div style="display:flex;flex-direction:column;gap:10px">' +
+          uploadCard('门头/场地照 F22', 'store_header_pic') +
+          uploadCard('内景/工作区域照 F24', 'store_indoor_pic') +
+          uploadCard('收银台/前台照 F105', 'store_cashier_desk_pic') +
+          '</div>'
+      );
+    var bottomBar =
+      '<div style="position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:120;width:min(393px,100vw);border-top:1px solid var(--bd-border);background:rgba(255,255,255,.97);backdrop-filter:blur(8px);padding:12px;display:flex;gap:10px;padding-bottom:max(12px,env(safe-area-inset-bottom));box-shadow:0 -6px 18px rgba(15,23,42,.08)">' +
+      '<button type="button" class="bd-btn bd-btn-outline" data-on-save style="flex:1;border-radius:12px;box-shadow:none">保存</button>' +
+      (canDeleteDraft
+        ? '<button type="button" class="bd-btn bd-btn-outline" data-on-delete style="flex:1;border-radius:12px;box-shadow:none;color:var(--bd-destructive);border-color:rgba(248,113,113,.45)">删除</button>'
+        : '') +
+      '<button type="button" class="bd-btn bd-btn-primary" id="onSubmit" style="flex:1;border-radius:12px">提交审核</button>' +
       '</div>';
     return (
       '<div class="bd-page-bar"><button type="button" class="bd-back" data-backlist>‹</button><h1>商户进件</h1></div>' +
-      '<div style="padding:16px 16px 32px;font-size:13px">' +
-      '<div style="overflow-x:auto;padding-bottom:8px">' +
-      dots +
+      '<div style="padding:16px 16px calc(108px + env(safe-area-inset-bottom));font-size:13px">' +
+      cards +
       '</div>' +
-      '<p style="text-align:center;font-weight:700;margin:8px 0 4px">' +
-      esc(STEPS[onboardStep]) +
-      '</p>' +
-      '<p style="text-align:center;font-size:11px;color:var(--bd-muted)">步骤 ' +
-      (onboardStep + 1) +
-      ' / ' +
-      STEPS.length +
-      '</p>' +
-      '<div style="margin-top:14px">' +
-      stepBody +
-      navBtns +
-      '</div></div>'
+      bottomBar
     );
   }
 
@@ -630,9 +938,7 @@
     });
     r.querySelectorAll('[data-onboard]').forEach(function (b) {
       b.onclick = function () {
-        route.view = 'onboard';
-        onboardStep = 0;
-        mount();
+        goOnboardEditor();
       };
     });
     r.querySelectorAll('[data-mym]').forEach(function (b) {
@@ -641,27 +947,122 @@
         mount();
       };
     });
-    r.querySelectorAll('[data-on-next]').forEach(function (b) {
-      b.onclick = function () {
-        if (onboardStep < STEPS.length - 1) onboardStep++;
-        mount();
-      };
-    });
-    r.querySelectorAll('[data-on-prev]').forEach(function (b) {
-      b.onclick = function () {
-        if (onboardStep > 0) onboardStep--;
-        mount();
-      };
-    });
     var sub = $('#onSubmit');
     if (sub) {
       sub.onclick = function () {
-        window.bdToast && window.bdToast('提交成功', '商户进件资料已提交，请等待审核');
+        for (var step = 0; step <= 4; step++) {
+          if (!validateStep(step)) return;
+        }
+        var target = route.id ? merchantById(route.id) : null;
+        if (target) {
+          target.onboardingFields = cloneObj(onboardDraft);
+          target.onboardingStatus = 'submitted';
+          target.onboardingAuditStatus = '待总监审核';
+          target.onboardingNextAuditNode = 'BD总监审核';
+          target.onboardingSubmittedAt = Date.now();
+          target.onboardingUpdatedAt = Date.now();
+          // BD 自提单据直接进入 BD 总监审核环节
+          target.status = '审核中';
+          target.reviewPhase = 'awaiting_leader';
+          if (window.MdmUnifiedOnboardingUi && typeof window.MdmUnifiedOnboardingUi.makeRecordKey === 'function') {
+            var recordKey = 'bdapp::merchant::' + String(target.merchantNo || target.id || '');
+            try {
+              var all = JSON.parse(localStorage.getItem('mdm_unified_onboarding_records_v1') || '{}');
+              all[recordKey] = {
+                recordKey: recordKey,
+                status: 'submitted',
+                auditStatus: '待总监审核',
+                nextAuditNode: 'BD总监审核',
+                title: '商户进件',
+                variant: 'resource',
+                merchantShortName: target.shortName || target.name || '',
+                fields: cloneObj(onboardDraft),
+                updatedAt: Date.now(),
+                submittedAt: Date.now(),
+              };
+              localStorage.setItem('mdm_unified_onboarding_records_v1', JSON.stringify(all));
+            } catch (e) {}
+          }
+        }
+        window.bdToast && window.bdToast('提交成功', '已直达 BD 总监审核');
         route.view = 'list';
         onboardStep = 0;
+        onboardDraft = null;
         mount();
       };
     }
+    r.querySelectorAll('[data-on-save]').forEach(function (b) {
+      b.onclick = function () {
+        var target = route.id ? merchantById(route.id) : null;
+        if (!target) {
+          window.bdToast && window.bdToast('未定位到商户，无法保存');
+          return;
+        }
+        target.onboardingFields = cloneObj(onboardDraft);
+        target.onboardingStatus = 'draft';
+        target.onboardingUpdatedAt = Date.now();
+        var recordKey = 'bdapp::merchant::' + String(target.merchantNo || target.id || '');
+        try {
+          var all = JSON.parse(localStorage.getItem('mdm_unified_onboarding_records_v1') || '{}');
+          all[recordKey] = {
+            recordKey: recordKey,
+            status: 'draft',
+            title: '商户进件',
+            variant: 'resource',
+            merchantShortName: target.shortName || target.name || '',
+            fields: cloneObj(onboardDraft),
+            updatedAt: Date.now(),
+            submittedAt: null,
+          };
+          localStorage.setItem('mdm_unified_onboarding_records_v1', JSON.stringify(all));
+        } catch (e) {}
+        window.bdToast && window.bdToast('已保存草稿');
+        mount();
+      };
+    });
+    r.querySelectorAll('[data-on-delete]').forEach(function (b) {
+      b.onclick = function () {
+        var target = route.id ? merchantById(route.id) : null;
+        if (!target || target.onboardingStatus !== 'draft') {
+          window.bdToast && window.bdToast('仅未提交草稿可删除');
+          return;
+        }
+        delete target.onboardingFields;
+        delete target.onboardingStatus;
+        delete target.onboardingUpdatedAt;
+        delete target.onboardingSubmittedAt;
+        var recordKey = 'bdapp::merchant::' + String(target.merchantNo || target.id || '');
+        try {
+          var all = JSON.parse(localStorage.getItem('mdm_unified_onboarding_records_v1') || '{}');
+          delete all[recordKey];
+          localStorage.setItem('mdm_unified_onboarding_records_v1', JSON.stringify(all));
+        } catch (e) {}
+        onboardDraft = makeOnboardDraft();
+        window.bdToast && window.bdToast('草稿已删除');
+        mount();
+      };
+    });
+    r.querySelectorAll('[data-on-field]').forEach(function (inp) {
+      inp.oninput = function () {
+        setDraftField(inp.getAttribute('data-on-field'), inp.value);
+      };
+    });
+    r.querySelectorAll('[data-on-upload]').forEach(function (btn) {
+      btn.onclick = function () {
+        var key = btn.getAttribute('data-on-upload');
+        setDraftField(key, DEMO_IMG + '#up=' + Date.now());
+        window.bdToast && window.bdToast('已上传（演示）');
+        mount();
+      };
+    });
+    r.querySelectorAll('[data-on-preview]').forEach(function (btn) {
+      btn.onclick = function () {
+        var src = btn.getAttribute('data-on-preview') || DEMO_IMG;
+        var img = $('#bdMerImgView');
+        if (img) img.src = src;
+        $('#bdMerImgModal').classList.add('bd-show');
+      };
+    });
     r.querySelectorAll('[data-copy-no]').forEach(function (b) {
       b.onclick = function (ev) {
         ev.preventDefault();
@@ -695,14 +1096,18 @@
         if (!m) return;
         m.status = '审核中';
         m.reviewPhase = 'awaiting_leader';
-        window.bdToast && window.bdToast('BD 预审通过', '已流转至 BD 负责人终审');
+        window.bdToast && window.bdToast('审核通过', '已流转至 BD 负责人终审');
         mount();
+      };
+    });
+    r.querySelectorAll('[data-mer-edit]').forEach(function (b) {
+      b.onclick = function () {
+        goOnboardEditor();
       };
     });
     r.querySelectorAll('[data-mer-resubmit]').forEach(function (b) {
       b.onclick = function () {
-        window.bdToast &&
-          window.bdToast('请在渠道侧补充资料（演示）', '与 bd-guanli 一致可重新推送进件');
+        goOnboardEditor();
       };
     });
     r.querySelectorAll('[data-mydialog]').forEach(function (card) {
@@ -747,8 +1152,37 @@
     var keepTab = route.tab || 'all';
     if (h === 'onboarding') {
       onboardStep = 0;
+      onboardDraft = makeOnboardDraft();
       route = { view: 'onboard', tab: keepTab, id: null };
     } else if (h === 'my') route = { view: 'my', tab: keepTab, id: null };
+    else if (h.indexOf('detail-by-payload/') === 0) {
+      var encodedPayload = h.slice('detail-by-payload/'.length);
+      var payloadText = '';
+      try {
+        payloadText = decodeURIComponent(encodedPayload);
+      } catch (e) {
+        payloadText = encodedPayload;
+      }
+      var payload = {};
+      try {
+        payload = JSON.parse(payloadText || '{}');
+      } catch (e) {
+        payload = {};
+      }
+      var item = ensureMerchantFromPayload(payload);
+      route = item ? { view: 'detail', tab: keepTab, id: item.id } : { view: 'list', tab: keepTab, id: null };
+    }
+    else if (h.indexOf('detail-by-short/') === 0) {
+      var encoded = h.slice('detail-by-short/'.length);
+      var decoded = '';
+      try {
+        decoded = decodeURIComponent(encoded);
+      } catch (e) {
+        decoded = encoded;
+      }
+      var target = merchantByShortName(decoded);
+      route = target ? { view: 'detail', tab: keepTab, id: target.id } : { view: 'list', tab: keepTab, id: null };
+    }
     else if (h.indexOf('detail/') === 0)
       route = { view: 'detail', tab: keepTab, id: h.split('/')[1] };
     else route = { view: 'list', tab: keepTab, id: null };
