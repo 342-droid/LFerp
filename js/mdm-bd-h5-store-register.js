@@ -45,6 +45,7 @@
   ];
   var BD_WAREHOUSES = ['华东 RDC-杭州', '杭州城市前置仓', '图书中央仓'];
   var BD_CODE_TO_NAME = { BD20240001: '李泽峰', BD2024LZF: '李泽峰' };
+  var PARTNER_DIVISIONS = ['加盟店', '合作店', '同行店'];
 
   function qsParse() {
     var p = {};
@@ -69,6 +70,11 @@
 
   function defaultWarehouse(bdKey) {
     return BD_WAREHOUSES[0];
+  }
+
+  function normalizePartnerDivision(v) {
+    var t = String(v || '').trim();
+    return PARTNER_DIVISIONS.indexOf(t) >= 0 ? t : '加盟店';
   }
 
   function filterPois(q) {
@@ -273,7 +279,7 @@
       name: rec.name || '',
       shortName: rec.shortName && rec.shortName !== '—' ? rec.shortName : '',
       warehouse: rec.warehouse || defaultWarehouse('BD20240001'),
-      partnerDivision: rec.partnerDivision || '',
+      partnerDivision: normalizePartnerDivision(rec.partnerDivision),
       storeTypeDetail: (rec.storeType && rec.storeType !== '—' ? rec.storeType : '') || '',
       hasRef: rec.hasRefrigeratedCabinet || '',
       hasFre: rec.hasFreezerCabinet || '',
@@ -360,7 +366,7 @@
       shortName: (st.shortName || '').trim() || '—',
       warehouse: st.warehouse || rec.warehouse,
       boundBd: boundBdName,
-      partnerDivision: st.partnerDivision || rec.partnerDivision,
+      partnerDivision: normalizePartnerDivision(st.partnerDivision || rec.partnerDivision),
       regionCascade: st.regionCascade,
       detailAddress: st.detailAddress,
       contactPhone: masked || rec.contactPhone,
@@ -531,7 +537,7 @@
       name: '',
       shortName: '',
       warehouse: defaultWarehouse(boundBd),
-      partnerDivision: '',
+      partnerDivision: normalizePartnerDivision('加盟店'),
       storeTypeDetail: '',
       hasRef: '',
       hasFre: '',
@@ -742,7 +748,6 @@
           '门店合作类型',
           true,
           '<select class="h5-input" id="f_partner">' +
-          '<option value="">加盟店 / 合作店 / 同行店</option>' +
           '<option value="加盟店">加盟店</option><option value="合作店">合作店</option><option value="同行店">同行店</option>' +
           '</select>'
         ) +
