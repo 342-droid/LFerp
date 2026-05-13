@@ -64,6 +64,7 @@
                                 <div class="select-option" data-value="exception_recover">异常恢复</div>
                                 <div class="select-option" data-value="exception_shortage">异常缺货</div>
                                 <div class="select-option" data-value="in_warehouse_reshelf">库内返架</div>
+                                <div class="select-option" data-value="putaway_finish">上架完成</div>
                             </div>
                         </div>
                     </div>
@@ -239,6 +240,19 @@
                                 <td>库内返架规则</td>
                                 <td><span class="status active">启用</span></td>
                                 <td>2026-05-07 15:04:11</td>
+                                <td>当前用户</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W012</td>
+                                <td>上架完成</td>
+                                <td>上架完成规则</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2026-05-13 16:12:26</td>
                                 <td>当前用户</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
@@ -522,6 +536,20 @@
                         changeType: '库存量',
                         changeDirection: '增加',
                         updateTime: '2026-05-07 15:04:11'
+                    }
+                ],
+                W012: [
+                    {
+                        ruleType: '来源库存',
+                        changeType: '库存量',
+                        changeDirection: '减少',
+                        updateTime: '2026-05-13 16:12:22'
+                    },
+                    {
+                        ruleType: '目的库存',
+                        changeType: '库存量',
+                        changeDirection: '增加',
+                        updateTime: '2026-05-13 16:12:26'
                     }
                 ]
             };
