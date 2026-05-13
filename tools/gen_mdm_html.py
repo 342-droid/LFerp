@@ -274,10 +274,10 @@ def main():
 
     # warehouse
     WH = [
-        ["WH001", "沪南一号仓", "主仓库", "仓库", "仓库商家4.18", "小牛", "138****2211", "138****2211", "上海市浦东新区张江路88号", "3200 m²", "2026-04-24 10:22:11", "启用"],
-        ["WH304550231884821504", "合作仓-苏州", "前置仓-华东一号库演示超长名称", "仓库", "冷丰演示门店", "周仓", "137****0098", "137****0098", "上海市浦东新区张江路1688号", "180 m²", "2026-04-23 15:01:44", "启用"],
-        ["WH-ONS-88303", "自建仓-杭州", "合作仓-苏州", "仓库", "—", "钱多多", "159****7788", "—", "江苏省苏州市工业园区星湖街328号", "5600 m²", "2026-04-22 09:33:02", "停用"],
-        ["WH004", "同城周转仓主体", "同城周转仓", "门店", "五角场体验店", "孙丽", "188****7765", "188****7765", "上海市杨浦区国定路506号", "96 m²", "2026-04-21 08:30:00", "启用"],
+        ["WH001", "沪南一号仓", "主仓库", "中心仓", "仓库商家4.18", "小牛", "138****2211", "138****2211", "上海市浦东新区张江路88号", "3200 m²", "2026-04-24 10:22:11", "启用"],
+        ["WH304550231884821504", "合作仓-苏州", "前置仓-华东一号库演示超长名称", "中心仓", "冷丰演示门店", "周仓", "137****0098", "137****0098", "上海市浦东新区张江路1688号", "180 m²", "2026-04-23 15:01:44", "启用"],
+        ["WH-ONS-88303", "自建仓-杭州", "合作仓-苏州", "中心仓", "—", "钱多多", "159****7788", "—", "江苏省苏州市工业园区星湖街328号", "5600 m²", "2026-04-22 09:33:02", "停用"],
+        ["WH004", "同城周转仓主体", "同城周转仓", "网格仓", "五角场体验店", "孙丽", "188****7765", "188****7765", "上海市杨浦区国定路506号", "96 m²", "2026-04-21 08:30:00", "启用"],
     ]
     whh = ["仓库编号", "主体名称", "仓库名称", "仓库类型", "关联门店", "仓库管理员", "手机号码", "可提现手机号", "仓库位置", "仓库面积", "创建时间", "状态"]
 
@@ -293,7 +293,7 @@ def main():
 <section class="search-section"><form class="search-form">
 <div class="form-group"><label>主体名称:</label><div class="input-wrapper"><input id="qSubjectName"><span class="clear-btn">×</span></div></div>
 <div class="form-group"><label>仓库名称:</label><div class="input-wrapper"><input id="qResourceName"><span class="clear-btn">×</span></div></div>
-<div class="form-group"><label>仓库类型:</label><select id="qWhType"><option value="">全部</option><option value="w">仓库</option><option value="s">门店</option></select></div>
+<div class="form-group"><label>仓库类型:</label><select id="qWhType"><option value="">全部</option><option value="grid">网格仓</option><option value="center">中心仓</option></select></div>
 <div class="form-group"><label>状态:</label><select id="qWhStatus"><option value="">全部</option><option value="on">启用</option><option value="off">停用</option></select></div>
 <div class="form-actions"><button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button><button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button><button type="button" id="mdmArchiveWhAddBtn" class="btn btn-secondary">+ 新增仓库</button></div>
 </form></section>
@@ -373,7 +373,7 @@ def main():
     for i, r in enumerate(BD_ROWS):
         settle = '<a href="#" class="mdm-bd-settle">查看信息</a>'
         st_mark = stat("开启" if i != 2 else "禁用")
-        op = '<a href="#" class="mdm-peop-detail">查看详情</a>\u3000<a href="#" class="edit-btn">编辑</a>'
+        op = '<a href="#" class="mdm-peop-detail">查看详情</a>\u3000<a href="#" class="edit-btn">编辑</a>\u3000<a href="#" class="mdm-bd-bind-warehouse">绑定仓库</a>'
         rows_bd += (
             "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>"
             "<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td class=\"action-links\">%s</td></tr>\n"
@@ -408,7 +408,7 @@ def main():
     bd_inner += "".join(f"<th>{esc(x)}</th>" for x in bdh) + "</tr></thead><tbody id=\"tableBody\">" + rows_bd + "</tbody></table></div><div id=\"pagination-container\"></div></section>"
 
     with open(f"{LF}/mdm_people_bd.html", "w", encoding="utf-8") as f:
-        f.write(page_shell("冷丰WMS - BD推广员", "BD推广员", "基础数据中心 / 人员中心 / BD推广员管理 / BD推广员列表", bd_inner, "        MdmErpLists.initPeopleBd();"))
+        f.write(page_shell("冷丰WMS - BD推广员", "BD推广员", "基础数据中心 / 人员中心 / BD", bd_inner, "        MdmErpLists.initPeopleBd();"))
 
     # driver / anchor simplified in second part...
 
@@ -453,7 +453,7 @@ def main():
     drv_inner += "".join(f"<th>{esc(x)}</th>" for x in drh) + "</tr></thead><tbody id=\"tableBody\">" + drv_body + "</tbody></table></div><div id=\"pagination-container\"></div></section>"
 
     with open(f"{LF}/mdm_people_driver.html", "w", encoding="utf-8") as f:
-        f.write(page_shell("冷丰WMS - 司机", "司机", "基础数据中心 / 人员中心 / 司机管理 / 司机列表", drv_inner, "        MdmErpLists.initPeopleDriver();"))
+        f.write(page_shell("冷丰WMS - 司机", "司机", "基础数据中心 / 人员中心 / 司机", drv_inner, "        MdmErpLists.initPeopleDriver();"))
 
     ANC = [
         ["ANC5001", "周琳", "139****8899", "内容运营中心", "在岗", "上海冷丰科技有限公司", "139****8899", "2026-04-24 21:00:00"],
@@ -496,7 +496,7 @@ def main():
     anc_inner += "".join(f"<th>{esc(x)}</th>" for x in anh) + "</tr></thead><tbody id=\"tableBody\">" + anc_body + "</tbody></table></div><div id=\"pagination-container\"></div></section>"
 
     with open(f"{LF}/mdm_people_anchor.html", "w", encoding="utf-8") as f:
-        f.write(page_shell("冷丰WMS - 主播", "主播", "基础数据中心 / 人员中心 / 主播管理 / 主播列表", anc_inner, "        MdmErpLists.initPeopleAnchor();"))
+        f.write(page_shell("冷丰WMS - 主播", "主播", "基础数据中心 / 人员中心 / 主播", anc_inner, "        MdmErpLists.initPeopleAnchor();"))
 
     MH = ["会员ID", "会员昵称", "会员头像", "手机号码", "性别", "是否会员", "会员标签", "会员来源", "绑定方式", "绑定渠道数量", "会员积分", "满意度时长(分)", "满意度反馈次数(建议)", "会员成长分", "成交金额", "成交订单数", "最近消费时间", "状态", "操作"]
 

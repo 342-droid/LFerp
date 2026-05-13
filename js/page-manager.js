@@ -140,6 +140,10 @@ class PageManager {
             return `<td class="action-links"><a href="#" class="mdm-peop-detail">查看详情</a> <a href="#" class="edit-btn">编辑</a></td>`;
         }
 
+        if (mode === 'editDetailBindWarehouse') {
+            return `<td class="action-links"><a href="#" class="mdm-peop-detail">查看详情</a> <a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-bd-bind-warehouse">绑定仓库</a></td>`;
+        }
+
         return `<td class="action-links">
             <a href="#" class="edit-btn">编辑</a>
             <a href="#" class="delete-btn">删除</a>

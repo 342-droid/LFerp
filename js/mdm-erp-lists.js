@@ -3,6 +3,8 @@
  */
 (function () {
     var RESOURCE_ARCHIVE_CACHE_KEY = 'mdm_resource_archive_first_by_subject_v1';
+    var MDM_ENABLED_WAREHOUSE_CACHE_KEY = 'mdm_enabled_warehouse_options_v1';
+    var MDM_BD_WAREHOUSE_BIND_KEY = 'mdm_bd_warehouse_bindings_v1';
 
     function readResourceArchiveCache() {
         try {
@@ -16,6 +18,21 @@
     function writeResourceArchiveCache(cache) {
         try {
             localStorage.setItem(RESOURCE_ARCHIVE_CACHE_KEY, JSON.stringify(cache || {}));
+        } catch (e) {}
+    }
+
+    function readJsonStore(key) {
+        try {
+            var raw = localStorage.getItem(key);
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function writeJsonStore(key, value) {
+        try {
+            localStorage.setItem(key, JSON.stringify(value));
         } catch (e) {}
     }
 
@@ -137,6 +154,239 @@
         document.getElementById('mdmBdSettleOk').addEventListener('click', hide);
         document.getElementById('mdmBdSettleModal').addEventListener('click', function (e) {
             if (e.target.id === 'mdmBdSettleModal') hide();
+        });
+    }
+
+    function normalizeWarehouseTypeLabel(raw) {
+        var t = String(raw || '').trim();
+        if (t === '网格仓' || t === '门店') return '网格仓';
+        if (t === '中心仓' || t === '仓库') return '中心仓';
+        return '';
+    }
+
+    function collectEnabledWarehouseOptionsFromRows(rows) {
+        var list = [];
+        rows.forEach(function (tr) {
+            var c = tr.querySelectorAll('td');
+            if (c.length < 12) return;
+            var code = (c[0].textContent || '').trim();
+            var name = (c[2].textContent || '').trim();
+            var typeLabel = normalizeWarehouseTypeLabel((c[3].textContent || '').trim());
+            var st = (c[11].querySelector('.status') || {}).textContent || c[11].textContent || '';
+            st = String(st).trim();
+            if (!code || !name || !typeLabel || st !== '启用') return;
+            list.push({
+                id: code,
+                name: name,
+                typeLabel: typeLabel
+            });
+        });
+        return list;
+    }
+
+    function cacheEnabledWarehouseOptionsFromTable() {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+        var list = collectEnabledWarehouseOptionsFromRows(tbody.querySelectorAll('tr'));
+        writeJsonStore(MDM_ENABLED_WAREHOUSE_CACHE_KEY, {
+            updatedAt: Date.now(),
+            items: list
+        });
+    }
+
+    function readEnabledWarehouseOptions() {
+        var data = readJsonStore(MDM_ENABLED_WAREHOUSE_CACHE_KEY) || {};
+        var items = Array.isArray(data.items) ? data.items : [];
+        return items.filter(function (one) {
+            return one && one.id && one.name && (one.typeLabel === '网格仓' || one.typeLabel === '中心仓');
+        });
+    }
+
+    function fetchEnabledWarehouseOptionsFromArchivePage(callback) {
+        if (typeof fetch !== 'function') {
+            callback([]);
+            return;
+        }
+        fetch('mdm_archive_warehouse.html', { cache: 'no-store' })
+            .then(function (res) {
+                if (!res || !res.ok) return '';
+                return res.text();
+            })
+            .then(function (html) {
+                if (!html) return [];
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(html, 'text/html');
+                var rows = doc.querySelectorAll('#tableBody tr');
+                return collectEnabledWarehouseOptionsFromRows(rows);
+            })
+            .then(function (list) {
+                writeJsonStore(MDM_ENABLED_WAREHOUSE_CACHE_KEY, {
+                    updatedAt: Date.now(),
+                    items: list
+                });
+                callback(list || []);
+            })
+            .catch(function () {
+                callback([]);
+            });
+    }
+
+    function ensureEnabledWarehouseOptions(callback) {
+        var list = readEnabledWarehouseOptions();
+        if (list.length) {
+            callback(list);
+            return;
+        }
+        fetchEnabledWarehouseOptionsFromArchivePage(function (fetched) {
+            callback(fetched || []);
+        });
+    }
+
+    function readBdWarehouseBindings() {
+        var data = readJsonStore(MDM_BD_WAREHOUSE_BIND_KEY);
+        if (!data || typeof data !== 'object') return {};
+        return data;
+    }
+
+    function writeBdWarehouseBindings(data) {
+        writeJsonStore(MDM_BD_WAREHOUSE_BIND_KEY, data || {});
+    }
+
+    function readOneBdWarehouseBinding(bdId) {
+        var all = readBdWarehouseBindings();
+        var one = all[String(bdId || '').trim()] || {};
+        var warehouseIds = Array.isArray(one.warehouseIds) ? one.warehouseIds : [];
+        return {
+            warehouseIds: warehouseIds
+        };
+    }
+
+    function saveOneBdWarehouseBinding(bdId, warehouseIds) {
+        var key = String(bdId || '').trim();
+        if (!key) return;
+        var all = readBdWarehouseBindings();
+        all[key] = {
+            warehouseIds: Array.isArray(warehouseIds) ? warehouseIds : [],
+            updatedAt: Date.now()
+        };
+        writeBdWarehouseBindings(all);
+    }
+
+    function refreshBdBindWarehouseLinkText(row) {
+        if (!row || !row.querySelectorAll) return;
+        var c = row.querySelectorAll('td');
+        if (c.length < 14) return;
+        var bdId = (c[0].textContent || '').trim();
+        var a = row.querySelector('.mdm-bd-bind-warehouse');
+        if (!a || !bdId) return;
+        var bind = readOneBdWarehouseBinding(bdId);
+        var count = bind.warehouseIds.length;
+        a.textContent = count > 0 ? '绑定仓库(' + count + ')' : '绑定仓库';
+    }
+
+    function refreshBdBindWarehouseLinksInTable() {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+            refreshBdBindWarehouseLinkText(tr);
+        });
+    }
+
+    function openBdBindWarehouseModal(row) {
+        var c = row ? row.querySelectorAll('td') : [];
+        var bdId = c[0] ? c[0].textContent.trim() : '';
+        var bdName = c[1] ? c[1].textContent.trim() : '';
+        ensureEnabledWarehouseOptions(function (options) {
+            var ex = document.getElementById('mdmBdBindWarehouseModal');
+            if (ex) ex.remove();
+            var selected = readOneBdWarehouseBinding(bdId).warehouseIds;
+            var selectedMap = {};
+            selected.forEach(function (id) {
+                selectedMap[String(id)] = true;
+            });
+            var grouped = { '网格仓': [], '中心仓': [] };
+            options.forEach(function (one) {
+                if (grouped[one.typeLabel]) grouped[one.typeLabel].push(one);
+            });
+            function buildGroupHtml(typeLabel) {
+                var arr = grouped[typeLabel] || [];
+                var itemsHtml = '';
+                arr.forEach(function (one) {
+                    var checked = selectedMap[one.id] ? ' checked' : '';
+                    itemsHtml +=
+                        '<label style="display:inline-flex;align-items:center;gap:6px;margin:0 14px 10px 0;cursor:pointer;">' +
+                        '<input type="checkbox" class="mdm-bd-wh-opt" data-wh-id="' +
+                        one.id +
+                        '"' +
+                        checked +
+                        '>' +
+                        '<span>' +
+                        one.name +
+                        '</span></label>';
+                });
+                if (!itemsHtml) itemsHtml = '<div style="color:#999;font-size:12px;">暂无启用仓库</div>';
+                return (
+                    '<div style="margin-bottom:14px;">' +
+                    '<div style="font-weight:600;color:#333;margin:0 0 8px;">' +
+                    typeLabel +
+                    '</div>' +
+                    '<div style="padding:10px;border:1px solid #eee;border-radius:4px;background:#fafafa;">' +
+                    itemsHtml +
+                    '</div></div>'
+                );
+            }
+            var emptyHint =
+                options.length ?
+                    ''
+                :   '<div style="margin-bottom:10px;padding:8px 10px;border-radius:4px;background:#fff7e6;color:#ad6800;font-size:12px;">暂无可绑定仓库，请先在仓库档案中启用仓库。</div>';
+            document.body.insertAdjacentHTML(
+                'beforeend',
+                '<div id="mdmBdBindWarehouseModal" class="modal" style="display:block">' +
+                    '<div class="modal-content" style="width:680px;max-width:94vw;">' +
+                    '<div class="modal-header">' +
+                    '<h2 class="modal-title">绑定仓库</h2>' +
+                    '<span class="close" id="mdmBdBindWarehouseCloseX">&times;</span></div>' +
+                    '<div class="modal-body" style="padding:16px 20px;max-height:60vh;overflow:auto;">' +
+                    '<div style="margin-bottom:10px;color:#333;">BD：<strong>' +
+                    (bdName || '—') +
+                    '</strong></div>' +
+                    emptyHint +
+                    buildGroupHtml('网格仓') +
+                    buildGroupHtml('中心仓') +
+                    '</div>' +
+                    '<div class="modal-footer">' +
+                    '<button type="button" class="btn btn-secondary" id="mdmBdBindWarehouseCancelBtn">取消</button>' +
+                    '<button type="button" class="btn btn-primary" id="mdmBdBindWarehouseSaveBtn">确定</button>' +
+                    '</div></div></div>'
+            );
+            function hide() {
+                var m = document.getElementById('mdmBdBindWarehouseModal');
+                if (m) m.remove();
+            }
+            document
+                .getElementById('mdmBdBindWarehouseCloseX')
+                .addEventListener('click', hide);
+            document
+                .getElementById('mdmBdBindWarehouseCancelBtn')
+                .addEventListener('click', hide);
+            document
+                .getElementById('mdmBdBindWarehouseSaveBtn')
+                .addEventListener('click', function () {
+                    var ids = [];
+                    document.querySelectorAll('#mdmBdBindWarehouseModal .mdm-bd-wh-opt:checked').forEach(function (el) {
+                        var id = String(el.getAttribute('data-wh-id') || '').trim();
+                        if (id) ids.push(id);
+                    });
+                    saveOneBdWarehouseBinding(bdId, ids);
+                    refreshBdBindWarehouseLinkText(row);
+                    if (typeof showToast === 'function') {
+                        showToast('仓库绑定已保存（演示）', 'success');
+                    }
+                    hide();
+                });
+            document.getElementById('mdmBdBindWarehouseModal').addEventListener('click', function (e) {
+                if (e.target.id === 'mdmBdBindWarehouseModal') hide();
+            });
         });
     }
 
@@ -316,8 +566,8 @@
             var ok = true;
             if (qSub && cells[1].textContent.trim().indexOf(qSub) === -1) ok = false;
             if (qName && cells[2].textContent.trim().indexOf(qName) === -1) ok = false;
-            if (qTyp === 'w' && cells[3].textContent.trim() !== '仓库') ok = false;
-            if (qTyp === 's' && cells[3].textContent.trim() !== '门店') ok = false;
+            if ((qTyp === 'center' || qTyp === 'w') && cells[3].textContent.trim() !== '中心仓') ok = false;
+            if ((qTyp === 'grid' || qTyp === 's') && cells[3].textContent.trim() !== '网格仓') ok = false;
             var stTxt = (cells[11].querySelector('.status') || {}).textContent.trim();
             if (qSt === 'on' && stTxt !== '启用') ok = false;
             if (qSt === 'off' && stTxt !== '停用') ok = false;
@@ -663,12 +913,14 @@
                     MdmSubjectLf.showLfWarmConfirm('确定将此仓库设为停用？', function () {
                         page.updateTableRow(row, { 11: { value: '停用', isStatus: true } });
                         page.refreshDisableToggleLabel(row);
+                        cacheEnabledWarehouseOptionsFromTable();
                     });
                     return;
                 } else {
                     page.updateTableRow(row, { 11: { value: '停用', isStatus: true } });
                 }
                 page.refreshDisableToggleLabel(row);
+                cacheEnabledWarehouseOptionsFromTable();
             },
             editModal: {
                 modalId: 'mdmArchWhEdit',
@@ -699,6 +951,7 @@
                         6: document.getElementById('editAdminPhone').value.trim()
                     });
                     pm.decorateDetailLinkCell(row);
+                    cacheEnabledWarehouseOptionsFromTable();
                     showToast('仓库档案已更新（演示）', 'success');
                     pm.currentEditRow = null;
                 }
@@ -725,6 +978,7 @@
             document.querySelectorAll('#tableBody tr').forEach(function (tr) {
                 pm.refreshDisableToggleLabel(tr);
             });
+            cacheEnabledWarehouseOptionsFromTable();
             cacheFirstResourceRows('warehouse', {
                 subjectCol: 1,
                 resourceNameCol: 2,
@@ -1123,7 +1377,7 @@
             detailModalTitle: 'BD推广员详情',
             modalWidth: '560px',
             checkboxColumn: false,
-            actionColumnMode: 'editDetail',
+            actionColumnMode: 'editDetailBindWarehouse',
             fields: bdFields,
             detailView: { enabled: true, columnIndex: 1, linkClass: 'subject-name-link' },
             customRowActions: [
@@ -1141,6 +1395,13 @@
                     handler: function (e, el, page) {
                         e.preventDefault();
                         page.handleDetail(el.closest('tr'));
+                    }
+                },
+                {
+                    selector: '.mdm-bd-bind-warehouse',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        openBdBindWarehouseModal(el.closest('tr'));
                     }
                 }
             ],
@@ -1182,6 +1443,7 @@
                             { value: '开启', isStatus: true }
                         ]
                     });
+                    refreshBdBindWarehouseLinksInTable();
                     showToast('已添加 BD（演示）', 'success');
                 }
             },
@@ -1246,6 +1508,7 @@
         });
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
+            refreshBdBindWarehouseLinksInTable();
         }, 0);
     }
 

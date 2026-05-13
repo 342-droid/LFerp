@@ -743,8 +743,8 @@
         refs.typeSel = sel(
             [
                 { value: '', label: '请选择仓库类型' },
-                { value: 'warehouse', label: '仓库' },
-                { value: 'store', label: '门店' }
+                { value: 'grid', label: '网格仓' },
+                { value: 'center', label: '中心仓' }
             ],
             ''
         );
@@ -801,7 +801,10 @@
             selectOptionByLabelText(refs.subjectSel, cellPlainText(c[1]));
             refs.nameInp.value = cellPlainText(c[2]);
             var wht = cellPlainText(c[3]);
-            refs.typeSel.value = wht === '门店' ? 'store' : wht === '仓库' ? 'warehouse' : '';
+            refs.typeSel.value =
+                wht === '网格仓' || wht === '门店' ? 'grid'
+                : wht === '中心仓' || wht === '仓库' ? 'center'
+                : '';
             var relTxt = cellPlainText(c[4]);
             if (relTxt && relTxt !== '—') {
                 selectOptionByLabelText(refs.relatedSel, relTxt);
