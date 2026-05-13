@@ -383,12 +383,17 @@
 
     function rowHtml(item, index) {
         var auditNo = 'WF-ONB-' + String(index + 1).padStart(6, '0');
+        var requestNo = item.ext.reqSeqId || 'REQ-ONB-' + String(index + 1).padStart(6, '0');
+        var applicationNo = item.ext.extMerId || auditNo;
         return (
             '<tr data-onb-key="' +
             item.key +
             '">' +
             '<td>' +
-            auditNo +
+            requestNo +
+            '</td>' +
+            '<td>' +
+            applicationNo +
             '</td>' +
             '<td>' +
             item.merchantName +
@@ -510,7 +515,7 @@
             return '审核中';
         }
 
-        addSection('页头信息', [
+        addSection('基础信息', [
             ['商户名称', item.merchantName],
             ['汇付商户号', ext.huifuId || '—'],
             ['主体类型', kindLabel(item.kind)],

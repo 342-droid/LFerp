@@ -342,7 +342,7 @@
             body.appendChild(grid);
         }
 
-        appendSection('页头信息', [
+        appendSection('基础信息', [
             ['商户名称', m.merchantName || ext.merchantName || '—'],
             ['汇付商户号', m.huifuMerchantNo || ext.huifuId || '—'],
             ['主体类型', m.subjectType || ext.subjectType || '—'],

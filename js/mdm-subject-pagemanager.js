@@ -586,7 +586,7 @@
             });
             body.appendChild(g);
         }
-        section('页头信息', [
+        section('基础信息', [
             ['商户名称', rowInfo.shortName || '—'],
             ['汇付商户号', 'HF-' + String(rowInfo.id || '').replace(/\s+/g, '')],
             ['主体类型', rowInfo.subjectType || '—'],
