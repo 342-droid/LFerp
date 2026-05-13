@@ -884,7 +884,7 @@ export function renderPeopleRolePage(container, cfg) {
   const root = el('div', 'erp-page');
   const card = el('div', 'erp-page__card');
   const head = el('div', 'erp-page__head');
-  head.appendChild(breadcrumb(['基础数据中心', '人员中心', cfg.manageTitle, cfg.listTitle]));
+  head.appendChild(breadcrumb(['基础数据中心', '人员中心', cfg.roleLabel]));
 
   const filterName = textInput(`请输入${cfg.roleLabel}姓名`);
   const filterPhone = textInput('请输入手机号码');
