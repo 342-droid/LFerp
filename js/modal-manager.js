@@ -266,7 +266,8 @@ const CommonOptions = {
         { value: 'exception_accept', text: '异常受理' },
         { value: 'exception_recover', text: '异常恢复' },
         { value: 'exception_shortage', text: '异常缺货' },
-        { value: 'in_warehouse_reshelf', text: '库内返架' }
+        { value: 'in_warehouse_reshelf', text: '库内返架' },
+        { value: 'putaway_finish', text: '上架完成' }
     ],
     // 地点选项
     location: [

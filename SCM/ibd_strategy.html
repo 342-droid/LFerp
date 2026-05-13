@@ -119,7 +119,8 @@
                                 <th>收货方式</th>
                                 <th>超收比例(%)</th>
                                 <th>默认收货储位</th>
-                                <th>自动关闭收货单</th>
+                                <th>自动上架</th>
+                                <th>默认上架储位</th>
                                 <th>是否启用</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
@@ -139,6 +140,7 @@
                                 <td>0</td>
                                 <td>A-01-01</td>
                                 <td>是</td>
+                                <td>B-01-01</td>
                                 <td><span class="status active">启用</span></td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
@@ -159,6 +161,7 @@
                                 <td>0</td>
                                 <td>A-02-01</td>
                                 <td>否</td>
+                                <td>-</td>
                                 <td><span class="status inactive">禁用</span></td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
@@ -240,13 +243,13 @@
                       ] },
                     { id: 'remark', label: '备注', type: 'text' },
                     { id: 'divider1', label: '', type: 'raw', content: '<hr class="modal-divider">' },
-                    { id: 'receiptMethod', label: '收货方式', type: 'select', width: '100%', labelWidth: '160px', required: true,
+                    { id: 'receiptMethod', label: '收货方式', type: 'select', labelWidth: '160px', required: true,
                       options: [
                           { value: '容器收货', text: '容器收货' },
                           { value: '商品收货', text: '商品收货' }
                       ] },
-                    { id: 'overReceiptRatio', label: '超收比例(%)', type: 'number', width: '100%', labelWidth: '160px', required: true, step: '0.01' },
-                    { id: 'defaultLocation', label: '默认收货储位', type: 'select', width: '100%', labelWidth: '160px', required: true,
+                    { id: 'overReceiptRatio', label: '超收比例(%)', type: 'number', labelWidth: '160px', required: true, step: '0.01' },
+                    { id: 'defaultLocation', label: '默认收货储位', type: 'select', labelWidth: '160px', required: true,
                       options: [
                           { value: 'A-01-01', text: 'A-01-01' },
                           { value: 'A-01-02', text: 'A-01-02' },
@@ -254,10 +257,17 @@
                           { value: 'A-02-02', text: 'A-02-02' }
                       ] },
 
-                    { id: 'autoCloseReceipt', label: '自动关闭收货单', type: 'select', width: '100%', labelWidth: '160px', required: true,
+                    { id: 'autoPutaway', label: '自动上架', type: 'select', labelWidth: '160px', required: true,
                       options: [
                           { value: '是', text: '是' },
                           { value: '否', text: '否' }
+                      ] },
+                    { id: 'putawayLocation', label: '默认上架储位', type: 'select', labelWidth: '160px',
+                      options: [
+                          { value: 'B-01-01', text: 'B-01-01' },
+                          { value: 'B-01-02', text: 'B-01-02' },
+                          { value: 'B-02-01', text: 'B-02-01' },
+                          { value: 'B-02-02', text: 'B-02-02' }
                       ] }
                 ],
                 
@@ -278,7 +288,7 @@
                         { id: 'receiptMethod', message: '请选择收货方式', required: true },
                         { id: 'overReceiptRatio', message: '请输入超收比例(%)', required: true },
                         { id: 'defaultLocation', message: '请选择默认收货储位', required: true },
-                        { id: 'autoCloseReceipt', message: '请选择是否自动关闭收货单', required: true }
+                        { id: 'autoPutaway', message: '请选择自动上架', required: true }
                     ],
                     onOpen: () => {
                         const currentWarehouse = getCurrentWarehouse();
@@ -295,8 +305,12 @@
                         if (overReceiptRatioInput && overReceiptRatioInput.value.trim() === '') {
                             overReceiptRatioInput.value = '0';
                         }
+                        togglePutawayLocationField('autoPutaway', 'putawayLocation');
                     },
                     onSave: () => {
+                        if (!validatePutawayLocation('autoPutaway', 'putawayLocation')) {
+                            return false;
+                        }
                         const warehouse = document.getElementById('warehouse').value.trim();
                         const company = document.getElementById('company').value.trim();
                         const code = document.getElementById('strategyCode').value.trim();
@@ -306,7 +320,8 @@
                         const isEnabled = document.getElementById('isEnabled').value.trim();
                         const receiptMethod = document.getElementById('receiptMethod').value.trim() || '-';
                         const defaultLocation = document.getElementById('defaultLocation').value.trim() || '-';
-                        const autoCloseReceipt = document.getElementById('autoCloseReceipt').value.trim() || '-';
+                        const autoPutaway = document.getElementById('autoPutaway').value.trim() || '-';
+                        const putawayLocation = document.getElementById('putawayLocation').value.trim() || '-';
                         const overReceiptRatioInput = document.getElementById('overReceiptRatio').value.trim();
                         const overReceiptRatio = overReceiptRatioInput === '' ? '0' : overReceiptRatioInput;
                         
@@ -321,7 +336,8 @@
                                 receiptMethod,
                                 overReceiptRatio,
                                 defaultLocation,
-                                autoCloseReceipt,
+                                autoPutaway,
+                                putawayLocation,
                                 { value: isEnabled, isStatus: true },
                                 page.getCurrentTimeStr(),
                                 '当前用户'
@@ -343,10 +359,16 @@
                         { id: 'editReceiptMethod', message: '请选择收货方式', required: true },
                         { id: 'editOverReceiptRatio', message: '请输入超收比例(%)', required: true },
                         { id: 'editDefaultLocation', message: '请选择默认收货储位', required: true },
-                        { id: 'editAutoCloseReceipt', message: '请选择是否自动关闭收货单', required: true }
+                        { id: 'editAutoPutaway', message: '请选择自动上架', required: true }
                     ],
+                    onOpen: () => {
+                        togglePutawayLocationField('editAutoPutaway', 'editPutawayLocation');
+                    },
                     onSave: () => {
                         if (!page.currentEditRow) return;
+                        if (!validatePutawayLocation('editAutoPutaway', 'editPutawayLocation')) {
+                            return false;
+                        }
                         page.updateTableRow(page.currentEditRow, {
                             2: document.getElementById('editStrategyName').value.trim(),
                             5: document.getElementById('editInboundType').value.trim(),
@@ -354,10 +376,11 @@
                             7: document.getElementById('editReceiptMethod').value.trim() || '-',
                             8: document.getElementById('editOverReceiptRatio').value.trim() || '0',
                             9: document.getElementById('editDefaultLocation').value.trim() || '-',
-                            10: document.getElementById('editAutoCloseReceipt').value.trim() || '-',
-                            11: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
-                            12: page.getCurrentTimeStr(),
-                            13: '当前用户'
+                            10: document.getElementById('editAutoPutaway').value.trim() || '-',
+                            11: document.getElementById('editPutawayLocation').value.trim() || '-',
+                            12: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
+                            13: page.getCurrentTimeStr(),
+                            14: '当前用户'
                         });
                         showToast('入库策略已更新', 'success');
                         page.currentEditRow = null;
@@ -375,8 +398,9 @@
                             editReceiptMethod: cells[7].textContent === '-' ? '' : cells[7].textContent,
                             editOverReceiptRatio: cells[8].textContent === '-' ? '0' : cells[8].textContent,
                             editDefaultLocation: cells[9].textContent === '-' ? '' : cells[9].textContent,
-                            editAutoCloseReceipt: cells[10].textContent === '-' ? '' : cells[10].textContent,
-                            editIsEnabled: cells[11].querySelector('.status').textContent
+                            editAutoPutaway: cells[10].textContent === '-' ? '' : cells[10].textContent,
+                            editPutawayLocation: cells[11].textContent === '-' ? '' : cells[11].textContent,
+                            editIsEnabled: cells[12].querySelector('.status').textContent
                         };
                     }
                 },
@@ -390,7 +414,61 @@
             });
             
             page.init();
-            document.getElementById('editCloseBtn').addEventListener('click', () => page.closeModal('edit'));
+            const editCloseBtn = document.getElementById('editCloseBtn');
+            if (editCloseBtn) {
+                editCloseBtn.addEventListener('click', () => page.closeModal('edit'));
+            }
+
+            function isYesValue(value) {
+                const normalized = String(value || '').trim().toLowerCase();
+                return normalized === '是' || normalized === 'yes';
+            }
+
+            function togglePutawayLocationField(autoPutawayId, putawayLocationId) {
+                const autoPutawayInput = document.getElementById(autoPutawayId);
+                const putawayLocationInput = document.getElementById(putawayLocationId);
+                if (!autoPutawayInput || !putawayLocationInput) return;
+
+                const enabled = isYesValue(autoPutawayInput.value);
+                const isEditDetailMode = page.isDetailMode && putawayLocationId === 'editPutawayLocation';
+                putawayLocationInput.disabled = isEditDetailMode || !enabled;
+                if (!isEditDetailMode && !enabled) {
+                    putawayLocationInput.value = '';
+                }
+
+                const wrapper = putawayLocationInput.closest('.modal-form-group');
+                if (wrapper) {
+                    wrapper.style.opacity = enabled ? '1' : '0.65';
+                }
+            }
+
+            function validatePutawayLocation(autoPutawayId, putawayLocationId) {
+                const autoPutawayInput = document.getElementById(autoPutawayId);
+                const putawayLocationInput = document.getElementById(putawayLocationId);
+                if (!autoPutawayInput || !putawayLocationInput) return true;
+
+                if (isYesValue(autoPutawayInput.value) && !putawayLocationInput.value.trim()) {
+                    showToast('自动上架为“是”时，请选择上架储位');
+                    putawayLocationInput.focus();
+                    return false;
+                }
+                return true;
+            }
+
+            ['autoPutaway', 'editAutoPutaway'].forEach((id) => {
+                const input = document.getElementById(id);
+                if (!input) return;
+                input.addEventListener('change', () => {
+                    togglePutawayLocationField('autoPutaway', 'putawayLocation');
+                    togglePutawayLocationField('editAutoPutaway', 'editPutawayLocation');
+                });
+                input.addEventListener('input', () => {
+                    togglePutawayLocationField('autoPutaway', 'putawayLocation');
+                    togglePutawayLocationField('editAutoPutaway', 'editPutawayLocation');
+                });
+            });
+            togglePutawayLocationField('autoPutaway', 'putawayLocation');
+            togglePutawayLocationField('editAutoPutaway', 'editPutawayLocation');
             
             // 新增时设置当前仓库
             document.getElementById('addBtn').addEventListener('click', () => {

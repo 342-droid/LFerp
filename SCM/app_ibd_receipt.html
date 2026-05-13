@@ -1490,7 +1490,7 @@
                     <!-- 已上架状态的收货记录将通过JS动态生成 -->
                 </div>
 
-                <div class="records-confirm-button">
+                <div class="records-confirm-button" id="recordsConfirmButton">
                     <button class="records-confirm-btn" onclick="confirmReceiptRecords()">确认收货</button>
                 </div>
             </div>
@@ -1575,6 +1575,18 @@
         </div>
     </div>
 
+    <div class="shortage-modal" id="receiptConfirmModal">
+        <div class="shortage-modal-card">
+            <div class="shortage-modal-message" id="receiptConfirmMessage">
+                确认后当前已收商品将无法取消，并执行上架逻辑，是否继续？
+            </div>
+            <div class="shortage-modal-actions">
+                <button type="button" class="shortage-modal-btn" onclick="closeReceiptConfirmModal()">取消</button>
+                <button type="button" class="shortage-modal-btn shortage-modal-btn--confirm" onclick="confirmReceiptRecordsAction()">确认</button>
+            </div>
+        </div>
+    </div>
+
     <div class="global-toast" id="globalToast"></div>
 
     <script src="../js/path-prefix.js"></script>
@@ -1604,12 +1616,81 @@
         const backBtn = document.querySelector('.back-btn');
         const cancelReceiptConfirmModal = document.getElementById('cancelReceiptConfirmModal');
         const cancelReceiptConfirmMessage = document.getElementById('cancelReceiptConfirmMessage');
+        const receiptConfirmModal = document.getElementById('receiptConfirmModal');
         const globalToast = document.getElementById('globalToast');
 
         let currentPage = 'scan';
         let toastTimer = null;
         let pendingCancelReceipt = null;
         window.currentReceiptType = window.currentReceiptType || '';
+
+        const initialRecordsSeed = [
+            {
+                container: 'LPN001',
+                time: '2026-02-28 10:30:25',
+                products: [
+                    {
+                        product: '苹果',
+                        barcode: '6912345678901',
+                        receiver: '张三',
+                        quantity: '10斤'
+                    },
+                    {
+                        product: '橙子',
+                        barcode: '6912345678903',
+                        receiver: '王五',
+                        quantity: '10斤'
+                    }
+                ]
+            },
+            {
+                container: 'LPN002',
+                time: '2026-02-28 11:15:30',
+                products: [
+                    {
+                        product: '香蕉',
+                        barcode: '6912345678902',
+                        receiver: '李四',
+                        quantity: '10斤'
+                    }
+                ]
+            }
+        ];
+
+        const pendingRecordsSeed = [
+            {
+                container: 'LPN004',
+                time: '2026-02-28 09:15:20',
+                product: '葡萄',
+                barcode: '6912345678904',
+                receiver: '赵六',
+                quantity: '5斤'
+            },
+            {
+                container: 'LPN005',
+                time: '2026-02-28 10:45:10',
+                product: '草莓',
+                barcode: '6912345678905',
+                receiver: '孙七',
+                quantity: '8斤'
+            }
+        ];
+
+        const completedRecordsSeed = [
+            {
+                container: 'LPN006',
+                time: '2026-02-28 08:30:00',
+                product: '梨',
+                barcode: '6912345678906',
+                receiver: '周八',
+                quantity: '12斤',
+                putawayQuantity: '12斤'
+            }
+        ];
+
+        let initialRecordsState = JSON.parse(JSON.stringify(initialRecordsSeed));
+        let pendingRecordsState = JSON.parse(JSON.stringify(pendingRecordsSeed));
+        let completedRecordsState = JSON.parse(JSON.stringify(completedRecordsSeed));
 
         function showToast(message) {
             if (!message) return;
@@ -1633,10 +1714,54 @@
                 closeCancelReceiptConfirmModal();
                 return;
             }
-            // TODO: 调用取消收货 API
+            initialRecordsState = initialRecordsState
+                .map(record => ({
+                    ...record,
+                    products: record.products.filter(product => product.barcode !== pendingCancelReceipt.barcode)
+                }))
+                .filter(record => record.products.length > 0);
+
             showToast('取消收货成功');
             closeCancelReceiptConfirmModal();
             generateReceiptRecords();
+            updateRecordsTabLabels();
+            updateRecordsConfirmButtonVisibility(getActiveRecordsTabName());
+        }
+
+        function closeReceiptConfirmModal() {
+            receiptConfirmModal.classList.remove('active');
+        }
+
+        function confirmReceiptRecordsAction() {
+            const movedRecords = [];
+
+            initialRecordsState.forEach(record => {
+                record.products.forEach(product => {
+                    movedRecords.push({
+                        container: record.container,
+                        time: record.time,
+                        product: product.product,
+                        barcode: product.barcode,
+                        receiver: product.receiver,
+                        quantity: product.quantity
+                    });
+                });
+            });
+
+            if (movedRecords.length === 0) {
+                closeReceiptConfirmModal();
+                showToast('初始页签暂无可确认收货商品');
+                return;
+            }
+
+            pendingRecordsState = [...movedRecords, ...pendingRecordsState];
+            initialRecordsState = [];
+
+            closeReceiptConfirmModal();
+            generateReceiptRecords();
+            updateRecordsTabLabels();
+            switchRecordsTab('pending');
+            showToast('确认收货成功，已执行上架逻辑');
         }
 
         // 处理扫描按钮点击
@@ -1887,6 +2012,7 @@
 
             // 生成收货记录列表
             generateReceiptRecords();
+            updateRecordsConfirmButtonVisibility(getActiveRecordsTabName());
         }
 
         // 从收货记录页面返回入库单录入页面
@@ -1899,6 +2025,33 @@
         }
 
         // 切换收货记录页签
+        function getActiveRecordsTabName() {
+            const activeTabBtn = document.querySelector('#receiptRecordsPage .tab-btn.active');
+            const tabOnclick = activeTabBtn ? activeTabBtn.getAttribute('onclick') : '';
+            const tabMatch = tabOnclick ? tabOnclick.match(/switchRecordsTab\('(.+)'\)/) : null;
+            return tabMatch ? tabMatch[1] : 'initial';
+        }
+
+        function updateRecordsTabLabels() {
+            const initialCount = initialRecordsState.reduce((sum, record) => sum + record.products.length, 0);
+            const pendingCount = pendingRecordsState.length;
+            const completedCount = completedRecordsState.length;
+
+            const initialTabBtn = document.querySelector("#receiptRecordsPage .tab-btn[onclick=\"switchRecordsTab('initial')\"]");
+            const pendingTabBtn = document.querySelector("#receiptRecordsPage .tab-btn[onclick=\"switchRecordsTab('pending')\"]");
+            const completedTabBtn = document.querySelector("#receiptRecordsPage .tab-btn[onclick=\"switchRecordsTab('completed')\"]");
+
+            if (initialTabBtn) initialTabBtn.textContent = `初始(${initialCount})`;
+            if (pendingTabBtn) pendingTabBtn.textContent = `待上架(${pendingCount})`;
+            if (completedTabBtn) completedTabBtn.textContent = `已上架(${completedCount})`;
+        }
+
+        function updateRecordsConfirmButtonVisibility(tabName) {
+            const recordsConfirmButton = document.getElementById('recordsConfirmButton');
+            if (!recordsConfirmButton) return;
+            recordsConfirmButton.style.display = tabName === 'initial' ? 'block' : 'none';
+        }
+
         // 显示收货记录详情页面
         function showRecordDetail(container, time, product, barcode, receiver, quantity, status, putawayQuantity) {
             currentPage = 'recordDetail';
@@ -1937,6 +2090,7 @@
             document.getElementById('receiptRecordsPage').classList.add('active');
             headerTitle.textContent = '收货记录';
             backBtn.setAttribute('onclick', 'showScanContainerPageFromRecords()');
+            updateRecordsConfirmButtonVisibility(getActiveRecordsTabName());
         }
 
         // 取消收货（初始页签）
@@ -1962,84 +2116,21 @@
             // 添加当前页签的active类
             document.querySelector(`#receiptRecordsPage .tab-btn[onclick="switchRecordsTab('${tabName}')"]`).classList.add('active');
             document.getElementById(`records${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Tab`).classList.add('active');
+            updateRecordsConfirmButtonVisibility(tabName);
         }
 
         // 生成收货记录列表（按商品维度拆分卡片，卡片顶部展示商品名称）
         function generateReceiptRecords() {
             // 清空所有页签内容
-            document.getElementById('recordsInitialTab').innerHTML = '';
-            document.getElementById('recordsPendingTab').innerHTML = '';
-            document.getElementById('recordsCompletedTab').innerHTML = '';
-
-            // 模拟收货记录数据 - 初始状态
-            const initialRecords = [
-                {
-                    container: 'LPN001',
-                    time: '2026-02-28 10:30:25',
-                    products: [
-                        {
-                            product: '苹果',
-                            barcode: '6912345678901',
-                            receiver: '张三',
-                            quantity: '10斤'
-                        },
-                        {
-                            product: '橙子',
-                            barcode: '6912345678903',
-                            receiver: '王五',
-                            quantity: '10斤'
-                        }
-                    ]
-                },
-                {
-                    container: 'LPN002',
-                    time: '2026-02-28 11:15:30',
-                    products: [
-                        {
-                            product: '香蕉',
-                            barcode: '6912345678902',
-                            receiver: '李四',
-                            quantity: '10斤'
-                        }
-                    ]
-                }
-            ];
-
-            // 模拟收货记录数据 - 待上架状态
-            const pendingRecords = [
-                {
-                    container: 'LPN004',
-                    time: '2026-02-28 09:15:20',
-                    product: '葡萄',
-                    barcode: '6912345678904',
-                    receiver: '赵六',
-                    quantity: '5斤'
-                },
-                {
-                    container: 'LPN005',
-                    time: '2026-02-28 10:45:10',
-                    product: '草莓',
-                    barcode: '6912345678905',
-                    receiver: '孙七',
-                    quantity: '8斤'
-                }
-            ];
-
-            // 模拟收货记录数据 - 已上架状态
-            const completedRecords = [
-                {
-                    container: 'LPN006',
-                    time: '2026-02-28 08:30:00',
-                    product: '梨',
-                    barcode: '6912345678906',
-                    receiver: '周八',
-                    quantity: '12斤',
-                    putawayQuantity: '12斤'
-                }
-            ];
+            const initialTab = document.getElementById('recordsInitialTab');
+            const pendingTab = document.getElementById('recordsPendingTab');
+            const completedTab = document.getElementById('recordsCompletedTab');
+            initialTab.innerHTML = '';
+            pendingTab.innerHTML = '';
+            completedTab.innerHTML = '';
 
             // 生成初始状态的收货记录（一个商品一张卡片）
-            initialRecords.forEach(record => {
+            initialRecordsState.forEach(record => {
                 record.products.forEach(product => {
                     const recordItem = document.createElement('div');
                     recordItem.className = 'record-item';
@@ -2067,12 +2158,12 @@
                         </div>
                     `;
 
-                    document.getElementById('recordsInitialTab').appendChild(recordItem);
+                    initialTab.appendChild(recordItem);
                 });
             });
 
             // 生成待上架状态的收货记录
-            pendingRecords.forEach(record => {
+            pendingRecordsState.forEach(record => {
                 const recordItem = document.createElement('div');
                 recordItem.className = 'record-item';
                 recordItem.innerHTML = `
@@ -2096,11 +2187,11 @@
                         </div>
                     </div>
                 `;
-                document.getElementById('recordsPendingTab').appendChild(recordItem);
+                pendingTab.appendChild(recordItem);
             });
 
             // 生成已上架状态的收货记录
-            completedRecords.forEach(record => {
+            completedRecordsState.forEach(record => {
                 const recordItem = document.createElement('div');
                 recordItem.className = 'record-item';
                 recordItem.innerHTML = `
@@ -2124,8 +2215,20 @@
                         </div>
                     </div>
                 `;
-                document.getElementById('recordsCompletedTab').appendChild(recordItem);
+                completedTab.appendChild(recordItem);
             });
+
+            if (!initialTab.children.length) {
+                initialTab.innerHTML = '<div class="empty-state">暂无收货记录</div>';
+            }
+            if (!pendingTab.children.length) {
+                pendingTab.innerHTML = '<div class="empty-state">暂无待上架记录</div>';
+            }
+            if (!completedTab.children.length) {
+                completedTab.innerHTML = '<div class="empty-state">暂无已上架记录</div>';
+            }
+
+            updateRecordsTabLabels();
         }
 
         // 显示入库明细
@@ -2257,8 +2360,12 @@
         }
 
         function confirmReceiptRecords() {
-            // TODO: 调用确认收货 API
-            showToast('确认收货成功');
+            const initialCount = initialRecordsState.reduce((sum, record) => sum + record.products.length, 0);
+            if (initialCount === 0) {
+                showToast('初始页签暂无可确认收货商品');
+                return;
+            }
+            receiptConfirmModal.classList.add('active');
         }
 
         // 收货量输入框回车事件（与「完成」按钮一致）

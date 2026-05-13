@@ -315,7 +315,10 @@
                                 </label>
                             </div>
                             <div class="wh-param-panel" data-wh-panel="in" role="tabpanel">
-                                <span class="wh-param-empty-hint">暂无参数</span>
+                                <label class="param-checkbox-row">
+                                    <input type="checkbox" id="editParamFullReceiptAutoClose">
+                                    <span>全量收货自动关单</span>
+                                </label>
                             </div>
                             <div class="wh-param-panel" data-wh-panel="inner" role="tabpanel">
                                 <span class="wh-param-empty-hint">暂无参数</span>
@@ -375,6 +378,11 @@
                             if (reusableCb.checked) row.setAttribute('data-reusable-consumable', 'true');
                             else row.removeAttribute('data-reusable-consumable');
                         }
+                        const fullReceiptAutoCloseCb = document.getElementById('editParamFullReceiptAutoClose');
+                        if (fullReceiptAutoCloseCb) {
+                            if (fullReceiptAutoCloseCb.checked) row.setAttribute('data-full-receipt-auto-close', 'true');
+                            else row.removeAttribute('data-full-receipt-auto-close');
+                        }
                         page.updateTableRow(row, {
                             2: document.getElementById('editWarehouseName').value.trim(),
                             4: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
@@ -431,9 +439,14 @@
 
             function syncWarehouseParamsFromRow() {
                 const row = page.currentEditRow;
-                const cb = document.getElementById('editParamReusableConsumable');
-                if (!cb) return;
-                cb.checked = !!(row && row.getAttribute('data-reusable-consumable') === 'true');
+                const reusableCb = document.getElementById('editParamReusableConsumable');
+                if (reusableCb) {
+                    reusableCb.checked = !!(row && row.getAttribute('data-reusable-consumable') === 'true');
+                }
+                const fullReceiptAutoCloseCb = document.getElementById('editParamFullReceiptAutoClose');
+                if (fullReceiptAutoCloseCb) {
+                    fullReceiptAutoCloseCb.checked = !!(row && row.getAttribute('data-full-receipt-auto-close') === 'true');
+                }
             }
 
             function initWarehouseParamTabs() {
