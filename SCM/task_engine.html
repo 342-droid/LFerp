@@ -59,7 +59,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>任务引擎编码:</label>
+                        <label style="width: 130px;">任务引擎编码:</label>
                         <div class="input-wrapper">
                             <input type="text" placeholder="请输入">
                             <span class="clear-btn">×</span>
@@ -73,14 +73,15 @@
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
-                        <label>任务来源:</label>
+                        <label>任务类型:</label>
                         <div class="custom-select">
-                            <input type="text" id="searchTaskSource" placeholder="请选择">
+                            <input type="text" id="searchTaskType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchTaskSourceDropdown">
-                                <div class="select-option" data-value="inbound">入库</div>
-                                <div class="select-option" data-value="outbound">出库</div>
+                            <div class="select-dropdown" id="searchTaskTypeDropdown">
+                                <div class="select-option" data-value="qc">质检</div>
+                                <div class="select-option" data-value="putaway">上架</div>
+                                <div class="select-option" data-value="picking">拣货</div>
                                 <div class="select-option" data-value="inventory">盘点</div>
                             </div>
                         </div>
@@ -93,22 +94,36 @@
                             <span class="clear-btn">×</span>
                             <div class="select-dropdown" id="searchTaskSourceTypeDropdown">
                                 <div class="select-option" data-value="purchase">采购入库</div>
-                                <div class="select-option" data-value="return">退货入库</div>
-                                <div class="select-option" data-value="transfer">调拨入库</div>
+                                <div class="select-option" data-value="warehouseDistributionInbound">仓配入库</div>
+                                <div class="select-option" data-value="reverseDistributionInbound">返配入库</div>
+                                <div class="select-option" data-value="transferInbound">调拨入库</div>
+                                <div class="select-option" data-value="customerReturnInbound">客退入库</div>
+                                <div class="select-option" data-value="salesOutbound">销售出库</div>
+                                <div class="select-option" data-value="warehouseDistributionOutbound">仓配出库</div>
+                                <div class="select-option" data-value="reverseDistributionOutbound">返配出库</div>
+                                <div class="select-option" data-value="supplierReturnOutbound">退供出库</div>
+                                <div class="select-option" data-value="transferOutbound">调拨出库</div>
                             </div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
-                        <label>任务类型:</label>
+                        <label style="width: 130px;">任务来源业务类型:</label>
                         <div class="custom-select">
-                            <input type="text" id="searchTaskType" placeholder="请选择">
+                            <input type="text" id="searchTaskSourceBizType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchTaskTypeDropdown">
-                                <div class="select-option" data-value="qc">质检任务</div>
-                                <div class="select-option" data-value="putaway">上架任务</div>
-                                <div class="select-option" data-value="picking">拣货任务</div>
-                                <div class="select-option" data-value="inventory">盘点任务</div>
+                            <div class="select-dropdown" id="searchTaskSourceBizTypeDropdown">
+                                <div class="select-option" data-value="purchaseDirectDelivery">采购直送</div>
+                                <div class="select-option" data-value="immediateDistributionInbound">货到即配</div>
+                                <div class="select-option" data-value="warehouseDistributionInbound">仓配入库</div>
+                                <div class="select-option" data-value="storeReturn">门店退货</div>
+                                <div class="select-option" data-value="warehouseTransfer">仓库调拨</div>
+                                <div class="select-option" data-value="storeTransfer">门店调拨</div>
+                                <div class="select-option" data-value="liveReturn">直播退货</div>
+                                <div class="select-option" data-value="liveOrder">直播订单</div>
+                                <div class="select-option" data-value="distributionOutbound">配送出库</div>
+                                <div class="select-option" data-value="storeReverseDistribution">门店返配</div>
+                                <div class="select-option" data-value="warehouseSupplierReturn">仓库退供</div>
                             </div>
                         </div>
                     </div>
@@ -141,12 +156,11 @@
                                 <th>任务引擎名称</th>
                                 <th>仓库</th>
                                 <th>货主</th>
-                                <th>任务来源</th>
+                                <th>任务类型</th>
                                 <th>任务来源类型</th>
                                 <th>任务来源业务类型</th>
                                 <th>来源储位类型</th>
                                 <th>优先级</th>
-                                <th>任务类型</th>
                                 <th>是否启用</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
@@ -154,41 +168,42 @@
                             </tr>
                         </thead>
                         <tbody id="tableBody">
-                            <tr>
+                            <tr
+                                data-detail-task-type="拣货"
+                                data-detail-fetch1="来源单号"
+                                data-detail-fetch2=""
+                                data-detail-fetch3=""
+                                data-detail-fetch4=""
+                                data-detail-fetch5=""
+                                data-detail-group1="来源单号"
+                                data-detail-group2="目的储位"
+                                data-detail-group3=""
+                                data-detail-group4=""
+                                data-detail-group5=""
+                                data-detail-merge-param1="调用明细ID"
+                                data-detail-merge-param2="商品编码"
+                                data-detail-merge-param3="批号"
+                                data-detail-merge-param4=""
+                                data-detail-merge-param5=""
+                                data-detail-auto-release="是"
+                                data-detail-target-location-rule="指定储位"
+                                data-detail-specified-location="储位A"
+                                data-detail-max-task-count="20"
+                                data-detail-scan-location="是"
+                                data-detail-scan-sku="是">
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
-                                <td>TE001</td>
-                                <td>入库质检任务</td>
-                                <td>南京仓</td>
+                                <td>W001_CPCK</td>
+                                <td>仓配出库</td>
+                                <td>W001-南京仓</td>
                                 <td>货主A</td>
-                                <td>入库</td>
-                                <td>采购入库</td>
-                                <td>直送仓库</td>
-                                <td>收货位</td>
-                                <td>高</td>
-                                <td>质检任务</td>
-                                <td><span class="status active">启用</span></td>
-                                <td>2025-01-05 12:31:43</td>
-                                <td>李四</td>
-                                <td class="action-links">
-                                    <a href="#" class="edit-btn">编辑</a>
-                                    <a href="#" class="delete-btn">删除</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
-                                <td>TE002</td>
-                                <td>出库拣货任务</td>
-                                <td>嘉兴仓</td>
-                                <td>货主B</td>
-                                <td>出库</td>
-                                <td>调拨入库</td>
-                                <td>仓库调拨</td>
+                                <td>拣货</td>
+                                <td>仓配出库</td>
+                                <td>配送出库</td>
                                 <td>拣选位</td>
-                                <td>中</td>
-                                <td>拣货任务</td>
-                                <td><span class="status inactive">禁用</span></td>
-                                <td>2025-01-05 12:31:43</td>
-                                <td>张三</td>
+                                <td>高</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2026-05-13 19:40:00</td>
+                                <td>当前用户</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
@@ -217,22 +232,31 @@
                 { value: 'low', text: '低' }
             ];
             
-            const taskSourceOptions = [
-                { value: 'inbound', text: '入库' },
-                { value: 'outbound', text: '出库' },
-                { value: 'inventory', text: '盘点' },
-            ];
-            
             const taskSourceTypeOptions = [
                 { value: 'purchase', text: '采购入库' },
-                { value: 'return', text: '退货入库' },
-                { value: 'transfer', text: '调拨入库' }
+                { value: 'warehouseDistributionInbound', text: '仓配入库' },
+                { value: 'reverseDistributionInbound', text: '返配入库' },
+                { value: 'transferInbound', text: '调拨入库' },
+                { value: 'customerReturnInbound', text: '客退入库' },
+                { value: 'salesOutbound', text: '销售出库' },
+                { value: 'warehouseDistributionOutbound', text: '仓配出库' },
+                { value: 'reverseDistributionOutbound', text: '返配出库' },
+                { value: 'supplierReturnOutbound', text: '退供出库' },
+                { value: 'transferOutbound', text: '调拨出库' }
             ];
             
             const taskSourceBizTypeOptions = [
-                { value: 'direct', text: '直送仓库' },
+                { value: 'purchaseDirectDelivery', text: '采购直送' },
+                { value: 'immediateDistributionInbound', text: '货到即配' },
+                { value: 'warehouseDistributionInbound', text: '仓配入库' },
                 { value: 'storeReturn', text: '门店退货' },
-                { value: 'warehouseTransfer', text: '仓库调拨' }
+                { value: 'warehouseTransfer', text: '仓库调拨' },
+                { value: 'storeTransfer', text: '门店调拨' },
+                { value: 'liveReturn', text: '直播退货' },
+                { value: 'liveOrder', text: '直播订单' },
+                { value: 'distributionOutbound', text: '配送出库' },
+                { value: 'storeReverseDistribution', text: '门店返配' },
+                { value: 'warehouseSupplierReturn', text: '仓库退供' }
             ];
             
             const locationTypeOptions = [
@@ -266,17 +290,18 @@
             ];
             
             const taskTypeOptions = [
-                { value: 'qc', text: '质检任务' },
-                { value: 'putaway', text: '上架任务' },
-                { value: 'picking', text: '拣货任务' },
-                { value: 'inventory', text: '盘点任务' }
+                { value: 'qc', text: '质检' },
+                { value: 'putaway', text: '上架' },
+                { value: 'picking', text: '拣货' },
+                { value: 'inventory', text: '盘点' }
             ];
             
             const fetchOptions = [
                 { value: 'sourceOrder', text: '来源单号' },
                 { value: 'sku', text: '商品' },
                 { value: 'sourceLocation', text: '来源储位' },
-                { value: 'targetLocation', text: '目的储位' }
+                { value: 'targetLocation', text: '目的储位' },
+                { value: 'route', text: '线路' }
             ];
             
             const yesNoOptions = [
@@ -304,16 +329,74 @@
             
             const dividerHtml = `<div class="section-divider"></div>`;
             const detailSectionTitleHtml = `<div class="section-title">任务引擎明细</div>`;
+            const detailFieldIds = [
+                'detailTaskType',
+                'detailFetch1',
+                'detailFetch2',
+                'detailFetch3',
+                'detailFetch4',
+                'detailFetch5',
+                'detailGroup1',
+                'detailGroup2',
+                'detailGroup3',
+                'detailGroup4',
+                'detailGroup5',
+                'detailMergeParam1',
+                'detailMergeParam2',
+                'detailMergeParam3',
+                'detailMergeParam4',
+                'detailMergeParam5',
+                'detailAutoRelease',
+                'detailTargetLocationRule',
+                'detailSpecifiedLocation',
+                'detailMaxTaskCount',
+                'detailScanLocation',
+                'detailScanSku'
+            ];
+
+            const toEditFieldId = (id) => `edit${id.charAt(0).toUpperCase()}${id.slice(1)}`;
+            const toDataAttrName = (id) => `data-${id.replace(/[A-Z]/g, '-$&').toLowerCase()}`;
+
+            const collectDetailFormData = (isEdit = false) => {
+                const details = {};
+                detailFieldIds.forEach((id) => {
+                    const targetId = isEdit ? toEditFieldId(id) : id;
+                    const el = document.getElementById(targetId);
+                    details[id] = el ? el.value.trim() : '';
+                });
+                return details;
+            };
+
+            const applyDetailDataToRow = (row, details) => {
+                if (!row) return;
+                detailFieldIds.forEach((id) => {
+                    const val = details[id] ?? '';
+                    const attr = toDataAttrName(id);
+                    if (val) {
+                        row.setAttribute(attr, val);
+                    } else {
+                        row.removeAttribute(attr);
+                    }
+                });
+            };
+
+            const mapRowDetailDataToEditForm = (row) => {
+                const details = {};
+                detailFieldIds.forEach((id) => {
+                    details[toEditFieldId(id)] = row?.dataset?.[id] || '';
+                });
+                return details;
+            };
             
             const page = new PageManager({
                 entityName: '任务引擎',
-                statusColumnIndex: 11,
+                statusColumnIndex: 10,
                 detailView: { enabled: true },
                 
                 customSelects: [
                     { inputId: 'searchCompany', dropdownId: 'searchCompanyDropdown' },
-                    { inputId: 'searchTaskSource', dropdownId: 'searchTaskSourceDropdown' },
                     { inputId: 'searchTaskSourceType', dropdownId: 'searchTaskSourceTypeDropdown' },
+                    { inputId: 'searchTaskSourceBizType', dropdownId: 'searchTaskSourceBizTypeDropdown' },
                     { inputId: 'searchTaskType', dropdownId: 'searchTaskTypeDropdown' },
                     { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' }
                 ],
@@ -324,13 +407,12 @@
                     { id: 'engineCode', label: '任务引擎编码', type: 'text', required: true, editDisabled: true },
                     { id: 'engineName', label: '任务引擎名称', type: 'text', required: true, editDisabled: true },
                     { id: 'priority', label: '优先级', type: 'select', required: true, options: priorityOptions },
-                    { id: 'taskSource', label: '任务来源', type: 'select', required: true, options: taskSourceOptions },
+                    { id: 'detailTaskType', label: '任务类型', type: 'select', required: true, options: taskTypeOptions },
                     { id: 'taskSourceType', label: '任务来源类型', type: 'select', required: true, options: taskSourceTypeOptions },
                     { id: 'taskSourceBizType', label: '任务来源业务类型', type: 'select', required: true, options: taskSourceBizTypeOptions },
                     { id: 'sourceLocationType', label: '来源储位类型', type: 'select', required: true, options: locationTypeOptions },
                     { id: 'isEnabled', label: '是否启用', type: 'select', required: true, options: isEnabledOptions },
                     { id: 'divider1', label: '', type: 'raw', html: dividerHtml, editHtml: dividerHtml },
-                    { id: 'detailTaskType', label: '任务类型', type: 'select', required: true, options: taskTypeOptions },
                     { id: 'detailFetch1', label: '取用名1', type: 'select', required: true, options: fetchOptions },
                     { id: 'detailFetch2', label: '取用名2', type: 'select', required: false, options: fetchOptions },
                     { id: 'detailFetch3', label: '取用名3', type: 'select', required: false, options: fetchOptions },
@@ -366,12 +448,11 @@
                         { id: 'engineCode', message: '请输入任务引擎编码', required: true },
                         { id: 'engineName', message: '请输入任务引擎名称', required: true },
                         { id: 'priority', message: '请选择优先级', required: true },
-                        { id: 'taskSource', message: '请选择任务来源', required: true },
+                        { id: 'detailTaskType', message: '请选择任务类型', required: true },
                         { id: 'taskSourceType', message: '请选择任务来源类型', required: true },
                         { id: 'taskSourceBizType', message: '请选择任务来源业务类型', required: true },
                         { id: 'sourceLocationType', message: '请选择来源储位类型', required: true },
                         { id: 'isEnabled', message: '请选择是否启用', required: true },
-                        { id: 'detailTaskType', message: '请选择任务类型', required: true },
                         { id: 'detailFetch1', message: '请选择取用名1', required: true },
                         { id: 'detailGroup1', message: '请选择分组名1', required: true },
                         { id: 'detailAutoRelease', message: '请选择自动释放', required: true },
@@ -397,29 +478,29 @@
                         const engineCode = document.getElementById('engineCode').value.trim();
                         const engineName = document.getElementById('engineName').value.trim();
                         const priority = document.getElementById('priority').value.trim();
-                        const taskSource = document.getElementById('taskSource').value.trim();
                         const taskSourceType = document.getElementById('taskSourceType').value.trim();
                         const taskSourceBizType = document.getElementById('taskSourceBizType').value.trim();
                         const sourceLocationType = document.getElementById('sourceLocationType').value.trim();
                         const isEnabled = document.getElementById('isEnabled').value.trim();
+                        const detailData = collectDetailFormData(false);
                         
-                        page.addTableRow({
+                        const newRow = page.addTableRow({
                             cells: [
                                 engineCode,
                                 engineName,
                                 warehouse,
                                 company,
-                                taskSource,
+                                detailData.detailTaskType,
                                 taskSourceType,
                                 taskSourceBizType,
                                 sourceLocationType,
                                 priority,
-                                '质检任务',
                                 { value: isEnabled, isStatus: true },
                                 page.getCurrentTimeStr(),
                                 '当前用户'
                             ]
                         });
+                        applyDetailDataToRow(newRow, detailData);
                         showToast('任务引擎信息已保存', 'success');
                     }
                 },
@@ -433,12 +514,11 @@
                         { id: 'editCompany', message: '请选择货主', required: true },
                         { id: 'editEngineName', message: '请输入任务引擎名称', required: true },
                         { id: 'editPriority', message: '请选择优先级', required: true },
-                        { id: 'editTaskSource', message: '请选择任务来源', required: true },
+                        { id: 'editDetailTaskType', message: '请选择任务类型', required: true },
                         { id: 'editTaskSourceType', message: '请选择任务来源类型', required: true },
                         { id: 'editTaskSourceBizType', message: '请选择任务来源业务类型', required: true },
                         { id: 'editSourceLocationType', message: '请选择来源储位类型', required: true },
                         { id: 'editIsEnabled', message: '请选择是否启用', required: true },
-                        { id: 'editDetailTaskType', message: '请选择任务类型', required: true },
                         { id: 'editDetailFetch1', message: '请选择取用名1', required: true },
                         { id: 'editDetailGroup1', message: '请选择分组名1', required: true },
                         { id: 'editDetailAutoRelease', message: '请选择自动释放', required: true },
@@ -452,15 +532,16 @@
                             2: document.getElementById('editEngineName').value.trim(),
                             3: document.getElementById('editWarehouse').value.trim(),
                             4: document.getElementById('editCompany').value.trim(),
-                            5: document.getElementById('editTaskSource').value.trim(),
+                            5: document.getElementById('editDetailTaskType').value.trim(),
                             6: document.getElementById('editTaskSourceType').value.trim(),
                             7: document.getElementById('editTaskSourceBizType').value.trim(),
                             8: document.getElementById('editSourceLocationType').value.trim(),
                             9: document.getElementById('editPriority').value.trim(),
-                            11: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
-                            12: page.getCurrentTimeStr(),
-                            13: '当前用户'
+                            10: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
+                            11: page.getCurrentTimeStr(),
+                            12: '当前用户'
                         });
+                        applyDetailDataToRow(page.currentEditRow, collectDetailFormData(true));
                         showToast('任务引擎信息已更新', 'success');
                         page.currentEditRow = null;
                     },
@@ -468,16 +549,17 @@
                         page.currentEditRow = row;
                         const cells = row.querySelectorAll('td');
                         return {
+                            ...mapRowDetailDataToEditForm(row),
                             editEngineCode: cells[1].textContent,
                             editEngineName: cells[2].textContent,
                             editWarehouse: cells[3].textContent,
                             editCompany: cells[4].textContent,
-                            editTaskSource: cells[5].textContent,
+                            editDetailTaskType: cells[5].textContent,
                             editTaskSourceType: cells[6].textContent,
                             editTaskSourceBizType: cells[7].textContent,
                             editSourceLocationType: cells[8].textContent,
                             editPriority: cells[9].textContent,
-                            editIsEnabled: cells[11].querySelector('.status').textContent
+                            editIsEnabled: cells[10].querySelector('.status').textContent
                         };
                     }
                 },
