@@ -164,7 +164,7 @@
         return '';
     }
 
-    function collectEnabledWarehouseOptionsFromRows(rows) {
+    function collectWarehouseOptionsFromRows(rows) {
         var list = [];
         rows.forEach(function (tr) {
             var c = tr.querySelectorAll('td');
@@ -174,11 +174,12 @@
             var typeLabel = normalizeWarehouseTypeLabel((c[3].textContent || '').trim());
             var st = (c[11].querySelector('.status') || {}).textContent || c[11].textContent || '';
             st = String(st).trim();
-            if (!code || !name || !typeLabel || st !== '启用') return;
+            if (!code || !name || !typeLabel) return;
             list.push({
                 id: code,
                 name: name,
-                typeLabel: typeLabel
+                typeLabel: typeLabel,
+                enabled: st === '启用'
             });
         });
         return list;
@@ -187,7 +188,7 @@
     function cacheEnabledWarehouseOptionsFromTable() {
         var tbody = document.getElementById('tableBody');
         if (!tbody) return;
-        var list = collectEnabledWarehouseOptionsFromRows(tbody.querySelectorAll('tr'));
+        var list = collectWarehouseOptionsFromRows(tbody.querySelectorAll('tr'));
         writeJsonStore(MDM_ENABLED_WAREHOUSE_CACHE_KEY, {
             updatedAt: Date.now(),
             items: list
@@ -198,7 +199,20 @@
         var data = readJsonStore(MDM_ENABLED_WAREHOUSE_CACHE_KEY) || {};
         var items = Array.isArray(data.items) ? data.items : [];
         return items.filter(function (one) {
-            return one && one.id && one.name && (one.typeLabel === '网格仓' || one.typeLabel === '中心仓');
+            return (
+                one &&
+                one.id &&
+                one.name &&
+                (one.typeLabel === '网格仓' || one.typeLabel === '中心仓')
+            );
+        }).map(function (one) {
+            var copied = {
+                id: one.id,
+                name: one.name,
+                typeLabel: one.typeLabel,
+                enabled: one.enabled !== false
+            };
+            return copied;
         });
     }
 
@@ -217,7 +231,7 @@
                 var parser = new DOMParser();
                 var doc = parser.parseFromString(html, 'text/html');
                 var rows = doc.querySelectorAll('#tableBody tr');
-                return collectEnabledWarehouseOptionsFromRows(rows);
+                return collectWarehouseOptionsFromRows(rows);
             })
             .then(function (list) {
                 writeJsonStore(MDM_ENABLED_WAREHOUSE_CACHE_KEY, {
@@ -272,6 +286,16 @@
         writeBdWarehouseBindings(all);
     }
 
+    function getActiveWarehouseIdsByOptions(warehouseIds, options) {
+        var enabledMap = {};
+        (options || []).forEach(function (one) {
+            if (one && one.id) enabledMap[String(one.id)] = one.enabled !== false;
+        });
+        return (warehouseIds || []).filter(function (id) {
+            return !!enabledMap[String(id)];
+        });
+    }
+
     function refreshBdBindWarehouseLinkText(row) {
         if (!row || !row.querySelectorAll) return;
         var c = row.querySelectorAll('td');
@@ -280,7 +304,9 @@
         var a = row.querySelector('.mdm-bd-bind-warehouse');
         if (!a || !bdId) return;
         var bind = readOneBdWarehouseBinding(bdId);
-        var count = bind.warehouseIds.length;
+        var options = readEnabledWarehouseOptions();
+        var activeIds = getActiveWarehouseIdsByOptions(bind.warehouseIds, options);
+        var count = activeIds.length;
         a.textContent = count > 0 ? '绑定仓库(' + count + ')' : '绑定仓库';
     }
 
@@ -313,18 +339,28 @@
                 var itemsHtml = '';
                 arr.forEach(function (one) {
                     var checked = selectedMap[one.id] ? ' checked' : '';
+                    var dis = one.enabled ? '' : ' disabled';
+                    var lbStyle =
+                        'display:inline-flex;align-items:center;gap:6px;margin:0 14px 10px 0;cursor:' +
+                        (one.enabled ? 'pointer' : 'not-allowed') +
+                        ';' +
+                        (one.enabled ? '' : 'color:#999;');
                     itemsHtml +=
-                        '<label style="display:inline-flex;align-items:center;gap:6px;margin:0 14px 10px 0;cursor:pointer;">' +
+                        '<label style="' +
+                        lbStyle +
+                        '">' +
                         '<input type="checkbox" class="mdm-bd-wh-opt" data-wh-id="' +
                         one.id +
                         '"' +
                         checked +
+                        dis +
                         '>' +
                         '<span>' +
                         one.name +
+                        (one.enabled ? '' : '（停用）') +
                         '</span></label>';
                 });
-                if (!itemsHtml) itemsHtml = '<div style="color:#999;font-size:12px;">暂无启用仓库</div>';
+                if (!itemsHtml) itemsHtml = '<div style="color:#999;font-size:12px;">暂无仓库</div>';
                 return (
                     '<div style="margin-bottom:14px;">' +
                     '<div style="font-weight:600;color:#333;margin:0 0 8px;">' +
@@ -338,7 +374,7 @@
             var emptyHint =
                 options.length ?
                     ''
-                :   '<div style="margin-bottom:10px;padding:8px 10px;border-radius:4px;background:#fff7e6;color:#ad6800;font-size:12px;">暂无可绑定仓库，请先在仓库档案中启用仓库。</div>';
+                :   '<div style="margin-bottom:10px;padding:8px 10px;border-radius:4px;background:#fff7e6;color:#ad6800;font-size:12px;">暂无仓库，请先在仓库档案新增仓库。</div>';
             document.body.insertAdjacentHTML(
                 'beforeend',
                 '<div id="mdmBdBindWarehouseModal" class="modal" style="display:block">' +
@@ -350,6 +386,7 @@
                     '<div style="margin-bottom:10px;color:#333;">BD：<strong>' +
                     (bdName || '—') +
                     '</strong></div>' +
+                    '<div style="margin-bottom:10px;padding:8px 10px;border-radius:4px;background:#fafafa;color:#666;font-size:12px;">停用仓库绑定关系自动失效；再次启用后自动恢复生效。</div>' +
                     emptyHint +
                     buildGroupHtml('网格仓') +
                     buildGroupHtml('中心仓') +
