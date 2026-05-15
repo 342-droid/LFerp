@@ -151,7 +151,6 @@
                                 <th>周转策略名称</th>
                                 <th>仓库</th>
                                 <th>周转类型</th>
-                                <th>周转规则</th>
                                 <th>是否启用</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
@@ -165,7 +164,6 @@
                                 <td>生鲜批次优先周转</td>
                                 <td>W001-南京仓</td>
                                 <td>出库</td>
-                                <td>生产日期</td>
                                 <td><span class="status active">启用</span></td>
                                 <td>2026-03-26 09:16:22</td>
                                 <td>张三</td>
@@ -180,7 +178,6 @@
                                 <td>入库先后顺序周转</td>
                                 <td>W002-嘉兴仓</td>
                                 <td>入库</td>
-                                <td>入库日期</td>
                                 <td><span class="status inactive">禁用</span></td>
                                 <td>2026-03-26 10:05:41</td>
                                 <td>李四</td>
@@ -266,7 +263,7 @@
 
             const page = new PageManager({
                 entityName: '周转策略',
-                statusColumnIndex: 6,
+                statusColumnIndex: 5,
                 detailView: { enabled: true },
                 customSelects: [
                     { inputId: 'searchTurnoverType', dropdownId: 'searchTurnoverTypeDropdown' },
@@ -351,7 +348,6 @@
                                 strategyName,
                                 warehouse,
                                 turnType,
-                                '--',
                                 { value: isEnabled, isStatus: true },
                                 page.getCurrentTimeStr(),
                                 '当前用户'
@@ -378,9 +374,9 @@
                     onSave: () => {
                         if (!page.currentEditRow) return;
                         page.updateTableRow(page.currentEditRow, {
-                            6: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
-                            7: page.getCurrentTimeStr(),
-                            8: '当前用户'
+                            5: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
+                            6: page.getCurrentTimeStr(),
+                            7: '当前用户'
                         });
                         page.currentEditRow.dataset.remark = document.getElementById('editRemark').value.trim();
                         showToast('周转策略已更新', 'success');
@@ -395,7 +391,7 @@
                             editStrategyName: cells[2].textContent.trim(),
                             editWarehouse: cells[3].textContent.trim(),
                             editTurnType: cells[4].textContent.trim(),
-                            editIsEnabled: cells[6].querySelector('.status').textContent.trim(),
+                            editIsEnabled: cells[5].querySelector('.status').textContent.trim(),
                             editRemark: row.dataset.remark || ''
                         };
                     }
