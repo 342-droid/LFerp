@@ -148,6 +148,9 @@
                                 <th>货主</th>
                                 <th>商品类目</th>
                                 <th>基本单位</th>
+                                <th>规格名</th>
+                                <th>规则值</th>
+                                <th>规格单位</th>
                                 <th>保质期（天）</th>
                                 <th>存储条件</th>
                                 <th>是否计重</th>
@@ -166,6 +169,9 @@
                                 <td>Y001-南京货主</td>
                                 <td>冷冻肉类</td>
                                 <td>kg</td>
+                                <td>包装规格</td>
+                                <td>1*10</td>
+                                <td>箱</td>
                                 <td>180</td>
                                 <td>冷冻</td>
                                 <td><span class="status active">是</span></td>
@@ -184,6 +190,9 @@
                                 <td>Y002-北京货主</td>
                                 <td>乳制品</td>
                                 <td>盒</td>
+                                <td>包装规格</td>
+                                <td>1*24</td>
+                                <td>箱</td>
                                 <td>21</td>
                                 <td>冷藏</td>
                                 <td><span class="status inactive">否</span></td>
@@ -202,6 +211,9 @@
                                 <td>Y003-上海货主</td>
                                 <td>速冻食品</td>
                                 <td>袋</td>
+                                <td>包装规格</td>
+                                <td>1*20</td>
+                                <td>箱</td>
                                 <td>365</td>
                                 <td>冷冻</td>
                                 <td><span class="status inactive">否</span></td>
@@ -220,6 +232,9 @@
                                 <td>Y004-广州货主</td>
                                 <td>休闲食品</td>
                                 <td>包</td>
+                                <td>包装规格</td>
+                                <td>1*12</td>
+                                <td>箱</td>
                                 <td>270</td>
                                 <td>常温</td>
                                 <td><span class="status inactive">否</span></td>
@@ -238,6 +253,9 @@
                                 <td>Y005-深圳货主</td>
                                 <td>乳制品</td>
                                 <td>瓶</td>
+                                <td>包装规格</td>
+                                <td>1*12</td>
+                                <td>箱</td>
                                 <td>7</td>
                                 <td>冷藏</td>
                                 <td><span class="status inactive">否</span></td>
@@ -305,6 +323,14 @@
                 <div class="modal-form-group">
                     <label>是否计重</label>
                     <input type="text" id="detailIsWeighed" disabled>
+                </div>
+                <div class="modal-form-group">
+                    <label>规格名</label>
+                    <input type="text" id="detailSpecName" disabled>
+                </div>
+                <div class="modal-form-group">
+                    <label>规格值</label>
+                    <input type="text" id="detailSpecValue" disabled>
                 </div>
             </form>
             
@@ -386,6 +412,7 @@
                 warehouse: 'W001-南京仓', owner: 'Y001-南京货主', skuCode: 'SKU001', barcode: '6901234567890',
                 skuName: '冷冻牛肉卷', category: '食品/肉类/冷冻肉类',
                 unit: 'kg', shelfLife: '180', storageCondition: '冷冻', isWeighed: '是',
+                specName: '包装规格', specValue: '1*10',
                 skuUpperLimit: '500', skuLowerLimit: '80', defaultPickFace: 'JX01-拣选位',
                 packSpec: '1*10', packUnit: '箱',
                 length: '30', width: '20', height: '15', volume: '0.009', grossWeight: '10.5', tareWeight: '0.5', netWeight: '10'
@@ -394,6 +421,7 @@
                 warehouse: 'W001-南京仓', owner: 'Y002-北京货主', skuCode: 'SKU002', barcode: '6901234567891',
                 skuName: '冷藏酸奶', category: '食品/乳制品/乳制品',
                 unit: '盒', shelfLife: '21', storageCondition: '冷藏', isWeighed: '否',
+                specName: '包装规格', specValue: '1*24',
                 skuUpperLimit: '800', skuLowerLimit: '100', defaultPickFace: 'CC01-存储位',
                 packSpec: '1*24', packUnit: '箱',
                 length: '40', width: '30', height: '20', volume: '0.024', grossWeight: '6', tareWeight: '0.5', netWeight: '5.5'
@@ -402,6 +430,7 @@
                 warehouse: 'W003-上海仓', owner: 'Y003-上海货主', skuCode: 'SKU003', barcode: '6901234567892',
                 skuName: '速冻水饺', category: '食品/速冻食品/速冻食品',
                 unit: '袋', shelfLife: '365', storageCondition: '冷冻', isWeighed: '否',
+                specName: '包装规格', specValue: '1*20',
                 skuUpperLimit: '300', skuLowerLimit: '40', defaultPickFace: 'JX01-拣选位',
                 packSpec: '1*20', packUnit: '箱',
                 length: '50', width: '40', height: '30', volume: '0.06', grossWeight: '12', tareWeight: '1', netWeight: '11'
@@ -410,6 +439,7 @@
                 warehouse: 'W004-北京仓', owner: 'Y004-广州货主', skuCode: 'SKU004', barcode: '6901234567893',
                 skuName: '常温饼干', category: '食品/休闲食品/休闲食品',
                 unit: '包', shelfLife: '270', storageCondition: '常温', isWeighed: '否',
+                specName: '包装规格', specValue: '1*12',
                 skuUpperLimit: '1200', skuLowerLimit: '150', defaultPickFace: 'CC01-存储位',
                 packSpec: '1*12', packUnit: '箱',
                 length: '35', width: '25', height: '20', volume: '0.0175', grossWeight: '4', tareWeight: '0.4', netWeight: '3.6'
@@ -418,6 +448,7 @@
                 warehouse: 'W002-嘉兴仓', owner: 'Y005-深圳货主', skuCode: 'SKU005', barcode: '6901234567894',
                 skuName: '冷藏鲜奶', category: '食品/乳制品/乳制品',
                 unit: '瓶', shelfLife: '7', storageCondition: '冷藏', isWeighed: '否',
+                specName: '包装规格', specValue: '1*12',
                 skuUpperLimit: '650', skuLowerLimit: '60', defaultPickFace: 'JX01-拣选位',
                 packSpec: '1*12', packUnit: '箱',
                 length: '30', width: '25', height: '25', volume: '0.01875', grossWeight: '13', tareWeight: '1', netWeight: '12'
@@ -447,6 +478,8 @@
                 document.getElementById('detailShelfLife').value = detail.shelfLife;
                 document.getElementById('detailStorageCondition').value = detail.storageCondition;
                 document.getElementById('detailIsWeighed').value = detail.isWeighed;
+                document.getElementById('detailSpecName').value = detail.specName || '';
+                document.getElementById('detailSpecValue').value = detail.specValue || '';
                 document.getElementById('detailPackUnit').textContent = detail.packUnit;
                 document.getElementById('detailLength').textContent = detail.length;
                 document.getElementById('detailWidth').textContent = detail.width;
