@@ -161,13 +161,7 @@
                             <input type="text" id="searchOrderType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchOrderTypeDropdown">
-                                <div class="select-option" data-value="销售出库">销售出库</div>
-                                <div class="select-option" data-value="仓配出库">仓配出库</div>
-                                <div class="select-option" data-value="返配出库">返配出库</div>
-                                <div class="select-option" data-value="退供出库">退供出库</div>
-                                <div class="select-option" data-value="调拨出库">调拨出库</div>
-                            </div>
+                            <div class="select-dropdown" id="searchOrderTypeDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -176,13 +170,7 @@
                             <input type="text" id="searchBusinessType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchBusinessTypeDropdown">
-                                <div class="select-option" data-value="直播订单">直播订单</div>
-                                <div class="select-option" data-value="货到即配">货到即配</div>
-                                <div class="select-option" data-value="门店退货">门店退货</div>
-                                <div class="select-option" data-value="仓库退供">仓库退供</div>
-                                <div class="select-option" data-value="仓库调拨">仓库调拨</div>
-                            </div>
+                            <div class="select-dropdown" id="searchBusinessTypeDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -392,7 +380,7 @@
                 sourceNo: 'SO20260402001',
                 relatedNo: 'REL-H02',
                 outboundStatus: '开始复核',
-                businessType: '货到即配',
+                businessType: '配送出库',
                 orderType: '仓配出库',
                 exceptionStatus: '初始',
                 targetWarehouse: 'W001-南京仓',
@@ -468,7 +456,7 @@
                 sourceNo: 'CP2026040603',
                 relatedNo: 'REL-CP99',
                 outboundStatus: '开始拣货',
-                businessType: '货到即配',
+                businessType: '配送出库',
                 orderType: '仓配出库',
                 exceptionStatus: '确认有货',
                 targetWarehouse: 'W004-杭州仓',
@@ -847,6 +835,8 @@
                 editModal: {},
                 deleteModal: {}
             });
+            renderSelectOptions('searchOrderTypeDropdown', CommonOptions.outboundType);
+            renderSelectOptions('searchBusinessTypeDropdown', CommonOptions.outboundBizType);
             page.init();
 
             renderTable(exceptionMockData);

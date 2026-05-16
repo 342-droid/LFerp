@@ -180,6 +180,11 @@ const CommonOptions = {
         { value: 'warehouse', text: '仓库' },
         { value: 'store', text: '门店' }
     ],
+    siteType: [
+        { value: 'warehouse', text: '仓库' },
+        { value: 'store', text: '门店' },
+        { value: 'carrier', text: '承运商' }
+    ],
     temperatureLayer: [
         { value: 'normal', text: '常温' },
         { value: 'cold', text: '冷藏' },
@@ -268,6 +273,72 @@ const CommonOptions = {
         { value: 'exception_shortage', text: '异常缺货' },
         { value: 'in_warehouse_reshelf', text: '库内返架' },
         { value: 'putaway_finish', text: '上架完成' }
+    ],
+    // 任务类型选项
+    taskType: [
+        { value: 'qc', text: '质检' },
+        { value: 'putaway', text: '上架' },
+        { value: 'picking', text: '拣货' },
+        { value: 'inventory', text: '盘点' }
+    ],
+    // 任务来源类型选项
+    taskSourceType: [
+        { value: 'purchase', text: '采购入库' },
+        { value: 'warehouseDistributionInbound', text: '仓配入库' },
+        { value: 'reverseDistributionInbound', text: '返配入库' },
+        { value: 'transferInbound', text: '调拨入库' },
+        { value: 'customerReturnInbound', text: '客退入库' },
+        { value: 'salesOutbound', text: '销售出库' },
+        { value: 'warehouseDistributionOutbound', text: '仓配出库' },
+        { value: 'reverseDistributionOutbound', text: '返配出库' },
+        { value: 'supplierReturnOutbound', text: '退供出库' },
+        { value: 'transferOutbound', text: '调拨出库' }
+    ],
+    // 任务来源业务类型选项
+    taskSourceBizType: [
+        { value: 'purchaseDirectDelivery', text: '采购直送' },
+        { value: 'immediateDistributionInbound', text: '货到即配' },
+        { value: 'warehouseDistributionInbound', text: '仓配入库' },
+        { value: 'storeReturn', text: '门店退货' },
+        { value: 'warehouseTransfer', text: '仓库调拨' },
+        { value: 'storeTransfer', text: '门店调拨' },
+        { value: 'liveReturn', text: '直播退货' },
+        { value: 'liveOrder', text: '直播订单' },
+        { value: 'distributionOutbound', text: '配送出库' },
+        { value: 'storeReverseDistribution', text: '门店返配' },
+        { value: 'warehouseSupplierReturn', text: '仓库退供' }
+    ],
+    // 入库类型选项
+    inboundType: [
+        { value: '采购入库', text: '采购入库' },
+        { value: '仓配入库', text: '仓配入库' },
+        { value: '返配入库', text: '返配入库' },
+        { value: '调拨入库', text: '调拨入库' },
+        { value: '客退入库', text: '客退入库' }
+    ],
+    // 入库业务类型选项
+    inboundBusinessType: [
+        { value: '货到即配', text: '货到即配' },
+        { value: '仓配入库', text: '仓配入库' },
+        { value: '门店退货', text: '门店退货' },
+        { value: '仓库调拨', text: '仓库调拨' },
+        { value: '直播退货', text: '直播退货' }
+    ],
+    // 出库类型选项
+    outboundType: [
+        { value: '销售出库', text: '销售出库' },
+        { value: '仓配出库', text: '仓配出库' },
+        { value: '返配出库', text: '返配出库' },
+        { value: '退供出库', text: '退供出库' },
+        { value: '调拨出库', text: '调拨出库' }
+    ],
+    // 出库业务类型选项
+    outboundBizType: [
+        { value: '直播订单', text: '直播订单' },
+        { value: '配送出库', text: '配送出库' },
+        { value: '门店退货', text: '门店退货' },
+        { value: '仓库退供', text: '仓库退供' },
+        { value: '仓库调拨', text: '仓库调拨' }
     ],
     // 地点选项
     location: [

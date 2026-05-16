@@ -57,13 +57,7 @@
                             <input type="text" id="searchOutboundType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchOutboundTypeDropdown">
-                                <div class="select-option" data-value="销售出库">销售出库</div>
-                                <div class="select-option" data-value="仓配出库">仓配出库</div>
-                                <div class="select-option" data-value="返配出库">返配出库</div>
-                                <div class="select-option" data-value="退供出库">退供出库</div>
-                                <div class="select-option" data-value="调拨出库">调拨出库</div>
-                            </div>
+                            <div class="select-dropdown" id="searchOutboundTypeDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -72,13 +66,7 @@
                             <input type="text" id="searchOutboundBizType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchOutboundBizTypeDropdown">
-                                <div class="select-option" data-value="直播订单">直播订单</div>
-                                <div class="select-option" data-value="货到即配">货到即配</div>
-                                <div class="select-option" data-value="门店退货">门店退货</div>
-                                <div class="select-option" data-value="仓库退供">仓库退供</div>
-                                <div class="select-option" data-value="仓库调拨">仓库调拨</div>
-                            </div>
+                            <div class="select-dropdown" id="searchOutboundBizTypeDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -126,7 +114,7 @@
                                 <td>W001-南京仓</td>
                                 <td>先拣后分</td>
                                 <td>仓配出库</td>
-                                <td>货到即配</td>
+                                <td>配送出库</td>
                                 <td><span class="status active">启用</span></td>
                                 <td>2026-03-24 10:30:00</td>
                                 <td>张三</td>
@@ -155,21 +143,8 @@
                 { value: '先拣后分', text: '先拣后分' }
             ];
 
-            const outboundTypeOptions = [
-                { value: '销售出库', text: '销售出库' },
-                { value: '仓配出库', text: '仓配出库' },
-                { value: '返配出库', text: '返配出库' },
-                { value: '退供出库', text: '退供出库' },
-                { value: '调拨出库', text: '调拨出库' }
-            ];
-
-            const outboundBizTypeOptions = [
-                { value: '直播订单', text: '直播订单' },
-                { value: '货到即配', text: '货到即配' },
-                { value: '门店退货', text: '门店退货' },
-                { value: '仓库退供', text: '仓库退供' },
-                { value: '仓库调拨', text: '仓库调拨' }
-            ];
+            const outboundTypeOptions = CommonOptions.outboundType;
+            const outboundBizTypeOptions = CommonOptions.outboundBizType;
 
             const warehouseOptions = [
                 { value: 'W001', text: 'W001-南京仓' },
@@ -311,6 +286,8 @@
                 }
             });
 
+            renderSelectOptions('searchOutboundTypeDropdown', CommonOptions.outboundType);
+            renderSelectOptions('searchOutboundBizTypeDropdown', CommonOptions.outboundBizType);
             page.init();
             document.getElementById('editCloseBtn').addEventListener('click', () => page.closeModal('edit'));
 
