@@ -297,15 +297,12 @@ const CommonOptions = {
     // 任务来源业务类型选项
     taskSourceBizType: [
         { value: 'purchaseDirectDelivery', text: '采购直送' },
-        { value: 'immediateDistributionInbound', text: '货到即配' },
         { value: 'warehouseDistributionInbound', text: '仓配入库' },
         { value: 'storeReturn', text: '门店退货' },
         { value: 'warehouseTransfer', text: '仓库调拨' },
-        { value: 'storeTransfer', text: '门店调拨' },
         { value: 'liveReturn', text: '直播退货' },
         { value: 'liveOrder', text: '直播订单' },
         { value: 'distributionOutbound', text: '配送出库' },
-        { value: 'storeReverseDistribution', text: '门店返配' },
         { value: 'warehouseSupplierReturn', text: '仓库退供' }
     ],
     // 入库类型选项
