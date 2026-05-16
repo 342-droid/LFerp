@@ -50,12 +50,7 @@
                             <input type="text" id="searchHubType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchHubTypeDropdown">
-                                <div class="select-option" data-value="">请选择</div>
-                                <div class="select-option" data-value="warehouse">仓库</div>
-                                <div class="select-option" data-value="store">门店</div>
-                                <div class="select-option" data-value="carrier">承运商</div>
-                            </div>
+                            <div class="select-dropdown" id="searchHubTypeDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -154,11 +149,7 @@
                     { id: 'hubCode', label: '站点编码', type: 'text', required: true, editDisabled: true },
                     { id: 'hubName', label: '站点名称', type: 'text', required: true, editDisabled: true },
                     { id: 'hubType', label: '站点类型', type: 'select', required: true, editDisabled: true,
-                      options: [
-                          { value: 'warehouse', text: '仓库' },
-                          { value: 'store', text: '门店' },
-                          { value: 'carrier', text: '承运商' }
-                      ] },
+                      options: CommonOptions.siteType },
                     { id: 'route', label: '站点线路', type: 'text', editDisabled: true },
                     { id: 'hubLocation', label: '站点储位', type: 'select',
                       options: [
@@ -219,6 +210,7 @@
                 }
             });
             
+            renderSelectOptions('searchHubTypeDropdown', [{ value: '', text: '请选择' }, ...CommonOptions.siteType]);
             page.init();
             document.getElementById('editCloseBtn').addEventListener('click', () => page.closeModal('edit'));
 

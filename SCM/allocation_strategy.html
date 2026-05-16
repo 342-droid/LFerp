@@ -207,13 +207,7 @@
                         <input type="text" id="detailSourceType" placeholder="请选择">
                         <span class="select-arrow">▼</span>
                         <span class="clear-btn">×</span>
-                        <div class="select-dropdown" id="detailSourceTypeDropdown">
-                            <div class="select-option" data-value="sales_outbound">销售出库</div>
-                            <div class="select-option" data-value="distribution_outbound">仓配出库</div>
-                            <div class="select-option" data-value="return_distribution_outbound">返配出库</div>
-                            <div class="select-option" data-value="return_supply_outbound">退供出库</div>
-                            <div class="select-option" data-value="transfer_outbound">调拨出库</div>
-                        </div>
+                        <div class="select-dropdown" id="detailSourceTypeDropdown"></div>
                     </div>
                 </div>
                 <div class="modal-form-group custom-select-wrapper">
@@ -222,13 +216,7 @@
                         <input type="text" id="detailSourceBizType" placeholder="请选择">
                         <span class="select-arrow">▼</span>
                         <span class="clear-btn">×</span>
-                        <div class="select-dropdown" id="detailSourceBizTypeDropdown">
-                            <div class="select-option" data-value="live_order">直播订单</div>
-                            <div class="select-option" data-value="deliver_now">货到即配</div>
-                            <div class="select-option" data-value="store_return">门店退货</div>
-                            <div class="select-option" data-value="warehouse_return_supply">仓库退供</div>
-                            <div class="select-option" data-value="warehouse_transfer">仓库调拨</div>
-                        </div>
+                        <div class="select-dropdown" id="detailSourceBizTypeDropdown"></div>
                     </div>
                 </div>
                 <div class="modal-form-group custom-select-wrapper">
@@ -330,7 +318,7 @@
             ];
             const sourceBizTypeOptions = [
                 { value: 'live_order', text: '直播订单' },
-                { value: 'deliver_now', text: '货到即配' },
+                { value: 'distribution_outbound', text: '配送出库' },
                 { value: 'store_return', text: '门店退货' },
                 { value: 'warehouse_return_supply', text: '仓库退供' },
                 { value: 'warehouse_transfer', text: '仓库调拨' }
@@ -557,6 +545,9 @@
                     }
                 ]);
             }
+
+            renderSelectOptions('detailSourceTypeDropdown', CommonOptions.outboundType);
+            renderSelectOptions('detailSourceBizTypeDropdown', CommonOptions.outboundBizType);
 
             if (typeof initCustomSelect === 'function') {
                 initCustomSelect('detailSourceType', 'detailSourceTypeDropdown');

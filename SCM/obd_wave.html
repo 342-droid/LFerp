@@ -95,13 +95,7 @@
                             <input type="text" id="searchWaveType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchWaveTypeDropdown">
-                                <div class="select-option" data-value="销售出库">销售出库</div>
-                                <div class="select-option" data-value="仓配出库">仓配出库</div>
-                                <div class="select-option" data-value="返配出库">返配出库</div>
-                                <div class="select-option" data-value="退供出库">退供出库</div>
-                                <div class="select-option" data-value="调拨出库">调拨出库</div>
-                            </div>
+                            <div class="select-dropdown" id="searchWaveTypeDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -110,13 +104,7 @@
                             <input type="text" id="searchBusinessType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchBusinessTypeDropdown">
-                                <div class="select-option" data-value="直播订单">直播订单</div>
-                                <div class="select-option" data-value="货到即配">货到即配</div>
-                                <div class="select-option" data-value="门店退货">门店退货</div>
-                                <div class="select-option" data-value="仓库退供">仓库退供</div>
-                                <div class="select-option" data-value="仓库调拨">仓库调拨</div>
-                            </div>
+                            <div class="select-dropdown" id="searchBusinessTypeDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -294,7 +282,7 @@
                                 <span class="select-arrow">▼</span>
                                 <span class="clear-btn">×</span>
                                 <div class="select-dropdown" id="searchTemplateInModalDropdown">
-                                    <div class="select-option" data-value="仓配出库-货到即配">仓配出库-货到即配</div>
+                                    <div class="select-option" data-value="仓配出库-配送出库">仓配出库-配送出库</div>
                                     <div class="select-option" data-value="调拨出库-仓库调拨">调拨出库-仓库调拨</div>
                                     <div class="select-option" data-value="返配出库-门店退货">返配出库-门店退货</div>
                                     <div class="select-option" data-value="退供出库-仓库退供">退供出库-仓库退供</div>
@@ -422,7 +410,7 @@
                 replenishing: '是',
                 fullAllocated: '否',
                 closed: '否',
-                template: '仓配出库-货到即配',
+                template: '仓配出库-配送出库',
                 flow: '标准出库流程',
                 remark: '直播大促优先',
                 createTime: '2026-03-24 09:10:00',
@@ -549,7 +537,7 @@
         let selectedTemplateOrderRows = [];
         const outboundOrderDataForTemplate = [
             {
-                template: '仓配出库-货到即配',
+                template: '仓配出库-配送出库',
                 orderNo: 'OBD202603240001',
                 sourceOrderNo: 'SO202603240001',
                 relatedOrderNo: 'RO202603240001',
@@ -567,7 +555,7 @@
                 creator: '王五'
             },
             {
-                template: '仓配出库-货到即配',
+                template: '仓配出库-配送出库',
                 orderNo: 'OBD202603240003',
                 sourceOrderNo: 'SO202603240003',
                 relatedOrderNo: 'RO202603240003',
@@ -577,7 +565,7 @@
                 targetSite: 'S002-上海浦东站',
                 address: '上海市浦东新区盛夏路80号',
                 orderType: '仓配出库',
-                businessType: '货到即配',
+                businessType: '配送出库',
                 status: '初始',
                 carrier: '京东物流',
                 plateNumber: '沪B77889',
@@ -621,7 +609,7 @@
                 creator: '孙十'
             },
             {
-                template: '仓配出库-货到即配',
+                template: '仓配出库-配送出库',
                 orderNo: 'OBD202603240005',
                 sourceOrderNo: 'SO202603240005',
                 relatedOrderNo: 'RO202603240005',
@@ -631,7 +619,7 @@
                 targetSite: 'S003-上海松江站',
                 address: '上海市松江区新桥路66号',
                 orderType: '仓配出库',
-                businessType: '货到即配',
+                businessType: '配送出库',
                 status: '初始',
                 carrier: '顺丰',
                 plateNumber: '沪C12876',
@@ -639,7 +627,7 @@
                 creator: '王五'
             },
             {
-                template: '仓配出库-货到即配',
+                template: '仓配出库-配送出库',
                 orderNo: 'OBD202603240006',
                 sourceOrderNo: 'SO202603240006',
                 relatedOrderNo: 'RO202603240006',
@@ -649,7 +637,7 @@
                 targetSite: 'S004-上海嘉定站',
                 address: '上海市嘉定区宝安公路18号',
                 orderType: '仓配出库',
-                businessType: '货到即配',
+                businessType: '配送出库',
                 status: '初始',
                 carrier: '京东物流',
                 plateNumber: '沪D33921',
@@ -729,7 +717,7 @@
                 creator: '孙十'
             },
             {
-                template: '仓配出库-货到即配',
+                template: '仓配出库-配送出库',
                 orderNo: 'OBD202603240011',
                 sourceOrderNo: 'SO202603240011',
                 relatedOrderNo: 'RO202603240011',
@@ -739,7 +727,7 @@
                 targetSite: 'S014-上海徐汇站',
                 address: '上海市徐汇区漕溪北路58号',
                 orderType: '仓配出库',
-                businessType: '货到即配',
+                businessType: '配送出库',
                 status: '初始',
                 carrier: '顺丰',
                 plateNumber: '沪E66012',
@@ -783,7 +771,7 @@
                 creator: '孙十'
             },
             {
-                template: '仓配出库-货到即配',
+                template: '仓配出库-配送出库',
                 orderNo: 'OBD202603240014',
                 sourceOrderNo: 'SO202603240014',
                 relatedOrderNo: 'RO202603240014',
@@ -793,7 +781,7 @@
                 targetSite: 'S017-上海青浦站',
                 address: '上海市青浦区华徐公路360号',
                 orderType: '仓配出库',
-                businessType: '货到即配',
+                businessType: '配送出库',
                 status: '初始',
                 carrier: '京东物流',
                 plateNumber: '沪F73105',
@@ -1107,7 +1095,7 @@
                 warehouse: firstOrder.warehouse || 'W001-南京仓',
                 company: firstOrder.company || 'Y001-南京货主',
                 waveType: firstOrder.orderType || '仓配出库',
-                businessType: firstOrder.businessType || '货到即配',
+                businessType: firstOrder.businessType || '配送出库',
                 status: '已集波',
                 replenishing: '否',
                 fullAllocated: '否',
@@ -1147,6 +1135,8 @@
                 editModal: {},
                 deleteModal: {}
             });
+            renderSelectOptions('searchWaveTypeDropdown', CommonOptions.outboundType);
+            renderSelectOptions('searchBusinessTypeDropdown', CommonOptions.outboundBizType);
             page.init();
 
             renderTable(waveData);

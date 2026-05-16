@@ -82,24 +82,7 @@
                             <input type="text" id="searchTaskType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchTaskTypeDropdown">
-                                <div class="select-option" data-value="质检任务">质检任务</div>
-                                <div class="select-option" data-value="拣货任务">拣货任务</div>
-                                <div class="select-option" data-value="盘点任务">盘点任务</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group custom-select-wrapper">
-                        <label>任务来源:</label>
-                        <div class="custom-select">
-                            <input type="text" id="searchTaskSource" placeholder="请选择">
-                            <span class="select-arrow">▼</span>
-                            <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchTaskSourceDropdown">
-                                <div class="select-option" data-value="入库">入库</div>
-                                <div class="select-option" data-value="出库">出库</div>
-                                <div class="select-option" data-value="盘点">盘点</div>
-                            </div>
+                            <div class="select-dropdown" id="searchTaskTypeDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -108,11 +91,7 @@
                             <input type="text" id="searchTaskSourceType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchTaskSourceTypeDropdown">
-                                <div class="select-option" data-value="采购入库">采购入库</div>
-                                <div class="select-option" data-value="退货入库">退货入库</div>
-                                <div class="select-option" data-value="调拨入库">调拨入库</div>
-                            </div>
+                            <div class="select-dropdown" id="searchTaskSourceTypeDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -121,11 +100,7 @@
                             <input type="text" id="searchTaskSourceBizType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchTaskSourceBizTypeDropdown">
-                                <div class="select-option" data-value="直送仓库">直送仓库</div>
-                                <div class="select-option" data-value="门店退货">门店退货</div>
-                                <div class="select-option" data-value="仓库调拨">仓库调拨</div>
-                            </div>
+                            <div class="select-dropdown" id="searchTaskSourceBizTypeDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -214,7 +189,6 @@
                                 <th>货主</th>
                                 <th>任务状态</th>
                                 <th>任务类型</th>
-                                <th>任务来源</th>
                                 <th>任务来源类型</th>
                                 <th>任务来源业务类型</th>
                                 <th>调用单号</th>
@@ -257,8 +231,7 @@
                 taskNo: 'TK20260319001',
                 taskGroupNo: 'TG20260319001',
                 taskStatus: '已释放',
-                taskType: '拣货任务',
-                taskSource: '出库',
+                taskType: '拣货',
                 taskSourceType: '调拨入库',
                 taskSourceBizType: '仓库调拨',
                 invokeNo: 'INV001',
@@ -343,7 +316,6 @@
                     <td>${item.company}</td>
                     <td>${item.taskStatus}</td>
                     <td>${item.taskType}</td>
-                    <td>${item.taskSource}</td>
                     <td>${item.taskSourceType}</td>
                     <td>${item.taskSourceBizType}</td>
                     <td>${item.invokeNo}</td>
@@ -380,7 +352,6 @@
                 taskGroupNo: document.getElementById('searchTaskGroupNo').value.trim(),
                 taskStatus: document.getElementById('searchTaskStatus').value.trim(),
                 taskType: document.getElementById('searchTaskType').value.trim(),
-                taskSource: document.getElementById('searchTaskSource').value.trim(),
                 taskSourceType: document.getElementById('searchTaskSourceType').value.trim(),
                 taskSourceBizType: document.getElementById('searchTaskSourceBizType').value.trim(),
                 invokeNo: document.getElementById('searchInvokeNo').value.trim(),
@@ -404,7 +375,6 @@
                        (!filters.taskGroupNo || item.taskGroupNo.includes(filters.taskGroupNo)) &&
                        (!filters.taskStatus || item.taskStatus === filters.taskStatus) &&
                        (!filters.taskType || item.taskType === filters.taskType) &&
-                       (!filters.taskSource || item.taskSource === filters.taskSource) &&
                        (!filters.taskSourceType || item.taskSourceType === filters.taskSourceType) &&
                        (!filters.taskSourceBizType || item.taskSourceBizType === filters.taskSourceBizType) &&
                        (!filters.invokeNo || item.invokeNo.includes(filters.invokeNo)) &&
@@ -433,13 +403,16 @@
                     companyDropdown.appendChild(option);
                 });
 
+                renderSelectOptions('searchTaskTypeDropdown', CommonOptions.taskType);
+                renderSelectOptions('searchTaskSourceTypeDropdown', CommonOptions.taskSourceType);
+                renderSelectOptions('searchTaskSourceBizTypeDropdown', CommonOptions.taskSourceBizType);
+
                 const page = new PageManager({
                     entityName: '任务',
                     customSelects: [
                         { inputId: 'searchCompany', dropdownId: 'searchCompanyDropdown' },
                         { inputId: 'searchTaskStatus', dropdownId: 'searchTaskStatusDropdown' },
                         { inputId: 'searchTaskType', dropdownId: 'searchTaskTypeDropdown' },
-                        { inputId: 'searchTaskSource', dropdownId: 'searchTaskSourceDropdown' },
                         { inputId: 'searchTaskSourceType', dropdownId: 'searchTaskSourceTypeDropdown' },
                         { inputId: 'searchTaskSourceBizType', dropdownId: 'searchTaskSourceBizTypeDropdown' }
                     ],

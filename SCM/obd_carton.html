@@ -121,13 +121,7 @@
                             <input type="text" id="searchOrderType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchOrderTypeDropdown">
-                                <div class="select-option" data-value="销售出库">销售出库</div>
-                                <div class="select-option" data-value="仓配出库">仓配出库</div>
-                                <div class="select-option" data-value="返配出库">返配出库</div>
-                                <div class="select-option" data-value="退供出库">退供出库</div>
-                                <div class="select-option" data-value="调拨出库">调拨出库</div>
-                            </div>
+                            <div class="select-dropdown" id="searchOrderTypeDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -550,6 +544,7 @@
                 editModal: {},
                 deleteModal: {}
             });
+            renderSelectOptions('searchOrderTypeDropdown', CommonOptions.outboundType);
             page.init();
 
             renderTable(cartonMockData);

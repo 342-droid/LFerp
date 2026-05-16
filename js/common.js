@@ -212,6 +212,20 @@ function initCustomSelects(selects) {
     });
 }
 
+/**
+ * 渲染自定义下拉选项
+ * @param {string} dropdownId
+ * @param {{value: string, text: string}[]} options
+ */
+function renderSelectOptions(dropdownId, options = []) {
+    const dropdown = document.getElementById(dropdownId);
+    if (!dropdown) return;
+
+    dropdown.innerHTML = options.map(
+        (opt) => `<div class="select-option" data-value="${opt.value}">${opt.text}</div>`
+    ).join('');
+}
+
 // 自定义下拉选择框初始化
 function initCustomSelect(inputId, dropdownId) {
     const input = document.getElementById(inputId);

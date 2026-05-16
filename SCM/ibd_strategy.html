@@ -61,13 +61,7 @@
                             <input type="text" id="searchInboundType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchInboundTypeDropdown">
-                                <div class="select-option" data-value="采购入库">采购入库</div>
-                                <div class="select-option" data-value="仓配入库">仓配入库</div>
-                                <div class="select-option" data-value="返配入库">返配入库</div>
-                                <div class="select-option" data-value="调拨入库">调拨入库</div>
-                                <div class="select-option" data-value="客退入库">客退入库</div>
-                            </div>
+                            <div class="select-dropdown" id="searchInboundTypeDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -76,13 +70,7 @@
                             <input type="text" id="searchBusinessType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchBusinessTypeDropdown">
-                                <div class="select-option" data-value="货到即配">货到即配</div>
-                                <div class="select-option" data-value="仓配入库">仓配入库</div>
-                                <div class="select-option" data-value="门店退货">门店退货</div>
-                                <div class="select-option" data-value="仓库调拨">仓库调拨</div>
-                                <div class="select-option" data-value="直播退货">直播退货</div>
-                            </div>
+                            <div class="select-dropdown" id="searchBusinessTypeDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -221,21 +209,9 @@
                     { id: 'strategyCode', label: '入库策略编码', type: 'text', required: true, editDisabled: true },
                     { id: 'strategyName', label: '入库策略名称', type: 'text', required: true, editDisabled: true },
                     { id: 'inboundType', label: '入库类型', type: 'select', required: true,
-                      options: [
-                          { value: '采购入库', text: '采购入库' },
-                          { value: '仓配入库', text: '仓配入库' },
-                          { value: '返配入库', text: '返配入库' },
-                          { value: '调拨入库', text: '调拨入库' },
-                          { value: '客退入库', text: '客退入库' }
-                      ] },
+                      options: CommonOptions.inboundType },
                     { id: 'businessType', label: '入库业务类型', type: 'select', required: true,
-                      options: [
-                          { value: '货到即配', text: '货到即配' },
-                          { value: '仓配入库', text: '仓配入库' },
-                          { value: '门店退货', text: '门店退货' },
-                          { value: '仓库调拨', text: '仓库调拨' },
-                          { value: '直播退货', text: '直播退货' }
-                      ] },
+                      options: CommonOptions.inboundBusinessType },
                     { id: 'isEnabled', label: '是否启用', type: 'select', required: true,
                       options: [
                           { value: '启用', text: '启用' },
@@ -412,6 +388,9 @@
                     confirmBtnId: 'confirmDeleteBtn'
                 }
             });
+
+            renderSelectOptions('searchInboundTypeDropdown', CommonOptions.inboundType);
+            renderSelectOptions('searchBusinessTypeDropdown', CommonOptions.inboundBusinessType);
             
             page.init();
             const editCloseBtn = document.getElementById('editCloseBtn');
