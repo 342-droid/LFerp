@@ -172,6 +172,7 @@
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary" id="searchBtn">查询</button>
+                        <button type="button" class="btn btn-secondary" id="printBtn">打印</button>
                     </div>
                 </form>
             </section>
@@ -193,7 +194,7 @@
                                 <th>包裹总数</th>
                                 <th>装载时间</th>
                                 <th>发货时间</th>
-                                <th>交接单打印次数</th>
+                                <th>发货单打印次数</th>
                                 <th>备注</th>
                                 <th>创建时间</th>
                                 <th>创建人</th>
@@ -230,7 +231,7 @@
                         <div class="modal-form-group"><label>包裹总数</label><input type="text" id="detailCartonCount" disabled></div>
                         <div class="modal-form-group"><label>装载时间</label><input type="text" id="detailLoadTime" disabled></div>
                         <div class="modal-form-group"><label>发货时间</label><input type="text" id="detailShipTime" disabled></div>
-                        <div class="modal-form-group"><label>交接单打印次数</label><input type="text" id="detailHandoverPrintCount" disabled></div>
+                        <div class="modal-form-group"><label>发货单打印次数</label><input type="text" id="detailHandoverPrintCount" disabled></div>
                         <div class="modal-form-group"><label>创建时间</label><input type="text" id="detailCreateTime" disabled></div>
                         <div class="modal-form-group"><label>创建人</label><input type="text" id="detailCreateUser" disabled></div>
                         <div class="modal-form-group"><label>更新时间</label><input type="text" id="detailUpdateTime" disabled></div>
@@ -296,6 +297,8 @@
                 carrierCode: 'SF',
                 plateNumber: '沪A12345',
                 driver: '李四',
+                contactPhone: '13800138001',
+                inboundAddress: '江苏省无锡市梁溪区中山路198号恒隆广场B座1201室',
                 volume: '1.15',
                 weight: '57.5',
                 cartonCount: 2,
@@ -346,6 +349,8 @@
                 carrierCode: 'ZTO',
                 plateNumber: '浙A88990',
                 driver: '周八',
+                contactPhone: '13900139002',
+                inboundAddress: '浙江省杭州市钱塘区学林街16号金沙印象城3号门收货区',
                 volume: '0.8',
                 weight: '45',
                 cartonCount: 1,
@@ -377,6 +382,27 @@
         ];
 
         let filteredDistributionData = distributionMockData.slice();
+        const outboundProductSnapshot = {
+            OBD202603230001: [
+                { skuCode: 'SKU1001', skuName: '三文鱼切片 500g', unit: '盒', planQty: 100, allocatedQty: 100, pickedQty: 40, sortedQty: 0, reviewedQty: 0, loadedQty: 0, shippedQty: 0 },
+                { skuCode: 'SKU1002', skuName: '牛排 300g', unit: '盒', planQty: 60, allocatedQty: 60, pickedQty: 20, sortedQty: 0, reviewedQty: 0, loadedQty: 0, shippedQty: 0 }
+            ],
+            OBD202603230002: [
+                { skuCode: 'SKU2001', skuName: '冻虾仁 1kg', unit: '袋', planQty: 200, allocatedQty: 200, pickedQty: 200, sortedQty: 200, reviewedQty: 200, loadedQty: 200, shippedQty: 200 }
+            ]
+        };
+        const code128Patterns = [
+            '212222', '222122', '222221', '121223', '121322', '131222', '122213', '122312', '132212', '221213', '221312',
+            '231212', '112232', '122132', '122231', '113222', '123122', '123221', '223211', '221132', '221231', '213212',
+            '223112', '312131', '311222', '321122', '321221', '312212', '322112', '322211', '212123', '212321', '232121',
+            '111323', '131123', '131321', '112313', '132113', '132311', '211313', '231113', '231311', '112133', '112331',
+            '132131', '113123', '113321', '133121', '313121', '211331', '231131', '213113', '213311', '213131', '311123',
+            '311321', '331121', '312113', '312311', '332111', '314111', '221411', '431111', '111224', '111422', '121124',
+            '121421', '141122', '141221', '112214', '112412', '122114', '122411', '142112', '142211', '241211', '221114',
+            '413111', '241112', '134111', '111242', '121142', '121241', '114212', '124112', '124211', '411212', '421112',
+            '421211', '212141', '214121', '412121', '111143', '111341', '131141', '114113', '114311', '411113', '411311',
+            '113141', '114131', '311141', '411131', '211412', '211214', '211232', '2331112'
+        ];
 
         const distributionStatusBadgeClass = {
             '初始': 'dist-st-initial',
@@ -422,11 +448,553 @@
             return c || n;
         }
 
+        function escapeHtml(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function getSelectedDistributions() {
+            const checkedRows = Array.from(document.querySelectorAll('#tableBody .checkbox-row:checked'));
+            return checkedRows
+                .map(cb => cb.closest('tr'))
+                .map(tr => tr ? tr.getAttribute('data-distribution-no') : '')
+                .filter(Boolean)
+                .map(distributionNo => distributionMockData.find(item => item.distributionNo === distributionNo))
+                .filter(Boolean);
+        }
+
+        function toNumber(value) {
+            const n = Number(value);
+            return Number.isFinite(n) ? n : 0;
+        }
+
+        function resolvePlannedQty(line) {
+            const keys = ['qty', 'planQty', 'allocateQty', 'allocatedQty', 'cartonQty', 'recheckQty'];
+            for (const key of keys) {
+                if (line[key] != null && line[key] !== '') return toNumber(line[key]);
+            }
+            return 0;
+        }
+
+        function resolveActualQty(line, fallbackQty) {
+            const keys = ['actualQty', 'shippedQty', 'loadedQty', 'reviewedQty', 'sortedQty', 'pickedQty', 'recheckQty', 'cartonQty'];
+            for (const key of keys) {
+                if (line[key] != null && line[key] !== '') return toNumber(line[key]);
+            }
+            return fallbackQty;
+        }
+
+        function getProductName(line) {
+            return (line.skuName || line.productName || line.goodsName || '').trim();
+        }
+
+        function addLineToBucket(bucket, outboundNo, productName, qty, actualQty) {
+            const cleanName = String(productName || '').trim();
+            if (!cleanName) return;
+            const cleanOutboundNo = String(outboundNo || '').trim();
+            const key = `${cleanOutboundNo}__${cleanName}`;
+            const prev = bucket.get(key) || { outboundNo: cleanOutboundNo, productName: cleanName, qty: 0, actualQty: 0 };
+            prev.qty += toNumber(qty);
+            prev.actualQty += toNumber(actualQty);
+            bucket.set(key, prev);
+        }
+
+        function collectLinesFromArray(bucket, lines, defaultOutboundNo) {
+            if (!Array.isArray(lines)) return;
+            lines.forEach(line => {
+                const productName = getProductName(line);
+                if (!productName) return;
+                const qty = resolvePlannedQty(line);
+                const actualQty = resolveActualQty(line, qty);
+                const outboundNo = line.outboundNo || line.outboundOrderNo || line.orderNo || defaultOutboundNo || '';
+                addLineToBucket(bucket, outboundNo, productName, qty, actualQty);
+            });
+        }
+
+        function buildPrintLineItems(row) {
+            const bucket = new Map();
+            const cartons = row.cartons || [];
+
+            collectLinesFromArray(bucket, row.products, row.distributionNo);
+            collectLinesFromArray(bucket, row.details, row.distributionNo);
+            collectLinesFromArray(bucket, row.lines, row.distributionNo);
+
+            cartons.forEach(carton => {
+                const outboundNo = carton.outboundOrderNos || '';
+                collectLinesFromArray(bucket, carton.details, outboundNo);
+                collectLinesFromArray(bucket, carton.lines, outboundNo);
+                collectLinesFromArray(bucket, carton.products, outboundNo);
+                collectLinesFromArray(bucket, carton.items, outboundNo);
+            });
+
+            const outboundNos = [...new Set(cartons.map(c => (c.outboundOrderNos || '').trim()).filter(Boolean))];
+            outboundNos.forEach(outboundNo => {
+                const hasCurrentOutboundLines = Array.from(bucket.values()).some(line => line.outboundNo === outboundNo);
+                if (hasCurrentOutboundLines) return;
+                collectLinesFromArray(bucket, outboundProductSnapshot[outboundNo], outboundNo);
+            });
+
+            if (bucket.size) {
+                return Array.from(bucket.values())
+                    .sort((a, b) => `${a.outboundNo}${a.productName}`.localeCompare(`${b.outboundNo}${b.productName}`, 'zh-CN'));
+            }
+
+            if (!cartons.length) {
+                return [{
+                    outboundNo: row.distributionNo || '',
+                    productName: '发货包裹',
+                    qty: row.cartonCount || 0,
+                    actualQty: row.cartonCount || 0
+                }];
+            }
+
+            return cartons.map(carton => ({
+                outboundNo: carton.outboundOrderNos || '',
+                productName: carton.cartonNo ? `包裹(${carton.cartonNo})` : '发货包裹',
+                qty: 1,
+                actualQty: 1
+            }));
+        }
+
+        function getInboundLocation(row) {
+            const cartons = row.cartons || [];
+            const values = [...new Set(cartons.map(c => (c.targetWarehouse || '').trim()).filter(Boolean))];
+            return values.join(' / ');
+        }
+
+        function formatPrintDateText(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}年${m}月${d}日`;
+        }
+
+        function formatYmdCn(text) {
+            const raw = String(text || '').trim();
+            if (!raw) return '';
+            const match = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+            if (!match) return raw;
+            const y = Number(match[1]);
+            const m = Number(match[2]);
+            const d = Number(match[3]);
+            return `${y}年${m}月${d}日`;
+        }
+
+        function formatQtyForPrint(value) {
+            const n = toNumber(value);
+            if (!Number.isFinite(n)) return '0';
+            if (Number.isInteger(n)) return String(n);
+            return String(Math.round(n * 1000) / 1000).replace(/\.?0+$/, '');
+        }
+
+        function getCode128Sequence(code) {
+            const text = String(code || '');
+            if (!text) return null;
+            const values = [];
+            for (const ch of text) {
+                const cc = ch.charCodeAt(0);
+                if (cc < 32 || cc > 126) return null;
+                values.push(cc - 32);
+            }
+            let checksum = 104;
+            values.forEach((v, idx) => { checksum += v * (idx + 1); });
+            checksum = checksum % 103;
+            return [104, ...values, checksum, 106];
+        }
+
+        function drawCode128ToCanvas(canvas, code) {
+            const seq = getCode128Sequence(code);
+            if (!seq || !canvas) return;
+            const patterns = seq.map(v => code128Patterns[v]).filter(Boolean);
+            const moduleWidth = 2;
+            const quietZoneModules = 10;
+            const totalModules = patterns.reduce((sum, p) => sum + p.split('').reduce((s, n) => s + Number(n), 0), 0);
+            const width = (totalModules + quietZoneModules * 2) * moduleWidth;
+            const height = 56;
+            canvas.width = width;
+            canvas.height = height;
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = '#000';
+
+            let x = quietZoneModules * moduleWidth;
+            patterns.forEach(pattern => {
+                for (let i = 0; i < pattern.length; i++) {
+                    const w = Number(pattern[i]) * moduleWidth;
+                    if (i % 2 === 0) {
+                        ctx.fillRect(x, 0, w, height);
+                    }
+                    x += w;
+                }
+            });
+        }
+
+        function renderBarcodesInPrintDocument(doc) {
+            const canvases = doc.querySelectorAll('.barcode-canvas');
+            canvases.forEach(canvas => {
+                drawCode128ToCanvas(canvas, canvas.getAttribute('data-code') || '');
+            });
+        }
+
+        function buildPrintDocument(selectedRows) {
+            const now = new Date();
+            const printDate = formatPrintDateText(now);
+            return `
+                <!DOCTYPE html>
+                <html lang="zh-CN">
+                <head>
+                    <meta charset="UTF-8">
+                    <title></title>
+                    <style>
+                        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+                        @page { size: A4; margin: 12mm 14mm; }
+                        body {
+                            margin: 0;
+                            font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+                            font-size: 13px;
+                            color: #1a1a1a;
+                            background: #fff;
+                        }
+                        .print-sheet {
+                            width: 100%;
+                            page-break-after: always;
+                            padding: 2mm 0;
+                        }
+                        .print-sheet:last-child { page-break-after: auto; }
+                        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+                        .center { text-align: center; }
+                        .doc-header {
+                            display: grid;
+                            grid-template-columns: 180px 1fr auto;
+                            align-items: start;
+                            margin-bottom: 16px;
+                            gap: 12px;
+                        }
+                        .barcode-wrap {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            gap: 4px;
+                        }
+                        .barcode-canvas {
+                            width: 170px;
+                            height: 52px;
+                            max-width: 170px;
+                            max-height: 52px;
+                        }
+                        .barcode-text {
+                            font-size: 11px;
+                            color: #1a1a1a;
+                            letter-spacing: 0.5px;
+                            line-height: 1;
+                        }
+                        .doc-title {
+                            text-align: center;
+                            padding-top: 4px;
+                        }
+                        .doc-title h1 {
+                            font-size: 30px;
+                            font-weight: 700;
+                            color: #1a1a1a;
+                            letter-spacing: 6px;
+                        }
+                        .print-meta {
+                            text-align: right;
+                            font-size: 12px;
+                            color: #374151;
+                            line-height: 1.9;
+                            padding-top: 2px;
+                            white-space: nowrap;
+                        }
+                        .print-meta span {
+                            color: #1259C3;
+                            font-weight: 600;
+                        }
+                        .info-section {
+                            border: 1px solid #1259C3;
+                            border-radius: 2px;
+                            margin-bottom: 10px;
+                        }
+                        .info-row {
+                            display: grid;
+                            grid-template-columns: repeat(3, 1fr);
+                            border-bottom: 1px solid #dde3ef;
+                        }
+                        .info-row:last-child { border-bottom: none; }
+                        .info-cell {
+                            display: flex;
+                            align-items: baseline;
+                            padding: 6px 10px;
+                            border-right: 1px solid #dde3ef;
+                            font-size: 12.5px;
+                            min-width: 0;
+                        }
+                        .info-cell:last-child { border-right: none; }
+                        .info-row-full {
+                            display: flex;
+                            align-items: baseline;
+                            padding: 6px 10px;
+                            border-bottom: 1px solid #dde3ef;
+                            font-size: 12.5px;
+                        }
+                        .info-row-full:last-child { border-bottom: none; }
+                        .info-label {
+                            color: #1259C3;
+                            font-weight: 600;
+                            white-space: nowrap;
+                            margin-right: 4px;
+                            flex-shrink: 0;
+                        }
+                        .info-value { color: #1a1a1a; }
+                        .inbound-address-cell .info-value {
+                            white-space: normal;
+                            word-break: normal;
+                            overflow-wrap: break-word;
+                        }
+                        .goods-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-bottom: 20px;
+                            font-size: 12.5px;
+                        }
+                        .goods-table th {
+                            background: #1259C3;
+                            color: #fff;
+                            font-weight: 600;
+                            padding: 7px 10px;
+                            text-align: center;
+                            border: 1px solid #0e47a1;
+                        }
+                        .goods-table td {
+                            padding: 7px 10px;
+                            text-align: center;
+                            border: 1px solid #dde3ef;
+                            color: #1a1a1a;
+                        }
+                        .goods-table td.text-left { text-align: left; }
+                        .goods-table tbody tr:nth-child(even) { background: #f5f7fc; }
+                        .goods-table .empty-row td {
+                            height: 30px;
+                            background: #fff;
+                        }
+                        .goods-table .summary-row td {
+                            font-weight: 600;
+                            background: #f0f4fb;
+                            border-top: 2px solid #1259C3;
+                        }
+                        .sign-section {
+                            display: grid;
+                            grid-template-columns: repeat(3, 1fr);
+                            gap: 0;
+                            margin-top: 10px;
+                            padding-top: 10px;
+                            border-top: 1px dashed #cdd3e0;
+                        }
+                        .sign-item {
+                            display: flex;
+                            align-items: flex-end;
+                            gap: 8px;
+                            padding: 0 8px;
+                        }
+                        .sign-item:not(:last-child) {
+                            border-right: 1px dashed #cdd3e0;
+                        }
+                        .sign-label {
+                            color: #1259C3;
+                            font-weight: 600;
+                            font-size: 13px;
+                            white-space: nowrap;
+                            flex-shrink: 0;
+                        }
+                        .sign-line {
+                            flex: 1;
+                            border-bottom: 1px solid #1a1a1a;
+                            min-width: 80px;
+                            height: 22px;
+                        }
+                        .remarks-section {
+                            margin-top: 12px;
+                            padding: 8px 10px;
+                            border: 1px dashed #cdd3e0;
+                            border-radius: 2px;
+                            min-height: 48px;
+                        }
+                        .remarks-label {
+                            color: #1259C3;
+                            font-weight: 600;
+                            font-size: 12.5px;
+                            margin-bottom: 4px;
+                        }
+                        .remarks-content {
+                            font-size: 12px;
+                            color: #555;
+                            line-height: 1.6;
+                        }
+                        .doc-footer {
+                            margin-top: 16px;
+                            display: flex;
+                            justify-content: space-between;
+                            font-size: 11px;
+                            color: #9ca3af;
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${selectedRows.map((row, idx) => {
+                        const nextPrintCount = (Number(row.handoverPrintCount) || 0) + 1;
+                        const lines = buildPrintLineItems(row);
+                        const inboundLocation = getInboundLocation(row);
+                        const totalQty = lines.reduce((sum, line) => sum + toNumber(line.qty), 0);
+                        const totalActualQty = lines.reduce((sum, line) => sum + toNumber(line.actualQty), 0);
+                        const minDisplayRows = 5;
+                        const blankRowCount = Math.max(0, minDisplayRows - lines.length);
+                        const totalPages = selectedRows.length;
+                        const pageNo = idx + 1;
+                        return `
+                            <section class="print-sheet">
+                                <div class="doc-header">
+                                    <div class="barcode-wrap">
+                                        <canvas class="barcode-canvas" data-code="${escapeHtml(row.distributionNo || '')}"></canvas>
+                                        <div class="barcode-text">${escapeHtml(row.distributionNo || '')}</div>
+                                    </div>
+                                    <div class="doc-title"><h1>发 货 单</h1></div>
+                                    <div class="print-meta">
+                                        <div>打印日期：<span>${escapeHtml(printDate)}</span></div>
+                                        <div>打印次数：<span>${escapeHtml(nextPrintCount)}</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="info-section">
+                                    <div class="info-row">
+                                        <div class="info-cell"><span class="info-label">发货单号：</span><span class="info-value">${escapeHtml(row.distributionNo || '')}</span></div>
+                                        <div class="info-cell"><span class="info-label">车牌号：</span><span class="info-value">${escapeHtml(row.plateNumber || '')}</span></div>
+                                        <div class="info-cell"><span class="info-label">发货日期：</span><span class="info-value">${escapeHtml(formatYmdCn(row.shipTime || ''))}</span></div>
+                                    </div>
+                                    <div class="info-row">
+                                        <div class="info-cell"><span class="info-label">出库地：</span><span class="info-value">${escapeHtml(row.warehouse || '')}</span></div>
+                                        <div class="info-cell"><span class="info-label">入库地：</span><span class="info-value">${escapeHtml(inboundLocation)}</span></div>
+                                        <div class="info-cell"><span class="info-label">联系电话：</span><span class="info-value">${escapeHtml(row.contactPhone || '')}</span></div>
+                                    </div>
+                                    <div class="info-row-full inbound-address-cell">
+                                        <span class="info-label">入库地址：</span><span class="info-value">${escapeHtml(row.inboundAddress || getInboundLocation(row) || '')}</span>
+                                    </div>
+                                </div>
+
+                                <table class="goods-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:52px;">序号</th>
+                                            <th style="width:160px;">出库单号</th>
+                                            <th>商品名称</th>
+                                            <th style="width:80px;">数量</th>
+                                            <th style="width:110px;">实际配送数量</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    ${lines.map((line, idx) => `
+                                        <tr>
+                                            <td class="center">${idx + 1}</td>
+                                            <td>${escapeHtml(line.outboundNo || '')}</td>
+                                            <td class="text-left">${escapeHtml(line.productName || '')}</td>
+                                            <td class="center">${escapeHtml(formatQtyForPrint(line.qty))}</td>
+                                            <td class="center">${escapeHtml(formatQtyForPrint(line.actualQty))}</td>
+                                        </tr>
+                                    `).join('')}
+                                    ${Array.from({ length: blankRowCount }).map(() => `
+                                        <tr class="empty-row">
+                                            <td colspan="5"></td>
+                                        </tr>
+                                    `).join('')}
+                                    <tr class="summary-row">
+                                        <td colspan="3" style="text-align:right;">合计：</td>
+                                        <td class="center">${escapeHtml(formatQtyForPrint(totalQty))}</td>
+                                        <td class="center">${escapeHtml(formatQtyForPrint(totalActualQty))}</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+
+                                <div class="sign-section">
+                                    <div class="sign-item"><span class="sign-label">配送人：</span><div class="sign-line"></div></div>
+                                    <div class="sign-item"><span class="sign-label">签收人：</span><div class="sign-line"></div></div>
+                                    <div class="sign-item"><span class="sign-label">签收时间：</span><div class="sign-line"></div></div>
+                                </div>
+
+                                <div class="remarks-section">
+                                    <div class="remarks-label">备注：</div>
+                                    <div class="remarks-content"></div>
+                                </div>
+                                <div class="doc-footer">
+                                    <span>此单据为正式发货凭证，请妥善保管</span>
+                                    <span>第 ${pageNo} 页 / 共 ${totalPages} 页</span>
+                                </div>
+                            </section>
+                        `;
+                    }).join('')}
+                </body>
+                </html>
+            `;
+        }
+
+        function printSelectedDistributions() {
+            const selectedRows = getSelectedDistributions();
+            if (!selectedRows.length) {
+                if (typeof showToast === 'function') {
+                    showToast('请至少勾选一条发货单再打印', 'error');
+                } else {
+                    alert('请至少勾选一条发货单再打印');
+                }
+                return;
+            }
+
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                if (typeof showToast === 'function') {
+                    showToast('浏览器拦截了打印窗口，请允许弹窗后重试', 'error');
+                } else {
+                    alert('浏览器拦截了打印窗口，请允许弹窗后重试');
+                }
+                return;
+            }
+
+            printWindow.document.open();
+            printWindow.document.write(buildPrintDocument(selectedRows));
+            printWindow.document.close();
+
+            const triggerPrint = () => {
+                renderBarcodesInPrintDocument(printWindow.document);
+                setTimeout(() => {
+                    printWindow.focus();
+                    printWindow.print();
+                }, 80);
+            };
+            if (printWindow.document.readyState === 'complete') {
+                triggerPrint();
+            } else {
+                printWindow.addEventListener('load', triggerPrint, { once: true });
+            }
+            printWindow.onafterprint = () => printWindow.close();
+
+            selectedRows.forEach(row => {
+                row.handoverPrintCount = (Number(row.handoverPrintCount) || 0) + 1;
+                row.updateTime = `${new Date().toISOString().slice(0, 19).replace('T', ' ')}`;
+            });
+            renderTable(filteredDistributionData);
+        }
+
         function renderTable(data) {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
             data.forEach(item => {
                 const row = document.createElement('tr');
+                row.setAttribute('data-distribution-no', item.distributionNo || '');
                 row.innerHTML = `
                     <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                     <td><a href="#" class="distribution-no-link" data-distribution-no="${item.distributionNo}">${item.distributionNo}</a></td>
@@ -566,6 +1134,7 @@
 
             renderTable(filteredDistributionData);
             document.getElementById('searchBtn').addEventListener('click', searchDistributions);
+            document.getElementById('printBtn').addEventListener('click', printSelectedDistributions);
 
             const modal = document.getElementById('distributionDetailModal');
             document.getElementById('closeDetailModal').addEventListener('click', () => { modal.style.display = 'none'; });
