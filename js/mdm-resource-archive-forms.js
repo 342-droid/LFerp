@@ -4,6 +4,8 @@
  * 编辑入口由 mdm-erp-lists 拦截列表「编辑」，按行预填后打开与新增相同的 erp-modal--store-wide。
  */
 (function (global) {
+    var STORE_BIND_BD_ENUM = ['张伟', '刘芳'];
+
     function removeArchiveFormModals() {
         document.querySelectorAll('[data-mdm-archive-form="1"]').forEach(function (n) {
             n.remove();
@@ -176,6 +178,76 @@
         );
     }
 
+    function collectEnabledBdNamesFromRows(rows) {
+        var list = [];
+        var seen = {};
+        rows.forEach(function (tr) {
+            var c = tr.querySelectorAll('td');
+            if (c.length < 13) return;
+            var name = String((c[1].textContent || '').trim());
+            if (!name) return;
+            var stNode = c[12].querySelector('.status');
+            var statusText = String((stNode ? stNode.textContent : c[12].textContent) || '').trim();
+            if (statusText !== '开启') return;
+            if (!seen[name]) {
+                seen[name] = true;
+                list.push(name);
+            }
+        });
+        return list;
+    }
+
+    function updateBdSelectOptions(selectEl, bdNames, selectedName) {
+        if (!selectEl) return;
+        var names = Array.isArray(bdNames) ? bdNames : [];
+        selectEl.innerHTML = '';
+        var placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = '请选择绑定BD';
+        selectEl.appendChild(placeholder);
+        names.forEach(function (name) {
+            var op = document.createElement('option');
+            op.value = name;
+            op.textContent = name;
+            selectEl.appendChild(op);
+        });
+        if (selectedName) {
+            selectEl.value = selectedName;
+            if (selectEl.value !== selectedName) {
+                selectOptionByLabelText(selectEl, selectedName);
+            }
+        }
+    }
+
+    function fetchEnabledBdNamesFromPeoplePage(callback) {
+        if (typeof fetch !== 'function') {
+            callback([]);
+            return;
+        }
+        fetch('mdm_people_bd.html', { cache: 'no-store' })
+            .then(function (res) {
+                if (!res || !res.ok) return '';
+                return res.text();
+            })
+            .then(function (html) {
+                if (!html) return [];
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(html, 'text/html');
+                var rows = doc.querySelectorAll('#tableBody tr');
+                return collectEnabledBdNamesFromRows(rows);
+            })
+            .then(function (list) {
+                callback(list || []);
+            })
+            .catch(function () {
+                callback([]);
+            });
+    }
+
+    function hydrateBdSelectFromPeoplePage(selectEl, selectedName) {
+        updateBdSelectOptions(selectEl, STORE_BIND_BD_ENUM, selectedName);
+    }
+
     function attachWideModal(title, bodyEl) {
         removeArchiveFormModals();
         var backdrop = document.createElement('div');
@@ -218,6 +290,19 @@
             backdrop.remove();
         });
         ok.addEventListener('click', function () {
+            var requiredEls = bodyEl.querySelectorAll('[data-required-msg]');
+            for (var i = 0; i < requiredEls.length; i++) {
+                var one = requiredEls[i];
+                var val = '';
+                if (one && typeof one.value === 'string') val = one.value.trim();
+                if (!val) {
+                    if (typeof showToast === 'function') {
+                        showToast(one.getAttribute('data-required-msg') || '请完善必填项', 'error');
+                    }
+                    one.focus && one.focus();
+                    return;
+                }
+            }
             backdrop.remove();
             if (typeof showToast === 'function') showToast('已提交（演示）', 'success');
         });
@@ -336,6 +421,10 @@
         body.appendChild(formRow('门店名称', true, nameWrap));
         refs.shortNameInp = txt('请输入门店简称', '');
         body.appendChild(formRow('门店简称', false, refs.shortNameInp));
+        refs.bindBdSel = sel([{ value: '', label: '请选择绑定BD' }], '');
+        refs.bindBdSel.setAttribute('data-required-msg', '请选择绑定BD');
+        body.appendChild(formRow('绑定BD', true, refs.bindBdSel));
+        hydrateBdSelectFromPeoplePage(refs.bindBdSel, '');
         var partnerSel = sel(
             [
                 { value: '', label: '请选择门店合作类型' },
@@ -451,6 +540,9 @@
             refs.verifyInp.value = '';
             refs.nameInp.value = cellPlainText(c[2]);
             refs.shortNameInp.value = '';
+            var bindBdName = cellPlainText(c[5]);
+            if (bindBdName === '—') bindBdName = '';
+            hydrateBdSelectFromPeoplePage(refs.bindBdSel, bindBdName);
             var pmap = { 加盟店: 'franchise', 合作店: 'partner', 同行店: 'peer' };
             refs.partnerSel.value = pmap[cellPlainText(c[3])] || '';
             refs.storeTypeInp.value = cellPlainText(c[4]);
