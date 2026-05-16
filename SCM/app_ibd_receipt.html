@@ -1370,7 +1370,7 @@
                     <div class="details-item">
                         <div class="details-item-header">
                             <div class="details-item-name">苹果</div>
-                            <button class="receive-btn" onclick="goToScanContainerPage()">收货</button>
+                            <button class="receive-btn" onclick="goToScanContainerPageFromPending(this)">收货</button>
                         </div>
                         <div class="details-item-info">
                             <div class="details-item-row">
@@ -1396,7 +1396,7 @@
                     <div class="details-item">
                         <div class="details-item-header">
                             <div class="details-item-name">香蕉</div>
-                            <button class="receive-btn" onclick="goToScanContainerPage()">收货</button>
+                            <button class="receive-btn" onclick="goToScanContainerPageFromPending(this)">收货</button>
                         </div>
                         <div class="details-item-info">
                             <div class="details-item-row">
@@ -1422,7 +1422,7 @@
                     <div class="details-item">
                         <div class="details-item-header">
                             <div class="details-item-name">橙子</div>
-                            <button class="receive-btn" onclick="goToScanContainerPage()">收货</button>
+                            <button class="receive-btn" onclick="goToScanContainerPageFromPending(this)">收货</button>
                         </div>
                         <div class="details-item-info">
                             <div class="details-item-row">
@@ -1926,7 +1926,7 @@
         }
 
         // 加载商品信息
-        function loadProductInfo(productCode) {
+        function loadProductInfo(productCode, presetData) {
             // 模拟商品信息数据
             const productInfo = {
                 barcode: '6912345678901',
@@ -1934,6 +1934,10 @@
                 planQty: '10',
                 receivedQty: '0',
                 receiptQty: '请输入'
+            };
+            const finalProductInfo = {
+                ...productInfo,
+                ...(presetData || {})
             };
             
             // 显示商品信息卡片
@@ -1965,10 +1969,10 @@
             
             
             // 填充商品信息
-            document.getElementById('productBarcode').textContent = productInfo.barcode;
-            document.getElementById('productLocation').textContent = productInfo.location;
-            document.getElementById('productPlanQty').textContent = productInfo.planQty;
-            document.getElementById('productReceivedQty').textContent = productInfo.receivedQty;
+            document.getElementById('productBarcode').textContent = finalProductInfo.barcode;
+            document.getElementById('productLocation').textContent = finalProductInfo.location;
+            document.getElementById('productPlanQty').textContent = finalProductInfo.planQty;
+            document.getElementById('productReceivedQty').textContent = finalProductInfo.receivedQty;
             // 清空输入框，让placeholder显示
             document.getElementById('productProductionDate').value = '';
             document.getElementById('productReceiptQty').value = '';
@@ -2295,6 +2299,47 @@
             document.getElementById('scanContainerPage').classList.add('active');
             headerTitle.textContent = '入库单录入';
             backBtn.setAttribute('onclick', 'showReceiptDetailsFromScanContainer()');
+        }
+
+        // 从未完成页签跳转到收货数量录入页，并自动带入商品信息
+        function goToScanContainerPageFromPending(button) {
+            const detailsItem = button ? button.closest('.details-item') : null;
+            const productName = detailsItem ? detailsItem.querySelector('.details-item-name')?.textContent.trim() : '';
+            const detailRows = detailsItem ? detailsItem.querySelectorAll('.details-item-row') : [];
+
+            let barcode = '';
+            let planQty = '';
+            let receivedQty = '';
+
+            if (detailRows.length > 0) {
+                const barcodeNode = detailRows[0].querySelector('.details-item-value');
+                barcode = barcodeNode ? barcodeNode.textContent.trim() : '';
+            }
+
+            if (detailRows.length > 1) {
+                const qtyValues = detailRows[1].querySelectorAll('.details-item-value');
+                planQty = qtyValues[0] ? qtyValues[0].textContent.trim().replace('斤', '') : '';
+                receivedQty = qtyValues[1] ? qtyValues[1].textContent.trim().replace('斤', '') : '';
+            }
+
+            goToScanContainerPage();
+
+            if (!barcode) {
+                return;
+            }
+
+            const productCode = productName || barcode;
+            document.getElementById('productValue').textContent = productCode;
+            loadProductInfo(productCode, {
+                barcode,
+                planQty: planQty || '0',
+                receivedQty: receivedQty || '0'
+            });
+
+            const qtyInput = document.getElementById('productReceiptQty');
+            if (qtyInput) {
+                qtyInput.focus();
+            }
         }
 
         // 从入库单录入页面返回入库明细页面
