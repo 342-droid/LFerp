@@ -84,7 +84,8 @@
     const isInboundPage = inboundMenuItems.some(item => item.href === currentPage);
     const isOutboundPage = outboundMenuItems.some(item => item.href === currentPage);
     const isInnerWarehouseInventoryPage = innerWarehouseInventoryMenuItems.some(item => item.href === currentPage);
-    const isInnerWarehousePage = isInnerWarehouseInventoryPage;
+    const isInventoryAdjustPage = currentPage === 'inventory_adjustment.html';
+    const isInnerWarehousePage = isInnerWarehouseInventoryPage || isInventoryAdjustPage;
     const isExceptionPage = exceptionMenuItems.some(item => item.href === currentPage);
 
     const basicMenuHtml = basicMenuItems.map(item => 
@@ -197,6 +198,7 @@
             '</a>' +
             '<ul class="submenu' + (isInnerWarehouseInventoryPage ? ' expanded' : '') + '">' + innerWarehouseInventoryMenuHtml + '</ul>' +
             '</li>' +
+            '<li><a href="' + pageHref('inventory_adjustment.html') + '"' + (isInventoryAdjustPage ? ' class="active"' : '') + '>库存调整单</a></li>' +
             '</ul>' +
             '</li>' +
             '<li class="menu-item">' +
