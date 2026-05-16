@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 库存调整单</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .search-form .form-group > label {
+            width: 100px;
+        }
+        .adjustment-no-link {
+            color: #1677ff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .adjustment-no-link:hover {
+            text-decoration: underline;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .status-initial {
+            background: #e6f7ff;
+            color: #1890ff;
+        }
+        .status-complete {
+            background: #f6ffed;
+            color: #52c41a;
+        }
+        .status-canceled {
+            background: #fff1f0;
+            color: #f5222d;
+        }
+        .modal-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .modal-form-group {
+            width: calc(33.33% - 10px);
+        }
+        .modal-form-group label {
+            width: 100px;
+            display: inline-block;
+            margin-right: 8px;
+            color: #666;
+            font-weight: 600;
+        }
+        .modal-form-group input {
+            width: calc(100% - 112px);
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            color: #333;
+            outline: none;
+        }
+        .spec-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">库存调整单</button>
+            </div>
+
+            <hr class="content-divider">
+
+            <div class="content-title">库内管理 / 库存调整单</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group custom-select-wrapper">
+                        <label>货主:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchCompany" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchCompanyDropdown"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>调整单号:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchAdjustNo" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>来源单号:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchSourceNo" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>状态:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchStatus" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchStatusDropdown">
+                                <div class="select-option" data-value="初始">初始</div>
+                                <div class="select-option" data-value="已完成">已完成</div>
+                                <div class="select-option" data-value="已作废">已作废</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>调整类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchAdjustType" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchAdjustTypeDropdown">
+                                <div class="select-option" data-value="拣货异常">拣货异常</div>
+                                <div class="select-option" data-value="分拣异常">分拣异常</div>
+                                <div class="select-option" data-value="复核异常">复核异常</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>创建时间:</label>
+                        <div class="date-range">
+                            <div class="date-picker">
+                                <input type="date" id="searchCreateTimeStart" placeholder="开始时间">
+                            </div>
+                            <span class="date-range-separator">至</span>
+                            <div class="date-picker">
+                                <input type="date" id="searchCreateTimeEnd" placeholder="结束时间">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="searchBtn">查询</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table no-last-column-freeze">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>调整单号</th>
+                                <th>来源单号</th>
+                                <th>调整类型</th>
+                                <th>状态</th>
+                                <th>货主</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adjustmentTableBody"></tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="adjustmentDetailModal" class="modal">
+        <div class="modal-content" style="width: 1100px;">
+            <div class="modal-header">
+                <div class="modal-title">库存调整单 - 详情</div>
+                <span class="close" id="detailCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form class="modal-form">
+                    <div class="modal-form-group"><label>货主</label><input type="text" id="detailCompany" disabled></div>
+                    <div class="modal-form-group"><label>调整单号</label><input type="text" id="detailAdjustNo" disabled></div>
+                    <div class="modal-form-group"><label>来源单号</label><input type="text" id="detailSourceNo" disabled></div>
+                    <div class="modal-form-group"><label>调整类型</label><input type="text" id="detailAdjustType" disabled></div>
+                    <div class="modal-form-group"><label>状态</label><input type="text" id="detailStatus" disabled></div>
+                    <div class="modal-form-group"><label>备注</label><input type="text" id="detailRemark" disabled></div>
+                </form>
+                <hr style="width: 100%; border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
+                <div class="spec-title">商品明细</div>
+                <div class="table-scroll-container">
+                    <table class="table no-last-column-freeze" id="detailItemTable">
+                        <thead>
+                            <tr>
+                                <th>商品编码</th>
+                                <th>商品名称</th>
+                                <th>单位</th>
+                                <th>供应商</th>
+                                <th>储位</th>
+                                <th>批号</th>
+                                <th>生产日期</th>
+                                <th>调整量</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeDetailModal">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        const inventoryAdjustmentData = [
+            {
+                company: 'Y001-南京货主',
+                adjustNo: 'ADJ202605160001',
+                sourceNo: 'OBD202605160101',
+                adjustType: '拣货异常',
+                status: '初始',
+                updateTime: '2026-05-16 10:35:00',
+                updateUser: '张三',
+                createTime: '2026-05-16 10:30:00',
+                createUser: '张三'
+            },
+            {
+                company: 'Y002-杭州货主',
+                adjustNo: 'ADJ202605160002',
+                sourceNo: 'OBD202605160205',
+                adjustType: '分拣异常',
+                status: '已完成',
+                updateTime: '2026-05-16 11:15:00',
+                updateUser: '李四',
+                createTime: '2026-05-16 10:50:00',
+                createUser: '王五'
+            },
+            {
+                company: 'Y001-南京货主',
+                adjustNo: 'ADJ202605160003',
+                sourceNo: 'OBD202605160318',
+                adjustType: '复核异常',
+                status: '已作废',
+                updateTime: '2026-05-16 12:05:00',
+                updateUser: '赵六',
+                createTime: '2026-05-16 11:20:00',
+                createUser: '赵六'
+            }
+        ];
+        const inventoryAdjustmentDetailMap = {
+            ADJ202605160001: {
+                company: 'Y001-南京货主',
+                adjustNo: 'ADJ202605160001',
+                sourceNo: 'OBD202605160101',
+                adjustType: '拣货异常',
+                status: '初始',
+                remark: '拣货缺货，做库存差异调整',
+                items: [
+                    {
+                        skuCode: 'SKU1001',
+                        skuName: '三文鱼切片 500g',
+                        unit: '盒',
+                        supplier: '供应商A',
+                        location: 'A-01-01',
+                        batchNo: 'BATCH-SY-260501',
+                        productionDate: '2026-05-01',
+                        adjustQty: '-2'
+                    },
+                    {
+                        skuCode: 'SKU2001',
+                        skuName: '冻虾仁 1kg',
+                        unit: '袋',
+                        supplier: '供应商B',
+                        location: 'A-02-03',
+                        batchNo: 'BATCH-XR-260503',
+                        productionDate: '2026-05-03',
+                        adjustQty: '-1'
+                    }
+                ]
+            },
+            ADJ202605160002: {
+                company: 'Y002-杭州货主',
+                adjustNo: 'ADJ202605160002',
+                sourceNo: 'OBD202605160205',
+                adjustType: '分拣异常',
+                status: '已完成',
+                remark: '分拣破损，已完成库存扣减',
+                items: [
+                    {
+                        skuCode: 'SKU3001',
+                        skuName: '牛排 300g',
+                        unit: '盒',
+                        supplier: '供应商C',
+                        location: 'B-03-01',
+                        batchNo: 'BATCH-NP-260510',
+                        productionDate: '2026-05-10',
+                        adjustQty: '-3'
+                    }
+                ]
+            },
+            ADJ202605160003: {
+                company: 'Y001-南京货主',
+                adjustNo: 'ADJ202605160003',
+                sourceNo: 'OBD202605160318',
+                adjustType: '复核异常',
+                status: '已作废',
+                remark: '复核异常单据作废',
+                items: [
+                    {
+                        skuCode: 'SKU4001',
+                        skuName: '羊排 250g',
+                        unit: '袋',
+                        supplier: '供应商D',
+                        location: 'C-01-02',
+                        batchNo: 'BATCH-YP-260511',
+                        productionDate: '2026-05-11',
+                        adjustQty: '0'
+                    }
+                ]
+            }
+        };
+
+        function getStatusClass(status) {
+            if (status === '初始') return 'status-initial';
+            if (status === '已完成') return 'status-complete';
+            if (status === '已作废') return 'status-canceled';
+            return '';
+        }
+
+        function openAdjustmentDetail(adjustNo) {
+            const detail = inventoryAdjustmentDetailMap[adjustNo];
+            if (!detail) {
+                if (typeof showToast === 'function') {
+                    showToast('未找到调整单详情', 'error');
+                }
+                return;
+            }
+            fillDetail(detail);
+            document.getElementById('adjustmentDetailModal').style.display = 'block';
+        }
+
+        function fillDetail(detail) {
+            document.getElementById('detailCompany').value = detail.company || '';
+            document.getElementById('detailAdjustNo').value = detail.adjustNo || '';
+            document.getElementById('detailSourceNo').value = detail.sourceNo || '';
+            document.getElementById('detailAdjustType').value = detail.adjustType || '';
+            document.getElementById('detailStatus').value = detail.status || '';
+            document.getElementById('detailRemark').value = detail.remark || '';
+
+            const tbody = document.querySelector('#detailItemTable tbody');
+            tbody.innerHTML = '';
+            (detail.items || []).forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.skuCode || ''}</td>
+                    <td>${item.skuName || ''}</td>
+                    <td>${item.unit || ''}</td>
+                    <td>${item.supplier || ''}</td>
+                    <td>${item.location || ''}</td>
+                    <td>${item.batchNo || ''}</td>
+                    <td>${item.productionDate || ''}</td>
+                    <td>${item.adjustQty || ''}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderAdjustmentTable(data) {
+            const tbody = document.getElementById('adjustmentTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                    <td><a class="adjustment-no-link" onclick="openAdjustmentDetail('${item.adjustNo}')">${item.adjustNo}</a></td>
+                    <td>${item.sourceNo}</td>
+                    <td>${item.adjustType}</td>
+                    <td><span class="status-badge ${getStatusClass(item.status)}">${item.status}</span></td>
+                    <td>${item.company}</td>
+                    <td>${item.updateTime}</td>
+                    <td>${item.updateUser}</td>
+                    <td>${item.createTime}</td>
+                    <td>${item.createUser}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function searchInventoryAdjustments() {
+            const filters = {
+                company: document.getElementById('searchCompany').value.trim(),
+                adjustNo: document.getElementById('searchAdjustNo').value.trim(),
+                sourceNo: document.getElementById('searchSourceNo').value.trim(),
+                status: document.getElementById('searchStatus').value.trim(),
+                adjustType: document.getElementById('searchAdjustType').value.trim(),
+                createTimeStart: document.getElementById('searchCreateTimeStart').value.trim(),
+                createTimeEnd: document.getElementById('searchCreateTimeEnd').value.trim()
+            };
+
+            const result = inventoryAdjustmentData.filter(item => {
+                const createDate = item.createTime ? item.createTime.slice(0, 10) : '';
+                return (!filters.company || item.company === filters.company) &&
+                    (!filters.adjustNo || item.adjustNo.includes(filters.adjustNo)) &&
+                    (!filters.sourceNo || item.sourceNo.includes(filters.sourceNo)) &&
+                    (!filters.status || item.status === filters.status) &&
+                    (!filters.adjustType || item.adjustType === filters.adjustType) &&
+                    (!filters.createTimeStart || (createDate && createDate >= filters.createTimeStart)) &&
+                    (!filters.createTimeEnd || (createDate && createDate <= filters.createTimeEnd));
+            });
+
+            renderAdjustmentTable(result);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                const companyDropdown = document.getElementById('searchCompanyDropdown');
+                ['Y001-南京货主', 'Y002-杭州货主'].forEach(company => {
+                    const option = document.createElement('div');
+                    option.className = 'select-option';
+                    option.setAttribute('data-value', company);
+                    option.textContent = company;
+                    companyDropdown.appendChild(option);
+                });
+
+                const page = new PageManager({
+                    entityName: '库存调整单',
+                    customSelects: [
+                        { inputId: 'searchCompany', dropdownId: 'searchCompanyDropdown' },
+                        { inputId: 'searchStatus', dropdownId: 'searchStatusDropdown' },
+                        { inputId: 'searchAdjustType', dropdownId: 'searchAdjustTypeDropdown' }
+                    ],
+                    deleteModal: {}
+                });
+                page.init();
+
+                renderAdjustmentTable(inventoryAdjustmentData);
+                document.getElementById('searchBtn').addEventListener('click', searchInventoryAdjustments);
+
+                const detailModal = document.getElementById('adjustmentDetailModal');
+                document.getElementById('closeDetailModal').addEventListener('click', () => {
+                    detailModal.style.display = 'none';
+                });
+                document.getElementById('detailCloseBtn').addEventListener('click', () => {
+                    detailModal.style.display = 'none';
+                });
+                window.addEventListener('click', (e) => {
+                    if (e.target === detailModal) {
+                        detailModal.style.display = 'none';
+                    }
+                });
+            } catch (error) {
+                console.error('库存调整单页面初始化错误:', error);
+                if (typeof showToast === 'function') {
+                    showToast('库存调整单页面初始化失败，请刷新重试', 'error');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
