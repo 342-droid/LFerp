@@ -595,12 +595,12 @@
             <div class="header-title" id="headerTitle">复核任务</div>
         </div>
 
-        <!-- 1. 扫描/输入分站号 -->
+        <!-- 1. 扫描/输入站点号 -->
         <div class="page active" id="scanPage">
             <div class="main-content">
-                <div class="scan-title">请扫描/输入分站号</div>
+                <div class="scan-title">请扫描/输入站点号</div>
                 <div id="claimBarcodeInputContainer" class="claim-barcode-input-container"></div>
-                <p class="scan-hint">请输入或扫描分站编码</p>
+                <p class="scan-hint">请输入或扫描站点编码</p>
                 <button type="button" class="claim-confirm-btn" onclick="claimRecheckTask()">确定</button>
             </div>
         </div>
@@ -610,7 +610,7 @@
             <div class="overview-content">
                 <div class="overview-main-scroll">
                     <div class="overview-summary-card">
-                        <div class="overview-summary-title">分站 <strong id="overviewStationNo">--</strong> · 共 <span id="overviewTaskCount">0</span> 条复核任务</div>
+                        <div class="overview-summary-title">站点 <strong id="overviewStationNo">--</strong> · 共 <span id="overviewTaskCount">0</span> 条复核任务</div>
                         <div class="overview-metrics">
                             <div class="overview-metric">
                                 <div class="overview-metric-value" id="overviewPieces">0</div>
@@ -681,7 +681,7 @@
                 <div class="recheck-complete-body">
                     <div class="recheck-complete-icon">✓</div>
                     <div class="recheck-complete-title">复核完成</div>
-                    <div class="recheck-complete-station">分站 <strong id="recheckCompleteStation">--</strong></div>
+                    <div class="recheck-complete-station">站点 <strong id="recheckCompleteStation">--</strong></div>
                 </div>
                 <div class="recheck-complete-action">
                     <button type="button" class="recheck-complete-btn" onclick="acknowledgeRecheckComplete()">确定</button>
@@ -713,7 +713,7 @@
                 container: 'claimBarcodeInputContainer',
                 inputId: 'claimStationInput',
                 inputClassName: 'wms-mobile-scan-input__field claim-barcode-input-centered',
-                placeholder: '请扫描/输入分站号'
+                placeholder: '请扫描/输入站点号'
             })
             : null;
         const claimStationInput = claimBarcodeComponent
@@ -737,7 +737,7 @@
 
         let toastTimer = null;
 
-        /** 当前分站与汇总（演示数据，接入接口后替换） */
+        /** 当前站点与汇总（演示数据，接入接口后替换） */
         window.currentRecheckSummary = {
             stationNo: 'A01',
             taskCount: 3,
@@ -777,17 +777,17 @@
 
         function claimRecheckTask() {
             if (!claimStationInput) {
-                showToast('分站号输入框未初始化');
+                showToast('站点号输入框未初始化');
                 return;
             }
             const code = claimStationInput.value.trim();
             if (!code) {
-                showToast('请先扫描或输入分站号');
+                showToast('请先扫描或输入站点号');
                 claimStationInput.focus();
                 return;
             }
             window.currentRecheckSummary.stationNo = code;
-            showToast('分站加载成功');
+            showToast('站点加载成功');
             fillOverviewData();
             setActivePage('overviewPage');
             headerTitle.textContent = '复核总览';

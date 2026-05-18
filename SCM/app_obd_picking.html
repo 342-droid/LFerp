@@ -968,7 +968,6 @@
                     <div class="overview-info-row"><span class="overview-info-label">波次单号:</span><span id="overviewWaveNo"></span></div>
                     <div class="overview-info-row"><span class="overview-info-label">目的储位:</span><span id="overviewTargetLocation"></span></div>
                     <div class="overview-info-row"><span class="overview-info-label">任务组号:</span><span id="overviewTaskGroup"></span></div>
-                    <div class="overview-info-row"><span class="overview-info-label">目的站点:</span><span id="overviewTargetStation"></span></div>
                 </div>
 
                 <div class="overview-summary-card">
@@ -1033,7 +1032,6 @@
                         <div data-label="波次单号:"><span>WV19090576DE1E20300</span></div>
                         <div data-label="目的储位:"><span>A01</span></div>
                         <div data-label="任务组号:"><span>TG190905776F29E0400</span></div>
-                        <div data-label="目的站点:"><span>A01-冷丰南京水果市场店</span></div>
                     </div>
                 </div>
 
@@ -1046,7 +1044,6 @@
                         <div data-label="波次单号:"><span>WV19090576DE1E20300</span></div>
                         <div data-label="目的储位:"><span>A01</span></div>
                         <div data-label="任务组号:"><span>TG190905776F29E0400</span></div>
-                        <div data-label="目的站点:"><span>A01-冷丰南京水果市场店</span></div>
                     </div>
                 </div>
 
@@ -1059,7 +1056,6 @@
                         <div data-label="波次单号:"><span>WV19090576DE1E20300</span></div>
                         <div data-label="目的储位:"><span>A01</span></div>
                         <div data-label="任务组号:"><span>TG190905776F29E0400</span></div>
-                        <div data-label="目的站点:"><span>A01-冷丰南京水果市场店</span></div>
                     </div>
                 </div>
             </div>
@@ -1279,7 +1275,6 @@
             targetLocation: 'A01',
             targetLocationName: '分拣区',
             taskGroupNo: 'TG190905776F29E0400',
-            targetStation: 'A01-冷丰南京水果市场店',
             taskCount: 2,
             pieces: 42,
             skuCount: 2,
@@ -1324,7 +1319,6 @@
             document.getElementById('overviewWaveNo').textContent = data.waveNo;
             document.getElementById('overviewTargetLocation').textContent = data.targetLocation;
             document.getElementById('overviewTaskGroup').textContent = data.taskGroupNo;
-            document.getElementById('overviewTargetStation').textContent = data.targetStation;
             document.getElementById('overviewTaskCount').textContent = String(data.taskCount);
             document.getElementById('overviewPieces').textContent = String(data.pieces);
             document.getElementById('overviewSku').textContent = String(data.skuCount);

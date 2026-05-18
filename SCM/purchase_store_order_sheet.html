@@ -310,19 +310,6 @@
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
-                        <label>是否关闭:</label>
-                        <div class="custom-select">
-                            <input type="text" id="searchIsClosed" placeholder="请选择" readonly>
-                            <span class="select-arrow">▼</span>
-                            <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchIsClosedDropdown">
-                                <div class="select-option" data-value="">全部</div>
-                                <div class="select-option" data-value="是">是</div>
-                                <div class="select-option" data-value="否">否</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group custom-select-wrapper">
                         <label>是否到店:</label>
                         <div class="custom-select">
                             <input type="text" id="searchIsArrivedStore" placeholder="请选择" readonly>
@@ -373,11 +360,8 @@
                                 <th>截单时间</th>
                                 <th>预计发货时间</th>
                                 <th>单据状态</th>
-                                <th>是否关闭</th>
                                 <th>是否到店</th>
                                 <th>单据来源</th>
-                                <th>关闭时间</th>
-                                <th>关闭人</th>
                                 <th>取消时间</th>
                                 <th>取消人</th>
                                 <th>备注</th>
@@ -697,7 +681,6 @@
     function orderSheetActionCell() {
         return (
             '<td class="action-links">' +
-            '<a href="#" class="close-btn">关闭</a>' +
             '<a href="#" class="delete-btn">取消</a>' +
             '</td>'
         );
@@ -1138,18 +1121,6 @@
         return el.value.trim();
     }
 
-    function getIsClosedFilter() {
-        var el = document.getElementById('searchIsClosed');
-        if (!el) return '';
-        if (el.dataset.value !== undefined && el.dataset.value !== '') {
-            return el.dataset.value.trim();
-        }
-        if (el.dataset.value === '') {
-            return '';
-        }
-        return el.value.trim();
-    }
-
     function getReceivingWarehouseFilter() {
         var el = document.getElementById('searchReceivingWarehouse');
         if (!el) return '';
@@ -1216,7 +1187,6 @@
         var fRec = getReceivingWarehouseFilter();
         var fSrc = getDocSourceFilter();
         var fSt = getHeaderStatusFilter();
-        var fClosed = getIsClosedFilter();
         var fArrived = getIsArrivedStoreFilter();
         var fTime = getCreatedTimeRangeFilter();
         var hasTimeRange = !!(fTime.start || fTime.end);
@@ -1228,7 +1198,6 @@
             if (fRec && h.receivingWarehouse !== fRec) return false;
             if (fSrc && h.docSource !== fSrc) return false;
             if (fSt && h.headerStatus !== fSt) return false;
-            if (fClosed && h.isClosed !== fClosed) return false;
             if (fArrived && h.isArrivedStore !== fArrived) return false;
             if (hasTimeRange) {
                 var d = createdAtDatePart(h);
@@ -1275,7 +1244,7 @@
         var pageRows = filteredHeaders.slice(start, start + pageSize);
 
         if (pageRows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="25" style="text-align:center;color:#999;">暂无数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="22" style="text-align:center;color:#999;">暂无数据</td></tr>';
         } else {
             tbody.innerHTML = pageRows.map(function(h) {
                 var storeText = (h.storeName && h.storeCode)
@@ -1295,11 +1264,8 @@
                     '<td>' + escapeHtml(h.cutoffTime) + '</td>' +
                     '<td>' + escapeHtml(h.expectedShipTime) + '</td>' +
                     '<td>' + statusCellHtml(h.headerStatus) + '</td>' +
-                    '<td>' + escapeHtml(h.isClosed) + '</td>' +
                     '<td>' + escapeHtml(h.isArrivedStore) + '</td>' +
                     '<td>' + escapeHtml(h.docSource) + '</td>' +
-                    '<td>' + escapeHtml(h.closeTime) + '</td>' +
-                    '<td>' + escapeHtml(h.closeBy) + '</td>' +
                     '<td>' + escapeHtml(h.cancelTime) + '</td>' +
                     '<td>' + escapeHtml(h.cancelBy) + '</td>' +
                     '<td>' + escapeHtml(h.remark) + '</td>' +
@@ -1360,10 +1326,7 @@
                 detailInfoItemHtml('截单时间', h.cutoffTime),
                 detailInfoItemHtml('预计发货时间', h.expectedShipTime),
                 detailInfoItemHtml('单据状态', h.headerStatus),
-                detailInfoItemHtml('是否关闭', h.isClosed),
                 detailInfoItemHtml('是否到店', h.isArrivedStore),
-                detailInfoItemHtml('关闭时间', h.closeTime),
-                detailInfoItemHtml('关闭人', h.closeBy),
                 detailInfoItemHtml('取消时间', h.cancelTime),
                 detailInfoItemHtml('取消人', h.cancelBy),
                 detailInfoItemHtml('备注', h.remark),
@@ -1557,7 +1520,6 @@
         initCustomSelect('searchReceivingWarehouse', 'searchReceivingWarehouseDropdown');
         initCustomSelect('searchDocSource', 'searchDocSourceDropdown');
         initCustomSelect('searchOrderHeaderStatus', 'searchOrderHeaderStatusDropdown');
-        initCustomSelect('searchIsClosed', 'searchIsClosedDropdown');
         initCustomSelect('searchIsArrivedStore', 'searchIsArrivedStoreDropdown');
         initCustomSelect('addSoLiveSession', 'addSoLiveSessionDropdown');
         initCustomSelect('addSoStore', 'addSoStoreDropdown');
