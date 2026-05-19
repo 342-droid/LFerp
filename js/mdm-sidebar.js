@@ -1,4 +1,4 @@
-/* MDM 侧栏：顶栏「工作台」页仅侧栏「工作台」；基础数据中心等页仅主体/资源/人员/会员（无侧栏「工作台」）；「审核中心」仅审核分组 */
+/* MDM 侧栏：基础数据中心页展示主体/资源/人员/会员/BD；顶栏「审核中心」独立入口页仅展示审核分组 */
 (function () {
     const wp = window.wmsPath || { page: function (f) { return f; }, asset: function (r) { return r; } };
     const pageHref = function (f) { return wp.page(f); };
@@ -7,20 +7,8 @@
     const currentPage = pathForMatch.split('/').pop() || 'mdm_workbench.html';
 
     function hrefMatchesCurrentPage(href) {
-        var full = String(href || '');
-        var seg = full.split('#');
-        var path = seg[0] || '';
-        var hash = seg[1] || '';
-        var samePath =
-            path === currentPage ||
-            pathForMatch.endsWith('/' + path) ||
-            pathForMatch.endsWith(path);
-        if (!samePath) return false;
-        var curHash = String(window.location.hash || '').replace(/^#/, '');
-        if (!hash) {
-            return !curHash || curHash === 'store-registration';
-        }
-        return curHash === hash;
+        if (href === currentPage) return true;
+        return pathForMatch.endsWith('/' + href) || pathForMatch.endsWith(href);
     }
 
     /** 工作台 / 首页类入口（对齐 SPA dashboard） */
@@ -56,8 +44,17 @@
     ];
 
     const auditItems = [
-        { href: 'mdm_audit_store_registration.html', text: '门店注册审核' },
-        { href: 'mdm_audit_store_registration.html#onboarding-review', text: '进件审核' }
+        { href: 'mdm_audit_store_registration.html', text: '门店注册审核' }
+    ];
+
+    const bdMenuItems = [
+        { href: 'mdm_bd_workbench.html', text: 'BD·工作台（首页/运营/AI）' },
+        { href: 'mdm_bd_stores.html', text: 'BD·门店与协议（列表/档案/审核/协议）' },
+        { href: 'mdm_bd_merchants.html', text: 'BD·商户进件（列表/进件/我的商户）' },
+        { href: 'mdm_bd_personal.html', text: 'BD·我的（钱包/消息/素材/设置）' },
+        { href: 'shop-h5/index.html', text: 'BD·门店H5' },
+        { href: 'mdm_bd_h5.html', text: 'BD·扫码H5（注册/状态）' },
+        { href: 'mdm_bd_not_found.html', text: 'BD·404占位' }
     ];
 
     function groupHasActive(items) {
@@ -69,6 +66,7 @@
     const isPeoplePage = groupHasActive(peopleItems);
     const isMemberPage = groupHasActive(memberItems);
     const isAuditPage = groupHasActive(auditItems);
+    var isBdPage = groupHasActive(bdMenuItems);
 
     /** 工作台项：单列链接，无收起子菜单 */
     function renderTopLink(item) {
@@ -104,21 +102,15 @@
         return renderTopLink(item);
     }).join('');
 
-    const isMdmWorkbenchPage = hrefMatchesCurrentPage('mdm_workbench.html');
-
     /** 顶栏「审核中心」独立入口：仅在该模块页面展示侧栏审核菜单 */
-    var itemsHtml;
-    if (isAuditPage) {
-        itemsHtml = renderCollapsibleGroup('审核中心', '任务管理', auditItems, true);
-    } else if (isMdmWorkbenchPage) {
-        itemsHtml = overviewHtml;
-    } else {
-        itemsHtml =
-            renderCollapsibleGroup('主体中心', '基础信息', partyItems, isPartyPage) +
-            renderCollapsibleGroup('资源中心', '策略管理', archiveItems, isArchivePage) +
-            renderCollapsibleGroup('人员中心', '权限管理', peopleItems, isPeoplePage) +
-            renderCollapsibleGroup('会员中心', '基础信息', memberItems, isMemberPage);
-    }
+    var itemsHtml = isAuditPage
+        ? renderCollapsibleGroup('审核中心', '任务管理', auditItems, true)
+        : overviewHtml +
+        renderCollapsibleGroup('主体中心', '基础信息', partyItems, isPartyPage) +
+        renderCollapsibleGroup('资源中心', '策略管理', archiveItems, isArchivePage) +
+        renderCollapsibleGroup('人员中心', '权限管理', peopleItems, isPeoplePage) +
+        renderCollapsibleGroup('会员中心', '基础信息', memberItems, isMemberPage) +
+        renderCollapsibleGroup('BD APP', '基础信息', bdMenuItems, isBdPage);
 
     var sidebarContainer = document.getElementById('sidebar-container');
     if (!sidebarContainer) {
