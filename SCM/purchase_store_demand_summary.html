@@ -162,7 +162,7 @@
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
-                        <label>订单来源:</label>
+                        <label>订单渠道:</label>
                         <div class="custom-select">
                             <input type="text" id="searchOrderSource" placeholder="请选择" readonly>
                             <span class="select-arrow">▼</span>
@@ -171,6 +171,19 @@
                                 <div class="select-option" data-value="">全部</div>
                                 <div class="select-option" data-value="商城">商城</div>
                                 <div class="select-option" data-value="直播间">直播间</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>订单类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchOrderType" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchOrderTypeDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="普通订单">普通订单</div>
+                                <div class="select-option" data-value="福袋订单">福袋订单</div>
                             </div>
                         </div>
                     </div>
@@ -202,16 +215,16 @@
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
-                        <label>商品来源:</label>
+                        <label>商品类型:</label>
                         <div class="custom-select">
                             <input type="text" id="searchSkuSource" placeholder="请选择" readonly>
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
                             <div class="select-dropdown" id="searchSkuSourceDropdown">
                                 <div class="select-option" data-value="">全部</div>
-                                <div class="select-option" data-value="正常商品">正常商品</div>
+                                <div class="select-option" data-value="普通商品">普通商品</div>
                                 <div class="select-option" data-value="积分商品">积分商品</div>
-                                <div class="select-option" data-value="福袋商品">福袋商品</div>
+                                <div class="select-option" data-value="拉新商品">拉新商品</div>
                             </div>
                         </div>
                     </div>
@@ -347,7 +360,13 @@
     <script>
 (function() {
     const SKU_CATEGORY_TREE = window.SKU_CATEGORY_TREE;
-    const storeOrderLines = window.PURCHASE_STORE_ORDER_LINES;
+    const storeOrderLines = (window.PURCHASE_STORE_ORDER_LINES || []).map(function(row) {
+        var orderType = row && row.orderType ? String(row.orderType).trim() : '';
+        if (!orderType) {
+            orderType = row && row.skuSource === '福袋商品' ? '福袋订单' : '普通订单';
+        }
+        return Object.assign({}, row, { orderType: orderType });
+    });
 
     const hints = {
         product: '按商品维度汇总各门店的订货需求，数量已合并。',
@@ -372,6 +391,18 @@
 
     function getOrderSourceFilter() {
         const el = document.getElementById('searchOrderSource');
+        if (!el) return '';
+        if (el.dataset.value !== undefined && el.dataset.value !== '') {
+            return el.dataset.value.trim();
+        }
+        if (el.dataset.value === '') {
+            return '';
+        }
+        return el.value.trim();
+    }
+
+    function getOrderTypeFilter() {
+        const el = document.getElementById('searchOrderType');
         if (!el) return '';
         if (el.dataset.value !== undefined && el.dataset.value !== '') {
             return el.dataset.value.trim();
@@ -521,6 +552,7 @@
         return {
             liveSession: getLiveSessionFilter(),
             orderSource: getOrderSourceFilter(),
+            orderType: getOrderTypeFilter(),
             orderStatus: getOrderStatusFilter(),
             skuCode: val('searchSkuCode'),
             skuName: val('searchSkuName'),
@@ -550,6 +582,7 @@
         return lines.filter(function(row) {
             if (f.liveSession && (!row.liveSession || row.liveSession.indexOf(f.liveSession) === -1)) return false;
             if (f.orderSource && row.orderSource !== f.orderSource) return false;
+            if (f.orderType && row.orderType !== f.orderType) return false;
             if (f.orderStatus && row.orderStatus !== f.orderStatus) return false;
             if (f.skuCode && row.skuCode.indexOf(f.skuCode) === -1) return false;
             if (f.skuName && row.skuName.indexOf(f.skuName) === -1) return false;
@@ -830,6 +863,7 @@
     if (typeof initCustomSelect === 'function') {
         initCustomSelect('searchLiveSession', 'searchLiveSessionDropdown');
         initCustomSelect('searchOrderSource', 'searchOrderSourceDropdown');
+        initCustomSelect('searchOrderType', 'searchOrderTypeDropdown');
         initCustomSelect('searchOrderStatus', 'searchOrderStatusDropdown');
         initCustomSelect('searchSkuSource', 'searchSkuSourceDropdown');
         initCustomSelect('searchSkuCategory', 'searchSkuCategoryDropdown');

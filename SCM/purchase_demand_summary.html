@@ -303,16 +303,16 @@
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
-                        <label>商品来源:</label>
+                        <label>商品类型:</label>
                         <div class="custom-select">
                             <input type="text" id="searchSkuSource" placeholder="请选择" readonly>
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
                             <div class="select-dropdown" id="searchSkuSourceDropdown">
                                 <div class="select-option" data-value="">全部</div>
-                                <div class="select-option" data-value="正常商品">正常商品</div>
+                                <div class="select-option" data-value="普通商品">普通商品</div>
                                 <div class="select-option" data-value="积分商品">积分商品</div>
-                                <div class="select-option" data-value="福袋商品">福袋商品</div>
+                                <div class="select-option" data-value="拉新商品">拉新商品</div>
                             </div>
                         </div>
                     </div>
@@ -395,7 +395,7 @@
                                 <th>商品名称</th>
                                 <th>待采购量</th>
                                 <th>销售单价</th>
-                                <th>建议采购单价</th>
+                                <th>采购单价</th>
                                 <th>门店</th>
                                 <th>收货仓库</th>
                                 <th>供应商</th>
@@ -472,8 +472,7 @@
                                 <th>采购员</th>
                                 <th>明细行数</th>
                                 <th>待采购量合计</th>
-                                <th>建议采购单价</th>
-                                <th>实际采购单价</th>
+                                <th>采购单价</th>
                                 <th>采购金额</th>
                                 <th>销售金额</th>
                                 <th>预付金额</th>
@@ -499,13 +498,13 @@
     const rawDetailLines = window.PURCHASE_DEMAND_DETAIL_LINES || [];
     const SKU_CATEGORY_TREE = window.SKU_CATEGORY_TREE_PURCHASE_DEMAND;
     const SKU_SOURCE_MAP_BY_SKU = {
-        SKU001: '正常商品',
+        SKU001: '普通商品',
         SKU002: '积分商品',
-        SKU003: '福袋商品',
-        SKU004: '正常商品',
-        SKU005: '正常商品',
+        SKU003: '拉新商品',
+        SKU004: '普通商品',
+        SKU005: '普通商品',
         SKU006: '积分商品',
-        SKU007: '福袋商品'
+        SKU007: '拉新商品'
     };
     const SPEC_MAP_BY_SKU = {
         SKU001: '5kg/箱',
@@ -526,8 +525,13 @@
         SKU007: '袋'
     };
     const detailLines = rawDetailLines.map(function(row) {
+        var suggestedUnitPrice = Number(row.unitPrice);
+        if (isNaN(suggestedUnitPrice)) suggestedUnitPrice = 0;
+        var actualUnitPrice = Number(row.actualUnitPrice);
+        if (isNaN(actualUnitPrice)) actualUnitPrice = suggestedUnitPrice;
         return Object.assign({}, row, {
-            skuSource: row.skuSource || SKU_SOURCE_MAP_BY_SKU[row.skuCode] || '正常商品'
+            skuSource: row.skuSource || SKU_SOURCE_MAP_BY_SKU[row.skuCode] || '普通商品',
+            actualUnitPrice: actualUnitPrice
         });
     });
     const dimensionHints = {
@@ -703,15 +707,19 @@
                     pendingSum: 0,
                     salePrice: row.salePrice,
                     unitPrice: row.unitPrice,
+                    actualAmountSum: 0,
                     qtyUnit: null
                 });
             }
             const g = map.get(key);
+            var pendingQty = Number(row.pendingQty) || 0;
             g.orderQtySum += row.orderQty || 0;
-            g.pendingSum += row.pendingQty || 0;
+            g.pendingSum += pendingQty;
+            g.actualAmountSum += pendingQty * (Number(row.actualUnitPrice) || 0);
             g.qtyUnit = mergeQtyUnit(g.qtyUnit, getRowQtyUnit(row));
         }
         return Array.from(map.values()).map(function(g) {
+            var actualUnitPrice = g.pendingSum > 0 ? (g.actualAmountSum / g.pendingSum) : 0;
             return {
                 skuCode: g.skuCode,
                 skuName: g.skuName,
@@ -719,6 +727,7 @@
                 orderQtySum: g.orderQtySum,
                 salePrice: g.salePrice,
                 unitPrice: g.unitPrice,
+                actualUnitPrice: actualUnitPrice,
                 pendingSum: g.pendingSum,
                 qtyUnit: g.qtyUnit || '件'
             };
@@ -744,15 +753,19 @@
                     pendingSum: 0,
                     salePrice: row.salePrice,
                     unitPrice: row.unitPrice,
+                    actualAmountSum: 0,
                     qtyUnit: null
                 });
             }
             const g = map.get(key);
+            var pendingQty = Number(row.pendingQty) || 0;
             g.orderQtySum += row.orderQty || 0;
-            g.pendingSum += row.pendingQty || 0;
+            g.pendingSum += pendingQty;
+            g.actualAmountSum += pendingQty * (Number(row.actualUnitPrice) || 0);
             g.qtyUnit = mergeQtyUnit(g.qtyUnit, getRowQtyUnit(row));
         }
         return Array.from(map.values()).map(function(g) {
+            var actualUnitPrice = g.pendingSum > 0 ? (g.actualAmountSum / g.pendingSum) : 0;
             return {
                 skuCode: g.skuCode,
                 skuName: g.skuName,
@@ -761,6 +774,7 @@
                 orderQtySum: g.orderQtySum,
                 salePrice: g.salePrice,
                 unitPrice: g.unitPrice,
+                actualUnitPrice: actualUnitPrice,
                 pendingSum: g.pendingSum,
                 qtyUnit: g.qtyUnit || '件'
             };
@@ -787,9 +801,9 @@
             : buildProductAggregates(filteredLines);
         countEl.textContent = String(rows.length);
         if (currentDimension === 'spec') {
-            thead.innerHTML = '<tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>商品编码</th><th>商品名称</th><th>商品规格</th><th>供应商</th><th>订货数</th><th>销售单价</th><th>建议采购单价</th><th>待采购量</th></tr>';
+            thead.innerHTML = '<tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>商品编码</th><th>商品名称</th><th>商品规格</th><th>供应商</th><th>订货数</th><th>销售单价</th><th>采购单价</th><th>待采购量</th></tr>';
         } else {
-            thead.innerHTML = '<tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>商品编码</th><th>商品名称</th><th>供应商</th><th>订货数</th><th>销售单价</th><th>建议采购单价</th><th>待采购量</th></tr>';
+            thead.innerHTML = '<tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>商品编码</th><th>商品名称</th><th>供应商</th><th>订货数</th><th>销售单价</th><th>采购单价</th><th>待采购量</th></tr>';
         }
 
         if (rows.length === 0) {
@@ -1122,7 +1136,7 @@
         }
         if (confirmBtn) confirmBtn.disabled = rows.length === 0;
         if (!rows.length) {
-            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:#999;">暂无可生成采购单数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#999;">暂无可生成采购单数据</td></tr>';
             return;
         }
         tbody.innerHTML = rows.map(function(row) {
@@ -1134,8 +1148,7 @@
                 '<td><input type="text" class="po-preview-edit-input" data-field="buyer" value="' + escapeAttr(row.buyer || '') + '"></td>' +
                 '<td>' + escapeHtml(String(row.lineCount)) + '</td>' +
                 '<td>' + escapeHtml(formatQtyWithUnit(row.pendingQtySum, row.qtyUnit)) + '</td>' +
-                '<td>' + escapeHtml(formatMoney(row.suggestedUnitPrice)) + '</td>' +
-                '<td><input type="number" class="po-preview-edit-input" data-field="actualUnitPrice" min="0" step="0.01" value="' + escapeAttr((Number(row.actualUnitPrice) || 0).toFixed(2)) + '"></td>' +
+                '<td>' + escapeHtml(formatMoney(row.actualUnitPrice)) + '</td>' +
                 '<td>' + escapeHtml(formatMoney(row.purchaseAmountSum)) + '</td>' +
                 '<td>' + escapeHtml(formatMoney(row.salesAmountSum)) + '</td>' +
                 '<td><input type="number" class="po-preview-edit-input" data-field="prepaidAmount" min="0" step="0.01" value="' + escapeAttr((Number(row.prepaidAmount) || 0).toFixed(2)) + '"></td>' +
@@ -1249,11 +1262,6 @@
         var rawValue = input.value;
         if (field === 'buyer') {
             row.buyer = String(rawValue || '').trim();
-        } else if (field === 'actualUnitPrice') {
-            var actual = Number(rawValue);
-            if (isNaN(actual) || actual < 0) actual = 0;
-            row.actualUnitPrice = actual;
-            row.purchaseAmountSum = (Number(row.pendingQtySum) || 0) * actual;
         } else if (field === 'prepaidAmount') {
             var prepaid = Number(rawValue);
             if (isNaN(prepaid) || prepaid < 0) prepaid = 0;

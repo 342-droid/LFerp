@@ -7,23 +7,417 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <style>
+        .sp-edit-modal .modal-content {
+            width: 720px;
+            max-width: 92%;
+        }
+
+        .sp-edit-form .modal-form-group {
+            width: calc(50% - 10px);
+        }
+
+        .sp-edit-form .modal-form-group.price-field {
+            width: 100%;
+        }
+
+        .sp-edit-form input[readonly] {
+            background-color: #f5f5f5;
+            color: #999;
+            border-color: #e0e0e0;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 <body>
     <div id="sidebar-container"></div>
     <script src="../js/path-prefix.js"></script>
     <script src="../js/mdm-sidebar.js"></script>
+
     <div id="header-container"></div>
+
     <div class="container">
         <main class="main-content">
-            <div class="content-tabs"><button class="active">供货关系</button></div>
+            <div class="content-tabs">
+                <button type="button" class="active">供货关系</button>
+            </div>
+
             <hr class="content-divider">
+
             <div class="content-title">基础数据中心 / 资源中心 / 供货关系</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 70px;">供应商:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchSupplier" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchSupplierDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="华东果蔬有限公司">华东果蔬有限公司</div>
+                                <div class="select-option" data-value="浙北农产品合作社">浙北农产品合作社</div>
+                                <div class="select-option" data-value="上海鲜达供应链">上海鲜达供应链</div>
+                                <div class="select-option" data-value="苏果直采中心">苏果直采中心</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>商品编码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchSkuCode" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>商品条码:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchBarcode" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>商品名称:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchSkuName" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>供货状态:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchSupplyStatus" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchSupplyStatusDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="生效">生效</div>
+                                <div class="select-option" data-value="停用">停用</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="btnSearch">查询</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>供应商</th>
+                                <th>商品编码</th>
+                                <th>商品条码</th>
+                                <th>商品名称</th>
+                                <th>协议价（实际采购价）</th>
+                                <th>供货状态</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+
+                <div id="pagination-container"></div>
+            </section>
         </main>
     </div>
+
+    <div id="supplierProductEditModal" class="modal sp-edit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">供货关系-编辑</div>
+                <span class="close" id="supplierProductEditCloseBtn">&times;</span>
+            </div>
+            <form class="modal-form sp-edit-form" id="supplierProductEditForm">
+                <div class="modal-form-group">
+                    <label for="editSupplier">供应商:</label>
+                    <input type="text" id="editSupplier" readonly>
+                </div>
+                <div class="modal-form-group">
+                    <label for="editSkuCode">商品编码:</label>
+                    <input type="text" id="editSkuCode" readonly>
+                </div>
+                <div class="modal-form-group">
+                    <label for="editBarcode">商品条码:</label>
+                    <input type="text" id="editBarcode" readonly>
+                </div>
+                <div class="modal-form-group">
+                    <label for="editSkuName">商品名称:</label>
+                    <input type="text" id="editSkuName" readonly>
+                </div>
+                <div class="modal-form-group price-field">
+                    <label for="editAgreementPrice">协议价（实际采购价）:</label>
+                    <input type="number" id="editAgreementPrice" min="0" step="0.01" placeholder="请输入协议价">
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="supplierProductEditSaveBtn">保存</button>
+                <button type="button" class="btn btn-secondary" id="supplierProductEditCancelBtn">取消</button>
+            </div>
+        </div>
+    </div>
+
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
     <script src="../js/modal-manager.js"></script>
     <script src="../js/page-manager.js"></script>
+    <script>
+        (function() {
+            var allRows = [
+                { supplier: '华东果蔬有限公司', skuCode: 'SP10001', barcode: '6901234567001', skuName: '库尔勒香梨 4kg', agreementPrice: 42.50, supplyStatus: '生效', createdAt: '2026-04-12 09:15:23', createdBy: '王丽', updatedAt: '2026-05-10 10:08:02', updatedBy: '王丽' },
+                { supplier: '浙北农产品合作社', skuCode: 'SP10002', barcode: '6901234567002', skuName: '精品黄瓜 2kg', agreementPrice: 16.80, supplyStatus: '生效', createdAt: '2026-04-15 14:20:10', createdBy: '张宁', updatedAt: '2026-05-11 11:30:45', updatedBy: '张宁' },
+                { supplier: '上海鲜达供应链', skuCode: 'SP10003', barcode: '6901234567003', skuName: '冷鲜牛腩 1kg', agreementPrice: 58.00, supplyStatus: '停用', createdAt: '2026-03-28 16:40:05', createdBy: '李萌', updatedAt: '2026-05-07 13:12:39', updatedBy: '李萌' },
+                { supplier: '苏果直采中心', skuCode: 'SP10004', barcode: '6901234567004', skuName: '山东土豆 5kg', agreementPrice: 21.60, supplyStatus: '生效', createdAt: '2026-04-18 08:32:54', createdBy: '陈杰', updatedAt: '2026-05-09 17:26:18', updatedBy: '陈杰' },
+                { supplier: '华东果蔬有限公司', skuCode: 'SP10005', barcode: '6901234567005', skuName: '云南小番茄 1kg', agreementPrice: 13.20, supplyStatus: '停用', createdAt: '2026-03-21 10:22:11', createdBy: '王丽', updatedAt: '2026-04-30 15:40:27', updatedBy: '王丽' },
+                { supplier: '浙北农产品合作社', skuCode: 'SP10006', barcode: '6901234567006', skuName: '新西兰奇异果 12粒', agreementPrice: 36.90, supplyStatus: '生效', createdAt: '2026-04-22 11:18:33', createdBy: '张宁', updatedAt: '2026-05-12 09:55:41', updatedBy: '张宁' },
+                { supplier: '上海鲜达供应链', skuCode: 'SP10007', barcode: '6901234567007', skuName: '冷冻鸡中翅 2kg', agreementPrice: 47.00, supplyStatus: '停用', createdAt: '2026-03-26 13:47:25', createdBy: '李萌', updatedAt: '2026-05-08 18:03:19', updatedBy: '李萌' },
+                { supplier: '苏果直采中心', skuCode: 'SP10008', barcode: '6901234567008', skuName: '江西紫薯 3kg', agreementPrice: 19.90, supplyStatus: '生效', createdAt: '2026-04-08 15:39:07', createdBy: '陈杰', updatedAt: '2026-05-06 12:28:54', updatedBy: '陈杰' },
+                { supplier: '华东果蔬有限公司', skuCode: 'SP10009', barcode: '6901234567009', skuName: '东北黑木耳 500g', agreementPrice: 29.50, supplyStatus: '停用', createdAt: '2026-03-11 09:05:44', createdBy: '王丽', updatedAt: '2026-04-27 10:17:36', updatedBy: '王丽' },
+                { supplier: '浙北农产品合作社', skuCode: 'SP10010', barcode: '6901234567010', skuName: '福建空心菜 400g', agreementPrice: 6.80, supplyStatus: '生效', createdAt: '2026-04-25 17:11:50', createdBy: '张宁', updatedAt: '2026-05-13 14:09:22', updatedBy: '张宁' },
+                { supplier: '上海鲜达供应链', skuCode: 'SP10011', barcode: '6901234567011', skuName: '冷鲜猪里脊 1kg', agreementPrice: 39.80, supplyStatus: '生效', createdAt: '2026-04-17 10:55:31', createdBy: '李萌', updatedAt: '2026-05-10 16:43:17', updatedBy: '李萌' },
+                { supplier: '苏果直采中心', skuCode: 'SP10012', barcode: '6901234567012', skuName: '海南贝贝南瓜 2kg', agreementPrice: 18.40, supplyStatus: '停用', createdAt: '2026-03-30 12:27:08', createdBy: '陈杰', updatedAt: '2026-05-05 09:32:40', updatedBy: '陈杰' }
+            ];
+            var filteredRows = allRows.slice();
+            var currentPage = 1;
+            var pageSize = 10;
+            var currentEditingSkuCode = '';
+
+            function escapeHtml(value) {
+                if (value == null) return '';
+                return String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;');
+            }
+
+            function getTextFilter(inputId) {
+                var el = document.getElementById(inputId);
+                return el ? (el.value || '').trim() : '';
+            }
+
+            function getSelectFilter(inputId) {
+                var el = document.getElementById(inputId);
+                if (!el) return '';
+                if (el.dataset && el.dataset.value != null) {
+                    return String(el.dataset.value).trim();
+                }
+                return (el.value || '').trim();
+            }
+
+            function statusCellHtml(text) {
+                if (text === '生效') return '<span class="status active">生效</span>';
+                if (text === '停用') return '<span class="status inactive">停用</span>';
+                return escapeHtml(text);
+            }
+
+            function formatPrice(value) {
+                var num = Number(value);
+                if (isNaN(num)) return '--';
+                return num.toFixed(2);
+            }
+
+            function nowDateTimeText() {
+                var d = new Date();
+                function pad(n) { return String(n).padStart(2, '0'); }
+                return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+            }
+
+            function showMessage(message, type) {
+                if (typeof showToast === 'function') {
+                    showToast(message, type || 'success');
+                }
+            }
+
+            function openEditModal(rowData) {
+                var modal = document.getElementById('supplierProductEditModal');
+                if (!modal || !rowData) return;
+                currentEditingSkuCode = rowData.skuCode;
+                document.getElementById('editSupplier').value = rowData.supplier || '';
+                document.getElementById('editSkuCode').value = rowData.skuCode || '';
+                document.getElementById('editBarcode').value = rowData.barcode || '';
+                document.getElementById('editSkuName').value = rowData.skuName || '';
+                document.getElementById('editAgreementPrice').value = formatPrice(rowData.agreementPrice);
+                modal.style.display = 'block';
+            }
+
+            function closeEditModal() {
+                var modal = document.getElementById('supplierProductEditModal');
+                if (!modal) return;
+                modal.style.display = 'none';
+                currentEditingSkuCode = '';
+            }
+
+            function saveEditModal() {
+                if (!currentEditingSkuCode) return;
+                var priceInput = document.getElementById('editAgreementPrice');
+                var nextPrice = Number(priceInput && priceInput.value);
+                if (isNaN(nextPrice) || nextPrice < 0) {
+                    showMessage('请输入有效的协议价', 'error');
+                    return;
+                }
+
+                var target = allRows.find(function(item) {
+                    return item.skuCode === currentEditingSkuCode;
+                });
+                if (!target) {
+                    closeEditModal();
+                    return;
+                }
+
+                target.agreementPrice = Number(nextPrice.toFixed(2));
+                target.updatedAt = nowDateTimeText();
+                target.updatedBy = '当前用户';
+                applyFilters();
+                renderTable();
+                closeEditModal();
+                showMessage('供货关系已更新');
+            }
+
+            function toggleSupplyStatus(skuCode) {
+                var target = allRows.find(function(item) {
+                    return item.skuCode === skuCode;
+                });
+                if (!target) return;
+                target.supplyStatus = target.supplyStatus === '生效' ? '停用' : '生效';
+                target.updatedAt = nowDateTimeText();
+                target.updatedBy = '当前用户';
+            }
+
+            function applyFilters() {
+                var supplier = getSelectFilter('searchSupplier');
+                var skuCode = getTextFilter('searchSkuCode');
+                var barcode = getTextFilter('searchBarcode');
+                var skuName = getTextFilter('searchSkuName');
+                var supplyStatus = getSelectFilter('searchSupplyStatus');
+
+                filteredRows = allRows.filter(function(row) {
+                    if (supplier && row.supplier !== supplier) return false;
+                    if (skuCode && row.skuCode.indexOf(skuCode) === -1) return false;
+                    if (barcode && row.barcode.indexOf(barcode) === -1) return false;
+                    if (skuName && row.skuName.indexOf(skuName) === -1) return false;
+                    if (supplyStatus && row.supplyStatus !== supplyStatus) return false;
+                    return true;
+                });
+            }
+
+            function renderTable() {
+                var tbody = document.getElementById('tableBody');
+                if (!tbody) return;
+
+                var totalItems = filteredRows.length;
+                var totalPages = Math.max(1, Math.ceil(totalItems / pageSize) || 1);
+                if (currentPage > totalPages) currentPage = totalPages;
+                var start = (currentPage - 1) * pageSize;
+                var pageRows = filteredRows.slice(start, start + pageSize);
+
+                if (!pageRows.length) {
+                    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:#999;">暂无数据</td></tr>';
+                } else {
+                    tbody.innerHTML = pageRows.map(function(row) {
+                        var toggleText = row.supplyStatus === '生效' ? '停用' : '生效';
+                        return (
+                            '<tr data-sku-code="' + escapeHtml(row.skuCode) + '">' +
+                                '<td>' + escapeHtml(row.supplier) + '</td>' +
+                                '<td>' + escapeHtml(row.skuCode) + '</td>' +
+                                '<td>' + escapeHtml(row.barcode) + '</td>' +
+                                '<td>' + escapeHtml(row.skuName) + '</td>' +
+                                '<td>' + escapeHtml(formatPrice(row.agreementPrice)) + '</td>' +
+                                '<td>' + statusCellHtml(row.supplyStatus) + '</td>' +
+                                '<td>' + escapeHtml(row.createdAt) + '</td>' +
+                                '<td>' + escapeHtml(row.createdBy) + '</td>' +
+                                '<td>' + escapeHtml(row.updatedAt) + '</td>' +
+                                '<td>' + escapeHtml(row.updatedBy) + '</td>' +
+                                '<td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="toggle-status-btn">' + escapeHtml(toggleText) + '</a></td>' +
+                            '</tr>'
+                        );
+                    }).join('');
+                }
+
+                if (typeof createPagination === 'function') {
+                    createPagination({
+                        containerId: 'pagination-container',
+                        totalItems: totalItems,
+                        currentPage: currentPage,
+                        pageSize: pageSize,
+                        onPageChange: function(page) {
+                            currentPage = page;
+                            renderTable();
+                        },
+                        onPageSizeChange: function(newSize) {
+                            pageSize = newSize;
+                            currentPage = 1;
+                            renderTable();
+                        }
+                    });
+                }
+            }
+
+            document.getElementById('btnSearch').addEventListener('click', function() {
+                applyFilters();
+                currentPage = 1;
+                renderTable();
+            });
+
+            document.getElementById('tableBody').addEventListener('click', function(e) {
+                var editBtn = e.target.closest('.edit-btn');
+                var toggleBtn = e.target.closest('.toggle-status-btn');
+                if (!editBtn && !toggleBtn) return;
+
+                e.preventDefault();
+                var rowEl = e.target.closest('tr');
+                if (!rowEl) return;
+                var skuCode = rowEl.getAttribute('data-sku-code');
+                if (!skuCode) return;
+
+                var rowData = allRows.find(function(item) {
+                    return item.skuCode === skuCode;
+                });
+                if (!rowData) return;
+
+                if (editBtn) {
+                    if (rowData.supplyStatus !== '停用') {
+                        showMessage('仅停用状态才可编辑', 'error');
+                        return;
+                    }
+                    openEditModal(rowData);
+                    return;
+                }
+
+                if (toggleBtn) {
+                    toggleSupplyStatus(skuCode);
+                    applyFilters();
+                    renderTable();
+                    showMessage('供货状态已更新');
+                }
+            });
+
+            if (typeof initCustomSelect === 'function') {
+                initCustomSelect('searchSupplier', 'searchSupplierDropdown');
+                initCustomSelect('searchSupplyStatus', 'searchSupplyStatusDropdown');
+            }
+
+            document.getElementById('supplierProductEditCloseBtn').addEventListener('click', closeEditModal);
+            document.getElementById('supplierProductEditCancelBtn').addEventListener('click', closeEditModal);
+            document.getElementById('supplierProductEditSaveBtn').addEventListener('click', saveEditModal);
+            document.getElementById('supplierProductEditModal').addEventListener('click', function(e) {
+                if (e.target && e.target.id === 'supplierProductEditModal') {
+                    closeEditModal();
+                }
+            });
+
+            applyFilters();
+            renderTable();
+        })();
+    </script>
 </body>
 </html>
