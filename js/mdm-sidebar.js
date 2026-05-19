@@ -29,7 +29,8 @@
         { href: 'mdm_archive_supplier.html', text: '供应商档案' },
         { href: 'mdm_archive_warehouse.html', text: '仓库档案' },
         { href: 'mdm_archive_live_room.html', text: '直播间档案' },
-        { href: 'mdm_archive_carrier.html', text: '承运商档案' }
+        { href: 'mdm_archive_carrier.html', text: '承运商档案' },
+        { href: 'mdm_supplier_product.html', text: '供货关系' }
     ];
 
     const peopleItems = [

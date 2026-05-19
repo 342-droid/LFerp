@@ -79,12 +79,22 @@
 
         .wh-param-panel {
             display: none;
-            padding: 6px 0 4px;
+            padding: 6px 4px 4px;
             min-height: 36px;
         }
 
         .wh-param-panel.active {
-            display: block;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            row-gap: 10px;
+        }
+
+        .wh-param-field {
+            flex: 0 0 33.3333%;
+            min-width: 0;
+            display: flex;
+            justify-content: center;
         }
 
         .wh-param-empty-hint {
@@ -103,6 +113,33 @@
         .param-checkbox-row input[type="checkbox"] {
             width: auto;
             cursor: pointer;
+        }
+
+        .param-select-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .param-select-row label {
+            white-space: nowrap;
+        }
+
+        .param-select-row .custom-select {
+            width: 160px;
+        }
+
+        .param-select-row .custom-select input {
+            width: 100%;
+            height: 30px;
+            padding: 4px 28px 4px 8px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #333;
+            background: #fff;
         }
     </style>
 </head>
@@ -280,7 +317,8 @@
                 // 搜索区域下拉框
                 customSelects: [
                     { inputId: 'searchWarehouseType', dropdownId: 'searchWarehouseTypeDropdown' },
-                    { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' }
+                    { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' },
+                    { inputId: 'editReceiptInteractionMode', dropdownId: 'editReceiptInteractionModeDropdown' }
                 ],
                 
                 // 字段定义 - 自动生成新增/编辑模态框
@@ -309,19 +347,39 @@
                         </div>
                         <div class="wh-param-panels">
                             <div class="wh-param-panel active" data-wh-panel="out" role="tabpanel">
-                                <label class="param-checkbox-row">
-                                    <input type="checkbox" id="editParamReusableConsumable">
-                                    <span>可循环耗材管理</span>
-                                </label>
+                                <div class="wh-param-field">
+                                    <label class="param-checkbox-row">
+                                        <input type="checkbox" id="editParamReusableConsumable">
+                                        <span>可循环耗材管理</span>
+                                    </label>
+                                </div>
                             </div>
                             <div class="wh-param-panel" data-wh-panel="in" role="tabpanel">
-                                <label class="param-checkbox-row">
-                                    <input type="checkbox" id="editParamFullReceiptAutoClose">
-                                    <span>全量收货自动关单</span>
-                                </label>
+                                <div class="wh-param-field">
+                                    <label class="param-checkbox-row">
+                                        <input type="checkbox" id="editParamFullReceiptAutoClose">
+                                        <span>全量收货自动关单</span>
+                                    </label>
+                                </div>
+                                <div class="wh-param-field">
+                                    <div class="param-select-row">
+                                        <label for="editReceiptInteractionMode">收货交互方式</label>
+                                        <div class="custom-select">
+                                            <input type="text" id="editReceiptInteractionMode" placeholder="请选择">
+                                            <span class="select-arrow">▼</span>
+                                            <span class="clear-btn">×</span>
+                                            <div class="select-dropdown" id="editReceiptInteractionModeDropdown">
+                                                <div class="select-option" data-value="task">任务式</div>
+                                                <div class="select-option" data-value="list">列表式</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="wh-param-panel" data-wh-panel="inner" role="tabpanel">
-                                <span class="wh-param-empty-hint">暂无参数</span>
+                                <div class="wh-param-field">
+                                    <span class="wh-param-empty-hint">暂无参数</span>
+                                </div>
                             </div>
                         </div>
                     </div>`
@@ -382,6 +440,12 @@
                         if (fullReceiptAutoCloseCb) {
                             if (fullReceiptAutoCloseCb.checked) row.setAttribute('data-full-receipt-auto-close', 'true');
                             else row.removeAttribute('data-full-receipt-auto-close');
+                        }
+                        const receiptInteractionMode = document.getElementById('editReceiptInteractionMode');
+                        if (receiptInteractionMode) {
+                            const mode = (receiptInteractionMode.dataset.value || '').trim();
+                            if (mode) row.setAttribute('data-receipt-interaction-mode', mode);
+                            else row.removeAttribute('data-receipt-interaction-mode');
                         }
                         page.updateTableRow(row, {
                             2: document.getElementById('editWarehouseName').value.trim(),
@@ -446,6 +510,13 @@
                 const fullReceiptAutoCloseCb = document.getElementById('editParamFullReceiptAutoClose');
                 if (fullReceiptAutoCloseCb) {
                     fullReceiptAutoCloseCb.checked = !!(row && row.getAttribute('data-full-receipt-auto-close') === 'true');
+                }
+                const receiptInteractionMode = document.getElementById('editReceiptInteractionMode');
+                if (receiptInteractionMode) {
+                    const mode = row ? (row.getAttribute('data-receipt-interaction-mode') || 'task') : 'task';
+                    const modeTextMap = { task: '任务式', list: '列表式' };
+                    receiptInteractionMode.dataset.value = mode;
+                    receiptInteractionMode.value = modeTextMap[mode] || '任务式';
                 }
             }
 
