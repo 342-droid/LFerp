@@ -1297,79 +1297,458 @@
         }, 0);
     }
 
+    var BD_CATEGORY_OPTIONS = [
+        { value: '', text: '请选择BD分类' },
+        { value: '城市BD', text: '城市BD' },
+        { value: '行业BD', text: '行业BD' },
+        { value: '渠道BD', text: '渠道BD' }
+    ];
+
+    var BD_IDENTITY_OPTIONS = [
+        { value: '', text: '请选择BD身份' },
+        { value: '初级', text: '初级' },
+        { value: '高级', text: '高级' },
+        { value: '主管', text: '主管' },
+        { value: '总监', text: '总监' }
+    ];
+
+    var BD_SUPERIOR_PLACEHOLDER = { value: '', text: '请选择BD上级' };
+
+    /** 当前身份对应的上一级身份（作为 BD 上级的候选身份） */
+    var BD_SUPERIOR_IDENTITY = {
+        初级: '高级',
+        高级: '主管',
+        主管: '总监',
+        总监: null
+    };
+
+    var BD_CATEGORY_FILTER_MAP = { city: '城市BD', industry: '行业BD', channel: '渠道BD' };
+    var BD_IDENTITY_FILTER_MAP = {
+        junior: '初级',
+        senior: '高级',
+        supervisor: '主管',
+        director: '总监'
+    };
+
+    function getEnabledBdRowsFromTable() {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody) return [];
+        var rows = [];
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+            var cells = tr.querySelectorAll('td');
+            if (cells.length < 14) return;
+            var statusEl = cells[12].querySelector('.status');
+            rows.push({
+                name: cells[1].textContent.trim(),
+                identity: cells[4].textContent.trim(),
+                enabled: !!(statusEl && statusEl.textContent.trim() === '开启')
+            });
+        });
+        return rows;
+    }
+
+    function buildBdSuperiorOptions(identity, selectedName, excludeName) {
+        var options = [BD_SUPERIOR_PLACEHOLDER];
+        var targetIdentity = BD_SUPERIOR_IDENTITY[identity];
+        if (!targetIdentity) {
+            options.push({ value: '无上级', text: '无上级' });
+            return options;
+        }
+        getEnabledBdRowsFromTable().forEach(function (row) {
+            if (!row.enabled) return;
+            if (row.identity !== targetIdentity) return;
+            if (excludeName && row.name === excludeName) return;
+            options.push({ value: row.name, text: row.name });
+        });
+        if (
+            selectedName &&
+            selectedName !== '无上级' &&
+            !options.some(function (opt) {
+                return opt.value === selectedName;
+            })
+        ) {
+            options.push({ value: selectedName, text: selectedName });
+        }
+        return options;
+    }
+
+    function refreshBdSuperiorSelect(inputId, dropdownId, identity, selectedName, excludeName) {
+        var options = buildBdSuperiorOptions(identity, selectedName, excludeName);
+        if (typeof renderSelectOptions === 'function') {
+            renderSelectOptions(dropdownId, options);
+        }
+        var input = document.getElementById(inputId);
+        if (!input) return;
+        if (selectedName) {
+            input.value = selectedName;
+            input.dataset.value = selectedName;
+        } else if (!targetIdentityRequiresSuperior(identity)) {
+            input.value = '无上级';
+            input.dataset.value = '无上级';
+        } else {
+            input.value = '';
+            input.dataset.value = '';
+        }
+    }
+
+    function targetIdentityRequiresSuperior(identity) {
+        return !!BD_SUPERIOR_IDENTITY[identity];
+    }
+
+    function bindBdIdentitySuperiorCascade(isEdit, getExcludeName) {
+        var identityId = isEdit ? 'editBdIdentity' : 'bdIdentity';
+        var superiorInputId = isEdit ? 'editBdSuperior' : 'bdSuperior';
+        var superiorDropdownId = superiorInputId + 'Dropdown';
+        var identityEl = document.getElementById(identityId);
+        if (!identityEl || identityEl.dataset.bdCascadeBound === '1') return;
+        identityEl.dataset.bdCascadeBound = '1';
+        identityEl.addEventListener('change', function () {
+            var identity = identityEl.value.trim();
+            var excludeName = typeof getExcludeName === 'function' ? getExcludeName() : '';
+            refreshBdSuperiorSelect(superiorInputId, superiorDropdownId, identity, '', excludeName);
+        });
+    }
+
+    function bindPeopleNameCharCounter(inputId, counterId) {
+        var input = document.getElementById(inputId);
+        var counter = document.getElementById(counterId);
+        if (!input || !counter || input.dataset.peopleCharBound === '1') return;
+        input.dataset.peopleCharBound = '1';
+        function sync() {
+            counter.textContent = String((input.value || '').length) + ' / 20';
+        }
+        input.addEventListener('input', sync);
+        sync();
+    }
+
+    function bindBdNameCharCounter(inputId, counterId) {
+        bindPeopleNameCharCounter(inputId, counterId);
+    }
+
+    function movePeopleRequiredMarkBeforeLabel(modalRoot) {
+        if (!modalRoot) return;
+        modalRoot.querySelectorAll('.modal-form-group > label').forEach(function (lab) {
+            var star = lab.querySelector('span[style*="red"], span[style*="color: red"]');
+            if (star && lab.firstChild !== star) {
+                lab.insertBefore(star, lab.firstChild);
+                star.classList.add('mdm-people-req', 'mdm-bd-req');
+                star.removeAttribute('style');
+            }
+        });
+    }
+
+    function moveBdRequiredMarkBeforeLabel(modalRoot) {
+        movePeopleRequiredMarkBeforeLabel(modalRoot);
+    }
+
+    function setupPeopleModalShell(pm, modalId, modalKey, titleText, saveBtnId, nameCounters) {
+        var modal = document.getElementById(modalId);
+        if (!modal) return;
+        modal.classList.add('mdm-people-modal-root');
+
+        var content = modal.querySelector('.modal-content');
+        if (content) content.classList.add('mdm-people-modal');
+
+        var titleEl = modal.querySelector('.modal-title');
+        if (titleEl) {
+            titleEl.textContent = titleText;
+            titleEl.classList.add('mdm-people-modal__title');
+        }
+
+        var header = modal.querySelector('.modal-header');
+        if (header && !header.querySelector('.mdm-people-modal__header-actions')) {
+            var oldClose = header.querySelector('.close');
+            if (oldClose) oldClose.style.display = 'none';
+
+            var actions = document.createElement('div');
+            actions.className = 'mdm-people-modal__header-actions';
+
+            var fsBtn = document.createElement('button');
+            fsBtn.type = 'button';
+            fsBtn.className = 'mdm-people-modal__header-btn';
+            fsBtn.title = '全屏';
+            fsBtn.setAttribute('aria-label', '全屏');
+            fsBtn.innerHTML =
+                '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
+                '<path d="M9.5 2.5H13.5V6.5M6.5 13.5H2.5V9.5M13.5 2.5L10 6M2.5 13.5L6 10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            fsBtn.addEventListener('click', function () {
+                if (content) content.classList.toggle('mdm-people-modal--fullscreen');
+            });
+
+            var closeBtn = document.createElement('button');
+            closeBtn.type = 'button';
+            closeBtn.className = 'mdm-people-modal__header-btn';
+            closeBtn.title = '关闭';
+            closeBtn.setAttribute('aria-label', '关闭');
+            closeBtn.innerHTML = '&times;';
+            closeBtn.addEventListener('click', function () {
+                pm.closeModal(modalKey);
+            });
+
+            actions.appendChild(fsBtn);
+            actions.appendChild(closeBtn);
+            header.appendChild(actions);
+        }
+
+        var form = modal.querySelector('.modal-form');
+        if (form) form.classList.add('mdm-people-modal-form');
+
+        var footer = modal.querySelector('.modal-footer');
+        if (footer) footer.classList.add('mdm-people-modal__footer');
+
+        var saveBtn = document.getElementById(saveBtnId);
+        if (saveBtn) saveBtn.textContent = '确定';
+
+        movePeopleRequiredMarkBeforeLabel(modal);
+        (nameCounters || []).forEach(function (pair) {
+            bindPeopleNameCharCounter(pair.inputId, pair.counterId);
+        });
+    }
+
+    function setupBdPromoterModalShell(pm, modalId, modalKey, titleText, saveBtnId) {
+        setupPeopleModalShell(pm, modalId, modalKey, titleText, saveBtnId, [
+            { inputId: 'bdName', counterId: 'bdNameCharCount' },
+            { inputId: 'editBdName', counterId: 'editBdNameCharCount' }
+        ]);
+        var modal = document.getElementById(modalId);
+        if (modal) modal.classList.add('mdm-bd-promoter-modal-root');
+        var content = modal && modal.querySelector('.modal-content');
+        if (content) content.classList.add('mdm-bd-promoter-modal');
+        var form = modal && modal.querySelector('.modal-form');
+        if (form) form.classList.add('mdm-bd-promoter-form');
+        var footer = modal && modal.querySelector('.modal-footer');
+        if (footer) footer.classList.add('mdm-bd-promoter-modal__footer');
+        var titleEl = modal && modal.querySelector('.modal-title');
+        if (titleEl) titleEl.classList.add('mdm-bd-promoter-modal__title');
+    }
+
+    function setupPeopleSmsCodeInputs(ids) {
+        ids.forEach(function (id) {
+            var node = document.getElementById(id);
+            if (node) {
+                node.setAttribute('maxlength', '6');
+                node.setAttribute('inputmode', 'numeric');
+            }
+        });
+    }
+
+    var peopleSmsClickBound = false;
+    var PEOPLE_SMS_BTN_MAP = {
+        bdSmsBtn: { phone: 'bdAddPhone', label: 'BD手机' },
+        editBdSmsBtn: { phone: 'editBdPhone', label: 'BD手机' },
+        drvSmsBtn: { phone: 'drvAddPhone', label: '手机号码' },
+        editDrvSmsBtn: { phone: 'editDrvPhone', label: '手机号码' },
+        ancSmsBtn: { phone: 'ancAddPhone', label: '手机号码' },
+        editAncSmsBtn: { phone: 'editAncPhone', label: '手机号码' }
+    };
+
+    function bindPeopleSmsButtons() {
+        if (peopleSmsClickBound) return;
+        peopleSmsClickBound = true;
+        document.body.addEventListener('click', function (e) {
+            var btn = e.target;
+            if (!btn || !btn.id) return;
+            var cfg = PEOPLE_SMS_BTN_MAP[btn.id];
+            if (!cfg) return;
+            var inp = document.getElementById(cfg.phone);
+            var d = inp ? inp.value.replace(/\D/g, '') : '';
+            if (d.length !== 11) {
+                showToast('请先输入11位' + cfg.label, 'info');
+                return;
+            }
+            showToast('验证码已发送（演示）', 'info');
+        });
+    }
+
+    function getPeoplePhoneRawFromRow(row) {
+        if (!row) return '';
+        var raw = row.getAttribute('data-phone-raw');
+        if (raw) return String(raw).replace(/\D/g, '');
+        var cells = row.querySelectorAll('td');
+        if (cells.length < 3) return '';
+        return String(cells[2].textContent || '').replace(/\D/g, '');
+    }
+
+    function validatePeoplePhoneAndSms(phoneInputId, smsInputId, phoneLabel) {
+        var label = phoneLabel || '手机';
+        var raw = (document.getElementById(phoneInputId).value || '').replace(/\D/g, '');
+        if (raw.length !== 11) {
+            showToast('请输入11位' + label, 'error');
+            return false;
+        }
+        var smsCode = (document.getElementById(smsInputId).value || '').replace(/\D/g, '');
+        if (smsCode.length !== 6) {
+            showToast('请输入6位数字验证码', 'error');
+            return false;
+        }
+        return raw;
+    }
+
+    function buildPeopleRoleFields(cfg) {
+        var nameHtml =
+            '<div class="modal-form-group" style="width:100%">' +
+            '<label><span class="mdm-people-req mdm-bd-req">*</span>' +
+            cfg.nameLabel +
+            '</label>' +
+            '<div class="mdm-people-control mdm-bd-control mdm-people-input-count-wrap mdm-bd-input-count-wrap">' +
+            '<div class="input-wrapper">' +
+            '<input type="text" id="' +
+            cfg.nameAddId +
+            '" placeholder="请输入' +
+            cfg.nameLabel +
+            '" maxlength="20">' +
+            '<span class="clear-btn">×</span></div>' +
+            '<span class="mdm-people-char-count mdm-bd-char-count" id="' +
+            cfg.nameAddCounterId +
+            '">0 / 20</span>' +
+            '</div></div>';
+        var nameEditHtml =
+            '<div class="modal-form-group" style="width:100%">' +
+            '<label><span class="mdm-people-req mdm-bd-req">*</span>' +
+            cfg.nameLabel +
+            '</label>' +
+            '<div class="mdm-people-control mdm-bd-control mdm-people-input-count-wrap mdm-bd-input-count-wrap">' +
+            '<div class="input-wrapper">' +
+            '<input type="text" id="' +
+            cfg.nameEditId +
+            '" placeholder="请输入' +
+            cfg.nameLabel +
+            '" maxlength="20">' +
+            '<span class="clear-btn">×</span></div>' +
+            '<span class="mdm-people-char-count mdm-bd-char-count" id="' +
+            cfg.nameEditCounterId +
+            '">0 / 20</span>' +
+            '</div></div>';
+        var phoneHtml =
+            '<div class="modal-form-group" style="width:100%">' +
+            '<label><span class="mdm-people-req mdm-bd-req">*</span>' +
+            cfg.phoneLabel +
+            '</label>' +
+            '<div class="mdm-people-control mdm-bd-control mdm-people-phone-row mdm-bd-phone-row">' +
+            '<div class="input-wrapper">' +
+            '<input type="text" id="' +
+            cfg.phoneAddId +
+            '" placeholder="请输入' +
+            cfg.phoneLabel +
+            '" inputmode="numeric" maxlength="11">' +
+            '<span class="clear-btn">×</span></div>' +
+            '<button type="button" class="btn btn-primary btn-sm mdm-people-sms-btn mdm-bd-sms-btn" id="' +
+            cfg.smsBtnAddId +
+            '">获取验证码</button>' +
+            '</div></div>';
+        var phoneEditHtml =
+            '<div class="modal-form-group" style="width:100%">' +
+            '<label><span class="mdm-people-req mdm-bd-req">*</span>' +
+            cfg.phoneLabel +
+            '</label>' +
+            '<div class="mdm-people-control mdm-bd-control mdm-people-phone-row mdm-bd-phone-row">' +
+            '<div class="input-wrapper">' +
+            '<input type="text" id="' +
+            cfg.phoneEditId +
+            '" placeholder="请输入' +
+            cfg.phoneLabel +
+            '" inputmode="numeric" maxlength="11">' +
+            '<span class="clear-btn">×</span></div>' +
+            '<button type="button" class="btn btn-primary btn-sm mdm-people-sms-btn mdm-bd-sms-btn" id="' +
+            cfg.smsBtnEditId +
+            '">获取验证码</button>' +
+            '</div></div>';
+        return [
+            { id: cfg.idKey, label: cfg.idLabel, type: 'text', editDisabled: true, hiddenInAdd: true },
+            { type: 'raw', html: nameHtml, editHtml: nameEditHtml },
+            { type: 'raw', html: phoneHtml, editHtml: phoneEditHtml },
+            {
+                id: cfg.smsCodeKey,
+                label: '验证码',
+                type: 'text',
+                required: true,
+                placeholder: '请输入6位数字验证码'
+            }
+        ];
+    }
+
+    function getBdPhoneRawFromRow(row) {
+        return getPeoplePhoneRawFromRow(row);
+    }
+
+    function validateBdPhoneAndSms(phoneInputId, smsInputId) {
+        return validatePeoplePhoneAndSms(phoneInputId, smsInputId, 'BD手机');
+    }
+
     var bdFields = [
         { id: 'bdId', label: 'BD推广员ID', type: 'text', editDisabled: true, hiddenInAdd: true },
         {
-            id: 'bdName',
-            label: 'BD姓名',
-            type: 'text',
-            required: true,
-            placeholder: '请输入BD姓名',
-            editDisabled: true
+            type: 'raw',
+            html:
+                '<div class="modal-form-group" style="width:100%">' +
+                '<label><span class="mdm-bd-req">*</span>BD姓名</label>' +
+                '<div class="mdm-bd-control mdm-bd-input-count-wrap">' +
+                '<div class="input-wrapper">' +
+                '<input type="text" id="bdName" placeholder="请输入BD姓名" maxlength="20">' +
+                '<span class="clear-btn">×</span></div>' +
+                '<span class="mdm-bd-char-count" id="bdNameCharCount">0 / 20</span>' +
+                '</div></div>',
+            editHtml:
+                '<div class="modal-form-group" style="width:100%">' +
+                '<label><span class="mdm-bd-req">*</span>BD姓名</label>' +
+                '<div class="mdm-bd-control mdm-bd-input-count-wrap">' +
+                '<div class="input-wrapper">' +
+                '<input type="text" id="editBdName" placeholder="请输入BD姓名" maxlength="20">' +
+                '<span class="clear-btn">×</span></div>' +
+                '<span class="mdm-bd-char-count" id="editBdNameCharCount">0 / 20</span>' +
+                '</div></div>'
         },
         {
             type: 'raw',
             html:
                 '<div class="modal-form-group" style="width:100%">' +
-                '<label style="min-width:100px"><span style="color:red">*</span>手机号码</label>' +
-                '<div style="flex:1;display:flex;gap:8px;align-items:center">' +
-                '<div class="input-wrapper" style="flex:1">' +
-                '<input type="text" id="bdAddPhone" placeholder="请输入手机号码" inputmode="numeric" maxlength="11">' +
+                '<label><span class="mdm-bd-req">*</span>BD手机</label>' +
+                '<div class="mdm-bd-control mdm-bd-phone-row">' +
+                '<div class="input-wrapper">' +
+                '<input type="text" id="bdAddPhone" placeholder="请输入BD手机" inputmode="numeric" maxlength="11">' +
                 '<span class="clear-btn">×</span></div>' +
-                '<button type="button" class="btn btn-secondary btn-sm" id="bdSmsBtn">获取验证码</button>' +
+                '<button type="button" class="btn btn-primary btn-sm mdm-bd-sms-btn" id="bdSmsBtn">获取验证码</button>' +
                 '</div></div>',
             editHtml:
-                '<div class="modal-form-group"><label style="min-width:100px">手机号码</label>' +
+                '<div class="modal-form-group" style="width:100%">' +
+                '<label><span class="mdm-bd-req">*</span>BD手机</label>' +
+                '<div class="mdm-bd-control mdm-bd-phone-row">' +
                 '<div class="input-wrapper">' +
-                '<input type="text" id="editBdPhone" disabled>' +
-                '<span class="clear-btn">×</span></div></div>'
+                '<input type="text" id="editBdPhone" placeholder="请输入BD手机" inputmode="numeric" maxlength="11">' +
+                '<span class="clear-btn">×</span></div>' +
+                '<button type="button" class="btn btn-primary btn-sm mdm-bd-sms-btn" id="editBdSmsBtn">获取验证码</button>' +
+                '</div></div>'
         },
         {
             id: 'bdSmsCode',
             label: '验证码',
             type: 'text',
             required: true,
-            editDisabled: true,
-            placeholder: '请输入验证码'
+            placeholder: '请输入6位数字验证码'
         },
         {
             id: 'bdCategory',
             label: 'BD分类',
             type: 'select',
             required: true,
-            editDisabled: true,
-            options: [
-                { value: '', text: '请选择' },
-                { value: '一级BD', text: '一级BD' },
-                { value: '二级BD', text: '二级BD' },
-                { value: '渠道BD', text: '渠道BD' }
-            ]
+            placeholder: '请选择BD分类',
+            options: BD_CATEGORY_OPTIONS
         },
         {
             id: 'bdIdentity',
             label: 'BD身份',
             type: 'select',
             required: true,
-            editDisabled: true,
-            options: [
-                { value: '', text: '请选择' },
-                { value: '正式', text: '正式' },
-                { value: '试用', text: '试用' },
-                { value: '合作', text: '合作' }
-            ]
+            placeholder: '请选择BD身份',
+            options: BD_IDENTITY_OPTIONS
         },
         {
             id: 'bdSuperior',
             label: 'BD上级',
             type: 'select',
-            required: true,
-            editDisabled: true,
-            options: [
-                { value: '', text: '请选择' },
-                { value: '李总监', text: '李总监' },
-                { value: '王经理', text: '王经理' },
-                { value: '无上级', text: '无上级' }
-            ]
+            required: false,
+            placeholder: '请选择BD上级',
+            options: [BD_SUPERIOR_PLACEHOLDER]
         }
     ];
 
@@ -1381,8 +1760,8 @@
         var qCat = (document.getElementById('qBdCategory') || {}).value.trim();
         var qId = (document.getElementById('qBdIdentity') || {}).value.trim();
         var qEn = (document.getElementById('qEnabled') || {}).value.trim();
-        var catMap = { l1: '一级BD', l2: '二级BD', channel: '渠道BD' };
-        var idMap = { formal: '正式', probation: '试用', partner: '合作' };
+        var catMap = BD_CATEGORY_FILTER_MAP;
+        var idMap = BD_IDENTITY_FILTER_MAP;
         tbody.querySelectorAll('tr').forEach(function (tr) {
             var cells = tr.querySelectorAll('td');
             if (cells.length < 14) return;
@@ -1412,9 +1791,18 @@
             detailModalTitle: 'BD推广员详情',
             modalWidth: '560px',
             checkboxColumn: false,
-            actionColumnMode: 'editDetailBindWarehouse',
+            actionColumnMode: 'editBindWarehouse',
             fields: bdFields,
-            detailView: { enabled: true, columnIndex: 1, linkClass: 'subject-name-link' },
+            detailView: {
+                enabled: true,
+                columnIndex: 1,
+                linkClass: 'subject-name-link',
+                onOpenDetail: function (row) {
+                    if (window.MdmBdPromoterDetail) {
+                        window.MdmBdPromoterDetail.openFromRow(row, 'base');
+                    }
+                }
+            },
             customRowActions: [
                 {
                     selector: '.mdm-bd-settle',
@@ -1423,13 +1811,6 @@
                         var row = el.closest('tr');
                         var nm = row ? row.querySelectorAll('td')[1].textContent.trim() : '';
                         openBdSettleInfoModal(nm);
-                    }
-                },
-                {
-                    selector: '.mdm-peop-detail',
-                    handler: function (e, el, page) {
-                        e.preventDefault();
-                        page.handleDetail(el.closest('tr'));
                     }
                 },
                 {
@@ -1445,30 +1826,39 @@
                 cancelBtnId: 'mdmBdAddCancelBtn',
                 saveBtnId: 'mdmBdAddSaveBtn',
                 triggerBtnId: 'mdmPeopleBdAddBtn',
+                onOpen: function () {
+                    bindBdIdentitySuperiorCascade(false, function () {
+                        var nameEl = document.getElementById('bdName');
+                        return nameEl ? nameEl.value.trim() : '';
+                    });
+                    refreshBdSuperiorSelect('bdSuperior', 'bdSuperiorDropdown', '', '', '');
+                    var nameCnt = document.getElementById('bdNameCharCount');
+                    var nameInp = document.getElementById('bdName');
+                    if (nameCnt && nameInp) {
+                        nameCnt.textContent = String((nameInp.value || '').length) + ' / 20';
+                    }
+                },
                 validations: [
                     { id: 'bdName', message: '请输入BD姓名', required: true },
-                    { id: 'bdAddPhone', message: '请输入手机号码', required: true },
-                    { id: 'bdSmsCode', message: '请输入验证码', required: true },
+                    { id: 'bdAddPhone', message: '请输入BD手机', required: true },
+                    { id: 'bdSmsCode', message: '请输入6位数字验证码', required: true },
                     { id: 'bdCategory', message: '请选择BD分类', required: true },
-                    { id: 'bdIdentity', message: '请选择BD身份', required: true },
-                    { id: 'bdSuperior', message: '请选择BD上级', required: true }
+                    { id: 'bdIdentity', message: '请选择BD身份', required: true }
                 ],
                 onSave: function () {
-                    var raw = document.getElementById('bdAddPhone').value.replace(/\D/g, '');
-                    if (raw.length !== 11) {
-                        showToast('请输入11位手机号码', 'error');
-                        return false;
-                    }
+                    var raw = validateBdPhoneAndSms('bdAddPhone', 'bdSmsCode');
+                    if (!raw) return false;
                     var id = 'BD-PROMO-' + String(Date.now()).slice(-6);
                     var masked = maskBdPhoneForCell(raw);
-                    pm.addTableRow({
+                    var superiorVal = document.getElementById('bdSuperior').value.trim();
+                    var newRow = pm.addTableRow({
                         cells: [
                             id,
                             document.getElementById('bdName').value.trim(),
                             masked,
                             document.getElementById('bdCategory').value.trim(),
                             document.getElementById('bdIdentity').value.trim(),
-                            document.getElementById('bdSuperior').value.trim(),
+                            superiorVal || '—',
                             '0',
                             '¥0',
                             '¥0',
@@ -1478,6 +1868,14 @@
                             { value: '开启', isStatus: true }
                         ]
                     });
+                    if (newRow) newRow.setAttribute('data-bd-phone-raw', raw);
+                    if (newRow) {
+                        newRow.setAttribute(
+                            'data-bd-member-no',
+                            'M' + String(Date.now()).slice(-6).padStart(6, '0')
+                        );
+                        newRow.setAttribute('data-bd-join-time', pm.getCurrentTimeStr().replace(' ', 'T'));
+                    }
                     refreshBdBindWarehouseLinksInTable();
                     showToast('已添加 BD（演示）', 'success');
                 }
@@ -1486,60 +1884,90 @@
                 modalId: 'mdmBdEdit',
                 cancelBtnId: 'mdmBdEditCancelBtn',
                 saveBtnId: 'mdmBdEditSaveBtn',
+                onOpen: function () {
+                    bindBdIdentitySuperiorCascade(true, function () {
+                        return pm.currentEditRow
+                            ? pm.currentEditRow.querySelectorAll('td')[1].textContent.trim()
+                            : '';
+                    });
+                    var identityEl = document.getElementById('editBdIdentity');
+                    var superiorEl = document.getElementById('editBdSuperior');
+                    var identity = identityEl ? identityEl.value.trim() : '';
+                    var superior = superiorEl ? superiorEl.value.trim() : '';
+                    var excludeName = pm.currentEditRow
+                        ? pm.currentEditRow.querySelectorAll('td')[1].textContent.trim()
+                        : '';
+                    refreshBdSuperiorSelect(
+                        'editBdSuperior',
+                        'editBdSuperiorDropdown',
+                        identity,
+                        superior,
+                        excludeName
+                    );
+                    var editNameCnt = document.getElementById('editBdNameCharCount');
+                    var editNameInp = document.getElementById('editBdName');
+                    if (editNameCnt && editNameInp) {
+                        editNameCnt.textContent = String((editNameInp.value || '').length) + ' / 20';
+                    }
+                },
                 validations: [
                     { id: 'editBdName', message: '请输入BD姓名', required: true },
+                    { id: 'editBdPhone', message: '请输入BD手机', required: true },
+                    { id: 'editBdSmsCode', message: '请输入6位数字验证码', required: true },
                     { id: 'editBdCategory', message: '请选择BD分类', required: true },
-                    { id: 'editBdIdentity', message: '请选择BD身份', required: true },
-                    { id: 'editBdSuperior', message: '请选择BD上级', required: true }
+                    { id: 'editBdIdentity', message: '请选择BD身份', required: true }
                 ],
                 mapRowToForm: function (row) {
                     pm.currentEditRow = row;
                     var c = row.querySelectorAll('td');
+                    var phoneRaw = getBdPhoneRawFromRow(row);
                     return {
                         editBdId: c[0].textContent.trim(),
                         editBdName: c[1].textContent.trim(),
-                        editBdPhone: c[2].textContent.trim(),
+                        editBdPhone: phoneRaw || c[2].textContent.trim(),
                         editBdCategory: c[3].textContent.trim(),
                         editBdIdentity: c[4].textContent.trim(),
-                        editBdSuperior: c[5].textContent.trim(),
+                        editBdSuperior: c[5].textContent.trim() === '—' ? '' : c[5].textContent.trim(),
                         editBdSmsCode: ''
                     };
                 },
                 onSave: function () {
                     if (!pm.currentEditRow) return;
                     var row = pm.currentEditRow;
+                    var raw = validateBdPhoneAndSms('editBdPhone', 'editBdSmsCode');
+                    if (!raw) return false;
+                    var masked = maskBdPhoneForCell(raw);
+                    var superiorVal = document.getElementById('editBdSuperior').value.trim();
                     pm.updateTableRow(row, {
                         1: document.getElementById('editBdName').value.trim(),
-                        2: document.getElementById('editBdPhone').value.trim(),
+                        2: masked,
                         3: document.getElementById('editBdCategory').value.trim(),
                         4: document.getElementById('editBdIdentity').value.trim(),
-                        5: document.getElementById('editBdSuperior').value.trim()
+                        5: superiorVal || '—'
                     });
+                    row.setAttribute('data-bd-phone-raw', raw);
                     pm.decorateDetailLinkCell(row);
                     showToast('BD 资料已保存（演示）', 'success');
                     pm.currentEditRow = null;
                 },
                 onDetailModeChange: function (isDetail) {
-                    var g = document.getElementById('editBdSmsCode');
-                    if (g && g.closest) g.closest('.modal-form-group').style.display = isDetail ? 'none' : '';
+                    var smsGroup = document.getElementById('editBdSmsCode');
+                    if (smsGroup && smsGroup.closest) {
+                        smsGroup.closest('.modal-form-group').style.display = isDetail ? 'none' : '';
+                    }
+                    var smsBtn = document.getElementById('editBdSmsBtn');
+                    if (smsBtn) smsBtn.style.display = isDetail ? 'none' : '';
                 }
             }
         });
         pm.init();
+        setupBdPromoterModalShell(pm, 'mdmBdAdd', 'add', '添加BD推广员', 'mdmBdAddSaveBtn');
+        setupBdPromoterModalShell(pm, 'mdmBdEdit', 'edit', '编辑BD推广员', 'mdmBdEditSaveBtn');
+        setupPeopleSmsCodeInputs(['bdSmsCode', 'editBdSmsCode']);
+        bindPeopleSmsButtons();
         bindSimpleFilter(pm, {
             resetFields: ['qPersonName', 'qPhone', 'qBdCategory', 'qBdIdentity', 'qEnabled'],
             filterFn: bdFilter
-        });
-        document.body.addEventListener('click', function (e) {
-            if (e.target && e.target.id === 'bdSmsBtn') {
-                var inp = document.getElementById('bdAddPhone');
-                var d = inp ? inp.value.replace(/\D/g, '') : '';
-                if (d.length !== 11) {
-                    showToast('请先输入11位手机号', 'info');
-                    return;
-                }
-                showToast('验证码已发送（演示）', 'info');
-            }
         });
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
@@ -1580,57 +2008,69 @@
     }
 
     function initPeopleDriver() {
-        var fields = [
-            { id: 'did', label: '司机ID', type: 'text', editDisabled: true },
-            { id: 'dname', label: '姓名', type: 'text', required: true },
-            { id: 'dphone', label: '手机号码', type: 'text', required: true }
-        ];
+        var fields = buildPeopleRoleFields({
+            idKey: 'did',
+            idLabel: '司机ID',
+            nameLabel: '姓名',
+            nameAddId: 'dname',
+            nameEditId: 'editDname',
+            nameAddCounterId: 'dnameCharCount',
+            nameEditCounterId: 'editDnameCharCount',
+            phoneLabel: '手机号码',
+            phoneAddId: 'drvAddPhone',
+            phoneEditId: 'editDrvPhone',
+            smsBtnAddId: 'drvSmsBtn',
+            smsBtnEditId: 'editDrvSmsBtn',
+            smsCodeKey: 'drvSmsCode'
+        });
         var pm = new PageManager({
             entityName: '司机',
+            addModalTitle: '添加司机',
+            editModalTitle: '编辑司机',
             modalWidth: '520px',
             checkboxColumn: false,
-            actionColumnMode: 'editDetail',
+            actionColumnMode: 'editOnly',
             fields: fields,
             detailView: { enabled: true, columnIndex: 1, linkClass: 'subject-name-link' },
-            customRowActions: [
-                {
-                    selector: '.mdm-peop-detail',
-                    handler: function (e, el, page) {
-                        e.preventDefault();
-                        page.handleDetail(el.closest('tr'));
-                    }
-                }
-            ],
             addModal: {
                 modalId: 'mdmDrvAdd',
                 cancelBtnId: 'mdmDrvAddCancelBtn',
                 saveBtnId: 'mdmDrvAddSaveBtn',
                 triggerBtnId: 'mdmPeopleDrvAddBtn',
-                validations: [
-                    { id: 'did', message: '请填写司机ID', required: true },
-                    { id: 'dname', message: '请输入姓名', required: true },
-                    { id: 'dphone', message: '请输入手机', required: true }
-                ],
                 onOpen: function () {
-                    var el = document.getElementById('did');
-                    if (el) el.value = 'DRV' + String(Date.now()).slice(-8);
+                    var nameCnt = document.getElementById('dnameCharCount');
+                    var nameInp = document.getElementById('dname');
+                    if (nameCnt && nameInp) {
+                        nameCnt.textContent = String((nameInp.value || '').length) + ' / 20';
+                    }
                 },
+                validations: [
+                    { id: 'dname', message: '请输入姓名', required: true },
+                    { id: 'drvAddPhone', message: '请输入手机号码', required: true },
+                    { id: 'drvSmsCode', message: '请输入6位数字验证码', required: true }
+                ],
                 onSave: function () {
-                    pm.addTableRow({
+                    var raw = validatePeoplePhoneAndSms('drvAddPhone', 'drvSmsCode', '手机号码');
+                    if (!raw) return false;
+                    var id = 'DRV' + String(Date.now()).slice(-8);
+                    var masked = maskBdPhoneForCell(raw);
+                    var newRow = pm.addTableRow({
                         cells: [
-                            document.getElementById('did').value.trim(),
+                            id,
                             document.getElementById('dname').value.trim(),
-                            document.getElementById('dphone').value.trim(),
+                            masked,
                             '城配车队-沪',
                             '在岗',
                             '上海冷丰科技有限公司',
-                            document.getElementById('dphone').value.trim(),
+                            masked,
                             pm.getCurrentTimeStr(),
                             { value: '开启', isStatus: true }
                         ]
                     });
-                    var tr = document.getElementById('tableBody').querySelector('tr');
-                    if (tr) tr.setAttribute('data-dept-key', 'fleet_sh');
+                    if (newRow) {
+                        newRow.setAttribute('data-dept-key', 'fleet_sh');
+                        newRow.setAttribute('data-phone-raw', raw);
+                    }
                     showToast('已添加司机（演示）', 'success');
                 }
             },
@@ -1638,33 +2078,64 @@
                 modalId: 'mdmDrvEdit',
                 cancelBtnId: 'mdmDrvEditCancelBtn',
                 saveBtnId: 'mdmDrvEditSaveBtn',
+                onOpen: function () {
+                    var nameCnt = document.getElementById('editDnameCharCount');
+                    var nameInp = document.getElementById('editDname');
+                    if (nameCnt && nameInp) {
+                        nameCnt.textContent = String((nameInp.value || '').length) + ' / 20';
+                    }
+                },
                 validations: [
                     { id: 'editDname', message: '请输入姓名', required: true },
-                    { id: 'editDphone', message: '请输入手机', required: true }
+                    { id: 'editDrvPhone', message: '请输入手机号码', required: true },
+                    { id: 'editDrvSmsCode', message: '请输入6位数字验证码', required: true }
                 ],
                 mapRowToForm: function (row) {
                     pm.currentEditRow = row;
                     var c = row.querySelectorAll('td');
+                    var phoneRaw = getPeoplePhoneRawFromRow(row);
                     return {
                         editDid: c[0].textContent.trim(),
                         editDname: c[1].textContent.trim(),
-                        editDphone: c[2].textContent.trim()
+                        editDrvPhone: phoneRaw || c[2].textContent.trim(),
+                        editDrvSmsCode: ''
                     };
                 },
                 onSave: function () {
                     if (!pm.currentEditRow) return;
                     var row = pm.currentEditRow;
+                    var raw = validatePeoplePhoneAndSms('editDrvPhone', 'editDrvSmsCode', '手机号码');
+                    if (!raw) return false;
+                    var masked = maskBdPhoneForCell(raw);
                     pm.updateTableRow(row, {
                         1: document.getElementById('editDname').value.trim(),
-                        2: document.getElementById('editDphone').value.trim()
+                        2: masked,
+                        6: masked
                     });
+                    row.setAttribute('data-phone-raw', raw);
                     pm.decorateDetailLinkCell(row);
                     showToast('司机信息已保存（演示）', 'success');
                     pm.currentEditRow = null;
+                },
+                onDetailModeChange: function (isDetail) {
+                    var smsGroup = document.getElementById('editDrvSmsCode');
+                    if (smsGroup && smsGroup.closest) {
+                        smsGroup.closest('.modal-form-group').style.display = isDetail ? 'none' : '';
+                    }
+                    var smsBtn = document.getElementById('editDrvSmsBtn');
+                    if (smsBtn) smsBtn.style.display = isDetail ? 'none' : '';
                 }
             }
         });
         pm.init();
+        setupPeopleModalShell(pm, 'mdmDrvAdd', 'add', '添加司机', 'mdmDrvAddSaveBtn', [
+            { inputId: 'dname', counterId: 'dnameCharCount' }
+        ]);
+        setupPeopleModalShell(pm, 'mdmDrvEdit', 'edit', '编辑司机', 'mdmDrvEditSaveBtn', [
+            { inputId: 'editDname', counterId: 'editDnameCharCount' }
+        ]);
+        setupPeopleSmsCodeInputs(['drvSmsCode', 'editDrvSmsCode']);
+        bindPeopleSmsButtons();
         bindSimpleFilter(pm, {
             resetFields: ['qPersonName', 'qPhone', 'qDept', 'qJobStatus', 'qEnabled'],
             filterFn: rolePeopleFilter
@@ -1675,57 +2146,69 @@
     }
 
     function initPeopleAnchor() {
-        var fields = [
-            { id: 'aid', label: '主播ID', type: 'text', editDisabled: true },
-            { id: 'aname', label: '姓名', type: 'text', required: true },
-            { id: 'aphone', label: '手机号码', type: 'text', required: true }
-        ];
+        var fields = buildPeopleRoleFields({
+            idKey: 'aid',
+            idLabel: '主播ID',
+            nameLabel: '姓名',
+            nameAddId: 'aname',
+            nameEditId: 'editAname',
+            nameAddCounterId: 'anameCharCount',
+            nameEditCounterId: 'editAnameCharCount',
+            phoneLabel: '手机号码',
+            phoneAddId: 'ancAddPhone',
+            phoneEditId: 'editAncPhone',
+            smsBtnAddId: 'ancSmsBtn',
+            smsBtnEditId: 'editAncSmsBtn',
+            smsCodeKey: 'ancSmsCode'
+        });
         var pm = new PageManager({
             entityName: '主播',
-            modalWidth: '480px',
+            addModalTitle: '添加主播',
+            editModalTitle: '编辑主播',
+            modalWidth: '520px',
             checkboxColumn: false,
-            actionColumnMode: 'editDetail',
+            actionColumnMode: 'editOnly',
             fields: fields,
             detailView: { enabled: true, columnIndex: 1, linkClass: 'subject-name-link' },
-            customRowActions: [
-                {
-                    selector: '.mdm-peop-detail',
-                    handler: function (e, el, page) {
-                        e.preventDefault();
-                        page.handleDetail(el.closest('tr'));
-                    }
-                }
-            ],
             addModal: {
                 modalId: 'mdmAncAdd',
                 cancelBtnId: 'mdmAncAddCancelBtn',
                 saveBtnId: 'mdmAncAddSaveBtn',
                 triggerBtnId: 'mdmPeopleAncAddBtn',
-                validations: [
-                    { id: 'aid', message: '请填写主播ID', required: true },
-                    { id: 'aname', message: '请输入姓名', required: true },
-                    { id: 'aphone', message: '请输入手机', required: true }
-                ],
                 onOpen: function () {
-                    var el = document.getElementById('aid');
-                    if (el) el.value = 'ANC' + String(Date.now()).slice(-8);
+                    var nameCnt = document.getElementById('anameCharCount');
+                    var nameInp = document.getElementById('aname');
+                    if (nameCnt && nameInp) {
+                        nameCnt.textContent = String((nameInp.value || '').length) + ' / 20';
+                    }
                 },
+                validations: [
+                    { id: 'aname', message: '请输入姓名', required: true },
+                    { id: 'ancAddPhone', message: '请输入手机号码', required: true },
+                    { id: 'ancSmsCode', message: '请输入6位数字验证码', required: true }
+                ],
                 onSave: function () {
-                    pm.addTableRow({
+                    var raw = validatePeoplePhoneAndSms('ancAddPhone', 'ancSmsCode', '手机号码');
+                    if (!raw) return false;
+                    var id = 'ANC' + String(Date.now()).slice(-8);
+                    var masked = maskBdPhoneForCell(raw);
+                    var newRow = pm.addTableRow({
                         cells: [
-                            document.getElementById('aid').value.trim(),
+                            id,
                             document.getElementById('aname').value.trim(),
-                            document.getElementById('aphone').value.trim(),
+                            masked,
                             '内容运营中心',
                             '在岗',
                             '上海冷丰科技有限公司',
-                            document.getElementById('aphone').value.trim(),
+                            masked,
                             pm.getCurrentTimeStr(),
                             { value: '开启', isStatus: true }
                         ]
                     });
-                    var tr = document.getElementById('tableBody').querySelector('tr');
-                    if (tr) tr.setAttribute('data-dept-key', 'content');
+                    if (newRow) {
+                        newRow.setAttribute('data-dept-key', 'content');
+                        newRow.setAttribute('data-phone-raw', raw);
+                    }
                     showToast('已添加主播（演示）', 'success');
                 }
             },
@@ -1733,33 +2216,64 @@
                 modalId: 'mdmAncEdit',
                 cancelBtnId: 'mdmAncEditCancelBtn',
                 saveBtnId: 'mdmAncEditSaveBtn',
+                onOpen: function () {
+                    var nameCnt = document.getElementById('editAnameCharCount');
+                    var nameInp = document.getElementById('editAname');
+                    if (nameCnt && nameInp) {
+                        nameCnt.textContent = String((nameInp.value || '').length) + ' / 20';
+                    }
+                },
                 validations: [
                     { id: 'editAname', message: '请输入姓名', required: true },
-                    { id: 'editAphone', message: '请输入手机', required: true }
+                    { id: 'editAncPhone', message: '请输入手机号码', required: true },
+                    { id: 'editAncSmsCode', message: '请输入6位数字验证码', required: true }
                 ],
                 mapRowToForm: function (row) {
                     pm.currentEditRow = row;
                     var c = row.querySelectorAll('td');
+                    var phoneRaw = getPeoplePhoneRawFromRow(row);
                     return {
                         editAid: c[0].textContent.trim(),
                         editAname: c[1].textContent.trim(),
-                        editAphone: c[2].textContent.trim()
+                        editAncPhone: phoneRaw || c[2].textContent.trim(),
+                        editAncSmsCode: ''
                     };
                 },
                 onSave: function () {
                     if (!pm.currentEditRow) return;
                     var row = pm.currentEditRow;
+                    var raw = validatePeoplePhoneAndSms('editAncPhone', 'editAncSmsCode', '手机号码');
+                    if (!raw) return false;
+                    var masked = maskBdPhoneForCell(raw);
                     pm.updateTableRow(row, {
                         1: document.getElementById('editAname').value.trim(),
-                        2: document.getElementById('editAphone').value.trim()
+                        2: masked,
+                        6: masked
                     });
+                    row.setAttribute('data-phone-raw', raw);
                     pm.decorateDetailLinkCell(row);
                     showToast('主播信息已保存（演示）', 'success');
                     pm.currentEditRow = null;
+                },
+                onDetailModeChange: function (isDetail) {
+                    var smsGroup = document.getElementById('editAncSmsCode');
+                    if (smsGroup && smsGroup.closest) {
+                        smsGroup.closest('.modal-form-group').style.display = isDetail ? 'none' : '';
+                    }
+                    var smsBtn = document.getElementById('editAncSmsBtn');
+                    if (smsBtn) smsBtn.style.display = isDetail ? 'none' : '';
                 }
             }
         });
         pm.init();
+        setupPeopleModalShell(pm, 'mdmAncAdd', 'add', '添加主播', 'mdmAncAddSaveBtn', [
+            { inputId: 'aname', counterId: 'anameCharCount' }
+        ]);
+        setupPeopleModalShell(pm, 'mdmAncEdit', 'edit', '编辑主播', 'mdmAncEditSaveBtn', [
+            { inputId: 'editAname', counterId: 'editAnameCharCount' }
+        ]);
+        setupPeopleSmsCodeInputs(['ancSmsCode', 'editAncSmsCode']);
+        bindPeopleSmsButtons();
         bindSimpleFilter(pm, {
             resetFields: ['qPersonName', 'qPhone', 'qDept', 'qJobStatus', 'qEnabled'],
             filterFn: rolePeopleFilter

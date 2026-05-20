@@ -7,10 +7,586 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/mdm-people-modal.css">
     <style>
         .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
         .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
         .flow-box { margin: 14px 0; padding: 12px 14px; background: #fafafa; border: 1px solid #eee; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.65; }
+
+        /* BD推广员详情 — 列表左移 */
+        .mdm-bd-page-stack {
+            position: relative;
+            overflow: hidden;
+            min-height: 480px;
+        }
+
+        .mdm-bd-list-view {
+            transition: transform 0.28s ease, opacity 0.28s ease;
+            will-change: transform;
+        }
+
+        .mdm-bd-detail-view {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            background: var(--color-bg-page, #f0f2f5);
+            transform: translateX(100%);
+            transition: transform 0.28s ease;
+            overflow: auto;
+        }
+
+        .mdm-bd-page-stack.is-detail-open .mdm-bd-list-view {
+            transform: translateX(-100%);
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        .mdm-bd-page-stack.is-detail-open .mdm-bd-detail-view {
+            transform: translateX(0);
+        }
+
+        .mdm-bd-detail-page {
+            padding: 0 0 24px;
+            min-height: 100%;
+        }
+
+        .mdm-bd-detail-top {
+            background: #fff;
+            padding: 12px 20px 0;
+            border-bottom: 1px solid var(--color-border, #e8e8e8);
+        }
+
+        .mdm-bd-detail-back {
+            border: none;
+            background: transparent;
+            color: var(--color-text-secondary, #666);
+            font-size: 14px;
+            cursor: pointer;
+            padding: 0;
+            margin-bottom: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .mdm-bd-detail-back:hover {
+            color: var(--color-primary, #ff7019);
+        }
+
+        .mdm-bd-detail-back__arrow {
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .mdm-bd-detail-hero {
+            padding-bottom: 14px;
+        }
+
+        .mdm-bd-detail-name-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .mdm-bd-detail-name {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--color-text, #333);
+            line-height: 1.3;
+        }
+
+        .mdm-bd-detail-status {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 2px;
+            font-size: 12px;
+            line-height: 20px;
+            border: 1px solid transparent;
+        }
+
+        .mdm-bd-detail-status.is-enabled {
+            color: #52c41a;
+            background: #f6ffed;
+            border-color: #b7eb8f;
+        }
+
+        .mdm-bd-detail-status.is-disabled {
+            color: #999;
+            background: #fafafa;
+            border-color: #d9d9d9;
+        }
+
+        .mdm-bd-detail-meta {
+            font-size: 13px;
+            color: var(--color-text-muted, #999);
+        }
+
+        .mdm-bd-detail-tabs {
+            display: flex;
+            gap: 28px;
+            padding: 0 20px;
+            background: #fff;
+            border-bottom: 1px solid var(--color-border, #e8e8e8);
+        }
+
+        .mdm-bd-detail-tab {
+            border: none;
+            background: transparent;
+            padding: 12px 0;
+            font-size: 14px;
+            color: var(--color-text, #333);
+            cursor: pointer;
+            position: relative;
+            margin-bottom: -1px;
+        }
+
+        .mdm-bd-detail-tab.is-active {
+            color: var(--color-primary, #ff7019);
+            font-weight: 500;
+        }
+
+        .mdm-bd-detail-tab.is-active::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 2px;
+            background: var(--color-primary, #ff7019);
+        }
+
+        .mdm-bd-detail-body {
+            padding: 16px 20px 0;
+        }
+
+        .mdm-bd-detail-card {
+            background: #fff;
+            border: 1px solid var(--color-border, #e8e8e8);
+            border-radius: var(--radius-md, 6px);
+            padding: 16px 20px 20px;
+            margin-bottom: 16px;
+        }
+
+        .mdm-bd-detail-card--flush {
+            padding: 16px 20px 12px;
+        }
+
+        .mdm-bd-detail-card__title {
+            margin: 0 0 14px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text, #333);
+        }
+
+        .mdm-bd-detail-card__head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .mdm-bd-detail-card__head .mdm-bd-detail-card__title {
+            margin: 0;
+        }
+
+        .mdm-bd-kv-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            border: 1px solid var(--color-border, #e8e8e8);
+            border-radius: var(--radius-sm, 4px);
+            overflow: hidden;
+        }
+
+        .mdm-bd-kv-item {
+            border-right: 1px solid var(--color-border, #e8e8e8);
+            border-bottom: 1px solid var(--color-border, #e8e8e8);
+            min-width: 0;
+        }
+
+        .mdm-bd-kv-item:nth-child(4n) {
+            border-right: none;
+        }
+
+        .mdm-bd-kv-item.is-col-last {
+            border-right: none;
+        }
+
+        .mdm-bd-kv-item:nth-last-child(-n + 4) {
+            border-bottom: none;
+        }
+
+        .mdm-bd-kv-item.is-row-last {
+            border-bottom: none;
+        }
+
+        .mdm-bd-kv-item__label {
+            padding: 10px 12px;
+            background: #fafafa;
+            font-size: 13px;
+            color: var(--color-text-secondary, #666);
+            border-bottom: 1px solid var(--color-border, #e8e8e8);
+        }
+
+        .mdm-bd-kv-item__value {
+            padding: 10px 12px;
+            font-size: 13px;
+            color: var(--color-text, #333);
+            background: #fff;
+            min-height: 20px;
+            word-break: break-all;
+        }
+
+        .mdm-bd-metric-bar {
+            display: flex;
+            align-items: stretch;
+            border: 1px solid var(--color-border, #e8e8e8);
+            border-radius: var(--radius-sm, 4px);
+            background: #fff;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .mdm-bd-metric-bar__divider {
+            width: 1px;
+            background: var(--color-border, #e8e8e8);
+            flex-shrink: 0;
+        }
+
+        .mdm-bd-metric-item {
+            flex: 1;
+            padding: 16px 20px;
+            text-align: left;
+        }
+
+        .mdm-bd-metric-item__label {
+            font-size: 13px;
+            color: var(--color-text-muted, #999);
+            margin-bottom: 8px;
+        }
+
+        .mdm-bd-metric-item__value {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--color-text, #333);
+            line-height: 1.2;
+        }
+
+        .mdm-bd-detail-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .mdm-bd-detail-toolbar__left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-right: auto;
+        }
+
+        .mdm-bd-detail-toolbar__label {
+            font-size: 13px;
+            color: var(--color-text, #333);
+            white-space: nowrap;
+        }
+
+        .mdm-bd-detail-date-range {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            height: 32px;
+            padding: 0 10px;
+            border: 1px solid var(--color-border, #e8e8e8);
+            border-radius: var(--radius-sm, 4px);
+            background: #fff;
+            min-width: 220px;
+        }
+
+        .mdm-bd-detail-date-range__input {
+            border: none;
+            outline: none;
+            font-size: 13px;
+            color: var(--color-text-muted, #999);
+            background: transparent;
+            width: 180px;
+            cursor: default;
+        }
+
+        .mdm-bd-detail-toolbar__actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mdm-bd-detail-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 32px;
+            padding: 0 14px;
+            border-radius: var(--radius-sm, 4px);
+            font-size: 13px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .mdm-bd-detail-btn--primary {
+            background: var(--color-primary, #ff7019);
+            border-color: var(--color-primary, #ff7019);
+            color: #fff;
+        }
+
+        .mdm-bd-detail-btn--primary:hover {
+            background: var(--color-primary-hover, #e85f10);
+        }
+
+        .mdm-bd-detail-btn--default {
+            background: #fff;
+            border-color: var(--color-border, #e8e8e8);
+            color: var(--color-text, #333);
+        }
+
+        .mdm-bd-detail-btn--default:hover {
+            border-color: var(--color-primary, #ff7019);
+            color: var(--color-primary, #ff7019);
+        }
+
+        .mdm-bd-detail-btn--sm {
+            height: 28px;
+            padding: 0 10px;
+            font-size: 12px;
+        }
+
+        .mdm-bd-detail-table-wrap {
+            border: 1px solid var(--color-border, #e8e8e8);
+            border-radius: var(--radius-sm, 4px);
+            overflow: auto;
+        }
+
+        .mdm-bd-detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .mdm-bd-detail-table th {
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 500;
+            color: var(--color-text, #333);
+            background: #fafafa;
+            border-bottom: 1px solid var(--color-border, #e8e8e8);
+            white-space: nowrap;
+        }
+
+        .mdm-bd-detail-table th.is-muted {
+            background: #f5f5f5;
+        }
+
+        .mdm-bd-detail-table td {
+            padding: 0;
+            border-bottom: 1px solid var(--color-border, #e8e8e8);
+        }
+
+        .mdm-bd-detail-table__empty-row td {
+            border-bottom: none;
+        }
+
+        .mdm-bd-empty {
+            padding: 48px 16px;
+            text-align: center;
+            color: var(--color-text-muted, #999);
+        }
+
+        .mdm-bd-empty__icon {
+            display: block;
+            margin: 0 auto 12px;
+        }
+
+        .mdm-bd-empty p {
+            margin: 0;
+            font-size: 13px;
+        }
+
+        .mdm-bd-detail-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 12px 0 4px;
+            font-size: 13px;
+            color: var(--color-text-secondary, #666);
+        }
+
+        .mdm-bd-detail-pagination__mid {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .mdm-bd-detail-page-size {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 28px;
+            padding: 0 8px;
+            border: 1px solid var(--color-border, #e8e8e8);
+            border-radius: var(--radius-sm, 4px);
+            background: #fff;
+        }
+
+        .mdm-bd-detail-page-size__arrow {
+            font-size: 10px;
+            color: var(--color-text-muted, #999);
+        }
+
+        .mdm-bd-detail-page-nav {
+            display: flex;
+            gap: 4px;
+        }
+
+        .mdm-bd-detail-page-btn {
+            min-width: 28px;
+            height: 28px;
+            padding: 0 6px;
+            border: 1px solid var(--color-border, #e8e8e8);
+            border-radius: var(--radius-sm, 4px);
+            background: #fff;
+            font-size: 13px;
+            color: var(--color-text, #333);
+            cursor: default;
+        }
+
+        .mdm-bd-detail-page-btn.is-active {
+            border-color: var(--color-primary, #ff7019);
+            background: var(--color-primary, #ff7019);
+            color: #fff;
+        }
+
+        .mdm-bd-detail-page-btn:disabled {
+            color: #ccc;
+            background: #fafafa;
+        }
+
+        .mdm-bd-detail-pagination__goto {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mdm-bd-detail-pagination__goto input {
+            width: 40px;
+            height: 28px;
+            border: 1px solid var(--color-border, #e8e8e8);
+            border-radius: var(--radius-sm, 4px);
+            text-align: center;
+            font-size: 13px;
+        }
+
+        /* 结算信息 — 查看 / 编辑展开 */
+        .mdm-bd-settle-card.is-editing .mdm-bd-settle-view {
+            display: none;
+        }
+
+        .mdm-bd-settle-edit {
+            display: none;
+        }
+
+        .mdm-bd-settle-card.is-editing .mdm-bd-settle-edit {
+            display: block;
+        }
+
+        .mdm-bd-settle-card.is-editing .mdm-bd-detail-card__head .mdm-bd-detail-btn {
+            display: none;
+        }
+
+        .mdm-bd-settle-form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px 20px;
+            margin-bottom: 20px;
+        }
+
+        .mdm-bd-settle-field label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: var(--color-text, #333);
+            line-height: 1.4;
+        }
+
+        .mdm-bd-settle-field input {
+            width: 100%;
+            height: 32px;
+            padding: 0 10px;
+            border: 1px solid var(--color-border, #e8e8e8);
+            border-radius: var(--radius-sm, 4px);
+            font-size: 13px;
+            color: var(--color-text, #333);
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .mdm-bd-settle-field input::placeholder {
+            color: var(--color-text-muted, #999);
+        }
+
+        .mdm-bd-settle-field input:focus {
+            border-color: var(--color-primary, #ff7019);
+            box-shadow: 0 0 0 2px var(--color-primary-soft, rgba(255, 106, 0, 0.12));
+        }
+
+        .mdm-bd-settle-uploads {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px 24px;
+            margin-bottom: 20px;
+            max-width: 720px;
+        }
+
+        .mdm-bd-settle-upload label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: var(--color-text, #333);
+            line-height: 1.4;
+        }
+
+        .mdm-bd-settle-upload-box {
+            width: 120px;
+            height: 120px;
+            border: 1px dashed #d9d9d9;
+            border-radius: var(--radius-sm, 4px);
+            background: #fafafa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #bfbfbf;
+            font-size: 28px;
+            line-height: 1;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .mdm-bd-settle-upload-box:hover {
+            border-color: var(--color-primary, #ff7019);
+            color: var(--color-primary, #ff7019);
+        }
+
+        .mdm-bd-settle-form-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding-top: 4px;
+        }
     </style>
 </head>
 <body>
@@ -27,14 +603,14 @@
 <section class="search-section"><form class="search-form">
 <div class="form-group"><label>BD姓名</label><div class="input-wrapper"><input id="qPersonName" placeholder="请输入BD姓名"><span class="clear-btn">×</span></div></div>
 <div class="form-group"><label>手机号码</label><div class="input-wrapper"><input id="qPhone" placeholder="请输入手机号码"><span class="clear-btn">×</span></div></div>
-<div class="form-group"><label>BD分类</label><select id="qBdCategory"><option value="">全部</option><option value="l1">一级BD</option><option value="l2">二级BD</option><option value="channel">渠道BD</option></select></div>
-<div class="form-group"><label>BD身份</label><select id="qBdIdentity"><option value="">全部</option><option value="formal">正式</option><option value="probation">试用</option><option value="partner">合作</option></select></div>
+<div class="form-group"><label>BD分类</label><select id="qBdCategory"><option value="">全部</option><option value="city">城市BD</option><option value="industry">行业BD</option><option value="channel">渠道BD</option></select></div>
+<div class="form-group"><label>BD身份</label><select id="qBdIdentity"><option value="">全部</option><option value="junior">初级</option><option value="senior">高级</option><option value="supervisor">主管</option><option value="director">总监</option></select></div>
 <div class="form-group"><label>状态</label><select id="qEnabled"><option value="">全部</option><option value="on">开启</option><option value="off">禁用</option></select></div>
 <div class="form-actions"><button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button><button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button><button type="button" id="mdmPeopleBdAddBtn" class="btn btn-primary">添加BD推广员</button></div>
 </form></section>
-<section class="table-section"><div class="table-scroll-container"><table class="table"><thead><tr><th>BD推广员ID</th><th>BD姓名</th><th>手机号码</th><th>BD分类</th><th>BD身份</th><th>BD上级</th><th>推广门店数量</th><th>总分佣金额</th><th>总提现金额</th><th>结算信息</th><th>可提现手机号</th><th>创建时间</th><th>状态</th><th>操作</th></tr></thead><tbody id="tableBody"><tr><td>BD-PROMO-883001</td><td>张伟</td><td>186****9001</td><td>一级BD</td><td>正式</td><td>李总监</td><td>28</td><td>¥128,600.00</td><td>¥96,200.00</td><td><a href="#" class="mdm-bd-settle">查看信息</a></td><td>138****2211</td><td>2026-04-24 10:22:11</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="mdm-peop-detail">查看详情</a>　<a href="#" class="edit-btn">编辑</a>　<a href="#" class="mdm-bd-bind-warehouse">绑定仓库</a></td></tr>
-<tr><td>BD-PROMO-883002</td><td>刘芳</td><td>159****7788</td><td>二级BD</td><td>试用</td><td>王经理</td><td>12</td><td>¥42,300.00</td><td>¥18,000.00</td><td><a href="#" class="mdm-bd-settle">查看信息</a></td><td>—</td><td>2026-04-23 16:30:22</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="mdm-peop-detail">查看详情</a>　<a href="#" class="edit-btn">编辑</a>　<a href="#" class="mdm-bd-bind-warehouse">绑定仓库</a></td></tr>
-<tr><td>BD-PROMO-883003</td><td>陈浩</td><td>137****0098</td><td>渠道BD</td><td>合作</td><td>无上级</td><td>6</td><td>¥9,800.00</td><td>¥2,400.00</td><td><a href="#" class="mdm-bd-settle">查看信息</a></td><td>137****0098</td><td>2026-04-20 09:15:40</td><td><span class="status inactive">禁用</span></td><td class="action-links"><a href="#" class="mdm-peop-detail">查看详情</a>　<a href="#" class="edit-btn">编辑</a>　<a href="#" class="mdm-bd-bind-warehouse">绑定仓库</a></td></tr>
+<section class="table-section"><div class="table-scroll-container"><table class="table"><thead><tr><th>BD推广员ID</th><th>BD姓名</th><th>手机号码</th><th>BD分类</th><th>BD身份</th><th>BD上级</th><th>推广门店数量</th><th>总分佣金额</th><th>总提现金额</th><th>结算信息</th><th>可提现手机号</th><th>创建时间</th><th>状态</th><th>操作</th></tr></thead><tbody id="tableBody"><tr data-bd-phone-raw="18690019001" data-bd-member-no="M000013" data-bd-join-time="2026-04-24T10:22:11"><td>BD-PROMO-883001</td><td>张伟</td><td>186****9001</td><td>城市BD</td><td>总监</td><td>无上级</td><td>28</td><td>¥128,600.00</td><td>¥96,200.00</td><td><a href="#" class="mdm-bd-settle">查看信息</a></td><td>138****2211</td><td>2026-04-24 10:22:11</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="edit-btn">编辑</a>　<a href="#" class="mdm-bd-bind-warehouse">绑定仓库</a></td></tr>
+<tr data-bd-phone-raw="15977881234" data-bd-member-no="M000014" data-bd-join-time="2026-04-23T16:30:22"><td>BD-PROMO-883002</td><td>刘芳</td><td>159****7788</td><td>行业BD</td><td>主管</td><td>张伟</td><td>12</td><td>¥42,300.00</td><td>¥18,000.00</td><td><a href="#" class="mdm-bd-settle">查看信息</a></td><td>—</td><td>2026-04-23 16:30:22</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="edit-btn">编辑</a>　<a href="#" class="mdm-bd-bind-warehouse">绑定仓库</a></td></tr>
+<tr data-bd-phone-raw="13700980098" data-bd-member-no="M000015" data-bd-join-time="2026-04-20T09:15:40"><td>BD-PROMO-883003</td><td>陈浩</td><td>137****0098</td><td>渠道BD</td><td>高级</td><td>刘芳</td><td>6</td><td>¥9,800.00</td><td>¥2,400.00</td><td><a href="#" class="mdm-bd-settle">查看信息</a></td><td>137****0098</td><td>2026-04-20 09:15:40</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="edit-btn">编辑</a>　<a href="#" class="mdm-bd-bind-warehouse">绑定仓库</a></td></tr>
 </tbody></table></div><div id="pagination-container"></div></section>
         </main>
     </div>
@@ -46,6 +622,7 @@
     <script src="../js/mdm-subject-pagemanager.js"></script>
     <script src="../js/mdm-unified-onboarding-ui.js"></script>
     <script src="../js/mdm-erp-lists.js"></script>
+    <script src="../js/mdm-bd-promoter-detail.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         MdmErpLists.initPeopleBd();

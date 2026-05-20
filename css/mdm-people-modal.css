@@ -1,0 +1,276 @@
+/* 人员中心 — 添加/编辑弹窗（BD / 主播 / 司机 共用，对齐 ERP 原型） */
+
+.mdm-people-modal-root .modal-content.mdm-people-modal,
+.mdm-bd-promoter-modal-root .modal-content.mdm-bd-promoter-modal {
+    width: 520px;
+    max-width: calc(100vw - 48px);
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-md, 6px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.mdm-people-modal-root .modal-content.mdm-people-modal--fullscreen,
+.mdm-bd-promoter-modal-root .modal-content.mdm-bd-promoter-modal--fullscreen {
+    width: calc(100vw - 48px);
+    max-width: none;
+    height: calc(100vh - 48px);
+}
+
+.mdm-people-modal-root .modal-header,
+.mdm-bd-promoter-modal-root .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--color-border, #e8e8e8);
+}
+
+.mdm-people-modal-root .modal-title.mdm-people-modal__title,
+.mdm-bd-promoter-modal-root .modal-title.mdm-bd-promoter-modal__title {
+    margin: 0;
+    padding: 0;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text, #333);
+    line-height: 1.4;
+}
+
+.mdm-people-modal__header-actions,
+.mdm-bd-promoter-modal__header-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.mdm-people-modal__header-btn,
+.mdm-bd-promoter-modal__header-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: var(--radius-sm, 4px);
+    background: transparent;
+    color: var(--color-text-muted, #999);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0;
+}
+
+.mdm-people-modal__header-btn:hover,
+.mdm-bd-promoter-modal__header-btn:hover {
+    background: #f5f5f5;
+    color: var(--color-text, #333);
+}
+
+.mdm-people-modal-root .mdm-people-modal-form,
+.mdm-bd-promoter-modal-root .mdm-bd-promoter-form {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 0;
+    width: 100%;
+    padding: 16px 24px;
+    box-sizing: border-box;
+}
+
+.mdm-people-modal-root .modal-form-group,
+.mdm-bd-promoter-modal-root .modal-form-group {
+    width: 100%;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.mdm-people-modal-root .modal-form-group:last-child,
+.mdm-bd-promoter-modal-root .modal-form-group:last-child {
+    margin-bottom: 0;
+}
+
+.mdm-people-modal-root .modal-form-group > label,
+.mdm-bd-promoter-modal-root .modal-form-group > label {
+    width: 112px;
+    min-width: 112px;
+    text-align: right;
+    font-weight: 400;
+    font-size: 13px;
+    color: var(--color-text, #333);
+    line-height: 32px;
+    padding-top: 0;
+}
+
+.mdm-people-modal-root .mdm-people-req,
+.mdm-bd-promoter-modal-root .mdm-bd-req {
+    color: #ff4d4f;
+    margin-right: 2px;
+}
+
+.mdm-people-modal-root .mdm-people-control,
+.mdm-bd-promoter-modal-root .mdm-bd-control {
+    flex: 1;
+    min-width: 0;
+}
+
+.mdm-people-modal-root .modal-form-group input,
+.mdm-people-modal-root .modal-form-group textarea,
+.mdm-bd-promoter-modal-root .modal-form-group input,
+.mdm-bd-promoter-modal-root .modal-form-group textarea {
+    height: 32px;
+    padding: 0 10px;
+    border: 1px solid var(--color-border, #e8e8e8);
+    border-radius: var(--radius-sm, 4px);
+    font-size: 13px;
+    box-sizing: border-box;
+}
+
+.mdm-people-modal-root .modal-form-group input:focus,
+.mdm-bd-promoter-modal-root .modal-form-group input:focus {
+    border-color: var(--color-primary, #ff7019);
+    box-shadow: 0 0 0 2px var(--color-primary-soft, rgba(255, 106, 0, 0.12));
+}
+
+.mdm-people-modal-root .modal-form-group > .input-wrapper,
+.mdm-people-modal-root .modal-form-group > .custom-select,
+.mdm-bd-promoter-modal-root .modal-form-group > .input-wrapper,
+.mdm-bd-promoter-modal-root .modal-form-group > .custom-select {
+    flex: 1;
+    min-width: 0;
+}
+
+.mdm-people-modal-root .custom-select input,
+.mdm-bd-promoter-modal-root .custom-select input {
+    height: 32px;
+    padding-right: 28px;
+    cursor: pointer;
+}
+
+.mdm-people-modal-root .select-arrow,
+.mdm-bd-promoter-modal-root .select-arrow {
+    color: var(--color-text-muted, #999);
+    font-size: 10px;
+}
+
+.mdm-people-input-count-wrap,
+.mdm-bd-input-count-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+.mdm-people-input-count-wrap .input-wrapper,
+.mdm-bd-input-count-wrap .input-wrapper {
+    width: 100% !important;
+}
+
+.mdm-people-input-count-wrap .input-wrapper input,
+.mdm-bd-input-count-wrap .input-wrapper input {
+    padding-right: 56px;
+}
+
+.mdm-people-char-count,
+.mdm-bd-char-count {
+    position: absolute;
+    right: 28px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: var(--color-text-muted, #999);
+    pointer-events: none;
+    line-height: 1;
+}
+
+.mdm-people-phone-row,
+.mdm-bd-phone-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.mdm-people-phone-row .input-wrapper,
+.mdm-bd-phone-row .input-wrapper {
+    flex: 1;
+    min-width: 0;
+}
+
+.mdm-people-sms-btn,
+.mdm-bd-sms-btn {
+    flex-shrink: 0;
+    height: 32px;
+    padding: 0 12px;
+    white-space: nowrap;
+    font-size: 13px;
+    border-radius: var(--radius-sm, 4px);
+}
+
+.mdm-people-modal-root .modal-footer.mdm-people-modal__footer,
+.mdm-bd-promoter-modal-root .modal-footer.mdm-bd-promoter-modal__footer {
+    margin: 0;
+    padding: 12px 16px;
+    border-top: 1px solid var(--color-border, #e8e8e8);
+    gap: 8px;
+}
+
+.mdm-people-modal-root .btn-primary,
+.mdm-people-modal-root .mdm-people-sms-btn,
+.mdm-bd-promoter-modal-root .btn-primary,
+.mdm-bd-promoter-modal-root .mdm-bd-sms-btn {
+    background-color: var(--color-primary, #ff7019);
+    border-color: var(--color-primary, #ff7019);
+    color: #fff;
+}
+
+.mdm-people-modal-root .btn-primary:hover,
+.mdm-people-modal-root .mdm-people-sms-btn:hover,
+.mdm-bd-promoter-modal-root .btn-primary:hover,
+.mdm-bd-promoter-modal-root .mdm-bd-sms-btn:hover {
+    background-color: var(--color-primary-hover, #e85f10);
+    border-color: var(--color-primary-hover, #e85f10);
+}
+
+.mdm-people-modal-root .btn-secondary,
+.mdm-bd-promoter-modal-root .btn-secondary {
+    background: #fff;
+    color: var(--color-text, #333);
+    border: 1px solid var(--color-border, #e8e8e8);
+}
+
+.mdm-people-modal-root .btn-secondary:hover,
+.mdm-bd-promoter-modal-root .btn-secondary:hover {
+    background: #fafafa;
+    color: var(--color-text, #333);
+}
+
+.mdm-people-modal-root .modal-form-group:has(#bdId),
+.mdm-people-modal-root .modal-form-group:has(#did),
+.mdm-people-modal-root .modal-form-group:has(#aid),
+.mdm-bd-promoter-modal-root .modal-form-group:has(#bdId) {
+    display: none;
+}
+
+.mdm-people-modal-root .modal-form-group:has(#editBdId) > label,
+.mdm-people-modal-root .modal-form-group:has(#editDid) > label,
+.mdm-people-modal-root .modal-form-group:has(#editAid) > label,
+.mdm-bd-promoter-modal-root .modal-form-group:has(#editBdId) > label {
+    line-height: 32px;
+}
+
+.mdm-people-modal-root .modal-form-group:has(#editBdId) input:disabled,
+.mdm-people-modal-root .modal-form-group:has(#editDid) input:disabled,
+.mdm-people-modal-root .modal-form-group:has(#editAid) input:disabled,
+.mdm-bd-promoter-modal-root .modal-form-group:has(#editBdId) input:disabled {
+    background: #f7f7f7;
+    color: var(--color-text-secondary, #666);
+    cursor: not-allowed;
+}
