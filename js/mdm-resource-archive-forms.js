@@ -961,6 +961,13 @@
             ''
         );
         body.appendChild(formRow('仓库级别', true, refs.typeSel));
+        function syncWarehouseLevelDisabled() {
+            var kind = String((refs.kindInp && refs.kindInp.value) || '').trim();
+            var isStoreKind = kind === '门店';
+            refs.typeSel.disabled = isStoreKind;
+            if (isStoreKind) refs.typeSel.value = '';
+        }
+        syncWarehouseLevelDisabled();
         refs.adminInp = txt('请输入仓库管理员名称', '');
         body.appendChild(formRow('仓库管理员', true, refs.adminInp));
         refs.phoneInp = txt('请输入手机号码', '');
@@ -1004,11 +1011,13 @@
             refs.nameInp.value = cellPlainText(c[2]);
             var kindText = cellPlainText(c[3]);
             if (refs.kindInp) refs.kindInp.value = kindText && kindText !== '—' ? kindText : '仓库';
+            syncWarehouseLevelDisabled();
             var wht = cellPlainText(c[4]);
             refs.typeSel.value =
                 wht === '网格仓' ? 'grid'
                 : wht === '中心仓' ? 'center'
                 : '';
+            syncWarehouseLevelDisabled();
             refs.adminInp.value = cellPlainText(c[5]);
             refs.phoneInp.value = cellPlainText(c[6]);
             if (refs.regionInp) refs.regionInp.value = '';
