@@ -102,19 +102,6 @@
             min-width: 980px;
         }
 
-        .detail-actual-input {
-            width: 56px;
-            height: 28px;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            padding: 0 8px;
-            outline: none;
-        }
-
-        .detail-unit-text {
-            margin-left: 6px;
-            color: #333;
-        }
     </style>
 </head>
 <body>
@@ -730,6 +717,7 @@
         }
         tbody.innerHTML = rows.map(function(row) {
             var salesQty = (row.qty || 0) + (row.qtyUnit || '件');
+            var actualQty = (row.qty || 0) + (row.qtyUnit || '件');
             var skuCategory = row.skuCategoryPath || '-';
             var storeText = (row.storeName && row.storeCode)
                 ? (row.storeCode + ' ' + row.storeName)
@@ -743,7 +731,7 @@
                 '<td>' + escapeHtml(salesQty) + '</td>' +
                 '<td>' + escapeHtml(row.deliveryWarehouse || '-') + '</td>' +
                 '<td>' + escapeHtml(row.receivingWarehouse || '-') + '</td>' +
-                '<td><input class="detail-actual-input" type="number" min="0" value="' + escapeAttr(String(row.qty || 0)) + '"><span class="detail-unit-text">' + escapeHtml(row.qtyUnit || '件') + '</span></td>' +
+                '<td>' + escapeHtml(actualQty) + '</td>' +
                 '</tr>';
         }).join('');
     }

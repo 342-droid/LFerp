@@ -313,10 +313,8 @@
                                     <th>出库类型</th>
                                     <th>出库业务类型</th>
                                     <th>出库状态</th>
-                                    <th>承运商</th>
-                                    <th>车牌号</th>
-                                    <th>单据时间</th>
-                                    <th>制单人</th>
+                                    <th>创建时间</th>
+                                    <th>创建人</th>
                                 </tr>
                             </thead>
                             <tbody id="templateAddTableBody"></tbody>
@@ -1015,9 +1013,7 @@
                     <td>${item.orderType || '-'}</td>
                     <td>${item.businessType || '-'}</td>
                     <td>${item.status || '-'}</td>
-                    <td>${item.carrier || '-'}</td>
-                    <td>${item.plateNumber || '-'}</td>
-                    <td>${item.docTime || '-'}</td>
+                    <td>${item.createTime || item.docTime || '-'}</td>
                     <td>${item.creator || '-'}</td>
                 `;
                 tbody.appendChild(row);
