@@ -2,6 +2,8 @@
  * 资源中心档案 — 右侧滑出详情抽屉 + 多页签（对齐 vendor store-archive-ui / resource-archive-ui）
  */
 (function () {
+    var SUPPLIER_INBOUND_WAREHOUSE_BIND_KEY = 'mdm_supplier_inbound_warehouse_bindings_v1';
+
     function el(tag, cls, text) {
         var n = document.createElement(tag);
         if (cls) n.className = cls;
@@ -36,6 +38,27 @@
         if (!td) return '—';
         var s = td.querySelector('.status');
         return (s ? s.textContent : td.textContent).trim() || '—';
+    }
+
+    function readJsonStore(key) {
+        try {
+            var raw = localStorage.getItem(key);
+            if (!raw) return {};
+            var data = JSON.parse(raw);
+            return data && typeof data === 'object' ? data : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function readSupplierInboundWarehouseBinding(supplierId, supplierName) {
+        var id = String(supplierId || '').trim();
+        var name = String(supplierName || '').trim();
+        var map = readJsonStore(SUPPLIER_INBOUND_WAREHOUSE_BIND_KEY);
+        if (!map || typeof map !== 'object') return '—';
+        if (id && map['id:' + id]) return String(map['id:' + id] || '').trim() || '—';
+        if (name && map['name:' + name]) return String(map['name:' + name] || '').trim() || '—';
+        return '—';
     }
 
     function removeArchiveDrawers() {
@@ -1160,7 +1183,8 @@
             withdrawPhone: cellPlain(c[11]),
             channel: cellPlain(c[12]),
             onboard: cellPlain(c[13]),
-            status: cellStatus(c[14])
+            status: cellStatus(c[14]),
+            inboundWarehouse: readSupplierInboundWarehouseBinding(cellPlain(c[0]), cellPlain(c[2]))
         };
     }
 
@@ -1182,6 +1206,7 @@
         addr.appendChild(addrBody);
         grid.appendChild(addr);
         grid.appendChild(detailCell('负责人姓名', r.contactName));
+        grid.appendChild(detailCell('入库仓库', r.inboundWarehouse));
         grid.appendChild(detailCell('手机号码', r.phone));
         grid.appendChild(detailCell('创建时间', r.createTime));
         grid.appendChild(detailCell('供应商品数量', r.productCount));
