@@ -171,10 +171,11 @@
             if (c.length < 12) return;
             var code = (c[0].textContent || '').trim();
             var name = (c[2].textContent || '').trim();
-            var typeLabel = normalizeWarehouseTypeLabel((c[3].textContent || '').trim());
+            var warehouseType = (c[3].textContent || '').trim();
+            var typeLabel = normalizeWarehouseTypeLabel((c[4].textContent || '').trim());
             var st = (c[11].querySelector('.status') || {}).textContent || c[11].textContent || '';
             st = String(st).trim();
-            if (!code || !name || !typeLabel) return;
+            if (!code || !name || !typeLabel || warehouseType !== '仓库') return;
             list.push({
                 id: code,
                 name: name,
@@ -603,8 +604,8 @@
             var ok = true;
             if (qSub && cells[1].textContent.trim().indexOf(qSub) === -1) ok = false;
             if (qName && cells[2].textContent.trim().indexOf(qName) === -1) ok = false;
-            if ((qTyp === 'center' || qTyp === 'w') && cells[3].textContent.trim() !== '中心仓') ok = false;
-            if ((qTyp === 'grid' || qTyp === 's') && cells[3].textContent.trim() !== '网格仓') ok = false;
+            if ((qTyp === 'center' || qTyp === 'w') && cells[4].textContent.trim() !== '中心仓') ok = false;
+            if ((qTyp === 'grid' || qTyp === 's') && cells[4].textContent.trim() !== '网格仓') ok = false;
             var stTxt = (cells[11].querySelector('.status') || {}).textContent.trim();
             if (qSt === 'on' && stTxt !== '启用') ok = false;
             if (qSt === 'off' && stTxt !== '停用') ok = false;
@@ -902,8 +903,7 @@
             { id: 'whCode', label: '仓库编号', type: 'text', editDisabled: true },
             { id: 'subjectName', label: '主体名称', type: 'text', editDisabled: true },
             { id: 'whName', label: '仓库名称', type: 'text', required: true },
-            { id: 'whType', label: '仓库类型', type: 'text' },
-            { id: 'relatedStore', label: '关联门店', type: 'text' },
+            { id: 'whType', label: '仓库级别', type: 'text' },
             { id: 'adminName', label: '仓库管理员', type: 'text', required: true },
             { id: 'adminPhone', label: '手机号码', type: 'text' }
         ];
@@ -971,8 +971,7 @@
                         editWhCode: c[0].textContent.trim(),
                         editSubjectName: c[1].textContent.trim(),
                         editWhName: c[2].textContent.trim(),
-                        editWhType: c[3].textContent.trim(),
-                        editRelatedStore: c[4].textContent.trim(),
+                        editWhType: c[4].textContent.trim(),
                         editAdminName: c[5].textContent.trim(),
                         editAdminPhone: c[6].textContent.trim()
                     };
@@ -982,8 +981,7 @@
                     var row = pm.currentEditRow;
                     pm.updateTableRow(row, {
                         2: document.getElementById('editWhName').value.trim(),
-                        3: document.getElementById('editWhType').value.trim(),
-                        4: document.getElementById('editRelatedStore').value.trim(),
+                        4: document.getElementById('editWhType').value.trim(),
                         5: document.getElementById('editAdminName').value.trim(),
                         6: document.getElementById('editAdminPhone').value.trim()
                     });

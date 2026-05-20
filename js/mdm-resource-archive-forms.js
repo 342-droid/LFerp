@@ -949,25 +949,18 @@
         nameWrap.appendChild(nameInp);
         nameWrap.appendChild(nc);
         body.appendChild(formRow('仓库名称', true, nameWrap));
+        refs.kindInp = txt('', '仓库');
+        refs.kindInp.disabled = true;
+        body.appendChild(formRow('仓库类型', true, refs.kindInp));
         refs.typeSel = sel(
             [
-                { value: '', label: '请选择仓库类型' },
+                { value: '', label: '请选择仓库级别' },
                 { value: 'grid', label: '网格仓' },
                 { value: 'center', label: '中心仓' }
             ],
             ''
         );
-        body.appendChild(formRow('仓库类型', true, refs.typeSel));
-        refs.relatedSel = sel(
-            [
-                { value: '', label: '请选择门店（单选，按照当前权限展示）' },
-                { value: '1', label: '冷丰演示门店' },
-                { value: '2', label: '五角场体验店' },
-                { value: '3', label: '仓库商家4.18' }
-            ],
-            ''
-        );
-        body.appendChild(formRow('关联门店', true, refs.relatedSel));
+        body.appendChild(formRow('仓库级别', true, refs.typeSel));
         refs.adminInp = txt('请输入仓库管理员名称', '');
         body.appendChild(formRow('仓库管理员', true, refs.adminInp));
         refs.phoneInp = txt('请输入手机号码', '');
@@ -1006,20 +999,16 @@
 
         function fillFromArchiveRow(tr) {
             var c = tr.querySelectorAll('td');
-            if (c.length < 8) return;
+            if (c.length < 9) return;
             selectOptionByLabelText(refs.subjectSel, cellPlainText(c[1]));
             refs.nameInp.value = cellPlainText(c[2]);
-            var wht = cellPlainText(c[3]);
+            var kindText = cellPlainText(c[3]);
+            if (refs.kindInp) refs.kindInp.value = kindText && kindText !== '—' ? kindText : '仓库';
+            var wht = cellPlainText(c[4]);
             refs.typeSel.value =
-                wht === '网格仓' || wht === '门店' ? 'grid'
-                : wht === '中心仓' || wht === '仓库' ? 'center'
+                wht === '网格仓' ? 'grid'
+                : wht === '中心仓' ? 'center'
                 : '';
-            var relTxt = cellPlainText(c[4]);
-            if (relTxt && relTxt !== '—') {
-                selectOptionByLabelText(refs.relatedSel, relTxt);
-            } else {
-                refs.relatedSel.value = '';
-            }
             refs.adminInp.value = cellPlainText(c[5]);
             refs.phoneInp.value = cellPlainText(c[6]);
             if (refs.regionInp) refs.regionInp.value = '';
