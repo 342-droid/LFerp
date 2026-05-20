@@ -1623,12 +1623,19 @@
     function rowToWarehouse(tr) {
         var c = tr.querySelectorAll('td');
         if (c.length < 12) return null;
+        var warehouseTypeRaw = cellPlain(c[3]);
+        var warehouseType = warehouseTypeRaw === '门店' ? '门店' : '仓库';
+        var levelRaw = cellPlain(c[4]);
+        var levelLabel =
+            warehouseType === '仓库' && (levelRaw === '中心仓' || levelRaw === '网格仓') ?
+                levelRaw
+            :   '';
         return {
             code: cellPlain(c[0]),
             subjectName: cellPlain(c[1]),
             name: cellPlain(c[2]),
-            typeLabel: cellPlain(c[3]),
-            relatedStore: cellPlain(c[4]),
+            warehouseType: warehouseType,
+            levelLabel: levelLabel,
             admin: cellPlain(c[5]),
             phone: cellPlain(c[6]),
             withdrawPhone: cellPlain(c[7]),
@@ -1646,8 +1653,13 @@
         grid.appendChild(detailCell('仓库编号', r.code));
         grid.appendChild(detailCell('主体名称', r.subjectName));
         grid.appendChild(detailCell('仓库名称', r.name));
-        grid.appendChild(detailCell('仓库类型', r.typeLabel));
-        grid.appendChild(detailCell('关联门店', r.relatedStore));
+        grid.appendChild(detailCell('仓库类型', r.warehouseType));
+        var levelCell = el('div', 'supplier-detail-cell');
+        levelCell.appendChild(el('div', 'supplier-detail-cell__label', '仓库级别'));
+        var levelBody = el('div', 'supplier-detail-cell__body');
+        levelBody.textContent = r.levelLabel;
+        levelCell.appendChild(levelBody);
+        grid.appendChild(levelCell);
         grid.appendChild(detailCell('仓库管理员', r.admin));
         grid.appendChild(detailCell('手机号码', r.phone));
         grid.appendChild(detailCell('可提现手机号', r.withdrawPhone));
