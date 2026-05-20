@@ -970,8 +970,13 @@
         syncWarehouseLevelDisabled();
         refs.adminInp = txt('请输入仓库管理员名称', '');
         body.appendChild(formRow('仓库管理员', true, refs.adminInp));
-        refs.phoneInp = txt('请输入手机号码', '');
-        body.appendChild(formRow('手机号码', true, refs.phoneInp));
+        var phoneRowWrap = smsRow();
+        refs.phoneInp = phoneRowWrap.querySelector('input');
+        if (refs.phoneInp) refs.phoneInp.setAttribute('data-required-msg', '请输入手机号码');
+        body.appendChild(formRow('手机号码', true, phoneRowWrap));
+        refs.verifyInp = txt('请输入验证码', '');
+        refs.verifyInp.setAttribute('data-required-msg', '请输入验证码');
+        body.appendChild(formRow('验证码', true, refs.verifyInp));
         var div = document.createElement('div');
         div.className = 'warehouse-form__divider';
         div.appendChild(document.createTextNode('地址与面积（选填）'));
@@ -1020,6 +1025,7 @@
             syncWarehouseLevelDisabled();
             refs.adminInp.value = cellPlainText(c[5]);
             refs.phoneInp.value = cellPlainText(c[6]);
+            refs.verifyInp.value = '';
             if (refs.regionInp) refs.regionInp.value = '';
             if (refs.detailTa) refs.detailTa.value = '';
             if (refs.areaInp) {
