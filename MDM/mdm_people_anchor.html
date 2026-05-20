@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/mdm-people-modal.css">
     <style>
         .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
         .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
@@ -32,9 +33,9 @@
 <div class="form-group"><label>状态:</label><select id="qEnabled"><option value="">全部</option><option value="on">开启</option><option value="off">禁用</option></select></div>
 <div class="form-actions"><button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button><button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button><button type="button" id="mdmPeopleAncAddBtn" class="btn btn-primary">添加主播</button></div>
 </form></section>
-<section class="table-section"><div class="table-scroll-container"><table class="table"><thead><tr><th>主播ID</th><th>姓名</th><th>手机号码</th><th>所属组别</th><th>岗位状态</th><th>绑定组织</th><th>可提现手机号</th><th>最近更新</th><th>状态</th><th>操作</th></tr></thead><tbody id="tableBody"><tr data-dept-key="content"><td>ANC5001</td><td>周琳</td><td>139****8899</td><td>内容运营中心</td><td>在岗</td><td>上海冷丰科技有限公司</td><td>139****8899</td><td>2026-04-24 21:00:00</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="mdm-peop-detail">查看详情</a>　<a href="#" class="edit-btn">编辑</a></td></tr>
-<tr data-dept-key="content"><td>ANC5002</td><td>吴悦</td><td>136****6677</td><td>内容运营中心</td><td>在岗</td><td>上海冷丰科技有限公司</td><td>136****6677</td><td>2026-04-23 22:40:18</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="mdm-peop-detail">查看详情</a>　<a href="#" class="edit-btn">编辑</a></td></tr>
-<tr data-dept-key="train"><td>ANC5003</td><td>郑可</td><td>135****5544</td><td>直播培训组</td><td>在岗</td><td>上海冷丰科技有限公司</td><td>—</td><td>2026-04-22 18:09:55</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="mdm-peop-detail">查看详情</a>　<a href="#" class="edit-btn">编辑</a></td></tr>
+<section class="table-section"><div class="table-scroll-container"><table class="table"><thead><tr><th>主播ID</th><th>姓名</th><th>手机号码</th><th>所属组别</th><th>岗位状态</th><th>绑定组织</th><th>可提现手机号</th><th>最近更新</th><th>状态</th><th>操作</th></tr></thead><tbody id="tableBody"><tr data-dept-key="content" data-phone-raw="13912348899"><td>ANC5001</td><td>周琳</td><td>139****8899</td><td>内容运营中心</td><td>在岗</td><td>上海冷丰科技有限公司</td><td>139****8899</td><td>2026-04-24 21:00:00</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="edit-btn">编辑</a></td></tr>
+<tr data-dept-key="content" data-phone-raw="13612346677"><td>ANC5002</td><td>吴悦</td><td>136****6677</td><td>内容运营中心</td><td>在岗</td><td>上海冷丰科技有限公司</td><td>136****6677</td><td>2026-04-23 22:40:18</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="edit-btn">编辑</a></td></tr>
+<tr data-dept-key="train" data-phone-raw="13512345544"><td>ANC5003</td><td>郑可</td><td>135****5544</td><td>直播培训组</td><td>在岗</td><td>上海冷丰科技有限公司</td><td>—</td><td>2026-04-22 18:09:55</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="edit-btn">编辑</a></td></tr>
 </tbody></table></div><div id="pagination-container"></div></section>
         </main>
     </div>
