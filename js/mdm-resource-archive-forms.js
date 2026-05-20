@@ -5,11 +5,52 @@
  */
 (function (global) {
     var STORE_BIND_BD_ENUM = ['张伟', '刘芳'];
+    var SUPPLIER_INBOUND_WAREHOUSE_BIND_KEY = 'mdm_supplier_inbound_warehouse_bindings_v1';
 
     function removeArchiveFormModals() {
         document.querySelectorAll('[data-mdm-archive-form="1"]').forEach(function (n) {
             n.remove();
         });
+    }
+
+    function readJsonStore(key) {
+        try {
+            var raw = localStorage.getItem(key);
+            if (!raw) return {};
+            var data = JSON.parse(raw);
+            return data && typeof data === 'object' ? data : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function writeJsonStore(key, value) {
+        try {
+            localStorage.setItem(key, JSON.stringify(value || {}));
+        } catch (e) {}
+    }
+
+    function saveSupplierInboundWarehouseBinding(supplierId, supplierName, warehouseName) {
+        var id = String(supplierId || '').trim();
+        var name = String(supplierName || '').trim();
+        var wh = String(warehouseName || '').trim();
+        if (!id && !name) return;
+        var data = readJsonStore(SUPPLIER_INBOUND_WAREHOUSE_BIND_KEY);
+        var map = data && typeof data === 'object' ? data : {};
+        var key = id ? 'id:' + id : 'name:' + name;
+        map[key] = wh || '';
+        if (id && name) map['name:' + name] = wh || '';
+        writeJsonStore(SUPPLIER_INBOUND_WAREHOUSE_BIND_KEY, map);
+    }
+
+    function readSupplierInboundWarehouseBinding(supplierId, supplierName) {
+        var id = String(supplierId || '').trim();
+        var name = String(supplierName || '').trim();
+        var map = readJsonStore(SUPPLIER_INBOUND_WAREHOUSE_BIND_KEY);
+        if (!map || typeof map !== 'object') return '';
+        if (id && map['id:' + id]) return String(map['id:' + id] || '');
+        if (name && map['name:' + name]) return String(map['name:' + name] || '');
+        return '';
     }
 
     function sfLabel(text, required) {
@@ -248,7 +289,69 @@
         updateBdSelectOptions(selectEl, STORE_BIND_BD_ENUM, selectedName);
     }
 
-    function attachWideModal(title, bodyEl) {
+    function collectEnabledWarehouseNamesFromRows(rows) {
+        var list = [];
+        var seen = {};
+        rows.forEach(function (tr) {
+            var c = tr.querySelectorAll('td');
+            if (c.length < 12) return;
+            var name = String((c[2].textContent || '').trim());
+            if (!name || seen[name]) return;
+            var stNode = c[11].querySelector('.status');
+            var statusText = String((stNode ? stNode.textContent : c[11].textContent) || '').trim();
+            if (statusText !== '启用' && statusText !== '启动') return;
+            seen[name] = true;
+            list.push(name);
+        });
+        return list;
+    }
+
+    function updateWarehouseSelectOptions(selectEl, names, selectedName) {
+        if (!selectEl) return;
+        var list = Array.isArray(names) ? names : [];
+        selectEl.innerHTML = '';
+        var placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = '请选择入库仓库';
+        selectEl.appendChild(placeholder);
+        list.forEach(function (name) {
+            var op = document.createElement('option');
+            op.value = name;
+            op.textContent = name;
+            selectEl.appendChild(op);
+        });
+        if (selectedName) {
+            selectEl.value = selectedName;
+            if (selectEl.value !== selectedName) {
+                selectOptionByLabelText(selectEl, selectedName);
+            }
+        }
+    }
+
+    function hydrateInboundWarehouseSelect(selectEl, selectedName) {
+        updateWarehouseSelectOptions(selectEl, [], selectedName);
+        if (typeof fetch !== 'function') return;
+        fetch('mdm_archive_warehouse.html', { cache: 'no-store' })
+            .then(function (res) {
+                if (!res || !res.ok) return '';
+                return res.text();
+            })
+            .then(function (html) {
+                if (!html) return [];
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(html, 'text/html');
+                var rows = doc.querySelectorAll('#tableBody tr');
+                return collectEnabledWarehouseNamesFromRows(rows);
+            })
+            .then(function (list) {
+                updateWarehouseSelectOptions(selectEl, list || [], selectedName);
+            })
+            .catch(function () {
+                updateWarehouseSelectOptions(selectEl, [], selectedName);
+            });
+    }
+
+    function attachWideModal(title, bodyEl, onConfirm) {
         removeArchiveFormModals();
         var backdrop = document.createElement('div');
         backdrop.className = 'store-archive-modal-backdrop resource-archive-modal-backdrop';
@@ -302,6 +405,10 @@
                     one.focus && one.focus();
                     return;
                 }
+            }
+            if (typeof onConfirm === 'function') {
+                var shouldContinue = onConfirm();
+                if (shouldContinue === false) return;
             }
             backdrop.remove();
             if (typeof showToast === 'function') showToast('已提交（演示）', 'success');
@@ -559,10 +666,14 @@
         return createStoreFormBundle().body;
     }
 
-    function createSupplierFormBundle() {
+    function createSupplierFormBundle(options) {
         var refs = {};
         var body = document.createElement('div');
         var kind = 'supplier';
+        var includeInboundWarehouse = !!(options && options.includeInboundWarehouse);
+        var initialInboundWarehouse = String(
+            (options && options.initialInboundWarehouse) || ''
+        ).trim();
         refs.subjectSel = sel(SUP_SUBJECTS, '');
         body.appendChild(formRow('主体名称', true, refs.subjectSel));
         refs.nameInp = txt('请输入供应商名称', '');
@@ -590,6 +701,12 @@
         refs.detailTa = detailWrap.querySelector('textarea');
         body.appendChild(formRow('详细地址', true, detailWrap));
         body.appendChild(mapMockRow(false));
+        if (includeInboundWarehouse) {
+            refs.inboundWarehouseSel = sel([{ value: '', label: '请选择入库仓库' }], '');
+            refs.inboundWarehouseSel.setAttribute('data-required-msg', '请选择入库仓库');
+            body.appendChild(formRow('入库仓库', true, refs.inboundWarehouseSel));
+            hydrateInboundWarehouseSelect(refs.inboundWarehouseSel, initialInboundWarehouse);
+        }
         var supPhoneWrap = smsRow();
         refs.phoneInp = supPhoneWrap.querySelector('input');
         body.appendChild(formRow('手机号码', true, supPhoneWrap));
@@ -639,11 +756,11 @@
             refs.verifyInp.value = '';
         }
 
-        return { body: body, fillFromArchiveRow: fillFromArchiveRow };
+        return { body: body, fillFromArchiveRow: fillFromArchiveRow, refs: refs };
     }
 
     function buildSupplierAddBody() {
-        return createSupplierFormBundle().body;
+        return createSupplierFormBundle({ includeInboundWarehouse: true }).body;
     }
 
     function createCarrierFormBundle() {
@@ -936,9 +1053,22 @@
         },
         openSupplierEdit: function (tr) {
             if (!tr) return;
-            var bundle = createSupplierFormBundle();
+            var cells = tr.querySelectorAll('td');
+            var supplierId = cells[0] ? cellPlainText(cells[0]) : '';
+            var supplierName = cells[2] ? cellPlainText(cells[2]) : '';
+            var inboundWarehouse = readSupplierInboundWarehouseBinding(supplierId, supplierName);
+            var bundle = createSupplierFormBundle({
+                includeInboundWarehouse: true,
+                initialInboundWarehouse: inboundWarehouse
+            });
             bundle.fillFromArchiveRow(tr);
-            attachWideModal('编辑供应商', bundle.body);
+            attachWideModal('编辑供应商', bundle.body, function () {
+                var selectedWarehouse = '';
+                if (bundle.refs && bundle.refs.inboundWarehouseSel) {
+                    selectedWarehouse = String(bundle.refs.inboundWarehouseSel.value || '').trim();
+                }
+                saveSupplierInboundWarehouseBinding(supplierId, supplierName, selectedWarehouse);
+            });
         },
         openLiveRoomAdd: function () {
             attachWideModal('新增直播间', buildLiveRoomAddBody());
