@@ -1539,7 +1539,9 @@
         drvSmsBtn: { phone: 'drvAddPhone', label: '手机号码' },
         editDrvSmsBtn: { phone: 'editDrvPhone', label: '手机号码' },
         ancSmsBtn: { phone: 'ancAddPhone', label: '手机号码' },
-        editAncSmsBtn: { phone: 'editAncPhone', label: '手机号码' }
+        editAncSmsBtn: { phone: 'editAncPhone', label: '手机号码' },
+        purSmsBtn: { phone: 'purAddPhone', label: '手机号码' },
+        editPurSmsBtn: { phone: 'editPurPhone', label: '手机号码' }
     };
 
     function bindPeopleSmsButtons() {
@@ -1562,7 +1564,10 @@
 
     function getPeoplePhoneRawFromRow(row) {
         if (!row) return '';
-        var raw = row.getAttribute('data-phone-raw');
+        var raw =
+            row.getAttribute('data-phone-raw') ||
+            row.getAttribute('data-bd-phone-raw') ||
+            row.getAttribute('data-purchaser-phone-raw');
         if (raw) return String(raw).replace(/\D/g, '');
         var cells = row.querySelectorAll('td');
         if (cells.length < 3) return '';
@@ -1791,7 +1796,17 @@
             detailModalTitle: 'BD推广员详情',
             modalWidth: '560px',
             checkboxColumn: false,
-            actionColumnMode: 'editBindWarehouse',
+            statusColumnIndex: 12,
+            actionColumnMode: 'disableTogglePlusEditBindWarehouse',
+            disableToggleVerb: 'openClose',
+            onDisableToggle: function (row, status, page) {
+                applyPeopleDisableToggle(row, status, page, {
+                    roleLabel: 'BD推广员',
+                    statusColumnIndex: 12,
+                    enabledToast: '已开启 BD（演示）',
+                    disabledToast: '已禁用 BD（演示）'
+                });
+            },
             fields: bdFields,
             detailView: {
                 enabled: true,
@@ -1975,6 +1990,248 @@
         }, 0);
     }
 
+    function showMdmPeopleWarmConfirm(message, onOk) {
+        var existing = document.getElementById('mdmPeopleWarmConfirm');
+        if (existing) existing.remove();
+
+        var backdrop = document.createElement('div');
+        backdrop.className = 'erp-modal-backdrop mdm-people-warm-confirm-backdrop';
+        backdrop.id = 'mdmPeopleWarmConfirm';
+
+        function hide() {
+            if (backdrop.parentNode) backdrop.remove();
+        }
+
+        backdrop.innerHTML =
+            '<div class="erp-modal erp-modal--confirm">' +
+            '<div class="erp-modal__header">' +
+            '<h2 class="erp-modal__title">温馨提示</h2>' +
+            '<div class="erp-modal__header-actions">' +
+            '<button type="button" class="erp-modal__header-btn" id="mdmPeopleWarmCloseX" title="关闭" aria-label="关闭">&times;</button>' +
+            '</div></div>' +
+            '<div class="erp-modal__body">' +
+            '<div class="erp-modal-confirm__row">' +
+            '<div class="erp-modal-confirm__icon">!</div>' +
+            '<div class="erp-modal-confirm__msg" id="mdmPeopleWarmMsg"></div>' +
+            '</div></div>' +
+            '<div class="erp-modal__footer">' +
+            '<button type="button" class="erp-btn" id="mdmPeopleWarmCancel">取消</button>' +
+            '<button type="button" class="erp-btn erp-btn--primary" id="mdmPeopleWarmOk">确定</button>' +
+            '</div></div>';
+
+        document.body.appendChild(backdrop);
+        document.getElementById('mdmPeopleWarmMsg').textContent = message;
+
+        document.getElementById('mdmPeopleWarmCancel').addEventListener('click', hide);
+        document.getElementById('mdmPeopleWarmCloseX').addEventListener('click', hide);
+        backdrop.addEventListener('click', function (e) {
+            if (e.target === backdrop) hide();
+        });
+        document.getElementById('mdmPeopleWarmOk').addEventListener('click', function () {
+            hide();
+            if (typeof onOk === 'function') onOk();
+        });
+    }
+
+    function buildPeopleDisableConfirmMessage(roleLabel, status) {
+        var st = String(status || '').trim();
+        var actionWord = st === '禁用' ? '启用' : '停用';
+        return '确定将此' + roleLabel + '设为' + actionWord + '？';
+    }
+
+    function applyPeopleDisableToggle(row, status, page, cfg) {
+        var st = String(status || '').trim();
+        var next = st === '禁用' ? '开启' : '禁用';
+        var col = cfg.statusColumnIndex;
+        showMdmPeopleWarmConfirm(buildPeopleDisableConfirmMessage(cfg.roleLabel, status), function () {
+            var updates = {};
+            updates[col] = { value: next, isStatus: true };
+            page.updateTableRow(row, updates);
+            page.refreshDisableToggleLabel(row);
+            if (typeof showToast === 'function') {
+                showToast(next === '开启' ? cfg.enabledToast : cfg.disabledToast, 'success');
+            }
+        });
+    }
+
+    function getCurrentLinkedOrgName() {
+        if (typeof getCurrentUser === 'function') {
+            var user = getCurrentUser();
+            if (user) {
+                var org =
+                    user.orgName || user.organization || user.companyName || user.company || user.org;
+                if (org && String(org).trim()) return String(org).trim();
+            }
+        }
+        return '上海冷丰科技有限公司';
+    }
+
+    function purchaserFilter(pm) {
+        var tbody = document.getElementById(pm.config.tableBodyId);
+        if (!tbody) return;
+        var qName = (document.getElementById('qPersonName') || {}).value.trim();
+        var qPhoneRaw = ((document.getElementById('qPhone') || {}).value || '').replace(/\D/g, '');
+        var qEn = (document.getElementById('qEnabled') || {}).value.trim();
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+            var cells = tr.querySelectorAll('td');
+            if (cells.length < 7) return;
+            var ok = true;
+            if (qName && cells[1].textContent.trim().indexOf(qName) === -1) ok = false;
+            if (qPhoneRaw) {
+                var phTxt = cells[2].textContent.trim();
+                var phDig = phTxt.replace(/\D/g, '');
+                if (phDig.indexOf(qPhoneRaw) === -1 && phTxt.indexOf(qPhoneRaw) === -1) ok = false;
+            }
+            var stTxt = (cells[5].querySelector('.status') || {}).textContent.trim();
+            if (qEn === 'on' && stTxt !== '开启') ok = false;
+            if (qEn === 'off' && stTxt !== '禁用') ok = false;
+            tr.style.display = ok ? '' : 'none';
+        });
+        pm.refreshPagination();
+    }
+
+    function initPeoplePurchaser() {
+        var fields = buildPeopleRoleFields({
+            idKey: 'purId',
+            idLabel: '采购员ID',
+            nameLabel: '采购员姓名',
+            nameAddId: 'purName',
+            nameEditId: 'editPurName',
+            nameAddCounterId: 'purNameCharCount',
+            nameEditCounterId: 'editPurNameCharCount',
+            phoneLabel: '手机号码',
+            phoneAddId: 'purAddPhone',
+            phoneEditId: 'editPurPhone',
+            smsBtnAddId: 'purSmsBtn',
+            smsBtnEditId: 'editPurSmsBtn',
+            smsCodeKey: 'purSmsCode'
+        });
+        var pm = new PageManager({
+            entityName: '采购员',
+            addModalTitle: '添加采购员',
+            editModalTitle: '编辑采购员',
+            modalWidth: '520px',
+            checkboxColumn: false,
+            statusColumnIndex: 5,
+            actionColumnMode: 'disableTogglePlusEdit',
+            disableToggleVerb: 'openClose',
+            onDisableToggle: function (row, status, page) {
+                applyPeopleDisableToggle(row, status, page, {
+                    roleLabel: '采购员',
+                    statusColumnIndex: 5,
+                    enabledToast: '已开启采购员（演示）',
+                    disabledToast: '已禁用采购员（演示）'
+                });
+            },
+            fields: fields,
+            addModal: {
+                modalId: 'mdmPurAdd',
+                cancelBtnId: 'mdmPurAddCancelBtn',
+                saveBtnId: 'mdmPurAddSaveBtn',
+                triggerBtnId: 'mdmPeoplePurchaserAddBtn',
+                onOpen: function () {
+                    var nameCnt = document.getElementById('purNameCharCount');
+                    var nameInp = document.getElementById('purName');
+                    if (nameCnt && nameInp) {
+                        nameCnt.textContent = String((nameInp.value || '').length) + ' / 20';
+                    }
+                },
+                validations: [
+                    { id: 'purName', message: '请输入采购员姓名', required: true },
+                    { id: 'purAddPhone', message: '请输入手机号码', required: true },
+                    { id: 'purSmsCode', message: '请输入6位数字验证码', required: true }
+                ],
+                onSave: function () {
+                    var raw = validatePeoplePhoneAndSms('purAddPhone', 'purSmsCode', '手机号码');
+                    if (!raw) return false;
+                    var id = 'PUR-' + String(Date.now()).slice(-6);
+                    var masked = maskBdPhoneForCell(raw);
+                    var linkedOrg = getCurrentLinkedOrgName();
+                    var newRow = pm.addTableRow({
+                        cells: [
+                            id,
+                            document.getElementById('purName').value.trim(),
+                            masked,
+                            linkedOrg,
+                            pm.getCurrentTimeStr(),
+                            { value: '开启', isStatus: true }
+                        ]
+                    });
+                    if (newRow) {
+                        newRow.setAttribute('data-purchaser-phone-raw', raw);
+                        newRow.setAttribute('data-linked-org', linkedOrg);
+                    }
+                    showToast('已添加采购员（演示）', 'success');
+                }
+            },
+            editModal: {
+                modalId: 'mdmPurEdit',
+                cancelBtnId: 'mdmPurEditCancelBtn',
+                saveBtnId: 'mdmPurEditSaveBtn',
+                onOpen: function () {
+                    var nameCnt = document.getElementById('editPurNameCharCount');
+                    var nameInp = document.getElementById('editPurName');
+                    if (nameCnt && nameInp) {
+                        nameCnt.textContent = String((nameInp.value || '').length) + ' / 20';
+                    }
+                },
+                validations: [
+                    { id: 'editPurName', message: '请输入采购员姓名', required: true },
+                    { id: 'editPurPhone', message: '请输入手机号码', required: true },
+                    { id: 'editPurSmsCode', message: '请输入6位数字验证码', required: true }
+                ],
+                mapRowToForm: function (row) {
+                    pm.currentEditRow = row;
+                    var c = row.querySelectorAll('td');
+                    var phoneRaw = getPeoplePhoneRawFromRow(row);
+                    return {
+                        editPurId: c[0].textContent.trim(),
+                        editPurName: c[1].textContent.trim(),
+                        editPurPhone: phoneRaw || c[2].textContent.trim(),
+                        editPurSmsCode: ''
+                    };
+                },
+                onSave: function () {
+                    if (!pm.currentEditRow) return;
+                    var row = pm.currentEditRow;
+                    var raw = validatePeoplePhoneAndSms('editPurPhone', 'editPurSmsCode', '手机号码');
+                    if (!raw) return false;
+                    var masked = maskBdPhoneForCell(raw);
+                    pm.updateTableRow(row, {
+                        1: document.getElementById('editPurName').value.trim(),
+                        2: masked
+                    });
+                    row.setAttribute('data-purchaser-phone-raw', raw);
+                    showToast('采购员资料已保存（演示）', 'success');
+                    pm.currentEditRow = null;
+                },
+                onDetailModeChange: function (isDetail) {
+                    var smsGroup = document.getElementById('editPurSmsCode');
+                    if (smsGroup && smsGroup.closest) {
+                        smsGroup.closest('.modal-form-group').style.display = isDetail ? 'none' : '';
+                    }
+                    var smsBtn = document.getElementById('editPurSmsBtn');
+                    if (smsBtn) smsBtn.style.display = isDetail ? 'none' : '';
+                }
+            }
+        });
+        pm.init();
+        setupPeopleModalShell(pm, 'mdmPurAdd', 'add', '添加采购员', 'mdmPurAddSaveBtn', [
+            { inputId: 'purName', counterId: 'purNameCharCount' },
+            { inputId: 'editPurName', counterId: 'editPurNameCharCount' }
+        ]);
+        setupPeopleModalShell(pm, 'mdmPurEdit', 'edit', '编辑采购员', 'mdmPurEditSaveBtn', [
+            { inputId: 'purName', counterId: 'purNameCharCount' },
+            { inputId: 'editPurName', counterId: 'editPurNameCharCount' }
+        ]);
+        setupPeopleSmsCodeInputs(['purSmsCode', 'editPurSmsCode']);
+        bindPeopleSmsButtons();
+        bindSimpleFilter(pm, {
+            resetFields: ['qPersonName', 'qPhone', 'qEnabled'],
+            filterFn: purchaserFilter
+        });
+    }
+
     function rolePeopleFilter(pm) {
         var tbody = document.getElementById(pm.config.tableBodyId);
         if (!tbody) return;
@@ -2029,7 +2286,17 @@
             editModalTitle: '编辑司机',
             modalWidth: '520px',
             checkboxColumn: false,
-            actionColumnMode: 'editOnly',
+            statusColumnIndex: 8,
+            actionColumnMode: 'disableTogglePlusEdit',
+            disableToggleVerb: 'openClose',
+            onDisableToggle: function (row, status, page) {
+                applyPeopleDisableToggle(row, status, page, {
+                    roleLabel: '司机',
+                    statusColumnIndex: 8,
+                    enabledToast: '已开启司机（演示）',
+                    disabledToast: '已禁用司机（演示）'
+                });
+            },
             fields: fields,
             detailView: { enabled: true, columnIndex: 1, linkClass: 'subject-name-link' },
             addModal: {
@@ -2167,7 +2434,17 @@
             editModalTitle: '编辑主播',
             modalWidth: '520px',
             checkboxColumn: false,
-            actionColumnMode: 'editOnly',
+            statusColumnIndex: 8,
+            actionColumnMode: 'disableTogglePlusEdit',
+            disableToggleVerb: 'openClose',
+            onDisableToggle: function (row, status, page) {
+                applyPeopleDisableToggle(row, status, page, {
+                    roleLabel: '主播',
+                    statusColumnIndex: 8,
+                    enabledToast: '已开启主播（演示）',
+                    disabledToast: '已禁用主播（演示）'
+                });
+            },
             fields: fields,
             detailView: { enabled: true, columnIndex: 1, linkClass: 'subject-name-link' },
             addModal: {
@@ -2441,6 +2718,7 @@
         initArchiveLiveRoom: initArchiveLiveRoom,
         initArchiveCarrier: initArchiveCarrier,
         initPeopleBd: initPeopleBd,
+        initPeoplePurchaser: initPeoplePurchaser,
         initPeopleDriver: initPeopleDriver,
         initPeopleAnchor: initPeopleAnchor,
         initMemberC: initMemberC,

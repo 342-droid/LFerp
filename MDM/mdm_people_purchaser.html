@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 采购员</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/mdm-people-modal.css">
+    <style>
+        .flow-box { margin: 14px 0; padding: 12px 14px; background: #fafafa; border: 1px solid #eee; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.65; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">采购员</button></div>
+            <hr class="content-divider">
+            <div class="content-title">基础数据中心 / 人员中心 / 采购员</div>
+
+            <p class="flow-box">说明：本页仅维护采购员主数据（姓名、手机号码），供业务系统授权与下拉选择；采购单、供应商等业务数据不在此沉淀。新增人员时关联组织由当前登录公司账号自动带入，不在表单中填写。</p>
+
+<section class="search-section"><form class="search-form">
+<div class="form-group"><label>采购员姓名:</label><div class="input-wrapper"><input id="qPersonName" placeholder="请输入采购员姓名"><span class="clear-btn">×</span></div></div>
+<div class="form-group"><label>手机号码:</label><div class="input-wrapper"><input id="qPhone" placeholder="请输入手机号码"><span class="clear-btn">×</span></div></div>
+<div class="form-group"><label>状态:</label><select id="qEnabled"><option value="">全部</option><option value="on">开启</option><option value="off">禁用</option></select></div>
+<div class="form-actions"><button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button><button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button><button type="button" id="mdmPeoplePurchaserAddBtn" class="btn btn-primary">添加采购员</button></div>
+</form></section>
+<section class="table-section"><div class="table-scroll-container"><table class="table"><thead><tr><th>采购员ID</th><th>采购员姓名</th><th>手机号码</th><th>关联组织</th><th>创建时间</th><th>状态</th><th>操作</th></tr></thead><tbody id="tableBody"><tr data-purchaser-phone-raw="13800138001" data-linked-org="上海冷丰科技有限公司"><td>PUR-10001</td><td>张敏</td><td>138****8001</td><td>上海冷丰科技有限公司</td><td>2026-04-24 10:22:11</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a>　<a href="#" class="edit-btn">编辑</a></td></tr>
+<tr data-purchaser-phone-raw="13900139002" data-linked-org="上海冷丰科技有限公司"><td>PUR-10002</td><td>李强</td><td>139****9002</td><td>上海冷丰科技有限公司</td><td>2026-04-23 16:30:22</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a>　<a href="#" class="edit-btn">编辑</a></td></tr>
+<tr data-purchaser-phone-raw="13700137003" data-linked-org="上海冷丰科技有限公司"><td>PUR-10003</td><td>王华</td><td>137****7003</td><td>上海冷丰科技有限公司</td><td>2026-04-20 09:15:40</td><td><span class="status inactive">禁用</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">开启</a>　<a href="#" class="edit-btn">编辑</a></td></tr>
+</tbody></table></div><div id="pagination-container"></div></section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script src="../js/mdm-subject-pagemanager.js"></script>
+    <script src="../js/mdm-erp-lists.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        MdmErpLists.initPeoplePurchaser();
+    });
+    </script>
+</body>
+</html>
