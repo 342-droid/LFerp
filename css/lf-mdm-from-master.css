@@ -581,6 +581,82 @@
   padding-top: 8px;
 }
 
+/* 人员中心 — 启用/禁用温馨提示（对齐 LF-master 原型弹窗） */
+.mdm-people-warm-confirm-backdrop .erp-modal--confirm {
+  max-width: 400px;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.mdm-people-warm-confirm-backdrop .erp-modal__header {
+  padding: 18px 20px 0;
+  border-bottom: none;
+}
+
+.mdm-people-warm-confirm-backdrop .erp-modal__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.mdm-people-warm-confirm-backdrop .erp-modal__header-btn {
+  color: var(--color-text-muted);
+  font-size: 20px;
+}
+
+.mdm-people-warm-confirm-backdrop .erp-modal__body {
+  padding: 16px 20px 4px;
+}
+
+.mdm-people-warm-confirm-backdrop .erp-modal-confirm__row {
+  gap: 14px;
+  align-items: center;
+  padding: 0;
+}
+
+.mdm-people-warm-confirm-backdrop .erp-modal-confirm__icon {
+  width: 40px;
+  height: 40px;
+  font-size: 22px;
+}
+
+.mdm-people-warm-confirm-backdrop .erp-modal-confirm__msg {
+  color: var(--color-text-secondary);
+  padding-top: 0;
+  line-height: 1.6;
+}
+
+.mdm-people-warm-confirm-backdrop .erp-modal__footer {
+  padding: 12px 20px 20px;
+  border-top: none;
+  gap: 8px;
+}
+
+.mdm-people-warm-confirm-backdrop .erp-btn {
+  min-width: 64px;
+  height: 32px;
+  padding: 0 16px;
+  border-color: #dcdfe6;
+  color: var(--color-text-secondary);
+}
+
+.mdm-people-warm-confirm-backdrop .erp-btn:hover {
+  border-color: #dcdfe6;
+  color: var(--color-text-secondary);
+}
+
+.mdm-people-warm-confirm-backdrop .erp-btn--primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.mdm-people-warm-confirm-backdrop .erp-btn--primary:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  color: #fff;
+}
+
 /* —— 会员中心 C 端：列表宽表与弹窗 */
 
 .member-c-table-scroll .erp-table {

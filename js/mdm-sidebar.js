@@ -30,6 +30,7 @@
 
     const peopleItems = [
         { href: 'mdm_people_bd.html', text: 'BD' },
+        { href: 'mdm_people_purchaser.html', text: '采购员' },
         { href: 'mdm_people_driver.html', text: '司机' },
         { href: 'mdm_people_anchor.html', text: '主播' }
     ];

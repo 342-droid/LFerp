@@ -67,6 +67,9 @@ class PageManager {
         if (verb === 'enableStop') {
             return st === '停用' ? '启用' : '停用';
         }
+        if (verb === 'openClose') {
+            return st === '禁用' ? '开启' : '禁用';
+        }
         return st === '停用' ? '启用' : '禁用';
     }
 
@@ -146,6 +149,11 @@ class PageManager {
 
         if (mode === 'editBindWarehouse') {
             return `<td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-bd-bind-warehouse">绑定仓库</a></td>`;
+        }
+
+        if (mode === 'disableTogglePlusEditBindWarehouse') {
+            const label = this.disableToggleLinkLabel(pickStatusFromCells());
+            return `<td class="action-links"><a href="#" class="mdm-disable-toggle">${label}</a> <a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-bd-bind-warehouse">绑定仓库</a></td>`;
         }
 
         return `<td class="action-links">
@@ -233,7 +241,8 @@ class PageManager {
         if (
             this.config.actionColumnMode === 'disableToggle' ||
             this.config.actionColumnMode === 'disableTogglePlusEdit' ||
-            this.config.actionColumnMode === 'disableTogglePlusOnboard'
+            this.config.actionColumnMode === 'disableTogglePlusOnboard' ||
+            this.config.actionColumnMode === 'disableTogglePlusEditBindWarehouse'
         ) {
             this.refreshDisableToggleLabel(row);
         }
@@ -803,7 +812,8 @@ class PageManager {
                 mdmTog &&
                 (this.config.actionColumnMode === 'disableToggle' ||
                     this.config.actionColumnMode === 'disableTogglePlusEdit' ||
-                    this.config.actionColumnMode === 'disableTogglePlusOnboard')
+                    this.config.actionColumnMode === 'disableTogglePlusOnboard' ||
+                    this.config.actionColumnMode === 'disableTogglePlusEditBindWarehouse')
             ) {
                 e.preventDefault();
                 const row = mdmTog.closest('tr');
