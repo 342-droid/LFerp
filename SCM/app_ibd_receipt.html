@@ -817,15 +817,6 @@
             font-weight: 500;
         }
 
-        /* 商品名称样式（不含条码链接） */
-        .record-item-info .record-item-row:first-child .record-item-value:not(.barcode-link) {
-            font-size: 16px;
-            font-weight: 600;
-            color: #333333;
-            margin-bottom: 8px;
-            display: block;
-        }
-
         /* 收货人和收货量在同一行显示 */
         .record-item-row.flex-row {
             display: flex;
@@ -1167,7 +1158,7 @@
                     <div class="receipt-info-header">
                         <div class="receipt-info-type" id="scanReceiptType"></div>
                         <div class="receipt-info-stats">
-                            <span>SKU <span id="scanSkuCount">0</span>/3</span>
+                            <span>商品种类 <span id="scanSkuCount">0</span>/3</span>
                             <span>数量 <span id="scanQuantityCount">0</span>/30</span>
                         </div>
                     </div>
@@ -1183,6 +1174,10 @@
                         <div id="containerInputContainer"></div>
                     </div>
                     <div id="productInfoCard" class="product-info" style="display: none;">
+                        <div class="product-info-item">
+                            <span class="product-info-label">商品编码</span>
+                            <span class="product-info-value" id="productCode"></span>
+                        </div>
                         <div class="product-info-item">
                             <span class="product-info-label">商品条码</span>
                             <span class="product-info-value" id="productBarcode"></span>
@@ -1244,7 +1239,7 @@
                     <div class="receipt-info-header">
                         <div class="receipt-info-type" id="detailsReceiptType"></div>
                         <div class="receipt-info-stats">
-                            <span>SKU <span id="detailsSkuCount">3</span>/3</span>
+                            <span>商品种类 <span id="detailsSkuCount">3</span>/3</span>
                             <span>数量 <span id="detailsQuantityCount">30</span>/30</span>
                         </div>
                     </div>
@@ -1266,6 +1261,10 @@
                             <div class="details-item-name">苹果</div>
                         </div>
                         <div class="details-item-info">
+                            <div class="details-item-row">
+                                <span class="details-item-label">商品编码:</span>
+                                <span class="details-item-value">SP001</span>
+                            </div>
                             <div class="details-item-row">
                                 <span class="details-item-label">商品条码:</span>
                                 <span class="details-item-value">6912345678901</span>
@@ -1292,6 +1291,10 @@
                         </div>
                         <div class="details-item-info">
                             <div class="details-item-row">
+                                <span class="details-item-label">商品编码:</span>
+                                <span class="details-item-value">SP002</span>
+                            </div>
+                            <div class="details-item-row">
                                 <span class="details-item-label">商品条码:</span>
                                 <span class="details-item-value">6912345678902</span>
                             </div>
@@ -1316,6 +1319,10 @@
                             <div class="details-item-name">橙子</div>
                         </div>
                         <div class="details-item-info">
+                            <div class="details-item-row">
+                                <span class="details-item-label">商品编码:</span>
+                                <span class="details-item-value">SP003</span>
+                            </div>
                             <div class="details-item-row">
                                 <span class="details-item-label">商品条码:</span>
                                 <span class="details-item-value">6912345678903</span>
@@ -1344,6 +1351,10 @@
                             <div class="details-item-name">葡萄</div>
                         </div>
                         <div class="details-item-info">
+                            <div class="details-item-row">
+                                <span class="details-item-label">商品编码:</span>
+                                <span class="details-item-value">SP004</span>
+                            </div>
                             <div class="details-item-row">
                                 <span class="details-item-label">商品条码:</span>
                                 <span class="details-item-value">6912345678904</span>
@@ -1374,6 +1385,10 @@
                         </div>
                         <div class="details-item-info">
                             <div class="details-item-row">
+                                <span class="details-item-label">商品编码:</span>
+                                <span class="details-item-value">SP001</span>
+                            </div>
+                            <div class="details-item-row">
                                 <span class="details-item-label">商品条码:</span>
                                 <span class="details-item-value">6912345678901</span>
                             </div>
@@ -1400,6 +1415,10 @@
                         </div>
                         <div class="details-item-info">
                             <div class="details-item-row">
+                                <span class="details-item-label">商品编码:</span>
+                                <span class="details-item-value">SP002</span>
+                            </div>
+                            <div class="details-item-row">
                                 <span class="details-item-label">商品条码:</span>
                                 <span class="details-item-value">6912345678902</span>
                             </div>
@@ -1425,6 +1444,10 @@
                             <button class="receive-btn" onclick="goToScanContainerPageFromPending(this)">收货</button>
                         </div>
                         <div class="details-item-info">
+                            <div class="details-item-row">
+                                <span class="details-item-label">商品编码:</span>
+                                <span class="details-item-value">SP003</span>
+                            </div>
                             <div class="details-item-row">
                                 <span class="details-item-label">商品条码:</span>
                                 <span class="details-item-value">6912345678903</span>
@@ -1461,7 +1484,7 @@
                     <div class="receipt-info-header">
                         <div class="receipt-info-type" id="recordsReceiptType"></div>
                         <div class="receipt-info-stats">
-                            <span>SKU <span id="recordsSkuCount">0</span>/3</span>
+                            <span>商品种类 <span id="recordsSkuCount">0</span>/3</span>
                             <span>数量 <span id="recordsQuantityCount">0</span>/30</span>
                         </div>
                     </div>
@@ -1516,7 +1539,11 @@
                         </div>
                         <div class="record-detail-body">
                             <div class="record-detail-row">
-                                <span class="record-detail-label">条码:</span>
+                                <span class="record-detail-label">商品编码:</span>
+                                <span class="record-detail-value" id="recordDetailCode"></span>
+                            </div>
+                            <div class="record-detail-row">
+                                <span class="record-detail-label">商品条码:</span>
                                 <span class="record-detail-value" id="recordDetailBarcode"></span>
                             </div>
                             <div class="record-detail-row">
@@ -1631,12 +1658,14 @@
                 products: [
                     {
                         product: '苹果',
+                        code: 'SP001',
                         barcode: '6912345678901',
                         receiver: '张三',
                         quantity: '10斤'
                     },
                     {
                         product: '橙子',
+                        code: 'SP003',
                         barcode: '6912345678903',
                         receiver: '王五',
                         quantity: '10斤'
@@ -1649,6 +1678,7 @@
                 products: [
                     {
                         product: '香蕉',
+                        code: 'SP002',
                         barcode: '6912345678902',
                         receiver: '李四',
                         quantity: '10斤'
@@ -1662,6 +1692,7 @@
                 container: 'LPN004',
                 time: '2026-02-28 09:15:20',
                 product: '葡萄',
+                code: 'SP004',
                 barcode: '6912345678904',
                 receiver: '赵六',
                 quantity: '5斤'
@@ -1670,6 +1701,7 @@
                 container: 'LPN005',
                 time: '2026-02-28 10:45:10',
                 product: '草莓',
+                code: 'SP005',
                 barcode: '6912345678905',
                 receiver: '孙七',
                 quantity: '8斤'
@@ -1681,6 +1713,7 @@
                 container: 'LPN006',
                 time: '2026-02-28 08:30:00',
                 product: '梨',
+                code: 'SP006',
                 barcode: '6912345678906',
                 receiver: '周八',
                 quantity: '12斤',
@@ -1929,6 +1962,7 @@
         function loadProductInfo(productCode, presetData) {
             // 模拟商品信息数据
             const productInfo = {
+                code: 'SP001',
                 barcode: '6912345678901',
                 location: 'SH01',
                 planQty: '10',
@@ -1969,6 +2003,7 @@
             
             
             // 填充商品信息
+            document.getElementById('productCode').textContent = finalProductInfo.code;
             document.getElementById('productBarcode').textContent = finalProductInfo.barcode;
             document.getElementById('productLocation').textContent = finalProductInfo.location;
             document.getElementById('productPlanQty').textContent = finalProductInfo.planQty;
@@ -2057,7 +2092,7 @@
         }
 
         // 显示收货记录详情页面
-        function showRecordDetail(container, time, product, barcode, receiver, quantity, status, putawayQuantity) {
+        function showRecordDetail(container, time, product, code, barcode, receiver, quantity, status, putawayQuantity) {
             currentPage = 'recordDetail';
             document.getElementById('receiptRecordsPage').classList.remove('active');
             document.getElementById('receiptRecordDetailPage').classList.add('active');
@@ -2075,6 +2110,7 @@
             // 填充收货记录详情
             document.getElementById('recordDetailProduct').textContent = product;
             document.getElementById('recordDetailStatus').textContent = status;
+            document.getElementById('recordDetailCode').textContent = code;
             document.getElementById('recordDetailBarcode').textContent = barcode;
             document.getElementById('recordDetailContainer').textContent = container;
             document.getElementById('recordDetailLocation').textContent = 'SH001';
@@ -2146,8 +2182,12 @@
                         </div>
                         <div class="record-item-info">
                             <div class="record-item-row">
+                                <span class="record-item-label">商品编码:</span>
+                                <span class="record-item-value">${product.code}</span>
+                            </div>
+                            <div class="record-item-row">
                                 <span class="record-item-label">商品条码:</span>
-                                <span class="record-item-value barcode-link" onclick="showRecordDetail('${record.container}', '${record.time}', '${product.product}', '${product.barcode}', '${product.receiver}', '${product.quantity}', '初始', '')">${product.barcode}</span>
+                                <span class="record-item-value barcode-link" onclick="showRecordDetail('${record.container}', '${record.time}', '${product.product}', '${product.code}', '${product.barcode}', '${product.receiver}', '${product.quantity}', '初始', '')">${product.barcode}</span>
                             </div>
                             <div class="record-item-row flex-row">
                                 <div>
@@ -2176,8 +2216,12 @@
                     </div>
                     <div class="record-item-info">
                         <div class="record-item-row">
+                            <span class="record-item-label">商品编码:</span>
+                            <span class="record-item-value">${record.code}</span>
+                        </div>
+                        <div class="record-item-row">
                             <span class="record-item-label">商品条码:</span>
-                            <span class="record-item-value barcode-link" onclick="showRecordDetail('${record.container}', '${record.time}', '${record.product}', '${record.barcode}', '${record.receiver}', '${record.quantity}', '待上架', '')">${record.barcode}</span>
+                            <span class="record-item-value barcode-link" onclick="showRecordDetail('${record.container}', '${record.time}', '${record.product}', '${record.code}', '${record.barcode}', '${record.receiver}', '${record.quantity}', '待上架', '')">${record.barcode}</span>
                         </div>
                         <div class="record-item-row flex-row">
                             <div>
@@ -2204,8 +2248,12 @@
                     </div>
                     <div class="record-item-info">
                         <div class="record-item-row">
+                            <span class="record-item-label">商品编码:</span>
+                            <span class="record-item-value">${record.code}</span>
+                        </div>
+                        <div class="record-item-row">
                             <span class="record-item-label">商品条码:</span>
-                            <span class="record-item-value barcode-link" onclick="showRecordDetail('${record.container}', '${record.time}', '${record.product}', '${record.barcode}', '${record.receiver}', '${record.quantity}', '已上架', '${record.putawayQuantity}')">${record.barcode}</span>
+                            <span class="record-item-value barcode-link" onclick="showRecordDetail('${record.container}', '${record.time}', '${record.product}', '${record.code}', '${record.barcode}', '${record.receiver}', '${record.quantity}', '已上架', '${record.putawayQuantity}')">${record.barcode}</span>
                         </div>
                         <div class="record-item-row flex-row">
                             <div>
@@ -2307,17 +2355,23 @@
             const productName = detailsItem ? detailsItem.querySelector('.details-item-name')?.textContent.trim() : '';
             const detailRows = detailsItem ? detailsItem.querySelectorAll('.details-item-row') : [];
 
+            let productCodeValue = '';
             let barcode = '';
             let planQty = '';
             let receivedQty = '';
 
             if (detailRows.length > 0) {
-                const barcodeNode = detailRows[0].querySelector('.details-item-value');
-                barcode = barcodeNode ? barcodeNode.textContent.trim() : '';
+                const codeNode = detailRows[0].querySelector('.details-item-value');
+                productCodeValue = codeNode ? codeNode.textContent.trim() : '';
             }
 
             if (detailRows.length > 1) {
-                const qtyValues = detailRows[1].querySelectorAll('.details-item-value');
+                const barcodeNode = detailRows[1].querySelector('.details-item-value');
+                barcode = barcodeNode ? barcodeNode.textContent.trim() : '';
+            }
+
+            if (detailRows.length > 2) {
+                const qtyValues = detailRows[2].querySelectorAll('.details-item-value');
                 planQty = qtyValues[0] ? qtyValues[0].textContent.trim().replace('斤', '') : '';
                 receivedQty = qtyValues[1] ? qtyValues[1].textContent.trim().replace('斤', '') : '';
             }
@@ -2328,9 +2382,10 @@
                 return;
             }
 
-            const productCode = productName || barcode;
+            const productCode = productCodeValue || productName || barcode;
             document.getElementById('productValue').textContent = productCode;
             loadProductInfo(productCode, {
+                code: productCodeValue,
                 barcode,
                 planQty: planQty || '0',
                 receivedQty: receivedQty || '0'
