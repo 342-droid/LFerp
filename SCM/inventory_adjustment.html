@@ -96,7 +96,7 @@
                     <div class="form-group">
                         <label>调整单号:</label>
                         <div class="input-wrapper">
-                            <input type="text" id="searchAdjustNo" placeholder="请输入">
+                            <input type="text" id="searchAdjustNo" placeholder="如 KT2026051610300023" title="KT+年月日时分秒+2位随机数">
                             <span class="clear-btn">×</span>
                         </div>
                     </div>
@@ -223,10 +223,21 @@
     <script src="../js/modal-manager.js"></script>
     <script src="../js/page-manager.js"></script>
     <script>
+        /**
+         * 调整单号：KT + 年月日时分秒(14位) + 2位随机数
+         */
+        function generateAdjustmentNo() {
+            const d = new Date();
+            const p = n => String(n).padStart(2, '0');
+            const ts = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+            const rnd = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+            return `KT${ts}${rnd}`;
+        }
+
         const inventoryAdjustmentData = [
             {
                 company: 'Y001-南京货主',
-                adjustNo: 'ADJ202605160001',
+                adjustNo: 'KT2026051610300023',
                 sourceNo: 'OBD202605160101',
                 adjustType: '拣货异常',
                 status: '初始',
@@ -237,7 +248,7 @@
             },
             {
                 company: 'Y002-杭州货主',
-                adjustNo: 'ADJ202605160002',
+                adjustNo: 'KT2026051610500047',
                 sourceNo: 'OBD202605160205',
                 adjustType: '分拣异常',
                 status: '已完成',
@@ -248,7 +259,7 @@
             },
             {
                 company: 'Y001-南京货主',
-                adjustNo: 'ADJ202605160003',
+                adjustNo: 'KT2026051611200068',
                 sourceNo: 'OBD202605160318',
                 adjustType: '复核异常',
                 status: '已作废',
@@ -259,9 +270,9 @@
             }
         ];
         const inventoryAdjustmentDetailMap = {
-            ADJ202605160001: {
+            KT2026051610300023: {
                 company: 'Y001-南京货主',
-                adjustNo: 'ADJ202605160001',
+                adjustNo: 'KT2026051610300023',
                 sourceNo: 'OBD202605160101',
                 adjustType: '拣货异常',
                 status: '初始',
@@ -289,9 +300,9 @@
                     }
                 ]
             },
-            ADJ202605160002: {
+            KT2026051610500047: {
                 company: 'Y002-杭州货主',
-                adjustNo: 'ADJ202605160002',
+                adjustNo: 'KT2026051610500047',
                 sourceNo: 'OBD202605160205',
                 adjustType: '分拣异常',
                 status: '已完成',
@@ -309,9 +320,9 @@
                     }
                 ]
             },
-            ADJ202605160003: {
+            KT2026051611200068: {
                 company: 'Y001-南京货主',
-                adjustNo: 'ADJ202605160003',
+                adjustNo: 'KT2026051611200068',
                 sourceNo: 'OBD202605160318',
                 adjustType: '复核异常',
                 status: '已作废',

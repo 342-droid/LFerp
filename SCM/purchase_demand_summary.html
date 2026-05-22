@@ -416,14 +416,14 @@
                 <span class="close" id="generatePoDimensionCloseBtn">&times;</span>
             </div>
             <div class="modal-body">
-                <p class="dimension-modal-hint">请选择生成方式：按商品维度合并为采购单，或按门店维度分别为各门店生成采购单。</p>
+                <p class="dimension-modal-hint">请选择生成方式：按供应商维度合并为采购单，或按门店维度分别为各门店生成采购单。</p>
                 <div class="modal-form">
                     <div class="modal-form-group">
                         <label>生成维度</label>
                         <div class="radio-group">
                             <div class="radio-option">
-                                <input type="radio" name="poGenDimension" id="poGenDimProduct" value="product" checked>
-                                <label for="poGenDimProduct">按商品维度</label>
+                                <input type="radio" name="poGenDimension" id="poGenDimSupplier" value="supplier" checked>
+                                <label for="poGenDimSupplier">按供应商维度</label>
                             </div>
                             <div class="radio-option">
                                 <input type="radio" name="poGenDimension" id="poGenDimStore" value="store">
@@ -902,16 +902,16 @@
     }
 
     var poGenDimensionLabels = {
-        product: '按商品维度',
+        supplier: '按供应商维度',
         store: '按门店维度'
     };
-    var pendingPoGenDimension = 'product';
+    var pendingPoGenDimension = 'supplier';
     var poPreviewRowsCache = [];
 
     function openGeneratePoDimensionModal() {
         var modal = document.getElementById('generatePoDimensionModal');
-        var productRadio = document.getElementById('poGenDimProduct');
-        if (productRadio) productRadio.checked = true;
+        var supplierRadio = document.getElementById('poGenDimSupplier');
+        if (supplierRadio) supplierRadio.checked = true;
         if (modal) modal.style.display = 'block';
     }
 
@@ -922,7 +922,7 @@
 
     function getSelectedPoGenDimension() {
         var el = document.querySelector('input[name="poGenDimension"]:checked');
-        return el && el.value === 'store' ? 'store' : 'product';
+        return el && el.value === 'store' ? 'store' : 'supplier';
     }
 
     function countPurchaseOrdersByGenDimension(dim, lines) {
@@ -994,7 +994,7 @@
         });
     }
 
-    function buildProductPreviewRows(lines) {
+    function buildSupplierPreviewRows(lines) {
         var supplierBuyerMap = {
             '鲜果源商贸': '张敏',
             '绿园果蔬': '李强',
@@ -1006,17 +1006,13 @@
         var map = new Map();
         (lines || []).forEach(function(line) {
             var row = line || {};
-            var skuCode = String(row.skuCode || '').trim();
-            var skuName = String(row.skuName || '').trim();
             var supplier = String(row.supplier || '').trim() || '-';
             var receivingWarehouse = String(row.receivingWarehouse || '').trim() || '未标记收货仓库';
-            if (!skuCode) return;
-            var key = skuCode + '\0' + supplier + '\0' + receivingWarehouse;
+            var key = supplier + '\0' + receivingWarehouse;
             if (!map.has(key)) {
                 map.set(key, {
                     rowKey: key,
-                    previewName: skuName || skuCode,
-                    ownerText: supplier,
+                    previewName: supplier,
                     receivingWarehouse: receivingWarehouse,
                     buyer: supplierBuyerMap[supplier] || '-',
                     lineCount: 0,
@@ -1040,7 +1036,6 @@
             return {
                 rowKey: row.rowKey,
                 previewName: row.previewName,
-                ownerText: row.ownerText,
                 receivingWarehouse: row.receivingWarehouse,
                 buyer: row.buyer,
                 lineCount: row.lineCount,
@@ -1058,7 +1053,7 @@
     function buildPoPreviewRows(dim, lines) {
         return dim === 'store'
             ? buildStorePreviewRows(lines)
-            : buildProductPreviewRows(lines);
+            : buildSupplierPreviewRows(lines);
     }
 
     function clonePreviewRows(rows) {
@@ -1110,14 +1105,17 @@
         if (dimLabelEl) dimLabelEl.textContent = dimLabel;
         if (countEl) countEl.textContent = String(rows.length);
         if (nameHeaderEl) {
-            nameHeaderEl.textContent = dim === 'product'
-                ? '商品名称'
+            nameHeaderEl.textContent = dim === 'supplier'
+                ? '供应商名称'
                 : (dim === 'store' ? '门店名称' : '采购单预览名称');
         }
         if (ownerHeaderEl) {
-            ownerHeaderEl.textContent = dim === 'product' || dim === 'store'
-                ? '供应商'
-                : '归属主体';
+            if (dim === 'supplier') {
+                ownerHeaderEl.style.display = 'none';
+            } else {
+                ownerHeaderEl.style.display = '';
+                ownerHeaderEl.textContent = dim === 'store' ? '供应商' : '归属主体';
+            }
         }
         if (infoBox) {
             infoBox.innerHTML = [
@@ -1136,14 +1134,18 @@
         }
         if (confirmBtn) confirmBtn.disabled = rows.length === 0;
         if (!rows.length) {
-            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#999;">暂无可生成采购单数据</td></tr>';
+            var emptyColspan = dim === 'supplier' ? 9 : 10;
+            tbody.innerHTML = '<tr><td colspan="' + emptyColspan + '" style="text-align:center;color:#999;">暂无可生成采购单数据</td></tr>';
             return;
         }
         tbody.innerHTML = rows.map(function(row) {
+            var ownerCell = dim === 'supplier'
+                ? ''
+                : '<td>' + escapeHtml(row.ownerText) + '</td>';
             return '' +
                 '<tr data-row-key="' + escapeAttr(row.rowKey || '') + '">' +
                 '<td>' + escapeHtml(row.previewName) + '</td>' +
-                '<td>' + escapeHtml(row.ownerText) + '</td>' +
+                ownerCell +
                 '<td>' + escapeHtml(row.receivingWarehouse || '-') + '</td>' +
                 '<td><input type="text" class="po-preview-edit-input" data-field="buyer" value="' + escapeAttr(row.buyer || '') + '"></td>' +
                 '<td>' + escapeHtml(String(row.lineCount)) + '</td>' +
@@ -1164,7 +1166,7 @@
     }
 
     function openGeneratePoPreviewModal(dim) {
-        pendingPoGenDimension = dim === 'store' ? 'store' : 'product';
+        pendingPoGenDimension = dim === 'store' ? 'store' : 'supplier';
         renderPoPreview(pendingPoGenDimension, filteredLines);
         var modal = document.getElementById('generatePoPreviewModal');
         if (modal) modal.style.display = 'block';
