@@ -301,6 +301,9 @@
         }
 
         .product-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             background-color: #f8f9fa;
             border: 1px solid #e0e0e0;
             border-radius: 8px;
@@ -308,10 +311,49 @@
             margin-bottom: 12px;
         }
 
+        .product-card-media {
+            flex-shrink: 0;
+            align-self: center;
+        }
+
+        .product-card-media--clickable {
+            cursor: pointer;
+        }
+
+        .product-card-media--clickable:active {
+            opacity: 0.85;
+        }
+
+        .product-card-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .product-card-image {
+            width: 64px;
+            height: 64px;
+            border-radius: 6px;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid #e0e0e0;
+            background-color: #eeeeee;
+        }
+
+        .product-card-image--placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #aaaaaa;
+            background-color: #f0f0f0;
+        }
+
         .product-card-name {
             font-size: 16px;
             font-weight: 600;
             color: #333333;
+            line-height: 1.4;
+            word-break: break-all;
             margin-bottom: 12px;
             padding-bottom: 12px;
             border-bottom: 1px solid #e0e0e0;
@@ -456,9 +498,30 @@
         }
 
         .confirm-modal-diff-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .confirm-modal-diff-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .confirm-modal-diff-item:first-child {
+            padding-top: 0;
+        }
+
+        .confirm-modal-diff-item-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .confirm-modal-diff-item-meta {
             display: flex;
-            justify-content: space-between;
-            gap: 8px;
+            flex-wrap: wrap;
+            gap: 6px 12px;
+            font-size: 13px;
+            color: #666666;
         }
 
         .confirm-modal-actions {
@@ -485,6 +548,51 @@
             border-color: #2196f3;
             background-color: #2196f3;
             color: #ffffff;
+        }
+
+        .image-preview-modal {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.88);
+            z-index: 40;
+            padding: 24px 16px;
+        }
+
+        .image-preview-modal.active {
+            display: flex;
+        }
+
+        .image-preview-modal-title {
+            flex-shrink: 0;
+            margin-bottom: 16px;
+            font-size: 15px;
+            color: #ffffff;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .image-preview-modal-image {
+            flex: 1;
+            width: 100%;
+            max-height: calc(100% - 72px);
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .image-preview-modal-close {
+            flex-shrink: 0;
+            margin-top: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 8px;
+            background: transparent;
+            color: #ffffff;
+            font-size: 15px;
+            padding: 10px 28px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -532,7 +640,7 @@
                     <div class="receipt-info-header">
                         <div class="receipt-info-type" id="entryReceiptType"></div>
                         <div class="receipt-info-stats">
-                            <span>SKU <span id="entrySkuCount">0</span>/<span id="entrySkuTotal">0</span></span>
+                            <span>商品种类 <span id="entrySkuCount">0</span>/<span id="entrySkuTotal">0</span></span>
                             <span>数量 <span id="entryQtyCount">0</span>/<span id="entryQtyTotal">0</span></span>
                         </div>
                     </div>
@@ -589,12 +697,18 @@
 
         <div class="confirm-modal" id="noStockTipModal">
             <div class="confirm-modal-card">
-                <div class="confirm-modal-message">本次差异数量请线下与客服进行沟通处理。</div>
+                <div class="confirm-modal-message">提交后，差异部分商品将无法继续收货，请提前确认差异商品的处理方式，如后续会进行补送，请取消后选择继续收货</div>
                 <div class="confirm-modal-actions">
                     <button type="button" class="confirm-modal-btn" onclick="closeNoStockTipModal()">取消</button>
                     <button type="button" class="confirm-modal-btn confirm-modal-btn--primary" onclick="submitNoStockTip()">提交</button>
                 </div>
             </div>
+        </div>
+
+        <div class="image-preview-modal" id="productImagePreviewModal">
+            <div class="image-preview-modal-title" id="productImagePreviewTitle"></div>
+            <img class="image-preview-modal-image" id="productImagePreviewImg" alt="">
+            <button type="button" class="image-preview-modal-close" id="productImagePreviewCloseBtn">关闭</button>
         </div>
     </div>
 
@@ -611,22 +725,22 @@
 
         const productsByReceipt = {
             "IB020260228112499": [
-                { id: "p1", name: "苹果", code: "SP001", barcode: "6912345678901", location: "SH01", planQty: "10", receivedQty: "0", receiptQty: "", unit: "斤" },
-                { id: "p2", name: "香蕉", code: "SP002", barcode: "6912345678902", location: "SH01", planQty: "10", receivedQty: "0", receiptQty: "", unit: "斤" },
-                { id: "p3", name: "橙子", code: "SP003", barcode: "6912345678903", location: "SH01", planQty: "10", receivedQty: "0", receiptQty: "", unit: "斤" }
+                { id: "p1", name: "苹果", code: "SP001", barcode: "6912345678901", image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=128&h=128&fit=crop", location: "SH01", planQty: "10", receivedQty: "0", receiptQty: "", unit: "斤" },
+                { id: "p2", name: "香蕉", code: "SP002", barcode: "6912345678902", image: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=128&h=128&fit=crop", location: "SH01", planQty: "10", receivedQty: "0", receiptQty: "", unit: "斤" },
+                { id: "p3", name: "橙子", code: "SP003", barcode: "6912345678903", image: "https://images.unsplash.com/photo-1547514704-2294156771-558342564e4e?w=128&h=128&fit=crop", location: "SH01", planQty: "10", receivedQty: "0", receiptQty: "", unit: "斤" }
             ],
             "IB020260228112401": [
-                { id: "p4", name: "葡萄", code: "SP004", barcode: "6912345678904", location: "SH01", planQty: "8", receivedQty: "3", receiptQty: "", unit: "斤" },
-                { id: "p5", name: "草莓", code: "SP005", barcode: "6912345678905", location: "SH01", planQty: "12", receivedQty: "5", receiptQty: "", unit: "斤" }
+                { id: "p4", name: "葡萄", code: "SP004", barcode: "6912345678904", image: "https://images.unsplash.com/photo-1599599810769-2c7f15354374?w=128&h=128&fit=crop", location: "SH01", planQty: "8", receivedQty: "3", receiptQty: "", unit: "斤" },
+                { id: "p5", name: "草莓", code: "SP005", barcode: "6912345678905", image: "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=128&h=128&fit=crop", location: "SH01", planQty: "12", receivedQty: "5", receiptQty: "", unit: "斤" }
             ],
             "IB020260228113002": [
-                { id: "p6", name: "梨", code: "SP006", barcode: "6912345678906", location: "SH01", planQty: "10", receivedQty: "10", receiptQty: "", unit: "斤" }
+                { id: "p6", name: "梨", code: "SP006", barcode: "6912345678906", image: "https://images.unsplash.com/photo-1635151227785-f8703e6bd857?w=128&h=128&fit=crop", location: "SH01", planQty: "10", receivedQty: "10", receiptQty: "", unit: "斤" }
             ],
             "IB020260228113145": [
-                { id: "p7", name: "西瓜", code: "SP007", barcode: "6912345678907", location: "SH01", planQty: "15", receivedQty: "15", receiptQty: "", unit: "斤" }
+                { id: "p7", name: "西瓜", code: "SP007", barcode: "6912345678907", image: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=128&h=128&fit=crop", location: "SH01", planQty: "15", receivedQty: "15", receiptQty: "", unit: "斤" }
             ],
             "IB020260228113288": [
-                { id: "p8", name: "芒果", code: "SP008", barcode: "6912345678908", location: "SH01", planQty: "6", receivedQty: "0", receiptQty: "", unit: "斤" }
+                { id: "p8", name: "芒果", code: "SP008", barcode: "6912345678908", image: "https://images.unsplash.com/photo-1605027990120-9a886b0c6f0c?w=128&h=128&fit=crop", location: "SH01", planQty: "6", receivedQty: "0", receiptQty: "", unit: "斤" }
             ]
         };
 
@@ -697,6 +811,19 @@
             return { plan, received, receipt, total: received + receipt };
         }
 
+        function getDefaultReceiptQty(product) {
+            const plan = parseQty(product.planQty) || 0;
+            const received = parseQty(product.receivedQty) || 0;
+            const remaining = Math.max(0, plan - received);
+            return String(remaining);
+        }
+
+        function fillDefaultReceiptQtys(products) {
+            products.forEach((product) => {
+                product.receiptQty = getDefaultReceiptQty(product);
+            });
+        }
+
         function validateReceiptQtyInput(product, value, showMessage) {
             const trimmed = String(value).trim();
             if (!trimmed) {
@@ -748,6 +875,8 @@
                     if (total < plan) {
                         return {
                             name: product.name,
+                            plan,
+                            received: total,
                             diff: plan - total,
                             unit: product.unit
                         };
@@ -817,8 +946,12 @@
                 .map(
                     (item) => `
                     <div class="confirm-modal-diff-item">
-                        <span>${item.name}</span>
-                        <span>差异量 ${item.diff}${item.unit}</span>
+                        <div class="confirm-modal-diff-item-name">${item.name}</div>
+                        <div class="confirm-modal-diff-item-meta">
+                            <span>计划量 ${item.plan}${item.unit}</span>
+                            <span>已收量 ${item.received}${item.unit}</span>
+                            <span>差异量 ${item.diff}${item.unit}</span>
+                        </div>
                     </div>
                 `
                 )
@@ -889,6 +1022,9 @@
         function showEntryPage(receipt) {
             currentReceipt = receipt;
             currentProducts = JSON.parse(JSON.stringify(productsByReceipt[receipt.no] || []));
+            if (isReceiptEditable(receipt)) {
+                fillDefaultReceiptQtys(currentProducts);
+            }
             productKeywordInput.value = "";
 
             currentPage = "entry";
@@ -927,6 +1063,61 @@
                     String(field).toLowerCase().includes(keyword)
                 )
             );
+        }
+
+        function renderProductImageHtml(product) {
+            const imageUrl = String(product.image || "").trim();
+            if (!imageUrl) {
+                return '<div class="product-card-image product-card-image--placeholder">暂无图片</div>';
+            }
+            return `<img class="product-card-image" src="${imageUrl}" alt="${product.name}">`;
+        }
+
+        function getLargeProductImageUrl(imageUrl) {
+            return String(imageUrl).replace(/\?w=\d+&h=\d+&fit=crop/, "?w=800&fit=crop");
+        }
+
+        function openProductImagePreview(imageUrl, productName) {
+            const url = String(imageUrl || "").trim();
+            if (!url) {
+                showToast("暂无图片");
+                return;
+            }
+            document.getElementById("productImagePreviewTitle").textContent = productName || "";
+            document.getElementById("productImagePreviewImg").src = getLargeProductImageUrl(url);
+            document.getElementById("productImagePreviewModal").classList.add("active");
+        }
+
+        function closeProductImagePreview() {
+            const modal = document.getElementById("productImagePreviewModal");
+            modal.classList.remove("active");
+            document.getElementById("productImagePreviewImg").src = "";
+        }
+
+        function bindProductImageFallbacks() {
+            productListWrapper.querySelectorAll(".product-card-image:not(.product-card-image--placeholder)").forEach((img) => {
+                img.addEventListener("error", function onImageError() {
+                    img.removeEventListener("error", onImageError);
+                    const placeholder = document.createElement("div");
+                    placeholder.className = "product-card-image product-card-image--placeholder";
+                    placeholder.textContent = "暂无图片";
+                    img.replaceWith(placeholder);
+                    const media = placeholder.closest(".product-card-media");
+                    if (media) {
+                        media.classList.remove("product-card-media--clickable");
+                        delete media.dataset.imageUrl;
+                        delete media.dataset.productName;
+                    }
+                }, { once: true });
+            });
+        }
+
+        function bindProductImagePreview() {
+            productListWrapper.querySelectorAll(".product-card-media--clickable").forEach((media) => {
+                media.addEventListener("click", () => {
+                    openProductImagePreview(media.dataset.imageUrl, media.dataset.productName);
+                });
+            });
         }
 
         function focusNextReceiptQtyInput(inputEl) {
@@ -1004,32 +1195,40 @@
 
                     return `
                     <div class="product-card" data-product-id="${product.id}">
-                        <div class="product-card-name">${product.name}</div>
-                        <div class="product-card-row">
-                            <span class="product-card-label">商品编码</span>
-                            <span class="product-card-value">${product.code}</span>
+                        <div class="product-card-media${product.image ? " product-card-media--clickable" : ""}" data-image-url="${product.image || ""}" data-product-name="${product.name}">
+                            ${renderProductImageHtml(product)}
                         </div>
-                        <div class="product-card-row">
-                            <span class="product-card-label">商品条码</span>
-                            <span class="product-card-value">${product.barcode}</span>
+                        <div class="product-card-body">
+                            <div class="product-card-name">${product.name}</div>
+                            <div class="product-card-row">
+                                <span class="product-card-label">商品编码</span>
+                                <span class="product-card-value">${product.code}</span>
+                            </div>
+                            <div class="product-card-row">
+                                <span class="product-card-label">商品条码</span>
+                                <span class="product-card-value">${product.barcode}</span>
+                            </div>
+                            <div class="product-card-row">
+                                <span class="product-card-label">收货储位</span>
+                                <span class="product-card-value">${product.location}</span>
+                            </div>
+                            <div class="product-card-row">
+                                <span class="product-card-label">计划量</span>
+                                <span class="product-card-value">${product.planQty}${product.unit}</span>
+                            </div>
+                            <div class="product-card-row">
+                                <span class="product-card-label">已收量</span>
+                                <span class="product-card-value">${product.receivedQty}${product.unit}</span>
+                            </div>
+                            ${receiptQtyRow}
                         </div>
-                        <div class="product-card-row">
-                            <span class="product-card-label">收货储位</span>
-                            <span class="product-card-value">${product.location}</span>
-                        </div>
-                        <div class="product-card-row">
-                            <span class="product-card-label">计划量</span>
-                            <span class="product-card-value">${product.planQty}${product.unit}</span>
-                        </div>
-                        <div class="product-card-row">
-                            <span class="product-card-label">已收量</span>
-                            <span class="product-card-value">${product.receivedQty}${product.unit}</span>
-                        </div>
-                        ${receiptQtyRow}
                     </div>
                 `;
                 })
                 .join("");
+
+            bindProductImageFallbacks();
+            bindProductImagePreview();
 
             if (editable) {
                 productListWrapper.querySelectorAll(".receipt-qty-input").forEach((input) => {
@@ -1128,6 +1327,14 @@
         keywordInput.addEventListener("input", renderList);
         productKeywordInput.addEventListener("input", renderProductList);
         document.getElementById("entrySubmitBtn").addEventListener("click", submitEntry);
+        document.getElementById("productImagePreviewModal").addEventListener("click", closeProductImagePreview);
+        document.getElementById("productImagePreviewCloseBtn").addEventListener("click", (event) => {
+            event.stopPropagation();
+            closeProductImagePreview();
+        });
+        document.getElementById("productImagePreviewImg").addEventListener("click", (event) => {
+            event.stopPropagation();
+        });
 
         showListPage();
         renderList();

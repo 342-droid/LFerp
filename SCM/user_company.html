@@ -31,7 +31,7 @@
             <section class="search-section">
                 <form class="search-form">
                     <div class="form-group">
-                        <label>用户编码:</label>
+                        <label>用户账号:</label>
                         <div class="input-wrapper">
                             <input type="text" id="searchUserCode" placeholder="请输入">
                             <span class="clear-btn">×</span>
@@ -78,7 +78,7 @@
                         <thead>
                             <tr>
                                 <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
-                                <th>用户编码</th>
+                                <th>用户账号</th>
                                 <th>货主</th>
                                 <th>是否启用</th>
                                 <th>更新时间</th>
@@ -140,7 +140,7 @@
                 ],
                 
                 fields: [
-                    { id: 'userCode', label: '用户编码', type: 'text', required: true, editDisabled: true },
+                    { id: 'userCode', label: '用户账号', type: 'text', required: true, editDisabled: true },
                     { id: 'company', label: '货主', type: 'select', required: true, options: CommonOptions.company },
                     { id: 'isEnabled', label: '是否启用', type: 'select', required: true, options: CommonOptions.isEnabled },
                     { id: 'remark', label: '备注', type: 'textarea', labelWidth: '110px' }
@@ -153,7 +153,7 @@
                     triggerBtnId: 'addBtn',
                     defaults: { isEnabled: '启用' },
                     validations: [
-                        { id: 'userCode', message: '请输入用户编码', required: true },
+                        { id: 'userCode', message: '请输入用户账号', required: true },
                         { id: 'company', message: '请选择货主', required: true },
                         { id: 'isEnabled', message: '请选择是否启用', required: true }
                     ],

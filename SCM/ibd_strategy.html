@@ -6,6 +6,70 @@
     <title>冷丰WMS - 入库策略</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .timeout-close-config-panel {
+            width: 100%;
+            flex: 0 0 100%;
+            max-width: 100%;
+            padding: 12px 14px;
+            margin-top: 4px;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            background: #fafafa;
+            overflow: visible;
+        }
+
+        .timeout-close-config-panel .modal-form-group {
+            width: 100%;
+        }
+
+        .timeout-close-config-panel .modal-form-group.custom-select-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        .timeout-close-config-panel .modal-form-group.custom-select-wrapper:has(.select-dropdown.show) {
+            z-index: 5001;
+        }
+
+        .timeout-close-config-panel .section-title {
+            margin-bottom: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .timeout-close-status-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            overflow: visible;
+        }
+
+        .timeout-close-status-table th,
+        .timeout-close-status-table td {
+            padding: 8px 10px;
+            border: 1px solid #e8e8e8;
+            font-size: 13px;
+            text-align: left;
+            overflow: visible;
+            position: relative;
+        }
+
+        .timeout-close-status-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+        }
+
+        .timeout-close-status-table .custom-select {
+            width: 100%;
+        }
+
+        .timeout-close-config-panel.is-disabled {
+            opacity: 0.65;
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
     <!-- 侧边栏容器 -->
@@ -109,6 +173,7 @@
                                 <th>默认收货储位</th>
                                 <th>自动上架</th>
                                 <th>默认上架储位</th>
+                                <th>超时关单</th>
                                 <th>是否启用</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
@@ -129,6 +194,7 @@
                                 <td>A-01-01</td>
                                 <td>是</td>
                                 <td>B-01-01</td>
+                                <td>否</td>
                                 <td><span class="status active">启用</span></td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
@@ -137,7 +203,7 @@
                                     <a href="#" class="delete-btn">删除</a>
                                 </td>
                             </tr>
-                            <tr>
+                            <tr data-timeout-close-config='{"enabled":true,"timeDimension":"businessEnd","timeDimensionText":"营业结束时间","judgmentMinutes":120,"statusActions":{"初始":{"value":"zero","text":"按0关单"},"收货中":{"value":"plan","text":"按计划量关单"}}}'>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>IS002</td>
                                 <td>南京仓调拨入库策略</td>
@@ -150,6 +216,7 @@
                                 <td>A-02-01</td>
                                 <td>否</td>
                                 <td>-</td>
+                                <td>是(营业结束时间/120分钟)</td>
                                 <td><span class="status inactive">禁用</span></td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
@@ -175,11 +242,87 @@
     <script src="../js/modal-manager.js"></script>
     <script src="../js/page-manager.js"></script>
     <script>
+        function getTimeoutCloseCustomSelects() {
+            const selects = [
+                { inputId: 'timeoutCloseTimeDimension', dropdownId: 'timeoutCloseTimeDimensionDropdown' },
+                { inputId: 'editTimeoutCloseTimeDimension', dropdownId: 'editTimeoutCloseTimeDimensionDropdown' }
+            ];
+            (CommonOptions.ibdReceiptStatus || []).forEach((status) => {
+                selects.push(
+                    { inputId: `timeoutCloseAction_${status.value}`, dropdownId: `timeoutCloseAction_${status.value}Dropdown` },
+                    { inputId: `editTimeoutCloseAction_${status.value}`, dropdownId: `editTimeoutCloseAction_${status.value}Dropdown` }
+                );
+            });
+            return selects;
+        }
+
+        function renderTimeoutCloseSelectOptions() {
+            renderSelectOptions('timeoutCloseTimeDimensionDropdown', CommonOptions.timeoutCloseTimeDimension || []);
+            renderSelectOptions('editTimeoutCloseTimeDimensionDropdown', CommonOptions.timeoutCloseTimeDimension || []);
+            (CommonOptions.ibdReceiptStatus || []).forEach((status) => {
+                renderSelectOptions(`timeoutCloseAction_${status.value}Dropdown`, CommonOptions.timeoutCloseAction || []);
+                renderSelectOptions(`editTimeoutCloseAction_${status.value}Dropdown`, CommonOptions.timeoutCloseAction || []);
+            });
+        }
+
+        function buildTimeoutCloseConfigHtml(isEdit) {
+            const prefix = isEdit ? 'edit' : '';
+            const panelId = isEdit ? 'editTimeoutCloseConfigPanel' : 'timeoutCloseConfigPanel';
+            const timeDimensionId = prefix ? 'editTimeoutCloseTimeDimension' : 'timeoutCloseTimeDimension';
+            const judgmentMinutesId = prefix ? 'editTimeoutCloseJudgmentMinutes' : 'timeoutCloseJudgmentMinutes';
+            const statusRows = (CommonOptions.ibdReceiptStatus || []).map((status) => {
+                const actionId = `${prefix}${prefix ? 'TimeoutCloseAction' : 'timeoutCloseAction'}_${status.value}`;
+                const dropdownId = `${actionId}Dropdown`;
+                return `
+                    <tr>
+                        <td>${status.text}</td>
+                        <td>
+                            <div class="custom-select timeout-close-action-select">
+                                <input type="text" id="${actionId}" placeholder="请选择">
+                                <span class="select-arrow">▼</span>
+                                <span class="clear-btn">×</span>
+                                <div class="select-dropdown" id="${dropdownId}"></div>
+                            </div>
+                        </td>
+                    </tr>`;
+            }).join('');
+
+            return `
+                <div id="${panelId}" class="timeout-close-config-panel is-disabled">
+                    <div class="modal-form-group custom-select-wrapper">
+                        <label style="width: 160px;">时间维度 <span style="color: red;">*</span></label>
+                        <div class="custom-select">
+                            <input type="text" id="${timeDimensionId}" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="${timeDimensionId}Dropdown"></div>
+                        </div>
+                    </div>
+                    <div class="modal-form-group">
+                        <label style="width: 160px;">关单判断时间(分钟) <span style="color: red;">*</span></label>
+                        <div class="input-wrapper">
+                            <input type="number" id="${judgmentMinutesId}" placeholder="请输入分钟数" min="1" step="1">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="section-title">收货单状态关单规则</div>
+                    <table class="timeout-close-status-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 120px;">收货单状态</th>
+                                <th>关单操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>${statusRows}</tbody>
+                    </table>
+                </div>`;
+        }
+
         // 使用PageManager简化页面逻辑
         document.addEventListener('DOMContentLoaded', () => {
             const page = new PageManager({
                 entityName: '入库策略',
-                statusColumnIndex: 12,
+                statusColumnIndex: 13,
                 detailView: { enabled: true },
                 
                 // 搜索区域下拉框
@@ -244,7 +387,19 @@
                           { value: 'B-01-02', text: 'B-01-02' },
                           { value: 'B-02-01', text: 'B-02-01' },
                           { value: 'B-02-02', text: 'B-02-02' }
-                      ] }
+                      ] },
+                    { id: 'divider2', label: '', type: 'raw', content: '<hr class="modal-divider">' },
+                    { id: 'timeoutCloseEnabled', label: '超时关单', type: 'select', labelWidth: '160px', required: true,
+                      options: [
+                          { value: '是', text: '是' },
+                          { value: '否', text: '否' }
+                      ] },
+                    {
+                        id: 'timeoutCloseConfig',
+                        type: 'raw',
+                        content: buildTimeoutCloseConfigHtml(false),
+                        editHtml: buildTimeoutCloseConfigHtml(true)
+                    }
                 ],
                 
                 addModal: {
@@ -252,7 +407,7 @@
                     cancelBtnId: 'cancelBtn',
                     saveBtnId: 'saveBtn',
                     triggerBtnId: null,
-                    defaults: { isEnabled: '启用', overReceiptRatio: '0' },
+                    defaults: { isEnabled: '启用', overReceiptRatio: '0', timeoutCloseEnabled: '否' },
                     validations: [
                         { id: 'warehouse', message: '请选择仓库', required: true },
                         { id: 'company', message: '请选择货主', required: true },
@@ -264,7 +419,8 @@
                         { id: 'receiptMethod', message: '请选择收货方式', required: true },
                         { id: 'overReceiptRatio', message: '请输入超收比例(%)', required: true },
                         { id: 'defaultLocation', message: '请选择默认收货储位', required: true },
-                        { id: 'autoPutaway', message: '请选择自动上架', required: true }
+                        { id: 'autoPutaway', message: '请选择自动上架', required: true },
+                        { id: 'timeoutCloseEnabled', message: '请选择是否开启超时关单', required: true }
                     ],
                     onOpen: () => {
                         const currentWarehouse = getCurrentWarehouse();
@@ -282,9 +438,15 @@
                             overReceiptRatioInput.value = '0';
                         }
                         togglePutawayLocationField('autoPutaway', 'putawayLocation');
+                        initTimeoutCloseSelects();
+                        toggleTimeoutCloseConfig('');
+                        resetTimeoutCloseDefaults('');
                     },
                     onSave: () => {
                         if (!validatePutawayLocation('autoPutaway', 'putawayLocation')) {
+                            return false;
+                        }
+                        if (!validateTimeoutCloseConfig('')) {
                             return false;
                         }
                         const warehouse = document.getElementById('warehouse').value.trim();
@@ -300,8 +462,8 @@
                         const putawayLocation = document.getElementById('putawayLocation').value.trim() || '-';
                         const overReceiptRatioInput = document.getElementById('overReceiptRatio').value.trim();
                         const overReceiptRatio = overReceiptRatioInput === '' ? '0' : overReceiptRatioInput;
-                        
-                        page.addTableRow({
+                        const timeoutCloseConfig = collectTimeoutCloseConfig('');
+                        const newRow = page.addTableRow({
                             cells: [
                                 code,
                                 name,
@@ -314,11 +476,15 @@
                                 defaultLocation,
                                 autoPutaway,
                                 putawayLocation,
+                                formatTimeoutCloseSummary(timeoutCloseConfig),
                                 { value: isEnabled, isStatus: true },
                                 page.getCurrentTimeStr(),
                                 '当前用户'
                             ]
                         });
+                        if (newRow) {
+                            newRow.dataset.timeoutCloseConfig = JSON.stringify(timeoutCloseConfig);
+                        }
                         showToast('入库策略已保存', 'success');
                     }
                 },
@@ -335,16 +501,23 @@
                         { id: 'editReceiptMethod', message: '请选择收货方式', required: true },
                         { id: 'editOverReceiptRatio', message: '请输入超收比例(%)', required: true },
                         { id: 'editDefaultLocation', message: '请选择默认收货储位', required: true },
-                        { id: 'editAutoPutaway', message: '请选择自动上架', required: true }
+                        { id: 'editAutoPutaway', message: '请选择自动上架', required: true },
+                        { id: 'editTimeoutCloseEnabled', message: '请选择是否开启超时关单', required: true }
                     ],
                     onOpen: () => {
                         togglePutawayLocationField('editAutoPutaway', 'editPutawayLocation');
+                        initTimeoutCloseSelects();
+                        toggleTimeoutCloseConfig('edit');
                     },
                     onSave: () => {
                         if (!page.currentEditRow) return;
                         if (!validatePutawayLocation('editAutoPutaway', 'editPutawayLocation')) {
                             return false;
                         }
+                        if (!validateTimeoutCloseConfig('edit')) {
+                            return false;
+                        }
+                        const timeoutCloseConfig = collectTimeoutCloseConfig('edit');
                         page.updateTableRow(page.currentEditRow, {
                             2: document.getElementById('editStrategyName').value.trim(),
                             5: document.getElementById('editInboundType').value.trim(),
@@ -354,16 +527,32 @@
                             9: document.getElementById('editDefaultLocation').value.trim() || '-',
                             10: document.getElementById('editAutoPutaway').value.trim() || '-',
                             11: document.getElementById('editPutawayLocation').value.trim() || '-',
-                            12: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
-                            13: page.getCurrentTimeStr(),
-                            14: '当前用户'
+                            12: formatTimeoutCloseSummary(timeoutCloseConfig),
+                            13: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
+                            14: page.getCurrentTimeStr(),
+                            15: '当前用户'
                         });
+                        page.currentEditRow.dataset.timeoutCloseConfig = JSON.stringify(timeoutCloseConfig);
                         showToast('入库策略已更新', 'success');
                         page.currentEditRow = null;
                     },
                     mapRowToForm: (row) => {
                         page.currentEditRow = row;
                         const cells = row.querySelectorAll('td');
+                        let timeoutCloseConfig = null;
+                        if (row.dataset.timeoutCloseConfig) {
+                            try {
+                                timeoutCloseConfig = JSON.parse(row.dataset.timeoutCloseConfig);
+                            } catch (e) {
+                                timeoutCloseConfig = null;
+                            }
+                        }
+                        const timeoutCloseEnabled = timeoutCloseConfig?.enabled
+                            ? '是'
+                            : (cells[12].textContent.trim().startsWith('是') ? '是' : '否');
+                        setTimeout(() => {
+                            applyTimeoutCloseConfig('edit', timeoutCloseConfig, timeoutCloseEnabled);
+                        }, 0);
                         return {
                             editWarehouse: cells[3].textContent,
                             editCompany: cells[4].textContent,
@@ -376,7 +565,8 @@
                             editDefaultLocation: cells[9].textContent === '-' ? '' : cells[9].textContent,
                             editAutoPutaway: cells[10].textContent === '-' ? '' : cells[10].textContent,
                             editPutawayLocation: cells[11].textContent === '-' ? '' : cells[11].textContent,
-                            editIsEnabled: cells[12].querySelector('.status').textContent
+                            editTimeoutCloseEnabled: timeoutCloseEnabled,
+                            editIsEnabled: cells[13].querySelector('.status').textContent
                         };
                     }
                 },
@@ -393,6 +583,8 @@
             renderSelectOptions('searchBusinessTypeDropdown', CommonOptions.inboundBusinessType);
             
             page.init();
+            renderTimeoutCloseSelectOptions();
+            page.initCustomSelects(getTimeoutCloseCustomSelects());
             const editCloseBtn = document.getElementById('editCloseBtn');
             if (editCloseBtn) {
                 editCloseBtn.addEventListener('click', () => page.closeModal('edit'));
@@ -434,6 +626,176 @@
                 return true;
             }
 
+            function getTimeoutCloseFieldIds(prefix) {
+                const isEdit = prefix === 'edit';
+                return {
+                    enabledId: isEdit ? 'editTimeoutCloseEnabled' : 'timeoutCloseEnabled',
+                    panelId: isEdit ? 'editTimeoutCloseConfigPanel' : 'timeoutCloseConfigPanel',
+                    timeDimensionId: isEdit ? 'editTimeoutCloseTimeDimension' : 'timeoutCloseTimeDimension',
+                    judgmentMinutesId: isEdit ? 'editTimeoutCloseJudgmentMinutes' : 'timeoutCloseJudgmentMinutes',
+                    actionPrefix: isEdit ? 'editTimeoutCloseAction' : 'timeoutCloseAction'
+                };
+            }
+
+            function initTimeoutCloseSelects() {
+                renderTimeoutCloseSelectOptions();
+            }
+
+            function toggleTimeoutCloseConfig(prefix) {
+                const ids = getTimeoutCloseFieldIds(prefix);
+                const enabledInput = document.getElementById(ids.enabledId);
+                const panel = document.getElementById(ids.panelId);
+                if (!enabledInput || !panel) return;
+
+                const enabled = isYesValue(enabledInput.value);
+                const isEditDetailMode = page.isDetailMode && prefix === 'edit';
+                panel.classList.toggle('is-disabled', !enabled || isEditDetailMode);
+
+                [ids.timeDimensionId, ids.judgmentMinutesId].forEach((fieldId) => {
+                    const input = document.getElementById(fieldId);
+                    if (input) {
+                        input.disabled = isEditDetailMode || !enabled;
+                    }
+                });
+
+                CommonOptions.ibdReceiptStatus.forEach((status) => {
+                    const actionInput = document.getElementById(`${ids.actionPrefix}_${status.value}`);
+                    if (actionInput) {
+                        actionInput.disabled = isEditDetailMode || !enabled;
+                    }
+                });
+            }
+
+            function resetTimeoutCloseDefaults(prefix) {
+                const ids = getTimeoutCloseFieldIds(prefix);
+                const enabledInput = document.getElementById(ids.enabledId);
+                if (enabledInput && !enabledInput.value.trim()) {
+                    enabledInput.value = '否';
+                }
+            }
+
+            function collectTimeoutCloseConfig(prefix) {
+                const ids = getTimeoutCloseFieldIds(prefix);
+                const enabledInput = document.getElementById(ids.enabledId);
+                const enabled = isYesValue(enabledInput?.value);
+                const config = {
+                    enabled,
+                    timeDimension: '',
+                    timeDimensionText: '',
+                    judgmentMinutes: null,
+                    statusActions: {}
+                };
+
+                if (!enabled) {
+                    return config;
+                }
+
+                const timeDimensionInput = document.getElementById(ids.timeDimensionId);
+                const judgmentMinutesInput = document.getElementById(ids.judgmentMinutesId);
+                config.timeDimension = timeDimensionInput?.dataset.value || '';
+                config.timeDimensionText = timeDimensionInput?.value.trim() || '';
+                config.judgmentMinutes = judgmentMinutesInput?.value.trim()
+                    ? Number(judgmentMinutesInput.value.trim())
+                    : null;
+
+                CommonOptions.ibdReceiptStatus.forEach((status) => {
+                    const actionInput = document.getElementById(`${ids.actionPrefix}_${status.value}`);
+                    config.statusActions[status.value] = {
+                        value: actionInput?.dataset.value || '',
+                        text: actionInput?.value.trim() || ''
+                    };
+                });
+
+                return config;
+            }
+
+            function applyTimeoutCloseConfig(prefix, config, enabledText) {
+                const ids = getTimeoutCloseFieldIds(prefix);
+                const enabledInput = document.getElementById(ids.enabledId);
+                if (enabledInput && enabledText) {
+                    enabledInput.value = enabledText;
+                }
+
+                const timeDimensionInput = document.getElementById(ids.timeDimensionId);
+                const judgmentMinutesInput = document.getElementById(ids.judgmentMinutesId);
+
+                if (config?.enabled) {
+                    if (timeDimensionInput) {
+                        timeDimensionInput.value = config.timeDimensionText || '';
+                        timeDimensionInput.dataset.value = config.timeDimension || '';
+                    }
+                    if (judgmentMinutesInput) {
+                        judgmentMinutesInput.value = config.judgmentMinutes ?? '';
+                    }
+                    CommonOptions.ibdReceiptStatus.forEach((status) => {
+                        const actionInput = document.getElementById(`${ids.actionPrefix}_${status.value}`);
+                        const action = config.statusActions?.[status.value];
+                        if (actionInput && action) {
+                            actionInput.value = action.text || '';
+                            actionInput.dataset.value = action.value || '';
+                        }
+                    });
+                } else {
+                    if (timeDimensionInput) {
+                        timeDimensionInput.value = '';
+                        timeDimensionInput.dataset.value = '';
+                    }
+                    if (judgmentMinutesInput) {
+                        judgmentMinutesInput.value = '';
+                    }
+                    CommonOptions.ibdReceiptStatus.forEach((status) => {
+                        const actionInput = document.getElementById(`${ids.actionPrefix}_${status.value}`);
+                        if (actionInput) {
+                            actionInput.value = '';
+                            actionInput.dataset.value = '';
+                        }
+                    });
+                }
+
+                toggleTimeoutCloseConfig(prefix);
+            }
+
+            function validateTimeoutCloseConfig(prefix) {
+                const config = collectTimeoutCloseConfig(prefix);
+                if (!config.enabled) {
+                    return true;
+                }
+
+                const ids = getTimeoutCloseFieldIds(prefix);
+                const timeDimensionInput = document.getElementById(ids.timeDimensionId);
+                const judgmentMinutesInput = document.getElementById(ids.judgmentMinutesId);
+
+                if (!config.timeDimensionText) {
+                    showToast('开启超时关单时，请选择时间维度');
+                    timeDimensionInput?.focus();
+                    return false;
+                }
+
+                if (!config.judgmentMinutes || config.judgmentMinutes <= 0) {
+                    showToast('开启超时关单时，请填写有效的关单判断时间（分钟）');
+                    judgmentMinutesInput?.focus();
+                    return false;
+                }
+
+                for (const status of CommonOptions.ibdReceiptStatus) {
+                    const action = config.statusActions[status.value];
+                    if (!action?.text) {
+                        showToast(`请为收货单状态“${status.text}”选择关单操作`);
+                        document.getElementById(`${ids.actionPrefix}_${status.value}`)?.focus();
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            function formatTimeoutCloseSummary(config) {
+                if (!config?.enabled) {
+                    return '否';
+                }
+                return `是(${config.timeDimensionText}/${config.judgmentMinutes}分钟)`;
+            }
+
             ['autoPutaway', 'editAutoPutaway'].forEach((id) => {
                 const input = document.getElementById(id);
                 if (!input) return;
@@ -448,11 +810,24 @@
             });
             togglePutawayLocationField('autoPutaway', 'putawayLocation');
             togglePutawayLocationField('editAutoPutaway', 'editPutawayLocation');
+
+            ['timeoutCloseEnabled', 'editTimeoutCloseEnabled'].forEach((id) => {
+                const input = document.getElementById(id);
+                if (!input) return;
+                input.addEventListener('change', () => {
+                    toggleTimeoutCloseConfig('');
+                    toggleTimeoutCloseConfig('edit');
+                });
+                input.addEventListener('input', () => {
+                    toggleTimeoutCloseConfig('');
+                    toggleTimeoutCloseConfig('edit');
+                });
+            });
             
             // 新增时设置当前仓库
             document.getElementById('addBtn').addEventListener('click', () => {
                 page.openModal('add', {
-                    defaults: { isEnabled: '启用', overReceiptRatio: '0' }
+                    defaults: { isEnabled: '启用', overReceiptRatio: '0', timeoutCloseEnabled: '否' }
                 });
             });
 

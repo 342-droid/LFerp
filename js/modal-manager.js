@@ -321,6 +321,23 @@ const CommonOptions = {
         { value: '仓库调拨', text: '仓库调拨' },
         { value: '直播退货', text: '直播退货' }
     ],
+    // 入库收货单状态
+    ibdReceiptStatus: [
+        { value: '初始', text: '初始' },
+        { value: '收货中', text: '收货中' }
+    ],
+    // 超时关单时间维度
+    timeoutCloseTimeDimension: [
+        { value: 'createTime', text: '创建时间' },
+        { value: 'businessStart', text: '营业开始时间' },
+        { value: 'businessEnd', text: '营业结束时间' }
+    ],
+    // 超时关单操作
+    timeoutCloseAction: [
+        { value: 'zero', text: '按0关单' },
+        { value: 'actual', text: '按实收量关单' },
+        { value: 'plan', text: '按计划量关单' }
+    ],
     // 出库类型选项
     outboundType: [
         { value: '销售出库', text: '销售出库' },
