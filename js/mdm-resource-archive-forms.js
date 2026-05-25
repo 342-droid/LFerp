@@ -715,10 +715,7 @@
         refs.contactInp = txt('请输入联系人', '');
         body.appendChild(formRow('联系人', true, refs.contactInp));
         body.appendChild(
-            radioGroup('结算类型', true, kind + '-settle', [
-                ['purchase', '采购结算'],
-                ['order', '订单结算']
-            ], 'order')
+            radioGroup('结算类型', true, kind + '-settle', [['order', '订单结算']], 'order')
         );
         body.appendChild(
             radioGroup('配送方式', true, kind + '-deliver', [
@@ -727,18 +724,7 @@
             ], 'unified')
         );
         body.appendChild(
-            radioGroup('结款方式', true, kind + '-pay', [
-                ['goods_first', '先货后款'],
-                ['pay_first', '先款后货']
-            ], 'pay_first')
-        );
-        body.appendChild(
-            radioGroup('结算周期', true, kind + '-cycle', [
-                ['now', '现结'],
-                ['day', '日结'],
-                ['week', '周结'],
-                ['month', '月结']
-            ], 'now')
+            radioGroup('结款方式', true, kind + '-pay', [['goods_first', '先货后款']], 'goods_first')
         );
 
         function fillFromArchiveRow(tr) {
