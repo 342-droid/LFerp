@@ -722,10 +722,9 @@
         );
         body.appendChild(
             radioGroup('配送方式', true, kind + '-deliver', [
-                ['pickup', '自提'],
-                ['delivery', '配送'],
-                ['both', '自提+配送']
-            ], 'both')
+                ['unified', '统配'],
+                ['direct', '直配']
+            ], 'unified')
         );
         body.appendChild(
             radioGroup('结款方式', true, kind + '-pay', [
