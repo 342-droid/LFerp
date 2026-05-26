@@ -334,7 +334,6 @@ const CommonOptions = {
     ],
     // 超时关单操作
     timeoutCloseAction: [
-        { value: 'zero', text: '按0关单' },
         { value: 'actual', text: '按实收量关单' },
         { value: 'plan', text: '按计划量关单' }
     ],
