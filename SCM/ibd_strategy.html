@@ -7,40 +7,49 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <style>
-        .timeout-close-config-panel {
+        .modal-section-title {
             width: 100%;
             flex: 0 0 100%;
             max-width: 100%;
-            padding: 12px 14px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .modal-section-title + .modal-form-group {
+            margin-top: 0;
+        }
+
+        .modal-form > .modal-section-title:not(:first-child) {
             margin-top: 4px;
-            border: 1px solid #e8e8e8;
-            border-radius: 4px;
-            background: #fafafa;
+        }
+
+        .timeout-close-config-fields {
+            width: 100%;
+            flex: 0 0 100%;
+            max-width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
             overflow: visible;
         }
 
-        .timeout-close-config-panel .modal-form-group {
-            width: 100%;
-        }
-
-        .timeout-close-config-panel .modal-form-group.custom-select-wrapper {
+        .timeout-close-config-fields .modal-form-group.custom-select-wrapper {
             position: relative;
             z-index: 1;
         }
 
-        .timeout-close-config-panel .modal-form-group.custom-select-wrapper:has(.select-dropdown.show) {
+        .timeout-close-config-fields .modal-form-group.custom-select-wrapper:has(.select-dropdown.show) {
             z-index: 5001;
-        }
-
-        .timeout-close-config-panel .section-title {
-            margin-bottom: 12px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #333;
         }
 
         .timeout-close-status-table {
             width: 100%;
+            flex: 0 0 100%;
+            max-width: 100%;
             border-collapse: collapse;
             background: #fff;
             overflow: visible;
@@ -65,9 +74,8 @@
             width: 100%;
         }
 
-        .timeout-close-config-panel.is-disabled {
-            opacity: 0.65;
-            pointer-events: none;
+        .timeout-close-config-fields.is-hidden {
+            display: none;
         }
     </style>
 </head>
@@ -194,7 +202,7 @@
                                 <td>A-01-01</td>
                                 <td>是</td>
                                 <td>B-01-01</td>
-                                <td>否</td>
+                                <td>禁用</td>
                                 <td><span class="status active">启用</span></td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
@@ -216,7 +224,7 @@
                                 <td>A-02-01</td>
                                 <td>否</td>
                                 <td>-</td>
-                                <td>是(营业结束时间/120分钟)</td>
+                                <td>启用(营业结束时间/120分钟)</td>
                                 <td><span class="status inactive">禁用</span></td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
@@ -265,6 +273,10 @@
             });
         }
 
+        function buildModalSectionTitle(title) {
+            return `<div class="modal-section-title">${title}</div>`;
+        }
+
         function buildTimeoutCloseConfigHtml(isEdit) {
             const prefix = isEdit ? 'edit' : '';
             const panelId = isEdit ? 'editTimeoutCloseConfigPanel' : 'timeoutCloseConfigPanel';
@@ -288,7 +300,7 @@
             }).join('');
 
             return `
-                <div id="${panelId}" class="timeout-close-config-panel is-disabled">
+                <div id="${panelId}" class="timeout-close-config-fields is-hidden">
                     <div class="modal-form-group custom-select-wrapper">
                         <label style="width: 160px;">时间维度 <span style="color: red;">*</span></label>
                         <div class="custom-select">
@@ -299,13 +311,12 @@
                         </div>
                     </div>
                     <div class="modal-form-group">
-                        <label style="width: 160px;">关单判断时间(分钟) <span style="color: red;">*</span></label>
+                        <label style="width: 160px;">超时时间(分钟) <span style="color: red;">*</span></label>
                         <div class="input-wrapper">
                             <input type="number" id="${judgmentMinutesId}" placeholder="请输入分钟数" min="1" step="1">
                             <span class="clear-btn">×</span>
                         </div>
                     </div>
-                    <div class="section-title">收货单状态关单规则</div>
                     <table class="timeout-close-status-table">
                         <thead>
                             <tr>
@@ -335,6 +346,7 @@
                 
                 // 字段定义 - 自动生成新增/编辑模态框
                 fields: [
+                    { id: 'sectionBasic', type: 'raw', content: buildModalSectionTitle('基础信息') },
                     { id: 'warehouse', label: '仓库', type: 'select', required: true, disabled: true,
                       options: [
                           { value: 'W001', text: 'W001-南京仓' },
@@ -361,7 +373,7 @@
                           { value: '禁用', text: '禁用' }
                       ] },
                     { id: 'remark', label: '备注', type: 'text' },
-                    { id: 'divider1', label: '', type: 'raw', content: '<hr class="modal-divider">' },
+                    { id: 'sectionParams', type: 'raw', content: buildModalSectionTitle('策略参数') },
                     { id: 'receiptMethod', label: '收货方式', type: 'select', labelWidth: '160px', required: true,
                       options: [
                           { value: '容器收货', text: '容器收货' },
@@ -388,11 +400,11 @@
                           { value: 'B-02-01', text: 'B-02-01' },
                           { value: 'B-02-02', text: 'B-02-02' }
                       ] },
-                    { id: 'divider2', label: '', type: 'raw', content: '<hr class="modal-divider">' },
+                    { id: 'sectionTimeout', type: 'raw', content: buildModalSectionTitle('超时关单配置') },
                     { id: 'timeoutCloseEnabled', label: '超时关单', type: 'select', labelWidth: '160px', required: true,
                       options: [
-                          { value: '是', text: '是' },
-                          { value: '否', text: '否' }
+                          { value: '启用', text: '启用' },
+                          { value: '禁用', text: '禁用' }
                       ] },
                     {
                         id: 'timeoutCloseConfig',
@@ -407,7 +419,7 @@
                     cancelBtnId: 'cancelBtn',
                     saveBtnId: 'saveBtn',
                     triggerBtnId: null,
-                    defaults: { isEnabled: '启用', overReceiptRatio: '0', timeoutCloseEnabled: '否' },
+                    defaults: { isEnabled: '启用', overReceiptRatio: '0', timeoutCloseEnabled: '禁用' },
                     validations: [
                         { id: 'warehouse', message: '请选择仓库', required: true },
                         { id: 'company', message: '请选择货主', required: true },
@@ -420,7 +432,7 @@
                         { id: 'overReceiptRatio', message: '请输入超收比例(%)', required: true },
                         { id: 'defaultLocation', message: '请选择默认收货储位', required: true },
                         { id: 'autoPutaway', message: '请选择自动上架', required: true },
-                        { id: 'timeoutCloseEnabled', message: '请选择是否开启超时关单', required: true }
+                        { id: 'timeoutCloseEnabled', message: '请选择超时关单', required: true }
                     ],
                     onOpen: () => {
                         const currentWarehouse = getCurrentWarehouse();
@@ -502,7 +514,7 @@
                         { id: 'editOverReceiptRatio', message: '请输入超收比例(%)', required: true },
                         { id: 'editDefaultLocation', message: '请选择默认收货储位', required: true },
                         { id: 'editAutoPutaway', message: '请选择自动上架', required: true },
-                        { id: 'editTimeoutCloseEnabled', message: '请选择是否开启超时关单', required: true }
+                        { id: 'editTimeoutCloseEnabled', message: '请选择超时关单', required: true }
                     ],
                     onOpen: () => {
                         togglePutawayLocationField('editAutoPutaway', 'editPutawayLocation');
@@ -547,9 +559,10 @@
                                 timeoutCloseConfig = null;
                             }
                         }
-                        const timeoutCloseEnabled = timeoutCloseConfig?.enabled
-                            ? '是'
-                            : (cells[12].textContent.trim().startsWith('是') ? '是' : '否');
+                        const cellText = cells[12].textContent.trim();
+                        const timeoutCloseEnabled = timeoutCloseConfig?.enabled != null
+                            ? (timeoutCloseConfig.enabled ? '启用' : '禁用')
+                            : (cellText.startsWith('启用') ? '启用' : '禁用');
                         setTimeout(() => {
                             applyTimeoutCloseConfig('edit', timeoutCloseConfig, timeoutCloseEnabled);
                         }, 0);
@@ -593,6 +606,10 @@
             function isYesValue(value) {
                 const normalized = String(value || '').trim().toLowerCase();
                 return normalized === '是' || normalized === 'yes';
+            }
+
+            function isTimeoutCloseEnabled(value) {
+                return String(value || '').trim() === '启用';
             }
 
             function togglePutawayLocationField(autoPutawayId, putawayLocationId) {
@@ -647,9 +664,9 @@
                 const panel = document.getElementById(ids.panelId);
                 if (!enabledInput || !panel) return;
 
-                const enabled = isYesValue(enabledInput.value);
+                const enabled = isTimeoutCloseEnabled(enabledInput.value);
                 const isEditDetailMode = page.isDetailMode && prefix === 'edit';
-                panel.classList.toggle('is-disabled', !enabled || isEditDetailMode);
+                panel.classList.toggle('is-hidden', !enabled);
 
                 [ids.timeDimensionId, ids.judgmentMinutesId].forEach((fieldId) => {
                     const input = document.getElementById(fieldId);
@@ -670,14 +687,14 @@
                 const ids = getTimeoutCloseFieldIds(prefix);
                 const enabledInput = document.getElementById(ids.enabledId);
                 if (enabledInput && !enabledInput.value.trim()) {
-                    enabledInput.value = '否';
+                    enabledInput.value = '禁用';
                 }
             }
 
             function collectTimeoutCloseConfig(prefix) {
                 const ids = getTimeoutCloseFieldIds(prefix);
                 const enabledInput = document.getElementById(ids.enabledId);
-                const enabled = isYesValue(enabledInput?.value);
+                const enabled = isTimeoutCloseEnabled(enabledInput?.value);
                 const config = {
                     enabled,
                     timeDimension: '',
@@ -772,7 +789,7 @@
                 }
 
                 if (!config.judgmentMinutes || config.judgmentMinutes <= 0) {
-                    showToast('开启超时关单时，请填写有效的关单判断时间（分钟）');
+                    showToast('开启超时关单时，请填写有效的超时时间（分钟）');
                     judgmentMinutesInput?.focus();
                     return false;
                 }
@@ -791,9 +808,9 @@
 
             function formatTimeoutCloseSummary(config) {
                 if (!config?.enabled) {
-                    return '否';
+                    return '禁用';
                 }
-                return `是(${config.timeDimensionText}/${config.judgmentMinutes}分钟)`;
+                return `启用(${config.timeDimensionText}/${config.judgmentMinutes}分钟)`;
             }
 
             ['autoPutaway', 'editAutoPutaway'].forEach((id) => {
@@ -827,7 +844,7 @@
             // 新增时设置当前仓库
             document.getElementById('addBtn').addEventListener('click', () => {
                 page.openModal('add', {
-                    defaults: { isEnabled: '启用', overReceiptRatio: '0', timeoutCloseEnabled: '否' }
+                    defaults: { isEnabled: '启用', overReceiptRatio: '0', timeoutCloseEnabled: '禁用' }
                 });
             });
 
