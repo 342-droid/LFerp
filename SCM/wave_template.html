@@ -46,9 +46,7 @@
                             <input type="text" id="searchFlowType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchFlowTypeDropdown">
-                                <div class="select-option" data-value="先拣后分">先拣后分</div>
-                            </div>
+                            <div class="select-dropdown" id="searchFlowTypeDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -110,14 +108,46 @@
                             <tr>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>WT001</td>
-                                <td>先拣后分标准模板</td>
+                                <td>摘果标准模板</td>
                                 <td>W001-南京仓</td>
-                                <td>先拣后分</td>
-                                <td>仓配出库</td>
-                                <td>配送出库</td>
+                                <td>摘果</td>
+                                <td>销售出库</td>
+                                <td>直播订单</td>
                                 <td><span class="status active">启用</span></td>
                                 <td>2026-03-24 10:30:00</td>
                                 <td>张三</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>WT002</td>
+                                <td>播种分播模板</td>
+                                <td>W002-嘉兴仓</td>
+                                <td>播种</td>
+                                <td>仓配出库</td>
+                                <td>配送出库</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2026-03-24 11:15:00</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>WT003</td>
+                                <td>一键出库模板</td>
+                                <td>W003-上海仓</td>
+                                <td>一键出库</td>
+                                <td>销售出库</td>
+                                <td>直播订单</td>
+                                <td><span class="status inactive">禁用</span></td>
+                                <td>2026-03-23 16:45:00</td>
+                                <td>王五</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
@@ -139,10 +169,6 @@
     <script src="../js/page-manager.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const flowTypeOptions = [
-                { value: '先拣后分', text: '先拣后分' }
-            ];
-
             const outboundTypeOptions = CommonOptions.outboundType;
             const outboundBizTypeOptions = CommonOptions.outboundBizType;
 
@@ -156,6 +182,11 @@
             const isEnabledOptions = [
                 { value: '启用', text: '启用' },
                 { value: '禁用', text: '禁用' }
+            ];
+
+            const isHiddenOptions = [
+                { value: '是', text: '是' },
+                { value: '否', text: '否' }
             ];
 
             const page = new PageManager({
@@ -172,15 +203,16 @@
                     { id: 'warehouse', label: '仓库', type: 'select', required: true, disabled: true, options: warehouseOptions },
                     { id: 'templateCode', label: '波次模板编码', type: 'text', required: true },
                     { id: 'templateName', label: '波次模板名称', type: 'text', required: true },
-                    { id: 'flowType', label: '流程类型', type: 'select', required: true, options: flowTypeOptions },
+                    { id: 'flowType', label: '流程类型', type: 'select', required: true, options: CommonOptions.flowType },
                     { id: 'outboundType', label: '出库类型', type: 'select', required: true, options: outboundTypeOptions },
                     { id: 'outboundBizType', label: '出库业务类型', type: 'select', required: true, options: outboundBizTypeOptions },
                     { id: 'timerExpression', label: '定时器表达式', type: 'text' },
                     { id: 'timerDesc', label: '定时器描述', type: 'text' },
-                    { id: 'groupByOwner', label: '按货主分组', type: 'select',
+                    { id: 'groupByOwner', label: '按货主分组', type: 'select', disabled: true,
                       options: [{ value: '是', text: '是' }, { value: '否', text: '否' }] },
                     { id: 'maxOrderCount', label: '最大单量', type: 'number' },
                     { id: 'minOrderCount', label: '最小单量', type: 'number' },
+                    { id: 'isHidden', label: '是否隐藏', type: 'select', required: true, options: isHiddenOptions },
                     { id: 'isEnabled', label: '是否启用', type: 'select', options: isEnabledOptions }
                 ],
                 addModal: {
@@ -188,7 +220,7 @@
                     cancelBtnId: 'cancelBtn',
                     saveBtnId: 'saveBtn',
                     triggerBtnId: null,
-                    defaults: { isEnabled: '启用' },
+                    defaults: { isEnabled: '启用', groupByOwner: '是', isHidden: '否' },
                     validations: [
                         { id: 'warehouse', message: '请选择仓库', required: true },
                         { id: 'templateCode', message: '请输入波次模板编码', required: true },
@@ -196,6 +228,7 @@
                         { id: 'flowType', message: '请选择流程类型', required: true },
                         { id: 'outboundType', message: '请选择出库类型', required: true },
                         { id: 'outboundBizType', message: '请选择出库业务类型', required: true },
+                        { id: 'isHidden', message: '请选择是否隐藏', required: true },
                         { id: 'isEnabled', message: '请选择是否启用', required: true }
                     ],
                     onOpen: () => {
@@ -246,6 +279,7 @@
                         { id: 'editFlowType', message: '请选择流程类型', required: true },
                         { id: 'editOutboundType', message: '请选择出库类型', required: true },
                         { id: 'editOutboundBizType', message: '请选择出库业务类型', required: true },
+                        { id: 'editIsHidden', message: '请选择是否隐藏', required: true },
                         { id: 'editIsEnabled', message: '请选择是否启用', required: true }
                     ],
                     onSave: () => {
@@ -274,6 +308,8 @@
                             editFlowType: cells[4].textContent,
                             editOutboundType: cells[5].textContent,
                             editOutboundBizType: cells[6].textContent,
+                            editGroupByOwner: '是',
+                            editIsHidden: '否',
                             editIsEnabled: cells[7].querySelector('.status').textContent
                         };
                     }
@@ -286,6 +322,7 @@
                 }
             });
 
+            renderSelectOptions('searchFlowTypeDropdown', CommonOptions.flowType);
             renderSelectOptions('searchOutboundTypeDropdown', CommonOptions.outboundType);
             renderSelectOptions('searchOutboundBizTypeDropdown', CommonOptions.outboundBizType);
             page.init();
@@ -294,7 +331,7 @@
             // 新增时设置当前仓库
             document.getElementById('addBtn').addEventListener('click', () => {
                 page.openModal('add', {
-                    defaults: { isEnabled: '启用' }
+                    defaults: { isEnabled: '启用', groupByOwner: '是', isHidden: '否' }
                 });
             });
 

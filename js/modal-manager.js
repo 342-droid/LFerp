@@ -337,6 +337,12 @@ const CommonOptions = {
         { value: 'actual', text: '按实收量关单' },
         { value: 'plan', text: '按计划量关单' }
     ],
+    // 波次流程类型选项
+    flowType: [
+        { value: '摘果', text: '摘果' },
+        { value: '播种', text: '播种' },
+        { value: '一键出库', text: '一键出库' }
+    ],
     // 出库类型选项
     outboundType: [
         { value: '销售出库', text: '销售出库' },

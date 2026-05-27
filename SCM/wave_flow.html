@@ -32,9 +32,7 @@
                             <input type="text" id="searchFlowType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchFlowTypeDropdown">
-                                <div class="select-option" data-value="先拣后分">先拣后分</div>
-                            </div>
+                            <div class="select-dropdown" id="searchFlowTypeDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -73,8 +71,8 @@
                         <tbody id="tableBody">
                             <tr>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
-                                <td>先拣后分</td>
-                                <td>先完成拣货，再进行分播/分拣</td>
+                                <td>摘果</td>
+                                <td>按订单逐单拣货出库</td>
                                 <td><span class="status active">启用</span></td>
                                 <td>2026-03-24 10:30:00</td>
                                 <td>张三</td>
@@ -82,6 +80,31 @@
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
                                 </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>播种</td>
+                                <td>先汇总拣货再分播到各订单</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2026-03-24 11:15:00</td>
+                                <td>李四</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>一键出库</td>
+                                <td>跳过出库作业流程，直接发货</td>
+                                <td><span class="status inactive">禁用</span></td>
+                                <td>2026-03-23 16:45:00</td>
+                                <td>王五</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -98,6 +121,43 @@
     <script src="../js/page-manager.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const yesNoOptions = [
+                { value: '是', text: '是' },
+                { value: '否', text: '否' }
+            ];
+
+            function setRadioValue(name, value) {
+                const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
+                if (radio) radio.checked = true;
+            }
+
+            function setShortageAllocationRadiosEnabled(radioName, enabled) {
+                document.querySelectorAll(`input[name="${radioName}"]`).forEach((radio) => {
+                    radio.disabled = !enabled;
+                });
+            }
+
+            function syncShortageAllocation(isEdit, flowType, options = {}) {
+                const { readOnly = false, resetDefault = false } = options;
+                const radioName = isEdit ? 'editShortageAllocation' : 'shortageAllocation';
+                const isOneClickOutbound = flowType === '一键出库';
+
+                if (isOneClickOutbound) {
+                    setRadioValue(radioName, '否');
+                    setShortageAllocationRadiosEnabled(radioName, false);
+                    return;
+                }
+
+                if (!readOnly) {
+                    setShortageAllocationRadiosEnabled(radioName, true);
+                }
+
+                const checked = document.querySelector(`input[name="${radioName}"]:checked`);
+                if (resetDefault || !checked) {
+                    setRadioValue(radioName, '是');
+                }
+            }
+
             const page = new PageManager({
                 entityName: '波次流程',
                 statusColumnIndex: 3,
@@ -114,9 +174,7 @@
                         label: '流程类型',
                         type: 'select',
                         required: true,
-                        options: [
-                            { value: '先拣后分', text: '先拣后分' }
-                        ]
+                        options: CommonOptions.flowType
                     },
                     { id: 'flowDesc', label: '流程描述', type: 'text', required: true },
                     {
@@ -128,6 +186,13 @@
                             { value: '启用', text: '启用' },
                             { value: '禁用', text: '禁用' }
                         ]
+                    },
+                    {
+                        id: 'shortageAllocation',
+                        label: '缺量分配',
+                        type: 'radio',
+                        required: true,
+                        options: yesNoOptions
                     }
                 ],
 
@@ -136,6 +201,10 @@
                     cancelBtnId: 'cancelBtn',
                     saveBtnId: 'saveBtn',
                     triggerBtnId: 'addBtn',
+                    onOpen: () => {
+                        const flowType = document.getElementById('flowType')?.value.trim() || '';
+                        syncShortageAllocation(false, flowType, { resetDefault: true });
+                    },
                     validations: [
                         { id: 'flowType', message: '请选择流程类型', required: true },
                         { id: 'flowDesc', message: '请输入流程描述', required: true },
@@ -183,8 +252,14 @@
                     mapRowToForm: (row) => {
                         page.currentEditRow = row;
                         const cells = row.querySelectorAll('td');
+                        const flowType = cells[1].textContent.trim();
+                        const editFlowTypeInput = document.getElementById('editFlowType');
+                        if (editFlowTypeInput) {
+                            editFlowTypeInput.dataset.prevFlowType = flowType;
+                        }
+                        syncShortageAllocation(true, flowType, { readOnly: page.isDetailMode });
                         return {
-                            editFlowType: cells[1].textContent,
+                            editFlowType: flowType,
                             editFlowDesc: cells[2].textContent,
                             editIsEnabled: cells[3].querySelector('.status').textContent
                         };
@@ -199,7 +274,27 @@
                 }
             });
 
+            renderSelectOptions('searchFlowTypeDropdown', CommonOptions.flowType);
             page.init();
+
+            document.getElementById('flowType')?.addEventListener('change', (e) => {
+                const flowType = e.target.value.trim();
+                const prevFlowType = e.target.dataset.prevFlowType || '';
+                syncShortageAllocation(false, flowType, {
+                    resetDefault: prevFlowType === '一键出库' && flowType !== '一键出库'
+                });
+                e.target.dataset.prevFlowType = flowType;
+            });
+            document.getElementById('editFlowType')?.addEventListener('change', (e) => {
+                if (page.isDetailMode) return;
+                const flowType = e.target.value.trim();
+                const prevFlowType = e.target.dataset.prevFlowType || '';
+                syncShortageAllocation(true, flowType, {
+                    resetDefault: prevFlowType === '一键出库' && flowType !== '一键出库'
+                });
+                e.target.dataset.prevFlowType = flowType;
+            });
+
             document.getElementById('editCloseBtn').addEventListener('click', () => page.closeModal('edit'));
         });
     </script>
