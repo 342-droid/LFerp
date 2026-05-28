@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰WMS - 库存查询</title>
+    <title>冷丰WMS - 负库存</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
 </head>
@@ -19,12 +19,12 @@
     <div class="container">
         <main class="main-content">
             <div class="content-tabs">
-                <button class="active">库存查询</button>
+                <button class="active">负库存</button>
             </div>
             
             <hr class="content-divider">
             
-            <div class="content-title">库存管理 / 库存查询</div>
+            <div class="content-title">异常管理 / 负库存</div>
             
             <section class="search-section">
                 <form class="search-form">
@@ -86,18 +86,6 @@
                             <span class="clear-btn">×</span>
                         </div>
                     </div>
-                    <div class="form-group custom-select-wrapper">
-                        <label>是否冻结:</label>
-                        <div class="custom-select">
-                            <input type="text" id="searchIsFrozen" placeholder="请选择">
-                            <span class="select-arrow">▼</span>
-                            <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchIsFrozenDropdown">
-                                <div class="select-option" data-value="true">是</div>
-                                <div class="select-option" data-value="false">否</div>
-                            </div>
-                        </div>
-                    </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary" onclick="searchInventory()">查询</button>
                         <button type="button" class="btn btn-secondary">导出</button>
@@ -116,7 +104,6 @@
                                 <th>商品编码</th>
                                 <th>商品名称</th>
                                 <th>库存量</th>
-                                <th>占用量</th>
                                 <th>储位</th>
                                 <th>容器</th>
                                 <th>供应商</th>
@@ -125,10 +112,8 @@
                                 <th>生产日期</th>
                                 <th>来源类型</th>
                                 <th>来源单号</th>
-                                <th>是否冻结</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
-                                <th>操作</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
@@ -159,7 +144,6 @@
                 skuName: '商品A',
                 inventoryStatus: '正常',
                 quantity: 100,
-                occupied: 20,
                 location: 'A-01-01',
                 lpn: 'LPN001',
                 supplier: '供应商A',
@@ -167,7 +151,6 @@
                 productionDate: '2026-01-15',
                 sourceType: '收货',
                 sourceOrder: 'PO001',
-                isFrozen: '否',
                 updateTime: '2026-02-10 10:00:00',
                 updateUser: 'admin'
             },
@@ -178,7 +161,6 @@
                 skuName: '商品B',
                 inventoryStatus: '正常',
                 quantity: 200,
-                occupied: 50,
                 location: 'B-02-03',
                 lpn: 'LPN002',
                 supplier: '供应商B',
@@ -186,7 +168,6 @@
                 productionDate: '2026-01-20',
                 sourceType: '上架',
                 sourceOrder: 'WO001',
-                isFrozen: '是',
                 updateTime: '2026-02-10 11:00:00',
                 updateUser: 'admin'
             },
@@ -197,7 +178,6 @@
                 skuName: '商品C',
                 inventoryStatus: '异常',
                 quantity: 50,
-                occupied: 10,
                 location: 'C-03-02',
                 lpn: 'LPN003',
                 supplier: '供应商C',
@@ -205,7 +185,6 @@
                 productionDate: '2026-01-25',
                 sourceType: '补货',
                 sourceOrder: 'RO001',
-                isFrozen: '否',
                 updateTime: '2026-02-10 12:00:00',
                 updateUser: 'admin'
             }
@@ -242,7 +221,6 @@
                             <td>${item.skuCode}</td>
                             <td>${item.skuName}</td>
                             <td>${item.quantity}</td>
-                            <td>${item.occupied}</td>
                             <td>${item.location}</td>
                             <td>${item.lpn}</td>
                             <td>${item.supplier}</td>
@@ -251,13 +229,8 @@
                             <td>${item.productionDate}</td>
                             <td>${item.sourceType}</td>
                             <td>${item.sourceOrder}</td>
-                            <td><span class="status ${item.isFrozen === '否' ? 'active' : 'inactive'}">${item.isFrozen}</span></td>
                             <td>${item.updateTime}</td>
                             <td>${item.updateUser}</td>
-                            <td class="action-links">
-                                ${item.isFrozen === '否' ? '<a href="#" class="freeze-btn">冻结</a>' : ''}
-                                ${item.isFrozen === '是' ? '<a href="#" class="unfreeze-btn">解冻</a>' : ''}
-                            </td>
                         `;
                         tbody.appendChild(row);
                     });
@@ -273,7 +246,6 @@
                     const sourceOrder = document.getElementById('searchSourceOrder').value.trim();
                     const location = document.getElementById('searchLocation').value.trim();
                     const lpn = document.getElementById('searchLpn').value.trim();
-                    const isFrozen = document.getElementById('searchIsFrozen').value.trim();
                     
                     // 这里可以添加搜索逻辑
                     console.log('搜索条件:', {
@@ -283,34 +255,21 @@
                         sourceType,
                         sourceOrder,
                         location,
-                        lpn,
-                        isFrozen
+                        lpn
                     });
                     
                     // 模拟搜索结果
                     loadInventoryData();
                 }
 
-                // 冻结库存
-                function freezeInventory(btn) {
-                    // 冻结逻辑已移除
-                }
-
-                // 解冻库存
-                function unfreezeInventory(btn) {
-                    // 解冻逻辑已移除
-                }
-
                 // 使用PageManager简化页面逻辑
                 const page = new PageManager({
-                    entityName: '库存',
-                    statusColumnIndex: 15,
+                    entityName: '负库存',
                     
                     // 搜索区域下拉框
                     customSelects: [
                         { inputId: 'searchCompany', dropdownId: 'searchCompanyDropdown' },
-                        { inputId: 'searchSourceType', dropdownId: 'searchSourceTypeDropdown' },
-                        { inputId: 'searchIsFrozen', dropdownId: 'searchIsFrozenDropdown' }
+                        { inputId: 'searchSourceType', dropdownId: 'searchSourceTypeDropdown' }
                     ],
                     
                     deleteModal: {
@@ -325,14 +284,6 @@
                 
                 // 加载初始数据
                 loadInventoryData();
-
-                // 绑定冻结/解冻按钮事件（仅阻止默认行为）
-                document.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('freeze-btn') || e.target.classList.contains('unfreeze-btn')) {
-                        e.preventDefault();
-                        // 点击逻辑已移除
-                    }
-                });
             } catch (error) {
                 console.error('初始化错误:', error);
                 // 避免showToast可能不存在的问题

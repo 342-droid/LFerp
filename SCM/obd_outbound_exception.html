@@ -246,6 +246,7 @@
                     <table class="table no-last-column-freeze">
                         <thead>
                             <tr>
+                                <th>仓库</th>
                                 <th>货主</th>
                                 <th>异常单号</th>
                                 <th>异常状态</th>
@@ -284,6 +285,7 @@
                 <div id="exceptionDetailLoading" class="loading">加载中...</div>
                 <div id="exceptionDetailContent" style="display: none;">
                     <form class="modal-form">
+                        <div class="modal-form-group"><label>仓库</label><input id="d_warehouse" disabled></div>
                         <div class="modal-form-group"><label>货主</label><input id="d_company" disabled></div>
                         <div class="modal-form-group"><label>异常单号</label><input id="d_exceptionNo" disabled></div>
                         <div class="modal-form-group"><label>异常状态</label><input id="d_exceptionStatus" disabled></div>
@@ -568,6 +570,7 @@
 
         exceptionMockData.forEach((item, index) => {
             const seq = String(index + 1).padStart(2, '0');
+            item.warehouse = item.warehouse || (item.company === 'Y002-杭州货主' ? 'W004-杭州仓' : 'W001-南京仓');
             item.createUser = item.createUser || `系统用户${seq}`;
             item.createTime = item.createTime || `2026-04-${seq} 09:00:00`;
             item.updateUser = item.updateUser || `系统用户${seq}`;
@@ -637,6 +640,7 @@
                 const st = item.outboundStatus || '';
                 const exSt = item.exceptionStatus || '';
                 row.innerHTML = `
+                    <td>${item.warehouse || ''}</td>
                     <td>${item.company || ''}</td>
                     <td><a href="#" class="exception-no-link" data-exception-no="${item.exceptionNo}">${item.exceptionNo || ''}</a></td>
                     <td>${exSt ? `<span class="status-badge ${getExceptionStatusClass(exSt)}">${exSt}</span>` : ''}</td>
@@ -738,6 +742,7 @@
             document.getElementById('d_outboundStatus').value = row.outboundStatus || '';
             document.getElementById('d_exceptionStatus').value = row.exceptionStatus || '';
             document.getElementById('d_exceptionSource').value = row.exceptionSource || '';
+            document.getElementById('d_warehouse').value = row.warehouse || '';
             document.getElementById('d_company').value = row.company || '';
             document.getElementById('d_targetWarehouse').value = row.targetWarehouse || '';
             document.getElementById('d_exceptionType').value = row.exceptionType || '';

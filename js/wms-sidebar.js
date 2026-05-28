@@ -72,7 +72,8 @@
     
     // 异常管理菜单项
     const exceptionMenuItems = [
-        { href: 'obd_outbound_exception.html', text: '出库异常' }
+        { href: 'obd_outbound_exception.html', text: '出库异常' },
+        { href: 'negative_inventory.html', text: '负库存' }
     ];
 
     // 判断当前页面属于哪个菜单

@@ -161,6 +161,7 @@
                                 <th>来源单号</th>
                                 <th>调整类型</th>
                                 <th>状态</th>
+                                <th>仓库</th>
                                 <th>货主</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
@@ -184,6 +185,7 @@
             </div>
             <div class="modal-body">
                 <form class="modal-form">
+                    <div class="modal-form-group"><label>仓库</label><input type="text" id="detailWarehouse" disabled></div>
                     <div class="modal-form-group"><label>货主</label><input type="text" id="detailCompany" disabled></div>
                     <div class="modal-form-group"><label>调整单号</label><input type="text" id="detailAdjustNo" disabled></div>
                     <div class="modal-form-group"><label>来源单号</label><input type="text" id="detailSourceNo" disabled></div>
@@ -236,6 +238,7 @@
 
         const inventoryAdjustmentData = [
             {
+                warehouse: 'W001-南京仓',
                 company: 'Y001-南京货主',
                 adjustNo: 'KT2026051610300023',
                 sourceNo: 'OBD202605160101',
@@ -247,6 +250,7 @@
                 createUser: '张三'
             },
             {
+                warehouse: 'W001-南京仓',
                 company: 'Y002-杭州货主',
                 adjustNo: 'KT2026051610500047',
                 sourceNo: 'OBD202605160205',
@@ -258,6 +262,7 @@
                 createUser: '王五'
             },
             {
+                warehouse: 'W002-杭州仓',
                 company: 'Y001-南京货主',
                 adjustNo: 'KT2026051611200068',
                 sourceNo: 'OBD202605160318',
@@ -271,6 +276,7 @@
         ];
         const inventoryAdjustmentDetailMap = {
             KT2026051610300023: {
+                warehouse: 'W001-南京仓',
                 company: 'Y001-南京货主',
                 adjustNo: 'KT2026051610300023',
                 sourceNo: 'OBD202605160101',
@@ -301,6 +307,7 @@
                 ]
             },
             KT2026051610500047: {
+                warehouse: 'W001-南京仓',
                 company: 'Y002-杭州货主',
                 adjustNo: 'KT2026051610500047',
                 sourceNo: 'OBD202605160205',
@@ -321,6 +328,7 @@
                 ]
             },
             KT2026051611200068: {
+                warehouse: 'W002-杭州仓',
                 company: 'Y001-南京货主',
                 adjustNo: 'KT2026051611200068',
                 sourceNo: 'OBD202605160318',
@@ -362,6 +370,7 @@
         }
 
         function fillDetail(detail) {
+            document.getElementById('detailWarehouse').value = detail.warehouse || '';
             document.getElementById('detailCompany').value = detail.company || '';
             document.getElementById('detailAdjustNo').value = detail.adjustNo || '';
             document.getElementById('detailSourceNo').value = detail.sourceNo || '';
@@ -400,6 +409,7 @@
                     <td>${item.sourceNo}</td>
                     <td>${item.adjustType}</td>
                     <td><span class="status-badge ${getStatusClass(item.status)}">${item.status}</span></td>
+                    <td>${item.warehouse || ''}</td>
                     <td>${item.company}</td>
                     <td>${item.updateTime}</td>
                     <td>${item.updateUser}</td>
