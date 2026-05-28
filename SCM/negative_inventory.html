@@ -39,30 +39,10 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>商品编码:</label>
+                        <label>商品:</label>
                         <div class="input-wrapper">
-                            <input type="text" id="searchSkuCode" placeholder="请输入">
+                            <input type="text" id="searchSkuKeyword" placeholder="请输入商品编码/条码/名称">
                             <span class="clear-btn">×</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>商品名称:</label>
-                        <div class="input-wrapper">
-                            <input type="text" id="searchSkuName" placeholder="请输入">
-                            <span class="clear-btn">×</span>
-                        </div>
-                    </div>
-                    <div class="form-group custom-select-wrapper">
-                        <label>来源类型:</label>
-                        <div class="custom-select">
-                            <input type="text" id="searchSourceType" placeholder="请选择">
-                            <span class="select-arrow">▼</span>
-                            <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchSourceTypeDropdown">
-                                <div class="select-option" data-value="receive">收货</div>
-                                <div class="select-option" data-value="putaway">上架</div>
-                                <div class="select-option" data-value="replenish">补货</div>
-                            </div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -75,14 +55,7 @@
                     <div class="form-group">
                         <label style="width: 70px;">储位:</label>
                         <div class="input-wrapper">
-                            <input type="text" id="searchLocation" placeholder="请输入">
-                            <span class="clear-btn">×</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label style="width: 70px;">容器:</label>
-                        <div class="input-wrapper">
-                            <input type="text" id="searchLpn" placeholder="请输入">
+                            <input type="text" id="searchLocation" placeholder="请输入储位编码/名称">
                             <span class="clear-btn">×</span>
                         </div>
                     </div>
@@ -103,15 +76,11 @@
                                 <th>货主</th>
                                 <th>商品编码</th>
                                 <th>商品名称</th>
-                                <th>库存量</th>
+                                <th>待扣数量</th>
                                 <th>储位</th>
-                                <th>容器</th>
-                                <th>供应商</th>
-                                <th>入库日期</th>
-                                <th>批次</th>
-                                <th>生产日期</th>
-                                <th>来源类型</th>
                                 <th>来源单号</th>
+                                <th>状态</th>
+                                <th>重试次数</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
                             </tr>
@@ -145,12 +114,9 @@
                 inventoryStatus: '正常',
                 quantity: 100,
                 location: 'A-01-01',
-                lpn: 'LPN001',
-                supplier: '供应商A',
-                inDate: '2026-02-01',
-                productionDate: '2026-01-15',
-                sourceType: '收货',
                 sourceOrder: 'PO001',
+                status: '初始',
+                retryCount: 0,
                 updateTime: '2026-02-10 10:00:00',
                 updateUser: 'admin'
             },
@@ -162,12 +128,9 @@
                 inventoryStatus: '正常',
                 quantity: 200,
                 location: 'B-02-03',
-                lpn: 'LPN002',
-                supplier: '供应商B',
-                inDate: '2026-02-02',
-                productionDate: '2026-01-20',
-                sourceType: '上架',
                 sourceOrder: 'WO001',
+                status: '已执行',
+                retryCount: 1,
                 updateTime: '2026-02-10 11:00:00',
                 updateUser: 'admin'
             },
@@ -179,12 +142,9 @@
                 inventoryStatus: '异常',
                 quantity: 50,
                 location: 'C-03-02',
-                lpn: 'LPN003',
-                supplier: '供应商C',
-                inDate: '2026-02-03',
-                productionDate: '2026-01-25',
-                sourceType: '补货',
                 sourceOrder: 'RO001',
+                status: '初始',
+                retryCount: 3,
                 updateTime: '2026-02-10 12:00:00',
                 updateUser: 'admin'
             }
@@ -209,10 +169,7 @@
                     const tbody = document.querySelector('#tableBody');
                     tbody.innerHTML = '';
                     
-                    inventoryData.forEach((item, index) => {
-                        const receiptDate = item.receiveDate || item.inDate || '';
-                        const receiptDatePlain = receiptDate.replace(/-/g, '');
-                        const batch = `${receiptDatePlain}-${String(index + 1).padStart(3, '0')}-${item.skuCode}`;
+                    inventoryData.forEach((item) => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
@@ -222,13 +179,9 @@
                             <td>${item.skuName}</td>
                             <td>${item.quantity}</td>
                             <td>${item.location}</td>
-                            <td>${item.lpn}</td>
-                            <td>${item.supplier}</td>
-                            <td>${item.inDate}</td>
-                            <td>${batch}</td>
-                            <td>${item.productionDate}</td>
-                            <td>${item.sourceType}</td>
                             <td>${item.sourceOrder}</td>
+                            <td>${item.status}</td>
+                            <td>${item.retryCount}</td>
                             <td>${item.updateTime}</td>
                             <td>${item.updateUser}</td>
                         `;
@@ -240,22 +193,16 @@
                 function searchInventory() {
                     // 获取搜索条件
                     const company = document.getElementById('searchCompany').value.trim();
-                    const skuCode = document.getElementById('searchSkuCode').value.trim();
-                    const skuName = document.getElementById('searchSkuName').value.trim();
-                    const sourceType = document.getElementById('searchSourceType').value.trim();
+                    const skuKeyword = document.getElementById('searchSkuKeyword').value.trim();
                     const sourceOrder = document.getElementById('searchSourceOrder').value.trim();
                     const location = document.getElementById('searchLocation').value.trim();
-                    const lpn = document.getElementById('searchLpn').value.trim();
                     
                     // 这里可以添加搜索逻辑
                     console.log('搜索条件:', {
                         company,
-                        skuCode,
-                        skuName,
-                        sourceType,
+                        skuKeyword,
                         sourceOrder,
-                        location,
-                        lpn
+                        location
                     });
                     
                     // 模拟搜索结果
@@ -268,8 +215,7 @@
                     
                     // 搜索区域下拉框
                     customSelects: [
-                        { inputId: 'searchCompany', dropdownId: 'searchCompanyDropdown' },
-                        { inputId: 'searchSourceType', dropdownId: 'searchSourceTypeDropdown' }
+                        { inputId: 'searchCompany', dropdownId: 'searchCompanyDropdown' }
                     ],
                     
                     deleteModal: {

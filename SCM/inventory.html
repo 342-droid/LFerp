@@ -39,16 +39,9 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>商品编码:</label>
+                        <label style="width: 70px;">商品:</label>
                         <div class="input-wrapper">
-                            <input type="text" id="searchSkuCode" placeholder="请输入">
-                            <span class="clear-btn">×</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>商品名称:</label>
-                        <div class="input-wrapper">
-                            <input type="text" id="searchSkuName" placeholder="请输入">
+                            <input type="text" id="searchSkuKeyword" placeholder="请输入商品编码/条码/名称">
                             <span class="clear-btn">×</span>
                         </div>
                     </div>
@@ -75,7 +68,7 @@
                     <div class="form-group">
                         <label style="width: 70px;">储位:</label>
                         <div class="input-wrapper">
-                            <input type="text" id="searchLocation" placeholder="请输入">
+                            <input type="text" id="searchLocation" placeholder="请输入储位编码/名称">
                             <span class="clear-btn">×</span>
                         </div>
                     </div>
@@ -267,8 +260,7 @@
                 function searchInventory() {
                     // 获取搜索条件
                     const company = document.getElementById('searchCompany').value.trim();
-                    const skuCode = document.getElementById('searchSkuCode').value.trim();
-                    const skuName = document.getElementById('searchSkuName').value.trim();
+                    const skuKeyword = document.getElementById('searchSkuKeyword').value.trim();
                     const sourceType = document.getElementById('searchSourceType').value.trim();
                     const sourceOrder = document.getElementById('searchSourceOrder').value.trim();
                     const location = document.getElementById('searchLocation').value.trim();
@@ -278,8 +270,7 @@
                     // 这里可以添加搜索逻辑
                     console.log('搜索条件:', {
                         company,
-                        skuCode,
-                        skuName,
+                        skuKeyword,
                         sourceType,
                         sourceOrder,
                         location,
