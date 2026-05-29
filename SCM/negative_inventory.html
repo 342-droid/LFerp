@@ -29,7 +29,7 @@
             <section class="search-section">
                 <form class="search-form">
                     <div class="form-group custom-select-wrapper">
-                        <label style="width: 70px;">货主:</label>
+                        <label>货主:</label>
                         <div class="custom-select">
                             <input type="text" id="searchCompany" placeholder="请选择或输入搜索">
                             <span class="select-arrow">▼</span>
@@ -59,8 +59,21 @@
                             <span class="clear-btn">×</span>
                         </div>
                     </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>状态:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchStatus" value="初始" placeholder="请选择">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchStatusDropdown">
+                                <div class="select-option" data-value="初始">初始</div>
+                                <div class="select-option" data-value="已执行">已执行</div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary" onclick="searchInventory()">查询</button>
+                        <button type="button" class="btn btn-secondary" onclick="executeNegativeInventory()">执行</button>
                         <button type="button" class="btn btn-secondary">导出</button>
                     </div>
                 </form>
@@ -77,8 +90,8 @@
                                 <th>商品编码</th>
                                 <th>商品名称</th>
                                 <th>待扣数量</th>
-                                <th>储位</th>
                                 <th>来源单号</th>
+                                <th>储位</th>
                                 <th>状态</th>
                                 <th>重试次数</th>
                                 <th>更新时间</th>
@@ -165,12 +178,20 @@
                 });
 
                 // 加载库存数据
-                function loadInventoryData() {
+                function loadInventoryData(data = inventoryData) {
                     const tbody = document.querySelector('#tableBody');
                     tbody.innerHTML = '';
                     
-                    inventoryData.forEach((item) => {
+                    data.forEach((item) => {
+                        const dataIndex = inventoryData.findIndex(d =>
+                            d.skuCode === item.skuCode &&
+                            d.sourceOrder === item.sourceOrder &&
+                            d.location === item.location
+                        );
                         const row = document.createElement('tr');
+                        if (dataIndex >= 0) {
+                            row.dataset.index = String(dataIndex);
+                        }
                         row.innerHTML = `
                             <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                             <td>${item.warehouse}</td>
@@ -178,8 +199,8 @@
                             <td>${item.skuCode}</td>
                             <td>${item.skuName}</td>
                             <td>${item.quantity}</td>
-                            <td>${item.location}</td>
                             <td>${item.sourceOrder}</td>
+                            <td>${item.location}</td>
                             <td>${item.status}</td>
                             <td>${item.retryCount}</td>
                             <td>${item.updateTime}</td>
@@ -190,24 +211,81 @@
                 }
 
                 // 搜索库存
-                function searchInventory() {
-                    // 获取搜索条件
-                    const company = document.getElementById('searchCompany').value.trim();
-                    const skuKeyword = document.getElementById('searchSkuKeyword').value.trim();
-                    const sourceOrder = document.getElementById('searchSourceOrder').value.trim();
-                    const location = document.getElementById('searchLocation').value.trim();
-                    
-                    // 这里可以添加搜索逻辑
-                    console.log('搜索条件:', {
-                        company,
-                        skuKeyword,
-                        sourceOrder,
-                        location
+                window.searchInventory = function searchInventory() {
+                    const filters = {
+                        company: document.getElementById('searchCompany').value.trim(),
+                        skuKeyword: document.getElementById('searchSkuKeyword').value.trim(),
+                        sourceOrder: document.getElementById('searchSourceOrder').value.trim(),
+                        location: document.getElementById('searchLocation').value.trim(),
+                        status: document.getElementById('searchStatus').value.trim()
+                    };
+
+                    const result = inventoryData.filter(item => {
+                        const skuMatch = !filters.skuKeyword ||
+                            item.skuCode.includes(filters.skuKeyword) ||
+                            item.skuName.includes(filters.skuKeyword);
+                        return (!filters.company || item.company === filters.company) &&
+                            skuMatch &&
+                            (!filters.sourceOrder || item.sourceOrder.includes(filters.sourceOrder)) &&
+                            (!filters.location || item.location.includes(filters.location)) &&
+                            (!filters.status || item.status === filters.status);
                     });
-                    
-                    // 模拟搜索结果
-                    loadInventoryData();
-                }
+
+                    loadInventoryData(result);
+                };
+
+                window.executeNegativeInventory = function executeNegativeInventory() {
+                    const checked = document.querySelectorAll('#tableBody .checkbox-row:checked');
+                    if (!checked.length) {
+                        if (typeof showToast === 'function') {
+                            showToast('请选择要执行的记录');
+                        }
+                        return;
+                    }
+
+                    const indices = [];
+                    let hasNonInitial = false;
+                    checked.forEach(checkbox => {
+                        const row = checkbox.closest('tr');
+                        const index = Number(row?.dataset.index);
+                        if (!Number.isFinite(index) || index < 0) return;
+                        if (inventoryData[index].status !== '初始') {
+                            hasNonInitial = true;
+                            return;
+                        }
+                        indices.push(index);
+                    });
+
+                    if (hasNonInitial) {
+                        if (typeof showToast === 'function') {
+                            showToast('仅状态为「初始」的记录可执行');
+                        }
+                        return;
+                    }
+                    if (!indices.length) {
+                        if (typeof showToast === 'function') {
+                            showToast('请选择要执行的记录');
+                        }
+                        return;
+                    }
+
+                    const now = '2026-05-28 12:00:00';
+                    indices.forEach(index => {
+                        const item = inventoryData[index];
+                        item.status = '已执行';
+                        item.retryCount = (item.retryCount || 0) + 1;
+                        item.updateTime = now;
+                        item.updateUser = 'admin';
+                    });
+
+                    if (typeof clearAllCheckboxes === 'function') {
+                        clearAllCheckboxes();
+                    }
+                    if (typeof showToast === 'function') {
+                        showToast(`已执行 ${indices.length} 条记录`);
+                    }
+                    searchInventory();
+                };
 
                 // 使用PageManager简化页面逻辑
                 const page = new PageManager({
@@ -215,7 +293,8 @@
                     
                     // 搜索区域下拉框
                     customSelects: [
-                        { inputId: 'searchCompany', dropdownId: 'searchCompanyDropdown' }
+                        { inputId: 'searchCompany', dropdownId: 'searchCompanyDropdown' },
+                        { inputId: 'searchStatus', dropdownId: 'searchStatusDropdown' }
                     ],
                     
                     deleteModal: {
@@ -227,9 +306,10 @@
                 });
                 
                 page.init();
-                
-                // 加载初始数据
-                loadInventoryData();
+
+                // 默认按「初始」状态查询
+                document.getElementById('searchStatus').value = '初始';
+                searchInventory();
             } catch (error) {
                 console.error('初始化错误:', error);
                 // 避免showToast可能不存在的问题
