@@ -121,43 +121,6 @@
     <script src="../js/page-manager.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const yesNoOptions = [
-                { value: '是', text: '是' },
-                { value: '否', text: '否' }
-            ];
-
-            function setRadioValue(name, value) {
-                const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
-                if (radio) radio.checked = true;
-            }
-
-            function setShortageAllocationRadiosEnabled(radioName, enabled) {
-                document.querySelectorAll(`input[name="${radioName}"]`).forEach((radio) => {
-                    radio.disabled = !enabled;
-                });
-            }
-
-            function syncShortageAllocation(isEdit, flowType, options = {}) {
-                const { readOnly = false, resetDefault = false } = options;
-                const radioName = isEdit ? 'editShortageAllocation' : 'shortageAllocation';
-                const isOneClickOutbound = flowType === '一键出库';
-
-                if (isOneClickOutbound) {
-                    setRadioValue(radioName, '否');
-                    setShortageAllocationRadiosEnabled(radioName, false);
-                    return;
-                }
-
-                if (!readOnly) {
-                    setShortageAllocationRadiosEnabled(radioName, true);
-                }
-
-                const checked = document.querySelector(`input[name="${radioName}"]:checked`);
-                if (resetDefault || !checked) {
-                    setRadioValue(radioName, '是');
-                }
-            }
-
             const page = new PageManager({
                 entityName: '波次流程',
                 statusColumnIndex: 3,
@@ -186,13 +149,6 @@
                             { value: '启用', text: '启用' },
                             { value: '禁用', text: '禁用' }
                         ]
-                    },
-                    {
-                        id: 'shortageAllocation',
-                        label: '缺量分配',
-                        type: 'radio',
-                        required: true,
-                        options: yesNoOptions
                     }
                 ],
 
@@ -201,10 +157,6 @@
                     cancelBtnId: 'cancelBtn',
                     saveBtnId: 'saveBtn',
                     triggerBtnId: 'addBtn',
-                    onOpen: () => {
-                        const flowType = document.getElementById('flowType')?.value.trim() || '';
-                        syncShortageAllocation(false, flowType, { resetDefault: true });
-                    },
                     validations: [
                         { id: 'flowType', message: '请选择流程类型', required: true },
                         { id: 'flowDesc', message: '请输入流程描述', required: true },
@@ -252,14 +204,8 @@
                     mapRowToForm: (row) => {
                         page.currentEditRow = row;
                         const cells = row.querySelectorAll('td');
-                        const flowType = cells[1].textContent.trim();
-                        const editFlowTypeInput = document.getElementById('editFlowType');
-                        if (editFlowTypeInput) {
-                            editFlowTypeInput.dataset.prevFlowType = flowType;
-                        }
-                        syncShortageAllocation(true, flowType, { readOnly: page.isDetailMode });
                         return {
-                            editFlowType: flowType,
+                            editFlowType: cells[1].textContent,
                             editFlowDesc: cells[2].textContent,
                             editIsEnabled: cells[3].querySelector('.status').textContent
                         };
@@ -276,24 +222,6 @@
 
             renderSelectOptions('searchFlowTypeDropdown', CommonOptions.flowType);
             page.init();
-
-            document.getElementById('flowType')?.addEventListener('change', (e) => {
-                const flowType = e.target.value.trim();
-                const prevFlowType = e.target.dataset.prevFlowType || '';
-                syncShortageAllocation(false, flowType, {
-                    resetDefault: prevFlowType === '一键出库' && flowType !== '一键出库'
-                });
-                e.target.dataset.prevFlowType = flowType;
-            });
-            document.getElementById('editFlowType')?.addEventListener('change', (e) => {
-                if (page.isDetailMode) return;
-                const flowType = e.target.value.trim();
-                const prevFlowType = e.target.dataset.prevFlowType || '';
-                syncShortageAllocation(true, flowType, {
-                    resetDefault: prevFlowType === '一键出库' && flowType !== '一键出库'
-                });
-                e.target.dataset.prevFlowType = flowType;
-            });
 
             document.getElementById('editCloseBtn').addEventListener('click', () => page.closeModal('edit'));
         });

@@ -315,11 +315,11 @@ const CommonOptions = {
     ],
     // 入库业务类型选项
     inboundBusinessType: [
-        { value: '货到即配', text: '货到即配' },
         { value: '仓配入库', text: '仓配入库' },
         { value: '门店退货', text: '门店退货' },
         { value: '仓库调拨', text: '仓库调拨' },
-        { value: '直播退货', text: '直播退货' }
+        { value: '直播退货', text: '直播退货' },
+        { value: '采购直送', text: '采购直送' }
     ],
     // 入库收货单状态
     ibdReceiptStatus: [
@@ -358,6 +358,25 @@ const CommonOptions = {
         { value: '门店退货', text: '门店退货' },
         { value: '仓库退供', text: '仓库退供' },
         { value: '仓库调拨', text: '仓库调拨' }
+    ],
+    // 出库状态选项
+    outboundStatus: [
+        { value: '初始', text: '初始' },
+        { value: '已集波', text: '已集波' },
+        { value: '开始分配', text: '开始分配' },
+        { value: '分配完成', text: '分配完成' },
+        { value: '开始拣货', text: '开始拣货' },
+        { value: '拣货完成', text: '拣货完成' },
+        { value: '开始分拣', text: '开始分拣' },
+        { value: '分拣完成', text: '分拣完成' },
+        { value: '开始复核', text: '开始复核' },
+        { value: '复核完成', text: '复核完成' },
+        { value: '开始装载', text: '开始装载' },
+        { value: '装载完成', text: '装载完成' },
+        { value: '开始发货', text: '开始发货' },
+        { value: '发货完成', text: '发货完成' },
+        { value: '过账失败', text: '过账失败' },
+        { value: '已取消', text: '已取消' }
     ],
     // 地点选项
     location: [

@@ -6,6 +6,35 @@
     <title>冷丰WMS - 波次模板</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .modal-section-title {
+            width: 100%;
+            flex: 0 0 100%;
+            max-width: 100%;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .modal-section-title + .modal-form-group {
+            margin-top: 0;
+        }
+
+        .modal-form > .modal-section-title:not(:first-child) {
+            margin-top: 4px;
+        }
+
+        .modal-form-line-break {
+            flex: 0 0 100%;
+            width: 100%;
+            height: 0;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -137,7 +166,7 @@
                                     <a href="#" class="delete-btn">删除</a>
                                 </td>
                             </tr>
-                            <tr>
+                            <tr data-allow-negative-inventory="否">
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>WT003</td>
                                 <td>一键出库模板</td>
@@ -179,15 +208,144 @@
                 { value: 'W004', text: 'W004-北京仓' }
             ];
 
+            const yesNoOptions = [
+                { value: '是', text: '是' },
+                { value: '否', text: '否' }
+            ];
+
             const isEnabledOptions = [
                 { value: '启用', text: '启用' },
                 { value: '禁用', text: '禁用' }
             ];
 
-            const isHiddenOptions = [
-                { value: '是', text: '是' },
-                { value: '否', text: '否' }
-            ];
+            function setRadioGroupEnabled(radioName, enabled) {
+                document.querySelectorAll(`input[name="${radioName}"]`).forEach((radio) => {
+                    radio.disabled = !enabled;
+                });
+            }
+
+            function syncGroupByOwner(isEdit, value = '是') {
+                const radioName = isEdit ? 'editGroupByOwner' : 'groupByOwner';
+                setRadioValue(radioName, value);
+                setRadioGroupEnabled(radioName, false);
+            }
+
+            function buildModalSectionTitle(title) {
+                return `<div class="modal-section-title">${title}</div>`;
+            }
+
+            function buildModalLineBreak() {
+                return '<div class="modal-form-line-break" aria-hidden="true"></div>';
+            }
+
+            function setRadioValue(name, value) {
+                const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
+                if (radio) radio.checked = true;
+            }
+
+            function syncAllowNegativeInventory(isEdit, flowType, options = {}) {
+                const { readOnly = false, resetDefault = false, value } = options;
+                const radioName = isEdit ? 'editAllowNegativeInventory' : 'allowNegativeInventory';
+                const isOneClickOutbound = flowType === '一键出库';
+
+                if (!isOneClickOutbound) {
+                    setRadioValue(radioName, '否');
+                    setRadioGroupEnabled(radioName, false);
+                    return;
+                }
+
+                if (!readOnly) {
+                    setRadioGroupEnabled(radioName, true);
+                }
+
+                if (value) {
+                    setRadioValue(radioName, value);
+                } else {
+                    const checked = document.querySelector(`input[name="${radioName}"]:checked`);
+                    if (resetDefault || !checked) {
+                        setRadioValue(radioName, '否');
+                    }
+                }
+            }
+
+            function syncShortageAllocation(isEdit, flowType, options = {}) {
+                const { readOnly = false, resetDefault = false } = options;
+                const radioName = isEdit ? 'editShortageAllocation' : 'shortageAllocation';
+                const isOneClickOutbound = flowType === '一键出库';
+
+                if (isOneClickOutbound) {
+                    setRadioValue(radioName, '否');
+                    setRadioGroupEnabled(radioName, false);
+                    return;
+                }
+
+                if (!readOnly) {
+                    setRadioGroupEnabled(radioName, true);
+                }
+
+                const checked = document.querySelector(`input[name="${radioName}"]:checked`);
+                if (resetDefault || !checked) {
+                    setRadioValue(radioName, '是');
+                }
+            }
+
+            function handleFlowTypeChange(isEdit, options = {}) {
+                const inputId = isEdit ? 'editFlowType' : 'flowType';
+                const input = document.getElementById(inputId);
+                if (!input) return;
+
+                const flowType = (options.flowType ?? input.value).trim();
+                const prevFlowType = options.prevFlowType ?? input.dataset.prevFlowType ?? '';
+
+                syncShortageAllocation(isEdit, flowType, {
+                    readOnly: isEdit && page.isDetailMode,
+                    resetDefault: options.resetAllDefaults ?? (
+                        prevFlowType === '一键出库' && flowType !== '一键出库'
+                    )
+                });
+                syncAllowNegativeInventory(isEdit, flowType, {
+                    readOnly: isEdit && page.isDetailMode,
+                    resetDefault: options.resetAllDefaults ?? (prevFlowType !== flowType),
+                    value: options.value
+                });
+                input.dataset.prevFlowType = flowType;
+            }
+
+            function hookFlowTypeDropdown(inputId, isEdit) {
+                const dropdown = document.getElementById(`${inputId}Dropdown`);
+                if (!dropdown || dropdown.dataset.flowTypeHooked) return;
+                dropdown.dataset.flowTypeHooked = '1';
+                dropdown.addEventListener('click', (e) => {
+                    if (!e.target.closest('.select-option')) return;
+                    if (isEdit && page.isDetailMode) return;
+                    requestAnimationFrame(() => handleFlowTypeChange(isEdit));
+                });
+            }
+
+            function bindFlowTypeSync() {
+                const addModal = document.getElementById('waveTemplateModal');
+                if (addModal && !addModal.dataset.flowTypeBound) {
+                    addModal.dataset.flowTypeBound = '1';
+                    addModal.addEventListener('change', (e) => {
+                        if (e.target.id === 'flowType') {
+                            handleFlowTypeChange(false);
+                        }
+                    });
+                }
+
+                const editModal = document.getElementById('waveTemplateEditModal');
+                if (editModal && !editModal.dataset.flowTypeBound) {
+                    editModal.dataset.flowTypeBound = '1';
+                    editModal.addEventListener('change', (e) => {
+                        if (e.target.id === 'editFlowType' && !page.isDetailMode) {
+                            handleFlowTypeChange(true);
+                        }
+                    });
+                }
+
+                hookFlowTypeDropdown('flowType', false);
+                hookFlowTypeDropdown('editFlowType', true);
+            }
 
             const page = new PageManager({
                 entityName: '波次模板',
@@ -200,27 +358,31 @@
                     { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' }
                 ],
                 fields: [
+                    { id: 'sectionBasic', type: 'raw', content: buildModalSectionTitle('基础信息') },
                     { id: 'warehouse', label: '仓库', type: 'select', required: true, disabled: true, options: warehouseOptions },
                     { id: 'templateCode', label: '波次模板编码', type: 'text', required: true },
                     { id: 'templateName', label: '波次模板名称', type: 'text', required: true },
                     { id: 'flowType', label: '流程类型', type: 'select', required: true, options: CommonOptions.flowType },
                     { id: 'outboundType', label: '出库类型', type: 'select', required: true, options: outboundTypeOptions },
                     { id: 'outboundBizType', label: '出库业务类型', type: 'select', required: true, options: outboundBizTypeOptions },
+                    { id: 'isEnabled', label: '是否启用', type: 'select', options: isEnabledOptions },
+                    { id: 'sectionParams', type: 'raw', content: buildModalSectionTitle('参数') },
                     { id: 'timerExpression', label: '定时器表达式', type: 'text' },
                     { id: 'timerDesc', label: '定时器描述', type: 'text' },
-                    { id: 'groupByOwner', label: '按货主分组', type: 'select', disabled: true,
-                      options: [{ value: '是', text: '是' }, { value: '否', text: '否' }] },
                     { id: 'maxOrderCount', label: '最大单量', type: 'number' },
                     { id: 'minOrderCount', label: '最小单量', type: 'number' },
-                    { id: 'isHidden', label: '是否隐藏', type: 'select', required: true, options: isHiddenOptions },
-                    { id: 'isEnabled', label: '是否启用', type: 'select', options: isEnabledOptions }
+                    { id: 'radioFieldsBreak', type: 'raw', content: buildModalLineBreak() },
+                    { id: 'groupByOwner', label: '按货主分组', type: 'radio', required: true, disabled: true, options: yesNoOptions },
+                    { id: 'shortageAllocation', label: '缺量分配', type: 'radio', required: true, options: yesNoOptions },
+                    { id: 'isHidden', label: '是否隐藏', type: 'radio', required: true, options: yesNoOptions },
+                    { id: 'allowNegativeInventory', label: '允许负库存', type: 'radio', required: true, options: yesNoOptions }
                 ],
                 addModal: {
                     modalId: 'waveTemplateModal',
                     cancelBtnId: 'cancelBtn',
                     saveBtnId: 'saveBtn',
-                    triggerBtnId: null,
-                    defaults: { isEnabled: '启用', groupByOwner: '是', isHidden: '否' },
+                    triggerBtnId: 'addBtn',
+                    defaults: { isEnabled: '启用' },
                     validations: [
                         { id: 'warehouse', message: '请选择仓库', required: true },
                         { id: 'templateCode', message: '请输入波次模板编码', required: true },
@@ -228,20 +390,27 @@
                         { id: 'flowType', message: '请选择流程类型', required: true },
                         { id: 'outboundType', message: '请选择出库类型', required: true },
                         { id: 'outboundBizType', message: '请选择出库业务类型', required: true },
-                        { id: 'isHidden', message: '请选择是否隐藏', required: true },
                         { id: 'isEnabled', message: '请选择是否启用', required: true }
                     ],
                     onOpen: () => {
                         const currentWarehouse = getCurrentWarehouse();
                         const warehouseInput = document.getElementById('warehouse');
-                        if (!warehouseInput) return;
-                        if (currentWarehouse) {
-                            warehouseInput.value = `${currentWarehouse.code}-${currentWarehouse.name}`;
-                            warehouseInput.dataset.value = currentWarehouse.code;
-                        } else {
-                            warehouseInput.value = '';
-                            warehouseInput.dataset.value = '';
+                        if (warehouseInput) {
+                            if (currentWarehouse) {
+                                warehouseInput.value = `${currentWarehouse.code}-${currentWarehouse.name}`;
+                                warehouseInput.dataset.value = currentWarehouse.code;
+                            } else {
+                                warehouseInput.value = '';
+                                warehouseInput.dataset.value = '';
+                            }
                         }
+                        syncGroupByOwner(false);
+                        setRadioValue('isHidden', '否');
+                        const flowTypeInput = document.getElementById('flowType');
+                        if (flowTypeInput) {
+                            flowTypeInput.dataset.prevFlowType = '';
+                        }
+                        handleFlowTypeChange(false, { resetAllDefaults: true });
                     },
                     onSave: () => {
                         const templateCode = document.getElementById('templateCode').value.trim();
@@ -251,8 +420,11 @@
                         const outboundType = document.getElementById('outboundType').value.trim();
                         const outboundBizType = document.getElementById('outboundBizType').value.trim();
                         const isEnabled = document.getElementById('isEnabled').value.trim();
+                        const isHidden = document.querySelector('input[name="isHidden"]:checked')?.value || '否';
+                        const groupByOwner = document.querySelector('input[name="groupByOwner"]:checked')?.value || '是';
+                        const allowNegativeInventory = document.querySelector('input[name="allowNegativeInventory"]:checked')?.value || '否';
 
-                        page.addTableRow({
+                        const newRow = page.addTableRow({
                             cells: [
                                 templateCode,
                                 templateName,
@@ -265,6 +437,11 @@
                                 '当前用户'
                             ]
                         });
+                        if (newRow) {
+                            newRow.dataset.isHidden = isHidden;
+                            newRow.dataset.groupByOwner = groupByOwner;
+                            newRow.dataset.allowNegativeInventory = allowNegativeInventory;
+                        }
                         showToast('波次模板已保存', 'success');
                     }
                 },
@@ -279,11 +456,13 @@
                         { id: 'editFlowType', message: '请选择流程类型', required: true },
                         { id: 'editOutboundType', message: '请选择出库类型', required: true },
                         { id: 'editOutboundBizType', message: '请选择出库业务类型', required: true },
-                        { id: 'editIsHidden', message: '请选择是否隐藏', required: true },
                         { id: 'editIsEnabled', message: '请选择是否启用', required: true }
                     ],
                     onSave: () => {
                         if (!page.currentEditRow) return;
+                        const isHidden = document.querySelector('input[name="editIsHidden"]:checked')?.value || '否';
+                        const groupByOwner = document.querySelector('input[name="editGroupByOwner"]:checked')?.value || '是';
+                        const allowNegativeInventory = document.querySelector('input[name="editAllowNegativeInventory"]:checked')?.value || '否';
                         page.updateTableRow(page.currentEditRow, {
                             1: document.getElementById('editTemplateCode').value.trim(),
                             2: document.getElementById('editTemplateName').value.trim(),
@@ -295,12 +474,23 @@
                             8: page.getCurrentTimeStr(),
                             9: '当前用户'
                         });
+                        page.currentEditRow.dataset.isHidden = isHidden;
+                        page.currentEditRow.dataset.groupByOwner = groupByOwner;
+                        page.currentEditRow.dataset.allowNegativeInventory = allowNegativeInventory;
                         showToast('波次模板已更新', 'success');
                         page.currentEditRow = null;
                     },
                     mapRowToForm: (row) => {
                         page.currentEditRow = row;
                         const cells = row.querySelectorAll('td');
+                        setRadioValue('editIsHidden', row.dataset.isHidden || '否');
+                        syncGroupByOwner(true, row.dataset.groupByOwner || '是');
+                        const flowType = cells[4].textContent.trim();
+                        handleFlowTypeChange(true, {
+                            flowType,
+                            prevFlowType: flowType,
+                            value: row.dataset.allowNegativeInventory || '否'
+                        });
                         return {
                             editTemplateCode: cells[1].textContent,
                             editTemplateName: cells[2].textContent,
@@ -308,8 +498,6 @@
                             editFlowType: cells[4].textContent,
                             editOutboundType: cells[5].textContent,
                             editOutboundBizType: cells[6].textContent,
-                            editGroupByOwner: '是',
-                            editIsHidden: '否',
                             editIsEnabled: cells[7].querySelector('.status').textContent
                         };
                     }
@@ -326,14 +514,8 @@
             renderSelectOptions('searchOutboundTypeDropdown', CommonOptions.outboundType);
             renderSelectOptions('searchOutboundBizTypeDropdown', CommonOptions.outboundBizType);
             page.init();
+            bindFlowTypeSync();
             document.getElementById('editCloseBtn').addEventListener('click', () => page.closeModal('edit'));
-
-            // 新增时设置当前仓库
-            document.getElementById('addBtn').addEventListener('click', () => {
-                page.openModal('add', {
-                    defaults: { isEnabled: '启用', groupByOwner: '是', isHidden: '否' }
-                });
-            });
 
             // 监听仓库切换，保持新增/编辑弹窗字段同步
             document.addEventListener('warehouseChange', (e) => {

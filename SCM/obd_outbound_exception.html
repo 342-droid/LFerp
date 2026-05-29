@@ -136,23 +136,7 @@
                             <input type="text" id="searchOutboundStatus" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchOutboundStatusDropdown">
-                                <div class="select-option" data-value="初始">初始</div>
-                                <div class="select-option" data-value="已集波">已集波</div>
-                                <div class="select-option" data-value="开始分配">开始分配</div>
-                                <div class="select-option" data-value="分配完成">分配完成</div>
-                                <div class="select-option" data-value="开始拣货">开始拣货</div>
-                                <div class="select-option" data-value="拣货完成">拣货完成</div>
-                                <div class="select-option" data-value="开始分拣">开始分拣</div>
-                                <div class="select-option" data-value="分拣完成">分拣完成</div>
-                                <div class="select-option" data-value="开始复核">开始复核</div>
-                                <div class="select-option" data-value="复核完成">复核完成</div>
-                                <div class="select-option" data-value="开始装载">开始装载</div>
-                                <div class="select-option" data-value="装载完成">装载完成</div>
-                                <div class="select-option" data-value="开始发货">开始发货</div>
-                                <div class="select-option" data-value="发货完成">发货完成</div>
-                                <div class="select-option" data-value="已取消">已取消</div>
-                            </div>
+                            <div class="select-dropdown" id="searchOutboundStatusDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -842,6 +826,7 @@
             });
             renderSelectOptions('searchOrderTypeDropdown', CommonOptions.outboundType);
             renderSelectOptions('searchBusinessTypeDropdown', CommonOptions.outboundBizType);
+            renderSelectOptions('searchOutboundStatusDropdown', CommonOptions.outboundStatus);
             page.init();
 
             renderTable(exceptionMockData);
