@@ -162,16 +162,12 @@
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
-                        <label>订单类型:</label>
+                        <label>营销类型:</label>
                         <div class="custom-select">
-                            <input type="text" id="searchOrderType" placeholder="请选择" readonly>
+                            <input type="text" id="searchMarketingType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchOrderTypeDropdown">
-                                <div class="select-option" data-value="">全部</div>
-                                <div class="select-option" data-value="普通订单">普通订单</div>
-                                <div class="select-option" data-value="福袋订单">福袋订单</div>
-                            </div>
+                            <div class="select-dropdown" id="searchMarketingTypeDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -199,20 +195,6 @@
                         <div class="input-wrapper">
                             <input type="text" id="searchSkuName" placeholder="请输入">
                             <span class="clear-btn">×</span>
-                        </div>
-                    </div>
-                    <div class="form-group custom-select-wrapper">
-                        <label>商品类型:</label>
-                        <div class="custom-select">
-                            <input type="text" id="searchSkuSource" placeholder="请选择" readonly>
-                            <span class="select-arrow">▼</span>
-                            <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchSkuSourceDropdown">
-                                <div class="select-option" data-value="">全部</div>
-                                <div class="select-option" data-value="普通商品">普通商品</div>
-                                <div class="select-option" data-value="积分商品">积分商品</div>
-                                <div class="select-option" data-value="拉新商品">拉新商品</div>
-                            </div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -341,18 +323,21 @@
 
     <!-- 引入公共脚本（订货明细数据与门店订货单页共用，见 purchase-store-order-data.js） -->
     <script src="../js/purchase-store-order-data.js"></script>
+    <script src="../js/modal-manager.js"></script>
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
     <script>
 (function() {
     const SKU_CATEGORY_TREE = window.SKU_CATEGORY_TREE;
+    const resolvePurchaseStoreMarketingType = window.resolvePurchaseStoreMarketingType;
+
     const storeOrderLines = (window.PURCHASE_STORE_ORDER_LINES || []).map(function(row) {
-        var orderType = row && row.orderType ? String(row.orderType).trim() : '';
-        if (!orderType) {
-            orderType = row && row.skuSource === '福袋商品' ? '福袋订单' : '普通订单';
-        }
-        return Object.assign({}, row, { orderType: orderType });
+        return Object.assign({}, row, {
+            marketingType: typeof resolvePurchaseStoreMarketingType === 'function'
+                ? resolvePurchaseStoreMarketingType(row)
+                : ''
+        });
     });
 
     const hints = {
@@ -378,18 +363,6 @@
 
     function getOrderSourceFilter() {
         const el = document.getElementById('searchOrderSource');
-        if (!el) return '';
-        if (el.dataset.value !== undefined && el.dataset.value !== '') {
-            return el.dataset.value.trim();
-        }
-        if (el.dataset.value === '') {
-            return '';
-        }
-        return el.value.trim();
-    }
-
-    function getOrderTypeFilter() {
-        const el = document.getElementById('searchOrderType');
         if (!el) return '';
         if (el.dataset.value !== undefined && el.dataset.value !== '') {
             return el.dataset.value.trim();
@@ -426,18 +399,6 @@
 
     function getReceivingWarehouseFilter() {
         const el = document.getElementById('searchReceivingWarehouse');
-        if (!el) return '';
-        if (el.dataset.value !== undefined && el.dataset.value !== '') {
-            return el.dataset.value.trim();
-        }
-        if (el.dataset.value === '') {
-            return '';
-        }
-        return el.value.trim();
-    }
-
-    function getSkuSourceFilter() {
-        const el = document.getElementById('searchSkuSource');
         if (!el) return '';
         if (el.dataset.value !== undefined && el.dataset.value !== '') {
             return el.dataset.value.trim();
@@ -539,11 +500,10 @@
         return {
             liveSession: getLiveSessionFilter(),
             orderSource: getOrderSourceFilter(),
-            orderType: getOrderTypeFilter(),
+            marketingType: val('searchMarketingType'),
             orderStatus: getOrderStatusFilter(),
             skuCode: val('searchSkuCode'),
             skuName: val('searchSkuName'),
-            skuSource: getSkuSourceFilter(),
             skuCategory: getCascadeSelectValue('searchSkuCategory'),
             storeCode: getStoreFilter(),
             deliveryWarehouse: getDeliveryWarehouseFilter(),
@@ -569,11 +529,10 @@
         return lines.filter(function(row) {
             if (f.liveSession && (!row.liveSession || row.liveSession.indexOf(f.liveSession) === -1)) return false;
             if (f.orderSource && row.orderSource !== f.orderSource) return false;
-            if (f.orderType && row.orderType !== f.orderType) return false;
+            if (f.marketingType && row.marketingType !== f.marketingType) return false;
             if (f.orderStatus && row.orderStatus !== f.orderStatus) return false;
             if (f.skuCode && row.skuCode.indexOf(f.skuCode) === -1) return false;
             if (f.skuName && row.skuName.indexOf(f.skuName) === -1) return false;
-            if (f.skuSource && row.skuSource !== f.skuSource) return false;
             if (f.skuCategory && row.skuCategoryPath !== f.skuCategory) return false;
             if (f.storeCode && row.storeCode !== f.storeCode) return false;
             if (f.deliveryWarehouse && row.deliveryWarehouse !== f.deliveryWarehouse) return false;
@@ -848,12 +807,13 @@
     initSkuCategoryOptions();
     initStoreOptions();
 
+    renderSelectOptions('searchMarketingTypeDropdown', CommonOptions.marketingType);
+
     if (typeof initCustomSelect === 'function') {
         initCustomSelect('searchLiveSession', 'searchLiveSessionDropdown');
         initCustomSelect('searchOrderSource', 'searchOrderSourceDropdown');
-        initCustomSelect('searchOrderType', 'searchOrderTypeDropdown');
+        initCustomSelect('searchMarketingType', 'searchMarketingTypeDropdown');
         initCustomSelect('searchOrderStatus', 'searchOrderStatusDropdown');
-        initCustomSelect('searchSkuSource', 'searchSkuSourceDropdown');
         initCustomSelect('searchSkuCategory', 'searchSkuCategoryDropdown');
         initCustomSelect('searchStore', 'searchStoreDropdown');
         initCustomSelect('searchDeliveryWarehouse', 'searchDeliveryWarehouseDropdown');

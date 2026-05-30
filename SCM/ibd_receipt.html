@@ -232,18 +232,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <label style="width: 80px;">下单时间:</label>
-                            <div class="date-range">
-                                <div class="date-picker">
-                                    <input type="date" id="searchOrderTimeStart" data-type="start" placeholder="开始时间">
-                                </div>
-                                <span class="date-range-separator">至</span>
-                                <div class="date-picker">
-                                    <input type="date" id="searchOrderTimeEnd" data-type="end" placeholder="结束时间">
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="form-actions">
@@ -271,7 +259,6 @@
                                 <th>承运商</th>
                                 <th>车牌号</th>
                                 <th>司机</th>
-                                <th>下单时间</th>
                                 <th>制单人</th>
                                 <th>关闭时间</th>
                                 <th>关闭人</th>
@@ -301,7 +288,6 @@
                                 <td>SF-顺丰</td>
                                 <td>苏A12345</td>
                                 <td>张三</td>
-                                <td>2026-02-27 10:00:00</td>
                                 <td>李四</td>
                                 <td></td>
                                 <td></td>
@@ -332,7 +318,6 @@
                                 <td>ZTO-中通</td>
                                 <td>苏B67890</td>
                                 <td>钱七</td>
-                                <td>2026-02-26 15:00:00</td>
                                 <td>孙八</td>
                                 <td>2026-02-27 08:00:00</td>
                                 <td>周九</td>
@@ -421,10 +406,6 @@
                         <div class="modal-form-group">
                             <label>司机</label>
                             <input type="text" id="detailDriver" disabled>
-                        </div>
-                        <div class="modal-form-group">
-                            <label>下单时间</label>
-                            <input type="text" id="detailOrderTime" disabled>
                         </div>
                         <div class="modal-form-group">
                             <label>制单人</label>
@@ -664,7 +645,6 @@
                         carrier: 'SF-顺丰',
                         plateNumber: '苏A12345',
                         driver: '张三',
-                        orderTime: '2026-02-27 10:00:00',
                         creator: '李四',
                         closeTime: '',
                         closer: '',
@@ -685,7 +665,6 @@
                         carrier: 'ZTO-中通',
                         plateNumber: '苏B67890',
                         driver: '钱七',
-                        orderTime: '2026-02-26 15:00:00',
                         creator: '孙八',
                         closeTime: '2026-02-27 08:00:00',
                         closer: '周九',
@@ -709,7 +688,6 @@
                 document.getElementById('detailCarrier').value = data.carrier || '';
                 document.getElementById('detailPlateNumber').value = data.plateNumber || '';
                 document.getElementById('detailDriver').value = data.driver || '';
-                document.getElementById('detailOrderTime').value = data.orderTime || '';
                 document.getElementById('detailCreator').value = data.creator || '';
                 document.getElementById('detailCloseTime').value = data.closeTime || '';
                 document.getElementById('detailCloser').value = data.closer || '';

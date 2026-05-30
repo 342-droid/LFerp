@@ -354,6 +354,7 @@ const CommonOptions = {
     // 出库业务类型选项
     outboundBizType: [
         { value: '直播订单', text: '直播订单' },
+        { value: '直播订单', text: '商城订单' },
         { value: '配送出库', text: '配送出库' },
         { value: '门店退货', text: '门店退货' },
         { value: '仓库退供', text: '仓库退供' },
@@ -385,6 +386,13 @@ const CommonOptions = {
         { value: 'L003-上海地点', text: 'L003-上海地点' },
         { value: 'L004-广州地点', text: 'L004-广州地点' },
         { value: 'L005-深圳地点', text: 'L005-深圳地点' }
+    ],
+    // 营销类型选项
+    marketingType: [
+        { value: '普通售卖', text: '普通售卖' },
+        { value: '拉新赠品', text: '拉新赠品' },
+        { value: '福袋奖品', text: '福袋奖品' },
+        { value: '积分兑换', text: '积分兑换' }
     ]
 };
 

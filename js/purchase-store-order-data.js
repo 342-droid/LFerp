@@ -35,6 +35,29 @@
      * 销售总价 / 明细「销售金额」：各行写 lineAmount（行小计），列表销售总价为其求和；若某行写 sheetOrderTotal 则整单销售总价以该值为准（应与明细 lineAmount 汇总等业务规则一致）。
      * 明细可写 shippedQty、receivedQty（对应界面「发货量」「收货量」，与 qty 同单位）；未写时详情页对应用「—」。
      */
+    /**
+     * 根据行上的营销类型或历史 skuSource / orderType 推导营销类型
+     * @param {Object} row
+     * @returns {string}
+     */
+    window.resolvePurchaseStoreMarketingType = function(row) {
+        if (row && row.marketingType) {
+            return String(row.marketingType).trim();
+        }
+        var skuSource = row && row.skuSource ? String(row.skuSource).trim() : '';
+        var orderType = row && row.orderType ? String(row.orderType).trim() : '';
+        if (skuSource === '积分商品' || skuSource === '积分') {
+            return '积分兑换';
+        }
+        if (skuSource === '拉新商品' || skuSource === '拉新') {
+            return '拉新赠品';
+        }
+        if (skuSource === '福袋商品' || orderType === '福袋订单') {
+            return '福袋奖品';
+        }
+        return '普通售卖';
+    };
+
     window.PURCHASE_STORE_ORDER_LINES = [
         { placeOrderDate: '2026-04-20', paymentDate: '2026-04-20', orderSource: '直播间', orderStatus: '待发货', liveSession: 'ZB20260420-晚场', deliveryWarehouse: 'W001 南京仓', receivingWarehouse: 'W001 南京仓', storeCode: 'ST001', storeName: '南京新街口店', skuCode: 'SKU001', skuName: '红富士苹果', skuSource: '正常商品', skuCategoryPath: '生鲜 / 水果 / 仁果类', spec: '5kg/箱', qty: 30, qtyUnit: '件', lineAmount: 5400, shippedQty: 0, receivedQty: 0, sheetNo: 'MDH2026042012000037', sheetHeaderStatus: '初始', createdBy: '张敏', updatedAt: '2026-04-20 20:15:00', updatedBy: '李强' },
         { placeOrderDate: '2026-04-20', paymentDate: '2026-04-20', orderSource: '直播间', orderStatus: '待发货', liveSession: 'ZB20260420-晚场', deliveryWarehouse: 'W001 南京仓', receivingWarehouse: 'W001 南京仓', storeCode: 'ST001', storeName: '南京新街口店', skuCode: 'SKU002', skuName: '香蕉', skuSource: '正常商品', skuCategoryPath: '生鲜 / 水果 / 浆果类', spec: '10kg/箱', qty: 15, qtyUnit: '份', lineAmount: 1125, shippedQty: 0, receivedQty: 0, sheetNo: 'MDH2026042012000037' },
