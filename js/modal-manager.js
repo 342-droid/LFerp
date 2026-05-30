@@ -354,7 +354,7 @@ const CommonOptions = {
     // 出库业务类型选项
     outboundBizType: [
         { value: '直播订单', text: '直播订单' },
-        { value: '直播订单', text: '商城订单' },
+        { value: '商城订单', text: '商城订单' },
         { value: '配送出库', text: '配送出库' },
         { value: '门店退货', text: '门店退货' },
         { value: '仓库退供', text: '仓库退供' },
