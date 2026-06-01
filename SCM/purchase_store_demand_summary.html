@@ -129,7 +129,6 @@
                         <div class="wh-param-tabs" id="dimensionTabs" role="tablist">
                             <button type="button" class="wh-param-tab active" data-dimension="product" role="tab">商品</button>
                             <button type="button" class="wh-param-tab" data-dimension="store" role="tab">门店</button>
-                            <button type="button" class="wh-param-tab" data-dimension="spec" role="tab">规格</button>
                         </div>
                         <p class="dimension-hint" id="dimensionHint">按商品维度汇总各门店的订货需求，数量已合并。</p>
                     </div>
@@ -342,8 +341,7 @@
 
     const hints = {
         product: '按商品维度汇总各门店的订货需求，数量已合并。',
-        store: '按门店维度汇总各店订货需求，便于按店跟进。',
-        spec: '按商品规格维度汇总订货需求，区分不同包装/规格。'
+        store: '按门店维度汇总各店订货需求，便于按店跟进。'
     };
 
     let currentDimension = 'product';
@@ -559,6 +557,7 @@
                 map.set(key, {
                     skuCode: row.skuCode,
                     skuName: row.skuName,
+                    spec: row.spec || '-',
                     totalQty: 0,
                     storeKeys: new Set(),
                     qtyUnit: null
@@ -573,6 +572,7 @@
             return {
                 skuCode: g.skuCode,
                 skuName: g.skuName,
+                spec: g.spec,
                 totalQty: g.totalQty,
                 storeCount: g.storeKeys.size,
                 qtyUnit: g.qtyUnit || '件'
@@ -609,31 +609,14 @@
         });
     }
 
-    function aggregateBySpec(lines) {
-        const map = new Map();
-        for (const row of lines) {
-            const key = row.skuCode + '\0' + row.spec;
-            if (!map.has(key)) {
-                map.set(key, {
-                    skuCode: row.skuCode,
-                    skuName: row.skuName,
-                    spec: row.spec,
-                    totalQty: 0,
-                    qtyUnit: null
-                });
-            }
-            const g = map.get(key);
-            g.totalQty += row.qty;
-            g.qtyUnit = mergeQtyUnit(g.qtyUnit, row.qtyUnit);
+    function getDetailRowsForDimension(dimension, key) {
+        if (dimension === 'store') {
+            return filteredLines.filter(function(row) {
+                return row.storeCode === key;
+            });
         }
-        return Array.from(map.values()).map(function(g) {
-            return {
-                skuCode: g.skuCode,
-                skuName: g.skuName,
-                spec: g.spec,
-                totalQty: g.totalQty,
-                qtyUnit: g.qtyUnit || '件'
-            };
+        return filteredLines.filter(function(row) {
+            return row.skuCode === key;
         });
     }
 
@@ -649,22 +632,6 @@
     function formatQtyTotal(qty, unit) {
         var u = unit || '件';
         return escapeHtml(String(qty) + u);
-    }
-
-    function getDetailRowsForDimension(dimension, key, spec) {
-        if (dimension === 'store') {
-            return filteredLines.filter(function(row) {
-                return row.storeCode === key;
-            });
-        }
-        if (dimension === 'spec') {
-            return filteredLines.filter(function(row) {
-                return row.skuCode === key && row.spec === spec;
-            });
-        }
-        return filteredLines.filter(function(row) {
-            return row.skuCode === key;
-        });
     }
 
     function renderStoreOrderDetailRows(rows) {
@@ -695,8 +662,8 @@
         }).join('');
     }
 
-    function openStoreOrderDetailModal(dimension, key, spec) {
-        const rows = getDetailRowsForDimension(dimension, key, spec);
+    function openStoreOrderDetailModal(dimension, key) {
+        const rows = getDetailRowsForDimension(dimension, key);
         renderStoreOrderDetailRows(rows);
         const modal = document.getElementById('storeOrderDetailModal');
         if (modal) modal.style.display = 'block';
@@ -720,9 +687,9 @@
         let headHtml;
         if (currentDimension === 'product') {
             rows = aggregateByProduct(lines);
-            headHtml = '<tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>商品编码</th><th>商品名称</th><th>订货量合计</th><th>涉及门店数</th></tr>';
+            headHtml = '<tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>商品编码</th><th>商品名称</th><th>商品规格</th><th>订货量合计</th><th>涉及门店数</th></tr>';
             tbody.innerHTML = rows.map(function(r) {
-                return '<tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td><a href="#" class="detail-link js-open-order-detail" data-dimension="product" data-key="' + escapeAttr(r.skuCode) + '">' + escapeHtml(r.skuCode) + '</a></td><td>' + escapeHtml(r.skuName) + '</td><td>' + formatQtyTotal(r.totalQty, r.qtyUnit) + '</td><td>' + r.storeCount + '</td></tr>';
+                return '<tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td><a href="#" class="detail-link js-open-order-detail" data-dimension="product" data-key="' + escapeAttr(r.skuCode) + '">' + escapeHtml(r.skuCode) + '</a></td><td>' + escapeHtml(r.skuName) + '</td><td>' + escapeHtml(r.spec) + '</td><td>' + formatQtyTotal(r.totalQty, r.qtyUnit) + '</td><td>' + r.storeCount + '</td></tr>';
             }).join('');
         } else if (currentDimension === 'store') {
             rows = aggregateByStore(lines);
@@ -732,12 +699,6 @@
                     ? (r.storeCode + ' ' + r.storeName)
                     : (r.storeCode || r.storeName || '-');
                 return '<tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td><a href="#" class="detail-link js-open-order-detail" data-dimension="store" data-key="' + escapeAttr(r.storeCode) + '">' + escapeHtml(storeText) + '</a></td><td>' + escapeHtml(String(r.totalQty)) + '</td><td>' + r.lineCount + '</td></tr>';
-            }).join('');
-        } else {
-            rows = aggregateBySpec(lines);
-            headHtml = '<tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>商品编码</th><th>商品名称</th><th>商品规格</th><th>订货量合计</th></tr>';
-            tbody.innerHTML = rows.map(function(r) {
-                return '<tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td><a href="#" class="detail-link js-open-order-detail" data-dimension="spec" data-key="' + escapeAttr(r.skuCode) + '" data-spec="' + escapeAttr(r.spec) + '">' + escapeHtml(r.skuCode) + '</a></td><td>' + escapeHtml(r.skuName) + '</td><td>' + escapeHtml(r.spec) + '</td><td>' + formatQtyTotal(r.totalQty, r.qtyUnit) + '</td></tr>';
             }).join('');
         }
 
@@ -761,8 +722,7 @@
         e.preventDefault();
         openStoreOrderDetailModal(
             link.getAttribute('data-dimension') || 'product',
-            link.getAttribute('data-key') || '',
-            link.getAttribute('data-spec') || ''
+            link.getAttribute('data-key') || ''
         );
     });
 

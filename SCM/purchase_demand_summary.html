@@ -7,63 +7,6 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <style>
-        .purchase-dimension-block {
-            width: 100%;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #e8e8e8;
-        }
-
-        .purchase-dimension-block .dimension-hint {
-            margin: 8px 0 0;
-            font-size: 13px;
-            color: #666;
-        }
-
-        .wh-param-tabs {
-            display: flex;
-            width: 100%;
-            margin-bottom: 0;
-            border-bottom: 1px solid #e8e8e8;
-            box-sizing: border-box;
-        }
-
-        .wh-param-tab {
-            flex: 1 1 0;
-            min-width: 0;
-            text-align: center;
-            padding: 6px 4px 10px;
-            margin-bottom: -1px;
-            font-size: 13px;
-            color: #666;
-            text-decoration: none;
-            cursor: pointer;
-            background: none;
-            border: none;
-            border-bottom: 2px solid transparent;
-            transition: color 0.2s, border-color 0.2s;
-        }
-
-        .wh-param-tab,
-        .wh-param-tab:visited {
-            color: #666;
-        }
-
-        .wh-param-tab:hover {
-            color: #333;
-        }
-
-        .wh-param-tab.active,
-        .wh-param-tab.active:visited {
-            font-weight: 600;
-            color: #333;
-            border-bottom-color: #333;
-        }
-
-        .wh-param-tab.active:hover {
-            color: #333;
-        }
-
         .aggregate-summary {
             font-size: 13px;
             color: #333;
@@ -246,14 +189,6 @@
 
             <section class="search-section">
                 <form class="search-form">
-                    <div class="purchase-dimension-block">
-                        <div class="wh-param-tabs" id="dimensionTabs" role="tablist">
-                            <button type="button" class="wh-param-tab active" data-dimension="product" role="tab">商品</button>
-                            <button type="button" class="wh-param-tab" data-dimension="spec" role="tab">规格</button>
-                        </div>
-                        <p class="dimension-hint" id="dimensionHint">按商品维度汇总采购需求，合并供应商待采购量。</p>
-                    </div>
-
                     <div class="form-group custom-select-wrapper">
                         <label style="width: 70px;">收货仓库:</label>
                         <div class="custom-select">
@@ -534,13 +469,7 @@
             actualUnitPrice: actualUnitPrice
         });
     });
-    const dimensionHints = {
-        product: '按商品维度汇总采购需求，合并供应商待采购量。',
-        spec: '按规格维度汇总采购需求，区分同一商品不同规格。'
-    };
-
     let filteredLines = detailLines.slice();
-    let currentDimension = 'product';
 
     function getCustomSelectValue(inputId) {
         const el = document.getElementById(inputId);
@@ -669,10 +598,6 @@
         });
     }
 
-    function aggregateKey(row) {
-        return row.skuCode + '\0' + row.supplier;
-    }
-
     function getRowSpec(row) {
         return row.spec || SPEC_MAP_BY_SKU[row.skuCode] || '-';
     }
@@ -691,47 +616,6 @@
     function formatQtyWithUnit(value, unit) {
         if (value == null || value === '') return '-';
         return String(value) + (unit || '件');
-    }
-
-    function buildProductAggregates(lines) {
-        const map = new Map();
-        for (var i = 0; i < lines.length; i++) {
-            const row = lines[i];
-            const key = aggregateKey(row);
-            if (!map.has(key)) {
-                map.set(key, {
-                    skuCode: row.skuCode,
-                    skuName: row.skuName,
-                    supplier: row.supplier,
-                    orderQtySum: 0,
-                    pendingSum: 0,
-                    salePrice: row.salePrice,
-                    unitPrice: row.unitPrice,
-                    actualAmountSum: 0,
-                    qtyUnit: null
-                });
-            }
-            const g = map.get(key);
-            var pendingQty = Number(row.pendingQty) || 0;
-            g.orderQtySum += row.orderQty || 0;
-            g.pendingSum += pendingQty;
-            g.actualAmountSum += pendingQty * (Number(row.actualUnitPrice) || 0);
-            g.qtyUnit = mergeQtyUnit(g.qtyUnit, getRowQtyUnit(row));
-        }
-        return Array.from(map.values()).map(function(g) {
-            var actualUnitPrice = g.pendingSum > 0 ? (g.actualAmountSum / g.pendingSum) : 0;
-            return {
-                skuCode: g.skuCode,
-                skuName: g.skuName,
-                supplier: g.supplier,
-                orderQtySum: g.orderQtySum,
-                salePrice: g.salePrice,
-                unitPrice: g.unitPrice,
-                actualUnitPrice: actualUnitPrice,
-                pendingSum: g.pendingSum,
-                qtyUnit: g.qtyUnit || '件'
-            };
-        });
     }
 
     function aggregateSpecKey(row) {
@@ -791,41 +675,24 @@
         const thead = document.getElementById('summaryThead');
         const tbody = document.getElementById('summaryTbody');
         const countEl = document.getElementById('listCount');
-        const hintEl = document.getElementById('dimensionHint');
         if (!tbody) return;
 
-        hintEl.textContent = dimensionHints[currentDimension];
-
-        const rows = currentDimension === 'spec'
-            ? buildSpecAggregates(filteredLines)
-            : buildProductAggregates(filteredLines);
+        const rows = buildSpecAggregates(filteredLines);
         countEl.textContent = String(rows.length);
-        if (currentDimension === 'spec') {
-            thead.innerHTML = '<tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>商品编码</th><th>商品名称</th><th>商品规格</th><th>供应商</th><th>订货数</th><th>销售单价</th><th>采购单价</th><th>待采购量</th></tr>';
-        } else {
-            thead.innerHTML = '<tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>商品编码</th><th>商品名称</th><th>供应商</th><th>订货数</th><th>销售单价</th><th>采购单价</th><th>待采购量</th></tr>';
-        }
+        thead.innerHTML = '<tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>商品编码</th><th>商品名称</th><th>商品规格</th><th>供应商</th><th>订货数</th><th>销售单价</th><th>采购单价</th><th>待采购量</th></tr>';
 
         if (rows.length === 0) {
-            tbody.innerHTML = currentDimension === 'spec'
-                ? '<tr><td colspan="9" style="text-align:center;color:#999;">暂无数据</td></tr>'
-                : '<tr><td colspan="8" style="text-align:center;color:#999;">暂无数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#999;">暂无数据</td></tr>';
             return;
         }
 
         tbody.innerHTML = rows.map(function(r) {
-            var detailAttr = currentDimension === 'spec'
-                ? ' data-spec="' + escapeAttr(r.spec) + '"'
-                : '';
-            var specCell = currentDimension === 'spec'
-                ? '<td>' + escapeHtml(r.spec) + '</td>'
-                : '';
             return '' +
                 '<tr>' +
                 '<td><input type="checkbox" class="table-checkbox checkbox-row"></td>' +
-                '<td><a href="#" class="detail-link js-open-demand-detail" data-sku-code="' + escapeAttr(r.skuCode) + '" data-supplier="' + escapeAttr(r.supplier) + '"' + detailAttr + '>' + escapeHtml(r.skuCode) + '</a></td>' +
+                '<td><a href="#" class="detail-link js-open-demand-detail" data-sku-code="' + escapeAttr(r.skuCode) + '" data-supplier="' + escapeAttr(r.supplier) + '" data-spec="' + escapeAttr(r.spec) + '">' + escapeHtml(r.skuCode) + '</a></td>' +
                 '<td>' + escapeHtml(r.skuName) + '</td>' +
-                specCell +
+                '<td>' + escapeHtml(r.spec) + '</td>' +
                 '<td>' + escapeHtml(r.supplier) + '</td>' +
                 '<td>' + escapeHtml(formatQtyWithUnit(r.orderQtySum, r.qtyUnit)) + '</td>' +
                 '<td>' + escapeHtml(formatMoney(r.salePrice)) + '</td>' +
@@ -1216,16 +1083,6 @@
 
     document.getElementById('btnSearch').addEventListener('click', function() {
         filteredLines = applyFilters(detailLines);
-        renderTable();
-    });
-
-    document.getElementById('dimensionTabs').addEventListener('click', function(e) {
-        const btn = e.target.closest('button[data-dimension]');
-        if (!btn) return;
-        currentDimension = btn.getAttribute('data-dimension');
-        document.querySelectorAll('#dimensionTabs .wh-param-tab').forEach(function(tabBtn) {
-            tabBtn.classList.toggle('active', tabBtn === btn);
-        });
         renderTable();
     });
 
