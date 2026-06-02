@@ -225,19 +225,7 @@
                         <input type="text" id="detailPickLocationType" placeholder="请选择">
                         <span class="select-arrow">▼</span>
                         <span class="clear-btn">×</span>
-                        <div class="select-dropdown" id="detailPickLocationTypeDropdown">
-                            <div class="select-option" data-value="picking">拣选位</div>
-                            <div class="select-option" data-value="storage">存储位</div>
-                            <div class="select-option" data-value="temporary">暂存位</div>
-                            <div class="select-option" data-value="receiving">收货位</div>
-                            <div class="select-option" data-value="shipping">发货位</div>
-                            <div class="select-option" data-value="crossdock">越库位</div>
-                            <div class="select-option" data-value="distribution">集散位</div>
-                            <div class="select-option" data-value="packing">打包位</div>
-                            <div class="select-option" data-value="exception">异常位</div>
-                            <div class="select-option" data-value="pending">待处理位</div>
-                            <div class="select-option" data-value="return">退货位</div>
-                        </div>
+                        <div class="select-dropdown" id="detailPickLocationTypeDropdown"></div>
                     </div>
                 </div>
                 <div class="modal-form-group custom-select-wrapper">
@@ -258,19 +246,7 @@
                         <input type="text" id="detailReplenishLocationType" placeholder="请选择">
                         <span class="select-arrow">▼</span>
                         <span class="clear-btn">×</span>
-                        <div class="select-dropdown" id="detailReplenishLocationTypeDropdown">
-                            <div class="select-option" data-value="picking">拣选位</div>
-                            <div class="select-option" data-value="storage">存储位</div>
-                            <div class="select-option" data-value="temporary">暂存位</div>
-                            <div class="select-option" data-value="receiving">收货位</div>
-                            <div class="select-option" data-value="shipping">发货位</div>
-                            <div class="select-option" data-value="crossdock">越库位</div>
-                            <div class="select-option" data-value="distribution">集散位</div>
-                            <div class="select-option" data-value="packing">打包位</div>
-                            <div class="select-option" data-value="exception">异常位</div>
-                            <div class="select-option" data-value="pending">待处理位</div>
-                            <div class="select-option" data-value="return">退货位</div>
-                        </div>
+                        <div class="select-dropdown" id="detailReplenishLocationTypeDropdown"></div>
                     </div>
                 </div>
                 <div class="modal-form-group custom-select-wrapper">
@@ -536,7 +512,7 @@
                         priority: '2',
                         sourceType: '调拨出库',
                         sourceBizType: '仓库调拨',
-                        pickLocationType: '暂存位',
+                        pickLocationType: '待处理位',
                         isReplenish: '否',
                         replenishLocationType: '',
                         turnoverStrategy: '后进先出',
@@ -548,6 +524,8 @@
 
             renderSelectOptions('detailSourceTypeDropdown', CommonOptions.outboundType);
             renderSelectOptions('detailSourceBizTypeDropdown', CommonOptions.outboundBizType);
+            renderSelectOptions('detailPickLocationTypeDropdown', CommonOptions.locationType);
+            renderSelectOptions('detailReplenishLocationTypeDropdown', CommonOptions.locationType);
 
             if (typeof initCustomSelect === 'function') {
                 initCustomSelect('detailSourceType', 'detailSourceTypeDropdown');

@@ -194,11 +194,7 @@ const CommonOptions = {
         { value: 'picking', text: '拣选位' },
         { value: 'storage', text: '存储位' },
         { value: 'temporary', text: '暂存位' },
-        { value: 'receiving', text: '收货位' },
         { value: 'shipping', text: '发货位' },
-        { value: 'crossdock', text: '越库位' },
-        { value: 'distribution', text: '集散位' },
-        { value: 'packing', text: '打包位' },
         { value: 'exception', text: '异常位' },
         { value: 'pending', text: '待处理位' },
         { value: 'return', text: '退货位' }

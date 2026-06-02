@@ -207,20 +207,6 @@
             const taskSourceTypeOptions = CommonOptions.taskSourceType;
             const taskSourceBizTypeOptions = CommonOptions.taskSourceBizType;
             
-            const locationTypeOptions = [
-                { value: 'picking', text: '拣选位' },
-                { value: 'storage', text: '存储位' },
-                { value: 'staging', text: '暂存位' },
-                { value: 'receiving', text: '收货位' },
-                { value: 'shipping', text: '发货位' },
-                { value: 'crossdock', text: '越库位' },
-                { value: 'distribution', text: '集散位' },
-                { value: 'packing', text: '打包位' },
-                { value: 'exception', text: '异常位' },
-                { value: 'pending', text: '待处理位' },
-                { value: 'return', text: '退货位' }
-            ];
-            
             const isEnabledOptions = [
                 { value: '启用', text: '启用' },
                 { value: '禁用', text: '禁用' }
@@ -353,7 +339,7 @@
                     { id: 'detailTaskType', label: '任务类型', type: 'select', required: true, options: taskTypeOptions },
                     { id: 'taskSourceType', label: '任务来源类型', type: 'select', required: true, options: taskSourceTypeOptions },
                     { id: 'taskSourceBizType', label: '任务来源业务类型', type: 'select', required: true, options: taskSourceBizTypeOptions },
-                    { id: 'sourceLocationType', label: '来源储位类型', type: 'select', required: true, options: locationTypeOptions },
+                    { id: 'sourceLocationType', label: '来源储位类型', type: 'select', required: true, options: CommonOptions.locationType },
                     { id: 'isEnabled', label: '是否启用', type: 'select', required: true, options: isEnabledOptions },
                     { id: 'divider1', label: '', type: 'raw', html: dividerHtml, editHtml: dividerHtml },
                     { id: 'detailFetch1', label: '取用名1', type: 'select', required: true, options: fetchOptions },

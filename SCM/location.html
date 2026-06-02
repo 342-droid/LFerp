@@ -78,19 +78,7 @@
                             <input type="text" id="searchLocationType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchLocationTypeDropdown">
-                                <div class="select-option" data-value="picking">拣选位</div>
-                                <div class="select-option" data-value="storage">存储位</div>
-                                <div class="select-option" data-value="temporary">暂存位</div>
-                                <div class="select-option" data-value="receiving">收货位</div>
-                                <div class="select-option" data-value="shipping">发货位</div>
-                                <div class="select-option" data-value="crossdock">越库位</div>
-                                <div class="select-option" data-value="distribution">集散位</div>
-                                <div class="select-option" data-value="packing">打包位</div>
-                                <div class="select-option" data-value="exception">异常位</div>
-                                <div class="select-option" data-value="pending">待处理位</div>
-                                <div class="select-option" data-value="return">退货位</div>
-                            </div>
+                            <div class="select-dropdown" id="searchLocationTypeDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -149,7 +137,7 @@
                             </tr>
                             <tr>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
-                                <td>L003</td><td>L003储位</td><td>暂存位</td>
+                                <td>L003</td><td>L003储位</td><td>异常位</td>
                                 <td>Z001-南京仓-库存区</td><td>A001-南京仓-A区</td><td>冷冻</td>
                                 <td><span class="status active">启用</span></td>
                                 <td>2025-01-05 12:31:43</td><td>李四</td>
@@ -157,7 +145,7 @@
                             </tr>
                             <tr>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
-                                <td>L004</td><td>L004储位</td><td>收货位</td>
+                                <td>L004</td><td>L004储位</td><td>暂存位</td>
                                 <td>Z002-南京仓-发货区</td><td>B001-南京仓-B区</td><td>常温</td>
                                 <td><span class="status active">启用</span></td>
                                 <td>2025-01-05 12:31:43</td><td>李四</td>
@@ -188,16 +176,6 @@
     <script src="../js/modal-manager.js"></script>
     <script src="../js/page-manager.js"></script>
     <script>
-        // 储位类型选项
-        const locationTypeOptions = [
-            { value: 'picking', text: '拣选位' }, { value: 'storage', text: '存储位' },
-            { value: 'temporary', text: '暂存位' }, { value: 'receiving', text: '收货位' },
-            { value: 'shipping', text: '发货位' }, { value: 'crossdock', text: '越库位' },
-            { value: 'distribution', text: '集散位' }, { value: 'packing', text: '打包位' },
-            { value: 'exception', text: '异常位' }, { value: 'pending', text: '待处理位' },
-            { value: 'return', text: '退货位' }
-        ];
-
         // 设置单选按钮默认值的辅助函数
         function setRadioDefaults(prefix = '') {
             try {
@@ -231,6 +209,8 @@
 
         // 使用PageManager简化页面逻辑
         document.addEventListener('DOMContentLoaded', () => {
+            renderSelectOptions('searchLocationTypeDropdown', CommonOptions.locationType);
+
             const page = new PageManager({
                 entityName: '储位',
                 statusColumnIndex: 7,
@@ -271,7 +251,7 @@
                     { id: 'locationCode', label: '储位编码', type: 'text', required: true, editDisabled: true },
                     { id: 'locationName', label: '储位名称', type: 'text', required: true, editDisabled: true },
                     { id: 'locationType', label: '储位类型', type: 'select', required: true, editDisabled: true,
-                      options: locationTypeOptions },
+                      options: CommonOptions.locationType },
                     { id: 'locationCategory', label: '储位类别', type: 'select', required: true,
                       options: [
                           { value: 'floor', text: '地推' },
