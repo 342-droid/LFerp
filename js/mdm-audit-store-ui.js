@@ -58,6 +58,87 @@
         return sel;
     }
 
+    /** 与 mdm_bd_store_form / mdm-bd-h5-store-register validate() 对齐的编辑必填项 */
+    function isFranchiseOrPartnerRow(row) {
+        return row.partnerDivision === '加盟店' || row.partnerDivision === '合作店';
+    }
+
+    function isAuditFieldRequired(fieldKey, row) {
+        var common = {
+            subjectName: true,
+            storeName: true,
+            partnerDivision: true,
+            storeType: true,
+            region: true,
+            address: true,
+            phone: true,
+            contact: true
+        };
+        if (common[fieldKey]) return true;
+        if (isFranchiseOrPartnerRow(row) && (fieldKey === 'storeArea' || fieldKey === 'storeFloors')) return true;
+        return false;
+    }
+
+    function appendContactSectionHeader(body) {
+        body.appendChild(el('div', 'supplier-detail-section-title', '老板 / 联系人'));
+    }
+
+    function appendContactDetailSection(body, row) {
+        appendContactSectionHeader(body);
+        body.appendChild(detailRow('老板 / 联系人姓名', row.contact));
+        body.appendChild(detailRow('老板 / 负责人联系电话', row.phone));
+    }
+
+    function appendContactEditSection(body, row) {
+        appendContactSectionHeader(body);
+        body.appendChild(
+            editRow('老板 / 联系人姓名', textInput('请输入姓名', row.contact), 'contact', row)
+        );
+        var phoneInp = textInput('手机号', row.phone);
+        phoneInp.type = 'tel';
+        body.appendChild(editRow('老板 / 负责人联系电话', phoneInp, 'phone', row));
+    }
+
+    function validateAuditEdit(patch, row) {
+        var p = patch || {};
+        var merged = {};
+        Object.keys(row || {}).forEach(function (k) {
+            merged[k] = row[k];
+        });
+        Object.keys(p).forEach(function (k) {
+            merged[k] = p[k];
+        });
+        var checks = [
+            { key: 'subjectName', msg: '请填写门店主体' },
+            { key: 'storeName', msg: '请填写门店名称' },
+            { key: 'partnerDivision', msg: '请选择门店合作类型' },
+            { key: 'storeType', msg: '请填写门店类型' },
+            { key: 'region', msg: '请选择省市区' },
+            { key: 'address', msg: '请填写详细地址' },
+            { key: 'phone', msg: '请填写联系电话' },
+            { key: 'contact', msg: '请填写联系人姓名' }
+        ];
+        var i;
+        for (i = 0; i < checks.length; i++) {
+            var v = String(p[checks[i].key] != null ? p[checks[i].key] : '').trim();
+            if (!v) {
+                if (typeof showToast === 'function') showToast(checks[i].msg, 'error');
+                return false;
+            }
+        }
+        if (isFranchiseOrPartnerRow(merged)) {
+            if (!String(p.storeArea != null ? p.storeArea : '').trim()) {
+                if (typeof showToast === 'function') showToast('请填写门店面积', 'error');
+                return false;
+            }
+            if (!String(p.storeFloors != null ? p.storeFloors : '').trim()) {
+                if (typeof showToast === 'function') showToast('请填写门店楼层', 'error');
+                return false;
+            }
+        }
+        return true;
+    }
+
     function closeAuditModals() {
         document.querySelectorAll('[data-audit-center-modal]').forEach(function (n) {
             n.remove();
@@ -172,8 +253,6 @@
         body.appendChild(detailRow('主体名称', row.subjectName));
         body.appendChild(detailRow('绑定BD', row.bd));
         body.appendChild(detailRow('主体类型', '门店'));
-        body.appendChild(detailRow('联系人', row.contact));
-        body.appendChild(detailRow('手机号码', row.phone));
 
         body.appendChild(el('div', 'supplier-detail-section-title', '门店档案字段'));
         body.appendChild(detailRow('门店名称', row.storeName));
@@ -189,6 +268,8 @@
         body.appendChild(detailRow('冷藏柜照片', mediaGrid(row.refrigeratedPhotos)));
         body.appendChild(detailRow('有无冷冻柜', row.hasFreezerCabinet));
         body.appendChild(detailRow('冷冻柜照片', mediaGrid(row.freezerPhotos)));
+
+        appendContactDetailSection(body, row);
 
         if (isFranchiseOrPartner) {
             body.appendChild(el('div', 'supplier-detail-section-title', '加盟店 / 合作店补充资料'));
@@ -238,14 +319,19 @@
         row.mdmStatus = '未生成';
     }
 
-    function editRow(label, control, fieldKey) {
-        var row = el('div', 'audit-detail-row');
-        row.appendChild(el('span', 'audit-detail-row__label', label));
+    function editRow(label, control, fieldKey, dataRow) {
+        var rowEl = el('div', 'audit-detail-row');
+        var labelEl = el('span', 'audit-detail-row__label');
+        if (fieldKey && dataRow && isAuditFieldRequired(fieldKey, dataRow)) {
+            labelEl.appendChild(el('span', 'audit-req', '*'));
+        }
+        labelEl.appendChild(document.createTextNode(label));
+        rowEl.appendChild(labelEl);
         var value = el('span', 'audit-detail-row__value');
         if (fieldKey) control.setAttribute('data-audit-field', fieldKey);
         value.appendChild(control);
-        row.appendChild(value);
-        return row;
+        rowEl.appendChild(value);
+        return rowEl;
     }
 
     /** 与 appendRegistrationFields 同结构：可编辑项用表单控件，附件类与审核详情一致为只读预览。 */
@@ -257,15 +343,13 @@
         var isPeerStore = row.partnerDivision === '同行店';
 
         body.appendChild(el('div', 'supplier-detail-section-title', '主体字段'));
-        body.appendChild(editRow('主体名称', textInput('请输入主体名称', row.subjectName), 'subjectName'));
-        body.appendChild(editRow('绑定BD', textInput('请输入绑定BD', row.bd), 'bd'));
+        body.appendChild(editRow('主体名称', textInput('请输入主体名称', row.subjectName), 'subjectName', row));
+        body.appendChild(editRow('绑定BD', textInput('请输入绑定BD', row.bd), 'bd', row));
         body.appendChild(detailRow('主体类型', '门店'));
-        body.appendChild(editRow('联系人', textInput('请输入联系人', row.contact), 'contact'));
-        body.appendChild(editRow('手机号码', textInput('请输入手机号码', row.phone), 'phone'));
 
         body.appendChild(el('div', 'supplier-detail-section-title', '门店档案字段'));
-        body.appendChild(editRow('门店名称', textInput('请输入门店名称', row.storeName), 'storeName'));
-        body.appendChild(editRow('门店简称', textInput('请输入门店简称', row.shortName), 'shortName'));
+        body.appendChild(editRow('门店名称', textInput('请输入门店名称', row.storeName), 'storeName', row));
+        body.appendChild(editRow('门店简称', textInput('请输入门店简称', row.shortName), 'shortName', row));
         var partnerSel = selectInput(
             [
                 { value: '加盟店', label: '加盟店' },
@@ -275,12 +359,12 @@
             row.partnerDivision
         );
         partnerSel.setAttribute('data-audit-field', 'partnerDivision');
-        body.appendChild(editRow('门店合作类型', partnerSel));
-        body.appendChild(editRow('门店类型', textInput('请输入门店类型', row.storeType), 'storeType'));
-        body.appendChild(editRow('配送仓库', textInput('请输入配送仓库', row.warehouse), 'warehouse'));
-        body.appendChild(editRow('省市区', textInput('请输入省市区', row.region), 'region'));
-        body.appendChild(editRow('详细地址', textInput('请输入详细地址', row.address), 'address'));
-        body.appendChild(editRow('经纬度', textInput('例如 120.09,30.28', row.latlng), 'latlng'));
+        body.appendChild(editRow('门店合作类型', partnerSel, 'partnerDivision', row));
+        body.appendChild(editRow('门店类型', textInput('请输入门店类型', row.storeType), 'storeType', row));
+        body.appendChild(editRow('配送仓库', textInput('请输入配送仓库', row.warehouse), 'warehouse', row));
+        body.appendChild(editRow('省市区', textInput('请输入省市区', row.region), 'region', row));
+        body.appendChild(editRow('详细地址', textInput('请输入详细地址', row.address), 'address', row));
+        body.appendChild(editRow('经纬度', textInput('例如 120.09,30.28', row.latlng), 'latlng', row));
         body.appendChild(detailRow('门店门头照', mediaGrid(row.facadePhoto)));
         body.appendChild(
             editRow(
@@ -292,7 +376,8 @@
                     ],
                     row.hasRefrigeratedCabinet
                 ),
-                'hasRefrigeratedCabinet'
+                'hasRefrigeratedCabinet',
+                row
             )
         );
         body.appendChild(detailRow('冷藏柜照片', mediaGrid(row.refrigeratedPhotos)));
@@ -306,62 +391,70 @@
                     ],
                     row.hasFreezerCabinet
                 ),
-                'hasFreezerCabinet'
+                'hasFreezerCabinet',
+                row
             )
         );
         body.appendChild(detailRow('冷冻柜照片', mediaGrid(row.freezerPhotos)));
 
+        appendContactEditSection(body, row);
+
         if (isFranchiseOrPartner) {
             body.appendChild(el('div', 'supplier-detail-section-title', '加盟店 / 合作店补充资料'));
-            body.appendChild(editRow('门店面积（㎡）', textInput('', row.storeArea), 'storeArea'));
-            body.appendChild(editRow('门店楼层', textInput('', row.storeFloors), 'storeFloors'));
+            body.appendChild(editRow('门店面积（㎡）', textInput('', row.storeArea), 'storeArea', row));
+            body.appendChild(editRow('门店楼层', textInput('', row.storeFloors), 'storeFloors', row));
             body.appendChild(detailRow('店门口口述视频', mediaGrid(row.videoStorefrontIntro)));
             body.appendChild(detailRow('店内口述视频', mediaGrid(row.videoInteriorIntro)));
             body.appendChild(
-                editRow('门店方圆500米入住户数', textInput('', row.householdsWithin500m), 'householdsWithin500m')
+                editRow('门店方圆500米入住户数', textInput('', row.householdsWithin500m), 'householdsWithin500m', row)
             );
-            body.appendChild(editRow('日均客单量', textInput('', row.dailyOrderVolume), 'dailyOrderVolume'));
-            body.appendChild(editRow('店内工作人员总数', textInput('', row.staffCount), 'staffCount'));
+            body.appendChild(editRow('日均客单量', textInput('', row.dailyOrderVolume), 'dailyOrderVolume', row));
+            body.appendChild(editRow('店内工作人员总数', textInput('', row.staffCount), 'staffCount', row));
             body.appendChild(
                 editRow(
                     '实际经营者对直播业务的理解',
                     textareaInput('', row.liveCommerceUnderstanding, 3),
-                    'liveCommerceUnderstanding'
+                    'liveCommerceUnderstanding',
+                    row
                 )
             );
             body.appendChild(
                 editRow(
                     '门店日常运营服务理解与配合',
                     textareaInput('', row.dailyOpsCooperationNote, 3),
-                    'dailyOpsCooperationNote'
+                    'dailyOpsCooperationNote',
+                    row
                 )
             );
             body.appendChild(
                 editRow(
                     '私域直播投入产出期望',
                     textareaInput('', row.privateLiveRoiExpectation, 3),
-                    'privateLiveRoiExpectation'
+                    'privateLiveRoiExpectation',
+                    row
                 )
             );
             body.appendChild(
                 editRow(
                     '私域直播/社区团购熟悉程度',
                     textareaInput('', row.privateCommerceFamiliarity, 3),
-                    'privateCommerceFamiliarity'
+                    'privateCommerceFamiliarity',
+                    row
                 )
             );
             body.appendChild(
                 editRow(
                     '周边小区及居住人群描述',
                     textareaInput('', row.surroundingCommunityNote, 3),
-                    'surroundingCommunityNote'
+                    'surroundingCommunityNote',
+                    row
                 )
             );
             body.appendChild(
-                editRow('拉到1000人信心说明', textareaInput('', row.confidenceReach1000, 3), 'confidenceReach1000')
+                editRow('拉到1000人信心说明', textareaInput('', row.confidenceReach1000, 3), 'confidenceReach1000', row)
             );
             body.appendChild(
-                editRow('特殊情况说明', textareaInput('', row.specialCircumstancesNote, 3), 'specialCircumstancesNote')
+                editRow('特殊情况说明', textareaInput('', row.specialCircumstancesNote, 3), 'specialCircumstancesNote', row)
             );
             body.appendChild(detailRow('特殊情况配图', mediaGrid(row.specialCircumstancesPhotos)));
         }
@@ -372,7 +465,8 @@
                 editRow(
                     '已合作其他平台情况',
                     textareaInput('', row.otherPlatformsCooperation, 3),
-                    'otherPlatformsCooperation'
+                    'otherPlatformsCooperation',
+                    row
                 )
             );
             body.appendChild(detailRow('近三天上播及销量截图', mediaGrid(row.broadcastSalesScreenshots)));
@@ -394,7 +488,7 @@
             shortName: '冷丰-文一西路',
             bd: '王强',
             contact: '周敏',
-            phone: '138****2201',
+            phone: '13800132201',
             auditStatus: '待审核',
             mdmStatus: '未生成',
             submittedAt: '2026-05-07 15:20',
@@ -436,7 +530,7 @@
             shortName: '五角场体验',
             bd: '李四',
             contact: '孙丽',
-            phone: '188****7765',
+            phone: '18812347765',
             auditStatus: '待总监审核',
             mdmStatus: '未生成',
             submittedAt: '2026-05-07 14:58',
@@ -478,7 +572,7 @@
             shortName: '滨江-春晓路',
             bd: '王强',
             contact: '刘芳',
-            phone: '139****3308',
+            phone: '13912343308',
             auditStatus: '审核失败',
             mdmStatus: '未生成',
             submittedAt: '2026-05-06 09:12',
@@ -517,7 +611,7 @@
             shortName: '张江快闪',
             bd: '赵小九',
             contact: '陈晨',
-            phone: '186****9001',
+            phone: '18612349001',
             auditStatus: '审核成功',
             mdmStatus: '已生成主体与门店档案',
             submittedAt: '2026-05-06 18:36',
@@ -767,6 +861,7 @@
             var save = mkBtn('保存资料', false);
             save.addEventListener('click', function () {
                 var vals = readEditableFromBody(body);
+                if (!validateAuditEdit(vals, row)) return;
                 applyEditableToRow(row, vals);
                 onDone();
                 if (startInEdit && row.auditStatus === '审核失败') {
@@ -776,6 +871,7 @@
             var submit = mkBtn('保存并提交', true);
             submit.addEventListener('click', function () {
                 var vals = readEditableFromBody(body);
+                if (!validateAuditEdit(vals, row)) return;
                 applyEditableToRow(row, vals);
                 submitEditedAudit(row);
                 backdrop.remove();

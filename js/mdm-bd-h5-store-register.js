@@ -910,6 +910,11 @@
         '<section class="h5-sec">' +
         secHead('◎', '老板 / 联系人', '手机号验证与姓名') +
         '<div class="h5-sec-body">' +
+        field(
+          '老板 / 联系人姓名',
+          true,
+          '<input type="text" class="h5-input" id="f_cname" placeholder="请输入姓名" />'
+        ) +
         '<div class="h5-field"><label class="h5-lab"><span class="req">*</span>老板 / 负责人联系电话</label>' +
         '<div class="h5-row2"><input type="tel" class="h5-input" id="f_phone" placeholder="手机号" />' +
         '<button type="button" class="bd-btn bd-btn-outline" id="f_sms">获取验证码</button></div></div>' +
@@ -918,11 +923,6 @@
           true,
           '<input type="text" class="h5-input" id="f_code" maxlength="6" inputmode="numeric" placeholder="请输入验证码" />',
           codeHint
-        ) +
-        field(
-          '老板 / 联系人姓名',
-          true,
-          '<input type="text" class="h5-input" id="f_cname" placeholder="请输入姓名" />'
         ) +
         '</div></section>'
       );
