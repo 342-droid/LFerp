@@ -72,11 +72,39 @@
             region: true,
             address: true,
             phone: true,
-            contact: true
+            contact: true,
+            verifyCode: true
         };
         if (common[fieldKey]) return true;
         if (isFranchiseOrPartnerRow(row) && (fieldKey === 'storeArea' || fieldKey === 'storeFloors')) return true;
         return false;
+    }
+
+    function phoneWithSmsControl(row) {
+        var wrap = el('div', 'erp-modal-phone-row');
+        var inp = textInput('手机号', row.phone);
+        inp.type = 'tel';
+        inp.setAttribute('data-audit-field', 'phone');
+        var btn = mkBtn('获取验证码', false);
+        btn.className = 'erp-btn erp-btn--sms';
+        btn.addEventListener('click', function () {
+            if (typeof showToast === 'function') showToast('演示：短信验证码已发送', 'success');
+        });
+        wrap.appendChild(inp);
+        wrap.appendChild(btn);
+        return wrap;
+    }
+
+    function editPhoneRow(dataRow) {
+        var rowEl = el('div', 'audit-detail-row');
+        var labelEl = el('span', 'audit-detail-row__label');
+        labelEl.appendChild(el('span', 'audit-req', '*'));
+        labelEl.appendChild(document.createTextNode('老板 / 负责人联系电话'));
+        rowEl.appendChild(labelEl);
+        var value = el('span', 'audit-detail-row__value');
+        value.appendChild(phoneWithSmsControl(dataRow));
+        rowEl.appendChild(value);
+        return rowEl;
     }
 
     function appendContactSectionHeader(body) {
@@ -94,9 +122,12 @@
         body.appendChild(
             editRow('老板 / 联系人姓名', textInput('请输入姓名', row.contact), 'contact', row)
         );
-        var phoneInp = textInput('手机号', row.phone);
-        phoneInp.type = 'tel';
-        body.appendChild(editRow('老板 / 负责人联系电话', phoneInp, 'phone', row));
+        body.appendChild(editPhoneRow(row));
+        var codeInp = textInput('请输入验证码', row.verifyCode);
+        codeInp.type = 'text';
+        codeInp.maxLength = 6;
+        codeInp.setAttribute('inputmode', 'numeric');
+        body.appendChild(editRow('短信验证码', codeInp, 'verifyCode', row));
     }
 
     function validateAuditEdit(patch, row) {
@@ -125,6 +156,11 @@
                 if (typeof showToast === 'function') showToast(checks[i].msg, 'error');
                 return false;
             }
+        }
+        var code = String(p.verifyCode != null ? p.verifyCode : '').trim();
+        if (!code || code.length < 4) {
+            if (typeof showToast === 'function') showToast('请填写验证码', 'error');
+            return false;
         }
         if (isFranchiseOrPartnerRow(merged)) {
             if (!String(p.storeArea != null ? p.storeArea : '').trim()) {
@@ -489,6 +525,7 @@
             bd: '王强',
             contact: '周敏',
             phone: '13800132201',
+            verifyCode: '123456',
             auditStatus: '待审核',
             mdmStatus: '未生成',
             submittedAt: '2026-05-07 15:20',
@@ -531,6 +568,7 @@
             bd: '李四',
             contact: '孙丽',
             phone: '18812347765',
+            verifyCode: '123456',
             auditStatus: '待总监审核',
             mdmStatus: '未生成',
             submittedAt: '2026-05-07 14:58',
@@ -573,6 +611,7 @@
             bd: '王强',
             contact: '刘芳',
             phone: '13912343308',
+            verifyCode: '123456',
             auditStatus: '审核失败',
             mdmStatus: '未生成',
             submittedAt: '2026-05-06 09:12',
@@ -612,6 +651,7 @@
             bd: '赵小九',
             contact: '陈晨',
             phone: '18612349001',
+            verifyCode: '123456',
             auditStatus: '审核成功',
             mdmStatus: '已生成主体与门店档案',
             submittedAt: '2026-05-06 18:36',
