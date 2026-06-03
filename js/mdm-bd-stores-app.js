@@ -478,10 +478,10 @@
         '🏢',
         '基础信息',
         '名称与负责 BD',
-        fieldBlock('门店主体', archiveText(store.storeSubject), true) +
-          fieldBlock('门店名称', archiveText(store.name)) +
+        fieldBlock('门店主体', archiveText(store.storeSubject), 'storeSubject', store) +
+          fieldBlock('门店名称', archiveText(store.name), 'name', store) +
           fieldBlock('门店简称', archiveText(store.shortName)) +
-          fieldBlock('绑定 BD', archiveText(store.boundBd)) +
+          fieldBlock('绑定 BD', archiveText(store.boundBd), 'boundBd', store) +
           fieldBlock('门店编号', '<span style="font-family:monospace;font-size:12px">' + archiveText(store.merchantUid) + '</span>') +
           fieldBlock('审核通过时间', archiveText(store.approvedAt))
       )
@@ -493,9 +493,9 @@
         '📦',
         '配送与分类',
         '配送仓库默认随绑定 BD，可手动调整；门店合作类型与设备归类',
-        fieldBlock('配送仓库', '<span' + whStyle + '>' + archiveText(store.warehouse) + '</span>') +
-          fieldBlock('门店合作类型', archiveText(store.partnerDivision)) +
-          (policy ? fieldBlock('门店类型', archiveText(store.storeType)) : '') +
+        fieldBlock('配送仓库', '<span' + whStyle + '>' + archiveText(store.warehouse) + '</span>', 'warehouse', store) +
+          fieldBlock('门店合作类型', archiveText(store.partnerDivision), 'partnerDivision', store) +
+          (policy ? fieldBlock('门店类型', archiveText(store.storeType), 'storeType', store) : '') +
           fieldBlock('有无冷藏柜', archiveText(store.hasRefrigeratedCabinet)) +
           fieldBlock('有无冷冻柜', archiveText(store.hasFreezerCabinet)) +
           fieldBlock('冷藏柜照片', archiveText(store.refrigeratedPhotoUploaded ? '已上传' : '—')) +
@@ -509,8 +509,8 @@
           '📍',
           '地址与定位',
           '城市区域、详细地址与地图落点示意',
-          fieldBlock('归属于城市区域（省 / 市 / 区）', archiveText(store.regionCascade)) +
-            fieldBlock('详细地址', archiveText(store.detailAddress)) +
+          fieldBlock('归属于城市区域（省 / 市 / 区）', archiveText(store.regionCascade), 'regionCascade', store) +
+            fieldBlock('详细地址', archiveText(store.detailAddress), 'detailAddress', store) +
             '<div class="bd-field"><span class="lab">地图落点示意</span><div class="val" style="margin-top:6px">' +
             mapPreview(store) +
             '</div></div>'
@@ -531,7 +531,9 @@
               '"/>' +
               (store.frontPhotoUploaded
                 ? '<span style="display:inline-block;margin-top:6px;font-size:10px;font-weight:700;color:var(--bd-success)">已上传</span>'
-                : '')
+                : ''),
+            'frontPhoto',
+            store
           )
         )
       );
@@ -541,8 +543,8 @@
           '👤',
           '老板 / 联系人',
           '手机号验证与姓名（档案不落验证码）',
-          fieldBlock('老板 / 负责人联系电话', archiveText(store.contactPhone), true) +
-            fieldBlock('老板 / 联系人姓名', archiveText(store.contactName), true)
+          fieldBlock('老板 / 联系人姓名', archiveText(store.contactName), 'contactName', store) +
+            fieldBlock('老板 / 负责人联系电话', archiveText(store.contactPhone), 'contactPhone', store)
         )
       );
 
@@ -554,8 +556,13 @@
             '门店面积、楼层与店前店内口述视频',
             fieldBlock('门店店前左右两分钟（口述介绍）视频', archiveText(store.videoStorefrontIntroUrl ? '（视频）' : store.videoStorefrontIntroDone ? '已提交' : '—')) +
               fieldBlock('门店店内一分钟视频（口述介绍）', archiveText(store.videoInteriorIntroUrl ? '（视频）' : store.videoInteriorIntroDone ? '已提交' : '—')) +
-              fieldBlock('门店面积（㎡）', archiveText(store.storeArea && store.storeArea !== '—' ? store.storeArea + ' ㎡' : '—'), true) +
-              fieldBlock('门店楼层', archiveText(store.storeFloors), true)
+              fieldBlock(
+                '门店面积（㎡）',
+                archiveText(store.storeArea && store.storeArea !== '—' ? store.storeArea + ' ㎡' : '—'),
+                'storeArea',
+                store
+              ) +
+              fieldBlock('门店楼层', archiveText(store.storeFloors), 'storeFloors', store)
           )
         );
         parts.push(
@@ -605,7 +612,37 @@
     return !t || t === '—' ? '—' : t;
   }
 
-  function fieldBlock(label, val, req) {
+  /** 与 mdm-bd-h5-store-register validate() / field(, true) 对齐；审核档案不展示验证码 */
+  function isBdArchiveFieldRequired(fieldKey, store) {
+    var div = String((store && store.partnerDivision) || '').trim();
+    var policy = div === '加盟店' || div === '合作店' || div === '同行店';
+    var fr = div === '加盟店' || div === '合作店';
+    var common = {
+      storeSubject: true,
+      name: true,
+      boundBd: true,
+      warehouse: true,
+      partnerDivision: true
+    };
+    if (common[fieldKey]) return true;
+    if (!policy) return false;
+    var policyReq = {
+      storeType: true,
+      regionCascade: true,
+      detailAddress: true,
+      frontPhoto: true,
+      contactPhone: true,
+      contactName: true
+    };
+    if (policyReq[fieldKey]) return true;
+    if (fr && (fieldKey === 'storeArea' || fieldKey === 'storeFloors')) return true;
+    return false;
+  }
+
+  function fieldBlock(label, val, reqOrKey, store) {
+    var req = false;
+    if (typeof reqOrKey === 'boolean') req = reqOrKey;
+    else if (typeof reqOrKey === 'string' && store) req = isBdArchiveFieldRequired(reqOrKey, store);
     return (
       '<div class="bd-field"><div class="row"><span class="lab">' +
       (req ? '<span class="req">*</span>' : '') +

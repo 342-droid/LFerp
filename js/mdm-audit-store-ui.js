@@ -66,11 +66,14 @@
     function isAuditFieldRequired(fieldKey, row) {
         var common = {
             subjectName: true,
+            bd: true,
+            warehouse: true,
             storeName: true,
             partnerDivision: true,
             storeType: true,
             region: true,
             address: true,
+            facadePhoto: true,
             phone: true,
             contact: true,
             verifyCode: true
@@ -78,6 +81,17 @@
         if (common[fieldKey]) return true;
         if (isFranchiseOrPartnerRow(row) && (fieldKey === 'storeArea' || fieldKey === 'storeFloors')) return true;
         return false;
+    }
+
+    /** 详情 / 审核只读展示：与编辑必填一致，但不展示验证码必填 */
+    function isAuditDisplayRequired(fieldKey, row) {
+        if (fieldKey === 'verifyCode') return false;
+        return isAuditFieldRequired(fieldKey, row);
+    }
+
+    function hasFacadePhoto(row) {
+        var f = row && row.facadePhoto;
+        return Array.isArray(f) && f.length > 0;
     }
 
     function phoneWithSmsControl(row) {
@@ -113,8 +127,8 @@
 
     function appendContactDetailSection(body, row) {
         appendContactSectionHeader(body);
-        body.appendChild(detailRow('老板 / 联系人姓名', row.contact));
-        body.appendChild(detailRow('老板 / 负责人联系电话', row.phone));
+        body.appendChild(detailRow('老板 / 联系人姓名', row.contact, 'contact', row));
+        body.appendChild(detailRow('老板 / 负责人联系电话', row.phone, 'phone', row));
     }
 
     function appendContactEditSection(body, row) {
@@ -141,6 +155,8 @@
         });
         var checks = [
             { key: 'subjectName', msg: '请填写门店主体' },
+            { key: 'bd', msg: '请填写绑定BD' },
+            { key: 'warehouse', msg: '请选择配送仓库' },
             { key: 'storeName', msg: '请填写门店名称' },
             { key: 'partnerDivision', msg: '请选择门店合作类型' },
             { key: 'storeType', msg: '请填写门店类型' },
@@ -162,6 +178,10 @@
             if (typeof showToast === 'function') showToast('请填写验证码', 'error');
             return false;
         }
+        if (!hasFacadePhoto(merged)) {
+            if (typeof showToast === 'function') showToast('请上传门店门头照', 'error');
+            return false;
+        }
         if (isFranchiseOrPartnerRow(merged)) {
             if (!String(p.storeArea != null ? p.storeArea : '').trim()) {
                 if (typeof showToast === 'function') showToast('请填写门店面积', 'error');
@@ -181,14 +201,19 @@
         });
     }
 
-    function detailRow(label, value) {
-        var row = el('div', 'audit-detail-row');
-        row.appendChild(el('span', 'audit-detail-row__label', label));
+    function detailRow(label, value, fieldKey, dataRow) {
+        var rowEl = el('div', 'audit-detail-row');
+        var labelEl = el('span', 'audit-detail-row__label');
+        if (fieldKey && dataRow && isAuditDisplayRequired(fieldKey, dataRow)) {
+            labelEl.appendChild(el('span', 'audit-req', '*'));
+        }
+        labelEl.appendChild(document.createTextNode(label));
+        rowEl.appendChild(labelEl);
         var valueEl = el('span', 'audit-detail-row__value');
         if (value instanceof Node) valueEl.appendChild(value);
         else valueEl.textContent = value || '—';
-        row.appendChild(valueEl);
-        return row;
+        rowEl.appendChild(valueEl);
+        return rowEl;
     }
 
     function mediaUrl(file) {
@@ -286,20 +311,20 @@
         var isPeerStore = row.partnerDivision === '同行店';
 
         body.appendChild(el('div', 'supplier-detail-section-title', '主体字段'));
-        body.appendChild(detailRow('主体名称', row.subjectName));
-        body.appendChild(detailRow('绑定BD', row.bd));
+        body.appendChild(detailRow('主体名称', row.subjectName, 'subjectName', row));
+        body.appendChild(detailRow('绑定BD', row.bd, 'bd', row));
         body.appendChild(detailRow('主体类型', '门店'));
 
         body.appendChild(el('div', 'supplier-detail-section-title', '门店档案字段'));
-        body.appendChild(detailRow('门店名称', row.storeName));
+        body.appendChild(detailRow('门店名称', row.storeName, 'storeName', row));
         body.appendChild(detailRow('门店简称', row.shortName));
-        body.appendChild(detailRow('门店合作类型', row.partnerDivision));
-        body.appendChild(detailRow('门店类型', row.storeType));
-        body.appendChild(detailRow('配送仓库', row.warehouse));
-        body.appendChild(detailRow('省市区', row.region));
-        body.appendChild(detailRow('详细地址', row.address));
+        body.appendChild(detailRow('门店合作类型', row.partnerDivision, 'partnerDivision', row));
+        body.appendChild(detailRow('门店类型', row.storeType, 'storeType', row));
+        body.appendChild(detailRow('配送仓库', row.warehouse, 'warehouse', row));
+        body.appendChild(detailRow('省市区', row.region, 'region', row));
+        body.appendChild(detailRow('详细地址', row.address, 'address', row));
         body.appendChild(detailRow('经纬度', row.latlng));
-        body.appendChild(detailRow('门店门头照', mediaGrid(row.facadePhoto)));
+        body.appendChild(detailRow('门店门头照', mediaGrid(row.facadePhoto), 'facadePhoto', row));
         body.appendChild(detailRow('有无冷藏柜', row.hasRefrigeratedCabinet));
         body.appendChild(detailRow('冷藏柜照片', mediaGrid(row.refrigeratedPhotos)));
         body.appendChild(detailRow('有无冷冻柜', row.hasFreezerCabinet));
@@ -309,8 +334,8 @@
 
         if (isFranchiseOrPartner) {
             body.appendChild(el('div', 'supplier-detail-section-title', '加盟店 / 合作店补充资料'));
-            body.appendChild(detailRow('门店面积（㎡）', row.storeArea));
-            body.appendChild(detailRow('门店楼层', row.storeFloors));
+            body.appendChild(detailRow('门店面积（㎡）', row.storeArea, 'storeArea', row));
+            body.appendChild(detailRow('门店楼层', row.storeFloors, 'storeFloors', row));
             body.appendChild(detailRow('店门口口述视频', mediaGrid(row.videoStorefrontIntro)));
             body.appendChild(detailRow('店内口述视频', mediaGrid(row.videoInteriorIntro)));
             body.appendChild(detailRow('门店方圆500米入住户数', row.householdsWithin500m));
@@ -401,7 +426,7 @@
         body.appendChild(editRow('省市区', textInput('请输入省市区', row.region), 'region', row));
         body.appendChild(editRow('详细地址', textInput('请输入详细地址', row.address), 'address', row));
         body.appendChild(editRow('经纬度', textInput('例如 120.09,30.28', row.latlng), 'latlng', row));
-        body.appendChild(detailRow('门店门头照', mediaGrid(row.facadePhoto)));
+        body.appendChild(detailRow('门店门头照', mediaGrid(row.facadePhoto), 'facadePhoto', row));
         body.appendChild(
             editRow(
                 '有无冷藏柜',

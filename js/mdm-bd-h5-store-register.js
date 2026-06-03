@@ -786,7 +786,7 @@
               ? '由 BD 转发链接确定，不可更改'
               : '默认当前登录账号，不可更改';
           }
-          return field('绑定 BD', isBdApp && isSuperAdmin, inner, hint);
+          return field('绑定 BD', true, inner, hint);
         })() +
         '</div></section>'
       );
@@ -801,7 +801,7 @@
         '<div class="h5-sec-body">' +
         field(
           '配送仓库',
-          false,
+          true,
           '<select class="h5-input" id="f_wh">' +
           whOpts
             .map(function (w) {
@@ -1325,6 +1325,14 @@
       }
       if (!st.name.trim()) {
         bdToast('请填写门店名称');
+        return false;
+      }
+      if (!(st.boundBd || '').trim()) {
+        bdToast('请填写绑定 BD');
+        return false;
+      }
+      if (!(st.warehouse || '').trim() || st.warehouse === '—') {
+        bdToast('请选择配送仓库');
         return false;
       }
       if (!st.partnerDivision) {
