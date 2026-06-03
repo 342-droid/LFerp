@@ -6,6 +6,11 @@
   var CURRENT_BD = '李泽峰';
   var AUDIT_ROLE = 'bd';
 
+  try {
+    sessionStorage.setItem('mdmBdCurrentBd', CURRENT_BD);
+    sessionStorage.setItem('mdmBdAccountRole', AUDIT_ROLE === 'super' ? 'super' : 'bd');
+  } catch (e) {}
+
   var STATUS_TABS = ['全部', '待提交', '待审核', '待总监审核', '审核成功', '审核失败'];
   var stores = [];
   var statusFilter = '全部';
