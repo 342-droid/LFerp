@@ -1074,6 +1074,11 @@
   color: var(--color-text-muted);
 }
 
+.audit-detail-row__label .audit-req {
+  color: #ff4d4f;
+  margin-right: 2px;
+}
+
 .audit-detail-row__value {
   color: var(--color-text);
   word-break: break-all;
