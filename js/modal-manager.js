@@ -270,6 +270,14 @@ const CommonOptions = {
         { value: 'in_warehouse_reshelf', text: '库内返架' },
         { value: 'putaway_finish', text: '上架完成' }
     ],
+    // 库存来源类型选项
+    inventorySourceType: [
+        { value: 'receive', text: '收货' },
+        { value: 'pick', text: '拣货' },
+        { value: 'sort', text: '分拣' },
+        { value: 'exception', text: '异常' },
+        { value: 'in_warehouse_reshelf', text: '库内返架' }
+    ],
     // 任务类型选项
     taskType: [
         { value: 'qc', text: '质检' },
