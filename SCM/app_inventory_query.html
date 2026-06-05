@@ -538,6 +538,7 @@
                 <div class="adjust-card">
                     <div class="adjust-info-line">生产日期 <span class="value" id="adjustProdDate"></span></div>
                     <div class="adjust-info-line">批次库存 <span class="value" id="adjustBatchQty"></span></div>
+                    <div class="adjust-info-line">可用库存 <span class="value" id="adjustAvailableQty"></span></div>
                     <div class="adjust-info-line">调整数量 <span class="value" id="adjustDiffQty">-</span></div>
                     <div class="actual-input-row">
                         <label>实际库存:</label>
@@ -663,9 +664,13 @@
             return item.batches.map(batch => batch.productionDate).join(',');
         }
 
+        function getTotalAvailableQty(item) {
+            return item.batches.reduce((sum, batch) => sum + batch.availableQty, 0);
+        }
+
         function getAdjustBaseQty() {
-            if (adjustMode === 'total') return currentItem.totalQty;
-            return currentBatch.batchQty;
+            if (adjustMode === 'total') return getTotalAvailableQty(currentItem);
+            return currentBatch.availableQty;
         }
 
         backBtn.addEventListener('click', () => {
@@ -722,7 +727,7 @@
             batchPage.classList.add('active');
             headerTitle.textContent = '批次详情';
 
-            document.getElementById('batchProductName').textContent = item.shortName;
+            document.getElementById('batchProductName').textContent = item.name;
             document.getElementById('batchLocation').textContent = formatLocation(item.locationCode, item.locationName);
             document.getElementById('batchTotalQty').textContent = item.totalQty;
             renderBatchList(item);
@@ -737,16 +742,18 @@
             adjustPage.classList.add('active');
             headerTitle.textContent = '盘点调整';
 
-            document.getElementById('adjustProductName').textContent = item.shortName;
+            document.getElementById('adjustProductName').textContent = item.name;
             document.getElementById('adjustLocation').textContent = formatLocation(item.locationCode, item.locationName);
-            document.getElementById('adjustTotalQty').textContent = item.totalQty;
+            document.getElementById('adjustTotalQty').textContent = adjustMode === 'batch' ? batch.batchQty : item.totalQty;
 
             if (adjustMode === 'total') {
                 document.getElementById('adjustProdDate').textContent = getProductionDatesText(item);
                 document.getElementById('adjustBatchQty').textContent = item.totalQty;
+                document.getElementById('adjustAvailableQty').textContent = getTotalAvailableQty(item);
             } else {
                 document.getElementById('adjustProdDate').textContent = batch.productionDate;
                 document.getElementById('adjustBatchQty').textContent = batch.batchQty;
+                document.getElementById('adjustAvailableQty').textContent = batch.availableQty;
             }
 
             document.getElementById('adjustDiffQty').textContent = '-';
@@ -775,7 +782,11 @@
 
         function filterByLocation(items, location) {
             if (!location) return items;
-            return items.filter(item => item.locationCode === location);
+
+            const codeMatches = items.filter(item => item.locationCode === location);
+            if (codeMatches.length) return codeMatches;
+
+            return items.filter(item => item.locationName.includes(location));
         }
 
         function filterByProduct(items, product) {
