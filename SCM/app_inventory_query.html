@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 库存查询</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .mobile-container {
+            position: relative;
+            width: 393px;
+            height: 851px;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 16px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .back-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: #333333;
+            cursor: pointer;
+        }
+
+        .header-title {
+            flex: 1;
+            text-align: center;
+            margin-right: 32px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333333;
+        }
+
+        .page {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            background-color: #f5f5f5;
+        }
+
+        .search-section {
+            background-color: #ffffff;
+            padding: 12px 16px;
+            border-bottom: 1px solid #eaeaea;
+            flex-shrink: 0;
+        }
+
+        .search-field {
+            margin-bottom: 8px;
+        }
+
+        .search-field:last-of-type {
+            margin-bottom: 12px;
+        }
+
+        .keyword-input {
+            width: 100%;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            height: 40px;
+            padding: 0 12px;
+            font-size: 14px;
+            color: #333333;
+            outline: none;
+        }
+
+        .keyword-input::placeholder {
+            color: #999999;
+        }
+
+        .search-btn {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: #2196f3;
+            color: #ffffff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .search-btn:active {
+            opacity: 0.92;
+        }
+
+        .result-divider {
+            text-align: center;
+            font-size: 13px;
+            color: #999999;
+            padding: 16px 12px 8px;
+        }
+
+        .list-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 12px 12px;
+        }
+
+        .inventory-item {
+            background-color: #ffffff;
+            border: 1px solid #e6e6e6;
+            border-radius: 10px;
+            padding: 14px 12px;
+            margin-bottom: 12px;
+        }
+
+        .inventory-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            gap: 8px;
+        }
+
+        .inventory-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333333;
+            flex: 1;
+            line-height: 1.4;
+            word-break: break-all;
+        }
+
+        .inventory-header-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .batch-link {
+            font-size: 13px;
+            color: #2196f3;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .inventory-body {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 12px;
+        }
+
+        .inventory-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .inventory-line {
+            display: flex;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .inventory-label {
+            width: 74px;
+            color: #777777;
+            flex-shrink: 0;
+        }
+
+        .inventory-value {
+            color: #333333;
+            word-break: break-all;
+        }
+
+        .barcode-suffix {
+            color: #e53935;
+        }
+
+        .qty-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ff8f1f;
+        }
+
+        .inventory-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            background-color: #ffffff;
+            color: #666666;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .action-btn:active {
+            background-color: #f0f2f5;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px 12px;
+            color: #999999;
+            font-size: 14px;
+        }
+
+        .product-name-bar {
+            background-color: #ffffff;
+            padding: 14px 16px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #333333;
+            border-bottom: 1px solid #eaeaea;
+            flex-shrink: 0;
+        }
+
+        .summary-bar {
+            display: flex;
+            background-color: #ffffff;
+            border-bottom: 1px solid #eaeaea;
+            flex-shrink: 0;
+        }
+
+        .summary-col {
+            flex: 1;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .summary-col + .summary-col {
+            border-left: 1px solid #eaeaea;
+        }
+
+        .summary-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 4px;
+        }
+
+        .summary-label {
+            font-size: 13px;
+            color: #999999;
+        }
+
+        .adjust-card {
+            flex: 1;
+            overflow-y: auto;
+            margin: 12px;
+            background-color: #ffffff;
+            border: 1px solid #e6e6e6;
+            border-radius: 10px;
+            padding: 16px 14px;
+        }
+
+        .adjust-info-line {
+            font-size: 14px;
+            color: #666666;
+            line-height: 2.2;
+        }
+
+        .adjust-info-line .value {
+            color: #333333;
+        }
+
+        .actual-input-row {
+            display: flex;
+            align-items: center;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            padding: 0 12px;
+            height: 44px;
+            margin-top: 12px;
+            background-color: #ffffff;
+        }
+
+        .actual-input-row label {
+            font-size: 14px;
+            color: #333333;
+            white-space: nowrap;
+            margin-right: 8px;
+        }
+
+        .actual-input-row input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            color: #333333;
+            min-width: 0;
+        }
+
+        .actual-input-row input::placeholder {
+            color: #999999;
+        }
+
+        .remark-input {
+            width: 100%;
+            min-height: 120px;
+            margin-top: 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            color: #333333;
+            outline: none;
+            resize: none;
+            font-family: inherit;
+        }
+
+        .remark-input::placeholder {
+            color: #999999;
+        }
+
+        .adjust-submit-bar {
+            flex-shrink: 0;
+            padding: 16px 20px;
+            background-color: #ffffff;
+            border-top: 1px solid #e0e0e0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .adjust-submit-btn {
+            width: 100%;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: #bdbdbd;
+            color: #ffffff;
+            font-size: 16px;
+            cursor: not-allowed;
+        }
+
+        .adjust-submit-btn.enabled {
+            background-color: #2196f3;
+            cursor: pointer;
+        }
+
+        .adjust-submit-btn.enabled:active {
+            opacity: 0.92;
+        }
+
+        /* 批次详情页 */
+        .sub-page-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            background-color: #f5f5f5;
+        }
+
+        .batch-list-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .batch-card {
+            background-color: #ffffff;
+            border: 1px solid #e6e6e6;
+            border-radius: 10px;
+            padding: 14px 12px;
+            margin-bottom: 12px;
+        }
+
+        .batch-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .batch-card-body {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 12px;
+        }
+
+        .batch-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .batch-line {
+            font-size: 14px;
+            color: #666666;
+            line-height: 2.2;
+        }
+
+        .batch-line .value {
+            color: #333333;
+        }
+
+        .batch-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .global-toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: calc(100vw - 32px);
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            font-size: 14px;
+            line-height: 1.5;
+            text-align: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .global-toast.active {
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="header">
+            <div class="back-btn" id="backBtn">←</div>
+            <div class="header-title" id="headerTitle">库存查询</div>
+        </div>
+
+        <!-- 库存查询 -->
+        <div class="page active" id="queryPage">
+            <div class="main-content">
+                <div class="search-section">
+                    <div class="search-field">
+                        <input
+                            class="keyword-input"
+                            type="text"
+                            id="productInput"
+                            placeholder="请输入商品编码/条码/名称"
+                            autocomplete="off"
+                        >
+                    </div>
+                    <div class="search-field">
+                        <input
+                            class="keyword-input"
+                            type="text"
+                            id="locationInput"
+                            placeholder="请输入储位编码/名称"
+                            autocomplete="off"
+                        >
+                    </div>
+                    <button type="button" class="search-btn" id="searchBtn">查询</button>
+                </div>
+
+                <div class="result-divider" id="resultDivider">— 搜索结果 —</div>
+                <div class="list-wrapper" id="resultList"></div>
+            </div>
+        </div>
+
+        <!-- 批次详情 -->
+        <div class="page" id="batchPage">
+            <div class="sub-page-content">
+                <div class="product-name-bar" id="batchProductName"></div>
+                <div class="summary-bar">
+                    <div class="summary-col">
+                        <div class="summary-value" id="batchLocation"></div>
+                        <div class="summary-label">储位</div>
+                    </div>
+                    <div class="summary-col">
+                        <div class="summary-value" id="batchTotalQty"></div>
+                        <div class="summary-label">总库存</div>
+                    </div>
+                </div>
+                <div class="batch-list-wrapper" id="batchListWrapper"></div>
+            </div>
+        </div>
+
+        <!-- 盘点调整 -->
+        <div class="page" id="adjustPage">
+            <div class="sub-page-content">
+                <div class="product-name-bar" id="adjustProductName"></div>
+                <div class="summary-bar">
+                    <div class="summary-col">
+                        <div class="summary-value" id="adjustLocation"></div>
+                        <div class="summary-label">储位</div>
+                    </div>
+                    <div class="summary-col">
+                        <div class="summary-value" id="adjustTotalQty"></div>
+                        <div class="summary-label">总库存</div>
+                    </div>
+                </div>
+                <div class="adjust-card">
+                    <div class="adjust-info-line">生产日期 <span class="value" id="adjustProdDate"></span></div>
+                    <div class="adjust-info-line">批次库存 <span class="value" id="adjustBatchQty"></span></div>
+                    <div class="adjust-info-line">调整数量 <span class="value" id="adjustDiffQty">-</span></div>
+                    <div class="actual-input-row">
+                        <label>实际库存:</label>
+                        <input
+                            type="number"
+                            id="actualQtyInput"
+                            placeholder="请输入实际库存(必填)"
+                            min="0"
+                            autocomplete="off"
+                        >
+                    </div>
+                    <textarea
+                        class="remark-input"
+                        id="remarkInput"
+                        placeholder="备注"
+                    ></textarea>
+                </div>
+                <div class="adjust-submit-bar">
+                    <button type="button" class="adjust-submit-btn" id="adjustSubmitBtn" disabled>执行调整</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="global-toast" id="globalToast"></div>
+    </div>
+
+    <script src="../js/path-prefix.js"></script>
+    <script>
+        function formatLocation(code, name) {
+            return `${code} ${name}`;
+        }
+
+        const inventoryData = [
+            {
+                code: '1000426',
+                name: '进口金钻凤梨200g (盒)',
+                shortName: '进口金钻凤梨200g',
+                barcode: '210000045577',
+                barcodeSuffix: '5XXX',
+                pickingFaceCode: 'PK001',
+                pickingFaceName: '拣选位',
+                locationCode: 'PK001',
+                locationName: '拣选位',
+                totalQty: 20000,
+                batches: [
+                    { productionDate: '20190627', expiryDate: '20190702', batchQty: 12000, availableQty: 12000 },
+                    { productionDate: '20190628', expiryDate: '20190703', batchQty: 5000, availableQty: 4800 },
+                    { productionDate: '20190701', expiryDate: '20190706', batchQty: 2000, availableQty: 2000 },
+                    { productionDate: '20190705', expiryDate: '20190710', batchQty: 1000, availableQty: 950 }
+                ]
+            },
+            {
+                code: '1000427',
+                name: '进口牛油果300g (盒)',
+                shortName: '进口牛油果300g',
+                barcode: '210000045588',
+                barcodeSuffix: '6XXX',
+                pickingFaceCode: 'A-01-01',
+                pickingFaceName: 'A区拣选面',
+                locationCode: 'A-01-01',
+                locationName: 'A区01号位',
+                totalQty: 1500,
+                batches: [
+                    { productionDate: '20240115', expiryDate: '20240215', batchQty: 800, availableQty: 800 },
+                    { productionDate: '20240120', expiryDate: '20240220', batchQty: 500, availableQty: 450 },
+                    { productionDate: '20240201', expiryDate: '20240301', batchQty: 200, availableQty: 200 }
+                ]
+            },
+            {
+                code: '1000428',
+                name: '有机香蕉500g (袋)',
+                shortName: '有机香蕉500g',
+                barcode: '210000045599',
+                barcodeSuffix: '7XXX',
+                pickingFaceCode: 'B-02-03',
+                pickingFaceName: 'B区拣选面',
+                locationCode: 'B-02-03',
+                locationName: 'B区02排03位',
+                totalQty: 3200,
+                batches: [
+                    { productionDate: '20240220', expiryDate: '20240320', batchQty: 1500, availableQty: 1500 },
+                    { productionDate: '20240225', expiryDate: '20240325', batchQty: 1000, availableQty: 920 },
+                    { productionDate: '20240301', expiryDate: '20240401', batchQty: 700, availableQty: 700 }
+                ]
+            }
+        ];
+
+        const backBtn = document.getElementById('backBtn');
+        const headerTitle = document.getElementById('headerTitle');
+        const queryPage = document.getElementById('queryPage');
+        const batchPage = document.getElementById('batchPage');
+        const adjustPage = document.getElementById('adjustPage');
+        const productInput = document.getElementById('productInput');
+        const locationInput = document.getElementById('locationInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const resultDivider = document.getElementById('resultDivider');
+        const resultList = document.getElementById('resultList');
+        const actualQtyInput = document.getElementById('actualQtyInput');
+        const remarkInput = document.getElementById('remarkInput');
+        const adjustSubmitBtn = document.getElementById('adjustSubmitBtn');
+        const batchListWrapper = document.getElementById('batchListWrapper');
+        const globalToast = document.getElementById('globalToast');
+
+        let currentItem = null;
+        let currentBatch = null;
+        let adjustSource = 'query';
+        let adjustMode = 'total';
+        let toastTimer = null;
+
+        function showToast(message) {
+            if (!message) return;
+            globalToast.textContent = String(message);
+            globalToast.classList.add('active');
+            if (toastTimer) {
+                clearTimeout(toastTimer);
+            }
+            toastTimer = setTimeout(() => {
+                globalToast.classList.remove('active');
+            }, 1800);
+        }
+
+        function getProductionDatesText(item) {
+            return item.batches.map(batch => batch.productionDate).join(',');
+        }
+
+        function getAdjustBaseQty() {
+            if (adjustMode === 'total') return currentItem.totalQty;
+            return currentBatch.batchQty;
+        }
+
+        backBtn.addEventListener('click', () => {
+            if (adjustPage.classList.contains('active')) {
+                if (adjustSource === 'batch' && currentItem) {
+                    showBatchPage(currentItem);
+                } else {
+                    showQueryPage();
+                }
+                return;
+            }
+            if (batchPage.classList.contains('active')) {
+                showQueryPage();
+                return;
+            }
+            window.location.href = 'app_list.html';
+        });
+
+        function hideAllPages() {
+            queryPage.classList.remove('active');
+            batchPage.classList.remove('active');
+            adjustPage.classList.remove('active');
+        }
+
+        function showQueryPage() {
+            hideAllPages();
+            queryPage.classList.add('active');
+            headerTitle.textContent = '库存查询';
+            currentItem = null;
+        }
+
+        function renderBatchList(item) {
+            batchListWrapper.innerHTML = item.batches.map((batch, index) => `
+                <div class="batch-card">
+                    <div class="batch-card-body">
+                        <div class="batch-info">
+                            <div class="batch-line">生产日期 <span class="value">${batch.productionDate}</span></div>
+                            <div class="batch-line">过期日期 <span class="value">${batch.expiryDate}</span></div>
+                            <div class="batch-line">批次库存 <span class="value">${batch.batchQty}</span></div>
+                            <div class="batch-line">可用库存 <span class="value">${batch.availableQty}</span></div>
+                        </div>
+                        <div class="batch-actions">
+                            <button type="button" class="action-btn" data-action="batch-count" data-batch-index="${index}">盘点</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showBatchPage(item) {
+            currentItem = item;
+            currentBatch = null;
+            hideAllPages();
+            batchPage.classList.add('active');
+            headerTitle.textContent = '批次详情';
+
+            document.getElementById('batchProductName').textContent = item.shortName;
+            document.getElementById('batchLocation').textContent = formatLocation(item.locationCode, item.locationName);
+            document.getElementById('batchTotalQty').textContent = item.totalQty;
+            renderBatchList(item);
+        }
+
+        function showAdjustPage(item, source = 'query', batch = null) {
+            currentItem = item;
+            adjustSource = source;
+            adjustMode = source === 'batch' ? 'batch' : 'total';
+            currentBatch = adjustMode === 'batch' ? batch : null;
+            hideAllPages();
+            adjustPage.classList.add('active');
+            headerTitle.textContent = '盘点调整';
+
+            document.getElementById('adjustProductName').textContent = item.shortName;
+            document.getElementById('adjustLocation').textContent = formatLocation(item.locationCode, item.locationName);
+            document.getElementById('adjustTotalQty').textContent = item.totalQty;
+
+            if (adjustMode === 'total') {
+                document.getElementById('adjustProdDate').textContent = getProductionDatesText(item);
+                document.getElementById('adjustBatchQty').textContent = item.totalQty;
+            } else {
+                document.getElementById('adjustProdDate').textContent = batch.productionDate;
+                document.getElementById('adjustBatchQty').textContent = batch.batchQty;
+            }
+
+            document.getElementById('adjustDiffQty').textContent = '-';
+
+            actualQtyInput.value = '';
+            remarkInput.value = '';
+            updateAdjustSubmitState();
+        }
+
+        function updateAdjustSubmitState() {
+            const actualQty = actualQtyInput.value.trim();
+            const hasValue = actualQty !== '' && !Number.isNaN(Number(actualQty));
+            const canAdjust = hasValue && currentItem && (adjustMode === 'total' || currentBatch);
+
+            if (canAdjust) {
+                const diff = Number(actualQty) - getAdjustBaseQty();
+                document.getElementById('adjustDiffQty').textContent = diff > 0 ? `+${diff}` : String(diff);
+                adjustSubmitBtn.disabled = false;
+                adjustSubmitBtn.classList.add('enabled');
+            } else {
+                document.getElementById('adjustDiffQty').textContent = '-';
+                adjustSubmitBtn.disabled = true;
+                adjustSubmitBtn.classList.remove('enabled');
+            }
+        }
+
+        function filterByLocation(items, location) {
+            if (!location) return items;
+            return items.filter(item => item.locationCode === location);
+        }
+
+        function filterByProduct(items, product) {
+            if (!product) return items;
+
+            const codeMatches = items.filter(item => item.code === product);
+            if (codeMatches.length) return codeMatches;
+
+            const barcodeMatches = items.filter(item => {
+                const fullBarcode = item.barcode + item.barcodeSuffix;
+                return item.barcode === product || fullBarcode === product;
+            });
+            if (barcodeMatches.length) return barcodeMatches;
+
+            return items.filter(item =>
+                item.name.includes(product) ||
+                item.shortName.includes(product)
+            );
+        }
+
+        function searchInventory() {
+            const product = productInput.value.trim();
+            const location = locationInput.value.trim();
+
+            if (!product && !location) {
+                resultDivider.textContent = '— 搜索结果 —';
+                resultList.innerHTML = '';
+                return;
+            }
+
+            const results = filterByLocation(filterByProduct(inventoryData, product), location);
+
+            const count = results.length;
+            resultDivider.textContent = count > 0
+                ? `— 为您找到${count}个结果 —`
+                : '— 未找到结果 —';
+
+            if (count === 0) {
+                resultList.innerHTML = "<div class='empty'>暂无匹配库存</div>";
+                return;
+            }
+
+            resultList.innerHTML = results.map(item => `
+                <div class="inventory-item">
+                    <div class="inventory-header">
+                        <div class="inventory-name">${item.name}</div>
+                        <div class="inventory-header-right">
+                            <div class="batch-link" data-code="${item.code}">批次详情 &gt;</div>
+                        </div>
+                    </div>
+                    <div class="inventory-body">
+                        <div class="inventory-info">
+                            <div class="inventory-line">
+                                <span class="inventory-label">编码:</span>
+                                <span class="inventory-value">${item.code}</span>
+                            </div>
+                            <div class="inventory-line">
+                                <span class="inventory-label">条码:</span>
+                                <span class="inventory-value">${item.barcode}<span class="barcode-suffix">${item.barcodeSuffix}</span></span>
+                            </div>
+                            <div class="inventory-line">
+                                <span class="inventory-label">拣选面:</span>
+                                <span class="inventory-value">${formatLocation(item.pickingFaceCode, item.pickingFaceName)}</span>
+                            </div>
+                            <div class="inventory-line">
+                                <span class="inventory-label">储位:</span>
+                                <span class="inventory-value">${formatLocation(item.locationCode, item.locationName)}</span>
+                            </div>
+                            <div class="inventory-line">
+                                <span class="inventory-label">总库存:</span>
+                                <span class="inventory-value qty-value">${item.totalQty}</span>
+                            </div>
+                        </div>
+                        <div class="inventory-actions">
+                            <button type="button" class="action-btn" data-action="count" data-code="${item.code}">盘点</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        searchBtn.addEventListener('click', searchInventory);
+
+        productInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') searchInventory();
+        });
+
+        locationInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') searchInventory();
+        });
+
+        resultList.addEventListener('click', (e) => {
+            const countBtn = e.target.closest('.action-btn[data-action="count"]');
+            if (countBtn) {
+                const item = inventoryData.find(i => i.code === countBtn.dataset.code);
+                if (item) showAdjustPage(item, 'query', null);
+                return;
+            }
+            const batchLink = e.target.closest('.batch-link[data-code]');
+            if (batchLink) {
+                const item = inventoryData.find(i => i.code === batchLink.dataset.code);
+                if (item) showBatchPage(item);
+            }
+        });
+
+        batchListWrapper.addEventListener('click', (e) => {
+            const countBtn = e.target.closest('[data-action="batch-count"]');
+            if (countBtn && currentItem) {
+                const batch = currentItem.batches[Number(countBtn.dataset.batchIndex)];
+                if (batch) showAdjustPage(currentItem, 'batch', batch);
+            }
+        });
+
+        actualQtyInput.addEventListener('input', updateAdjustSubmitState);
+
+        adjustSubmitBtn.addEventListener('click', () => {
+            if (adjustSubmitBtn.disabled || !currentItem) return;
+            showToast('调整成功');
+            if (adjustSource === 'batch') {
+                showBatchPage(currentItem);
+            } else {
+                showQueryPage();
+            }
+        });
+    </script>
+</body>
+</html>

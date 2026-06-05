@@ -91,11 +91,7 @@
                             <input type="text" id="searchSourceTrigger" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchSourceTriggerDropdown">
-                                <div class="select-option" data-value="收货确认">收货确认</div>
-                                <div class="select-option" data-value="收货取消">收货取消</div>
-                                <div class="select-option" data-value="异常恢复">异常恢复</div>
-                            </div>
+                            <div class="select-dropdown" id="searchSourceTriggerDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -254,7 +250,8 @@
                 
                 // 由于库存日志是只读的，不需要新增、编辑和删除功能
             });
-            
+
+            renderSelectOptions('searchSourceTriggerDropdown', CommonOptions.sourceTrigger);
             page.init();
         });
     </script>
