@@ -268,7 +268,9 @@ const CommonOptions = {
         { value: 'exception_recover', text: '异常恢复' },
         { value: 'exception_shortage', text: '异常缺货' },
         { value: 'in_warehouse_reshelf', text: '库内返架' },
-        { value: 'putaway_finish', text: '上架完成' }
+        { value: 'putaway_finish', text: '上架完成' },
+        { value: 'count_surplus', text: '盘点盘盈' },
+        { value: 'count_shortage', text: '盘点盘亏' }
     ],
     // 库存来源类型选项
     inventorySourceType: [
@@ -397,6 +399,13 @@ const CommonOptions = {
         { value: '拉新赠品', text: '拉新赠品' },
         { value: '福袋奖品', text: '福袋奖品' },
         { value: '积分兑换', text: '积分兑换' }
+    ],
+    // 库存调整类型选项
+    adjustmentType: [
+        { value: '拣货异常', text: '拣货异常' },
+        { value: '分拣异常', text: '分拣异常' },
+        { value: '复核异常', text: '复核异常' },
+        { value: '快递库调', text: '快递库调' }
     ]
 };
 
