@@ -397,6 +397,10 @@
             background-color: #ffffff;
         }
 
+        .production-date-input {
+            padding-right: 12px;
+        }
+
         .input-unit {
             position: absolute;
             right: 12px;
@@ -725,9 +729,9 @@
 
         const productsByReceipt = {
             "IB020260228112499": [
-                { id: "p1", name: "苹果", code: "SP001", barcode: "6912345678901", image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=128&h=128&fit=crop", location: "SH01", planQty: "10", receivedQty: "0", receiptQty: "", unit: "斤" },
-                { id: "p2", name: "香蕉", code: "SP002", barcode: "6912345678902", image: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=128&h=128&fit=crop", location: "SH01", planQty: "10", receivedQty: "0", receiptQty: "", unit: "斤" },
-                { id: "p3", name: "橙子", code: "SP003", barcode: "6912345678903", image: "https://images.unsplash.com/photo-1547514704-2294156771-558342564e4e?w=128&h=128&fit=crop", location: "SH01", planQty: "10", receivedQty: "0", receiptQty: "", unit: "斤" }
+                { id: "p1", name: "苹果", code: "SP001", barcode: "6912345678901", image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=128&h=128&fit=crop", location: "SH01", planQty: "10", receivedQty: "0", receiptQty: "", productionDate: "", unit: "斤" },
+                { id: "p2", name: "香蕉", code: "SP002", barcode: "6912345678902", image: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=128&h=128&fit=crop", location: "SH01", planQty: "10", receivedQty: "0", receiptQty: "", productionDate: "", unit: "斤" },
+                { id: "p3", name: "橙子", code: "SP003", barcode: "6912345678903", image: "https://images.unsplash.com/photo-1547514704-2294156771-558342564e4e?w=128&h=128&fit=crop", location: "SH01", planQty: "10", receivedQty: "0", receiptQty: "", productionDate: "", unit: "斤" }
             ],
             "IB020260228112401": [
                 { id: "p4", name: "葡萄", code: "SP004", barcode: "6912345678904", image: "https://images.unsplash.com/photo-1599599810769-2c7f15354374?w=128&h=128&fit=crop", location: "SH01", planQty: "8", receivedQty: "3", receiptQty: "", unit: "斤" },
@@ -737,7 +741,7 @@
                 { id: "p6", name: "梨", code: "SP006", barcode: "6912345678906", image: "https://images.unsplash.com/photo-1635151227785-f8703e6bd857?w=128&h=128&fit=crop", location: "SH01", planQty: "10", receivedQty: "10", receiptQty: "", unit: "斤" }
             ],
             "IB020260228113145": [
-                { id: "p7", name: "西瓜", code: "SP007", barcode: "6912345678907", image: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=128&h=128&fit=crop", location: "SH01", planQty: "15", receivedQty: "15", receiptQty: "", unit: "斤" }
+                { id: "p7", name: "西瓜", code: "SP007", barcode: "6912345678907", image: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=128&h=128&fit=crop", location: "SH01", planQty: "15", receivedQty: "15", receiptQty: "", productionDate: "", unit: "斤" }
             ],
             "IB020260228113288": [
                 { id: "p8", name: "芒果", code: "SP008", barcode: "6912345678908", image: "https://images.unsplash.com/photo-1605027990120-9a886b0c6f0c?w=128&h=128&fit=crop", location: "SH01", planQty: "6", receivedQty: "0", receiptQty: "", unit: "斤" }
@@ -780,6 +784,10 @@
 
         function isReceiptEditable(receipt) {
             return receipt && RECEIPT_EDITABLE_STATUS.includes(receipt.statusLabel);
+        }
+
+        function isPurchaseReceipt(receipt) {
+            return receipt && receipt.type === "采购入库";
         }
 
         function updateEntryActions() {
@@ -898,6 +906,7 @@
                     const received = parseQty(product.receivedQty) || 0;
                     product.receivedQty = String(received + receipt);
                     product.receiptQty = "";
+                    product.productionDate = "";
                 }
             });
             persistProductsToReceipt();
@@ -1022,6 +1031,11 @@
         function showEntryPage(receipt) {
             currentReceipt = receipt;
             currentProducts = JSON.parse(JSON.stringify(productsByReceipt[receipt.no] || []));
+            currentProducts.forEach((product) => {
+                if (product.productionDate === undefined) {
+                    product.productionDate = "";
+                }
+            });
             if (isReceiptEditable(receipt)) {
                 fillDefaultReceiptQtys(currentProducts);
             }
@@ -1120,9 +1134,28 @@
             });
         }
 
+        function focusReceiptQtyFromProductionDate(inputEl) {
+            const card = inputEl.closest(".product-card");
+            const nextInput = card && card.querySelector(".receipt-qty-input:not(.production-date-input)");
+            if (!nextInput) return;
+
+            inputEl._skipBlurOnce = true;
+            setTimeout(() => {
+                nextInput.focus();
+                nextInput.select();
+            }, 0);
+        }
+
         function focusNextReceiptQtyInput(inputEl) {
-            const inputs = Array.from(productListWrapper.querySelectorAll(".receipt-qty-input"));
-            const nextInput = inputs[inputs.indexOf(inputEl) + 1];
+            const cards = Array.from(productListWrapper.querySelectorAll(".product-card"));
+            const card = inputEl.closest(".product-card");
+            const cardIndex = cards.indexOf(card);
+            const nextCard = cards[cardIndex + 1];
+            if (!nextCard) return;
+
+            const nextInput = isPurchaseReceipt(currentReceipt)
+                ? nextCard.querySelector(".production-date-input") || nextCard.querySelector(".receipt-qty-input:not(.production-date-input)")
+                : nextCard.querySelector(".receipt-qty-input:not(.production-date-input)");
             if (!nextInput) return;
 
             inputEl._skipBlurOnce = true;
@@ -1166,6 +1199,7 @@
         function renderProductList() {
             const data = getFilteredProducts();
             const editable = isReceiptEditable(currentReceipt);
+            const showProductionDate = editable && isPurchaseReceipt(currentReceipt);
 
             if (!data.length) {
                 productListWrapper.innerHTML = "<div class='empty'>暂无商品</div>";
@@ -1174,6 +1208,24 @@
 
             productListWrapper.innerHTML = data
                 .map((product) => {
+                    const productionDateRow = showProductionDate
+                        ? `
+                        <div class="product-card-row">
+                            <span class="product-card-label">生产日期</span>
+                            <span class="product-card-value">
+                                <div class="input-with-unit">
+                                    <input
+                                        type="text"
+                                        class="receipt-qty-input production-date-input"
+                                        data-product-id="${product.id}"
+                                        placeholder="格式如：20260601"
+                                        value="${product.productionDate || ""}"
+                                    >
+                                </div>
+                            </span>
+                        </div>`
+                        : "";
+
                     const receiptQtyRow = editable
                         ? `
                         <div class="product-card-row">
@@ -1220,6 +1272,7 @@
                                 <span class="product-card-label">已收量</span>
                                 <span class="product-card-value">${product.receivedQty}${product.unit}</span>
                             </div>
+                            ${productionDateRow}
                             ${receiptQtyRow}
                         </div>
                     </div>
@@ -1231,7 +1284,21 @@
             bindProductImagePreview();
 
             if (editable) {
-                productListWrapper.querySelectorAll(".receipt-qty-input").forEach((input) => {
+                productListWrapper.querySelectorAll(".production-date-input").forEach((input) => {
+                    input.addEventListener("input", (e) => {
+                        const productId = e.target.dataset.productId;
+                        const target = currentProducts.find((p) => p.id === productId);
+                        if (!target) return;
+                        target.productionDate = e.target.value;
+                    });
+                    input.addEventListener("keydown", (e) => {
+                        if (e.key !== "Enter") return;
+                        e.preventDefault();
+                        focusReceiptQtyFromProductionDate(e.target);
+                    });
+                });
+
+                productListWrapper.querySelectorAll(".receipt-qty-input:not(.production-date-input)").forEach((input) => {
                     input.addEventListener("input", (e) => {
                         const productId = e.target.dataset.productId;
                         const target = currentProducts.find((p) => p.id === productId);
