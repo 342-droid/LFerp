@@ -496,7 +496,7 @@ export function render(container) {
   const pageSize = 10;
 
   const root = el('div', 'erp-page');
-  root.appendChild(breadcrumb(['基础数据中心', '会员中心', '会员管理', '会员列表']));
+  root.appendChild(breadcrumb(['业务伙伴', '会员中心', '会员管理', '会员列表']));
 
   const card = el('div', 'erp-page__card');
   const head = el('div', 'erp-page__head');

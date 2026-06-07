@@ -257,7 +257,7 @@ export function render(container) {
   const root = el('div', 'erp-page');
   const card = el('div', 'erp-page__card');
   const head = el('div', 'erp-page__head');
-  head.appendChild(breadcrumb(['基础数据中心', '资源中心', '门店档案']));
+  head.appendChild(breadcrumb(['业务伙伴', '资源中心', '门店档案']));
   const toolbar = el('div', 'erp-toolbar');
   toolbar.appendChild(fieldRow('主体名称', textInput('请输入主体名称')));
   toolbar.appendChild(fieldRow('门店名称', textInput('请输入门店名称')));

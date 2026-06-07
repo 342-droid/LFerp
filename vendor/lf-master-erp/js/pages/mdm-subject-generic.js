@@ -353,7 +353,7 @@ export function renderSubjectPage(container, cfg) {
   const root = el('div', 'erp-page');
   const card = el('div', 'erp-page__card');
   const head = el('div', 'erp-page__head');
-  head.appendChild(breadcrumb(['基础数据中心', '主体中心', manageSegment, listSegment]));
+  head.appendChild(breadcrumb(['业务伙伴', '商家主体', manageSegment, listSegment]));
 
   const nameInp = textInput(`请输入${cfg.nameLabel}`);
   const statusSel = selectInput(

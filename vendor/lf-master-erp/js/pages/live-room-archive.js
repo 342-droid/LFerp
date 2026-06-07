@@ -134,7 +134,7 @@ export function render(container) {
   const root = el('div', 'erp-page');
   const card = el('div', 'erp-page__card');
   const head = el('div', 'erp-page__head');
-  head.appendChild(breadcrumb(['基础数据中心', '资源中心', '直播间档案']));
+  head.appendChild(breadcrumb(['业务伙伴', '资源中心', '直播间档案']));
 
   const filterSubject = textInput('请输入主体名称');
   const filterLiveName = textInput('请输入直播间名称');

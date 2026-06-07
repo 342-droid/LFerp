@@ -23,7 +23,7 @@ export function renderPeoplePage(container, cfg) {
   const root = el('div', 'erp-page');
   const card = el('div', 'erp-page__card');
   const head = el('div', 'erp-page__head');
-  head.appendChild(breadcrumb(['基础数据中心', '人员中心', cfg.title]));
+  head.appendChild(breadcrumb(['业务伙伴', '人员中心', cfg.title]));
 
   const toolbar = el('div', 'erp-toolbar');
   toolbar.appendChild(fieldRow('姓名', textInput('请输入姓名')));
