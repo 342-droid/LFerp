@@ -1,4 +1,4 @@
-/* MDM 侧栏：基础数据中心页展示主体/资源/人员/会员；顶栏「审核中心」独立入口页仅展示审核分组 */
+/* MDM 侧栏：业务伙伴页展示主体/资源/人员/会员；顶栏「审核中心」独立入口页仅展示审核分组 */
 (function () {
     const wp = window.wmsPath || { page: function (f) { return f; }, asset: function (r) { return r; } };
     const pageHref = function (f) { return wp.page(f); };
@@ -97,7 +97,7 @@
     /** 顶栏「审核中心」独立入口：仅在该模块页面展示侧栏审核菜单 */
     var itemsHtml = isAuditPage
         ? renderCollapsibleGroup('审核中心', '任务管理', auditItems, true)
-        : renderCollapsibleGroup('主体中心', '基础信息', partyItems, isPartyPage) +
+        : renderCollapsibleGroup('商家主体', '基础信息', partyItems, isPartyPage) +
         renderCollapsibleGroup('资源中心', '策略管理', archiveItems, isArchivePage) +
         renderCollapsibleGroup('人员中心', '权限管理', peopleItems, isPeoplePage) +
         renderCollapsibleGroup('会员中心', '基础信息', memberItems, isMemberPage);

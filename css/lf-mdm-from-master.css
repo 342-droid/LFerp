@@ -2254,3 +2254,86 @@
   color: var(--color-text);
 }
 
+/* 门店详情 — 订单配置页签 */
+.store-order-config {
+  padding: 4px 0 12px;
+}
+
+.store-order-config__item {
+  display: flex;
+  align-items: flex-start;
+  padding: 24px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.store-order-config__item:last-of-type {
+  border-bottom: none;
+}
+
+.store-order-config__label {
+  width: 132px;
+  flex-shrink: 0;
+  font-size: 14px;
+  color: #333;
+  line-height: 22px;
+}
+
+.store-order-config__required {
+  color: #f5222d;
+  margin-right: 2px;
+}
+
+.store-order-config__control {
+  flex: 1;
+  min-width: 0;
+}
+
+.store-order-config__radios {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.store-order-config__radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+
+.store-order-config__radio input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #409eff;
+}
+
+.store-order-config__hint {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.7;
+}
+
+.store-order-config__hint[hidden] {
+  display: none;
+}
+
+.store-order-config__warn {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #ff7019;
+  line-height: 1.7;
+}
+
+.store-order-config__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 20px;
+  margin-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
