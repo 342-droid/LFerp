@@ -525,6 +525,10 @@
             width: 210px;
         }
 
+        .production-date-input {
+            padding-right: 12px;
+        }
+
         /* 输入框单位 */
         .input-unit {
             position: absolute;
@@ -1194,12 +1198,11 @@
                             <span class="product-info-label">已收量</span>
                             <span class="product-info-value" id="productReceivedQty"></span>
                         </div>
-                        <div class="product-info-item">
+                        <div class="product-info-item" id="productProductionDateRow">
                             <span class="product-info-label">生产日期</span>
                             <span class="product-info-value">
                                 <div class="input-with-unit">
-                                    <input type="text" class="receipt-qty-input" id="productProductionDate" placeholder="请输入">
-                                    <span class="input-unit">YYYY-MM-DD</span>
+                                    <input type="text" class="receipt-qty-input production-date-input" id="productProductionDate" placeholder="格式如：20260601">
                                 </div>
                             </span>
                         </div>
@@ -1558,7 +1561,7 @@
                                 <span class="record-detail-label">供应商:</span>
                                 <span class="record-detail-value" id="recordDetailSupplier"></span>
                             </div>
-                            <div class="record-detail-row">
+                            <div class="record-detail-row" id="recordDetailProductionDateRow">
                                 <span class="record-detail-label">生产日期:</span>
                                 <span class="record-detail-value" id="recordDetailProductionDate"></span>
                             </div>
@@ -1650,6 +1653,35 @@
         let toastTimer = null;
         let pendingCancelReceipt = null;
         window.currentReceiptType = window.currentReceiptType || '';
+
+        function isPurchaseReceiptType(type) {
+            return type === '采购入库';
+        }
+
+        function getCurrentScanReceiptType() {
+            const receiptTypeEl = document.getElementById('scanReceiptType');
+            return receiptTypeEl ? receiptTypeEl.textContent.trim() : (window.currentReceiptType || '');
+        }
+
+        function updateProductionDateVisibility(receiptType) {
+            const type = receiptType || getCurrentScanReceiptType();
+            const show = isPurchaseReceiptType(type);
+            const productRow = document.getElementById('productProductionDateRow');
+            const recordRow = document.getElementById('recordDetailProductionDateRow');
+
+            if (productRow) {
+                productRow.style.display = show ? '' : 'none';
+            }
+            if (recordRow) {
+                recordRow.style.display = show ? '' : 'none';
+            }
+            if (!show) {
+                const productionDateInput = document.getElementById('productProductionDate');
+                if (productionDateInput) {
+                    productionDateInput.value = '';
+                }
+            }
+        }
 
         const initialRecordsSeed = [
             {
@@ -1899,6 +1931,7 @@
             // 更新入库单录入页面的信息
             document.getElementById('scanReceiptType').textContent = type;
             document.getElementById('scanReceiptId').textContent = '入库单号: ' + receiptId;
+            updateProductionDateVisibility(type);
             
             // 重置扫描区域（仅商品）
             document.getElementById('productValue').textContent = '';
@@ -2008,6 +2041,7 @@
             document.getElementById('productLocation').textContent = finalProductInfo.location;
             document.getElementById('productPlanQty').textContent = finalProductInfo.planQty;
             document.getElementById('productReceivedQty').textContent = finalProductInfo.receivedQty;
+            updateProductionDateVisibility();
             // 清空输入框，让placeholder显示
             document.getElementById('productProductionDate').value = '';
             document.getElementById('productReceiptQty').value = '';
@@ -2106,6 +2140,7 @@
             // 更新详情页面的信息
             document.getElementById('recordDetailReceiptType').textContent = receiptType;
             document.getElementById('recordDetailReceiptId').textContent = receiptId;
+            updateProductionDateVisibility(receiptType);
 
             // 填充收货记录详情
             document.getElementById('recordDetailProduct').textContent = product;

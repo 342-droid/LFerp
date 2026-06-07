@@ -52,20 +52,7 @@
                             <input type="text" id="searchSourceTrigger" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchSourceTriggerDropdown">
-                                <div class="select-option" data-value="receive_confirm">收货确认</div>
-                                <div class="select-option" data-value="receive_cancel">收货取消</div>
-                                <div class="select-option" data-value="pick_occupied">库存占用</div>
-                                <div class="select-option" data-value="occupy_cancel">取消占用</div>
-                                <div class="select-option" data-value="pick_finish">拣货完成</div>
-                                <div class="select-option" data-value="sort_finish">分拣完成</div>
-                                <div class="select-option" data-value="ship_finish">发货完成</div>
-                                <div class="select-option" data-value="exception_accept">异常受理</div>
-                                <div class="select-option" data-value="exception_recover">异常恢复</div>
-                                <div class="select-option" data-value="exception_shortage">异常缺货</div>
-                                <div class="select-option" data-value="in_warehouse_reshelf">库内返架</div>
-                                <div class="select-option" data-value="putaway_finish">上架完成</div>
-                            </div>
+                            <div class="select-dropdown" id="searchSourceTriggerDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -253,6 +240,32 @@
                                 <td>上架完成规则</td>
                                 <td><span class="status active">启用</span></td>
                                 <td>2026-05-13 16:12:26</td>
+                                <td>当前用户</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W013</td>
+                                <td>盘点盘盈</td>
+                                <td>盘点盘盈规则</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2026-06-05 17:58:35</td>
+                                <td>当前用户</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W014</td>
+                                <td>盘点盘亏</td>
+                                <td>盘点盘亏规则</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2026-06-05 17:59:05</td>
                                 <td>当前用户</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
@@ -551,6 +564,22 @@
                         changeDirection: '增加',
                         updateTime: '2026-05-13 16:12:26'
                     }
+                ],
+                W013: [
+                    {
+                        ruleType: '来源库存',
+                        changeType: '库存量',
+                        changeDirection: '增加',
+                        updateTime: '2026-06-05 17:58:35'
+                    }
+                ],
+                W014: [
+                    {
+                        ruleType: '来源库存',
+                        changeType: '库存量',
+                        changeDirection: '减少',
+                        updateTime: '2026-06-05 17:59:05'
+                    }
                 ]
             };
             
@@ -579,6 +608,7 @@
                 `).join('');
             }
             
+            renderSelectOptions('searchSourceTriggerDropdown', CommonOptions.sourceTrigger);
             page.init();
 
             // 分页切换会重绘tbody，监听后重新装饰“规则编码”详情链接

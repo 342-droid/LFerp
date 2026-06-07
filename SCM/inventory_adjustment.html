@@ -126,11 +126,7 @@
                             <input type="text" id="searchAdjustType" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchAdjustTypeDropdown">
-                                <div class="select-option" data-value="拣货异常">拣货异常</div>
-                                <div class="select-option" data-value="分拣异常">分拣异常</div>
-                                <div class="select-option" data-value="复核异常">复核异常</div>
-                            </div>
+                            <div class="select-dropdown" id="searchAdjustTypeDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -455,6 +451,7 @@
                     option.textContent = company;
                     companyDropdown.appendChild(option);
                 });
+                renderSelectOptions('searchAdjustTypeDropdown', CommonOptions.adjustmentType);
 
                 const page = new PageManager({
                     entityName: '库存调整单',
