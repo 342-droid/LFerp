@@ -509,8 +509,8 @@ export function openStoreDetailDrawer(store) {
   );
 
   const tabsWrap = el('div', 'store-drawer__tabs');
-  const tabIds = ['base', 'cust', 'comm', 'prod', 'perf'];
-  const tabLabels = ['基础信息', '绑定客户', '分佣明细', '商品统计', '业绩报表'];
+  const tabIds = ['base', 'cust', 'comm', 'prod', 'perf', 'orderCfg'];
+  const tabLabels = ['基础信息', '绑定客户', '分佣明细', '商品统计', '业绩报表', '订单配置'];
   const bodies = {};
 
   const bodyHost = el('div', 'store-drawer__body');
@@ -792,6 +792,56 @@ export function openStoreDetailDrawer(store) {
     dataTable(['日期', '成交订单数', '成交金额', '退款订单数', '退款金额'], []),
   );
   bodies.perf.appendChild(panelEmptyNote('暂无数据'));
+
+  bodies.orderCfg = el('div', 'supplier-detail-tab store-order-config');
+  (function buildStoreOrderConfigPanel(panel, storeRef) {
+    var storeId = storeRef.storeId || 'unknown';
+    var storageKey = 'lf_store_order_config_' + storeId;
+    var defaults = { storeQueue: 'on', pendingShipmentVerify: 'on' };
+    var settings = defaults;
+    try {
+      var raw = localStorage.getItem(storageKey);
+      if (raw) settings = Object.assign({}, defaults, JSON.parse(raw));
+    } catch (e) {
+      settings = defaults;
+    }
+
+    var ui = window.OrderConfigUi;
+    var copy = ui ? ui.STORE_COPY : {};
+    if (ui) {
+      ui.appendOrderConfigItem({
+        root: panel,
+        fieldKey: 'storeQueue',
+        label: '门店排队',
+        settings,
+        nameSuffix: '_' + storeId,
+        onHint: copy.storeQueueOn,
+      });
+      ui.appendOrderConfigItem({
+        root: panel,
+        fieldKey: 'pendingShipmentVerify',
+        label: '待发货订单核销',
+        settings,
+        nameSuffix: '_' + storeId,
+        staticHint: copy.pendingVerifyDesc,
+        warnTip: copy.pendingVerifyWarn,
+      });
+    }
+
+    var saveBar = el('div', 'store-order-config__footer');
+    var saveBtn = button('保存', 'primary');
+    saveBtn.addEventListener('click', function () {
+      var storeQueueInput = panel.querySelector('input[name="storeOrder_storeQueue_' + storeId + '"]:checked');
+      var pendingInput = panel.querySelector('input[name="storeOrder_pendingShipmentVerify_' + storeId + '"]:checked');
+      localStorage.setItem(storageKey, JSON.stringify({
+        storeQueue: storeQueueInput ? storeQueueInput.value : 'on',
+        pendingShipmentVerify: pendingInput ? pendingInput.value : 'on',
+      }));
+      if (typeof showToast === 'function') showToast('订单配置已保存（演示）', 'success');
+    });
+    saveBar.appendChild(saveBtn);
+    panel.appendChild(saveBar);
+  })(bodies.orderCfg, store);
 
   let active = 'base';
 

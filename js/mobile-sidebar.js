@@ -14,7 +14,8 @@
     const mobileAppItems = [
         { href: 'app_list.html', text: '仓储APP' },
         { href: 'mdm_bd_workbench.html', text: 'BD APP' },
-        { href: 'shop-h5/h5/store/register.html', text: '门店H5' }
+        { href: 'shop-h5/h5/store/register.html', text: '门店H5' },
+        { href: 'user-app/h5/profile.html', text: '用户 APP' }
     ];
 
     const isMobileAppPage = mobileAppItems.some(function (item) {

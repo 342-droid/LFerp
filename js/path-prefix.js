@@ -16,8 +16,8 @@
     }
     function page(filename) {
         filename = normPath(filename);
-        /** shop-h5 静态目录：自根目录起的相对路径（兼容历史大写 SHOP-H5/） */
-        if (/^shop-h5\//i.test(filename)) {
+        /** shop-h5 / user-app 静态目录：自根目录起的相对路径 */
+        if (/^(shop-h5|user-app)\//i.test(filename)) {
             var up = (inScmFolder() || inMdmFolder()) ? '../' : '';
             return up + filename;
         }

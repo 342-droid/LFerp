@@ -88,6 +88,7 @@ function loadHeader() {
         const pageFile = (path.split('/').pop() || '').toLowerCase();
         const isTmsPage = pageFile.startsWith('tms_') || path.includes('TMS_index.html') || href.includes('TMS_index.html');
         const isPurchasePage = pageFile === 'purchase_index.html' || pageFile.startsWith('purchase_');
+        const isBasicSettingsPage = pageFile === 'basic_settings_index.html' || pageFile.startsWith('basic_settings_');
         const isMobilePage = pageFile === 'mobile_index.html' || pageFile === 'app_login.html';
         const isMdmPage = /\/MDM\//i.test(path) || /\/MDM$/i.test(path) || pageFile.startsWith('mdm_');
         const isMdmAuditPage = pageFile.startsWith('mdm_audit_');
@@ -106,11 +107,12 @@ function loadHeader() {
                 <nav class="nav-tabs">
                     <a href="${wp.page('mobile_index.html')}" class="${isMobilePage ? 'active' : ''}">移动端</a>
                     <a href="${wp.page('mdm_workbench.html')}" class="${isMdmWorkbenchPage ? 'active' : ''}">工作台</a>
-                    <a href="${wp.page('mdm_party_store.html')}" class="${isMdmDataCenterPage ? 'active' : ''}">基础数据中心</a>
+                    <a href="${wp.page('mdm_party_store.html')}" class="${isMdmDataCenterPage ? 'active' : ''}">业务伙伴</a>
                     <a href="${wp.page('mdm_audit_store_registration.html')}" class="${isMdmAuditPage ? 'active' : ''}">审核中心</a>
-                    <a href="${wp.page('index.html')}" class="${!isTmsPage && !isPurchasePage && !isMdmPage && !isMobilePage ? 'active' : ''}">仓储</a>
+                    <a href="${wp.page('index.html')}" class="${!isTmsPage && !isPurchasePage && !isBasicSettingsPage && !isMdmPage && !isMobilePage ? 'active' : ''}">仓储</a>
                     <a href="${wp.page('TMS_index.html')}" class="${isTmsPage ? 'active' : ''}">物流</a>
                     <a href="${wp.page('purchase_index.html')}" class="${isPurchasePage ? 'active' : ''}">采购</a>
+                    <a href="${wp.page('basic_settings_miniprogram_agreement.html')}" class="${isBasicSettingsPage ? 'active' : ''}">基础设置</a>
                 </nav>
                 
                 <div class="header-right">

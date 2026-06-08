@@ -1046,6 +1046,65 @@
         return root;
     }
 
+    function loadStoreOrderSettings(storeId) {
+        var key = 'lf_store_order_config_' + storeId;
+        var defaults = { storeQueue: 'on', pendingShipmentVerify: 'on' };
+        try {
+            var raw = localStorage.getItem(key);
+            if (!raw) return defaults;
+            return Object.assign({}, defaults, JSON.parse(raw));
+        } catch (e) {
+            return defaults;
+        }
+    }
+
+    function panelStoreOrderConfig(store) {
+        var storeId = store.storeId || 'unknown';
+        var settings = loadStoreOrderSettings(storeId);
+        var root = el('div', 'supplier-detail-tab store-order-config');
+        var ui = window.OrderConfigUi;
+        var copy = ui ? ui.STORE_DETAIL_COPY : {};
+
+        if (ui) {
+            ui.appendOrderConfigItem({
+                root: root,
+                fieldKey: 'storeQueue',
+                label: '门店排队',
+                settings: settings,
+                nameSuffix: '_' + storeId,
+                required: true,
+                onHint: copy.storeQueueOn
+            });
+            ui.appendOrderConfigItem({
+                root: root,
+                fieldKey: 'pendingShipmentVerify',
+                label: '待发货订单核销',
+                settings: settings,
+                nameSuffix: '_' + storeId,
+                required: true,
+                staticHint: copy.pendingVerifyDesc,
+                warnTip: copy.pendingVerifyWarn,
+                warnTipAlways: true
+            });
+        }
+
+        var saveBar = el('div', 'store-order-config__footer');
+        var saveBtn = mkBtn('保存', true);
+        saveBtn.addEventListener('click', function () {
+            var storeQueueInput = root.querySelector('input[name="storeOrder_storeQueue_' + storeId + '"]:checked');
+            var pendingInput = root.querySelector('input[name="storeOrder_pendingShipmentVerify_' + storeId + '"]:checked');
+            var data = {
+                storeQueue: storeQueueInput ? storeQueueInput.value : 'on',
+                pendingShipmentVerify: pendingInput ? pendingInput.value : 'on'
+            };
+            localStorage.setItem('lf_store_order_config_' + storeId, JSON.stringify(data));
+            if (typeof showToast === 'function') showToast('订单配置已保存（演示）', 'success');
+        });
+        saveBar.appendChild(saveBtn);
+        root.appendChild(saveBar);
+        return root;
+    }
+
     function attachDrawer(opts) {
         removeArchiveDrawers();
         var backdrop = el('div', 'store-drawer-backdrop');
@@ -1153,14 +1212,15 @@
             heroTags: store.detailTags,
             metaLines: ['门店ID：' + store.storeId + ' · 所属组织：' + store.orgId],
             wideClass: 'store-drawer--store-wide',
-            tabIds: ['base', 'cust', 'comm', 'prod', 'perf'],
-            tabLabels: ['基础信息', '绑定客户', '分佣明细', '商品统计', '业绩报表'],
+            tabIds: ['base', 'cust', 'comm', 'prod', 'perf', 'orderCfg'],
+            tabLabels: ['基础信息', '绑定客户', '分佣明细', '商品统计', '业绩报表', '订单配置'],
             bodies: {
                 base: panelStoreBase(store),
                 cust: panelStoreCustomers(),
                 comm: panelCommProdPerf('comm'),
                 prod: panelCommProdPerf('prod'),
-                perf: panelCommProdPerf('perf')
+                perf: panelCommProdPerf('perf'),
+                orderCfg: panelStoreOrderConfig(store)
             }
         });
     }
