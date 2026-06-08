@@ -147,6 +147,7 @@
                                 <th>仓库</th>
                                 <th>货主</th>
                                 <th>商品类目</th>
+                                <th>供应商</th>
                                 <th>基本单位</th>
                                 <th>规格名</th>
                                 <th>规则值</th>
@@ -168,6 +169,7 @@
                                 <td>W001-南京仓</td>
                                 <td>Y001-南京货主</td>
                                 <td>冷冻肉类</td>
+                                <td>S001-南京供应商</td>
                                 <td>kg</td>
                                 <td>包装规格</td>
                                 <td>1*10</td>
@@ -189,6 +191,7 @@
                                 <td>W001-南京仓</td>
                                 <td>Y002-北京货主</td>
                                 <td>乳制品</td>
+                                <td>S002-上海供应商</td>
                                 <td>盒</td>
                                 <td>包装规格</td>
                                 <td>1*24</td>
@@ -210,6 +213,7 @@
                                 <td>W003-上海仓</td>
                                 <td>Y003-上海货主</td>
                                 <td>速冻食品</td>
+                                <td>S002-上海供应商</td>
                                 <td>袋</td>
                                 <td>包装规格</td>
                                 <td>1*20</td>
@@ -231,6 +235,7 @@
                                 <td>W004-北京仓</td>
                                 <td>Y004-广州货主</td>
                                 <td>休闲食品</td>
+                                <td>S003-广州供应商</td>
                                 <td>包</td>
                                 <td>包装规格</td>
                                 <td>1*12</td>
@@ -252,6 +257,7 @@
                                 <td>W002-嘉兴仓</td>
                                 <td>Y005-深圳货主</td>
                                 <td>乳制品</td>
+                                <td>S001-南京供应商</td>
                                 <td>瓶</td>
                                 <td>包装规格</td>
                                 <td>1*12</td>
@@ -309,6 +315,10 @@
                     <input type="text" id="detailCategory" disabled>
                 </div>
                 <div class="modal-form-group">
+                    <label>供应商</label>
+                    <input type="text" id="detailSupplier" disabled>
+                </div>
+                <div class="modal-form-group">
                     <label>基本单位</label>
                     <input type="text" id="detailUnit" disabled>
                 </div>
@@ -323,14 +333,6 @@
                 <div class="modal-form-group">
                     <label>是否计重</label>
                     <input type="text" id="detailIsWeighed" disabled>
-                </div>
-                <div class="modal-form-group">
-                    <label>规格名</label>
-                    <input type="text" id="detailSpecName" disabled>
-                </div>
-                <div class="modal-form-group">
-                    <label>规格值</label>
-                    <input type="text" id="detailSpecValue" disabled>
                 </div>
             </form>
             
@@ -347,6 +349,8 @@
                     <table class="table no-last-column-freeze" id="specTable">
                         <thead>
                             <tr>
+                                <th>规格名</th>
+                                <th>规格值</th>
                                 <th>规格单位</th>
                                 <th>长</th>
                                 <th>宽</th>
@@ -359,6 +363,8 @@
                         </thead>
                         <tbody id="specTableBody">
                             <tr>
+                                <td id="detailSpecName">-</td>
+                                <td id="detailSpecValue">-</td>
                                 <td id="detailPackUnit">-</td>
                                 <td id="detailLength">-</td>
                                 <td id="detailWidth">-</td>
@@ -410,7 +416,7 @@
         const skuDetails = {
             'SKU001': {
                 warehouse: 'W001-南京仓', owner: 'Y001-南京货主', skuCode: 'SKU001', barcode: '6901234567890',
-                skuName: '冷冻牛肉卷', category: '食品/肉类/冷冻肉类',
+                skuName: '冷冻牛肉卷', category: '食品/肉类/冷冻肉类', supplier: 'S001-南京供应商',
                 unit: 'kg', shelfLife: '180', storageCondition: '冷冻', isWeighed: '是',
                 specName: '包装规格', specValue: '1*10',
                 skuUpperLimit: '500', skuLowerLimit: '80', defaultPickFace: 'JX01-拣选位',
@@ -419,7 +425,7 @@
             },
             'SKU002': {
                 warehouse: 'W001-南京仓', owner: 'Y002-北京货主', skuCode: 'SKU002', barcode: '6901234567891',
-                skuName: '冷藏酸奶', category: '食品/乳制品/乳制品',
+                skuName: '冷藏酸奶', category: '食品/乳制品/乳制品', supplier: 'S002-上海供应商',
                 unit: '盒', shelfLife: '21', storageCondition: '冷藏', isWeighed: '否',
                 specName: '包装规格', specValue: '1*24',
                 skuUpperLimit: '800', skuLowerLimit: '100', defaultPickFace: 'CC01-存储位',
@@ -428,7 +434,7 @@
             },
             'SKU003': {
                 warehouse: 'W003-上海仓', owner: 'Y003-上海货主', skuCode: 'SKU003', barcode: '6901234567892',
-                skuName: '速冻水饺', category: '食品/速冻食品/速冻食品',
+                skuName: '速冻水饺', category: '食品/速冻食品/速冻食品', supplier: 'S002-上海供应商',
                 unit: '袋', shelfLife: '365', storageCondition: '冷冻', isWeighed: '否',
                 specName: '包装规格', specValue: '1*20',
                 skuUpperLimit: '300', skuLowerLimit: '40', defaultPickFace: 'JX01-拣选位',
@@ -437,7 +443,7 @@
             },
             'SKU004': {
                 warehouse: 'W004-北京仓', owner: 'Y004-广州货主', skuCode: 'SKU004', barcode: '6901234567893',
-                skuName: '常温饼干', category: '食品/休闲食品/休闲食品',
+                skuName: '常温饼干', category: '食品/休闲食品/休闲食品', supplier: 'S003-广州供应商',
                 unit: '包', shelfLife: '270', storageCondition: '常温', isWeighed: '否',
                 specName: '包装规格', specValue: '1*12',
                 skuUpperLimit: '1200', skuLowerLimit: '150', defaultPickFace: 'CC01-存储位',
@@ -446,7 +452,7 @@
             },
             'SKU005': {
                 warehouse: 'W002-嘉兴仓', owner: 'Y005-深圳货主', skuCode: 'SKU005', barcode: '6901234567894',
-                skuName: '冷藏鲜奶', category: '食品/乳制品/乳制品',
+                skuName: '冷藏鲜奶', category: '食品/乳制品/乳制品', supplier: 'S001-南京供应商',
                 unit: '瓶', shelfLife: '7', storageCondition: '冷藏', isWeighed: '否',
                 specName: '包装规格', specValue: '1*12',
                 skuUpperLimit: '650', skuLowerLimit: '60', defaultPickFace: 'JX01-拣选位',
@@ -474,12 +480,13 @@
                 document.getElementById('detailBarcode').value = detail.barcode;
                 document.getElementById('detailSkuName').value = detail.skuName;
                 document.getElementById('detailCategory').value = detail.category;
+                document.getElementById('detailSupplier').value = detail.supplier || '';
                 document.getElementById('detailUnit').value = detail.unit;
                 document.getElementById('detailShelfLife').value = detail.shelfLife;
                 document.getElementById('detailStorageCondition').value = detail.storageCondition;
                 document.getElementById('detailIsWeighed').value = detail.isWeighed;
-                document.getElementById('detailSpecName').value = detail.specName || '';
-                document.getElementById('detailSpecValue').value = detail.specValue || '';
+                document.getElementById('detailSpecName').textContent = detail.specName || '-';
+                document.getElementById('detailSpecValue').textContent = detail.specValue || '-';
                 document.getElementById('detailPackUnit').textContent = detail.packUnit;
                 document.getElementById('detailLength').textContent = detail.length;
                 document.getElementById('detailWidth').textContent = detail.width;
