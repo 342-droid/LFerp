@@ -1,4 +1,4 @@
-/* 订单专用侧栏：直播订单 / 商城订单 */
+/* 订单专用侧栏：订单管理 / 排队记录 */
 (function () {
     const wp = window.wmsPath || { page: function (f) { return f; }, asset: function (r) { return r; } };
     const pageHref = function (f) { return wp.page(f); };
@@ -15,6 +15,7 @@
     }
 
     const isOrderSection = orderItems.some(function (item) { return pageMatches(item.href); });
+    const isQueuePage = pageMatches('mdm_order_queue.html');
 
     const submenuHtml = orderItems.map(function (item) {
         const active = pageMatches(item.href);
@@ -40,6 +41,12 @@
         '<button type="button" class="menu-toggle">' + (isOrderSection ? '▼' : '▶') + '</button>' +
         '</a>' +
         '<ul class="submenu' + (isOrderSection ? ' expanded' : '') + '">' + submenuHtml + '</ul>' +
+        '</li>' +
+        '<li class="menu-item">' +
+        '<a href="' + pageHref('mdm_order_queue.html') + '" class="menu-link' + (isQueuePage ? ' active' : '') + '">' +
+        '<img src="' + assetHref('image/任务管理.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
+        '<span>排队记录</span>' +
+        '</a>' +
         '</li>' +
         '</ul>' +
         '</aside>';

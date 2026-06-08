@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 排队记录</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-order.css">
+    <link rel="stylesheet" href="../css/lf-order-queue.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/order-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="order-page">
+                <div class="order-page-tabs">
+                    <a href="../index.html" class="order-page-tabs__item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5L12 4l8 6.5V19a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-8.5z"/></svg>
+                        首页
+                    </a>
+                    <span class="order-page-tabs__item order-page-tabs__item--active">
+                        排队记录
+                        <button type="button" class="order-page-tabs__close" aria-label="关闭">×</button>
+                    </span>
+                </div>
+
+                <div class="order-page-body">
+                    <section class="queue-filter-card">
+                        <form class="queue-filter-form" id="queueFilterForm">
+                            <div class="queue-filter-grid">
+                                <div class="queue-filter-field">
+                                    <label class="queue-filter-field__label" for="qCreateStart">创建时间</label>
+                                    <div class="queue-date-range">
+                                        <input class="queue-filter-field__input" id="qCreateStart" type="date" value="2026-01-07">
+                                        <span class="queue-date-range__sep" aria-hidden="true">→</span>
+                                        <input class="queue-filter-field__input" id="qCreateEnd" type="date" value="2026-01-07">
+                                    </div>
+                                </div>
+                                <div class="queue-filter-field">
+                                    <label class="queue-filter-field__label">完成时间</label>
+                                    <div class="queue-date-range">
+                                        <input class="queue-filter-field__input" id="qFinishStart" type="date" placeholder="开始日期">
+                                        <span class="queue-date-range__sep" aria-hidden="true">→</span>
+                                        <input class="queue-filter-field__input" id="qFinishEnd" type="date" placeholder="结束日期">
+                                    </div>
+                                </div>
+                                <div class="queue-filter-field">
+                                    <label class="queue-filter-field__label" for="qNickname">顾客昵称</label>
+                                    <input class="queue-filter-field__input" id="qNickname" type="text" placeholder="请输入顾客昵称">
+                                </div>
+                                <div class="queue-filter-field">
+                                    <label class="queue-filter-field__label" for="qPhone">手机号</label>
+                                    <input class="queue-filter-field__input" id="qPhone" type="text" placeholder="请输入手机号">
+                                </div>
+                            </div>
+                            <div class="queue-filter-grid queue-filter-grid--extra" id="queueFilterExtra">
+                                <div class="queue-filter-field">
+                                    <label class="queue-filter-field__label" for="qCaller">叫号人</label>
+                                    <input class="queue-filter-field__input" id="qCaller" type="text" placeholder="请输入叫号人名称">
+                                </div>
+                                <div class="queue-filter-field">
+                                    <label class="queue-filter-field__label" for="qArrived">是否到店</label>
+                                    <select class="queue-filter-field__select" id="qArrived">
+                                        <option value="">请选择</option>
+                                        <option value="yes">已到店</option>
+                                        <option value="no">未到店</option>
+                                    </select>
+                                </div>
+                                <div class="queue-filter-field">
+                                    <label class="queue-filter-field__label" for="qQueueStatus">排队状态</label>
+                                    <select class="queue-filter-field__select" id="qQueueStatus">
+                                        <option value="">请选择排队状态</option>
+                                        <option value="queuing">排队中</option>
+                                        <option value="completed">已完成</option>
+                                        <option value="cancelled">已取消</option>
+                                    </select>
+                                </div>
+                                <div class="queue-filter-field">
+                                    <label class="queue-filter-field__label" for="qOrg">归属组织</label>
+                                    <select class="queue-filter-field__select" id="qOrg">
+                                        <option value="">请选择归属组织</option>
+                                        <option value="org1">悠悠生鲜超市</option>
+                                        <option value="org2">华强北门店组织</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="queue-filter-actions">
+                                <button type="button" class="queue-filter-btn queue-filter-btn--primary" id="queueFilterSearch">搜索</button>
+                                <button type="button" class="queue-filter-btn queue-filter-btn--default" id="queueFilterReset">重置</button>
+                                <button type="button" class="queue-filter-btn queue-filter-btn--text" id="queueFilterExpand">
+                                    <span id="queueFilterExpandLabel">收起更多筛选</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 15l6-6 6 6"/></svg>
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="queue-table-card">
+                        <div class="queue-table-wrap">
+                            <table class="queue-table">
+                                <thead>
+                                    <tr>
+                                        <th>排队号</th>
+                                        <th>顾客昵称</th>
+                                        <th>手机号</th>
+                                        <th>是否到店</th>
+                                        <th>排队状态</th>
+                                        <th>会员留言</th>
+                                        <th>系统备注</th>
+                                        <th>归属商户</th>
+                                        <th>归属门店</th>
+                                        <th>叫号人</th>
+                                        <th>叫号时间</th>
+                                        <th>创建时间</th>
+                                        <th>完成时间</th>
+                                        <th>到店时间</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr data-queue-nickname="小帅">
+                                        <td>1</td>
+                                        <td>小帅</td>
+                                        <td>187****8888</td>
+                                        <td><span class="queue-tag queue-tag--arrived">已到店</span></td>
+                                        <td><span class="queue-status queue-status--completed">已完成</span></td>
+                                        <td class="js-queue-member-message">-</td>
+                                        <td>-</td>
+                                        <td>悠悠生鲜</td>
+                                        <td>小店</td>
+                                        <td>黄奇</td>
+                                        <td>2026-01-07 18:55:44</td>
+                                        <td>2026-01-07 18:54:06</td>
+                                        <td>2026-01-07 18:55:44</td>
+                                        <td>2026-01-07 18:53:40</td>
+                                    </tr>
+                                    <tr data-queue-nickname="秦羽">
+                                        <td>1</td>
+                                        <td>秦羽</td>
+                                        <td>166****7777</td>
+                                        <td><span class="queue-tag queue-tag--arrived">已到店</span></td>
+                                        <td><span class="queue-status queue-status--completed">已完成</span></td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>悠悠生鲜</td>
+                                        <td>小店</td>
+                                        <td>冯建</td>
+                                        <td>2026-01-07 18:53:40</td>
+                                        <td>2026-01-07 18:53:40</td>
+                                        <td>2026-01-07 18:53:40</td>
+                                        <td>2026-01-07 18:53:19</td>
+                                    </tr>
+                                    <tr data-queue-nickname="张涛">
+                                        <td>1</td>
+                                        <td>张涛</td>
+                                        <td>138****6666</td>
+                                        <td><span class="queue-tag queue-tag--not-arrived">未到店</span></td>
+                                        <td><span class="queue-status queue-status--cancelled">已取消</span></td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>悠悠生鲜</td>
+                                        <td>小店</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>2026-01-07 18:46:50</td>
+                                        <td>2026-01-07 18:46:50</td>
+                                        <td>-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="queue-pagination">
+                            <span class="queue-pagination__total">共3条数据</span>
+                            <div class="queue-pagination__controls">
+                                <button type="button" class="queue-pagination__btn" disabled aria-label="上一页">‹</button>
+                                <button type="button" class="queue-pagination__btn is-active">1</button>
+                                <button type="button" class="queue-pagination__btn" disabled aria-label="下一页">›</button>
+                            </div>
+                            <select class="queue-pagination__size" aria-label="每页条数">
+                                <option selected>10 条/页</option>
+                                <option>20 条/页</option>
+                                <option>50 条/页</option>
+                            </select>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/order-queue-list.js"></script>
+</body>
+</html>

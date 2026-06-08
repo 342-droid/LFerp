@@ -205,11 +205,44 @@
   line-height: 1.4;
 }
 
-.ua-queue-message__placeholder {
+.ua-queue-message__form {
+  margin-top: 8px;
+}
+
+.ua-queue-message__input {
+  display: block;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #333333;
+  background: #ffffff;
+  resize: none;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.ua-queue-message__input::placeholder {
+  color: #999999;
+}
+
+.ua-queue-message__input:focus {
+  outline: none;
+  border-color: #005835;
+}
+
+.ua-queue-message__status {
   margin-top: 6px;
   font-size: 12px;
-  color: #999999;
-  line-height: 1.5;
+  color: #005835;
+  line-height: 1.4;
+}
+
+.ua-queue-message__status[hidden] {
+  display: none;
 }
 
 .ua-queue-actions {

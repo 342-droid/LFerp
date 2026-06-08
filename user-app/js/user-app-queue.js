@@ -1,6 +1,8 @@
 (function () {
   var STORAGE_KEY = 'ua_queue_status';
   var ARRIVAL_KEY = 'ua_queue_arrival';
+  var MESSAGE_KEY = 'ua_queue_store_messages';
+  var QUEUE_NICKNAME = '小帅';
   var STATUS_NOT_ARRIVED = '未到店';
   var STATUS_ARRIVED = '已到店';
   var TIP_NOT_ARRIVED = '到店后需扫描门店二维码进行排队提货';
@@ -43,7 +45,10 @@
             '<div class="ua-queue-bottom-wrap">' +
               '<div class="ua-queue-message">' +
                 '<p class="ua-queue-message__title">我的留言</p>' +
-                '<p class="ua-queue-message__placeholder">点击添加留言，方便导购了解您的需求</p>' +
+                '<form class="ua-queue-message__form" id="queueMessageForm">' +
+                  '<textarea id="queueMessageInput" class="ua-queue-message__input" rows="2" enterkeyhint="send" placeholder="点击添加留言，方便导购了解您的需求"></textarea>' +
+                  '<p class="ua-queue-message__status" id="queueMessageStatus" hidden></p>' +
+                '</form>' +
               '</div>' +
               '<div class="ua-queue-actions">' +
                 '<button type="button" class="ua-queue-btn ua-queue-btn--primary" id="viewPickupOrdersBtn">查看待提货订单</button>' +
@@ -93,6 +98,72 @@
     }
   }
 
+  function loadStoreMessages() {
+    try {
+      return JSON.parse(localStorage.getItem(MESSAGE_KEY) || '{}');
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveStoreMessage(text) {
+    var messages = loadStoreMessages();
+    messages[QUEUE_NICKNAME] = {
+      text: text,
+      sentAt: new Date().toISOString()
+    };
+    localStorage.setItem(MESSAGE_KEY, JSON.stringify(messages));
+    window.dispatchEvent(new CustomEvent('ua-queue-message-sent', {
+      detail: messages[QUEUE_NICKNAME]
+    }));
+  }
+
+  function formatSentTime(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ' 已发送至门店';
+  }
+
+  function initQueueMessage() {
+    var form = document.getElementById('queueMessageForm');
+    var input = document.getElementById('queueMessageInput');
+    var statusEl = document.getElementById('queueMessageStatus');
+    if (!form || !input) return;
+
+    var saved = loadStoreMessages()[QUEUE_NICKNAME];
+    if (saved && saved.text) {
+      input.value = saved.text;
+      if (statusEl) {
+        statusEl.textContent = formatSentTime(saved.sentAt);
+        statusEl.hidden = false;
+      }
+    }
+
+    function sendMessage() {
+      var text = input.value.trim();
+      if (!text) return;
+      saveStoreMessage(text);
+      if (statusEl) {
+        statusEl.textContent = formatSentTime(new Date().toISOString());
+        statusEl.hidden = false;
+      }
+      input.blur();
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      sendMessage();
+    });
+
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  }
+
   function handleStoreScan() {
     var params = new URLSearchParams(window.location.search);
     if (!params.has('storeScan')) return false;
@@ -123,6 +194,7 @@
     var scanned = handleStoreScan();
     updateFabLabel(openBtn);
     updateArrivalStatus();
+    initQueueMessage();
 
     function openModal() {
       if (!isQueuing()) {
