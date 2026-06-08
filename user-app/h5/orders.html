@@ -34,20 +34,20 @@
           <h1 class="ua-orders-nav__title">我的订单</h1>
         </div>
         <nav class="ua-orders-tabs">
-          <a href="#" class="ua-orders-tab ua-orders-tab--active">全部</a>
-          <a href="#" class="ua-orders-tab">待付款</a>
-          <a href="#" class="ua-orders-tab">待发货</a>
-          <a href="#" class="ua-orders-tab">待提货</a>
-          <a href="#" class="ua-orders-tab">待评价</a>
+          <a href="#" class="ua-orders-tab ua-orders-tab--active" data-tab="all">全部</a>
+          <a href="#" class="ua-orders-tab" data-tab="unpaid">待付款</a>
+          <a href="#" class="ua-orders-tab" data-tab="shipping">待发货</a>
+          <a href="#" class="ua-orders-tab" data-tab="pickup">待提货</a>
+          <a href="#" class="ua-orders-tab" data-tab="review">待评价</a>
         </nav>
       </header>
 
       <div class="ua-orders-list">
-        <article class="ua-order-card">
+        <article class="ua-order-card" data-status="pickup">
           <a href="order-detail-pickup.html" class="ua-order-card--link">
             <div class="ua-order-card__head">
               <span class="ua-order-store">悠悠生鲜超市</span>
-              <span class="ua-order-status ua-order-status--red">待提货(4月23日可提货)</span>
+              <span class="ua-order-status ua-order-status--red">待提货</span>
             </div>
             <div class="ua-order-card__body">
               <div class="ua-order-imgs">
@@ -72,7 +72,35 @@
           </div>
         </article>
 
-        <article class="ua-order-card">
+        <article class="ua-order-card" data-status="pickup">
+          <a href="order-detail-pickup.html" class="ua-order-card--link">
+            <div class="ua-order-card__head">
+              <span class="ua-order-store">悠悠生鲜超市</span>
+              <span class="ua-order-status ua-order-status--red">待提货</span>
+            </div>
+            <div class="ua-order-card__body">
+              <div class="ua-order-imgs">
+                <img src="../assets/order-detail-cherry.svg" alt="">
+                <img src="../assets/order-detail-orange.svg" alt="">
+                <img src="../assets/order-product-1.svg" alt="">
+              </div>
+              <div class="ua-order-sum">
+                <div class="ua-order-price"><small>¥</small>251<small>.90</small></div>
+                <div class="ua-order-count">共8件</div>
+              </div>
+            </div>
+          </a>
+          <div class="ua-order-card__foot">
+            <div class="ua-order-meta">
+              <span class="ua-order-date">2026-03-05 15:56</span>
+            </div>
+            <div class="ua-order-actions">
+              <a href="order-detail-pickup.html" class="ua-order-btn ua-order-btn--outline">查看详情</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="ua-order-card" data-status="unpaid">
           <div class="ua-order-card__head">
             <span class="ua-order-store">悠悠生鲜超市</span>
             <span class="ua-order-status">待付款</span>
@@ -98,7 +126,7 @@
           </div>
         </article>
 
-        <article class="ua-order-card">
+        <article class="ua-order-card" data-status="completed">
           <div class="ua-order-card__head">
             <span class="ua-order-store">悠悠生鲜超市</span>
             <span class="ua-order-status">已完成</span>
@@ -124,7 +152,7 @@
           </div>
         </article>
 
-        <article class="ua-order-card">
+        <article class="ua-order-card" data-status="refunded">
           <div class="ua-order-card__head">
             <span class="ua-order-store">悠悠生鲜超市</span>
             <span class="ua-order-status">已退款</span>
@@ -149,7 +177,7 @@
           </div>
         </article>
 
-        <article class="ua-order-card">
+        <article class="ua-order-card" data-status="cancelled">
           <div class="ua-order-card__head">
             <span class="ua-order-store">悠悠生鲜超市</span>
             <span class="ua-order-status">已取消</span>
@@ -176,37 +204,38 @@
           </div>
         </article>
 
-        <article class="ua-order-card">
-          <div class="ua-order-card__head">
-            <span class="ua-order-store">悠悠生鲜超市</span>
-            <span class="ua-order-status">待发货</span>
-          </div>
-          <div class="ua-order-card__body">
-            <div class="ua-order-imgs">
-              <img src="../assets/order-product-1.svg" alt="">
-              <img src="../assets/order-product-2.svg" alt="">
-              <img src="../assets/order-product-3.svg" alt="">
-              <img src="../assets/order-product-4.svg" alt="">
+        <article class="ua-order-card" data-status="shipping">
+          <a href="order-detail-shipping.html" class="ua-order-card--link">
+            <div class="ua-order-card__head">
+              <span class="ua-order-store">悠悠生鲜超市</span>
+              <span class="ua-order-status">待发货</span>
             </div>
-            <div class="ua-order-sum">
-              <div class="ua-order-price"><small>¥</small>128<small>.18</small></div>
-              <div class="ua-order-count">共5件</div>
+            <div class="ua-order-card__body">
+              <div class="ua-order-imgs">
+                <img src="../assets/order-detail-cherry.svg" alt="">
+              </div>
+              <div class="ua-order-sum">
+                <div class="ua-order-price"><small>¥</small>128<small>.18</small></div>
+                <div class="ua-order-count">共1件</div>
+              </div>
             </div>
-          </div>
+          </a>
           <div class="ua-order-card__foot">
             <div class="ua-order-meta">
-              <span class="ua-order-date">2026-03-10 19:06</span>
+              <span class="ua-order-date">2026-03-05 15:56</span>
             </div>
             <div class="ua-order-actions">
-              <a href="#" class="ua-order-btn ua-order-btn--outline">查看详情</a>
+              <a href="order-detail-shipping.html" class="ua-order-btn ua-order-btn--outline">查看详情</a>
             </div>
           </div>
         </article>
       </div>
 
+      <p class="ua-orders-empty" id="ordersEmpty" hidden>暂无相关订单</p>
       <p class="ua-orders-end">我也是有底线的～</p>
     </div>
   </div>
+  <script src="../js/user-app-orders.js"></script>
   <script src="../js/user-app-queue.js"></script>
 </body>
 </html>

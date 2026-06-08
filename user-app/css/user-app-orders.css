@@ -257,6 +257,22 @@
   border: 1px solid #ff4d4f;
 }
 
+.ua-order-card[hidden] {
+  display: none;
+}
+
+.ua-orders-empty {
+  padding: 48px 12px 24px;
+  text-align: center;
+  font-size: 14px;
+  color: #999999;
+  line-height: 1.5;
+}
+
+.ua-orders-empty[hidden] {
+  display: none;
+}
+
 .ua-orders-end {
   display: flex;
   align-items: center;

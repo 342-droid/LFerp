@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 销售订单</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/order-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">销售订单</button></div>
+            <hr class="content-divider">
+            <div class="content-title">订单 / 订单管理 / 销售订单</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group">
+                        <label>订单编号:</label>
+                        <div class="input-wrapper"><input id="qOrderNo"><span class="clear-btn">×</span></div>
+                    </div>
+                    <div class="form-group">
+                        <label>门店名称:</label>
+                        <div class="input-wrapper"><input id="qStoreName"><span class="clear-btn">×</span></div>
+                    </div>
+                    <div class="form-group">
+                        <label>订单状态:</label>
+                        <select id="qOrderStatus">
+                            <option value="">全部</option>
+                            <option value="unpaid">待付款</option>
+                            <option value="shipping">待发货</option>
+                            <option value="pickup">待提货</option>
+                            <option value="completed">已完成</option>
+                            <option value="refunded">已退款</option>
+                            <option value="cancelled">已取消</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button>
+                        <button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>订单编号</th>
+                                <th>门店名称</th>
+                                <th>会员昵称</th>
+                                <th>订单状态</th>
+                                <th>商品件数</th>
+                                <th>实付金额</th>
+                                <th>下单时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td>1089765423471123</td>
+                                <td>悠悠生鲜超市</td>
+                                <td>宁静致远</td>
+                                <td><span class="status inactive">待提货</span></td>
+                                <td>8</td>
+                                <td>¥251.90</td>
+                                <td>2026-03-05 15:56:10</td>
+                                <td class="action-links"><a href="#">查看详情</a></td>
+                            </tr>
+                            <tr>
+                                <td>1089765423471098</td>
+                                <td>悠悠生鲜超市</td>
+                                <td>宁静致远</td>
+                                <td><span class="status inactive">待提货</span></td>
+                                <td>5</td>
+                                <td>¥228.18</td>
+                                <td>2026-03-10 19:06:00</td>
+                                <td class="action-links"><a href="#">查看详情</a></td>
+                            </tr>
+                            <tr>
+                                <td>1089765423471086</td>
+                                <td>悠悠生鲜超市</td>
+                                <td>小程序用户A</td>
+                                <td><span class="status inactive">待发货</span></td>
+                                <td>1</td>
+                                <td>¥118.18</td>
+                                <td>2026-03-05 15:56:10</td>
+                                <td class="action-links"><a href="#">查看详情</a></td>
+                            </tr>
+                            <tr>
+                                <td>1089765423471075</td>
+                                <td>悠悠生鲜超市</td>
+                                <td>APP会员B</td>
+                                <td><span class="status inactive">待付款</span></td>
+                                <td>1</td>
+                                <td>¥99.18</td>
+                                <td>2026-03-10 19:06:00</td>
+                                <td class="action-links"><a href="#">查看详情</a></td>
+                            </tr>
+                            <tr>
+                                <td>1089765423471062</td>
+                                <td>悠悠生鲜超市</td>
+                                <td>演示会员4</td>
+                                <td><span class="status active">已完成</span></td>
+                                <td>3</td>
+                                <td>¥128.18</td>
+                                <td>2026-03-10 19:06:00</td>
+                                <td class="action-links"><a href="#">查看详情</a></td>
+                            </tr>
+                            <tr>
+                                <td>1089765423471051</td>
+                                <td>悠悠生鲜超市</td>
+                                <td>演示会员5</td>
+                                <td><span class="status inactive">已退款</span></td>
+                                <td>2</td>
+                                <td>¥128.18</td>
+                                <td>2026-03-10 19:06:00</td>
+                                <td class="action-links"><a href="#">查看详情</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+</body>
+</html>
