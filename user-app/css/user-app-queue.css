@@ -34,8 +34,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 22px;
+  padding: 0 22px 0 10px;
   background: rgba(0, 0, 0, 0.45);
+}
+
+.ua-fab-queue--over-modal {
+  z-index: 110;
 }
 
 .ua-queue-mask[hidden] {
@@ -91,6 +95,19 @@
   overflow: hidden;
 }
 
+.ua-queue-card.is-callable {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ua-queue-card.is-callable .ua-queue-card__body {
+  transition: background 0.2s ease;
+}
+
+.ua-queue-card.is-callable:active .ua-queue-card__body {
+  background: #fafafa;
+}
+
 .ua-queue-card__bar {
   display: flex;
   align-items: center;
@@ -118,9 +135,70 @@
   cursor: default;
 }
 
+.ua-queue-call-banner {
+  padding: 10px 14px;
+  background: #f54337;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.ua-queue-call-banner[hidden] {
+  display: none;
+}
+
 .ua-queue-card__body {
   padding: 14px 14px 16px;
   background: #ffffff;
+}
+
+.ua-queue-view[hidden] {
+  display: none;
+}
+
+.ua-queue-number-label {
+  font-size: 12px;
+  color: #999999;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.ua-queue-number {
+  margin-top: 6px;
+  text-align: center;
+  line-height: 1;
+}
+
+.ua-queue-number__value {
+  font-size: 72px;
+  font-weight: 700;
+  color: #f54337;
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: -2px;
+}
+
+.ua-queue-number__unit {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333333;
+  margin-left: 2px;
+}
+
+.ua-queue-arrival-time {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #999999;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.ua-queue-call-tip {
+  font-size: 12px;
+  color: #999999;
+  line-height: 1.5;
+  text-align: center;
 }
 
 .ua-queue-reserve-label {
@@ -189,6 +267,7 @@
 }
 
 .ua-queue-bottom-wrap {
+  position: relative;
   margin-top: 14px;
 }
 
