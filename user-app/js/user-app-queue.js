@@ -1,12 +1,16 @@
 (function () {
   var STORAGE_KEY = 'ua_queue_status';
   var ARRIVAL_KEY = 'ua_queue_arrival';
+  var ARRIVAL_TIME_KEY = 'ua_queue_arrival_time';
+  var CALLING_KEY = 'ua_queue_calling';
   var MESSAGE_KEY = 'ua_queue_store_messages';
   var QUEUE_NICKNAME = '小帅';
+  var QUEUE_NUMBER = '1';
   var STATUS_NOT_ARRIVED = '未到店';
   var STATUS_ARRIVED = '已到店';
   var TIP_NOT_ARRIVED = '到店后需扫描门店二维码进行排队提货';
   var TIP_ARRIVED = '已扫码到店，请耐心等待叫号';
+  var TIP_CALLING = '请留意叫号，点击刷新可更新最新排队信息';
 
   var WIDGET_HTML =
     '<button type="button" class="ua-fab-queue" id="openQueueBtn">去排队</button>' +
@@ -20,19 +24,34 @@
             '</svg>' +
           '</button>' +
         '</div>' +
-        '<div class="ua-queue-card">' +
+        '<div class="ua-queue-card" id="queueCard">' +
           '<div class="ua-queue-card__bar">' +
-            '<span>小帅</span>' +
+            '<span>' + QUEUE_NICKNAME + '</span>' +
             '<span id="queueArrivalStatus">未到店</span>' +
           '</div>' +
+          '<div class="ua-queue-call-banner" id="queueCallBanner" hidden>' +
+            QUEUE_NICKNAME + ' 正在呼叫您' +
+          '</div>' +
           '<div class="ua-queue-card__body">' +
-            '<p class="ua-queue-reserve-label">在线预约</p>' +
-            '<p class="ua-queue-reserve-title">预约成功</p>' +
-            '<div class="ua-queue-divider"></div>' +
-            '<p class="ua-queue-reserve-tip">到店后需扫描门店二维码进行排队提货</p>' +
+            '<div class="ua-queue-view" id="queueViewWaiting">' +
+              '<p class="ua-queue-reserve-label">在线预约</p>' +
+              '<p class="ua-queue-reserve-title">预约成功</p>' +
+              '<div class="ua-queue-divider"></div>' +
+              '<p class="ua-queue-reserve-tip" id="queueReserveTip">' + TIP_NOT_ARRIVED + '</p>' +
+            '</div>' +
+            '<div class="ua-queue-view" id="queueViewCalling" hidden>' +
+              '<p class="ua-queue-number-label">您的排队号</p>' +
+              '<div class="ua-queue-number">' +
+                '<span class="ua-queue-number__value">' + QUEUE_NUMBER + '</span>' +
+                '<span class="ua-queue-number__unit">号</span>' +
+              '</div>' +
+              '<p class="ua-queue-arrival-time" id="queueArrivalTime">到店时间 --:--</p>' +
+              '<div class="ua-queue-divider"></div>' +
+              '<p class="ua-queue-call-tip">' + TIP_CALLING + '</p>' +
+            '</div>' +
             '<div class="ua-queue-wait-row">' +
               '<p class="ua-queue-wait-text">前方等待 <em>0</em> 人</p>' +
-              '<button type="button" class="ua-queue-refresh">' +
+              '<button type="button" class="ua-queue-refresh" id="queueRefreshBtn">' +
                 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">' +
                   '<path d="M4 12a8 8 0 0113.7-5.7"/>' +
                   '<path d="M20 12a8 8 0 01-13.7 5.7"/>' +
@@ -72,8 +91,34 @@
     return sessionStorage.getItem(ARRIVAL_KEY) === 'arrived';
   }
 
+  function isCalling() {
+    return sessionStorage.getItem(CALLING_KEY) === 'calling';
+  }
+
+  function setCalling(calling) {
+    if (calling) {
+      sessionStorage.setItem(CALLING_KEY, 'calling');
+    } else {
+      sessionStorage.removeItem(CALLING_KEY);
+    }
+  }
+
   function setArrived(arrived) {
     sessionStorage.setItem(ARRIVAL_KEY, arrived ? 'arrived' : 'not_arrived');
+    if (arrived) {
+      sessionStorage.setItem(ARRIVAL_TIME_KEY, new Date().toISOString());
+    } else {
+      sessionStorage.removeItem(ARRIVAL_TIME_KEY);
+      setCalling(false);
+    }
+  }
+
+  function formatArrivalTime() {
+    var iso = sessionStorage.getItem(ARRIVAL_TIME_KEY);
+    if (!iso) return '--:--';
+    var d = new Date(iso);
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    return pad(d.getHours()) + ':' + pad(d.getMinutes());
   }
 
   function updateFabLabel(btn) {
@@ -82,7 +127,7 @@
 
   function updateArrivalStatus() {
     var statusEl = document.getElementById('queueArrivalStatus');
-    var tipEl = document.querySelector('.ua-queue-reserve-tip');
+    var tipEl = document.getElementById('queueReserveTip');
     if (!statusEl) return;
 
     if (isArrived()) {
@@ -96,6 +141,24 @@
       statusEl.title = '演示：点击模拟扫码到店';
       if (tipEl) tipEl.textContent = TIP_NOT_ARRIVED;
     }
+  }
+
+  function renderQueueView() {
+    var card = document.getElementById('queueCard');
+    var waitingView = document.getElementById('queueViewWaiting');
+    var callingView = document.getElementById('queueViewCalling');
+    var callBanner = document.getElementById('queueCallBanner');
+    var arrivalTimeEl = document.getElementById('queueArrivalTime');
+    if (!card || !waitingView || !callingView) return;
+
+    var calling = isArrived() && isCalling();
+    waitingView.hidden = calling;
+    callingView.hidden = !calling;
+    if (callBanner) callBanner.hidden = !calling;
+    if (arrivalTimeEl) arrivalTimeEl.textContent = '到店时间 ' + formatArrivalTime();
+
+    card.classList.toggle('is-calling', calling);
+    card.classList.toggle('is-callable', isArrived() && !calling);
   }
 
   function loadStoreMessages() {
@@ -190,10 +253,13 @@
     var closeBtn = document.getElementById('closeQueueBtn');
     var cancelBtn = document.getElementById('cancelQueueBtn');
     var pickupOrdersBtn = document.getElementById('viewPickupOrdersBtn');
+    var queueCard = document.getElementById('queueCard');
+    var refreshBtn = document.getElementById('queueRefreshBtn');
 
     var scanned = handleStoreScan();
     updateFabLabel(openBtn);
     updateArrivalStatus();
+    renderQueueView();
     initQueueMessage();
 
     function openModal() {
@@ -202,10 +268,13 @@
         updateFabLabel(openBtn);
       }
       mask.hidden = false;
+      openBtn.classList.add('ua-fab-queue--over-modal');
+      renderQueueView();
     }
 
     function closeModal() {
       mask.hidden = true;
+      openBtn.classList.remove('ua-fab-queue--over-modal');
     }
 
     function goToPickupOrders() {
@@ -223,9 +292,17 @@
     function cancelQueue() {
       setQueuing(false);
       setArrived(false);
+      setCalling(false);
       updateFabLabel(openBtn);
       updateArrivalStatus();
+      renderQueueView();
       closeModal();
+    }
+
+    function triggerCalling() {
+      if (!isArrived() || isCalling()) return;
+      setCalling(true);
+      renderQueueView();
     }
 
     if (scanned) {
@@ -234,12 +311,30 @@
 
     var statusEl = document.getElementById('queueArrivalStatus');
     if (statusEl) {
-      statusEl.addEventListener('click', function () {
+      statusEl.addEventListener('click', function (e) {
+        e.stopPropagation();
         if (isArrived()) return;
         setQueuing(true);
         setArrived(true);
         updateFabLabel(openBtn);
         updateArrivalStatus();
+        renderQueueView();
+      });
+    }
+
+    if (queueCard) {
+      queueCard.addEventListener('click', function (e) {
+        if (e.target.closest('button, a, textarea, input, select, #queueArrivalStatus, .ua-queue-message__form')) {
+          return;
+        }
+        triggerCalling();
+      });
+    }
+
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        renderQueueView();
       });
     }
 
