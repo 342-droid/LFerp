@@ -176,12 +176,6 @@
                                 <th>货主</th>
                                 <th>入库类型</th>
                                 <th>入库业务类型</th>
-                                <th>收货方式</th>
-                                <th>超收比例(%)</th>
-                                <th>默认收货储位</th>
-                                <th>自动上架</th>
-                                <th>默认上架储位</th>
-                                <th>超时关单</th>
                                 <th>是否启用</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
@@ -189,7 +183,7 @@
                             </tr>
                         </thead>
                         <tbody id="tableBody">
-                            <tr>
+                            <tr data-strategy-params='{"receiptMethod":"容器收货","overReceiptRatio":"0","defaultLocation":"A-01-01","autoPutaway":"是","putawayLocation":"B-01-01"}' data-timeout-close-config='{"enabled":false,"timeDimension":"","timeDimensionText":"","judgmentMinutes":null,"statusActions":{}}'>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>IS001</td>
                                 <td>南京仓采购入库策略</td>
@@ -197,12 +191,6 @@
                                 <td>C001-冷丰食品</td>
                                 <td>采购入库</td>
                                 <td>货到即配</td>
-                                <td>容器收货</td>
-                                <td>0</td>
-                                <td>A-01-01</td>
-                                <td>是</td>
-                                <td>B-01-01</td>
-                                <td>禁用</td>
                                 <td><span class="status active">启用</span></td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
@@ -211,7 +199,7 @@
                                     <a href="#" class="delete-btn">删除</a>
                                 </td>
                             </tr>
-                            <tr data-timeout-close-config='{"enabled":true,"timeDimension":"businessEnd","timeDimensionText":"营业结束时间","judgmentMinutes":120,"statusActions":{"初始":{"value":"actual","text":"按实收量关单"},"收货中":{"value":"plan","text":"按计划量关单"}}}'>
+                            <tr data-strategy-params='{"receiptMethod":"商品收货","overReceiptRatio":"0","defaultLocation":"A-02-01","autoPutaway":"否","putawayLocation":""}' data-timeout-close-config='{"enabled":true,"timeDimension":"businessEnd","timeDimensionText":"营业结束时间","judgmentMinutes":120,"statusActions":{"初始":{"value":"actual","text":"按实收量关单"},"收货中":{"value":"plan","text":"按计划量关单"}}}'>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>IS002</td>
                                 <td>南京仓调拨入库策略</td>
@@ -219,12 +207,6 @@
                                 <td>C001-冷丰食品</td>
                                 <td>调拨入库</td>
                                 <td>仓库调拨</td>
-                                <td>商品收货</td>
-                                <td>0</td>
-                                <td>A-02-01</td>
-                                <td>否</td>
-                                <td>-</td>
-                                <td>启用(营业结束时间/120分钟)</td>
                                 <td><span class="status inactive">禁用</span></td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
@@ -333,7 +315,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const page = new PageManager({
                 entityName: '入库策略',
-                statusColumnIndex: 13,
+                statusColumnIndex: 7,
                 detailView: { enabled: true },
                 
                 // 搜索区域下拉框
@@ -475,6 +457,13 @@
                         const overReceiptRatioInput = document.getElementById('overReceiptRatio').value.trim();
                         const overReceiptRatio = overReceiptRatioInput === '' ? '0' : overReceiptRatioInput;
                         const timeoutCloseConfig = collectTimeoutCloseConfig('');
+                        const strategyParams = {
+                            receiptMethod,
+                            overReceiptRatio,
+                            defaultLocation,
+                            autoPutaway,
+                            putawayLocation: putawayLocation === '-' ? '' : putawayLocation
+                        };
                         const newRow = page.addTableRow({
                             cells: [
                                 code,
@@ -483,18 +472,13 @@
                                 company,
                                 inboundType,
                                 businessType,
-                                receiptMethod,
-                                overReceiptRatio,
-                                defaultLocation,
-                                autoPutaway,
-                                putawayLocation,
-                                formatTimeoutCloseSummary(timeoutCloseConfig),
                                 { value: isEnabled, isStatus: true },
                                 page.getCurrentTimeStr(),
                                 '当前用户'
                             ]
                         });
                         if (newRow) {
+                            newRow.dataset.strategyParams = JSON.stringify(strategyParams);
                             newRow.dataset.timeoutCloseConfig = JSON.stringify(timeoutCloseConfig);
                         }
                         showToast('入库策略已保存', 'success');
@@ -530,20 +514,22 @@
                             return false;
                         }
                         const timeoutCloseConfig = collectTimeoutCloseConfig('edit');
+                        const strategyParams = {
+                            receiptMethod: document.getElementById('editReceiptMethod').value.trim(),
+                            overReceiptRatio: document.getElementById('editOverReceiptRatio').value.trim() || '0',
+                            defaultLocation: document.getElementById('editDefaultLocation').value.trim(),
+                            autoPutaway: document.getElementById('editAutoPutaway').value.trim(),
+                            putawayLocation: document.getElementById('editPutawayLocation').value.trim()
+                        };
                         page.updateTableRow(page.currentEditRow, {
                             2: document.getElementById('editStrategyName').value.trim(),
                             5: document.getElementById('editInboundType').value.trim(),
                             6: document.getElementById('editBusinessType').value.trim(),
-                            7: document.getElementById('editReceiptMethod').value.trim() || '-',
-                            8: document.getElementById('editOverReceiptRatio').value.trim() || '0',
-                            9: document.getElementById('editDefaultLocation').value.trim() || '-',
-                            10: document.getElementById('editAutoPutaway').value.trim() || '-',
-                            11: document.getElementById('editPutawayLocation').value.trim() || '-',
-                            12: formatTimeoutCloseSummary(timeoutCloseConfig),
-                            13: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
-                            14: page.getCurrentTimeStr(),
-                            15: '当前用户'
+                            7: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
+                            8: page.getCurrentTimeStr(),
+                            9: '当前用户'
                         });
+                        page.currentEditRow.dataset.strategyParams = JSON.stringify(strategyParams);
                         page.currentEditRow.dataset.timeoutCloseConfig = JSON.stringify(timeoutCloseConfig);
                         showToast('入库策略已更新', 'success');
                         page.currentEditRow = null;
@@ -559,10 +545,17 @@
                                 timeoutCloseConfig = null;
                             }
                         }
-                        const cellText = cells[12].textContent.trim();
+                        let strategyParams = {};
+                        if (row.dataset.strategyParams) {
+                            try {
+                                strategyParams = JSON.parse(row.dataset.strategyParams);
+                            } catch (e) {
+                                strategyParams = {};
+                            }
+                        }
                         const timeoutCloseEnabled = timeoutCloseConfig?.enabled != null
                             ? (timeoutCloseConfig.enabled ? '启用' : '禁用')
-                            : (cellText.startsWith('启用') ? '启用' : '禁用');
+                            : '禁用';
                         setTimeout(() => {
                             applyTimeoutCloseConfig('edit', timeoutCloseConfig, timeoutCloseEnabled);
                         }, 0);
@@ -573,13 +566,13 @@
                             editStrategyName: cells[2].textContent,
                             editInboundType: cells[5].textContent,
                             editBusinessType: cells[6].textContent,
-                            editReceiptMethod: cells[7].textContent === '-' ? '' : cells[7].textContent,
-                            editOverReceiptRatio: cells[8].textContent === '-' ? '0' : cells[8].textContent,
-                            editDefaultLocation: cells[9].textContent === '-' ? '' : cells[9].textContent,
-                            editAutoPutaway: cells[10].textContent === '-' ? '' : cells[10].textContent,
-                            editPutawayLocation: cells[11].textContent === '-' ? '' : cells[11].textContent,
+                            editReceiptMethod: strategyParams.receiptMethod || '',
+                            editOverReceiptRatio: strategyParams.overReceiptRatio || '0',
+                            editDefaultLocation: strategyParams.defaultLocation || '',
+                            editAutoPutaway: strategyParams.autoPutaway || '',
+                            editPutawayLocation: strategyParams.putawayLocation || '',
                             editTimeoutCloseEnabled: timeoutCloseEnabled,
-                            editIsEnabled: cells[13].querySelector('.status').textContent
+                            editIsEnabled: cells[7].querySelector('.status').textContent
                         };
                     }
                 },
