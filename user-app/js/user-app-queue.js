@@ -1,5 +1,10 @@
 (function () {
   var STORAGE_KEY = 'ua_queue_status';
+  var ARRIVAL_KEY = 'ua_queue_arrival';
+  var STATUS_NOT_ARRIVED = '未到店';
+  var STATUS_ARRIVED = '已到店';
+  var TIP_NOT_ARRIVED = '到店后需扫描门店二维码进行排队提货';
+  var TIP_ARRIVED = '已扫码到店，请耐心等待叫号';
 
   var WIDGET_HTML =
     '<button type="button" class="ua-fab-queue" id="openQueueBtn">去排队</button>' +
@@ -16,7 +21,7 @@
         '<div class="ua-queue-card">' +
           '<div class="ua-queue-card__bar">' +
             '<span>小帅</span>' +
-            '<span>未到店</span>' +
+            '<span id="queueArrivalStatus">未到店</span>' +
           '</div>' +
           '<div class="ua-queue-card__body">' +
             '<p class="ua-queue-reserve-label">在线预约</p>' +
@@ -41,7 +46,7 @@
                 '<p class="ua-queue-message__placeholder">点击添加留言，方便导购了解您的需求</p>' +
               '</div>' +
               '<div class="ua-queue-actions">' +
-                '<button type="button" class="ua-queue-btn ua-queue-btn--primary">查看待提货订单</button>' +
+                '<button type="button" class="ua-queue-btn ua-queue-btn--primary" id="viewPickupOrdersBtn">查看待提货订单</button>' +
                 '<button type="button" class="ua-queue-btn ua-queue-btn--secondary" id="cancelQueueBtn">取消排队</button>' +
               '</div>' +
             '</div>' +
@@ -58,8 +63,47 @@
     sessionStorage.setItem(STORAGE_KEY, queuing ? 'queuing' : 'idle');
   }
 
+  function isArrived() {
+    return sessionStorage.getItem(ARRIVAL_KEY) === 'arrived';
+  }
+
+  function setArrived(arrived) {
+    sessionStorage.setItem(ARRIVAL_KEY, arrived ? 'arrived' : 'not_arrived');
+  }
+
   function updateFabLabel(btn) {
     btn.textContent = isQueuing() ? '排队中' : '去排队';
+  }
+
+  function updateArrivalStatus() {
+    var statusEl = document.getElementById('queueArrivalStatus');
+    var tipEl = document.querySelector('.ua-queue-reserve-tip');
+    if (!statusEl) return;
+
+    if (isArrived()) {
+      statusEl.textContent = STATUS_ARRIVED;
+      statusEl.classList.add('ua-queue-arrival--arrived');
+      statusEl.removeAttribute('title');
+      if (tipEl) tipEl.textContent = TIP_ARRIVED;
+    } else {
+      statusEl.textContent = STATUS_NOT_ARRIVED;
+      statusEl.classList.remove('ua-queue-arrival--arrived');
+      statusEl.title = '演示：点击模拟扫码到店';
+      if (tipEl) tipEl.textContent = TIP_NOT_ARRIVED;
+    }
+  }
+
+  function handleStoreScan() {
+    var params = new URLSearchParams(window.location.search);
+    if (!params.has('storeScan')) return false;
+
+    setQueuing(true);
+    setArrived(true);
+    params.delete('storeScan');
+    var query = params.toString();
+    var nextUrl = window.location.pathname + (query ? '?' + query : '') + window.location.hash;
+    window.history.replaceState(null, '', nextUrl);
+    return true;
   }
 
   function init() {
@@ -74,8 +118,11 @@
     var openBtn = document.getElementById('openQueueBtn');
     var closeBtn = document.getElementById('closeQueueBtn');
     var cancelBtn = document.getElementById('cancelQueueBtn');
+    var pickupOrdersBtn = document.getElementById('viewPickupOrdersBtn');
 
+    var scanned = handleStoreScan();
     updateFabLabel(openBtn);
+    updateArrivalStatus();
 
     function openModal() {
       if (!isQueuing()) {
@@ -89,10 +136,43 @@
       mask.hidden = true;
     }
 
+    function goToPickupOrders() {
+      closeModal();
+      var ordersUrl = new URL('orders.html', window.location.href);
+      ordersUrl.searchParams.set('tab', 'pickup');
+      var onOrdersPage = /\/orders\.html$/i.test(window.location.pathname);
+      if (onOrdersPage && window.UaOrders && typeof window.UaOrders.setTab === 'function') {
+        window.UaOrders.setTab('pickup');
+        return;
+      }
+      window.location.href = ordersUrl.pathname + ordersUrl.search;
+    }
+
     function cancelQueue() {
       setQueuing(false);
+      setArrived(false);
       updateFabLabel(openBtn);
+      updateArrivalStatus();
       closeModal();
+    }
+
+    if (scanned) {
+      openModal();
+    }
+
+    var statusEl = document.getElementById('queueArrivalStatus');
+    if (statusEl) {
+      statusEl.addEventListener('click', function () {
+        if (isArrived()) return;
+        setQueuing(true);
+        setArrived(true);
+        updateFabLabel(openBtn);
+        updateArrivalStatus();
+      });
+    }
+
+    if (pickupOrdersBtn) {
+      pickupOrdersBtn.addEventListener('click', goToPickupOrders);
     }
 
     openBtn.addEventListener('click', openModal);

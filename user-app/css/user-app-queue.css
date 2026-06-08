@@ -102,6 +102,22 @@
   font-weight: 500;
 }
 
+#queueArrivalStatus {
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#queueArrivalStatus.ua-queue-arrival--arrived {
+  background: #ffffff;
+  color: #005835;
+  font-weight: 600;
+  cursor: default;
+}
+
 .ua-queue-card__body {
   padding: 14px 14px 16px;
   background: #ffffff;
