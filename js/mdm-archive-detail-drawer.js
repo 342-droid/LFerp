@@ -1241,7 +1241,7 @@
             productCount: cellPlain(c[9]),
             settleInfo: cellPlain(c[10]),
             withdrawPhone: cellPlain(c[11]),
-            channel: cellPlain(c[12]),
+            deliveryMode: cellPlain(c[12]),
             onboard: cellPlain(c[13]),
             status: cellStatus(c[14]),
             inboundWarehouse: readSupplierInboundWarehouseBinding(cellPlain(c[0]), cellPlain(c[2]))
@@ -1272,7 +1272,7 @@
         grid.appendChild(detailCell('供应商品数量', r.productCount));
         grid.appendChild(detailCell('结算信息', r.settleInfo));
         grid.appendChild(detailCell('可提现手机号', r.withdrawPhone));
-        grid.appendChild(detailCell('进件渠道', r.channel));
+        grid.appendChild(detailCell('配送方式', r.deliveryMode));
         grid.appendChild(detailCell('进件状态', r.onboard));
         grid.appendChild(detailCellTagged('供应商状态', r.status, true));
         p.appendChild(grid);
