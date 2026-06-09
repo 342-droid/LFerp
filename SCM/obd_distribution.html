@@ -16,11 +16,6 @@
         }
         /* 发货单状态：各状态独立配色 */
         .dist-st-initial { background-color: #fafafa; color: #595959; border-color: #d9d9d9; }
-        .dist-st-review-start { background-color: #e6f4ff; color: #1677ff; border-color: #91caff; }
-        .dist-st-review-done { background-color: #e6fffb; color: #08979c; border-color: #87e8de; }
-        .dist-st-load-start { background-color: #fffbe6; color: #d48806; border-color: #ffd591; }
-        .dist-st-load-done { background-color: #fff7e6; color: #d46b08; border-color: #ffc069; }
-        .dist-st-ship-start { background-color: #f9f0ff; color: #722ed1; border-color: #d3adf7; }
         .dist-st-ship-done { background-color: #f6ffed; color: #389e0d; border-color: #95de64; }
         .dist-st-canceled { background-color: #fff1f0; color: #cf1322; border-color: #ffa39e; }
         .dist-st-default { background-color: #f0f0f0; color: #434343; border-color: #d9d9d9; }
@@ -104,16 +99,7 @@
                             <input type="text" id="searchStatus" placeholder="请选择">
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchStatusDropdown">
-                                <div class="select-option" data-value="初始">初始</div>
-                                <div class="select-option" data-value="开始复核">开始复核</div>
-                                <div class="select-option" data-value="复核完成">复核完成</div>
-                                <div class="select-option" data-value="开始装载">开始装载</div>
-                                <div class="select-option" data-value="装载完成">装载完成</div>
-                                <div class="select-option" data-value="开始发货">开始发货</div>
-                                <div class="select-option" data-value="发货完成">发货完成</div>
-                                <div class="select-option" data-value="已取消">已取消</div>
-                            </div>
+                            <div class="select-dropdown" id="searchStatusDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -292,7 +278,7 @@
                 warehouse: 'W001-南京仓',
                 warehouseCode: 'W001',
                 distributionNo: 'FH2026041410200015',
-                status: '装载完成',
+                status: '初始',
                 carrier: '顺丰',
                 carrierCode: 'SF',
                 plateNumber: '沪A12345',
@@ -403,22 +389,6 @@
             '421211', '212141', '214121', '412121', '111143', '111341', '131141', '114113', '114311', '411113', '411311',
             '113141', '114131', '311141', '411131', '211412', '211214', '211232', '2331112'
         ];
-
-        const distributionStatusBadgeClass = {
-            '初始': 'dist-st-initial',
-            '开始复核': 'dist-st-review-start',
-            '复核完成': 'dist-st-review-done',
-            '开始装载': 'dist-st-load-start',
-            '装载完成': 'dist-st-load-done',
-            '开始发货': 'dist-st-ship-start',
-            '发货完成': 'dist-st-ship-done',
-            '已取消': 'dist-st-canceled'
-        };
-
-        function getDistributionStatusClass(status) {
-            if (!status) return 'dist-st-default';
-            return distributionStatusBadgeClass[status] || 'dist-st-default';
-        }
 
         function getCartonStatusClass(status) {
             if (status === '初始') return 'status-initial';
@@ -1130,6 +1100,7 @@
                 editModal: {},
                 deleteModal: {}
             });
+            renderSelectOptions('searchStatusDropdown', CommonOptions.distributionStatus);
             page.init();
 
             renderTable(filteredDistributionData);

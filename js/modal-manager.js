@@ -385,6 +385,12 @@ const CommonOptions = {
         { value: '过账失败', text: '过账失败' },
         { value: '已取消', text: '已取消' }
     ],
+    // 发货单状态选项
+    distributionStatus: [
+        { value: '初始', text: '初始' },
+        { value: '发货完成', text: '发货完成' },
+        { value: '已取消', text: '已取消' }
+    ],
     // 地点选项
     location: [
         { value: 'L001-南京地点', text: 'L001-南京地点' },
@@ -409,6 +415,19 @@ const CommonOptions = {
     ]
 };
 
+const distributionStatusBadgeClass = {
+    '初始': 'dist-st-initial',
+    '发货完成': 'dist-st-ship-done',
+    '已取消': 'dist-st-canceled'
+};
+
+function getDistributionStatusClass(status) {
+    if (!status) return 'dist-st-default';
+    return distributionStatusBadgeClass[status] || 'dist-st-default';
+}
+
 // 导出到全局
 window.ModalManager = ModalManager;
 window.CommonOptions = CommonOptions;
+window.getDistributionStatusClass = getDistributionStatusClass;
+window.distributionStatusBadgeClass = distributionStatusBadgeClass;
