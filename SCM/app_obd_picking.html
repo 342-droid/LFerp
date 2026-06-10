@@ -367,12 +367,6 @@
             text-align: center;
         }
 
-        .pick-line-muted {
-            font-size: 14px;
-            color: #888888;
-            margin-bottom: 10px;
-        }
-
         .pick-location-label-row {
             font-size: 14px;
             color: #333333;
@@ -1070,7 +1064,6 @@
                     <div class="pick-barcode-row">商品条码: <span id="pickBarcodeMain"></span></div>
                     <div id="pickBarcodeInputContainer"></div>
                     <div id="pickExpectedBox" class="pick-expected-box" tabindex="0"></div>
-                    <div class="pick-line-muted">批次: <span id="pickBatchNo"></span></div>
                 </div>
                 <button type="button" class="pick-confirm-btn" onclick="confirmPickExecute()">确定</button>
             </div>
@@ -1286,8 +1279,8 @@
             { name: '任务2: 李锦记财神蚝油510g', location: '1WK110552', done: 0, total: 21, unit: '瓶' }
         ];
         window.pickingLines = [
-            { location: '1WK110532', productName: '可口可乐600ml', barcode: '6901939651605', expectedQty: 21, unit: '箱', batch: '20190627_1' },
-            { location: '1WK110552', productName: '李锦记财神蚝油510g', barcode: '6912345678902', expectedQty: 21, unit: '瓶', batch: '20190628_1' }
+            { location: '1WK110532', productName: '可口可乐600ml', barcode: '6901939651605', expectedQty: 21, unit: '箱' },
+            { location: '1WK110552', productName: '李锦记财神蚝油510g', barcode: '6912345678902', expectedQty: 21, unit: '瓶' }
         ];
         window.pickingLineIndex = 0;
 
@@ -1633,7 +1626,6 @@
             document.getElementById('pickProductName').textContent = row.productName;
             setPickBarcodeDisplay(row.barcode);
             document.getElementById('pickExpectedBox').textContent = '应拣数量 ' + row.expectedQty + ' (' + row.unit + ')';
-            document.getElementById('pickBatchNo').textContent = row.batch;
             pickLocationInput.value = '';
             pickBarcodeOrQtyInput.value = '';
             resetPickingInputFlow();
