@@ -403,12 +403,6 @@
             text-align: center;
         }
 
-        .sort-line-muted {
-            font-size: 14px;
-            color: #888888;
-            margin-bottom: 10px;
-        }
-
         .sort-product-info-card {
             background-color: #f7fbff;
             border: 1px solid #d8e8f6;
@@ -831,7 +825,6 @@
                     <div class="sort-location-label-row">商品</div>
                     <input type="text" class="sort-field sort-field-barcode" id="sortBarcodeInput" placeholder="请扫描/输入商品" autocomplete="off">
                     <div id="sortExpectedBox" class="sort-expected-box" tabindex="0"></div>
-                    <div class="sort-line-muted">批次: <span id="sortBatchNo"></span></div>
                 </div>
                 <button type="button" class="sort-confirm-btn" onclick="confirmSortExecute()">确定</button>
             </div>
@@ -928,9 +921,9 @@
         ];
 
         window.sortingLines = [
-            { slot: 'G01-01', productName: '可口可乐600ml', barcode: '6901939651605', expectedQty: 12, unit: '件', batch: '20190627_1' },
-            { slot: 'G01-02', productName: '香蕉（把）', barcode: '6912345678902', expectedQty: 12, unit: '件', batch: '20190628_1' },
-            { slot: 'G01-03', productName: '橙子500g', barcode: '6912345678903', expectedQty: 12, unit: '件', batch: '20190629_1' }
+            { slot: 'G01-01', productName: '可口可乐600ml', barcode: '6901939651605', expectedQty: 12, unit: '件' },
+            { slot: 'G01-02', productName: '香蕉（把）', barcode: '6912345678902', expectedQty: 12, unit: '件' },
+            { slot: 'G01-03', productName: '橙子500g', barcode: '6912345678903', expectedQty: 12, unit: '件' }
         ];
 
         window.sortingLineIndex = 0;
@@ -1111,7 +1104,6 @@
             document.getElementById('sortTargetLocation').textContent = summary.targetLocation || '--';
             document.getElementById('sortOutboundNo').textContent = summary.outboundNo || '--';
             document.getElementById('sortExpectedBox').textContent = '应分拣数量 ' + row.expectedQty + ' (' + row.unit + ')';
-            document.getElementById('sortBatchNo').textContent = row.batch;
             sortSlotInput.value = '';
             sortBarcodeInput.value = '';
             resetSortInputFlow();
