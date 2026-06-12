@@ -56,6 +56,37 @@
     return store.onboardingStatus || '—';
   }
 
+  function buildStoreOnboardingPayload(store, summary) {
+    var s = summary || resolveStoreOnboardingSummary(store);
+    var onbShortName =
+      (s.fields && s.fields.short_name) || store.shortName || store.name || '';
+    var fields = Object.assign({}, s.fields || {});
+    if (!fields.bind_type) fields.bind_type = '门店';
+    if (!fields.bind_store_id && store.id != null) fields.bind_store_id = String(store.id);
+    return {
+      name: store.name || '',
+      shortName: onbShortName || '',
+      merchantNo: store.merchantUid || '',
+      phone: store.contactPhone || '',
+      address: store.detailAddress || store.address || '',
+      storeId: store.id,
+      storeSubject: store.storeSubject || '',
+      onboardingStatus: s.status || '',
+      onboardingAuditStatus: s.auditStatus || '',
+      onboardingNextAuditNode: s.nextAuditNode || '',
+      onboardingSubmittedAt: s.submittedAt || '',
+      onboardingFields: fields,
+    };
+  }
+
+  function navigateMerchantOnboarding(payload, isNew) {
+    var encoded = encodeURIComponent(JSON.stringify(payload || {}));
+    var hash = (isNew ? 'onboarding-by-payload/' : 'detail-by-payload/') + encoded;
+    location.href = (window.bdPage || function (x) {
+      return x;
+    })('mdm_bd_merchants.html#' + hash);
+  }
+
   function canSee(store) {
     if (AUDIT_ROLE === 'leader' && store.phase === 'awaiting_bd') return false;
     return true;
@@ -662,8 +693,11 @@
     var auditApproved = d === '审核成功';
     var alerts = '';
     if (store.phase === 'approved' && store.onboardingStatus === '待进件') {
+      var bannerPayload = escapeHtml(JSON.stringify(buildStoreOnboardingPayload(store, onboardingSummary)));
       alerts +=
-        '<div class="bd-audit-banner blue" style="margin:10px 12px">门店<strong>资料审核已通过</strong>，当前尚未发起<strong>商户进件</strong>。请尽快引导商户完成进件。<button type="button" style="margin-left:6px;border:none;background:none;color:var(--bd-primary);font-weight:700;cursor:pointer;text-decoration:underline" data-go-onboard>去进件</button></div>';
+        '<div class="bd-audit-banner blue" style="margin:10px 12px">门店<strong>资料审核已通过</strong>，当前尚未发起<strong>商户进件</strong>。请尽快引导商户完成进件。<button type="button" style="margin-left:6px;border:none;background:none;color:var(--bd-primary);font-weight:700;cursor:pointer;text-decoration:underline" data-go-onboard-new><span class="bd-onboard-payload" style="display:none">' +
+        bannerPayload +
+        '</span>去进件</button></div>';
     }
     if (store.phase === 'draft') {
       alerts +=
@@ -753,38 +787,37 @@
 
     var onbSuccess =
       onb === '进件成功' || onboardingSummary.auditStatus === '审核成功';
-    var onbShortName =
-      (onboardingSummary.fields && onboardingSummary.fields.short_name) ||
-      store.shortName ||
-      store.name ||
-      '';
     var onbPayloadEscaped = escapeHtml(
-      JSON.stringify({
-        name: store.name || '',
-        shortName: onbShortName || '',
-        merchantNo: store.merchantUid || '',
-        phone: store.contactPhone || '',
-        address: store.detailAddress || store.address || '',
-        onboardingStatus: onboardingSummary.status || '',
-        onboardingAuditStatus: onboardingSummary.auditStatus || '',
-        onboardingNextAuditNode: onboardingSummary.nextAuditNode || '',
-        onboardingSubmittedAt: onboardingSummary.submittedAt || '',
-        onboardingFields: onboardingSummary.fields || {},
-      })
+      JSON.stringify(buildStoreOnboardingPayload(store, onboardingSummary))
     );
-    var onbChip = onbSuccess
-      ? '<button type="button" data-go-onboard-detail style="border:none;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;' +
-        badgeClass('审核成功') +
+    var canOnboardNav =
+      onb === '待进件' || onb === '进件中' || onb === '进件成功' || onb === '进件失败';
+    var onbChip;
+    if (canOnboardNav) {
+      var isPendingOnboard = onb === '待进件';
+      var onbChipStyle = isPendingOnboard
+        ? 'background:rgba(100,116,139,.08);color:#475569'
+        : onb === '进件中'
+          ? badgeClass('审核中')
+          : onbSuccess
+            ? badgeClass('审核成功')
+            : badgeClass('审核失败');
+      onbChip =
+        '<button type="button" data-' +
+        (isPendingOnboard ? 'go-onboard-new' : 'go-onboard-detail') +
+        ' style="border:none;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:2px;' +
+        onbChipStyle +
         '">进件 · ' +
         escapeHtml(onb) +
         '<span class="bd-onboard-payload" style="display:none">' +
         onbPayloadEscaped +
-        '</span></button>'
-      : '<span style="border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700' +
-        (onb === '进件中' ? badgeClass('审核中') : 'background:rgba(100,116,139,.08);color:#475569') +
-        '">进件 · ' +
+        '</span></button>';
+    } else {
+      onbChip =
+        '<span style="border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;background:rgba(100,116,139,.08);color:#475569">进件 · ' +
         escapeHtml(onb) +
         '</span>';
+    }
 
     return (
       '<div class="bd-page-bar"><button type="button" class="bd-back" data-back-list>‹</button><h1>门店档案</h1>' +
@@ -1103,15 +1136,25 @@
         })('mdm_bd_merchants.html#onboarding');
       };
     });
+    function openMerchantOnboardingFromBtn(b, isNew) {
+      var payloadEl = b.querySelector('.bd-onboard-payload');
+      var payloadText = payloadEl ? payloadEl.textContent || '' : '';
+      var payload = {};
+      try {
+        payload = JSON.parse(payloadText || '{}');
+      } catch (e) {
+        payload = {};
+      }
+      navigateMerchantOnboarding(payload, isNew);
+    }
+    root.querySelectorAll('[data-go-onboard-new]').forEach(function (b) {
+      b.onclick = function () {
+        openMerchantOnboardingFromBtn(b, true);
+      };
+    });
     root.querySelectorAll('[data-go-onboard-detail]').forEach(function (b) {
       b.onclick = function () {
-        var payloadEl = b.querySelector('.bd-onboard-payload');
-        var payload = payloadEl ? payloadEl.textContent || '' : '';
-        location.href = (window.bdPage || function (x) {
-          return x;
-        })(
-          'mdm_bd_merchants.html#detail-by-payload/' + encodeURIComponent(payload)
-        );
+        openMerchantOnboardingFromBtn(b, false);
       };
     });
     root.querySelectorAll('[data-go-onboard-list]').forEach(function (b) {
