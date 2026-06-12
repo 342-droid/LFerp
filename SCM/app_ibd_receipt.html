@@ -283,10 +283,37 @@
             font-size: 16px;
             cursor: pointer;
             transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
         }
 
         .type-btn:hover {
             background-color: #e3f2fd;
+        }
+
+        .type-btn-label {
+            flex: 1;
+            text-align: left;
+        }
+
+        .type-btn-badge {
+            flex-shrink: 0;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            border-radius: 10px;
+            background-color: #f44336;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 20px;
+            text-align: center;
+        }
+
+        .type-btn-badge.is-empty {
+            display: none;
         }
 
         /* 列表页面 */
@@ -1103,55 +1130,29 @@
             <div class="type-query-content">
                 <div class="type-query-title">请选择类型</div>
                 <div class="type-buttons">
-                    <button class="type-btn" onclick="showListPage('采购入库')">采购入库</button>
-                    <button class="type-btn" onclick="showListPage('返配入库')">返配入库</button>
-                    <button class="type-btn" onclick="showListPage('调拨入库')">调拨入库</button>
-                    <button class="type-btn" onclick="showListPage('客退入库')">客退入库</button>
+                    <button class="type-btn" data-type="采购入库" onclick="showListPage('采购入库')">
+                        <span class="type-btn-label">采购入库</span>
+                        <span class="type-btn-badge" data-type-badge="采购入库">0</span>
+                    </button>
+                    <button class="type-btn" data-type="返配入库" onclick="showListPage('返配入库')">
+                        <span class="type-btn-label">返配入库</span>
+                        <span class="type-btn-badge" data-type-badge="返配入库">0</span>
+                    </button>
+                    <button class="type-btn" data-type="调拨入库" onclick="showListPage('调拨入库')">
+                        <span class="type-btn-label">调拨入库</span>
+                        <span class="type-btn-badge" data-type-badge="调拨入库">0</span>
+                    </button>
+                    <button class="type-btn" data-type="客退入库" onclick="showListPage('客退入库')">
+                        <span class="type-btn-label">客退入库</span>
+                        <span class="type-btn-badge" data-type-badge="客退入库">0</span>
+                    </button>
                 </div>
             </div>
         </div>
 
         <!-- 列表页面 -->
         <div class="page" id="listPage">
-            <div class="list-content">
-                <!-- 入库单1 -->
-                <div class="receipt-item" onclick="showScanContainerPage(window.currentReceiptType || '采购入库', 'IB020260228112499')">
-                    <div class="receipt-header">
-                        <div class="receipt-type">采购入库</div>
-                        <div class="receipt-status">初始</div>
-                    </div>
-                    <div class="receipt-info">
-                        <div data-label="入库单号:"><span>IB020260228112499</span></div>
-                        <div data-label="来源单号:"><span>P0202511190001</span></div>
-                        <div data-label="关联单号:"><span>S0202511190001</span></div>
-                        <div data-label="货主:"><span>Y001-南京货主</span></div>
-                        <div data-label="供应商:"><span>G001-浙江XX公司</span></div>
-                        <div data-label="承运商:"><span>京东物流</span></div>
-                        <div data-label="车牌号:"><span>沪A12345</span></div>
-                        <div data-label="来源地:"><span></span></div>
-                        <div data-label="备注:"><span></span></div>
-                    </div>
-                </div>
-
-                <!-- 入库单2 -->
-                <div class="receipt-item" onclick="showScanContainerPage(window.currentReceiptType || '采购入库', 'IB020260228112401')">
-                    <div class="receipt-header">
-                        <div class="receipt-type">采购入库</div>
-                        <div class="receipt-status">收货中</div>
-                    </div>
-                    <div class="receipt-info">
-                        <div data-label="入库单号:"><span>IB020260228112401</span></div>
-                        <div data-label="来源单号:"><span>P0202511190002</span></div>
-                        <div data-label="关联单号:"><span>S0202511190002</span></div>
-                        <div data-label="货主:"><span>Y001-南京货主</span></div>
-                        <div data-label="供应商:"><span>G001-浙江XX公司</span></div>
-                        <div data-label="承运商:"><span>京东物流</span></div>
-                        <div data-label="车牌号:"><span>沪A12345</span></div>
-                        <div data-label="来源地:"><span></span></div>
-                        <div data-label="备注:"><span></span></div>
-                    </div>
-                </div>
-            </div>
+            <div class="list-content" id="receiptListContent"></div>
         </div>
 
         <!-- 入库单录入页面 -->
@@ -1654,6 +1655,126 @@
         let pendingCancelReceipt = null;
         window.currentReceiptType = window.currentReceiptType || '';
 
+        const receiptRecords = [
+            {
+                no: 'IB020260228112499',
+                type: '采购入库',
+                statusLabel: '初始',
+                sourceNo: 'P0202511190001',
+                relatedNo: 'S0202511190001',
+                owner: 'Y001-南京货主',
+                supplier: 'G001-浙江XX公司',
+                carrier: '京东物流',
+                plateNo: '沪A12345',
+                sourceWarehouse: '',
+                remark: ''
+            },
+            {
+                no: 'IB020260228112401',
+                type: '返配入库',
+                statusLabel: '收货中',
+                sourceNo: 'R0202511190006',
+                relatedNo: 'S0202511190006',
+                owner: 'Y001-南京货主',
+                supplier: 'G001-浙江XX公司',
+                carrier: '京东物流',
+                plateNo: '沪B23567',
+                sourceWarehouse: '',
+                remark: ''
+            },
+            {
+                no: 'IB020260228113002',
+                type: '调拨入库',
+                statusLabel: '已关闭',
+                sourceNo: 'T0202511190009',
+                relatedNo: 'S0202511190009',
+                owner: 'Y001-南京货主',
+                supplier: 'G001-浙江XX公司',
+                carrier: '京东物流',
+                plateNo: '浙A88888',
+                sourceWarehouse: 'W002-嘉兴仓',
+                remark: ''
+            },
+            {
+                no: 'IB020260228113145',
+                type: '采购入库',
+                statusLabel: '已关闭',
+                sourceNo: 'P0202511190033',
+                relatedNo: 'S0202511190033',
+                owner: 'Y001-南京货主',
+                supplier: 'G001-浙江XX公司',
+                carrier: '京东物流',
+                plateNo: '苏C12366',
+                sourceWarehouse: '',
+                remark: ''
+            },
+            {
+                no: 'IB020260228113501',
+                type: '客退入库',
+                statusLabel: '初始',
+                sourceNo: 'K0202511190012',
+                relatedNo: 'S0202511190012',
+                owner: 'Y001-南京货主',
+                supplier: 'G001-浙江XX公司',
+                carrier: '京东物流',
+                plateNo: '沪E55678',
+                sourceWarehouse: '',
+                remark: ''
+            }
+        ];
+
+        function getReceiptCountByType(type) {
+            return receiptRecords.filter((item) => item.type === type).length;
+        }
+
+        function updateTypeButtonCounts() {
+            document.querySelectorAll('[data-type-badge]').forEach((badge) => {
+                const type = badge.getAttribute('data-type-badge');
+                const count = getReceiptCountByType(type);
+                badge.textContent = String(count);
+                badge.classList.toggle('is-empty', count === 0);
+            });
+        }
+
+        function renderReceiptList(type, keyword) {
+            const listContent = document.getElementById('receiptListContent');
+            if (!listContent) return;
+
+            const normalizedKeyword = (keyword || '').trim().toLowerCase();
+            const filtered = receiptRecords.filter((item) => {
+                const typeMatched = !type || item.type === type;
+                if (!typeMatched) return false;
+                if (!normalizedKeyword) return true;
+                return [item.no, item.sourceNo, item.relatedNo, item.plateNo]
+                    .some((field) => String(field || '').toLowerCase().includes(normalizedKeyword));
+            });
+
+            if (!filtered.length) {
+                listContent.innerHTML = '<div class="empty-state">暂无入库单</div>';
+                return;
+            }
+
+            listContent.innerHTML = filtered.map((item) => `
+                <div class="receipt-item" onclick="showScanContainerPage('${item.type}', '${item.no}')">
+                    <div class="receipt-header">
+                        <div class="receipt-type">${item.type}</div>
+                        <div class="receipt-status">${item.statusLabel}</div>
+                    </div>
+                    <div class="receipt-info">
+                        <div data-label="入库单号:"><span>${item.no}</span></div>
+                        <div data-label="来源单号:"><span>${item.sourceNo}</span></div>
+                        <div data-label="关联单号:"><span>${item.relatedNo}</span></div>
+                        <div data-label="货主:"><span>${item.owner}</span></div>
+                        <div data-label="供应商:"><span>${item.supplier}</span></div>
+                        <div data-label="承运商:"><span>${item.carrier}</span></div>
+                        <div data-label="车牌号:"><span>${item.plateNo}</span></div>
+                        <div data-label="来源地:"><span>${item.sourceWarehouse || ''}</span></div>
+                        <div data-label="备注:"><span>${item.remark || ''}</span></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
         function isPurchaseReceiptType(type) {
             return type === '采购入库';
         }
@@ -1843,6 +1964,7 @@
             typeQueryPage.classList.add('active');
             headerTitle.textContent = '按类型查询';
             backBtn.setAttribute('onclick', 'showScanPage()');
+            updateTypeButtonCounts();
         }
 
         // 显示扫码查询页面
@@ -1867,32 +1989,7 @@
             backBtn.setAttribute('onclick', 'showTypeQueryPage()');
 
             window.currentReceiptType = type;
-            
-            // 更新列表页面的收货单类型
-            updateReceiptType(type);
-            
-            //入库，显示来源地 如果是调拨
-            updateSourceWarehouse(type);
-        }
-        
-        // 更新收货单类型
-        function updateReceiptType(type) {
-            const receiptTypes = document.querySelectorAll('.receipt-type');
-            receiptTypes.forEach(element => {
-                element.textContent = type;
-            });
-        }
-        
-        // 更新来源地
-        function updateSourceWarehouse(type) {
-            const sourceWarehouses = document.querySelectorAll('[data-label="来源地:"] span');
-            sourceWarehouses.forEach(element => {
-                if (type === '调拨入库') {
-                    element.textContent = 'W002-嘉兴仓';
-                } else {
-                    element.textContent = '';
-                }
-            });
+            renderReceiptList(type);
         }
 
         function confirmReceiptQuery() {
@@ -1909,6 +2006,8 @@
             listPage.classList.add('active');
             headerTitle.textContent = '查询入库单-列表';
             backBtn.setAttribute('onclick', 'showScanPage()');
+            window.currentReceiptType = '';
+            renderReceiptList('', value);
         }
 
         // 输入框回车事件
@@ -1964,6 +2063,7 @@
             listPage.classList.add('active');
             headerTitle.textContent = '查询入库单-列表';
             backBtn.setAttribute('onclick', 'showTypeQueryPage()');
+            renderReceiptList(window.currentReceiptType || '');
         }
 
         // 处理商品扫描（入库单录入页面不再区分容器/商品，仅扫描商品）
@@ -2509,6 +2609,8 @@
                 completeProductReceiptQty();
             }
         });
+
+        updateTypeButtonCounts();
     </script>
 </body>
 </html>
