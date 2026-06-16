@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 一键初始化</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .table th:last-child,
+        .table td:last-child {
+            position: static;
+            box-shadow: none;
+            min-width: auto;
+        }
+
+        .status-running {
+            background: #fff7e6;
+            color: #fa8c16;
+        }
+
+        #templateWarehouseModal .modal-content {
+            overflow: visible;
+        }
+
+        #templateWarehouseModal .modal-body {
+            overflow: visible;
+        }
+
+        #templateWarehouseModal .modal-body:has(.select-dropdown.show) {
+            position: relative;
+            z-index: 2;
+        }
+
+        #templateWarehouseModal .modal-footer {
+            position: relative;
+            z-index: 1;
+        }
+
+        #templateWarehouseModal .template-warehouse-table,
+        #templateWarehouseModal .template-warehouse-table thead,
+        #templateWarehouseModal .template-warehouse-table tbody {
+            overflow: visible;
+        }
+
+        #templateWarehouseModal .template-warehouse-table th,
+        #templateWarehouseModal .template-warehouse-table td {
+            vertical-align: middle;
+            overflow: visible;
+            position: relative;
+        }
+
+        #templateWarehouseModal .template-warehouse-table thead th {
+            position: static;
+            z-index: auto;
+        }
+
+        #templateWarehouseModal .custom-select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        #templateWarehouseModal .custom-select-wrapper:has(.select-dropdown.show) {
+            z-index: 5002;
+        }
+
+        #templateWarehouseModal tr:has(.select-dropdown.show) {
+            position: relative;
+            z-index: 5001;
+        }
+
+        #templateWarehouseModal .custom-select {
+            width: 100%;
+            min-width: 220px;
+            position: relative;
+        }
+
+        #templateWarehouseModal .custom-select input {
+            width: 100%;
+        }
+
+        #templateWarehouseModal .select-dropdown {
+            z-index: 5003;
+        }
+
+        #templateWarehouseModal tr:last-child .select-dropdown {
+            top: auto;
+            bottom: 100%;
+            border-top: 1px solid #ddd;
+            border-bottom: none;
+        }
+
+        #templateWarehouseModal tr:last-child .select-dropdown.show {
+            animation: slideUp 0.2s ease-out;
+        }
+
+        #executeInitModal .modal-content {
+            width: 520px;
+            max-width: calc(100vw - 48px);
+            max-height: none;
+        }
+
+        #executeInitModal .modal-form-group {
+            width: 100%;
+            align-items: flex-start;
+        }
+
+        #executeInitModal .modal-form-group label {
+            width: 88px;
+            padding-top: 8px;
+        }
+
+        #executeInitModal .modal-form-group textarea {
+            width: 100%;
+            min-height: 140px;
+            resize: vertical;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 14px;
+            line-height: 1.5;
+            box-sizing: border-box;
+        }
+
+        #executeInitModal .modal-form-group textarea:focus {
+            border-color: #ff6600;
+            box-shadow: 0 0 0 1px rgba(255, 102, 0, 0.3);
+            outline: none;
+        }
+
+        #executeInitModal .field-hint {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #999;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">一键初始化</button>
+            </div>
+
+            <hr class="content-divider">
+
+            <div class="content-title">运维工具 / 一键初始化</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="searchBtn">查询</button>
+                        <button type="button" class="btn btn-secondary" id="setTemplateWarehouseBtn">设置模板仓</button>
+                        <button type="button" class="btn btn-secondary" id="executeInitBtn">执行初始化</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table no-last-column-freeze">
+                        <thead>
+                            <tr>
+                                <th>初始化仓</th>
+                                <th>模板仓</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td>W006-深圳仓</td>
+                                <td>W001-南京仓</td>
+                                <td><span class="status active">执行成功</span></td>
+                                <td>2026-06-15 10:30:00</td>
+                                <td>张三</td>
+                            </tr>
+                            <tr>
+                                <td>W005-广州仓</td>
+                                <td>W001-南京仓</td>
+                                <td><span class="status status-running">执行中</span></td>
+                                <td>2026-06-14 15:20:00</td>
+                                <td>李四</td>
+                            </tr>
+                            <tr>
+                                <td>W004-北京仓</td>
+                                <td>W002-嘉兴仓</td>
+                                <td><span class="status inactive">执行失败</span></td>
+                                <td>2026-06-13 09:10:00</td>
+                                <td>王五</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="templateWarehouseModal" class="modal">
+        <div class="modal-content" style="width: 560px; max-height: none;">
+            <div class="modal-header">
+                <h2 class="modal-title">模板仓设置</h2>
+                <span class="close" id="templateWarehouseCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <table class="table no-last-column-freeze template-warehouse-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 140px;">仓库类型</th>
+                            <th>模板仓</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>仓库</td>
+                            <td>
+                                <div class="custom-select-wrapper">
+                                    <div class="custom-select">
+                                        <input type="text" id="templateWarehouseSelect" placeholder="请选择">
+                                        <span class="select-arrow">▼</span>
+                                        <span class="clear-btn">×</span>
+                                        <div class="select-dropdown" id="templateWarehouseSelectDropdown"></div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>门店</td>
+                            <td>
+                                <div class="custom-select-wrapper">
+                                    <div class="custom-select">
+                                        <input type="text" id="templateStoreSelect" placeholder="请选择">
+                                        <span class="select-arrow">▼</span>
+                                        <span class="clear-btn">×</span>
+                                        <div class="select-dropdown" id="templateStoreSelectDropdown"></div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="templateWarehouseCancelBtn">取消</button>
+                <button type="button" class="btn btn-primary" id="templateWarehouseSaveBtn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="executeInitModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">执行初始化</h2>
+                <span class="close" id="executeInitCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form class="modal-form">
+                    <div class="modal-form-group">
+                        <label>仓库编码</label>
+                        <div style="flex: 1; min-width: 0;">
+                            <textarea id="executeInitWarehouseCodes"></textarea>
+                            <div class="field-hint">支持输入多个仓库编码，多个编码之间使用英文逗号分隔。</div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="executeInitCancelBtn">取消</button>
+                <button type="button" class="btn btn-primary" id="executeInitConfirmBtn">执行</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        const TEMPLATE_WAREHOUSE_STORAGE_KEY = 'opsOneClickInitTemplateWarehouse';
+
+        const templateWarehouseOptions = (window.CommonOptions && CommonOptions.warehouse) || [
+            { value: 'W001', text: 'W001-南京仓' },
+            { value: 'W002', text: 'W002-嘉兴仓' },
+            { value: 'W003', text: 'W003-上海仓' },
+            { value: 'W004', text: 'W004-北京仓' },
+            { value: 'W005', text: 'W005-广州仓' },
+            { value: 'W006', text: 'W006-深圳仓' }
+        ];
+
+        const templateStoreOptions = [
+            { value: 'S001', text: 'S001-南京建邺店' },
+            { value: 'S002', text: 'S002-南京鼓楼店' },
+            { value: 'S003', text: 'S003-南京雨花店' },
+            { value: 'S004', text: 'S004-南京栖霞店' },
+            { value: 'S005', text: 'S005-南京江宁店' }
+        ];
+
+        function loadTemplateWarehouseConfig() {
+            try {
+                const raw = sessionStorage.getItem(TEMPLATE_WAREHOUSE_STORAGE_KEY);
+                return raw ? JSON.parse(raw) : {};
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function saveTemplateWarehouseConfig(config) {
+            sessionStorage.setItem(TEMPLATE_WAREHOUSE_STORAGE_KEY, JSON.stringify(config));
+        }
+
+        function setSelectValue(inputId, value, text) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            input.value = text || '';
+            input.dataset.value = value || '';
+        }
+
+        function getSelectValue(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) return { value: '', text: '' };
+            return {
+                value: input.dataset.value || '',
+                text: input.value.trim()
+            };
+        }
+
+        function openTemplateWarehouseModal() {
+            const modal = document.getElementById('templateWarehouseModal');
+            const config = loadTemplateWarehouseConfig();
+
+            setSelectValue(
+                'templateWarehouseSelect',
+                config.warehouseValue,
+                config.warehouseText
+            );
+            setSelectValue(
+                'templateStoreSelect',
+                config.storeValue,
+                config.storeText
+            );
+
+            modal.style.display = 'block';
+        }
+
+        function closeTemplateWarehouseModal() {
+            document.getElementById('templateWarehouseModal').style.display = 'none';
+        }
+
+        function openExecuteInitModal() {
+            const textarea = document.getElementById('executeInitWarehouseCodes');
+            if (textarea) {
+                textarea.value = '';
+            }
+            document.getElementById('executeInitModal').style.display = 'block';
+        }
+
+        function closeExecuteInitModal() {
+            document.getElementById('executeInitModal').style.display = 'none';
+        }
+
+        function parseWarehouseCodes(rawText) {
+            return String(rawText || '')
+                .split(/[,，\s]+/)
+                .map((code) => code.trim())
+                .filter(Boolean);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSelectOptions('templateWarehouseSelectDropdown', templateWarehouseOptions);
+            renderSelectOptions('templateStoreSelectDropdown', templateStoreOptions);
+            initCustomSelect('templateWarehouseSelect', 'templateWarehouseSelectDropdown');
+            initCustomSelect('templateStoreSelect', 'templateStoreSelectDropdown');
+
+            const page = new PageManager({
+                entityName: '一键初始化',
+                statusColumnIndex: 2,
+                checkboxColumn: false
+            });
+
+            page.init();
+
+            document.getElementById('searchBtn').addEventListener('click', () => {
+                location.reload();
+            });
+
+            document.getElementById('setTemplateWarehouseBtn').addEventListener('click', () => {
+                openTemplateWarehouseModal();
+            });
+
+            document.getElementById('executeInitBtn').addEventListener('click', () => {
+                openExecuteInitModal();
+            });
+
+            document.getElementById('templateWarehouseCloseBtn').addEventListener('click', closeTemplateWarehouseModal);
+            document.getElementById('templateWarehouseCancelBtn').addEventListener('click', closeTemplateWarehouseModal);
+            document.getElementById('templateWarehouseModal').addEventListener('click', (e) => {
+                if (e.target.id === 'templateWarehouseModal') {
+                    closeTemplateWarehouseModal();
+                }
+            });
+
+            document.getElementById('templateWarehouseSaveBtn').addEventListener('click', () => {
+                const warehouse = getSelectValue('templateWarehouseSelect');
+                const store = getSelectValue('templateStoreSelect');
+
+                if (!warehouse.text) {
+                    showToast('请选择仓库类型的模板仓', 'error');
+                    return;
+                }
+                if (!store.text) {
+                    showToast('请选择门店类型的模板仓', 'error');
+                    return;
+                }
+
+                saveTemplateWarehouseConfig({
+                    warehouseValue: warehouse.value,
+                    warehouseText: warehouse.text,
+                    storeValue: store.value,
+                    storeText: store.text
+                });
+                showToast('模板仓设置已保存', 'success');
+                closeTemplateWarehouseModal();
+            });
+
+            document.getElementById('executeInitCloseBtn').addEventListener('click', closeExecuteInitModal);
+            document.getElementById('executeInitCancelBtn').addEventListener('click', closeExecuteInitModal);
+            document.getElementById('executeInitModal').addEventListener('click', (e) => {
+                if (e.target.id === 'executeInitModal') {
+                    closeExecuteInitModal();
+                }
+            });
+
+            document.getElementById('executeInitConfirmBtn').addEventListener('click', () => {
+                const codes = parseWarehouseCodes(
+                    document.getElementById('executeInitWarehouseCodes').value
+                );
+
+                if (codes.length === 0) {
+                    showToast('请输入仓库编码', 'error');
+                    return;
+                }
+
+                showToast(`已提交 ${codes.length} 个仓库初始化任务`, 'success');
+                closeExecuteInitModal();
+            });
+        });
+    </script>
+</body>
+</html>

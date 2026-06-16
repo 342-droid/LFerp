@@ -76,6 +76,11 @@
         { href: 'negative_inventory.html', text: '负库存' }
     ];
 
+    // 运维工具菜单项
+    const opsToolsMenuItems = [
+        { href: 'ops_one_click_init.html', text: '一键初始化' }
+    ];
+
     // 判断当前页面属于哪个菜单
     const isBasicPage = basicMenuItems.some(item => item.href === currentPage);
     const isPermissionPage = permissionMenuItems.some(item => item.href === currentPage);
@@ -88,6 +93,7 @@
     const isInventoryAdjustPage = currentPage === 'inventory_adjustment.html';
     const isInnerWarehousePage = isInnerWarehouseInventoryPage || isInventoryAdjustPage;
     const isExceptionPage = exceptionMenuItems.some(item => item.href === currentPage);
+    const isOpsToolsPage = opsToolsMenuItems.some(item => item.href === currentPage);
 
     const basicMenuHtml = basicMenuItems.map(item => 
         '<li><a href="' + pageHref(item.href) + '"' + (item.href === currentPage ? ' class="active"' : '') + '>' + item.text + '</a></li>'
@@ -122,6 +128,10 @@
     ).join('');
 
     const taskMenuHtml = taskMenuItems.map(item =>
+        '<li><a href="' + pageHref(item.href) + '"' + (item.href === currentPage ? ' class="active"' : '') + '>' + item.text + '</a></li>'
+    ).join('');
+
+    const opsToolsMenuHtml = opsToolsMenuItems.map(item =>
         '<li><a href="' + pageHref(item.href) + '"' + (item.href === currentPage ? ' class="active"' : '') + '>' + item.text + '</a></li>'
     ).join('');
     
@@ -217,6 +227,14 @@
             '<button class="menu-toggle">▼</button>' +
             '</a>' +
             '<ul class="submenu' + (isExceptionPage ? ' expanded' : '') + '">' + exceptionMenuHtml + '</ul>' +
+            '</li>' +
+            '<li class="menu-item">' +
+            '<a href="#" class="menu-link" onclick="toggleSubmenu(this)">' +
+            '<img src="' + assetHref('image/任务管理.svg') + '" alt="运维工具" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
+            '<span>运维工具</span>' +
+            '<button class="menu-toggle">▼</button>' +
+            '</a>' +
+            '<ul class="submenu' + (isOpsToolsPage ? ' expanded' : '') + '">' + opsToolsMenuHtml + '</ul>' +
             '</li>' +
             '</ul>' +
             '</aside>';
