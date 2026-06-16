@@ -102,6 +102,78 @@
             min-width: 980px;
         }
 
+        .sku-thumb {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        .sku-thumb--clickable {
+            cursor: pointer;
+        }
+
+        .sku-thumb--clickable:hover {
+            border-color: #2196F3;
+        }
+
+        .sku-thumb-placeholder {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            color: #bbb;
+            font-size: 12px;
+        }
+
+        .sku-image-preview-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(0, 0, 0, 0.75);
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        .sku-image-preview-modal.active {
+            display: flex;
+        }
+
+        .sku-image-preview-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: min(90vw, 900px);
+            max-height: 90vh;
+        }
+
+        .sku-image-preview-title {
+            margin-bottom: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+            text-align: center;
+        }
+
+        .sku-image-preview-img {
+            max-width: 100%;
+            max-height: calc(90vh - 80px);
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        #skuImagePreviewCloseBtn {
+            margin-top: 16px;
+        }
+
     </style>
 </head>
 <body>
@@ -320,6 +392,14 @@
         </div>
     </div>
 
+    <div class="sku-image-preview-modal" id="skuImagePreviewModal">
+        <div class="sku-image-preview-content">
+            <div class="sku-image-preview-title" id="skuImagePreviewTitle"></div>
+            <img class="sku-image-preview-img" id="skuImagePreviewImg" alt="">
+            <button type="button" class="btn btn-secondary" id="skuImagePreviewCloseBtn">关闭</button>
+        </div>
+    </div>
+
     <!-- 引入公共脚本（订货明细数据与门店订货单页共用，见 purchase-store-order-data.js） -->
     <script src="../js/purchase-store-order-data.js"></script>
     <script src="../js/modal-manager.js"></script>
@@ -330,6 +410,7 @@
 (function() {
     const SKU_CATEGORY_TREE = window.SKU_CATEGORY_TREE;
     const resolvePurchaseStoreMarketingType = window.resolvePurchaseStoreMarketingType;
+    const resolvePurchaseStoreSkuImage = window.resolvePurchaseStoreSkuImage;
 
     const storeOrderLines = (window.PURCHASE_STORE_ORDER_LINES || []).map(function(row) {
         return Object.assign({}, row, {
@@ -557,6 +638,9 @@
                 map.set(key, {
                     skuCode: row.skuCode,
                     skuName: row.skuName,
+                    skuImage: typeof resolvePurchaseStoreSkuImage === 'function'
+                        ? resolvePurchaseStoreSkuImage(row)
+                        : '',
                     spec: row.spec || '-',
                     totalQty: 0,
                     storeKeys: new Set(),
@@ -572,6 +656,7 @@
             return {
                 skuCode: g.skuCode,
                 skuName: g.skuName,
+                skuImage: g.skuImage,
                 spec: g.spec,
                 totalQty: g.totalQty,
                 storeCount: g.storeKeys.size,
@@ -634,6 +719,36 @@
         return escapeHtml(String(qty) + u);
     }
 
+    function renderSkuImageCell(imageUrl, altText) {
+        var url = imageUrl ? String(imageUrl).trim() : '';
+        if (url) {
+            return '<td><img class="sku-thumb sku-thumb--clickable js-sku-image-preview" src="' + escapeAttr(url) + '" alt="' + escapeAttr(altText || '') + '" data-image-url="' + escapeAttr(url) + '" data-image-title="' + escapeAttr(altText || '') + '"></td>';
+        }
+        return '<td><span class="sku-thumb-placeholder">—</span></td>';
+    }
+
+    function getLargeSkuImageUrl(imageUrl) {
+        return String(imageUrl).replace(/\?w=\d+&h=\d+&fit=crop/, '?w=800&fit=crop');
+    }
+
+    function openSkuImagePreview(imageUrl, title) {
+        var url = imageUrl ? String(imageUrl).trim() : '';
+        if (!url) {
+            if (typeof showToast === 'function') {
+                showToast('暂无图片', 'warning');
+            }
+            return;
+        }
+        document.getElementById('skuImagePreviewTitle').textContent = title || '';
+        document.getElementById('skuImagePreviewImg').src = getLargeSkuImageUrl(url);
+        document.getElementById('skuImagePreviewModal').classList.add('active');
+    }
+
+    function closeSkuImagePreview() {
+        document.getElementById('skuImagePreviewModal').classList.remove('active');
+        document.getElementById('skuImagePreviewImg').src = '';
+    }
+
     function renderStoreOrderDetailRows(rows) {
         const tbody = document.getElementById('storeOrderDetailTbody');
         if (!tbody) return;
@@ -687,9 +802,11 @@
         let headHtml;
         if (currentDimension === 'product') {
             rows = aggregateByProduct(lines);
-            headHtml = '<tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>商品编码</th><th>商品名称</th><th>商品规格</th><th>订货量合计</th><th>涉及门店数</th></tr>';
+            headHtml = '<tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>商品图片</th><th>商品编码</th><th>商品名称</th><th>商品规格</th><th>订货量合计</th><th>涉及门店数</th></tr>';
             tbody.innerHTML = rows.map(function(r) {
-                return '<tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td><a href="#" class="detail-link js-open-order-detail" data-dimension="product" data-key="' + escapeAttr(r.skuCode) + '">' + escapeHtml(r.skuCode) + '</a></td><td>' + escapeHtml(r.skuName) + '</td><td>' + escapeHtml(r.spec) + '</td><td>' + formatQtyTotal(r.totalQty, r.qtyUnit) + '</td><td>' + r.storeCount + '</td></tr>';
+                return '<tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td>' +
+                    renderSkuImageCell(r.skuImage, r.skuName) +
+                    '<td><a href="#" class="detail-link js-open-order-detail" data-dimension="product" data-key="' + escapeAttr(r.skuCode) + '">' + escapeHtml(r.skuCode) + '</a></td><td>' + escapeHtml(r.skuName) + '</td><td>' + escapeHtml(r.spec) + '</td><td>' + formatQtyTotal(r.totalQty, r.qtyUnit) + '</td><td>' + r.storeCount + '</td></tr>';
             }).join('');
         } else if (currentDimension === 'store') {
             rows = aggregateByStore(lines);
@@ -717,6 +834,15 @@
     });
 
     document.getElementById('aggregateTbody').addEventListener('click', function(e) {
+        const thumb = e.target.closest('.js-sku-image-preview');
+        if (thumb) {
+            e.preventDefault();
+            openSkuImagePreview(
+                thumb.getAttribute('data-image-url') || '',
+                thumb.getAttribute('data-image-title') || ''
+            );
+            return;
+        }
         const link = e.target.closest('.js-open-order-detail');
         if (!link) return;
         e.preventDefault();
@@ -724,6 +850,21 @@
             link.getAttribute('data-dimension') || 'product',
             link.getAttribute('data-key') || ''
         );
+    });
+
+    document.getElementById('skuImagePreviewCloseBtn').addEventListener('click', closeSkuImagePreview);
+    document.getElementById('skuImagePreviewModal').addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'skuImagePreviewModal') {
+            closeSkuImagePreview();
+        }
+    });
+    document.getElementById('skuImagePreviewImg').addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeSkuImagePreview();
+        }
     });
 
     document.getElementById('storeOrderDetailCloseBtn').addEventListener('click', closeStoreOrderDetailModal);

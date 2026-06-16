@@ -32,6 +32,31 @@
      * @property {string} orderDate 订货日期 yyyy-MM-dd（筛选）
      * @property {string} [shipDate] 发货日期 yyyy-MM-dd（筛选，可空）
      */
+
+    /** 商品编码 -> 商品图片（列表展示用；行上可写 skuImage 覆盖） */
+    window.PURCHASE_DEMAND_SKU_IMAGES = {
+        SKU001: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=64&h=64&fit=crop',
+        SKU002: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=64&h=64&fit=crop',
+        SKU003: 'https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?w=64&h=64&fit=crop',
+        SKU004: 'https://images.unsplash.com/photo-1625772452859-1c03d5bf1137?w=64&h=64&fit=crop',
+        SKU005: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=64&h=64&fit=crop',
+        SKU006: 'https://images.unsplash.com/photo-1582515073490-39981397c445?w=64&h=64&fit=crop',
+        SKU007: 'https://images.unsplash.com/photo-1481391319762-47dff72954d9?w=64&h=64&fit=crop'
+    };
+
+    /**
+     * @param {Object} row
+     * @returns {string}
+     */
+    window.resolvePurchaseDemandSkuImage = function(row) {
+        if (row && row.skuImage) {
+            return String(row.skuImage).trim();
+        }
+        var code = row && row.skuCode ? String(row.skuCode).trim() : '';
+        var map = window.PURCHASE_DEMAND_SKU_IMAGES || {};
+        return code && map[code] ? map[code] : '';
+    };
+
     window.PURCHASE_DEMAND_DETAIL_LINES = [
         { purchaseType: '市场直采', orderNo: 'MDH20260420001', skuCode: 'SKU001', skuName: '红富士苹果', skuCategoryPath: '生鲜 / 水果 / 仁果类', storeCode: 'ST001', storeName: '南京新街口店', deliveryWarehouse: 'W001 南京仓', receivingWarehouse: 'W001 南京仓', supplier: '鲜果源商贸', orderQty: 30, salePrice: 228, unitPrice: 180, pendingQty: 30, orderTime: '2026-04-20 09:30:00', orderDate: '2026-04-20', shipDate: '2026-04-21' },
         { purchaseType: '市场直采', orderNo: 'MDH20260420002', skuCode: 'SKU001', skuName: '红富士苹果', skuCategoryPath: '生鲜 / 水果 / 仁果类', storeCode: 'ST002', storeName: '上海徐家汇店', deliveryWarehouse: 'W003 上海仓', receivingWarehouse: 'W003 上海仓', supplier: '鲜果源商贸', orderQty: 20, salePrice: 228, unitPrice: 180, pendingQty: 12, orderTime: '2026-04-20 11:00:00', orderDate: '2026-04-20', shipDate: '2026-04-22' },

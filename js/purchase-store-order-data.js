@@ -40,6 +40,26 @@
      * @param {Object} row
      * @returns {string}
      */
+    /** 商品编码 -> 商品图片（列表展示用；行上可写 skuImage 覆盖） */
+    window.PURCHASE_STORE_SKU_IMAGES = {
+        SKU001: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=64&h=64&fit=crop',
+        SKU002: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=64&h=64&fit=crop',
+        SKU003: 'https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?w=64&h=64&fit=crop'
+    };
+
+    /**
+     * @param {Object} row
+     * @returns {string}
+     */
+    window.resolvePurchaseStoreSkuImage = function(row) {
+        if (row && row.skuImage) {
+            return String(row.skuImage).trim();
+        }
+        var code = row && row.skuCode ? String(row.skuCode).trim() : '';
+        var map = window.PURCHASE_STORE_SKU_IMAGES || {};
+        return code && map[code] ? map[code] : '';
+    };
+
     window.resolvePurchaseStoreMarketingType = function(row) {
         if (row && row.marketingType) {
             return String(row.marketingType).trim();

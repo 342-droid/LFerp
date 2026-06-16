@@ -168,6 +168,78 @@
             margin-right: 6px;
             white-space: nowrap;
         }
+
+        .sku-thumb {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        .sku-thumb--clickable {
+            cursor: pointer;
+        }
+
+        .sku-thumb--clickable:hover {
+            border-color: #2196F3;
+        }
+
+        .sku-thumb-placeholder {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            color: #bbb;
+            font-size: 12px;
+        }
+
+        .sku-image-preview-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(0, 0, 0, 0.75);
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        .sku-image-preview-modal.active {
+            display: flex;
+        }
+
+        .sku-image-preview-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: min(90vw, 900px);
+            max-height: 90vh;
+        }
+
+        .sku-image-preview-title {
+            margin-bottom: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+            text-align: center;
+        }
+
+        .sku-image-preview-img {
+            max-width: 100%;
+            max-height: calc(90vh - 80px);
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        #skuImagePreviewCloseBtn {
+            margin-top: 16px;
+        }
     </style>
 </head>
 <body>
@@ -424,6 +496,14 @@
         </div>
     </div>
 
+    <div class="sku-image-preview-modal" id="skuImagePreviewModal">
+        <div class="sku-image-preview-content">
+            <div class="sku-image-preview-title" id="skuImagePreviewTitle"></div>
+            <img class="sku-image-preview-img" id="skuImagePreviewImg" alt="">
+            <button type="button" class="btn btn-secondary" id="skuImagePreviewCloseBtn">关闭</button>
+        </div>
+    </div>
+
     <script src="../js/purchase-demand-summary-data.js"></script>
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
@@ -432,6 +512,7 @@
 (function() {
     const rawDetailLines = window.PURCHASE_DEMAND_DETAIL_LINES || [];
     const SKU_CATEGORY_TREE = window.SKU_CATEGORY_TREE_PURCHASE_DEMAND;
+    const resolvePurchaseDemandSkuImage = window.resolvePurchaseDemandSkuImage;
     const SKU_SOURCE_MAP_BY_SKU = {
         SKU001: '普通商品',
         SKU002: '积分商品',
@@ -496,6 +577,36 @@
         return String(s)
             .replace(/&/g, '&amp;')
             .replace(/"/g, '&quot;');
+    }
+
+    function renderSkuImageCell(imageUrl, altText) {
+        var url = imageUrl ? String(imageUrl).trim() : '';
+        if (url) {
+            return '<td><img class="sku-thumb sku-thumb--clickable js-sku-image-preview" src="' + escapeAttr(url) + '" alt="' + escapeAttr(altText || '') + '" data-image-url="' + escapeAttr(url) + '" data-image-title="' + escapeAttr(altText || '') + '"></td>';
+        }
+        return '<td><span class="sku-thumb-placeholder">—</span></td>';
+    }
+
+    function getLargeSkuImageUrl(imageUrl) {
+        return String(imageUrl).replace(/\?w=\d+&h=\d+&fit=crop/, '?w=800&fit=crop');
+    }
+
+    function openSkuImagePreview(imageUrl, title) {
+        var url = imageUrl ? String(imageUrl).trim() : '';
+        if (!url) {
+            if (typeof showToast === 'function') {
+                showToast('暂无图片', 'warning');
+            }
+            return;
+        }
+        document.getElementById('skuImagePreviewTitle').textContent = title || '';
+        document.getElementById('skuImagePreviewImg').src = getLargeSkuImageUrl(url);
+        document.getElementById('skuImagePreviewModal').classList.add('active');
+    }
+
+    function closeSkuImagePreview() {
+        document.getElementById('skuImagePreviewModal').classList.remove('active');
+        document.getElementById('skuImagePreviewImg').src = '';
     }
 
     function detailInfoItemHtml(label, value) {
@@ -631,6 +742,9 @@
                 map.set(key, {
                     skuCode: row.skuCode,
                     skuName: row.skuName,
+                    skuImage: typeof resolvePurchaseDemandSkuImage === 'function'
+                        ? resolvePurchaseDemandSkuImage(row)
+                        : '',
                     spec: getRowSpec(row),
                     supplier: row.supplier,
                     orderQtySum: 0,
@@ -653,6 +767,7 @@
             return {
                 skuCode: g.skuCode,
                 skuName: g.skuName,
+                skuImage: g.skuImage,
                 spec: g.spec,
                 supplier: g.supplier,
                 orderQtySum: g.orderQtySum,
@@ -679,10 +794,10 @@
 
         const rows = buildSpecAggregates(filteredLines);
         countEl.textContent = String(rows.length);
-        thead.innerHTML = '<tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>商品编码</th><th>商品名称</th><th>商品规格</th><th>供应商</th><th>订货数</th><th>销售单价</th><th>采购单价</th><th>待采购量</th></tr>';
+        thead.innerHTML = '<tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>商品图片</th><th>商品编码</th><th>商品名称</th><th>商品规格</th><th>供应商</th><th>订货数</th><th>销售单价</th><th>采购单价</th><th>待采购量</th></tr>';
 
         if (rows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#999;">暂无数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#999;">暂无数据</td></tr>';
             return;
         }
 
@@ -690,6 +805,7 @@
             return '' +
                 '<tr>' +
                 '<td><input type="checkbox" class="table-checkbox checkbox-row"></td>' +
+                renderSkuImageCell(r.skuImage, r.skuName) +
                 '<td><a href="#" class="detail-link js-open-demand-detail" data-sku-code="' + escapeAttr(r.skuCode) + '" data-supplier="' + escapeAttr(r.supplier) + '" data-spec="' + escapeAttr(r.spec) + '">' + escapeHtml(r.skuCode) + '</a></td>' +
                 '<td>' + escapeHtml(r.skuName) + '</td>' +
                 '<td>' + escapeHtml(r.spec) + '</td>' +
@@ -1064,6 +1180,15 @@
     }
 
     document.getElementById('summaryTbody').addEventListener('click', function(e) {
+        const thumb = e.target.closest('.js-sku-image-preview');
+        if (thumb) {
+            e.preventDefault();
+            openSkuImagePreview(
+                thumb.getAttribute('data-image-url') || '',
+                thumb.getAttribute('data-image-title') || ''
+            );
+            return;
+        }
         const link = e.target.closest('.js-open-demand-detail');
         if (!link) return;
         e.preventDefault();
@@ -1072,6 +1197,21 @@
             link.getAttribute('data-supplier') || '',
             link.getAttribute('data-spec') || ''
         );
+    });
+
+    document.getElementById('skuImagePreviewCloseBtn').addEventListener('click', closeSkuImagePreview);
+    document.getElementById('skuImagePreviewModal').addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'skuImagePreviewModal') {
+            closeSkuImagePreview();
+        }
+    });
+    document.getElementById('skuImagePreviewImg').addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeSkuImagePreview();
+        }
     });
 
     document.getElementById('demandDetailCloseBtn').addEventListener('click', closeDetailModal);
