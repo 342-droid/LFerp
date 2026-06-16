@@ -458,6 +458,10 @@
     var f = collectPayloadFromForm();
     if (!f.storeSubject) return toastLines('请填写门店主体', '', true), false;
     if (!$('name').value.trim()) return toastLines('请填写门店名称', '', true), false;
+    if (!f.boundBd || !String(f.boundBd).trim() || f.boundBd === '—')
+      return toastLines('请填写绑定 BD', '', true), false;
+    if (!f.warehouse || !String(f.warehouse).trim() || f.warehouse === '—')
+      return toastLines('请选择配送仓库', '', true), false;
     if (!f.partnerDivision) return toastLines('请选择门店合作类型（加盟店/合作店/同行店）', '', true), false;
 
     var isCreate = state.mode === 'create';

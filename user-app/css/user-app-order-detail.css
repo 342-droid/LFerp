@@ -1,0 +1,307 @@
+/* 用户 APP — 订单详情页 */
+.ua-order-detail-page .ua-status-bar {
+  background: #ffffff;
+}
+
+.ua-order-detail-page .ua-mp-capsule {
+  top: 50px;
+}
+
+.ua-order-detail-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 44px;
+  background: #ffffff;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.ua-order-detail-body {
+  padding: 10px 12px 24px;
+}
+
+.ua-od-card {
+  margin-bottom: 10px;
+  background: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* —— 待发货信息 —— */
+.ua-od-shipping__status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 22px 14px 18px;
+}
+
+.ua-od-shipping__icon {
+  width: 44px;
+  height: 36px;
+}
+
+.ua-od-shipping__title {
+  margin-top: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #333333;
+  line-height: 1.3;
+}
+
+.ua-od-shipping__sub {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #999999;
+  line-height: 1.4;
+}
+
+.ua-od-shipping__divider {
+  height: 1px;
+  margin: 0 14px;
+  background: #f0f0f0;
+}
+
+.ua-od-product__spec + .ua-od-product__spec {
+  margin-top: 4px;
+}
+
+/* —— 提货信息 —— */
+.ua-od-pickup__status {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px 14px 14px;
+}
+
+.ua-od-pickup__icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ua-od-pickup__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333333;
+  line-height: 1.3;
+}
+
+.ua-od-pickup__sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #999999;
+  line-height: 1.4;
+}
+
+.ua-od-pickup__divider {
+  height: 1px;
+  margin: 0 14px;
+  background: #f0f0f0;
+}
+
+.ua-od-info-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.ua-od-info-row:first-of-type {
+  padding-top: 14px;
+}
+
+.ua-od-info-row:last-of-type {
+  padding-bottom: 14px;
+}
+
+.ua-od-info-label {
+  flex-shrink: 0;
+  width: 64px;
+  font-size: 13px;
+  color: #999999;
+  line-height: 1.5;
+}
+
+.ua-od-info-value {
+  flex: 1;
+  font-size: 13px;
+  color: #333333;
+  line-height: 1.5;
+  text-align: right;
+}
+
+.ua-od-info-value--addr .ua-od-store-name {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #333333;
+  line-height: 1.4;
+}
+
+.ua-od-info-value--addr .ua-od-store-addr {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #999999;
+  line-height: 1.5;
+}
+
+/* —— 商品卡片 —— */
+.ua-od-product {
+  padding: 14px;
+}
+
+.ua-od-product__main {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.ua-od-product__img {
+  width: 72px;
+  height: 72px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.ua-od-product__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ua-od-product__name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333333;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ua-od-product__price {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #333333;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.ua-od-product__spec {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #999999;
+  line-height: 1.4;
+}
+
+.ua-od-product__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.ua-od-product__tag {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #fff0f0;
+  font-size: 11px;
+  color: #ff4d4f;
+  line-height: 1.4;
+}
+
+.ua-od-product__tag--done {
+  flex: none;
+  background: #f0faf2;
+  color: #52c41a;
+}
+
+.ua-od-product__tag--partial {
+  background: #fff7e6;
+  color: #fa8c16;
+}
+
+.ua-od-refund-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 14px;
+  background: #ffffff;
+  font-size: 12px;
+  color: #333333;
+  text-decoration: none;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* —— 订单汇总 —— */
+.ua-od-summary {
+  padding: 4px 0;
+}
+
+.ua-od-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+}
+
+.ua-od-summary-label {
+  font-size: 13px;
+  color: #999999;
+  line-height: 1.4;
+}
+
+.ua-od-summary-value {
+  font-size: 13px;
+  color: #333333;
+  line-height: 1.4;
+  text-align: right;
+}
+
+.ua-od-summary-value--copy {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ua-od-copy {
+  font-size: 12px;
+  color: #999999;
+  text-decoration: none;
+}
+
+.ua-od-copy::before {
+  content: '|';
+  margin-right: 6px;
+  color: #e0e0e0;
+}
+
+.ua-od-summary-row--total .ua-od-summary-label {
+  color: #333333;
+  font-weight: 600;
+}
+
+.ua-od-summary-row--total .ua-od-summary-value {
+  font-size: 16px;
+  font-weight: 700;
+}

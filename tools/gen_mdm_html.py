@@ -201,7 +201,7 @@ def main():
         });"""
 
     with open(f"{LF}/mdm_super_admin_accounts.html", "w", encoding="utf-8") as f:
-        f.write(page_shell("冷丰WMS - 商户主体建档", "商户主体建档", "基础数据中心 / 主体中心 / 商户主体建档", sa_inner, tail_sa))
+        f.write(page_shell("冷丰WMS - 商户主体建档", "商户主体建档", "业务伙伴 / 商家主体 / 商户主体建档", sa_inner, tail_sa))
 
     # store archive
     STORE = [
@@ -242,15 +242,15 @@ def main():
     st_inner += "".join(store_row(r) for r in STORE) + "</tbody></table></div><div id=\"pagination-container\"></div></section>"
 
     with open(f"{LF}/mdm_archive_store.html", "w", encoding="utf-8") as f:
-        f.write(page_shell("冷丰WMS - 门店档案", "门店档案", "基础数据中心 / 资源中心 / 门店档案", st_inner, "        MdmErpLists.initArchiveStore();"))
+        f.write(page_shell("冷丰WMS - 门店档案", "门店档案", "业务伙伴 / 资源中心 / 门店档案", st_inner, "        MdmErpLists.initArchiveStore();"))
 
     # supplier
     SUP = [
-        ["SUP20188301", "小牛供应链", "超管创建仓库042402", "上海市/市辖区/浦东新区", "张江高科园区B座", "品牌商", "王敏", "138****2210", "2026-04-24 18:20:01", "128", "对公/订单结算/先货后款", "138****2210", "支付宝", "已进件", "正常"],
-        ["SUP20188302", "小牛供应链", "小牛供应链", "江苏省/苏州市/工业园区", "工业园区星湖街328号", "代理商", "牛强", "159****7788", "2026-04-23 12:11:09", "56", "对公/订单结算/先货后款", "159****7788", "微信", "进件中", "正常"],
-        ["SUP20188303", "珠宝集采中心", "珠宝集采中心", "广东省/深圳市/罗湖区", "罗湖区水贝一路", "个人", "钱多多", "—", "2026-04-22 09:45:33", "902", "对公/订单结算/先货后款", "—", "线下", "未进件", "冻结"],
+        ["SUP20188301", "小牛供应链", "超管创建仓库042402", "上海市/市辖区/浦东新区", "张江高科园区B座", "品牌商", "王敏", "138****2210", "2026-04-24 18:20:01", "128", "对公/订单结算/先货后款", "138****2210", "统配", "已进件", "正常"],
+        ["SUP20188302", "小牛供应链", "小牛供应链", "江苏省/苏州市/工业园区", "工业园区星湖街328号", "代理商", "牛强", "159****7788", "2026-04-23 12:11:09", "56", "对公/订单结算/先货后款", "159****7788", "直配", "进件中", "正常"],
+        ["SUP20188303", "珠宝集采中心", "珠宝集采中心", "广东省/深圳市/罗湖区", "罗湖区水贝一路", "个人", "钱多多", "—", "2026-04-22 09:45:33", "902", "对公/订单结算/先货后款", "—", "统配", "未进件", "冻结"],
     ]
-    sh = ["供应商ID", "主体名称", "供应商名称", "供应商地址", "供应商详细地址", "供应商类型", "负责人姓名", "手机号码", "创建时间", "供应商商品数量", "结算信息", "可提现手机号", "进件渠道", "进件状态", "供应商状态"]
+    sh = ["供应商ID", "主体名称", "供应商名称", "供应商地址", "供应商详细地址", "供应商类型", "负责人姓名", "手机号码", "创建时间", "供应商商品数量", "结算信息", "可提现手机号", "配送方式", "进件状态", "供应商状态"]
 
     def sup_row(c):
         parts = [esc(x) for x in c[:14]]
@@ -270,7 +270,7 @@ def main():
     sup_inner += "".join(sup_row(r) for r in SUP) + "</tbody></table></div><div id=\"pagination-container\"></div></section>"
 
     with open(f"{LF}/mdm_archive_supplier.html", "w", encoding="utf-8") as f:
-        f.write(page_shell("冷丰WMS - 供应商档案", "供应商档案", "基础数据中心 / 资源中心 / 供应商档案", sup_inner, "        MdmErpLists.initArchiveSupplier();"))
+        f.write(page_shell("冷丰WMS - 供应商档案", "供应商档案", "业务伙伴 / 资源中心 / 供应商档案", sup_inner, "        MdmErpLists.initArchiveSupplier();"))
 
     # warehouse
     WH = [
@@ -303,7 +303,7 @@ def main():
     wh_inner += "<p style=\"margin-top:10px;font-size:12px;color:#999;\">说明：仓库档案无进件；停用/启用二次确认。</p></section>"
 
     with open(f"{LF}/mdm_archive_warehouse.html", "w", encoding="utf-8") as f:
-        f.write(page_shell("冷丰WMS - 仓库档案", "仓库档案", "基础数据中心 / 资源中心 / 仓库档案", wh_inner, "        MdmErpLists.initArchiveWarehouse();"))
+        f.write(page_shell("冷丰WMS - 仓库档案", "仓库档案", "业务伙伴 / 资源中心 / 仓库档案", wh_inner, "        MdmErpLists.initArchiveWarehouse();"))
 
     # live room
     LV = [
@@ -332,7 +332,7 @@ def main():
     lv_inner += "<p style=\"margin-top:10px;font-size:12px;color:#999;\">维护直播间主数据；场次与货品在营运系统。</p></section>"
 
     with open(f"{LF}/mdm_archive_live_room.html", "w", encoding="utf-8") as f:
-        f.write(page_shell("冷丰WMS - 直播间档案", "直播间档案", "基础数据中心 / 资源中心 / 直播间档案", lv_inner, "        MdmErpLists.initArchiveLiveRoom();"))
+        f.write(page_shell("冷丰WMS - 直播间档案", "直播间档案", "业务伙伴 / 资源中心 / 直播间档案", lv_inner, "        MdmErpLists.initArchiveLiveRoom();"))
 
     # carrier
     CAR = [
@@ -360,7 +360,7 @@ def main():
     car_inner += "".join(car_row(r) for r in CAR) + "</tbody></table></div><div id=\"pagination-container\"></div></section>"
 
     with open(f"{LF}/mdm_archive_carrier.html", "w", encoding="utf-8") as f:
-        f.write(page_shell("冷丰WMS - 承运商档案", "承运商档案", "基础数据中心 / 资源中心 / 承运商档案", car_inner, "        MdmErpLists.initArchiveCarrier();"))
+        f.write(page_shell("冷丰WMS - 承运商档案", "承运商档案", "业务伙伴 / 资源中心 / 承运商档案", car_inner, "        MdmErpLists.initArchiveCarrier();"))
 
     # BD
     BD_ROWS = [
@@ -408,7 +408,7 @@ def main():
     bd_inner += "".join(f"<th>{esc(x)}</th>" for x in bdh) + "</tr></thead><tbody id=\"tableBody\">" + rows_bd + "</tbody></table></div><div id=\"pagination-container\"></div></section>"
 
     with open(f"{LF}/mdm_people_bd.html", "w", encoding="utf-8") as f:
-        f.write(page_shell("冷丰WMS - BD推广员", "BD推广员", "基础数据中心 / 人员中心 / BD", bd_inner, "        MdmErpLists.initPeopleBd();"))
+        f.write(page_shell("冷丰WMS - BD推广员", "BD推广员", "业务伙伴 / 人员中心 / BD", bd_inner, "        MdmErpLists.initPeopleBd();"))
 
     # driver / anchor simplified in second part...
 
@@ -453,7 +453,7 @@ def main():
     drv_inner += "".join(f"<th>{esc(x)}</th>" for x in drh) + "</tr></thead><tbody id=\"tableBody\">" + drv_body + "</tbody></table></div><div id=\"pagination-container\"></div></section>"
 
     with open(f"{LF}/mdm_people_driver.html", "w", encoding="utf-8") as f:
-        f.write(page_shell("冷丰WMS - 司机", "司机", "基础数据中心 / 人员中心 / 司机", drv_inner, "        MdmErpLists.initPeopleDriver();"))
+        f.write(page_shell("冷丰WMS - 司机", "司机", "业务伙伴 / 人员中心 / 司机", drv_inner, "        MdmErpLists.initPeopleDriver();"))
 
     ANC = [
         ["ANC5001", "周琳", "139****8899", "内容运营中心", "在岗", "上海冷丰科技有限公司", "139****8899", "2026-04-24 21:00:00"],
@@ -496,7 +496,7 @@ def main():
     anc_inner += "".join(f"<th>{esc(x)}</th>" for x in anh) + "</tr></thead><tbody id=\"tableBody\">" + anc_body + "</tbody></table></div><div id=\"pagination-container\"></div></section>"
 
     with open(f"{LF}/mdm_people_anchor.html", "w", encoding="utf-8") as f:
-        f.write(page_shell("冷丰WMS - 主播", "主播", "基础数据中心 / 人员中心 / 主播", anc_inner, "        MdmErpLists.initPeopleAnchor();"))
+        f.write(page_shell("冷丰WMS - 主播", "主播", "业务伙伴 / 人员中心 / 主播", anc_inner, "        MdmErpLists.initPeopleAnchor();"))
 
     MH = ["会员ID", "会员昵称", "会员头像", "手机号码", "性别", "是否会员", "会员标签", "会员来源", "绑定方式", "绑定渠道数量", "会员积分", "满意度时长(分)", "满意度反馈次数(建议)", "会员成长分", "成交金额", "成交订单数", "最近消费时间", "状态", "操作"]
 
@@ -549,7 +549,7 @@ def main():
     mem_inner += "".join(mem_row(m) for m in members) + "</tbody></table></div><div id=\"pagination-container\"></div></section>"
 
     with open(f"{LF}/mdm_member_c.html", "w", encoding="utf-8") as f:
-        f.write(page_shell("冷丰WMS - C端会员", "C端会员", "基础数据中心 / 会员中心 / C端会员列表", mem_inner, "        MdmErpLists.initMemberC();"))
+        f.write(page_shell("冷丰WMS - C端会员", "C端会员", "业务伙伴 / 会员中心 / C端会员列表", mem_inner, "        MdmErpLists.initMemberC();"))
 
     AUD = [
         dict(id="WF-STORE-20260507001", src="PC 创建门店", sub="冷丰演示门店", sn="冷丰演示门店文一西路店", bd="王强", ct="周敏", ph="138****2201", ast="待审核", mdm="未生成", ts="2026-05-07 15:20", rv=True),

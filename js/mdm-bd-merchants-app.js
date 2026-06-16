@@ -13,6 +13,20 @@
   var onboardStep = 0;
   var onboardDraft = null;
   var STEPS = ['执照信息', '商户信息', '结算信息', '门店场地'];
+  var STORE_SUBJECT_OPTIONS = [
+    { value: '', label: '请选择门店主体' },
+    { value: '307892034956427264', label: '冷丰演示门店' },
+    { value: '307892034956427265', label: '五角场体验店' },
+    { value: '307892034956427266', label: '张江快闪店' },
+    { value: 'm2', label: '演示主体-B' },
+  ];
+  var FALLBACK_STORE_BIND_OPTIONS = [
+    { value: '1', label: '鲜丰-文一西路 · MU20260315001' },
+    { value: '2', label: '老城烧烤-武林 · MU20260312008' },
+    { value: '3', label: '悦读-滨江店 · MU20260228003' },
+    { value: '4', label: '速达-庆春 · MU20260402015' },
+    { value: '5', label: '轻健身-五常 · MU20260405022' },
+  ];
 
   var DEMO_IMG =
     'data:image/svg+xml,' +
@@ -69,6 +83,38 @@
     return m.settlementType === '对公' ? '开户许可证' : '银行卡照片';
   }
 
+  function getStoreBindOptions() {
+    var base = [{ value: '', label: '请选择门店' }];
+    var audits = window.__BD_STORE_AUDITS__;
+    if (Array.isArray(audits) && audits.length) {
+      return base.concat(
+        audits.map(function (s) {
+          var name = String(s.shortName || s.name || '未命名门店');
+          var uid = s.merchantUid ? ' · ' + s.merchantUid : '';
+          return { value: String(s.id), label: name + uid };
+        })
+      );
+    }
+    return base.concat(FALLBACK_STORE_BIND_OPTIONS);
+  }
+
+  function optionLabel(options, value) {
+    var q = String(value == null ? '' : value);
+    var found = (options || []).find(function (o) {
+      return String(o.value) === q;
+    });
+    return found ? found.label : q;
+  }
+
+  function subjectIdByName(name) {
+    var q = String(name || '').trim();
+    if (!q) return '';
+    var found = STORE_SUBJECT_OPTIONS.find(function (o) {
+      return o.value && o.label === q;
+    });
+    return found ? found.value : '';
+  }
+
   function merchantById(id) {
     return merchants.find(function (x) {
       return String(x.id) === String(id);
@@ -95,6 +141,8 @@
       if (p.onboardingFields) byName.onboardingFields = cloneObj(p.onboardingFields);
       if (p.onboardingStatus) byName.onboardingStatus = p.onboardingStatus;
       if (p.onboardingSubmittedAt) byName.onboardingSubmittedAt = p.onboardingSubmittedAt;
+      if (p.storeId != null) byName.linkedStoreId = p.storeId;
+      if (p.storeSubject) byName.storeSubject = p.storeSubject;
       return byName;
     }
     var id = 'virtual-' + String(p.merchantNo || shortName || Date.now());
@@ -142,6 +190,8 @@
       agreementType: '电子协议',
       eSignStatus: '—',
       realNameAuthStatus: '—',
+      linkedStoreId: p.storeId != null ? p.storeId : '',
+      storeSubject: p.storeSubject || '',
       onboardingFields: cloneObj(p.onboardingFields || {}),
       onboardingStatus: p.onboardingStatus || '',
       onboardingSubmittedAt: p.onboardingSubmittedAt || '',
@@ -176,6 +226,9 @@
       store_header_pic: !!src.storeName,
       store_indoor_pic: false,
       store_cashier_desk_pic: false,
+      bind_type: '',
+      bind_subject_id: '',
+      bind_store_id: '',
     };
   }
 
@@ -199,6 +252,19 @@
     ['license_pic', 'legal_cert_front_pic', 'legal_cert_back_pic', 'open_license_pic', 'store_header_pic', 'store_indoor_pic', 'store_cashier_desk_pic'].forEach(function (k) {
       if (typeof ext[k] === 'boolean' || typeof ext[k] === 'string') base[k] = ext[k];
     });
+    if (ext.bind_type) base.bind_type = ext.bind_type;
+    if (ext.bind_subject_id) base.bind_subject_id = ext.bind_subject_id;
+    if (ext.bind_store_id) base.bind_store_id = ext.bind_store_id;
+    if (!base.bind_type) {
+      var linkedStoreId = src.linkedStoreId != null ? src.linkedStoreId : src.storeId;
+      if (linkedStoreId != null && String(linkedStoreId).trim()) {
+        base.bind_type = '门店';
+        if (!base.bind_store_id) base.bind_store_id = String(linkedStoreId);
+      } else if (src.storeSubject) {
+        base.bind_type = '门店主体';
+        if (!base.bind_subject_id) base.bind_subject_id = subjectIdByName(src.storeSubject);
+      }
+    }
     if (window.MdmUnifiedOnboardingUi && typeof window.MdmUnifiedOnboardingUi.getSummary === 'function') {
       var key = 'bdapp::merchant::' + String((src && (src.merchantNo || src.id)) || '');
       var sum = window.MdmUnifiedOnboardingUi.getSummary(key, base);
@@ -729,6 +795,13 @@
       detailRow('备注', esc(nz(m.remarks)));
 
     var relationInner =
+      detailRow('进件类型', esc(nz(ob.bind_type))) +
+      (ob.bind_type === '门店主体'
+        ? detailRow('绑定门店主体', esc(nz(optionLabel(STORE_SUBJECT_OPTIONS, ob.bind_subject_id))))
+        : '') +
+      (ob.bind_type === '门店'
+        ? detailRow('绑定门店', esc(nz(optionLabel(getStoreBindOptions(), ob.bind_store_id))))
+        : '') +
       detailRow('上级汇付号', esc(nz(m.headHuifuId))) +
       detailRow('结算主体类型', esc(nz(m.settlementBodyType || (m.isLegalPersonSettlement ? '独立结算' : '集团结算'))));
 
@@ -807,6 +880,72 @@
     );
   }
 
+  function fieldSelect(label, id, options, value, draftKey, extraAttrs) {
+    var opts = (options || [])
+      .map(function (o) {
+        return (
+          '<option value="' +
+          esc(o.value) +
+          '"' +
+          (String(o.value) === String(value == null ? '' : value) ? ' selected' : '') +
+          '>' +
+          esc(o.label) +
+          '</option>'
+        );
+      })
+      .join('');
+    return (
+      '<label style="display:block;margin-bottom:14px;font-size:13px;font-weight:600;color:var(--bd-text)">' +
+      '<i style="margin-right:4px;color:var(--bd-destructive);font-style:normal;font-weight:900">*</i>' +
+      esc(label) +
+      '<select id="' +
+      id +
+      '"' +
+      (draftKey ? ' data-on-field="' + esc(draftKey) + '"' : '') +
+      (extraAttrs || '') +
+      ' style="display:block;width:100%;margin-top:6px;padding:11px;border:1px solid var(--bd-border);border-radius:12px;font-size:14px;font-weight:400;background:#fff">' +
+      opts +
+      '</select></label>'
+    );
+  }
+
+  function renderBindTypeFields() {
+    var bindType = getDraftField('bind_type') || '';
+    var bindTypeOpts = [
+      { value: '', label: '请选择进件类型' },
+      { value: '门店主体', label: '门店主体' },
+      { value: '门店', label: '门店' },
+    ];
+    var html = fieldSelect(
+      '进件类型',
+      'on_bind_type',
+      bindTypeOpts,
+      bindType,
+      'bind_type',
+      ' data-on-bind-type-change'
+    );
+    if (bindType === '门店主体') {
+      html += fieldSelect(
+        '门店主体',
+        'on_bind_subject',
+        STORE_SUBJECT_OPTIONS,
+        getDraftField('bind_subject_id'),
+        'bind_subject_id',
+        ' data-on-select'
+      );
+    } else if (bindType === '门店') {
+      html += fieldSelect(
+        '门店',
+        'on_bind_store',
+        getStoreBindOptions(),
+        getDraftField('bind_store_id'),
+        'bind_store_id',
+        ' data-on-select'
+      );
+    }
+    return html;
+  }
+
   function getDraftField(path) {
     var cur = onboardDraft || {};
     String(path || '').split('.').forEach(function (k) {
@@ -837,6 +976,9 @@
 
   function fieldLabelMap(key) {
     var map = {
+      bind_type: '进件类型',
+      bind_subject_id: '门店主体',
+      bind_store_id: '门店',
       short_name: '商户简称',
       receipt_name: '小票名称',
       detail_addr: '实际经营地址',
@@ -870,6 +1012,21 @@
         }
       } else if (!String(v || '').trim()) {
         window.bdToast && window.bdToast('请填写' + fieldLabelMap(k));
+        return false;
+      }
+    }
+    if (step === 1) {
+      var bindType = String(getDraftField('bind_type') || '').trim();
+      if (!bindType) {
+        window.bdToast && window.bdToast('请选择进件类型');
+        return false;
+      }
+      if (bindType === '门店主体' && !String(getDraftField('bind_subject_id') || '').trim()) {
+        window.bdToast && window.bdToast('请选择门店主体');
+        return false;
+      }
+      if (bindType === '门店' && !String(getDraftField('bind_store_id') || '').trim()) {
+        window.bdToast && window.bdToast('请选择门店');
         return false;
       }
     }
@@ -969,6 +1126,7 @@
       stepBody =
         card(
           '商户信息',
+          renderBindTypeFields() +
         fieldFull('商户简称', 'on_short_name', '账单展示名称', getDraftField('short_name'), 'short_name') +
           fieldFull('小票名称', 'on_receipt_name', '小票展示名称', getDraftField('receipt_name'), 'receipt_name') +
           fieldFull('实际经营地址', 'on_detail_addr', '经营详细地址', getDraftField('detail_addr'), 'detail_addr') +
@@ -1277,8 +1435,23 @@
       };
     });
     r.querySelectorAll('[data-on-field]').forEach(function (inp) {
-      inp.oninput = function () {
+      var handler = function () {
         setDraftField(inp.getAttribute('data-on-field'), inp.value);
+      };
+      if (inp.tagName === 'SELECT') inp.onchange = handler;
+      else inp.oninput = handler;
+    });
+    r.querySelectorAll('[data-on-bind-type-change]').forEach(function (sel) {
+      sel.onchange = function () {
+        setDraftField('bind_type', sel.value);
+        if (sel.value !== '门店主体') setDraftField('bind_subject_id', '');
+        if (sel.value !== '门店') setDraftField('bind_store_id', '');
+        mount();
+      };
+    });
+    r.querySelectorAll('[data-on-select]').forEach(function (sel) {
+      sel.onchange = function () {
+        setDraftField(sel.getAttribute('data-on-field'), sel.value);
       };
     });
     r.querySelectorAll('[data-on-upload]').forEach(function (btn) {
@@ -1390,7 +1563,34 @@
       onboardDraft = makeOnboardDraft();
       route = { view: 'onboard', tab: keepTab, id: null };
     } else if (h === 'my') route = { view: 'my', tab: keepTab, id: null };
-    else if (h.indexOf('detail-by-payload/') === 0) {
+    else if (h.indexOf('onboarding-by-payload/') === 0) {
+      var encodedOnboardPayload = h.slice('onboarding-by-payload/'.length);
+      var onboardPayloadText = '';
+      try {
+        onboardPayloadText = decodeURIComponent(encodedOnboardPayload);
+      } catch (e) {
+        onboardPayloadText = encodedOnboardPayload;
+      }
+      var onboardPayload = {};
+      try {
+        onboardPayload = JSON.parse(onboardPayloadText || '{}');
+      } catch (e) {
+        onboardPayload = {};
+      }
+      var onboardItem = ensureMerchantFromPayload(onboardPayload);
+      if (onboardItem) {
+        if (!onboardItem.onboardingStatus || onboardItem.onboardingStatus === '待进件') {
+          onboardItem.onboardingStatus = 'draft';
+        }
+        route = { view: 'onboard', tab: keepTab, id: onboardItem.id };
+        onboardStep = 0;
+        onboardDraft = resolveOnboardingFields(onboardItem);
+      } else {
+        route = { view: 'onboard', tab: keepTab, id: null };
+        onboardStep = 0;
+        onboardDraft = makeOnboardDraft();
+      }
+    } else if (h.indexOf('detail-by-payload/') === 0) {
       var encodedPayload = h.slice('detail-by-payload/'.length);
       var payloadText = '';
       try {

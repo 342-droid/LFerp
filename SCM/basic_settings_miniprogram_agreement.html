@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 小程序协议</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/basic-settings.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/basic-settings-sidebar.js"></script>
+
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="bs-page-card">
+                <div class="bs-agreement-tabs">
+                    <button type="button" class="active" data-tab="user">用户协议</button>
+                    <button type="button" data-tab="privacy">隐私协议</button>
+                    <button type="button" data-tab="cert">资质证书</button>
+                </div>
+
+                <div class="bs-form-row">
+                    <label for="agreementTitle">协议标题</label>
+                    <input type="text" id="agreementTitle" value="冷丰商城用户服务协议">
+                </div>
+
+                <div class="bs-form-row">
+                    <label>协议正文</label>
+                    <div class="bs-editor">
+                        <div class="bs-editor-toolbar">
+                            <button type="button" data-cmd="bold" title="加粗"><strong>B</strong></button>
+                            <button type="button" data-cmd="italic" title="斜体"><em>I</em></button>
+                            <button type="button" data-cmd="underline" title="下划线"><u>U</u></button>
+                            <span class="bs-toolbar-divider"></span>
+                            <button type="button" data-cmd="insertUnorderedList" title="无序列表">• 列表</button>
+                            <button type="button" data-cmd="insertOrderedList" title="有序列表">1. 列表</button>
+                            <span class="bs-toolbar-divider"></span>
+                            <button type="button" data-cmd="foreColor" data-val="#ff7019" title="字体颜色">A</button>
+                            <button type="button" data-cmd="removeFormat" title="清除格式">清除</button>
+                        </div>
+                        <div class="bs-editor-body" id="agreementEditorBody" contenteditable="true"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="bs-save-btn" id="bsSaveBtn">保存并配置</button>
+        </main>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/basic-settings-miniprogram-agreement.js"></script>
+</body>
+</html>

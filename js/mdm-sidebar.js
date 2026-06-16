@@ -1,4 +1,4 @@
-/* MDM 侧栏：基础数据中心页展示主体/资源/人员/会员；顶栏「审核中心」独立入口页仅展示审核分组 */
+/* MDM 侧栏：业务伙伴页展示主体/资源/人员/会员；顶栏「审核中心」独立入口页仅展示审核分组 */
 (function () {
     const wp = window.wmsPath || { page: function (f) { return f; }, asset: function (r) { return r; } };
     const pageHref = function (f) { return wp.page(f); };
@@ -7,8 +7,20 @@
     const currentPage = pathForMatch.split('/').pop() || 'mdm_party_store.html';
 
     function hrefMatchesCurrentPage(href) {
-        if (href === currentPage) return true;
-        return pathForMatch.endsWith('/' + href) || pathForMatch.endsWith(href);
+        var full = String(href || '');
+        var seg = full.split('#');
+        var path = seg[0] || '';
+        var hash = seg[1] || '';
+        var samePath =
+            path === currentPage ||
+            pathForMatch.endsWith('/' + path) ||
+            pathForMatch.endsWith(path);
+        if (!samePath) return false;
+        var curHash = String(window.location.hash || '').replace(/^#/, '');
+        if (!hash) {
+            return !curHash || curHash === 'store-registration';
+        }
+        return curHash === hash;
     }
 
     const partyItems = [
@@ -40,7 +52,8 @@
     ];
 
     const auditItems = [
-        { href: 'mdm_audit_store_registration.html', text: '门店注册审核' }
+        { href: 'mdm_audit_store_registration.html', text: '门店注册审核' },
+        { href: 'mdm_audit_store_registration.html#onboarding-review', text: '进件审核' }
     ];
 
     function groupHasActive(items) {
@@ -57,10 +70,19 @@
      * 与 WMS wms-sidebar 一致：分组 + submenu + toggleSubmenu(this)
      * @param {string} iconRel 相对 image/
      */
+    function refreshSidebarActiveState() {
+        var links = document.querySelectorAll('#sidebar .submenu a[data-mdm-nav]');
+        links.forEach(function (a) {
+            var navHref = a.getAttribute('data-mdm-nav') || '';
+            a.classList.toggle('active', hrefMatchesCurrentPage(navHref));
+        });
+    }
+
     function renderCollapsibleGroup(label, iconRel, items, sectionActive) {
         var submenuHtml = items.map(function (item) {
             var active = hrefMatchesCurrentPage(item.href);
-            return '<li><a href="' + pageHref(item.href) + '"' + (active ? ' class="active"' : '') + '>' + item.text + '</a></li>';
+            return '<li><a href="' + pageHref(item.href) + '" data-mdm-nav="' + item.href + '"' +
+                (active ? ' class="active"' : '') + '>' + item.text + '</a></li>';
         }).join('');
         return '<li class="menu-item">' +
             '<a href="#" class="menu-link" onclick="toggleSubmenu(this)">' +
@@ -75,7 +97,7 @@
     /** 顶栏「审核中心」独立入口：仅在该模块页面展示侧栏审核菜单 */
     var itemsHtml = isAuditPage
         ? renderCollapsibleGroup('审核中心', '任务管理', auditItems, true)
-        : renderCollapsibleGroup('主体中心', '基础信息', partyItems, isPartyPage) +
+        : renderCollapsibleGroup('商家主体', '基础信息', partyItems, isPartyPage) +
         renderCollapsibleGroup('资源中心', '策略管理', archiveItems, isArchivePage) +
         renderCollapsibleGroup('人员中心', '权限管理', peopleItems, isPeoplePage) +
         renderCollapsibleGroup('会员中心', '基础信息', memberItems, isMemberPage);
@@ -93,4 +115,15 @@
         '</div>' +
         '<ul class="sidebar-menu">' + itemsHtml + '</ul>' +
         '</aside>';
+
+    refreshSidebarActiveState();
+    if (!window.__mdmSidebarHashBound) {
+        window.__mdmSidebarHashBound = true;
+        window.addEventListener('hashchange', refreshSidebarActiveState);
+    }
+
+    window.MdmSidebar = {
+        refreshActiveState: refreshSidebarActiveState,
+        hrefMatchesCurrentPage: hrefMatchesCurrentPage
+    };
 })();

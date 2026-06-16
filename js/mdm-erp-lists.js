@@ -621,7 +621,7 @@
             { id: 'storeName', label: '门店名称', type: 'text', required: true },
             { id: 'contactPerson', label: '联系人', type: 'text', required: true },
             { id: 'phone', label: '手机号码', type: 'text' },
-            { id: 'fulfillWarehouse', label: '配送仓库', type: 'text' },
+            { id: 'fulfillWarehouse', label: '配送仓库', type: 'text', required: true },
             { id: 'regionText', label: '省市区', type: 'text' },
             { id: 'addressText', label: '详细地址', type: 'text', width: '100%' },
             {
@@ -699,7 +699,8 @@
                 saveBtnId: 'mdmArchStoreEditSaveBtn',
                 validations: [
                     { id: 'editStoreName', message: '请输入门店名称', required: true },
-                    { id: 'editContactPerson', message: '请输入联系人', required: true }
+                    { id: 'editContactPerson', message: '请输入联系人', required: true },
+                    { id: 'editFulfillWarehouse', message: '请输入配送仓库', required: true }
                 ],
                 mapRowToForm: function (row) {
                     pm.currentEditRow = row;

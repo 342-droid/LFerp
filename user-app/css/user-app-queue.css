@@ -1,0 +1,358 @@
+/* 全局排队悬浮按钮 + 弹窗 */
+.ua-fab-queue {
+  position: absolute;
+  right: 17px;
+  bottom: 68px;
+  z-index: 90;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #007348;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.15;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ua-fab-queue:active {
+  opacity: 0.92;
+}
+
+.ua-queue-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 22px 0 10px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.ua-fab-queue--over-modal {
+  z-index: 110;
+}
+
+.ua-queue-mask[hidden] {
+  display: none;
+}
+
+.ua-queue-modal {
+  width: 100%;
+  max-width: 349px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  overflow: visible;
+}
+
+.ua-queue-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+}
+
+.ua-queue-modal__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #333333;
+  line-height: 1.3;
+}
+
+.ua-queue-modal__close {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #cccccc;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ua-queue-modal__close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ua-queue-card {
+  margin: 0 16px 16px;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ua-queue-card.is-callable {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ua-queue-card.is-callable .ua-queue-card__body {
+  transition: background 0.2s ease;
+}
+
+.ua-queue-card.is-callable:active .ua-queue-card__body {
+  background: #fafafa;
+}
+
+.ua-queue-card__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #005835;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+#queueArrivalStatus {
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#queueArrivalStatus.ua-queue-arrival--arrived {
+  background: #ffffff;
+  color: #005835;
+  font-weight: 600;
+  cursor: default;
+}
+
+.ua-queue-call-banner {
+  padding: 10px 14px;
+  background: #f54337;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.ua-queue-call-banner[hidden] {
+  display: none;
+}
+
+.ua-queue-card__body {
+  padding: 14px 14px 16px;
+  background: #ffffff;
+}
+
+.ua-queue-view[hidden] {
+  display: none;
+}
+
+.ua-queue-number-label {
+  font-size: 12px;
+  color: #999999;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.ua-queue-number {
+  margin-top: 6px;
+  text-align: center;
+  line-height: 1;
+}
+
+.ua-queue-number__value {
+  font-size: 72px;
+  font-weight: 700;
+  color: #f54337;
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: -2px;
+}
+
+.ua-queue-number__unit {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333333;
+  margin-left: 2px;
+}
+
+.ua-queue-arrival-time {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #999999;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.ua-queue-call-tip {
+  font-size: 12px;
+  color: #999999;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.ua-queue-reserve-label {
+  font-size: 12px;
+  color: #999999;
+  line-height: 1.4;
+}
+
+.ua-queue-reserve-title {
+  margin-top: 4px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #005835;
+  line-height: 1.3;
+}
+
+.ua-queue-divider {
+  margin: 12px 0;
+  height: 1px;
+  background: #eeeeee;
+}
+
+.ua-queue-reserve-tip {
+  font-size: 12px;
+  color: #999999;
+  line-height: 1.5;
+}
+
+.ua-queue-wait-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.ua-queue-wait-text {
+  font-size: 14px;
+  color: #666666;
+  line-height: 1.4;
+}
+
+.ua-queue-wait-text em {
+  font-style: normal;
+  font-size: 18px;
+  font-weight: 700;
+  color: #005835;
+}
+
+.ua-queue-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #999999;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.ua-queue-refresh svg {
+  width: 14px;
+  height: 14px;
+}
+
+.ua-queue-bottom-wrap {
+  position: relative;
+  margin-top: 14px;
+}
+
+.ua-queue-message {
+  padding: 12px 14px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.ua-queue-message__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333333;
+  line-height: 1.4;
+}
+
+.ua-queue-message__form {
+  margin-top: 8px;
+}
+
+.ua-queue-message__input {
+  display: block;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #333333;
+  background: #ffffff;
+  resize: none;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.ua-queue-message__input::placeholder {
+  color: #999999;
+}
+
+.ua-queue-message__input:focus {
+  outline: none;
+  border-color: #005835;
+}
+
+.ua-queue-message__status {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #005835;
+  line-height: 1.4;
+}
+
+.ua-queue-message__status[hidden] {
+  display: none;
+}
+
+.ua-queue-actions {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ua-queue-btn {
+  width: 100%;
+  height: 44px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+}
+
+.ua-queue-btn--primary {
+  background: #005835;
+  color: #ffffff;
+}
+
+.ua-queue-btn--secondary {
+  background: #ffffff;
+  color: #666666;
+  border: 1px solid #e0e0e0;
+}
+
+.ua-queue-btn:active {
+  opacity: 0.92;
+}

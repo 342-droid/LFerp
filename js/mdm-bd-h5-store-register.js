@@ -45,7 +45,11 @@
   ];
   var BD_WAREHOUSES = ['华东 RDC-杭州', '杭州城市前置仓', '图书中央仓'];
   var BD_CODE_TO_NAME = { BD20240001: '李泽峰', BD2024LZF: '李泽峰' };
+  /** 与人员中心 BD 列表 / 门店档案 boundBd 枚举一致 */
+  var BD_NAME_OPTIONS = ['李泽峰', '李明', '赵丽', '王强', '周杰', '张芳'];
   var PARTNER_DIVISIONS = ['加盟店', '合作店', '同行店'];
+  var MDM_BD_CURRENT_KEY = 'mdmBdCurrentBd';
+  var MDM_BD_ROLE_KEY = 'mdmBdAccountRole';
 
   function qsParse() {
     var p = {};
@@ -66,6 +70,32 @@
   function resolveBdName(id) {
     if (!id || id === '—') return '—';
     return BD_CODE_TO_NAME[id] || id;
+  }
+
+  function getMdmBdCurrentAccount() {
+    try {
+      var v = sessionStorage.getItem(MDM_BD_CURRENT_KEY);
+      if (v && String(v).trim()) return String(v).trim();
+    } catch (e) {}
+    return '李泽峰';
+  }
+
+  function resolveBdSuperAdmin() {
+    try {
+      if (sessionStorage.getItem(MDM_BD_ROLE_KEY) === 'super') return true;
+      var cu = JSON.parse(sessionStorage.getItem('currentUser') || 'null');
+      if (cu && (cu.role === 'super' || cu.username === 'admin')) return true;
+    } catch (e) {}
+    var q = qsParse();
+    if (q.bdRole === 'super' || q.role === 'super') return true;
+    if (document.body && document.body.getAttribute('data-bd-role') === 'super') return true;
+    return false;
+  }
+
+  function resolveBoundBdForCtx(isCreate, record, loginBd) {
+    if (isCreate) return loginBd;
+    if (record && record.boundBd) return String(record.boundBd).trim();
+    return loginBd;
   }
 
   function defaultWarehouse(bdKey) {
@@ -312,7 +342,8 @@
       specialPhotos: [],
       otherPlatforms: rec.otherPlatformsCooperation || '',
       broadcastPhotos: [],
-      companyCb: !!rec.companyCallbackNotified
+      companyCb: !!rec.companyCallbackNotified,
+      boundBd: rec.boundBd || ''
     };
     if (!st0.selectedPoiId && st0.regionCascade && st0.detailAddress) {
       st0.selectedPoiId = 'legacy';
@@ -455,12 +486,16 @@
           return String(s.id) === String(editId);
         });
       }
+      var loginBd = getMdmBdCurrentAccount();
+      var isSuperAdmin = resolveBdSuperAdmin();
       var bdCtx = {
         mode: 'bd',
         isCreate: isCreate,
         record: record,
         stores: merged,
-        boundBd: '李泽峰'
+        loginBd: loginBd,
+        isSuperAdmin: isSuperAdmin,
+        boundBd: resolveBoundBdForCtx(isCreate, record, loginBd)
       };
       renderForm(root, bdCtx);
     }
@@ -501,13 +536,17 @@
     var supplementMode = false;
     var phaseBlocked = false;
     var boundBd;
+    var loginBd = '李泽峰';
+    var isSuperAdmin = false;
 
     if (isBdApp) {
       if (!bdCtx.isCreate && (!bdCtx.record || bdCtx.record.id == null)) {
         root.innerHTML = renderBlocked('编辑门店', '门店不存在或已被删除。');
         return;
       }
-      boundBd = bdCtx.boundBd || '李泽峰';
+      loginBd = bdCtx.loginBd || getMdmBdCurrentAccount();
+      isSuperAdmin = !!bdCtx.isSuperAdmin;
+      boundBd = bdCtx.boundBd || resolveBoundBdForCtx(bdCtx.isCreate, bdCtx.record, loginBd);
     } else {
       var bdId = (q.bdId || q.bdEmployeeCode || 'BD20240001').trim();
       storeIdRaw = (q.storeId || '').trim();
@@ -536,6 +575,7 @@
       storeSubject: '',
       name: '',
       shortName: '',
+      boundBd: boundBd,
       warehouse: defaultWarehouse(boundBd),
       partnerDivision: normalizePartnerDivision('加盟店'),
       storeTypeDetail: '',
@@ -709,18 +749,45 @@
           '尽量以小区、道路或原店铺名为准'
         ) +
         field('门店简称', false, '<input type="text" class="h5-input" id="f_short" placeholder="如：鲜丰-文一西路店" />', '对外简称，≠ 标签') +
-        field(
-          '绑定 BD',
-          false,
-          '<input type="text" class="h5-input h5-input-dis" readonly value="' +
-          esc(boundBd) +
-          '" />',
-          isBdApp
-            ? '默认当前登录账号，不可更改'
-            : supplementMode
+        (function () {
+          var bdVal = st.boundBd || boundBd;
+          var inner;
+          var hint;
+          if (isBdApp && isSuperAdmin) {
+            inner =
+              '<select class="h5-input" id="f_boundbd">' +
+              BD_NAME_OPTIONS.map(function (n) {
+                return (
+                  '<option value="' +
+                  esc(n) +
+                  '"' +
+                  (n === bdVal ? ' selected' : '') +
+                  '>' +
+                  esc(n) +
+                  '</option>'
+                );
+              }).join('') +
+              '</select>';
+            hint = '超管可指定负责 BD';
+          } else if (isBdApp) {
+            inner =
+              '<input type="text" class="h5-input h5-input-dis" id="f_boundbd" readonly value="' +
+              esc(bdVal) +
+              '" />';
+            hint = bdCtx.isCreate
+              ? '默认当前登录 BD，不可更改'
+              : '创建该商户/门店的 BD，不可更改';
+          } else {
+            inner =
+              '<input type="text" class="h5-input h5-input-dis" readonly value="' +
+              esc(bdVal) +
+              '" />';
+            hint = supplementMode
               ? '由 BD 转发链接确定，不可更改'
-              : '默认当前登录账号，不可更改'
-        ) +
+              : '默认当前登录账号，不可更改';
+          }
+          return field('绑定 BD', true, inner, hint);
+        })() +
         '</div></section>'
       );
     }
@@ -734,7 +801,7 @@
         '<div class="h5-sec-body">' +
         field(
           '配送仓库',
-          false,
+          true,
           '<select class="h5-input" id="f_wh">' +
           whOpts
             .map(function (w) {
@@ -910,6 +977,11 @@
         '<section class="h5-sec">' +
         secHead('◎', '老板 / 联系人', '手机号验证与姓名') +
         '<div class="h5-sec-body">' +
+        field(
+          '老板 / 联系人姓名',
+          true,
+          '<input type="text" class="h5-input" id="f_cname" placeholder="请输入姓名" />'
+        ) +
         '<div class="h5-field"><label class="h5-lab"><span class="req">*</span>老板 / 负责人联系电话</label>' +
         '<div class="h5-row2"><input type="tel" class="h5-input" id="f_phone" placeholder="手机号" />' +
         '<button type="button" class="bd-btn bd-btn-outline" id="f_sms">获取验证码</button></div></div>' +
@@ -918,11 +990,6 @@
           true,
           '<input type="text" class="h5-input" id="f_code" maxlength="6" inputmode="numeric" placeholder="请输入验证码" />',
           codeHint
-        ) +
-        field(
-          '老板 / 联系人姓名',
-          true,
-          '<input type="text" class="h5-input" id="f_cname" placeholder="请输入姓名" />'
         ) +
         '</div></section>'
       );
@@ -1094,6 +1161,7 @@
       if (el('f_subject')) st.storeSubject = el('f_subject').value;
       if (el('f_name')) st.name = el('f_name').value;
       if (el('f_short')) st.shortName = el('f_short').value;
+      if (el('f_boundbd')) st.boundBd = el('f_boundbd').value;
       if (el('f_wh')) st.warehouse = el('f_wh').value;
       if (el('f_partner')) st.partnerDivision = el('f_partner').value;
       if (el('f_storetype')) st.storeTypeDetail = el('f_storetype').value;
@@ -1134,6 +1202,7 @@
       if (el('f_subject')) el('f_subject').value = st.storeSubject;
       if (el('f_name')) el('f_name').value = st.name;
       if (el('f_short')) el('f_short').value = st.shortName;
+      if (el('f_boundbd') && !el('f_boundbd').readOnly) el('f_boundbd').value = st.boundBd || boundBd;
       if (el('f_wh')) el('f_wh').value = st.warehouse;
       if (el('f_partner')) el('f_partner').value = st.partnerDivision;
       if (el('f_storetype')) el('f_storetype').value = st.storeTypeDetail;
@@ -1211,7 +1280,7 @@
     function persistBdStore(mode) {
       if (!isBdApp || !bdCtx) return;
       var stores = bdCtx.stores.slice();
-      var nm = bdCtx.boundBd || '李泽峰';
+      var nm = (st.boundBd || bdCtx.boundBd || loginBd || '李泽峰').trim();
       if (bdCtx.isCreate) {
         var maxId = stores.reduce(function (m, s) {
           return Math.max(m, Number(s.id) || 0);
@@ -1256,6 +1325,14 @@
       }
       if (!st.name.trim()) {
         bdToast('请填写门店名称');
+        return false;
+      }
+      if (!(st.boundBd || '').trim()) {
+        bdToast('请填写绑定 BD');
+        return false;
+      }
+      if (!(st.warehouse || '').trim() || st.warehouse === '—') {
+        bdToast('请选择配送仓库');
         return false;
       }
       if (!st.partnerDivision) {
@@ -1373,6 +1450,7 @@
           'f_subject',
           'f_name',
           'f_short',
+          'f_boundbd',
           'f_partner',
           'f_storetype',
           'f_hasref',

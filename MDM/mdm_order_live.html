@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 直播订单</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-order.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/order-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="order-page">
+                <div class="order-page-tabs">
+                    <a href="../index.html" class="order-page-tabs__item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5L12 4l8 6.5V19a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-8.5z"/></svg>
+                        首页
+                    </a>
+                    <span class="order-page-tabs__item order-page-tabs__item--active">
+                        直播订单
+                        <button type="button" class="order-page-tabs__close" aria-label="关闭">×</button>
+                    </span>
+                </div>
+
+                <div class="order-page-body">
+                    <section class="erp-page__card order-filter-card">
+                        <form class="order-filter-form" id="orderLiveFilterForm">
+                            <div class="order-filter-grid">
+                                <div class="order-filter-field">
+                                    <label class="order-filter-field__label" for="qOrderNo">订单号</label>
+                                    <input class="order-filter-field__input" id="qOrderNo" type="text" placeholder="请输入订单号">
+                                </div>
+                                <div class="order-filter-field">
+                                    <label class="order-filter-field__label" for="qNickname">用户昵称</label>
+                                    <input class="order-filter-field__input" id="qNickname" type="text" placeholder="请输入用户昵称">
+                                </div>
+                                <div class="order-filter-field">
+                                    <label class="order-filter-field__label" for="qProductName">商品名称</label>
+                                    <input class="order-filter-field__input" id="qProductName" type="text" placeholder="请输入商品名称">
+                                </div>
+                                <div class="order-filter-field">
+                                    <label class="order-filter-field__label" for="qReceiverName">收货人姓名</label>
+                                    <input class="order-filter-field__input" id="qReceiverName" type="text" placeholder="请输入收货人姓名">
+                                </div>
+                                <div class="order-filter-field">
+                                    <label class="order-filter-field__label" for="qReceiverPhone">收货人电话</label>
+                                    <input class="order-filter-field__input" id="qReceiverPhone" type="text" placeholder="请输入收货人电话">
+                                </div>
+                                <div class="order-filter-field">
+                                    <label class="order-filter-field__label" for="qPayChannel">支付渠道</label>
+                                    <select class="order-filter-field__select" id="qPayChannel">
+                                        <option value="">全部</option>
+                                        <option value="wechat">微信支付</option>
+                                        <option value="alipay">支付宝</option>
+                                    </select>
+                                </div>
+                                <div class="order-filter-field">
+                                    <label class="order-filter-field__label" for="qOrderStatus">订单状态</label>
+                                    <select class="order-filter-field__select" id="qOrderStatus">
+                                        <option value="">全部</option>
+                                        <option value="created">已创建</option>
+                                        <option value="closed">已关闭</option>
+                                        <option value="completed">已完成</option>
+                                        <option value="pickup">待提货</option>
+                                        <option value="paid">已支付</option>
+                                    </select>
+                                </div>
+                                <div class="order-filter-field">
+                                    <label class="order-filter-field__label" for="qMarketingType">营销类型</label>
+                                    <select class="order-filter-field__select" id="qMarketingType">
+                                        <option value="">全部</option>
+                                        <option value="normal">普通售卖</option>
+                                        <option value="live">直播专享</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="order-filter-grid order-filter-grid--extra" id="orderFilterExtra" hidden>
+                                <div class="order-filter-field">
+                                    <label class="order-filter-field__label" for="qOrderTimeStart">下单开始时间</label>
+                                    <input class="order-filter-field__input" id="qOrderTimeStart" type="datetime-local">
+                                </div>
+                                <div class="order-filter-field">
+                                    <label class="order-filter-field__label" for="qOrderTimeEnd">下单结束时间</label>
+                                    <input class="order-filter-field__input" id="qOrderTimeEnd" type="datetime-local">
+                                </div>
+                                <div class="order-filter-field">
+                                    <label class="order-filter-field__label" for="qLiveRoom">直播间</label>
+                                    <input class="order-filter-field__input" id="qLiveRoom" type="text" placeholder="请输入直播间名称">
+                                </div>
+                                <div class="order-filter-field">
+                                    <label class="order-filter-field__label" for="qStoreName">门店名称</label>
+                                    <input class="order-filter-field__input" id="qStoreName" type="text" placeholder="请输入门店名称">
+                                </div>
+                            </div>
+                            <div class="order-filter-actions">
+                                <button type="button" class="order-filter-btn order-filter-btn--primary" id="orderFilterQuery">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                                    查询
+                                </button>
+                                <button type="button" class="order-filter-btn order-filter-btn--default" id="orderFilterReset">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M5 19a9 9 0 0014-7"/><path d="M19 5a9 9 0 00-14 7"/></svg>
+                                    重置
+                                </button>
+                                <button type="button" class="order-filter-btn order-filter-btn--text" id="orderFilterExpand">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                                    <span id="orderFilterExpandLabel">展开</span>
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="erp-page__card order-table-card">
+                        <div class="order-live-table-wrap">
+                            <table class="order-live-table">
+                                <thead>
+                                    <tr>
+                                        <th>订单号</th>
+                                        <th>下单时间</th>
+                                        <th>用户昵称</th>
+                                        <th>收货人姓名</th>
+                                        <th>收货人电话</th>
+                                        <th>商品信息</th>
+                                        <th><span class="order-th-label">总件数 <i class="order-th-help" title="订单商品总件数">?</i></span></th>
+                                        <th><span class="order-th-label">营销类型 <i class="order-th-help" title="订单营销类型">?</i></span></th>
+                                        <th><span class="order-th-label">应付金额 <i class="order-th-help" title="订单应付金额">?</i></span></th>
+                                        <th><span class="order-th-label">优惠金额 <i class="order-th-help" title="订单优惠金额">?</i></span></th>
+                                        <th><span class="order-th-label">优惠券 <i class="order-th-help" title="优惠券抵扣金额">?</i></span></th>
+                                        <th><span class="order-th-label">使用积分 <i class="order-th-help" title="使用积分数量">?</i></span></th>
+                                        <th><span class="order-th-label">积分抵扣金额 <i class="order-th-help" title="积分抵扣金额">?</i></span></th>
+                                        <th><span class="order-th-label">实付金额 <i class="order-th-help" title="用户实付金额">?</i></span></th>
+                                        <th>支付渠道</th>
+                                        <th>订单状态</th>
+                                        <th class="order-live-table__sticky-col">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr data-order-id="ORD-3212689201598341">
+                                        <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201598341">ORD-3212689201598341</a></td>
+                                        <td>2026-06-05 20:47</td>
+                                        <td>赵金芝</td>
+                                        <td>杜建锋</td>
+                                        <td>18715449646</td>
+                                        <td>
+                                            <div class="order-product-cell">
+                                                <img class="order-product-cell__thumb" src="../user-app/assets/order-product-1.svg" alt="">
+                                                <span class="order-product-cell__name">小龙虾</span>
+                                            </div>
+                                        </td>
+                                        <td>× 1</td>
+                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td>¥1.20</td>
+                                        <td>-¥1.19</td>
+                                        <td>-¥1.19</td>
+                                        <td>-</td>
+                                        <td>¥0.00</td>
+                                        <td>¥0.01</td>
+                                        <td>-</td>
+                                        <td><span class="order-tag order-tag--closed">已关闭</span></td>
+                                        <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201598341">查看</a></td>
+                                    </tr>
+                                    <tr data-order-id="ORD-3212689201588561">
+                                        <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561">ORD-3212689201588561</a></td>
+                                        <td>2026-06-05 20:46</td>
+                                        <td>赵金芝</td>
+                                        <td>刘十九</td>
+                                        <td>13800001987</td>
+                                        <td>
+                                            <div class="order-product-cell">
+                                                <img class="order-product-cell__thumb" src="../user-app/assets/order-product-2.svg" alt="">
+                                                <span class="order-product-cell__name">微辣萝卜干 500g 4号…</span>
+                                            </div>
+                                        </td>
+                                        <td>× 1</td>
+                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td>¥0.90</td>
+                                        <td>¥0.00</td>
+                                        <td>¥0.00</td>
+                                        <td>-</td>
+                                        <td>¥0.00</td>
+                                        <td>¥0.90</td>
+                                        <td>-</td>
+                                        <td><span class="order-tag order-tag--created">已创建</span></td>
+                                        <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561">查看</a></td>
+                                    </tr>
+                                    <tr data-order-id="ORD-3212689201588561-B">
+                                        <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561-B">ORD-3212689201588561</a></td>
+                                        <td>2026-06-03 09:36</td>
+                                        <td>赵金芝</td>
+                                        <td>张三</td>
+                                        <td>15158153264</td>
+                                        <td>
+                                            <div class="order-product-cell">
+                                                <img class="order-product-cell__thumb" src="../user-app/assets/order-product-3.svg" alt="">
+                                                <span class="order-product-cell__name">老式谦虚 500g/双 …</span>
+                                            </div>
+                                        </td>
+                                        <td>× 1</td>
+                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td>¥10.90</td>
+                                        <td>¥0.00</td>
+                                        <td>¥0.00</td>
+                                        <td>-</td>
+                                        <td>¥0.00</td>
+                                        <td>¥10.90</td>
+                                        <td>-</td>
+                                        <td><span class="order-tag order-tag--created">已创建</span></td>
+                                        <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561-B">查看</a></td>
+                                    </tr>
+                                    <tr data-order-id="ORD-3212689201584693">
+                                        <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201584693">ORD-3212689201584693</a></td>
+                                        <td>2026-06-02 18:07</td>
+                                        <td>赵金芝</td>
+                                        <td>冯十八</td>
+                                        <td>13800001886</td>
+                                        <td>
+                                            <div class="order-product-cell">
+                                                <img class="order-product-cell__thumb" src="../user-app/assets/order-product-4.svg" alt="">
+                                                <span class="order-product-cell__name">新鲜鲫鱼 300g-…</span>
+                                            </div>
+                                        </td>
+                                        <td>× 1</td>
+                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td>¥5.90</td>
+                                        <td>-¥5.00</td>
+                                        <td>-¥5.00</td>
+                                        <td>100</td>
+                                        <td>¥0.00</td>
+                                        <td>¥0.90</td>
+                                        <td>-</td>
+                                        <td><span class="order-tag order-tag--created">已创建</span></td>
+                                        <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201584693">查看</a></td>
+                                    </tr>
+                                    <tr data-order-id="ORD-3212689201562037-A">
+                                        <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-A">ORD-3212689201562037</a></td>
+                                        <td>2026-06-02 18:06</td>
+                                        <td>赵金芝</td>
+                                        <td>张三</td>
+                                        <td>15158153264</td>
+                                        <td>
+                                            <div class="order-product-cell">
+                                                <img class="order-product-cell__thumb" src="../user-app/assets/order-detail-cherry.svg" alt="">
+                                                <span class="order-product-cell__name">冰清玉润 500g</span>
+                                            </div>
+                                        </td>
+                                        <td>× 1</td>
+                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td>¥8.80</td>
+                                        <td>¥0.00</td>
+                                        <td>¥0.00</td>
+                                        <td>-</td>
+                                        <td>¥0.00</td>
+                                        <td>¥8.80</td>
+                                        <td>-</td>
+                                        <td><span class="order-tag order-tag--created">已创建</span></td>
+                                        <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-A">查看</a></td>
+                                    </tr>
+                                    <tr data-order-id="ORD-3212689201562037-B">
+                                        <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-B">ORD-3212689201562037</a></td>
+                                        <td>2026-06-02 18:05</td>
+                                        <td>赵金芝</td>
+                                        <td>胡二十</td>
+                                        <td>13800002086</td>
+                                        <td>
+                                            <div class="order-product-cell">
+                                                <img class="order-product-cell__thumb" src="../user-app/assets/order-detail-orange.svg" alt="">
+                                                <span class="order-product-cell__name">美味能量包-公飞蛾</span>
+                                            </div>
+                                        </td>
+                                        <td>× 1</td>
+                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td>¥12.50</td>
+                                        <td>-¥2.00</td>
+                                        <td>-¥2.00</td>
+                                        <td>-</td>
+                                        <td>¥0.00</td>
+                                        <td>¥10.50</td>
+                                        <td>-</td>
+                                        <td><span class="order-tag order-tag--created">已创建</span></td>
+                                        <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-B">查看</a></td>
+                                    </tr>
+                                    <tr data-order-id="ORD-3212689201560683">
+                                        <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560683">ORD-3212689201560683</a></td>
+                                        <td>2026-06-02 18:04</td>
+                                        <td>赵金芝</td>
+                                        <td>杨十五</td>
+                                        <td>13800001586</td>
+                                        <td>
+                                            <div class="order-product-cell">
+                                                <img class="order-product-cell__thumb" src="../user-app/assets/order-product-1.svg" alt="">
+                                                <span class="order-product-cell__name">猪心 400g</span>
+                                            </div>
+                                        </td>
+                                        <td>× 1</td>
+                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td>¥6.60</td>
+                                        <td>¥0.00</td>
+                                        <td>¥0.00</td>
+                                        <td>-</td>
+                                        <td>¥0.00</td>
+                                        <td>¥6.60</td>
+                                        <td>-</td>
+                                        <td><span class="order-tag order-tag--created">已创建</span></td>
+                                        <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560683">查看</a></td>
+                                    </tr>
+                                    <tr data-order-id="ORD-3212689201599001">
+                                        <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599001">ORD-3212689201599001</a></td>
+                                        <td>2026-06-04 14:20</td>
+                                        <td>宁静致远</td>
+                                        <td>宁静致远</td>
+                                        <td>155****9061</td>
+                                        <td>
+                                            <div class="order-product-cell">
+                                                <img class="order-product-cell__thumb" src="../user-app/assets/order-detail-cherry.svg" alt="">
+                                                <span class="order-product-cell__name">冷丰优选3J智利车厘子 3斤装</span>
+                                            </div>
+                                        </td>
+                                        <td>× 1</td>
+                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td>¥128.18</td>
+                                        <td>-¥10.00</td>
+                                        <td>-¥10.00</td>
+                                        <td>-</td>
+                                        <td>¥0.00</td>
+                                        <td>¥118.18</td>
+                                        <td>-</td>
+                                        <td><span class="order-tag order-tag--pickup">待提货</span></td>
+                                        <td class="order-live-table__sticky-col">
+                                            <div class="order-live-table__actions">
+                                                <a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599001">查看</a>
+                                                <button type="button" class="order-live-table__verify js-order-verify" data-order-id="ORD-3212689201599001">核销</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr data-order-id="ORD-3212689201599002">
+                                        <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599002">ORD-3212689201599002</a></td>
+                                        <td>2026-06-04 11:35</td>
+                                        <td>宋雨琦</td>
+                                        <td>宋雨琦</td>
+                                        <td>15236806537</td>
+                                        <td>
+                                            <div class="order-product-cell">
+                                                <img class="order-product-cell__thumb" src="../user-app/assets/order-product-2.svg" alt="">
+                                                <span class="order-product-cell__name">赣南脐橙 果大皮薄 5斤装</span>
+                                            </div>
+                                        </td>
+                                        <td>× 3</td>
+                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td>¥54.18</td>
+                                        <td>¥0.00</td>
+                                        <td>¥0.00</td>
+                                        <td>-</td>
+                                        <td>¥0.00</td>
+                                        <td>¥54.18</td>
+                                        <td>-</td>
+                                        <td><span class="order-tag order-tag--pickup">待提货</span></td>
+                                        <td class="order-live-table__sticky-col">
+                                            <div class="order-live-table__actions">
+                                                <a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599002">查看</a>
+                                                <button type="button" class="order-live-table__verify js-order-verify" data-order-id="ORD-3212689201599002">核销</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr data-order-id="ORD-3212689201599003">
+                                        <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599003">ORD-3212689201599003</a></td>
+                                        <td>2026-06-03 16:48</td>
+                                        <td>赵金芝</td>
+                                        <td>杜建锋</td>
+                                        <td>18715449646</td>
+                                        <td>
+                                            <div class="order-product-cell">
+                                                <img class="order-product-cell__thumb" src="../user-app/assets/order-product-1.svg" alt="">
+                                                <span class="order-product-cell__name">新鲜红颜草莓 香甜多汁 500g装 等2种</span>
+                                            </div>
+                                        </td>
+                                        <td>× 3</td>
+                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td>¥51.18</td>
+                                        <td>-¥5.00</td>
+                                        <td>-¥5.00</td>
+                                        <td>200</td>
+                                        <td>¥0.00</td>
+                                        <td>¥46.18</td>
+                                        <td>-</td>
+                                        <td><span class="order-tag order-tag--pickup">待提货</span></td>
+                                        <td class="order-live-table__sticky-col">
+                                            <div class="order-live-table__actions">
+                                                <a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599003">查看</a>
+                                                <button type="button" class="order-live-table__verify js-order-verify" data-order-id="ORD-3212689201599003">核销</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr data-order-id="ORD-3212689201560682">
+                                        <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560682">ORD-3212689201560682</a></td>
+                                        <td>2026-06-02 18:03</td>
+                                        <td>赵金芝</td>
+                                        <td>李四</td>
+                                        <td>13800001234</td>
+                                        <td>
+                                            <div class="order-product-cell">
+                                                <img class="order-product-cell__thumb" src="../user-app/assets/order-product-2.svg" alt="">
+                                                <span class="order-product-cell__name">精品牛腩 500g</span>
+                                            </div>
+                                        </td>
+                                        <td>× 1</td>
+                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td>¥18.00</td>
+                                        <td>-¥3.00</td>
+                                        <td>-¥3.00</td>
+                                        <td>-</td>
+                                        <td>¥0.00</td>
+                                        <td>¥15.00</td>
+                                        <td>-</td>
+                                        <td><span class="order-tag order-tag--completed">已完成</span></td>
+                                        <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560682">查看</a></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="order-pagination">
+                            <span>共 11 条</span>
+                            <select class="order-pagination__size" aria-label="每页条数">
+                                <option selected>20条/页</option>
+                                <option>50条/页</option>
+                                <option>100条/页</option>
+                            </select>
+                            <div class="order-pagination__pages">
+                                <button type="button" class="order-pagination__btn" disabled aria-label="上一页">‹</button>
+                                <button type="button" class="order-pagination__btn is-active">1</button>
+                                <button type="button" class="order-pagination__btn" disabled aria-label="下一页">›</button>
+                            </div>
+                            <label class="order-pagination__goto">
+                                前往
+                                <input id="orderPageGoto" type="text" value="1" inputmode="numeric">
+                                页
+                            </label>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/order-live-list.js"></script>
+    <script src="../js/order-live-detail.js"></script>
+</body>
+</html>

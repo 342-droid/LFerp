@@ -4,15 +4,15 @@
 import { empty, el } from '../utils/dom.js';
 
 const MDM_TREE = [
-  '基础数据中心（MDM）',
-  '├── 主体中心：门店、供应商、仓库、直播间、承运商',
+  '业务伙伴（MDM）',
+  '├── 商家主体：门店、供应商、仓库、直播间、承运商',
   '├── 资源中心：门店档案、供应商档案、仓库档案、直播间档案、承运商档案',
   '├── 人员中心：BD、采购员、司机、主播',
   '└── 会员中心：C 端会员',
 ];
 
 const SPEC_ITEMS = [
-  '顶栏「基础数据中心」进入 MDM 侧栏；路由在 js/router.js 注册，侧栏在 js/components/layout.js。',
+  '顶栏「业务伙伴」进入 MDM 侧栏；路由在 js/router.js 注册，侧栏在 js/components/layout.js。',
   '列表页样式：css/pages/erp-records.css；通用控件：js/utils/erp-ui.js。',
   '本地开发：npm run dev（Vite），勿用 file:// 打开。',
 ];
@@ -30,13 +30,13 @@ export function render(container) {
     el(
       'p',
       'welcome-page__sub',
-      '基础数据中心（MDM）承载门店、供应商、运力与内容生产等主数据；以下为模块导航与界面说明，列表数据为前端演示数据集。',
+      '业务伙伴（MDM）承载门店、供应商、运力与内容生产等主数据；以下为模块导航与界面说明，列表数据为前端演示数据集。',
     ),
   );
   root.appendChild(header);
 
   const mdmSection = el('section', 'welcome-page__section');
-  mdmSection.appendChild(el('h2', 'welcome-page__section-title', '基础数据中心（MDM）'));
+  mdmSection.appendChild(el('h2', 'welcome-page__section-title', '业务伙伴（MDM）'));
   const pre = el('pre', 'welcome-page__tree');
   pre.textContent = MDM_TREE.join('\n');
   mdmSection.appendChild(pre);
@@ -55,7 +55,7 @@ export function render(container) {
   const note = el(
     'p',
     'welcome-page__note',
-    '默认页签路由为 dashboard；从顶栏切换到「基础数据中心」后，侧栏首项为「主体中心 — 门店」。',
+    '默认页签路由为 dashboard；从顶栏切换到「业务伙伴」后，侧栏首项为「商家主体 — 门店」。',
   );
   root.appendChild(note);
 

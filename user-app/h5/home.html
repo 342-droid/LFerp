@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>首页 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-profile.css">
+  <link rel="stylesheet" href="../css/user-app-queue.css">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell">
+    <div class="ua-scroll ua-home-scroll">
+      <div class="ua-home-placeholder">首页（演示占位）</div>
+    </div>
+    <nav class="user-app-tabbar">
+      <span class="ua-tab ua-tab--active">
+        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M4 10.5L12 4l8 6.5V19a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-8.5z"/></svg>
+        <span>首页</span>
+      </span>
+      <a href="#" class="ua-tab ua-tab--ai">
+        <span class="ua-tab-ai-btn">AI</span>
+        <span class="ua-tab-label">AI管家</span>
+      </a>
+      <a href="profile.html" class="ua-tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>
+        <span>我的</span>
+      </a>
+    </nav>
+  </div>
+  <script src="../js/user-app-queue.js"></script>
+</body>
+</html>

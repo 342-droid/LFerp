@@ -6,6 +6,11 @@
   var CURRENT_BD = '李泽峰';
   var AUDIT_ROLE = 'bd';
 
+  try {
+    sessionStorage.setItem('mdmBdCurrentBd', CURRENT_BD);
+    sessionStorage.setItem('mdmBdAccountRole', AUDIT_ROLE === 'super' ? 'super' : 'bd');
+  } catch (e) {}
+
   var STATUS_TABS = ['全部', '待提交', '待审核', '待总监审核', '审核成功', '审核失败'];
   var stores = [];
   var statusFilter = '全部';
@@ -49,6 +54,37 @@
     if (s.status === 'submitted') return '进件中';
     if (s.status === 'draft') return '待进件';
     return store.onboardingStatus || '—';
+  }
+
+  function buildStoreOnboardingPayload(store, summary) {
+    var s = summary || resolveStoreOnboardingSummary(store);
+    var onbShortName =
+      (s.fields && s.fields.short_name) || store.shortName || store.name || '';
+    var fields = Object.assign({}, s.fields || {});
+    if (!fields.bind_type) fields.bind_type = '门店';
+    if (!fields.bind_store_id && store.id != null) fields.bind_store_id = String(store.id);
+    return {
+      name: store.name || '',
+      shortName: onbShortName || '',
+      merchantNo: store.merchantUid || '',
+      phone: store.contactPhone || '',
+      address: store.detailAddress || store.address || '',
+      storeId: store.id,
+      storeSubject: store.storeSubject || '',
+      onboardingStatus: s.status || '',
+      onboardingAuditStatus: s.auditStatus || '',
+      onboardingNextAuditNode: s.nextAuditNode || '',
+      onboardingSubmittedAt: s.submittedAt || '',
+      onboardingFields: fields,
+    };
+  }
+
+  function navigateMerchantOnboarding(payload, isNew) {
+    var encoded = encodeURIComponent(JSON.stringify(payload || {}));
+    var hash = (isNew ? 'onboarding-by-payload/' : 'detail-by-payload/') + encoded;
+    location.href = (window.bdPage || function (x) {
+      return x;
+    })('mdm_bd_merchants.html#' + hash);
   }
 
   function canSee(store) {
@@ -473,10 +509,10 @@
         '🏢',
         '基础信息',
         '名称与负责 BD',
-        fieldBlock('门店主体', archiveText(store.storeSubject), true) +
-          fieldBlock('门店名称', archiveText(store.name)) +
+        fieldBlock('门店主体', archiveText(store.storeSubject), 'storeSubject', store) +
+          fieldBlock('门店名称', archiveText(store.name), 'name', store) +
           fieldBlock('门店简称', archiveText(store.shortName)) +
-          fieldBlock('绑定 BD', archiveText(store.boundBd)) +
+          fieldBlock('绑定 BD', archiveText(store.boundBd), 'boundBd', store) +
           fieldBlock('门店编号', '<span style="font-family:monospace;font-size:12px">' + archiveText(store.merchantUid) + '</span>') +
           fieldBlock('审核通过时间', archiveText(store.approvedAt))
       )
@@ -488,9 +524,9 @@
         '📦',
         '配送与分类',
         '配送仓库默认随绑定 BD，可手动调整；门店合作类型与设备归类',
-        fieldBlock('配送仓库', '<span' + whStyle + '>' + archiveText(store.warehouse) + '</span>') +
-          fieldBlock('门店合作类型', archiveText(store.partnerDivision)) +
-          (policy ? fieldBlock('门店类型', archiveText(store.storeType)) : '') +
+        fieldBlock('配送仓库', '<span' + whStyle + '>' + archiveText(store.warehouse) + '</span>', 'warehouse', store) +
+          fieldBlock('门店合作类型', archiveText(store.partnerDivision), 'partnerDivision', store) +
+          (policy ? fieldBlock('门店类型', archiveText(store.storeType), 'storeType', store) : '') +
           fieldBlock('有无冷藏柜', archiveText(store.hasRefrigeratedCabinet)) +
           fieldBlock('有无冷冻柜', archiveText(store.hasFreezerCabinet)) +
           fieldBlock('冷藏柜照片', archiveText(store.refrigeratedPhotoUploaded ? '已上传' : '—')) +
@@ -504,8 +540,8 @@
           '📍',
           '地址与定位',
           '城市区域、详细地址与地图落点示意',
-          fieldBlock('归属于城市区域（省 / 市 / 区）', archiveText(store.regionCascade)) +
-            fieldBlock('详细地址', archiveText(store.detailAddress)) +
+          fieldBlock('归属于城市区域（省 / 市 / 区）', archiveText(store.regionCascade), 'regionCascade', store) +
+            fieldBlock('详细地址', archiveText(store.detailAddress), 'detailAddress', store) +
             '<div class="bd-field"><span class="lab">地图落点示意</span><div class="val" style="margin-top:6px">' +
             mapPreview(store) +
             '</div></div>'
@@ -526,7 +562,9 @@
               '"/>' +
               (store.frontPhotoUploaded
                 ? '<span style="display:inline-block;margin-top:6px;font-size:10px;font-weight:700;color:var(--bd-success)">已上传</span>'
-                : '')
+                : ''),
+            'frontPhoto',
+            store
           )
         )
       );
@@ -536,8 +574,8 @@
           '👤',
           '老板 / 联系人',
           '手机号验证与姓名（档案不落验证码）',
-          fieldBlock('老板 / 负责人联系电话', archiveText(store.contactPhone), true) +
-            fieldBlock('老板 / 联系人姓名', archiveText(store.contactName), true)
+          fieldBlock('老板 / 联系人姓名', archiveText(store.contactName), 'contactName', store) +
+            fieldBlock('老板 / 负责人联系电话', archiveText(store.contactPhone), 'contactPhone', store)
         )
       );
 
@@ -549,8 +587,13 @@
             '门店面积、楼层与店前店内口述视频',
             fieldBlock('门店店前左右两分钟（口述介绍）视频', archiveText(store.videoStorefrontIntroUrl ? '（视频）' : store.videoStorefrontIntroDone ? '已提交' : '—')) +
               fieldBlock('门店店内一分钟视频（口述介绍）', archiveText(store.videoInteriorIntroUrl ? '（视频）' : store.videoInteriorIntroDone ? '已提交' : '—')) +
-              fieldBlock('门店面积（㎡）', archiveText(store.storeArea && store.storeArea !== '—' ? store.storeArea + ' ㎡' : '—'), true) +
-              fieldBlock('门店楼层', archiveText(store.storeFloors), true)
+              fieldBlock(
+                '门店面积（㎡）',
+                archiveText(store.storeArea && store.storeArea !== '—' ? store.storeArea + ' ㎡' : '—'),
+                'storeArea',
+                store
+              ) +
+              fieldBlock('门店楼层', archiveText(store.storeFloors), 'storeFloors', store)
           )
         );
         parts.push(
@@ -600,7 +643,37 @@
     return !t || t === '—' ? '—' : t;
   }
 
-  function fieldBlock(label, val, req) {
+  /** 与 mdm-bd-h5-store-register validate() / field(, true) 对齐；审核档案不展示验证码 */
+  function isBdArchiveFieldRequired(fieldKey, store) {
+    var div = String((store && store.partnerDivision) || '').trim();
+    var policy = div === '加盟店' || div === '合作店' || div === '同行店';
+    var fr = div === '加盟店' || div === '合作店';
+    var common = {
+      storeSubject: true,
+      name: true,
+      boundBd: true,
+      warehouse: true,
+      partnerDivision: true
+    };
+    if (common[fieldKey]) return true;
+    if (!policy) return false;
+    var policyReq = {
+      storeType: true,
+      regionCascade: true,
+      detailAddress: true,
+      frontPhoto: true,
+      contactPhone: true,
+      contactName: true
+    };
+    if (policyReq[fieldKey]) return true;
+    if (fr && (fieldKey === 'storeArea' || fieldKey === 'storeFloors')) return true;
+    return false;
+  }
+
+  function fieldBlock(label, val, reqOrKey, store) {
+    var req = false;
+    if (typeof reqOrKey === 'boolean') req = reqOrKey;
+    else if (typeof reqOrKey === 'string' && store) req = isBdArchiveFieldRequired(reqOrKey, store);
     return (
       '<div class="bd-field"><div class="row"><span class="lab">' +
       (req ? '<span class="req">*</span>' : '') +
@@ -620,8 +693,11 @@
     var auditApproved = d === '审核成功';
     var alerts = '';
     if (store.phase === 'approved' && store.onboardingStatus === '待进件') {
+      var bannerPayload = escapeHtml(JSON.stringify(buildStoreOnboardingPayload(store, onboardingSummary)));
       alerts +=
-        '<div class="bd-audit-banner blue" style="margin:10px 12px">门店<strong>资料审核已通过</strong>，当前尚未发起<strong>商户进件</strong>。请尽快引导商户完成进件。<button type="button" style="margin-left:6px;border:none;background:none;color:var(--bd-primary);font-weight:700;cursor:pointer;text-decoration:underline" data-go-onboard>去进件</button></div>';
+        '<div class="bd-audit-banner blue" style="margin:10px 12px">门店<strong>资料审核已通过</strong>，当前尚未发起<strong>商户进件</strong>。请尽快引导商户完成进件。<button type="button" style="margin-left:6px;border:none;background:none;color:var(--bd-primary);font-weight:700;cursor:pointer;text-decoration:underline" data-go-onboard-new><span class="bd-onboard-payload" style="display:none">' +
+        bannerPayload +
+        '</span>去进件</button></div>';
     }
     if (store.phase === 'draft') {
       alerts +=
@@ -711,38 +787,37 @@
 
     var onbSuccess =
       onb === '进件成功' || onboardingSummary.auditStatus === '审核成功';
-    var onbShortName =
-      (onboardingSummary.fields && onboardingSummary.fields.short_name) ||
-      store.shortName ||
-      store.name ||
-      '';
     var onbPayloadEscaped = escapeHtml(
-      JSON.stringify({
-        name: store.name || '',
-        shortName: onbShortName || '',
-        merchantNo: store.merchantUid || '',
-        phone: store.contactPhone || '',
-        address: store.detailAddress || store.address || '',
-        onboardingStatus: onboardingSummary.status || '',
-        onboardingAuditStatus: onboardingSummary.auditStatus || '',
-        onboardingNextAuditNode: onboardingSummary.nextAuditNode || '',
-        onboardingSubmittedAt: onboardingSummary.submittedAt || '',
-        onboardingFields: onboardingSummary.fields || {},
-      })
+      JSON.stringify(buildStoreOnboardingPayload(store, onboardingSummary))
     );
-    var onbChip = onbSuccess
-      ? '<button type="button" data-go-onboard-detail style="border:none;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;' +
-        badgeClass('审核成功') +
+    var canOnboardNav =
+      onb === '待进件' || onb === '进件中' || onb === '进件成功' || onb === '进件失败';
+    var onbChip;
+    if (canOnboardNav) {
+      var isPendingOnboard = onb === '待进件';
+      var onbChipStyle = isPendingOnboard
+        ? 'background:rgba(100,116,139,.08);color:#475569'
+        : onb === '进件中'
+          ? badgeClass('审核中')
+          : onbSuccess
+            ? badgeClass('审核成功')
+            : badgeClass('审核失败');
+      onbChip =
+        '<button type="button" data-' +
+        (isPendingOnboard ? 'go-onboard-new' : 'go-onboard-detail') +
+        ' style="border:none;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:2px;' +
+        onbChipStyle +
         '">进件 · ' +
         escapeHtml(onb) +
         '<span class="bd-onboard-payload" style="display:none">' +
         onbPayloadEscaped +
-        '</span></button>'
-      : '<span style="border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700' +
-        (onb === '进件中' ? badgeClass('审核中') : 'background:rgba(100,116,139,.08);color:#475569') +
-        '">进件 · ' +
+        '</span></button>';
+    } else {
+      onbChip =
+        '<span style="border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;background:rgba(100,116,139,.08);color:#475569">进件 · ' +
         escapeHtml(onb) +
         '</span>';
+    }
 
     return (
       '<div class="bd-page-bar"><button type="button" class="bd-back" data-back-list>‹</button><h1>门店档案</h1>' +
@@ -1061,15 +1136,25 @@
         })('mdm_bd_merchants.html#onboarding');
       };
     });
+    function openMerchantOnboardingFromBtn(b, isNew) {
+      var payloadEl = b.querySelector('.bd-onboard-payload');
+      var payloadText = payloadEl ? payloadEl.textContent || '' : '';
+      var payload = {};
+      try {
+        payload = JSON.parse(payloadText || '{}');
+      } catch (e) {
+        payload = {};
+      }
+      navigateMerchantOnboarding(payload, isNew);
+    }
+    root.querySelectorAll('[data-go-onboard-new]').forEach(function (b) {
+      b.onclick = function () {
+        openMerchantOnboardingFromBtn(b, true);
+      };
+    });
     root.querySelectorAll('[data-go-onboard-detail]').forEach(function (b) {
       b.onclick = function () {
-        var payloadEl = b.querySelector('.bd-onboard-payload');
-        var payload = payloadEl ? payloadEl.textContent || '' : '';
-        location.href = (window.bdPage || function (x) {
-          return x;
-        })(
-          'mdm_bd_merchants.html#detail-by-payload/' + encodeURIComponent(payload)
-        );
+        openMerchantOnboardingFromBtn(b, false);
       };
     });
     root.querySelectorAll('[data-go-onboard-list]').forEach(function (b) {
