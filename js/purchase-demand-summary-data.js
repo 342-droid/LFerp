@@ -60,6 +60,29 @@
         return code && map[code] ? map[code] : '';
     };
 
+    /** 收货仓库 -> 地址 / 手机号 / 收货人（预览按供应商维度展示） */
+    window.PURCHASE_DEMAND_WAREHOUSE_RECEIVE_INFO = {
+        'W001 南京仓': { receiveAddress: '江苏省南京市江宁区禄口街道冷丰物流园A区', receivePhone: '025-88886666', receiver: '周仓管' },
+        'W002 嘉兴仓': { receiveAddress: '浙江省嘉兴市南湖区大桥镇冷链仓储中心3号库', receivePhone: '0573-66668888', receiver: '吴收货' },
+        'W003 上海仓': { receiveAddress: '上海市嘉定区马陆镇丰茂路88号', receivePhone: '021-55667788', receiver: '孙主管' },
+        'W004 北京仓': { receiveAddress: '北京市大兴区亦庄经济开发区物流基地B座', receivePhone: '010-66554433', receiver: '郑库管' }
+    };
+
+    /**
+     * @param {string} warehouse
+     * @returns {{ receiveAddress: string, receivePhone: string, receiver: string }}
+     */
+    window.resolvePurchaseDemandWarehouseReceiveInfo = function(warehouse) {
+        var key = warehouse ? String(warehouse).trim() : '';
+        var map = window.PURCHASE_DEMAND_WAREHOUSE_RECEIVE_INFO || {};
+        var info = key && map[key] ? map[key] : {};
+        return {
+            receiveAddress: info.receiveAddress || '',
+            receivePhone: info.receivePhone || '',
+            receiver: info.receiver || ''
+        };
+    };
+
     /** 门店编码 -> 地址 / 手机号 / 负责人（预览按门店维度展示） */
     window.PURCHASE_DEMAND_STORE_INFO = {
         ST001: { storeAddress: '江苏省南京市玄武区中山路18号', storePhone: '13812345678', storeManager: '王明' },
@@ -71,16 +94,22 @@
 
     /**
      * @param {Object} row
-     * @returns {{ storeAddress: string, storePhone: string, storeManager: string }}
+     * @returns {{ storeAddress: string, storePhone: string, storeManager: string, receiveAddress: string, receivePhone: string, receiver: string }}
      */
     window.resolvePurchaseDemandStoreInfo = function(row) {
         var code = row && row.storeCode ? String(row.storeCode).trim() : '';
         var map = window.PURCHASE_DEMAND_STORE_INFO || {};
         var info = code && map[code] ? map[code] : {};
+        var receiveAddress = (row && row.storeAddress) || info.storeAddress || '';
+        var receivePhone = (row && row.storePhone) || info.storePhone || '';
+        var receiver = (row && row.storeManager) || info.storeManager || '';
         return {
-            storeAddress: (row && row.storeAddress) || info.storeAddress || '',
-            storePhone: (row && row.storePhone) || info.storePhone || '',
-            storeManager: (row && row.storeManager) || info.storeManager || ''
+            storeAddress: receiveAddress,
+            storePhone: receivePhone,
+            storeManager: receiver,
+            receiveAddress: receiveAddress,
+            receivePhone: receivePhone,
+            receiver: receiver
         };
     };
 

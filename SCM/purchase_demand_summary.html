@@ -471,22 +471,8 @@
                 </div>
                 <div class="detail-table-wrap table-scroll-container">
                     <table class="table no-last-column-freeze">
-                        <thead>
-                            <tr>
-                                <th id="poPreviewNameHeader">采购单预览名称</th>
-                                <th id="poPreviewStoreAddressHeader" style="display:none;">门店地址</th>
-                                <th id="poPreviewStorePhoneHeader" style="display:none;">门店手机号</th>
-                                <th id="poPreviewStoreManagerHeader" style="display:none;">门店负责人</th>
-                                <th id="poPreviewOwnerHeader">归属主体</th>
-                                <th>收货仓库</th>
-                                <th>采购员</th>
-                                <th>明细行数</th>
-                                <th>待采购量合计</th>
-                                <th>采购单价</th>
-                                <th>采购金额</th>
-                                <th>销售金额</th>
-                                <th>预付金额</th>
-                            </tr>
+                        <thead id="poPreviewThead">
+                            <tr></tr>
                         </thead>
                         <tbody id="poPreviewTbody"></tbody>
                     </table>
@@ -517,6 +503,7 @@
     const SKU_CATEGORY_TREE = window.SKU_CATEGORY_TREE_PURCHASE_DEMAND;
     const resolvePurchaseDemandSkuImage = window.resolvePurchaseDemandSkuImage;
     const resolvePurchaseDemandStoreInfo = window.resolvePurchaseDemandStoreInfo;
+    const resolvePurchaseDemandWarehouseReceiveInfo = window.resolvePurchaseDemandWarehouseReceiveInfo;
     const SKU_SOURCE_MAP_BY_SKU = {
         SKU001: '普通商品',
         SKU002: '积分商品',
@@ -932,7 +919,7 @@
             var storeName = (row.storeName || '').trim();
             var storeInfo = typeof resolvePurchaseDemandStoreInfo === 'function'
                 ? resolvePurchaseDemandStoreInfo(row)
-                : { storeAddress: '', storePhone: '', storeManager: '' };
+                : { receiveAddress: '', receivePhone: '', receiver: '' };
             var ownerText = (storeCode + ' ' + storeName).trim() || '未标记门店';
             var storeDisplayName = ownerText;
             var supplierName = String(row.supplier || '').trim() || '-';
@@ -942,9 +929,9 @@
                 map.set(key, {
                     rowKey: key,
                     previewName: storeDisplayName,
-                    storeAddress: storeInfo.storeAddress || '',
-                    storePhone: storeInfo.storePhone || '',
-                    storeManager: storeInfo.storeManager || '',
+                    receiveAddress: storeInfo.receiveAddress || '',
+                    receivePhone: storeInfo.receivePhone || '',
+                    receiver: storeInfo.receiver || '',
                     ownerText: supplierName,
                     receivingWarehouse: receivingWarehouse,
                     lineCount: 0,
@@ -972,9 +959,9 @@
             return {
                 rowKey: g.rowKey,
                 previewName: g.previewName,
-                storeAddress: g.storeAddress || '-',
-                storePhone: g.storePhone || '-',
-                storeManager: g.storeManager || '-',
+                receiveAddress: g.receiveAddress || '-',
+                receivePhone: g.receivePhone || '-',
+                receiver: g.receiver || '-',
                 ownerText: g.ownerText || '-',
                 receivingWarehouse: g.receivingWarehouse || '-',
                 buyer: Object.keys(g.buyerMap).join('、') || '-',
@@ -1004,12 +991,18 @@
             var row = line || {};
             var supplier = String(row.supplier || '').trim() || '-';
             var receivingWarehouse = String(row.receivingWarehouse || '').trim() || '未标记收货仓库';
+            var warehouseInfo = typeof resolvePurchaseDemandWarehouseReceiveInfo === 'function'
+                ? resolvePurchaseDemandWarehouseReceiveInfo(receivingWarehouse)
+                : { receiveAddress: '', receivePhone: '', receiver: '' };
             var key = supplier + '\0' + receivingWarehouse;
             if (!map.has(key)) {
                 map.set(key, {
                     rowKey: key,
                     previewName: supplier,
                     receivingWarehouse: receivingWarehouse,
+                    receiveAddress: warehouseInfo.receiveAddress || '',
+                    receivePhone: warehouseInfo.receivePhone || '',
+                    receiver: warehouseInfo.receiver || '',
                     buyer: supplierBuyerMap[supplier] || '-',
                     lineCount: 0,
                     pendingQtySum: 0,
@@ -1033,6 +1026,9 @@
                 rowKey: row.rowKey,
                 previewName: row.previewName,
                 receivingWarehouse: row.receivingWarehouse,
+                receiveAddress: row.receiveAddress || '-',
+                receivePhone: row.receivePhone || '-',
+                receiver: row.receiver || '-',
                 buyer: row.buyer,
                 lineCount: row.lineCount,
                 pendingQtySum: row.pendingQtySum,
@@ -1074,19 +1070,51 @@
         });
     }
 
+    function getPoPreviewColumnCount(dim) {
+        return dim === 'store' ? 13 : 12;
+    }
+
+    function getPoPreviewTableHeaders(dim) {
+        if (dim === 'store') {
+            return ['门店名称', '收货地址', '手机号', '收货人', '供应商', '收货仓库', '采购员', '明细行数', '待采购量合计', '采购单价', '采购金额', '销售金额', '预付金额'];
+        }
+        return ['供应商名称', '收货仓库', '收货地址', '手机号', '收货人', '采购员', '明细行数', '待采购量合计', '采购单价', '采购金额', '销售金额', '预付金额'];
+    }
+
+    function renderPoPreviewThead(dim) {
+        var thead = document.getElementById('poPreviewThead');
+        if (!thead) return;
+        var headers = getPoPreviewTableHeaders(dim);
+        thead.innerHTML = '<tr>' + headers.map(function(label) {
+            return '<th>' + escapeHtml(label) + '</th>';
+        }).join('') + '</tr>';
+    }
+
+    function renderPoPreviewReceiveCells(row) {
+        return '<td>' + escapeHtml(row.receiveAddress || '-') + '</td>' +
+            '<td>' + escapeHtml(row.receivePhone || '-') + '</td>' +
+            '<td>' + escapeHtml(row.receiver || '-') + '</td>';
+    }
+
+    function renderPoPreviewRowTail(row) {
+        return '<td><input type="text" class="po-preview-edit-input" data-field="buyer" value="' + escapeAttr(row.buyer || '') + '"></td>' +
+            '<td>' + escapeHtml(String(row.lineCount)) + '</td>' +
+            '<td>' + escapeHtml(formatQtyWithUnit(row.pendingQtySum, row.qtyUnit)) + '</td>' +
+            '<td>' + escapeHtml(formatMoney(row.actualUnitPrice)) + '</td>' +
+            '<td>' + escapeHtml(formatMoney(row.purchaseAmountSum)) + '</td>' +
+            '<td>' + escapeHtml(formatMoney(row.salesAmountSum)) + '</td>' +
+            '<td><input type="number" class="po-preview-edit-input" data-field="prepaidAmount" min="0" step="0.01" value="' + escapeAttr((Number(row.prepaidAmount) || 0).toFixed(2)) + '"></td>';
+    }
+
     function renderPoPreviewFromRows(dim, rows) {
         var infoBox = document.getElementById('poPreviewInfo');
         var amountBox = document.getElementById('poPreviewAmount');
-        var nameHeaderEl = document.getElementById('poPreviewNameHeader');
-        var storeAddressHeaderEl = document.getElementById('poPreviewStoreAddressHeader');
-        var storePhoneHeaderEl = document.getElementById('poPreviewStorePhoneHeader');
-        var storeManagerHeaderEl = document.getElementById('poPreviewStoreManagerHeader');
-        var ownerHeaderEl = document.getElementById('poPreviewOwnerHeader');
         var dimLabelEl = document.getElementById('poPreviewDimensionLabel');
         var countEl = document.getElementById('poPreviewCount');
         var tbody = document.getElementById('poPreviewTbody');
         var confirmBtn = document.getElementById('generatePoPreviewConfirmBtn');
         if (!tbody) return;
+        renderPoPreviewThead(dim);
         var dimLabel = poGenDimensionLabels[dim] || dim;
         var totalLineCount = rows.reduce(function(sum, row) {
             return sum + (Number(row.lineCount) || 0);
@@ -1103,22 +1131,6 @@
         var totalProfit = totalPurchaseAmount - totalSalesAmount;
         if (dimLabelEl) dimLabelEl.textContent = dimLabel;
         if (countEl) countEl.textContent = String(rows.length);
-        if (nameHeaderEl) {
-            nameHeaderEl.textContent = dim === 'supplier'
-                ? '供应商名称'
-                : (dim === 'store' ? '门店名称' : '采购单预览名称');
-        }
-        if (ownerHeaderEl) {
-            if (dim === 'supplier') {
-                ownerHeaderEl.style.display = 'none';
-            } else {
-                ownerHeaderEl.style.display = '';
-                ownerHeaderEl.textContent = dim === 'store' ? '供应商' : '归属主体';
-            }
-        }
-        [storeAddressHeaderEl, storePhoneHeaderEl, storeManagerHeaderEl].forEach(function(el) {
-            if (el) el.style.display = dim === 'store' ? '' : 'none';
-        });
         if (infoBox) {
             infoBox.innerHTML = [
                 detailInfoItemHtml('生成维度', dimLabel),
@@ -1136,32 +1148,27 @@
         }
         if (confirmBtn) confirmBtn.disabled = rows.length === 0;
         if (!rows.length) {
-            var emptyColspan = dim === 'store' ? 13 : (dim === 'supplier' ? 9 : 10);
+            var emptyColspan = getPoPreviewColumnCount(dim);
             tbody.innerHTML = '<tr><td colspan="' + emptyColspan + '" style="text-align:center;color:#999;">暂无可生成采购单数据</td></tr>';
             return;
         }
         tbody.innerHTML = rows.map(function(row) {
-            var storeExtraCells = dim === 'store'
-                ? '<td>' + escapeHtml(row.storeAddress || '-') + '</td>' +
-                  '<td>' + escapeHtml(row.storePhone || '-') + '</td>' +
-                  '<td>' + escapeHtml(row.storeManager || '-') + '</td>'
-                : '';
-            var ownerCell = dim === 'supplier'
-                ? ''
-                : '<td>' + escapeHtml(row.ownerText) + '</td>';
+            if (dim === 'store') {
+                return '' +
+                    '<tr data-row-key="' + escapeAttr(row.rowKey || '') + '">' +
+                    '<td>' + escapeHtml(row.previewName) + '</td>' +
+                    renderPoPreviewReceiveCells(row) +
+                    '<td>' + escapeHtml(row.ownerText) + '</td>' +
+                    '<td>' + escapeHtml(row.receivingWarehouse || '-') + '</td>' +
+                    renderPoPreviewRowTail(row) +
+                    '</tr>';
+            }
             return '' +
                 '<tr data-row-key="' + escapeAttr(row.rowKey || '') + '">' +
                 '<td>' + escapeHtml(row.previewName) + '</td>' +
-                storeExtraCells +
-                ownerCell +
                 '<td>' + escapeHtml(row.receivingWarehouse || '-') + '</td>' +
-                '<td><input type="text" class="po-preview-edit-input" data-field="buyer" value="' + escapeAttr(row.buyer || '') + '"></td>' +
-                '<td>' + escapeHtml(String(row.lineCount)) + '</td>' +
-                '<td>' + escapeHtml(formatQtyWithUnit(row.pendingQtySum, row.qtyUnit)) + '</td>' +
-                '<td>' + escapeHtml(formatMoney(row.actualUnitPrice)) + '</td>' +
-                '<td>' + escapeHtml(formatMoney(row.purchaseAmountSum)) + '</td>' +
-                '<td>' + escapeHtml(formatMoney(row.salesAmountSum)) + '</td>' +
-                '<td><input type="number" class="po-preview-edit-input" data-field="prepaidAmount" min="0" step="0.01" value="' + escapeAttr((Number(row.prepaidAmount) || 0).toFixed(2)) + '"></td>' +
+                renderPoPreviewReceiveCells(row) +
+                renderPoPreviewRowTail(row) +
                 '</tr>';
         }).join('');
     }
