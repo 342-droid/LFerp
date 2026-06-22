@@ -240,7 +240,7 @@
             <section class="search-section">
                 <form class="search-form">
                     <div class="form-group custom-select-wrapper">
-                        <label style="width: 70px;">收货仓库:</label>
+                        <label style="width: 70px;">收货地名称:</label>
                         <div class="custom-select">
                             <input type="text" id="searchWarehouse" placeholder="请选择" readonly>
                             <span class="select-arrow">▼</span>
@@ -352,10 +352,9 @@
                                 <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
                                 <th>采购单号</th>
                                 <th>供应商</th>
-                                <th>收货仓库</th>
+                                <th>收货地名称</th>
                                 <th>单据状态</th>
                                 <th>单据来源</th>
-                                <th>采购员</th>
                                 <th>备注</th>
                                 <th>创建时间</th>
                                 <th>创建人</th>
@@ -400,6 +399,7 @@
                                     <th>商品编码</th>
                                     <th>商品名称</th>
                                     <th>商品规格</th>
+                                    <th>采购员</th>
                                     <th>商品分类</th>
                                     <th>采购量</th>
                                     <th>收货量</th>
@@ -430,7 +430,7 @@
                     <div class="detail-section-title">采购单信息</div>
                     <div class="add-po-form-grid">
                         <div class="add-po-form-item">
-                            <span class="label">收货仓库:</span>
+                            <span class="label">收货地名称:</span>
                             <div class="custom-select">
                                 <input type="text" id="addPoWarehouse" placeholder="请选择" readonly>
                                 <span class="select-arrow">▼</span>
@@ -445,15 +445,6 @@
                                 <span class="select-arrow">▼</span>
                                 <span class="clear-btn">×</span>
                                 <div class="select-dropdown" id="addPoSupplierDropdown"></div>
-                            </div>
-                        </div>
-                        <div class="add-po-form-item">
-                            <span class="label">采购员:</span>
-                            <div class="custom-select">
-                                <input type="text" id="addPoBuyer" placeholder="请选择" readonly>
-                                <span class="select-arrow">▼</span>
-                                <span class="clear-btn">×</span>
-                                <div class="select-dropdown" id="addPoBuyerDropdown"></div>
                             </div>
                         </div>
                         <div class="add-po-form-item" style="grid-column: span 2;">
@@ -480,6 +471,7 @@
                                     <th>商品编码</th>
                                     <th>商品名称</th>
                                     <th>商品分类</th>
+                                    <th>采购员</th>
                                     <th>采购量</th>
                                     <th>采购单价</th>
                                     <th>销售单价</th>
@@ -550,6 +542,7 @@
     var currentPage = 1;
     var pageSize = 10;
     var addPoLines = [];
+    var addPoBuyerOptions = [];
     var currentAddPoNo = '';
     var addPoMode = 'add';
     var editingPoNo = '';
@@ -716,6 +709,33 @@
         return res;
     }
 
+    function uniqueBuyerValues(rows) {
+        var list = [];
+        (rows || []).forEach(function(r) {
+            (r.lines || []).forEach(function(l) {
+                if (l && l.buyer) list.push(l.buyer);
+            });
+        });
+        return uniqueValues(list);
+    }
+
+    function getLineBuyer(line) {
+        return String((line && line.buyer) || '').trim();
+    }
+
+    function renderLineBuyerSelect(value, options) {
+        var current = String(value || '').trim();
+        var opts = uniqueValues((options || []).concat(current ? [current] : []));
+        var html = '<select class="add-po-line-input add-po-line-buyer-select" data-field="buyer">';
+        html += '<option value="">请选择</option>';
+        html += opts.map(function(name) {
+            var selected = name === current ? ' selected' : '';
+            return '<option value="' + escapeHtml(name) + '"' + selected + '>' + escapeHtml(name) + '</option>';
+        }).join('');
+        html += '</select>';
+        return html;
+    }
+
     function buildProductMaster(rows) {
         var map = {};
         (rows || []).forEach(function(r) {
@@ -812,7 +832,8 @@
             saleUnitPrice: 0,
             saleAmount: 0,
             prepaidAmount: '',
-            lineRemark: ''
+            lineRemark: '',
+            buyer: ''
         };
     }
 
@@ -874,7 +895,7 @@
         var tbody = document.getElementById('addPoLinesTbody');
         if (!tbody) return;
         if (!addPoLines.length) {
-            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:#999;">暂无明细，请新增明细行</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#999;">暂无明细，请新增明细行</td></tr>';
             renderAddAmountInfo();
             return;
         }
@@ -884,6 +905,7 @@
                 '<td><input type="text" class="add-po-line-input" data-field="skuCode" value="' + escapeHtml(line.skuCode) + '" placeholder="请输入商品编码"></td>' +
                 '<td><input type="text" class="add-po-line-input" data-field="skuName" list="poProductNameList" value="' + escapeHtml(line.skuName) + '" placeholder="可模糊查询商品名称"></td>' +
                 '<td><input type="text" class="add-po-line-input" data-field="skuCategory" value="' + escapeHtml(line.skuCategory) + '" readonly></td>' +
+                '<td>' + renderLineBuyerSelect(line.buyer, addPoBuyerOptions) + '</td>' +
                 '<td><input type="number" class="add-po-line-input" data-field="purchaseQty" min="0" step="1" value="' + escapeHtml(String(line.purchaseQty)) + '"></td>' +
                 '<td><input type="text" class="add-po-line-input" data-field="actualUnitPrice" value="' + escapeHtml(toFixed2Number(line.actualUnitPrice).toFixed(2)) + '" readonly></td>' +
                 '<td><input type="number" class="add-po-line-input" data-field="saleUnitPrice" min="0" step="0.01" value="' + escapeHtml(toFixed2Number(line.saleUnitPrice).toFixed(2)) + '"></td>' +
@@ -905,12 +927,11 @@
         setAddPoSelectLocked(false);
         currentAddPoNo = generatePurchaseOrderNo();
         addPoLines = [newAddLine()];
+        addPoBuyerOptions = uniqueBuyerValues(allRows);
         var suppliers = uniqueValues(allRows.map(function(r) { return r.supplier; }));
-        var buyers = uniqueValues(allRows.map(function(r) { return r.buyer; }));
         var warehouses = uniqueValues(allRows.map(function(r) { return r.warehouse; }));
         renderSelectOptions('addPoWarehouse', 'addPoWarehouseDropdown', warehouses);
         renderSelectOptions('addPoSupplier', 'addPoSupplierDropdown', suppliers);
-        renderSelectOptions('addPoBuyer', 'addPoBuyerDropdown', buyers);
         renderProductNameDatalist();
         var remarkEl = document.getElementById('addPoRemark');
         if (remarkEl) remarkEl.value = '';
@@ -933,7 +954,8 @@
                 saleUnitPrice: Number(l.saleUnitPrice) || 0,
                 saleAmount: Number(l.saleAmount) || 0,
                 prepaidAmount: l.prepaidAmount == null ? '' : Number(l.prepaidAmount) || 0,
-                lineRemark: l.lineRemark || ''
+                lineRemark: l.lineRemark || '',
+                buyer: getLineBuyer(l)
             };
             recalcLine(line);
             return line;
@@ -955,16 +977,14 @@
         setAddPoHeaderTitle();
 
         var suppliers = uniqueValues(allRows.map(function(r) { return r.supplier; }));
-        var buyers = uniqueValues(allRows.map(function(r) { return r.buyer; }));
+        addPoBuyerOptions = uniqueBuyerValues(allRows);
         var warehouses = uniqueValues(allRows.map(function(r) { return r.warehouse; }));
         renderSelectOptions('addPoWarehouse', 'addPoWarehouseDropdown', warehouses);
         renderSelectOptions('addPoSupplier', 'addPoSupplierDropdown', suppliers);
-        renderSelectOptions('addPoBuyer', 'addPoBuyerDropdown', buyers);
         renderProductNameDatalist();
 
         setCustomSelectValue('addPoWarehouse', row.warehouse || '');
         setCustomSelectValue('addPoSupplier', row.supplier || '');
-        setCustomSelectValue('addPoBuyer', row.buyer || '');
         setAddPoSelectLocked(true);
 
         var remarkEl = document.getElementById('addPoRemark');
@@ -1052,15 +1072,14 @@
     function isAddFormValid() {
         var wh = document.getElementById('addPoWarehouse');
         var sp = document.getElementById('addPoSupplier');
-        var by = document.getElementById('addPoBuyer');
-        if (!wh || !sp || !by) return false;
+        if (!wh || !sp) return false;
         if (!getCustomSelectValue('addPoWarehouse')) return false;
         if (!getCustomSelectValue('addPoSupplier')) return false;
-        if (!getCustomSelectValue('addPoBuyer')) return false;
         if (!addPoLines.length) return false;
         for (var i = 0; i < addPoLines.length; i++) {
             var l = addPoLines[i];
             if (!l.skuCode || !l.skuName || !(Number(l.purchaseQty) > 0)) return false;
+            if (!getLineBuyer(l)) return false;
         }
         return true;
     }
@@ -1074,7 +1093,6 @@
         }
         var wh = getCustomSelectValue('addPoWarehouse');
         var sp = getCustomSelectValue('addPoSupplier');
-        var by = getCustomSelectValue('addPoBuyer');
         var remark = (document.getElementById('addPoRemark').value || '').trim();
         var createdAt = nowDateTimeText();
         var lines = addPoLines.map(function(l) {
@@ -1084,6 +1102,7 @@
                 skuName: l.skuName,
                 skuCategory: l.skuCategory,
                 qtyUnit: l.qtyUnit || '件',
+                buyer: getLineBuyer(l),
                 purchaseQty: Number(l.purchaseQty) || 0,
                 receivedQty: 0,
                 suggestedUnitPrice: Number(l.suggestedUnitPrice) || 0,
@@ -1109,12 +1128,12 @@
                 }
                 return;
             }
-            row.buyer = by;
             row.remark = remark;
             row.lines = lines;
             row.updatedAt = nowDateTimeText();
-            row.updatedBy = by;
+            row.updatedBy = getLineBuyer(lines[0]) || row.updatedBy || row.createdBy;
         } else {
+            var operator = getLineBuyer(lines[0]) || '系统';
             allRows.unshift({
                 poNo: currentAddPoNo || generatePurchaseOrderNo(),
                 warehouse: wh,
@@ -1122,12 +1141,11 @@
                 docStatus: '初始',
                 docSource: '手动新增',
                 deliveryDate: nowDateText(),
-                buyer: by,
                 remark: remark,
                 createdAt: createdAt,
-                createdBy: by,
+                createdBy: operator,
                 updatedAt: createdAt,
-                updatedBy: by,
+                updatedBy: operator,
                 lines: lines
             });
         }
@@ -1190,10 +1208,8 @@
             infoBox.innerHTML = [
                 detailInfoItemHtml('采购单号', row.poNo),
                 detailInfoItemHtml('供应商', row.supplier),
-                detailInfoItemHtml('收货仓库', row.warehouse),
                 detailInfoItemHtml('单据状态', row.docStatus),
                 detailInfoItemHtml('单据来源', row.docSource),
-                detailInfoItemHtml('采购员', row.buyer),
                 detailInfoItemHtml('实际采购时间', row.actualPurchaseDate),
                 detailInfoItemHtml('供应商发货时间', row.supplierShipDate),
                 detailInfoItemHtml('预计到货时间', row.expectedArrivalDate),
@@ -1233,6 +1249,7 @@
                     '<td>' + escapeHtml(l.skuCode) + '</td>' +
                     '<td>' + escapeHtml(l.skuName) + '</td>' +
                     '<td>' + escapeHtml(getLineSpec(l)) + '</td>' +
+                    '<td>' + escapeHtml(getLineBuyer(l) || '—') + '</td>' +
                     '<td>' + escapeHtml(l.skuCategory || '') + '</td>' +
                     '<td>' + escapeHtml(qtyWithUnit(l.purchaseQty, l)) + '</td>' +
                     '<td>' + escapeHtml(qtyWithUnit(l.receivedQty, l)) + '</td>' +
@@ -1364,7 +1381,7 @@
         var pageRows = filteredRows.slice(start, start + pageSize);
 
         if (pageRows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;color:#999;">暂无数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#999;">暂无数据</td></tr>';
         } else {
             tbody.innerHTML = pageRows.map(function(r) {
                 return (
@@ -1375,7 +1392,6 @@
                     '<td>' + escapeHtml(r.warehouse || '') + '</td>' +
                     '<td>' + statusCellHtml(r.docStatus) + '</td>' +
                     '<td>' + escapeHtml(r.docSource) + '</td>' +
-                    '<td>' + escapeHtml(r.buyer) + '</td>' +
                     '<td>' + escapeHtml(r.remark || '') + '</td>' +
                     '<td>' + escapeHtml(r.createdAt) + '</td>' +
                     '<td>' + escapeHtml(r.createdBy) + '</td>' +
@@ -1528,6 +1544,10 @@
                 applyProductToLine(idx, pByName);
             }
             renderAddLinesTable();
+            return;
+        }
+        if (field === 'buyer') {
+            line.buyer = (input.value || '').trim();
         }
     });
 
@@ -1569,7 +1589,6 @@
         initCustomSelect('searchDocSource', 'searchDocSourceDropdown');
         initCustomSelect('addPoWarehouse', 'addPoWarehouseDropdown');
         initCustomSelect('addPoSupplier', 'addPoSupplierDropdown');
-        initCustomSelect('addPoBuyer', 'addPoBuyerDropdown');
     }
 
     filteredRows = allRows.slice();

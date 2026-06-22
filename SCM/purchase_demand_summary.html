@@ -106,6 +106,10 @@
             font-size: 12px;
         }
 
+        .po-preview-edit-select {
+            background: #fff;
+        }
+
         .po-preview-modal .detail-table-wrap .table {
             width: 100%;
             min-width: 0;
@@ -167,6 +171,52 @@
             color: #666;
             margin-right: 6px;
             white-space: nowrap;
+        }
+
+        .po-preview-summary-row {
+            cursor: pointer;
+        }
+
+        .po-preview-summary-row:hover {
+            background: #f8fbff;
+        }
+
+        .po-preview-summary-row--expanded {
+            background: #f3f8ff;
+        }
+
+        .po-preview-expand-icon {
+            display: inline-block;
+            width: 14px;
+            color: #666;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        .po-preview-detail-line-row > td {
+            background: #fafafa;
+            border-top: none;
+            vertical-align: middle;
+            font-size: 12px;
+        }
+
+        .po-preview-detail-header-row th {
+            background: #f0f4f8;
+            font-weight: 600;
+            font-size: 12px;
+            color: #666;
+            padding: 6px;
+            border-top: none;
+            white-space: nowrap;
+        }
+
+        .po-preview-detail-image-cell {
+            text-align: center;
+        }
+
+        .po-preview-detail-buyer-cell .po-preview-edit-select {
+            width: 100%;
+            min-width: 80px;
         }
 
         .sku-thumb {
@@ -511,7 +561,8 @@
         SKU004: '普通商品',
         SKU005: '普通商品',
         SKU006: '积分商品',
-        SKU007: '拉新商品'
+        SKU007: '拉新商品',
+        SKU008: '普通商品'
     };
     const SPEC_MAP_BY_SKU = {
         SKU001: '5kg/箱',
@@ -520,7 +571,8 @@
         SKU004: '12袋/箱',
         SKU005: '500g/袋',
         SKU006: '2kg/袋',
-        SKU007: '1000g/袋'
+        SKU007: '1000g/袋',
+        SKU008: '5kg/箱'
     };
     const QTY_UNIT_MAP_BY_SKU = {
         SKU001: '箱',
@@ -529,7 +581,8 @@
         SKU004: '箱',
         SKU005: '袋',
         SKU006: '袋',
-        SKU007: '袋'
+        SKU007: '袋',
+        SKU008: '箱'
     };
     const detailLines = rawDetailLines.map(function(row) {
         var suggestedUnitPrice = Number(row.unitPrice);
@@ -568,6 +621,27 @@
         return String(s)
             .replace(/&/g, '&amp;')
             .replace(/"/g, '&quot;');
+    }
+
+    function previewRowKeyToAttr(rowKey) {
+        return encodeURIComponent(String(rowKey || ''));
+    }
+
+    function previewRowKeyFromAttr(attr) {
+        if (!attr) return '';
+        try {
+            return decodeURIComponent(attr);
+        } catch (err) {
+            return attr;
+        }
+    }
+
+    function renderSkuImageInline(imageUrl, altText) {
+        var url = imageUrl ? String(imageUrl).trim() : '';
+        if (url) {
+            return '<img class="sku-thumb sku-thumb--clickable js-sku-image-preview" src="' + escapeAttr(url) + '" alt="' + escapeAttr(altText || '') + '" data-image-url="' + escapeAttr(url) + '" data-image-title="' + escapeAttr(altText || '') + '">';
+        }
+        return '<span class="sku-thumb-placeholder">—</span>';
     }
 
     function renderSkuImageCell(imageUrl, altText) {
@@ -881,6 +955,43 @@
     };
     var pendingPoGenDimension = 'supplier';
     var poPreviewRowsCache = [];
+    var poPreviewExpandedRowKeys = new Set();
+    var PREVIEW_SUPPLIER_BUYER_MAP = {
+        '鲜果源商贸': '张敏',
+        '绿园果蔬': '李强',
+        '柑橘专营': '王华',
+        '零食汇': '赵刚',
+        '鲜蔬达': '刘洋',
+        '根茎优选': '陈晨'
+    };
+
+    function getPreviewBuyerOptions() {
+        var seen = {};
+        var list = [];
+        Object.keys(PREVIEW_SUPPLIER_BUYER_MAP).forEach(function(key) {
+            var name = String(PREVIEW_SUPPLIER_BUYER_MAP[key] || '').trim();
+            if (!name || seen[name]) return;
+            seen[name] = true;
+            list.push(name);
+        });
+        list.sort(function(a, b) { return a.localeCompare(b, 'zh-CN'); });
+        return list;
+    }
+
+    function renderPoPreviewBuyerSelect(line) {
+        var current = String(line.buyer || '').trim();
+        var options = getPreviewBuyerOptions();
+        if (current && options.indexOf(current) === -1) {
+            options = [current].concat(options);
+        }
+        var html = '<select class="po-preview-edit-input po-preview-edit-select" data-field="buyer">';
+        html += '<option value="">请选择</option>';
+        options.forEach(function(name) {
+            html += '<option value="' + escapeAttr(name) + '"' + (name === current ? ' selected' : '') + '>' + escapeHtml(name) + '</option>';
+        });
+        html += '</select>';
+        return html;
+    }
 
     function openGeneratePoDimensionModal() {
         var modal = document.getElementById('generatePoDimensionModal');
@@ -903,15 +1014,43 @@
         return buildPoPreviewRows(dim, lines).length;
     }
 
-    function buildStorePreviewRows(lines) {
-        var supplierBuyerMap = {
-            '鲜果源商贸': '张敏',
-            '绿园果蔬': '李强',
-            '柑橘专营': '王华',
-            '零食汇': '赵刚',
-            '鲜蔬达': '刘洋',
-            '根茎优选': '陈晨'
+    function buildPoPreviewDetailLine(row) {
+        var pendingQty = Number(row.pendingQty) || 0;
+        var unitPrice = Number(row.unitPrice) || 0;
+        var salePrice = Number(row.salePrice) || 0;
+        var purchaseAmount = pendingQty * unitPrice;
+        return {
+            skuCode: row.skuCode || '',
+            skuName: row.skuName || '',
+            skuImage: typeof resolvePurchaseDemandSkuImage === 'function' ? resolvePurchaseDemandSkuImage(row) : '',
+            spec: getRowSpec(row),
+            pendingQty: pendingQty,
+            qtyUnit: getRowQtyUnit(row),
+            unitPrice: unitPrice,
+            salePrice: salePrice,
+            purchaseAmount: purchaseAmount,
+            saleAmount: pendingQty * salePrice,
+            buyer: PREVIEW_SUPPLIER_BUYER_MAP[row.supplier] || '',
+            prepaidAmount: purchaseAmount * 0.30
         };
+    }
+
+    function getStorePreviewRowKey(row) {
+        var storeCode = (row.storeCode || '').trim();
+        var storeName = (row.storeName || '').trim();
+        var ownerText = (storeCode + ' ' + storeName).trim() || '未标记门店';
+        var supplierName = String(row.supplier || '').trim() || '-';
+        var receivingWarehouse = (row.receivingWarehouse || '').trim() || '未标记收货仓库';
+        return (storeCode || storeName || ownerText) + '\0' + receivingWarehouse + '\0' + supplierName;
+    }
+
+    function getSupplierPreviewRowKey(row) {
+        var supplier = String(row.supplier || '').trim() || '-';
+        var receivingWarehouse = String(row.receivingWarehouse || '').trim() || '未标记收货仓库';
+        return supplier + '\0' + receivingWarehouse;
+    }
+
+    function buildStorePreviewRows(lines) {
         var map = new Map();
         for (var i = 0; i < lines.length; i++) {
             var row = lines[i] || {};
@@ -924,7 +1063,7 @@
             var storeDisplayName = ownerText;
             var supplierName = String(row.supplier || '').trim() || '-';
             var receivingWarehouse = (row.receivingWarehouse || '').trim() || '未标记收货仓库';
-            var key = (storeCode || storeName || ownerText) + '\0' + receivingWarehouse + '\0' + supplierName;
+            var key = getStorePreviewRowKey(row);
             if (!map.has(key)) {
                 map.set(key, {
                     rowKey: key,
@@ -938,24 +1077,19 @@
                     pendingQtySum: 0,
                     purchaseAmountSum: 0,
                     salesAmountSum: 0,
-                    buyerMap: {},
-                    qtyUnit: null
+                    qtyUnit: null,
+                    detailLines: []
                 });
             }
             var g = map.get(key);
-            g.lineCount += 1;
+            g.detailLines.push(buildPoPreviewDetailLine(row));
             var pendingQty = Number(row.pendingQty) || 0;
             g.pendingQtySum += pendingQty;
             g.purchaseAmountSum += pendingQty * (Number(row.unitPrice) || 0);
             g.salesAmountSum += pendingQty * (Number(row.salePrice) || 0);
-            var buyer = supplierBuyerMap[row.supplier] || '';
-            if (buyer) g.buyerMap[buyer] = true;
             g.qtyUnit = mergeQtyUnit(g.qtyUnit, getRowQtyUnit(row));
         }
         return Array.from(map.values()).map(function(g) {
-            var suggestedPrice = g.pendingQtySum > 0 ? (g.purchaseAmountSum / g.pendingQtySum) : 0;
-            var actualPrice = suggestedPrice;
-            var prepayAmount = g.purchaseAmountSum * 0.30;
             return {
                 rowKey: g.rowKey,
                 previewName: g.previewName,
@@ -964,28 +1098,18 @@
                 receiver: g.receiver || '-',
                 ownerText: g.ownerText || '-',
                 receivingWarehouse: g.receivingWarehouse || '-',
-                buyer: Object.keys(g.buyerMap).join('、') || '-',
-                lineCount: g.lineCount,
+                lineCount: (g.detailLines || []).length,
                 pendingQtySum: g.pendingQtySum,
-                suggestedUnitPrice: suggestedPrice,
-                actualUnitPrice: actualPrice,
                 purchaseAmountSum: g.purchaseAmountSum,
                 salesAmountSum: g.salesAmountSum,
-                prepaidAmount: prepayAmount,
-                qtyUnit: g.qtyUnit || '件'
+                prepaidAmountSum: 0,
+                qtyUnit: g.qtyUnit || '件',
+                detailLines: g.detailLines || []
             };
         });
     }
 
     function buildSupplierPreviewRows(lines) {
-        var supplierBuyerMap = {
-            '鲜果源商贸': '张敏',
-            '绿园果蔬': '李强',
-            '柑橘专营': '王华',
-            '零食汇': '赵刚',
-            '鲜蔬达': '刘洋',
-            '根茎优选': '陈晨'
-        };
         var map = new Map();
         (lines || []).forEach(function(line) {
             var row = line || {};
@@ -994,7 +1118,7 @@
             var warehouseInfo = typeof resolvePurchaseDemandWarehouseReceiveInfo === 'function'
                 ? resolvePurchaseDemandWarehouseReceiveInfo(receivingWarehouse)
                 : { receiveAddress: '', receivePhone: '', receiver: '' };
-            var key = supplier + '\0' + receivingWarehouse;
+            var key = getSupplierPreviewRowKey(row);
             if (!map.has(key)) {
                 map.set(key, {
                     rowKey: key,
@@ -1003,25 +1127,23 @@
                     receiveAddress: warehouseInfo.receiveAddress || '',
                     receivePhone: warehouseInfo.receivePhone || '',
                     receiver: warehouseInfo.receiver || '',
-                    buyer: supplierBuyerMap[supplier] || '-',
                     lineCount: 0,
                     pendingQtySum: 0,
                     purchaseAmountSum: 0,
                     salesAmountSum: 0,
-                    qtyUnit: null
+                    qtyUnit: null,
+                    detailLines: []
                 });
             }
             var g = map.get(key);
             var pendingQty = Number(row.pendingQty) || 0;
-            g.lineCount += 1;
+            g.detailLines.push(buildPoPreviewDetailLine(row));
             g.pendingQtySum += pendingQty;
             g.purchaseAmountSum += pendingQty * (Number(row.unitPrice) || 0);
             g.salesAmountSum += pendingQty * (Number(row.salePrice) || 0);
             g.qtyUnit = mergeQtyUnit(g.qtyUnit, getRowQtyUnit(row));
         });
         return Array.from(map.values()).map(function(row) {
-            var suggestedPrice = row.pendingQtySum > 0 ? (row.purchaseAmountSum / row.pendingQtySum) : 0;
-            var actualPrice = suggestedPrice;
             return {
                 rowKey: row.rowKey,
                 previewName: row.previewName,
@@ -1029,15 +1151,13 @@
                 receiveAddress: row.receiveAddress || '-',
                 receivePhone: row.receivePhone || '-',
                 receiver: row.receiver || '-',
-                buyer: row.buyer,
-                lineCount: row.lineCount,
+                lineCount: (row.detailLines || []).length,
                 pendingQtySum: row.pendingQtySum,
-                suggestedUnitPrice: suggestedPrice,
-                actualUnitPrice: actualPrice,
                 purchaseAmountSum: row.purchaseAmountSum,
                 salesAmountSum: row.salesAmountSum,
-                prepaidAmount: row.purchaseAmountSum * 0.30,
-                qtyUnit: row.qtyUnit || '件'
+                prepaidAmountSum: 0,
+                qtyUnit: row.qtyUnit || '件',
+                detailLines: row.detailLines || []
             };
         });
     }
@@ -1050,35 +1170,83 @@
 
     function clonePreviewRows(rows) {
         return (rows || []).map(function(row) {
-            return Object.assign({}, row);
+            var copy = Object.assign({}, row);
+            copy.detailLines = (row.detailLines || []).map(function(line) {
+                return Object.assign({}, line);
+            });
+            return copy;
         });
     }
 
     function normalizePreviewRows(rows) {
         (rows || []).forEach(function(row) {
-            var pendingQty = Number(row.pendingQtySum) || 0;
-            var suggested = Number(row.suggestedUnitPrice) || 0;
-            var actual = Number(row.actualUnitPrice);
-            if (isNaN(actual) || actual < 0) actual = suggested;
-            row.actualUnitPrice = actual;
-            row.purchaseAmountSum = pendingQty * actual;
-            var prepaid = Number(row.prepaidAmount);
-            if (isNaN(prepaid) || prepaid < 0) {
-                prepaid = row.purchaseAmountSum * 0.30;
-            }
-            row.prepaidAmount = prepaid;
+            var purchaseSum = 0;
+            var salesSum = 0;
+            var prepaidSum = 0;
+            var pendingSum = 0;
+            (row.detailLines || []).forEach(function(line) {
+                var qty = Number(line.pendingQty) || 0;
+                var unitPrice = Number(line.unitPrice) || 0;
+                var salePrice = Number(line.salePrice) || 0;
+                line.purchaseAmount = qty * unitPrice;
+                line.saleAmount = qty * salePrice;
+                var prepaid = Number(line.prepaidAmount);
+                if (isNaN(prepaid) || prepaid < 0) {
+                    prepaid = line.purchaseAmount * 0.30;
+                }
+                line.prepaidAmount = prepaid;
+                purchaseSum += line.purchaseAmount;
+                salesSum += line.saleAmount;
+                prepaidSum += line.prepaidAmount;
+                pendingSum += qty;
+            });
+            row.lineCount = (row.detailLines || []).length;
+            row.pendingQtySum = pendingSum;
+            row.purchaseAmountSum = purchaseSum;
+            row.salesAmountSum = salesSum;
+            row.prepaidAmountSum = prepaidSum;
         });
     }
 
+    function getPoPreviewAmountColCount() {
+        return 4;
+    }
+
     function getPoPreviewColumnCount(dim) {
-        return dim === 'store' ? 13 : 12;
+        return 10;
+    }
+
+    function getPoPreviewDetailHeaders() {
+        return [
+            { label: '商品图片', colspan: 2 },
+            { label: '商品编码' },
+            { label: '商品名称' },
+            { label: '商品规格' },
+            { label: '采购员' },
+            { label: '待采购量' },
+            { label: '采购单价' },
+            { label: '销售单价' },
+            { label: '预付金额' }
+        ];
+    }
+
+    function renderPoPreviewDetailHeaderRow() {
+        return '<tr class="po-preview-detail-header-row">' +
+            getPoPreviewDetailHeaders().map(function(h) {
+                var colspan = Number(h.colspan) || 1;
+                if (colspan > 1) {
+                    return '<th colspan="' + colspan + '">' + escapeHtml(h.label) + '</th>';
+                }
+                return '<th>' + escapeHtml(h.label || '') + '</th>';
+            }).join('') +
+            '</tr>';
     }
 
     function getPoPreviewTableHeaders(dim) {
         if (dim === 'store') {
-            return ['门店名称', '收货地址', '手机号', '收货人', '供应商', '收货仓库', '采购员', '明细行数', '待采购量合计', '采购单价', '采购金额', '销售金额', '预付金额'];
+            return ['门店名称', '收货地址', '手机号', '收货人', '供应商', '明细行数', '待采购量合计', '采购金额合计', '销售金额合计', '预付金额合计'];
         }
-        return ['供应商名称', '收货仓库', '收货地址', '手机号', '收货人', '采购员', '明细行数', '待采购量合计', '采购单价', '采购金额', '销售金额', '预付金额'];
+        return ['供应商名称', '收货仓库', '收货地址', '手机号', '收货人', '明细行数', '待采购量合计', '采购金额合计', '销售金额合计', '预付金额合计'];
     }
 
     function renderPoPreviewThead(dim) {
@@ -1096,14 +1264,30 @@
             '<td>' + escapeHtml(row.receiver || '-') + '</td>';
     }
 
+    function renderPoPreviewDetailLineRow(rowKey, lineIndex, line) {
+        return '<tr class="po-preview-detail-line-row" data-row-key="' + escapeAttr(previewRowKeyToAttr(rowKey)) + '" data-line-index="' + lineIndex + '">' +
+            '<td colspan="2" class="po-preview-detail-image-cell">' + renderSkuImageInline(line.skuImage, line.skuName) + '</td>' +
+            '<td>' + escapeHtml(line.skuCode || '-') + '</td>' +
+            '<td>' + escapeHtml(line.skuName || '-') + '</td>' +
+            '<td>' + escapeHtml(line.spec || '-') + '</td>' +
+            '<td class="po-preview-detail-buyer-cell">' + renderPoPreviewBuyerSelect(line) + '</td>' +
+            '<td>' + escapeHtml(formatQtyWithUnit(line.pendingQty, line.qtyUnit)) + '</td>' +
+            '<td>' + escapeHtml(formatMoney(line.unitPrice)) + '</td>' +
+            '<td>' + escapeHtml(formatMoney(line.salePrice)) + '</td>' +
+            '<td><input type="number" class="po-preview-edit-input" data-field="prepaidAmount" min="0" step="0.01" value="' + escapeAttr((Number(line.prepaidAmount) || 0).toFixed(2)) + '"></td>' +
+            '</tr>';
+    }
+
+    function renderPoPreviewNameCell(row, expanded) {
+        return '<td><span class="po-preview-expand-icon js-po-preview-toggle" title="展开/收起明细">' + (expanded ? '▼' : '▶') + '</span> ' + escapeHtml(row.previewName) + '</td>';
+    }
+
     function renderPoPreviewRowTail(row) {
-        return '<td><input type="text" class="po-preview-edit-input" data-field="buyer" value="' + escapeAttr(row.buyer || '') + '"></td>' +
-            '<td>' + escapeHtml(String(row.lineCount)) + '</td>' +
+        return '<td>' + escapeHtml(String(row.lineCount)) + '</td>' +
             '<td>' + escapeHtml(formatQtyWithUnit(row.pendingQtySum, row.qtyUnit)) + '</td>' +
-            '<td>' + escapeHtml(formatMoney(row.actualUnitPrice)) + '</td>' +
             '<td>' + escapeHtml(formatMoney(row.purchaseAmountSum)) + '</td>' +
             '<td>' + escapeHtml(formatMoney(row.salesAmountSum)) + '</td>' +
-            '<td><input type="number" class="po-preview-edit-input" data-field="prepaidAmount" min="0" step="0.01" value="' + escapeAttr((Number(row.prepaidAmount) || 0).toFixed(2)) + '"></td>';
+            '<td>' + escapeHtml(formatMoney(row.prepaidAmountSum)) + '</td>';
     }
 
     function renderPoPreviewFromRows(dim, rows) {
@@ -1153,23 +1337,33 @@
             return;
         }
         tbody.innerHTML = rows.map(function(row) {
+            var rowKey = String(row.rowKey || '');
+            var expanded = poPreviewExpandedRowKeys.has(rowKey);
+            var summaryClass = 'js-po-preview-summary-row po-preview-summary-row' + (expanded ? ' po-preview-summary-row--expanded' : '');
+            var summaryRow = '';
             if (dim === 'store') {
-                return '' +
-                    '<tr data-row-key="' + escapeAttr(row.rowKey || '') + '">' +
-                    '<td>' + escapeHtml(row.previewName) + '</td>' +
+                summaryRow = '<tr class="' + summaryClass + '" data-row-key="' + escapeAttr(previewRowKeyToAttr(rowKey)) + '">' +
+                    renderPoPreviewNameCell(row, expanded) +
                     renderPoPreviewReceiveCells(row) +
                     '<td>' + escapeHtml(row.ownerText) + '</td>' +
+                    renderPoPreviewRowTail(row) +
+                    '</tr>';
+            } else {
+                summaryRow = '<tr class="' + summaryClass + '" data-row-key="' + escapeAttr(previewRowKeyToAttr(rowKey)) + '">' +
+                    renderPoPreviewNameCell(row, expanded) +
                     '<td>' + escapeHtml(row.receivingWarehouse || '-') + '</td>' +
+                    renderPoPreviewReceiveCells(row) +
                     renderPoPreviewRowTail(row) +
                     '</tr>';
             }
-            return '' +
-                '<tr data-row-key="' + escapeAttr(row.rowKey || '') + '">' +
-                '<td>' + escapeHtml(row.previewName) + '</td>' +
-                '<td>' + escapeHtml(row.receivingWarehouse || '-') + '</td>' +
-                renderPoPreviewReceiveCells(row) +
-                renderPoPreviewRowTail(row) +
-                '</tr>';
+            if (!expanded) {
+                return summaryRow;
+            }
+            var detailRows = renderPoPreviewDetailHeaderRow() +
+                (row.detailLines || []).map(function(line, lineIndex) {
+                    return renderPoPreviewDetailLineRow(rowKey, lineIndex, line);
+                }).join('');
+            return summaryRow + detailRows;
         }).join('');
     }
 
@@ -1182,6 +1376,7 @@
 
     function openGeneratePoPreviewModal(dim) {
         pendingPoGenDimension = dim === 'store' ? 'store' : 'supplier';
+        poPreviewExpandedRowKeys.clear();
         renderPoPreview(pendingPoGenDimension, filteredLines);
         var modal = document.getElementById('generatePoPreviewModal');
         if (modal) modal.style.display = 'block';
@@ -1278,25 +1473,59 @@
             closeGeneratePoPreviewModal();
         }
     });
+    function togglePoPreviewRowExpand(summaryRow) {
+        if (!summaryRow) return;
+        var rowKey = previewRowKeyFromAttr(summaryRow.getAttribute('data-row-key') || '');
+        if (!rowKey) return;
+        if (poPreviewExpandedRowKeys.has(rowKey)) {
+            poPreviewExpandedRowKeys.delete(rowKey);
+        } else {
+            poPreviewExpandedRowKeys.add(rowKey);
+        }
+        renderPoPreviewFromRows(pendingPoGenDimension, poPreviewRowsCache);
+    }
+
+    document.getElementById('poPreviewTbody').addEventListener('click', function(e) {
+        var thumb = e.target.closest('.js-sku-image-preview');
+        if (thumb) {
+            e.preventDefault();
+            e.stopPropagation();
+            openSkuImagePreview(
+                thumb.getAttribute('data-image-url') || '',
+                thumb.getAttribute('data-image-title') || ''
+            );
+            return;
+        }
+        if (e.target.closest('.po-preview-edit-input, .po-preview-edit-select')) return;
+        var summaryRow = e.target.closest('.js-po-preview-summary-row');
+        if (!summaryRow) return;
+        e.preventDefault();
+        togglePoPreviewRowExpand(summaryRow);
+    });
     document.getElementById('poPreviewTbody').addEventListener('change', function(e) {
         var input = e.target;
-        if (!input || !input.classList.contains('po-preview-edit-input')) return;
+        if (!input || (!input.classList.contains('po-preview-edit-input') && !input.classList.contains('po-preview-edit-select'))) return;
         var tr = input.closest('tr');
         if (!tr) return;
-        var rowKey = tr.getAttribute('data-row-key') || '';
+        var rowKey = previewRowKeyFromAttr(tr.getAttribute('data-row-key') || '');
         if (!rowKey) return;
         var row = poPreviewRowsCache.find(function(item) {
             return String(item.rowKey || '') === rowKey;
         });
         if (!row) return;
+        var lineIndexAttr = tr.getAttribute('data-line-index');
+        if (lineIndexAttr == null || lineIndexAttr === '') return;
+        var lineIndex = Number(lineIndexAttr);
+        if (isNaN(lineIndex) || !row.detailLines || !row.detailLines[lineIndex]) return;
+        var line = row.detailLines[lineIndex];
         var field = input.getAttribute('data-field');
         var rawValue = input.value;
         if (field === 'buyer') {
-            row.buyer = String(rawValue || '').trim();
+            line.buyer = String(rawValue || '').trim();
         } else if (field === 'prepaidAmount') {
             var prepaid = Number(rawValue);
             if (isNaN(prepaid) || prepaid < 0) prepaid = 0;
-            row.prepaidAmount = prepaid;
+            line.prepaidAmount = prepaid;
         }
         normalizePreviewRows(poPreviewRowsCache);
         renderPoPreviewFromRows(pendingPoGenDimension, poPreviewRowsCache);
