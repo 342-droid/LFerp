@@ -455,6 +455,11 @@
                 </div>
 
                 <div class="detail-section">
+                    <div class="detail-section-title">收货信息</div>
+                    <div class="detail-info-grid" id="addPoReceiveInfo"></div>
+                </div>
+
+                <div class="detail-section">
                     <div class="detail-section-title">金额信息</div>
                     <div class="detail-amount-grid" id="addPoAmountInfo"></div>
                 </div>
@@ -543,6 +548,7 @@
     var pageSize = 10;
     var addPoLines = [];
     var addPoBuyerOptions = [];
+    var addPoReceiveContext = null;
     var currentAddPoNo = '';
     var addPoMode = 'add';
     var editingPoNo = '';
@@ -576,6 +582,22 @@
             receivePhone: row && row.receivePhone ? row.receivePhone : '—',
             receiver: row && row.receiver ? row.receiver : '—'
         };
+    }
+
+    function renderAddPoReceiveInfo() {
+        var warehouse = getCustomSelectValue('addPoWarehouse');
+        var row = addPoReceiveContext
+            ? Object.assign({}, addPoReceiveContext, { warehouse: warehouse || addPoReceiveContext.warehouse })
+            : { warehouse: warehouse };
+        var receiveInfo = getPoReceiveInfo(row);
+        var box = document.getElementById('addPoReceiveInfo');
+        if (!box) return;
+        box.innerHTML = [
+            detailInfoItemHtml('收货地名称', receiveInfo.receiveName),
+            detailInfoItemHtml('收货地址', receiveInfo.receiveAddress),
+            detailInfoItemHtml('手机号', receiveInfo.receivePhone),
+            detailInfoItemHtml('收货人', receiveInfo.receiver)
+        ].join('');
     }
 
     function escapeHtml(s) {
@@ -923,6 +945,7 @@
     function openAddPoModal() {
         addPoMode = 'add';
         editingPoNo = '';
+        addPoReceiveContext = null;
         setAddPoHeaderTitle();
         setAddPoSelectLocked(false);
         currentAddPoNo = generatePurchaseOrderNo();
@@ -936,6 +959,7 @@
         var remarkEl = document.getElementById('addPoRemark');
         if (remarkEl) remarkEl.value = '';
         renderAddLinesTable();
+        renderAddPoReceiveInfo();
         var modal = document.getElementById('addPoModal');
         if (modal) modal.style.display = 'block';
     }
@@ -973,6 +997,7 @@
         }
         addPoMode = 'edit';
         editingPoNo = row.poNo;
+        addPoReceiveContext = row;
         currentAddPoNo = row.poNo;
         setAddPoHeaderTitle();
 
@@ -993,6 +1018,7 @@
         addPoLines = mapRowLinesToAddLines(row.lines);
         if (!addPoLines.length) addPoLines = [newAddLine()];
         renderAddLinesTable();
+        renderAddPoReceiveInfo();
 
         var modal = document.getElementById('addPoModal');
         if (modal) modal.style.display = 'block';
@@ -1003,6 +1029,7 @@
         if (modal) modal.style.display = 'none';
         addPoMode = 'add';
         editingPoNo = '';
+        addPoReceiveContext = null;
         setAddPoHeaderTitle();
         setAddPoSelectLocked(false);
     }
@@ -1492,6 +1519,10 @@
     document.getElementById('addPoAddLineBtn').addEventListener('click', function() {
         addPoLines.push(newAddLine());
         renderAddLinesTable();
+    });
+
+    document.getElementById('addPoWarehouse').addEventListener('change', function() {
+        renderAddPoReceiveInfo();
     });
 
     document.getElementById('addPoLinesTbody').addEventListener('input', function(e) {

@@ -450,6 +450,7 @@
                                 <th>订货单号</th>
                                 <th>商品编码</th>
                                 <th>商品名称</th>
+                                <th>商品规格</th>
                                 <th>待采购量</th>
                                 <th>销售单价</th>
                                 <th>采购单价</th>
@@ -914,7 +915,7 @@
         const tbody = document.getElementById('demandDetailTbody');
         if (!tbody) return;
         if (!rows || rows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#999;">暂无明细数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:#999;">暂无明细数据</td></tr>';
             return;
         }
         tbody.innerHTML = rows.map(function(row) {
@@ -927,6 +928,7 @@
                 '<td>' + escapeHtml(row.orderNo || '-') + '</td>' +
                 '<td>' + escapeHtml(row.skuCode || '-') + '</td>' +
                 '<td>' + escapeHtml(row.skuName || '-') + '</td>' +
+                '<td>' + escapeHtml(getRowSpec(row)) + '</td>' +
                 '<td>' + escapeHtml(pendingDisplay) + '</td>' +
                 '<td>' + escapeHtml(saleUnitPrice) + '</td>' +
                 '<td>' + escapeHtml(suggestUnitPrice) + '</td>' +
