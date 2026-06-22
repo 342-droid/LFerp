@@ -21,6 +21,9 @@
      * @property {string} skuCategoryPath
      * @property {string} storeCode
      * @property {string} storeName
+     * @property {string} [storeAddress] 门店地址
+     * @property {string} [storePhone] 门店手机号
+     * @property {string} [storeManager] 门店负责人
      * @property {string} deliveryWarehouse
      * @property {string} receivingWarehouse
      * @property {string} supplier
@@ -55,6 +58,30 @@
         var code = row && row.skuCode ? String(row.skuCode).trim() : '';
         var map = window.PURCHASE_DEMAND_SKU_IMAGES || {};
         return code && map[code] ? map[code] : '';
+    };
+
+    /** 门店编码 -> 地址 / 手机号 / 负责人（预览按门店维度展示） */
+    window.PURCHASE_DEMAND_STORE_INFO = {
+        ST001: { storeAddress: '江苏省南京市玄武区中山路18号', storePhone: '13812345678', storeManager: '王明' },
+        ST002: { storeAddress: '上海市徐汇区肇嘉浜路1111号', storePhone: '13987654321', storeManager: '李芳' },
+        ST003: { storeAddress: '浙江省杭州市西湖区延安路98号', storePhone: '13700001111', storeManager: '张伟' },
+        ST004: { storeAddress: '北京市朝阳区建国门外大街1号', storePhone: '13622223333', storeManager: '刘洋' },
+        ST005: { storeAddress: '江苏省苏州市姑苏区观前街168号', storePhone: '13544445555', storeManager: '陈晨' }
+    };
+
+    /**
+     * @param {Object} row
+     * @returns {{ storeAddress: string, storePhone: string, storeManager: string }}
+     */
+    window.resolvePurchaseDemandStoreInfo = function(row) {
+        var code = row && row.storeCode ? String(row.storeCode).trim() : '';
+        var map = window.PURCHASE_DEMAND_STORE_INFO || {};
+        var info = code && map[code] ? map[code] : {};
+        return {
+            storeAddress: (row && row.storeAddress) || info.storeAddress || '',
+            storePhone: (row && row.storePhone) || info.storePhone || '',
+            storeManager: (row && row.storeManager) || info.storeManager || ''
+        };
     };
 
     window.PURCHASE_DEMAND_DETAIL_LINES = [

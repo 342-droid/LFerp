@@ -598,9 +598,9 @@
         <!-- 1. 扫描/输入站点号 -->
         <div class="page active" id="scanPage">
             <div class="main-content">
-                <div class="scan-title">请扫描/输入站点号</div>
+                <div class="scan-title">请扫描/输入站点</div>
                 <div id="claimBarcodeInputContainer" class="claim-barcode-input-container"></div>
-                <p class="scan-hint">请输入或扫描站点编码</p>
+                <p class="scan-hint">支持站点编码、站点储位</p>
                 <button type="button" class="claim-confirm-btn" onclick="claimRecheckTask()">确定</button>
             </div>
         </div>
@@ -713,7 +713,7 @@
                 container: 'claimBarcodeInputContainer',
                 inputId: 'claimStationInput',
                 inputClassName: 'wms-mobile-scan-input__field claim-barcode-input-centered',
-                placeholder: '请扫描/输入站点号'
+                placeholder: '请扫描/输入站点'
             })
             : null;
         const claimStationInput = claimBarcodeComponent

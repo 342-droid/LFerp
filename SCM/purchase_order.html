@@ -316,7 +316,8 @@
                             <span class="clear-btn">×</span>
                             <div class="select-dropdown" id="searchDocSourceDropdown">
                                 <div class="select-option" data-value="">全部</div>
-                                <div class="select-option" data-value="采购需求汇总生成">采购需求汇总生成</div>
+                                <div class="select-option" data-value="采购需求汇总-按供应商">采购需求汇总-按供应商</div>
+                                <div class="select-option" data-value="采购需求汇总-按门店">采购需求汇总-按门店</div>
                                 <div class="select-option" data-value="手动新增">手动新增</div>
                             </div>
                         </div>
@@ -383,6 +384,10 @@
                     <div class="detail-info-grid" id="poDetailInfo"></div>
                 </div>
                 <div class="detail-section">
+                    <div class="detail-section-title">收货信息</div>
+                    <div class="detail-info-grid" id="poDetailReceiveInfo"></div>
+                </div>
+                <div class="detail-section">
                     <div class="detail-section-title">金额信息</div>
                     <div class="detail-amount-grid" id="poDetailAmountInfo"></div>
                 </div>
@@ -394,6 +399,7 @@
                                 <tr>
                                     <th>商品编码</th>
                                     <th>商品名称</th>
+                                    <th>商品规格</th>
                                     <th>商品分类</th>
                                     <th>采购量</th>
                                     <th>收货量</th>
@@ -547,7 +553,37 @@
     var currentAddPoNo = '';
     var addPoMode = 'add';
     var editingPoNo = '';
+    const resolvePurchaseOrderReceiveInfo = window.resolvePurchaseOrderReceiveInfo;
     var productMaster = buildProductMaster(allRows);
+    var SPEC_MAP_BY_SKU = {
+        SKU001: '5kg/箱',
+        SKU002: '4kg/箱',
+        SKU003: '10kg/箱',
+        SKU004: '12袋/箱',
+        SKU005: '500g/袋',
+        SKU006: '2kg/袋',
+        SKU007: '1000g/袋'
+    };
+
+    function getLineSpec(line) {
+        if (line && line.spec != null && String(line.spec).trim() !== '') {
+            return String(line.spec).trim();
+        }
+        var code = line && line.skuCode ? String(line.skuCode).trim() : '';
+        return code && SPEC_MAP_BY_SKU[code] ? SPEC_MAP_BY_SKU[code] : '—';
+    }
+
+    function getPoReceiveInfo(row) {
+        if (typeof resolvePurchaseOrderReceiveInfo === 'function') {
+            return resolvePurchaseOrderReceiveInfo(row);
+        }
+        return {
+            receiveName: row && row.receiveName ? row.receiveName : (row && row.warehouse ? row.warehouse : '—'),
+            receiveAddress: row && row.receiveAddress ? row.receiveAddress : '—',
+            receivePhone: row && row.receivePhone ? row.receivePhone : '—',
+            receiver: row && row.receiver ? row.receiver : '—'
+        };
+    }
 
     function escapeHtml(s) {
         if (s == null) return '';
@@ -1169,6 +1205,16 @@
                 detailInfoItemHtml('更新人', row.updatedBy || row.createdBy)
             ].join('');
         }
+        var receiveBox = document.getElementById('poDetailReceiveInfo');
+        if (receiveBox) {
+            var receiveInfo = getPoReceiveInfo(row);
+            receiveBox.innerHTML = [
+                detailInfoItemHtml('收货地名称', receiveInfo.receiveName),
+                detailInfoItemHtml('收货地址', receiveInfo.receiveAddress),
+                detailInfoItemHtml('手机号', receiveInfo.receivePhone),
+                detailInfoItemHtml('收货人', receiveInfo.receiver)
+            ].join('');
+        }
         var amountBox = document.getElementById('poDetailAmountInfo');
         if (amountBox) {
             var estimatedProfit = toFixed2Number(totals.totalPurchaseAmount - totals.totalSalesAmount);
@@ -1186,6 +1232,7 @@
                     '<tr>' +
                     '<td>' + escapeHtml(l.skuCode) + '</td>' +
                     '<td>' + escapeHtml(l.skuName) + '</td>' +
+                    '<td>' + escapeHtml(getLineSpec(l)) + '</td>' +
                     '<td>' + escapeHtml(l.skuCategory || '') + '</td>' +
                     '<td>' + escapeHtml(qtyWithUnit(l.purchaseQty, l)) + '</td>' +
                     '<td>' + escapeHtml(qtyWithUnit(l.receivedQty, l)) + '</td>' +

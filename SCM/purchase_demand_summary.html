@@ -474,6 +474,9 @@
                         <thead>
                             <tr>
                                 <th id="poPreviewNameHeader">采购单预览名称</th>
+                                <th id="poPreviewStoreAddressHeader" style="display:none;">门店地址</th>
+                                <th id="poPreviewStorePhoneHeader" style="display:none;">门店手机号</th>
+                                <th id="poPreviewStoreManagerHeader" style="display:none;">门店负责人</th>
                                 <th id="poPreviewOwnerHeader">归属主体</th>
                                 <th>收货仓库</th>
                                 <th>采购员</th>
@@ -513,6 +516,7 @@
     const rawDetailLines = window.PURCHASE_DEMAND_DETAIL_LINES || [];
     const SKU_CATEGORY_TREE = window.SKU_CATEGORY_TREE_PURCHASE_DEMAND;
     const resolvePurchaseDemandSkuImage = window.resolvePurchaseDemandSkuImage;
+    const resolvePurchaseDemandStoreInfo = window.resolvePurchaseDemandStoreInfo;
     const SKU_SOURCE_MAP_BY_SKU = {
         SKU001: '普通商品',
         SKU002: '积分商品',
@@ -926,6 +930,9 @@
             var row = lines[i] || {};
             var storeCode = (row.storeCode || '').trim();
             var storeName = (row.storeName || '').trim();
+            var storeInfo = typeof resolvePurchaseDemandStoreInfo === 'function'
+                ? resolvePurchaseDemandStoreInfo(row)
+                : { storeAddress: '', storePhone: '', storeManager: '' };
             var ownerText = (storeCode + ' ' + storeName).trim() || '未标记门店';
             var storeDisplayName = ownerText;
             var supplierName = String(row.supplier || '').trim() || '-';
@@ -935,6 +942,9 @@
                 map.set(key, {
                     rowKey: key,
                     previewName: storeDisplayName,
+                    storeAddress: storeInfo.storeAddress || '',
+                    storePhone: storeInfo.storePhone || '',
+                    storeManager: storeInfo.storeManager || '',
                     ownerText: supplierName,
                     receivingWarehouse: receivingWarehouse,
                     lineCount: 0,
@@ -962,6 +972,9 @@
             return {
                 rowKey: g.rowKey,
                 previewName: g.previewName,
+                storeAddress: g.storeAddress || '-',
+                storePhone: g.storePhone || '-',
+                storeManager: g.storeManager || '-',
                 ownerText: g.ownerText || '-',
                 receivingWarehouse: g.receivingWarehouse || '-',
                 buyer: Object.keys(g.buyerMap).join('、') || '-',
@@ -1065,6 +1078,9 @@
         var infoBox = document.getElementById('poPreviewInfo');
         var amountBox = document.getElementById('poPreviewAmount');
         var nameHeaderEl = document.getElementById('poPreviewNameHeader');
+        var storeAddressHeaderEl = document.getElementById('poPreviewStoreAddressHeader');
+        var storePhoneHeaderEl = document.getElementById('poPreviewStorePhoneHeader');
+        var storeManagerHeaderEl = document.getElementById('poPreviewStoreManagerHeader');
         var ownerHeaderEl = document.getElementById('poPreviewOwnerHeader');
         var dimLabelEl = document.getElementById('poPreviewDimensionLabel');
         var countEl = document.getElementById('poPreviewCount');
@@ -1100,6 +1116,9 @@
                 ownerHeaderEl.textContent = dim === 'store' ? '供应商' : '归属主体';
             }
         }
+        [storeAddressHeaderEl, storePhoneHeaderEl, storeManagerHeaderEl].forEach(function(el) {
+            if (el) el.style.display = dim === 'store' ? '' : 'none';
+        });
         if (infoBox) {
             infoBox.innerHTML = [
                 detailInfoItemHtml('生成维度', dimLabel),
@@ -1117,17 +1136,23 @@
         }
         if (confirmBtn) confirmBtn.disabled = rows.length === 0;
         if (!rows.length) {
-            var emptyColspan = dim === 'supplier' ? 9 : 10;
+            var emptyColspan = dim === 'store' ? 13 : (dim === 'supplier' ? 9 : 10);
             tbody.innerHTML = '<tr><td colspan="' + emptyColspan + '" style="text-align:center;color:#999;">暂无可生成采购单数据</td></tr>';
             return;
         }
         tbody.innerHTML = rows.map(function(row) {
+            var storeExtraCells = dim === 'store'
+                ? '<td>' + escapeHtml(row.storeAddress || '-') + '</td>' +
+                  '<td>' + escapeHtml(row.storePhone || '-') + '</td>' +
+                  '<td>' + escapeHtml(row.storeManager || '-') + '</td>'
+                : '';
             var ownerCell = dim === 'supplier'
                 ? ''
                 : '<td>' + escapeHtml(row.ownerText) + '</td>';
             return '' +
                 '<tr data-row-key="' + escapeAttr(row.rowKey || '') + '">' +
                 '<td>' + escapeHtml(row.previewName) + '</td>' +
+                storeExtraCells +
                 ownerCell +
                 '<td>' + escapeHtml(row.receivingWarehouse || '-') + '</td>' +
                 '<td><input type="text" class="po-preview-edit-input" data-field="buyer" value="' + escapeAttr(row.buyer || '') + '"></td>' +
