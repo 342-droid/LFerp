@@ -1,0 +1,737 @@
+/* 用户 APP — 一键登录 / 手机号登录 */
+.ua-login-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  overflow: hidden;
+}
+
+.ua-login-screen[hidden] {
+  display: none !important;
+}
+
+.ua-login-screen__decor {
+  position: absolute;
+  right: -42px;
+  bottom: 88px;
+  width: 168px;
+  height: 168px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, rgba(255, 214, 224, 0.95) 0%, rgba(255, 192, 203, 0.42) 52%, rgba(255, 235, 240, 0.18) 100%);
+  pointer-events: none;
+}
+
+.ua-login-screen__decor::after {
+  content: '';
+  position: absolute;
+  right: 36px;
+  bottom: -28px;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 35%, rgba(255, 240, 245, 0.75) 0%, rgba(255, 214, 224, 0.18) 100%);
+}
+
+.ua-login-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 21px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: #111;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.ua-login-status__icons {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ua-login-status__icons svg {
+  display: block;
+}
+
+.ua-login-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 12px 0 8px;
+  flex-shrink: 0;
+  background: #fff;
+}
+
+.ua-login-nav__spacer {
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.ua-login-nav__skip {
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  color: #666;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ua-login-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0 28px;
+}
+
+.ua-login-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.ua-login-panel[hidden] {
+  display: none !important;
+}
+
+.ua-login-hero {
+  padding-top: 108px;
+  text-align: center;
+}
+
+.ua-login-phone {
+  font-size: 32px;
+  font-weight: 700;
+  color: #111;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+.ua-login-carrier {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #b3b3b3;
+  line-height: 1.4;
+}
+
+.ua-login-actions {
+  margin-top: 56px;
+}
+
+.ua-login-btn {
+  display: block;
+  width: 100%;
+  height: 48px;
+  border-radius: 24px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 48px;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ua-login-btn--primary {
+  background: #ff4d4f;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(255, 77, 79, 0.35);
+}
+
+.ua-login-btn--primary:active {
+  background: #f5222d;
+}
+
+.ua-login-btn--ghost {
+  margin-top: 14px;
+  background: #fff;
+  color: #666;
+  border: 1px solid #e8e8e8;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.ua-login-btn--ghost:active {
+  background: #fafafa;
+}
+
+.ua-login-other-methods {
+  margin-top: 32px;
+  text-align: center;
+}
+
+.ua-login-other-methods__title {
+  margin: 0 0 16px;
+  font-size: 12px;
+  color: #b3b3b3;
+  line-height: 1.4;
+}
+
+.ua-login-other-methods__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 40px;
+}
+
+.ua-login-method {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ua-login-method__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.ua-login-method__icon img {
+  display: block;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.ua-login-method__label {
+  font-size: 11px;
+  color: #999;
+  line-height: 1.2;
+}
+
+.ua-login-method:active .ua-login-method__icon {
+  opacity: 0.85;
+}
+
+.ua-login-agree-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 36px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.ua-login-agree-modal[hidden] {
+  display: none !important;
+}
+
+.ua-login-agree-modal__panel {
+  width: 100%;
+  max-width: 300px;
+  padding: 24px 20px 18px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.ua-login-agree-modal__text {
+  margin: 0 0 22px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: #333;
+  text-align: center;
+}
+
+.ua-login-agree-modal__text a {
+  color: #ff4d4f;
+  text-decoration: none;
+}
+
+.ua-login-agree-modal__actions {
+  display: flex;
+  gap: 12px;
+}
+
+.ua-login-agree-modal__btn {
+  flex: 1;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ua-login-agree-modal__btn--cancel {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.ua-login-agree-modal__btn--confirm {
+  background: #ff4d4f;
+  color: #fff;
+}
+
+.ua-login-agree-modal__btn--confirm:active {
+  background: #f5222d;
+}
+
+.ua-login-footer {
+  flex-shrink: 0;
+  padding: 0 28px 34px;
+}
+
+.ua-login-agree {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ua-login-agree__check {
+  position: relative;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+}
+
+.ua-login-agree__check input {
+  position: absolute;
+  opacity: 0;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.ua-login-agree__box {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #d9d9d9;
+  border-radius: 50%;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.ua-login-agree__check input:checked + .ua-login-agree__box {
+  border-color: #ff4d4f;
+  background: #ff4d4f;
+  box-shadow: inset 0 0 0 3px #fff;
+}
+
+.ua-login-agree__text {
+  font-size: 12px;
+  line-height: 1.65;
+  color: #b3b3b3;
+}
+
+.ua-login-agree__text a {
+  color: #ff4d4f;
+  text-decoration: none;
+}
+
+.ua-login-skip {
+  display: block;
+  width: 100%;
+  margin-top: 22px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* —— 手机快速登录页 —— */
+.ua-phone-login-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  overflow: hidden;
+}
+
+.ua-phone-login-decor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ua-phone-login-decor__blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(1px);
+}
+
+.ua-phone-login-decor__blob--1 {
+  top: 38%;
+  left: -18px;
+  width: 88px;
+  height: 88px;
+  background: radial-gradient(circle, rgba(255, 214, 224, 0.55) 0%, rgba(255, 235, 240, 0.12) 100%);
+}
+
+.ua-phone-login-decor__blob--2 {
+  top: 52%;
+  right: 24px;
+  width: 64px;
+  height: 64px;
+  background: radial-gradient(circle, rgba(255, 228, 235, 0.5) 0%, rgba(255, 240, 245, 0.1) 100%);
+}
+
+.ua-phone-login-decor__blob--3 {
+  bottom: 168px;
+  left: 28%;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle at 32% 28%, rgba(255, 214, 224, 0.42) 0%, rgba(255, 235, 240, 0.08) 100%);
+}
+
+.ua-phone-login-decor__blob--4 {
+  right: -20px;
+  bottom: 120px;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle at 38% 35%, rgba(255, 240, 245, 0.55) 0%, rgba(255, 214, 224, 0.12) 100%);
+}
+
+.ua-phone-login-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 12px 0 8px;
+  flex-shrink: 0;
+}
+
+.ua-phone-login-nav__back,
+.ua-phone-login-nav__skip {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ua-phone-login-nav__back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  color: #333;
+}
+
+.ua-phone-login-nav__back svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ua-phone-login-nav__skip {
+  padding: 8px 10px;
+  font-size: 15px;
+  color: #666;
+}
+
+.ua-phone-login-body {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 24px 0;
+}
+
+.ua-phone-login-title {
+  margin: 0 0 28px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.3;
+}
+
+.ua-phone-login-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ua-phone-login-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 52px;
+  padding: 0 16px;
+  border-radius: 12px;
+  background: #f5f5f5;
+}
+
+.ua-phone-login-field--code {
+  padding-right: 16px;
+}
+
+.ua-phone-login-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  color: #111;
+  outline: none;
+}
+
+.ua-phone-login-input::placeholder {
+  color: #c8c8c8;
+}
+
+.ua-phone-login-sms {
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: #999;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ua-phone-login-sms:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.ua-phone-login-other {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  padding: 12px 0;
+}
+
+.ua-login-other-methods--in-phone {
+  margin-top: 0;
+  width: 100%;
+}
+
+.ua-phone-login-agree {
+  margin-top: auto;
+  padding: 0 2px 20px;
+}
+
+.ua-phone-login-submit {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  width: 100%;
+  height: 54px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(180deg, #ff6b6d 0%, #ff4d4f 100%);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ua-phone-login-submit:active {
+  background: linear-gradient(180deg, #ff5254 0%, #f5222d 100%);
+}
+
+/* —— 微信授权登录 —— */
+.ua-wechat-auth-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  background: #ededed;
+  overflow: hidden;
+}
+
+.ua-wechat-auth-nav {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 8px;
+  flex-shrink: 0;
+  background: #ededed;
+}
+
+.ua-wechat-auth-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 28px 40px;
+}
+
+.ua-wechat-auth-card {
+  width: 100%;
+  padding: 36px 24px 28px;
+  border-radius: 12px;
+  background: #fff;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.ua-wechat-auth-app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.ua-wechat-auth-app__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+}
+
+.ua-wechat-auth-app__name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111;
+}
+
+.ua-wechat-auth-title {
+  margin: 0 0 16px;
+  font-size: 15px;
+  color: #333;
+  text-align: left;
+}
+
+.ua-wechat-auth-perms {
+  margin: 0 0 32px;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.ua-wechat-auth-perms li {
+  position: relative;
+  padding-left: 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #666;
+}
+
+.ua-wechat-auth-perms li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #07c160;
+}
+
+.ua-wechat-auth-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.ua-wechat-auth-btn {
+  flex: 1;
+  height: 44px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ua-wechat-auth-btn--cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.ua-wechat-auth-btn--allow {
+  background: #07c160;
+  color: #fff;
+}
+
+.ua-wechat-auth-btn--allow:active {
+  background: #06ad56;
+}
+
+.ua-profile-head--guest .ua-profile-phone {
+  color: #ff4d4f;
+  cursor: pointer;
+}
+
+.ua-login-toast {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 40;
+  max-width: 260px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.ua-login-toast.is-show {
+  opacity: 1;
+}
+
+.ua-profile-content[hidden] {
+  display: none !important;
+}
+
+.ua-mobile-shell--login .ua-mp-capsule,
+.ua-mobile-shell--login .user-app-tabbar,
+.ua-mobile-shell--login .ua-fab-queue,
+.ua-mobile-shell--login .ua-queue-mask {
+  display: none;
+}
+
+.ua-mobile-shell--login .ua-scroll {
+  background: #fff;
+}
+
+.ua-profile-head--guest .ua-profile-name {
+  color: #999;
+}
+
+.ua-profile-head--guest .ua-profile-phone {
+  color: #ff4d4f;
+  cursor: pointer;
+}

@@ -240,7 +240,13 @@
     return true;
   }
 
+  function isQueueFabPage() {
+    return /\/(?:profile|orders|order-detail-(?:shipping|pickup))\.html$/i.test(window.location.pathname);
+  }
+
   function init() {
+    if (!isQueueFabPage()) return;
+
     var shell = document.querySelector('.ua-mobile-shell');
     if (!shell) return;
 

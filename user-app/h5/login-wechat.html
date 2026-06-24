@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>微信授权登录 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-login.css">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-mobile-shell--login">
+    <div class="ua-wechat-auth-screen">
+      <div class="ua-login-status">
+        <span>09:34</span>
+        <span class="ua-login-status__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#111"><path d="M1 7h2v4H1V7zm4-2h2v6H5V5zm4-3h2v9H9V2zm4 5h2v4h-2V7z"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="#111"><path d="M8 2.4C10.8 2.4 13.2 3.6 15 5.6 15.2 5.8 15.5 5.8 15.7 5.6 15.9 5.4 15.9 5.1 15.7 4.9 13.6 2.6 10.9 1.2 8 1.2S2.4 2.6.3 4.9C.1 5.1.1 5.4.3 5.6.5 5.8.8 5.8 1 5.6 2.8 3.6 5.2 2.4 8 2.4zm0 3.6c1.8 0 3.4.8 4.5 2.1.2.2.5.2.7 0 .2-.2.2-.5 0-.7C11.9 5.4 10.1 4.4 8 4.4S4.1 5.4 2.8 6.9c-.2.2-.2.5 0 .7.2.2.5.2.7 0C4.6 6.8 6.2 6 8 6zm0 3c1 0 1.8.5 2.4 1.2.2.2.5.2.7 0 .2-.2.2-.5 0-.7C10.3 9.2 9.2 8.6 8 8.6S5.7 9.2 4.9 10.5c-.2.2-.2.5 0 .7.2.2.5.2.7 0 .6-.7 1.4-1.2 2.4-1.2z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="20" height="11" rx="2.5" stroke="#111" opacity=".35"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#111"/><path d="M22 4.5v3a1.5 1.5 0 000-3z" fill="#111" opacity=".4"/></svg>
+        </span>
+      </div>
+
+      <header class="ua-wechat-auth-nav">
+        <button type="button" class="ua-phone-login-nav__back" id="uaWechatAuthBackBtn" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+      </header>
+
+      <div class="ua-wechat-auth-body">
+        <div class="ua-wechat-auth-card">
+          <div class="ua-wechat-auth-app">
+            <img src="../assets/wechat-login-icon.svg" alt="冷丰" class="ua-wechat-auth-app__icon">
+            <div class="ua-wechat-auth-app__name">冷丰</div>
+          </div>
+          <p class="ua-wechat-auth-title">申请获得以下权限</p>
+          <ul class="ua-wechat-auth-perms">
+            <li>获得你的公开信息（昵称、头像等）</li>
+          </ul>
+          <div class="ua-wechat-auth-actions">
+            <button type="button" class="ua-wechat-auth-btn ua-wechat-auth-btn--cancel" id="uaWechatAuthCancelBtn">拒绝</button>
+            <button type="button" class="ua-wechat-auth-btn ua-wechat-auth-btn--allow" id="uaWechatAuthAllowBtn">允许</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ua-login-toast" id="uaLoginToast" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+  <script src="../js/user-app-auth.js"></script>
+</body>
+</html>
