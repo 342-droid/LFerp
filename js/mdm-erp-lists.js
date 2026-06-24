@@ -463,6 +463,7 @@
         window.MdmUnifiedOnboardingUi.openModal({
             title: title,
             merchantShortNameDefault: shortName,
+            onboardingKind: kind,
             fieldDefaults: {
                 short_name: shortName,
                 receipt_name: shortName,

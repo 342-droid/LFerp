@@ -3,7 +3,10 @@
  */
 (function () {
     var SUPPLIER_INBOUND_WAREHOUSE_BIND_KEY = 'mdm_supplier_inbound_warehouse_bindings_v1';
-
+    var SUPPLIER_PAYMENT_AGREEMENT = {
+        name: '斗拱平台综合支付服务协议',
+        url: 'https://cloudpnrcdn.oss-cn-shanghai.aliyuncs.com/opps/api/prod/download_file/PaymentServiceAgreement.htm'
+    };
     function el(tag, cls, text) {
         var n = document.createElement(tag);
         if (cls) n.className = cls;
@@ -115,6 +118,65 @@
         }
         c.appendChild(b);
         return c;
+    }
+
+    function resolvePaymentAgreementInfo(fields) {
+        if (
+            window.MdmUnifiedOnboardingUi &&
+            typeof window.MdmUnifiedOnboardingUi.resolvePaymentAgreementInfo === 'function'
+        ) {
+            return window.MdmUnifiedOnboardingUi.resolvePaymentAgreementInfo(fields);
+        }
+        var f = fields || {};
+        var pa = f.payment_agreement || {};
+        return {
+            signed: !!(f.payment_agreement_signed || pa.signed),
+            name: String(pa.name || SUPPLIER_PAYMENT_AGREEMENT.name),
+            url: String(pa.url || SUPPLIER_PAYMENT_AGREEMENT.url)
+        };
+    }
+
+    function detailCellLink(label, linkText, href) {
+        var c = el('div', 'supplier-detail-cell');
+        c.appendChild(el('div', 'supplier-detail-cell__label', label));
+        var b = el('div', 'supplier-detail-cell__body');
+        var a = document.createElement('a');
+        a.href = href;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = linkText;
+        a.className = 'erp-link';
+        b.appendChild(a);
+        c.appendChild(b);
+        return c;
+    }
+
+    function detailCellAgreementSigned(signed) {
+        var c = el('div', 'supplier-detail-cell');
+        c.appendChild(el('div', 'supplier-detail-cell__label', '协议签署'));
+        var b = el('div', 'supplier-detail-cell__body');
+        var sp = el('span', 'mdm-detail-tag mdm-detail-tag--' + (signed ? 'success' : 'warning'));
+        sp.textContent = signed ? '已签署' : '未签署';
+        b.appendChild(sp);
+        c.appendChild(b);
+        return c;
+    }
+
+    function paymentAgreementDetailCells(fields) {
+        var info = resolvePaymentAgreementInfo(fields);
+        return [
+            detailCellAgreementSigned(info.signed),
+            detailCellLink('协议名称', '《' + info.name + '》', info.url)
+        ];
+    }
+
+    function appendPaymentAgreementSection(container, fields) {
+        container.appendChild(sectionTitle('签订协议'));
+        var grid = el('div', 'supplier-detail-grid');
+        paymentAgreementDetailCells(fields).forEach(function (cell) {
+            grid.appendChild(cell);
+        });
+        container.appendChild(grid);
     }
 
     function dataTable(headers, rows) {
@@ -426,6 +488,9 @@
             ['内景/工作区域照', f.store_indoor_pic, 'image'],
             ['收银台/前台照', f.store_cashier_desk_pic, 'image']
         ]);
+        if (resolveOnboardingKind(m.title) === 'supplier') {
+            appendPaymentAgreementSection(body, f);
+        }
 
         var footer = el('div', 'erp-modal__footer');
         var ok = mkBtn('关闭', true);
@@ -443,6 +508,15 @@
         document.body.appendChild(backdrop);
     }
 
+    function resolveOnboardingKind(title, extraOpts) {
+        if (extraOpts && extraOpts.onboardingKind) return extraOpts.onboardingKind;
+        if (title === '供应商进件') return 'supplier';
+        if (title === '直播间进件') return 'liveRoom';
+        if (title === '承运商进件') return 'carrier';
+        if (title === '门店进件') return 'store';
+        return '';
+    }
+
     function openOnboardResource(title, shortName, defaults, recordKey, extraOpts) {
         if (
             window.MdmUnifiedOnboardingUi &&
@@ -454,6 +528,7 @@
                 fieldDefaults: defaults || {},
                 recordKey: recordKey,
                 variant: 'resource',
+                onboardingKind: resolveOnboardingKind(title, extraOpts),
                 forceView: !!(extraOpts && extraOpts.forceView)
             });
         } else if (typeof showToast === 'function') {
@@ -623,6 +698,15 @@
             if (typeof showToast === 'function') showToast('请先完善：' + missing, 'error');
             return false;
         }
+        if (meta.title === '供应商进件') {
+            var agreementInfo = resolvePaymentAgreementInfo(fields);
+            if (!agreementInfo.signed) {
+                if (typeof showToast === 'function') {
+                    showToast('请先阅读并勾选《斗拱平台综合支付服务协议》', 'error');
+                }
+                return false;
+            }
+        }
         var now = Date.now();
         var oldRec = ui.getRecord(recordKey) || {};
         var rec = {
@@ -720,12 +804,12 @@
         ];
     }
 
-    function onboardingDetailCells(fields) {
+    function onboardingDetailCells(fields, kind) {
         var f = fields || {};
         var card = f.card_info || {};
         var lic = f.license_info || {};
         var legal = f.legal_info || {};
-        return [
+        var cells = [
             detailCell('商户简称', f.short_name || '—'),
             detailCell('小票名称', f.receipt_name || '—'),
             detailCell('实际经营地址', f.detail_addr || '—'),
@@ -750,6 +834,10 @@
             detailCell('内景/工作区域照(F24)', f.store_indoor_pic ? '已上传' : '待上传'),
             detailCell('收银台/前台照(F105)', f.store_cashier_desk_pic ? '已上传' : '待上传')
         ];
+        if (kind === 'supplier') {
+            cells = cells.concat(paymentAgreementDetailCells(f));
+        }
+        return cells;
     }
 
     function rowToStore(tr) {
@@ -1282,7 +1370,7 @@
         function renderOnboardingInfo() {
             onboardingGrid.innerHTML = '';
             var onboardingSummary = getOnboardingSummary(recordKey, onboardingDefaults);
-            onboardingDetailCells(onboardingSummary.fields).forEach(function (cell) {
+            onboardingDetailCells(onboardingSummary.fields, 'supplier').forEach(function (cell) {
                 onboardingGrid.appendChild(cell);
             });
         }
