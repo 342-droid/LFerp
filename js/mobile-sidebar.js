@@ -11,21 +11,26 @@
         return pathForMatch.endsWith('/' + href) || pathForMatch.endsWith(href);
     }
 
+    function itemMatchesCurrentPage(item) {
+        if (item.match && item.match.test(pathForMatch)) return true;
+        return hrefMatchesCurrentPage(item.href);
+    }
+
     const mobileAppItems = [
         { href: 'app_list.html', text: '仓储APP' },
         { href: 'mdm_bd_workbench.html', text: 'BD APP' },
         { href: 'shop-h5/h5/store/register.html', text: '门店H5' },
-        { href: 'user-app/h5/profile.html', text: '用户 APP' }
+        { href: 'user-app/h5/login.html', text: '用户 APP', match: /user-app\/h5\//i },
     ];
 
     const isMobileAppPage = mobileAppItems.some(function (item) {
-        return hrefMatchesCurrentPage(item.href);
+        return itemMatchesCurrentPage(item);
     });
     const isMobileModuleHome = hrefMatchesCurrentPage('mobile_index.html');
     const expandMobileGroup = isMobileModuleHome || isMobileAppPage;
 
     const submenuHtml = mobileAppItems.map(function (item) {
-        const active = hrefMatchesCurrentPage(item.href);
+        const active = itemMatchesCurrentPage(item);
         return '<li><a href="' + pageHref(item.href) + '"' + (active ? ' class="active"' : '') + '>' + item.text + '</a></li>';
     }).join('');
 

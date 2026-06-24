@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <radialGradient id="wechatBgGlow" cx="50%" cy="44%" r="52%">
+      <stop offset="0%" stop-color="#F6FCF8"/>
+      <stop offset="55%" stop-color="#EDF9F1"/>
+      <stop offset="100%" stop-color="#E3F5EA"/>
+    </radialGradient>
+    <filter id="wechatSoftGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <circle cx="24" cy="24" r="24" fill="url(#wechatBgGlow)"/>
+  <circle cx="24" cy="24" r="21" fill="#07C160" opacity="0.07" filter="url(#wechatSoftGlow)"/>
+  <path
+    d="M24 13.2C17.4 13.2 12.2 17.6 12.2 22.6c0 3.2 1.7 6 4.4 7.6l-1.4 3.3 3.1-1.6c1 .27 2 .42 3.1.42 5.8 0 10.5-3.9 10.5-8.7 0-4.8-4.7-8.7-10.5-8.7-1 0-1.9.18-2.7.48"
+    stroke="#07C160"
+    stroke-width="1.85"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"/>
+  <circle cx="20.15" cy="21" r="1.35" fill="#07C160"/>
+  <circle cx="27.85" cy="21" r="1.35" fill="#07C160"/>
+</svg>
