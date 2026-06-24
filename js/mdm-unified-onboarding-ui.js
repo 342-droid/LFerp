@@ -110,6 +110,11 @@
     }
 
     var ONBOARDING_RECORDS_KEY = 'mdm_unified_onboarding_records_v1';
+    var SUPPLIER_PAYMENT_AGREEMENT = {
+        type: '挂网协议',
+        name: '斗拱平台综合支付服务协议',
+        url: 'https://cloudpnrcdn.oss-cn-shanghai.aliyuncs.com/opps/api/prod/download_file/PaymentServiceAgreement.htm'
+    };
 
     function readOnboardingRecords() {
         try {
@@ -220,8 +225,37 @@
             open_license_pic: uploadDefault('open_license_pic'),
             store_header_pic: uploadDefault('store_header_pic'),
             store_indoor_pic: uploadDefault('store_indoor_pic'),
-            store_cashier_desk_pic: uploadDefault('store_cashier_desk_pic')
+            store_cashier_desk_pic: uploadDefault('store_cashier_desk_pic'),
+            payment_agreement_signed: !!existing.payment_agreement_signed
         };
+    }
+
+    function buildSupplierAgreementBar(agreementFields, editMode) {
+        var bar = el('div', 'erp-modal__agreement-bar');
+        var wrap = el('div', 'unified-onboard-agreement');
+        wrap.appendChild(sectionTitle('签订协议'));
+
+        var label = el('label', 'unified-onboard-agreement__check');
+        var checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = !!agreementFields.payment_agreement_signed;
+        checkbox.disabled = !editMode;
+        label.appendChild(checkbox);
+        var text = el('span', 'unified-onboard-agreement__text');
+        text.appendChild(document.createTextNode('我已阅读并同意'));
+        var link = document.createElement('a');
+        link.href = SUPPLIER_PAYMENT_AGREEMENT.url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = '《' + SUPPLIER_PAYMENT_AGREEMENT.name + '》';
+        text.appendChild(link);
+        text.appendChild(
+            document.createTextNode('，勾选即视为已查阅并完成签署。')
+        );
+        label.appendChild(text);
+        wrap.appendChild(label);
+        bar.appendChild(wrap);
+        return { bar: bar, checkbox: checkbox };
     }
 
     /**
@@ -240,6 +274,8 @@
         var formFields = buildDefaultFields(opts || {}, existingRecord);
 
         var variant = opts.variant || 'store';
+        var onboardingKind = opts.onboardingKind || '';
+        var isSupplierOnboarding = onboardingKind === 'supplier';
         var backdrop = el(
             'div',
             variant === 'resource' ? 'store-archive-modal-backdrop' : 'store-archive-modal-backdrop'
@@ -287,6 +323,11 @@
         var editMode = opts.forceView ? false : !(existingRecord && existingRecord.status === 'submitted');
         var recordStatus = existingRecord ? existingRecord.status : '';
         var uploadRenders = [];
+        var agreementUi = null;
+
+        function isPaymentAgreementSigned() {
+            return agreementUi && agreementUi.checkbox ? agreementUi.checkbox.checked : !!formFields.payment_agreement_signed;
+        }
 
         function inputRow(parent, label, key, placeholder, val) {
             var inp = textInput(placeholder, val);
@@ -633,7 +674,16 @@
                 open_license_pic: !!uploadState.open_license_pic,
                 store_header_pic: !!uploadState.store_header_pic,
                 store_indoor_pic: !!uploadState.store_indoor_pic,
-                store_cashier_desk_pic: !!uploadState.store_cashier_desk_pic
+                store_cashier_desk_pic: !!uploadState.store_cashier_desk_pic,
+                payment_agreement_signed: isSupplierOnboarding ? isPaymentAgreementSigned() : false,
+                payment_agreement: isSupplierOnboarding
+                    ? {
+                          type: SUPPLIER_PAYMENT_AGREEMENT.type,
+                          name: SUPPLIER_PAYMENT_AGREEMENT.name,
+                          url: SUPPLIER_PAYMENT_AGREEMENT.url,
+                          signed: isPaymentAgreementSigned()
+                      }
+                    : null
             };
         }
 
@@ -682,6 +732,10 @@
                     return false;
                 }
             }
+            if (isSupplierOnboarding && !isPaymentAgreementSigned()) {
+                showToast('请先阅读并勾选《斗拱平台综合支付服务协议》', 'error');
+                return false;
+            }
             return true;
         }
 
@@ -714,6 +768,9 @@
             uploadRenders.forEach(function (fn) {
                 fn();
             });
+            if (agreementUi && agreementUi.checkbox) {
+                agreementUi.checkbox.disabled = !editMode;
+            }
             if (opts.forceView) {
                 bEdit.style.display = 'none';
                 bSave.style.display = 'none';
@@ -776,6 +833,10 @@
 
         modal.appendChild(header);
         modal.appendChild(body);
+        if (isSupplierOnboarding) {
+            agreementUi = buildSupplierAgreementBar(formFields, editMode);
+            modal.appendChild(agreementUi.bar);
+        }
         modal.appendChild(footer);
         refreshEditable();
         backdrop.appendChild(modal);
@@ -785,12 +846,25 @@
         document.body.appendChild(backdrop);
     }
 
+    function resolvePaymentAgreementInfo(fields) {
+        var f = fields || {};
+        var pa = f.payment_agreement || {};
+        return {
+            signed: !!(f.payment_agreement_signed || pa.signed),
+            name: String(pa.name || SUPPLIER_PAYMENT_AGREEMENT.name),
+            url: String(pa.url || SUPPLIER_PAYMENT_AGREEMENT.url),
+            type: String(pa.type || SUPPLIER_PAYMENT_AGREEMENT.type)
+        };
+    }
+
     window.MdmUnifiedOnboardingUi = {
         openModal: openUnifiedOnboardingModal,
         removeModals: removeUnifiedOnboardingModals,
         makeRecordKey: makeRecordKey,
         getRecord: readRecord,
         removeRecord: removeRecord,
+        SUPPLIER_PAYMENT_AGREEMENT: copyObj(SUPPLIER_PAYMENT_AGREEMENT),
+        resolvePaymentAgreementInfo: resolvePaymentAgreementInfo,
         upsertRecord: function (recordKey, record) {
             if (!recordKey || !record) return;
             saveRecord(String(recordKey), record);
