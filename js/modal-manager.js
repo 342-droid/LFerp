@@ -344,6 +344,18 @@ const CommonOptions = {
         { value: 'L003-上海地点', text: 'L003-上海地点' },
         { value: 'L004-广州地点', text: 'L004-广州地点' },
         { value: 'L005-深圳地点', text: 'L005-深圳地点' }
+    ],
+    supplierOnboardingStatus: [
+        { value: '未进件', text: '未进件' },
+        { value: '进件中', text: '进件中' },
+        { value: '进件成功', text: '进件成功' },
+        { value: '进件失败', text: '进件失败' }
+    ],
+    supplierBalancePayStatus: [
+        { value: '未提交', text: '未提交' },
+        { value: '审核中', text: '审核中' },
+        { value: '已开通', text: '已开通' },
+        { value: '已拒绝', text: '已拒绝' }
     ]
 };
 
