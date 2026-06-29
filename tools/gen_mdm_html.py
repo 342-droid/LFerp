@@ -246,15 +246,15 @@ def main():
 
     # supplier
     SUP = [
-        ["SUP20188301", "小牛供应链", "超管创建仓库042402", "上海市/市辖区/浦东新区", "张江高科园区B座", "品牌商", "王敏", "138****2210", "2026-04-24 18:20:01", "128", "对公/订单结算/先货后款", "138****2210", "统配", "已进件", "正常"],
-        ["SUP20188302", "小牛供应链", "小牛供应链", "江苏省/苏州市/工业园区", "工业园区星湖街328号", "代理商", "牛强", "159****7788", "2026-04-23 12:11:09", "56", "对公/订单结算/先货后款", "159****7788", "直配", "进件中", "正常"],
-        ["SUP20188303", "珠宝集采中心", "珠宝集采中心", "广东省/深圳市/罗湖区", "罗湖区水贝一路", "个人", "钱多多", "—", "2026-04-22 09:45:33", "902", "对公/订单结算/先货后款", "—", "统配", "未进件", "冻结"],
+        ["SUP20188301", "小牛供应链", "超管创建仓库042402", "上海市/市辖区/浦东新区", "张江高科园区B座", "品牌商", "王敏", "138****2210", "2026-04-24 18:20:01", "128", "对公/订单结算/先货后款", "138****2210", "统配", "进件成功", "已开通", "正常"],
+        ["SUP20188302", "小牛供应链", "小牛供应链", "江苏省/苏州市/工业园区", "工业园区星湖街328号", "代理商", "牛强", "159****7788", "2026-04-23 12:11:09", "56", "对公/订单结算/先货后款", "159****7788", "直配", "进件中", "未提交", "正常"],
+        ["SUP20188303", "珠宝集采中心", "珠宝集采中心", "广东省/深圳市/罗湖区", "罗湖区水贝一路", "个人", "钱多多", "—", "2026-04-22 09:45:33", "902", "对公/订单结算/先货后款", "—", "统配", "未进件", "未提交", "冻结"],
     ]
-    sh = ["供应商ID", "主体名称", "供应商名称", "供应商地址", "供应商详细地址", "供应商类型", "负责人姓名", "手机号码", "创建时间", "供应商商品数量", "结算信息", "可提现手机号", "配送方式", "进件状态", "供应商状态"]
+    sh = ["供应商ID", "主体名称", "供应商名称", "供应商地址", "供应商详细地址", "供应商类型", "负责人姓名", "手机号码", "创建时间", "供应商商品数量", "结算信息", "可提现手机号", "配送方式", "进件状态", "余额支付", "供应商状态"]
 
     def sup_row(c):
-        parts = [esc(x) for x in c[:14]]
-        parts.append(stat(c[14]))
+        parts = [esc(x) for x in c[:15]]
+        parts.append(stat(c[15]))
         op = '<td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>'
         return "<tr><td>" + "</td><td>".join(parts) + "</td>" + op + "</tr>"
 
@@ -262,6 +262,8 @@ def main():
 <section class="search-section"><form class="search-form">
 <div class="form-group"><label>主体名称:</label><div class="input-wrapper"><input id="qSubjectName" type="text"><span class="clear-btn">×</span></div></div>
 <div class="form-group"><label>供应商名称:</label><div class="input-wrapper"><input id="qResourceName" type="text"><span class="clear-btn">×</span></div></div>
+<div class="form-group"><label>进件状态:</label><select id="qSupOnboardStatus" style="height:36px;min-width:120px;border:1px solid #ddd;border-radius:3px;padding:0 8px;"><option value="">全部</option><option value="未进件">未进件</option><option value="进件中">进件中</option><option value="进件成功">进件成功</option><option value="进件失败">进件失败</option></select></div>
+<div class="form-group"><label>余额支付:</label><select id="qSupBalancePay" style="height:36px;min-width:120px;border:1px solid #ddd;border-radius:3px;padding:0 8px;"><option value="">全部</option><option value="未提交">未提交</option><option value="审核中">审核中</option><option value="已开通">已开通</option><option value="已拒绝">已拒绝</option></select></div>
 <div class="form-group"><label>供应商状态:</label><select id="qResStatus" style="height:36px;border:1px solid #ddd;border-radius:3px;"><option value="">全部</option><option value="normal">正常</option><option value="frozen">冻结</option></select></div>
 <div class="form-actions"><button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button><button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button><button type="button" id="mdmArchiveSupAddBtn" class="btn btn-secondary">+ 新增供应商</button></div>
 </form></section>

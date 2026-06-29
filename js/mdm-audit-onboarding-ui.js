@@ -448,6 +448,19 @@
         }
         all[item.key] = old;
         writeRecords(all);
+        if (
+            item.auditStatus === '审核成功' &&
+            item.key &&
+            item.key.indexOf('archive::supplier::') === 0
+        ) {
+            var supplierId = item.key.split('::').pop();
+            if (
+                window.MdmSupplierArchiveUi &&
+                typeof window.MdmSupplierArchiveUi.onOnboardingSuccess === 'function'
+            ) {
+                window.MdmSupplierArchiveUi.onOnboardingSuccess(supplierId);
+            }
+        }
     }
 
     function closeModals() {

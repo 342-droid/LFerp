@@ -412,6 +412,18 @@ const CommonOptions = {
         { value: '分拣异常', text: '分拣异常' },
         { value: '复核异常', text: '复核异常' },
         { value: '快递库调', text: '快递库调' }
+    ],
+    supplierOnboardingStatus: [
+        { value: '未进件', text: '未进件' },
+        { value: '进件中', text: '进件中' },
+        { value: '进件成功', text: '进件成功' },
+        { value: '进件失败', text: '进件失败' }
+    ],
+    supplierBalancePayStatus: [
+        { value: '未提交', text: '未提交' },
+        { value: '审核中', text: '审核中' },
+        { value: '已开通', text: '已开通' },
+        { value: '已拒绝', text: '已拒绝' }
     ]
 };
 

@@ -99,9 +99,9 @@
     /** 资源档案状态类字段 → 标签样式（与 ERP 语义色一致） */
     function archiveStatusVariant(text) {
         var s = String(text || '');
-        if (/正常|启用|已进件|营业|审核/.test(s)) return 'success';
-        if (/冻结|停用/.test(s)) return 'danger';
-        if (/进件中|未进件|筹备|停业/.test(s)) return 'warning';
+        if (/正常|启用|已进件|进件成功|已开通|营业|审核/.test(s)) return 'success';
+        if (/冻结|停用|已拒绝|进件失败/.test(s)) return 'danger';
+        if (/进件中|未进件|未提交|筹备|停业/.test(s)) return 'warning';
         return 'neutral';
     }
 
@@ -519,21 +519,38 @@
 
     function openOnboardResource(title, shortName, defaults, recordKey, extraOpts) {
         if (
-            window.MdmUnifiedOnboardingUi &&
-            typeof window.MdmUnifiedOnboardingUi.openModal === 'function'
+            !window.MdmUnifiedOnboardingUi ||
+            typeof window.MdmUnifiedOnboardingUi.openModal !== 'function'
         ) {
-            window.MdmUnifiedOnboardingUi.openModal({
-                title: title,
-                merchantShortNameDefault: shortName || '',
-                fieldDefaults: defaults || {},
-                recordKey: recordKey,
-                variant: 'resource',
-                onboardingKind: resolveOnboardingKind(title, extraOpts),
-                forceView: !!(extraOpts && extraOpts.forceView)
-            });
-        } else if (typeof showToast === 'function') {
-            showToast('进件模块未加载', 'error');
+            if (typeof showToast === 'function') showToast('进件模块未加载', 'error');
+            return;
         }
+        var kind = resolveOnboardingKind(title, extraOpts);
+        var modalOpts = {
+            title: title,
+            merchantShortNameDefault: shortName || '',
+            fieldDefaults: defaults || {},
+            recordKey: recordKey,
+            variant: 'resource',
+            onboardingKind: kind,
+            forceView: !!(extraOpts && extraOpts.forceView)
+        };
+        if (kind === 'supplier' && extraOpts && extraOpts.supplierId) {
+            modalOpts.onRecordChange = function (payload) {
+                if (
+                    window.MdmSupplierArchiveUi &&
+                    typeof window.MdmSupplierArchiveUi.syncRow === 'function'
+                ) {
+                    var tr =
+                        window.MdmSupplierArchiveUi.findRow &&
+                        typeof window.MdmSupplierArchiveUi.findRow === 'function'
+                            ? window.MdmSupplierArchiveUi.findRow(extraOpts.supplierId)
+                            : null;
+                    if (tr) window.MdmSupplierArchiveUi.syncRow(tr, payload);
+                }
+            };
+        }
+        window.MdmUnifiedOnboardingUi.openModal(modalOpts);
     }
 
     function openOnboardStore(shortName, defaults, recordKey, extraOpts) {
@@ -1315,9 +1332,17 @@
 
     function rowToSupplier(tr) {
         var c = tr.querySelectorAll('td');
-        if (c.length < 15) return null;
+        if (c.length < 16) return null;
+        var supplierId = cellPlain(c[0]);
+        var recordKey = onboardRecordKey('supplier', supplierId);
+        var onboardFallback = cellPlain(c[13]);
+        var onboard =
+            window.MdmSupplierArchiveUi &&
+            typeof window.MdmSupplierArchiveUi.resolveOnboardingDisplay === 'function'
+                ? window.MdmSupplierArchiveUi.resolveOnboardingDisplay(recordKey, onboardFallback)
+                : onboardFallback;
         return {
-            id: cellPlain(c[0]),
+            id: supplierId,
             subjectName: cellPlain(c[1]),
             name: cellPlain(c[2]),
             region: cellPlain(c[3]),
@@ -1330,9 +1355,10 @@
             settleInfo: cellPlain(c[10]),
             withdrawPhone: cellPlain(c[11]),
             deliveryMode: cellPlain(c[12]),
-            onboard: cellPlain(c[13]),
-            status: cellStatus(c[14]),
-            inboundWarehouse: readSupplierInboundWarehouseBinding(cellPlain(c[0]), cellPlain(c[2]))
+            onboard: onboard,
+            balancePay: cellPlain(c[14]),
+            status: cellStatus(c[15]),
+            inboundWarehouse: readSupplierInboundWarehouseBinding(supplierId, cellPlain(c[2]))
         };
     }
 
@@ -1362,6 +1388,7 @@
         grid.appendChild(detailCell('可提现手机号', r.withdrawPhone));
         grid.appendChild(detailCell('配送方式', r.deliveryMode));
         grid.appendChild(detailCell('进件状态', r.onboard));
+        grid.appendChild(detailCell('余额支付', r.balancePay));
         grid.appendChild(detailCellTagged('供应商状态', r.status, true));
         p.appendChild(grid);
 
@@ -1382,7 +1409,9 @@
         var bar = el('div', 'erp-actions-row supplier-detail-onboard-actions');
         var go = mkBtn('去进件', true);
         go.addEventListener('click', function () {
-            openOnboardResource('供应商进件', r.name, onboardingDefaults, recordKey);
+            openOnboardResource('供应商进件', r.name, onboardingDefaults, recordKey, {
+                supplierId: r.id
+            });
         });
         bar.appendChild(go);
         onboard.appendChild(bar);
@@ -1410,7 +1439,8 @@
                                 shortName: r.name,
                                 openModal: function (forceView) {
                                     openOnboardResource('供应商进件', r.name, onboardingDefaults, recordKey, {
-                                        forceView: !!forceView
+                                        forceView: !!forceView,
+                                        supplierId: r.id
                                     });
                                 }
                             },

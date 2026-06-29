@@ -428,6 +428,136 @@
         });
     }
 
+    var SUPPLIER_BALANCE_PAY_KEY = 'mdm_supplier_balance_payment_v1';
+    var SUPPLIER_COL = {
+        onboard: 13,
+        balancePay: 14,
+        status: 15
+    };
+
+    function readSupplierBalancePayments() {
+        return readJsonStore(SUPPLIER_BALANCE_PAY_KEY) || {};
+    }
+
+    function writeSupplierBalancePayments(map) {
+        writeJsonStore(SUPPLIER_BALANCE_PAY_KEY, map || {});
+    }
+
+    function getSupplierBalancePayment(supplierId) {
+        var map = readSupplierBalancePayments();
+        var raw = String(map[String(supplierId || '').trim()] || '').trim();
+        return raw === '未开通' ? '已拒绝' : raw;
+    }
+
+    function setSupplierBalancePayment(supplierId, status) {
+        var id = String(supplierId || '').trim();
+        if (!id) return;
+        var map = readSupplierBalancePayments();
+        map[id] = status;
+        writeSupplierBalancePayments(map);
+    }
+
+    function supplierRecordKey(id) {
+        return 'archive::supplier::' + String(id || '').trim();
+    }
+
+    function resolveSupplierOnboardingDisplay(recordKey, fallback) {
+        var summary = {};
+        if (
+            window.MdmUnifiedOnboardingUi &&
+            typeof window.MdmUnifiedOnboardingUi.getSummary === 'function'
+        ) {
+            summary = window.MdmUnifiedOnboardingUi.getSummary(recordKey, {});
+        }
+        if (summary.auditStatus === '审核成功') return '进件成功';
+        if (summary.auditStatus === '审核失败') return '进件失败';
+        if (summary.status === 'submitted' || summary.auditStatus) return '进件中';
+        var fb = String(fallback || '').trim();
+        if (fb === '已进件') return '进件成功';
+        return fb || '未进件';
+    }
+
+    function resolveSupplierBalancePayment(supplierId, onboardingDisplay) {
+        var saved = getSupplierBalancePayment(supplierId);
+        if (saved) return saved;
+        if (onboardingDisplay === '进件成功') return '审核中';
+        return '未提交';
+    }
+
+    function triggerSupplierBalancePayment(supplierId) {
+        var id = String(supplierId || '').trim();
+        if (!id) return '';
+        var current = getSupplierBalancePayment(id);
+        if (current === '已开通' || current === '审核中' || current === '已拒绝') return current;
+        setSupplierBalancePayment(id, '审核中');
+        if (typeof showToast === 'function') {
+            showToast('进件成功，已自动发起余额支付申请', 'success');
+        }
+        return '审核中';
+    }
+
+    function findSupplierArchiveRow(supplierId) {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody) return null;
+        var id = String(supplierId || '').trim();
+        var found = null;
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+            var c = tr.querySelectorAll('td');
+            if (c[0] && c[0].textContent.trim() === id) found = tr;
+        });
+        return found;
+    }
+
+    function syncSupplierArchiveRow(tr, payload) {
+        if (!tr) return;
+        var cells = tr.querySelectorAll('td');
+        if (cells.length < SUPPLIER_COL.status + 1) return;
+        var supplierId = cells[0].textContent.trim();
+        var recordKey = supplierRecordKey(supplierId);
+        var onboardFallback = cells[SUPPLIER_COL.onboard].textContent.trim();
+        var onboardDisplay = resolveSupplierOnboardingDisplay(recordKey, onboardFallback);
+        if (payload && payload.status === 'submitted') onboardDisplay = '进件中';
+        if (payload === null) onboardDisplay = '未进件';
+        cells[SUPPLIER_COL.onboard].textContent = onboardDisplay;
+        if (onboardDisplay === '进件成功') {
+            triggerSupplierBalancePayment(supplierId);
+        }
+        cells[SUPPLIER_COL.balancePay].textContent = resolveSupplierBalancePayment(
+            supplierId,
+            onboardDisplay
+        );
+    }
+
+    function syncAllSupplierArchiveRows() {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+            syncSupplierArchiveRow(tr);
+        });
+    }
+
+    function seedSupplierDemoBalancePayments() {
+        var map = readSupplierBalancePayments();
+        if (!map.SUP20188301) map.SUP20188301 = '已开通';
+        writeSupplierBalancePayments(map);
+    }
+
+    function onSupplierOnboardingSuccess(supplierId) {
+        triggerSupplierBalancePayment(supplierId);
+        var tr = findSupplierArchiveRow(supplierId);
+        if (tr) syncSupplierArchiveRow(tr);
+    }
+
+    window.MdmSupplierArchiveUi = {
+        syncRow: syncSupplierArchiveRow,
+        syncAllRows: syncAllSupplierArchiveRows,
+        onOnboardingSuccess: onSupplierOnboardingSuccess,
+        triggerBalancePayment: triggerSupplierBalancePayment,
+        resolveOnboardingDisplay: resolveSupplierOnboardingDisplay,
+        findRow: findSupplierArchiveRow,
+        COL: SUPPLIER_COL
+    };
+
     function openArchiveOnboardingFromRow(tr, kind) {
         if (
             !window.MdmUnifiedOnboardingUi ||
@@ -460,7 +590,7 @@
         else if (kind === 'supplier') title = '供应商进件';
         else if (kind === 'liveRoom') title = '直播间进件';
         else if (kind === 'carrier') title = '承运商进件';
-        window.MdmUnifiedOnboardingUi.openModal({
+        var modalOpts = {
             title: title,
             merchantShortNameDefault: shortName,
             onboardingKind: kind,
@@ -473,7 +603,13 @@
             },
             recordKey: 'archive::' + kind + '::' + recordId,
             variant: 'resource'
-        });
+        };
+        if (kind === 'supplier' && tr) {
+            modalOpts.onRecordChange = function (payload) {
+                syncSupplierArchiveRow(tr, payload);
+            };
+        }
+        window.MdmUnifiedOnboardingUi.openModal(modalOpts);
     }
 
     window.MdmResourceArchiveOnboardingDefaults = {
@@ -586,6 +722,32 @@
                 var stTxt = (cells[statusCol].querySelector('.status') || {}).textContent || '';
                 stTxt = String(stTxt).trim();
                 if (stTxt !== map[qSt]) ok = false;
+            }
+            tr.style.display = ok ? '' : 'none';
+        });
+        pm.refreshPagination();
+    }
+
+    function supplierArchiveFilter(pm) {
+        var tbody = document.getElementById(pm.config.tableBodyId);
+        if (!tbody) return;
+        var qSub = (document.getElementById('qSubjectName') || {}).value.trim();
+        var qRes = (document.getElementById('qResourceName') || {}).value.trim();
+        var qOnboard = (document.getElementById('qSupOnboardStatus') || {}).value.trim();
+        var qBalance = (document.getElementById('qSupBalancePay') || {}).value.trim();
+        var qSt = (document.getElementById('qResStatus') || {}).value.trim();
+        var statusMap = { normal: '正常', frozen: '冻结' };
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+            var cells = tr.querySelectorAll('td');
+            if (cells.length < SUPPLIER_COL.status + 1) return;
+            var ok = true;
+            if (qSub && cells[1].textContent.trim().indexOf(qSub) === -1) ok = false;
+            if (qRes && cells[2].textContent.trim().indexOf(qRes) === -1) ok = false;
+            if (qOnboard && cells[SUPPLIER_COL.onboard].textContent.trim() !== qOnboard) ok = false;
+            if (qBalance && cells[SUPPLIER_COL.balancePay].textContent.trim() !== qBalance) ok = false;
+            if (qSt && statusMap[qSt]) {
+                var stTxt = (cells[SUPPLIER_COL.status].querySelector('.status') || {}).textContent || '';
+                if (String(stTxt).trim() !== statusMap[qSt]) ok = false;
             }
             tr.style.display = ok ? '' : 'none';
         });
@@ -795,7 +957,7 @@
             entityName: '供应商档案',
             modalWidth: '640px',
             checkboxColumn: false,
-            statusColumnIndex: 14,
+            statusColumnIndex: 15,
             actionColumnMode: 'editOnboard',
             fields: fields,
             detailView: {
@@ -850,8 +1012,8 @@
                         editResName: c[2].textContent.trim(),
                         editContactName: c[6].textContent.trim(),
                         editPhone: c[7].textContent.trim(),
-                        editResStatus: c[14].querySelector('.status')
-                            ? c[14].querySelector('.status').textContent.trim()
+                        editResStatus: c[15].querySelector('.status')
+                            ? c[15].querySelector('.status').textContent.trim()
                             : '正常'
                     };
                 },
@@ -863,7 +1025,7 @@
                         2: document.getElementById('editResName').value.trim(),
                         6: document.getElementById('editContactName').value.trim(),
                         7: document.getElementById('editPhone').value.trim(),
-                        14: { value: st, isStatus: true }
+                        15: { value: st, isStatus: true }
                     });
                     pm.decorateDetailLinkCell(row);
                     showToast('供应商档案已更新（演示）', 'success');
@@ -872,11 +1034,25 @@
             }
         });
         pm.init();
-        bindSimpleFilter(pm, {
-            resetFields: ['qSubjectName', 'qResourceName', 'qResStatus'],
-            filterFn: function (p) {
-                resourceArchiveFilter(p, 2, 14, { normal: '正常', frozen: '冻结' });
+        seedSupplierDemoBalancePayments();
+        syncAllSupplierArchiveRows();
+        window.addEventListener('storage', function (e) {
+            if (
+                e.key === 'mdm_unified_onboarding_records_v1' ||
+                e.key === SUPPLIER_BALANCE_PAY_KEY
+            ) {
+                syncAllSupplierArchiveRows();
             }
+        });
+        bindSimpleFilter(pm, {
+            resetFields: [
+                'qSubjectName',
+                'qResourceName',
+                'qSupOnboardStatus',
+                'qSupBalancePay',
+                'qResStatus'
+            ],
+            filterFn: supplierArchiveFilter
         });
         document.getElementById('mdmArchiveSupAddBtn') &&
             document.getElementById('mdmArchiveSupAddBtn').addEventListener('click', function () {
@@ -891,6 +1067,7 @@
             });
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
+            syncAllSupplierArchiveRows();
             cacheFirstResourceRows('supplier', {
                 subjectCol: 1,
                 resourceNameCol: 2,
