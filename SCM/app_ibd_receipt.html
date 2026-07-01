@@ -316,6 +316,10 @@
             display: none;
         }
 
+        .type-btn.type-btn-hidden {
+            display: none;
+        }
+
         /* 选择供应商页面 */
         .supplier-search-section {
             padding: 12px 16px;
@@ -1184,15 +1188,19 @@
                         <span class="type-btn-label">采购入库</span>
                         <span class="type-btn-badge" data-type-badge="采购入库">0</span>
                     </button>
-                    <button class="type-btn" data-type="返配入库" onclick="showListPage('返配入库')">
+                    <button class="type-btn" data-type="仓配入库" onclick="showSourceLocationSelectPage('仓配入库')">
+                        <span class="type-btn-label">仓配入库</span>
+                        <span class="type-btn-badge" data-type-badge="仓配入库">0</span>
+                    </button>
+                    <button class="type-btn type-btn-hidden" data-type="返配入库" onclick="showListPage('返配入库')">
                         <span class="type-btn-label">返配入库</span>
                         <span class="type-btn-badge" data-type-badge="返配入库">0</span>
                     </button>
-                    <button class="type-btn" data-type="调拨入库" onclick="showListPage('调拨入库')">
+                    <button class="type-btn" data-type="调拨入库" onclick="showSourceLocationSelectPage('调拨入库')">
                         <span class="type-btn-label">调拨入库</span>
                         <span class="type-btn-badge" data-type-badge="调拨入库">0</span>
                     </button>
-                    <button class="type-btn" data-type="客退入库" onclick="showListPage('客退入库')">
+                    <button class="type-btn type-btn-hidden" data-type="客退入库" onclick="showListPage('客退入库')">
                         <span class="type-btn-label">客退入库</span>
                         <span class="type-btn-badge" data-type-badge="客退入库">0</span>
                     </button>
@@ -1212,6 +1220,20 @@
                 >
             </div>
             <div class="supplier-select-content" id="supplierListContent"></div>
+        </div>
+
+        <!-- 选择来源地页面 -->
+        <div class="page" id="sourceLocationSelectPage">
+            <div class="supplier-search-section">
+                <input
+                    type="text"
+                    class="supplier-search-input"
+                    id="sourceLocationSearchInput"
+                    placeholder="请输入来源地编码/名称"
+                    oninput="filterSourceLocationList()"
+                >
+            </div>
+            <div class="supplier-select-content" id="sourceLocationListContent"></div>
         </div>
 
         <!-- 列表页面 -->
@@ -1720,11 +1742,13 @@
         let pendingCancelReceipt = null;
         window.currentReceiptType = window.currentReceiptType || '';
         window.currentSupplier = window.currentSupplier || '';
+        window.currentSourceLocation = window.currentSourceLocation || '';
 
         const APP_PAGE_IDS = [
             'scanPage',
             'typeQueryPage',
             'supplierSelectPage',
+            'sourceLocationSelectPage',
             'listPage',
             'scanContainerPage',
             'receiptDetailsPage',
@@ -1769,9 +1793,35 @@
                 remark: ''
             },
             {
+                no: 'IB020260228112501',
+                type: '仓配入库',
+                statusLabel: '初始',
+                sourceNo: 'C0202511190003',
+                relatedNo: 'S0202511190003',
+                owner: 'Y001-南京货主',
+                supplier: 'G001-浙江XX公司',
+                carrier: '京东物流',
+                plateNo: '苏D55666',
+                sourceWarehouse: 'W003-苏州仓',
+                remark: ''
+            },
+            {
+                no: 'IB020260228112502',
+                type: '仓配入库',
+                statusLabel: '收货中',
+                sourceNo: 'C0202511190004',
+                relatedNo: 'S0202511190004',
+                owner: 'Y001-南京货主',
+                supplier: 'G001-浙江XX公司',
+                carrier: '顺丰速运',
+                plateNo: '沪G77889',
+                sourceWarehouse: 'W001-南京仓',
+                remark: ''
+            },
+            {
                 no: 'IB020260228113002',
                 type: '调拨入库',
-                statusLabel: '已关闭',
+                statusLabel: '收货中',
                 sourceNo: 'T0202511190009',
                 relatedNo: 'S0202511190009',
                 owner: 'Y001-南京货主',
@@ -1779,6 +1829,19 @@
                 carrier: '京东物流',
                 plateNo: '浙A88888',
                 sourceWarehouse: 'W002-嘉兴仓',
+                remark: ''
+            },
+            {
+                no: 'IB020260228113003',
+                type: '调拨入库',
+                statusLabel: '初始',
+                sourceNo: 'T0202511190010',
+                relatedNo: 'S0202511190010',
+                owner: 'Y001-南京货主',
+                supplier: 'G001-浙江XX公司',
+                carrier: '德邦物流',
+                plateNo: '浙B99001',
+                sourceWarehouse: 'W004-杭州仓',
                 remark: ''
             },
             {
@@ -1856,6 +1919,14 @@
             return receiptRecords.filter((item) => item.type === '采购入库' && isPendingReceipt(item));
         }
 
+        function isSourceLocationReceiptType(type) {
+            return type === '仓配入库' || type === '调拨入库';
+        }
+
+        function getPendingReceiptsByType(type) {
+            return receiptRecords.filter((item) => item.type === type && isPendingReceipt(item));
+        }
+
         function getPendingSuppliers() {
             const supplierSet = new Set();
             getPendingPurchaseReceipts().forEach((item) => {
@@ -1871,9 +1942,27 @@
             return supplier.slice(dashIndex + 1);
         }
 
+        function getPendingSourceLocations(type) {
+            const sourceLocationSet = new Set();
+            getPendingReceiptsByType(type).forEach((item) => {
+                sourceLocationSet.add(item.sourceWarehouse || '未知来源地');
+            });
+            return Array.from(sourceLocationSet);
+        }
+
+        function getSourceLocationDisplayName(sourceLocation) {
+            if (!sourceLocation) return '未知来源地';
+            const dashIndex = sourceLocation.indexOf('-');
+            if (dashIndex === -1) return sourceLocation;
+            return sourceLocation.slice(dashIndex + 1);
+        }
+
         function getReceiptCountByType(type) {
             if (type === '采购入库') {
                 return getPendingPurchaseReceipts().length;
+            }
+            if (isSourceLocationReceiptType(type)) {
+                return getPendingReceiptsByType(type).length;
             }
             return receiptRecords.filter((item) => item.type === type).length;
         }
@@ -1893,11 +1982,14 @@
 
             const normalizedKeyword = (keyword || '').trim().toLowerCase();
             const supplierFilter = supplier || window.currentSupplier || '';
+            const sourceLocationFilter = window.currentSourceLocation || '';
             const filtered = receiptRecords.filter((item) => {
                 const typeMatched = !type || item.type === type;
                 if (!typeMatched) return false;
                 if (type === '采购入库' && supplierFilter && item.supplier !== supplierFilter) return false;
                 if (type === '采购入库' && supplierFilter && !isPendingReceipt(item)) return false;
+                if (isSourceLocationReceiptType(type) && sourceLocationFilter && item.sourceWarehouse !== sourceLocationFilter) return false;
+                if (isSourceLocationReceiptType(type) && sourceLocationFilter && !isPendingReceipt(item)) return false;
                 if (!normalizedKeyword) return true;
                 return [item.no, item.sourceNo, item.relatedNo, item.plateNo]
                     .some((field) => String(field || '').toLowerCase().includes(normalizedKeyword));
@@ -1933,9 +2025,16 @@
             return getPendingPurchaseReceipts().filter((item) => item.supplier === supplier);
         }
 
+        function getPendingReceiptsBySourceLocation(type, sourceLocation) {
+            return getPendingReceiptsByType(type).filter((item) => item.sourceWarehouse === sourceLocation);
+        }
+
         function getScanContainerBackAction() {
             if (window.currentReceiptType === '采购入库' && window.currentSupplier) {
                 return 'showSupplierSelectPage()';
+            }
+            if (isSourceLocationReceiptType(window.currentReceiptType) && window.currentSourceLocation) {
+                return 'showSourceLocationSelectPage()';
             }
             return 'showListPageFromContainer()';
         }
@@ -2138,11 +2237,83 @@
             backBtn.setAttribute('onclick', 'showTypeQueryPage()');
             window.currentReceiptType = '采购入库';
             window.currentSupplier = '';
+            window.currentSourceLocation = '';
             const supplierSearchInput = document.getElementById('supplierSearchInput');
             if (supplierSearchInput) {
                 supplierSearchInput.value = '';
             }
             renderSupplierList();
+        }
+
+        function showSourceLocationSelectPage(type) {
+            const receiptType = type || window.currentReceiptType;
+            currentPage = 'sourceLocationSelect';
+            setActivePage('sourceLocationSelectPage');
+            headerTitle.textContent = '选择来源地';
+            backBtn.setAttribute('onclick', 'showTypeQueryPage()');
+            window.currentReceiptType = receiptType;
+            window.currentSourceLocation = '';
+            window.currentSupplier = '';
+            const sourceLocationSearchInput = document.getElementById('sourceLocationSearchInput');
+            if (sourceLocationSearchInput) {
+                sourceLocationSearchInput.value = '';
+            }
+            renderSourceLocationList();
+        }
+
+        function filterSourceLocationList() {
+            const sourceLocationSearchInput = document.getElementById('sourceLocationSearchInput');
+            renderSourceLocationList(sourceLocationSearchInput ? sourceLocationSearchInput.value : '');
+        }
+
+        function renderSourceLocationList(keyword) {
+            const container = document.getElementById('sourceLocationListContent');
+            if (!container) return;
+
+            const type = window.currentReceiptType;
+            const allSourceLocations = getPendingSourceLocations(type);
+            const normalizedKeyword = (keyword || '').trim().toLowerCase();
+            const sourceLocations = normalizedKeyword
+                ? allSourceLocations.filter((name) => {
+                    const displayName = getSourceLocationDisplayName(name);
+                    const keywordLower = normalizedKeyword;
+                    return name.toLowerCase().includes(keywordLower)
+                        || displayName.toLowerCase().includes(keywordLower);
+                })
+                : allSourceLocations;
+
+            if (!allSourceLocations.length) {
+                container.innerHTML = '<div class="empty-state">暂无待收货来源地</div>';
+                return;
+            }
+
+            if (!sourceLocations.length) {
+                container.innerHTML = '<div class="empty-state">未找到匹配的来源地</div>';
+                return;
+            }
+
+            container.innerHTML = `
+                <table class="supplier-table">
+                    <tbody>
+                        ${sourceLocations.map((name) => `
+                            <tr data-source-location="${name.replace(/"/g, '&quot;')}" onclick="selectSourceLocation(this.dataset.sourceLocation)">
+                                <td>${name}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function selectSourceLocation(sourceLocation) {
+            const type = window.currentReceiptType;
+            const pendingReceipts = getPendingReceiptsBySourceLocation(type, sourceLocation);
+            if (!pendingReceipts.length) {
+                showToast('该来源地暂无待收货入库单');
+                return;
+            }
+            window.currentSourceLocation = sourceLocation;
+            showScanContainerPage(type, '', { fromSourceLocation: true, sourceLocation });
         }
 
         function filterSupplierList() {
@@ -2211,6 +2382,9 @@
             if (window.currentReceiptType === '采购入库' && window.currentSupplier) {
                 return 'showSupplierSelectPage()';
             }
+            if (isSourceLocationReceiptType(window.currentReceiptType) && window.currentSourceLocation) {
+                return 'showSourceLocationSelectPage()';
+            }
             if (window.currentReceiptType) {
                 return 'showTypeQueryPage()';
             }
@@ -2227,6 +2401,9 @@
             window.currentReceiptType = type;
             if (type !== '采购入库') {
                 window.currentSupplier = '';
+            }
+            if (!isSourceLocationReceiptType(type)) {
+                window.currentSourceLocation = '';
             }
             renderReceiptList(type);
         }
@@ -2245,6 +2422,7 @@
             backBtn.setAttribute('onclick', 'showScanPage()');
             window.currentReceiptType = '';
             window.currentSupplier = '';
+            window.currentSourceLocation = '';
             renderReceiptList('', value);
         }
 
@@ -2267,7 +2445,10 @@
             // 更新入库单录入页面的信息
             document.getElementById('scanReceiptType').textContent = type;
             if (options.fromSupplier) {
-                document.getElementById('scanReceiptId').textContent = '供应商: ' + (options.supplier || window.currentSupplier || '');
+                const supplierValue = options.supplier || window.currentSupplier || '';
+                document.getElementById('scanReceiptId').textContent = '供应商: ' + getSupplierDisplayName(supplierValue);
+            } else if (options.fromSourceLocation) {
+                document.getElementById('scanReceiptId').textContent = '来源地: ' + (options.sourceLocation || window.currentSourceLocation || '');
             } else {
                 document.getElementById('scanReceiptId').textContent = '入库单号: ' + receiptId;
             }
