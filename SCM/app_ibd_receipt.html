@@ -316,6 +316,56 @@
             display: none;
         }
 
+        /* 选择供应商页面 */
+        .supplier-search-section {
+            padding: 12px 16px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+
+        .supplier-search-input {
+            width: 100%;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            height: 40px;
+            padding: 0 12px;
+            font-size: 14px;
+            color: #333333;
+            outline: none;
+        }
+
+        .supplier-search-input::placeholder {
+            color: #999999;
+        }
+
+        .supplier-select-content {
+            flex: 1;
+            padding: 0;
+            overflow-y: auto;
+        }
+
+        .supplier-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #ffffff;
+        }
+
+        .supplier-table td {
+            padding: 14px 20px;
+            font-size: 15px;
+            color: #333333;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .supplier-table tbody tr {
+            cursor: pointer;
+        }
+
+        .supplier-table tbody tr:active {
+            background-color: #e3f2fd;
+        }
+
         /* 列表页面 */
         .list-content {
             flex: 1;
@@ -1130,7 +1180,7 @@
             <div class="type-query-content">
                 <div class="type-query-title">请选择类型</div>
                 <div class="type-buttons">
-                    <button class="type-btn" data-type="采购入库" onclick="showListPage('采购入库')">
+                    <button class="type-btn" data-type="采购入库" onclick="showSupplierSelectPage()">
                         <span class="type-btn-label">采购入库</span>
                         <span class="type-btn-badge" data-type-badge="采购入库">0</span>
                     </button>
@@ -1148,6 +1198,20 @@
                     </button>
                 </div>
             </div>
+        </div>
+
+        <!-- 选择供应商页面 -->
+        <div class="page" id="supplierSelectPage">
+            <div class="supplier-search-section">
+                <input
+                    type="text"
+                    class="supplier-search-input"
+                    id="supplierSearchInput"
+                    placeholder="请输入供应商名称"
+                    oninput="filterSupplierList()"
+                >
+            </div>
+            <div class="supplier-select-content" id="supplierListContent"></div>
         </div>
 
         <!-- 列表页面 -->
@@ -1642,6 +1706,7 @@
         const scanInput = document.getElementById('scanInput');
         const scanPage = document.getElementById('scanPage');
         const typeQueryPage = document.getElementById('typeQueryPage');
+        const supplierSelectPage = document.getElementById('supplierSelectPage');
         const listPage = document.getElementById('listPage');
         const headerTitle = document.querySelector('.header-title');
         const backBtn = document.querySelector('.back-btn');
@@ -1654,6 +1719,27 @@
         let toastTimer = null;
         let pendingCancelReceipt = null;
         window.currentReceiptType = window.currentReceiptType || '';
+        window.currentSupplier = window.currentSupplier || '';
+
+        const APP_PAGE_IDS = [
+            'scanPage',
+            'typeQueryPage',
+            'supplierSelectPage',
+            'listPage',
+            'scanContainerPage',
+            'receiptDetailsPage',
+            'receiptRecordsPage',
+            'receiptRecordDetailPage'
+        ];
+
+        function setActivePage(pageId) {
+            APP_PAGE_IDS.forEach((id) => {
+                const pageEl = document.getElementById(id);
+                if (pageEl) {
+                    pageEl.classList.toggle('active', id === pageId);
+                }
+            });
+        }
 
         const receiptRecords = [
             {
@@ -1720,10 +1806,75 @@
                 plateNo: '沪E55678',
                 sourceWarehouse: '',
                 remark: ''
+            },
+            {
+                no: 'IB020260228114001',
+                type: '采购入库',
+                statusLabel: '初始',
+                sourceNo: 'P0202511190045',
+                relatedNo: 'S0202511190045',
+                owner: 'Y001-南京货主',
+                supplier: 'G002-杭州果蔬有限公司',
+                carrier: '顺丰速运',
+                plateNo: '浙B88990',
+                sourceWarehouse: '',
+                remark: ''
+            },
+            {
+                no: 'IB020260228114002',
+                type: '采购入库',
+                statusLabel: '收货中',
+                sourceNo: 'P0202511190046',
+                relatedNo: 'S0202511190046',
+                owner: 'Y001-南京货主',
+                supplier: 'G002-杭州果蔬有限公司',
+                carrier: '顺丰速运',
+                plateNo: '浙B88991',
+                sourceWarehouse: '',
+                remark: ''
+            },
+            {
+                no: 'IB020260228114003',
+                type: '采购入库',
+                statusLabel: '初始',
+                sourceNo: 'P0202511190047',
+                relatedNo: 'S0202511190047',
+                owner: 'Y001-南京货主',
+                supplier: 'G003-上海鲜达供应链',
+                carrier: '德邦物流',
+                plateNo: '沪F66778',
+                sourceWarehouse: '',
+                remark: ''
             }
         ];
 
+        function isPendingReceipt(item) {
+            return item.statusLabel !== '已关闭';
+        }
+
+        function getPendingPurchaseReceipts() {
+            return receiptRecords.filter((item) => item.type === '采购入库' && isPendingReceipt(item));
+        }
+
+        function getPendingSuppliers() {
+            const supplierSet = new Set();
+            getPendingPurchaseReceipts().forEach((item) => {
+                supplierSet.add(item.supplier || '未知供应商');
+            });
+            return Array.from(supplierSet);
+        }
+
+        function getSupplierDisplayName(supplier) {
+            if (!supplier) return '未知供应商';
+            const dashIndex = supplier.indexOf('-');
+            if (dashIndex === -1) return supplier;
+            return supplier.slice(dashIndex + 1);
+        }
+
         function getReceiptCountByType(type) {
+            if (type === '采购入库') {
+                return getPendingPurchaseReceipts().length;
+            }
             return receiptRecords.filter((item) => item.type === type).length;
         }
 
@@ -1736,14 +1887,17 @@
             });
         }
 
-        function renderReceiptList(type, keyword) {
+        function renderReceiptList(type, keyword, supplier) {
             const listContent = document.getElementById('receiptListContent');
             if (!listContent) return;
 
             const normalizedKeyword = (keyword || '').trim().toLowerCase();
+            const supplierFilter = supplier || window.currentSupplier || '';
             const filtered = receiptRecords.filter((item) => {
                 const typeMatched = !type || item.type === type;
                 if (!typeMatched) return false;
+                if (type === '采购入库' && supplierFilter && item.supplier !== supplierFilter) return false;
+                if (type === '采购入库' && supplierFilter && !isPendingReceipt(item)) return false;
                 if (!normalizedKeyword) return true;
                 return [item.no, item.sourceNo, item.relatedNo, item.plateNo]
                     .some((field) => String(field || '').toLowerCase().includes(normalizedKeyword));
@@ -1773,6 +1927,17 @@
                     </div>
                 </div>
             `).join('');
+        }
+
+        function getPendingReceiptsBySupplier(supplier) {
+            return getPendingPurchaseReceipts().filter((item) => item.supplier === supplier);
+        }
+
+        function getScanContainerBackAction() {
+            if (window.currentReceiptType === '采购入库' && window.currentSupplier) {
+                return 'showSupplierSelectPage()';
+            }
+            return 'showListPageFromContainer()';
         }
 
         function isPurchaseReceiptType(type) {
@@ -1959,36 +2124,110 @@
         // 显示按类型查询页面
         function showTypeQueryPage() {
             currentPage = 'type';
-            scanPage.classList.remove('active');
-            listPage.classList.remove('active');
-            typeQueryPage.classList.add('active');
+            setActivePage('typeQueryPage');
             headerTitle.textContent = '按类型查询';
             backBtn.setAttribute('onclick', 'showScanPage()');
             updateTypeButtonCounts();
         }
 
+        // 显示选择供应商页面
+        function showSupplierSelectPage() {
+            currentPage = 'supplierSelect';
+            setActivePage('supplierSelectPage');
+            headerTitle.textContent = '选择供应商';
+            backBtn.setAttribute('onclick', 'showTypeQueryPage()');
+            window.currentReceiptType = '采购入库';
+            window.currentSupplier = '';
+            const supplierSearchInput = document.getElementById('supplierSearchInput');
+            if (supplierSearchInput) {
+                supplierSearchInput.value = '';
+            }
+            renderSupplierList();
+        }
+
+        function filterSupplierList() {
+            const supplierSearchInput = document.getElementById('supplierSearchInput');
+            renderSupplierList(supplierSearchInput ? supplierSearchInput.value : '');
+        }
+
+        function renderSupplierList(keyword) {
+            const container = document.getElementById('supplierListContent');
+            if (!container) return;
+
+            const allSuppliers = getPendingSuppliers();
+            const normalizedKeyword = (keyword || '').trim().toLowerCase();
+            const suppliers = normalizedKeyword
+                ? allSuppliers.filter((name) => {
+                    const displayName = getSupplierDisplayName(name);
+                    const keywordLower = normalizedKeyword;
+                    return name.toLowerCase().includes(keywordLower)
+                        || displayName.toLowerCase().includes(keywordLower);
+                })
+                : allSuppliers;
+
+            if (!allSuppliers.length) {
+                container.innerHTML = '<div class="empty-state">暂无待收货供应商</div>';
+                return;
+            }
+
+            if (!suppliers.length) {
+                container.innerHTML = '<div class="empty-state">未找到匹配的供应商</div>';
+                return;
+            }
+
+            container.innerHTML = `
+                <table class="supplier-table">
+                    <tbody>
+                        ${suppliers.map((name) => `
+                            <tr data-supplier="${name.replace(/"/g, '&quot;')}" onclick="selectSupplier(this.dataset.supplier)">
+                                <td>${getSupplierDisplayName(name)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function selectSupplier(supplier) {
+            const pendingReceipts = getPendingReceiptsBySupplier(supplier);
+            if (!pendingReceipts.length) {
+                showToast('该供应商暂无待收货入库单');
+                return;
+            }
+            window.currentSupplier = supplier;
+            window.currentReceiptType = '采购入库';
+            showScanContainerPage('采购入库', '', { fromSupplier: true, supplier });
+        }
+
         // 显示扫码查询页面
         function showScanPage() {
             currentPage = 'scan';
-            typeQueryPage.classList.remove('active');
-            listPage.classList.remove('active');
-            document.getElementById('scanContainerPage').classList.remove('active');
-            document.getElementById('receiptDetailsPage').classList.remove('active');
-            document.getElementById('receiptRecordsPage').classList.remove('active');
-            scanPage.classList.add('active');
+            setActivePage('scanPage');
             headerTitle.textContent = '查询入库单';
             backBtn.setAttribute('onclick', "window.location.href='app_list.html'");
+        }
+
+        function getListPageBackAction() {
+            if (window.currentReceiptType === '采购入库' && window.currentSupplier) {
+                return 'showSupplierSelectPage()';
+            }
+            if (window.currentReceiptType) {
+                return 'showTypeQueryPage()';
+            }
+            return 'showScanPage()';
         }
 
         // 显示列表页面
         function showListPage(type) {
             currentPage = 'list';
-            typeQueryPage.classList.remove('active');
-            listPage.classList.add('active');
+            setActivePage('listPage');
             headerTitle.textContent = '查询入库单-列表';
-            backBtn.setAttribute('onclick', 'showTypeQueryPage()');
+            backBtn.setAttribute('onclick', getListPageBackAction());
 
             window.currentReceiptType = type;
+            if (type !== '采购入库') {
+                window.currentSupplier = '';
+            }
             renderReceiptList(type);
         }
 
@@ -2001,12 +2240,11 @@
             }
 
             currentPage = 'list';
-            scanPage.classList.remove('active');
-            typeQueryPage.classList.remove('active');
-            listPage.classList.add('active');
+            setActivePage('listPage');
             headerTitle.textContent = '查询入库单-列表';
             backBtn.setAttribute('onclick', 'showScanPage()');
             window.currentReceiptType = '';
+            window.currentSupplier = '';
             renderReceiptList('', value);
         }
 
@@ -2020,16 +2258,19 @@
         }
 
         // 显示入库单录入页面
-        function showScanContainerPage(type, receiptId) {
+        function showScanContainerPage(type, receiptId, options = {}) {
             currentPage = 'scanContainer';
-            listPage.classList.remove('active');
-            document.getElementById('scanContainerPage').classList.add('active');
+            setActivePage('scanContainerPage');
             headerTitle.textContent = '入库单录入';
-            backBtn.setAttribute('onclick', 'showListPageFromContainer()');
+            backBtn.setAttribute('onclick', getScanContainerBackAction());
 
             // 更新入库单录入页面的信息
             document.getElementById('scanReceiptType').textContent = type;
-            document.getElementById('scanReceiptId').textContent = '入库单号: ' + receiptId;
+            if (options.fromSupplier) {
+                document.getElementById('scanReceiptId').textContent = '供应商: ' + (options.supplier || window.currentSupplier || '');
+            } else {
+                document.getElementById('scanReceiptId').textContent = '入库单号: ' + receiptId;
+            }
             updateProductionDateVisibility(type);
             
             // 重置扫描区域（仅商品）
@@ -2059,10 +2300,9 @@
         // 从入库单录入页面返回列表页面
         function showListPageFromContainer() {
             currentPage = 'list';
-            document.getElementById('scanContainerPage').classList.remove('active');
-            listPage.classList.add('active');
+            setActivePage('listPage');
             headerTitle.textContent = '查询入库单-列表';
-            backBtn.setAttribute('onclick', 'showTypeQueryPage()');
+            backBtn.setAttribute('onclick', getListPageBackAction());
             renderReceiptList(window.currentReceiptType || '');
         }
 
@@ -2166,8 +2406,7 @@
         // 显示收货记录
         function showReceiptRecords() {
             currentPage = 'receiptRecords';
-            document.getElementById('scanContainerPage').classList.remove('active');
-            document.getElementById('receiptRecordsPage').classList.add('active');
+            setActivePage('receiptRecordsPage');
             headerTitle.textContent = '收货记录';
             backBtn.setAttribute('onclick', 'showScanContainerPageFromRecords()');
 
@@ -2191,10 +2430,9 @@
         // 从收货记录页面返回入库单录入页面
         function showScanContainerPageFromRecords() {
             currentPage = 'scanContainer';
-            document.getElementById('receiptRecordsPage').classList.remove('active');
-            document.getElementById('scanContainerPage').classList.add('active');
+            setActivePage('scanContainerPage');
             headerTitle.textContent = '入库单录入';
-            backBtn.setAttribute('onclick', 'showListPageFromContainer()');
+            backBtn.setAttribute('onclick', getScanContainerBackAction());
         }
 
         // 切换收货记录页签
@@ -2228,8 +2466,7 @@
         // 显示收货记录详情页面
         function showRecordDetail(container, time, product, code, barcode, receiver, quantity, status, putawayQuantity) {
             currentPage = 'recordDetail';
-            document.getElementById('receiptRecordsPage').classList.remove('active');
-            document.getElementById('receiptRecordDetailPage').classList.add('active');
+            setActivePage('receiptRecordDetailPage');
             headerTitle.textContent = '收货记录详情';
             backBtn.setAttribute('onclick', 'showReceiptRecordsFromDetail()');
 
@@ -2261,8 +2498,7 @@
         // 从收货记录详情页面返回收货记录页面
         function showReceiptRecordsFromDetail() {
             currentPage = 'receiptRecords';
-            document.getElementById('receiptRecordDetailPage').classList.remove('active');
-            document.getElementById('receiptRecordsPage').classList.add('active');
+            setActivePage('receiptRecordsPage');
             headerTitle.textContent = '收货记录';
             backBtn.setAttribute('onclick', 'showScanContainerPageFromRecords()');
             updateRecordsConfirmButtonVisibility(getActiveRecordsTabName());
@@ -2421,8 +2657,7 @@
         // 显示入库明细
         function showReceiptDetails() {
             currentPage = 'receiptDetails';
-            document.getElementById('scanContainerPage').classList.remove('active');
-            document.getElementById('receiptDetailsPage').classList.add('active');
+            setActivePage('receiptDetailsPage');
             headerTitle.textContent = '入库单明细';
             backBtn.setAttribute('onclick', 'showScanContainerPageFromDetails()');
 
@@ -2442,10 +2677,9 @@
         // 从入库明细页面返回入库单录入页面
         function showScanContainerPageFromDetails() {
             currentPage = 'scanContainer';
-            document.getElementById('receiptDetailsPage').classList.remove('active');
-            document.getElementById('scanContainerPage').classList.add('active');
+            setActivePage('scanContainerPage');
             headerTitle.textContent = '入库单录入';
-            backBtn.setAttribute('onclick', 'showListPageFromContainer()');
+            backBtn.setAttribute('onclick', getScanContainerBackAction());
         }
 
         // 切换页签
@@ -2478,8 +2712,7 @@
         // 从入库明细页面进入入库单录入页面
         function goToScanContainerPage() {
             currentPage = 'scanContainer';
-            document.getElementById('receiptDetailsPage').classList.remove('active');
-            document.getElementById('scanContainerPage').classList.add('active');
+            setActivePage('scanContainerPage');
             headerTitle.textContent = '入库单录入';
             backBtn.setAttribute('onclick', 'showReceiptDetailsFromScanContainer()');
         }
@@ -2535,8 +2768,7 @@
         // 从入库单录入页面返回入库明细页面
         function showReceiptDetailsFromScanContainer() {
             currentPage = 'receiptDetails';
-            document.getElementById('scanContainerPage').classList.remove('active');
-            document.getElementById('receiptDetailsPage').classList.add('active');
+            setActivePage('receiptDetailsPage');
             headerTitle.textContent = '入库单明细';
             backBtn.setAttribute('onclick', 'showScanContainerPageFromDetails()');
         }
