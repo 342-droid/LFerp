@@ -234,7 +234,8 @@
                                     <th>包裹号</th>
                                     <th>包裹状态</th>
                                     <th>货主</th>
-                                    <th>出库单号</th>
+                                    <th>出库类型</th>
+                                    <th>出库业务类型</th>
                                     <th>目的仓库</th>
                                     <th>站点</th>
                                     <th>重量(kg)</th>
@@ -304,6 +305,8 @@
                         cartonStatus: '复核完成',
                         company: 'Y001-南京货主',
                         outboundOrderNos: 'OBD202603230001',
+                        orderType: '销售出库',
+                        businessType: '直播订单',
                         targetWarehouse: '',
                         siteCode: 'S001',
                         siteName: '上海虹桥站',
@@ -316,6 +319,8 @@
                         cartonStatus: '装载完成',
                         company: 'Y001-南京货主',
                         outboundOrderNos: 'OBD202603230003',
+                        orderType: '调拨出库',
+                        businessType: '仓库调拨',
                         targetWarehouse: 'W003-上海仓',
                         siteCode: 'S002',
                         siteName: '浦东站',
@@ -356,6 +361,8 @@
                         cartonStatus: '发货完成',
                         company: 'Y002-杭州货主',
                         outboundOrderNos: 'OBD202603230002',
+                        orderType: '调拨出库',
+                        businessType: '仓库调拨',
                         targetWarehouse: 'W004-杭州仓',
                         siteCode: '',
                         siteName: '',
@@ -1028,7 +1035,8 @@
                     <td>${c.cartonNo || ''}</td>
                     <td>${st ? `<span class="status-badge ${getCartonStatusClass(st)}">${st}</span>` : ''}</td>
                     <td>${c.company || ''}</td>
-                    <td>${c.outboundOrderNos || ''}</td>
+                    <td>${c.orderType || ''}</td>
+                    <td>${c.businessType || ''}</td>
                     <td>${c.targetWarehouse || ''}</td>
                     <td>${formatSiteDisplay(c.siteCode, c.siteName)}</td>
                     <td>${c.weight ?? ''}</td>
