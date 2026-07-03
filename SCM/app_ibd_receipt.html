@@ -864,15 +864,50 @@
 
         /* 复选框样式 */
         .record-checkbox {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
             cursor: pointer;
         }
 
-        /* 包含复选框的行样式 */
-        .record-item-row:first-child {
+        .record-item-header--selectable {
+            gap: 10px;
+        }
+
+        .record-item-header--selectable .record-item-container {
+            min-width: 0;
+        }
+
+        .records-confirm-bar {
+            display: flex;
+            align-items: stretch;
+            min-height: 52px;
+        }
+
+        .records-select-all {
+            flex: 1;
             display: flex;
             align-items: center;
+            gap: 8px;
+            padding: 0 4px 0 0;
+            font-size: 15px;
+            color: #333333;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .records-select-all input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .records-confirm-bar .records-confirm-btn {
+            flex-shrink: 0;
+            min-width: 120px;
+            width: auto;
+            max-width: none;
+            margin: 0;
         }
 
         /* 底部定位容器区域 */
@@ -1518,7 +1553,13 @@
                 </div>
 
                 <div class="records-confirm-button" id="recordsConfirmButton">
-                    <button class="records-confirm-btn" onclick="confirmReceiptRecords()">确认收货</button>
+                    <div class="records-confirm-bar">
+                        <label class="records-select-all">
+                            <input type="checkbox" id="recordsSelectAll">
+                            <span>全选</span>
+                        </label>
+                        <button type="button" class="records-confirm-btn" onclick="confirmReceiptRecords()">确认收货</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1877,6 +1918,75 @@
         let initialRecordsState = JSON.parse(JSON.stringify(initialRecordsSeed));
         let pendingRecordsState = JSON.parse(JSON.stringify(pendingRecordsSeed));
         let completedRecordsState = JSON.parse(JSON.stringify(completedRecordsSeed));
+        let initialRecordsSelected = {};
+
+        function getInitialRecordKey(container, barcode) {
+            return `${container}|${barcode}`;
+        }
+
+        function getAllInitialRecordItems() {
+            const items = [];
+            initialRecordsState.forEach((record) => {
+                record.products.forEach((product) => {
+                    items.push({
+                        key: getInitialRecordKey(record.container, product.barcode),
+                        container: record.container,
+                        time: record.time,
+                        product
+                    });
+                });
+            });
+            return items;
+        }
+
+        function getSelectedInitialRecordCount() {
+            return getAllInitialRecordItems().filter((item) => initialRecordsSelected[item.key]).length;
+        }
+
+        function syncInitialRecordsSelectAll() {
+            const selectAllEl = document.getElementById('recordsSelectAll');
+            if (!selectAllEl) return;
+
+            const items = getAllInitialRecordItems();
+            if (!items.length) {
+                selectAllEl.checked = false;
+                selectAllEl.indeterminate = false;
+                return;
+            }
+
+            const allChecked = items.every((item) => initialRecordsSelected[item.key]);
+            const someChecked = items.some((item) => initialRecordsSelected[item.key]);
+            selectAllEl.checked = allChecked;
+            selectAllEl.indeterminate = someChecked && !allChecked;
+        }
+
+        function toggleInitialRecordsSelectAll(checked) {
+            getAllInitialRecordItems().forEach((item) => {
+                initialRecordsSelected[item.key] = checked;
+            });
+            document.querySelectorAll('#recordsInitialTab .record-checkbox').forEach((checkbox) => {
+                checkbox.checked = checked;
+            });
+            syncInitialRecordsSelectAll();
+        }
+
+        function onInitialRecordCheckboxChange(key, checked) {
+            if (checked) {
+                initialRecordsSelected[key] = true;
+            } else {
+                delete initialRecordsSelected[key];
+            }
+            syncInitialRecordsSelectAll();
+        }
+
+        function pruneInitialRecordsSelection() {
+            const validKeys = new Set(getAllInitialRecordItems().map((item) => item.key));
+            Object.keys(initialRecordsSelected).forEach((key) => {
+                if (!validKeys.has(key)) {
+                    delete initialRecordsSelected[key];
+                }
+            });
+        }
 
         function showToast(message) {
             if (!message) return;
@@ -1907,6 +2017,9 @@
                 }))
                 .filter(record => record.products.length > 0);
 
+            const canceledKey = getInitialRecordKey(pendingCancelReceipt.container, pendingCancelReceipt.barcode);
+            delete initialRecordsSelected[canceledKey];
+
             showToast('取消收货成功');
             closeCancelReceiptConfirmModal();
             generateReceiptRecords();
@@ -1919,35 +2032,57 @@
         }
 
         function confirmReceiptRecordsAction() {
-            const movedRecords = [];
+            const selectedKeys = new Set(
+                Object.keys(initialRecordsSelected).filter((key) => initialRecordsSelected[key])
+            );
 
-            initialRecordsState.forEach(record => {
-                record.products.forEach(product => {
-                    movedRecords.push({
-                        container: record.container,
-                        time: record.time,
-                        product: product.product,
-                        barcode: product.barcode,
-                        receiver: product.receiver,
-                        quantity: product.quantity
+            if (selectedKeys.size === 0) {
+                closeReceiptConfirmModal();
+                showToast('请先勾选需要确认收货的商品');
+                return;
+            }
+
+            const movedRecords = [];
+            initialRecordsState = initialRecordsState
+                .map((record) => {
+                    const remainingProducts = [];
+                    record.products.forEach((product) => {
+                        const key = getInitialRecordKey(record.container, product.barcode);
+                        if (selectedKeys.has(key)) {
+                            movedRecords.push({
+                                container: record.container,
+                                time: record.time,
+                                product: product.product,
+                                code: product.code,
+                                barcode: product.barcode,
+                                receiver: product.receiver,
+                                quantity: product.quantity
+                            });
+                            delete initialRecordsSelected[key];
+                        } else {
+                            remainingProducts.push(product);
+                        }
                     });
-                });
-            });
+                    return {
+                        ...record,
+                        products: remainingProducts
+                    };
+                })
+                .filter((record) => record.products.length > 0);
 
             if (movedRecords.length === 0) {
                 closeReceiptConfirmModal();
-                showToast('初始页签暂无可确认收货商品');
+                showToast('请先勾选需要确认收货的商品');
                 return;
             }
 
             pendingRecordsState = [...movedRecords, ...pendingRecordsState];
-            initialRecordsState = [];
 
             closeReceiptConfirmModal();
             generateReceiptRecords();
             updateRecordsTabLabels();
             switchRecordsTab('pending');
-            showToast('确认收货成功，已执行上架逻辑');
+            showToast(`已确认收货 ${movedRecords.length} 件商品，已执行上架逻辑`);
         }
 
         // 处理扫描按钮点击
@@ -2307,11 +2442,14 @@
             // 生成初始状态的收货记录（一个商品一张卡片）
             initialRecordsState.forEach(record => {
                 record.products.forEach(product => {
+                    const recordKey = getInitialRecordKey(record.container, product.barcode);
+                    const isChecked = !!initialRecordsSelected[recordKey];
                     const recordItem = document.createElement('div');
                     recordItem.className = 'record-item';
 
                     recordItem.innerHTML = `
-                        <div class="record-item-header">
+                        <div class="record-item-header record-item-header--selectable">
+                            <input type="checkbox" class="record-checkbox" data-key="${recordKey}" ${isChecked ? 'checked' : ''}>
                             <div class="record-item-container">${product.product}</div>
                             <button class="receive-btn cancel-receive-btn" onclick="cancelReceipt('${record.container}', '${product.barcode}', '${product.product}')">取消收货</button>
                         </div>
@@ -2340,6 +2478,9 @@
                     initialTab.appendChild(recordItem);
                 });
             });
+
+            pruneInitialRecordsSelection();
+            syncInitialRecordsSelectAll();
 
             // 生成待上架状态的收货记录
             pendingRecordsState.forEach(record => {
@@ -2595,13 +2736,38 @@
         }
 
         function confirmReceiptRecords() {
-            const initialCount = initialRecordsState.reduce((sum, record) => sum + record.products.length, 0);
-            if (initialCount === 0) {
-                showToast('初始页签暂无可确认收货商品');
+            const selectedCount = getSelectedInitialRecordCount();
+            if (selectedCount === 0) {
+                const totalCount = initialRecordsState.reduce((sum, record) => sum + record.products.length, 0);
+                if (totalCount === 0) {
+                    showToast('初始页签暂无可确认收货商品');
+                } else {
+                    showToast('请先勾选需要确认收货的商品');
+                }
                 return;
+            }
+
+            const totalCount = initialRecordsState.reduce((sum, record) => sum + record.products.length, 0);
+            const messageEl = document.getElementById('receiptConfirmMessage');
+            if (messageEl) {
+                if (selectedCount === totalCount) {
+                    messageEl.textContent = '确认后当前已选商品将无法取消，并执行上架逻辑，是否继续？';
+                } else {
+                    messageEl.textContent = `确认后将把已勾选的 ${selectedCount} 件商品执行上架逻辑，未勾选商品仍保留在初始页签，是否继续？`;
+                }
             }
             receiptConfirmModal.classList.add('active');
         }
+
+        document.getElementById('recordsSelectAll').addEventListener('change', (event) => {
+            toggleInitialRecordsSelectAll(event.target.checked);
+        });
+
+        document.getElementById('recordsInitialTab').addEventListener('change', (event) => {
+            const checkbox = event.target;
+            if (!checkbox.classList.contains('record-checkbox')) return;
+            onInitialRecordCheckboxChange(checkbox.dataset.key, checkbox.checked);
+        });
 
         // 收货量输入框回车事件（与「完成」按钮一致）
         document.getElementById('productReceiptQty').addEventListener('keypress', (e) => {
