@@ -1650,7 +1650,7 @@
     <div class="shortage-modal" id="receiptConfirmModal">
         <div class="shortage-modal-card">
             <div class="shortage-modal-message" id="receiptConfirmMessage">
-                确认后当前已收商品将无法取消，并执行上架逻辑，是否继续？
+                确认后当前已选商品将无法取消，并执行上架逻辑，是否继续？
             </div>
             <div class="shortage-modal-actions">
                 <button type="button" class="shortage-modal-btn" onclick="closeReceiptConfirmModal()">取消</button>
@@ -2747,14 +2747,9 @@
                 return;
             }
 
-            const totalCount = initialRecordsState.reduce((sum, record) => sum + record.products.length, 0);
             const messageEl = document.getElementById('receiptConfirmMessage');
             if (messageEl) {
-                if (selectedCount === totalCount) {
-                    messageEl.textContent = '确认后当前已选商品将无法取消，并执行上架逻辑，是否继续？';
-                } else {
-                    messageEl.textContent = `确认后将把已勾选的 ${selectedCount} 件商品执行上架逻辑，未勾选商品仍保留在初始页签，是否继续？`;
-                }
+                messageEl.textContent = '确认后当前已选商品将无法取消，并执行上架逻辑，是否继续？';
             }
             receiptConfirmModal.classList.add('active');
         }
