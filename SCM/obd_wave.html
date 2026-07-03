@@ -289,6 +289,7 @@
                                 </div>
                             </div>
                         </div>
+                        <div id="searchTemplateRegionMount"></div>
                         <div class="form-actions">
                             <button type="button" class="btn btn-primary" id="searchTemplateBtn">查询</button>
                             <button type="button" class="btn btn-primary" id="generateWaveBtn">生成波次</button>
@@ -309,6 +310,9 @@
                                     <th>货主</th>
                                     <th>目的仓库</th>
                                     <th>目的站点</th>
+                                    <th>省</th>
+                                    <th>市</th>
+                                    <th>区</th>
                                     <th>详细地址</th>
                                     <th>出库类型</th>
                                     <th>出库业务类型</th>
@@ -394,6 +398,7 @@
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
+    <script src="../js/region-cascader.js"></script>
     <script src="../js/modal-manager.js"></script>
     <script src="../js/page-manager.js"></script>
     <script>
@@ -533,6 +538,7 @@
         let currentAssignOrderId = '';
         let currentAssignRecords = [];
         let selectedTemplateOrderRows = [];
+        let templateRegionCascader = null;
         const outboundOrderDataForTemplate = [
             {
                 template: '仓配出库-配送出库',
@@ -543,6 +549,10 @@
                 company: 'Y001-南京货主',
                 targetWarehouse: 'W003-上海仓',
                 targetSite: 'S001-上海虹桥站',
+                province: '上海市',
+                city: '市辖区',
+                district: '闵行区',
+                detailAddress: '申虹路100号',
                 address: '上海市闵行区申虹路100号',
                 orderType: '销售出库',
                 businessType: '直播订单',
@@ -561,6 +571,10 @@
                 company: 'Y001-南京货主',
                 targetWarehouse: 'W003-上海仓',
                 targetSite: 'S002-上海浦东站',
+                province: '上海市',
+                city: '市辖区',
+                district: '浦东新区',
+                detailAddress: '盛夏路80号',
                 address: '上海市浦东新区盛夏路80号',
                 orderType: '仓配出库',
                 businessType: '配送出库',
@@ -579,6 +593,10 @@
                 company: 'Y002-杭州货主',
                 targetWarehouse: 'W004-杭州仓',
                 targetSite: 'S008-杭州下沙站',
+                province: '浙江省',
+                city: '杭州市',
+                district: '钱塘区',
+                detailAddress: '学源街18号',
                 address: '杭州市钱塘区学源街18号',
                 orderType: '调拨出库',
                 businessType: '仓库调拨',
@@ -597,6 +615,10 @@
                 company: 'Y002-杭州货主',
                 targetWarehouse: 'W001-南京仓',
                 targetSite: 'S010-南京江宁站',
+                province: '江苏省',
+                city: '南京市',
+                district: '江宁区',
+                detailAddress: '秣周东路12号',
                 address: '南京市江宁区秣周东路12号',
                 orderType: '返配出库',
                 businessType: '门店退货',
@@ -615,6 +637,10 @@
                 company: 'Y001-南京货主',
                 targetWarehouse: 'W003-上海仓',
                 targetSite: 'S003-上海松江站',
+                province: '上海市',
+                city: '市辖区',
+                district: '松江区',
+                detailAddress: '新桥路66号',
                 address: '上海市松江区新桥路66号',
                 orderType: '仓配出库',
                 businessType: '配送出库',
@@ -633,6 +659,10 @@
                 company: 'Y001-南京货主',
                 targetWarehouse: 'W003-上海仓',
                 targetSite: 'S004-上海嘉定站',
+                province: '上海市',
+                city: '市辖区',
+                district: '嘉定区',
+                detailAddress: '宝安公路18号',
                 address: '上海市嘉定区宝安公路18号',
                 orderType: '仓配出库',
                 businessType: '配送出库',
@@ -651,6 +681,10 @@
                 company: 'Y002-杭州货主',
                 targetWarehouse: 'W004-杭州仓',
                 targetSite: 'S009-杭州滨江站',
+                province: '浙江省',
+                city: '杭州市',
+                district: '滨江区',
+                detailAddress: '江南大道99号',
                 address: '杭州市滨江区江南大道99号',
                 orderType: '调拨出库',
                 businessType: '仓库调拨',
@@ -669,6 +703,10 @@
                 company: 'Y002-杭州货主',
                 targetWarehouse: 'W004-杭州仓',
                 targetSite: 'S011-杭州拱墅站',
+                province: '浙江省',
+                city: '杭州市',
+                district: '拱墅区',
+                detailAddress: '祥园路188号',
                 address: '杭州市拱墅区祥园路188号',
                 orderType: '调拨出库',
                 businessType: '仓库调拨',
@@ -687,6 +725,10 @@
                 company: 'Y002-杭州货主',
                 targetWarehouse: 'W001-南京仓',
                 targetSite: 'S012-南京鼓楼站',
+                province: '江苏省',
+                city: '南京市',
+                district: '鼓楼区',
+                detailAddress: '中央路120号',
                 address: '南京市鼓楼区中央路120号',
                 orderType: '返配出库',
                 businessType: '门店退货',
@@ -705,6 +747,10 @@
                 company: 'Y002-杭州货主',
                 targetWarehouse: 'W001-南京仓',
                 targetSite: 'S013-南京建邺站',
+                province: '江苏省',
+                city: '南京市',
+                district: '建邺区',
+                detailAddress: '江东中路77号',
                 address: '南京市建邺区江东中路77号',
                 orderType: '返配出库',
                 businessType: '门店退货',
@@ -723,6 +769,10 @@
                 company: 'Y001-南京货主',
                 targetWarehouse: 'W003-上海仓',
                 targetSite: 'S014-上海徐汇站',
+                province: '上海市',
+                city: '市辖区',
+                district: '徐汇区',
+                detailAddress: '漕溪北路58号',
                 address: '上海市徐汇区漕溪北路58号',
                 orderType: '仓配出库',
                 businessType: '配送出库',
@@ -741,6 +791,10 @@
                 company: 'Y002-杭州货主',
                 targetWarehouse: 'W004-杭州仓',
                 targetSite: 'S015-杭州余杭站',
+                province: '浙江省',
+                city: '杭州市',
+                district: '余杭区',
+                detailAddress: '文一西路866号',
                 address: '杭州市余杭区文一西路866号',
                 orderType: '调拨出库',
                 businessType: '仓库调拨',
@@ -759,6 +813,10 @@
                 company: 'Y002-杭州货主',
                 targetWarehouse: 'W001-南京仓',
                 targetSite: 'S016-南京玄武站',
+                province: '江苏省',
+                city: '南京市',
+                district: '玄武区',
+                detailAddress: '珠江路399号',
                 address: '南京市玄武区珠江路399号',
                 orderType: '返配出库',
                 businessType: '门店退货',
@@ -777,6 +835,10 @@
                 company: 'Y001-南京货主',
                 targetWarehouse: 'W003-上海仓',
                 targetSite: 'S017-上海青浦站',
+                province: '上海市',
+                city: '市辖区',
+                district: '青浦区',
+                detailAddress: '华徐公路360号',
                 address: '上海市青浦区华徐公路360号',
                 orderType: '仓配出库',
                 businessType: '配送出库',
@@ -795,6 +857,10 @@
                 company: 'Y001-南京货主',
                 targetWarehouse: '—',
                 targetSite: '供应商仓',
+                province: '江苏省',
+                city: '南京市',
+                district: '江宁区',
+                detailAddress: '禄口物流园8号',
                 address: '南京市江宁区禄口物流园8号',
                 orderType: '退供出库',
                 businessType: '仓库退供',
@@ -1009,7 +1075,10 @@
                     <td>${item.company || '-'}</td>
                     <td>${item.targetWarehouse || '-'}</td>
                     <td>${item.targetSite || '-'}</td>
-                    <td>${item.address || '-'}</td>
+                    <td>${item.province || '-'}</td>
+                    <td>${item.city || '-'}</td>
+                    <td>${item.district || '-'}</td>
+                    <td>${item.detailAddress || RegionCascader.resolveDetailAddress(item) || '-'}</td>
                     <td>${item.orderType || '-'}</td>
                     <td>${item.businessType || '-'}</td>
                     <td>${item.status || '-'}</td>
@@ -1029,13 +1098,21 @@
                 }
                 return;
             }
-            const result = outboundOrderDataForTemplate.filter(item => item.template === template && item.status === '初始');
+            const region = templateRegionCascader ? templateRegionCascader.getValue() : '';
+            const result = outboundOrderDataForTemplate.filter(item => {
+                if (item.template !== template || item.status !== '初始') return false;
+                if (!RegionCascader.matchRegion(item, region)) return false;
+                return true;
+            });
             renderTemplateAddTable(result);
         }
 
         function openAddByTemplateModal() {
             const modal = document.getElementById('addByTemplateModal');
             document.getElementById('searchTemplateInModal').value = '';
+            if (templateRegionCascader) {
+                templateRegionCascader.reset();
+            }
             renderTemplateAddTable([]);
             modal.style.display = 'block';
         }
@@ -1134,6 +1211,13 @@
             renderSelectOptions('searchWaveTypeDropdown', CommonOptions.outboundType);
             renderSelectOptions('searchBusinessTypeDropdown', CommonOptions.outboundBizType);
             page.init();
+            templateRegionCascader = RegionCascader.create({
+                mount: '#searchTemplateRegionMount',
+                id: 'searchTemplateRegion',
+                label: '省市区:',
+                labelWidth: '80px',
+                closeOnScrollContainer: '#addByTemplateModal .modal-body'
+            });
 
             renderTable(waveData);
             document.getElementById('searchBtn').addEventListener('click', searchWaves);

@@ -172,6 +172,9 @@
                                 <th>货主</th>
                                 <th>目的仓库</th>
                                 <th>目的站点</th>
+                                <th>省</th>
+                                <th>市</th>
+                                <th>区</th>
                                 <th>详细地址</th>
                                 <th>联系人</th>
                                 <th>电话</th>
@@ -221,6 +224,9 @@
                         <div class="modal-form-group"><label>货主</label><input type="text" id="detailCompany" disabled></div>
                         <div class="modal-form-group"><label>目的仓库</label><input type="text" id="detailTargetWarehouse" disabled></div>
                         <div class="modal-form-group"><label>目的站点</label><input type="text" id="detailTargetSite" disabled></div>
+                        <div class="modal-form-group"><label>省</label><input type="text" id="detailProvince" disabled></div>
+                        <div class="modal-form-group"><label>市</label><input type="text" id="detailCity" disabled></div>
+                        <div class="modal-form-group"><label>区</label><input type="text" id="detailDistrict" disabled></div>
                         <div class="modal-form-group"><label>详细地址</label><input type="text" id="detailAddress" disabled></div>
                         <div class="modal-form-group"><label>联系人</label><input type="text" id="detailContact" disabled></div>
                         <div class="modal-form-group"><label>电话</label><input type="text" id="detailPhone" disabled></div>
@@ -374,6 +380,7 @@
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
+    <script src="../js/region-cascader.js"></script>
     <script src="../js/modal-manager.js"></script>
     <script src="../js/page-manager.js"></script>
     <script>
@@ -386,6 +393,10 @@
                 company: 'Y001-南京货主',
                 targetWarehouse: 'W003-上海仓',
                 targetSite: 'S001-上海虹桥站',
+                province: '上海市',
+                city: '市辖区',
+                district: '闵行区',
+                detailAddress: '申虹路100号',
                 address: '上海市闵行区申虹路100号',
                 contact: '张三',
                 phone: '13800138000',
@@ -435,6 +446,10 @@
                 company: 'Y002-杭州货主',
                 targetWarehouse: 'W004-杭州仓',
                 targetSite: 'S008-杭州下沙站',
+                province: '浙江省',
+                city: '杭州市',
+                district: '钱塘区',
+                detailAddress: '学源街18号',
                 address: '杭州市钱塘区学源街18号',
                 contact: '王小明',
                 phone: '13900139000',
@@ -582,7 +597,10 @@
                     <td>${item.company}</td>
                     <td>${item.targetWarehouse}</td>
                     <td>${item.targetSite}</td>
-                    <td>${item.address}</td>
+                    <td>${item.province || '-'}</td>
+                    <td>${item.city || '-'}</td>
+                    <td>${item.district || '-'}</td>
+                    <td>${item.detailAddress || RegionCascader.resolveDetailAddress(item) || '-'}</td>
                     <td>${item.contact}</td>
                     <td>${item.phone}</td>
                     <td>${item.orderType}</td>
@@ -646,7 +664,10 @@
             document.getElementById('detailCompany').value = order.company || '';
             document.getElementById('detailTargetWarehouse').value = order.targetWarehouse || '';
             document.getElementById('detailTargetSite').value = order.targetSite || '';
-            document.getElementById('detailAddress').value = order.address || '';
+            document.getElementById('detailProvince').value = order.province || '';
+            document.getElementById('detailCity').value = order.city || '';
+            document.getElementById('detailDistrict').value = order.district || '';
+            document.getElementById('detailAddress').value = order.detailAddress || RegionCascader.resolveDetailAddress(order) || '';
             document.getElementById('detailContact').value = order.contact || '';
             document.getElementById('detailPhone').value = order.phone || '';
             document.getElementById('detailWaveNo').value = order.waveNo || '';

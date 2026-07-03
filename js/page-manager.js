@@ -915,6 +915,10 @@ class PageManager {
                 el.disabled = el.dataset.pmOriginalDisabled === '1';
             }
         });
+
+        if (typeof RegionCascader !== 'undefined') {
+            RegionCascader.setModalAddressReadOnly('edit', readOnly);
+        }
     }
 
     /**
