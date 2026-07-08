@@ -6,8 +6,7 @@
      * 采购单单据来源枚举
      */
     window.PURCHASE_ORDER_DOC_SOURCES = {
-        DEMAND_SUMMARY_BY_SUPPLIER: '采购需求汇总-按供应商',
-        DEMAND_SUMMARY_BY_STORE: '采购需求汇总-按门店',
+        DEMAND_SUMMARY: '采购需求汇总',
         MANUAL: '手动新增'
     };
 
@@ -67,13 +66,18 @@
         };
     };
 
+    /**
+     * orderSource 枚举含商城/直播间、代采订单；fulfillmentMethod 枚举含快递到店、快递到家、平台配送。
+     */
     window.PURCHASE_ORDERS = [
         {
             poNo: 'PO2026042012000001',
+            orderSource: '商城/直播间',
+            fulfillmentMethod: '平台配送',
             warehouse: 'W001 南京仓',
             supplier: '华东果蔬有限公司',
             docStatus: '初始',
-            docSource: '采购需求汇总-按供应商',
+            docSource: '采购需求汇总',
             deliveryDate: '2026-04-28',
             remark: '首批补货',
             createdAt: '2026-04-20 10:12:00',
@@ -85,10 +89,12 @@
         },
         {
             poNo: 'PO2026042012150002',
+            orderSource: '商城/直播间',
+            fulfillmentMethod: '平台配送',
             warehouse: 'W002 嘉兴仓',
             supplier: '浙北农产品合作社',
             docStatus: '部分收货',
-            docSource: '采购需求汇总-按供应商',
+            docSource: '采购需求汇总',
             deliveryDate: '2026-04-26',
             remark: '',
             createdAt: '2026-04-20 15:30:22',
@@ -99,6 +105,8 @@
         },
         {
             poNo: 'PO2026042110300003',
+            orderSource: '商城/直播间',
+            fulfillmentMethod: '快递到家',
             warehouse: 'W003 上海仓',
             supplier: '上海鲜达供应链',
             docStatus: '已完成',
@@ -114,6 +122,8 @@
         },
         {
             poNo: 'PO2026042114000004',
+            orderSource: '代采订单',
+            fulfillmentMethod: '快递到店',
             warehouse: 'W001 南京仓',
             supplier: '苏果直采中心',
             docStatus: '已取消',
@@ -128,10 +138,12 @@
         },
         {
             poNo: 'PO2026042209000005',
+            orderSource: '商城/直播间',
+            fulfillmentMethod: '平台配送',
             warehouse: 'W004 北京仓',
             supplier: '华北冷链物流',
             docStatus: '初始',
-            docSource: '采购需求汇总-按供应商',
+            docSource: '采购需求汇总',
             deliveryDate: '2026-04-29',
             remark: '需冷链',
             createdAt: '2026-04-22 09:00:45',
@@ -142,10 +154,12 @@
         },
         {
             poNo: 'PO2026042211000006',
+            orderSource: '商城/直播间',
+            fulfillmentMethod: '平台配送',
             warehouse: 'W002 嘉兴仓',
             supplier: '浙北农产品合作社',
             docStatus: '部分收货',
-            docSource: '采购需求汇总-按供应商',
+            docSource: '采购需求汇总',
             deliveryDate: '2026-04-25',
             remark: '分批发货',
             createdAt: '2026-04-22 11:05:00',
@@ -157,10 +171,12 @@
         },
         {
             poNo: 'PO2026042308000007',
+            orderSource: '商城/直播间',
+            fulfillmentMethod: '快递到店',
             warehouse: 'W003 上海仓',
             supplier: '上海鲜达供应链',
             docStatus: '已完成',
-            docSource: '采购需求汇总-按门店',
+            docSource: '采购需求汇总',
             deliveryDate: '2026-04-23',
             remark: '按门店拆分，当前门店：ST001 南京新街口店',
             receiveInfo: {
@@ -177,6 +193,8 @@
         },
         {
             poNo: 'PO2026042316000008',
+            orderSource: '代采订单',
+            fulfillmentMethod: '快递到家',
             warehouse: 'W001 南京仓',
             supplier: '华东果蔬有限公司',
             docStatus: '初始',

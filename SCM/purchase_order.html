@@ -261,6 +261,33 @@
                             <span class="clear-btn">×</span>
                         </div>
                     </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>订单渠道:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchOrderSource" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchOrderSourceDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="商城/直播间">商城/直播间</div>
+                                <div class="select-option" data-value="代采订单">代采订单</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>履约方式:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchFulfillmentMethod" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchFulfillmentMethodDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="快递到店">快递到店</div>
+                                <div class="select-option" data-value="快递到家">快递到家</div>
+                                <div class="select-option" data-value="平台配送">平台配送</div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>商品编码:</label>
                         <div class="input-wrapper">
@@ -316,8 +343,7 @@
                             <span class="clear-btn">×</span>
                             <div class="select-dropdown" id="searchDocSourceDropdown">
                                 <div class="select-option" data-value="">全部</div>
-                                <div class="select-option" data-value="采购需求汇总-按供应商">采购需求汇总-按供应商</div>
-                                <div class="select-option" data-value="采购需求汇总-按门店">采购需求汇总-按门店</div>
+                                <div class="select-option" data-value="采购需求汇总">采购需求汇总</div>
                                 <div class="select-option" data-value="手动新增">手动新增</div>
                             </div>
                         </div>
@@ -353,6 +379,8 @@
                                 <th>采购单号</th>
                                 <th>供应商</th>
                                 <th>收货地名称</th>
+                                <th>订单渠道</th>
+                                <th>履约方式</th>
                                 <th>单据状态</th>
                                 <th>单据来源</th>
                                 <th>备注</th>
@@ -1163,6 +1191,8 @@
             var operator = getLineBuyer(lines[0]) || '系统';
             allRows.unshift({
                 poNo: currentAddPoNo || generatePurchaseOrderNo(),
+                orderSource: '商城/直播间',
+                fulfillmentMethod: '平台配送',
                 warehouse: wh,
                 supplier: sp,
                 docStatus: '初始',
@@ -1236,6 +1266,8 @@
                 detailInfoItemHtml('采购单号', row.poNo),
                 detailInfoItemHtml('供应商', row.supplier),
                 detailInfoItemHtml('单据状态', row.docStatus),
+                detailInfoItemHtml('订单渠道', row.orderSource),
+                detailInfoItemHtml('履约方式', row.fulfillmentMethod),
                 detailInfoItemHtml('单据来源', row.docSource),
                 detailInfoItemHtml('实际采购时间', row.actualPurchaseDate),
                 detailInfoItemHtml('供应商发货时间', row.supplierShipDate),
@@ -1357,6 +1389,8 @@
     function applyFilters() {
         var wh = getCustomSelectValue('searchWarehouse');
         var po = getTextFilter('searchPoNo');
+        var orderSource = getCustomSelectValue('searchOrderSource');
+        var fulfillmentMethod = getCustomSelectValue('searchFulfillmentMethod');
         var skuC = getTextFilter('searchSkuCode');
         var skuN = getTextFilter('searchSkuName');
         var supplier = getCustomSelectValue('searchSupplier');
@@ -1367,6 +1401,8 @@
         return allRows.filter(function(r) {
             if (wh && r.warehouse !== wh) return false;
             if (po && String(r.poNo || '').indexOf(po) === -1) return false;
+            if (orderSource && r.orderSource !== orderSource) return false;
+            if (fulfillmentMethod && r.fulfillmentMethod !== fulfillmentMethod) return false;
             if (!lineMatchesProduct(r, skuC, skuN)) return false;
             if (supplier && r.supplier !== supplier) return false;
             if (st && r.docStatus !== st) return false;
@@ -1408,7 +1444,7 @@
         var pageRows = filteredRows.slice(start, start + pageSize);
 
         if (pageRows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#999;">暂无数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;color:#999;">暂无数据</td></tr>';
         } else {
             tbody.innerHTML = pageRows.map(function(r) {
                 return (
@@ -1417,6 +1453,8 @@
                     '<td><a href="#" class="order-no-link js-open-po-detail" data-po-no="' + escapeHtml(r.poNo) + '">' + escapeHtml(r.poNo) + '</a></td>' +
                     '<td>' + escapeHtml(r.supplier) + '</td>' +
                     '<td>' + escapeHtml(r.warehouse || '') + '</td>' +
+                    '<td>' + escapeHtml(r.orderSource || '—') + '</td>' +
+                    '<td>' + escapeHtml(r.fulfillmentMethod || '—') + '</td>' +
                     '<td>' + statusCellHtml(r.docStatus) + '</td>' +
                     '<td>' + escapeHtml(r.docSource) + '</td>' +
                     '<td>' + escapeHtml(r.remark || '') + '</td>' +
@@ -1615,6 +1653,8 @@
 
     if (typeof initCustomSelect === 'function') {
         initCustomSelect('searchWarehouse', 'searchWarehouseDropdown');
+        initCustomSelect('searchOrderSource', 'searchOrderSourceDropdown');
+        initCustomSelect('searchFulfillmentMethod', 'searchFulfillmentMethodDropdown');
         initCustomSelect('searchSupplier', 'searchSupplierDropdown');
         initCustomSelect('searchDocStatus', 'searchDocStatusDropdown');
         initCustomSelect('searchDocSource', 'searchDocSourceDropdown');
