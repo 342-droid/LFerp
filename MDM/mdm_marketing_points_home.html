@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 积分首页</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-marketing-points-home.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/marketing-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="mkt-points-home" id="pointsHomeRoot">
+                <nav class="mkt-points-tabs" role="tablist">
+                    <button type="button" class="mkt-points-tabs__item mkt-points-tabs__item--active" data-tab="system" role="tab" aria-selected="true">积分系统</button>
+                    <button type="button" class="mkt-points-tabs__item" data-tab="validity" role="tab" aria-selected="false">积分有效期（总控）</button>
+                </nav>
+
+                <div class="mkt-points-system-wrap" id="pointsSystemWrap">
+                <div class="mkt-points-system-bar">
+                    <span class="mkt-points-system-bar__label">积分系统</span>
+                    <div class="mkt-points-system-bar__main">
+                        <div class="mkt-points-system-bar__row">
+                            <button type="button" class="mkt-points-switch" id="pointsSystemSwitch" aria-pressed="false" aria-label="积分系统开关"></button>
+                            <span class="mkt-points-system-bar__status" id="pointsSystemStatus">已关闭</span>
+                        </div>
+                        <p class="mkt-points-system-bar__desc" id="pointsSystemDesc">积分系统已关闭，所有涉及积分的业务均不可用，用户端不会展示【我的积分】模块。</p>
+                    </div>
+                </div>
+
+                <div id="pointsSystemPanel">
+                    <section class="mkt-points-section">
+                        <h2 class="mkt-points-section__title">积分数据</h2>
+                        <div class="mkt-points-stats">
+                            <div class="mkt-points-stat">
+                                <div class="mkt-points-stat__label">顾客有效积分</div>
+                                <div class="mkt-points-stat__value">2,8169</div>
+                            </div>
+                            <div class="mkt-points-stat">
+                                <div class="mkt-points-stat__label">
+                                    顾客消耗积分
+                                    <i class="mkt-points-stat__help" title="统计周期内顾客已消耗积分总量">?</i>
+                                </div>
+                                <div class="mkt-points-stat__value">738</div>
+                            </div>
+                            <div class="mkt-points-stat">
+                                <div class="mkt-points-stat__label">顾客过期积分</div>
+                                <div class="mkt-points-stat__value">4782</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="mkt-points-section">
+                        <h2 class="mkt-points-section__title">积分获取</h2>
+                        <div class="mkt-points-grid">
+                            <article class="mkt-points-card" data-nav="mdm_marketing_consume_points.html">
+                                <div class="mkt-points-card__icon mkt-points-card__icon--earn">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10l1 3h3v2h-1l-1.2 9H7.2L6 9H5V7h3l1-3zm2.2 11h5.6l.6-4H8.6l.6 4z"/></svg>
+                                </div>
+                                <div class="mkt-points-card__body">
+                                    <h3 class="mkt-points-card__name">消费赠积分</h3>
+                                    <p class="mkt-points-card__desc">顾客下单赠送积分</p>
+                                </div>
+                            </article>
+                            <article class="mkt-points-card">
+                                <div class="mkt-points-card__icon mkt-points-card__icon--earn">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h10v2h1a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h1V2zm0 4v12h10V6H7zm2 2h6v2H9V8zm0 4h6v2H9v-2z"/></svg>
+                                </div>
+                                <div class="mkt-points-card__body">
+                                    <h3 class="mkt-points-card__name">签到赠积分</h3>
+                                    <p class="mkt-points-card__desc">顾客每日签到获得积分和奖励</p>
+                                </div>
+                            </article>
+                            <article class="mkt-points-card">
+                                <div class="mkt-points-card__icon mkt-points-card__icon--earn">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-3V5a2 2 0 00-2-2h-6a2 2 0 00-2 2v2H4a1 1 0 00-1 1v2h1.1L6 20h12l1.9-10H21V8a1 1 0 00-1-1zm-9-2h2v2h-2V5zm-1.1 12L8.2 11h7.6l-1.7 8H9.9z"/></svg>
+                                </div>
+                                <div class="mkt-points-card__body">
+                                    <h3 class="mkt-points-card__name">开通会员赠送积分</h3>
+                                    <p class="mkt-points-card__desc">顾客开通会员获得积分</p>
+                                </div>
+                            </article>
+                            <article class="mkt-points-card">
+                                <div class="mkt-points-card__icon mkt-points-card__icon--earn">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10l1 3h3v2h-1l-1.2 9H7.2L6 9H5V7h3l1-3zm2.2 11h5.6l.6-4H8.6l.6 4z"/></svg>
+                                    <span class="mkt-points-card__lock" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24"><path d="M12 17a2 2 0 100-4 2 2 0 000 4zm6-7h-1V8a5 5 0 00-10 0v2H6a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2zm-3 0H9V8a3 3 0 016 0v2z"/></svg>
+                                    </span>
+                                </div>
+                                <div class="mkt-points-card__body">
+                                    <h3 class="mkt-points-card__name">新人任务赠积分</h3>
+                                    <p class="mkt-points-card__desc">新手通过互动获得奖励，奖励任务：欢迎奖励、完善个人资料、首次分享商品或专题、首次购物成功等</p>
+                                </div>
+                            </article>
+                            <article class="mkt-points-card">
+                                <div class="mkt-points-card__icon mkt-points-card__icon--earn">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10l1 3h3v2h-1l-1.2 9H7.2L6 9H5V7h3l1-3zm2.2 11h5.6l.6-4H8.6l.6 4z"/></svg>
+                                    <span class="mkt-points-card__lock" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24"><path d="M12 17a2 2 0 100-4 2 2 0 000 4zm6-7h-1V8a5 5 0 00-10 0v2H6a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2zm-3 0H9V8a3 3 0 016 0v2z"/></svg>
+                                    </span>
+                                </div>
+                                <div class="mkt-points-card__body">
+                                    <h3 class="mkt-points-card__name">日常任务赠积分</h3>
+                                    <p class="mkt-points-card__desc">顾客每日互动获得奖励，奖励任务：每日登录、分享商品或专题、分享订单、购买天数达标、评价订单等</p>
+                                </div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="mkt-points-section">
+                        <h2 class="mkt-points-section__title">积分消耗</h2>
+                        <div class="mkt-points-grid">
+                            <article class="mkt-points-card">
+                                <div class="mkt-points-card__icon mkt-points-card__icon--spend">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v2H4V6zm2 4h12l-1.2 8H7.2L6 10zm3 2v4h2v-4H9zm4 0v4h2v-4h-2z"/></svg>
+                                </div>
+                                <div class="mkt-points-card__body">
+                                    <h3 class="mkt-points-card__name">积分兑券</h3>
+                                    <p class="mkt-points-card__desc">顾客使用积分兑换优惠券</p>
+                                </div>
+                            </article>
+                            <article class="mkt-points-card">
+                                <div class="mkt-points-card__icon mkt-points-card__icon--spend">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><text x="12" y="16" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Arial,sans-serif">1L</text></svg>
+                                </div>
+                                <div class="mkt-points-card__body">
+                                    <h3 class="mkt-points-card__name">积分换购</h3>
+                                    <p class="mkt-points-card__desc">顾客使用积分加价兑换商品</p>
+                                </div>
+                            </article>
+                            <article class="mkt-points-card">
+                                <div class="mkt-points-card__icon mkt-points-card__icon--spend">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6a2 2 0 012-2h3l1-2h4l1 2h3a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm2 0v12h12V6H6zm3 3h6v2H9V9zm0 4h6v2H9v-2z"/></svg>
+                                </div>
+                                <div class="mkt-points-card__body">
+                                    <h3 class="mkt-points-card__name">积分抵现</h3>
+                                    <p class="mkt-points-card__desc">顾客下单使用积分抵扣部分金额</p>
+                                </div>
+                            </article>
+                            <article class="mkt-points-card">
+                                <div class="mkt-points-card__icon mkt-points-card__icon--spend">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 5v5.4l3.3 2-.8 1.2L11 13V7h2z"/></svg>
+                                </div>
+                                <div class="mkt-points-card__body">
+                                    <h3 class="mkt-points-card__name">积分有效期</h3>
+                                    <p class="mkt-points-card__desc">引导顾客尽快消耗积分</p>
+                                </div>
+                            </article>
+                        </div>
+                    </section>
+                </div>
+                </div>
+
+                <div class="mkt-points-validity-panel store-order-config" id="pointsValidityPanel" role="tabpanel" hidden>
+                    <p class="mkt-points-validity-priority">规则生效优先级：各【积分获取】板块有效期&gt;积分有效期(总控)中的有效期</p>
+
+                    <form class="mkt-points-validity-form" id="pointsValidityForm">
+                        <div class="mkt-points-validity-field">
+                            <label class="mkt-points-validity-field__label">积分期限：</label>
+                            <div class="mkt-points-validity-field__body">
+                                <label class="mkt-points-radio-row">
+                                    <input type="radio" name="pointsTerm" value="forever">
+                                    <span class="mkt-points-radio-row__text">永久有效</span>
+                                </label>
+                                <label class="mkt-points-radio-row mkt-points-radio-row--inline">
+                                    <input type="radio" name="pointsTerm" value="clearPrevYear">
+                                    <span class="mkt-points-radio-row__text">每年</span>
+                                    <span class="mkt-points-date-wrap">
+                                        <input type="date" class="mkt-points-date-input" id="pointsClearPrevDate" aria-label="清除上一年积分日期">
+                                        <svg class="mkt-points-date-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h2v2h6V2h2v2h3a2 2 0 012 2v14a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2h3V2zm13 8H4v10h16V10zM6 12h4v4H6v-4zm6 0h6v4h-6v-4z"/></svg>
+                                    </span>
+                                    <span class="mkt-points-radio-row__text">清除上一年积分</span>
+                                    <i class="mkt-points-field-help" title="在选定日期清除上一年获得的积分">?</i>
+                                </label>
+                                <label class="mkt-points-radio-row mkt-points-radio-row--inline">
+                                    <input type="radio" name="pointsTerm" value="clearRecentYear">
+                                    <span class="mkt-points-radio-row__text">每年</span>
+                                    <span class="mkt-points-date-wrap">
+                                        <input type="date" class="mkt-points-date-input" id="pointsClearRecentDate" aria-label="清除近一年积分日期">
+                                        <svg class="mkt-points-date-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h2v2h6V2h2v2h3a2 2 0 012 2v14a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2h3V2zm13 8H4v10h16V10zM6 12h4v4H6v-4zm6 0h6v4h-6v-4z"/></svg>
+                                    </span>
+                                    <span class="mkt-points-radio-row__text">清除近一年积分</span>
+                                    <i class="mkt-points-field-help" title="在选定日期清除近一年内获得的积分">?</i>
+                                </label>
+                                <label class="mkt-points-radio-row mkt-points-radio-row--inline">
+                                    <input type="radio" name="pointsTerm" value="fixedYears">
+                                    <span class="mkt-points-radio-row__text">有效期</span>
+                                    <input type="text" class="mkt-points-num-input" id="pointsValidYears" inputmode="numeric" aria-label="有效期年数">
+                                    <span class="mkt-points-radio-row__text">年</span>
+                                    <i class="mkt-points-field-help" title="自获得之日起的有效年数">?</i>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mkt-points-validity-field">
+                            <label class="mkt-points-validity-field__label mkt-points-validity-field__label--with-help">
+                                <i class="mkt-points-field-help" title="切换规则后是否对历史积分重新计算">?</i>
+                                历史积分处理：
+                            </label>
+                            <div class="mkt-points-validity-field__body">
+                                <label class="mkt-points-radio-row">
+                                    <input type="radio" name="historyHandle" value="none">
+                                    <span class="mkt-points-radio-row__text">不处理历史积分</span>
+                                </label>
+                                <label class="mkt-points-radio-row">
+                                    <input type="radio" name="historyHandle" value="applyNew">
+                                    <span class="mkt-points-radio-row__text">按照新规则处理历史积分</span>
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="store-order-config__footer">
+                        <button type="button" class="btn btn-primary" id="pointsValiditySaveBtn">保存</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var root = document.getElementById('pointsHomeRoot');
+        var switchBtn = document.getElementById('pointsSystemSwitch');
+        var statusEl = document.getElementById('pointsSystemStatus');
+        var descEl = document.getElementById('pointsSystemDesc');
+        var systemWrap = document.getElementById('pointsSystemWrap');
+        var systemPanel = document.getElementById('pointsSystemPanel');
+        var validityPanel = document.getElementById('pointsValidityPanel');
+        var validityForm = document.getElementById('pointsValidityForm');
+        var tabs = root.querySelectorAll('.mkt-points-tabs__item');
+
+        var validityDefaults = {
+            pointsTerm: '',
+            clearPrevDate: '',
+            clearRecentDate: '',
+            validYears: '',
+            historyHandle: ''
+        };
+        var validityStorageKey = 'lf_marketing_points_validity_master';
+        var validityDraft = Object.assign({}, validityDefaults);
+
+        function readValidityForm() {
+            var termEl = validityForm.querySelector('input[name="pointsTerm"]:checked');
+            var historyEl = validityForm.querySelector('input[name="historyHandle"]:checked');
+            return {
+                pointsTerm: termEl ? termEl.value : '',
+                clearPrevDate: document.getElementById('pointsClearPrevDate').value,
+                clearRecentDate: document.getElementById('pointsClearRecentDate').value,
+                validYears: document.getElementById('pointsValidYears').value.trim(),
+                historyHandle: historyEl ? historyEl.value : ''
+            };
+        }
+
+        function applyValidityForm(data) {
+            var d = data || validityDefaults;
+            validityForm.querySelectorAll('input[name="pointsTerm"]').forEach(function (el) {
+                el.checked = d.pointsTerm ? el.value === d.pointsTerm : false;
+            });
+            validityForm.querySelectorAll('input[name="historyHandle"]').forEach(function (el) {
+                el.checked = d.historyHandle ? el.value === d.historyHandle : false;
+            });
+            document.getElementById('pointsClearPrevDate').value = d.clearPrevDate || '';
+            document.getElementById('pointsClearRecentDate').value = d.clearRecentDate || '';
+            document.getElementById('pointsValidYears').value = d.validYears || '';
+        }
+
+        try {
+            var savedValidity = localStorage.getItem(validityStorageKey);
+            if (savedValidity) {
+                validityDraft = Object.assign({}, validityDefaults, JSON.parse(savedValidity));
+            }
+        } catch (e) {}
+        applyValidityForm(validityDraft);
+
+        var ON_DESC = '积分系统已开启，顾客可通过各渠道获取与消耗积分，用户端将展示【我的积分】模块。';
+        var OFF_DESC = '积分系统已关闭，所有涉及积分的业务均不可用，用户端不会展示【我的积分】模块。';
+
+        function setSystemOn(on) {
+            switchBtn.classList.toggle('mkt-points-switch--on', on);
+            switchBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+            statusEl.textContent = on ? '已开启' : '已关闭';
+            descEl.textContent = on ? ON_DESC : OFF_DESC;
+        }
+
+        function switchTab(key) {
+            tabs.forEach(function (t) {
+                var active = t.getAttribute('data-tab') === key;
+                t.classList.toggle('mkt-points-tabs__item--active', active);
+                t.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            root.classList.toggle('mkt-points-home--validity', key === 'validity');
+            if (systemWrap) systemWrap.style.display = key === 'validity' ? 'none' : '';
+            validityPanel.hidden = key !== 'validity';
+            validityPanel.classList.toggle('mkt-points-validity-panel--show', key === 'validity');
+        }
+
+        switchBtn.addEventListener('click', function () {
+            setSystemOn(!switchBtn.classList.contains('mkt-points-switch--on'));
+        });
+
+        tabs.forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                switchTab(tab.getAttribute('data-tab'));
+            });
+        });
+
+        document.getElementById('pointsValiditySaveBtn').addEventListener('click', function () {
+            validityDraft = readValidityForm();
+            try {
+                localStorage.setItem(validityStorageKey, JSON.stringify(validityDraft));
+            } catch (e) {}
+            if (typeof showToast === 'function') {
+                showToast('积分有效期（总控）已保存（演示）', 'success');
+            }
+        });
+
+        root.querySelectorAll('.mkt-points-card').forEach(function (card) {
+            card.addEventListener('click', function () {
+                var nav = card.getAttribute('data-nav');
+                if (nav) {
+                    var wp = window.wmsPath || { page: function (f) { return f; } };
+                    window.location.href = wp.page(nav);
+                    return;
+                }
+                if (typeof showToast === 'function') {
+                    var name = card.querySelector('.mkt-points-card__name');
+                    showToast((name ? name.textContent : '功能') + '（演示）', 'info');
+                }
+            });
+        });
+    });
+    </script>
+</body>
+</html>

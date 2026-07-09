@@ -1,11 +1,39 @@
 (function () {
   var TAB_PARAM = 'tab';
 
+  function isFromRestock() {
+    return new URLSearchParams(window.location.search).get('from') === 'restock.html';
+  }
+
+  function getAllowedTabs() {
+    return isFromRestock()
+      ? ['all', 'unpaid', 'shipping', 'review']
+      : ['all', 'unpaid', 'shipping', 'pickup', 'review'];
+  }
+
   function getActiveTab() {
     var params = new URLSearchParams(window.location.search);
     var tab = params.get(TAB_PARAM) || 'all';
-    var allowed = ['all', 'unpaid', 'shipping', 'pickup', 'review'];
+    var allowed = getAllowedTabs();
     return allowed.indexOf(tab) !== -1 ? tab : 'all';
+  }
+
+  function applyRestockOrdersMode() {
+    if (!isFromRestock()) return;
+
+    document.body.classList.add('ua-orders-from-restock');
+
+    document.querySelectorAll('.ua-orders-tab[data-tab="pickup"]').forEach(function (el) {
+      el.remove();
+    });
+
+    document.querySelectorAll('.ua-order-card[data-status="pickup"]').forEach(function (card) {
+      card.remove();
+    });
+
+    document.querySelectorAll('.ua-orders-tab[data-tab="review"]').forEach(function (el) {
+      el.textContent = '待收货';
+    });
   }
 
   function setActiveTab(tab, tabs) {
@@ -27,6 +55,13 @@
   }
 
   function init() {
+    applyRestockOrdersMode();
+
+    var backEl = document.querySelector('.ua-orders-back');
+    if (backEl && isFromRestock()) {
+      backEl.setAttribute('href', 'restock.html');
+    }
+
     var tabs = Array.prototype.slice.call(document.querySelectorAll('.ua-orders-tab'));
     var cards = Array.prototype.slice.call(document.querySelectorAll('.ua-order-card[data-status]'));
     var emptyEl = document.getElementById('ordersEmpty');

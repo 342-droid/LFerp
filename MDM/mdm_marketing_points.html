@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 积分管理</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/marketing-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">积分管理</button></div>
+            <hr class="content-divider">
+            <div class="content-title">营销 / 积分管理</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group">
+                        <label>规则名称:</label>
+                        <div class="input-wrapper">
+                            <input id="qRuleName" type="text" placeholder="请输入规则名称">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>状态:</label>
+                        <select id="qRuleStatus" style="height:36px;min-width:120px;border:1px solid #ddd;border-radius:3px;padding:0 8px;">
+                            <option value="">全部</option>
+                            <option value="enabled">启用</option>
+                            <option value="disabled">停用</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button>
+                        <button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button>
+                        <button type="button" class="btn btn-primary" id="btnAddPointsRule">+ 新增规则</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>规则编号</th>
+                                <th>规则名称</th>
+                                <th>积分类型</th>
+                                <th>获取方式</th>
+                                <th>积分值</th>
+                                <th>有效期</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td>PT-RULE-001</td>
+                                <td>消费返积分</td>
+                                <td>消费积分</td>
+                                <td>订单完成</td>
+                                <td>1 元 = 1 积分</td>
+                                <td>365 天</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2026-04-20 10:00:00</td>
+                                <td class="action-links"><a href="#">编辑</a> <a href="#">停用</a></td>
+                            </tr>
+                            <tr>
+                                <td>PT-RULE-002</td>
+                                <td>签到送积分</td>
+                                <td>活动积分</td>
+                                <td>每日签到</td>
+                                <td>10 积分/次</td>
+                                <td>30 天</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>2026-04-18 14:30:00</td>
+                                <td class="action-links"><a href="#">编辑</a> <a href="#">停用</a></td>
+                            </tr>
+                            <tr>
+                                <td>PT-RULE-003</td>
+                                <td>新用户注册礼</td>
+                                <td>注册积分</td>
+                                <td>注册成功</td>
+                                <td>100 积分</td>
+                                <td>180 天</td>
+                                <td><span class="status inactive">停用</span></td>
+                                <td>2026-04-15 09:20:00</td>
+                                <td class="action-links"><a href="#">编辑</a> <a href="#">启用</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var resetBtn = document.getElementById('btnFilterReset');
+        var queryBtn = document.getElementById('btnFilterQuery');
+        var addBtn = document.getElementById('btnAddPointsRule');
+        var tbody = document.getElementById('tableBody');
+
+        function filterRows() {
+            var qName = (document.getElementById('qRuleName') || {}).value.trim();
+            var qSt = (document.getElementById('qRuleStatus') || {}).value.trim();
+            var statusMap = { enabled: '启用', disabled: '停用' };
+            if (!tbody) return;
+            tbody.querySelectorAll('tr').forEach(function (tr) {
+                var cells = tr.querySelectorAll('td');
+                var ok = true;
+                if (qName && cells[1].textContent.trim().indexOf(qName) === -1) ok = false;
+                if (qSt && statusMap[qSt]) {
+                    var st = (cells[6].querySelector('.status') || {}).textContent.trim();
+                    if (st !== statusMap[qSt]) ok = false;
+                }
+                tr.style.display = ok ? '' : 'none';
+            });
+        }
+
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function () {
+                ['qRuleName', 'qRuleStatus'].forEach(function (id) {
+                    var el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+                filterRows();
+            });
+        }
+        if (queryBtn) queryBtn.addEventListener('click', filterRows);
+        if (addBtn) {
+            addBtn.addEventListener('click', function () {
+                if (typeof showToast === 'function') {
+                    showToast('新增积分规则（演示）', 'info');
+                }
+            });
+        }
+        if (typeof createTablePagination === 'function') {
+            createTablePagination({
+                tableBodyId: 'tableBody',
+                paginationContainerId: 'pagination-container',
+                pageSize: 10
+            });
+        }
+    });
+    </script>
+</body>
+</html>

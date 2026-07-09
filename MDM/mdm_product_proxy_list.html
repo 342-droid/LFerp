@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 代采商品列表</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-product.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/product-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="product-page">
+                <div class="product-page-tabs">
+                    <a href="mdm_workbench.html" class="product-page-tabs__item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5L12 4l8 6.5V19a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-8.5z"/></svg>
+                        首页
+                    </a>
+                    <span class="product-page-tabs__item product-page-tabs__item--active">
+                        商品列表
+                        <button type="button" class="product-page-tabs__close" id="proxyListTabClose" aria-label="关闭">×</button>
+                    </span>
+                </div>
+
+                <div class="product-page-body">
+                    <section class="erp-page__card product-filter-card">
+                        <form class="product-filter-form" id="proxyListFilterForm" onsubmit="return false;">
+                            <div class="product-filter-grid">
+                                <div class="product-filter-field">
+                                    <label class="product-filter-field__label" for="qProxyCode">商品编码</label>
+                                    <input class="product-filter-field__input" id="qProxyCode" type="text" placeholder="请输入商品编码">
+                                </div>
+                                <div class="product-filter-field">
+                                    <label class="product-filter-field__label" for="qProxyName">商品名称</label>
+                                    <input class="product-filter-field__input" id="qProxyName" type="text" placeholder="请输入商品名称">
+                                </div>
+                                <div class="product-filter-field">
+                                    <label class="product-filter-field__label" for="qProxyMallCategory">商城类目</label>
+                                    <select class="product-filter-field__select" id="qProxyMallCategory">
+                                        <option value="">请选择商城类目</option>
+                                        <option value="新鲜蔬菜">新鲜蔬菜</option>
+                                        <option value="时令水果">时令水果</option>
+                                        <option value="粮油调味">粮油调味</option>
+                                        <option value="肉禽蛋品">肉禽蛋品</option>
+                                        <option value="酒水饮料">酒水饮料</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="proxy-filter-row2">
+                                <div class="product-filter-field">
+                                    <label class="product-filter-field__label" for="qProxyTag">商品标签</label>
+                                    <select class="product-filter-field__select" id="qProxyTag">
+                                        <option value="">请选择商品标签</option>
+                                        <option value="冷丰溯源">冷丰溯源</option>
+                                        <option value="牛牛专用">牛牛专用</option>
+                                        <option value="爆款">爆款</option>
+                                        <option value="新品">新品</option>
+                                    </select>
+                                </div>
+                                <div class="product-filter-field">
+                                    <label class="product-filter-field__label" for="qProxyStatus">商品状态</label>
+                                    <select class="product-filter-field__select" id="qProxyStatus">
+                                        <option value="">请选择商品状态</option>
+                                        <option value="on_shelf">已上架</option>
+                                        <option value="off_shelf">已下架</option>
+                                    </select>
+                                </div>
+                                <div class="proxy-filter-row2__actions">
+                                    <button type="button" class="product-filter-btn product-filter-btn--primary" id="proxyFilterQuery">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                                        查询
+                                    </button>
+                                    <button type="button" class="product-filter-btn product-filter-btn--default" id="proxyFilterReset">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M5 19a9 9 0 0014-7"/><path d="M19 5a9 9 0 00-14 7"/></svg>
+                                        重置
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="erp-page__card product-table-card">
+                        <div class="product-toolbar product-toolbar--proxy">
+                            <button type="button" class="product-toolbar__add" id="proxyAddFromLibrary">从商品库添加</button>
+                        </div>
+                        <div class="product-table-wrap">
+                            <table class="product-table product-proxy-table">
+                                <colgroup>
+                                    <col class="product-proxy-table__col product-proxy-table__col--name">
+                                    <col class="product-proxy-table__col product-proxy-table__col--code">
+                                    <col class="product-proxy-table__col product-proxy-table__col--img">
+                                    <col class="product-proxy-table__col product-proxy-table__col--tag">
+                                    <col class="product-proxy-table__col product-proxy-table__col--category">
+                                    <col class="product-proxy-table__col product-proxy-table__col--spec">
+                                    <col class="product-proxy-table__col product-proxy-table__col--sale">
+                                    <col class="product-proxy-table__col product-proxy-table__col--line">
+                                    <col class="product-proxy-table__col product-proxy-table__col--sales">
+                                    <col class="product-proxy-table__col product-proxy-table__col--status">
+                                    <col class="product-proxy-table__col product-proxy-table__col--action">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th class="product-proxy-table__th product-proxy-table__th--name">商品名称</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--code">商品编码</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--img">商品图片</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--tag">商品标签</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--category">商品类目</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--spec">规格</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--sale">售价</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--line">划线价</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--sales">销量</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--status">状态</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--action">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="proxyListTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="product-empty" id="proxyListEmpty" hidden>暂无符合条件的商品</div>
+                        <div class="product-pagination" id="proxyListPagination">
+                            <span id="proxyPaginationTotal">共 0 条</span>
+                            <div class="product-pagination__right">
+                                <select class="product-pagination__size" id="proxyPageSize" aria-label="每页条数">
+                                    <option value="20" selected>20条/页</option>
+                                    <option value="50">50条/页</option>
+                                    <option value="100">100条/页</option>
+                                </select>
+                                <div class="product-pagination__pages" id="proxyPaginationPages"></div>
+                                <label class="product-pagination__goto">
+                                    前往
+                                    <input id="proxyPageGoto" type="text" value="1" inputmode="numeric">
+                                    页
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-product-proxy-list.js"></script>
+</body>
+</html>

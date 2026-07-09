@@ -244,8 +244,14 @@
     return /\/(?:profile|orders|order-detail-(?:shipping|pickup))\.html$/i.test(window.location.pathname);
   }
 
+  function isRestockOrdersPage() {
+    if (!/\/orders\.html$/i.test(window.location.pathname)) return false;
+    return new URLSearchParams(window.location.search).get('from') === 'restock.html';
+  }
+
   function init() {
     if (!isQueueFabPage()) return;
+    if (isRestockOrdersPage()) return;
 
     var shell = document.querySelector('.ua-mobile-shell');
     if (!shell) return;

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 选品库</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-product.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/product-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="product-page">
+                <div class="product-page-tabs">
+                    <a href="mdm_workbench.html" class="product-page-tabs__item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5L12 4l8 6.5V19a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-8.5z"/></svg>
+                        首页
+                    </a>
+                    <span class="product-page-tabs__item product-page-tabs__item--active">
+                        选品库
+                        <button type="button" class="product-page-tabs__close" id="productTabClose" aria-label="关闭">×</button>
+                    </span>
+                </div>
+
+                <div class="product-page-body">
+                    <section class="erp-page__card product-filter-card">
+                        <form class="product-filter-form" id="productSelectionFilterForm" onsubmit="return false;">
+                            <div class="product-filter-grid">
+                                <div class="product-filter-field">
+                                    <label class="product-filter-field__label" for="qProductCode">商品编码</label>
+                                    <input class="product-filter-field__input" id="qProductCode" type="text" placeholder="请输入商品编码">
+                                </div>
+                                <div class="product-filter-field">
+                                    <label class="product-filter-field__label" for="qProductName">商品名称</label>
+                                    <input class="product-filter-field__input" id="qProductName" type="text" placeholder="商品名称">
+                                </div>
+                                <div class="product-filter-field">
+                                    <label class="product-filter-field__label" for="qProductCategory">商品类目</label>
+                                    <select class="product-filter-field__select" id="qProductCategory">
+                                        <option value="">请选择商品类目</option>
+                                        <option value="新鲜蔬菜">新鲜蔬菜</option>
+                                        <option value="时令水果">时令水果</option>
+                                        <option value="粮油调味">粮油调味</option>
+                                        <option value="肉禽蛋品">肉禽蛋品</option>
+                                        <option value="酒水饮料">酒水饮料</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="product-filter-actions">
+                                <button type="button" class="product-filter-btn product-filter-btn--primary" id="productFilterQuery">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                                    查询
+                                </button>
+                                <button type="button" class="product-filter-btn product-filter-btn--default" id="productFilterReset">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M5 19a9 9 0 0014-7"/><path d="M19 5a9 9 0 00-14 7"/></svg>
+                                    重置
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="erp-page__card product-table-card">
+                        <div class="product-toolbar">
+                            <div class="product-toolbar__left">
+                                <select class="product-toolbar__status" id="productStatusFilter" aria-label="商品状态筛选">
+                                    <option value="">全部</option>
+                                    <option value="pending_sale">待售卖</option>
+                                    <option value="selling">售卖中</option>
+                                    <option value="pending">待审核</option>
+                                    <option value="rejected">审核未通过</option>
+                                    <option value="stopped">已停售</option>
+                                </select>
+                                <button type="button" class="product-toolbar__add" id="productAddBtn">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                                    添加商品
+                                </button>
+                            </div>
+                        </div>
+                        <div class="product-table-wrap">
+                            <table class="product-table">
+                                <colgroup>
+                                    <col class="product-table__col product-table__col--code">
+                                    <col class="product-table__col product-table__col--img">
+                                    <col class="product-table__col product-table__col--name">
+                                    <col class="product-table__col product-table__col--price">
+                                    <col class="product-table__col product-table__col--channel">
+                                    <col class="product-table__col product-table__col--category">
+                                    <col class="product-table__col product-table__col--status">
+                                    <col class="product-table__col product-table__col--audit">
+                                    <col class="product-table__col product-table__col--action">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th class="product-table__th product-table__th--code">商品编码</th>
+                                        <th class="product-table__th product-table__th--img">商品图</th>
+                                        <th class="product-table__th product-table__th--name">商品名称</th>
+                                        <th class="product-table__th product-table__th--price">商品采购价</th>
+                                        <th class="product-table__th product-table__th--channel">销售渠道</th>
+                                        <th class="product-table__th product-table__th--category">商品类目</th>
+                                        <th class="product-table__th product-table__th--status">商品状态</th>
+                                        <th class="product-table__th product-table__th--audit">审核状态</th>
+                                        <th class="product-table__th product-table__th--action">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productSelectionTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="product-empty" id="productSelectionEmpty" hidden>暂无符合条件的商品</div>
+                        <div class="product-pagination" id="productSelectionPagination">
+                            <span id="productPaginationTotal">共 0 条</span>
+                            <div class="product-pagination__right">
+                                <select class="product-pagination__size" id="productPageSize" aria-label="每页条数">
+                                    <option value="20" selected>20条/页</option>
+                                    <option value="50">50条/页</option>
+                                    <option value="100">100条/页</option>
+                                </select>
+                                <div class="product-pagination__pages" id="productPaginationPages"></div>
+                                <label class="product-pagination__goto">
+                                    前往
+                                    <input id="productPageGoto" type="text" value="1" inputmode="numeric">
+                                    页
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-product-catalog-store.js"></script>
+    <script src="../js/mdm-product-add-drawer.js"></script>
+    <script src="../js/mdm-product-selection.js"></script>
+</body>
+</html>

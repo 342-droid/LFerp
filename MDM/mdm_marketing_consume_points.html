@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 消费赠积分</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-marketing-points-home.css">
+    <link rel="stylesheet" href="../css/lf-marketing-consume-points.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/marketing-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="mkt-consume-points">
+                <h1 class="mkt-consume-points__title">消费赠积分</h1>
+                <hr class="mkt-consume-points__divider">
+
+                <div class="mkt-consume-points__bar">
+                    <span class="mkt-consume-points__bar-label">消费赠积分</span>
+                    <div class="mkt-consume-points__bar-main">
+                        <div class="mkt-consume-points__bar-row">
+                            <button type="button" class="mkt-points-switch" id="consumePointsSwitch" aria-pressed="false" aria-label="消费赠积分开关"></button>
+                            <span class="mkt-consume-points__bar-status" id="consumePointsStatus">已关闭</span>
+                            <span class="mkt-consume-points__bar-desc" id="consumePointsDesc">消费赠积分的功能处于关闭状态，开启后，用户在商家的 APP/小程序 上消费，按照规则发送积分至用户的账户</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mkt-consume-points__table-wrap">
+                    <table class="mkt-consume-points__table">
+                        <thead>
+                            <tr>
+                                <th>平台</th>
+                                <th>渠道</th>
+                                <th>消费赠积分的规则</th>
+                                <th>适用门店</th>
+                                <th>适用商品</th>
+                                <th>规则最后修改时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>APP、小程序</td>
+                                <td>直播</td>
+                                <td>消费1元送1积分</td>
+                                <td>全部门店</td>
+                                <td>全店商品</td>
+                                <td>2020-11-03 20:03:24</td>
+                                <td><a href="#" class="mkt-consume-points__link mkt-consume-points-edit-rule">修改规则</a></td>
+                            </tr>
+                            <tr>
+                                <td>APP、小程序</td>
+                                <td>商城</td>
+                                <td>消费1元送1积分</td>
+                                <td>全部门店</td>
+                                <td>全店商品</td>
+                                <td>2021-06-18 14:22:10</td>
+                                <td><a href="#" class="mkt-consume-points__link mkt-consume-points-edit-rule">修改规则</a></td>
+                            </tr>
+                            <tr>
+                                <td>APP、小程序</td>
+                                <td>代采</td>
+                                <td>消费1元送1积分</td>
+                                <td>全部门店</td>
+                                <td>全店商品</td>
+                                <td>2022-03-09 09:15:33</td>
+                                <td><a href="#" class="mkt-consume-points__link mkt-consume-points-edit-rule">修改规则</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var switchBtn = document.getElementById('consumePointsSwitch');
+        var statusEl = document.getElementById('consumePointsStatus');
+        var descEl = document.getElementById('consumePointsDesc');
+        var storageKey = 'lf_marketing_consume_points_enabled';
+
+        var ON_DESC = '消费赠积分功能已开启，用户在商家的 APP/小程序 上消费，将按照规则发送积分至用户账户。';
+        var OFF_DESC = '消费赠积分的功能处于关闭状态，开启后，用户在商家的 APP/小程序 上消费，按照规则发送积分至用户的账户';
+
+        function setEnabled(on) {
+            switchBtn.classList.toggle('mkt-points-switch--on', on);
+            switchBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+            statusEl.textContent = on ? '已开启' : '已关闭';
+            descEl.textContent = on ? ON_DESC : OFF_DESC;
+        }
+
+        try {
+            setEnabled(localStorage.getItem(storageKey) === '1');
+        } catch (e) {
+            setEnabled(false);
+        }
+
+        switchBtn.addEventListener('click', function () {
+            var on = !switchBtn.classList.contains('mkt-points-switch--on');
+            setEnabled(on);
+            try {
+                localStorage.setItem(storageKey, on ? '1' : '0');
+            } catch (e) {}
+        });
+
+        document.querySelectorAll('.mkt-consume-points-edit-rule').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (typeof showToast === 'function') {
+                    showToast('修改规则（演示）', 'info');
+                }
+            });
+        });
+    });
+    </script>
+</body>
+</html>
