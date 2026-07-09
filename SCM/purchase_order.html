@@ -218,6 +218,74 @@
             white-space: nowrap;
         }
 
+        .logistics-track-modal .modal-content {
+            width: 92%;
+            max-width: 720px;
+            max-height: 88vh;
+            overflow: auto;
+        }
+
+        .logistics-track-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(220px, 1fr));
+            gap: 8px 16px;
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .logistics-track-timeline {
+            border-left: 2px solid #e0e0e0;
+            margin-left: 8px;
+            padding-left: 20px;
+        }
+
+        .logistics-track-timeline-item {
+            position: relative;
+            padding-bottom: 18px;
+        }
+
+        .logistics-track-timeline-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .logistics-track-timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -27px;
+            top: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #bbb;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1px #bbb;
+        }
+
+        .logistics-track-timeline-item.is-latest::before {
+            background: #2196F3;
+            box-shadow: 0 0 0 1px #2196F3;
+        }
+
+        .logistics-track-timeline-time {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .logistics-track-timeline-desc {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .logistics-track-empty {
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+            padding: 16px 0;
+        }
+
     </style>
 </head>
 <body>
@@ -560,6 +628,28 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" id="logisticsConfirmSaveBtn">保存</button>
                 <button type="button" class="btn btn-secondary" id="logisticsConfirmCancelBtn">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="logisticsTrackModal" class="modal detail-modal logistics-track-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">物流轨迹</div>
+                <span class="close" id="logisticsTrackCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="detail-section">
+                    <div class="detail-section-title">物流信息</div>
+                    <div class="logistics-track-info-grid" id="logisticsTrackInfo"></div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-section-title">物流轨迹</div>
+                    <div id="logisticsTrackTimeline"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="logisticsTrackCloseFooterBtn">关闭</button>
             </div>
         </div>
     </div>
@@ -1431,6 +1521,71 @@
         return escapeHtml(text);
     }
 
+    var LOGISTICS_TRACK_MOCK = {
+        'SF1234567890123': [
+            { time: '2026-04-23 14:20:00', desc: '快件已签收，签收人：周仓管' },
+            { time: '2026-04-23 09:15:00', desc: '快件到达【南京江宁集散中心】' },
+            { time: '2026-04-22 18:40:00', desc: '快件已从【嘉兴转运中心】发出' },
+            { time: '2026-04-22 10:05:00', desc: '快件已揽收' }
+        ],
+        'YT9876543210987': [
+            { time: '2026-04-24 11:30:00', desc: '快件运输中，预计今日送达' },
+            { time: '2026-04-23 20:10:00', desc: '快件到达【上海嘉定转运中心】' },
+            { time: '2026-04-23 08:00:00', desc: '快件已揽收' }
+        ]
+    };
+
+    function renderLogisticsTrackModal(row) {
+        var infoBox = document.getElementById('logisticsTrackInfo');
+        var timelineBox = document.getElementById('logisticsTrackTimeline');
+        if (!infoBox || !timelineBox) return;
+
+        var logisticsNo = row && row.logisticsNo ? String(row.logisticsNo).trim() : '';
+        var tracks = logisticsNo ? (LOGISTICS_TRACK_MOCK[logisticsNo] || []) : [];
+        var receiveInfo = getPoReceiveInfo(row);
+
+        infoBox.innerHTML = [
+            detailInfoItemHtml('采购单号', row ? row.poNo : '—'),
+            detailInfoItemHtml('物流单号', logisticsNo || '—'),
+            detailInfoItemHtml('供应商', row ? row.supplier : '—'),
+            detailInfoItemHtml('收货地名称', receiveInfo.receiveName),
+            detailInfoItemHtml('收货地址', receiveInfo.receiveAddress),
+            detailInfoItemHtml('手机号', receiveInfo.receivePhone),
+            detailInfoItemHtml('收货人', receiveInfo.receiver)
+        ].join('');
+
+        if (!logisticsNo) {
+            timelineBox.innerHTML = '<div class="logistics-track-empty">暂无物流单号，请先在采购单完成物流确认</div>';
+            return;
+        }
+        if (!tracks.length) {
+            timelineBox.innerHTML = '<div class="logistics-track-empty">未查询到物流轨迹信息</div>';
+            return;
+        }
+
+        timelineBox.innerHTML = '<div class="logistics-track-timeline">' + tracks.map(function(item, idx) {
+            return (
+                '<div class="logistics-track-timeline-item' + (idx === 0 ? ' is-latest' : '') + '">' +
+                '<div class="logistics-track-timeline-time">' + escapeHtml(item.time) + '</div>' +
+                '<div class="logistics-track-timeline-desc">' + escapeHtml(item.desc) + '</div>' +
+                '</div>'
+            );
+        }).join('') + '</div>';
+    }
+
+    function openLogisticsTrackModal(poNo) {
+        var row = findOrderByPoNo(poNo);
+        if (!row) return;
+        renderLogisticsTrackModal(row);
+        var modal = document.getElementById('logisticsTrackModal');
+        if (modal) modal.style.display = 'block';
+    }
+
+    function closeLogisticsTrackModal() {
+        var modal = document.getElementById('logisticsTrackModal');
+        if (modal) modal.style.display = 'none';
+    }
+
     function renderTable() {
         var tbody = document.getElementById('poListTbody');
         var countEl = document.getElementById('poListCount');
@@ -1462,7 +1617,7 @@
                     '<td>' + escapeHtml(r.createdBy) + '</td>' +
                     '<td>' + escapeHtml(r.updatedAt || r.createdAt || '') + '</td>' +
                     '<td>' + escapeHtml(r.updatedBy || r.createdBy || '') + '</td>' +
-                    '<td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">取消</a></td>' +
+                    '<td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="logistics-track-btn">物流轨迹</a><a href="#" class="delete-btn">取消</a></td>' +
                     '</tr>'
                 );
             }).join('');
@@ -1536,6 +1691,14 @@
             var tr = editBtn.closest('tr');
             var poNo = tr ? tr.getAttribute('data-po-no') : '';
             if (poNo) openEditPoModal(poNo);
+            return;
+        }
+        var trackBtn = e.target.closest('.logistics-track-btn');
+        if (trackBtn) {
+            e.preventDefault();
+            var trackTr = trackBtn.closest('tr');
+            var trackPoNo = trackTr ? trackTr.getAttribute('data-po-no') : '';
+            if (trackPoNo) openLogisticsTrackModal(trackPoNo);
             return;
         }
         var cancelBtn = e.target.closest('.delete-btn');
@@ -1639,6 +1802,14 @@
     document.getElementById('addPoModal').addEventListener('click', function(e) {
         if (e.target && e.target.id === 'addPoModal') {
             closeAddPoModal();
+        }
+    });
+
+    document.getElementById('logisticsTrackCloseBtn').addEventListener('click', closeLogisticsTrackModal);
+    document.getElementById('logisticsTrackCloseFooterBtn').addEventListener('click', closeLogisticsTrackModal);
+    document.getElementById('logisticsTrackModal').addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'logisticsTrackModal') {
+            closeLogisticsTrackModal();
         }
     });
 

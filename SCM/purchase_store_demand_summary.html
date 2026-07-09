@@ -899,7 +899,9 @@
     }
 
     function isAutoCutoffRuleAllowed(orderSource, fulfillmentMethod) {
-        return !(orderSource === '代采订单' && fulfillmentMethod === '快递到家');
+        if (orderSource === '代采订单' && fulfillmentMethod === '快递到家') return false;
+        if (orderSource === '商城/直播间' && fulfillmentMethod === '快递到店') return false;
+        return true;
     }
 
     function buildDefaultAutoCutoffRules() {
