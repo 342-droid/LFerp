@@ -982,7 +982,6 @@
   }
 
   function renderCartQtyStepper(item) {
-    var min = 1;
     var max = item.maxQty || 999;
     return (
       '<div class="ua-restock-cart-qty" data-item-id="' +
@@ -990,9 +989,7 @@
       '">' +
       '<button type="button" class="ua-restock-cart-qty__btn ua-restock-cart-qty__minus" data-item-id="' +
       item.id +
-      '"' +
-      (item.qty <= min ? ' disabled' : '') +
-      ' aria-label="减少">-</button>' +
+      '" aria-label="减少">-</button>' +
       '<span class="ua-restock-cart-qty__num">' +
       item.qty +
       '</span>' +
@@ -1381,6 +1378,41 @@
   }
 
   var specSheetCtx = null;
+  var pendingDeleteItemId = null;
+
+  function openCartDeleteConfirm(itemId) {
+    pendingDeleteItemId = itemId;
+    var modal = document.getElementById('restockCartDeleteModal');
+    if (modal) modal.hidden = false;
+  }
+
+  function closeCartDeleteConfirm() {
+    pendingDeleteItemId = null;
+    var modal = document.getElementById('restockCartDeleteModal');
+    if (modal) modal.hidden = true;
+  }
+
+  function confirmCartDelete() {
+    if (!pendingDeleteItemId) return;
+    var itemId = pendingDeleteItemId;
+    closeCartDeleteConfirm();
+    var state = normalizeCartBySupplier(removeCartItem(readCartPageState(), itemId));
+    saveAndRenderCart(state);
+    updateCartBadge();
+  }
+
+  function bindCartDeleteConfirmEvents() {
+    var modal = document.getElementById('restockCartDeleteModal');
+    if (!modal || modal._deleteBound) return;
+    modal._deleteBound = true;
+
+    document.getElementById('restockCartDeleteModalMask') &&
+      document.getElementById('restockCartDeleteModalMask').addEventListener('click', closeCartDeleteConfirm);
+    document.getElementById('restockCartDeleteCancelBtn') &&
+      document.getElementById('restockCartDeleteCancelBtn').addEventListener('click', closeCartDeleteConfirm);
+    document.getElementById('restockCartDeleteConfirmBtn') &&
+      document.getElementById('restockCartDeleteConfirmBtn').addEventListener('click', confirmCartDelete);
+  }
 
   function getSkuDimension(dimensions) {
     return (
@@ -1588,6 +1620,7 @@
 
   function bindCartPageEvents() {
     bindSpecReselectSheetEvents();
+    bindCartDeleteConfirmEvents();
     var panel = document.getElementById('restockPanelCart');
     if (!panel || panel._cartBound) return;
     panel._cartBound = true;
@@ -1609,8 +1642,14 @@
       var minus = e.target.closest('.ua-restock-cart-qty__minus');
       if (minus && !minus.disabled) {
         e.preventDefault();
-        var state = changeCartItemQty(readCartPageState(), minus.getAttribute('data-item-id'), -1);
-        saveAndRenderCart(state);
+        var itemId = minus.getAttribute('data-item-id');
+        var state = readCartPageState();
+        var item = findCartItem(state, itemId);
+        if (item && (item.qty || 1) <= 1) {
+          openCartDeleteConfirm(itemId);
+          return;
+        }
+        saveAndRenderCart(changeCartItemQty(state, itemId, -1));
         return;
       }
       var plus = e.target.closest('.ua-restock-cart-qty__plus');
