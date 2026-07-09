@@ -8,7 +8,8 @@
     'home.html',
     'orders.html',
     'order-detail-shipping.html',
-    'order-detail-pickup.html'
+    'order-detail-pickup.html',
+    'restock.html'
   ];
 
   var page = (window.location.pathname.split('/').pop() || '').toLowerCase();
@@ -125,7 +126,8 @@
   function resolveNextPage() {
     var params = new URLSearchParams(window.location.search);
     var next = params.get('next') || 'profile.html';
-    if (APP_PAGES.indexOf(next) < 0) next = 'profile.html';
+    var base = (next.split('?')[0] || '').toLowerCase();
+    if (APP_PAGES.indexOf(base) < 0) next = 'profile.html';
     return next;
   }
 

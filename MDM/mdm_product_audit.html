@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 商品详情</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-product.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/product-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="product-audit-page" id="productAuditPage">
+                <header class="product-audit-page__header">
+                    <h1 class="product-audit-page__title">商品详情</h1>
+                    <div class="product-audit-page__actions">
+                        <button type="button" class="product-audit-page__btn product-audit-page__btn--pass" id="productAuditPassBtn">审核通过</button>
+                        <button type="button" class="product-audit-page__btn product-audit-page__btn--reject" id="productAuditRejectBtn">驳回</button>
+                        <button type="button" class="product-audit-page__close" id="productAuditCloseBtn" aria-label="关闭">×</button>
+                    </div>
+                </header>
+                <div class="product-audit-page__body" id="productAuditBody"></div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-product-catalog-store.js"></script>
+    <script src="../js/mdm-product-audit.js"></script>
+</body>
+</html>

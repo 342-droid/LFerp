@@ -1,0 +1,510 @@
+/* 营销 — 积分首页（按设计稿还原） */
+
+.mkt-points-home {
+    background: #f5f7fa;
+    margin: 0 -20px;
+    padding: 1cm 20px 32px;
+    min-height: calc(100vh - 120px);
+    box-sizing: border-box;
+}
+
+.mkt-points-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0;
+    border-bottom: 1px solid #e8e8e8;
+    background: #fff;
+    margin: 0 -20px;
+    padding: 0 16px;
+    min-height: 48px;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.mkt-points-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.mkt-points-tabs__item {
+    position: relative;
+    flex: 0 0 auto;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #666;
+    text-decoration: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+    line-height: 22px;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+.mkt-points-tabs__item:hover {
+    color: #1890ff;
+}
+
+.mkt-points-tabs__item--active {
+    color: #1890ff;
+    font-weight: 500;
+}
+
+.mkt-points-tabs__item--active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: #1890ff;
+    border-radius: 1px;
+}
+
+.mkt-points-system-bar {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 16px 20px;
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+}
+
+.mkt-points-system-bar__label {
+    flex-shrink: 0;
+    font-size: 14px;
+    color: #333;
+    line-height: 24px;
+    padding-top: 2px;
+}
+
+.mkt-points-system-bar__main {
+    flex: 1;
+    min-width: 0;
+}
+
+.mkt-points-system-bar__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.mkt-points-system-bar__status {
+    font-size: 14px;
+    color: #999;
+}
+
+.mkt-points-system-bar__desc {
+    margin: 8px 0 0;
+    font-size: 12px;
+    color: #999;
+    line-height: 1.65;
+}
+
+.mkt-points-switch {
+    position: relative;
+    width: 44px;
+    height: 22px;
+    flex-shrink: 0;
+    border: none;
+    padding: 0;
+    border-radius: 11px;
+    background: #d9d9d9;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.mkt-points-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s;
+}
+
+.mkt-points-switch--on {
+    background: #1890ff;
+}
+
+.mkt-points-switch--on::after {
+    transform: translateX(22px);
+}
+
+.mkt-points-section {
+    margin-top: 24px;
+}
+
+.mkt-points-section__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.4;
+}
+
+.mkt-points-section__title::before {
+    content: '';
+    width: 3px;
+    height: 14px;
+    background: #333;
+    border-radius: 1px;
+    flex-shrink: 0;
+}
+
+.mkt-points-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.mkt-points-stat {
+    padding: 20px 24px;
+    border-right: 1px solid #f0f0f0;
+}
+
+.mkt-points-stat:last-child {
+    border-right: none;
+}
+
+.mkt-points-stat__label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.mkt-points-stat__help {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid #d9d9d9;
+    color: #bfbfbf;
+    font-size: 10px;
+    font-style: normal;
+    line-height: 1;
+    cursor: help;
+}
+
+.mkt-points-stat__value {
+    font-size: 28px;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+}
+
+.mkt-points-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.mkt-points-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px 16px;
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    min-height: 88px;
+    transition: box-shadow 0.2s, border-color 0.2s;
+    cursor: pointer;
+}
+
+.mkt-points-card:hover {
+    border-color: #d9d9d9;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.mkt-points-card__icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.mkt-points-card__icon--earn {
+    background: linear-gradient(145deg, #ffb347 0%, #ff8c42 100%);
+    box-shadow: 0 4px 10px rgba(255, 140, 66, 0.25);
+}
+
+.mkt-points-card__icon--spend {
+    background: linear-gradient(145deg, #ffe066 0%, #f5c518 100%);
+    box-shadow: 0 4px 10px rgba(245, 197, 24, 0.25);
+}
+
+.mkt-points-card__icon svg {
+    width: 26px;
+    height: 26px;
+    fill: #fff;
+}
+
+.mkt-points-card__lock {
+    position: absolute;
+    right: -4px;
+    bottom: -4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.mkt-points-card__lock svg {
+    width: 10px;
+    height: 10px;
+    fill: #bfbfbf;
+}
+
+.mkt-points-card__body {
+    flex: 1;
+    min-width: 0;
+}
+
+.mkt-points-card__name {
+    margin: 0 0 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.4;
+}
+
+.mkt-points-card__desc {
+    margin: 0;
+    font-size: 12px;
+    color: #999;
+    line-height: 1.65;
+}
+
+.mkt-points-validity-panel {
+    display: none;
+    margin-top: 0;
+    padding: 20px 24px 24px;
+    background: #fff;
+    border-top: none;
+    min-height: calc(100vh - 200px);
+}
+
+.mkt-points-validity-panel.store-order-config {
+    padding-top: 20px;
+}
+
+.mkt-points-validity-panel--show {
+    display: block;
+}
+
+.mkt-points-home--validity {
+    padding-bottom: 0;
+}
+
+.mkt-points-home--validity .mkt-points-system-wrap {
+    display: none;
+}
+
+.mkt-points-validity-priority {
+    margin: 0 0 28px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #ff4d4f;
+}
+
+.mkt-points-validity-form {
+    max-width: 920px;
+}
+
+.mkt-points-validity-field {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+
+.mkt-points-validity-field__label {
+    flex-shrink: 0;
+    width: 120px;
+    padding-top: 2px;
+    font-size: 14px;
+    color: #333;
+    line-height: 22px;
+    text-align: right;
+}
+
+.mkt-points-validity-field__label--with-help {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.mkt-points-validity-field__body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.mkt-points-radio-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #333;
+    line-height: 22px;
+    cursor: pointer;
+    flex-wrap: wrap;
+}
+
+.mkt-points-radio-row input[type='radio'] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    flex-shrink: 0;
+    accent-color: #1890ff;
+    cursor: pointer;
+}
+
+.mkt-points-radio-row__text {
+    color: #333;
+    white-space: nowrap;
+}
+
+.mkt-points-date-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.mkt-points-date-input {
+    width: 132px;
+    height: 32px;
+    padding: 4px 30px 4px 10px;
+    border: 1px solid #d9d9d9;
+    border-radius: 2px;
+    font-size: 14px;
+    color: #333;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.mkt-points-date-input:focus {
+    outline: none;
+    border-color: #40a9ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.15);
+}
+
+.mkt-points-date-icon {
+    position: absolute;
+    right: 8px;
+    width: 14px;
+    height: 14px;
+    fill: #bfbfbf;
+    pointer-events: none;
+}
+
+.mkt-points-num-input {
+    width: 72px;
+    height: 32px;
+    padding: 4px 10px;
+    border: 1px solid #d9d9d9;
+    border-radius: 2px;
+    font-size: 14px;
+    color: #333;
+    box-sizing: border-box;
+}
+
+.mkt-points-num-input:focus {
+    outline: none;
+    border-color: #40a9ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.15);
+}
+
+.mkt-points-field-help {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid #333;
+    color: #333;
+    font-size: 10px;
+    font-style: normal;
+    line-height: 1;
+    cursor: help;
+    flex-shrink: 0;
+}
+
+.mkt-points-home--validity .mkt-points-tabs {
+    margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+    .mkt-points-validity-field {
+        flex-direction: column;
+    }
+
+    .mkt-points-validity-field__label,
+    .mkt-points-validity-field__label--with-help {
+        width: auto;
+        text-align: left;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 1200px) {
+    .mkt-points-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .mkt-points-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .mkt-points-stat {
+        border-right: none;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .mkt-points-stat:last-child {
+        border-bottom: none;
+    }
+
+    .mkt-points-grid {
+        grid-template-columns: 1fr;
+    }
+}

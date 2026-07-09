@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>进货 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-restock.css">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-restock-shell">
+    <div class="ua-restock-status" aria-hidden="true">
+      <time class="ua-restock-status__time">9:41</time>
+      <span class="ua-restock-status__icons">
+        <svg class="ua-restock-status__signal" width="18" height="12" viewBox="0 0 18 12" aria-hidden="true">
+          <rect x="0" y="8" width="3" height="4" rx="0.5" fill="#111"/>
+          <rect x="5" y="5" width="3" height="7" rx="0.5" fill="#111"/>
+          <rect x="10" y="2" width="3" height="10" rx="0.5" fill="#111"/>
+          <rect x="15" y="0" width="3" height="12" rx="0.5" fill="none" stroke="#111" stroke-width="1"/>
+        </svg>
+        <svg class="ua-restock-status__wifi" width="16" height="12" viewBox="0 0 16 12" fill="#111" aria-hidden="true">
+          <path d="M8 2.4C10.8 2.4 13.2 3.6 15 5.6 15.2 5.8 15.5 5.8 15.7 5.6 15.9 5.4 15.9 5.1 15.7 4.9 13.6 2.6 10.9 1.2 8 1.2S2.4 2.6.3 4.9C.1 5.1.1 5.4.3 5.6.5 5.8.8 5.8 1 5.6 2.8 3.6 5.2 2.4 8 2.4z"/>
+          <path d="M8 6.2c1.6 0 3 .7 4 1.8.3.3.7.3 1 0 .3-.3.3-.7 0-1-1.2-1.4-2.9-2.2-4.7-2.2S5.5 5.6 4.3 7c-.3.3-.3.7 0 1 .3.3.7.3 1 0 1-1.1 2.4-1.8 4-1.8z"/>
+          <circle cx="8" cy="10.5" r="1.2"/>
+        </svg>
+        <svg class="ua-restock-status__battery" width="25" height="12" viewBox="0 0 25 12" fill="none" aria-hidden="true">
+          <rect x=".5" y=".5" width="20" height="11" rx="2.5" stroke="#111" opacity=".35"/>
+          <rect x="2" y="2" width="16" height="8" rx="1.5" fill="#111"/>
+          <path d="M22 4.5v3a1.5 1.5 0 000-3z" fill="#111" opacity=".4"/>
+        </svg>
+      </span>
+    </div>
+
+    <!-- 首页 -->
+    <div class="ua-restock-panel ua-restock-panel--active" data-panel="home" id="restockPanelHome">
+      <header class="ua-restock-head">
+        <div class="ua-restock-store-search">
+          <a href="profile.html" class="ua-restock-back" aria-label="返回我的">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+          </a>
+          <button type="button" class="ua-restock-store" aria-label="选择门店">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+            门店
+          </button>
+          <form class="ua-restock-search" role="search" onsubmit="return false;">
+            <input type="search" class="ua-restock-search__input" id="restockSearchInput" placeholder="搜索想要的商品" autocomplete="off">
+            <button type="button" class="ua-restock-search__btn" id="restockSearchBtn">搜索</button>
+          </form>
+        </div>
+      </header>
+
+      <section class="ua-restock-cats-wrap">
+        <div class="ua-restock-cats-scroll">
+          <div class="ua-restock-cats-grid">
+            <button type="button" class="ua-restock-cat"><span class="ua-restock-cat__icon">🥬</span><span class="ua-restock-cat__label">蔬菜水果</span></button>
+            <button type="button" class="ua-restock-cat"><span class="ua-restock-cat__icon">🥩</span><span class="ua-restock-cat__label">鲜肉禽</span></button>
+            <button type="button" class="ua-restock-cat"><span class="ua-restock-cat__icon">🐟</span><span class="ua-restock-cat__label">冻肉禽水产</span></button>
+            <button type="button" class="ua-restock-cat"><span class="ua-restock-cat__icon">🍚</span><span class="ua-restock-cat__label">米面油蛋</span></button>
+            <button type="button" class="ua-restock-cat"><span class="ua-restock-cat__icon">🥤</span><span class="ua-restock-cat__label">酒水饮料</span></button>
+            <button type="button" class="ua-restock-cat"><span class="ua-restock-cat__icon">🧂</span><span class="ua-restock-cat__label">调料调味</span></button>
+            <button type="button" class="ua-restock-cat"><span class="ua-restock-cat__icon">🍗</span><span class="ua-restock-cat__label">熟食预制</span></button>
+            <button type="button" class="ua-restock-cat"><span class="ua-restock-cat__icon">🧊</span><span class="ua-restock-cat__label">冷冻半成品</span></button>
+            <button type="button" class="ua-restock-cat"><span class="ua-restock-cat__icon">🍳</span><span class="ua-restock-cat__label">餐厨用品</span></button>
+            <button type="button" class="ua-restock-cat"><span class="ua-restock-cat__icon">🧴</span><span class="ua-restock-cat__label">日用百货</span></button>
+          </div>
+        </div>
+        <div class="ua-restock-cats-indicator"><div class="ua-restock-cats-indicator__bar"></div></div>
+      </section>
+
+      <section class="ua-restock-subtabs-wrap">
+        <div class="ua-restock-subtabs" role="tablist">
+          <button type="button" class="ua-restock-subtab ua-restock-subtab--active">精选</button>
+          <button type="button" class="ua-restock-subtab">新鲜蔬菜</button>
+          <button type="button" class="ua-restock-subtab">调理品/炸食</button>
+          <button type="button" class="ua-restock-subtab">肉禽蛋</button>
+          <button type="button" class="ua-restock-subtab">调料</button>
+        </div>
+      </section>
+
+      <section class="ua-restock-products">
+        <article class="ua-restock-product" data-id="egg" data-title="红壳黄心鲜鸡蛋 中码 托装" data-spec="3.5斤/30枚" data-price="¥28.90" data-price-num="28.9" data-img="../assets/restock/product-egg.svg">
+          <div class="ua-restock-product__img-wrap">
+            <img class="ua-restock-product__img" src="../assets/restock/product-egg.svg" alt="红壳黄心鲜鸡蛋">
+            <span class="ua-restock-product__badge">高回购</span>
+            <span class="ua-restock-product__weight-tag">净重3.5斤</span>
+          </div>
+          <div class="ua-restock-product__body">
+            <h3 class="ua-restock-product__title">红壳黄心鲜鸡蛋 中码 托装</h3>
+            <p class="ua-restock-product__spec">3.5斤/30枚</p>
+            <div class="ua-restock-product__price-row">
+              <span class="ua-restock-product__price ua-restock-product__price--hidden" data-price="¥28.90">****</span>
+              <button type="button" class="ua-restock-product__add" aria-label="加入购物车">+</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="ua-restock-product" data-id="cola" data-title="[可口可乐]摩登罐汽水330ml" data-spec="24罐" data-price="¥52.00" data-price-num="52" data-img="../assets/restock/product-cola.svg">
+          <div class="ua-restock-product__img-wrap">
+            <img class="ua-restock-product__img" src="../assets/restock/product-cola.svg" alt="可口可乐">
+          </div>
+          <div class="ua-restock-product__body">
+            <h3 class="ua-restock-product__title">[可口可乐]摩登罐汽水330ml</h3>
+            <p class="ua-restock-product__spec">24罐</p>
+            <div class="ua-restock-product__price-row">
+              <span class="ua-restock-product__price ua-restock-product__price--hidden" data-price="¥52.00">****</span>
+              <button type="button" class="ua-restock-product__add" aria-label="加入购物车">+</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="ua-restock-product" data-id="water" data-title="[娃哈哈]纯净水596ml" data-spec="24瓶" data-price="¥36.00" data-price-num="36" data-img="../assets/restock/product-water.svg">
+          <div class="ua-restock-product__img-wrap">
+            <img class="ua-restock-product__img" src="../assets/restock/product-water.svg" alt="娃哈哈纯净水">
+          </div>
+          <div class="ua-restock-product__body">
+            <h3 class="ua-restock-product__title">[娃哈哈]纯净水596ml</h3>
+            <p class="ua-restock-product__spec">24瓶</p>
+            <div class="ua-restock-product__price-row">
+              <span class="ua-restock-product__price ua-restock-product__price--hidden" data-price="¥36.00">****</span>
+              <button type="button" class="ua-restock-product__add" aria-label="加入购物车">+</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="ua-restock-product" data-id="tea" data-title="[康师傅]冰红茶500ml" data-spec="15瓶" data-price="¥42.00" data-price-num="42" data-img="../assets/restock/product-tea.svg">
+          <div class="ua-restock-product__img-wrap">
+            <img class="ua-restock-product__img" src="../assets/restock/product-tea.svg" alt="康师傅冰红茶">
+          </div>
+          <div class="ua-restock-product__body">
+            <h3 class="ua-restock-product__title">[康师傅]冰红茶500ml</h3>
+            <p class="ua-restock-product__spec">15瓶</p>
+            <div class="ua-restock-product__price-row">
+              <span class="ua-restock-product__price ua-restock-product__price--hidden" data-price="¥42.00">****</span>
+              <button type="button" class="ua-restock-product__add" aria-label="加入购物车">+</button>
+            </div>
+          </div>
+        </article>
+      </section>
+    </div>
+
+    <!-- 分类 -->
+    <div class="ua-restock-panel ua-restock-panel--category" data-panel="category" id="restockPanelCategory" hidden>
+      <div class="ua-restock-cat-page">
+        <div class="ua-restock-cat-top-area">
+          <div class="ua-restock-cat-search">
+            <svg class="ua-restock-cat-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
+            <input type="search" class="ua-restock-cat-search__input" id="restockCatSearchInput" placeholder="搜索想要的商品" autocomplete="off">
+          </div>
+
+          <div class="ua-restock-cat-topnav-wrap" id="restockCatTopnavWrap">
+            <div class="ua-restock-cat-topnav" id="restockCatTopnav">
+              <button type="button" class="ua-restock-cat-topitem ua-restock-cat-topitem--active" data-cat="veg">
+                <img class="ua-restock-cat-topitem__img" src="../assets/restock/category-icon-veg.svg" alt="">
+                <span class="ua-restock-cat-topitem__label">蔬菜水果</span>
+              </button>
+              <button type="button" class="ua-restock-cat-topitem" data-cat="meat">
+                <img class="ua-restock-cat-topitem__img" src="../assets/restock/category-icon-meat.svg" alt="">
+                <span class="ua-restock-cat-topitem__label">鲜肉禽水产</span>
+              </button>
+              <button type="button" class="ua-restock-cat-topitem" data-cat="frozen">
+                <img class="ua-restock-cat-topitem__img" src="../assets/restock/category-icon-frozen.svg" alt="">
+                <span class="ua-restock-cat-topitem__label">冻肉禽水产</span>
+              </button>
+              <button type="button" class="ua-restock-cat-topitem" data-cat="grain">
+                <img class="ua-restock-cat-topitem__img" src="../assets/restock/category-icon-grain.svg" alt="">
+                <span class="ua-restock-cat-topitem__label">米面油蛋</span>
+              </button>
+              <button type="button" class="ua-restock-cat-topitem" data-cat="drink">
+                <img class="ua-restock-cat-topitem__img" src="../assets/restock/category-icon-drink.svg" alt="">
+                <span class="ua-restock-cat-topitem__label">酒水饮</span>
+              </button>
+            </div>
+            <button type="button" class="ua-restock-cat-all" id="restockCatAllBtn">
+              <span>全部</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="ua-restock-cat-body">
+          <aside class="ua-restock-cat-sidebar" id="restockCatSidebar"></aside>
+
+          <div class="ua-restock-cat-main">
+            <div class="ua-restock-cat-header" id="restockCatHeader">
+              <div class="ua-restock-cat-sort" role="tablist">
+                <button type="button" class="ua-restock-cat-sortitem ua-restock-cat-sortitem--active" data-sort="default">综合排序</button>
+                <button type="button" class="ua-restock-cat-sortitem" data-sort="sales">销量</button>
+                <button type="button" class="ua-restock-cat-sortitem" data-sort="price">
+                  价格
+                  <span class="ua-restock-cat-sortitem__arrows">
+                    <svg viewBox="0 0 8 12" fill="currentColor"><path d="M4 0L7 4H1z"/></svg>
+                    <svg viewBox="0 0 8 12" fill="currentColor"><path d="M4 12L1 8h6z"/></svg>
+                  </span>
+                </button>
+                <button type="button" class="ua-restock-cat-sortitem ua-restock-cat-sortitem--filter" data-sort="filter">
+                  筛选
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="ua-restock-cat-scroll" id="restockCatScroll">
+              <div class="ua-restock-cat-tags-sticky-wrap" id="restockCatTagsStickyWrap">
+                <div class="ua-restock-cat-tags" id="restockCatTags"></div>
+              </div>
+              <div class="ua-restock-cat-products" id="restockCatProducts"></div>
+            </div>
+
+            <div class="ua-restock-cat-tags-expand" id="restockCatTagsExpand" hidden>
+              <div class="ua-restock-cat-tags-expand__panel">
+                <h3 class="ua-restock-cat-tags-expand__title">筛选商品</h3>
+                <div class="ua-restock-cat-tags-expand__grid" id="restockCatTagsExpandGrid"></div>
+                <button type="button" class="ua-restock-cat-tags-expand__collapse" id="restockCatTagsCollapseBtn">点击收起 ^</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ua-restock-cat-section-more" id="restockCatSectionMore" hidden>
+          <div class="ua-restock-cat-section-more__backdrop" id="restockCatSectionMoreBackdrop"></div>
+          <div class="ua-restock-cat-section-more__sheet">
+            <div class="ua-restock-cat-section-more__head">
+              <h3 class="ua-restock-cat-section-more__title" id="restockCatSectionMoreTitle">全部商品</h3>
+              <button type="button" class="ua-restock-cat-section-more__close" id="restockCatSectionMoreClose" aria-label="关闭">×</button>
+            </div>
+            <div class="ua-restock-cat-section-more__scroll" id="restockCatSectionMoreList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 购物车 -->
+    <div class="ua-restock-panel ua-restock-panel--cart" data-panel="cart" id="restockPanelCart" hidden>
+      <div class="ua-restock-cart-page">
+        <header class="ua-restock-cart-head">
+          <button type="button" class="ua-restock-cart-head__locate" id="restockCartLocateBtn">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+            定位当前位置
+          </button>
+          <button type="button" class="ua-restock-cart-head__delete" id="restockCartDeleteBtn">删除</button>
+        </header>
+
+        <div class="ua-restock-cart-scroll" id="restockCartScroll">
+          <div class="ua-restock-cart-empty" id="restockCartEmpty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 4h2l2.5 13h11l2.5-9H6"/></svg>
+            <span>购物车还是空的</span>
+          </div>
+          <div class="ua-restock-cart-body" id="restockCartBody"></div>
+          <div class="ua-restock-cart-invalid-wrap" id="restockCartInvalidWrap"></div>
+        </div>
+
+        <footer class="ua-restock-cart-bar" id="restockCartBar">
+          <label class="ua-restock-cart-check ua-restock-cart-check--all">
+            <input type="checkbox" class="ua-restock-cart-check__input" id="restockCartSelectAll">
+            <span class="ua-restock-cart-check__box" aria-hidden="true"></span>
+            <span class="ua-restock-cart-check__label">全选</span>
+          </label>
+          <div class="ua-restock-cart-bar__total" id="restockCartTotal">合计：<strong>¥0.00</strong></div>
+          <button type="button" class="ua-restock-cart-bar__checkout" id="restockCheckoutBtn" disabled>结算(0)</button>
+        </footer>
+
+        <div class="ua-restock-cart-spec-sheet" id="restockCartSpecSheet" hidden>
+          <div class="ua-restock-cart-spec-sheet__mask" id="restockCartSpecSheetMask"></div>
+          <div class="ua-restock-cart-spec-sheet__panel" role="dialog" aria-modal="true">
+            <button type="button" class="ua-restock-cart-spec-sheet__close" id="restockCartSpecSheetClose" aria-label="关闭">×</button>
+            <div class="ua-restock-cart-spec-sheet__product">
+              <img class="ua-restock-cart-spec-sheet__img" id="restockCartSpecSheetImg" src="" alt="">
+              <div class="ua-restock-cart-spec-sheet__product-info">
+                <h3 class="ua-restock-cart-spec-sheet__title" id="restockCartSpecSheetTitle"></h3>
+                <div class="ua-restock-cart-spec-sheet__price" id="restockCartSpecSheetPrice"></div>
+              </div>
+            </div>
+            <div class="ua-restock-cart-spec-sheet__body" id="restockCartSpecSheetBody"></div>
+            <div class="ua-restock-cart-spec-sheet__foot">
+              <button type="button" class="ua-restock-cart-spec-sheet__confirm" id="restockCartSpecSheetConfirm">确认</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 我的 -->
+    <div class="ua-restock-panel ua-restock-panel--me" data-panel="me" id="restockPanelMe" hidden>
+      <div class="ua-restock-me-page">
+        <header class="ua-restock-me-hero">
+          <div class="ua-restock-me-actions">
+            <button type="button" class="ua-restock-me-action" id="restockMeSettingsBtn">设置</button>
+            <button type="button" class="ua-restock-me-action" id="restockMeMsgBtn">消息</button>
+          </div>
+          <div class="ua-restock-me-profile" id="restockMeProfile">
+            <div class="ua-restock-me-avatar" aria-hidden="true">
+              <img src="../assets/restock/me-shop-avatar.svg" alt="">
+            </div>
+            <button type="button" class="ua-restock-me-login-btn" id="restockMeLoginBtn">请登录/注册</button>
+            <div class="ua-restock-me-user" id="restockMeUser" hidden>
+              <div class="ua-restock-me-name" id="restockMeName"></div>
+              <div class="ua-restock-me-phone" id="restockMePhone"></div>
+            </div>
+          </div>
+        </header>
+
+        <div class="ua-restock-me-body">
+          <section class="ua-restock-me-card">
+            <div class="ua-restock-me-card__head">
+              <h2 class="ua-restock-me-card__title">我的钱包</h2>
+              <button type="button" class="ua-restock-me-card__link" id="restockMeWalletBtn">进入钱包 &gt;</button>
+            </div>
+            <div class="ua-restock-me-wallet">
+              <button type="button" class="ua-restock-me-wallet__item" data-me-action="coupons">
+                <span class="ua-restock-me-wallet__num" id="restockMeCoupons">0张</span>
+                <span class="ua-restock-me-wallet__label">优惠券</span>
+              </button>
+              <button type="button" class="ua-restock-me-wallet__item" data-me-action="balance">
+                <span class="ua-restock-me-wallet__num" id="restockMeBalance">0.00元</span>
+                <span class="ua-restock-me-wallet__label">余额</span>
+              </button>
+              <button type="button" class="ua-restock-me-wallet__item" data-me-action="topup">
+                <span class="ua-restock-me-wallet__num" id="restockMeTopup">0.00元</span>
+                <span class="ua-restock-me-wallet__label">需补金额</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="ua-restock-me-card">
+            <h2 class="ua-restock-me-card__title ua-restock-me-card__title--solo">常用服务</h2>
+            <div class="ua-restock-me-grid ua-restock-me-grid--4">
+              <button type="button" class="ua-restock-me-svc" data-me-action="deposit">
+                <span class="ua-restock-me-svc__icon ua-restock-me-svc__icon--orange">
+                  <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#FF4D30"/><text x="12" y="16" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">¥</text></svg>
+                </span>
+                <span class="ua-restock-me-svc__label">退押金</span>
+              </button>
+              <button type="button" class="ua-restock-me-svc" data-me-action="returns">
+                <span class="ua-restock-me-svc__icon ua-restock-me-svc__icon--orange">
+                  <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="7" width="16" height="13" rx="2" fill="#FF4D30"/><path d="M8 7V5a4 4 0 018 0v2" stroke="#fff" stroke-width="1.5"/><circle cx="17" cy="6" r="4" fill="#fff"/><path d="M17 4.5v3M15.5 6h3" stroke="#FF4D30" stroke-width="1.2" stroke-linecap="round"/></svg>
+                </span>
+                <span class="ua-restock-me-svc__label">退货/售后</span>
+              </button>
+              <button type="button" class="ua-restock-me-svc" data-me-action="invoice">
+                <span class="ua-restock-me-svc__icon ua-restock-me-svc__icon--orange">
+                  <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="3" width="14" height="18" rx="2" fill="#FF4D30"/><path d="M8 8h8M8 12h8M8 16h5" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </span>
+                <span class="ua-restock-me-svc__label">开发票</span>
+              </button>
+              <button type="button" class="ua-restock-me-svc" data-me-action="bill">
+                <span class="ua-restock-me-svc__icon ua-restock-me-svc__icon--orange">
+                  <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="14" rx="2" fill="#FF4D30"/><path d="M8 9h8M8 13h5" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="16" r="3" fill="#fff"/><text x="16" y="17.5" text-anchor="middle" fill="#FF4D30" font-size="7" font-weight="700">¥</text></svg>
+                </span>
+                <span class="ua-restock-me-svc__label">账单</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="ua-restock-me-card">
+            <h2 class="ua-restock-me-card__title ua-restock-me-card__title--solo">帮助中心</h2>
+            <div class="ua-restock-me-grid ua-restock-me-grid--5">
+              <button type="button" class="ua-restock-me-svc" data-me-action="support">
+                <span class="ua-restock-me-svc__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 14v-2a8 8 0 0116 0v2"/><path d="M6 14v2a2 2 0 002 2h1v-3H6zM16 14v3h1a2 2 0 002-2v-2h-3z"/><path d="M12 19v2"/></svg>
+                </span>
+                <span class="ua-restock-me-svc__label">联系客服</span>
+              </button>
+              <button type="button" class="ua-restock-me-svc" data-me-action="sales">
+                <span class="ua-restock-me-svc__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>
+                </span>
+                <span class="ua-restock-me-svc__label">销售经理</span>
+              </button>
+              <button type="button" class="ua-restock-me-svc" data-me-action="faq">
+                <span class="ua-restock-me-svc__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 014.5 1.5c0 2-2.5 1.5-2.5 3.5"/><circle cx="12" cy="17" r="0.8" fill="currentColor" stroke="none"/></svg>
+                </span>
+                <span class="ua-restock-me-svc__label">常见问题</span>
+              </button>
+              <button type="button" class="ua-restock-me-svc" data-me-action="rules">
+                <span class="ua-restock-me-svc__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 4h11v16H8V4z"/><path d="M8 8H5a1 1 0 00-1 1v10a1 1 0 001 1h3V8z"/><path d="M11 9h5M11 13h5M11 17h3"/></svg>
+                </span>
+                <span class="ua-restock-me-svc__label">售后规则</span>
+              </button>
+              <button type="button" class="ua-restock-me-svc" data-me-action="fraud">
+                <span class="ua-restock-me-svc__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l8 4v6c0 4.5-3.5 7.5-8 8-4.5-.5-8-3.5-8-8V7l8-4z"/><path d="M12 8v5"/><circle cx="12" cy="16" r="0.8" fill="currentColor" stroke="none"/></svg>
+                </span>
+                <span class="ua-restock-me-svc__label">防诈预警</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="ua-restock-me-card">
+            <h2 class="ua-restock-me-card__title ua-restock-me-card__title--solo">更多工具</h2>
+            <div class="ua-restock-me-grid ua-restock-me-grid--tools">
+              <button type="button" class="ua-restock-me-svc" data-me-action="share">
+                <span class="ua-restock-me-svc__icon ua-restock-me-svc__icon--share">
+                  <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="9" width="14" height="12" rx="2" fill="#FF4D30" opacity="0.15"/><rect x="7" y="5" width="10" height="10" rx="2" fill="#FF4D30"/><path d="M12 8v6M9.5 10.5L12 8l2.5 2.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="ua-restock-me-svc__label">分享APP</span>
+              </button>
+            </div>
+          </section>
+
+          <footer class="ua-restock-me-brand">
+            <div class="ua-restock-me-brand__name">快驴进货</div>
+            <div class="ua-restock-me-brand__slogan">让餐饮采购更简单</div>
+          </footer>
+        </div>
+      </div>
+    </div>
+
+    <div class="ua-restock-login-bar" id="restockLoginBar">
+      <span class="ua-restock-login-bar__text">登录后可查看商品价格</span>
+      <button type="button" class="ua-restock-login-bar__btn" id="restockLoginBtn">马上登录</button>
+    </div>
+
+    <nav class="ua-restock-tabbar" aria-label="进货导航">
+      <button type="button" class="ua-restock-tab ua-restock-tab--active" data-tab="home">
+        <span class="ua-restock-tab__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10.5L12 4l8 6.5V19a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-8.5z"/></svg>
+        </span>
+        <span class="ua-restock-tab__label">首页</span>
+      </button>
+      <button type="button" class="ua-restock-tab" data-tab="category">
+        <span class="ua-restock-tab__icon ua-restock-tab__cat-icon" aria-hidden="true">
+          <svg class="ua-restock-tab__cat-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
+        </span>
+        <span class="ua-restock-tab__label">分类</span>
+      </button>
+      <button type="button" class="ua-restock-tab" data-tab="orders">
+        <span class="ua-restock-tab__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+        </span>
+        <span class="ua-restock-tab__label">订单</span>
+      </button>
+      <button type="button" class="ua-restock-tab ua-restock-tab--cart" data-tab="cart">
+        <span class="ua-restock-tab__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 4h2l2.5 13h11l2.5-9H6"/></svg>
+        </span>
+        <span class="ua-restock-tab__label">购物车</span>
+        <span class="ua-restock-cart-badge" id="restockCartBadge" hidden>0</span>
+      </button>
+      <button type="button" class="ua-restock-tab" data-tab="me">
+        <span class="ua-restock-tab__icon ua-restock-tab__me-icon" aria-hidden="true">
+          <svg class="ua-restock-tab__me-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>
+          <svg class="ua-restock-tab__me-active" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#FF4D30"/><path d="M8 14.5c1.2 2 2.5 3 4 3s2.8-1 4-3" stroke="#fff" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+        </span>
+        <span class="ua-restock-tab__label">我的</span>
+      </button>
+    </nav>
+  </div>
+  <script src="../js/user-app-restock.js"></script>
+</body>
+</html>

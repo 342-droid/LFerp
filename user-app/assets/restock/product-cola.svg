@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="#fff"/>
+  <rect x="55" y="50" width="90" height="110" rx="8" fill="#e53935"/>
+  <text x="100" y="115" text-anchor="middle" fill="#fff" font-size="28" font-weight="bold" font-family="Arial,sans-serif">Coke</text>
+</svg>
