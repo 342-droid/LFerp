@@ -126,6 +126,31 @@
   white-space: nowrap;
 }
 
+.ua-order-merchant {
+  flex: 1;
+  min-width: 0;
+}
+
+.ua-order-merchant--store,
+.ua-order-merchant--supplier {
+  display: block;
+}
+
+.ua-order-merchant[hidden] {
+  display: none;
+}
+
+.ua-order-supplier {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #333333;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ua-order-status {
   flex-shrink: 0;
   font-size: 12px;

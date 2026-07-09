@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>商品详情 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-product-detail.css">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-pd-page" id="productDetailShell">
+    <div class="ua-scroll ua-pd-scroll" id="productDetailScroll">
+      <section class="ua-pd-hero" id="productDetailHero">
+        <div class="ua-pd-hero__nav">
+          <a href="restock.html" class="ua-pd-hero__nav-btn" id="productDetailBack" aria-label="返回">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+          </a>
+          <div class="ua-pd-hero__nav-actions">
+            <button type="button" class="ua-pd-hero__nav-btn" id="productDetailShare" aria-label="分享">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M12 3v13M8 7l4-4 4 4"/></svg>
+            </button>
+            <button type="button" class="ua-pd-hero__nav-btn" id="productDetailMore" aria-label="更多">
+              <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="ua-pd-hero__gallery" id="productDetailGallery">
+          <img class="ua-pd-hero__img ua-pd-hero__img--active" id="productDetailMainImg" src="" alt="">
+        </div>
+        <div class="ua-pd-hero__dots" id="productDetailDots"></div>
+      </section>
+
+      <section class="ua-pd-price-band">
+        <div class="ua-pd-price-band__left">
+          <div class="ua-pd-price-band__price" id="productDetailPrice">¥--</div>
+          <div class="ua-pd-price-band__origin" id="productDetailOriginPrice"></div>
+        </div>
+        <div class="ua-pd-price-band__promo" id="productDetailPromo" hidden>
+          <span class="ua-pd-price-band__promo-tag">限时特惠</span>
+          <span class="ua-pd-price-band__promo-time" id="productDetailCountdown">00:00:00</span>
+        </div>
+      </section>
+
+      <section class="ua-pd-card ua-pd-head-card">
+        <div class="ua-pd-coupons" id="productDetailCoupons"></div>
+        <h1 class="ua-pd-title" id="productDetailTitle"></h1>
+        <p class="ua-pd-subtitle" id="productDetailSubtitle"></p>
+        <div class="ua-pd-service-tags" id="productDetailServiceTags"></div>
+      </section>
+
+      <section class="ua-pd-card ua-pd-specs-flat" id="productDetailSpecsSection">
+        <h2 class="ua-pd-specs-flat__title">规格价格</h2>
+        <div class="ua-pd-specs-flat__list" id="productDetailSpecsFlat"></div>
+      </section>
+
+      <section class="ua-pd-card ua-pd-rows">
+        <button type="button" class="ua-pd-row" id="productDetailDeliveryRow">
+          <span class="ua-pd-row__label">配送</span>
+          <span class="ua-pd-row__value" id="productDetailDeliveryText"></span>
+          <svg class="ua-pd-row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button type="button" class="ua-pd-row" id="productDetailServiceRow">
+          <span class="ua-pd-row__label">服务</span>
+          <span class="ua-pd-row__value ua-pd-row__value--ellipsis" id="productDetailServiceText"></span>
+          <svg class="ua-pd-row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button type="button" class="ua-pd-row" id="productDetailParamsRow">
+          <span class="ua-pd-row__label">参数</span>
+          <span class="ua-pd-row__value ua-pd-row__value--ellipsis" id="productDetailParamsText"></span>
+          <svg class="ua-pd-row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </section>
+
+      <section class="ua-pd-card ua-pd-supplier">
+        <img class="ua-pd-supplier__avatar" id="productDetailSupplierAvatar" src="../assets/restock/me-shop-avatar.svg" alt="">
+        <div class="ua-pd-supplier__body">
+          <div class="ua-pd-supplier__name" id="productDetailSupplierName"></div>
+          <div class="ua-pd-supplier__meta" id="productDetailSupplierMeta"></div>
+        </div>
+        <button type="button" class="ua-pd-supplier__enter" id="productDetailSupplierEnter">进入供应商</button>
+      </section>
+
+      <section class="ua-pd-section">
+        <h2 class="ua-pd-section__title">为您推荐</h2>
+        <div class="ua-pd-hscroll" id="productDetailRecommend"></div>
+      </section>
+
+      <section class="ua-pd-detail">
+        <div class="ua-pd-detail__tabs">
+          <span class="ua-pd-detail__tab ua-pd-detail__tab--active">商品详情</span>
+        </div>
+        <div class="ua-pd-detail__imgs" id="productDetailDetailImgs"></div>
+        <div class="ua-pd-detail__story" id="productDetailStory"></div>
+      </section>
+    </div>
+
+    <footer class="ua-pd-footer">
+      <a href="restock.html" class="ua-pd-footer__icon" id="productDetailHomeLink">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10.5L12 4l8 6.5V19a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-8.5z"/></svg>
+        <span>首页</span>
+      </a>
+      <button type="button" class="ua-pd-footer__icon" id="productDetailSupportBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 14v-2a8 8 0 0116 0v2"/><path d="M6 14v2a2 2 0 002 2h1v-3H6zM16 14v3h1a2 2 0 002-2v-2h-3z"/></svg>
+        <span>客服</span>
+      </button>
+      <a href="restock.html?tab=cart" class="ua-pd-footer__icon ua-pd-footer__icon--cart" id="productDetailCartLink">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 4h2l2.5 13h11l2.5-9H6"/></svg>
+        <span>购物车</span>
+        <em class="ua-pd-footer__badge" id="productDetailCartBadge" hidden>0</em>
+      </a>
+      <button type="button" class="ua-pd-footer__btn ua-pd-footer__btn--cart" id="productDetailAddCart">加入购物车</button>
+      <button type="button" class="ua-pd-footer__btn ua-pd-footer__btn--buy" id="productDetailBuyNow">我要进货</button>
+    </footer>
+
+    <!-- 服务说明 -->
+    <div class="ua-pd-sheet" id="productDetailServiceSheet" hidden>
+      <div class="ua-pd-sheet__mask" data-pd-close="service"></div>
+      <div class="ua-pd-sheet__panel">
+        <div class="ua-pd-sheet__head">
+          <h3>服务说明</h3>
+          <button type="button" class="ua-pd-sheet__close" data-pd-close="service">×</button>
+        </div>
+        <div class="ua-pd-sheet__body" id="productDetailServiceList"></div>
+      </div>
+    </div>
+
+    <!-- 产品参数 -->
+    <div class="ua-pd-sheet" id="productDetailParamsSheet" hidden>
+      <div class="ua-pd-sheet__mask" data-pd-close="params"></div>
+      <div class="ua-pd-sheet__panel">
+        <div class="ua-pd-sheet__head">
+          <h3>产品参数</h3>
+          <button type="button" class="ua-pd-sheet__close" data-pd-close="params">×</button>
+        </div>
+        <div class="ua-pd-sheet__body ua-pd-params" id="productDetailParamsList"></div>
+        <div class="ua-pd-sheet__foot">
+          <button type="button" class="ua-pd-sheet__confirm" data-pd-close="params">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 多规格数量选择 -->
+    <div class="ua-pd-sheet" id="productDetailSpecSheet" hidden>
+      <div class="ua-pd-sheet__mask" data-pd-close="spec"></div>
+      <div class="ua-pd-sheet__panel ua-pd-mspec-panel">
+        <button type="button" class="ua-pd-mspec__close" data-pd-close="spec" aria-label="关闭">×</button>
+        <div class="ua-pd-mspec__head">
+          <h3 class="ua-pd-mspec__title" id="productDetailMspecTitle"></h3>
+          <div class="ua-pd-mspec__price-range" id="productDetailMspecPriceRange"></div>
+        </div>
+        <div class="ua-pd-mspec__list" id="productDetailMspecList"></div>
+        <div class="ua-pd-mspec__footer">
+          <div class="ua-pd-mspec__total">
+            <span class="ua-pd-mspec__total-label">合计</span>
+            <span class="ua-pd-mspec__total-price" id="productDetailMspecTotal">¥0.00</span>
+          </div>
+          <div class="ua-pd-mspec__trust">
+            <svg class="ua-pd-mspec__trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l7 4v5c0 4.2-2.8 7.6-7 9-4.2-1.4-7-4.8-7-9V7l7-4z"/></svg>
+            <span>平台代采保障：该供应商已缴纳信用保证金</span>
+          </div>
+          <button type="button" class="ua-pd-mspec__confirm" id="productDetailSpecConfirm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/user-app-product-detail.js"></script>
+</body>
+</html>

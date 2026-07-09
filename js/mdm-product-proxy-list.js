@@ -15,7 +15,7 @@
       pricePoints: 10,
       linePrice: 1,
       sales: 0,
-      status: 'on_shelf'
+      status: 'draft'
     },
     {
       code: 'SPU00102',
@@ -99,7 +99,7 @@
       priceMoney: 11,
       linePrice: 15,
       sales: 0,
-      status: 'on_shelf'
+      status: 'off_shelf'
     },
     {
       code: 'SPU00085',
@@ -192,6 +192,60 @@
     return '¥' + s;
   }
 
+  function escapeHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function closeWarmConfirmModal() {
+    var modal = document.querySelector('[data-product-warm-confirm]');
+    if (modal) modal.remove();
+  }
+
+  function openWarmConfirmModal(message, onConfirm) {
+    closeWarmConfirmModal();
+    var backdrop = document.createElement('div');
+    backdrop.className = 'erp-modal-backdrop mdm-people-warm-confirm-backdrop product-warm-confirm-backdrop';
+    backdrop.setAttribute('data-product-warm-confirm', '1');
+
+    backdrop.innerHTML =
+      '<div class="erp-modal erp-modal--confirm">' +
+      '  <div class="erp-modal__header">' +
+      '    <h2 class="erp-modal__title">温馨提示</h2>' +
+      '    <div class="erp-modal__header-actions">' +
+      '      <button type="button" class="erp-modal__header-btn" data-warm-close aria-label="关闭">&times;</button>' +
+      '    </div>' +
+      '  </div>' +
+      '  <div class="erp-modal__body">' +
+      '    <div class="erp-modal-confirm__row">' +
+      '      <div class="erp-modal-confirm__icon">!</div>' +
+      '      <div class="erp-modal-confirm__msg">' + escapeHtml(message) + '</div>' +
+      '    </div>' +
+      '  </div>' +
+      '  <div class="erp-modal__footer">' +
+      '    <button type="button" class="erp-btn" data-warm-cancel>取消</button>' +
+      '    <button type="button" class="erp-btn erp-btn--primary" data-warm-ok>确定</button>' +
+      '  </div>' +
+      '</div>';
+
+    backdrop.addEventListener('click', function (ev) {
+      if (ev.target === backdrop) closeWarmConfirmModal();
+    });
+    backdrop.querySelectorAll('[data-warm-close], [data-warm-cancel]').forEach(function (btn) {
+      btn.addEventListener('click', closeWarmConfirmModal);
+    });
+    backdrop.querySelector('[data-warm-ok]').addEventListener('click', function () {
+      closeWarmConfirmModal();
+      if (typeof onConfirm === 'function') onConfirm();
+    });
+
+    document.body.appendChild(backdrop);
+  }
+
   function buildCatalog() {
     var list = SEED.slice();
     var i = 0;
@@ -211,7 +265,7 @@
         pricePoints: i % 11 === 0 ? 10 : 100,
         linePrice: i % 6 === 0 ? 15 : i % 8 === 0 ? 5 : null,
         sales: 0,
-        status: i % 17 === 0 ? 'off_shelf' : 'on_shelf'
+        status: i % 13 === 0 ? 'draft' : i % 17 === 0 ? 'off_shelf' : 'on_shelf'
       });
       i += 1;
     }
@@ -236,6 +290,9 @@
   }
 
   function renderSalePrice(item) {
+    if (item.status === 'draft') {
+      return '<span class="product-proxy-dash">-</span>';
+    }
     if (item.priceType === 'points') {
       return '<span class="product-proxy-price">' + item.pricePoints + '积分</span>';
     }
@@ -249,6 +306,9 @@
   }
 
   function renderLinePrice(item) {
+    if (item.status === 'draft') {
+      return '<span class="product-proxy-dash">-</span>';
+    }
     if (item.linePrice == null || item.linePrice === '') {
       return '<span class="product-proxy-dash">-</span>';
     }
@@ -256,6 +316,9 @@
   }
 
   function renderStatus(status) {
+    if (status === 'draft') {
+      return '<span class="product-tag product-tag--draft">草稿</span>';
+    }
     if (status === 'off_shelf') {
       return '<span class="product-tag product-tag--stopped">已下架</span>';
     }
@@ -263,14 +326,31 @@
   }
 
   function renderMoreMenu(code, status) {
-    var offLabel = status === 'on_shelf' ? '下架' : '上架';
+    var items = [];
+    if (status === 'draft') {
+      items.push({ action: 'list-shelf', label: '上架' });
+      items.push({ action: 'delete', label: '删除', danger: true });
+    } else if (status === 'on_shelf') {
+      items.push({ action: 'off-shelf', label: '下架' });
+    } else if (status === 'off_shelf') {
+      items.push({ action: 'delete', label: '删除', danger: true });
+    }
+
+    var menuHtml = items
+      .map(function (entry) {
+        var cls = 'product-more__item';
+        if (entry.danger) cls += ' product-more__item--danger';
+        else cls += ' product-more__item--primary';
+        return (
+          '<button type="button" class="' + cls + '" data-action="' + entry.action + '" data-code="' + code + '">' + entry.label + '</button>'
+        );
+      })
+      .join('');
+
     return (
       '<div class="product-more" data-more-wrap>' +
       '<button type="button" class="product-more__btn" data-more-toggle>更多 <span class="product-more__caret">▼</span></button>' +
-      '<div class="product-more__menu">' +
-      '<button type="button" class="product-more__item" data-action="toggle-shelf" data-code="' + code + '">' + offLabel + '</button>' +
-      '<button type="button" class="product-more__item" data-action="copy" data-code="' + code + '">复制</button>' +
-      '</div></div>'
+      '<div class="product-more__menu">' + menuHtml + '</div></div>'
     );
   }
 
@@ -394,6 +474,12 @@
     return null;
   }
 
+  function removeProduct(code) {
+    ALL_PRODUCTS = ALL_PRODUCTS.filter(function (item) {
+      return item.code !== code;
+    });
+  }
+
   function bindEvents() {
     document.getElementById('proxyFilterQuery') &&
       document.getElementById('proxyFilterQuery').addEventListener('click', function () {
@@ -474,17 +560,27 @@
           return;
         }
 
-        if (action === 'toggle-shelf' && product) {
-          product.status = product.status === 'on_shelf' ? 'off_shelf' : 'on_shelf';
-          renderTable();
-          if (typeof showToast === 'function') {
-            showToast(product.status === 'on_shelf' ? '已上架' : '已下架', 'success');
-          }
+        if (action === 'list-shelf' && product) {
+          openWarmConfirmModal('确定上架此商品吗？', function () {
+            product.status = 'on_shelf';
+            renderTable();
+            if (typeof showToast === 'function') showToast('已上架', 'success');
+          });
           return;
         }
 
-        if (action === 'copy') {
-          if (typeof showToast === 'function') showToast('复制 ' + code + '（演示）', 'info');
+        if (action === 'off-shelf' && product) {
+          product.status = 'off_shelf';
+          renderTable();
+          if (typeof showToast === 'function') showToast('已下架', 'success');
+          return;
+        }
+
+        if (action === 'delete' && product) {
+          removeProduct(code);
+          applyFilters();
+          renderTable();
+          if (typeof showToast === 'function') showToast('已删除', 'success');
         }
       }
     });

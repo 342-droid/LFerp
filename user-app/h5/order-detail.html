@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>订单详情 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-profile.css">
+  <link rel="stylesheet" href="../css/user-app-order-detail.css">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-order-detail-page" id="orderDetailShell">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-order-detail-scroll">
+      <div class="ua-status-bar">
+        <span>9:41</span>
+        <span class="ua-status-bar__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#111"><path d="M1 7h2v4H1V7zm4-2h2v6H5V5zm4-3h2v9H9V2zm4 5h2v4h-2V7z"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="#111"><path d="M8 2.4C10.8 2.4 13.2 3.6 15 5.6 15.2 5.8 15.5 5.8 15.7 5.6 15.9 5.4 15.9 5.1 15.7 4.9 13.6 2.6 10.9 1.2 8 1.2S2.4 2.6.3 4.9C.1 5.1.1 5.4.3 5.6.5 5.8.8 5.8 1 5.6 2.8 3.6 5.2 2.4 8 2.4zm0 3.6c1.8 0 3.4.8 4.5 2.1.2.2.5.2.7 0 .2-.2.2-.5 0-.7C11.9 5.4 10.1 4.4 8 4.4S4.1 5.4 2.8 6.9c-.2.2-.2.5 0 .7.2.2.5.2.7 0C4.6 6.8 6.2 6 8 6zm0 3c1 0 1.8.5 2.4 1.2.2.2.5.2.7 0 .2-.2.2-.5 0-.7C10.3 9.2 9.2 8.6 8 8.6S5.7 9.2 4.9 10.5c-.2.2-.2.5 0 .7.2.2.5.2.7 0 .6-.7 1.4-1.2 2.4-1.2z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="20" height="11" rx="2.5" stroke="#111" opacity=".35"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#111"/><path d="M22 4.5v3a1.5 1.5 0 000-3z" fill="#111" opacity=".4"/></svg>
+        </span>
+      </div>
+
+      <header class="ua-od-nav">
+        <a href="orders.html" class="ua-od-nav__back" id="orderDetailBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="ua-od-nav__title">订单详情</h1>
+        <div class="ua-od-nav__actions">
+          <button type="button" class="ua-od-nav__icon" aria-label="搜索">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          </button>
+          <button type="button" class="ua-od-nav__icon" aria-label="更多">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="ua-order-detail-body">
+        <section class="ua-od-banner" id="orderStatusBanner">
+          <h2 class="ua-od-banner__title" id="orderStatusTitle">等待买家付款</h2>
+          <p class="ua-od-banner__sub" id="orderStatusSub">逾期未支付订单将自动关闭</p>
+        </section>
+
+        <section class="ua-od-card ua-od-logistics" id="orderLogisticsCard" hidden>
+          <div class="ua-od-logistics__main">
+            <span class="ua-od-logistics__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="8" width="13" height="9" rx="1"/><path d="M15 10h4l3 4v3h-7V10z"/><circle cx="7" cy="18" r="1.5"/><circle cx="18" cy="18" r="1.5"/></svg>
+            </span>
+            <div class="ua-od-logistics__info">
+              <div class="ua-od-logistics__status">待揽件</div>
+              <div class="ua-od-logistics__text">[杭州市] 快件已到达 杭州萧山转运中心</div>
+              <div class="ua-od-logistics__time">2026-03-08 14:32:18</div>
+            </div>
+          </div>
+          <a href="#" class="ua-od-logistics__link" id="orderLogisticsLink">查看物流</a>
+        </section>
+
+        <section class="ua-od-card ua-od-store-delivery" id="orderStoreDeliveryCard" hidden>
+          <div class="ua-od-store-delivery__head">
+            <span class="ua-od-store-delivery__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="7.5" width="12.5" height="8.5" rx="1"/><path d="M14 10.5h4.2l2.3 3.2V16H14v-5.5z"/><circle cx="6" cy="17.5" r="1.6"/><circle cx="17.5" cy="17.5" r="1.6"/><path d="M3.5 17.5H4.4M19.1 17.5H20.5"/></svg>
+            </span>
+            <h3 class="ua-od-store-delivery__title" id="orderStoreDeliveryStatus">订单配送中</h3>
+          </div>
+          <p class="ua-od-store-delivery__text" id="orderStoreDeliveryText">商品正在配送到门店，请耐心等待</p>
+          <p class="ua-od-store-delivery__time" id="orderStoreDeliveryTime">预计 2026-03-09 18:00 前送达门店</p>
+        </section>
+
+        <section class="ua-od-card ua-od-store-info" id="orderStoreCard">
+          <div class="ua-od-store-info__main">
+            <span class="ua-od-store-info__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10l8-6 8 6v10a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1V10z"/></svg>
+            </span>
+            <div class="ua-od-store-info__body">
+              <div class="ua-od-store-info__label">配送门店</div>
+              <div class="ua-od-store-info__name" id="orderStoreName">鲜丰水果文一西路店</div>
+              <div class="ua-od-store-info__contact"><span id="orderStoreContact">周敏</span><span id="orderStorePhone">138****2201</span></div>
+              <div class="ua-od-store-info__addr" id="orderStoreAddr">浙江省杭州市西湖区文一西路558号1层临街</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="ua-od-card ua-od-shop">
+          <div class="ua-od-shop__head">
+            <span class="ua-od-shop__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10l8-6 8 6v10a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1V10z"/></svg>
+            </span>
+            <span class="ua-od-shop__name" id="orderShopName" data-store-name="线上商城" data-supplier-name="冷丰优选供应链">线上商城</span>
+          </div>
+
+          <article class="ua-od-item">
+            <img class="ua-od-item__img" src="../assets/order-product-1.svg" alt="">
+            <div class="ua-od-item__body">
+              <div class="ua-od-item__name">冷丰优选智利车厘子 鲜脆清甜 礼盒装</div>
+              <div class="ua-od-item__spec">规格：2.5kg；颜色：白色</div>
+              <div class="ua-od-item__meta"><span class="ua-od-item__price">¥10.00</span><span class="ua-od-item__qty">× 1</span></div>
+            </div>
+            <div class="ua-od-item__actions" id="orderItemActionsPrimary"></div>
+          </article>
+
+          <article class="ua-od-item">
+            <img class="ua-od-item__img" src="../assets/order-product-2.svg" alt="">
+            <div class="ua-od-item__body">
+              <div class="ua-od-item__name">新鲜红颜草莓 香甜多汁 500g装</div>
+              <div class="ua-od-item__spec">规格：500g；颜色：红色</div>
+              <div class="ua-od-item__meta"><span class="ua-od-item__price">¥10.00</span><span class="ua-od-item__qty">× 1</span></div>
+            </div>
+            <div class="ua-od-item__actions" id="orderItemActionsSecondary"></div>
+          </article>
+        </section>
+
+        <section class="ua-od-card ua-od-points" id="orderPointsCard" hidden>
+          <span class="ua-od-points__tag">积分</span>
+          <span class="ua-od-points__text">获得50个积分</span>
+        </section>
+
+        <section class="ua-od-card ua-od-price">
+          <div class="ua-od-price__row"><span>商品总价</span><span>¥120.99</span></div>
+          <div class="ua-od-price__row"><span>配送费</span><span>¥15.00</span></div>
+          <div class="ua-od-price__row ua-od-price__row--discount"><span>优惠券</span><span>-¥10.00</span></div>
+          <div class="ua-od-price__row ua-od-price__row--discount"><span>免邮券</span><span>-¥15.00</span></div>
+          <div class="ua-od-price__row ua-od-price__row--discount"><span>活动优惠</span><span>-¥5.00</span></div>
+          <div class="ua-od-price__row ua-od-price__row--discount"><span>店铺优惠</span><span>-¥10.00</span></div>
+          <div class="ua-od-price__row ua-od-price__row--discount"><span>积分抵扣</span><span>-¥20.00</span></div>
+          <div class="ua-od-price__row ua-od-price__row--total"><span>实付金额</span><span>36元</span></div>
+        </section>
+
+        <section class="ua-od-card ua-od-extra">
+          <div class="ua-od-extra__row"><span class="ua-od-extra__label">发票类型</span><span class="ua-od-extra__value" id="orderInvoiceType">公司</span></div>
+          <div class="ua-od-extra__row"><span class="ua-od-extra__label">发票内容</span><span class="ua-od-extra__value">明细</span></div>
+          <div class="ua-od-extra__row ua-od-extra__row--remark">
+            <span class="ua-od-extra__label">备注</span>
+            <span class="ua-od-extra__value">本收据将附两个小赠品，可使用的新鲜蔬菜，请尽快签收。</span>
+          </div>
+        </section>
+
+        <section class="ua-od-card ua-od-info">
+          <div class="ua-od-info__row">
+            <span class="ua-od-info__label">订单编号</span>
+            <span class="ua-od-info__value">
+              <span id="orderNoText">1089765423471123</span>
+              <button type="button" class="ua-od-info__copy" id="orderCopyBtn">复制</button>
+            </span>
+          </div>
+          <div class="ua-od-info__row"><span class="ua-od-info__label">下单时间</span><span class="ua-od-info__value">2026-03-05 15:56:10</span></div>
+          <div class="ua-od-info__row" id="orderPayMethodRow"><span class="ua-od-info__label">支付方式</span><span class="ua-od-info__value">微信支付</span></div>
+        </section>
+      </div>
+    </div>
+
+    <footer class="ua-od-footer" id="orderDetailFooter"></footer>
+  </div>
+  <script src="../js/user-app-order-detail.js"></script>
+  <script src="../js/user-app-auth.js"></script>
+</body>
+</html>

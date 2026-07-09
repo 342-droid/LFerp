@@ -1,4 +1,4 @@
-/* 用户 APP — 订单详情页 */
+/* 用户 APP — 订单详情页（5 种状态） */
 .ua-order-detail-page .ua-status-bar {
   background: #ffffff;
 }
@@ -7,7 +7,11 @@
   top: 50px;
 }
 
-.ua-order-detail-nav {
+.ua-order-detail-scroll {
+  padding-bottom: 72px;
+}
+
+.ua-od-nav {
   position: sticky;
   top: 0;
   z-index: 10;
@@ -15,169 +19,403 @@
   align-items: center;
   justify-content: center;
   height: 44px;
-  padding: 0 44px;
+  padding: 0 88px 0 44px;
   background: #ffffff;
   border-bottom: 1px solid #f2f2f2;
 }
 
+.ua-od-nav__back {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333333;
+  text-decoration: none;
+}
+
+.ua-od-nav__back svg {
+  width: 20px;
+  height: 20px;
+}
+
+.ua-od-nav__title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #333333;
+  line-height: 1.3;
+}
+
+.ua-od-nav__actions {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ua-od-nav__icon {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: transparent;
+  color: #333333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.ua-od-nav__icon svg {
+  width: 18px;
+  height: 18px;
+}
+
 .ua-order-detail-body {
-  padding: 10px 12px 24px;
+  padding: 0 0 16px;
 }
 
 .ua-od-card {
-  margin-bottom: 10px;
+  margin: 10px 12px 0;
   background: #ffffff;
   border-radius: 8px;
   overflow: hidden;
 }
 
-/* —— 待发货信息 —— */
-.ua-od-shipping__status {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 22px 14px 18px;
+.ua-od-card:first-of-type {
+  margin-top: 0;
 }
 
-.ua-od-shipping__icon {
-  width: 44px;
-  height: 36px;
+/* 状态横幅 */
+.ua-od-banner {
+  padding: 18px 16px 16px;
+  background: linear-gradient(135deg, #ffb74d 0%, #ff9800 100%);
+  color: #ffffff;
 }
 
-.ua-od-shipping__title {
-  margin-top: 12px;
-  font-size: 18px;
+.ua-od-banner__title {
+  font-size: 20px;
   font-weight: 700;
-  color: #333333;
   line-height: 1.3;
 }
 
-.ua-od-shipping__sub {
+.ua-od-banner__sub {
   margin-top: 6px;
   font-size: 12px;
-  color: #999999;
-  line-height: 1.4;
+  line-height: 1.5;
+  opacity: 0.92;
 }
 
-.ua-od-shipping__divider {
-  height: 1px;
-  margin: 0 14px;
-  background: #f0f0f0;
+.ua-od-banner__sub[hidden] {
+  display: none;
 }
 
-.ua-od-product__spec + .ua-od-product__spec {
-  margin-top: 4px;
-}
-
-/* —— 提货信息 —— */
-.ua-od-pickup__status {
+/* 物流 */
+.ua-od-logistics {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 16px 14px 14px;
-}
-
-.ua-od-pickup__icon {
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.ua-od-pickup__title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #333333;
-  line-height: 1.3;
-}
-
-.ua-od-pickup__sub {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #999999;
-  line-height: 1.4;
-}
-
-.ua-od-pickup__divider {
-  height: 1px;
-  margin: 0 14px;
-  background: #f0f0f0;
-}
-
-.ua-od-info-row {
-  display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-}
-
-.ua-od-info-row:first-of-type {
-  padding-top: 14px;
-}
-
-.ua-od-info-row:last-of-type {
-  padding-bottom: 14px;
-}
-
-.ua-od-info-label {
-  flex-shrink: 0;
-  width: 64px;
-  font-size: 13px;
-  color: #999999;
-  line-height: 1.5;
-}
-
-.ua-od-info-value {
-  flex: 1;
-  font-size: 13px;
-  color: #333333;
-  line-height: 1.5;
-  text-align: right;
-}
-
-.ua-od-info-value--addr .ua-od-store-name {
-  display: block;
-  font-size: 14px;
-  font-weight: 700;
-  color: #333333;
-  line-height: 1.4;
-}
-
-.ua-od-info-value--addr .ua-od-store-addr {
-  display: block;
-  margin-top: 4px;
-  font-size: 12px;
-  color: #999999;
-  line-height: 1.5;
-}
-
-/* —— 商品卡片 —— */
-.ua-od-product {
+  gap: 10px;
   padding: 14px;
 }
 
-.ua-od-product__main {
+.ua-od-logistics[hidden] {
+  display: none;
+}
+
+.ua-od-logistics__main {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.ua-od-logistics__icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  color: #ff9800;
+}
+
+.ua-od-logistics__icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.ua-od-logistics__status {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333333;
+  line-height: 1.3;
+}
+
+.ua-od-logistics__text {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #666666;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ua-od-logistics__time {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #999999;
+  line-height: 1.3;
+}
+
+.ua-od-logistics__link {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #1677ff;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ua-od-logistics__link::after {
+  content: ' >';
+}
+
+/* 门店配送状态（采购订单） */
+.ua-od-store-delivery {
+  padding: 14px;
+}
+
+.ua-od-store-delivery[hidden] {
+  display: none;
+}
+
+.ua-od-store-delivery__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ua-od-store-delivery__icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  color: #ff9800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ua-od-store-delivery__icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.ua-od-store-delivery__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #333333;
+  line-height: 1.3;
+}
+
+.ua-od-store-delivery__text {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #666666;
+  line-height: 1.45;
+}
+
+.ua-od-store-delivery__time {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: #999999;
+  line-height: 1.3;
+}
+
+/* 地址 */
+.ua-od-address {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px;
+}
+
+.ua-od-address__main {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.ua-od-address__icon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  color: #ff9800;
+  margin-top: 2px;
+}
+
+.ua-od-address__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ua-od-address__user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #333333;
+  line-height: 1.3;
+}
+
+.ua-od-address__text {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #666666;
+  line-height: 1.55;
+}
+
+.ua-od-address__edit {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 13px;
+  color: #1677ff;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.ua-od-address__edit[hidden] {
+  display: none;
+}
+
+/* 配送门店信息（采购订单） */
+.ua-od-store-info {
+  padding: 14px;
+}
+
+.ua-od-store-info[hidden] {
+  display: none;
+}
+
+.ua-od-store-info__main {
   display: flex;
   align-items: flex-start;
   gap: 10px;
 }
 
-.ua-od-product__img {
+.ua-od-store-info__icon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  color: #ff9800;
+  margin-top: 2px;
+}
+
+.ua-od-store-info__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ua-od-store-info__label {
+  font-size: 12px;
+  color: #999999;
+  line-height: 1.3;
+}
+
+.ua-od-store-info__name {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #333333;
+  line-height: 1.35;
+}
+
+.ua-od-store-info__contact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #333333;
+  line-height: 1.4;
+}
+
+.ua-od-store-info__addr {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #666666;
+  line-height: 1.55;
+}
+
+/* 供应商 + 商品 */
+.ua-od-shop__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.ua-od-shop__icon {
+  width: 18px;
+  height: 18px;
+  color: #ff9800;
+  flex-shrink: 0;
+}
+
+.ua-od-shop__icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ua-od-shop__name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333333;
+  line-height: 1.3;
+}
+
+.ua-od-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.ua-od-item:last-child {
+  border-bottom: 0;
+}
+
+.ua-od-item__img {
   width: 72px;
   height: 72px;
   border-radius: 6px;
   object-fit: cover;
   flex-shrink: 0;
+  background: #f5f5f5;
 }
 
-.ua-od-product__info {
+.ua-od-item__body {
   flex: 1;
   min-width: 0;
 }
 
-.ua-od-product__name {
+.ua-od-item__name {
   font-size: 13px;
   font-weight: 500;
   color: #333333;
@@ -188,120 +426,261 @@
   overflow: hidden;
 }
 
-.ua-od-product__price {
-  flex-shrink: 0;
-  font-size: 14px;
-  font-weight: 700;
-  color: #333333;
-  line-height: 1.3;
-  white-space: nowrap;
-}
-
-.ua-od-product__spec {
-  margin-top: 8px;
+.ua-od-item__spec {
+  margin-top: 6px;
   font-size: 11px;
   color: #999999;
   line-height: 1.4;
 }
 
-.ua-od-product__foot {
+.ua-od-item__meta {
+  margin-top: 8px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.ua-od-item__price {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333333;
+}
+
+.ua-od-item__qty {
+  font-size: 12px;
+  color: #999999;
+}
+
+.ua-od-item__actions {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.ua-od-item__actions:empty {
+  display: none;
+}
+
+.ua-od-item__btn {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 12px;
+  color: #666666;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+/* 积分 */
+.ua-od-points {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  margin-top: 12px;
+  padding: 12px 14px;
 }
 
-.ua-od-product__tag {
-  flex: 1;
-  min-width: 0;
-  padding: 4px 8px;
-  border-radius: 4px;
-  background: #fff0f0;
-  font-size: 11px;
-  color: #ff4d4f;
-  line-height: 1.4;
+.ua-od-points[hidden] {
+  display: none;
 }
 
-.ua-od-product__tag--done {
-  flex: none;
-  background: #f0faf2;
-  color: #52c41a;
-}
-
-.ua-od-product__tag--partial {
-  background: #fff7e6;
-  color: #fa8c16;
-}
-
-.ua-od-refund-btn {
-  flex-shrink: 0;
+.ua-od-points__tag {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 28px;
-  padding: 0 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 14px;
-  background: #ffffff;
-  font-size: 12px;
+  min-width: 32px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 3px;
+  background: #ffe8f0;
+  color: #ff4d6d;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.ua-od-points__text {
+  font-size: 13px;
   color: #333333;
-  text-decoration: none;
-  font-family: inherit;
-  cursor: pointer;
-  white-space: nowrap;
+  line-height: 1.4;
 }
 
-/* —— 订单汇总 —— */
-.ua-od-summary {
-  padding: 4px 0;
+/* 价格明细 */
+.ua-od-price {
+  padding: 6px 0 4px;
 }
 
-.ua-od-summary-row {
+.ua-od-price__row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 14px;
-}
-
-.ua-od-summary-label {
+  padding: 8px 14px;
   font-size: 13px;
-  color: #999999;
+  color: #666666;
   line-height: 1.4;
 }
 
-.ua-od-summary-value {
-  font-size: 13px;
+.ua-od-price__row span:last-child {
   color: #333333;
-  line-height: 1.4;
-  text-align: right;
 }
 
-.ua-od-summary-value--copy {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.ua-od-price__row--discount span:last-child {
+  color: #ff4d4f;
 }
 
-.ua-od-copy {
-  font-size: 12px;
-  color: #999999;
-  text-decoration: none;
+.ua-od-price__row--total {
+  margin-top: 2px;
+  padding-top: 10px;
+  padding-bottom: 12px;
+  border-top: 1px solid #f0f0f0;
 }
 
-.ua-od-copy::before {
-  content: '|';
-  margin-right: 6px;
-  color: #e0e0e0;
-}
-
-.ua-od-summary-row--total .ua-od-summary-label {
+.ua-od-price__row--total span:first-child {
   color: #333333;
   font-weight: 600;
 }
 
-.ua-od-summary-row--total .ua-od-summary-value {
-  font-size: 16px;
+.ua-od-price__row--total span:last-child {
+  font-size: 18px;
   font-weight: 700;
+  color: #333333;
+}
+
+/* 发票备注 */
+.ua-od-extra {
+  padding: 4px 0;
+}
+
+.ua-od-extra__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.ua-od-extra__label {
+  flex-shrink: 0;
+  color: #999999;
+}
+
+.ua-od-extra__value {
+  flex: 1;
+  color: #333333;
+  text-align: right;
+}
+
+.ua-od-extra__row--remark .ua-od-extra__value {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 订单信息 */
+.ua-od-info {
+  padding: 4px 0 8px;
+}
+
+.ua-od-info__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.ua-od-info__label {
+  flex-shrink: 0;
+  color: #999999;
+}
+
+.ua-od-info__value {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  color: #333333;
+  text-align: right;
+  word-break: break-all;
+}
+
+.ua-od-info__copy {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 12px;
+  color: #1677ff;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.ua-od-info__row[hidden] {
+  display: none;
+}
+
+/* 底部操作栏 */
+.ua-od-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-height: 56px;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: #ffffff;
+  border-top: 1px solid #f0f0f0;
+}
+
+.ua-od-footer:empty {
+  display: none;
+}
+
+.ua-od-footer__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 18px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.ua-od-footer__btn--ghost {
+  color: #666666;
+  background: #ffffff;
+  border: 1px solid #d9d9d9;
+}
+
+.ua-od-footer__btn--primary {
+  color: #ffffff;
+  background: #1677ff;
+  border: 1px solid #1677ff;
+}
+
+.ua-od-footer__btn--single {
+  min-width: 120px;
+}
+
+/* 进货链路：供应商名称 */
+.ua-order-detail-from-restock .ua-od-shop__name {
+  color: #333333;
 }

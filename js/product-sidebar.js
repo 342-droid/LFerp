@@ -56,9 +56,9 @@
   function renderSideGroup(group) {
     var expanded = isGroupActive(group);
     return (
-      '<li class="product-side-group">' +
-      '<a href="#" class="product-side-group__head" onclick="toggleSubmenu(this); return false;">' +
-      '<span>' + group.title + '</span>' +
+      '<li class="menu-item product-side-group">' +
+      '<a href="#" class="menu-link product-side-group__head" onclick="toggleSubmenu(this); return false;">' +
+      '<span class="product-side-group__title">' + group.title + '</span>' +
       '<button type="button" class="menu-toggle" aria-label="展开">' + (expanded ? '▼' : '▶') + '</button>' +
       '</a>' +
       '<ul class="submenu product-side-submenu' + (expanded ? ' expanded' : '') + '">' +
@@ -71,8 +71,9 @@
     .map(function (item) {
       var active = itemActive(item);
       return (
-        '<li class="product-side-item' + (active ? ' product-side-item--active' : '') + '">' +
-        '<a href="' + pageHref(item.href) + '">' + item.text + '</a></li>'
+        '<li class="menu-item product-side-item">' +
+        '<a href="' + pageHref(item.href) + '"' + (active ? ' class="active"' : '') + '>' + item.text + '</a>' +
+        '</li>'
       );
     })
     .join('');
@@ -88,7 +89,7 @@
     '<img src="' + assetHref('image/冷丰图标.png') + '" alt="冷丰商品">' +
     '<span>冷丰商品</span>' +
     '</div>' +
-    '<ul class="product-sidebar-menu">' +
+    '<ul class="sidebar-menu product-sidebar-menu">' +
     flatHtml +
     groupsHtml +
     '</ul></aside>';

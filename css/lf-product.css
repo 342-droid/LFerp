@@ -1,50 +1,118 @@
 /* 商品模块 — 选品库等 */
 
+/* 商品侧栏：对齐商城商品分组菜单稿（深底 + 白字 + 橙色圆角选中） */
+.product-sidebar {
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+
 .product-sidebar .product-sidebar-menu {
   list-style: none;
   margin: 0;
-  padding: 8px 0;
+  padding: 10px 8px 16px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.product-side-item a {
+.product-sidebar .product-side-item {
+  margin-bottom: 6px;
+}
+
+.product-sidebar .product-side-item > a {
   display: block;
-  padding: 12px 20px;
+  margin: 0 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
   font-size: 14px;
+  line-height: 1.4;
   color: #ffffff;
+  text-align: center;
   text-decoration: none;
-  transition: background 0.15s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.product-side-item a:hover {
-  background: rgba(255, 255, 255, 0.08);
+.product-sidebar .product-side-item > a:hover:not(.active) {
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
-.product-side-item--active a {
-  background: var(--color-primary, #ff7019);
-  font-weight: 600;
+.product-sidebar .product-side-item > a.active {
+  background-color: #ff7019;
+  color: #ffffff;
+  font-weight: 500;
 }
 
-.product-side-group__head {
+.product-sidebar .product-side-group {
+  margin-bottom: 6px;
+}
+
+.product-sidebar .product-side-group__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px;
+  margin: 0 8px;
+  padding: 11px 14px;
+  border-radius: 5px;
   font-size: 14px;
+  line-height: 1.4;
   color: #ffffff;
   text-decoration: none;
+  transition: background-color 0.2s ease;
 }
 
-.product-side-group__head:hover {
-  background: rgba(255, 255, 255, 0.08);
+.product-sidebar .product-side-group__head:hover {
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
-.product-side-submenu {
-  background: rgba(0, 0, 0, 0.12);
+.product-sidebar .product-side-group__title {
+  flex: 1;
+  min-width: 0;
 }
 
-.product-side-submenu a {
-  padding-left: 36px;
-  font-size: 13px;
+.product-sidebar .product-side-group .menu-toggle {
+  margin-left: 8px;
+}
+
+.product-sidebar .product-side-group.menu-item:has(.submenu.expanded) .menu-toggle,
+.product-sidebar .product-side-group:has(.submenu.expanded) .menu-toggle {
+  transform: rotate(180deg);
+}
+
+.product-sidebar .product-side-submenu {
+  list-style: none;
+  margin: 0;
+  padding: 4px 8px 8px;
+  background-color: transparent;
+}
+
+.product-sidebar .product-side-submenu li {
+  margin-bottom: 4px;
+}
+
+.product-sidebar .product-side-submenu li:last-child {
+  margin-bottom: 0;
+}
+
+.product-sidebar .product-side-submenu li a {
+  display: block;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #ffffff;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.product-sidebar .product-side-submenu li a:hover:not(.active) {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.product-sidebar .product-side-submenu li a.active {
+  background-color: #ff7019;
+  color: #ffffff;
+  font-weight: 500;
 }
 
 .product-page {
@@ -497,6 +565,14 @@
 
 .product-more__item--primary:hover {
   background: #fff7f0;
+}
+
+.product-more__item--danger {
+  color: #ff4d4f;
+}
+
+.product-more__item--danger:hover {
+  background: #fff1f0;
 }
 
 .product-pagination {
@@ -1686,6 +1762,12 @@ body.product-add-drawer-open {
   background: #f6ffed;
   border: 1px solid #b7eb8f;
   color: #389e0d;
+}
+
+.product-tag--draft {
+  background: #fafafa;
+  border: 1px solid #d9d9d9;
+  color: #999999;
 }
 
 @media (max-width: 1200px) {
