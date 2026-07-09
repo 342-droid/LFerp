@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>确认订单 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-checkout.css">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-checkout-page" id="checkoutShell">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-checkout-scroll" id="checkoutScroll">
+      <div class="ua-status-bar">
+        <span>9:41</span>
+        <span class="ua-status-bar__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#111"><path d="M1 7h2v4H1V7zm4-2h2v6H5V5zm4-3h2v9H9V2zm4 5h2v4h-2V7z"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="#111"><path d="M8 2.4C10.8 2.4 13.2 3.6 15 5.6 15.2 5.8 15.5 5.8 15.7 5.6 15.9 5.4 15.9 5.1 15.7 4.9 13.6 2.6 10.9 1.2 8 1.2S2.4 2.6.3 4.9C.1 5.1.1 5.4.3 5.6.5 5.8.8 5.8 1 5.6 2.8 3.6 5.2 2.4 8 2.4z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="20" height="11" rx="2.5" stroke="#111" opacity=".35"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#111"/><path d="M22 4.5v3a1.5 1.5 0 000-3z" fill="#111" opacity=".4"/></svg>
+        </span>
+      </div>
+
+      <header class="ua-co-nav">
+        <a href="restock.html?tab=cart" class="ua-co-nav__back" id="checkoutBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="ua-co-nav__title">确认订单</h1>
+      </header>
+
+      <div class="ua-checkout-body" id="checkoutBody">
+        <!-- 配送门店 -->
+        <section class="ua-co-card ua-co-store" id="checkoutStoreCard">
+          <div class="ua-co-store__main">
+            <div class="ua-co-store__name-row">
+              <span class="ua-co-store__name" id="checkoutStoreName">悠悠生鲜超市</span>
+              <span class="ua-co-store__contact" id="checkoutStoreContact">张店长 138****6688</span>
+            </div>
+            <p class="ua-co-store__addr" id="checkoutStoreAddr">浙江省杭州市萧山区建设一路88号</p>
+          </div>
+          <svg class="ua-co-store__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </section>
+
+        <!-- 供应商 + 包裹 -->
+        <div id="checkoutSupplierList"></div>
+
+        <!-- 优惠券 / 积分 / 发票 -->
+        <section class="ua-co-card ua-co-options">
+          <button type="button" class="ua-co-row" id="checkoutCouponRow">
+            <span class="ua-co-row__label">优惠券</span>
+            <span class="ua-co-row__value ua-co-row__value--accent" id="checkoutCouponText">-¥10.00</span>
+            <svg class="ua-co-row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <div class="ua-co-row ua-co-row--static">
+            <span class="ua-co-row__label">积分抵扣</span>
+            <span class="ua-co-row__hint" id="checkoutPointsHint">可用1200积分，抵¥12.00</span>
+            <label class="ua-co-switch">
+              <input type="checkbox" class="ua-co-switch__input" id="checkoutPointsToggle">
+              <span class="ua-co-switch__track"></span>
+            </label>
+          </div>
+          <button type="button" class="ua-co-row" id="checkoutInvoiceRow">
+            <span class="ua-co-row__label">发票</span>
+            <span class="ua-co-row__value" id="checkoutInvoiceText">不开发票</span>
+            <svg class="ua-co-row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </section>
+
+        <!-- 金额明细 -->
+        <section class="ua-co-card ua-co-summary">
+          <div class="ua-co-summary__row"><span>商品总额</span><span id="checkoutGoodsTotal">¥0.00</span></div>
+          <div class="ua-co-summary__row"><span>运费</span><span id="checkoutFreight">¥6.00</span></div>
+          <div class="ua-co-summary__row ua-co-summary__row--discount"><span>活动优惠</span><span id="checkoutActivityDiscount">-¥0.00</span></div>
+          <div class="ua-co-summary__row ua-co-summary__row--discount" id="checkoutCouponDiscountRow"><span>优惠券</span><span id="checkoutCouponDiscount">-¥10.00</span></div>
+          <div class="ua-co-summary__row ua-co-summary__row--discount" id="checkoutPointsDiscountRow" hidden><span>积分抵扣</span><span id="checkoutPointsDiscount">-¥12.00</span></div>
+          <div class="ua-co-summary__row ua-co-summary__row--total"><span>应付金额</span><span id="checkoutPayable">¥0.00</span></div>
+        </section>
+      </div>
+    </div>
+
+    <footer class="ua-co-footer" id="checkoutFooter">
+      <div class="ua-co-footer__total">应付：<strong id="checkoutFooterTotal">¥0.00</strong></div>
+      <button type="button" class="ua-co-footer__submit" id="checkoutSubmitBtn">提交订单</button>
+    </footer>
+
+    <!-- 配送时间 -->
+    <div class="ua-co-sheet" id="checkoutTimeSheet" hidden>
+      <div class="ua-co-sheet__mask" data-sheet-close="time"></div>
+      <div class="ua-co-sheet__panel ua-co-sheet__panel--time">
+        <div class="ua-co-sheet__head">
+          <h3 class="ua-co-sheet__title">选择送达时间</h3>
+          <button type="button" class="ua-co-sheet__close" data-sheet-close="time" aria-label="关闭">×</button>
+        </div>
+        <div class="ua-co-time">
+          <div class="ua-co-time__dates" id="checkoutTimeDates"></div>
+          <div class="ua-co-time__slots" id="checkoutTimeSlots"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 优惠券 -->
+    <div class="ua-co-sheet" id="checkoutCouponSheet" hidden>
+      <div class="ua-co-sheet__mask" data-sheet-close="coupon"></div>
+      <div class="ua-co-sheet__panel ua-co-sheet__panel--tall">
+        <div class="ua-co-sheet__head">
+          <h3 class="ua-co-sheet__title">优惠券</h3>
+          <button type="button" class="ua-co-sheet__close" data-sheet-close="coupon" aria-label="关闭">×</button>
+        </div>
+        <div class="ua-co-tabs" id="checkoutCouponTabs">
+          <button type="button" class="ua-co-tab ua-co-tab--active" data-coupon-tab="available">可用(2)</button>
+          <button type="button" class="ua-co-tab" data-coupon-tab="unavailable">不可用(1)</button>
+        </div>
+        <div class="ua-co-sheet__body" id="checkoutCouponList"></div>
+        <div class="ua-co-sheet__foot">
+          <button type="button" class="ua-co-sheet__foot-btn" id="checkoutCouponSkip">不使用优惠券</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 发票 -->
+    <div class="ua-co-sheet" id="checkoutInvoiceSheet" hidden>
+      <div class="ua-co-sheet__mask" data-sheet-close="invoice"></div>
+      <div class="ua-co-sheet__panel ua-co-sheet__panel--tall">
+        <div class="ua-co-sheet__head">
+          <h3 class="ua-co-sheet__title">发票信息</h3>
+          <button type="button" class="ua-co-sheet__close" data-sheet-close="invoice" aria-label="关闭">×</button>
+        </div>
+        <div class="ua-co-sheet__body ua-co-invoice">
+          <div class="ua-co-invoice__type">
+            <button type="button" class="ua-co-chip ua-co-chip--active" data-invoice-type="none">不开发票</button>
+            <button type="button" class="ua-co-chip" data-invoice-type="electronic">电子普通发票</button>
+          </div>
+          <div class="ua-co-invoice__form" id="checkoutInvoiceForm" hidden>
+            <div class="ua-co-invoice__label">抬头类型</div>
+            <div class="ua-co-invoice__header-type">
+              <button type="button" class="ua-co-chip ua-co-chip--active" data-invoice-header="company">公司</button>
+              <button type="button" class="ua-co-chip" data-invoice-header="sole">个体工商户</button>
+            </div>
+            <label class="ua-co-field">
+              <span class="ua-co-field__label">抬头名称</span>
+              <input type="text" class="ua-co-field__input" id="checkoutInvoiceTitle" placeholder="请输入抬头名称" value="悠悠生鲜超市">
+            </label>
+            <label class="ua-co-field">
+              <span class="ua-co-field__label">纳税人识别号</span>
+              <input type="text" class="ua-co-field__input" id="checkoutInvoiceTaxNo" placeholder="请输入纳税人识别号" value="91330109MA2XXXXXX">
+            </label>
+            <label class="ua-co-field">
+              <span class="ua-co-field__label">收票人邮箱</span>
+              <input type="email" class="ua-co-field__input" id="checkoutInvoiceEmail" placeholder="请输入邮箱" value="finance@youyou.com">
+            </label>
+          </div>
+        </div>
+        <div class="ua-co-sheet__foot">
+          <button type="button" class="ua-co-sheet__foot-btn ua-co-sheet__foot-btn--primary" id="checkoutInvoiceConfirm">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 支付密码 -->
+    <div class="ua-co-sheet" id="checkoutPaySheet" hidden>
+      <div class="ua-co-sheet__mask" data-sheet-close="pay"></div>
+      <div class="ua-co-sheet__panel ua-co-sheet__panel--pay">
+        <div class="ua-co-pay">
+          <button type="button" class="ua-co-pay__close" data-sheet-close="pay" aria-label="关闭">×</button>
+          <div class="ua-co-pay__title">确认付款</div>
+          <div class="ua-co-pay__amount" id="checkoutPayAmount">¥0.00</div>
+          <div class="ua-co-pay__method">
+            <svg viewBox="0 0 24 24" fill="#09BB07"><circle cx="12" cy="12" r="11"/><path d="M8 10c1.5 2 3 3 4 3s2.5-1 4-3" stroke="#fff" stroke-width="1.5" fill="none"/></svg>
+            微信支付
+          </div>
+          <div class="ua-co-pay__pwd-label">请输入支付密码</div>
+          <div class="ua-co-pay__pwd" id="checkoutPayPwd">
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="ua-co-keypad" id="checkoutKeypad">
+            <button type="button" data-key="1">1</button>
+            <button type="button" data-key="2">2</button>
+            <button type="button" data-key="3">3</button>
+            <button type="button" data-key="4">4</button>
+            <button type="button" data-key="5">5</button>
+            <button type="button" data-key="6">6</button>
+            <button type="button" data-key="7">7</button>
+            <button type="button" data-key="8">8</button>
+            <button type="button" data-key="9">9</button>
+            <button type="button" class="ua-co-keypad__empty" disabled></button>
+            <button type="button" data-key="0">0</button>
+            <button type="button" class="ua-co-keypad__del" data-key="del">⌫</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 支付结果 -->
+    <div class="ua-co-result" id="checkoutResult" hidden>
+      <div class="ua-co-result__body" id="checkoutResultBody"></div>
+    </div>
+  </div>
+  <script src="../js/user-app-checkout.js"></script>
+</body>
+</html>

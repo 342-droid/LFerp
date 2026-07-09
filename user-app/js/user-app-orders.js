@@ -34,6 +34,36 @@
     document.querySelectorAll('.ua-orders-tab[data-tab="review"]').forEach(function (el) {
       el.textContent = '待收货';
     });
+
+    document.querySelectorAll('.ua-order-card[data-status]').forEach(function (card) {
+      var supplierName = card.getAttribute('data-supplier-name');
+      var storeMerchant = card.querySelector('.ua-order-merchant--store');
+      var supplierMerchant = card.querySelector('.ua-order-merchant--supplier');
+      var supplierEl = card.querySelector('.ua-order-supplier');
+
+      if (supplierName && supplierEl) {
+        supplierEl.textContent = supplierName;
+      }
+
+      if (storeMerchant) storeMerchant.hidden = true;
+      if (supplierMerchant) supplierMerchant.hidden = false;
+    });
+
+    document.querySelectorAll('.ua-order-card[data-detail-status]').forEach(function (card) {
+      var detailStatus = card.getAttribute('data-detail-status');
+      var supplier = card.getAttribute('data-supplier-name') || '';
+      var closedReason = card.getAttribute('data-closed-reason');
+      if (!detailStatus) return;
+      var href =
+        'order-detail.html?status=' +
+        encodeURIComponent(detailStatus) +
+        (isFromRestock() ? '&from=restock.html' : '') +
+        (supplier ? '&supplier=' + encodeURIComponent(supplier) : '') +
+        (closedReason ? '&reason=' + encodeURIComponent(closedReason) : '');
+      card.querySelectorAll('a[href*="order-detail.html"]').forEach(function (link) {
+        link.setAttribute('href', href);
+      });
+    });
   }
 
   function setActiveTab(tab, tabs) {

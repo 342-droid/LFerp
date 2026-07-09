@@ -43,10 +43,11 @@
       </header>
 
       <div class="ua-orders-list">
-        <article class="ua-order-card" data-status="pickup">
+        <article class="ua-order-card" data-status="pickup" data-supplier-name="冷丰优选供应链">
           <a href="order-detail-pickup.html" class="ua-order-card--link">
             <div class="ua-order-card__head">
-              <span class="ua-order-store">悠悠生鲜超市</span>
+              <span class="ua-order-merchant ua-order-merchant--store"><span class="ua-order-store">悠悠生鲜超市</span></span>
+              <span class="ua-order-merchant ua-order-merchant--supplier" hidden><span class="ua-order-supplier">冷丰优选供应链</span></span>
               <span class="ua-order-status ua-order-status--red">待提货</span>
             </div>
             <div class="ua-order-card__body">
@@ -72,10 +73,11 @@
           </div>
         </article>
 
-        <article class="ua-order-card" data-status="pickup">
+        <article class="ua-order-card" data-status="pickup" data-supplier-name="冷丰优选供应链">
           <a href="order-detail-pickup.html" class="ua-order-card--link">
             <div class="ua-order-card__head">
-              <span class="ua-order-store">悠悠生鲜超市</span>
+              <span class="ua-order-merchant ua-order-merchant--store"><span class="ua-order-store">悠悠生鲜超市</span></span>
+              <span class="ua-order-merchant ua-order-merchant--supplier" hidden><span class="ua-order-supplier">冷丰优选供应链</span></span>
               <span class="ua-order-status ua-order-status--red">待提货</span>
             </div>
             <div class="ua-order-card__body">
@@ -100,114 +102,180 @@
           </div>
         </article>
 
-        <article class="ua-order-card" data-status="unpaid">
-          <div class="ua-order-card__head">
-            <span class="ua-order-store">悠悠生鲜超市</span>
-            <span class="ua-order-status">待付款</span>
-          </div>
-          <div class="ua-order-card__body">
-            <div class="ua-order-imgs">
-              <img src="../assets/order-product-4.svg" alt="">
+        <article class="ua-order-card" data-status="unpaid" data-supplier-name="鲜丰蔬菜批发" data-detail-status="unpaid">
+          <a href="order-detail.html?status=unpaid" class="ua-order-card--link">
+            <div class="ua-order-card__head">
+              <span class="ua-order-merchant ua-order-merchant--store"><span class="ua-order-store">悠悠生鲜超市</span></span>
+              <span class="ua-order-merchant ua-order-merchant--supplier" hidden><span class="ua-order-supplier">鲜丰蔬菜批发</span></span>
+              <span class="ua-order-status">待付款</span>
             </div>
-            <div class="ua-order-sum">
-              <div class="ua-order-price"><small>¥</small>99<small>.18</small></div>
-              <div class="ua-order-count">共1件</div>
+            <div class="ua-order-card__body">
+              <div class="ua-order-imgs">
+                <img src="../assets/order-product-4.svg" alt="">
+              </div>
+              <div class="ua-order-sum">
+                <div class="ua-order-price"><small>¥</small>99<small>.18</small></div>
+                <div class="ua-order-count">共1件</div>
+              </div>
             </div>
-          </div>
+          </a>
           <div class="ua-order-card__foot">
             <div class="ua-order-meta">
               <span class="ua-order-date">2026-03-10 19:06</span>
               <span class="ua-order-timer">14:34:01</span>
             </div>
             <div class="ua-order-actions">
-              <a href="#" class="ua-order-btn ua-order-btn--outline">查看详情</a>
-              <a href="#" class="ua-order-btn ua-order-btn--primary">去付款</a>
+              <a href="order-detail.html?status=unpaid" class="ua-order-btn ua-order-btn--outline">查看详情</a>
+              <a href="order-detail.html?status=unpaid" class="ua-order-btn ua-order-btn--primary">去付款</a>
             </div>
           </div>
         </article>
 
-        <article class="ua-order-card" data-status="completed">
-          <div class="ua-order-card__head">
-            <span class="ua-order-store">悠悠生鲜超市</span>
-            <span class="ua-order-status">已完成</span>
-          </div>
-          <div class="ua-order-card__body">
-            <div class="ua-order-imgs">
-              <img src="../assets/order-product-1.svg" alt="">
-              <img src="../assets/order-product-2.svg" alt="">
-              <img src="../assets/order-product-3.svg" alt="">
-            </div>
-            <div class="ua-order-sum">
-              <div class="ua-order-price"><small>¥</small>128<small>.18</small></div>
-              <div class="ua-order-count">共3件</div>
-            </div>
-          </div>
-          <div class="ua-order-card__foot">
-            <div class="ua-order-meta">
-              <span class="ua-order-date">2026-03-10 19:06</span>
-            </div>
-            <div class="ua-order-actions">
-              <a href="#" class="ua-order-btn ua-order-btn--outline">查看详情</a>
-            </div>
-          </div>
-        </article>
-
-        <article class="ua-order-card" data-status="refunded">
-          <div class="ua-order-card__head">
-            <span class="ua-order-store">悠悠生鲜超市</span>
-            <span class="ua-order-status">已退款</span>
-          </div>
-          <div class="ua-order-card__body">
-            <div class="ua-order-imgs">
-              <img src="../assets/order-product-2.svg" alt="">
-              <img src="../assets/order-product-3.svg" alt="">
-            </div>
-            <div class="ua-order-sum">
-              <div class="ua-order-price"><small>¥</small>128<small>.18</small></div>
-              <div class="ua-order-count">共2件</div>
-            </div>
-          </div>
-          <div class="ua-order-card__foot">
-            <div class="ua-order-meta">
-              <span class="ua-order-date">2026-03-10 19:06</span>
-            </div>
-            <div class="ua-order-actions">
-              <a href="#" class="ua-order-btn ua-order-btn--outline">查看详情</a>
-            </div>
-          </div>
-        </article>
-
-        <article class="ua-order-card" data-status="cancelled">
-          <div class="ua-order-card__head">
-            <span class="ua-order-store">悠悠生鲜超市</span>
-            <span class="ua-order-status">已取消</span>
-          </div>
-          <div class="ua-order-card__body">
-            <div class="ua-order-imgs">
-              <img src="../assets/order-product-1.svg" alt="">
-              <img src="../assets/order-product-2.svg" alt="">
-              <img src="../assets/order-product-3.svg" alt="">
-              <img src="../assets/order-product-4.svg" alt="">
-            </div>
-            <div class="ua-order-sum">
-              <div class="ua-order-price"><small>¥</small>128<small>.18</small></div>
-              <div class="ua-order-count">共5件</div>
-            </div>
-          </div>
-          <div class="ua-order-card__foot">
-            <div class="ua-order-meta">
-              <span class="ua-order-date">2026-03-10 19:06</span>
-            </div>
-            <div class="ua-order-actions">
-              <a href="#" class="ua-order-btn ua-order-btn--outline">查看详情</a>
-            </div>
-          </div>
-        </article>
-
-        <article class="ua-order-card" data-status="shipping">
-          <a href="order-detail-shipping.html" class="ua-order-card--link">
+        <article class="ua-order-card" data-status="review" data-supplier-name="江南果蔬批发" data-detail-status="receipt">
+          <a href="order-detail.html?status=receipt" class="ua-order-card--link">
             <div class="ua-order-card__head">
-              <span class="ua-order-store">悠悠生鲜超市</span>
+              <span class="ua-order-merchant ua-order-merchant--store"><span class="ua-order-store">悠悠生鲜超市</span></span>
+              <span class="ua-order-merchant ua-order-merchant--supplier" hidden><span class="ua-order-supplier">江南果蔬批发</span></span>
+              <span class="ua-order-status ua-order-status--red">待收货</span>
+            </div>
+            <div class="ua-order-card__body">
+              <div class="ua-order-imgs">
+                <img src="../assets/order-detail-cherry.svg" alt="">
+                <img src="../assets/order-product-2.svg" alt="">
+              </div>
+              <div class="ua-order-sum">
+                <div class="ua-order-price"><small>¥</small>36<small>.00</small></div>
+                <div class="ua-order-count">共2件</div>
+              </div>
+            </div>
+          </a>
+          <div class="ua-order-card__foot">
+            <div class="ua-order-meta">
+              <span class="ua-order-date">2026-03-08 14:32</span>
+            </div>
+            <div class="ua-order-actions">
+              <a href="order-detail.html?status=receipt" class="ua-order-btn ua-order-btn--outline">查看详情</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="ua-order-card" data-status="completed" data-supplier-name="华东冷链供应商" data-detail-status="completed">
+          <a href="order-detail.html?status=completed" class="ua-order-card--link">
+            <div class="ua-order-card__head">
+              <span class="ua-order-merchant ua-order-merchant--store"><span class="ua-order-store">悠悠生鲜超市</span></span>
+              <span class="ua-order-merchant ua-order-merchant--supplier" hidden><span class="ua-order-supplier">华东冷链供应商</span></span>
+              <span class="ua-order-status">已完成</span>
+            </div>
+            <div class="ua-order-card__body">
+              <div class="ua-order-imgs">
+                <img src="../assets/order-product-1.svg" alt="">
+                <img src="../assets/order-product-2.svg" alt="">
+                <img src="../assets/order-product-3.svg" alt="">
+              </div>
+              <div class="ua-order-sum">
+                <div class="ua-order-price"><small>¥</small>128<small>.18</small></div>
+                <div class="ua-order-count">共3件</div>
+              </div>
+            </div>
+          </a>
+          <div class="ua-order-card__foot">
+            <div class="ua-order-meta">
+              <span class="ua-order-date">2026-03-10 19:06</span>
+            </div>
+            <div class="ua-order-actions">
+              <a href="order-detail.html?status=completed" class="ua-order-btn ua-order-btn--outline">查看详情</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="ua-order-card" data-status="closed-timeout" data-supplier-name="江南果蔬批发" data-detail-status="closed" data-closed-reason="timeout">
+          <a href="order-detail.html?status=closed&amp;reason=timeout" class="ua-order-card--link">
+            <div class="ua-order-card__head">
+              <span class="ua-order-merchant ua-order-merchant--store"><span class="ua-order-store">悠悠生鲜超市</span></span>
+              <span class="ua-order-merchant ua-order-merchant--supplier" hidden><span class="ua-order-supplier">江南果蔬批发</span></span>
+              <span class="ua-order-status">已关闭</span>
+            </div>
+            <div class="ua-order-card__body">
+              <div class="ua-order-imgs">
+                <img src="../assets/order-product-3.svg" alt="">
+              </div>
+              <div class="ua-order-sum">
+                <div class="ua-order-price"><small>¥</small>52<small>.00</small></div>
+                <div class="ua-order-count">共1件</div>
+              </div>
+            </div>
+          </a>
+          <div class="ua-order-card__foot">
+            <div class="ua-order-meta">
+              <span class="ua-order-date">2026-03-07 10:20</span>
+            </div>
+            <div class="ua-order-actions">
+              <a href="order-detail.html?status=closed&amp;reason=timeout" class="ua-order-btn ua-order-btn--outline">查看详情</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="ua-order-card" data-status="closed-cancel" data-supplier-name="浙北食材供应商" data-detail-status="closed" data-closed-reason="cancel">
+          <a href="order-detail.html?status=closed&amp;reason=cancel" class="ua-order-card--link">
+            <div class="ua-order-card__head">
+              <span class="ua-order-merchant ua-order-merchant--store"><span class="ua-order-store">悠悠生鲜超市</span></span>
+              <span class="ua-order-merchant ua-order-merchant--supplier" hidden><span class="ua-order-supplier">浙北食材供应商</span></span>
+              <span class="ua-order-status">已关闭</span>
+            </div>
+            <div class="ua-order-card__body">
+              <div class="ua-order-imgs">
+                <img src="../assets/order-product-1.svg" alt="">
+                <img src="../assets/order-product-2.svg" alt="">
+              </div>
+              <div class="ua-order-sum">
+                <div class="ua-order-price"><small>¥</small>86<small>.50</small></div>
+                <div class="ua-order-count">共2件</div>
+              </div>
+            </div>
+          </a>
+          <div class="ua-order-card__foot">
+            <div class="ua-order-meta">
+              <span class="ua-order-date">2026-03-08 16:45</span>
+            </div>
+            <div class="ua-order-actions">
+              <a href="order-detail.html?status=closed&amp;reason=cancel" class="ua-order-btn ua-order-btn--outline">查看详情</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="ua-order-card" data-status="closed-refund" data-supplier-name="杭州鲜配中心" data-detail-status="closed" data-closed-reason="refund">
+          <a href="order-detail.html?status=closed&amp;reason=refund" class="ua-order-card--link">
+            <div class="ua-order-card__head">
+              <span class="ua-order-merchant ua-order-merchant--store"><span class="ua-order-store">悠悠生鲜超市</span></span>
+              <span class="ua-order-merchant ua-order-merchant--supplier" hidden><span class="ua-order-supplier">杭州鲜配中心</span></span>
+              <span class="ua-order-status">已关闭</span>
+            </div>
+            <div class="ua-order-card__body">
+              <div class="ua-order-imgs">
+                <img src="../assets/order-product-2.svg" alt="">
+                <img src="../assets/order-product-4.svg" alt="">
+              </div>
+              <div class="ua-order-sum">
+                <div class="ua-order-price"><small>¥</small>118<small>.00</small></div>
+                <div class="ua-order-count">共2件</div>
+              </div>
+            </div>
+          </a>
+          <div class="ua-order-card__foot">
+            <div class="ua-order-meta">
+              <span class="ua-order-date">2026-03-06 09:15</span>
+            </div>
+            <div class="ua-order-actions">
+              <a href="order-detail.html?status=closed&amp;reason=refund" class="ua-order-btn ua-order-btn--outline">查看详情</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="ua-order-card" data-status="shipping" data-supplier-name="冷丰优选供应链" data-detail-status="shipping">
+          <a href="order-detail.html?status=shipping" class="ua-order-card--link">
+            <div class="ua-order-card__head">
+              <span class="ua-order-merchant ua-order-merchant--store"><span class="ua-order-store">悠悠生鲜超市</span></span>
+              <span class="ua-order-merchant ua-order-merchant--supplier" hidden><span class="ua-order-supplier">冷丰优选供应链</span></span>
               <span class="ua-order-status">待发货</span>
             </div>
             <div class="ua-order-card__body">
@@ -225,7 +293,7 @@
               <span class="ua-order-date">2026-03-05 15:56</span>
             </div>
             <div class="ua-order-actions">
-              <a href="order-detail-shipping.html" class="ua-order-btn ua-order-btn--outline">查看详情</a>
+              <a href="order-detail.html?status=shipping" class="ua-order-btn ua-order-btn--outline">查看详情</a>
             </div>
           </div>
         </article>
