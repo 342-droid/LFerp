@@ -2570,21 +2570,3 @@
   text-align: center;
   white-space: nowrap;
 }
-
-.ua-restock-me-brand {
-  padding: 28px 16px 20px;
-  text-align: center;
-}
-
-.ua-restock-me-brand__name {
-  font-size: 22px;
-  font-weight: 600;
-  color: #ccc;
-  letter-spacing: 2px;
-}
-
-.ua-restock-me-brand__slogan {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #ccc;
-}
