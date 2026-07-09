@@ -2041,6 +2041,85 @@
   opacity: 0.85;
 }
 
+.ua-restock-cart-delete-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 36px;
+}
+
+.ua-restock-cart-delete-modal[hidden] {
+  display: none !important;
+}
+
+.ua-restock-cart-delete-modal__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.ua-restock-cart-delete-modal__panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 300px;
+  padding: 24px 20px 20px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.ua-restock-cart-delete-modal__title {
+  margin: 0 0 14px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #333;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.ua-restock-cart-delete-modal__text {
+  margin: 0 0 22px;
+  font-size: 15px;
+  color: #333;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.ua-restock-cart-delete-modal__actions {
+  display: flex;
+  gap: 12px;
+}
+
+.ua-restock-cart-delete-modal__btn {
+  flex: 1;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ua-restock-cart-delete-modal__btn--cancel {
+  border: 1px solid #ff4d30;
+  background: #fff;
+  color: #ff4d30;
+}
+
+.ua-restock-cart-delete-modal__btn--confirm {
+  border: none;
+  background: #ff4d30;
+  color: #fff;
+}
+
+.ua-restock-cart-delete-modal__btn--confirm:active {
+  background: #e6452b;
+}
+
 .ua-restock-cart-qty {
   display: flex;
   align-items: center;
