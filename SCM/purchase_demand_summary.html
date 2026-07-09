@@ -82,19 +82,6 @@
             overflow: auto;
         }
 
-        .po-preview-summary {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 18px;
-            margin-bottom: 12px;
-            font-size: 13px;
-            color: #333;
-        }
-
-        .po-preview-summary strong {
-            color: #111;
-        }
-
         .po-preview-edit-input {
             width: 100%;
             min-width: 70px;
@@ -515,10 +502,6 @@
                 </div>
                 <div class="detail-section">
                     <div class="detail-section-title">采购单预览列表</div>
-                </div>
-                <div class="po-preview-summary" style="margin-top: -6px;">
-                    <div>生成维度：<strong id="poPreviewDimensionLabel">-</strong></div>
-                    <div>生成采购单：<strong id="poPreviewCount">0</strong> 单</div>
                 </div>
                 <div class="detail-table-wrap table-scroll-container">
                     <table class="table no-last-column-freeze">
@@ -1286,7 +1269,7 @@
 
     function renderPoPreviewRowTail(row) {
         return '<td>' + escapeHtml(String(row.lineCount)) + '</td>' +
-            '<td>' + escapeHtml(formatQtyWithUnit(row.pendingQtySum, row.qtyUnit)) + '</td>' +
+            '<td>' + escapeHtml(row.pendingQtySum == null || row.pendingQtySum === '' ? '-' : String(row.pendingQtySum)) + '</td>' +
             '<td>' + escapeHtml(formatMoney(row.purchaseAmountSum)) + '</td>' +
             '<td>' + escapeHtml(formatMoney(row.salesAmountSum)) + '</td>' +
             '<td>' + escapeHtml(formatMoney(row.prepaidAmountSum)) + '</td>';
@@ -1295,8 +1278,6 @@
     function renderPoPreviewFromRows(dim, rows) {
         var infoBox = document.getElementById('poPreviewInfo');
         var amountBox = document.getElementById('poPreviewAmount');
-        var dimLabelEl = document.getElementById('poPreviewDimensionLabel');
-        var countEl = document.getElementById('poPreviewCount');
         var tbody = document.getElementById('poPreviewTbody');
         var confirmBtn = document.getElementById('generatePoPreviewConfirmBtn');
         if (!tbody) return;
@@ -1315,8 +1296,6 @@
             return sum + (Number(row.salesAmountSum) || 0);
         }, 0);
         var totalProfit = totalPurchaseAmount - totalSalesAmount;
-        if (dimLabelEl) dimLabelEl.textContent = dimLabel;
-        if (countEl) countEl.textContent = String(rows.length);
         if (infoBox) {
             infoBox.innerHTML = [
                 detailInfoItemHtml('生成维度', dimLabel),
@@ -1326,7 +1305,7 @@
         }
         if (amountBox) {
             amountBox.innerHTML = [
-                detailInfoItemHtml('待采购量合计', formatQtyWithUnit(totalPendingQty, '件')),
+                detailInfoItemHtml('待采购量合计', totalPendingQty == null || totalPendingQty === '' ? '-' : String(totalPendingQty)),
                 detailInfoItemHtml('采购总价', formatMoney(totalPurchaseAmount)),
                 detailInfoItemHtml('销售总价', formatMoney(totalSalesAmount)),
                 detailInfoItemHtml('预估利润', formatMoney(totalProfit))

@@ -216,7 +216,6 @@
                 <div id="cartonDetailContent" style="display: none;">
                     <form class="modal-form">
                         <div class="modal-form-group"><label>包裹号</label><input type="text" id="d_cartonNo" disabled></div>
-                        <div class="modal-form-group"><label>出库单号</label><input type="text" id="d_outboundNos" disabled></div>
                         <div class="modal-form-group"><label>包裹状态</label><input type="text" id="d_status" disabled></div>
                         <div class="modal-form-group"><label>站点</label><input type="text" id="d_site" disabled></div>
                         <div class="modal-form-group"><label>站点类型</label><input type="text" id="d_siteType" disabled></div>
@@ -426,7 +425,6 @@
 
         function fillDetail(row) {
             document.getElementById('d_cartonNo').value = row.cartonNo || '';
-            document.getElementById('d_outboundNos').value = row.outboundOrderNos || '';
             document.getElementById('d_status').value = row.cartonStatus || '';
             document.getElementById('d_site').value = formatSiteDisplay(row.siteCode, row.siteName);
             document.getElementById('d_siteType').value = row.siteType || '';
