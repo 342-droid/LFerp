@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>订单跟踪 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-order-logistics.css">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-order-logistics-page" id="orderLogisticsShell">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-ol-scroll">
+      <div class="ua-status-bar">
+        <span>9:41</span>
+        <span class="ua-status-bar__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#111"><path d="M1 7h2v4H1V7zm4-2h2v6H5V5zm4-3h2v9H9V2zm4 5h2v4h-2V7z"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="#111"><path d="M8 2.4C10.8 2.4 13.2 3.6 15 5.6 15.2 5.8 15.5 5.8 15.7 5.6 15.9 5.4 15.9 5.1 15.7 4.9 13.6 2.6 10.9 1.2 8 1.2S2.4 2.6.3 4.9C.1 5.1.1 5.4.3 5.6.5 5.8.8 5.8 1 5.6 2.8 3.6 5.2 2.4 8 2.4z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="20" height="11" rx="2.5" stroke="#111" opacity=".35"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#111"/><path d="M22 4.5v3a1.5 1.5 0 000-3z" fill="#111" opacity=".4"/></svg>
+        </span>
+      </div>
+
+      <header class="ua-ol-nav">
+        <a href="order-detail.html" class="ua-ol-nav__back" id="orderLogisticsBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="ua-ol-nav__title">订单跟踪</h1>
+        <div class="ua-ol-nav__actions">
+          <button type="button" class="ua-ol-nav__icon" aria-label="更多">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+          </button>
+          <button type="button" class="ua-ol-nav__icon ua-ol-nav__icon--close" aria-label="关闭">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="ua-ol-body">
+        <h2 class="ua-ol-status" id="logisticsMainStatus">已签收</h2>
+
+        <section class="ua-ol-card">
+          <div class="ua-ol-products" id="logisticsProducts">
+            <div class="ua-ol-products__scroll">
+              <div class="ua-ol-products__item">
+                <img src="../assets/order-product-1.svg" alt="">
+              </div>
+              <div class="ua-ol-products__item ua-ol-products__item--badge">
+                <img src="../assets/order-product-2.svg" alt="">
+                <span class="ua-ol-products__badge">2</span>
+              </div>
+              <div class="ua-ol-products__item">
+                <img src="../assets/order-detail-cherry.svg" alt="">
+              </div>
+              <div class="ua-ol-products__item">
+                <img src="../assets/restock/product-leaf.svg" alt="">
+              </div>
+              <div class="ua-ol-products__item">
+                <img src="../assets/restock/product-tomato.svg" alt="">
+              </div>
+            </div>
+            <div class="ua-ol-products__total">共7件</div>
+          </div>
+
+          <div class="ua-ol-courier">
+            <span class="ua-ol-courier__name" id="logisticsCourierName">申通快递</span>
+            <span class="ua-ol-courier__no" id="logisticsTrackingNo">773075059702651</span>
+            <button type="button" class="ua-ol-courier__copy" id="logisticsCopyBtn" aria-label="复制运单号">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>
+            </button>
+          </div>
+
+          <div class="ua-ol-timeline" id="logisticsTimeline"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+  <script src="../js/user-app-order-logistics.js"></script>
+  <script src="../js/user-app-auth.js"></script>
+</body>
+</html>

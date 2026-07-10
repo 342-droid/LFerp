@@ -54,6 +54,7 @@
       var supplier = card.getAttribute('data-supplier-name') || '';
       var closedReason = card.getAttribute('data-closed-reason');
       var cutoff = card.getAttribute('data-cutoff');
+      var delivery = card.getAttribute('data-delivery');
       if (!detailStatus) return;
       var href =
         'order-detail.html?status=' +
@@ -61,7 +62,8 @@
         (isFromRestock() ? '&from=restock.html' : '') +
         (supplier ? '&supplier=' + encodeURIComponent(supplier) : '') +
         (closedReason ? '&reason=' + encodeURIComponent(closedReason) : '') +
-        (cutoff ? '&cutoff=' + encodeURIComponent(cutoff) : '');
+        (cutoff ? '&cutoff=' + encodeURIComponent(cutoff) : '') +
+        (delivery ? '&delivery=' + encodeURIComponent(delivery) : '');
       card.querySelectorAll('a[href*="order-detail.html"]').forEach(function (link) {
         link.setAttribute('href', href);
       });
