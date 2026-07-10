@@ -53,13 +53,15 @@
       var detailStatus = card.getAttribute('data-detail-status');
       var supplier = card.getAttribute('data-supplier-name') || '';
       var closedReason = card.getAttribute('data-closed-reason');
+      var cutoff = card.getAttribute('data-cutoff');
       if (!detailStatus) return;
       var href =
         'order-detail.html?status=' +
         encodeURIComponent(detailStatus) +
         (isFromRestock() ? '&from=restock.html' : '') +
         (supplier ? '&supplier=' + encodeURIComponent(supplier) : '') +
-        (closedReason ? '&reason=' + encodeURIComponent(closedReason) : '');
+        (closedReason ? '&reason=' + encodeURIComponent(closedReason) : '') +
+        (cutoff ? '&cutoff=' + encodeURIComponent(cutoff) : '');
       card.querySelectorAll('a[href*="order-detail.html"]').forEach(function (link) {
         link.setAttribute('href', href);
       });
