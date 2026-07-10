@@ -18,8 +18,8 @@
       showLogistics: false,
       showPoints: false,
       showPayMethod: true,
-      itemActions: 'refund-aftersale',
-      footer: [{ label: '申请退款', type: 'ghost', action: 'refund', single: true }]
+      itemActions: 'refund',
+      footer: []
     },
     receipt: {
       title: '商家已发货',
@@ -28,7 +28,7 @@
       showStoreDelivery: true,
       showPoints: false,
       showPayMethod: true,
-      itemActions: 'aftersale',
+      itemActions: 'refund',
       footer: [{ label: '确认收货', type: 'primary', action: 'confirm', single: true }]
     },
     completed: {
@@ -139,6 +139,22 @@
     return STATUS_CONFIG[status] ? status : 'unpaid';
   }
 
+  function isPlatformCutoffPassed() {
+    var cutoff = (getParams().get('cutoff') || 'before').trim();
+    return cutoff === 'after';
+  }
+
+  function applyShippingFooter(status, config) {
+    if (status !== 'shipping') return config;
+    config = Object.assign({}, config);
+    if (!isPlatformCutoffPassed()) {
+      config.footer = [{ label: '取消订单', type: 'ghost', action: 'cancel', single: true }];
+    } else {
+      config.footer = [];
+    }
+    return config;
+  }
+
   function toast(msg) {
     window.alert(msg + '（演示）');
   }
@@ -155,9 +171,9 @@
     primary.innerHTML = '';
     secondary.innerHTML = '';
 
-    if (mode === 'refund-aftersale') {
-      primary.innerHTML = makeBtn('申请退款') + makeBtn('申请售后');
-      secondary.innerHTML = makeBtn('申请售后');
+    if (mode === 'refund') {
+      primary.innerHTML = makeBtn('申请退款');
+      secondary.innerHTML = makeBtn('申请退款');
       return;
     }
 
@@ -305,6 +321,14 @@
     document.getElementById('orderDetailShell') &&
       document.getElementById('orderDetailShell').setAttribute('data-order-status', status);
 
+    if (status === 'shipping') {
+      document.getElementById('orderDetailShell') &&
+        document.getElementById('orderDetailShell').setAttribute(
+          'data-cutoff-passed',
+          isPlatformCutoffPassed() ? 'true' : 'false'
+        );
+    }
+
     var supplier = getParams().get('supplier');
     if (supplier) {
       var shopNameEl = document.getElementById('orderShopName');
@@ -316,6 +340,7 @@
     }
 
     config = applyClosedReason(config);
+    config = applyShippingFooter(status, config);
 
     var titleEl = document.getElementById('orderStatusTitle');
     var subEl = document.getElementById('orderStatusSub');
