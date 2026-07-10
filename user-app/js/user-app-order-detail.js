@@ -130,6 +130,60 @@
     return new URLSearchParams(window.location.search);
   }
 
+  function getDeliveryType() {
+    var delivery = (getParams().get('delivery') || '').trim();
+    if (delivery === 'store' || delivery === 'warehouse') return delivery;
+    return 'warehouse';
+  }
+
+  function isStoreDirectDelivery() {
+    return getDeliveryType() === 'store';
+  }
+
+  function buildLogisticsHref() {
+    var params = getParams();
+    var href = 'order-logistics.html?';
+    var qs = [];
+    if (params.get('from')) qs.push('from=' + encodeURIComponent(params.get('from')));
+    qs.push('status=' + encodeURIComponent(getStatus()));
+    if (params.get('supplier')) qs.push('supplier=' + encodeURIComponent(params.get('supplier')));
+    if (params.get('delivery')) qs.push('delivery=' + encodeURIComponent(params.get('delivery')));
+    if (params.get('cutoff')) qs.push('cutoff=' + encodeURIComponent(params.get('cutoff')));
+    if (params.get('reason')) qs.push('reason=' + encodeURIComponent(params.get('reason')));
+    return href + qs.join('&');
+  }
+
+  function applyStoreExpressCard(status) {
+    var expressCard = document.getElementById('orderExpressCard');
+    var logisticsBtn = document.getElementById('orderExpressLogisticsBtn');
+    if (!expressCard) return;
+
+    var showExpress = isFromRestock() && status === 'receipt' && isStoreDirectDelivery();
+    expressCard.hidden = !showExpress;
+
+    if (logisticsBtn && showExpress) {
+      logisticsBtn.setAttribute('href', buildLogisticsHref());
+    }
+  }
+
+  function applyDeliveryMode(status, config) {
+    if (!isFromRestock() || status !== 'receipt') return config;
+
+    config = Object.assign({}, config);
+
+    if (isStoreDirectDelivery()) {
+      config.showStoreDelivery = false;
+      config.title = '快递配送到店';
+      config.sub = '还剩14天23小时自动确认收货';
+    } else {
+      config.showStoreDelivery = true;
+      config.title = '配送到门店';
+      config.sub = '还剩14天23小时自动确认收货';
+    }
+
+    return config;
+  }
+
   function isFromRestock() {
     return getParams().get('from') === 'restock.html';
   }
@@ -244,6 +298,8 @@
       }
     }
 
+    applyStoreExpressCard(status);
+
     var backEl = document.getElementById('orderDetailBack');
     if (backEl) {
       var href = 'orders.html?from=restock.html';
@@ -337,6 +393,7 @@
 
     if (isFromRestock()) {
       config = applyRestockMode(status, config);
+      config = applyDeliveryMode(status, config);
     }
 
     config = applyClosedReason(config);
@@ -370,6 +427,8 @@
         if (timeEl) timeEl.textContent = '预计 2026-03-09 18:00 前送达门店';
       }
     }
+
+    applyStoreExpressCard(status);
 
     var pointsCard = document.getElementById('orderPointsCard');
     if (pointsCard) pointsCard.hidden = !config.showPoints;

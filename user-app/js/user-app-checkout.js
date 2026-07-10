@@ -5,6 +5,11 @@
 
   var PLATFORM_FREIGHT = { threshold: 399, fee: 6 };
 
+  /** 供应商直配到门店（到店）；其余经仓库分拣为仓配 */
+  var DIRECT_TO_STORE_SUPPLIERS = {
+    'supplier-xianfeng': true
+  };
+
   var WAREHOUSE_RULES = {
     'supplier-jiangnan': [
       { id: 'wh-xiaoshan', name: '杭州萧山仓', match: /eggplant/ },
@@ -75,6 +80,7 @@
               id: 'pkg-jn-1',
               warehouseId: 'wh-xiaoshan',
               warehouse: '杭州萧山仓',
+              deliveryType: 'warehouse',
               deliveryTime: '今天 14:00-16:00',
               remark: '',
               items: [
@@ -92,6 +98,7 @@
               id: 'pkg-jn-2',
               warehouseId: 'wh-yuhang',
               warehouse: '杭州余杭仓',
+              deliveryType: 'warehouse',
               deliveryTime: '',
               remark: '',
               items: [
@@ -131,6 +138,7 @@
               id: 'pkg-xf-1',
               warehouseId: 'wh-xf-hz',
               warehouse: '鲜丰杭州仓',
+              deliveryType: 'store',
               deliveryTime: '',
               remark: '',
               items: [
@@ -165,6 +173,14 @@
     return rules[rules.length - 1];
   }
 
+  function resolveDeliveryType(supplierId) {
+    return DIRECT_TO_STORE_SUPPLIERS[supplierId] ? 'store' : 'warehouse';
+  }
+
+  function getPackageDeliveryLabel(pkg) {
+    return pkg.deliveryType === 'store' ? '到店' : '仓配';
+  }
+
   function buildCheckoutFromItems(items, store) {
     var supplierMap = {};
     items.forEach(function (item) {
@@ -174,12 +190,13 @@
         supplierMap[sid] = { id: sid, name: sname, packages: {} };
       }
       var wh = resolveWarehouse(sid, item);
-      var pkgKey = wh.id;
+      var pkgKey = resolveDeliveryType(sid) + ':' + wh.id;
       if (!supplierMap[sid].packages[pkgKey]) {
         supplierMap[sid].packages[pkgKey] = {
           id: 'pkg-' + sid + '-' + wh.id,
           warehouseId: wh.id,
           warehouse: wh.name,
+          deliveryType: resolveDeliveryType(sid),
           deliveryTime: '',
           remark: '',
           items: []
@@ -373,7 +390,9 @@
       '<div class="ua-co-package__head">' +
       '<span class="ua-co-package__label">包裹' +
       (pkgIndex + 1) +
-      '（配送）</span>' +
+      '（' +
+      getPackageDeliveryLabel(pkg) +
+      '）</span>' +
       '<button type="button" class="ua-co-package__time' +
       (pkg.deliveryTime ? ' ua-co-package__time--picked' : '') +
       '" data-time-pkg="' +
