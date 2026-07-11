@@ -355,9 +355,26 @@
         {
           key: 'color',
           label: '颜色',
+          display: 'grid',
           options: [
-            { value: 'black', label: '黑色' },
-            { value: 'red', label: '红色' }
+            {
+              value: 'black',
+              label: '黑色',
+              img: '../assets/restock/product-eggplant-long.svg',
+              tags: [
+                { label: '冷藏配送', tone: 'blue' },
+                { label: '产地直发', tone: 'purple' }
+              ]
+            },
+            {
+              value: 'red',
+              label: '红色',
+              img: '../assets/restock/product-eggplant-long.svg',
+              tags: [
+                { label: '冷藏配送', tone: 'blue' },
+                { label: '产地直发', tone: 'purple' }
+              ]
+            }
           ]
         },
         {
@@ -365,17 +382,9 @@
           label: '规格',
           skuKey: true,
           options: [
-            { value: 'eggplant-long-5', label: '5斤', specId: 'eggplant-long-5', priceNum: 21, available: false },
-            { value: 'eggplant-long-10', label: '10斤', specId: 'eggplant-long-10', priceNum: 40, available: true },
-            { value: 'eggplant-long-20', label: '20斤', specId: 'eggplant-long-20', priceNum: 78, available: true }
-          ]
-        },
-        {
-          key: 'gift',
-          label: '包装礼盒(免费)',
-          options: [
-            { value: 'joy', label: '喜气洋洋' },
-            { value: 'abundance', label: '年年有余' }
+            { value: 'eggplant-long-5', label: '5斤', specId: 'eggplant-long-5', priceNum: 21, available: false, stock: 0 },
+            { value: 'eggplant-long-10', label: '10斤', specId: 'eggplant-long-10', priceNum: 40, available: true, stock: 9994 },
+            { value: 'eggplant-long-20', label: '20斤', specId: 'eggplant-long-20', priceNum: 78, available: true, stock: 5620 }
           ]
         }
       ],
@@ -392,9 +401,26 @@
         {
           key: 'color',
           label: '颜色',
+          display: 'grid',
           options: [
-            { value: 'purple', label: '紫色' },
-            { value: 'black', label: '黑色' }
+            {
+              value: 'purple',
+              label: '紫色',
+              img: '../assets/restock/product-eggplant-round.svg',
+              tags: [
+                { label: '冷链运输', tone: 'blue' },
+                { label: '当日采摘', tone: 'purple' }
+              ]
+            },
+            {
+              value: 'black',
+              label: '黑色',
+              img: '../assets/restock/product-eggplant-round.svg',
+              tags: [
+                { label: '冷链运输', tone: 'blue' },
+                { label: '当日采摘', tone: 'purple' }
+              ]
+            }
           ]
         },
         {
@@ -402,17 +428,9 @@
           label: '规格',
           skuKey: true,
           options: [
-            { value: 'eggplant-round-5', label: '5斤', specId: 'eggplant-round-5', priceNum: 17.5, available: false },
-            { value: 'eggplant-round-10', label: '10斤', specId: 'eggplant-round-10', priceNum: 34, available: false },
-            { value: 'eggplant-round-20', label: '20斤', specId: 'eggplant-round-20', priceNum: 66, available: false }
-          ]
-        },
-        {
-          key: 'gift',
-          label: '包装礼盒(免费)',
-          options: [
-            { value: 'joy', label: '喜气洋洋' },
-            { value: 'abundance', label: '年年有余' }
+            { value: 'eggplant-round-5', label: '5斤', specId: 'eggplant-round-5', priceNum: 17.5, available: false, stock: 0 },
+            { value: 'eggplant-round-10', label: '10斤', specId: 'eggplant-round-10', priceNum: 34, available: false, stock: 0 },
+            { value: 'eggplant-round-20', label: '20斤', specId: 'eggplant-round-20', priceNum: 66, available: false, stock: 0 }
           ]
         }
       ],
@@ -429,9 +447,26 @@
         {
           key: 'color',
           label: '颜色',
+          display: 'grid',
           options: [
-            { value: 'green', label: '翠绿' },
-            { value: 'light', label: '浅绿' }
+            {
+              value: 'green',
+              label: '翠绿',
+              img: '../assets/restock/product-leaf.svg',
+              tags: [
+                { label: '菜鲜直供', tone: 'blue' },
+                { label: '当日发货', tone: 'purple' }
+              ]
+            },
+            {
+              value: 'light',
+              label: '浅绿',
+              img: '../assets/restock/product-leaf.svg',
+              tags: [
+                { label: '菜鲜直供', tone: 'blue' },
+                { label: '当日发货', tone: 'purple' }
+              ]
+            }
           ]
         },
         {
@@ -439,17 +474,17 @@
           label: '规格',
           skuKey: true,
           options: [
-            { value: 'leaf-y1-5', label: '5斤', specId: 'leaf-y1-5', priceNum: 16, available: false },
-            { value: 'leaf-y1-10', label: '10斤', specId: 'leaf-y1-10', priceNum: 30, available: true },
-            { value: 'leaf-y1-20', label: '20斤', specId: 'leaf-y1-20', priceNum: 58, available: true }
+            { value: 'leaf-y1-5', label: '5斤', specId: 'leaf-y1-5', priceNum: 16, available: false, stock: 0 },
+            { value: 'leaf-y1-10', label: '10斤', specId: 'leaf-y1-10', priceNum: 30, available: true, stock: 8860 },
+            { value: 'leaf-y1-20', label: '20斤', specId: 'leaf-y1-20', priceNum: 58, available: true, stock: 4320 }
           ]
         },
         {
-          key: 'gift',
-          label: '包装礼盒(免费)',
+          key: 'cut',
+          label: '切配方式',
           options: [
-            { value: 'joy', label: '喜气洋洋' },
-            { value: 'abundance', label: '年年有余' }
+            { value: 'whole', label: '整棵' },
+            { value: 'half', label: '半切' }
           ]
         }
       ],
@@ -466,9 +501,26 @@
         {
           key: 'color',
           label: '颜色',
+          display: 'grid',
           options: [
-            { value: 'green', label: '翠绿' },
-            { value: 'light', label: '浅绿' }
+            {
+              value: 'green',
+              label: '翠绿',
+              img: '../assets/restock/product-leaf.svg',
+              tags: [
+                { label: '小颗精选', tone: 'blue' },
+                { label: '基地直发', tone: 'purple' }
+              ]
+            },
+            {
+              value: 'light',
+              label: '浅绿',
+              img: '../assets/restock/product-leaf.svg',
+              tags: [
+                { label: '小颗精选', tone: 'blue' },
+                { label: '基地直发', tone: 'purple' }
+              ]
+            }
           ]
         },
         {
@@ -476,17 +528,9 @@
           label: '规格',
           skuKey: true,
           options: [
-            { value: 'leaf-y4-5', label: '5斤', specId: 'leaf-y4-5', priceNum: 20, available: false },
-            { value: 'leaf-y4-10', label: '10斤', specId: 'leaf-y4-10', priceNum: 38, available: false },
-            { value: 'leaf-y4-20', label: '20斤', specId: 'leaf-y4-20', priceNum: 72, available: false }
-          ]
-        },
-        {
-          key: 'gift',
-          label: '包装礼盒(免费)',
-          options: [
-            { value: 'joy', label: '喜气洋洋' },
-            { value: 'abundance', label: '年年有余' }
+            { value: 'leaf-y4-5', label: '5斤', specId: 'leaf-y4-5', priceNum: 20, available: false, stock: 0 },
+            { value: 'leaf-y4-10', label: '10斤', specId: 'leaf-y4-10', priceNum: 38, available: false, stock: 0 },
+            { value: 'leaf-y4-20', label: '20斤', specId: 'leaf-y4-20', priceNum: 72, available: false, stock: 0 }
           ]
         }
       ],
@@ -1012,11 +1056,30 @@
     );
   }
 
+  function isCartItemMultiSpec(item) {
+    var spu = item.spuId ? getSpuById(item.spuId) : null;
+    if (!spu) {
+      var found = findSpuBySpecId(item.id);
+      spu = found ? found.spu : null;
+    }
+    return !!(spu && spu.specs && spu.specs.length > 1);
+  }
+
+  function getCartItemDisplayTitle(item, multiSpec) {
+    var title = item.title || '';
+    if (multiSpec || !item.spec) return title;
+    if (title.indexOf(item.spec) >= 0) return title;
+    return title + ' ' + item.spec;
+  }
+
   function renderCartItemHtml(item, loggedIn) {
+    var multiSpec = isCartItemMultiSpec(item);
+    var displayTitle = getCartItemDisplayTitle(item, multiSpec);
     if (item.stockStatus === 'spec_invalid') {
-      var specTag = item.spec
-        ? '<span class="ua-restock-cart-item__spec ua-restock-cart-item__spec--disabled">' + item.spec + '</span>'
-        : '';
+      var specTag =
+        multiSpec && item.spec
+          ? '<span class="ua-restock-cart-item__spec ua-restock-cart-item__spec--disabled">' + item.spec + '</span>'
+          : '';
       var detailUrl = getProductDetailUrl(item.spuId || item.id);
       return (
         '<article class="ua-restock-cart-item ua-restock-cart-item--spec-invalid" data-item-id="' +
@@ -1033,7 +1096,7 @@
         '" alt="">' +
         '<div class="ua-restock-cart-item__body">' +
         '<h3 class="ua-restock-cart-item__title">' +
-        item.title +
+        displayTitle +
         '</h3>' +
         specTag +
         '<div class="ua-restock-cart-item__respec-row">' +
@@ -1046,13 +1109,14 @@
     }
 
     var priceText = loggedIn ? formatCartPrice(item.priceNum) : '****';
-    var specHtml = item.spec
-      ? '<button type="button" class="ua-restock-cart-item__spec" data-item-id="' +
-        item.id +
-        '">' +
-        item.spec +
-        ' <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>'
-      : '';
+    var specHtml =
+      multiSpec && item.spec
+        ? '<button type="button" class="ua-restock-cart-item__spec" data-item-id="' +
+          item.id +
+          '">' +
+          item.spec +
+          ' <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>'
+        : '';
     var flashHtml = item.flashTip ? '<p class="ua-restock-cart-item__flash">' + item.flashTip + '</p>' : '';
     var stockHtml = item.stockTip ? '<p class="ua-restock-cart-item__stock">' + item.stockTip + '</p>' : '';
     var detailUrl = getProductDetailUrl(item.spuId || item.id);
@@ -1071,7 +1135,7 @@
       '" alt="">' +
       '<div class="ua-restock-cart-item__body">' +
       '<h3 class="ua-restock-cart-item__title">' +
-      item.title +
+      displayTitle +
       '</h3>' +
       specHtml +
       '<div class="ua-restock-cart-item__bottom">' +
@@ -2128,9 +2192,10 @@
     tagsPinned: false,
     topnavCompact: false,
     tagsExpanded: false,
-    expandedProductId: null,
+    expandedProductIds: {},
     sectionMoreTitle: null,
-    scrollLockUntil: 0
+    scrollLockUntil: 0,
+    crossSpecByProduct: {}
   };
   var sidebarEl = document.getElementById('restockCatSidebar');
   var tagsEl = document.getElementById('restockCatTags');
@@ -2541,7 +2606,7 @@
     catState.tagsPinned = false;
     catState.topnavCompact = false;
     catState.tagsExpanded = false;
-    catState.expandedProductId = null;
+    catState.expandedProductIds = {};
     closeSectionMore({ silent: true });
     lastCategoryScrollTop = 0;
     clearCollapsedTagsSnapshot();
@@ -2613,6 +2678,296 @@
     });
   }
 
+  function findCatItemById(itemId) {
+    var keys = Object.keys(CATEGORY_TREE);
+    for (var ki = 0; ki < keys.length; ki++) {
+      var secondaries = (CATEGORY_TREE[keys[ki]].secondary || []);
+      for (var si = 0; si < secondaries.length; si++) {
+        var sections = secondaries[si].sections || [];
+        for (var sxi = 0; sxi < sections.length; sxi++) {
+          var items = sections[sxi].items || [];
+          for (var ii = 0; ii < items.length; ii++) {
+            if (items[ii].id === itemId) return items[ii];
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  function getCatItemSpu(item) {
+    return item && item.id ? getSpuById(item.id) : null;
+  }
+
+  function isCatItemCrossSpec(item) {
+    var spu = getCatItemSpu(item);
+    return !!(spu && spu.dimensions && spu.dimensions.length >= 2);
+  }
+
+  function initCrossSpecSelections(dimensions) {
+    var selections = {};
+    dimensions.forEach(function (dim) {
+      var firstAvailable = (dim.options || []).find(function (o) {
+        return o.available !== false;
+      });
+      var first = firstAvailable || (dim.options || [])[0];
+      selections[dim.key] = first ? first.value : '';
+    });
+    return { selections: selections };
+  }
+
+  function getCrossSpecState(item) {
+    var spu = getCatItemSpu(item);
+    if (!spu) return null;
+    var dimensions = getSpuDimensions(spu);
+    if (dimensions.length < 2) return null;
+    if (!catState.crossSpecByProduct[item.id]) {
+      catState.crossSpecByProduct[item.id] = initCrossSpecSelections(dimensions);
+    }
+    var stored = catState.crossSpecByProduct[item.id];
+    return {
+      item: item,
+      spu: spu,
+      dimensions: dimensions,
+      selections: stored.selections
+    };
+  }
+
+  function getCrossSpecPricePreview(item, loggedIn) {
+    var spu = getCatItemSpu(item);
+    if (!spu || !spu.specs || !spu.specs.length) {
+      return {
+        text: loggedIn ? item.price : '****',
+        hideClass: loggedIn ? '' : ' ua-restock-product__price--hidden'
+      };
+    }
+    var specs = spu.specs.filter(function (s) {
+      return s.available !== false;
+    });
+    if (!specs.length) specs = spu.specs.slice();
+    var nums = specs.map(function (s) {
+      return s.priceNum;
+    });
+    var min = Math.min.apply(null, nums);
+    var max = Math.max.apply(null, nums);
+    var text;
+    if (!loggedIn) {
+      text = '****';
+    } else if (min === max) {
+      text = formatSpecSheetPrice(min);
+    } else {
+      text = formatSpecSheetPrice(min) + ' - ' + formatSpecSheetPrice(max);
+    }
+    return {
+      text: text,
+      hideClass: loggedIn ? '' : ' ua-restock-product__price--hidden'
+    };
+  }
+
+  function renderInlineXspecGridOption(item, dim, opt, active, disabled) {
+    var tagsHtml = (opt.tags || [])
+      .map(function (tag) {
+        return (
+          '<span class="ua-restock-cat-xspec-card__tag ua-restock-cat-xspec-card__tag--' +
+          (tag.tone || 'blue') +
+          '">' +
+          tag.label +
+          '</span>'
+        );
+      })
+      .join('');
+    var imgSrc = opt.img || item.img || CART_PLACEHOLDER_IMG;
+    return (
+      '<button type="button" class="ua-restock-cat-xspec-card' +
+      (active ? ' ua-restock-cat-xspec-card--active' : '') +
+      (disabled ? ' ua-restock-cat-xspec-card--disabled' : '') +
+      '" data-dim-key="' +
+      dim.key +
+      '" data-dim-value="' +
+      opt.value +
+      '"' +
+      (disabled ? ' disabled' : '') +
+      '>' +
+      '<span class="ua-restock-cat-xspec-card__img-wrap"><img src="' +
+      imgSrc +
+      '" alt=""></span>' +
+      (tagsHtml ? '<span class="ua-restock-cat-xspec-card__tags">' + tagsHtml + '</span>' : '') +
+      '<span class="ua-restock-cat-xspec-card__label">' +
+      opt.label +
+      '</span></button>'
+    );
+  }
+
+  function renderInlineXspecChipOption(dim, opt, active, disabled) {
+    return (
+      '<button type="button" class="ua-restock-cat-xspec-chip' +
+      (active ? ' ua-restock-cat-xspec-chip--active' : '') +
+      (disabled ? ' ua-restock-cat-xspec-chip--disabled' : '') +
+      '" data-dim-key="' +
+      dim.key +
+      '" data-dim-value="' +
+      opt.value +
+      '"' +
+      (disabled ? ' disabled' : '') +
+      '>' +
+      opt.label +
+      '</button>'
+    );
+  }
+
+  function renderInlineXspecGroup(item, dim, ctx) {
+    var selections = ctx.selections;
+    var optionsHtml = '';
+    if (dim.display === 'grid') {
+      optionsHtml =
+        '<div class="ua-restock-cat-xspec-group__grid">' +
+        (dim.options || [])
+          .map(function (opt) {
+            var active = selections[dim.key] === opt.value;
+            var disabled = opt.available === false;
+            return renderInlineXspecGridOption(item, dim, opt, active, disabled);
+          })
+          .join('') +
+        '</div>';
+    } else {
+      optionsHtml =
+        '<div class="ua-restock-cat-xspec-group__chips">' +
+        (dim.options || [])
+          .map(function (opt) {
+            var active = selections[dim.key] === opt.value;
+            var disabled = opt.available === false;
+            return renderInlineXspecChipOption(dim, opt, active, disabled);
+          })
+          .join('') +
+        '</div>';
+    }
+    return (
+      '<section class="ua-restock-cat-xspec-group" data-dim-key="' +
+      dim.key +
+      '">' +
+      '<div class="ua-restock-cat-xspec-group__head">' +
+      '<span class="ua-restock-cat-xspec-group__label">' +
+      dim.label +
+      '</span></div>' +
+      optionsHtml +
+      '</section>'
+    );
+  }
+
+  function buildCrossSpecCartLabel(selections, dimensions, skuOpt, skuDim) {
+    var merged = Object.assign({}, selections);
+    if (skuDim) merged[skuDim.key] = skuOpt.value;
+    return buildSpecLabel(merged, dimensions);
+  }
+
+  function renderCrossSpecAddBtn(item, skuOpt, specLabel, disabled) {
+    var specId = skuOpt.specId || skuOpt.value;
+    var qty = getCartQty(specId);
+    var hasQty = qty > 0;
+    var supplier = resolveSupplier({ id: specId, spuId: item.id });
+    var priceText = '¥' + (skuOpt.priceNum % 1 === 0 ? skuOpt.priceNum.toFixed(0) : skuOpt.priceNum.toFixed(2));
+    return (
+      '<button type="button" class="ua-restock-cat-product__spec-add' +
+      (hasQty ? ' ua-restock-cat-product__spec-add--qty' : '') +
+      (disabled ? ' ua-restock-cat-product__spec-add--disabled' : '') +
+      '" aria-label="加入购物车" data-id="' +
+      specId +
+      '" data-title="' +
+      item.title +
+      '" data-spec="' +
+      (specLabel || '') +
+      '" data-price="' +
+      priceText +
+      '" data-price-num="' +
+      skuOpt.priceNum +
+      '" data-img="' +
+      item.img +
+      '" data-supplier-id="' +
+      supplier.id +
+      '" data-supplier-name="' +
+      supplier.name +
+      '" data-spu-id="' +
+      item.id +
+      '"' +
+      (disabled ? ' disabled' : '') +
+      '>' +
+      (hasQty ? '×' + qty : '+') +
+      '</button>'
+    );
+  }
+
+  function renderCrossSpecExpandedPanel(item, loggedIn) {
+    var ctx = getCrossSpecState(item);
+    if (!ctx) return '';
+    var skuDim = getSkuDimension(ctx.dimensions);
+    var nonSkuDims = ctx.dimensions.filter(function (dim) {
+      return dim !== skuDim;
+    });
+    var groupsHtml = nonSkuDims
+      .map(function (dim) {
+        return renderInlineXspecGroup(item, dim, ctx);
+      })
+      .join('');
+    var skuRowsHtml = skuDim
+      ? (skuDim.options || [])
+          .map(function (opt) {
+            var specId = opt.specId || opt.value;
+            var disabled = opt.available === false;
+            var specLabel = buildCrossSpecCartLabel(ctx.selections, ctx.dimensions, opt, skuDim);
+            var priceText = loggedIn ? formatSpecSheetPrice(opt.priceNum) : '****';
+            var stockHtml =
+              !disabled && opt.stock != null
+                ? '<span class="ua-restock-cat-product__spec-stock">库存' + opt.stock + '</span>'
+                : '';
+            return (
+              '<li class="ua-restock-cat-product__spec-row' +
+              (disabled ? ' ua-restock-cat-product__spec-row--disabled' : '') +
+              '">' +
+              '<span class="ua-restock-cat-product__spec-label">' +
+              opt.label +
+              '</span>' +
+              stockHtml +
+              '<span class="ua-restock-cat-product__spec-price' +
+              (loggedIn ? '' : ' ua-restock-product__price--hidden') +
+              '" data-price="' +
+              priceText +
+              '">' +
+              priceText +
+              '</span>' +
+              renderCrossSpecAddBtn(item, opt, specLabel, disabled) +
+              '</li>'
+            );
+          })
+          .join('')
+      : '';
+    return (
+      '<div class="ua-restock-cat-product__cross-spec">' +
+      groupsHtml +
+      (skuDim
+        ? '<section class="ua-restock-cat-xspec-group ua-restock-cat-xspec-group--sku">' +
+          '<div class="ua-restock-cat-xspec-group__head">' +
+          '<span class="ua-restock-cat-xspec-group__label">' +
+          skuDim.label +
+          '</span></div>' +
+          '<ul class="ua-restock-cat-product__spec-list">' +
+          skuRowsHtml +
+          '</ul></section>'
+        : '') +
+      '</div>'
+    );
+  }
+
+  function selectCrossSpecOption(productId, dimKey, dimValue) {
+    var item = findCatItemById(productId);
+    if (!item) return;
+    var ctx = getCrossSpecState(item);
+    if (!ctx) return;
+    ctx.selections[dimKey] = dimValue;
+    catState.crossSpecByProduct[productId].selections = ctx.selections;
+    if (catState.sectionMoreTitle) renderSectionMorePanel();
+    else renderProducts();
+  }
+
   function getItemSpecs(item) {
     if (item.specs && item.specs.length) return item.specs;
     return [
@@ -2626,6 +2981,7 @@
   }
 
   function isMultiSpecItem(item) {
+    if (isCatItemCrossSpec(item)) return true;
     return !!(item.specs && item.specs.length > 1);
   }
 
@@ -2706,6 +3062,27 @@
       '</div>';
 
     if (expanded) {
+      if (isCatItemCrossSpec(item)) {
+        return (
+          '<article class="ua-restock-cat-product ua-restock-cat-product--expanded ua-restock-cat-product--cross-spec" data-id="' +
+          item.id +
+          '" data-title="' +
+          item.title +
+          '">' +
+          '<div class="ua-restock-cat-product__main">' +
+          imgBlock +
+          '<div class="ua-restock-cat-product__spec-panel ua-restock-cat-product__spec-panel--compact">' +
+          '<h4 class="ua-restock-cat-product__spec-name">' +
+          item.title +
+          '</h4>' +
+          (item.attrs ? '<p class="ua-restock-cat-product__attrs">' + item.attrs + '</p>' : '') +
+          '</div></div>' +
+          renderCrossSpecExpandedPanel(item, loggedIn) +
+          '<button type="button" class="ua-restock-cat-product__spec-collapse">收起</button>' +
+          '</article>'
+        );
+      }
+
       var specRows = specs
         .map(function (spec) {
           return (
@@ -2748,9 +3125,21 @@
 
     var bottomHtml;
     if (multiSpec) {
-      bottomHtml =
-        renderCollapsedPriceHtml(displaySpec, loggedIn, true) +
-        '<button type="button" class="ua-restock-cat-product__spec-btn">选规格</button>';
+      var previewSpec = isCatItemCrossSpec(item) ? null : displaySpec;
+      var priceBlock = isCatItemCrossSpec(item)
+        ? (function () {
+            var crossPrice = getCrossSpecPricePreview(item, loggedIn);
+            return (
+              '<div class="ua-restock-cat-product__spec-preview">' +
+              '<span class="ua-restock-cat-product__spec-preview-price ua-restock-cat-product__price' +
+              crossPrice.hideClass +
+              '">' +
+              crossPrice.text +
+              '</span></div>'
+            );
+          })()
+        : renderCollapsedPriceHtml(previewSpec, loggedIn, true);
+      bottomHtml = priceBlock + '<button type="button" class="ua-restock-cat-product__spec-btn">选规格</button>';
     } else {
       bottomHtml =
         renderCollapsedPriceHtml(displaySpec, loggedIn, !!displaySpec.label) +
@@ -2776,7 +3165,11 @@
   }
 
   function toggleProductSpec(productId) {
-    catState.expandedProductId = catState.expandedProductId === productId ? null : productId;
+    if (catState.expandedProductIds[productId]) {
+      delete catState.expandedProductIds[productId];
+    } else {
+      catState.expandedProductIds[productId] = true;
+    }
     renderProducts();
     if (catState.sectionMoreTitle) renderSectionMorePanel();
   }
@@ -2804,7 +3197,7 @@
     var displayItems = maxCount > 0 ? items.slice(0, maxCount) : items;
     return displayItems
       .map(function (item) {
-        var expanded = catState.expandedProductId === item.id;
+        var expanded = !!catState.expandedProductIds[item.id];
         return renderProductItemHtml(item, loggedIn, expanded);
       })
       .join('');
@@ -2820,7 +3213,7 @@
     if (!section || !(section.items || []).length) return;
     closeTagsExpand();
     catState.sectionMoreTitle = title;
-    catState.expandedProductId = null;
+    catState.expandedProductIds = {};
     if (sectionMoreEl) {
       updateSectionMoreOffset();
       sectionMoreEl.hidden = false;
@@ -2833,7 +3226,7 @@
   function closeSectionMore(options) {
     options = options || {};
     catState.sectionMoreTitle = null;
-    catState.expandedProductId = null;
+    catState.expandedProductIds = {};
     if (sectionMoreEl) {
       sectionMoreEl.hidden = true;
       sectionMoreEl.classList.remove('is-open');
@@ -2937,7 +3330,7 @@
     }
     catState.tag = tag;
     closeTagsExpand();
-    catState.expandedProductId = null;
+    catState.expandedProductIds = {};
     closeSectionMore({ silent: true });
     renderTags();
     renderProducts();
@@ -3019,8 +3412,25 @@
   });
 
   function handleProductListClick(e) {
+    var xspecOpt = e.target.closest('.ua-restock-cat-xspec-card, .ua-restock-cat-xspec-chip');
+    if (xspecOpt && !xspecOpt.disabled) {
+      e.preventDefault();
+      e.stopPropagation();
+      var optCard = xspecOpt.closest('.ua-restock-cat-product');
+      if (optCard) {
+        selectCrossSpecOption(optCard.getAttribute('data-id'), xspecOpt.getAttribute('data-dim-key'), xspecOpt.getAttribute('data-dim-value'));
+      }
+      return;
+    }
     var card = e.target.closest('.ua-restock-cat-product');
-    if (card && !e.target.closest('.ua-restock-cat-product__spec-add') && !e.target.closest('.ua-restock-cat-product__spec-btn') && !e.target.closest('.ua-restock-cat-product__spec-collapse')) {
+    if (
+      card &&
+      !e.target.closest('.ua-restock-cat-product__spec-add') &&
+      !e.target.closest('.ua-restock-cat-product__spec-btn') &&
+      !e.target.closest('.ua-restock-cat-product__spec-collapse') &&
+      !e.target.closest('.ua-restock-cat-xspec-card') &&
+      !e.target.closest('.ua-restock-cat-xspec-chip')
+    ) {
       var spuId = card.getAttribute('data-id');
       if (spuId) {
         e.preventDefault();
@@ -3043,13 +3453,16 @@
     }
     var specBtn = e.target.closest('.ua-restock-cat-product__spec-btn');
     if (specBtn) {
-      var card = specBtn.closest('.ua-restock-cat-product');
-      if (card) toggleProductSpec(card.getAttribute('data-id'));
+      e.preventDefault();
+      e.stopPropagation();
+      var specCard = specBtn.closest('.ua-restock-cat-product');
+      if (specCard) toggleProductSpec(specCard.getAttribute('data-id'));
       return;
     }
     var collapseBtn = e.target.closest('.ua-restock-cat-product__spec-collapse');
     if (collapseBtn) {
-      catState.expandedProductId = null;
+      var collapseCard = collapseBtn.closest('.ua-restock-cat-product');
+      if (collapseCard) delete catState.expandedProductIds[collapseCard.getAttribute('data-id')];
       if (catState.sectionMoreTitle) renderSectionMorePanel();
       else renderProducts();
     }
