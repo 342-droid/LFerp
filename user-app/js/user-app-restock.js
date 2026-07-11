@@ -131,6 +131,8 @@
       }
       updatePriceVisibility();
       syncAllSpecAddBtnsFromCart();
+    } else if (prevTabId === 'category') {
+      closeCatAllPanel();
     }
   }
 
@@ -2195,7 +2197,9 @@
     expandedProductIds: {},
     sectionMoreTitle: null,
     scrollLockUntil: 0,
-    crossSpecByProduct: {}
+    crossSpecByProduct: {},
+    primaryCategoryLabel: '蔬菜水果',
+    allPanelOpen: false
   };
   var sidebarEl = document.getElementById('restockCatSidebar');
   var tagsEl = document.getElementById('restockCatTags');
@@ -2209,6 +2213,9 @@
   var sectionMoreEl = document.getElementById('restockCatSectionMore');
   var sectionMoreTitleEl = document.getElementById('restockCatSectionMoreTitle');
   var sectionMoreListEl = document.getElementById('restockCatSectionMoreList');
+  var catAllPanelEl = document.getElementById('restockCatAllPanel');
+  var catAllGridEl = document.getElementById('restockCatAllGrid');
+  var catAllBtnEl = document.getElementById('restockCatAllBtn');
   var catTopAreaEl = document.querySelector('.ua-restock-cat-top-area');
   var tagsFullHeight = 0;
   var tagsCollapsedHeight = 0;
@@ -3212,6 +3219,7 @@
     var section = findSectionByTitle(title);
     if (!section || !(section.items || []).length) return;
     closeTagsExpand();
+    closeCatAllPanel();
     catState.sectionMoreTitle = title;
     catState.expandedProductIds = {};
     if (sectionMoreEl) {
@@ -3233,6 +3241,128 @@
     }
     document.body.classList.remove('ua-restock-section-more-open');
     if (!options.silent) renderProducts();
+  }
+
+  var TOP_ALL_CATEGORIES = [
+    { id: 'veg', label: '蔬菜水果', img: '../assets/restock/category-icon-veg.svg' },
+    { id: 'meat', label: '鲜肉禽水产', img: '../assets/restock/category-icon-meat.svg' },
+    { id: 'frozen', label: '冻肉禽水产', img: '../assets/restock/category-icon-frozen.svg' },
+    { id: 'grain', label: '米面油蛋', img: '../assets/restock/category-icon-grain.svg' },
+    { id: 'drink', label: '酒水饮料', img: '../assets/restock/category-icon-drink.svg' },
+    { id: 'grain', label: '调料调味品', img: '../assets/restock/category-icon-seasoning.svg' },
+    { id: 'meat', label: '熟食预制菜', img: '../assets/restock/category-icon-prepared.svg' },
+    { id: 'frozen', label: '冷冻半成品', img: '../assets/restock/category-icon-semi-frozen.svg' },
+    { id: 'grain', label: '餐厨用品', img: '../assets/restock/category-icon-kitchenware.svg' },
+    { id: 'veg', label: '快驴独家', img: '../assets/restock/category-icon-exclusive.svg' },
+    { id: 'grain', label: '豆腐豆制品', img: '../assets/restock/category-icon-tofu.svg' },
+    { id: 'grain', label: '主食面点', img: '../assets/restock/category-icon-staple.svg' },
+    { id: 'grain', label: '干货/香料', img: '../assets/restock/category-icon-dry-spice.svg' },
+    { id: 'veg', label: '腌菜酱菜', img: '../assets/restock/category-icon-pickle.svg' },
+    { id: 'grain', label: '酱油醋', img: '../assets/restock/category-icon-sauce.svg' },
+    { id: 'meat', label: '丸子肠串', img: '../assets/restock/category-icon-meatball.svg' },
+    { id: 'grain', label: '焙烤食品', img: '../assets/restock/category-icon-bakery.svg' }
+  ];
+
+  function renderCatAllItemIcon(item) {
+    if (item.img) {
+      return (
+        '<span class="ua-restock-cat-all-item__icon-wrap"><img src="' +
+        item.img +
+        '" alt=""></span>'
+      );
+    }
+    return (
+      '<span class="ua-restock-cat-all-item__icon-wrap"><span class="ua-restock-cat-all-item__emoji">' +
+      (item.emoji || '📦') +
+      '</span></span>'
+    );
+  }
+
+  function renderCatAllPanelGrid() {
+    if (!catAllGridEl) return;
+    var activeLabel = catState.primaryCategoryLabel || '蔬菜水果';
+    catAllGridEl.innerHTML = TOP_ALL_CATEGORIES.map(function (item) {
+      var active = item.label === activeLabel;
+      return (
+        '<button type="button" class="ua-restock-cat-all-item' +
+        (active ? ' ua-restock-cat-all-item--active' : '') +
+        '" data-cat="' +
+        item.id +
+        '" data-label="' +
+        item.label +
+        '">' +
+        renderCatAllItemIcon(item) +
+        '<span class="ua-restock-cat-all-item__label">' +
+        item.label +
+        '</span></button>'
+      );
+    }).join('');
+  }
+
+  function syncTopnavActiveState(categoryLabel) {
+    var topItems = document.querySelectorAll('.ua-restock-cat-topitem');
+    var matched = null;
+    topItems.forEach(function (btn) {
+      var labelEl = btn.querySelector('.ua-restock-cat-topitem__label');
+      if (categoryLabel && labelEl && labelEl.textContent.trim() === categoryLabel) {
+        matched = btn;
+      }
+    });
+    setActiveItem(topItems, matched, 'ua-restock-cat-topitem--active');
+  }
+
+  function openCatAllPanel() {
+    if (!catAllPanelEl) return;
+    closeTagsExpand();
+    closeSectionMore({ silent: true });
+    renderCatAllPanelGrid();
+    catState.allPanelOpen = true;
+    catAllPanelEl.hidden = false;
+    if (catTopAreaEl) catTopAreaEl.classList.add('ua-restock-cat-top-area--all-open');
+    if (catAllBtnEl) catAllBtnEl.classList.add('is-open');
+    window.requestAnimationFrame(function () {
+      catAllPanelEl.classList.add('is-open');
+    });
+  }
+
+  function closeCatAllPanel() {
+    if (!catAllPanelEl || catAllPanelEl.hidden) return;
+    catState.allPanelOpen = false;
+    catAllPanelEl.classList.remove('is-open');
+    if (catTopAreaEl) catTopAreaEl.classList.remove('ua-restock-cat-top-area--all-open');
+    if (catAllBtnEl) catAllBtnEl.classList.remove('is-open');
+    window.setTimeout(function () {
+      if (!catAllPanelEl.classList.contains('is-open')) {
+        catAllPanelEl.hidden = true;
+      }
+    }, 280);
+  }
+
+  function toggleCatAllPanel() {
+    if (catState.allPanelOpen) closeCatAllPanel();
+    else openCatAllPanel();
+  }
+
+  function bindCatAllPanelEvents() {
+    if (!catAllPanelEl || catAllPanelEl._allBound) return;
+    catAllPanelEl._allBound = true;
+
+    document.getElementById('restockCatAllMask') &&
+      document.getElementById('restockCatAllMask').addEventListener('click', closeCatAllPanel);
+    document.getElementById('restockCatAllCollapseBtn') &&
+      document.getElementById('restockCatAllCollapseBtn').addEventListener('click', closeCatAllPanel);
+
+    catAllGridEl &&
+      catAllGridEl.addEventListener('click', function (e) {
+        var btn = e.target.closest('.ua-restock-cat-all-item');
+        if (!btn) return;
+        e.preventDefault();
+        var catId = btn.getAttribute('data-cat');
+        var label = btn.getAttribute('data-label');
+        if (!catId) return;
+        selectPrimary(catId, catId === 'veg' ? 'leaf' : undefined, label);
+        closeCatAllPanel();
+      });
   }
 
   function renderSectionMorePanel() {
@@ -3288,9 +3418,18 @@
     renderProducts();
   }
 
-  function selectPrimary(catId, secondaryId) {
+  function selectPrimary(catId, secondaryId, categoryLabel) {
     if (!CATEGORY_TREE[catId]) return;
+    closeCatAllPanel();
     catState.primary = catId;
+    if (categoryLabel) {
+      catState.primaryCategoryLabel = categoryLabel;
+    } else {
+      var topLabelEl = document.querySelector(
+        '.ua-restock-cat-topitem[data-cat="' + catId + '"] .ua-restock-cat-topitem__label'
+      );
+      if (topLabelEl) catState.primaryCategoryLabel = topLabelEl.textContent.trim();
+    }
     var list = CATEGORY_TREE[catId].secondary || [];
     if (secondaryId && list.some(function (s) { return s.id === secondaryId; })) {
       catState.secondary = secondaryId;
@@ -3298,11 +3437,7 @@
       catState.secondary = list[0] ? list[0].id : '';
     }
     catState.tag = '全部';
-    setActiveItem(
-      document.querySelectorAll('.ua-restock-cat-topitem'),
-      document.querySelector('.ua-restock-cat-topitem[data-cat="' + catId + '"]'),
-      'ua-restock-cat-topitem--active'
-    );
+    syncTopnavActiveState(catState.primaryCategoryLabel);
     resetCategoryScroll();
     renderSidebar();
     renderTags();
@@ -3390,24 +3525,36 @@
   var HOME_TO_TOP_CAT = {
     蔬菜水果: 'veg',
     鲜肉禽: 'meat',
+    鲜肉禽水产: 'meat',
     冻肉禽水产: 'frozen',
     米面油蛋: 'grain',
     酒水饮料: 'drink',
     调料调味: 'grain',
+    调料调味品: 'grain',
     熟食预制: 'meat',
+    熟食预制菜: 'meat',
     冷冻半成品: 'frozen',
     餐厨用品: 'grain',
-    日用百货: 'drink'
+    日用百货: 'drink',
+    快驴独家: 'veg',
+    豆腐豆制品: 'grain',
+    '主食面点': 'grain',
+    '干货/香料': 'grain',
+    腌菜酱菜: 'veg',
+    酱油醋: 'grain',
+    丸子肠串: 'meat',
+    焙烤食品: 'grain'
   };
 
   function activateTopCategory(name) {
     var catId = HOME_TO_TOP_CAT[name] || 'veg';
-    selectPrimary(catId, catId === 'veg' ? 'leaf' : undefined);
+    selectPrimary(catId, catId === 'veg' ? 'leaf' : undefined, name);
   }
 
   document.querySelectorAll('.ua-restock-cat-topitem').forEach(function (btn) {
     btn.addEventListener('click', function () {
-      selectPrimary(btn.getAttribute('data-cat'));
+      var labelEl = btn.querySelector('.ua-restock-cat-topitem__label');
+      selectPrimary(btn.getAttribute('data-cat'), undefined, labelEl ? labelEl.textContent.trim() : '');
     });
   });
 
@@ -3494,8 +3641,10 @@
   });
 
   document.getElementById('restockCatAllBtn') &&
-    document.getElementById('restockCatAllBtn').addEventListener('click', function () {
-      window.alert('查看全部分类（演示）');
+    document.getElementById('restockCatAllBtn').addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleCatAllPanel();
     });
 
   document.getElementById('restockCatSearchInput') &&
@@ -3601,6 +3750,7 @@
   ensureDemoLoggedIn();
   bindCartPageEvents();
   bindMePageEvents();
+  bindCatAllPanelEvents();
   updatePriceVisibility();
   renderCart();
   renderMe();

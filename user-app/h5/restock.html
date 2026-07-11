@@ -167,7 +167,7 @@
               </button>
               <button type="button" class="ua-restock-cat-topitem" data-cat="drink">
                 <img class="ua-restock-cat-topitem__img" src="../assets/restock/category-icon-drink.svg" alt="">
-                <span class="ua-restock-cat-topitem__label">酒水饮</span>
+                <span class="ua-restock-cat-topitem__label">酒水饮料</span>
               </button>
             </div>
             <button type="button" class="ua-restock-cat-all" id="restockCatAllBtn">
@@ -225,6 +225,22 @@
             </div>
             <div class="ua-restock-cat-section-more__scroll" id="restockCatSectionMoreList"></div>
           </div>
+        </div>
+
+        <div class="ua-restock-cat-all-panel" id="restockCatAllPanel" hidden>
+          <div class="ua-restock-cat-all-panel__sheet">
+            <div class="ua-restock-cat-search ua-restock-cat-search--panel">
+              <svg class="ua-restock-cat-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
+              <input type="search" class="ua-restock-cat-search__input" id="restockCatAllSearchInput" placeholder="搜索想要的商品" autocomplete="off" readonly tabindex="-1">
+            </div>
+            <h3 class="ua-restock-cat-all-panel__title">全部分类</h3>
+            <div class="ua-restock-cat-all-panel__grid" id="restockCatAllGrid"></div>
+            <button type="button" class="ua-restock-cat-all-panel__collapse" id="restockCatAllCollapseBtn">
+              点击收起
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>
+            </button>
+          </div>
+          <div class="ua-restock-cat-all-panel__mask" id="restockCatAllMask"></div>
         </div>
       </div>
     </div>
