@@ -6,6 +6,7 @@
   <title>进货 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-restock.css">
+  <link rel="stylesheet" href="../css/user-app-product-detail.css">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-restock-shell">
@@ -78,6 +79,49 @@
       </section>
 
       <section class="ua-restock-products">
+        <article class="ua-restock-product" data-id="leaf-c1" data-title="小香芹 优质 带叶" data-spec="5斤起" data-price="¥28-54" data-price-num="28" data-img="../assets/restock/product-leaf.svg" data-supplier-id="supplier-xianfeng" data-supplier-name="鲜丰蔬菜批发">
+          <div class="ua-restock-product__img-wrap">
+            <img class="ua-restock-product__img" src="../assets/restock/product-leaf.svg" alt="小香芹">
+          </div>
+          <div class="ua-restock-product__body">
+            <h3 class="ua-restock-product__title">小香芹 优质 带叶</h3>
+            <p class="ua-restock-product__spec">5斤起</p>
+            <div class="ua-restock-product__price-row">
+              <span class="ua-restock-product__price ua-restock-product__price--hidden" data-price="¥28-54">****</span>
+              <button type="button" class="ua-restock-product__add" aria-label="加入购物车">+</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="ua-restock-product" data-id="leaf-y1-10" data-title="油麦菜【菜鲜】" data-spec="10斤起" data-price="¥30-58" data-price-num="30" data-img="../assets/restock/product-leaf.svg" data-supplier-id="supplier-xianfeng" data-supplier-name="鲜丰蔬菜批发">
+          <div class="ua-restock-product__img-wrap">
+            <img class="ua-restock-product__img" src="../assets/restock/product-leaf.svg" alt="油麦菜">
+          </div>
+          <div class="ua-restock-product__body">
+            <h3 class="ua-restock-product__title">油麦菜【菜鲜】</h3>
+            <p class="ua-restock-product__spec">10斤起</p>
+            <div class="ua-restock-product__price-row">
+              <span class="ua-restock-product__price ua-restock-product__price--hidden" data-price="¥30-58">****</span>
+              <button type="button" class="ua-restock-product__add" aria-label="加入购物车">+</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="ua-restock-product" data-id="eggplant-long-10" data-title="长茄子 广茄" data-spec="10斤起" data-price="¥40-78" data-price-num="40" data-img="../assets/restock/product-eggplant-long.svg" data-supplier-id="supplier-jiangnan" data-supplier-name="江南果蔬批发">
+          <div class="ua-restock-product__img-wrap">
+            <img class="ua-restock-product__img" src="../assets/restock/product-eggplant-long.svg" alt="长茄子">
+            <span class="ua-restock-product__badge">高回购</span>
+          </div>
+          <div class="ua-restock-product__body">
+            <h3 class="ua-restock-product__title">长茄子 广茄</h3>
+            <p class="ua-restock-product__spec">10斤起</p>
+            <div class="ua-restock-product__price-row">
+              <span class="ua-restock-product__price ua-restock-product__price--hidden" data-price="¥40-78">****</span>
+              <button type="button" class="ua-restock-product__add" aria-label="加入购物车">+</button>
+            </div>
+          </div>
+        </article>
+
         <article class="ua-restock-product" data-id="egg" data-title="红壳黄心鲜鸡蛋 中码 托装" data-spec="3.5斤/30枚" data-price="¥28.90" data-price-num="28.9" data-img="../assets/restock/product-egg.svg" data-supplier-id="supplier-huadong" data-supplier-name="华东冷链供应商">
           <div class="ua-restock-product__img-wrap">
             <img class="ua-restock-product__img" src="../assets/restock/product-egg.svg" alt="红壳黄心鲜鸡蛋">
@@ -474,7 +518,32 @@
         <span class="ua-restock-tab__label">我的</span>
       </button>
     </nav>
+
+    <!-- 多规格数量选择（与商品详情页一致） -->
+    <div class="ua-pd-sheet" id="productDetailSpecSheet" hidden>
+      <div class="ua-pd-sheet__mask" data-pd-close="spec"></div>
+      <div class="ua-pd-sheet__panel ua-pd-mspec-panel">
+        <button type="button" class="ua-pd-mspec__close" data-pd-close="spec" aria-label="关闭">×</button>
+        <div class="ua-pd-mspec__head">
+          <h3 class="ua-pd-mspec__title" id="productDetailMspecTitle"></h3>
+          <div class="ua-pd-mspec__price-range" id="productDetailMspecPriceRange"></div>
+        </div>
+        <div class="ua-pd-mspec__list" id="productDetailMspecList"></div>
+        <div class="ua-pd-mspec__footer">
+          <div class="ua-pd-mspec__total">
+            <span class="ua-pd-mspec__total-label">合计</span>
+            <span class="ua-pd-mspec__total-price" id="productDetailMspecTotal">¥0.00</span>
+          </div>
+          <div class="ua-pd-mspec__trust">
+            <svg class="ua-pd-mspec__trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l7 4v5c0 4.2-2.8 7.6-7 9-4.2-1.4-7-4.8-7-9V7l7-4z"/></svg>
+            <span>平台代采保障：该供应商已缴纳信用保证金</span>
+          </div>
+          <button type="button" class="ua-pd-mspec__confirm" id="productDetailSpecConfirm">确定</button>
+        </div>
+      </div>
+    </div>
   </div>
+  <script src="../js/user-app-product-catalog.js"></script>
   <script src="../js/user-app-restock.js"></script>
 </body>
 </html>

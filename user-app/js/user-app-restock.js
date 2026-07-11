@@ -187,6 +187,7 @@
     'leaf-y1': { id: 'supplier-xianfeng', name: '鲜丰蔬菜批发' },
     'leaf-y4': { id: 'supplier-xianfeng', name: '鲜丰蔬菜批发' },
     tomato: { id: 'supplier-jiangnan', name: '江南果蔬批发' },
+    'leaf-c1': { id: 'supplier-xianfeng', name: '鲜丰蔬菜批发' },
     egg: { id: 'supplier-huadong', name: '华东冷链供应商' },
     cola: { id: 'supplier-lengfeng', name: '冷丰优选供应链' },
     water: { id: 'supplier-lengfeng', name: '冷丰优选供应链' },
@@ -798,6 +799,37 @@
     }
   }
 
+  var catalogApi = window.UAProductCatalog;
+
+  function getHomeProductCartQty(catalogId) {
+    if (!catalogApi || !catalogId) return getCartQty(catalogId);
+    var product = catalogApi.resolveProduct(catalogId);
+    if (!product || !product.specs || product.specs.length <= 1) {
+      var singleId = product && product.specs && product.specs[0] ? product.specs[0].id : catalogId;
+      return getCartQty(singleId);
+    }
+    var total = 0;
+    product.specs.forEach(function (spec) {
+      total += getCartQty(spec.id);
+    });
+    return total;
+  }
+
+  function syncHomeProductAddBtn(card) {
+    var id = card.getAttribute('data-id');
+    var btn = card.querySelector('.ua-restock-product__add');
+    if (!btn || !id) return;
+    var qty = getHomeProductCartQty(id);
+    btn.setAttribute('data-id', id);
+    if (qty > 0) {
+      btn.textContent = '×' + qty;
+      btn.classList.add('ua-restock-product__add--qty');
+    } else {
+      btn.textContent = '+';
+      btn.classList.remove('ua-restock-product__add--qty');
+    }
+  }
+
   function syncAllSpecAddBtnsFromCart() {
     readCart().forEach(function (item) {
       updateSpecAddBtnQty(item.id, item.qty);
@@ -813,18 +845,7 @@
       }
     });
     document.querySelectorAll('.ua-restock-product').forEach(function (card) {
-      var id = card.getAttribute('data-id');
-      var btn = card.querySelector('.ua-restock-product__add');
-      if (!btn || !id) return;
-      var qty = getCartQty(id);
-      btn.setAttribute('data-id', id);
-      if (qty > 0) {
-        btn.textContent = '×' + qty;
-        btn.classList.add('ua-restock-product__add--qty');
-      } else {
-        btn.textContent = '+';
-        btn.classList.remove('ua-restock-product__add--qty');
-      }
+      syncHomeProductAddBtn(card);
     });
   }
 
@@ -1865,6 +1886,10 @@
     if (!card) return;
     var id = card.getAttribute('data-id');
     if (!id) return;
+    if (catalogApi && catalogApi.isMultiSpecProduct(id)) {
+      openHomeSpecSheet(id, btn);
+      return;
+    }
     var imgSrc = card.getAttribute('data-img');
     var qty = upsertCartPageItem({
       id: id,
@@ -1884,6 +1909,277 @@
     updateCartBadge(true);
     playFlyToCartAnimation(btn, imgSrc);
     renderCart();
+  }
+
+  var homeMspecState = {
+    product: null,
+    specQtys: {},
+    triggerBtn: null
+  };
+
+  function initHomeSpecQtys(reset) {
+    var qtys = reset ? {} : homeMspecState.specQtys || {};
+    (homeMspecState.product.specs || []).forEach(function (spec) {
+      if (reset || qtys[spec.id] == null) qtys[spec.id] = 0;
+    });
+    homeMspecState.specQtys = qtys;
+  }
+
+  function getHomeSpecQty(specId) {
+    return homeMspecState.specQtys[specId] || 0;
+  }
+
+  function setHomeSpecQty(specId, qty) {
+    homeMspecState.specQtys[specId] = Math.max(0, Math.min(999, qty));
+  }
+
+  function calcHomeSelectedSpecs() {
+    return (homeMspecState.product.specs || [])
+      .filter(function (spec) {
+        return spec.available !== false && getHomeSpecQty(spec.id) > 0;
+      })
+      .map(function (spec) {
+        return { spec: spec, qty: getHomeSpecQty(spec.id) };
+      });
+  }
+
+  function calcHomeMspecTotal() {
+    var total = 0;
+    calcHomeSelectedSpecs().forEach(function (item) {
+      total += item.spec.priceNum * item.qty;
+    });
+    return total;
+  }
+
+  function setHomeMspecText(id, text) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = text;
+  }
+
+  function setHomeMspecHtml(id, html) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  }
+
+  function renderHomeMultiSpecSheet() {
+    var p = homeMspecState.product;
+    if (!p || !catalogApi) return;
+
+    setHomeMspecText('productDetailMspecTitle', p.title);
+    setHomeMspecText('productDetailMspecPriceRange', catalogApi.getPriceRangeText(p));
+    updateHomeMspecTotal();
+
+    var confirmBtn = document.getElementById('productDetailSpecConfirm');
+    if (confirmBtn) confirmBtn.textContent = '加入购物车';
+
+    setHomeMspecHtml(
+      'productDetailMspecList',
+      (p.specs || [])
+        .map(function (spec) {
+          var qty = getHomeSpecQty(spec.id);
+          var disabled = spec.available === false;
+          var subtotal = spec.priceNum * qty;
+          return (
+            '<div class="ua-pd-mspec-item' +
+            (disabled ? ' ua-pd-mspec-item--disabled' : '') +
+            '" data-mspec-id="' +
+            spec.id +
+            '">' +
+            '<div class="ua-pd-mspec-item__top">' +
+            '<div class="ua-pd-mspec-item__name">' +
+            catalogApi.getSpecDisplayName(p, spec) +
+            '</div>' +
+            '<div class="ua-pd-mspec-item__stepper">' +
+            '<button type="button" class="ua-pd-mspec-minus" data-mspec-id="' +
+            spec.id +
+            '"' +
+            (disabled || qty <= 0 ? ' disabled' : '') +
+            ' aria-label="减少">-</button>' +
+            '<input type="number" class="ua-pd-mspec-input" data-mspec-id="' +
+            spec.id +
+            '" value="' +
+            qty +
+            '" min="0" max="999"' +
+            (disabled ? ' disabled' : '') +
+            ' inputmode="numeric">' +
+            '<button type="button" class="ua-pd-mspec-plus" data-mspec-id="' +
+            spec.id +
+            '"' +
+            (disabled ? ' disabled' : '') +
+            ' aria-label="增加">+</button></div></div>' +
+            '<div class="ua-pd-mspec-item__bottom">' +
+            '<div class="ua-pd-mspec-item__hint">' +
+            catalogApi.getSpecTierHint(spec) +
+            '</div>' +
+            '<div class="ua-pd-mspec-item__pricing">' +
+            '<div class="ua-pd-mspec-item__unit-price">' +
+            catalogApi.getSpecUnitPriceText(spec) +
+            '</div>' +
+            '<div class="ua-pd-mspec-item__subtotal"' +
+            (qty > 0 ? '' : ' hidden') +
+            ' data-mspec-subtotal="' +
+            spec.id +
+            '">小计：' +
+            catalogApi.formatPriceFixed(subtotal) +
+            '</div></div></div></div>'
+          );
+        })
+        .join('')
+    );
+  }
+
+  function updateHomeMspecRow(specId) {
+    var p = homeMspecState.product;
+    if (!p || !catalogApi) return;
+    var spec = p.specs.find(function (s) { return s.id === specId; });
+    if (!spec) return;
+    var row = document.querySelector('[data-mspec-id="' + specId + '"].ua-pd-mspec-item');
+    if (!row) return;
+    var qty = getHomeSpecQty(specId);
+    var input = row.querySelector('.ua-pd-mspec-input');
+    var minus = row.querySelector('.ua-pd-mspec-minus');
+    var subtotalEl = row.querySelector('[data-mspec-subtotal="' + specId + '"]');
+    if (input) input.value = String(qty);
+    if (minus) minus.disabled = qty <= 0;
+    if (subtotalEl) {
+      if (qty > 0) {
+        subtotalEl.hidden = false;
+        subtotalEl.textContent = '小计：' + catalogApi.formatPriceFixed(spec.priceNum * qty);
+      } else {
+        subtotalEl.hidden = true;
+      }
+    }
+    updateHomeMspecTotal();
+  }
+
+  function updateHomeMspecTotal() {
+    var totalEl = document.getElementById('productDetailMspecTotal');
+    var confirmBtn = document.getElementById('productDetailSpecConfirm');
+    var total = calcHomeMspecTotal();
+    if (totalEl) totalEl.textContent = catalogApi.formatPriceFixed(total);
+    if (confirmBtn) confirmBtn.disabled = total <= 0;
+  }
+
+  function openHomeSpecSheet(catalogId, triggerBtn) {
+    if (!catalogApi) return;
+    var product = catalogApi.resolveProduct(catalogId);
+    if (!product || !product.specs || product.specs.length <= 1) return;
+    homeMspecState.product = product;
+    homeMspecState.triggerBtn = triggerBtn || null;
+    initHomeSpecQtys(true);
+    renderHomeMultiSpecSheet();
+    var sheet = document.getElementById('productDetailSpecSheet');
+    if (sheet) {
+      sheet.hidden = false;
+      document.body.classList.add('ua-pd-sheet-open');
+    }
+  }
+
+  function closeHomeSpecSheet() {
+    var sheet = document.getElementById('productDetailSpecSheet');
+    if (sheet) sheet.hidden = true;
+    document.body.classList.remove('ua-pd-sheet-open');
+    homeMspecState.product = null;
+    homeMspecState.triggerBtn = null;
+    homeMspecState.specQtys = {};
+  }
+
+  function addHomeMultipleToCart() {
+    var p = homeMspecState.product;
+    var selected = calcHomeSelectedSpecs();
+    if (!p || !selected.length) return;
+
+    var state = normalizeCartBySupplier(readCartPageState());
+    selected.forEach(function (entry) {
+      var spec = entry.spec;
+      var found = findCartItem(state, spec.id);
+      if (found) {
+        found.qty = (found.qty || 0) + entry.qty;
+      } else {
+        var supplier = resolveSupplier({
+          id: spec.id,
+          spuId: p.spuId,
+          supplierId: p.supplier.id,
+          supplierName: p.supplier.name
+        });
+        var store = findOrCreateSupplierStore(state, supplier);
+        store.blocks[0].items.push({
+          id: spec.id,
+          spuId: p.spuId,
+          title: p.title,
+          spec: spec.label,
+          priceNum: spec.priceNum,
+          qty: entry.qty,
+          selected: false,
+          img: p.imgs[0],
+          userAdded: true,
+          supplierId: supplier.id,
+          supplierName: supplier.name
+        });
+      }
+    });
+    writeCartPageState(state);
+    syncFlatCartFromPageState(state);
+
+    var triggerBtn = homeMspecState.triggerBtn;
+    var catalogId = triggerBtn ? triggerBtn.closest('.ua-restock-product') : null;
+    closeHomeSpecSheet();
+    updateCartBadge(true);
+    renderCart();
+    syncAllSpecAddBtnsFromCart();
+    if (triggerBtn) {
+      triggerBtn.classList.add('ua-restock-product__add--pop');
+      window.setTimeout(function () {
+        triggerBtn.classList.remove('ua-restock-product__add--pop');
+      }, 220);
+      playFlyToCartAnimation(triggerBtn, p.imgs[0]);
+    } else if (catalogId) {
+      syncHomeProductAddBtn(catalogId);
+    }
+  }
+
+  function bindHomeSpecSheetEvents() {
+    if (bindHomeSpecSheetEvents._bound) return;
+    bindHomeSpecSheetEvents._bound = true;
+
+    document.querySelectorAll('[data-pd-close="spec"]').forEach(function (el) {
+      el.addEventListener('click', closeHomeSpecSheet);
+    });
+
+    document.getElementById('productDetailMspecList') &&
+      document.getElementById('productDetailMspecList').addEventListener('click', function (e) {
+        var minus = e.target.closest('.ua-pd-mspec-minus');
+        if (minus && !minus.disabled) {
+          var minusId = minus.getAttribute('data-mspec-id');
+          setHomeSpecQty(minusId, getHomeSpecQty(minusId) - 1);
+          updateHomeMspecRow(minusId);
+          return;
+        }
+        var plus = e.target.closest('.ua-pd-mspec-plus');
+        if (plus && !plus.disabled) {
+          var plusId = plus.getAttribute('data-mspec-id');
+          setHomeSpecQty(plusId, getHomeSpecQty(plusId) + 1);
+          updateHomeMspecRow(plusId);
+        }
+      });
+
+    document.getElementById('productDetailMspecList') &&
+      document.getElementById('productDetailMspecList').addEventListener('change', function (e) {
+        var input = e.target.closest('.ua-pd-mspec-input');
+        if (!input) return;
+        var specId = input.getAttribute('data-mspec-id');
+        var val = parseInt(input.value, 10);
+        if (isNaN(val) || val < 0) val = 0;
+        if (val > 999) val = 999;
+        setHomeSpecQty(specId, val);
+        updateHomeMspecRow(specId);
+      });
+
+    document.getElementById('productDetailSpecConfirm') &&
+      document.getElementById('productDetailSpecConfirm').addEventListener('click', function () {
+        if (this.disabled) return;
+        addHomeMultipleToCart();
+      });
   }
 
   function addSpecToCart(btn) {
@@ -3751,6 +4047,7 @@
   bindCartPageEvents();
   bindMePageEvents();
   bindCatAllPanelEvents();
+  bindHomeSpecSheetEvents();
   updatePriceVisibility();
   renderCart();
   renderMe();
