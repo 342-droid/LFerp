@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>换货 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-order-refund-page">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-or-scroll">
+      <div class="ua-status-bar">
+        <span>9:41</span>
+        <span class="ua-status-bar__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#111"><path d="M1 7h2v4H1V7zm4-2h2v6H5V5zm4-3h2v9H9V2zm4 5h2v4h-2V7z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#111"/></svg>
+        </span>
+      </div>
+
+      <header class="ua-or-nav">
+        <a href="order-refund-select.html" class="ua-or-nav__back" id="refundNavBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="ua-or-nav__title" id="refundNavTitle">换货</h1>
+        <div class="ua-or-nav__actions">
+          <button type="button" class="ua-or-nav__icon" aria-label="更多">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <section class="ua-or-card ua-or-product" id="refundProductCard"></section>
+
+      <section class="ua-or-block">
+        <h2 class="ua-or-block__title">原商品信息</h2>
+        <div class="ua-or-card ua-or-form">
+          <div class="ua-or-field-row">
+            <span class="ua-or-field__label">原商品规格</span>
+            <span class="ua-or-field__value" id="refundExchangeSourceSpec">—</span>
+          </div>
+          <div class="ua-or-field-row">
+            <span class="ua-or-field__label">原商品数量</span>
+            <span class="ua-or-field__value" id="refundExchangeSourceQty">—</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="ua-or-card ua-or-form">
+        <button type="button" class="ua-or-field" id="refundReasonRow">
+          <span class="ua-or-field__label">换货原因<span class="ua-or-required">*</span></span>
+          <span class="ua-or-field__value ua-or-field__value--placeholder" id="refundReasonValue">请选择</span>
+          <span class="ua-or-field__arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
+        </button>
+      </section>
+
+      <section class="ua-or-block">
+        <h2 class="ua-or-block__title">换成<span class="ua-or-required">*</span></h2>
+        <div class="ua-or-card">
+          <p class="ua-or-exchange-hint" id="refundExchangeHint"></p>
+          <div class="ua-or-spec-chips" id="refundExchangeTargetList"></div>
+          <div class="ua-or-field-row ua-or-exchange-qty-row">
+            <span class="ua-or-field__label">换货数量</span>
+            <div class="ua-or-stepper">
+              <button type="button" id="refundExchangeTargetQtyMinus" aria-label="减少">-</button>
+              <input type="number" id="refundExchangeTargetQty" value="1" min="1" readonly tabindex="-1">
+              <button type="button" id="refundExchangeTargetQtyPlus" aria-label="增加">+</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="ua-or-block">
+        <h2 class="ua-or-block__title">补充描述和凭证</h2>
+        <div class="ua-or-card">
+          <div class="ua-or-desc">
+            <textarea id="refundDescInput" maxlength="200" placeholder="补充描述，有助于平台更好的处理售后问题"></textarea>
+            <div class="ua-or-desc__count"><span id="refundDescCount">0</span>/200</div>
+          </div>
+          <div class="ua-or-upload">
+            <div class="ua-or-upload__grid" id="refundUploadGrid"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer class="ua-or-footer">
+      <button type="button" class="ua-or-footer__btn" id="refundSubmitBtn">提交</button>
+    </footer>
+
+    <div class="ua-or-sheet" id="refundReasonSheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="refundReasonSheet"></div>
+      <div class="ua-or-sheet__panel">
+        <h3 class="ua-or-sheet__title">换货原因</h3>
+        <div class="ua-or-picker__list" id="refundReasonList"></div>
+        <button type="button" class="ua-or-sheet__confirm" id="refundReasonConfirm">确定</button>
+      </div>
+    </div>
+  </div>
+  <script src="../js/user-app-order-refund.js"></script>
+  <script>UAOrderRefund.initExchangePage();</script>
+</body>
+</html>

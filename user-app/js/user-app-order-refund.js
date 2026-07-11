@@ -9,7 +9,13 @@
       paidAmount: 87.9,
       qty: 2,
       freight: 0,
-      shippingFee: 0
+      shippingFee: 0,
+      orderSpecId: 'cherry-25',
+      specs: [
+        { id: 'cherry-125', label: '1.25kg', priceNum: 43.95, available: true },
+        { id: 'cherry-25', label: '2.5kg', priceNum: 43.95, available: true },
+        { id: 'cherry-50', label: '5kg', priceNum: 79.9, available: true }
+      ]
     },
     {
       id: 'item-2',
@@ -20,7 +26,13 @@
       paidAmount: 10,
       qty: 1,
       freight: 0,
-      shippingFee: 0
+      shippingFee: 0,
+      orderSpecId: 'berry-500',
+      specs: [
+        { id: 'berry-500', label: '500g', priceNum: 10, available: true },
+        { id: 'berry-250', label: '250g', priceNum: 10, available: true },
+        { id: 'berry-1kg', label: '1kg', priceNum: 18, available: true }
+      ]
     }
   ];
 
@@ -55,7 +67,9 @@
       '卖家发错货',
       '发票问题',
       '假冒品牌'
-    ]
+    ],
+    restock: ['少件/漏发/少配件', '包装/商品破损/污渍', '质量问题', '卖家发错货', '商品信息描述不符'],
+    exchange: ['规格/颜色拍错', '大小/尺寸/重量与商品描述不符', '质量问题', '卖家发错货', '商品信息描述不符']
   };
 
   var GOODS_STATUS = ['未收到货', '已收到货'];
@@ -90,6 +104,8 @@
 
   var REFUND_ONLY_STEPS = ['提交申请', '平台审核', '退款成功'];
   var RETURN_STEPS = ['提交申请', '平台审核', '寄回商品', '平台退款', '退款成功'];
+  var RESTOCK_STEPS = ['提交申请', '平台审核', '补货寄出', '补货完成'];
+  var EXCHANGE_STEPS = ['提交申请', '平台审核', '寄回商品', '换货寄出', '换货完成'];
 
   function getDelivery() {
     var delivery = (getParams().get('delivery') || '').trim();
@@ -119,6 +135,20 @@
     return '因退货商品不符，' + party + '已拒收，商品正在退回，请留意物流信息。';
   }
 
+  function ensureReshipData(app) {
+    if (!app.outCourier) app.outCourier = '顺丰速运';
+    if (!app.outTrackingNo) app.outTrackingNo = 'SF1122334455667';
+    saveApplication(app);
+    return app;
+  }
+
+  function getReturnSectionTip(refundType, delivery) {
+    if (refundType === 'exchange') {
+      return '平台已同意换货，请将原商品寄回以下地址，并在下方填写退货物流信息。';
+    }
+    return (RETURN_ADDRESSES[delivery] || RETURN_ADDRESSES.warehouse).tip;
+  }
+
   function ensureRejectReturnData(app, state) {
     if (!app.rejectReceiveReason) {
       app.rejectReceiveReason = '退货商品与申请不符，不符合退货要求';
@@ -135,12 +165,13 @@
 
   function getRefundType() {
     var type = (getParams().get('type') || 'refund_only').trim();
-    return type === 'return' ? 'return' : 'refund_only';
+    if (type === 'return' || type === 'restock' || type === 'exchange') return type;
+    return 'refund_only';
   }
 
   function getDetailStage() {
     var stage = (getParams().get('stage') || 'audit').trim();
-    if (['audit', 'return', 'refund', 'reject_return', 'success', 'failed', 'closed'].indexOf(stage) >= 0) return stage;
+    if (['audit', 'return', 'refund', 'reship', 'reject_return', 'success', 'failed', 'closed'].indexOf(stage) >= 0) return stage;
     return 'audit';
   }
 
@@ -183,6 +214,12 @@
     }
     if (formType === 'return') {
       return 'order-refund-return.html?' + buildQuery({ scene: scene });
+    }
+    if (formType === 'restock') {
+      return 'order-refund-restock.html?' + buildQuery({ scene: scene });
+    }
+    if (formType === 'exchange') {
+      return 'order-refund-exchange.html?' + buildQuery({ scene: scene });
     }
     if (scene === 'aftersale') {
       return 'order-refund-select.html?' + buildQuery({ scene: 'aftersale' });
@@ -272,12 +309,388 @@
       productImg: item.img
     });
     saveApplication(app);
-    var type = formType === 'return' ? 'return' : 'refund_only';
+    var typeMap = { return: 'return', restock: 'restock', exchange: 'exchange' };
+    var type = typeMap[formType] || 'refund_only';
     window.location.href = buildDetailHref({
       type: type,
       stage: 'audit',
       reason: app.reason || ''
     });
+  }
+
+  function bindDescAndUpload(state, descInput, descCount, uploadGrid, item) {
+    if (descInput) {
+      descInput.addEventListener('input', function () {
+        var text = descInput.value.slice(0, 200);
+        descInput.value = text;
+        state.desc = text;
+        if (descCount) descCount.textContent = String(text.length);
+      });
+    }
+
+    function renderUploads() {
+      if (!uploadGrid) return;
+      var html = state.images
+        .map(function (src, idx) {
+          return (
+            '<div class="ua-or-upload__item">' +
+            '<img src="' +
+            src +
+            '" alt="">' +
+            '<button type="button" class="ua-or-upload__remove" data-remove-idx="' +
+            idx +
+            '">×</button></div>'
+          );
+        })
+        .join('');
+      if (state.images.length < 3) {
+        html +=
+          '<button type="button" class="ua-or-upload__add" id="refundUploadAdd">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 5v14M5 12h14"/></svg>' +
+          '<span>上传凭证<br><em>(最多3张)</em></span></button>';
+      }
+      uploadGrid.innerHTML = html;
+      var addBtn = document.getElementById('refundUploadAdd');
+      if (addBtn) {
+        addBtn.addEventListener('click', function () {
+          if (state.images.length >= 3) return;
+          state.images.push(item.img);
+          renderUploads();
+        });
+      }
+      uploadGrid.querySelectorAll('[data-remove-idx]').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var idx = parseInt(btn.getAttribute('data-remove-idx'), 10);
+          state.images.splice(idx, 1);
+          renderUploads();
+        });
+      });
+    }
+
+    renderUploads();
+    return renderUploads;
+  }
+
+  function renderSpecQtyList(containerId, specs, qtyMap, onChange) {
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    el.innerHTML = specs
+      .map(function (spec) {
+        var qty = qtyMap[spec.id] || 0;
+        return (
+          '<div class="ua-or-spec-row" data-spec-id="' +
+          spec.id +
+          '">' +
+          '<div class="ua-or-spec-row__info">' +
+          '<div class="ua-or-spec-row__label">' +
+          spec.label +
+          '</div>' +
+          '<div class="ua-or-spec-row__price">' +
+          formatPrice(spec.priceNum) +
+          '/件</div></div>' +
+          '<div class="ua-or-stepper">' +
+          '<button type="button" class="ua-or-spec-minus" data-spec-id="' +
+          spec.id +
+          '" aria-label="减少"' +
+          (qty <= 0 ? ' disabled' : '') +
+          '>-</button>' +
+          '<input type="number" class="ua-or-spec-qty" data-spec-id="' +
+          spec.id +
+          '" value="' +
+          qty +
+          '" min="0" readonly tabindex="-1">' +
+          '<button type="button" class="ua-or-spec-plus" data-spec-id="' +
+          spec.id +
+          '" aria-label="增加">+</button></div></div>'
+        );
+      })
+      .join('');
+
+    el.querySelectorAll('.ua-or-spec-minus').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-spec-id');
+        var val = Math.max(0, (qtyMap[id] || 0) - 1);
+        qtyMap[id] = val;
+        onChange();
+      });
+    });
+    el.querySelectorAll('.ua-or-spec-plus').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-spec-id');
+        qtyMap[id] = Math.min(99, (qtyMap[id] || 0) + 1);
+        onChange();
+      });
+    });
+  }
+
+  function summarizeSpecQty(specs, qtyMap) {
+    return specs
+      .filter(function (spec) {
+        return (qtyMap[spec.id] || 0) > 0;
+      })
+      .map(function (spec) {
+        return spec.label + '×' + qtyMap[spec.id];
+      })
+      .join('、');
+  }
+
+  function initRestockPage() {
+    var item = getItem();
+    var specs = getItemSpecs(item);
+    var state = {
+      reason: '',
+      specQtys: {},
+      desc: '',
+      images: []
+    };
+    specs.forEach(function (spec) {
+      state.specQtys[spec.id] = 0;
+    });
+
+    initNav('补货', buildSelectHref());
+    renderProductCard('refundProductCard');
+
+    var reasonValue = document.getElementById('refundReasonValue');
+    var specList = document.getElementById('refundRestockSpecList');
+    var specSummary = document.getElementById('refundRestockSpecSummary');
+    var descInput = document.getElementById('refundDescInput');
+    var descCount = document.getElementById('refundDescCount');
+    var uploadGrid = document.getElementById('refundUploadGrid');
+    var submitBtn = document.getElementById('refundSubmitBtn');
+
+    function syncUI() {
+      if (reasonValue) {
+        reasonValue.textContent = state.reason || '请选择';
+        reasonValue.classList.toggle('ua-or-field__value--placeholder', !state.reason);
+      }
+      if (specSummary) {
+        var summary = summarizeSpecQty(specs, state.specQtys);
+        specSummary.textContent = summary || '请选择需补商品的规格及数量';
+        specSummary.classList.toggle('ua-or-field__value--placeholder', !summary);
+      }
+    }
+
+    function refreshSpecList() {
+      renderSpecQtyList('refundRestockSpecList', specs, state.specQtys, refreshSpecList);
+      syncUI();
+    }
+
+    refreshSpecList();
+
+    document.getElementById('refundReasonRow') &&
+      document.getElementById('refundReasonRow').addEventListener('click', function () {
+        renderPickerOptions('refundReasonList', REASONS.restock, state.reason, 'refundReason');
+        openSheet('refundReasonSheet');
+      });
+
+    document.getElementById('refundReasonConfirm') &&
+      document.getElementById('refundReasonConfirm').addEventListener('click', function () {
+        var val = getCheckedValue('refundReasonList', 'refundReason');
+        if (!val) return;
+        state.reason = val;
+        syncUI();
+        closeSheet('refundReasonSheet');
+      });
+
+    bindDescAndUpload(state, descInput, descCount, uploadGrid, item);
+
+    if (submitBtn) {
+      submitBtn.addEventListener('click', function () {
+        if (!state.reason) {
+          window.alert('请选择补货原因');
+          return;
+        }
+        var picked = specs.filter(function (spec) {
+          return (state.specQtys[spec.id] || 0) > 0;
+        });
+        if (!picked.length) {
+          window.alert('请选择需补商品的规格及数量');
+          return;
+        }
+        var restockItems = picked.map(function (spec) {
+          return { specId: spec.id, label: spec.label, priceNum: spec.priceNum, qty: state.specQtys[spec.id] };
+        });
+        persistAndGoDetail('restock', {
+          reason: state.reason,
+          restockItems: restockItems,
+          restockSummary: summarizeSpecQty(specs, state.specQtys),
+          desc: state.desc,
+          images: state.images
+        });
+      });
+    }
+
+    bindSheetClose();
+  }
+
+  function initExchangePage() {
+    var item = getItem();
+    var specs = getItemSpecs(item);
+    var orderSpec = getOrderSpec(item);
+    var samePriceSpecs = specs.filter(function (spec) {
+      return spec.priceNum === orderSpec.priceNum && spec.id !== orderSpec.id;
+    });
+    var state = {
+      reason: '',
+      sourceSpecId: orderSpec.id,
+      sourceQty: item.qty,
+      targetSpecId: samePriceSpecs.length ? samePriceSpecs[0].id : '',
+      targetQty: item.qty,
+      desc: '',
+      images: []
+    };
+
+    initNav('换货', buildSelectHref());
+    renderProductCard('refundProductCard');
+
+    var reasonValue = document.getElementById('refundReasonValue');
+    var sourceSpecEl = document.getElementById('refundExchangeSourceSpec');
+    var sourceQtyEl = document.getElementById('refundExchangeSourceQty');
+    var targetList = document.getElementById('refundExchangeTargetList');
+    var targetQtyInput = document.getElementById('refundExchangeTargetQty');
+    var targetQtyMinus = document.getElementById('refundExchangeTargetQtyMinus');
+    var targetQtyPlus = document.getElementById('refundExchangeTargetQtyPlus');
+    var exchangeHint = document.getElementById('refundExchangeHint');
+    var descInput = document.getElementById('refundDescInput');
+    var descCount = document.getElementById('refundDescCount');
+    var uploadGrid = document.getElementById('refundUploadGrid');
+    var submitBtn = document.getElementById('refundSubmitBtn');
+
+    if (sourceSpecEl) sourceSpecEl.textContent = orderSpec.label;
+    if (sourceQtyEl) sourceQtyEl.textContent = String(item.qty);
+
+    function getTargetSpec() {
+      return samePriceSpecs.find(function (s) {
+        return s.id === state.targetSpecId;
+      });
+    }
+
+    function renderTargetOptions() {
+      if (!targetList) return;
+      if (!samePriceSpecs.length) {
+        targetList.innerHTML =
+          '<p class="ua-or-exchange-empty">暂无同等价位规格可换，不同价不支持换货</p>';
+        return;
+      }
+      targetList.innerHTML = samePriceSpecs
+        .map(function (spec) {
+          var active = spec.id === state.targetSpecId;
+          return (
+            '<button type="button" class="ua-or-spec-chip' +
+            (active ? ' ua-or-spec-chip--active' : '') +
+            '" data-target-spec="' +
+            spec.id +
+            '">' +
+            spec.label +
+            '<em>' +
+            formatPrice(spec.priceNum) +
+            '/件</em></button>'
+          );
+        })
+        .join('');
+      targetList.querySelectorAll('[data-target-spec]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          state.targetSpecId = btn.getAttribute('data-target-spec');
+          renderTargetOptions();
+        });
+      });
+    }
+
+    function syncUI() {
+      if (reasonValue) {
+        reasonValue.textContent = state.reason || '请选择';
+        reasonValue.classList.toggle('ua-or-field__value--placeholder', !state.reason);
+      }
+      if (targetQtyInput) targetQtyInput.value = String(state.targetQty);
+      if (targetQtyMinus) targetQtyMinus.disabled = state.targetQty <= 1;
+      if (targetQtyPlus) targetQtyPlus.disabled = state.targetQty >= item.qty;
+      if (exchangeHint) {
+        exchangeHint.textContent =
+          '仅支持同等价位（' +
+          formatPrice(orderSpec.priceNum) +
+          '/件）规格换货，不同价不支持换货';
+      }
+    }
+
+    renderTargetOptions();
+    syncUI();
+
+    document.getElementById('refundReasonRow') &&
+      document.getElementById('refundReasonRow').addEventListener('click', function () {
+        renderPickerOptions('refundReasonList', REASONS.exchange, state.reason, 'refundReason');
+        openSheet('refundReasonSheet');
+      });
+
+    document.getElementById('refundReasonConfirm') &&
+      document.getElementById('refundReasonConfirm').addEventListener('click', function () {
+        var val = getCheckedValue('refundReasonList', 'refundReason');
+        if (!val) return;
+        state.reason = val;
+        syncUI();
+        closeSheet('refundReasonSheet');
+      });
+
+    if (targetQtyMinus) {
+      targetQtyMinus.addEventListener('click', function () {
+        if (state.targetQty <= 1) return;
+        state.targetQty -= 1;
+        syncUI();
+      });
+    }
+    if (targetQtyPlus) {
+      targetQtyPlus.addEventListener('click', function () {
+        if (state.targetQty >= item.qty) return;
+        state.targetQty += 1;
+        syncUI();
+      });
+    }
+
+    bindDescAndUpload(state, descInput, descCount, uploadGrid, item);
+
+    if (submitBtn) {
+      submitBtn.addEventListener('click', function () {
+        if (!state.reason) {
+          window.alert('请选择换货原因');
+          return;
+        }
+        if (!samePriceSpecs.length) {
+          window.alert('暂无同等价位规格可换，不同价不支持换货');
+          return;
+        }
+        var targetSpec = getTargetSpec();
+        if (!targetSpec) {
+          window.alert('请选择换货规格');
+          return;
+        }
+        if (state.targetQty <= 0) {
+          window.alert('请选择换货数量');
+          return;
+        }
+        persistAndGoDetail('exchange', {
+          reason: state.reason,
+          exchangeFrom: { specId: orderSpec.id, label: orderSpec.label, qty: item.qty, priceNum: orderSpec.priceNum },
+          exchangeTo: {
+            specId: targetSpec.id,
+            label: targetSpec.label,
+            qty: state.targetQty,
+            priceNum: targetSpec.priceNum
+          },
+          exchangeSummary:
+            orderSpec.label +
+            '×' +
+            item.qty +
+            ' 换成 ' +
+            targetSpec.label +
+            '×' +
+            state.targetQty,
+          desc: state.desc,
+          images: state.images
+        });
+      });
+    }
+
+    bindSheetClose();
   }
 
   function showToast(msg, ms) {
@@ -376,13 +789,48 @@
     return 'order-refund-only.html?' + buildQuery();
   }
 
+  function getItemSpecs(item) {
+    if (item.specs && item.specs.length) {
+      return item.specs.filter(function (s) {
+        return s.available !== false;
+      });
+    }
+    return [{ id: 'default', label: item.spec.replace(/^规格：/, ''), priceNum: item.priceNum, available: true }];
+  }
+
+  function getOrderSpec(item) {
+    var specs = getItemSpecs(item);
+    var id = item.orderSpecId;
+    if (id) {
+      var found = specs.find(function (s) {
+        return s.id === id;
+      });
+      if (found) return found;
+    }
+    return specs[0];
+  }
+
+  function formatSpecOption(spec) {
+    return spec.label + '（' + formatPrice(spec.priceNum) + '/件）';
+  }
+
   function buildReturnHref() {
     return 'order-refund-return.html?' + buildQuery();
+  }
+
+  function buildRestockHref() {
+    return 'order-refund-restock.html?' + buildQuery();
+  }
+
+  function buildExchangeHref() {
+    return 'order-refund-exchange.html?' + buildQuery();
   }
 
   function getReasonList(formType, goodsStatus) {
     if (formType === 'pre_ship') return REASONS.pre_ship;
     if (formType === 'return') return REASONS.return_refund;
+    if (formType === 'restock') return REASONS.restock;
+    if (formType === 'exchange') return REASONS.exchange;
     if (goodsStatus === '未收到货') return REASONS.not_received;
     return REASONS.received;
   }
@@ -502,10 +950,14 @@
     var state = { service: '' };
     var refundOpt = document.getElementById('refundServiceRefund');
     var returnOpt = document.getElementById('refundServiceReturn');
+    var restockOpt = document.getElementById('refundServiceRestock');
+    var exchangeOpt = document.getElementById('refundServiceExchange');
 
     function syncRadio() {
       if (refundOpt) refundOpt.checked = state.service === 'refund_only';
       if (returnOpt) returnOpt.checked = state.service === 'return_refund';
+      if (restockOpt) restockOpt.checked = state.service === 'restock';
+      if (exchangeOpt) exchangeOpt.checked = state.service === 'exchange';
     }
 
     document.querySelectorAll('.ua-or-service').forEach(function (row) {
@@ -517,6 +969,10 @@
             window.location.href = buildOnlyHref();
           } else if (state.service === 'return_refund') {
             window.location.href = buildReturnHref();
+          } else if (state.service === 'restock') {
+            window.location.href = buildRestockHref();
+          } else if (state.service === 'exchange') {
+            window.location.href = buildExchangeHref();
           }
         }, 120);
       });
@@ -927,6 +1383,8 @@
     var item = getItem();
     var app = loadApplication() || {};
     var isReturn = refundType === 'return';
+    var isRestock = refundType === 'restock';
+    var isExchange = refundType === 'exchange';
     var shell = document.querySelector('.ua-order-refund-detail-page');
     if (shell) shell.classList.add('ua-order-refund-detail-page--result');
 
@@ -938,7 +1396,7 @@
           amount: item.paidAmount != null ? item.paidAmount : item.priceNum * item.qty,
           applyTime: formatDateTime(),
           refundNo: genRefundNo(),
-          formType: isReturn ? 'return' : 'refund_only',
+          formType: isReturn ? 'return' : isRestock ? 'restock' : isExchange ? 'exchange' : 'refund_only',
           delivery: delivery,
           itemIndex: getItemIndex(),
           productName: item.name,
@@ -980,10 +1438,28 @@
     };
     var resultTitleEl = document.getElementById('refundResultTitle');
     var resultTimeEl = document.getElementById('refundResultTime');
-    if (resultTitleEl) resultTitleEl.textContent = titleMap[stage] || titleMap.success;
+    if (resultTitleEl) {
+      if (stage === 'success' && isRestock) resultTitleEl.textContent = '补货完成';
+      else if (stage === 'success' && isExchange) resultTitleEl.textContent = '换货完成';
+      else resultTitleEl.textContent = titleMap[stage] || titleMap.success;
+    }
     if (resultTimeEl) resultTimeEl.textContent = resultTime;
 
     if (stage === 'success') {
+      if (isRestock || isExchange) {
+        if (breakdown) breakdown.hidden = true;
+        if (messageCard) messageCard.hidden = false;
+        var successMainEl = document.getElementById('refundResultMessageMain');
+        var successSubEl = document.getElementById('refundResultMessageSub');
+        var successReasonEl = document.getElementById('refundResultRejectReason');
+        if (successSubEl) successSubEl.hidden = true;
+        if (successReasonEl) successReasonEl.hidden = true;
+        if (successMainEl) {
+          successMainEl.textContent = isRestock
+            ? '补货已完成，请注意查收商品。'
+            : '换货已完成，请注意查收商品。';
+        }
+      } else {
       if (breakdown) breakdown.hidden = false;
       if (messageCard) messageCard.hidden = true;
       var total = app.amount != null ? app.amount : item.priceNum * item.qty;
@@ -1002,6 +1478,7 @@
             );
           })
           .join('');
+      }
       }
     } else {
       if (breakdown) breakdown.hidden = true;
@@ -1094,7 +1571,7 @@
         (app.productName || item.name) +
         '</div>' +
         '<div class="ua-or-product__spec">' +
-        (app.productSpec || item.spec) +
+        (app.restockSummary || app.exchangeSummary || app.productSpec || item.spec) +
         '</div></div>';
     }
 
@@ -1122,8 +1599,13 @@
     var item = getItem();
     var app = loadApplication() || {};
     var isReturn = refundType === 'return';
+    var isRestock = refundType === 'restock';
+    var isExchange = refundType === 'exchange';
     var logisticsEdit = getParams().get('logistics') === 'edit';
-    var steps = isReturn ? RETURN_STEPS : REFUND_ONLY_STEPS;
+    var steps = REFUND_ONLY_STEPS;
+    if (isReturn) steps = RETURN_STEPS;
+    else if (isRestock) steps = RESTOCK_STEPS;
+    else if (isExchange) steps = EXCHANGE_STEPS;
 
     if (!app.refundNo) {
       app = Object.assign(
@@ -1133,7 +1615,7 @@
           amount: item.paidAmount != null ? item.paidAmount : item.priceNum * item.qty,
           applyTime: formatDateTime(),
           refundNo: genRefundNo(),
-          formType: isReturn ? 'return' : 'refund_only',
+          formType: isReturn ? 'return' : isRestock ? 'restock' : isExchange ? 'exchange' : 'refund_only',
           delivery: delivery,
           itemIndex: getItemIndex(),
           productName: item.name,
@@ -1161,11 +1643,19 @@
 
     var statusConfig = {
       audit: {
-        title: '请等待平台审核',
+        title: isRestock
+          ? '请等待平台处理补货'
+          : isExchange
+            ? '请等待平台处理换货'
+            : '请等待平台审核',
         notice:
-          '您已成功发起' +
-          (isReturn ? '退货退款' : '退款') +
-          '申请，请耐心等待平台审核。若平台在倒计时结束前未处理，系统将自动同意您的申请。'
+          isRestock
+            ? '您已成功发起补货申请，请耐心等待平台审核处理。'
+            : isExchange
+              ? '您已成功发起换货申请，请耐心等待平台审核处理。'
+              : '您已成功发起' +
+                (isReturn ? '退货退款' : '退款') +
+                '申请，请耐心等待平台审核。若平台在倒计时结束前未处理，系统将自动同意您的申请。'
       },
       return: {
         title: '请寄回退货商品',
@@ -1179,9 +1669,17 @@
         title: '商品退回中',
         notice: ''
       },
+      reship: {
+        title: isRestock ? '请等待补货寄出' : '请等待换货寄出',
+        notice: ''
+      },
       success: {
-        title: '退款成功',
-        notice: '退款已成功，款项将按原路退回，请注意查收。'
+        title: isRestock ? '补货完成' : isExchange ? '换货完成' : '退款成功',
+        notice: isRestock
+          ? '补货已完成，请注意查收商品。'
+          : isExchange
+            ? '换货已完成，请注意查收商品。'
+            : '退款已成功，款项将按原路退回，请注意查收。'
       }
     };
 
@@ -1196,6 +1694,14 @@
         notice: buildRejectReturnNotice(state.delivery)
       });
       ensureRejectReturnData(app, state);
+    }
+    if (stage === 'reship') {
+      ensureReshipData(app);
+      cfg = Object.assign({}, cfg, {
+        notice: isRestock
+          ? '平台已同意补货，正在为您安排寄出，请留意物流信息。'
+          : '平台已收到退回商品，正在为您安排换货寄出，请留意物流信息。'
+      });
     }
 
     var titleEl = document.getElementById('refundDetailStatusTitle');
@@ -1231,20 +1737,44 @@
     }
 
     function getNextStage(current) {
-      if (current === 'audit') return isReturn ? 'return' : 'success';
-      if (current === 'return') return 'refund';
+      if (current === 'audit') {
+        if (isExchange) return 'return';
+        if (isRestock) return 'reship';
+        return isReturn ? 'return' : 'success';
+      }
+      if (current === 'return') {
+        if (isExchange) return 'reship';
+        return 'refund';
+      }
+      if (current === 'reship') return 'success';
       if (current === 'refund') return 'success';
       if (current === 'reject_return') return 'closed_reject';
       return null;
     }
 
+    function getStepActiveIdx() {
+      if (stage === 'success') return steps.length - 1;
+      if (isRestock) {
+        if (stage === 'reship') return 2;
+        return 1;
+      }
+      if (isExchange) {
+        if (stage === 'return') return 2;
+        if (stage === 'reship') return 3;
+        return 1;
+      }
+      if (isReturn) {
+        if (stage === 'return') return 2;
+        if (stage === 'refund' || stage === 'reject_return') return 3;
+        return 1;
+      }
+      return 1;
+    }
+
     function renderSteps() {
       var el = document.getElementById('refundDetailSteps');
       if (!el) return;
-      var activeIdx = 1;
-      if (stage === 'return') activeIdx = 2;
-      if (stage === 'refund' || stage === 'reject_return') activeIdx = 3;
-      if (stage === 'success') activeIdx = steps.length - 1;
+      var activeIdx = getStepActiveIdx();
       var checkSvg =
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L19 7"/></svg>';
       el.innerHTML = steps
@@ -1279,6 +1809,15 @@
               if (!app.courier) app.courier = state.courier || '顺丰速运';
               if (!app.trackingNo) app.trackingNo = state.trackingNo || 'SF1234567890123';
               saveApplication(app);
+            }
+            if (stage === 'return' && next === 'reship') {
+              if (!app.courier) app.courier = state.courier || '顺丰速运';
+              if (!app.trackingNo) app.trackingNo = state.trackingNo || 'SF1234567890123';
+              ensureReshipData(app);
+              saveApplication(app);
+            }
+            if (next === 'reship' && isRestock) {
+              ensureReshipData(app);
             }
             if (next === 'success') {
               app.resultTime = formatDateTime();
@@ -1328,6 +1867,7 @@
 
     var returnSection = document.getElementById('refundDetailReturnSection');
     var rejectReturnSection = document.getElementById('refundDetailRejectReturnSection');
+    var reshipSection = document.getElementById('refundDetailReshipSection');
     var addrEl = document.getElementById('refundDetailReturnAddr');
     var logisticsForm = document.getElementById('refundDetailLogisticsForm');
     var logisticsView = document.getElementById('refundDetailLogisticsView');
@@ -1341,7 +1881,7 @@
       if (!addrEl) return;
       addrEl.innerHTML =
         '<p class="ua-or-detail-return__tip">' +
-        addr.tip +
+        getReturnSectionTip(refundType, state.delivery) +
         '</p>' +
         '<p class="ua-or-detail-return__line"><em>收件人</em>' +
         addr.name +
@@ -1380,7 +1920,18 @@
       rejectReturnSection.hidden = true;
     }
 
-    if (isReturn && (stage === 'return' || stage === 'refund')) {
+    if ((isRestock || isExchange) && stage === 'reship') {
+      if (reshipSection) reshipSection.hidden = false;
+      ensureReshipData(app);
+      var outCourierEl = document.getElementById('refundOutCourierDisplay');
+      var outTrackingEl = document.getElementById('refundOutTrackingDisplay');
+      if (outCourierEl) outCourierEl.textContent = app.outCourier || '—';
+      if (outTrackingEl) outTrackingEl.textContent = app.outTrackingNo || '—';
+    } else if (reshipSection) {
+      reshipSection.hidden = true;
+    }
+
+    if ((isReturn && (stage === 'return' || stage === 'refund')) || (isExchange && stage === 'return')) {
       if (returnSection) returnSection.hidden = false;
       renderReturnAddr();
       syncLogisticsUI();
@@ -1437,11 +1988,11 @@
       var footer = document.getElementById('refundDetailFooter');
       if (!footer) return;
       footer.className = 'ua-or-detail-footer';
-      if (stage === 'success' || stage === 'reject_return') {
+      if (stage === 'success' || stage === 'reject_return' || stage === 'reship') {
         footer.innerHTML = '';
         return;
       }
-      if (isReturn && stage === 'return') {
+      if ((isReturn || isExchange) && stage === 'return') {
         footer.innerHTML =
           '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--ghost" id="refundDetailCancelBtn">撤销申请</button>' +
           '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--primary" id="refundDetailSubmitLogisticsBtn">提交</button>';
@@ -1504,7 +2055,7 @@
             window.setTimeout(function () {
               window.location.href = buildDetailHref({
                 type: refundType,
-                stage: isReturn ? 'return' : 'success'
+                stage: isReturn ? 'return' : isExchange ? 'return' : isRestock ? 'reship' : 'success'
               });
             }, 2000);
             return;
@@ -1532,7 +2083,12 @@
           app.courier = state.courier;
           app.trackingNo = state.trackingNo;
           saveApplication(app);
-          window.location.href = buildDetailHref({ type: 'return', stage: 'refund' });
+          if (isExchange) {
+            ensureReshipData(app);
+            window.location.href = buildDetailHref({ type: 'exchange', stage: 'reship' });
+          } else {
+            window.location.href = buildDetailHref({ type: 'return', stage: 'refund' });
+          }
         });
       }
 
@@ -1563,9 +2119,13 @@
     buildSelectHref: buildSelectHref,
     buildOnlyHref: buildOnlyHref,
     buildReturnHref: buildReturnHref,
+    buildRestockHref: buildRestockHref,
+    buildExchangeHref: buildExchangeHref,
     initSelectPage: initSelectPage,
     initFormPage: initFormPage,
     initPreShipPage: initPreShipPage,
+    initRestockPage: initRestockPage,
+    initExchangePage: initExchangePage,
     initDetailPage: initDetailPage,
     buildDetailHref: buildDetailHref,
     renderProductCard: renderProductCard,

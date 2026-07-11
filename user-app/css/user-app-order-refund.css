@@ -1397,3 +1397,114 @@ body.ua-or-sheet-open {
   min-width: 120px;
   padding: 0 20px;
 }
+
+/* ── 补货/换货规格选择 ── */
+.ua-or-spec-list {
+  padding: 0 12px 12px;
+}
+
+.ua-or-spec-summary {
+  margin: 0;
+  padding: 12px 12px 0;
+  font-size: 13px;
+  color: #333;
+  line-height: 1.45;
+}
+
+.ua-or-spec-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid #f5f5f5;
+}
+
+.ua-or-spec-row:first-child {
+  border-top: none;
+}
+
+.ua-or-spec-row__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ua-or-spec-row__label {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.ua-or-spec-row__price {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #999;
+}
+
+.ua-or-spec-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 12px 12px;
+}
+
+.ua-or-spec-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+}
+
+.ua-or-spec-chip em {
+  font-style: normal;
+  font-size: 11px;
+  color: #999;
+}
+
+.ua-or-spec-chip--active {
+  border-color: #ff5000;
+  background: #fff8f0;
+  color: #ff5000;
+}
+
+.ua-or-spec-chip--active em {
+  color: #ff7a45;
+}
+
+.ua-or-exchange-hint {
+  margin: 0;
+  padding: 12px 12px 8px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
+.ua-or-exchange-empty {
+  margin: 0;
+  padding: 16px 12px;
+  font-size: 13px;
+  color: #999;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.ua-or-exchange-qty-row {
+  border-top: 1px solid #f5f5f5;
+  margin: 0 12px;
+  padding: 0;
+}
+
+.ua-or-detail-reship {
+  margin: 0 12px 10px;
+}
+
+.ua-or-detail-reship .ua-or-card {
+  margin: 0;
+}
