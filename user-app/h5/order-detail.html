@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
   <link rel="stylesheet" href="../css/user-app-order-detail.css">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-order-detail-page" id="orderDetailShell">
@@ -106,7 +107,7 @@
             <span class="ua-od-shop__name" id="orderShopName" data-store-name="线上商城" data-supplier-name="冷丰优选供应链">线上商城</span>
           </div>
 
-          <article class="ua-od-item">
+          <article class="ua-od-item" data-item-index="0">
             <img class="ua-od-item__img" src="../assets/order-product-1.svg" alt="">
             <div class="ua-od-item__body">
               <div class="ua-od-item__name">冷丰优选智利车厘子 鲜脆清甜 礼盒装</div>
@@ -116,7 +117,7 @@
             <div class="ua-od-item__actions" id="orderItemActionsPrimary"></div>
           </article>
 
-          <article class="ua-od-item">
+          <article class="ua-od-item" data-item-index="1">
             <img class="ua-od-item__img" src="../assets/order-product-2.svg" alt="">
             <div class="ua-od-item__body">
               <div class="ua-od-item__name">新鲜红颜草莓 香甜多汁 500g装</div>
@@ -167,7 +168,20 @@
     </div>
 
     <footer class="ua-od-footer" id="orderDetailFooter"></footer>
+
+    <div class="ua-or-cancel-modal" id="orderCancelModal" hidden>
+      <div class="ua-or-cancel-modal__mask" id="orderCancelModalMask"></div>
+      <div class="ua-or-cancel-modal__panel" role="dialog" aria-modal="true">
+        <h3 class="ua-or-cancel-modal__title">温馨提示</h3>
+        <p class="ua-or-cancel-modal__text">确定取消该订单？</p>
+        <div class="ua-or-cancel-modal__actions">
+          <button type="button" class="ua-or-cancel-modal__btn" id="orderCancelModalDismiss">再想想</button>
+          <button type="button" class="ua-or-cancel-modal__btn ua-or-cancel-modal__btn--confirm" id="orderCancelModalConfirm">确定取消</button>
+        </div>
+      </div>
+    </div>
   </div>
+  <script src="../js/user-app-order-refund.js"></script>
   <script src="../js/user-app-order-detail.js"></script>
   <script src="../js/user-app-auth.js"></script>
 </body>

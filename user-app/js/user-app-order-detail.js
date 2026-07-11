@@ -209,6 +209,60 @@
     return config;
   }
 
+  function buildRefundQuery(itemIndex) {
+    var p = getParams();
+    var qs = [];
+    qs.push('status=' + encodeURIComponent(getStatus()));
+    if (p.get('from')) qs.push('from=' + encodeURIComponent(p.get('from')));
+    if (p.get('supplier')) qs.push('supplier=' + encodeURIComponent(p.get('supplier')));
+    if (p.get('delivery')) qs.push('delivery=' + encodeURIComponent(p.get('delivery')));
+    if (p.get('cutoff')) qs.push('cutoff=' + encodeURIComponent(p.get('cutoff')));
+    if (p.get('reason')) qs.push('reason=' + encodeURIComponent(p.get('reason')));
+    qs.push('item=' + encodeURIComponent(String(itemIndex == null ? 0 : itemIndex)));
+    return qs.join('&');
+  }
+
+  function getRefundScene() {
+    var status = getStatus();
+    if (status === 'shipping') return 'pre_ship';
+    if (status === 'completed') return 'aftersale';
+    return 'post_ship';
+  }
+
+  function buildPreShipHref(itemIndex) {
+    return 'order-refund-pre-ship.html?' + buildRefundQuery(itemIndex);
+  }
+
+  function buildItemRefundHref(itemIndex) {
+    var scene = getRefundScene();
+    if (scene === 'pre_ship') {
+      return buildPreShipHref(itemIndex);
+    }
+    var query = buildRefundQuery(itemIndex);
+    return 'order-refund-select.html?scene=' + encodeURIComponent(scene) + '&' + query;
+  }
+
+  function openCancelModal() {
+    var modal = document.getElementById('orderCancelModal');
+    if (modal) modal.hidden = false;
+  }
+
+  function closeCancelModal() {
+    var modal = document.getElementById('orderCancelModal');
+    if (modal) modal.hidden = true;
+  }
+
+  function confirmCancelOrder() {
+    closeCancelModal();
+    var p = getParams();
+    var href =
+      'order-detail.html?status=closed&reason=cancel' +
+      (p.get('from') ? '&from=' + encodeURIComponent(p.get('from')) : '') +
+      (p.get('supplier') ? '&supplier=' + encodeURIComponent(p.get('supplier')) : '') +
+      (p.get('delivery') ? '&delivery=' + encodeURIComponent(p.get('delivery')) : '');
+    window.location.href = href;
+  }
+
   function toast(msg) {
     window.alert(msg + '（演示）');
   }
@@ -218,23 +272,32 @@
     var secondary = document.getElementById('orderItemActionsSecondary');
     if (!primary || !secondary) return;
 
-    function makeBtn(label, cls) {
-      return '<button type="button" class="ua-od-item__btn' + (cls ? ' ' + cls : '') + '">' + label + '</button>';
+    function makeBtn(label, itemIndex) {
+      return (
+        '<button type="button" class="ua-od-item__btn" data-item-action="' +
+        (mode === 'aftersale' ? 'aftersale' : 'refund') +
+        '" data-item-index="' +
+        itemIndex +
+        '">' +
+        label +
+        '</button>'
+      );
     }
 
-    primary.innerHTML = '';
-    secondary.innerHTML = '';
-
     if (mode === 'refund') {
-      primary.innerHTML = makeBtn('申请退款');
-      secondary.innerHTML = makeBtn('申请退款');
+      primary.innerHTML = makeBtn('申请退款', 0);
+      secondary.innerHTML = makeBtn('申请退款', 1);
       return;
     }
 
     if (mode === 'aftersale') {
-      primary.innerHTML = makeBtn('申请售后');
-      secondary.innerHTML = makeBtn('申请售后');
+      primary.innerHTML = makeBtn('申请售后', 0);
+      secondary.innerHTML = makeBtn('申请售后', 1);
+      return;
     }
+
+    primary.innerHTML = '';
+    secondary.innerHTML = '';
   }
 
   function renderFooter(actions) {
@@ -348,8 +411,12 @@
       document.getElementById('orderDetailFooter').addEventListener('click', function (e) {
         var btn = e.target.closest('[data-footer-action]');
         if (!btn) return;
+        var action = btn.getAttribute('data-footer-action');
+        if (action === 'cancel') {
+          openCancelModal();
+          return;
+        }
         var map = {
-          cancel: '取消订单',
           pay: '立即付款',
           refund: '申请退款',
           logistics: '查看物流',
@@ -358,16 +425,24 @@
           cart: '加入购物车',
           rebuy: '重新购买'
         };
-        toast(map[btn.getAttribute('data-footer-action')] || '操作');
+        toast(map[action] || '操作');
       });
 
     document.querySelectorAll('.ua-od-item__actions').forEach(function (wrap) {
       wrap.addEventListener('click', function (e) {
         var btn = e.target.closest('.ua-od-item__btn');
         if (!btn) return;
-        toast(btn.textContent.trim());
+        var itemIndex = btn.getAttribute('data-item-index') || '0';
+        window.location.href = buildItemRefundHref(parseInt(itemIndex, 10));
       });
     });
+
+    document.getElementById('orderCancelModalDismiss') &&
+      document.getElementById('orderCancelModalDismiss').addEventListener('click', closeCancelModal);
+    document.getElementById('orderCancelModalMask') &&
+      document.getElementById('orderCancelModalMask').addEventListener('click', closeCancelModal);
+    document.getElementById('orderCancelModalConfirm') &&
+      document.getElementById('orderCancelModalConfirm').addEventListener('click', confirmCancelOrder);
   }
 
   function init() {

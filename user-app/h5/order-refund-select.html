@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>选择服务类型 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-order-refund-page">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-or-scroll">
+      <div class="ua-status-bar">
+        <span>9:41</span>
+        <span class="ua-status-bar__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#111"><path d="M1 7h2v4H1V7zm4-2h2v6H5V5zm4-3h2v9H9V2zm4 5h2v4h-2V7z"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="#111"><circle cx="8" cy="10.5" r="1.2"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="20" height="11" rx="2.5" stroke="#111" opacity=".35"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#111"/></svg>
+        </span>
+      </div>
+
+      <header class="ua-or-nav">
+        <a href="order-detail.html" class="ua-or-nav__back" id="refundNavBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="ua-or-nav__title" id="refundNavTitle">选择服务类型</h1>
+        <div class="ua-or-nav__actions">
+          <button type="button" class="ua-or-nav__icon" aria-label="搜索">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          </button>
+          <button type="button" class="ua-or-nav__icon" aria-label="更多">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <section class="ua-or-card ua-or-product" id="refundProductCard"></section>
+
+      <section class="ua-or-card">
+        <h2 class="ua-or-section-title" id="refundSectionTitle">选择服务类型</h2>
+        <div class="ua-or-service-list">
+          <button type="button" class="ua-or-service" data-service="refund_only">
+            <input type="radio" name="refundService" id="refundServiceRefund">
+            <span class="ua-or-service__radio"></span>
+            <span class="ua-or-service__body">
+              <span class="ua-or-service__title">我要退款（无需退货）</span>
+              <span class="ua-or-service__desc">未收到货，或与卖家协商同意不用退货只退款</span>
+            </span>
+          </button>
+          <button type="button" class="ua-or-service" data-service="return_refund">
+            <input type="radio" name="refundService" id="refundServiceReturn">
+            <span class="ua-or-service__radio"></span>
+            <span class="ua-or-service__body">
+              <span class="ua-or-service__title">我要退货退款</span>
+              <span class="ua-or-service__desc">已收到货，需退还收到的货物</span>
+            </span>
+          </button>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script src="../js/user-app-order-refund.js"></script>
+  <script>UAOrderRefund.initSelectPage();</script>
+</body>
+</html>

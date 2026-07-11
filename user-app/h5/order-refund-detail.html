@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>退款详情 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-order-refund-detail-page">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-or-detail-scroll">
+      <div class="ua-status-bar ua-status-bar--light">
+        <span>9:41</span>
+        <span class="ua-status-bar__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#fff"><path d="M1 7h2v4H1V7zm4-2h2v6H5V5zm4-3h2v9H9V2zm4 5h2v4h-2V7z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#fff"/></svg>
+        </span>
+      </div>
+
+      <header class="ua-or-detail-nav" id="refundDetailNav">
+        <a href="order-detail.html" class="ua-or-detail-nav__back" id="refundDetailBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="ua-or-detail-nav__title">退款详情</h1>
+        <div class="ua-or-detail-nav__actions">
+          <button type="button" class="ua-or-detail-nav__icon" aria-label="更多">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <section class="ua-or-detail-hero" id="refundDetailHero">
+        <h2 class="ua-or-detail-hero__title" id="refundDetailStatusTitle">请等待平台审核</h2>
+        <p class="ua-or-detail-hero__timer" id="refundDetailTimer">剩余 23:59:58</p>
+        <div class="ua-or-detail-steps" id="refundDetailSteps"></div>
+      </section>
+
+      <section class="ua-or-result-head" id="refundResultHead" hidden>
+        <h2 class="ua-or-result-head__title" id="refundResultTitle">退款成功</h2>
+        <p class="ua-or-result-head__time" id="refundResultTime">—</p>
+      </section>
+
+      <section class="ua-or-card ua-or-result-breakdown" id="refundResultBreakdown" hidden>
+        <div class="ua-or-result-breakdown__total">
+          <span class="ua-or-result-breakdown__icon" aria-hidden="true">¥</span>
+          <span class="ua-or-result-breakdown__label">退款总金额</span>
+          <span class="ua-or-result-breakdown__amount" id="refundResultTotalAmount">¥0.00</span>
+        </div>
+        <ul class="ua-or-result-breakdown__list" id="refundResultBreakdownList"></ul>
+      </section>
+
+      <section class="ua-or-card ua-or-result-message" id="refundResultMessage" hidden>
+        <p class="ua-or-result-message__main" id="refundResultMessageMain"></p>
+        <p class="ua-or-result-message__sub" id="refundResultMessageSub" hidden></p>
+        <p class="ua-or-result-message__reason" id="refundResultRejectReason" hidden></p>
+      </section>
+
+      <section class="ua-or-detail-notice" id="refundDetailNotice"></section>
+
+      <section class="ua-or-detail-reject-return" id="refundDetailRejectReturnSection" hidden>
+        <div class="ua-or-card ua-or-detail-reject-card">
+          <p class="ua-or-detail-reject-card__reason" id="refundRejectReasonText"></p>
+          <div class="ua-or-detail-info-row">
+            <span class="ua-or-detail-info-row__label">退回物流公司</span>
+            <span class="ua-or-detail-info-row__value" id="refundBackCourierDisplay">—</span>
+          </div>
+          <div class="ua-or-detail-info-row">
+            <span class="ua-or-detail-info-row__label">退回单号</span>
+            <span class="ua-or-detail-info-row__value" id="refundBackTrackingDisplay">—</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="ua-or-detail-return" id="refundDetailReturnSection" hidden>
+        <div class="ua-or-detail-return__addr" id="refundDetailReturnAddr"></div>
+        <div class="ua-or-card ua-or-detail-logistics" id="refundDetailLogisticsForm">
+          <button type="button" class="ua-or-field" id="refundLogisticsCompanyRow">
+            <span class="ua-or-field__label">物流公司</span>
+            <span class="ua-or-field__value ua-or-field__value--placeholder" id="refundLogisticsCompanyValue">请选择</span>
+            <span class="ua-or-field__arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
+          </button>
+          <div class="ua-or-field-row ua-or-detail-tracking-row">
+            <span class="ua-or-field__label">退货单号</span>
+            <input type="text" class="ua-or-detail-tracking-input" id="refundTrackingInput" placeholder="请输入退货单号" maxlength="32">
+          </div>
+        </div>
+        <div class="ua-or-card ua-or-detail-logistics ua-or-detail-logistics--view" id="refundDetailLogisticsView" hidden>
+          <div class="ua-or-detail-info-row">
+            <span class="ua-or-detail-info-row__label">物流公司</span>
+            <span class="ua-or-detail-info-row__value" id="refundLogisticsCompanyDisplay">—</span>
+          </div>
+          <div class="ua-or-detail-info-row">
+            <span class="ua-or-detail-info-row__label">退货单号</span>
+            <span class="ua-or-detail-info-row__value" id="refundTrackingDisplay">—</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="ua-or-card ua-or-detail-info" id="refundDetailInfoCard">
+        <h2 class="ua-or-detail-info__title" id="refundInfoSectionTitle" hidden>退款信息</h2>
+        <div class="ua-or-product ua-or-detail-product" id="refundDetailProduct"></div>
+        <div class="ua-or-detail-info-row">
+          <span class="ua-or-detail-info-row__label">退款原因</span>
+          <span class="ua-or-detail-info-row__value" id="refundDetailReason">—</span>
+        </div>
+        <div class="ua-or-detail-info-row">
+          <span class="ua-or-detail-info-row__label">退款金额</span>
+          <span class="ua-or-detail-info-row__value ua-or-detail-info-row__value--amount" id="refundDetailAmount">—</span>
+        </div>
+        <div class="ua-or-detail-info-row">
+          <span class="ua-or-detail-info-row__label">申请时间</span>
+          <span class="ua-or-detail-info-row__value" id="refundDetailApplyTime">—</span>
+        </div>
+        <div class="ua-or-detail-info-row">
+          <span class="ua-or-detail-info-row__label">退款编号</span>
+          <span class="ua-or-detail-info-row__value ua-or-detail-info-row__value--copy">
+            <span id="refundDetailNo">—</span>
+            <button type="button" class="ua-or-detail-copy" id="refundDetailCopyBtn">复制</button>
+          </span>
+        </div>
+      </section>
+    </div>
+
+    <footer class="ua-or-detail-footer" id="refundDetailFooter"></footer>
+
+    <div class="ua-or-sheet" id="refundCourierSheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="refundCourierSheet"></div>
+      <div class="ua-or-sheet__panel ua-or-sheet__panel--courier">
+        <div class="ua-or-sheet__head">
+          <h3 class="ua-or-sheet__title ua-or-sheet__title--left">快递选择</h3>
+          <button type="button" class="ua-or-sheet__close" data-or-sheet-close="refundCourierSheet" aria-label="关闭">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="ua-or-picker__list" id="refundCourierList"></div>
+      </div>
+    </div>
+
+    <div class="ua-or-cancel-modal" id="refundCancelModal" hidden>
+      <div class="ua-or-cancel-modal__mask" data-or-cancel-close></div>
+      <div class="ua-or-cancel-modal__panel">
+        <h3 class="ua-or-cancel-modal__title">撤销申请</h3>
+        <p class="ua-or-cancel-modal__text">撤销后本次售后申请将关闭，如有需要可重新发起。确定撤销吗？</p>
+        <div class="ua-or-cancel-modal__actions">
+          <button type="button" class="ua-or-cancel-modal__btn" data-or-cancel-close>取消</button>
+          <button type="button" class="ua-or-cancel-modal__btn ua-or-cancel-modal__btn--confirm" id="refundCancelConfirmBtn">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ua-or-toast" id="refundDetailToast" hidden></div>
+  </div>
+  <script src="../js/user-app-order-refund.js"></script>
+  <script>UAOrderRefund.initDetailPage();</script>
+</body>
+</html>
