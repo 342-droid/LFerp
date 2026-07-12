@@ -317,6 +317,17 @@ body {
     overflow-y: auto;
 }
 
+/* 桌面端：主内容与顶栏一级菜单保留间距，避免页签贴上顶栏 */
+@media (min-width: 769px) {
+    .main-content {
+        padding-top: 10px;
+    }
+
+    .content-tabs {
+        margin-top: 2px;
+    }
+}
+
 /* 侧边栏菜单（深底 + 白字 + 橙色圆角选中，对齐商城侧栏稿） */
 .sidebar-menu {
     list-style: none;

@@ -66,6 +66,9 @@
     } else if (copy.audit === 'passed') {
       delete copy.rejectReason;
     }
+    if (copy.status === 'selling' && !copy.audit) {
+      copy.audit = 'passed';
+    }
     return copy;
   }
 

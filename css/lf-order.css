@@ -2,32 +2,34 @@
 .order-page {
   min-height: 100%;
   background: var(--color-bg-page, #f0f2f5);
-  margin: -20px;
+  margin: 0 -20px;
   padding: 0;
 }
 
 .order-page-tabs {
   display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0 16px;
-  height: 40px;
-  background: #ffffff;
-  border-bottom: 1px solid var(--color-border, #e8e8e8);
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 16px 0;
+  min-height: var(--layout-tabs-height, 40px);
+  background: var(--color-bg-page, #f0f2f5);
+  border-bottom: none;
 }
 
 .order-page-tabs__item {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 40px;
-  padding: 0 12px;
+  height: 36px;
+  padding: 0 14px;
   font-size: 13px;
   color: var(--color-text-secondary, #666666);
   text-decoration: none;
   border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
+  border-radius: 4px 4px 0 0;
   white-space: nowrap;
+  background: transparent;
 }
 
 .order-page-tabs__item svg {
@@ -39,6 +41,7 @@
 .order-page-tabs__item--active {
   color: var(--color-primary, #ff7019);
   font-weight: 600;
+  background: #fff7f0;
   border-bottom-color: var(--color-primary, #ff7019);
 }
 

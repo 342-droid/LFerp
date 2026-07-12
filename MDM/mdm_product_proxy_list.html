@@ -17,16 +17,7 @@
     <div class="container">
         <main class="main-content">
             <div class="product-page">
-                <div class="product-page-tabs">
-                    <a href="mdm_workbench.html" class="product-page-tabs__item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5L12 4l8 6.5V19a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-8.5z"/></svg>
-                        首页
-                    </a>
-                    <span class="product-page-tabs__item product-page-tabs__item--active">
-                        商品列表
-                        <button type="button" class="product-page-tabs__close" id="proxyListTabClose" aria-label="关闭">×</button>
-                    </span>
-                </div>
+                <div class="product-page-tabs" id="productPageTabs" aria-label="页面页签"></div>
 
                 <div class="product-page-body">
                     <section class="erp-page__card product-filter-card">
@@ -44,11 +35,6 @@
                                     <label class="product-filter-field__label" for="qProxyMallCategory">商城类目</label>
                                     <select class="product-filter-field__select" id="qProxyMallCategory">
                                         <option value="">请选择商城类目</option>
-                                        <option value="新鲜蔬菜">新鲜蔬菜</option>
-                                        <option value="时令水果">时令水果</option>
-                                        <option value="粮油调味">粮油调味</option>
-                                        <option value="肉禽蛋品">肉禽蛋品</option>
-                                        <option value="酒水饮料">酒水饮料</option>
                                     </select>
                                 </div>
                             </div>
@@ -146,6 +132,13 @@
         </main>
     </div>
     <script src="../js/common.js"></script>
+    <script src="../js/product-page-tabs.js"></script>
+    <script src="../js/mdm-product-catalog-store.js"></script>
+    <script src="../js/mdm-product-mall-library.js"></script>
+    <script src="../js/mdm-product-proxy-category-store.js"></script>
+    <script src="../js/mdm-product-proxy-category-picker.js"></script>
+    <script src="../js/mdm-product-proxy-form.js"></script>
+    <script src="../js/mdm-product-proxy-library-drawer.js"></script>
     <script src="../js/mdm-product-proxy-list.js"></script>
 </body>
 </html>

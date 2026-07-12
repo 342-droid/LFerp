@@ -353,11 +353,6 @@
         renderTable();
       });
 
-    document.getElementById('productTabClose') &&
-      document.getElementById('productTabClose').addEventListener('click', function () {
-        window.location.href = wp.page('mdm_workbench.html');
-      });
-
     document.addEventListener('click', function (e) {
       var toggle = e.target.closest('[data-more-toggle]');
       if (toggle) {

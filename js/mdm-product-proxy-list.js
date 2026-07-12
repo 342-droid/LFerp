@@ -1,5 +1,6 @@
 (function () {
   var wp = window.wmsPath || { page: function (f) { return f; } };
+  var STORAGE_KEY = 'mdm_proxy_product_list_v1';
 
   var SEED = [
     {
@@ -246,6 +247,193 @@
     document.body.appendChild(backdrop);
   }
 
+  function persistProducts() {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(ALL_PRODUCTS));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function loadProducts() {
+    try {
+      var raw = sessionStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) {
+          ALL_PRODUCTS = parsed;
+          return;
+        }
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    buildCatalog();
+    persistProducts();
+  }
+
+  function getAddedCodesMap() {
+    var map = {};
+    ALL_PRODUCTS.forEach(function (item) {
+      map[item.code] = true;
+    });
+    return map;
+  }
+
+  function isProductReadyForShelf(product) {
+    if (!product || !product.name) return false;
+    if (product.fromLibrary && !product.detailEdited) return false;
+    return !!product.category_l3_id;
+  }
+
+  function catalogItemToProxyProduct(item) {
+    return {
+      code: item.code,
+      name: item.name,
+      img: item.img,
+      tag: '',
+      category: '',
+      category_path: '',
+      category_l3_id: '',
+      spec: '1',
+      specCount: 1,
+      priceType: 'money',
+      priceMoney: item.price != null ? item.price : 0.01,
+      linePrice: null,
+      sales: 0,
+      status: 'draft',
+      fromLibrary: true,
+      detailEdited: false
+    };
+  }
+
+  function addProductsFromLibrary(items) {
+    if (!items || !items.length) return 0;
+    var addedCodes = getAddedCodesMap();
+    var count = 0;
+    items.forEach(function (item) {
+      if (addedCodes[item.code]) return;
+      var product = catalogItemToProxyProduct(item);
+      ALL_PRODUCTS.unshift(product);
+      addedCodes[item.code] = true;
+      count += 1;
+    });
+    if (count) {
+      persistProducts();
+      applyFilters();
+      renderTable();
+      populateCategoryFilter();
+    }
+    return count;
+  }
+
+  function openLibraryDrawer() {
+    if (!window.MdmProxyLibraryDrawer) {
+      if (typeof showToast === 'function') showToast('商品库组件未加载', 'warning');
+      return;
+    }
+    if (!window.MdmMallProductLibrary) {
+      if (typeof showToast === 'function') showToast('商品库数据未加载', 'warning');
+      return;
+    }
+    window.MdmProxyLibraryDrawer.open({
+      addedCodes: getAddedCodesMap(),
+      onConfirm: function (picked) {
+        var count = addProductsFromLibrary(picked);
+        if (typeof showToast === 'function') {
+          showToast(count ? ('已添加 ' + count + ' 件商品，请编辑完善后再上架') : '未添加新商品', count ? 'success' : 'info');
+        }
+      }
+    });
+  }
+
+  function getStore() {
+    return window.MdmProxyCategoryStore || null;
+  }
+
+  function applyProductCategory(product, l3Id, path) {
+    var store = getStore();
+    if (!store) return;
+    var oldL3 = product.category_l3_id;
+    store.rebindProduct(oldL3, l3Id, {
+      code: product.code,
+      name: product.name,
+      img: product.img
+    });
+    product.category_l3_id = l3Id;
+    product.category_path = path;
+    product.category = path;
+  }
+
+  function unbindProductCategory(product) {
+    var store = getStore();
+    if (!store || !product.category_l3_id) return;
+    store.unbindProduct(product.category_l3_id, product.code);
+    product.category_l3_id = '';
+    product.category_path = '';
+    product.category = '';
+  }
+
+  function populateCategoryFilter() {
+    var select = document.getElementById('qProxyMallCategory');
+    var store = getStore();
+    if (!select || !store) return;
+    var current = select.value;
+    var list = store.getSelectableL3List();
+    select.innerHTML = '<option value="">请选择商城类目</option>' +
+      list.map(function (c) {
+        return '<option value="' + c.path + '">' + c.path + '</option>';
+      }).join('');
+    if (current) select.value = current;
+  }
+
+  function openProductForm(product) {
+    if (!window.MdmProxyProductForm) {
+      if (typeof showToast === 'function') showToast('表单组件未加载', 'warning');
+      return;
+    }
+    window.MdmProxyProductForm.open({
+      mode: product ? 'edit' : 'add',
+      product: product || {},
+      onSave: function (payload, original) {
+        if (original && original.code) {
+          applyProductCategory(original, payload.category_l3_id, payload.category_path);
+          original.name = payload.name;
+          original.detailEdited = true;
+          persistProducts();
+          renderTable();
+          populateCategoryFilter();
+          if (typeof showToast === 'function') showToast('商品已更新', 'success');
+          return;
+        }
+        var newItem = {
+          code: 'SPU' + String(Date.now()).slice(-5),
+          name: payload.name,
+          img: '../user-app/assets/restock/product-leaf.svg',
+          tag: '',
+          category: payload.category_path,
+          category_path: payload.category_path,
+          category_l3_id: payload.category_l3_id,
+          spec: '1',
+          specCount: 1,
+          priceType: 'money',
+          priceMoney: 0.01,
+          linePrice: null,
+          sales: 0,
+          status: 'draft'
+        };
+        ALL_PRODUCTS.unshift(newItem);
+        applyProductCategory(newItem, payload.category_l3_id, payload.category_path);
+        newItem.detailEdited = true;
+        persistProducts();
+        applyFilters();
+        renderTable();
+        populateCategoryFilter();
+        if (typeof showToast === 'function') showToast('商品已添加', 'success');
+      }
+    });
+  }
+
   function buildCatalog() {
     var list = SEED.slice();
     var i = 0;
@@ -276,7 +464,7 @@
     var f = state.filters;
     if (f.code && item.code.toLowerCase().indexOf(f.code.toLowerCase()) < 0) return false;
     if (f.name && item.name.indexOf(f.name) < 0) return false;
-    if (f.mallCategory && item.category !== f.mallCategory) return false;
+    if (f.mallCategory && (item.category_path || item.category) !== f.mallCategory) return false;
     if (f.tag && item.tag !== f.tag) return false;
     if (f.status && item.status !== f.status) return false;
     return true;
@@ -390,7 +578,7 @@
             '  <img class="product-table__thumb" src="' + item.img + '" alt="">' +
             '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--tag">' + (item.tag || '<span class="product-proxy-dash">-</span>') + '</td>' +
-            '<td class="product-proxy-table__td product-proxy-table__td--category">' + (item.category || '<span class="product-proxy-dash">-</span>') + '</td>' +
+            '<td class="product-proxy-table__td product-proxy-table__td--category">' + (item.category_path || item.category || '<span class="product-proxy-dash">-</span>') + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--spec">' + item.spec + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--sale">' + renderSalePrice(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--line">' + renderLinePrice(item) + '</td>' +
@@ -522,14 +710,9 @@
         renderTable();
       });
 
-    document.getElementById('proxyListTabClose') &&
-      document.getElementById('proxyListTabClose').addEventListener('click', function () {
-        window.location.href = wp.page('mdm_workbench.html');
-      });
-
     document.getElementById('proxyAddFromLibrary') &&
       document.getElementById('proxyAddFromLibrary').addEventListener('click', function () {
-        if (typeof showToast === 'function') showToast('从商品库添加（演示）', 'info');
+        openLibraryDrawer();
       });
 
     document.addEventListener('click', function (e) {
@@ -556,13 +739,20 @@
         var product = getProduct(code);
 
         if (action === 'edit') {
-          if (typeof showToast === 'function') showToast('编辑 ' + code + '（演示）', 'info');
+          if (product) openProductForm(product);
           return;
         }
 
         if (action === 'list-shelf' && product) {
+          if (!isProductReadyForShelf(product)) {
+            if (typeof showToast === 'function') {
+              showToast('请先编辑商品，完善类目等信息后再上架', 'warning');
+            }
+            return;
+          }
           openWarmConfirmModal('确定上架此商品吗？', function () {
             product.status = 'on_shelf';
+            persistProducts();
             renderTable();
             if (typeof showToast === 'function') showToast('已上架', 'success');
           });
@@ -571,15 +761,19 @@
 
         if (action === 'off-shelf' && product) {
           product.status = 'off_shelf';
+          persistProducts();
           renderTable();
           if (typeof showToast === 'function') showToast('已下架', 'success');
           return;
         }
 
         if (action === 'delete' && product) {
+          unbindProductCategory(product);
           removeProduct(code);
+          persistProducts();
           applyFilters();
           renderTable();
+          populateCategoryFilter();
           if (typeof showToast === 'function') showToast('已删除', 'success');
         }
       }
@@ -587,8 +781,11 @@
   }
 
   function init() {
-    buildCatalog();
+    if (getStore()) getStore().load();
+    if (window.MdmProductCatalog) window.MdmProductCatalog.reload();
+    loadProducts();
     state.filtered = ALL_PRODUCTS.slice();
+    populateCategoryFilter();
     bindEvents();
     renderTable();
   }
