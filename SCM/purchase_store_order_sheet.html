@@ -19,6 +19,38 @@
             text-decoration: underline;
         }
 
+        .source-order-no-cell {
+            display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: bottom;
+            cursor: help;
+            border-bottom: 1px dashed #bbb;
+        }
+
+        .source-order-no-cell.is-single {
+            cursor: default;
+            border-bottom: none;
+        }
+
+        .source-order-no-tip {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            max-width: 360px;
+            padding: 8px 10px;
+            background: rgba(51, 51, 51, 0.95);
+            color: #fff;
+            font-size: 12px;
+            line-height: 1.6;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+            pointer-events: none;
+            white-space: pre-line;
+            word-break: break-all;
+        }
+
         .detail-modal .modal-content {
             width: 95%;
             max-width: 1100px;
@@ -373,6 +405,7 @@
                                 <div class="select-option" data-value="">全部</div>
                                 <div class="select-option" data-value="门店订货汇总生成">门店订货汇总生成</div>
                                 <div class="select-option" data-value="手动新增">手动新增</div>
+                                <div class="select-option" data-value="售后补送">售后补送</div>
                             </div>
                         </div>
                     </div>
@@ -435,9 +468,14 @@
                             <tr>
                                 <th><input type="checkbox" class="table-checkbox checkbox-all" id="orderSheetCheckAll"></th>
                                 <th>订货单号</th>
+                                <th>来源单号</th>
+                                <th>关联单号</th>
+                                <th>采购单号</th>
                                 <th>门店</th>
                                 <th>订单渠道</th>
                                 <th>履约方式</th>
+                                <th>单据状态</th>
+                                <th>单据来源</th>
                                 <th>配送仓库</th>
                                 <th>收货仓库</th>
                                 <th>明细行数</th>
@@ -445,9 +483,7 @@
                                 <th>销售总价</th>
                                 <th>截单时间</th>
                                 <th>预计发货时间</th>
-                                <th>单据状态</th>
                                 <th>是否到店</th>
-                                <th>单据来源</th>
                                 <th>取消时间</th>
                                 <th>取消人</th>
                                 <th>备注</th>
@@ -609,7 +645,75 @@
     function escapeAttr(s) {
         return String(s)
             .replace(/&/g, '&amp;')
-            .replace(/"/g, '&quot;');
+            .replace(/"/g, '&quot;')
+            .replace(/\n/g, '&#10;');
+    }
+
+    function collectUniqueSourceOrderNos(ls) {
+        var seen = {};
+        var list = [];
+        (ls || []).forEach(function(r) {
+            if (r.sourceOrderNo == null) return;
+            String(r.sourceOrderNo).split(/[,，;；\s]+/).forEach(function(part) {
+                var val = String(part).trim();
+                if (!val || seen[val]) return;
+                seen[val] = true;
+                list.push(val);
+            });
+        });
+        return list;
+    }
+
+    function sourceOrderNoCellHtml(sourceOrderNos) {
+        if (!sourceOrderNos || !sourceOrderNos.length) {
+            return '<td>—</td>';
+        }
+        var fullTip = sourceOrderNos.join('\n');
+        var displayText = sourceOrderNos.length === 1
+            ? sourceOrderNos[0]
+            : sourceOrderNos[0] + ' 等' + sourceOrderNos.length + '个';
+        var cls = 'source-order-no-cell js-source-order-tip' + (sourceOrderNos.length === 1 ? ' is-single' : '');
+        return '<td><span class="' + cls + '" data-full-tip="' + escapeAttr(fullTip) + '">' + escapeHtml(displayText) + '</span></td>';
+    }
+
+    var sourceOrderTipEl = null;
+
+    function ensureSourceOrderTipEl() {
+        if (!sourceOrderTipEl) {
+            sourceOrderTipEl = document.createElement('div');
+            sourceOrderTipEl.className = 'source-order-no-tip';
+            sourceOrderTipEl.setAttribute('role', 'tooltip');
+            document.body.appendChild(sourceOrderTipEl);
+        }
+        return sourceOrderTipEl;
+    }
+
+    function hideSourceOrderTip() {
+        if (sourceOrderTipEl) {
+            sourceOrderTipEl.style.display = 'none';
+        }
+    }
+
+    function showSourceOrderTip(target) {
+        var full = target.getAttribute('data-full-tip') || '';
+        if (!full) return;
+        var tip = ensureSourceOrderTipEl();
+        tip.textContent = full;
+        tip.style.display = 'block';
+        tip.style.left = '0px';
+        tip.style.top = '0px';
+        var rect = target.getBoundingClientRect();
+        var tipRect = tip.getBoundingClientRect();
+        var left = rect.left;
+        var top = rect.bottom + 6;
+        if (left + tipRect.width > window.innerWidth - 8) {
+            left = Math.max(8, window.innerWidth - tipRect.width - 8);
+        }
+        if (top + tipRect.height > window.innerHeight - 8) {
+            top = Math.max(8, rect.top - tipRect.height - 6);
+        }
+        tip.style.left = left + 'px';
+        tip.style.top = top + 'px';
     }
 
     function renderSkuImageCell(imageUrl, altText) {
@@ -1092,7 +1196,12 @@
                 return s !== '' ? s : '—';
             };
             var remark = (metaLine.remark != null && String(metaLine.remark).trim() !== '') ? String(metaLine.remark).trim() : '';
-            var docSource = (metaLine.docSource != null && String(metaLine.docSource).trim() !== '') ? String(metaLine.docSource).trim() : '门店订货汇总生成';
+            var docSourceLine = ls.find(function(r) {
+                return r.docSource != null && String(r.docSource).trim() !== '';
+            });
+            var docSource = docSourceLine
+                ? String(docSourceLine.docSource).trim()
+                : '门店订货汇总生成';
             var sheetTotalOverride = ls.find(function(r) {
                 return r.sheetOrderTotal != null && String(r.sheetOrderTotal).trim() !== '' && !isNaN(Number(r.sheetOrderTotal));
             });
@@ -1134,8 +1243,23 @@
             var cancelBy = pickStr(metaLine.cancelBy);
             var fulfillmentMethod = first.fulfillmentMethod || '—';
             var warehouses = resolveSheetWarehouses(fulfillmentMethod, first.deliveryWarehouse, first.receivingWarehouse);
+            var sourceOrderNos = collectUniqueSourceOrderNos(ls);
+            var relatedOrderNo = '—';
+            if (!isExpressFulfillmentMethod(fulfillmentMethod)) {
+                var relatedLine = ls.find(function(r) {
+                    return r.relatedOrderNo != null && String(r.relatedOrderNo).trim() !== '';
+                });
+                relatedOrderNo = pickStr(relatedLine ? relatedLine.relatedOrderNo : '');
+            }
+            var poLine = ls.find(function(r) {
+                return r.poNo != null && String(r.poNo).trim() !== '';
+            });
+            var poNo = pickStr(poLine ? poLine.poNo : '');
             return {
                 sheetNo: grp.sheetNo,
+                sourceOrderNos: sourceOrderNos,
+                relatedOrderNo: relatedOrderNo,
+                poNo: poNo,
                 storeCode: first.storeCode,
                 storeName: first.storeName,
                 orderSource: first.orderSource || '—',
@@ -1381,7 +1505,7 @@
         var pageRows = filteredHeaders.slice(start, start + pageSize);
 
         if (pageRows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="23" style="text-align:center;color:#999;">暂无数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="26" style="text-align:center;color:#999;">暂无数据</td></tr>';
         } else {
             tbody.innerHTML = pageRows.map(function(h) {
                 var storeText = (h.storeName && h.storeCode)
@@ -1391,9 +1515,14 @@
                     '<tr data-sheet-no="' + escapeHtml(h.sheetNo) + '">' +
                     '<td><input type="checkbox" class="table-checkbox checkbox-row"></td>' +
                     '<td><a href="#" class="order-no-link js-open-order-detail" data-sheet-no="' + escapeHtml(h.sheetNo) + '">' + escapeHtml(h.sheetNo) + '</a></td>' +
+                    sourceOrderNoCellHtml(h.sourceOrderNos) +
+                    '<td>' + escapeHtml(h.relatedOrderNo) + '</td>' +
+                    '<td>' + escapeHtml(h.poNo) + '</td>' +
                     '<td>' + escapeHtml(storeText) + '</td>' +
                     '<td>' + escapeHtml(h.orderSource) + '</td>' +
                     '<td>' + escapeHtml(h.fulfillmentMethod) + '</td>' +
+                    '<td>' + statusCellHtml(h.headerStatus) + '</td>' +
+                    '<td>' + escapeHtml(h.docSource) + '</td>' +
                     '<td>' + escapeHtml(h.deliveryWarehouse || '—') + '</td>' +
                     '<td>' + escapeHtml(h.receivingWarehouse || '—') + '</td>' +
                     '<td>' + h.lineCount + '</td>' +
@@ -1401,9 +1530,7 @@
                     '<td>' + escapeHtml(h.orderTotalPrice) + '</td>' +
                     '<td>' + escapeHtml(h.cutoffTime) + '</td>' +
                     '<td>' + escapeHtml(h.expectedShipTime) + '</td>' +
-                    '<td>' + statusCellHtml(h.headerStatus) + '</td>' +
                     '<td>' + escapeHtml(h.isArrivedStore) + '</td>' +
-                    '<td>' + escapeHtml(h.docSource) + '</td>' +
                     '<td>' + escapeHtml(h.cancelTime) + '</td>' +
                     '<td>' + escapeHtml(h.cancelBy) + '</td>' +
                     '<td>' + escapeHtml(h.remark) + '</td>' +
@@ -1460,11 +1587,12 @@
                 detailInfoItemHtml('门店', detailStoreText),
                 detailInfoItemHtml('订单渠道', h.orderSource),
                 detailInfoItemHtml('履约方式', h.fulfillmentMethod),
+                detailInfoItemHtml('单据状态', h.headerStatus),
+                detailInfoItemHtml('单据来源', h.docSource),
                 detailInfoItemHtml('配送仓库', h.deliveryWarehouse),
                 detailInfoItemHtml('收货仓库', h.receivingWarehouse),
                 detailInfoItemHtml('截单时间', h.cutoffTime),
                 detailInfoItemHtml('预计发货时间', h.expectedShipTime),
-                detailInfoItemHtml('单据状态', h.headerStatus),
                 detailInfoItemHtml('是否到店', h.isArrivedStore),
                 detailInfoItemHtml('取消时间', h.cancelTime),
                 detailInfoItemHtml('取消人', h.cancelBy),
@@ -1520,6 +1648,27 @@
         var modal = document.getElementById('orderSheetDetailModal');
         if (modal) modal.style.display = 'none';
     }
+
+    document.getElementById('orderSheetTbody').addEventListener('mouseover', function(e) {
+        var tipTarget = e.target.closest('.js-source-order-tip');
+        if (!tipTarget) return;
+        showSourceOrderTip(tipTarget);
+    });
+
+    document.getElementById('orderSheetTbody').addEventListener('mouseout', function(e) {
+        var tipTarget = e.target.closest('.js-source-order-tip');
+        if (!tipTarget) return;
+        var related = e.relatedTarget;
+        if (related && tipTarget.contains(related)) return;
+        hideSourceOrderTip();
+    });
+
+    var orderSheetScrollContainer = document.querySelector('.table-scroll-container');
+    if (orderSheetScrollContainer) {
+        orderSheetScrollContainer.addEventListener('scroll', hideSourceOrderTip);
+    }
+    window.addEventListener('scroll', hideSourceOrderTip, true);
+    window.addEventListener('resize', hideSourceOrderTip);
 
     document.getElementById('orderSheetTbody').addEventListener('click', function(e) {
         var link = e.target.closest('.js-open-order-detail');
