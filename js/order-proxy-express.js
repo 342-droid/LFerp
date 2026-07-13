@@ -375,6 +375,10 @@
     return block;
   }
 
+  function canUploadExpressStatus(status) {
+    return status === '已创建' || status === '待收货';
+  }
+
   function buildDeliveryCard(detail, orderId, row, onUploadClick) {
     var mode = getFulfillmentMode(orderId, row);
     var card = el('div', 'order-detail-card order-proxy-delivery-card');
@@ -404,10 +408,18 @@
         expressWrap.appendChild(el('div', 'order-proxy-express-empty', '暂未上传快递单号'));
       }
 
-      var uploadBtn = el('button', 'order-detail-btn order-detail-btn--primary order-proxy-upload-btn', '+ 上传快递单号');
-      uploadBtn.type = 'button';
-      uploadBtn.addEventListener('click', onUploadClick);
-      expressWrap.appendChild(uploadBtn);
+      var orderStatus = detail.progress && detail.progress.status ? detail.progress.status : '';
+      if (row) {
+        var statusEl = row.querySelector('td:nth-last-child(2) .order-tag');
+        if (statusEl) orderStatus = statusEl.textContent.trim();
+      }
+
+      if (canUploadExpressStatus(orderStatus)) {
+        var uploadBtn = el('button', 'order-detail-btn order-detail-btn--primary order-proxy-upload-btn', '+ 上传快递单');
+        uploadBtn.type = 'button';
+        uploadBtn.addEventListener('click', onUploadClick);
+        expressWrap.appendChild(uploadBtn);
+      }
       card.appendChild(expressWrap);
     }
 
@@ -593,7 +605,7 @@
     backdrop.innerHTML =
       '<div class="order-proxy-upload-modal" role="dialog" aria-labelledby="orderProxyUploadTitle">' +
         '<div class="order-proxy-upload-modal__head">' +
-          '<h3 id="orderProxyUploadTitle" class="order-proxy-upload-modal__title">上传快递单号</h3>' +
+          '<h3 id="orderProxyUploadTitle" class="order-proxy-upload-modal__title">上传快递单</h3>' +
           '<button type="button" class="order-proxy-upload-modal__close js-proxy-express-close" aria-label="关闭">×</button>' +
         '</div>' +
         '<div class="order-proxy-upload-modal__body">' +

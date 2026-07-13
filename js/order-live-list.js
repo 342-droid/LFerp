@@ -5,11 +5,11 @@
     var extraGrid = document.getElementById('orderFilterExtra');
     var resetBtn = document.getElementById('orderFilterReset');
     var queryBtn = document.getElementById('orderFilterQuery');
+    var defaultExpanded = extraGrid ? !extraGrid.hidden : false;
 
     if (expandBtn && extraGrid) {
-      extraGrid.hidden = false;
-      expandBtn.classList.add('is-expanded');
-      if (expandLabel) expandLabel.textContent = '收起';
+      expandBtn.classList.toggle('is-expanded', defaultExpanded);
+      if (expandLabel) expandLabel.textContent = defaultExpanded ? '收起' : '展开';
 
       expandBtn.addEventListener('click', function () {
         var expanded = expandBtn.classList.toggle('is-expanded');
@@ -24,12 +24,12 @@
         if (!form) return;
         form.reset();
         if (extraGrid) {
-          extraGrid.hidden = false;
+          extraGrid.hidden = !defaultExpanded;
         }
         if (expandBtn) {
-          expandBtn.classList.add('is-expanded');
+          expandBtn.classList.toggle('is-expanded', defaultExpanded);
         }
-        if (expandLabel) expandLabel.textContent = '收起';
+        if (expandLabel) expandLabel.textContent = defaultExpanded ? '收起' : '展开';
       });
     }
 

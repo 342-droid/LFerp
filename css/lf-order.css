@@ -413,6 +413,75 @@
   gap: 8px;
 }
 
+body[data-order-page="proxy"] .order-live-table__sticky-col {
+  text-align: left;
+  min-width: 132px;
+}
+
+body[data-order-page="proxy"] .order-live-table__actions {
+  display: grid;
+  grid-template-columns: 40px;
+  column-gap: 12px;
+  align-items: center;
+  justify-content: start;
+  justify-items: start;
+}
+
+body[data-order-page="proxy"] .order-live-table__actions.has-upload-only {
+  grid-template-columns: 40px 80px;
+}
+
+body[data-order-page="proxy"] .order-live-table__actions.has-receipt {
+  grid-template-columns: 40px 68px 80px;
+}
+
+body[data-order-page="proxy"] .order-live-table__actions-item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  white-space: nowrap;
+}
+
+body[data-order-page="proxy"] .order-live-table__actions-item--view {
+  grid-column: 1;
+}
+
+body[data-order-page="proxy"] .order-live-table__actions-item--receipt {
+  grid-column: 2;
+}
+
+body[data-order-page="proxy"] .order-live-table__actions.has-upload-only .order-live-table__actions-item--upload {
+  grid-column: 2;
+}
+
+body[data-order-page="proxy"] .order-live-table__actions.has-receipt .order-live-table__actions-item--upload {
+  grid-column: 3;
+}
+
+body[data-order-page="proxy"] .order-live-table__actions-item--view .order-live-table__link,
+body[data-order-page="proxy"] .order-live-table__confirm-receipt,
+body[data-order-page="proxy"] .order-live-table__express {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-primary, #ff7019);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+body[data-order-page="proxy"] .order-live-table__actions-item--view .order-live-table__link {
+  text-decoration: none;
+}
+
+body[data-order-page="proxy"] .order-live-table__actions-item--view .order-live-table__link:hover,
+body[data-order-page="proxy"] .order-live-table__confirm-receipt:hover,
+body[data-order-page="proxy"] .order-live-table__express:hover {
+  text-decoration: underline;
+}
+
 .order-live-table__verify {
   padding: 0;
   border: none;
@@ -440,6 +509,21 @@
 }
 
 .order-live-table__confirm-receipt:hover {
+  text-decoration: underline;
+}
+
+.order-live-table__express {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #409eff;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.order-live-table__express:hover {
   text-decoration: underline;
 }
 

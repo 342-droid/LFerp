@@ -1537,6 +1537,17 @@
     };
   }
 
+  window.OrderLiveDetail = {
+    resolveDetail: function (orderId, row) {
+      var detail = DETAILS[orderId] || fallbackDetail(orderId, row);
+      detail.progress = resolveProgress(detail.progress, row);
+      if (isProxyOrderPage()) {
+        detail.progress = normalizeProxyProgress(detail.progress);
+      }
+      return detail;
+    }
+  };
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initViewLinks);
   } else {

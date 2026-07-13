@@ -52,6 +52,8 @@
                                         <option value="alipay">支付宝</option>
                                     </select>
                                 </div>
+                            </div>
+                            <div class="order-filter-grid order-filter-grid--2 order-filter-grid--extra" id="orderFilterExtra" hidden>
                                 <div class="order-filter-field">
                                     <label class="order-filter-field__label" for="qOrderStatus">订单状态</label>
                                     <select class="order-filter-field__select" id="qOrderStatus">
@@ -73,8 +75,6 @@
                                         <option value="points">积分兑换</option>
                                     </select>
                                 </div>
-                            </div>
-                            <div class="order-filter-grid order-filter-grid--2 order-filter-grid--extra" id="orderFilterExtra">
                                 <div class="order-filter-field order-filter-field--range">
                                     <label class="order-filter-field__label order-filter-field__label--dropdown" for="qOrderTimeStart">下单时间</label>
                                     <div class="order-filter-range">
@@ -104,9 +104,9 @@
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M5 19a9 9 0 0014-7"/><path d="M19 5a9 9 0 00-14 7"/></svg>
                                     重置
                                 </button>
-                                <button type="button" class="order-filter-btn order-filter-btn--text is-expanded" id="orderFilterExpand">
+                                <button type="button" class="order-filter-btn order-filter-btn--text" id="orderFilterExpand">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-                                    <span id="orderFilterExpandLabel">收起</span>
+                                    <span id="orderFilterExpandLabel">展开</span>
                                 </button>
                             </div>
                         </form>
