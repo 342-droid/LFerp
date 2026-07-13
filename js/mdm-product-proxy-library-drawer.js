@@ -3,6 +3,7 @@
  */
 (function () {
   var DRAWER_ID = 'mdmProxyLibraryDrawer';
+  var ASSET_FALLBACK = '../user-app/assets/restock/product-leaf.svg';
 
   var drawerState = {
     category: 'all',
@@ -20,7 +21,8 @@
   }
 
   function resolveImg(url) {
-    if (!url) return '../user-app/assets/restock/product-leaf.svg';
+    if (!url) return ASSET_FALLBACK;
+    if (/^https?:\/\//i.test(url)) return url;
     if (window.wmsPath && typeof window.wmsPath.asset === 'function') {
       return window.wmsPath.asset(String(url).replace(/^\.\.\//, ''));
     }
@@ -29,9 +31,6 @@
 
   function getLibrary() {
     if (window.MdmMallProductLibrary) {
-      if (typeof window.MdmMallProductLibrary.reload === 'function') {
-        window.MdmMallProductLibrary.reload();
-      }
       return window.MdmMallProductLibrary;
     }
     return null;
@@ -105,14 +104,13 @@
       '<article class="' + cls + '" data-code="' + escapeHtml(item.code) + '"' + (selectable ? ' data-selectable="1"' : '') + '>' +
       '  <div class="proxy-library-card__media">' +
       checkHtml +
-      '    <img class="proxy-library-card__img" src="' + escapeHtml(resolveImg(item.img)) + '" alt="">' +
-      (added ? '<div class="proxy-library-card__mask" aria-hidden="true"></div>' : '') +
-      '  </div>' +
-      '  <div class="proxy-library-card__body">' +
-      '    <div class="proxy-library-card__tags">' +
+      '    <img class="proxy-library-card__img" src="' + escapeHtml(resolveImg(item.img)) + '" alt="" onerror="this.onerror=null;this.src=\'../user-app/assets/restock/product-leaf.svg\'">' +
+      '    <div class="proxy-library-card__media-tags">' +
       '      <span class="proxy-library-card__tag proxy-library-card__tag--type">实物</span>' +
       statusTag +
       '    </div>' +
+      '  </div>' +
+      '  <div class="proxy-library-card__body">' +
       '    <h4 class="proxy-library-card__name" title="' + escapeHtml(item.name) + '">' + escapeHtml(item.name) + '</h4>' +
       '    <p class="proxy-library-card__code">' + escapeHtml(item.code) + '</p>' +
       '  </div>' +

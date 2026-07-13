@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰WMS - 代采标签管理</title>
+    <title>冷丰WMS - 商城标签</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
@@ -18,13 +18,60 @@
         <main class="main-content">
             <div class="product-page">
                 <div class="product-page-tabs" id="productPageTabs" aria-label="页面页签"></div>
+
                 <div class="product-page-body">
-                    <section class="erp-page__card" style="padding:24px;text-align:center;color:#999;">代采标签管理（开发中）</section>
+                    <section class="erp-page__card product-table-card product-proxy-tag-card">
+                        <div class="product-toolbar product-toolbar--proxy">
+                            <button type="button" class="product-toolbar__add" id="proxyTagAddBtn">+ 新增标签</button>
+                        </div>
+                        <div class="product-table-wrap">
+                            <table class="product-table product-proxy-tag-table">
+                                <colgroup>
+                                    <col class="product-proxy-tag-table__col product-proxy-tag-table__col--sort">
+                                    <col class="product-proxy-tag-table__col product-proxy-tag-table__col--id">
+                                    <col class="product-proxy-tag-table__col product-proxy-tag-table__col--name">
+                                    <col class="product-proxy-tag-table__col product-proxy-tag-table__col--count">
+                                    <col class="product-proxy-tag-table__col product-proxy-tag-table__col--time">
+                                    <col class="product-proxy-tag-table__col product-proxy-tag-table__col--action">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th class="product-proxy-tag-table__th product-proxy-tag-table__th--sort">排序</th>
+                                        <th class="product-proxy-tag-table__th product-proxy-tag-table__th--id">标签ID</th>
+                                        <th class="product-proxy-tag-table__th product-proxy-tag-table__th--name">标签名称</th>
+                                        <th class="product-proxy-tag-table__th product-proxy-tag-table__th--count">已绑定商品数</th>
+                                        <th class="product-proxy-tag-table__th product-proxy-tag-table__th--time">创建时间</th>
+                                        <th class="product-proxy-tag-table__th product-proxy-tag-table__th--action">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="proxyTagTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="product-empty" id="proxyTagEmpty" hidden>暂无标签数据</div>
+                        <div class="product-pagination" id="proxyTagPagination">
+                            <span id="proxyTagPaginationTotal">共 0 条</span>
+                            <div class="product-pagination__right">
+                                <select class="product-pagination__size" id="proxyTagPageSize" aria-label="每页条数">
+                                    <option value="20" selected>20条/页</option>
+                                    <option value="50">50条/页</option>
+                                    <option value="100">100条/页</option>
+                                </select>
+                                <div class="product-pagination__pages" id="proxyTagPaginationPages"></div>
+                                <label class="product-pagination__goto">
+                                    前往
+                                    <input id="proxyTagPageGoto" type="text" value="1" inputmode="numeric">
+                                    页
+                                </label>
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </div>
         </main>
     </div>
     <script src="../js/common.js"></script>
     <script src="../js/product-page-tabs.js"></script>
+    <script src="../js/mdm-product-proxy-tag-store.js"></script>
+    <script src="../js/mdm-product-proxy-tag.js"></script>
 </body>
 </html>

@@ -4,6 +4,22 @@
 
   var SEED = [
     {
+      code: 'SPU00114',
+      name: '抹茶',
+      img: '../user-app/assets/restock/product-tea.svg',
+      tag: '冷丰优选',
+      category: '',
+      spec: '2.5kg',
+      specCount: 3,
+      priceType: 'money',
+      priceMoney: 28.8,
+      linePrice: 35,
+      sales: 0,
+      status: 'draft',
+      detailEdited: false,
+      fromLibrary: true
+    },
+    {
       code: 'SPU00103',
       name: 'ss积分加现金',
       img: '../user-app/assets/restock/product-leaf.svg',
@@ -17,6 +33,22 @@
       linePrice: 1,
       sales: 0,
       status: 'draft'
+    },
+    {
+      code: 'SPU00112',
+      name: '辣椒-ss',
+      img: '../user-app/assets/restock/product-tomato.svg',
+      tag: '',
+      category: '',
+      spec: '1',
+      specCount: 1,
+      priceType: 'money',
+      priceMoney: 0.01,
+      linePrice: null,
+      sales: 0,
+      status: 'draft',
+      fromLibrary: true,
+      detailEdited: false
     },
     {
       code: 'SPU00102',
@@ -283,7 +315,35 @@
   function isProductReadyForShelf(product) {
     if (!product || !product.name) return false;
     if (product.fromLibrary && !product.detailEdited) return false;
-    return !!product.category_l3_id;
+    return getProductCategoryIds(product).length > 0;
+  }
+
+  function getProductCategoryIds(product) {
+    if (!product) return [];
+    if (Array.isArray(product.category_l3_ids) && product.category_l3_ids.length) {
+      return product.category_l3_ids.slice();
+    }
+    if (product.category_l3_id) return [product.category_l3_id];
+    return [];
+  }
+
+  function getProductCategoryPaths(product) {
+    if (!product) return [];
+    if (Array.isArray(product.category_paths) && product.category_paths.length) {
+      return product.category_paths.slice();
+    }
+    if (product.category_path) return [product.category_path];
+    if (product.category) return String(product.category).split('、').filter(Boolean);
+    return [];
+  }
+
+  function renderCategoryCell(item) {
+    var paths = getProductCategoryPaths(item);
+    if (!paths.length) return '<span class="product-proxy-dash">-</span>';
+    if (paths.length === 1) return escapeHtml(paths[0]);
+    return paths.map(function (p) {
+      return '<div class="product-proxy-table__cat-line">' + escapeHtml(p) + '</div>';
+    }).join('');
   }
 
   function catalogItemToProxyProduct(item) {
@@ -351,24 +411,35 @@
     return window.MdmProxyCategoryStore || null;
   }
 
-  function applyProductCategory(product, l3Id, path) {
+  function applyProductCategories(product, l3Ids, paths) {
     var store = getStore();
     if (!store) return;
-    var oldL3 = product.category_l3_id;
-    store.rebindProduct(oldL3, l3Id, {
+    var oldIds = getProductCategoryIds(product);
+    var newIds = (l3Ids || []).slice();
+    store.syncProductBindings(oldIds, newIds, {
       code: product.code,
       name: product.name,
       img: product.img
     });
-    product.category_l3_id = l3Id;
-    product.category_path = path;
-    product.category = path;
+    product.category_l3_ids = newIds.slice();
+    product.category_paths = (paths || []).slice();
+    product.category_l3_id = newIds[0] || '';
+    product.category_path = (paths && paths[0]) || '';
+    product.category = (paths && paths.length) ? paths.join('、') : '';
+  }
+
+  function applyProductCategory(product, l3Id, path) {
+    applyProductCategories(product, l3Id ? [l3Id] : [], path ? [path] : []);
   }
 
   function unbindProductCategory(product) {
     var store = getStore();
-    if (!store || !product.category_l3_id) return;
-    store.unbindProduct(product.category_l3_id, product.code);
+    if (!store) return;
+    getProductCategoryIds(product).forEach(function (id) {
+      store.unbindProduct(id, product.code);
+    });
+    product.category_l3_ids = [];
+    product.category_paths = [];
     product.category_l3_id = '';
     product.category_path = '';
     product.category = '';
@@ -397,8 +468,15 @@
       product: product || {},
       onSave: function (payload, original) {
         if (original && original.code) {
-          applyProductCategory(original, payload.category_l3_id, payload.category_path);
+          applyProductCategories(original, payload.category_l3_ids, payload.category_paths);
           original.name = payload.name;
+          original.tag = payload.tag || '';
+          original.img = payload.img || original.img;
+          original.specCount = payload.specCount || 1;
+          original.spec = payload.spec || original.spec;
+          original.priceMoney = payload.priceMoney;
+          original.linePrice = payload.linePrice;
+          original.detail = payload.detail;
           original.detailEdited = true;
           persistProducts();
           renderTable();
@@ -409,21 +487,25 @@
         var newItem = {
           code: 'SPU' + String(Date.now()).slice(-5),
           name: payload.name,
-          img: '../user-app/assets/restock/product-leaf.svg',
-          tag: '',
-          category: payload.category_path,
+          img: payload.img || '../user-app/assets/restock/product-leaf.svg',
+          tag: payload.tag || '',
+          category: payload.category,
           category_path: payload.category_path,
+          category_paths: payload.category_paths.slice(),
           category_l3_id: payload.category_l3_id,
-          spec: '1',
-          specCount: 1,
+          category_l3_ids: payload.category_l3_ids.slice(),
+          spec: payload.spec || '1',
+          specCount: payload.specCount || 1,
           priceType: 'money',
-          priceMoney: 0.01,
-          linePrice: null,
+          priceMoney: payload.priceMoney || 0.01,
+          linePrice: payload.linePrice,
           sales: 0,
-          status: 'draft'
+          status: 'draft',
+          detail: payload.detail,
+          detailEdited: true
         };
         ALL_PRODUCTS.unshift(newItem);
-        applyProductCategory(newItem, payload.category_l3_id, payload.category_path);
+        applyProductCategories(newItem, payload.category_l3_ids, payload.category_paths);
         newItem.detailEdited = true;
         persistProducts();
         applyFilters();
@@ -464,7 +546,10 @@
     var f = state.filters;
     if (f.code && item.code.toLowerCase().indexOf(f.code.toLowerCase()) < 0) return false;
     if (f.name && item.name.indexOf(f.name) < 0) return false;
-    if (f.mallCategory && (item.category_path || item.category) !== f.mallCategory) return false;
+    if (f.mallCategory) {
+      var paths = getProductCategoryPaths(item);
+      if (paths.indexOf(f.mallCategory) < 0) return false;
+    }
     if (f.tag && item.tag !== f.tag) return false;
     if (f.status && item.status !== f.status) return false;
     return true;
@@ -578,7 +663,7 @@
             '  <img class="product-table__thumb" src="' + item.img + '" alt="">' +
             '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--tag">' + (item.tag || '<span class="product-proxy-dash">-</span>') + '</td>' +
-            '<td class="product-proxy-table__td product-proxy-table__td--category">' + (item.category_path || item.category || '<span class="product-proxy-dash">-</span>') + '</td>' +
+            '<td class="product-proxy-table__td product-proxy-table__td--category">' + renderCategoryCell(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--spec">' + item.spec + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--sale">' + renderSalePrice(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--line">' + renderLinePrice(item) + '</td>' +

@@ -303,6 +303,20 @@
       if (newL3Id) store.bindProduct(newL3Id, product);
     },
 
+    syncProductBindings: function (oldIds, newIds, product) {
+      if (!product || !product.code) return;
+      var oldSet = {};
+      (oldIds || []).forEach(function (id) { if (id) oldSet[id] = true; });
+      var newSet = {};
+      (newIds || []).forEach(function (id) { if (id) newSet[id] = true; });
+      Object.keys(oldSet).forEach(function (id) {
+        if (!newSet[id]) store.unbindProduct(id, product.code);
+      });
+      Object.keys(newSet).forEach(function (id) {
+        if (!oldSet[id]) store.bindProduct(id, product);
+      });
+    },
+
     collectDescendantIds: collectDescendantIds,
     hasBindingsInTree: hasBindingsInTree,
     canDelete: function (id) { return !hasBindingsInTree(id); },

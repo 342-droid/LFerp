@@ -38,21 +38,21 @@
   ];
 
   var FEATURED = [
-    { code: 'SPU00113', name: '榴莲', category: '时令水果', img: ASSET + 'category-icon-veg.svg' },
-    { code: 'SPU00112', name: '辣椒-ss', category: '新鲜蔬菜', img: ASSET + 'product-tomato.svg' },
-    { code: 'SPU00103', name: 'ss积分加现金', category: '新鲜蔬菜', img: ASSET + 'product-leaf.svg' },
-    { code: 'SPU00106', name: 'ss🤔', category: '新鲜蔬菜', img: ASSET + 'product-leaf.svg' },
-    { code: 'SPU00107', name: 'ss的测试商品', category: '新鲜蔬菜', img: ASSET + 'product-leaf.svg' },
-    { code: 'SPU00102', name: 'ss苏打水商品', category: '酒水饮料', img: ASSET + 'product-water.svg' },
-    { code: 'SPU00101', name: '豌豆', category: '新鲜蔬菜', img: ASSET + 'product-egg.svg' },
-    { code: 'SPU00098', name: '茶叶', category: '休闲零食', img: ASSET + 'product-tea.svg' },
-    { code: 'SPU00090', name: '东北大米 5kg', category: '粮油调味', img: ASSET + 'category-icon-grain.svg' },
-    { code: 'SPU00088', name: '红壳黄心鲜鸡蛋', category: '肉禽蛋品', img: ASSET + 'product-egg.svg' },
-    { code: 'SPU00085', name: '圆茄 优质', category: '新鲜蔬菜', img: ASSET + 'product-eggplant-round.svg' },
-    { code: 'SPU00082', name: '可口可乐摩登罐', category: '酒水饮料', img: ASSET + 'product-cola.svg' },
-    { code: 'SPU00078', name: '长茄子 广茄', category: '新鲜蔬菜', img: ASSET + 'product-eggplant-long.svg' },
-    { code: 'SPU00067', name: '测试', category: '其他', img: ASSET + 'product-tomato.svg' },
-    { code: 'SPU00064', name: 'ss紫薯', category: '新鲜蔬菜', img: ASSET + 'product-root.svg' }
+    { code: 'SPU00113', name: '榴莲', category: '时令水果', img: 'https://picsum.photos/seed/spu00113/480/320' },
+    { code: 'SPU00112', name: '辣椒-ss', category: '新鲜蔬菜', img: 'https://picsum.photos/seed/spu00112/480/320' },
+    { code: 'SPU00103', name: 'ss积分加现金', category: '新鲜蔬菜', img: 'https://picsum.photos/seed/spu00103/480/320' },
+    { code: 'SPU00106', name: 'ss🤔', category: '新鲜蔬菜', img: 'https://picsum.photos/seed/spu00106/480/320' },
+    { code: 'SPU00107', name: 'ss的测试商品', category: '新鲜蔬菜', img: 'https://picsum.photos/seed/spu00107/480/320' },
+    { code: 'SPU00102', name: 'ss苏打水商品', category: '酒水饮料', img: 'https://picsum.photos/seed/spu00102/480/320' },
+    { code: 'SPU00101', name: '豌豆', category: '新鲜蔬菜', img: 'https://picsum.photos/seed/spu00101/480/320' },
+    { code: 'SPU00098', name: '茶叶', category: '休闲零食', img: 'https://picsum.photos/seed/spu00098/480/320' },
+    { code: 'SPU00090', name: '东北大米 5kg', category: '粮油调味', img: 'https://picsum.photos/seed/spu00090/480/320' },
+    { code: 'SPU00088', name: '红壳黄心鲜鸡蛋', category: '肉禽蛋品', img: 'https://picsum.photos/seed/spu00088/480/320' },
+    { code: 'SPU00085', name: '圆茄 优质', category: '新鲜蔬菜', img: 'https://picsum.photos/seed/spu00085/480/320' },
+    { code: 'SPU00082', name: '可口可乐摩登罐', category: '酒水饮料', img: 'https://picsum.photos/seed/spu00082/480/320' },
+    { code: 'SPU00078', name: '长茄子 广茄', category: '新鲜蔬菜', img: 'https://picsum.photos/seed/spu00078/480/320' },
+    { code: 'SPU00067', name: '测试', category: '其他', img: 'https://picsum.photos/seed/spu00067/480/320' },
+    { code: 'SPU00064', name: 'ss紫薯', category: '新鲜蔬菜', img: 'https://picsum.photos/seed/spu00064/480/320' }
   ];
 
   var EXTRA_NAMES = [
@@ -108,7 +108,7 @@
             code: code,
             name: EXTRA_NAMES[seq % EXTRA_NAMES.length] + (seq > 24 ? ' ' + seq : ''),
             category: plan.name,
-            img: IMGS[seq % IMGS.length]
+            img: 'https://picsum.photos/seed/' + code + '/480/320'
           };
           seq += 1;
         }
