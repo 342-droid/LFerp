@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰WMS - 直播订单</title>
+    <title>冷丰WMS - 零售订单</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
@@ -23,7 +23,7 @@
                         首页
                     </a>
                     <span class="order-page-tabs__item order-page-tabs__item--active">
-                        直播订单
+                        零售订单
                         <button type="button" class="order-page-tabs__close" aria-label="关闭">×</button>
                     </span>
                 </div>
@@ -68,7 +68,9 @@
                                     <select class="order-filter-field__select" id="qMarketingType">
                                         <option value="">全部</option>
                                         <option value="normal">普通售卖</option>
-                                        <option value="live">直播专享</option>
+                                        <option value="newuser_gift">拉新赠品</option>
+                                        <option value="lucky_bag">福袋奖品</option>
+                                        <option value="points">积分兑换</option>
                                     </select>
                                 </div>
                             </div>
@@ -129,6 +131,7 @@
                                         <th><span class="order-th-label">使用积分 <i class="order-th-help" title="使用积分数量">?</i></span></th>
                                         <th><span class="order-th-label">积分抵扣金额 <i class="order-th-help" title="积分抵扣金额">?</i></span></th>
                                         <th><span class="order-th-label">实付金额 <i class="order-th-help" title="用户实付金额">?</i></span></th>
+                                        <th>订单场景</th>
                                         <th>支付渠道</th>
                                         <th>订单状态</th>
                                         <th class="order-live-table__sticky-col">操作</th>
@@ -155,6 +158,7 @@
                                         <td>-</td>
                                         <td>¥0.00</td>
                                         <td>¥0.01</td>
+                                        <td><span class="order-scene">直播</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--closed">已关闭</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201598341">查看</a></td>
@@ -172,13 +176,14 @@
                                             </div>
                                         </td>
                                         <td>× 1</td>
-                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td><span class="order-tag order-tag--sale">拉新赠品</span></td>
                                         <td>¥0.90</td>
                                         <td>¥0.00</td>
                                         <td>¥0.00</td>
                                         <td>-</td>
                                         <td>¥0.00</td>
                                         <td>¥0.90</td>
+                                        <td><span class="order-scene">商城</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--created">已创建</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561">查看</a></td>
@@ -196,13 +201,14 @@
                                             </div>
                                         </td>
                                         <td>× 1</td>
-                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td><span class="order-tag order-tag--sale">福袋奖品</span></td>
                                         <td>¥10.90</td>
                                         <td>¥0.00</td>
                                         <td>¥0.00</td>
                                         <td>-</td>
                                         <td>¥0.00</td>
                                         <td>¥10.90</td>
+                                        <td><span class="order-scene">直播、商城</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--created">已创建</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561-B">查看</a></td>
@@ -220,13 +226,14 @@
                                             </div>
                                         </td>
                                         <td>× 1</td>
-                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td><span class="order-tag order-tag--sale">积分兑换</span></td>
                                         <td>¥5.90</td>
                                         <td>-¥5.00</td>
                                         <td>-¥5.00</td>
                                         <td>100</td>
                                         <td>¥0.00</td>
                                         <td>¥0.90</td>
+                                        <td><span class="order-scene">直播</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--created">已创建</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201584693">查看</a></td>
@@ -251,6 +258,7 @@
                                         <td>-</td>
                                         <td>¥0.00</td>
                                         <td>¥8.80</td>
+                                        <td><span class="order-scene">商城</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--created">已创建</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-A">查看</a></td>
@@ -268,13 +276,14 @@
                                             </div>
                                         </td>
                                         <td>× 1</td>
-                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td><span class="order-tag order-tag--sale">拉新赠品</span></td>
                                         <td>¥12.50</td>
                                         <td>-¥2.00</td>
                                         <td>-¥2.00</td>
                                         <td>-</td>
                                         <td>¥0.00</td>
                                         <td>¥10.50</td>
+                                        <td><span class="order-scene">直播、商城</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--created">已创建</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-B">查看</a></td>
@@ -292,13 +301,14 @@
                                             </div>
                                         </td>
                                         <td>× 1</td>
-                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td><span class="order-tag order-tag--sale">福袋奖品</span></td>
                                         <td>¥6.60</td>
                                         <td>¥0.00</td>
                                         <td>¥0.00</td>
                                         <td>-</td>
                                         <td>¥0.00</td>
                                         <td>¥6.60</td>
+                                        <td><span class="order-scene">直播</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--created">已创建</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560683">查看</a></td>
@@ -316,13 +326,14 @@
                                             </div>
                                         </td>
                                         <td>× 1</td>
-                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td><span class="order-tag order-tag--sale">积分兑换</span></td>
                                         <td>¥128.18</td>
                                         <td>-¥10.00</td>
                                         <td>-¥10.00</td>
                                         <td>-</td>
                                         <td>¥0.00</td>
                                         <td>¥118.18</td>
+                                        <td><span class="order-scene">商城</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -352,6 +363,7 @@
                                         <td>-</td>
                                         <td>¥0.00</td>
                                         <td>¥54.18</td>
+                                        <td><span class="order-scene">直播</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -374,13 +386,14 @@
                                             </div>
                                         </td>
                                         <td>× 3</td>
-                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td><span class="order-tag order-tag--sale">拉新赠品</span></td>
                                         <td>¥51.18</td>
                                         <td>-¥5.00</td>
                                         <td>-¥5.00</td>
                                         <td>200</td>
                                         <td>¥0.00</td>
                                         <td>¥46.18</td>
+                                        <td><span class="order-scene">商城</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -403,13 +416,14 @@
                                             </div>
                                         </td>
                                         <td>× 1</td>
-                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td><span class="order-tag order-tag--sale">福袋奖品</span></td>
                                         <td>¥18.00</td>
                                         <td>-¥3.00</td>
                                         <td>-¥3.00</td>
                                         <td>-</td>
                                         <td>¥0.00</td>
                                         <td>¥15.00</td>
+                                        <td><span class="order-scene">直播、商城</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--completed">已完成</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560682">查看</a></td>

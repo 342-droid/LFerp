@@ -1,4 +1,31 @@
 (function () {
+  var MARKETING_TYPES = ['普通售卖', '拉新赠品', '福袋奖品', '积分兑换'];
+
+  function readMarketingFromRow(row) {
+    if (!row) return '普通售卖';
+    var el = row.querySelector('.order-tag--sale');
+    return el ? el.textContent.trim() : '普通售卖';
+  }
+
+  function marketingTagHtml(label) {
+    return '<span class="order-tag order-tag--sale">' + (label || '普通售卖') + '</span>';
+  }
+
+  function isProxyOrderPage() {
+    return document.body && document.body.getAttribute('data-order-page') === 'proxy';
+  }
+
+  function getListCellIndices(row) {
+    var sceneEl = row ? row.querySelector('.order-scene') : null;
+    if (isProxyOrderPage()) {
+      return { goods: 7, discount: 8, paid: 12, payChannel: 13 };
+    }
+    if (sceneEl) {
+      return { goods: 8, discount: 9, paid: 13, payChannel: 15 };
+    }
+    return { goods: 8, discount: 9, paid: 13, payChannel: 14 };
+  }
+
   var DETAILS = {
     'ORD-3212689201598341': {
       displayId: 'ORD-321268920159834112',
@@ -41,6 +68,7 @@
       },
       tags: {
         channel: 'MINI_PROGRAM',
+        orderScene: '直播',
         payChannel: '-',
         marketing: '普通售卖',
         livePeriod: '-',
@@ -72,7 +100,7 @@
         price: '¥0.90',
         qty: '1',
         subtotal: '¥0.90',
-        marketing: '普通售卖'
+        marketing: '拉新赠品'
       }],
       amounts: {
         goods: '¥0.90',
@@ -94,8 +122,9 @@
       },
       tags: {
         channel: 'MINI_PROGRAM',
+        orderScene: '商城',
         payChannel: '-',
-        marketing: '普通售卖',
+        marketing: '拉新赠品',
         livePeriod: '-',
         bd: '1',
         settleStatus: '-',
@@ -124,7 +153,7 @@
         price: '¥128.18',
         qty: '1',
         subtotal: '¥128.18',
-        marketing: '普通售卖'
+        marketing: '积分兑换'
       }],
       amounts: {
         goods: '¥128.18',
@@ -146,8 +175,9 @@
       },
       tags: {
         channel: 'MINI_PROGRAM',
+        orderScene: '直播',
         payChannel: '-',
-        marketing: '普通售卖',
+        marketing: '积分兑换',
         livePeriod: '-',
         bd: '1',
         settleStatus: '-',
@@ -201,6 +231,7 @@
       },
       tags: {
         channel: 'MINI_PROGRAM',
+        orderScene: '直播',
         payChannel: '-',
         marketing: '普通售卖',
         livePeriod: '-',
@@ -240,7 +271,7 @@
       progress: {
         completedSteps: 3,
         outcome: null,
-        status: '待提货',
+        status: '待收货',
         submitTime: '2026-06-03 16:48'
       },
       goods: [{
@@ -255,7 +286,7 @@
         qty: '2',
         pickedQty: 0,
         subtotal: '¥39.18',
-        marketing: '普通售卖'
+        marketing: '拉新赠品'
       }, {
         id: 'g2',
         name: '进口香蕉 香甜软糯 3斤装',
@@ -268,7 +299,7 @@
         qty: '1',
         pickedQty: 0,
         subtotal: '¥12.00',
-        marketing: '普通售卖'
+        marketing: '拉新赠品'
       }],
       amounts: {
         goods: '¥51.18',
@@ -290,8 +321,9 @@
       },
       tags: {
         channel: 'MINI_PROGRAM',
+        orderScene: '直播、商城',
         payChannel: '-',
-        marketing: '普通售卖',
+        marketing: '拉新赠品',
         livePeriod: '-',
         bd: '1',
         settleStatus: '-',
@@ -322,7 +354,7 @@
         price: '¥18.00',
         qty: '1',
         subtotal: '¥18.00',
-        marketing: '普通售卖'
+        marketing: '福袋奖品'
       }],
       amounts: {
         goods: '¥18.00',
@@ -344,8 +376,9 @@
       },
       tags: {
         channel: 'MINI_PROGRAM',
+        orderScene: '直播',
         payChannel: '-',
-        marketing: '普通售卖',
+        marketing: '福袋奖品',
         livePeriod: '-',
         bd: '1',
         settleStatus: '-',
@@ -376,6 +409,27 @@
   };
 
   var MID_STEPS = ['提交订单', '运输中', '待收货', '待提货'];
+  var PROXY_MID_STEPS = ['提交订单', '运输中', '待收货'];
+
+  function getMidSteps() {
+    return isProxyOrderPage() ? PROXY_MID_STEPS : MID_STEPS;
+  }
+
+  function normalizeProxyProgress(progress) {
+    if (!progress) return progress;
+    var p = Object.assign({}, progress);
+    if (p.status === '待提货' || p.status === '部分提货') {
+      p.status = '待收货';
+    }
+    if (p.status === '待收货') {
+      p.completedSteps = 2;
+    } else if (p.status === '已完成' || p.outcome === 'success') {
+      p.completedSteps = PROXY_MID_STEPS.length;
+    } else if (p.status === '已关闭' || p.outcome === 'failed') {
+      p.completedSteps = Math.min(p.completedSteps || 1, PROXY_MID_STEPS.length);
+    }
+    return p;
+  }
 
   function el(tag, cls, html) {
     var node = document.createElement(tag);
@@ -451,8 +505,9 @@
     var wrap = el('div', 'order-detail-steps');
     var completedSteps = progress.completedSteps || 0;
     var outcome = progress.outcome || null;
+    var midSteps = getMidSteps();
 
-    MID_STEPS.forEach(function (label, index) {
+    midSteps.forEach(function (label, index) {
       var step = el('div', 'order-detail-step');
       if (index < completedSteps) step.classList.add('is-done');
       if (!outcome && index === completedSteps) step.classList.add('is-current');
@@ -473,7 +528,7 @@
     } else if (outcome === 'success') {
       finalStep.classList.add('is-done', 'is-success');
     }
-    var finalIcon = el('div', 'order-detail-step__icon', '5');
+    var finalIcon = el('div', 'order-detail-step__icon', String(midSteps.length + 1));
     finalStep.appendChild(finalIcon);
     finalStep.appendChild(el('div', 'order-detail-step__label', finalLabel));
     if (progress.finishTime && outcome) {
@@ -533,6 +588,7 @@
   }
 
   function isPickupOrder(status) {
+    if (isProxyOrderPage()) return false;
     return status === '待提货';
   }
 
@@ -769,7 +825,7 @@
         '<td>' + item.price + '</td>' +
         '<td>' + item.qty + '</td>' +
         '<td>' + item.subtotal + '</td>' +
-        '<td><span class="order-tag order-tag--sale">' + item.marketing + '</span></td>' +
+        (isProxyOrderPage() ? '' : '<td>' + marketingTagHtml(item.marketing) + '</td>') +
         pickupCells;
       tbody.appendChild(tr);
     });
@@ -790,7 +846,8 @@
   }
 
   function buildGoodsTableHeadRow(pickupMode) {
-    var headCols = '<th>商品</th><th>编码</th><th>条码</th><th>重量(kg)</th><th>单价</th><th>数量</th><th>小计</th><th>营销</th>';
+    var headCols = '<th>商品</th><th>编码</th><th>条码</th><th>重量(kg)</th><th>单价</th><th>数量</th><th>小计</th>';
+    if (!isProxyOrderPage()) headCols += '<th>营销</th>';
     if (pickupMode) {
       headCols = '<th class="order-pickup-check-head">选择</th>' + headCols + '<th>已提</th><th>待提</th><th>操作</th>';
     }
@@ -1036,7 +1093,9 @@
       dl.appendChild(el('dt', '', label));
       var value = rows[label];
       if (label === '营销类型') {
-        dl.appendChild(el('dd', '', '<span class="order-tag order-tag--sale">' + value + '</span>'));
+        dl.appendChild(el('dd', '', marketingTagHtml(value)));
+      } else if (label === '订单场景') {
+        dl.appendChild(el('dd', '', '<span class="order-tag order-tag--scene">' + value + '</span>'));
       } else {
         dl.appendChild(el('dd', '', value));
       }
@@ -1164,28 +1223,45 @@
     }));
     aside.appendChild(customerCard);
 
-    var deliveryCard = el('div', 'order-detail-card');
-    deliveryCard.appendChild(el('h3', 'order-detail-card__title', '收货 / 自提信息'));
-    deliveryCard.appendChild(buildKv({
-      '配送': detail.delivery.type,
-      '收货人': detail.delivery.name,
-      '电话': detail.delivery.phone,
-      '地址': detail.delivery.address,
-      '门店': detail.delivery.store
-    }));
+    var deliveryCard;
+    if (isProxyOrderPage() && window.OrderProxyExpress) {
+      deliveryCard = OrderProxyExpress.buildDeliveryCard(detail, drawer && drawer._orderId, drawer && drawer._sourceRow, function () {
+        if (!drawer) return;
+        OrderProxyExpress.openUploadModal(drawer._orderId, detail.goods, function () {
+          var orderId = drawer._orderId;
+          var row = drawer._sourceRow;
+          closeDrawer();
+          openDrawer(orderId, row);
+        });
+      });
+    } else {
+      deliveryCard = el('div', 'order-detail-card');
+      deliveryCard.appendChild(el('h3', 'order-detail-card__title', '收货 / 自提信息'));
+      deliveryCard.appendChild(buildKv({
+        '配送': detail.delivery.type,
+        '收货人': detail.delivery.name,
+        '电话': detail.delivery.phone,
+        '地址': detail.delivery.address,
+        '门店': detail.delivery.store
+      }));
+    }
     aside.appendChild(deliveryCard);
 
     var tagCard = el('div', 'order-detail-card');
     tagCard.appendChild(el('h3', 'order-detail-card__title', '订单标记'));
-    tagCard.appendChild(buildKv({
+    var tagRows = {
       '渠道': detail.tags.channel,
       '支付渠道': detail.tags.payChannel,
-      '营销类型': detail.tags.marketing,
-      '直播时段': detail.tags.livePeriod,
       'BD': detail.tags.bd,
       '结算状态': detail.tags.settleStatus,
       '分佣状态': detail.tags.commissionStatus
-    }));
+    };
+    if (!isProxyOrderPage()) {
+      tagRows['订单场景'] = detail.tags.orderScene || '直播';
+      tagRows['营销类型'] = detail.tags.marketing;
+      tagRows['直播时段'] = detail.tags.livePeriod;
+    }
+    tagCard.appendChild(buildKv(tagRows));
     aside.appendChild(tagCard);
 
     layout.appendChild(main);
@@ -1197,13 +1273,16 @@
     var productImg = row ? row.querySelector('.order-product-cell__thumb') : null;
     var productName = row ? row.querySelector('.order-product-cell__name') : null;
     var cells = row ? row.querySelectorAll('td') : [];
+    var sceneEl = row ? row.querySelector('.order-scene') : null;
+    var cellIdx = getListCellIndices(row);
+    var marketingLabel = isProxyOrderPage() ? null : readMarketingFromRow(row);
     var progress = inferProgressFromRow(row);
     var statusText = progress.status;
     var logs = [
       {
         time: progress.submitTime || '',
         title: '订单已创建',
-        desc: '订单创建，金额 ' + (cells[13] ? cells[13].textContent.trim() : '')
+        desc: '订单创建，金额 ' + (cells[cellIdx.paid] ? cells[cellIdx.paid].textContent.trim() : '')
       }
     ];
     if (progress.outcome === 'failed') {
@@ -1229,18 +1308,18 @@
         spu: 'SPU-0001…',
         sku: 'SKU-0001…',
         weight: '-',
-        price: cells[8] ? cells[8].textContent.trim() : '¥0.00',
+        price: cells[cellIdx.goods] ? cells[cellIdx.goods].textContent.trim() : '¥0.00',
         qty: '1',
-        subtotal: cells[8] ? cells[8].textContent.trim() : '¥0.00',
-        marketing: '普通售卖'
+        subtotal: cells[cellIdx.goods] ? cells[cellIdx.goods].textContent.trim() : '¥0.00',
+        marketing: marketingLabel || '普通售卖'
       }],
       amounts: {
-        goods: cells[8] ? cells[8].textContent.trim() : '¥0.00',
-        discount: cells[9] ? cells[9].textContent.trim() : '¥0.00',
+        goods: cells[cellIdx.goods] ? cells[cellIdx.goods].textContent.trim() : '¥0.00',
+        discount: cells[cellIdx.discount] ? cells[cellIdx.discount].textContent.trim() : '¥0.00',
         shipping: '¥0.00',
-        payable: cells[13] ? cells[13].textContent.trim() : '¥0.00',
-        paid: cells[13] ? cells[13].textContent.trim() : '¥0.00',
-        merchant: cells[13] ? cells[13].textContent.trim() : '¥0.00',
+        payable: cells[cellIdx.paid] ? cells[cellIdx.paid].textContent.trim() : '¥0.00',
+        paid: cells[cellIdx.paid] ? cells[cellIdx.paid].textContent.trim() : '¥0.00',
+        merchant: cells[cellIdx.paid] ? cells[cellIdx.paid].textContent.trim() : '¥0.00',
         refund: '¥0.00'
       },
       paymentCount: 1,
@@ -1250,16 +1329,17 @@
         userId: '318605592681791488'
       },
       delivery: {
-        type: 'SELF_PICKUP',
+        type: isProxyOrderPage() ? 'PROXY' : 'SELF_PICKUP',
         name: cells[3] ? cells[3].textContent.trim() : '-',
         phone: cells[4] ? cells[4].textContent.trim() : '-',
-        address: '浙江省杭州市上城区望江街道望江路16号',
-        store: '悠悠生鲜超市'
+        address: isProxyOrderPage() ? '浙江省杭州市上城区望江街道望江路16号' : '浙江省杭州市上城区望江街道望江路16号',
+        store: isProxyOrderPage() ? '悠悠生鲜超市' : '悠悠生鲜超市'
       },
       tags: {
         channel: 'MINI_PROGRAM',
-        payChannel: cells[14] ? cells[14].textContent.trim() : '-',
-        marketing: '普通售卖',
+        orderScene: sceneEl ? sceneEl.textContent.trim() : '直播',
+        payChannel: cells[cellIdx.payChannel] ? cells[cellIdx.payChannel].textContent.trim() : '-',
+        marketing: marketingLabel || '普通售卖',
         livePeriod: '-',
         bd: '1',
         settleStatus: '-',
@@ -1281,7 +1361,27 @@
   function openDrawer(orderId, row) {
     closeDrawer();
     var detail = DETAILS[orderId] || fallbackDetail(orderId, row);
+    if (row) {
+      var sceneEl = row.querySelector('.order-scene');
+      if (sceneEl) {
+        detail.tags = detail.tags || {};
+        detail.tags.orderScene = sceneEl.textContent.trim();
+      }
+      var marketingLabel = isProxyOrderPage() ? null : readMarketingFromRow(row);
+      if (!isProxyOrderPage()) {
+        detail.tags = detail.tags || {};
+        detail.tags.marketing = marketingLabel;
+        if (detail.goods && detail.goods.length) {
+          detail.goods = detail.goods.map(function (g) {
+            return Object.assign({}, g, { marketing: marketingLabel });
+          });
+        }
+      }
+    }
     detail.progress = resolveProgress(detail.progress, row);
+    if (isProxyOrderPage()) {
+      detail.progress = normalizeProxyProgress(detail.progress);
+    }
 
     var backdrop = el('div', 'store-drawer-backdrop');
     backdrop.id = 'orderDetailBackdrop';
@@ -1290,6 +1390,7 @@
     var drawer = el('aside', 'store-drawer store-drawer--interactive order-detail-drawer');
     drawer.id = 'orderDetailDrawer';
     drawer._orderId = orderId;
+    drawer._sourceRow = row;
 
     var header = el('div', 'store-drawer__header');
     header.appendChild(el('h2', 'store-drawer__title', '订单详情 · ' + detail.displayId));
@@ -1323,6 +1424,10 @@
     document.addEventListener('keydown', onEsc);
     function onEsc(e) {
       if (e.key === 'Escape') {
+        if (window.OrderProxyExpress && document.getElementById('orderProxyTrackDrawer')) {
+          window.OrderProxyExpress.closeTrackingDrawer();
+          return;
+        }
         closeDrawer();
         document.removeEventListener('keydown', onEsc);
       }
@@ -1399,6 +1504,38 @@
   window.OrderLivePickup = {
     verifyWholeOrder: verifyWholeOrder
   };
+
+  function confirmProxyReceipt(orderId) {
+    var detail = DETAILS[orderId];
+    if (!detail || !detail.progress) return false;
+    if (detail.progress.status !== '待收货' && detail.progress.status !== '待提货') return false;
+
+    detail.progress = Object.assign({}, detail.progress, {
+      status: '已完成',
+      outcome: 'success',
+      completedSteps: 4,
+      finishTime: formatNow()
+    });
+    detail.logs.unshift({
+      time: formatNow(),
+      type: 'success',
+      title: '确认收货',
+      desc: '商家已确认收货，订单已完成'
+    });
+
+    var drawer = document.getElementById('orderDetailDrawer');
+    if (drawer && drawer._orderId === orderId) {
+      closeDrawer();
+      openDrawer(orderId, drawer._sourceRow);
+    }
+    return true;
+  }
+
+  if (isProxyOrderPage()) {
+    window.OrderProxyReceipt = {
+      confirmOrder: confirmProxyReceipt
+    };
+  }
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initViewLinks);

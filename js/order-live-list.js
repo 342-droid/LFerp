@@ -5,22 +5,31 @@
     var extraGrid = document.getElementById('orderFilterExtra');
     var resetBtn = document.getElementById('orderFilterReset');
     var queryBtn = document.getElementById('orderFilterQuery');
-    if (!expandBtn || !extraGrid) return;
 
-    expandBtn.addEventListener('click', function () {
-      var expanded = expandBtn.classList.toggle('is-expanded');
-      extraGrid.hidden = !expanded;
-      if (expandLabel) expandLabel.textContent = expanded ? '收起' : '展开';
-    });
+    if (expandBtn && extraGrid) {
+      extraGrid.hidden = false;
+      expandBtn.classList.add('is-expanded');
+      if (expandLabel) expandLabel.textContent = '收起';
+
+      expandBtn.addEventListener('click', function () {
+        var expanded = expandBtn.classList.toggle('is-expanded');
+        extraGrid.hidden = !expanded;
+        if (expandLabel) expandLabel.textContent = expanded ? '收起' : '展开';
+      });
+    }
 
     if (resetBtn) {
       resetBtn.addEventListener('click', function () {
         var form = document.getElementById('orderLiveFilterForm');
         if (!form) return;
         form.reset();
-        extraGrid.hidden = true;
-        expandBtn.classList.remove('is-expanded');
-        if (expandLabel) expandLabel.textContent = '展开';
+        if (extraGrid) {
+          extraGrid.hidden = false;
+        }
+        if (expandBtn) {
+          expandBtn.classList.add('is-expanded');
+        }
+        if (expandLabel) expandLabel.textContent = '收起';
       });
     }
 
@@ -93,6 +102,8 @@
   }
 
   function initVerifyPickup() {
+    if (document.body && document.body.getAttribute('data-order-page') === 'proxy') return;
+
     document.addEventListener('click', function (e) {
       var btn = e.target.closest('.js-order-verify');
       if (!btn) return;

@@ -85,7 +85,7 @@
       ) +
       fieldSelect('productBrand', '商品品牌', false, '请选择', ['冷丰优选', '产地直采', '无品牌']) +
       fieldSelect('purchaser', '采购员', true, '请选择采购员', ['张三', '李四', '王五']) +
-      fieldRadio(
+      fieldCheckbox(
         'saleChannels',
         '可售卖渠道',
         true,
@@ -796,13 +796,21 @@
       if (window.MdmProductCatalog) {
         var nameInput = document.getElementById('productName');
         var categorySelect = document.getElementById('productCategory');
-        var channelRadio = document.querySelector('input[name="saleChannels"]:checked');
+        var channelChecks = document.querySelectorAll('input[name="saleChannels"]:checked');
+        var saleChannels = [];
+        channelChecks.forEach(function (el) { saleChannels.push(el.value); });
+        var channelLabels = [];
+        saleChannels.forEach(function (v) {
+          if (v === 'live') channelLabels.push('电商直播');
+          else if (v === 'proxy') channelLabels.push('代采');
+        });
         var codeNum = String(Math.floor(Math.random() * 900) + 100);
         window.MdmProductCatalog.addProduct({
           code: 'SPU00' + codeNum,
           name: nameInput && nameInput.value ? nameInput.value.trim() : '新商品',
           price: 10,
-          channel: channelRadio && channelRadio.value === 'proxy' ? '代采' : '电商直播',
+          channel: channelLabels.length ? channelLabels.join('、') : '电商直播',
+          saleChannels: saleChannels.length ? saleChannels.slice() : ['live'],
           category: categorySelect && categorySelect.value ? categorySelect.value : '新鲜蔬菜',
           status: 'pending_sale',
           audit: 'pending',

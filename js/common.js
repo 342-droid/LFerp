@@ -113,7 +113,7 @@ function loadHeader() {
                     <a href="${wp.page('mdm_party_store.html')}" class="${isMdmDataCenterPage ? 'active' : ''}">业务伙伴</a>
                     <a href="${wp.page('mdm_product_selection.html')}" class="${isMdmProductPage ? 'active' : ''}">商品</a>
                     <a href="${wp.page('mdm_audit_store_registration.html')}" class="${isMdmAuditPage ? 'active' : ''}">审核中心</a>
-                    <a href="${wp.page('mdm_order_live.html')}" class="${isMdmOrderPage ? 'active' : ''}">订单</a>
+                    <a href="${wp.page('mdm_order_retail.html')}" class="${isMdmOrderPage ? 'active' : ''}">订单</a>
                     <a href="${wp.page('mdm_marketing_points_home.html')}" class="${isMdmMarketingPage ? 'active' : ''}">营销</a>
                     <a href="${wp.page('index.html')}" class="${!isTmsPage && !isPurchasePage && !isBasicSettingsPage && !isMdmPage && !isMobilePage ? 'active' : ''}">仓储</a>
                     <a href="${wp.page('TMS_index.html')}" class="${isTmsPage ? 'active' : ''}">物流</a>

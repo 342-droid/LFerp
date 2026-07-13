@@ -2,10 +2,10 @@
  * 选品库商品目录（演示数据 + sessionStorage 持久化）
  */
 (function () {
-  var STORAGE_KEY = 'mdm_product_catalog_v2';
+  var STORAGE_KEY = 'mdm_product_catalog_v3';
 
   var SEED = [
-    { code: 'SPU00103', name: 'ss积分加现金', price: 10, channel: '电商直播', category: '新鲜蔬菜', status: 'selling', audit: 'passed', img: '../user-app/assets/restock/product-leaf.svg' },
+    { code: 'SPU00103', name: 'ss积分加现金', price: 10, channel: '电商直播、代采', saleChannels: ['live', 'proxy'], category: '新鲜蔬菜', status: 'selling', audit: 'passed', img: '../user-app/assets/restock/product-leaf.svg' },
     { code: 'SPU00102', name: 'ss苏打水商品', price: 0.12, channel: '电商直播', category: '时令水果', status: 'pending_sale', audit: 'pending', img: '../user-app/assets/restock/product-water.svg' },
     { code: 'SPU00101', name: '豌豆', price: 0.01, channel: '电商直播', category: '新鲜蔬菜', status: 'pending_sale', audit: 'pending', img: '../user-app/assets/restock/product-egg.svg' },
     { code: 'SPU00098', name: '茶叶', price: 10, channel: '电商直播', category: '新鲜蔬菜', status: 'pending_sale', audit: 'rejected', rejectReason: '商品主图不清晰，请重新上传符合规范的图片', img: '../user-app/assets/restock/product-tea.svg' },
@@ -99,6 +99,36 @@
     return list;
   }
 
+  function channelLabelsFromValues(values) {
+    var labels = [];
+    (values || []).forEach(function (v) {
+      if (v === 'live') labels.push('电商直播');
+      else if (v === 'proxy') labels.push('代采');
+    });
+    return labels;
+  }
+
+  function normalizeSaleChannels(item) {
+    if (Array.isArray(item.saleChannels) && item.saleChannels.length) {
+      return item.saleChannels.filter(function (v) { return v === 'live' || v === 'proxy'; });
+    }
+    if (item.saleChannel === 'live' || item.saleChannel === 'proxy') {
+      return [item.saleChannel];
+    }
+    var ch = item.channel || '';
+    if (ch.indexOf('、') >= 0) {
+      return ch.split('、').map(function (part) {
+        part = part.trim();
+        if (part === '代采') return 'proxy';
+        if (part === '电商直播') return 'live';
+        return '';
+      }).filter(Boolean);
+    }
+    if (ch === '代采') return ['proxy'];
+    if (ch === '电商直播') return ['live'];
+    return ['live'];
+  }
+
   function defaultSpecDetail(item) {
     var img = item.img || '../user-app/assets/restock/product-leaf.svg';
     return {
@@ -122,7 +152,8 @@
   }
 
   function enrichDetail(item) {
-    var channelValue = item.channel === '代采' ? 'proxy' : 'live';
+    var saleChannels = normalizeSaleChannels(item);
+    var channelLabels = channelLabelsFromValues(saleChannels);
     var fallback = defaultSpecDetail(item);
     var specGroups = item.specGroups || fallback.specGroups;
     var specs = item.specs;
@@ -159,7 +190,9 @@
       supplierId: item.supplierId || '斯斯供应商商家',
       productBrand: item.productBrand || '318583479090561000',
       purchaser: item.purchaser || 'M000047-斯斯',
-      saleChannel: item.saleChannel || channelValue,
+      saleChannels: saleChannels,
+      saleChannel: item.saleChannel || saleChannels[0] || 'live',
+      channel: item.channel || channelLabels.join('、') || '电商直播',
       weighType: item.weighType || 'yes',
       baseUnit: item.baseUnit || '包',
       productWeight: item.productWeight != null ? String(item.productWeight) : '0.1',

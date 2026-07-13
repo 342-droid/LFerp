@@ -52,6 +52,24 @@
     );
   }
 
+  function fieldViewCheckbox(name, label, required, options, selectedValues) {
+    var selectedSet = {};
+    (selectedValues || []).forEach(function (v) { selectedSet[v] = true; });
+    var boxes = (options || [])
+      .map(function (opt) {
+        var checked = !!selectedSet[opt.value];
+        return (
+          '<label class="product-add-checkbox">' +
+          '<input type="checkbox" name="' + name + '" value="' + opt.value + '"' +
+          (checked ? ' checked' : '') +
+          ' disabled> ' + opt.label +
+          '</label>'
+        );
+      })
+      .join('');
+    return fieldWrap(name, label, required, '<div class="product-add-checkbox-row">' + boxes + '</div>');
+  }
+
   function fieldViewRadio(name, label, required, options, selected) {
     var radios = (options || [])
       .map(function (opt) {
@@ -152,7 +170,7 @@
       fieldViewSelect('supplierId', '选择供应商', true, data.supplierId) +
       fieldViewSelect('productBrand', '商品品牌', false, data.productBrand) +
       fieldViewSelect('purchaser', '采购员', true, data.purchaser) +
-      fieldViewRadio(
+      fieldViewCheckbox(
         'saleChannels',
         '可售卖渠道',
         true,
@@ -160,7 +178,7 @@
           { value: 'live', label: '电商直播' },
           { value: 'proxy', label: '代采' }
         ],
-        data.saleChannel
+        data.saleChannels
       ) +
       fieldViewUpload(
         'productVideo',
