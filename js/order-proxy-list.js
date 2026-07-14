@@ -153,7 +153,8 @@
     var backdrop = document.getElementById(backdropId);
     if (backdrop) backdrop.remove();
     if (!document.getElementById('orderDetailBackdrop') && !document.getElementById('orderConfirmReceiptBackdrop') &&
-        !document.getElementById('orderProxyCancelBackdrop') && !document.getElementById('orderProxyRefundBackdrop')) {
+        !document.getElementById('orderProxyCancelBackdrop') && !document.getElementById('orderProxyRefundBackdrop') &&
+        !document.getElementById('orderProxyBatchUploadBackdrop')) {
       document.body.style.overflow = '';
     }
   }
@@ -321,26 +322,101 @@
     });
   }
 
+  function downloadBatchExpressTemplate() {
+    var csv =
+      '\uFEFF订单号,物流单号,快递公司\n' +
+      'ORD-3212689201588561,773075059702651,申通快递\n' +
+      'ORD-3212689201599001,SF1234567890123,顺丰速运\n';
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = '批量上传快递单模板.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function openBatchExpressUploadModal() {
+    closeProxyDialog('orderProxyBatchUploadBackdrop');
+    var backdrop = document.createElement('div');
+    backdrop.className = 'order-proxy-express-overlay';
+    backdrop.id = 'orderProxyBatchUploadBackdrop';
+    backdrop.innerHTML =
+      '<div class="order-proxy-upload-modal order-proxy-batch-upload-modal" role="dialog" aria-labelledby="orderProxyBatchUploadTitle">' +
+        '<div class="order-proxy-upload-modal__head">' +
+          '<h3 id="orderProxyBatchUploadTitle" class="order-proxy-upload-modal__title">批量上传快递单</h3>' +
+          '<button type="button" class="order-proxy-upload-modal__close js-proxy-batch-close" aria-label="关闭">×</button>' +
+        '</div>' +
+        '<div class="order-proxy-upload-modal__body">' +
+          '<p class="order-proxy-upload-modal__hint">通过 Excel / CSV 批量上传快递单号。请先下载模板，按「订单号、物流单号、快递公司」填写后上传。</p>' +
+          '<div class="order-proxy-batch-upload__template">' +
+            '<button type="button" class="order-proxy-upload-field__link js-proxy-batch-template">下载导入模板</button>' +
+          '</div>' +
+          '<div class="order-proxy-upload-field">' +
+            '<label class="order-proxy-upload-field__label" for="orderProxyBatchFile">上传文件</label>' +
+            '<div class="order-proxy-batch-upload__file-row">' +
+              '<input type="file" id="orderProxyBatchFile" class="order-proxy-batch-upload__file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv">' +
+              '<span class="order-proxy-batch-upload__file-name js-proxy-batch-file-name">未选择文件</span>' +
+            '</div>' +
+            '<p class="order-proxy-upload-field__auto-hint">支持 .xlsx / .xls / .csv，单次建议不超过 1000 条</p>' +
+          '</div>' +
+        '</div>' +
+        '<div class="order-proxy-upload-modal__foot">' +
+          '<button type="button" class="order-detail-btn js-proxy-batch-close">取消</button>' +
+          '<button type="button" class="order-detail-btn order-detail-btn--primary js-proxy-batch-submit">确认上传</button>' +
+        '</div>' +
+      '</div>';
+
+    document.body.appendChild(backdrop);
+    document.body.style.overflow = 'hidden';
+
+    var fileInput = backdrop.querySelector('#orderProxyBatchFile');
+    var fileNameEl = backdrop.querySelector('.js-proxy-batch-file-name');
+
+    backdrop.addEventListener('click', function (e) {
+      if (e.target === backdrop) closeProxyDialog('orderProxyBatchUploadBackdrop');
+    });
+    backdrop.querySelectorAll('.js-proxy-batch-close').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        closeProxyDialog('orderProxyBatchUploadBackdrop');
+      });
+    });
+    backdrop.querySelector('.js-proxy-batch-template').addEventListener('click', function () {
+      downloadBatchExpressTemplate();
+      if (typeof showToast === 'function') showToast('模板已下载', 'success');
+    });
+    if (fileInput) {
+      fileInput.addEventListener('change', function () {
+        var file = fileInput.files && fileInput.files[0];
+        if (fileNameEl) fileNameEl.textContent = file ? file.name : '未选择文件';
+      });
+    }
+    backdrop.querySelector('.js-proxy-batch-submit').addEventListener('click', function () {
+      var file = fileInput && fileInput.files && fileInput.files[0];
+      if (!file) {
+        if (typeof showToast === 'function') showToast('请先选择 Excel 文件', 'error');
+        return;
+      }
+      var name = String(file.name || '').toLowerCase();
+      if (!/\.(xlsx|xls|csv)$/.test(name)) {
+        if (typeof showToast === 'function') showToast('请上传 .xlsx / .xls / .csv 文件', 'error');
+        return;
+      }
+      closeProxyDialog('orderProxyBatchUploadBackdrop');
+      if (typeof showToast === 'function') {
+        showToast('已解析「' + file.name + '」并完成快递单号批量上传（演示）', 'success');
+      }
+    });
+  }
+
   function initTableToolbar() {
     if (!isProxyOrderPage()) return;
 
     var batchBtn = document.getElementById('orderProxyBatchUpload');
-    var importBtn = document.getElementById('orderProxyImport');
-
     if (batchBtn) {
-      batchBtn.addEventListener('click', function () {
-        if (typeof showToast === 'function') {
-          showToast('批量上传快递单（演示）', 'success');
-        }
-      });
-    }
-
-    if (importBtn) {
-      importBtn.addEventListener('click', function () {
-        if (typeof showToast === 'function') {
-          showToast('导入（演示）', 'success');
-        }
-      });
+      batchBtn.addEventListener('click', openBatchExpressUploadModal);
     }
   }
 

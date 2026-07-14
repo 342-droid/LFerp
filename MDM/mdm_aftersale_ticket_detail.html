@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰售后 - 售后详情</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-aftersale.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/aftersale-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="aftersale-detail-page" id="asDetailPage">
+                <div class="aftersale-detail-page__head">
+                    <h1 class="aftersale-detail-page__title">售后详情</h1>
+                    <button type="button" class="aftersale-detail-page__close" id="asDetailClose" aria-label="关闭">×</button>
+                </div>
+                <div class="aftersale-detail-scroll">
+                    <div class="aftersale-detail-layout" id="asDetailBody"></div>
+                </div>
+                <div class="aftersale-detail-footer" id="asDetailFooter" hidden></div>
+            </div>
+        </main>
+    </div>
+    <div class="aftersale-addr-modal" id="asAddrModal" hidden>
+        <div class="aftersale-addr-modal__mask" data-addr-close></div>
+        <div class="aftersale-addr-modal__panel" role="dialog" aria-modal="true" aria-labelledby="asAddrModalTitle">
+            <div class="aftersale-addr-modal__head">
+                <h3 id="asAddrModalTitle">选择供应商收货地址</h3>
+                <button type="button" class="aftersale-detail-page__close" data-addr-close aria-label="关闭">×</button>
+            </div>
+            <div class="aftersale-addr-modal__body" id="asAddrModalBody"></div>
+            <div class="aftersale-addr-modal__foot">
+                <button type="button" class="aftersale-btn aftersale-btn--ghost" data-addr-close>取消</button>
+                <button type="button" class="aftersale-btn aftersale-btn--primary" id="asAddrConfirm">确定</button>
+            </div>
+        </div>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-aftersale-ticket-detail.js"></script>
+</body>
+</html>

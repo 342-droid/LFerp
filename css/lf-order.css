@@ -1910,6 +1910,38 @@ body[data-order-page="proxy"] .order-live-table__express:hover {
   border-top: 1px solid #ebeef5;
 }
 
+.order-proxy-batch-upload-modal {
+  width: min(480px, 92vw);
+}
+
+.order-proxy-batch-upload__template {
+  margin-bottom: 14px;
+}
+
+.order-proxy-batch-upload__file-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.order-proxy-batch-upload__file {
+  flex: 0 0 auto;
+  max-width: 220px;
+  font-size: 13px;
+  color: #606266;
+}
+
+.order-proxy-batch-upload__file-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: #909399;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .order-proxy-track-courier {
   display: flex;
   align-items: center;

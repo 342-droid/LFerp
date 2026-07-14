@@ -710,7 +710,7 @@
         '</div>' +
         (p.sku && p.sku !== '-'
           ? '<div class="order-detail-timeline__pickup-row">' +
-              '<span class="order-detail-timeline__pickup-label">条码</span>' +
+              '<span class="order-detail-timeline__pickup-label">' + (isProxyOrderPage() ? '条形码' : '条码') + '</span>' +
               '<span class="order-detail-timeline__pickup-value">' + p.sku + '</span>' +
             '</div>'
           : '') +
@@ -846,7 +846,8 @@
   }
 
   function buildGoodsTableHeadRow(pickupMode) {
-    var headCols = '<th>商品</th><th>编码</th><th>条码</th><th>重量(kg)</th><th>单价</th><th>数量</th><th>小计</th>';
+    var barcodeCol = isProxyOrderPage() ? '条形码' : '条码';
+    var headCols = '<th>商品</th><th>编码</th><th>' + barcodeCol + '</th><th>重量(kg)</th><th>单价</th><th>数量</th><th>小计</th>';
     if (!isProxyOrderPage()) headCols += '<th>营销</th>';
     if (pickupMode) {
       headCols = '<th class="order-pickup-check-head">选择</th>' + headCols + '<th>已提</th><th>待提</th><th>操作</th>';

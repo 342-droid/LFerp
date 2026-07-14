@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰售后 - 售后单</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-aftersale.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/aftersale-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="aftersale-page">
+                <div class="aftersale-page-tabs">
+                    <a href="../index.html" class="aftersale-page-tabs__item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5L12 4l8 6.5V19a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-8.5z"/></svg>
+                        首页
+                    </a>
+                    <span class="aftersale-page-tabs__item aftersale-page-tabs__item--active">
+                        售后单
+                        <button type="button" class="aftersale-page-tabs__close" aria-label="关闭">×</button>
+                    </span>
+                    <a href="mdm_aftersale_refund.html" class="aftersale-page-tabs__item">
+                        退款单
+                        <button type="button" class="aftersale-page-tabs__close" aria-label="关闭">×</button>
+                    </a>
+                </div>
+
+                <div class="aftersale-page-body">
+                    <section class="erp-page__card aftersale-filter-card">
+                        <form class="aftersale-filter-form" id="asTicketFilterForm" onsubmit="return false;">
+                            <div class="aftersale-filter-grid" id="asTicketFilterGrid">
+                                <div class="aftersale-filter-field">
+                                    <label class="aftersale-filter-field__label" for="asTicketNo">售后单号</label>
+                                    <input class="aftersale-filter-field__input" id="asTicketNo" type="text" placeholder="请输入售后单号" autocomplete="off">
+                                </div>
+                                <div class="aftersale-filter-field">
+                                    <label class="aftersale-filter-field__label" for="asOrderNo">订单号</label>
+                                    <input class="aftersale-filter-field__input" id="asOrderNo" type="text" placeholder="请输入订单号" autocomplete="off">
+                                </div>
+                                <div class="aftersale-filter-field">
+                                    <label class="aftersale-filter-field__label" for="asOrderSource">订单来源</label>
+                                    <select class="aftersale-filter-field__select" id="asOrderSource">
+                                        <option value="">全部</option>
+                                        <option value="商城">商城</option>
+                                        <option value="直播">直播</option>
+                                        <option value="代采">代采</option>
+                                    </select>
+                                </div>
+                                <div class="aftersale-filter-field">
+                                    <label class="aftersale-filter-field__label" for="asUserPhone">用户手机号</label>
+                                    <input class="aftersale-filter-field__input" id="asUserPhone" type="text" placeholder="请输入用户手机号" autocomplete="off">
+                                </div>
+                                <div class="aftersale-filter-field">
+                                    <label class="aftersale-filter-field__label" for="asProductName">商品名称</label>
+                                    <input class="aftersale-filter-field__input" id="asProductName" type="text" placeholder="请输入商品名称" autocomplete="off">
+                                </div>
+                                <div class="aftersale-filter-field">
+                                    <label class="aftersale-filter-field__label" for="asType">售后类型</label>
+                                    <select class="aftersale-filter-field__select" id="asType">
+                                        <option value="">全部</option>
+                                        <option value="仅退款">仅退款</option>
+                                        <option value="退货退款">退货退款</option>
+                                        <option value="补货">补货</option>
+                                        <option value="换货">换货</option>
+                                    </select>
+                                </div>
+                                <div class="aftersale-filter-field aftersale-filter-field--extra">
+                                    <label class="aftersale-filter-field__label" for="asStatus">售后状态</label>
+                                    <select class="aftersale-filter-field__select" id="asStatus">
+                                        <option value="">全部</option>
+                                        <option value="待审批">待审批</option>
+                                        <option value="退款中">退款中</option>
+                                        <option value="已拒绝">已拒绝</option>
+                                        <option value="待退货">待退货</option>
+                                        <option value="已收货">已收货</option>
+                                        <option value="退款异常">退款异常</option>
+                                        <option value="已完成">已完成</option>
+                                        <option value="已取消">已取消</option>
+                                    </select>
+                                </div>
+                                <div class="aftersale-filter-field aftersale-filter-field--extra">
+                                    <label class="aftersale-filter-field__label" for="asRefundExecStatus">退款执行状态</label>
+                                    <select class="aftersale-filter-field__select" id="asRefundExecStatus">
+                                        <option value="">全部</option>
+                                        <option value="未发起退款">未发起退款</option>
+                                        <option value="待退款">待退款</option>
+                                        <option value="退款执行中">退款执行中</option>
+                                        <option value="退款成功">退款成功</option>
+                                        <option value="退款失败">退款失败</option>
+                                    </select>
+                                </div>
+                                <div class="aftersale-filter-field aftersale-filter-field--extra">
+                                    <label class="aftersale-filter-field__label" for="asReason">售后原因</label>
+                                    <select class="aftersale-filter-field__select" id="asReason">
+                                        <option value="">全部</option>
+                                        <option value="质量问题">质量问题</option>
+                                        <option value="未收到货">未收到货</option>
+                                        <option value="发错货">发错货</option>
+                                        <option value="其他">其他</option>
+                                    </select>
+                                </div>
+                                <div class="aftersale-filter-field aftersale-filter-field--extra aftersale-filter-field--amount">
+                                    <label class="aftersale-filter-field__label" for="asApplyAmountMin">申请退款金额</label>
+                                    <div class="aftersale-filter-amount">
+                                        <input class="aftersale-filter-field__input" id="asApplyAmountMin" type="number" step="0.01" min="0" placeholder="最小值">
+                                        <span class="aftersale-filter-amount__sep">-</span>
+                                        <input class="aftersale-filter-field__input" id="asApplyAmountMax" type="number" step="0.01" min="0" placeholder="最大值">
+                                    </div>
+                                </div>
+                                <div class="aftersale-filter-field aftersale-filter-field--extra">
+                                    <label class="aftersale-filter-field__label" for="asApprover">审批人</label>
+                                    <select class="aftersale-filter-field__select" id="asApprover">
+                                        <option value="">全部</option>
+                                        <option value="系统">系统</option>
+                                        <option value="超级管理员">超级管理员</option>
+                                    </select>
+                                </div>
+                                <div class="aftersale-filter-field aftersale-filter-field--extra aftersale-filter-field--amount">
+                                    <label class="aftersale-filter-field__label" for="asExecAmountMin">退款执行金额</label>
+                                    <div class="aftersale-filter-amount">
+                                        <input class="aftersale-filter-field__input" id="asExecAmountMin" type="number" step="0.01" min="0" placeholder="最小值">
+                                        <span class="aftersale-filter-amount__sep">-</span>
+                                        <input class="aftersale-filter-field__input" id="asExecAmountMax" type="number" step="0.01" min="0" placeholder="最大值">
+                                    </div>
+                                </div>
+                                <div class="aftersale-filter-field aftersale-filter-field--extra">
+                                    <label class="aftersale-filter-field__label" for="asSource">售后来源</label>
+                                    <select class="aftersale-filter-field__select" id="asSource">
+                                        <option value="">全部</option>
+                                        <option value="用户自助发起">用户自助发起</option>
+                                        <option value="运营代用户发起">运营代用户发起</option>
+                                    </select>
+                                </div>
+                                <div class="aftersale-filter-field aftersale-filter-field--extra">
+                                    <label class="aftersale-filter-field__label" for="asLiveSession">直播场次</label>
+                                    <input class="aftersale-filter-field__input" id="asLiveSession" type="text" placeholder="请输入直播场次" autocomplete="off">
+                                </div>
+                                <div class="aftersale-filter-field aftersale-filter-field--extra aftersale-filter-field--range aftersale-filter-field--range-start">
+                                    <label class="aftersale-filter-field__label" for="asApplyTimeStart">申请时间</label>
+                                    <div class="aftersale-filter-range">
+                                        <span class="aftersale-filter-range__icon" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>
+                                        </span>
+                                        <input class="aftersale-filter-range__input" id="asApplyTimeStart" type="text" placeholder="开始时间" autocomplete="off">
+                                        <span class="aftersale-filter-range__sep">-</span>
+                                        <input class="aftersale-filter-range__input" id="asApplyTimeEnd" type="text" placeholder="结束时间" autocomplete="off">
+                                    </div>
+                                </div>
+                                <div class="aftersale-filter-field aftersale-filter-field--extra aftersale-filter-field--range">
+                                    <label class="aftersale-filter-field__label" for="asApproveTimeStart">审批时间</label>
+                                    <div class="aftersale-filter-range">
+                                        <span class="aftersale-filter-range__icon" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>
+                                        </span>
+                                        <input class="aftersale-filter-range__input" id="asApproveTimeStart" type="text" placeholder="开始时间" autocomplete="off">
+                                        <span class="aftersale-filter-range__sep">-</span>
+                                        <input class="aftersale-filter-range__input" id="asApproveTimeEnd" type="text" placeholder="结束时间" autocomplete="off">
+                                    </div>
+                                </div>
+                                <div class="aftersale-filter-field aftersale-filter-field--extra aftersale-filter-field--range">
+                                    <label class="aftersale-filter-field__label" for="asRefundTimeStart">退款执行时间</label>
+                                    <div class="aftersale-filter-range">
+                                        <span class="aftersale-filter-range__icon" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>
+                                        </span>
+                                        <input class="aftersale-filter-range__input" id="asRefundTimeStart" type="text" placeholder="开始时间" autocomplete="off">
+                                        <span class="aftersale-filter-range__sep">-</span>
+                                        <input class="aftersale-filter-range__input" id="asRefundTimeEnd" type="text" placeholder="结束时间" autocomplete="off">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="aftersale-filter-actions">
+                                <button type="button" class="aftersale-filter-btn aftersale-filter-btn--primary" id="asTicketQuery">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                                    查询
+                                </button>
+                                <button type="button" class="aftersale-filter-btn aftersale-filter-btn--default" id="asTicketReset">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M5 19a9 9 0 0014-7"/><path d="M19 5a9 9 0 00-14 7"/></svg>
+                                    重置
+                                </button>
+                                <button type="button" class="aftersale-filter-btn aftersale-filter-btn--text" id="asTicketCollapse" aria-expanded="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+                                    <span id="asTicketCollapseLabel">收起</span>
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="erp-page__card aftersale-table-card">
+                        <div class="aftersale-table-toolbar">
+                            <button type="button" class="aftersale-table-toolbar__btn" id="asTicketExport">导出列表</button>
+                        </div>
+                        <div class="aftersale-table-wrap">
+                            <table class="aftersale-table" id="asTicketTable">
+                                <thead>
+                                    <tr>
+                                        <th class="aftersale-table__th aftersale-table__th--ticket">售后单号</th>
+                                        <th>售后来源</th>
+                                        <th>售后类型</th>
+                                        <th>售后状态</th>
+                                        <th>订单来源</th>
+                                        <th>直播场次</th>
+                                        <th>履约方式</th>
+                                        <th>用户信息</th>
+                                        <th>提货门店</th>
+                                        <th>门店地址</th>
+                                        <th>商品信息</th>
+                                        <th>申请退款金额</th>
+                                        <th>审批退款金额</th>
+                                        <th>退款执行状态</th>
+                                        <th>实际退款金额</th>
+                                        <th>券退还金额</th>
+                                        <th>积分退还数量</th>
+                                        <th>售后原因</th>
+                                        <th>审批人</th>
+                                        <th>结算状态</th>
+                                        <th>售后发生时间</th>
+                                        <th>审批时间</th>
+                                        <th>申请时间</th>
+                                        <th>更新时间</th>
+                                        <th class="aftersale-table__th aftersale-table__th--action">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="asTicketTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="aftersale-empty" id="asTicketEmpty" hidden>暂无售后单数据</div>
+                        <div class="aftersale-pagination" id="asTicketPagination">
+                            <span id="asTicketTotal">共 0 条</span>
+                            <div class="aftersale-pagination__right">
+                                <select class="aftersale-pagination__size" id="asTicketPageSize" aria-label="每页条数">
+                                    <option value="20" selected>20 条/页</option>
+                                    <option value="50">50 条/页</option>
+                                    <option value="100">100 条/页</option>
+                                </select>
+                                <div class="aftersale-pagination__pages" id="asTicketPages"></div>
+                                <div class="aftersale-pagination__jump">
+                                    前往
+                                    <input type="text" id="asTicketJump" inputmode="numeric" aria-label="跳转页码" value="1">
+                                    <button type="button" class="aftersale-page-btn" id="asTicketJumpGo">页</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-aftersale-ticket.js"></script>
+</body>
+</html>
