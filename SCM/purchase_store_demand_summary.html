@@ -886,7 +886,7 @@
 
     var AUTO_CUTOFF_CONFIG_KEY = 'purchase_store_auto_cutoff_config';
     var AUTO_CUTOFF_ORDER_SOURCES = ['商城/直播间', '代采订单'];
-    var AUTO_CUTOFF_FULFILLMENT_METHODS = ['平台配送'];
+    var AUTO_CUTOFF_FULFILLMENT_METHODS = ['快递到店', '快递到家', '平台配送'];
 
     function autoCutoffRuleKey(orderSource, fulfillmentMethod) {
         return String(orderSource || '') + '|' + String(fulfillmentMethod || '');
@@ -899,8 +899,8 @@
     }
 
     function isAutoCutoffRuleAllowed(orderSource, fulfillmentMethod) {
-        var fm = String(fulfillmentMethod || '').trim();
-        if (fm === '快递到店' || fm === '快递到家') return false;
+        if (orderSource === '代采订单' && fulfillmentMethod === '快递到家') return false;
+        if (orderSource === '商城/直播间' && fulfillmentMethod === '快递到店') return false;
         return true;
     }
 
@@ -997,9 +997,7 @@
     function renderAutoCutoffConfigTable(config) {
         var tbody = document.getElementById('autoCutoffConfigTbody');
         if (!tbody) return;
-        var rules = mergeAutoCutoffRules((config && config.rules) || []).filter(function(rule) {
-            return isAutoCutoffRuleAllowed(rule.orderSource, rule.fulfillmentMethod);
-        });
+        var rules = mergeAutoCutoffRules((config && config.rules) || []);
         tbody.innerHTML = rules.map(function(rule) {
             return (
                 '<tr data-order-source="' + escapeAttr(rule.orderSource) + '" data-fulfillment-method="' + escapeAttr(rule.fulfillmentMethod) + '">' +
