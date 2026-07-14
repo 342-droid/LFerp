@@ -1670,19 +1670,20 @@ body.product-add-drawer-open {
 }
 
 .product-proxy-table {
-  min-width: 1200px;
+  min-width: 1280px;
 }
 
-.product-proxy-table__col--name { width: 11%; }
-.product-proxy-table__col--code { width: 10%; }
-.product-proxy-table__col--img { width: 7%; }
-.product-proxy-table__col--tag { width: 9%; }
+.product-proxy-table__col--name { width: 10%; }
+.product-proxy-table__col--code { width: 9%; }
+.product-proxy-table__col--img { width: 6%; }
+.product-proxy-table__col--tag { width: 8%; }
 .product-proxy-table__col--category { width: 9%; }
-.product-proxy-table__col--spec { width: 7%; }
-.product-proxy-table__col--sale { width: 11%; }
-.product-proxy-table__col--line { width: 8%; }
-.product-proxy-table__col--sales { width: 6%; }
-.product-proxy-table__col--status { width: 8%; }
+.product-proxy-table__col--spec { width: 6%; }
+.product-proxy-table__col--sale { width: 10%; }
+.product-proxy-table__col--line { width: 7%; }
+.product-proxy-table__col--sales { width: 5%; }
+.product-proxy-table__col--fulfillment { width: 9%; }
+.product-proxy-table__col--status { width: 7%; }
 .product-proxy-table__col--action { width: 14%; }
 
 .product-proxy-table th,
@@ -1737,9 +1738,38 @@ body.product-add-drawer-open {
 .product-proxy-table__td--line,
 .product-proxy-table__th--sales,
 .product-proxy-table__td--sales,
+.product-proxy-table__th--fulfillment,
+.product-proxy-table__td--fulfillment,
 .product-proxy-table__th--status,
 .product-proxy-table__td--status {
   text-align: center;
+}
+
+.product-proxy-fulfillment {
+  display: inline-block;
+  width: 88px;
+  height: 28px;
+  padding: 0 4px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text, #333333);
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 28px;
+  cursor: pointer;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23909399' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 2px center;
+  padding-right: 16px;
+}
+
+.product-proxy-fulfillment:focus {
+  outline: none;
+  box-shadow: none;
 }
 
 .product-proxy-table__th--action,

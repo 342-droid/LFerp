@@ -3,6 +3,7 @@
  */
 (function () {
     var SUPPLIER_INBOUND_WAREHOUSE_BIND_KEY = 'mdm_supplier_inbound_warehouse_bindings_v1';
+    var SUPPLIER_RECEIVE_ADDR_KEY = 'mdm_supplier_receive_addr_v1';
     var SUPPLIER_PAYMENT_AGREEMENT = {
         name: '斗拱平台综合支付服务协议',
         url: 'https://cloudpnrcdn.oss-cn-shanghai.aliyuncs.com/opps/api/prod/download_file/PaymentServiceAgreement.htm'
@@ -72,6 +73,260 @@
 
     function sectionTitle(text) {
         return el('div', 'supplier-detail-section-title', text);
+    }
+
+    function sectionTitleWithAction(text, actionEl) {
+        var head = el('div', 'supplier-detail-section-head');
+        head.appendChild(sectionTitle(text));
+        if (actionEl) {
+            var acts = el('div', 'supplier-detail-section-head__actions');
+            acts.appendChild(actionEl);
+            head.appendChild(acts);
+        }
+        return head;
+    }
+
+    function blankable(v) {
+        var s = String(v == null ? '' : v).trim();
+        if (!s || s === '—') return '';
+        return s;
+    }
+
+    function normalizeReceiveAddress(item, fallbackId) {
+        return {
+            id: String((item && item.id) || fallbackId || 'addr_' + Date.now()),
+            receiverName: blankable(item && item.receiverName),
+            receiverPhone: blankable(item && item.receiverPhone),
+            region: blankable(item && item.region),
+            detailAddress: blankable(item && item.detailAddress),
+            isDefault: !!(item && item.isDefault)
+        };
+    }
+
+    function listStoreReceiveAddresses(store) {
+        var name = blankable(store && store.contact) || '—';
+        var phone = blankable(store && store.phone) || '—';
+        var region = blankable(store && store.region).replace(/\//g, ' / ') || '—';
+        var detail = blankable(store && store.address) || '—';
+        var list = [
+            {
+                receiverName: name,
+                receiverPhone: phone,
+                region: region,
+                detailAddress: detail,
+                isDefault: true
+            }
+        ];
+        if (detail !== '—') {
+            list.push({
+                receiverName: name,
+                receiverPhone: phone,
+                region: region,
+                detailAddress: detail + '（备选收货点）',
+                isDefault: false
+            });
+        } else {
+            list.push({
+                receiverName: '仓库收货人',
+                receiverPhone: phone === '—' ? '—' : phone,
+                region: region,
+                detailAddress: '备用收货地址（演示）',
+                isDefault: false
+            });
+        }
+        return list;
+    }
+
+    /** 代采业务读取默认收货地址 */
+    function getStoreReceiveInfo(storeId, storeFallback) {
+        var list = listStoreReceiveAddresses(storeFallback || {});
+        var i;
+        for (i = 0; i < list.length; i++) {
+            if (list[i].isDefault) return list[i];
+        }
+        return list[0] || {
+            receiverName: '',
+            receiverPhone: '',
+            region: '',
+            detailAddress: '',
+            isDefault: false
+        };
+    }
+
+    function supplierReceiveSeed(supplier) {
+        return [
+            normalizeReceiveAddress(
+                {
+                    id: 'seed_default',
+                    receiverName: blankable(supplier && supplier.contactName) || blankable(supplier && supplier.name),
+                    receiverPhone: blankable(supplier && supplier.phone),
+                    region: blankable(supplier && supplier.region).replace(/\//g, ' / '),
+                    detailAddress: blankable(supplier && supplier.detailAddress),
+                    isDefault: true
+                },
+                'seed_default'
+            )
+        ];
+    }
+
+    function loadSupplierReceiveAddresses(supplierId, supplier) {
+        var id = String(supplierId || '').trim();
+        var map = readJsonStore(SUPPLIER_RECEIVE_ADDR_KEY);
+        if (id && Object.prototype.hasOwnProperty.call(map, id)) {
+            var list = map[id];
+            if (!Array.isArray(list)) return [];
+            return list.map(function (it, idx) {
+                return normalizeReceiveAddress(it, 'addr_' + idx);
+            });
+        }
+        return supplierReceiveSeed(supplier);
+    }
+
+    function saveSupplierReceiveAddresses(supplierId, list) {
+        var id = String(supplierId || '').trim();
+        if (!id) return;
+        var map = readJsonStore(SUPPLIER_RECEIVE_ADDR_KEY);
+        map[id] = (list || []).map(function (it, idx) {
+            return normalizeReceiveAddress(it, 'addr_' + idx);
+        });
+        try {
+            localStorage.setItem(SUPPLIER_RECEIVE_ADDR_KEY, JSON.stringify(map));
+        } catch (e) {}
+    }
+
+    function ensureOneDefaultReceive(list) {
+        if (!list || !list.length) return list || [];
+        var hasDefault = list.some(function (it) {
+            return it.isDefault;
+        });
+        if (!hasDefault) list[0].isDefault = true;
+        return list;
+    }
+
+    function getSupplierReceiveInfo(supplierId, supplierFallback) {
+        var list = loadSupplierReceiveAddresses(supplierId, supplierFallback || {});
+        var i;
+        for (i = 0; i < list.length; i++) {
+            if (list[i].isDefault) return list[i];
+        }
+        return list[0] || normalizeReceiveAddress({}, 'empty');
+    }
+
+    function buildReceiveFormCell(label, value, opts) {
+        opts = opts || {};
+        var cls = 'supplier-detail-cell';
+        if (opts.span) cls += ' supplier-detail-cell--span' + opts.span;
+        var c = el('div', cls);
+        c.appendChild(el('div', 'supplier-detail-cell__label', label));
+        var inp = document.createElement(opts.textarea ? 'textarea' : 'input');
+        if (opts.textarea) {
+            inp.className = 'erp-textarea store-receive-card__address';
+            inp.rows = 1;
+        } else {
+            inp.type = 'text';
+            inp.className = 'erp-input';
+        }
+        inp.value = value && value !== '—' ? value : '';
+        if (opts.editable) {
+            inp.readOnly = false;
+            inp.disabled = false;
+            inp.classList.add('store-receive-card__field--editable');
+            if (opts.placeholder) inp.placeholder = opts.placeholder;
+            else if (opts.textarea) inp.placeholder = '请输入详细地址';
+            else if (label === '收货人') inp.placeholder = '请输入收货人';
+            else if (label === '收货电话') inp.placeholder = '请输入收货电话';
+        } else {
+            inp.readOnly = true;
+            inp.disabled = true;
+        }
+        var body = el('div', 'supplier-detail-cell__body');
+        body.appendChild(inp);
+        c.appendChild(body);
+        return { cell: c, input: inp };
+    }
+
+    function buildReceiveRegionCell(value, editable) {
+        var c = el('div', 'supplier-detail-cell');
+        c.appendChild(el('div', 'supplier-detail-cell__label', '省市区'));
+        var body = el('div', 'supplier-detail-cell__body');
+        var fieldRef;
+        if (
+            window.MdmStoreRegionCascader &&
+            typeof window.MdmStoreRegionCascader.create === 'function'
+        ) {
+            var cascader = window.MdmStoreRegionCascader.create(body, blankable(value) || '', {
+                disabled: !editable
+            });
+            body.appendChild(cascader.wrap);
+            fieldRef = {
+                get value() {
+                    return cascader.getValue();
+                },
+                set value(v) {
+                    cascader.setValue(v);
+                },
+                getValue: function () {
+                    return cascader.getValue();
+                },
+                cascader: cascader
+            };
+        } else {
+            var inp = document.createElement('input');
+            inp.type = 'text';
+            inp.className = 'erp-input';
+            inp.value = value && value !== '—' ? value : '';
+            inp.readOnly = !editable;
+            inp.disabled = !editable;
+            if (editable) inp.classList.add('store-receive-card__field--editable');
+            body.appendChild(inp);
+            fieldRef = inp;
+        }
+        c.appendChild(body);
+        return { cell: c, input: fieldRef };
+    }
+
+    function readReceiveFieldValue(field) {
+        if (!field) return '';
+        if (typeof field.getValue === 'function') return blankable(field.getValue());
+        return blankable(field.value);
+    }
+
+    function buildReceiveAddressCard(item, idx, actions, editable) {
+        var card = el('div', 'store-receive-card');
+        if (editable) card.classList.add('store-receive-card--editing');
+        var head = el('div', 'store-receive-card__head');
+        var titleWrap = el('div', 'store-receive-card__title-wrap');
+        titleWrap.appendChild(el('span', 'store-receive-card__title', '地址' + (idx + 1)));
+        if (item.isDefault) {
+            titleWrap.appendChild(el('span', 'mdm-detail-tag mdm-detail-tag--success', '默认'));
+        }
+        head.appendChild(titleWrap);
+        if (actions) head.appendChild(actions);
+        card.appendChild(head);
+
+        var grid = el('div', 'supplier-detail-grid');
+        var nameCell = buildReceiveFormCell('收货人', item.receiverName, { editable: editable });
+        var phoneCell = buildReceiveFormCell('收货电话', item.receiverPhone, { editable: editable });
+        var regionCell = buildReceiveRegionCell(item.region, editable);
+        var defaultCell = buildReceiveFormCell('默认地址', item.isDefault ? '是' : '否', { editable: false });
+        var addrCell = buildReceiveFormCell('详细地址', item.detailAddress, {
+            textarea: true,
+            span: 4,
+            editable: editable
+        });
+        grid.appendChild(nameCell.cell);
+        grid.appendChild(phoneCell.cell);
+        grid.appendChild(regionCell.cell);
+        grid.appendChild(defaultCell.cell);
+        grid.appendChild(addrCell.cell);
+        card.appendChild(grid);
+        card._fields = {
+            receiverName: nameCell.input,
+            receiverPhone: phoneCell.input,
+            region: regionCell.input,
+            detailAddress: addrCell.input
+        };
+        return card;
     }
 
     function detailCell(label, value) {
@@ -910,8 +1165,6 @@
 
     function panelStoreBase(store) {
         var p = el('div', 'supplier-detail-tab');
-        var recordKey = onboardRecordKey('store', store.storeId);
-        var onboardingDefaults = storeOnboardingDefaults(store);
         p.appendChild(sectionTitle('基础信息'));
 
         var grid = el('div', 'supplier-detail-grid');
@@ -982,6 +1235,225 @@
 
         grid.appendChild(detailCell('创建时间', store.createTime));
         p.appendChild(grid);
+
+        appendStoreReceiveSection(p, store);
+        return p;
+    }
+
+    function appendStoreReceiveSection(panel, store) {
+        panel.appendChild(sectionTitle('收货信息'));
+        var list = listStoreReceiveAddresses(store);
+        var wrap = el('div', 'store-receive-list');
+        list.forEach(function (item, idx) {
+            wrap.appendChild(buildReceiveAddressCard(item, idx));
+        });
+        panel.appendChild(wrap);
+    }
+
+    function appendSupplierReceiveSection(panel, supplier) {
+        var supplierId = supplier.id || 'unknown';
+        var addBtn = mkBtn('新增地址', true);
+        panel.appendChild(sectionTitleWithAction('收货地址', addBtn));
+
+        var wrap = el('div', 'store-receive-list');
+        panel.appendChild(wrap);
+        var editingId = null;
+        var draftItem = null;
+
+        function persistAndRender(list) {
+            ensureOneDefaultReceive(list);
+            saveSupplierReceiveAddresses(supplierId, list);
+            editingId = null;
+            draftItem = null;
+            render();
+        }
+
+        function displayList() {
+            var list = loadSupplierReceiveAddresses(supplierId, supplier).slice();
+            if (draftItem) {
+                var exists = list.some(function (it) {
+                    return it.id === draftItem.id;
+                });
+                if (!exists) list.push(draftItem);
+            }
+            return list;
+        }
+
+        function readCardFields(card, baseItem) {
+            var f = card._fields || {};
+            return normalizeReceiveAddress(
+                {
+                    id: baseItem.id,
+                    receiverName:
+                        f.receiverName != null
+                            ? readReceiveFieldValue(f.receiverName)
+                            : baseItem.receiverName,
+                    receiverPhone:
+                        f.receiverPhone != null
+                            ? readReceiveFieldValue(f.receiverPhone)
+                            : baseItem.receiverPhone,
+                    region: f.region != null ? readReceiveFieldValue(f.region) : baseItem.region,
+                    detailAddress:
+                        f.detailAddress != null
+                            ? readReceiveFieldValue(f.detailAddress)
+                            : baseItem.detailAddress,
+                    isDefault: !!baseItem.isDefault
+                },
+                baseItem.id
+            );
+        }
+
+        function validateReceiveFields(data) {
+            if (!data.receiverName || !data.receiverPhone || !data.region || !data.detailAddress) {
+                if (typeof showToast === 'function') showToast('收货信息不完整，请填写全部必填项', 'error');
+                return false;
+            }
+            return true;
+        }
+
+        function render() {
+            empty(wrap);
+            var list = displayList();
+            if (!list.length) {
+                wrap.appendChild(emptyNote('暂无收货地址'));
+                return;
+            }
+            list.forEach(function (item, idx) {
+                var isDraft = !!(draftItem && draftItem.id === item.id);
+                var isEditing = editingId === item.id || isDraft;
+                var savedCount = loadSupplierReceiveAddresses(supplierId, supplier).length;
+                var actions = el('div', 'store-receive-card__actions');
+                var editOrSave = el(
+                    'button',
+                    'store-receive-card__link' + (isEditing ? ' store-receive-card__link--save' : ''),
+                    isEditing ? '保存' : '编辑'
+                );
+                editOrSave.type = 'button';
+                actions.appendChild(editOrSave);
+
+                if (isDraft) {
+                    var cancelLink = el('button', 'store-receive-card__link', '取消');
+                    cancelLink.type = 'button';
+                    cancelLink.addEventListener('click', function () {
+                        draftItem = null;
+                        editingId = null;
+                        render();
+                    });
+                    actions.appendChild(cancelLink);
+                } else {
+                    if (!item.isDefault && !isEditing) {
+                        var setDefault = el('button', 'store-receive-card__link', '设为默认');
+                        setDefault.type = 'button';
+                        setDefault.addEventListener('click', function () {
+                            var next = loadSupplierReceiveAddresses(supplierId, supplier).map(function (it) {
+                                it.isDefault = it.id === item.id;
+                                return it;
+                            });
+                            persistAndRender(next);
+                            if (typeof showToast === 'function') showToast('已设为默认地址', 'success');
+                        });
+                        actions.appendChild(setDefault);
+                    }
+                    if (!isEditing && !item.isDefault && savedCount > 1) {
+                        var delLink = el('button', 'store-receive-card__link store-receive-card__link--danger', '删除');
+                        delLink.type = 'button';
+                        delLink.addEventListener('click', function () {
+                            var current = loadSupplierReceiveAddresses(supplierId, supplier);
+                            var target = null;
+                            current.forEach(function (it) {
+                                if (it.id === item.id) target = it;
+                            });
+                            if (target && target.isDefault) {
+                                if (typeof showToast === 'function') showToast('默认地址不可删除', 'error');
+                                return;
+                            }
+                            if (current.length <= 1) {
+                                if (typeof showToast === 'function') showToast('至少保留一个收货地址', 'error');
+                                return;
+                            }
+                            if (!window.confirm('确认删除该收货地址吗？')) return;
+                            var next = current.filter(function (it) {
+                                return it.id !== item.id;
+                            });
+                            persistAndRender(next);
+                            if (typeof showToast === 'function') showToast('收货地址已删除', 'success');
+                        });
+                        actions.appendChild(delLink);
+                    }
+                }
+
+                var card = buildReceiveAddressCard(item, idx, actions, isEditing);
+
+                editOrSave.addEventListener('click', function () {
+                    if (!isEditing) {
+                        if (editingId || draftItem) {
+                            if (typeof showToast === 'function') showToast('请先保存当前正在编辑的地址', 'error');
+                            return;
+                        }
+                        editingId = item.id;
+                        render();
+                        return;
+                    }
+                    var data = readCardFields(card, item);
+                    if (!validateReceiveFields(data)) return;
+
+                    var next = loadSupplierReceiveAddresses(supplierId, supplier);
+                    if (isDraft) {
+                        if (data.isDefault || !next.length) {
+                            next.forEach(function (it) {
+                                it.isDefault = false;
+                            });
+                            data.isDefault = true;
+                        }
+                        next.push(data);
+                        persistAndRender(next);
+                        if (typeof showToast === 'function') showToast('收货地址已新增', 'success');
+                        return;
+                    }
+                    next = next.map(function (it) {
+                        return it.id === item.id ? data : it;
+                    });
+                    persistAndRender(next);
+                    if (typeof showToast === 'function') showToast('地址更新成功', 'success');
+                });
+
+                wrap.appendChild(card);
+                if (isEditing && card._fields && card._fields.receiverName) {
+                    setTimeout(function () {
+                        card._fields.receiverName.focus();
+                    }, 0);
+                }
+            });
+        }
+
+        addBtn.addEventListener('click', function () {
+            if (editingId || draftItem) {
+                if (typeof showToast === 'function') showToast('请先保存当前正在编辑的地址', 'error');
+                return;
+            }
+            var saved = loadSupplierReceiveAddresses(supplierId, supplier);
+            draftItem = normalizeReceiveAddress(
+                {
+                    id: 'draft_' + Date.now(),
+                    receiverName: '',
+                    receiverPhone: '',
+                    region: '',
+                    detailAddress: '',
+                    isDefault: saved.length === 0
+                },
+                'draft_' + Date.now()
+            );
+            editingId = draftItem.id;
+            render();
+        });
+
+        render();
+    }
+
+    function panelStoreOnboarding(store) {
+        var p = el('div', 'supplier-detail-tab');
+        var recordKey = onboardRecordKey('store', store.storeId);
+        var onboardingDefaults = storeOnboardingDefaults(store);
 
         p.appendChild(sectionTitle('进件信息'));
         var onboardingGrid = el('div', 'supplier-detail-grid');
@@ -1317,10 +1789,11 @@
             heroTags: store.detailTags,
             metaLines: ['门店ID：' + store.storeId + ' · 所属组织：' + store.orgId],
             wideClass: 'store-drawer--store-wide',
-            tabIds: ['base', 'cust', 'comm', 'prod', 'perf', 'orderCfg'],
-            tabLabels: ['基础信息', '绑定客户', '分佣明细', '商品统计', '业绩报表', '订单配置'],
+            tabIds: ['base', 'onboard', 'cust', 'comm', 'prod', 'perf', 'orderCfg'],
+            tabLabels: ['基础信息', '进件信息', '绑定客户', '分佣明细', '商品统计', '业绩报表', '订单配置'],
             bodies: {
                 base: panelStoreBase(store),
+                onboard: panelStoreOnboarding(store),
                 cust: panelStoreCustomers(),
                 comm: panelCommProdPerf('comm'),
                 prod: panelCommProdPerf('prod'),
@@ -1363,8 +1836,6 @@
     }
 
     function panelResourceBaseSupplier(r) {
-        var recordKey = onboardRecordKey('supplier', r.id);
-        var onboardingDefaults = resourceOnboardingDefaults(r.name, r.detailAddress, r.phone);
         var p = el('div', 'supplier-detail-tab');
         p.appendChild(sectionTitle('基础信息'));
         var grid = el('div', 'supplier-detail-grid');
@@ -1391,6 +1862,14 @@
         grid.appendChild(detailCell('余额支付', r.balancePay));
         grid.appendChild(detailCellTagged('供应商状态', r.status, true));
         p.appendChild(grid);
+        appendSupplierReceiveSection(p, r);
+        return p;
+    }
+
+    function panelSupplierOnboarding(r) {
+        var recordKey = onboardRecordKey('supplier', r.id);
+        var onboardingDefaults = resourceOnboardingDefaults(r.name, r.detailAddress, r.phone);
+        var p = el('div', 'supplier-detail-tab');
 
         p.appendChild(sectionTitle('进件信息'));
         var onboardingGrid = el('div', 'supplier-detail-grid');
@@ -1481,10 +1960,11 @@
             heroTags: tags,
             metaLines: ['供应商ID：' + r.id + ' · 所属组织：' + r.subjectName],
             wideClass: 'store-drawer--supplier-wide',
-            tabIds: ['base', 'comm', 'prod', 'perf'],
-            tabLabels: ['基础信息', '分佣明细', '商品统计', '业绩报表'],
+            tabIds: ['base', 'onboard', 'comm', 'prod', 'perf'],
+            tabLabels: ['基础信息', '进件信息', '分佣明细', '商品统计', '业绩报表'],
             bodies: {
                 base: panelResourceBaseSupplier(r),
+                onboard: panelSupplierOnboarding(r),
                 comm: panelResourceCommLike('comm'),
                 prod: panelResourceCommLike('prod'),
                 perf: panelResourceCommLike('perf')
@@ -1512,9 +1992,6 @@
     }
 
     function panelLiveBase(r) {
-        var recordKey = onboardRecordKey('liveRoom', r.id);
-        var onboardingDefaults = resourceOnboardingDefaults(r.name, r.name, r.phone);
-        var onboardingSummary = getOnboardingSummary(recordKey, onboardingDefaults);
         var p = el('div', 'supplier-detail-tab');
         p.appendChild(sectionTitle('基础信息'));
         var grid = el('div', 'supplier-detail-grid');
@@ -1531,13 +2008,6 @@
         grid.appendChild(detailCell('可提现手机号', r.withdrawPhone));
         grid.appendChild(detailCellTagged('状态', r.status, true));
         p.appendChild(grid);
-
-        p.appendChild(sectionTitle('进件信息'));
-        var onboardingGrid = el('div', 'supplier-detail-grid');
-        onboardingDetailCells(onboardingSummary.fields).forEach(function (cell) {
-            onboardingGrid.appendChild(cell);
-        });
-        p.appendChild(onboardingGrid);
         return p;
     }
 
@@ -1571,6 +2041,19 @@
         var recordKey = onboardRecordKey('liveRoom', r.id);
         var onboardingDefaults = resourceOnboardingDefaults(r.name, r.name, r.phone);
         var d = el('div', 'supplier-detail-tab');
+
+        d.appendChild(sectionTitle('进件信息'));
+        var onboardingGrid = el('div', 'supplier-detail-grid');
+        function renderOnboardingInfo() {
+            onboardingGrid.innerHTML = '';
+            var onboardingSummary = getOnboardingSummary(recordKey, onboardingDefaults);
+            onboardingDetailCells(onboardingSummary.fields).forEach(function (cell) {
+                onboardingGrid.appendChild(cell);
+            });
+        }
+        renderOnboardingInfo();
+        d.appendChild(onboardingGrid);
+
         d.appendChild(sectionTitle('直播间进件'));
         var wrap = el('div', 'store-onboard-section store-onboard-section--white');
         var bar = el('div', 'erp-actions-row supplier-detail-onboard-actions');
@@ -1608,7 +2091,10 @@
                                     });
                                 }
                             },
-                            renderOnboardingTable
+                            function () {
+                                renderOnboardingInfo();
+                                renderOnboardingTable();
+                            }
                         )
                     ]
                 )
@@ -1644,13 +2130,13 @@
                 '主播：' + r.anchorName + '（' + r.anchorId + '）'
             ],
             wideClass: 'store-drawer--supplier-wide',
-            tabIds: ['base', 'comm', 'prod', 'perf'],
-            tabLabels: ['基础信息', '直播场次（业务）', '场次商品（业务）', '进件与数据'],
+            tabIds: ['base', 'onboard', 'sessions', 'products'],
+            tabLabels: ['基础信息', '进件信息', '直播场次（业务）', '场次商品（业务）'],
             bodies: {
                 base: panelLiveBase(r),
-                comm: panelLiveSessions(),
-                prod: panelLiveSessionProducts(),
-                perf: panelLiveOnboard(r)
+                onboard: panelLiveOnboard(r),
+                sessions: panelLiveSessions(),
+                products: panelLiveSessionProducts()
             }
         });
     }
@@ -1678,8 +2164,6 @@
     }
 
     function panelCarrierBase(r) {
-        var recordKey = onboardRecordKey('carrier', r.id);
-        var onboardingDefaults = resourceOnboardingDefaults(r.name, r.detailAddress, r.phone);
         var p = el('div', 'supplier-detail-tab');
         p.appendChild(sectionTitle('基础信息'));
         var grid = el('div', 'supplier-detail-grid');
@@ -1704,6 +2188,13 @@
         grid.appendChild(detailCell('进件状态', r.onboard));
         grid.appendChild(detailCellTagged('承运商状态', r.status, true));
         p.appendChild(grid);
+        return p;
+    }
+
+    function panelCarrierOnboarding(r) {
+        var recordKey = onboardRecordKey('carrier', r.id);
+        var onboardingDefaults = resourceOnboardingDefaults(r.name, r.detailAddress, r.phone);
+        var p = el('div', 'supplier-detail-tab');
 
         p.appendChild(sectionTitle('进件信息'));
         var onboardingGrid = el('div', 'supplier-detail-grid');
@@ -1787,10 +2278,11 @@
             heroTags: tags,
             metaLines: ['承运商ID：' + r.id + ' · 所属组织：' + r.subjectName],
             wideClass: 'store-drawer--supplier-wide',
-            tabIds: ['base', 'comm', 'prod', 'perf'],
-            tabLabels: ['基础信息', '运单明细', '运力统计', '履约报表'],
+            tabIds: ['base', 'onboard', 'comm', 'prod', 'perf'],
+            tabLabels: ['基础信息', '进件信息', '运单明细', '运力统计', '履约报表'],
             bodies: {
                 base: panelCarrierBase(r),
+                onboard: panelCarrierOnboarding(r),
                 comm: panelResourceCommLike('comm'),
                 prod: panelResourceCommLike('prod'),
                 perf: panelResourceCommLike('perf')
@@ -1897,6 +2389,8 @@
         openLiveRoom: openLiveRoom,
         openCarrier: openCarrier,
         openWarehouse: openWarehouse,
-        openOnboardingDetail: openOnboardingDetailModal
+        openOnboardingDetail: openOnboardingDetailModal,
+        getStoreReceiveInfo: getStoreReceiveInfo,
+        getSupplierReceiveInfo: getSupplierReceiveInfo
     };
 })();
