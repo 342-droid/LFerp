@@ -3,7 +3,7 @@
  */
 (function () {
   var PAGE_SIZE_OPTIONS = [20, 50, 100];
-  var APP_PORTS = ['全部', '代采端', 'c端'];
+  var APP_PORTS = ['代采端', 'c端'];
   var BILLING_METHOD = '货款阶梯价格';
   var REGION_NATIONWIDE = '全国';
   var REGION_TREE_4 = {
@@ -107,7 +107,7 @@
     {
       code: '202509290002',
       name: '南京仓-全量撮合',
-      appPort: '全部',
+      appPort: '代采端',
       validStart: '2025-09-01',
       validEnd: '2025-12-31',
       billingMethod: BILLING_METHOD,
@@ -134,7 +134,7 @@
     {
       code: '202509230004',
       name: '山东仓-自提费',
-      appPort: '全部',
+      appPort: '代采端',
       validStart: '2025-09-01',
       validEnd: '2026-03-01',
       billingMethod: BILLING_METHOD,
@@ -163,6 +163,7 @@
   var state = {
     keywordCode: '',
     keywordName: '',
+    filterAppPort: '',
     page: 1,
     pageSize: 20,
     selected: {},
@@ -214,9 +215,11 @@
   function filteredRows() {
     var code = String(state.keywordCode || '').trim().toLowerCase();
     var name = String(state.keywordName || '').trim().toLowerCase();
+    var port = String(state.filterAppPort || '').trim();
     return MOCK_ROWS.filter(function (row) {
       if (code && String(row.code).toLowerCase().indexOf(code) < 0) return false;
       if (name && String(row.name).toLowerCase().indexOf(name) < 0) return false;
+      if (port && String(row.appPort || '') !== port) return false;
       return true;
     });
   }
@@ -823,11 +826,15 @@
     portSel.className = 'sf-select';
     portSel.id = 'sfFormPort';
     portSel.disabled = isView;
+    var portPlaceholder = document.createElement('option');
+    portPlaceholder.value = '';
+    portPlaceholder.textContent = '请选择';
+    portSel.appendChild(portPlaceholder);
     APP_PORTS.forEach(function (p) {
       var opt = document.createElement('option');
       opt.value = p;
       opt.textContent = p;
-      if ((isCreate ? '全部' : row.appPort) === p) opt.selected = true;
+      if (!isCreate && row.appPort === p) opt.selected = true;
       portSel.appendChild(opt);
     });
 
@@ -1073,6 +1080,7 @@
       queryBtn.addEventListener('click', function () {
         state.keywordCode = ($('sfCode') && $('sfCode').value) || '';
         state.keywordName = ($('sfName') && $('sfName').value) || '';
+        state.filterAppPort = ($('sfAppPort') && $('sfAppPort').value) || '';
         state.page = 1;
         renderTable();
       });
@@ -1082,8 +1090,10 @@
       resetBtn.addEventListener('click', function () {
         if ($('sfCode')) $('sfCode').value = '';
         if ($('sfName')) $('sfName').value = '';
+        if ($('sfAppPort')) $('sfAppPort').value = '';
         state.keywordCode = '';
         state.keywordName = '';
+        state.filterAppPort = '';
         state.page = 1;
         renderTable();
       });
