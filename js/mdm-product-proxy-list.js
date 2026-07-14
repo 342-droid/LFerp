@@ -214,7 +214,7 @@
     filtered: [],
     page: 1,
     pageSize: 20,
-    filters: { code: '', name: '', mallCategory: '', tag: '', status: '' }
+    filters: { code: '', name: '', mallCategory: '', tag: '', status: '', deliveryMode: '' }
   };
 
   function formatMoney(num) {
@@ -225,17 +225,28 @@
     return '¥' + s;
   }
 
-  function normalizeFulfillmentMode(mode) {
-    return mode === 'warehouse' ? 'warehouse' : 'store';
+  function normalizeDeliveryMode(mode) {
+    if (mode === 'platform' || mode === '平台配送' || mode === 'warehouse') return 'platform';
+    if (mode === 'express' || mode === '快递到店' || mode === 'store') return 'express';
+    return 'platform';
+  }
+
+  function deliveryModeLabel(mode) {
+    return normalizeDeliveryMode(mode) === 'express' ? '快递到店' : '平台配送';
   }
 
   function normalizeProduct(item, idx) {
     if (!item) return item;
-    if (item.fulfillmentMode !== 'store' && item.fulfillmentMode !== 'warehouse') {
-      item.fulfillmentMode = idx % 2 === 1 ? 'warehouse' : 'store';
+    var raw = item.deliveryMode || item.fulfillmentMode;
+    if (raw !== 'platform' && raw !== 'express' && raw !== 'store' && raw !== 'warehouse' &&
+        raw !== '平台配送' && raw !== '快递到店') {
+      item.deliveryMode = idx % 2 === 1 ? 'platform' : 'express';
     } else {
-      item.fulfillmentMode = normalizeFulfillmentMode(item.fulfillmentMode);
+      item.deliveryMode = normalizeDeliveryMode(raw);
     }
+    item.fulfillmentMode = item.deliveryMode;
+    if (item.etaCountdown == null) item.etaCountdown = '';
+    if (!item.etaCountdownUnit) item.etaCountdownUnit = '天';
     return item;
   }
 
@@ -377,7 +388,10 @@
       linePrice: null,
       sales: 0,
       status: 'draft',
-      fulfillmentMode: 'store',
+      fulfillmentMode: 'platform',
+      deliveryMode: 'platform',
+      etaCountdown: '',
+      etaCountdownUnit: '天',
       fromLibrary: true,
       detailEdited: false
     };
@@ -492,6 +506,10 @@
           original.spec = payload.spec || original.spec;
           original.priceMoney = payload.priceMoney;
           original.linePrice = payload.linePrice;
+          original.etaCountdown = payload.etaCountdown || '';
+          original.etaCountdownUnit = payload.etaCountdownUnit || '天';
+          original.deliveryMode = normalizeDeliveryMode(payload.deliveryMode || payload.fulfillmentMode);
+          original.fulfillmentMode = original.deliveryMode;
           original.detail = payload.detail;
           original.detailEdited = true;
           persistProducts();
@@ -517,7 +535,10 @@
           linePrice: payload.linePrice,
           sales: 0,
           status: 'draft',
-          fulfillmentMode: 'store',
+          etaCountdown: payload.etaCountdown || '',
+          etaCountdownUnit: payload.etaCountdownUnit || '天',
+          deliveryMode: normalizeDeliveryMode(payload.deliveryMode || payload.fulfillmentMode),
+          fulfillmentMode: normalizeDeliveryMode(payload.deliveryMode || payload.fulfillmentMode),
           detail: payload.detail,
           detailEdited: true
         };
@@ -556,7 +577,10 @@
         linePrice: i % 6 === 0 ? 15 : i % 8 === 0 ? 5 : null,
         sales: 0,
         status: i % 13 === 0 ? 'draft' : i % 17 === 0 ? 'off_shelf' : 'on_shelf',
-        fulfillmentMode: i % 2 === 0 ? 'store' : 'warehouse'
+        fulfillmentMode: i % 2 === 0 ? 'express' : 'platform',
+        deliveryMode: i % 2 === 0 ? 'express' : 'platform',
+        etaCountdown: String((i % 5) + 1),
+        etaCountdownUnit: '天'
       }, list.length));
       i += 1;
     }
@@ -573,6 +597,9 @@
     }
     if (f.tag && item.tag !== f.tag) return false;
     if (f.status && item.status !== f.status) return false;
+    if (f.deliveryMode && normalizeDeliveryMode(item.deliveryMode || item.fulfillmentMode) !== f.deliveryMode) {
+      return false;
+    }
     return true;
   }
 
@@ -619,13 +646,11 @@
     return '<span class="product-tag product-tag--on-shelf">已上架</span>';
   }
 
-  function renderFulfillment(item) {
-    var mode = normalizeFulfillmentMode(item.fulfillmentMode);
+  function renderDeliveryMode(item) {
     return (
-      '<select class="product-proxy-fulfillment" data-fulfillment-select data-code="' + escapeHtml(item.code) + '" aria-label="履约方式">' +
-      '<option value="store"' + (mode === 'store' ? ' selected' : '') + '>到店</option>' +
-      '<option value="warehouse"' + (mode === 'warehouse' ? ' selected' : '') + '>仓配</option>' +
-      '</select>'
+      '<span class="product-proxy-delivery">' +
+      escapeHtml(deliveryModeLabel(item.deliveryMode || item.fulfillmentMode)) +
+      '</span>'
     );
   }
 
@@ -699,7 +724,7 @@
             '<td class="product-proxy-table__td product-proxy-table__td--sale">' + renderSalePrice(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--line">' + renderLinePrice(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--sales">' + item.sales + '</td>' +
-            '<td class="product-proxy-table__td product-proxy-table__td--fulfillment">' + renderFulfillment(item) + '</td>' +
+            '<td class="product-proxy-table__td product-proxy-table__td--fulfillment">' + renderDeliveryMode(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--status">' + renderStatus(item.status) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--action">' + renderActions(item) + '</td>' +
             '</tr>'
@@ -757,6 +782,7 @@
     state.filters.mallCategory = (document.getElementById('qProxyMallCategory') || {}).value;
     state.filters.tag = (document.getElementById('qProxyTag') || {}).value;
     state.filters.status = (document.getElementById('qProxyStatus') || {}).value;
+    state.filters.deliveryMode = (document.getElementById('qProxyDelivery') || {}).value;
   }
 
   function refresh(resetPage) {
@@ -831,24 +857,6 @@
       document.getElementById('proxyAddFromLibrary').addEventListener('click', function () {
         openLibraryDrawer();
       });
-
-    var tableBody = document.getElementById('proxyListTableBody');
-    if (tableBody) {
-      tableBody.addEventListener('change', function (e) {
-        var select = e.target.closest('[data-fulfillment-select]');
-        if (!select) return;
-        var code = select.getAttribute('data-code');
-        var product = getProduct(code);
-        if (!product) return;
-        var next = normalizeFulfillmentMode(select.value);
-        product.fulfillmentMode = next;
-        select.value = next;
-        persistProducts();
-        if (typeof showToast === 'function') {
-          showToast('履约方式已切换为' + (next === 'warehouse' ? '仓配' : '到店'), 'success');
-        }
-      });
-    }
 
     document.addEventListener('click', function (e) {
       var toggle = e.target.closest('[data-more-toggle]');

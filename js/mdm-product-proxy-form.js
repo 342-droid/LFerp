@@ -6,6 +6,18 @@
   var formState = null;
 
   var SKU_STATUS_OPTIONS = ['现货', '预售', '缺货'];
+  var SALE_UNIT_OPTIONS = ['件', '箱', '瓶', '袋', 'kg', 'L', '罐', '包', '套', '卷', '个', '斤', '盒'];
+  var ETA_COUNTDOWN_UNITS = ['天', '小时'];
+  var DELIVERY_MODE_OPTIONS = [
+    { value: 'platform', label: '平台配送' },
+    { value: 'express', label: '快递到店' }
+  ];
+
+  function normalizeDeliveryMode(mode) {
+    if (mode === 'platform' || mode === '平台配送' || mode === 'warehouse') return 'platform';
+    if (mode === 'express' || mode === '快递到店' || mode === 'store') return 'express';
+    return 'platform';
+  }
 
   function escapeHtml(str) {
     return String(str || '')
@@ -50,9 +62,8 @@
       specValue: specs[index] || '1',
       baseUnit: '个',
       purchasePrice: index === 0 ? '12.50' : '8.00',
-      stockStatus: '1000',
+      stockStatus: '1',
       saleUnit: '个',
-      ratio: '1',
       skuStatus: '现货',
       salePrice: index === 0 ? String(product.priceMoney || '0.01') : '0.01',
       linePrice: product.linePrice != null ? String(product.linePrice) : '',
@@ -105,6 +116,13 @@
       summary: detail.summary || '',
       displaySales: detail.displaySales != null ? String(detail.displaySales) : (detail.summary || ''),
       textDesc: detail.textDesc || '',
+      etaCountdown: detail.etaCountdown != null
+        ? String(detail.etaCountdown)
+        : (product.etaCountdown != null ? String(product.etaCountdown) : ''),
+      etaCountdownUnit: detail.etaCountdownUnit || product.etaCountdownUnit || '天',
+      deliveryMode: normalizeDeliveryMode(
+        detail.deliveryMode || product.deliveryMode || product.fulfillmentMode
+      ),
       saleScope: detail.saleScope || 'all',
       saleRegions: detail.saleRegions ? cloneRegionSelected(detail.saleRegions) : {},
       saleRegionSummary: Array.isArray(detail.saleRegionSummary) ? detail.saleRegionSummary.slice() : [],
@@ -198,6 +216,10 @@
     var statusOptions = SKU_STATUS_OPTIONS.map(function (opt) {
       return '<option value="' + opt + '"' + (sku.skuStatus === opt ? ' selected' : '') + '>' + opt + '</option>';
     }).join('');
+    var saleUnit = SALE_UNIT_OPTIONS.indexOf(sku.saleUnit) >= 0 ? sku.saleUnit : SALE_UNIT_OPTIONS[0];
+    var saleUnitOptions = SALE_UNIT_OPTIONS.map(function (opt) {
+      return '<option value="' + escapeHtml(opt) + '"' + (saleUnit === opt ? ' selected' : '') + '>' + escapeHtml(opt) + '</option>';
+    }).join('');
 
     return (
       '<article class="product-proxy-spec" data-sku-id="' + escapeHtml(sku.id) + '">' +
@@ -211,13 +233,15 @@
       '      <img src="' + escapeHtml(sku.img) + '" alt="">' +
       '    </div>' +
       '    <div class="product-proxy-spec__grid">' +
-      renderSpecField('内部业务码', 'internalCode', sku.internalCode) +
+      renderSpecField('商品条形码', 'internalCode', sku.internalCode) +
       renderSpecField('规格值', 'specValue', sku.specValue) +
       renderSpecField('基础单位', 'baseUnit', sku.baseUnit) +
       renderMoneyField('采购价', 'purchasePrice', sku.purchasePrice) +
-      renderSpecField('备货状态', 'stockStatus', sku.stockStatus) +
-      renderSpecField('售卖单位', 'saleUnit', sku.saleUnit) +
-      renderSpecField('比率数值', 'ratio', sku.ratio) +
+      renderSpecField('售卖系数', 'stockStatus', sku.stockStatus) +
+      '      <div class="product-proxy-spec__field">' +
+      '        <label class="product-proxy-spec__label">售卖单位</label>' +
+      '        <select class="product-proxy-spec__input" data-field="saleUnit">' + saleUnitOptions + '</select>' +
+      '      </div>' +
       '      <div class="product-proxy-spec__field">' +
       '        <label class="product-proxy-spec__label">SKU状态</label>' +
       '        <select class="product-proxy-spec__input" data-field="skuStatus">' + statusOptions + '</select>' +
@@ -320,6 +344,32 @@
       '        <div class="product-proxy-form__field product-proxy-form__field--category">' +
       '          <label class="product-proxy-form__label">商品类目</label>' +
       '          <div class="product-proxy-form__control" id="proxyFormCategoryPicker"></div>' +
+      '        </div>' +
+      '        <div class="product-proxy-form__field">' +
+      '          <label class="product-proxy-form__label" for="proxyFormEta">预计到店时间</label>' +
+      '          <div class="product-proxy-form__control product-proxy-form__eta">' +
+      '            <input class="product-proxy-form__input product-proxy-form__eta-input" id="proxyFormEta" type="text" inputmode="numeric" value="' + escapeHtml(state.etaCountdown) + '" placeholder="请输入预计到店时间">' +
+      '            <select class="product-proxy-form__input product-proxy-form__eta-unit" id="proxyFormEtaUnit" aria-label="倒计时单位">' +
+      ETA_COUNTDOWN_UNITS.map(function (u) {
+        return '<option value="' + escapeHtml(u) + '"' + (state.etaCountdownUnit === u ? ' selected' : '') + '>' + escapeHtml(u) + '</option>';
+      }).join('') +
+      '            </select>' +
+      '          </div>' +
+      '        </div>' +
+      '        <div class="product-proxy-form__field">' +
+      '          <label class="product-proxy-form__label">配送方式</label>' +
+      '          <div class="product-proxy-form__control">' +
+      '            <div class="product-add-radio-row">' +
+      DELIVERY_MODE_OPTIONS.map(function (opt) {
+        return (
+          '<label class="product-add-radio' + (state.deliveryMode === opt.value ? ' is-checked' : '') + '">' +
+          '<input type="radio" name="proxyDeliveryMode" value="' + opt.value + '"' +
+          (state.deliveryMode === opt.value ? ' checked' : '') + '> ' + opt.label +
+          '</label>'
+        );
+      }).join('') +
+      '            </div>' +
+      '          </div>' +
       '        </div>' +
       '        <div class="product-proxy-form__field">' +
       '          <label class="product-proxy-form__label" for="proxyFormTag">商品标签</label>' +
@@ -595,11 +645,19 @@
       poolMap[formState.selectedSkuIds[0]];
 
     var scopeEl = backdrop.querySelector('input[name="proxySaleScope"]:checked');
+    var deliveryEl = backdrop.querySelector('input[name="proxyDeliveryMode"]:checked');
     var detailEditor = backdrop.querySelector('#proxyFormDetailEditor');
+    var deliveryMode = normalizeDeliveryMode(deliveryEl ? deliveryEl.value : formState.deliveryMode);
+    var etaCountdown = ((backdrop.querySelector('#proxyFormEta') || {}).value || '').trim();
+    var etaCountdownUnit = ((backdrop.querySelector('#proxyFormEtaUnit') || {}).value || '天').trim() || '天';
 
     return {
       name: (backdrop.querySelector('#proxyFormName') || {}).value.trim(),
       tag: (backdrop.querySelector('#proxyFormTag') || {}).value,
+      etaCountdown: etaCountdown,
+      etaCountdownUnit: etaCountdownUnit,
+      deliveryMode: deliveryMode,
+      fulfillmentMode: deliveryMode,
       category_l3_ids: pickerInstance ? pickerInstance.getValues() : getProductCategoryIds(product),
       category_paths: pickerInstance ? pickerInstance.getPaths() : getProductCategoryPaths(product),
       category_l3_id: pickerInstance ? pickerInstance.getValue() : (product.category_l3_id || ''),
@@ -614,6 +672,9 @@
         summary: (backdrop.querySelector('#proxyFormDisplaySales') || {}).value.trim(),
         displaySales: (backdrop.querySelector('#proxyFormDisplaySales') || {}).value.trim(),
         textDesc: (backdrop.querySelector('#proxyFormTextDesc') || {}).value.trim(),
+        etaCountdown: etaCountdown,
+        etaCountdownUnit: etaCountdownUnit,
+        deliveryMode: deliveryMode,
         saleScope: scopeEl ? scopeEl.value : 'all',
         saleRegions: cloneRegionSelected(formState.saleRegions),
         saleRegionSummary: (formState.saleRegionSummary || []).slice(),

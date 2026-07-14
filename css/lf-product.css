@@ -1650,7 +1650,7 @@ body.product-add-drawer-open {
 /* 代采商品列表 */
 .proxy-filter-row2 {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px 24px;
   margin-top: 12px;
   align-items: end;
@@ -1745,31 +1745,35 @@ body.product-add-drawer-open {
   text-align: center;
 }
 
-.product-proxy-fulfillment {
+.product-proxy-delivery {
   display: inline-block;
-  width: 88px;
-  height: 28px;
-  padding: 0 4px;
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  color: var(--color-text, #333333);
   font-size: 13px;
-  font-family: inherit;
+  color: var(--color-text, #333333);
   line-height: 28px;
-  cursor: pointer;
-  box-sizing: border-box;
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23909399' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 2px center;
-  padding-right: 16px;
 }
 
-.product-proxy-fulfillment:focus {
-  outline: none;
-  box-shadow: none;
+.product-proxy-form__eta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.product-proxy-form__eta-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.product-proxy-form__eta-unit {
+  flex: 0 0 80px;
+  width: 80px;
+  padding-right: 28px;
+  cursor: pointer;
+}
+
+.product-proxy-form__body .product-add-radio.is-checked,
+.product-proxy-form__body .product-add-radio:has(input:checked) {
+  color: var(--color-primary, #ff7019);
 }
 
 .product-proxy-table__th--action,
@@ -2747,6 +2751,16 @@ body.product-add-drawer-open {
 
 .product-proxy-form__tag-select .product-proxy-form__input {
   appearance: auto;
+}
+
+.product-proxy-form__eta .product-proxy-form__eta-unit {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23909399' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 10px 6px;
 }
 
 .product-proxy-form__sku-bar {
