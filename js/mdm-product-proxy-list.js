@@ -225,6 +225,20 @@
     return '¥' + s;
   }
 
+  function normalizeFulfillmentMode(mode) {
+    return mode === 'warehouse' ? 'warehouse' : 'store';
+  }
+
+  function normalizeProduct(item, idx) {
+    if (!item) return item;
+    if (item.fulfillmentMode !== 'store' && item.fulfillmentMode !== 'warehouse') {
+      item.fulfillmentMode = idx % 2 === 1 ? 'warehouse' : 'store';
+    } else {
+      item.fulfillmentMode = normalizeFulfillmentMode(item.fulfillmentMode);
+    }
+    return item;
+  }
+
   function escapeHtml(str) {
     return String(str || '')
       .replace(/&/g, '&amp;')
@@ -293,7 +307,8 @@
       if (raw) {
         var parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length) {
-          ALL_PRODUCTS = parsed;
+          ALL_PRODUCTS = parsed.map(normalizeProduct);
+          persistProducts();
           return;
         }
       }
@@ -362,6 +377,7 @@
       linePrice: null,
       sales: 0,
       status: 'draft',
+      fulfillmentMode: 'store',
       fromLibrary: true,
       detailEdited: false
     };
@@ -501,6 +517,7 @@
           linePrice: payload.linePrice,
           sales: 0,
           status: 'draft',
+          fulfillmentMode: 'store',
           detail: payload.detail,
           detailEdited: true
         };
@@ -517,12 +534,15 @@
   }
 
   function buildCatalog() {
-    var list = SEED.slice();
+    var list = SEED.map(function (item, idx) {
+      var copy = Object.assign({}, item);
+      return normalizeProduct(copy, idx);
+    });
     var i = 0;
     while (list.length < 87) {
       var seed = SEED[i % SEED.length];
       var num = 100 - Math.floor(list.length / SEED.length);
-      list.push({
+      list.push(normalizeProduct({
         code: 'SPU00' + String(num).padStart(3, '0'),
         name: NAMES[i % NAMES.length] + (list.length > 20 ? ' ' + (list.length - 9) : ''),
         img: IMGS[i % IMGS.length],
@@ -535,8 +555,9 @@
         pricePoints: i % 11 === 0 ? 10 : 100,
         linePrice: i % 6 === 0 ? 15 : i % 8 === 0 ? 5 : null,
         sales: 0,
-        status: i % 13 === 0 ? 'draft' : i % 17 === 0 ? 'off_shelf' : 'on_shelf'
-      });
+        status: i % 13 === 0 ? 'draft' : i % 17 === 0 ? 'off_shelf' : 'on_shelf',
+        fulfillmentMode: i % 2 === 0 ? 'store' : 'warehouse'
+      }, list.length));
       i += 1;
     }
     ALL_PRODUCTS = list;
@@ -596,6 +617,16 @@
       return '<span class="product-tag product-tag--stopped">已下架</span>';
     }
     return '<span class="product-tag product-tag--on-shelf">已上架</span>';
+  }
+
+  function renderFulfillment(item) {
+    var mode = normalizeFulfillmentMode(item.fulfillmentMode);
+    return (
+      '<select class="product-proxy-fulfillment" data-fulfillment-select data-code="' + escapeHtml(item.code) + '" aria-label="履约方式">' +
+      '<option value="store"' + (mode === 'store' ? ' selected' : '') + '>到店</option>' +
+      '<option value="warehouse"' + (mode === 'warehouse' ? ' selected' : '') + '>仓配</option>' +
+      '</select>'
+    );
   }
 
   function renderMoreMenu(code, status) {
@@ -668,6 +699,7 @@
             '<td class="product-proxy-table__td product-proxy-table__td--sale">' + renderSalePrice(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--line">' + renderLinePrice(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--sales">' + item.sales + '</td>' +
+            '<td class="product-proxy-table__td product-proxy-table__td--fulfillment">' + renderFulfillment(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--status">' + renderStatus(item.status) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--action">' + renderActions(item) + '</td>' +
             '</tr>'
@@ -799,6 +831,24 @@
       document.getElementById('proxyAddFromLibrary').addEventListener('click', function () {
         openLibraryDrawer();
       });
+
+    var tableBody = document.getElementById('proxyListTableBody');
+    if (tableBody) {
+      tableBody.addEventListener('change', function (e) {
+        var select = e.target.closest('[data-fulfillment-select]');
+        if (!select) return;
+        var code = select.getAttribute('data-code');
+        var product = getProduct(code);
+        if (!product) return;
+        var next = normalizeFulfillmentMode(select.value);
+        product.fulfillmentMode = next;
+        select.value = next;
+        persistProducts();
+        if (typeof showToast === 'function') {
+          showToast('履约方式已切换为' + (next === 'warehouse' ? '仓配' : '到店'), 'success');
+        }
+      });
+    }
 
     document.addEventListener('click', function (e) {
       var toggle = e.target.closest('[data-more-toggle]');
