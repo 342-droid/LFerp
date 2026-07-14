@@ -19,6 +19,38 @@
             text-decoration: underline;
         }
 
+        .source-order-no-cell {
+            display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: bottom;
+            cursor: help;
+            border-bottom: 1px dashed #bbb;
+        }
+
+        .source-order-no-cell.is-single {
+            cursor: default;
+            border-bottom: none;
+        }
+
+        .source-order-no-tip {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            max-width: 360px;
+            padding: 8px 10px;
+            background: rgba(51, 51, 51, 0.95);
+            color: #fff;
+            font-size: 12px;
+            line-height: 1.6;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+            pointer-events: none;
+            white-space: pre-line;
+            word-break: break-all;
+        }
+
         .detail-modal .modal-content {
             width: 95%;
             max-width: 1200px;
@@ -218,6 +250,152 @@
             white-space: nowrap;
         }
 
+        .logistics-line-input {
+            width: 100%;
+            min-width: 220px;
+            height: 30px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 0 8px;
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+
+        .logistics-lines-hint {
+            margin: 0 0 10px;
+            font-size: 12px;
+            color: #888;
+        }
+
+        #logisticsConfirmModal .detail-table-wrap .table {
+            min-width: 860px;
+        }
+
+        .logistics-track-modal .modal-content {
+            width: 92%;
+            max-width: 960px;
+            max-height: 88vh;
+            overflow: auto;
+        }
+
+        .logistics-track-group {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .logistics-track-group:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .logistics-track-group-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .logistics-track-product-wrap {
+            margin-bottom: 12px;
+        }
+
+        .logistics-track-product-head {
+            margin-bottom: 12px;
+        }
+
+        .logistics-track-logistics-block {
+            margin: 0 0 14px 12px;
+            padding-left: 12px;
+            border-left: 2px solid #f0f0f0;
+        }
+
+        .logistics-track-logistics-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .logistics-track-logistics-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .logistics-track-section-hint {
+            margin: 0 0 12px;
+            font-size: 12px;
+            color: #888;
+        }
+
+        .logistics-track-product-table th,
+        .logistics-track-product-table td {
+            padding: 6px 8px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .logistics-track-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(220px, 1fr));
+            gap: 8px 16px;
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .logistics-track-timeline {
+            border-left: 2px solid #e0e0e0;
+            margin-left: 8px;
+            padding-left: 20px;
+        }
+
+        .logistics-track-timeline-item {
+            position: relative;
+            padding-bottom: 18px;
+        }
+
+        .logistics-track-timeline-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .logistics-track-timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -27px;
+            top: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #bbb;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1px #bbb;
+        }
+
+        .logistics-track-timeline-item.is-latest::before {
+            background: #2196F3;
+            box-shadow: 0 0 0 1px #2196F3;
+        }
+
+        .logistics-track-timeline-time {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .logistics-track-timeline-desc {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .logistics-track-empty {
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+            padding: 16px 0;
+        }
+
     </style>
 </head>
 <body>
@@ -259,6 +437,47 @@
                         <div class="input-wrapper">
                             <input type="text" id="searchPoNo" placeholder="如 PO2026042012000001">
                             <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>来源单号:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchSourceOrderNo" placeholder="如 MDH2026042012000037">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>关联单号:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchRelatedOrderNo" placeholder="如 IBD2026042012000001">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>订单渠道:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchOrderSource" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchOrderSourceDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="商城/直播间">商城/直播间</div>
+                                <div class="select-option" data-value="代采订单">代采订单</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>履约方式:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchFulfillmentMethod" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchFulfillmentMethodDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="快递到店">快递到店</div>
+                                <div class="select-option" data-value="快递到家">快递到家</div>
+                                <div class="select-option" data-value="平台配送">平台配送</div>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -316,8 +535,7 @@
                             <span class="clear-btn">×</span>
                             <div class="select-dropdown" id="searchDocSourceDropdown">
                                 <div class="select-option" data-value="">全部</div>
-                                <div class="select-option" data-value="采购需求汇总-按供应商">采购需求汇总-按供应商</div>
-                                <div class="select-option" data-value="采购需求汇总-按门店">采购需求汇总-按门店</div>
+                                <div class="select-option" data-value="采购需求汇总">采购需求汇总</div>
                                 <div class="select-option" data-value="手动新增">手动新增</div>
                             </div>
                         </div>
@@ -351,8 +569,12 @@
                             <tr>
                                 <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
                                 <th>采购单号</th>
+                                <th>来源单号</th>
+                                <th>关联单号</th>
                                 <th>供应商</th>
                                 <th>收货地名称</th>
+                                <th>订单渠道</th>
+                                <th>履约方式</th>
                                 <th>单据状态</th>
                                 <th>单据来源</th>
                                 <th>备注</th>
@@ -508,7 +730,7 @@
             </div>
             <div class="modal-body">
                 <div class="detail-section">
-                    <div class="detail-section-title">物流信息</div>
+                    <div class="detail-section-title">时间节点</div>
                     <div class="logistics-form-grid">
                         <div class="add-po-form-item">
                             <span class="label">实际采购时间:</span>
@@ -522,16 +744,54 @@
                             <span class="label">预计到货时间:</span>
                             <input type="date" id="logisticsExpectedArrivalTime">
                         </div>
-                        <div class="add-po-form-item">
-                            <span class="label">物流单号:</span>
-                            <input type="text" id="logisticsNo" placeholder="请输入物流单号">
-                        </div>
+                    </div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-section-title">物流单号（按采购单+商品）</div>
+                    <p class="logistics-lines-hint">同一商品可填写多个物流单号，请用逗号分隔。</p>
+                    <div class="detail-table-wrap table-scroll-container">
+                        <table class="table no-last-column-freeze">
+                            <thead>
+                                <tr>
+                                    <th>采购单号</th>
+                                    <th>商品编码</th>
+                                    <th>商品名称</th>
+                                    <th>商品规格</th>
+                                    <th>采购量</th>
+                                    <th>物流单号</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logisticsConfirmLinesTbody"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" id="logisticsConfirmSaveBtn">保存</button>
                 <button type="button" class="btn btn-secondary" id="logisticsConfirmCancelBtn">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="logisticsTrackModal" class="modal detail-modal logistics-track-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">物流轨迹</div>
+                <span class="close" id="logisticsTrackCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="detail-section">
+                    <div class="detail-section-title">物流信息</div>
+                    <div class="logistics-track-info-grid" id="logisticsTrackInfo"></div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-section-title">物流轨迹</div>
+                    <p class="logistics-track-section-hint">按商品维度展示物流轨迹；同一商品可关联多个物流单号，将分别展示对应轨迹。</p>
+                    <div id="logisticsTrackTimeline"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="logisticsTrackCloseFooterBtn">关闭</button>
             </div>
         </div>
     </div>
@@ -552,6 +812,7 @@
     var currentAddPoNo = '';
     var addPoMode = 'add';
     var editingPoNo = '';
+    var logisticsConfirmEntries = [];
     const resolvePurchaseOrderReceiveInfo = window.resolvePurchaseOrderReceiveInfo;
     var productMaster = buildProductMaster(allRows);
     var SPEC_MAP_BY_SKU = {
@@ -576,12 +837,20 @@
         if (typeof resolvePurchaseOrderReceiveInfo === 'function') {
             return resolvePurchaseOrderReceiveInfo(row);
         }
-        return {
+        var receiveInfo = {
             receiveName: row && row.receiveName ? row.receiveName : (row && row.warehouse ? row.warehouse : '—'),
             receiveAddress: row && row.receiveAddress ? row.receiveAddress : '—',
             receivePhone: row && row.receivePhone ? row.receivePhone : '—',
             receiver: row && row.receiver ? row.receiver : '—'
         };
+        if (row && String(row.fulfillmentMethod || '').trim() === '快递到家') {
+            receiveInfo.receiveName = '快递到家';
+        }
+        return receiveInfo;
+    }
+
+    function resolvePoReceiveName(row) {
+        return getPoReceiveInfo(row).receiveName;
     }
 
     function renderAddPoReceiveInfo() {
@@ -609,6 +878,107 @@
             .replace(/"/g, '&quot;');
     }
 
+    function escapeAttr(s) {
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/\n/g, '&#10;');
+    }
+
+    function collectUniqueSourceOrderNos(value) {
+        var seen = {};
+        var list = [];
+        if (value == null) return list;
+        String(value).split(/[,，;；\s]+/).forEach(function(part) {
+            var val = String(part).trim();
+            if (!val || seen[val]) return;
+            seen[val] = true;
+            list.push(val);
+        });
+        return list;
+    }
+
+    function sourceOrderNoCellHtml(sourceOrderNos) {
+        if (!sourceOrderNos || !sourceOrderNos.length) {
+            return '<td>—</td>';
+        }
+        var fullTip = sourceOrderNos.join('\n');
+        var displayText = sourceOrderNos.length === 1
+            ? sourceOrderNos[0]
+            : sourceOrderNos[0] + ' 等' + sourceOrderNos.length + '个';
+        var cls = 'source-order-no-cell js-source-order-tip' + (sourceOrderNos.length === 1 ? ' is-single' : '');
+        return '<td><span class="' + cls + '" data-full-tip="' + escapeAttr(fullTip) + '">' + escapeHtml(displayText) + '</span></td>';
+    }
+
+    function sourceOrderNoDetailItemHtml(sourceOrderNos) {
+        if (!sourceOrderNos || !sourceOrderNos.length) {
+            return detailInfoItemHtml('来源单号', '');
+        }
+        var fullTip = sourceOrderNos.join('\n');
+        var displayText = sourceOrderNos.length === 1
+            ? sourceOrderNos[0]
+            : sourceOrderNos[0] + ' 等' + sourceOrderNos.length + '个';
+        var cls = 'source-order-no-cell js-source-order-tip' + (sourceOrderNos.length === 1 ? ' is-single' : '');
+        return '<div class="detail-info-item"><span class="label">' + escapeHtml('来源单号') + ':</span><span class="' + cls + '" data-full-tip="' + escapeAttr(fullTip) + '">' + escapeHtml(displayText) + '</span></div>';
+    }
+
+    var sourceOrderTipEl = null;
+
+    function ensureSourceOrderTipEl() {
+        if (!sourceOrderTipEl) {
+            sourceOrderTipEl = document.createElement('div');
+            sourceOrderTipEl.className = 'source-order-no-tip';
+            sourceOrderTipEl.setAttribute('role', 'tooltip');
+            document.body.appendChild(sourceOrderTipEl);
+        }
+        return sourceOrderTipEl;
+    }
+
+    function hideSourceOrderTip() {
+        if (sourceOrderTipEl) {
+            sourceOrderTipEl.style.display = 'none';
+        }
+    }
+
+    function showSourceOrderTip(target) {
+        var full = target.getAttribute('data-full-tip') || '';
+        if (!full) return;
+        var tip = ensureSourceOrderTipEl();
+        tip.textContent = full;
+        tip.style.display = 'block';
+        tip.style.left = '0px';
+        tip.style.top = '0px';
+        var rect = target.getBoundingClientRect();
+        var tipRect = tip.getBoundingClientRect();
+        var left = rect.left;
+        var top = rect.bottom + 6;
+        if (left + tipRect.width > window.innerWidth - 8) {
+            left = Math.max(8, window.innerWidth - tipRect.width - 8);
+        }
+        if (top + tipRect.height > window.innerHeight - 8) {
+            top = Math.max(8, rect.top - tipRect.height - 6);
+        }
+        tip.style.left = left + 'px';
+        tip.style.top = top + 'px';
+    }
+
+    function bindSourceOrderTipEvents(container) {
+        if (!container || container.dataset.sourceOrderTipBound === '1') return;
+        container.dataset.sourceOrderTipBound = '1';
+        container.addEventListener('mouseover', function(e) {
+            var tipTarget = e.target.closest('.js-source-order-tip');
+            if (!tipTarget || !container.contains(tipTarget)) return;
+            showSourceOrderTip(tipTarget);
+        });
+        container.addEventListener('mouseout', function(e) {
+            var tipTarget = e.target.closest('.js-source-order-tip');
+            if (!tipTarget) return;
+            var related = e.relatedTarget;
+            if (related && tipTarget.contains(related)) return;
+            hideSourceOrderTip();
+        });
+    }
+
     function formatYuan(amount) {
         var n = Number(amount);
         if (isNaN(n)) return '—';
@@ -626,6 +996,40 @@
 
     function detailInfoItemHtml(label, value) {
         return '<div class="detail-info-item"><span class="label">' + escapeHtml(label) + ':</span><span>' + escapeHtml(value == null || value === '' ? '—' : value) + '</span></div>';
+    }
+
+    function displayCellText(value) {
+        if (value == null) return '—';
+        var s = String(value).trim();
+        return s !== '' ? s : '—';
+    }
+
+    function resolvePoRelatedOrderNo(row) {
+        if (!row) return '';
+        if (String(row.fulfillmentMethod || '').trim() === '快递到家') return '';
+        return row.relatedOrderNo;
+    }
+
+    function resolvePoSourceOrderNos(row) {
+        if (!row) return [];
+        if (String(row.docSource || '').trim() === '手动新增') return [];
+        return collectUniqueSourceOrderNos(row.sourceOrderNo);
+    }
+
+    function matchesSourceOrderNoFilter(row, q) {
+        if (!q) return true;
+        var nos = resolvePoSourceOrderNos(row);
+        if (!nos.length) return false;
+        return nos.some(function(no) {
+            return no.indexOf(q) !== -1;
+        });
+    }
+
+    function matchesRelatedOrderNoFilter(row, q) {
+        if (!q) return true;
+        var val = resolvePoRelatedOrderNo(row);
+        if (val == null || String(val).trim() === '') return false;
+        return String(val).indexOf(q) !== -1;
     }
 
     function lineQtyUnit(l) {
@@ -1034,6 +1438,125 @@
         setAddPoSelectLocked(false);
     }
 
+    function getCheckedPurchaseOrders() {
+        var checked = Array.prototype.slice.call(document.querySelectorAll('#poListTbody .checkbox-row:checked'));
+        var rows = [];
+        checked.forEach(function(cb) {
+            var tr = cb.closest('tr');
+            var poNo = tr ? tr.getAttribute('data-po-no') : '';
+            var row = poNo ? findOrderByPoNo(poNo) : null;
+            if (row) rows.push(row);
+        });
+        return rows;
+    }
+
+    function getLineLogisticsNoText(line, row) {
+        if (line && line.logisticsNo != null && String(line.logisticsNo).trim() !== '') {
+            return normalizeLineLogisticsNoText(line.logisticsNo);
+        }
+        if (row && row.logisticsNo != null && String(row.logisticsNo).trim() !== '') {
+            return normalizeLineLogisticsNoText(row.logisticsNo);
+        }
+        return '';
+    }
+
+    function collectLineLogisticsNos(value) {
+        var seen = {};
+        var list = [];
+        if (value == null) return list;
+        String(value).split(/[,，;；\s]+/).forEach(function(part) {
+            var val = String(part).trim();
+            if (!val || seen[val]) return;
+            seen[val] = true;
+            list.push(val);
+        });
+        return list;
+    }
+
+    function normalizeLineLogisticsNoText(value) {
+        return collectLineLogisticsNos(value).join(', ');
+    }
+
+    function collectPoLogisticsNos(row) {
+        var seen = {};
+        var list = [];
+        (row && row.lines || []).forEach(function(line) {
+            collectLineLogisticsNos(line.logisticsNo).forEach(function(val) {
+                if (seen[val]) return;
+                seen[val] = true;
+                list.push(val);
+            });
+        });
+        if (!list.length && row && row.logisticsNo != null && String(row.logisticsNo).trim() !== '') {
+            collectLineLogisticsNos(row.logisticsNo).forEach(function(val) {
+                if (seen[val]) return;
+                seen[val] = true;
+                list.push(val);
+            });
+        }
+        return list;
+    }
+
+    function formatPoLogisticsSummary(row) {
+        var nos = collectPoLogisticsNos(row);
+        if (!nos.length) return '—';
+        if (nos.length === 1) return nos[0];
+        return nos[0] + ' 等' + nos.length + '个';
+    }
+
+    function syncPoHeaderLogisticsNo(row) {
+        if (!row) return;
+        var nos = collectPoLogisticsNos(row);
+        row.logisticsNo = nos.length ? nos[0] : '';
+    }
+
+    function buildLogisticsConfirmEntries(rows) {
+        var entries = [];
+        (rows || []).forEach(function(row) {
+            (row.lines || []).forEach(function(line, lineIndex) {
+                entries.push({
+                    poNo: row.poNo,
+                    lineIndex: lineIndex,
+                    skuCode: line.skuCode || '',
+                    skuName: line.skuName || '',
+                    spec: getLineSpec(line),
+                    purchaseQtyText: qtyWithUnit(line.purchaseQty, line),
+                    logisticsNo: getLineLogisticsNoText(line, row)
+                });
+            });
+        });
+        return entries;
+    }
+
+    function renderLogisticsConfirmLinesTable() {
+        var tbody = document.getElementById('logisticsConfirmLinesTbody');
+        if (!tbody) return;
+        if (!logisticsConfirmEntries.length) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">暂无商品明细，请勾选含明细的采购单</td></tr>';
+            return;
+        }
+        tbody.innerHTML = logisticsConfirmEntries.map(function(entry, idx) {
+            return (
+                '<tr data-entry-index="' + idx + '">' +
+                '<td>' + escapeHtml(entry.poNo) + '</td>' +
+                '<td>' + escapeHtml(entry.skuCode) + '</td>' +
+                '<td>' + escapeHtml(entry.skuName) + '</td>' +
+                '<td>' + escapeHtml(entry.spec) + '</td>' +
+                '<td>' + escapeHtml(entry.purchaseQtyText) + '</td>' +
+                '<td><input type="text" class="logistics-line-input" data-entry-index="' + idx + '" value="' + escapeAttr(entry.logisticsNo) + '" placeholder="多个物流单号请用逗号分隔"></td>' +
+                '</tr>'
+            );
+        }).join('');
+    }
+
+    function readLogisticsConfirmEntriesFromForm() {
+        document.querySelectorAll('#logisticsConfirmLinesTbody .logistics-line-input').forEach(function(input) {
+            var idx = Number(input.getAttribute('data-entry-index'));
+            if (isNaN(idx) || !logisticsConfirmEntries[idx]) return;
+            logisticsConfirmEntries[idx].logisticsNo = (input.value || '').trim();
+        });
+    }
+
     function openLogisticsConfirmModal() {
         if (!hasCheckedPoRows()) {
             if (typeof showToast === 'function') {
@@ -1041,19 +1564,27 @@
             }
             return;
         }
+        var checkedRows = getCheckedPurchaseOrders();
+        logisticsConfirmEntries = buildLogisticsConfirmEntries(checkedRows);
         var actualEl = document.getElementById('logisticsActualPurchaseTime');
         var shipEl = document.getElementById('logisticsSupplierShipTime');
         var etaEl = document.getElementById('logisticsExpectedArrivalTime');
-        var noEl = document.getElementById('logisticsNo');
         if (actualEl) actualEl.value = '';
         if (shipEl) shipEl.value = '';
         if (etaEl) etaEl.value = '';
-        if (noEl) noEl.value = '';
+        if (checkedRows.length === 1) {
+            var firstRow = checkedRows[0];
+            if (actualEl) actualEl.value = firstRow.actualPurchaseDate || '';
+            if (shipEl) shipEl.value = firstRow.supplierShipDate || '';
+            if (etaEl) etaEl.value = firstRow.expectedArrivalDate || '';
+        }
+        renderLogisticsConfirmLinesTable();
         var modal = document.getElementById('logisticsConfirmModal');
         if (modal) modal.style.display = 'block';
     }
 
     function closeLogisticsConfirmModal() {
+        logisticsConfirmEntries = [];
         var modal = document.getElementById('logisticsConfirmModal');
         if (modal) modal.style.display = 'none';
     }
@@ -1062,32 +1593,39 @@
         var actualEl = document.getElementById('logisticsActualPurchaseTime');
         var shipEl = document.getElementById('logisticsSupplierShipTime');
         var etaEl = document.getElementById('logisticsExpectedArrivalTime');
-        var noEl = document.getElementById('logisticsNo');
-        if (!actualEl || !shipEl || !etaEl || !noEl) return false;
-        return !!(actualEl.value && shipEl.value && etaEl.value && String(noEl.value || '').trim());
+        if (!actualEl || !shipEl || !etaEl) return false;
+        if (!actualEl.value || !shipEl.value || !etaEl.value) return false;
+        if (!logisticsConfirmEntries.length) return false;
+        readLogisticsConfirmEntriesFromForm();
+        for (var i = 0; i < logisticsConfirmEntries.length; i++) {
+            if (!collectLineLogisticsNos(logisticsConfirmEntries[i].logisticsNo).length) return false;
+        }
+        return true;
     }
 
     function saveLogisticsConfirm() {
         if (!isLogisticsConfirmValid()) {
             if (typeof showToast === 'function') {
-                showToast('请完整填写物流信息确认字段', 'error');
+                showToast('请完整填写时间节点，并为每条采购单商品明细至少填写一个物流单号', 'error');
             }
             return;
         }
         var actualPurchaseDate = document.getElementById('logisticsActualPurchaseTime').value;
         var supplierShipDate = document.getElementById('logisticsSupplierShipTime').value;
         var expectedArrivalDate = document.getElementById('logisticsExpectedArrivalTime').value;
-        var logisticsNo = (document.getElementById('logisticsNo').value || '').trim();
-        var checkedRows = Array.prototype.slice.call(document.querySelectorAll('#poListTbody .checkbox-row:checked'));
-        checkedRows.forEach(function(cb) {
-            var tr = cb.closest('tr');
-            var poNo = tr ? tr.getAttribute('data-po-no') : '';
-            var row = poNo ? findOrderByPoNo(poNo) : null;
-            if (!row) return;
+        readLogisticsConfirmEntriesFromForm();
+        var touchedPoNos = {};
+        logisticsConfirmEntries.forEach(function(entry) {
+            var row = findOrderByPoNo(entry.poNo);
+            if (!row || !row.lines || !row.lines[entry.lineIndex]) return;
             row.actualPurchaseDate = actualPurchaseDate;
             row.supplierShipDate = supplierShipDate;
             row.expectedArrivalDate = expectedArrivalDate;
-            row.logisticsNo = logisticsNo;
+            row.lines[entry.lineIndex].logisticsNo = normalizeLineLogisticsNoText(entry.logisticsNo);
+            touchedPoNos[entry.poNo] = row;
+        });
+        Object.keys(touchedPoNos).forEach(function(poNo) {
+            syncPoHeaderLogisticsNo(touchedPoNos[poNo]);
         });
         closeLogisticsConfirmModal();
         renderTable();
@@ -1138,7 +1676,8 @@
                 saleUnitPrice: Number(l.saleUnitPrice) || 0,
                 saleAmount: Number(l.saleAmount) || 0,
                 prepaidAmount: Number(l.prepaidAmount) || 0,
-                lineRemark: l.lineRemark || ''
+                lineRemark: l.lineRemark || '',
+                logisticsNo: l.logisticsNo || ''
             };
         });
         if (addPoMode === 'edit' && editingPoNo) {
@@ -1163,6 +1702,8 @@
             var operator = getLineBuyer(lines[0]) || '系统';
             allRows.unshift({
                 poNo: currentAddPoNo || generatePurchaseOrderNo(),
+                orderSource: '商城/直播间',
+                fulfillmentMethod: '平台配送',
                 warehouse: wh,
                 supplier: sp,
                 docStatus: '初始',
@@ -1234,13 +1775,17 @@
         if (infoBox) {
             infoBox.innerHTML = [
                 detailInfoItemHtml('采购单号', row.poNo),
+                sourceOrderNoDetailItemHtml(resolvePoSourceOrderNos(row)),
+                detailInfoItemHtml('关联单号', resolvePoRelatedOrderNo(row)),
                 detailInfoItemHtml('供应商', row.supplier),
                 detailInfoItemHtml('单据状态', row.docStatus),
+                detailInfoItemHtml('订单渠道', row.orderSource),
+                detailInfoItemHtml('履约方式', row.fulfillmentMethod),
                 detailInfoItemHtml('单据来源', row.docSource),
                 detailInfoItemHtml('实际采购时间', row.actualPurchaseDate),
                 detailInfoItemHtml('供应商发货时间', row.supplierShipDate),
                 detailInfoItemHtml('预计到货时间', row.expectedArrivalDate),
-                detailInfoItemHtml('物流单号', row.logisticsNo),
+                detailInfoItemHtml('物流单号', formatPoLogisticsSummary(row)),
                 detailInfoItemHtml('备注', row.remark),
                 detailInfoItemHtml('创建时间', row.createdAt),
                 detailInfoItemHtml('创建人', row.createdBy),
@@ -1295,6 +1840,7 @@
     }
 
     function closePoDetailModal() {
+        hideSourceOrderTip();
         var modal = document.getElementById('poDetailModal');
         if (modal) modal.style.display = 'none';
     }
@@ -1357,6 +1903,10 @@
     function applyFilters() {
         var wh = getCustomSelectValue('searchWarehouse');
         var po = getTextFilter('searchPoNo');
+        var sourceOrderNo = getTextFilter('searchSourceOrderNo');
+        var relatedOrderNo = getTextFilter('searchRelatedOrderNo');
+        var orderSource = getCustomSelectValue('searchOrderSource');
+        var fulfillmentMethod = getCustomSelectValue('searchFulfillmentMethod');
         var skuC = getTextFilter('searchSkuCode');
         var skuN = getTextFilter('searchSkuName');
         var supplier = getCustomSelectValue('searchSupplier');
@@ -1367,6 +1917,10 @@
         return allRows.filter(function(r) {
             if (wh && r.warehouse !== wh) return false;
             if (po && String(r.poNo || '').indexOf(po) === -1) return false;
+            if (!matchesSourceOrderNoFilter(r, sourceOrderNo)) return false;
+            if (!matchesRelatedOrderNoFilter(r, relatedOrderNo)) return false;
+            if (orderSource && r.orderSource !== orderSource) return false;
+            if (fulfillmentMethod && r.fulfillmentMethod !== fulfillmentMethod) return false;
             if (!lineMatchesProduct(r, skuC, skuN)) return false;
             if (supplier && r.supplier !== supplier) return false;
             if (st && r.docStatus !== st) return false;
@@ -1395,6 +1949,185 @@
         return escapeHtml(text);
     }
 
+    var LOGISTICS_TRACK_MOCK = {
+        'SF1234567890123': [
+            { time: '2026-04-23 14:20:00', desc: '快件已签收，签收人：周仓管' },
+            { time: '2026-04-23 09:15:00', desc: '快件到达【南京江宁集散中心】' },
+            { time: '2026-04-22 18:40:00', desc: '快件已从【嘉兴转运中心】发出' },
+            { time: '2026-04-22 10:05:00', desc: '快件已揽收' }
+        ],
+        'YT9876543210987': [
+            { time: '2026-04-24 11:30:00', desc: '快件运输中，预计今日送达' },
+            { time: '2026-04-23 20:10:00', desc: '快件到达【上海嘉定转运中心】' },
+            { time: '2026-04-23 08:00:00', desc: '快件已揽收' }
+        ],
+        'YT9876543210999': [
+            { time: '2026-04-24 15:10:00', desc: '快件已送达，签收人：前台代收' },
+            { time: '2026-04-24 09:20:00', desc: '快件派送中' },
+            { time: '2026-04-23 21:30:00', desc: '快件到达【上海徐汇网点】' }
+        ]
+    };
+
+    function buildLogisticsTrackProductGroups(row) {
+        if (!row) return [];
+        var productMap = {};
+        var productOrder = [];
+        var appendLogisticsNo = function(product, logisticsNo) {
+            if (!logisticsNo) return;
+            if (!product.seenLogistics[logisticsNo]) {
+                product.seenLogistics[logisticsNo] = true;
+                product.logisticsNos.push(logisticsNo);
+            }
+        };
+        var ensureProduct = function(line) {
+            var skuKey = String(line.skuCode || '').trim() || String(line.skuName || '').trim();
+            if (!skuKey) return null;
+            if (!productMap[skuKey]) {
+                productMap[skuKey] = {
+                    skuCode: line.skuCode || '',
+                    skuName: line.skuName || '',
+                    spec: getLineSpec(line),
+                    purchaseQtyText: qtyWithUnit(line.purchaseQty, line),
+                    logisticsNos: [],
+                    seenLogistics: {}
+                };
+                productOrder.push(skuKey);
+            }
+            return productMap[skuKey];
+        };
+        (row.lines || []).forEach(function(line) {
+            var product = ensureProduct(line);
+            if (!product) return;
+            collectLineLogisticsNos(line.logisticsNo).forEach(function(no) {
+                appendLogisticsNo(product, no);
+            });
+        });
+        if (!productOrder.length) {
+            collectLineLogisticsNos(row.logisticsNo).forEach(function(no) {
+                var fallbackKey = '__header__';
+                if (!productMap[fallbackKey]) {
+                    productMap[fallbackKey] = {
+                        skuCode: '',
+                        skuName: '—',
+                        spec: '—',
+                        purchaseQtyText: '—',
+                        logisticsNos: [],
+                        seenLogistics: {}
+                    };
+                    productOrder.push(fallbackKey);
+                }
+                appendLogisticsNo(productMap[fallbackKey], no);
+            });
+        }
+        return productOrder.map(function(key) {
+            return productMap[key];
+        }).filter(function(product) {
+            return product.logisticsNos.length > 0;
+        });
+    }
+
+    function renderLogisticsTrackTimelineHtml(tracks) {
+        if (!tracks || !tracks.length) {
+            return '<div class="logistics-track-empty">未查询到物流轨迹信息</div>';
+        }
+        return '<div class="logistics-track-timeline">' + tracks.map(function(item, idx) {
+            return (
+                '<div class="logistics-track-timeline-item' + (idx === 0 ? ' is-latest' : '') + '">' +
+                '<div class="logistics-track-timeline-time">' + escapeHtml(item.time) + '</div>' +
+                '<div class="logistics-track-timeline-desc">' + escapeHtml(item.desc) + '</div>' +
+                '</div>'
+            );
+        }).join('') + '</div>';
+    }
+
+    function renderLogisticsTrackProductsHtml(products) {
+        if (!products || !products.length) {
+            return '<div class="logistics-track-empty" style="padding:8px 0">暂无关联商品</div>';
+        }
+        return (
+            '<table class="table logistics-track-product-table no-last-column-freeze">' +
+            '<thead><tr>' +
+            '<th>商品编码</th><th>商品名称</th><th>商品规格</th><th>采购量</th>' +
+            '</tr></thead>' +
+            '<tbody>' +
+            products.map(function(p) {
+                return (
+                    '<tr>' +
+                    '<td>' + escapeHtml(p.skuCode) + '</td>' +
+                    '<td>' + escapeHtml(p.skuName) + '</td>' +
+                    '<td>' + escapeHtml(p.spec) + '</td>' +
+                    '<td>' + escapeHtml(p.purchaseQtyText) + '</td>' +
+                    '</tr>'
+                );
+            }).join('') +
+            '</tbody></table>'
+        );
+    }
+
+    function renderLogisticsTrackProductHeadHtml(product) {
+        return (
+            '<div class="logistics-track-product-head">' +
+            renderLogisticsTrackProductsHtml([product]) +
+            '</div>'
+        );
+    }
+
+    function renderLogisticsTrackLogisticsBlockHtml(logisticsNo) {
+        var tracks = LOGISTICS_TRACK_MOCK[logisticsNo] || [];
+        return (
+            '<div class="logistics-track-logistics-block">' +
+            '<div class="logistics-track-logistics-title">物流单号：' + escapeHtml(logisticsNo) + '</div>' +
+            renderLogisticsTrackTimelineHtml(tracks) +
+            '</div>'
+        );
+    }
+
+    function renderLogisticsTrackProductGroupHtml(product) {
+        return (
+            '<div class="logistics-track-group">' +
+            renderLogisticsTrackProductHeadHtml(product) +
+            product.logisticsNos.map(renderLogisticsTrackLogisticsBlockHtml).join('') +
+            '</div>'
+        );
+    }
+
+    function renderLogisticsTrackModal(row) {
+        var infoBox = document.getElementById('logisticsTrackInfo');
+        var timelineBox = document.getElementById('logisticsTrackTimeline');
+        if (!infoBox || !timelineBox) return;
+
+        var receiveInfo = getPoReceiveInfo(row);
+
+        infoBox.innerHTML = [
+            detailInfoItemHtml('采购单号', row ? row.poNo : '—'),
+            detailInfoItemHtml('供应商', row ? row.supplier : '—'),
+            detailInfoItemHtml('收货地名称', receiveInfo.receiveName),
+            detailInfoItemHtml('收货地址', receiveInfo.receiveAddress),
+            detailInfoItemHtml('手机号', receiveInfo.receivePhone),
+            detailInfoItemHtml('收货人', receiveInfo.receiver)
+        ].join('');
+
+        var productGroups = buildLogisticsTrackProductGroups(row);
+        if (!productGroups.length) {
+            timelineBox.innerHTML = '<div class="logistics-track-empty">暂无物流单号，请先在采购单完成物流确认</div>';
+            return;
+        }
+        timelineBox.innerHTML = productGroups.map(renderLogisticsTrackProductGroupHtml).join('');
+    }
+
+    function openLogisticsTrackModal(poNo) {
+        var row = findOrderByPoNo(poNo);
+        if (!row) return;
+        renderLogisticsTrackModal(row);
+        var modal = document.getElementById('logisticsTrackModal');
+        if (modal) modal.style.display = 'block';
+    }
+
+    function closeLogisticsTrackModal() {
+        var modal = document.getElementById('logisticsTrackModal');
+        if (modal) modal.style.display = 'none';
+    }
+
     function renderTable() {
         var tbody = document.getElementById('poListTbody');
         var countEl = document.getElementById('poListCount');
@@ -1408,15 +2141,19 @@
         var pageRows = filteredRows.slice(start, start + pageSize);
 
         if (pageRows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#999;">暂无数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="16" style="text-align:center;color:#999;">暂无数据</td></tr>';
         } else {
             tbody.innerHTML = pageRows.map(function(r) {
                 return (
                     '<tr data-po-no="' + escapeHtml(r.poNo) + '">' +
                     '<td><input type="checkbox" class="table-checkbox checkbox-row"></td>' +
                     '<td><a href="#" class="order-no-link js-open-po-detail" data-po-no="' + escapeHtml(r.poNo) + '">' + escapeHtml(r.poNo) + '</a></td>' +
+                    sourceOrderNoCellHtml(resolvePoSourceOrderNos(r)) +
+                    '<td>' + escapeHtml(displayCellText(resolvePoRelatedOrderNo(r))) + '</td>' +
                     '<td>' + escapeHtml(r.supplier) + '</td>' +
-                    '<td>' + escapeHtml(r.warehouse || '') + '</td>' +
+                    '<td>' + escapeHtml(resolvePoReceiveName(r)) + '</td>' +
+                    '<td>' + escapeHtml(r.orderSource || '—') + '</td>' +
+                    '<td>' + escapeHtml(r.fulfillmentMethod || '—') + '</td>' +
                     '<td>' + statusCellHtml(r.docStatus) + '</td>' +
                     '<td>' + escapeHtml(r.docSource) + '</td>' +
                     '<td>' + escapeHtml(r.remark || '') + '</td>' +
@@ -1424,7 +2161,7 @@
                     '<td>' + escapeHtml(r.createdBy) + '</td>' +
                     '<td>' + escapeHtml(r.updatedAt || r.createdAt || '') + '</td>' +
                     '<td>' + escapeHtml(r.updatedBy || r.createdBy || '') + '</td>' +
-                    '<td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">取消</a></td>' +
+                    '<td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="logistics-track-btn">物流轨迹</a><a href="#" class="delete-btn">取消</a></td>' +
                     '</tr>'
                 );
             }).join('');
@@ -1471,6 +2208,16 @@
     document.getElementById('btnAddPurchaseOrder').addEventListener('click', openAddPoModal);
     document.getElementById('btnLogisticsConfirm').addEventListener('click', openLogisticsConfirmModal);
 
+    bindSourceOrderTipEvents(document.getElementById('poListTbody'));
+    bindSourceOrderTipEvents(document.getElementById('poDetailInfo'));
+
+    var poTableScrollContainer = document.querySelector('.table-section .table-scroll-container');
+    if (poTableScrollContainer) {
+        poTableScrollContainer.addEventListener('scroll', hideSourceOrderTip);
+    }
+    window.addEventListener('scroll', hideSourceOrderTip, true);
+    window.addEventListener('resize', hideSourceOrderTip);
+
     document.querySelector('.table-section').addEventListener('change', function(e) {
         var t = e.target;
         if (!t) return;
@@ -1498,6 +2245,14 @@
             var tr = editBtn.closest('tr');
             var poNo = tr ? tr.getAttribute('data-po-no') : '';
             if (poNo) openEditPoModal(poNo);
+            return;
+        }
+        var trackBtn = e.target.closest('.logistics-track-btn');
+        if (trackBtn) {
+            e.preventDefault();
+            var trackTr = trackBtn.closest('tr');
+            var trackPoNo = trackTr ? trackTr.getAttribute('data-po-no') : '';
+            if (trackPoNo) openLogisticsTrackModal(trackPoNo);
             return;
         }
         var cancelBtn = e.target.closest('.delete-btn');
@@ -1604,6 +2359,14 @@
         }
     });
 
+    document.getElementById('logisticsTrackCloseBtn').addEventListener('click', closeLogisticsTrackModal);
+    document.getElementById('logisticsTrackCloseFooterBtn').addEventListener('click', closeLogisticsTrackModal);
+    document.getElementById('logisticsTrackModal').addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'logisticsTrackModal') {
+            closeLogisticsTrackModal();
+        }
+    });
+
     document.getElementById('logisticsConfirmCloseBtn').addEventListener('click', closeLogisticsConfirmModal);
     document.getElementById('logisticsConfirmCancelBtn').addEventListener('click', closeLogisticsConfirmModal);
     document.getElementById('logisticsConfirmSaveBtn').addEventListener('click', saveLogisticsConfirm);
@@ -1615,6 +2378,8 @@
 
     if (typeof initCustomSelect === 'function') {
         initCustomSelect('searchWarehouse', 'searchWarehouseDropdown');
+        initCustomSelect('searchOrderSource', 'searchOrderSourceDropdown');
+        initCustomSelect('searchFulfillmentMethod', 'searchFulfillmentMethodDropdown');
         initCustomSelect('searchSupplier', 'searchSupplierDropdown');
         initCustomSelect('searchDocStatus', 'searchDocStatusDropdown');
         initCustomSelect('searchDocSource', 'searchDocSourceDropdown');

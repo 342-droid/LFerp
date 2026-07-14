@@ -71,7 +71,10 @@
                                 <th>仓间名称</th>
                                 <th>仓库</th>
                                 <th>是否启用</th>
-                                <th>地址</th>
+                                <th>省</th>
+                                <th>市</th>
+                                <th>区</th>
+                                <th>详细地址</th>
                                 <th>联系人</th>
                                 <th>电话</th>
                                 <th>更新时间</th>
@@ -86,7 +89,7 @@
                                 <td>南京仓-综合仓间</td>
                                 <td>W001-南京仓</td>
                                 <td><span class="status active">启用</span></td>
-                                <td>南京市江宁区科学园</td>
+                                <td>江苏省</td><td>南京市</td><td>江宁区</td><td>科学园</td>
                                 <td>张三</td>
                                 <td>13800138000</td>
                                 <td>2025-01-05 12:31:43</td>
@@ -102,7 +105,7 @@
                                 <td>南京仓-加工仓间</td>
                                 <td>W001-南京仓</td>
                                 <td><span class="status inactive">禁用</span></td>
-                                <td>南京市江宁区经济开发区</td>
+                                <td>江苏省</td><td>南京市</td><td>江宁区</td><td>经济开发区</td>
                                 <td>王五</td>
                                 <td>13900139000</td>
                                 <td>2025-01-05 12:31:43</td>
@@ -126,6 +129,7 @@
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
+    <script src="../js/region-cascader.js"></script>
     <script src="../js/modal-manager.js"></script>
     <script src="../js/page-manager.js"></script>
     <script>
@@ -155,7 +159,7 @@
                     { id: 'roomName', label: '仓间名称', type: 'text', required: true, editDisabled: true },
                     { id: 'isEnabled', label: '是否启用', type: 'select', required: true,
                       options: [{ value: 'yes', text: '启用' }, { value: 'no', text: '禁用' }] },
-                    { id: 'address', label: '地址', type: 'text' },
+                    ...RegionCascader.buildPageManagerAddressFields({ labelWidth: '110px' }),
                     { id: 'contact', label: '联系人', type: 'text' },
                     { id: 'phone', label: '电话', type: 'text' },
                     { id: 'remark', label: '备注', type: 'textarea' }
@@ -184,12 +188,15 @@
                             warehouseInput.value = '';
                             warehouseInput.dataset.value = '';
                         }
+                        RegionCascader.initModalAddress('add');
+                        RegionCascader.resetModalAddress('add');
                     },
                     onSave: () => {
                         const code = document.getElementById('roomCode').value.trim();
                         const name = document.getElementById('roomName').value.trim();
                         const warehouse = document.getElementById('warehouse').value.trim();
                         const enabled = document.getElementById('isEnabled').value.trim();
+                        const addr = RegionCascader.getModalAddress('add');
                         
                         page.addTableRow({
                             cells: [
@@ -197,7 +204,7 @@
                                 name,
                                 warehouse,
                                 { value: enabled, isStatus: true },
-                                document.getElementById('address')?.value.trim() || '-',
+                                ...RegionCascader.tableCells(addr),
                                 document.getElementById('contact')?.value.trim() || '-',
                                 document.getElementById('phone')?.value.trim() || '-',
                                 page.getCurrentTimeStr(),
@@ -218,14 +225,18 @@
                     ],
                     onSave: () => {
                         if (!page.currentEditRow) return;
+                        const addr = RegionCascader.getModalAddress('edit');
                         page.updateTableRow(page.currentEditRow, {
                             2: document.getElementById('editRoomName').value.trim(),
                             4: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
-                            5: document.getElementById('editAddress')?.value.trim() || '-',
-                            6: document.getElementById('editContact')?.value.trim() || '-',
-                            7: document.getElementById('editPhone')?.value.trim() || '-',
-                            8: page.getCurrentTimeStr(),
-                            9: '当前用户'
+                            5: addr.province || '-',
+                            6: addr.city || '-',
+                            7: addr.district || '-',
+                            8: addr.detailAddress || '-',
+                            9: document.getElementById('editContact')?.value.trim() || '-',
+                            10: document.getElementById('editPhone')?.value.trim() || '-',
+                            11: page.getCurrentTimeStr(),
+                            12: '当前用户'
                         });
                         showToast('仓间信息已更新', 'success');
                         page.currentEditRow = null;
@@ -233,14 +244,16 @@
                     mapRowToForm: (row) => {
                         page.currentEditRow = row;
                         const cells = row.querySelectorAll('td');
+                        RegionCascader.initModalAddress('edit');
+                        RegionCascader.setModalAddress('edit', RegionCascader.readRowAddressCells(cells, 5));
                         return {
                             editRoomCode: cells[1].textContent,
                             editRoomName: cells[2].textContent,
                             editWarehouse: cells[3].textContent,
                             editIsEnabled: cells[4].querySelector('.status').textContent,
-                            editAddress: cells[5].textContent === '-' ? '' : cells[5].textContent,
-                            editContact: cells[6].textContent === '-' ? '' : cells[6].textContent,
-                            editPhone: cells[7].textContent === '-' ? '' : cells[7].textContent
+                            editDetailAddress: cells[8].textContent === '-' ? '' : cells[8].textContent,
+                            editContact: cells[9].textContent === '-' ? '' : cells[9].textContent,
+                            editPhone: cells[10].textContent === '-' ? '' : cells[10].textContent
                         };
                     }
                 },

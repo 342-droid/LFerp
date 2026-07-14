@@ -174,6 +174,43 @@
             margin-top: 16px;
         }
 
+        .auto-cutoff-config-modal .modal-content {
+            width: 95%;
+            max-width: 960px;
+            max-height: 88vh;
+            overflow: auto;
+            margin: 6% auto;
+        }
+
+        .auto-cutoff-config-modal .config-modal-hint {
+            margin: 0 0 14px;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .auto-cutoff-config-table-wrap .table {
+            min-width: 820px;
+        }
+
+        .auto-cutoff-config-table-wrap .table th,
+        .auto-cutoff-config-table-wrap .table td {
+            padding: 8px 10px;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        .auto-cutoff-config-input {
+            width: 100%;
+            min-width: 120px;
+            height: 32px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 0 8px;
+            box-sizing: border-box;
+            font-size: 13px;
+        }
+
     </style>
 </head>
 <body>
@@ -227,8 +264,22 @@
                             <span class="clear-btn">×</span>
                             <div class="select-dropdown" id="searchOrderSourceDropdown">
                                 <div class="select-option" data-value="">全部</div>
-                                <div class="select-option" data-value="商城">商城</div>
-                                <div class="select-option" data-value="直播间">直播间</div>
+                                <div class="select-option" data-value="商城/直播间">商城/直播间</div>
+                                <div class="select-option" data-value="代采订单">代采订单</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>履约方式:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchFulfillmentMethod" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchFulfillmentMethodDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="快递到店">快递到店</div>
+                                <div class="select-option" data-value="快递到家">快递到家</div>
+                                <div class="select-option" data-value="平台配送">平台配送</div>
                             </div>
                         </div>
                     </div>
@@ -344,6 +395,7 @@
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary" id="btnSearch">查询</button>
                         <button type="button" class="btn btn-secondary" id="btnCutoffGenerate">截单并生成门店订货单</button>
+                        <button type="button" class="btn btn-secondary" id="btnAutoCutoffConfig">自动截单配置</button>
                     </div>
                 </form>
             </section>
@@ -388,6 +440,35 @@
                         <tbody id="storeOrderDetailTbody"></tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="autoCutoffConfigModal" class="modal auto-cutoff-config-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">自动截单配置</div>
+                <span class="close" id="autoCutoffConfigCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p class="config-modal-hint">可按订单渠道与履约方式分别配置截单定时任务。</p>
+                <div class="auto-cutoff-config-table-wrap table-scroll-container">
+                    <table class="table no-last-column-freeze">
+                        <thead>
+                            <tr>
+                                <th>订单渠道</th>
+                                <th>履约方式</th>
+                                <th>定时器表达式</th>
+                                <th>定时器描述</th>
+                            </tr>
+                        </thead>
+                        <tbody id="autoCutoffConfigTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="autoCutoffConfigCancelBtn">取消</button>
+                <button type="button" class="btn btn-primary" id="autoCutoffConfigSaveBtn">保存</button>
             </div>
         </div>
     </div>
@@ -442,6 +523,18 @@
 
     function getOrderSourceFilter() {
         const el = document.getElementById('searchOrderSource');
+        if (!el) return '';
+        if (el.dataset.value !== undefined && el.dataset.value !== '') {
+            return el.dataset.value.trim();
+        }
+        if (el.dataset.value === '') {
+            return '';
+        }
+        return el.value.trim();
+    }
+
+    function getFulfillmentMethodFilter() {
+        const el = document.getElementById('searchFulfillmentMethod');
         if (!el) return '';
         if (el.dataset.value !== undefined && el.dataset.value !== '') {
             return el.dataset.value.trim();
@@ -579,6 +672,7 @@
         return {
             liveSession: getLiveSessionFilter(),
             orderSource: getOrderSourceFilter(),
+            fulfillmentMethod: getFulfillmentMethodFilter(),
             marketingType: val('searchMarketingType'),
             orderStatus: getOrderStatusFilter(),
             skuCode: val('searchSkuCode'),
@@ -608,6 +702,7 @@
         return lines.filter(function(row) {
             if (f.liveSession && (!row.liveSession || row.liveSession.indexOf(f.liveSession) === -1)) return false;
             if (f.orderSource && row.orderSource !== f.orderSource) return false;
+            if (f.fulfillmentMethod && row.fulfillmentMethod !== f.fulfillmentMethod) return false;
             if (f.marketingType && row.marketingType !== f.marketingType) return false;
             if (f.orderStatus && row.orderStatus !== f.orderStatus) return false;
             if (f.skuCode && row.skuCode.indexOf(f.skuCode) === -1) return false;
@@ -789,6 +884,163 @@
         if (modal) modal.style.display = 'none';
     }
 
+    var AUTO_CUTOFF_CONFIG_KEY = 'purchase_store_auto_cutoff_config';
+    var AUTO_CUTOFF_ORDER_SOURCES = ['商城/直播间', '代采订单'];
+    var AUTO_CUTOFF_FULFILLMENT_METHODS = ['快递到店', '快递到家', '平台配送'];
+
+    function autoCutoffRuleKey(orderSource, fulfillmentMethod) {
+        return String(orderSource || '') + '|' + String(fulfillmentMethod || '');
+    }
+
+    function normalizeAutoCutoffOrderSource(orderSource) {
+        var s = String(orderSource || '').trim();
+        if (s === '商城' || s === '直播间' || s === '商品/直播间') return '商城/直播间';
+        return s;
+    }
+
+    function isAutoCutoffRuleAllowed(orderSource, fulfillmentMethod) {
+        if (orderSource === '代采订单' && fulfillmentMethod === '快递到家') return false;
+        if (orderSource === '商城/直播间' && fulfillmentMethod === '快递到店') return false;
+        return true;
+    }
+
+    function buildDefaultAutoCutoffRules() {
+        var rules = [];
+        AUTO_CUTOFF_ORDER_SOURCES.forEach(function(orderSource) {
+            AUTO_CUTOFF_FULFILLMENT_METHODS.forEach(function(fulfillmentMethod) {
+                if (!isAutoCutoffRuleAllowed(orderSource, fulfillmentMethod)) return;
+                rules.push({
+                    orderSource: orderSource,
+                    fulfillmentMethod: fulfillmentMethod,
+                    timerExpression: '',
+                    timerDesc: ''
+                });
+            });
+        });
+        return rules;
+    }
+
+    function mergeAutoCutoffRules(savedRules) {
+        var map = {};
+        (savedRules || []).forEach(function(rule) {
+            var normalizedSource = normalizeAutoCutoffOrderSource(rule.orderSource);
+            var key = autoCutoffRuleKey(normalizedSource, rule.fulfillmentMethod);
+            var existing = map[key];
+            if (!existing || (!existing.timerExpression && rule.timerExpression)) {
+                map[key] = {
+                    orderSource: normalizedSource,
+                    fulfillmentMethod: rule.fulfillmentMethod,
+                    timerExpression: rule.timerExpression,
+                    timerDesc: rule.timerDesc
+                };
+            }
+        });
+        return buildDefaultAutoCutoffRules().map(function(def) {
+            var saved = map[autoCutoffRuleKey(def.orderSource, def.fulfillmentMethod)];
+            if (!saved) return def;
+            return {
+                orderSource: def.orderSource,
+                fulfillmentMethod: def.fulfillmentMethod,
+                timerExpression: saved.timerExpression == null ? '' : String(saved.timerExpression).trim(),
+                timerDesc: saved.timerDesc == null ? '' : String(saved.timerDesc).trim()
+            };
+        });
+    }
+
+    function normalizeAutoCutoffConfig(parsed) {
+        if (parsed && Array.isArray(parsed.rules)) {
+            return { rules: mergeAutoCutoffRules(parsed.rules) };
+        }
+        var cron = '';
+        var desc = '';
+        if (parsed && parsed.cutoffTime) {
+            var parts = String(parsed.cutoffTime).split(':');
+            var hour = parseInt(parts[0], 10);
+            var minute = parseInt(parts[1], 10);
+            if (!isNaN(hour)) {
+                cron = '0 ' + (isNaN(minute) ? 0 : minute) + ' ' + hour + ' * * ?';
+                desc = '每日' + String(parsed.cutoffTime).slice(0, 5) + '自动截单';
+            }
+        }
+        return {
+            rules: buildDefaultAutoCutoffRules().map(function(rule) {
+                return {
+                    orderSource: rule.orderSource,
+                    fulfillmentMethod: rule.fulfillmentMethod,
+                    timerExpression: cron,
+                    timerDesc: desc
+                        ? (rule.orderSource + '-' + rule.fulfillmentMethod + '：' + desc)
+                        : ''
+                };
+            })
+        };
+    }
+
+    function getDefaultAutoCutoffConfig() {
+        return { rules: buildDefaultAutoCutoffRules() };
+    }
+
+    function loadAutoCutoffConfig() {
+        try {
+            var raw = localStorage.getItem(AUTO_CUTOFF_CONFIG_KEY);
+            if (!raw) return getDefaultAutoCutoffConfig();
+            return normalizeAutoCutoffConfig(JSON.parse(raw));
+        } catch (e) {
+            return getDefaultAutoCutoffConfig();
+        }
+    }
+
+    function saveAutoCutoffConfig(config) {
+        localStorage.setItem(AUTO_CUTOFF_CONFIG_KEY, JSON.stringify(config));
+    }
+
+    function renderAutoCutoffConfigTable(config) {
+        var tbody = document.getElementById('autoCutoffConfigTbody');
+        if (!tbody) return;
+        var rules = mergeAutoCutoffRules((config && config.rules) || []);
+        tbody.innerHTML = rules.map(function(rule) {
+            return (
+                '<tr data-order-source="' + escapeAttr(rule.orderSource) + '" data-fulfillment-method="' + escapeAttr(rule.fulfillmentMethod) + '">' +
+                '<td>' + escapeHtml(rule.orderSource) + '</td>' +
+                '<td>' + escapeHtml(rule.fulfillmentMethod) + '</td>' +
+                '<td><input type="text" class="auto-cutoff-config-input" data-field="timerExpression" value="' + escapeAttr(rule.timerExpression) + '" placeholder="如 0 0 16 * * ?"></td>' +
+                '<td><input type="text" class="auto-cutoff-config-input" data-field="timerDesc" value="' + escapeAttr(rule.timerDesc) + '" placeholder="如 每日16:00自动截单"></td>' +
+                '</tr>'
+            );
+        }).join('');
+    }
+
+    function readAutoCutoffConfigForm() {
+        var tbody = document.getElementById('autoCutoffConfigTbody');
+        var rules = [];
+        if (!tbody) return { rules: rules };
+        tbody.querySelectorAll('tr[data-order-source]').forEach(function(tr) {
+            var orderSource = tr.getAttribute('data-order-source') || '';
+            var fulfillmentMethod = tr.getAttribute('data-fulfillment-method') || '';
+            if (!isAutoCutoffRuleAllowed(orderSource, fulfillmentMethod)) return;
+            var exprInput = tr.querySelector('[data-field="timerExpression"]');
+            var descInput = tr.querySelector('[data-field="timerDesc"]');
+            rules.push({
+                orderSource: orderSource,
+                fulfillmentMethod: fulfillmentMethod,
+                timerExpression: exprInput ? String(exprInput.value || '').trim() : '',
+                timerDesc: descInput ? String(descInput.value || '').trim() : ''
+            });
+        });
+        return { rules: rules };
+    }
+
+    function openAutoCutoffConfigModal() {
+        renderAutoCutoffConfigTable(loadAutoCutoffConfig());
+        const modal = document.getElementById('autoCutoffConfigModal');
+        if (modal) modal.style.display = 'block';
+    }
+
+    function closeAutoCutoffConfigModal() {
+        const modal = document.getElementById('autoCutoffConfigModal');
+        if (modal) modal.style.display = 'none';
+    }
+
     function renderTable() {
         const thead = document.getElementById('aggregateThead');
         const tbody = document.getElementById('aggregateTbody');
@@ -902,6 +1154,24 @@
         }
     });
 
+    document.getElementById('btnAutoCutoffConfig').addEventListener('click', openAutoCutoffConfigModal);
+
+    document.getElementById('autoCutoffConfigCloseBtn').addEventListener('click', closeAutoCutoffConfigModal);
+    document.getElementById('autoCutoffConfigCancelBtn').addEventListener('click', closeAutoCutoffConfigModal);
+    document.getElementById('autoCutoffConfigSaveBtn').addEventListener('click', function() {
+        var config = readAutoCutoffConfigForm();
+        saveAutoCutoffConfig(config);
+        closeAutoCutoffConfigModal();
+        if (typeof showToast === 'function') {
+            showToast('自动截单配置已保存', 'success');
+        }
+    });
+    document.getElementById('autoCutoffConfigModal').addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'autoCutoffConfigModal') {
+            closeAutoCutoffConfigModal();
+        }
+    });
+
     filteredLines = applyFilters(storeOrderLines);
     renderTable();
 
@@ -913,6 +1183,7 @@
     if (typeof initCustomSelect === 'function') {
         initCustomSelect('searchLiveSession', 'searchLiveSessionDropdown');
         initCustomSelect('searchOrderSource', 'searchOrderSourceDropdown');
+        initCustomSelect('searchFulfillmentMethod', 'searchFulfillmentMethodDropdown');
         initCustomSelect('searchMarketingType', 'searchMarketingTypeDropdown');
         initCustomSelect('searchOrderStatus', 'searchOrderStatusDropdown');
         initCustomSelect('searchSkuCategory', 'searchSkuCategoryDropdown');

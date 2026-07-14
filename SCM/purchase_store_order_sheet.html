@@ -19,6 +19,38 @@
             text-decoration: underline;
         }
 
+        .source-order-no-cell {
+            display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: bottom;
+            cursor: help;
+            border-bottom: 1px dashed #bbb;
+        }
+
+        .source-order-no-cell.is-single {
+            cursor: default;
+            border-bottom: none;
+        }
+
+        .source-order-no-tip {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            max-width: 360px;
+            padding: 8px 10px;
+            background: rgba(51, 51, 51, 0.95);
+            color: #fff;
+            font-size: 12px;
+            line-height: 1.6;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+            pointer-events: none;
+            white-space: pre-line;
+            word-break: break-all;
+        }
+
         .detail-modal .modal-content {
             width: 95%;
             max-width: 1100px;
@@ -290,25 +322,38 @@
 
             <section class="search-section">
                 <form class="search-form">
-                    <div class="form-group custom-select-wrapper">
-                        <label>直播时段:</label>
-                        <div class="custom-select">
-                            <input type="text" id="searchLiveSession" placeholder="请选择" readonly>
-                            <span class="select-arrow">▼</span>
-                            <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchLiveSessionDropdown">
-                                <div class="select-option" data-value="">全部</div>
-                                <div class="select-option" data-value="ZB20260420-晚场">ZB20260420-晚场</div>
-                                <div class="select-option" data-value="ZB20260420-早场">ZB20260420-早场</div>
-                                <div class="select-option" data-value="ZB20260421-晚场">ZB20260421-晚场</div>
-                            </div>
-                        </div>
-                    </div>
                     <div class="form-group">
                         <label>订货单号:</label>
                         <div class="input-wrapper">
                             <input type="text" id="searchSheetNo" placeholder="如 MDH2026010112000012" title="MDH+年月日时分秒+2位随机码">
                             <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>订单渠道:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchOrderSource" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchOrderSourceDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="商城/直播间">商城/直播间</div>
+                                <div class="select-option" data-value="代采订单">代采订单</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>履约方式:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchFulfillmentMethod" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchFulfillmentMethodDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="快递到店">快递到店</div>
+                                <div class="select-option" data-value="快递到家">快递到家</div>
+                                <div class="select-option" data-value="平台配送">平台配送</div>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -360,6 +405,7 @@
                                 <div class="select-option" data-value="">全部</div>
                                 <div class="select-option" data-value="门店订货汇总生成">门店订货汇总生成</div>
                                 <div class="select-option" data-value="手动新增">手动新增</div>
+                                <div class="select-option" data-value="售后补送">售后补送</div>
                             </div>
                         </div>
                     </div>
@@ -422,8 +468,14 @@
                             <tr>
                                 <th><input type="checkbox" class="table-checkbox checkbox-all" id="orderSheetCheckAll"></th>
                                 <th>订货单号</th>
+                                <th>来源单号</th>
+                                <th>关联单号</th>
+                                <th>采购单号</th>
                                 <th>门店</th>
-                                <th>直播时段</th>
+                                <th>订单渠道</th>
+                                <th>履约方式</th>
+                                <th>单据状态</th>
+                                <th>单据来源</th>
                                 <th>配送仓库</th>
                                 <th>收货仓库</th>
                                 <th>明细行数</th>
@@ -431,9 +483,7 @@
                                 <th>销售总价</th>
                                 <th>截单时间</th>
                                 <th>预计发货时间</th>
-                                <th>单据状态</th>
                                 <th>是否到店</th>
-                                <th>单据来源</th>
                                 <th>取消时间</th>
                                 <th>取消人</th>
                                 <th>备注</th>
@@ -502,15 +552,6 @@
                 <div class="detail-section">
                     <div class="detail-section-title">门店订货单信息</div>
                     <div class="add-so-form-grid">
-                        <div class="add-so-form-item">
-                            <span class="label">直播时段:</span>
-                            <div class="custom-select">
-                                <input type="text" id="addSoLiveSession" placeholder="请选择" readonly>
-                                <span class="select-arrow">▼</span>
-                                <span class="clear-btn">×</span>
-                                <div class="select-dropdown" id="addSoLiveSessionDropdown"></div>
-                            </div>
-                        </div>
                         <div class="add-so-form-item">
                             <span class="label">门店:</span>
                             <div class="custom-select">
@@ -604,7 +645,75 @@
     function escapeAttr(s) {
         return String(s)
             .replace(/&/g, '&amp;')
-            .replace(/"/g, '&quot;');
+            .replace(/"/g, '&quot;')
+            .replace(/\n/g, '&#10;');
+    }
+
+    function collectUniqueSourceOrderNos(ls) {
+        var seen = {};
+        var list = [];
+        (ls || []).forEach(function(r) {
+            if (r.sourceOrderNo == null) return;
+            String(r.sourceOrderNo).split(/[,，;；\s]+/).forEach(function(part) {
+                var val = String(part).trim();
+                if (!val || seen[val]) return;
+                seen[val] = true;
+                list.push(val);
+            });
+        });
+        return list;
+    }
+
+    function sourceOrderNoCellHtml(sourceOrderNos) {
+        if (!sourceOrderNos || !sourceOrderNos.length) {
+            return '<td>—</td>';
+        }
+        var fullTip = sourceOrderNos.join('\n');
+        var displayText = sourceOrderNos.length === 1
+            ? sourceOrderNos[0]
+            : sourceOrderNos[0] + ' 等' + sourceOrderNos.length + '个';
+        var cls = 'source-order-no-cell js-source-order-tip' + (sourceOrderNos.length === 1 ? ' is-single' : '');
+        return '<td><span class="' + cls + '" data-full-tip="' + escapeAttr(fullTip) + '">' + escapeHtml(displayText) + '</span></td>';
+    }
+
+    var sourceOrderTipEl = null;
+
+    function ensureSourceOrderTipEl() {
+        if (!sourceOrderTipEl) {
+            sourceOrderTipEl = document.createElement('div');
+            sourceOrderTipEl.className = 'source-order-no-tip';
+            sourceOrderTipEl.setAttribute('role', 'tooltip');
+            document.body.appendChild(sourceOrderTipEl);
+        }
+        return sourceOrderTipEl;
+    }
+
+    function hideSourceOrderTip() {
+        if (sourceOrderTipEl) {
+            sourceOrderTipEl.style.display = 'none';
+        }
+    }
+
+    function showSourceOrderTip(target) {
+        var full = target.getAttribute('data-full-tip') || '';
+        if (!full) return;
+        var tip = ensureSourceOrderTipEl();
+        tip.textContent = full;
+        tip.style.display = 'block';
+        tip.style.left = '0px';
+        tip.style.top = '0px';
+        var rect = target.getBoundingClientRect();
+        var tipRect = tip.getBoundingClientRect();
+        var left = rect.left;
+        var top = rect.bottom + 6;
+        if (left + tipRect.width > window.innerWidth - 8) {
+            left = Math.max(8, window.innerWidth - tipRect.width - 8);
+        }
+        if (top + tipRect.height > window.innerHeight - 8) {
+            top = Math.max(8, rect.top - tipRect.height - 6);
+        }
+        tip.style.left = left + 'px';
+        tip.style.top = top + 'px';
     }
 
     function renderSkuImageCell(imageUrl, altText) {
@@ -651,6 +760,21 @@
         var t = String(s).trim();
         if (!t) return '—';
         return t.length >= 10 ? t.slice(0, 10) : t;
+    }
+
+    function isExpressFulfillmentMethod(fulfillmentMethod) {
+        var fm = String(fulfillmentMethod || '').trim();
+        return fm === '快递到店' || fm === '快递到家';
+    }
+
+    function resolveSheetWarehouses(fulfillmentMethod, deliveryWarehouse, receivingWarehouse) {
+        if (isExpressFulfillmentMethod(fulfillmentMethod)) {
+            return { deliveryWarehouse: '', receivingWarehouse: '' };
+        }
+        return {
+            deliveryWarehouse: deliveryWarehouse == null ? '' : String(deliveryWarehouse),
+            receivingWarehouse: receivingWarehouse == null ? '' : String(receivingWarehouse)
+        };
     }
 
     function detailInfoItemHtml(label, value) {
@@ -779,20 +903,6 @@
         input.dataset.value = '';
         dropdown.innerHTML = (storeList || []).map(function(s) {
             return '<div class="select-option" data-value="' + escapeHtml(s.storeCode) + '">' + escapeHtml(s.displayLabel) + '</div>';
-        }).join('');
-    }
-
-    var ADD_SO_LIVE_SESSION_OPTIONS = ['ZB20260420-晚场', 'ZB20260420-早场', 'ZB20260421-晚场'];
-
-    function renderAddSoLiveSessionDropdown() {
-        var input = document.getElementById('addSoLiveSession');
-        var dropdown = document.getElementById('addSoLiveSessionDropdown');
-        if (!input || !dropdown) return;
-        input.value = '';
-        input.dataset.value = '';
-        var opts = ADD_SO_LIVE_SESSION_OPTIONS.slice();
-        dropdown.innerHTML = opts.map(function(v) {
-            return '<div class="select-option" data-value="' + escapeHtml(v) + '">' + escapeHtml(v) + '</div>';
         }).join('');
     }
 
@@ -939,10 +1049,8 @@
         var dir = buildStoreDirectory(lines);
         addSoStoreByCode = dir.byCode;
         addSoSkuMaster = buildSkuMaster(lines);
-        renderAddSoLiveSessionDropdown();
         renderSoStoreDropdown(dir.list);
         renderSoProductDatalist();
-        setCustomSelectValue('addSoLiveSession', ADD_SO_LIVE_SESSION_OPTIONS[0]);
         setCustomSelectValue('addSoStore', '');
         document.getElementById('addSoDeliveryWarehouse').value = '';
         document.getElementById('addSoReceivingWarehouse').value = '';
@@ -963,7 +1071,6 @@
     }
 
     function validateAddSo() {
-        if (!getCustomSelectValue('addSoLiveSession')) return false;
         if (!getCustomSelectValue('addSoStore')) return false;
         var d = (document.getElementById('addSoDeliveryWarehouse').value || '').trim();
         var r = (document.getElementById('addSoReceivingWarehouse').value || '').trim();
@@ -984,7 +1091,7 @@
     function saveAddSo() {
         if (!validateAddSo()) {
             if (typeof showToast === 'function') {
-                showToast('请选择直播时段、门店并填写预计发货时间，且至少保留一条有效商品明细（编码与订货量）', 'error');
+                showToast('请选择门店并填写预计发货时间，且至少保留一条有效商品明细（编码与订货量）', 'error');
             }
             return;
         }
@@ -994,7 +1101,6 @@
         var shipDateVal = document.getElementById('addSoExpectedShipDate').value;
         var placeOrder = shipDateVal || nowDateText();
         var datePart = placeOrder.length >= 10 ? placeOrder.slice(0, 10) : nowDateText();
-        var liveSession = getCustomSelectValue('addSoLiveSession');
         var remarkText = (document.getElementById('addSoRemark') && document.getElementById('addSoRemark').value || '').trim();
         var validLines = addSoLines.filter(function(l) {
             return String(l.skuCode || '').trim() && (Number(l.orderQty) || 0) > 0;
@@ -1005,11 +1111,11 @@
             lines.push({
                 placeOrderDate: datePart,
                 paymentDate: datePart,
-                orderSource: '门店订货',
+                orderSource: '商城/直播间',
+                fulfillmentMethod: '快递到店',
                 orderStatus: '待发货',
-                liveSession: liveSession,
-                deliveryWarehouse: st.deliveryWarehouse,
-                receivingWarehouse: st.receivingWarehouse,
+                deliveryWarehouse: '',
+                receivingWarehouse: '',
                 storeCode: st.storeCode,
                 storeName: st.storeName,
                 skuCode: skuKey,
@@ -1090,7 +1196,12 @@
                 return s !== '' ? s : '—';
             };
             var remark = (metaLine.remark != null && String(metaLine.remark).trim() !== '') ? String(metaLine.remark).trim() : '';
-            var docSource = (metaLine.docSource != null && String(metaLine.docSource).trim() !== '') ? String(metaLine.docSource).trim() : '门店订货汇总生成';
+            var docSourceLine = ls.find(function(r) {
+                return r.docSource != null && String(r.docSource).trim() !== '';
+            });
+            var docSource = docSourceLine
+                ? String(docSourceLine.docSource).trim()
+                : '门店订货汇总生成';
             var sheetTotalOverride = ls.find(function(r) {
                 return r.sheetOrderTotal != null && String(r.sheetOrderTotal).trim() !== '' && !isNaN(Number(r.sheetOrderTotal));
             });
@@ -1130,13 +1241,31 @@
             var closeBy = pickStr(metaLine.closeBy);
             var cancelTime = pickStr(metaLine.cancelTime);
             var cancelBy = pickStr(metaLine.cancelBy);
+            var fulfillmentMethod = first.fulfillmentMethod || '—';
+            var warehouses = resolveSheetWarehouses(fulfillmentMethod, first.deliveryWarehouse, first.receivingWarehouse);
+            var sourceOrderNos = collectUniqueSourceOrderNos(ls);
+            var relatedOrderNo = '—';
+            if (!isExpressFulfillmentMethod(fulfillmentMethod)) {
+                var relatedLine = ls.find(function(r) {
+                    return r.relatedOrderNo != null && String(r.relatedOrderNo).trim() !== '';
+                });
+                relatedOrderNo = pickStr(relatedLine ? relatedLine.relatedOrderNo : '');
+            }
+            var poLine = ls.find(function(r) {
+                return r.poNo != null && String(r.poNo).trim() !== '';
+            });
+            var poNo = pickStr(poLine ? poLine.poNo : '');
             return {
                 sheetNo: grp.sheetNo,
+                sourceOrderNos: sourceOrderNos,
+                relatedOrderNo: relatedOrderNo,
+                poNo: poNo,
                 storeCode: first.storeCode,
                 storeName: first.storeName,
-                liveSession: first.liveSession,
-                deliveryWarehouse: first.deliveryWarehouse,
-                receivingWarehouse: first.receivingWarehouse,
+                orderSource: first.orderSource || '—',
+                fulfillmentMethod: fulfillmentMethod,
+                deliveryWarehouse: warehouses.deliveryWarehouse,
+                receivingWarehouse: warehouses.receivingWarehouse,
                 lineCount: ls.length,
                 totalQty: totalQty,
                 orderTotalPrice: orderTotalPrice,
@@ -1191,8 +1320,20 @@
         return el.value.trim();
     }
 
-    function getLiveSessionFilter() {
-        var el = document.getElementById('searchLiveSession');
+    function getOrderSourceFilter() {
+        var el = document.getElementById('searchOrderSource');
+        if (!el) return '';
+        if (el.dataset.value !== undefined && el.dataset.value !== '') {
+            return el.dataset.value.trim();
+        }
+        if (el.dataset.value === '') {
+            return '';
+        }
+        return el.value.trim();
+    }
+
+    function getFulfillmentMethodFilter() {
+        var el = document.getElementById('searchFulfillmentMethod');
         if (!el) return '';
         if (el.dataset.value !== undefined && el.dataset.value !== '') {
             return el.dataset.value.trim();
@@ -1300,7 +1441,8 @@
     function applyHeaderFilters() {
         var fSheet = getSheetNoFilter();
         var fStore = getStoreFilter();
-        var fLive = getLiveSessionFilter();
+        var fOrderSource = getOrderSourceFilter();
+        var fFulfillment = getFulfillmentMethodFilter();
         var fWh = getDeliveryWarehouseFilter();
         var fRec = getReceivingWarehouseFilter();
         var fSrc = getDocSourceFilter();
@@ -1311,7 +1453,8 @@
         return allHeaders.filter(function(h) {
             if (fSheet && h.sheetNo.indexOf(fSheet) === -1) return false;
             if (fStore && h.storeCode !== fStore) return false;
-            if (fLive && h.liveSession !== fLive) return false;
+            if (fOrderSource && h.orderSource !== fOrderSource) return false;
+            if (fFulfillment && h.fulfillmentMethod !== fFulfillment) return false;
             if (fWh && h.deliveryWarehouse !== fWh) return false;
             if (fRec && h.receivingWarehouse !== fRec) return false;
             if (fSrc && h.docSource !== fSrc) return false;
@@ -1362,7 +1505,7 @@
         var pageRows = filteredHeaders.slice(start, start + pageSize);
 
         if (pageRows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="22" style="text-align:center;color:#999;">暂无数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="26" style="text-align:center;color:#999;">暂无数据</td></tr>';
         } else {
             tbody.innerHTML = pageRows.map(function(h) {
                 var storeText = (h.storeName && h.storeCode)
@@ -1372,18 +1515,22 @@
                     '<tr data-sheet-no="' + escapeHtml(h.sheetNo) + '">' +
                     '<td><input type="checkbox" class="table-checkbox checkbox-row"></td>' +
                     '<td><a href="#" class="order-no-link js-open-order-detail" data-sheet-no="' + escapeHtml(h.sheetNo) + '">' + escapeHtml(h.sheetNo) + '</a></td>' +
+                    sourceOrderNoCellHtml(h.sourceOrderNos) +
+                    '<td>' + escapeHtml(h.relatedOrderNo) + '</td>' +
+                    '<td>' + escapeHtml(h.poNo) + '</td>' +
                     '<td>' + escapeHtml(storeText) + '</td>' +
-                    '<td>' + escapeHtml(h.liveSession) + '</td>' +
-                    '<td>' + escapeHtml(h.deliveryWarehouse) + '</td>' +
-                    '<td>' + escapeHtml(h.receivingWarehouse) + '</td>' +
+                    '<td>' + escapeHtml(h.orderSource) + '</td>' +
+                    '<td>' + escapeHtml(h.fulfillmentMethod) + '</td>' +
+                    '<td>' + statusCellHtml(h.headerStatus) + '</td>' +
+                    '<td>' + escapeHtml(h.docSource) + '</td>' +
+                    '<td>' + escapeHtml(h.deliveryWarehouse || '—') + '</td>' +
+                    '<td>' + escapeHtml(h.receivingWarehouse || '—') + '</td>' +
                     '<td>' + h.lineCount + '</td>' +
                     '<td>' + h.totalQty + '</td>' +
                     '<td>' + escapeHtml(h.orderTotalPrice) + '</td>' +
                     '<td>' + escapeHtml(h.cutoffTime) + '</td>' +
                     '<td>' + escapeHtml(h.expectedShipTime) + '</td>' +
-                    '<td>' + statusCellHtml(h.headerStatus) + '</td>' +
                     '<td>' + escapeHtml(h.isArrivedStore) + '</td>' +
-                    '<td>' + escapeHtml(h.docSource) + '</td>' +
                     '<td>' + escapeHtml(h.cancelTime) + '</td>' +
                     '<td>' + escapeHtml(h.cancelBy) + '</td>' +
                     '<td>' + escapeHtml(h.remark) + '</td>' +
@@ -1438,12 +1585,14 @@
             infoBox.innerHTML = [
                 detailInfoItemHtml('订货单号', h.sheetNo),
                 detailInfoItemHtml('门店', detailStoreText),
-                detailInfoItemHtml('直播时段', h.liveSession),
+                detailInfoItemHtml('订单渠道', h.orderSource),
+                detailInfoItemHtml('履约方式', h.fulfillmentMethod),
+                detailInfoItemHtml('单据状态', h.headerStatus),
+                detailInfoItemHtml('单据来源', h.docSource),
                 detailInfoItemHtml('配送仓库', h.deliveryWarehouse),
                 detailInfoItemHtml('收货仓库', h.receivingWarehouse),
                 detailInfoItemHtml('截单时间', h.cutoffTime),
                 detailInfoItemHtml('预计发货时间', h.expectedShipTime),
-                detailInfoItemHtml('单据状态', h.headerStatus),
                 detailInfoItemHtml('是否到店', h.isArrivedStore),
                 detailInfoItemHtml('取消时间', h.cancelTime),
                 detailInfoItemHtml('取消人', h.cancelBy),
@@ -1499,6 +1648,27 @@
         var modal = document.getElementById('orderSheetDetailModal');
         if (modal) modal.style.display = 'none';
     }
+
+    document.getElementById('orderSheetTbody').addEventListener('mouseover', function(e) {
+        var tipTarget = e.target.closest('.js-source-order-tip');
+        if (!tipTarget) return;
+        showSourceOrderTip(tipTarget);
+    });
+
+    document.getElementById('orderSheetTbody').addEventListener('mouseout', function(e) {
+        var tipTarget = e.target.closest('.js-source-order-tip');
+        if (!tipTarget) return;
+        var related = e.relatedTarget;
+        if (related && tipTarget.contains(related)) return;
+        hideSourceOrderTip();
+    });
+
+    var orderSheetScrollContainer = document.querySelector('.table-scroll-container');
+    if (orderSheetScrollContainer) {
+        orderSheetScrollContainer.addEventListener('scroll', hideSourceOrderTip);
+    }
+    window.addEventListener('scroll', hideSourceOrderTip, true);
+    window.addEventListener('resize', hideSourceOrderTip);
 
     document.getElementById('orderSheetTbody').addEventListener('click', function(e) {
         var link = e.target.closest('.js-open-order-detail');
@@ -1661,14 +1831,14 @@
     renderSearchStoreDropdown();
 
     if (typeof initCustomSelect === 'function') {
-        initCustomSelect('searchLiveSession', 'searchLiveSessionDropdown');
+        initCustomSelect('searchOrderSource', 'searchOrderSourceDropdown');
+        initCustomSelect('searchFulfillmentMethod', 'searchFulfillmentMethodDropdown');
         initCustomSelect('searchStore', 'searchStoreDropdown');
         initCustomSelect('searchDeliveryWarehouse', 'searchDeliveryWarehouseDropdown');
         initCustomSelect('searchReceivingWarehouse', 'searchReceivingWarehouseDropdown');
         initCustomSelect('searchDocSource', 'searchDocSourceDropdown');
         initCustomSelect('searchOrderHeaderStatus', 'searchOrderHeaderStatusDropdown');
         initCustomSelect('searchIsArrivedStore', 'searchIsArrivedStoreDropdown');
-        initCustomSelect('addSoLiveSession', 'addSoLiveSessionDropdown');
         initCustomSelect('addSoStore', 'addSoStoreDropdown');
     }
 

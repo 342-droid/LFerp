@@ -6,8 +6,7 @@
      * 采购单单据来源枚举
      */
     window.PURCHASE_ORDER_DOC_SOURCES = {
-        DEMAND_SUMMARY_BY_SUPPLIER: '采购需求汇总-按供应商',
-        DEMAND_SUMMARY_BY_STORE: '采购需求汇总-按门店',
+        DEMAND_SUMMARY: '采购需求汇总',
         MANUAL: '手动新增'
     };
 
@@ -59,21 +58,34 @@
         var warehouse = String(row.warehouse || '').trim();
         var map = window.PURCHASE_ORDER_WAREHOUSE_RECEIVE_INFO || {};
         var fallback = warehouse && map[warehouse] ? map[warehouse] : {};
-        return {
+        var receiveInfo = {
             receiveName: (info && info.receiveName) || row.receiveName || fallback.receiveName || warehouse || empty,
             receiveAddress: (info && info.receiveAddress) || row.receiveAddress || fallback.receiveAddress || empty,
             receivePhone: (info && info.receivePhone) || row.receivePhone || fallback.receivePhone || empty,
             receiver: (info && info.receiver) || row.receiver || fallback.receiver || empty
         };
+        if (String(row.fulfillmentMethod || '').trim() === '快递到家') {
+            receiveInfo.receiveName = '快递到家';
+        }
+        return receiveInfo;
     };
 
+    /**
+     * orderSource 枚举含商城/直播间、代采订单；fulfillmentMethod 枚举含快递到店、快递到家、平台配送。
+     * sourceOrderNo 为来源单号（门店订货单号 MDH 前缀，可逗号分隔多个）；单据来源为手动新增时列表/详情展示层将来源单号置空；relatedOrderNo 为关联单号（如 WMS 采购入库单号）；履约方式为快递到家时列表/详情展示层将关联单号置空、收货地名称展示为「快递到家」。
+     * 明细行 logisticsNo 支持多个物流单号（逗号/分号/空格分隔）；物流确认按采购单+商品维度维护。
+     */
     window.PURCHASE_ORDERS = [
         {
             poNo: 'PO2026042012000001',
+            sourceOrderNo: 'MDH2026042012000037, MDH2026042015301528',
+            relatedOrderNo: 'IBD2026042012000001',
+            orderSource: '商城/直播间',
+            fulfillmentMethod: '平台配送',
             warehouse: 'W001 南京仓',
             supplier: '华东果蔬有限公司',
             docStatus: '初始',
-            docSource: '采购需求汇总-按供应商',
+            docSource: '采购需求汇总',
             deliveryDate: '2026-04-28',
             remark: '首批补货',
             createdAt: '2026-04-20 10:12:00',
@@ -85,35 +97,48 @@
         },
         {
             poNo: 'PO2026042012150002',
+            sourceOrderNo: 'MDH2026042015301528',
+            relatedOrderNo: 'IBD2026042012150002',
+            orderSource: '商城/直播间',
+            fulfillmentMethod: '平台配送',
             warehouse: 'W002 嘉兴仓',
             supplier: '浙北农产品合作社',
             docStatus: '部分收货',
-            docSource: '采购需求汇总-按供应商',
+            docSource: '采购需求汇总',
+            logisticsNo: 'SF1234567890123',
             deliveryDate: '2026-04-26',
             remark: '',
             createdAt: '2026-04-20 15:30:22',
             createdBy: '李强',
             lines: [
-                { skuCode: 'SKU003', skuName: '脐橙', spec: '10kg/箱', skuCategory: '生鲜 / 水果 / 柑橘类', qtyUnit: '箱', buyer: '李强', purchaseQty: 80, receivedQty: 45, suggestedUnitPrice: 6.8, actualUnitPrice: 6.5, saleUnitPrice: 6.2, purchaseAmount: 520, saleAmount: 496, prepaidAmount: 150, lineRemark: '礼盒优先发' }
+                { skuCode: 'SKU003', skuName: '脐橙', spec: '10kg/箱', skuCategory: '生鲜 / 水果 / 柑橘类', qtyUnit: '箱', buyer: '李强', purchaseQty: 80, receivedQty: 45, suggestedUnitPrice: 6.8, actualUnitPrice: 6.5, saleUnitPrice: 6.2, purchaseAmount: 520, saleAmount: 496, prepaidAmount: 150, lineRemark: '礼盒优先发', logisticsNo: 'SF1234567890123' }
             ]
         },
         {
             poNo: 'PO2026042110300003',
+            sourceOrderNo: 'MDH2026042118154291',
+            orderSource: '商城/直播间',
+            fulfillmentMethod: '快递到家',
             warehouse: 'W003 上海仓',
             supplier: '上海鲜达供应链',
             docStatus: '已完成',
             docSource: '手动新增',
+            logisticsNo: 'YT9876543210987',
             deliveryDate: '2026-04-24',
             remark: '合同价已确认',
             createdAt: '2026-04-21 10:30:00',
             createdBy: '王华',
             lines: [
-                { skuCode: 'SKU001', skuName: '红富士苹果', spec: '5kg/箱', skuCategory: '生鲜 / 水果 / 仁果类', qtyUnit: '件', buyer: '王华', purchaseQty: 60, receivedQty: 60, suggestedUnitPrice: 5.2, actualUnitPrice: 5.1, saleUnitPrice: 4.8, purchaseAmount: 306, saleAmount: 288, prepaidAmount: 60, lineRemark: '' },
-                { skuCode: 'SKU004', skuName: '山东大蒜', spec: '12袋/箱', skuCategory: '生鲜 / 蔬菜 / 根茎类', qtyUnit: '斤', buyer: '张敏', purchaseQty: 200, receivedQty: 200, suggestedUnitPrice: 3.0, actualUnitPrice: 2.95, saleUnitPrice: 2.8, purchaseAmount: 590, saleAmount: 560, prepaidAmount: 200, lineRemark: '净重计价' }
+                { skuCode: 'SKU001', skuName: '红富士苹果', spec: '5kg/箱', skuCategory: '生鲜 / 水果 / 仁果类', qtyUnit: '件', buyer: '王华', purchaseQty: 60, receivedQty: 60, suggestedUnitPrice: 5.2, actualUnitPrice: 5.1, saleUnitPrice: 4.8, purchaseAmount: 306, saleAmount: 288, prepaidAmount: 60, lineRemark: '', logisticsNo: 'YT9876543210987, YT9876543210999' },
+                { skuCode: 'SKU004', skuName: '山东大蒜', spec: '12袋/箱', skuCategory: '生鲜 / 蔬菜 / 根茎类', qtyUnit: '斤', buyer: '张敏', purchaseQty: 200, receivedQty: 200, suggestedUnitPrice: 3.0, actualUnitPrice: 2.95, saleUnitPrice: 2.8, purchaseAmount: 590, saleAmount: 560, prepaidAmount: 200, lineRemark: '净重计价', logisticsNo: 'YT9876543210999' }
             ]
         },
         {
             poNo: 'PO2026042114000004',
+            sourceOrderNo: 'MDH2026042512000001',
+            relatedOrderNo: 'IBD2026042114000004',
+            orderSource: '代采订单',
+            fulfillmentMethod: '快递到店',
             warehouse: 'W001 南京仓',
             supplier: '苏果直采中心',
             docStatus: '已取消',
@@ -128,10 +153,14 @@
         },
         {
             poNo: 'PO2026042209000005',
+            sourceOrderNo: 'MDH2026042210300055',
+            relatedOrderNo: 'IBD2026042209000005',
+            orderSource: '商城/直播间',
+            fulfillmentMethod: '平台配送',
             warehouse: 'W004 北京仓',
             supplier: '华北冷链物流',
             docStatus: '初始',
-            docSource: '采购需求汇总-按供应商',
+            docSource: '采购需求汇总',
             deliveryDate: '2026-04-29',
             remark: '需冷链',
             createdAt: '2026-04-22 09:00:45',
@@ -142,10 +171,14 @@
         },
         {
             poNo: 'PO2026042211000006',
+            sourceOrderNo: 'MDH2026042310050088, MDH2026042311450096',
+            relatedOrderNo: 'IBD2026042211000006',
+            orderSource: '商城/直播间',
+            fulfillmentMethod: '平台配送',
             warehouse: 'W002 嘉兴仓',
             supplier: '浙北农产品合作社',
             docStatus: '部分收货',
-            docSource: '采购需求汇总-按供应商',
+            docSource: '采购需求汇总',
             deliveryDate: '2026-04-25',
             remark: '分批发货',
             createdAt: '2026-04-22 11:05:00',
@@ -157,10 +190,14 @@
         },
         {
             poNo: 'PO2026042308000007',
+            sourceOrderNo: 'MDH2026042311450096',
+            relatedOrderNo: 'IBD2026042308000007',
+            orderSource: '商城/直播间',
+            fulfillmentMethod: '快递到店',
             warehouse: 'W003 上海仓',
             supplier: '上海鲜达供应链',
             docStatus: '已完成',
-            docSource: '采购需求汇总-按门店',
+            docSource: '采购需求汇总',
             deliveryDate: '2026-04-23',
             remark: '按门店拆分，当前门店：ST001 南京新街口店',
             receiveInfo: {
@@ -177,6 +214,9 @@
         },
         {
             poNo: 'PO2026042316000008',
+            sourceOrderNo: 'MDH2026042512000002',
+            orderSource: '代采订单',
+            fulfillmentMethod: '快递到家',
             warehouse: 'W001 南京仓',
             supplier: '华东果蔬有限公司',
             docStatus: '初始',

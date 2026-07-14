@@ -77,7 +77,10 @@
                                 <th>货主名称</th>
                                 <th>是否启用</th>
                                 <th>公司名称</th>
-                                <th>地址</th>
+                                <th>省</th>
+                                <th>市</th>
+                                <th>区</th>
+                                <th>详细地址</th>
                                 <th>联系人</th>
                                 <th>电话</th>
                                 <th>更新时间</th>
@@ -92,7 +95,7 @@
                                 <td>南京货主</td>
                                 <td><span class="status active">启用</span></td>
                                 <td>南京公司</td>
-                                <td>江苏省南京市江陵区...</td>
+                                <td>江苏省</td><td>南京市</td><td>江陵区</td><td>江陵东路88号</td>
                                 <td>张三</td>
                                 <td>18612341234</td>
                                 <td>2025-01-05 12:31:43</td>
@@ -108,7 +111,7 @@
                                 <td>北京货主</td>
                                 <td><span class="status active">启用</span></td>
                                 <td>北京公司</td>
-                                <td>北京市北京区...</td>
+                                <td>北京市</td><td>市辖区</td><td>朝阳区</td><td>建国路88号</td>
                                 <td>张三</td>
                                 <td>18612341236</td>
                                 <td>2025-01-05 12:31:43</td>
@@ -124,7 +127,7 @@
                                 <td>上海货主</td>
                                 <td><span class="status inactive">禁用</span></td>
                                 <td>上海公司</td>
-                                <td>上海市上海区...</td>
+                                <td>上海市</td><td>市辖区</td><td>浦东新区</td><td>世纪大道100号</td>
                                 <td>李四</td>
                                 <td>18612341237</td>
                                 <td>2025-01-05 12:31:43</td>
@@ -140,7 +143,7 @@
                                 <td>广州货主</td>
                                 <td><span class="status active">启用</span></td>
                                 <td>广州公司</td>
-                                <td>广州市广州区...</td>
+                                <td>广东省</td><td>广州市</td><td>天河区</td><td>体育西路100号</td>
                                 <td>张三</td>
                                 <td>18612341238</td>
                                 <td>2025-01-05 12:31:43</td>
@@ -156,7 +159,7 @@
                                 <td>深圳货主</td>
                                 <td><span class="status active">启用</span></td>
                                 <td>深圳公司</td>
-                                <td>深圳市深圳区...</td>
+                                <td>广东省</td><td>深圳市</td><td>南山区</td><td>科技园南路18号</td>
                                 <td>李四</td>
                                 <td>18612341239</td>
                                 <td>2025-01-05 12:31:43</td>
@@ -172,7 +175,7 @@
                                 <td>杭州货主</td>
                                 <td><span class="status inactive">禁用</span></td>
                                 <td>杭州公司</td>
-                                <td>杭州市杭州区...</td>
+                                <td>浙江省</td><td>杭州市</td><td>余杭区</td><td>文一西路866号</td>
                                 <td>张三</td>
                                 <td>18612341240</td>
                                 <td>2025-01-05 12:31:43</td>
@@ -196,6 +199,7 @@
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
+    <script src="../js/region-cascader.js"></script>
     <script src="../js/modal-manager.js"></script>
     <script src="../js/page-manager.js"></script>
     <script>
@@ -218,7 +222,7 @@
                     { id: 'isEnabled', label: '是否启用', type: 'select', required: true,
                       options: [{ value: 'yes', text: '启用' }, { value: 'no', text: '禁用' }] },
                     { id: 'corpName', label: '公司名称', type: 'text' },
-                    { id: 'address', label: '地址', type: 'text' },
+                    ...RegionCascader.buildPageManagerAddressFields({ labelWidth: '100px' }),
                     { id: 'contactPerson', label: '联系人', type: 'text' },
                     { id: 'phone', label: '电话', type: 'text' },
                     { id: 'remark', label: '备注', type: 'textarea', labelWidth: '100px' }
@@ -230,6 +234,10 @@
                     saveBtnId: 'saveBtn',
                     triggerBtnId: 'addBtn',
                     defaults: { isEnabled: '启用' },
+                    onOpen: () => {
+                        RegionCascader.initModalAddress('add');
+                        RegionCascader.resetModalAddress('add');
+                    },
                     validations: [
                         { id: 'companyCode', message: '请输入货主编码', required: true },
                         { id: 'companyName', message: '请输入货主名称', required: true },
@@ -240,9 +248,9 @@
                         const name = document.getElementById('companyName').value.trim();
                         const enabled = document.getElementById('isEnabled').value.trim();
                         const corpName = document.getElementById('corpName')?.value.trim() || '-';
-                        const address = document.getElementById('address')?.value.trim() || '-';
                         const contact = document.getElementById('contactPerson')?.value.trim() || '-';
                         const phone = document.getElementById('phone')?.value.trim() || '-';
+                        const addr = RegionCascader.getModalAddress('add');
                         
                         page.addTableRow({
                             cells: [
@@ -250,7 +258,7 @@
                                 name,
                                 { value: enabled, isStatus: true },
                                 corpName,
-                                address,
+                                ...RegionCascader.tableCells(addr),
                                 contact,
                                 phone,
                                 page.getCurrentTimeStr(),
@@ -271,15 +279,19 @@
                     ],
                     onSave: () => {
                         if (!page.currentEditRow) return;
+                        const addr = RegionCascader.getModalAddress('edit');
                         page.updateTableRow(page.currentEditRow, {
                             2: document.getElementById('editCompanyName').value.trim(),
                             3: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
                             4: document.getElementById('editCorpName')?.value.trim() || '-',
-                            5: document.getElementById('editAddress')?.value.trim() || '-',
-                            6: document.getElementById('editContactPerson')?.value.trim() || '-',
-                            7: document.getElementById('editPhone')?.value.trim() || '-',
-                            8: page.getCurrentTimeStr(),
-                            9: '当前用户'
+                            5: addr.province || '-',
+                            6: addr.city || '-',
+                            7: addr.district || '-',
+                            8: addr.detailAddress || '-',
+                            9: document.getElementById('editContactPerson')?.value.trim() || '-',
+                            10: document.getElementById('editPhone')?.value.trim() || '-',
+                            11: page.getCurrentTimeStr(),
+                            12: '当前用户'
                         });
                         showToast('货主信息已更新', 'success');
                         page.currentEditRow = null;
@@ -287,14 +299,16 @@
                     mapRowToForm: (row) => {
                         page.currentEditRow = row;
                         const cells = row.querySelectorAll('td');
+                        RegionCascader.initModalAddress('edit');
+                        RegionCascader.setModalAddress('edit', RegionCascader.readRowAddressCells(cells, 5));
                         return {
                             editCompanyCode: cells[1].textContent,
                             editCompanyName: cells[2].textContent,
                             editIsEnabled: cells[3].querySelector('.status').textContent,
                             editCorpName: cells[4].textContent === '-' ? '' : cells[4].textContent,
-                            editAddress: cells[5].textContent === '-' ? '' : cells[5].textContent,
-                            editContactPerson: cells[6].textContent === '-' ? '' : cells[6].textContent,
-                            editPhone: cells[7].textContent === '-' ? '' : cells[7].textContent
+                            editDetailAddress: cells[8].textContent === '-' ? '' : cells[8].textContent,
+                            editContactPerson: cells[9].textContent === '-' ? '' : cells[9].textContent,
+                            editPhone: cells[10].textContent === '-' ? '' : cells[10].textContent
                         };
                     }
                 },

@@ -53,28 +53,6 @@
             color: #333;
         }
 
-        .po-dimension-modal .modal-content {
-            width: 90%;
-            max-width: 440px;
-            margin: 12% auto;
-        }
-
-        .po-dimension-modal .dimension-modal-hint {
-            margin: 0 0 18px;
-            font-size: 13px;
-            color: #666;
-            line-height: 1.5;
-        }
-
-        .po-dimension-modal .modal-form-group {
-            width: 100%;
-            align-items: flex-start;
-        }
-
-        .po-dimension-modal .modal-form-group .radio-group {
-            flex-wrap: wrap;
-        }
-
         .po-preview-modal .modal-content {
             width: 99%;
             max-width: 1560px;
@@ -313,6 +291,33 @@
                             </div>
                         </div>
                     </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>订单渠道:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchOrderSource" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchOrderSourceDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="商城/直播间">商城/直播间</div>
+                                <div class="select-option" data-value="代采订单">代采订单</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>履约方式:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchFulfillmentMethod" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchFulfillmentMethodDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="快递到店">快递到店</div>
+                                <div class="select-option" data-value="快递到家">快递到家</div>
+                                <div class="select-option" data-value="平台配送">平台配送</div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>商品编码:</label>
                         <div class="input-wrapper">
@@ -450,37 +455,6 @@
                         <tbody id="demandDetailTbody"></tbody>
                     </table>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="generatePoDimensionModal" class="modal po-dimension-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">选择采购单生成维度</div>
-                <span class="close" id="generatePoDimensionCloseBtn">&times;</span>
-            </div>
-            <div class="modal-body">
-                <p class="dimension-modal-hint">请选择生成方式：按供应商维度合并为采购单，或按门店维度分别为各门店生成采购单。</p>
-                <div class="modal-form">
-                    <div class="modal-form-group">
-                        <label>生成维度</label>
-                        <div class="radio-group">
-                            <div class="radio-option">
-                                <input type="radio" name="poGenDimension" id="poGenDimSupplier" value="supplier" checked>
-                                <label for="poGenDimSupplier">按供应商维度</label>
-                            </div>
-                            <div class="radio-option">
-                                <input type="radio" name="poGenDimension" id="poGenDimStore" value="store">
-                                <label for="poGenDimStore">按门店维度</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="generatePoDimensionCancelBtn">取消</button>
-                <button type="button" class="btn btn-primary" id="generatePoDimensionConfirmBtn">确定</button>
             </div>
         </div>
     </div>
@@ -724,6 +698,8 @@
             skuCategory: getCustomSelectValue('searchSkuCategory'),
             storeCode: getCustomSelectValue('searchStore'),
             receivingWarehouse: getCustomSelectValue('searchReceivingWarehouse'),
+            orderSource: getCustomSelectValue('searchOrderSource'),
+            fulfillmentMethod: getCustomSelectValue('searchFulfillmentMethod'),
             orderDateStart: val('searchOrderDateStart'),
             orderDateEnd: val('searchOrderDateEnd'),
             shipDateStart: val('searchShipDateStart'),
@@ -749,6 +725,8 @@
             if (f.skuCategory && row.skuCategoryPath !== f.skuCategory) return false;
             if (f.storeCode && row.storeCode !== f.storeCode) return false;
             if (f.receivingWarehouse && row.receivingWarehouse !== f.receivingWarehouse) return false;
+            if (f.orderSource && row.orderSource !== f.orderSource) return false;
+            if (f.fulfillmentMethod && row.fulfillmentMethod !== f.fulfillmentMethod) return false;
             if (!rowInDateRange(row.orderDate, f.orderDateStart, f.orderDateEnd)) return false;
             if (f.shipDateStart || f.shipDateEnd) {
                 if (!row.shipDate) return false;
@@ -976,23 +954,6 @@
         });
         html += '</select>';
         return html;
-    }
-
-    function openGeneratePoDimensionModal() {
-        var modal = document.getElementById('generatePoDimensionModal');
-        var supplierRadio = document.getElementById('poGenDimSupplier');
-        if (supplierRadio) supplierRadio.checked = true;
-        if (modal) modal.style.display = 'block';
-    }
-
-    function closeGeneratePoDimensionModal() {
-        var modal = document.getElementById('generatePoDimensionModal');
-        if (modal) modal.style.display = 'none';
-    }
-
-    function getSelectedPoGenDimension() {
-        var el = document.querySelector('input[name="poGenDimension"]:checked');
-        return el && el.value === 'store' ? 'store' : 'supplier';
     }
 
     function countPurchaseOrdersByGenDimension(dim, lines) {
@@ -1381,12 +1342,6 @@
         }
     }
 
-    function confirmGeneratePurchaseOrder() {
-        var dim = getSelectedPoGenDimension();
-        closeGeneratePoDimensionModal();
-        openGeneratePoPreviewModal(dim);
-    }
-
     document.getElementById('summaryTbody').addEventListener('click', function(e) {
         const thumb = e.target.closest('.js-sku-image-preview');
         if (thumb) {
@@ -1435,17 +1390,9 @@
     });
 
     document.getElementById('btnGeneratePurchase').addEventListener('click', function() {
-        openGeneratePoDimensionModal();
+        openGeneratePoPreviewModal('supplier');
     });
 
-    document.getElementById('generatePoDimensionCloseBtn').addEventListener('click', closeGeneratePoDimensionModal);
-    document.getElementById('generatePoDimensionCancelBtn').addEventListener('click', closeGeneratePoDimensionModal);
-    document.getElementById('generatePoDimensionConfirmBtn').addEventListener('click', confirmGeneratePurchaseOrder);
-    document.getElementById('generatePoDimensionModal').addEventListener('click', function(e) {
-        if (e.target && e.target.id === 'generatePoDimensionModal') {
-            closeGeneratePoDimensionModal();
-        }
-    });
     document.getElementById('generatePoPreviewCloseBtn').addEventListener('click', closeGeneratePoPreviewModal);
     document.getElementById('generatePoPreviewCancelBtn').addEventListener('click', closeGeneratePoPreviewModal);
     document.getElementById('generatePoPreviewConfirmBtn').addEventListener('click', confirmGeneratePurchaseOrderFromPreview);
@@ -1521,6 +1468,8 @@
         initCustomSelect('searchSkuCategory', 'searchSkuCategoryDropdown');
         initCustomSelect('searchStore', 'searchStoreDropdown');
         initCustomSelect('searchReceivingWarehouse', 'searchReceivingWarehouseDropdown');
+        initCustomSelect('searchOrderSource', 'searchOrderSourceDropdown');
+        initCustomSelect('searchFulfillmentMethod', 'searchFulfillmentMethodDropdown');
     }
 
     filteredLines = applyFilters(detailLines);
