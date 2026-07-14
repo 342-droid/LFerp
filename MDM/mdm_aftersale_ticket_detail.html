@@ -42,6 +42,38 @@
             </div>
         </div>
     </div>
+    <div class="aftersale-addr-modal" id="asRejectModal" hidden>
+        <div class="aftersale-addr-modal__mask" data-reject-close></div>
+        <div class="aftersale-addr-modal__panel aftersale-reject-modal__panel" role="dialog" aria-modal="true" aria-labelledby="asRejectModalTitle">
+            <div class="aftersale-addr-modal__head">
+                <h3 id="asRejectModalTitle">拒绝收货</h3>
+                <button type="button" class="aftersale-detail-page__close" data-reject-close aria-label="关闭">×</button>
+            </div>
+            <div class="aftersale-addr-modal__body">
+                <p class="aftersale-reject-modal__tip">拒收后门店寄回商品将退回门店，本次售后关闭且不发起退款。</p>
+                <label class="aftersale-reject-modal__field">拒收原因
+                    <textarea id="asRejectReason" class="aftersale-approve-textarea" maxlength="200" placeholder="请输入拒收原因，如：退货商品与申请不符"></textarea>
+                    <span class="aftersale-approve-counter"><span id="asRejectReasonCount">0</span>/200</span>
+                </label>
+                <div class="aftersale-reject-modal__ship">
+                    <div class="aftersale-reject-modal__ship-title">退回门店物流</div>
+                    <div class="aftersale-flow-form">
+                        <label class="aftersale-flow-form__field">物流单号
+                            <input class="aftersale-filter-field__input" id="asRejectShipNo" type="text" maxlength="32" placeholder="请输入物流单号，将自动识别物流公司">
+                        </label>
+                        <label class="aftersale-flow-form__field">物流公司
+                            <select class="aftersale-filter-field__input aftersale-flow-form__select" id="asRejectShipCompany" aria-label="物流公司"></select>
+                            <span class="aftersale-flow-form__hint" id="asRejectShipHint" hidden></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="aftersale-addr-modal__foot">
+                <button type="button" class="aftersale-btn aftersale-btn--ghost" data-reject-close>取消</button>
+                <button type="button" class="aftersale-btn aftersale-btn--danger" id="asRejectConfirm">确认拒收</button>
+            </div>
+        </div>
+    </div>
     <script src="../js/common.js"></script>
     <script src="../js/mdm-aftersale-ticket-detail.js"></script>
 </body>

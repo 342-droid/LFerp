@@ -29,14 +29,54 @@
   var APPROVERS = ['系统', '超级管理员'];
   var REFUND_EXEC = ['未发起退款', '待退款', '退款执行中', '退款成功', '退款失败'];
 
-  /** 售后状态与退款执行状态的合理组合 */
-  function resolveRefundExec(status, i) {
+  /** 仅「仅退款 / 退货退款」会生成退款单；换货、补货不产生退款 */
+  function createsRefundDoc(type) {
+    return type === '仅退款' || type === '退货退款';
+  }
+
+  /**
+   * 退款单生成时机：
+   * - 仅退款：审核通过后生成
+   * - 退货退款：供应商确认收货后生成
+   * 列表退款执行状态据此推导
+   */
+  function resolveRefundExec(type, status, i) {
+    if (!createsRefundDoc(type)) return '未发起退款';
+
+    if (type === '退货退款') {
+      // 确认收货前（待审批/待退货/已拒绝/已取消等）均未生成退款单
+      if (status === '已完成') return '退款成功';
+      if (status === '退款中') return i % 3 === 0 ? '退款执行中' : '待退款';
+      if (status === '退款异常') return '退款失败';
+      return '未发起退款';
+    }
+
+    // 仅退款：审核通过后即有退款单
     if (status === '已完成') return '退款成功';
     if (status === '退款中') return i % 3 === 0 ? '退款执行中' : '待退款';
     if (status === '退款异常') return '退款失败';
-    if (status === '已拒绝' || status === '已取消' || status === '待审批') return '未发起退款';
-    if (status === '待退货' || status === '已收货') return i % 3 === 0 ? '待退款' : '未发起退款';
-    return REFUND_EXEC[i % REFUND_EXEC.length];
+    return '未发起退款';
+  }
+
+  /** 换货 / 补货不走退款态；仅退款不走退货环节 */
+  function resolveTicketStatus(type, i) {
+    if (type === '换货') {
+      var exchangeStatuses = ['待审批', '已拒绝', '待退货', '已收货', '已完成', '已取消'];
+      return i % 2 === 0 ? '已完成' : exchangeStatuses[Math.floor(i / 2) % exchangeStatuses.length];
+    }
+    if (type === '补货') {
+      var restockStatuses = ['待审批', '已拒绝', '待退货', '已收货', '已完成', '已取消'];
+      return i % 2 === 0 ? '已完成' : restockStatuses[Math.floor(i / 2) % restockStatuses.length];
+    }
+    if (type === '仅退款') {
+      var refundOnlyStatuses = ['待审批', '退款中', '已拒绝', '退款异常', '已完成', '已取消'];
+      return i % 2 === 0 ? '已完成' : refundOnlyStatuses[Math.floor(i / 2) % refundOnlyStatuses.length];
+    }
+    if (type === '退货退款') {
+      var returnRefundStatuses = ['待审批', '已拒绝', '待退货', '退款中', '退款异常', '已完成', '已取消'];
+      return i % 2 === 0 ? '已完成' : returnRefundStatuses[Math.floor(i / 2) % returnRefundStatuses.length];
+    }
+    return i % 2 === 0 ? '已完成' : STATUSES[Math.floor(i / 2) % STATUSES.length];
   }
 
   function pad(n, len) {
@@ -61,12 +101,15 @@
       var applyAt = '2026-07-14 ' + hour + ':' + minute + ':' + pad(Math.max(0, parseInt(second, 10) - 1), 2);
       var approveAt = occurAt;
       var updateAt = '2026-07-14 ' + hour + ':' + pad((parseInt(minute, 10) + 1) % 60) + ':' + pad((parseInt(second, 10) + 8) % 60);
-      // 全量覆盖枚举；约一半为已完成，其余轮询各状态便于筛选联调
-      var status = i % 2 === 0 ? '已完成' : STATUSES[Math.floor(i / 2) % STATUSES.length];
+      // 全量覆盖枚举；约一半为已完成，其余按类型轮询合理状态
+      var type = TYPES[i % TYPES.length];
+      var status = resolveTicketStatus(type, i);
+      var refundExec = resolveRefundExec(type, status, i);
+      var hasRefund = createsRefundDoc(type);
       list.push({
         id: 'AS-335' + String(300000000000000 + i * 117 + day).slice(0, 15),
         source: SOURCES[i % SOURCES.length],
-        type: TYPES[i % TYPES.length],
+        type: type,
         status: status,
         orderSource: ORDER_SOURCES[i % ORDER_SOURCES.length],
         liveSession: LIVE_SESSIONS[i % LIVE_SESSIONS.length],
@@ -78,8 +121,8 @@
         productName: PRODUCTS[i % PRODUCTS.length],
         applyAmount: money(applyAmt),
         approveAmount: money(applyAmt),
-        refundExecStatus: resolveRefundExec(status, i),
-        actualAmount: money(applyAmt),
+        refundExecStatus: refundExec,
+        actualAmount: hasRefund && refundExec === '退款成功' ? money(applyAmt) : hasRefund && refundExec !== '未发起退款' ? money(applyAmt) : '0.00',
         couponAmount: '0.00',
         pointsAmount: 0,
         reason: REASONS[i % REASONS.length],
