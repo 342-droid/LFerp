@@ -357,6 +357,12 @@
                                         <span>可循环耗材管理</span>
                                     </label>
                                 </div>
+                                <div class="wh-param-field">
+                                    <label class="param-checkbox-row">
+                                        <input type="checkbox" id="editParamSortingScanSku">
+                                        <span>分拣是否扫商品</span>
+                                    </label>
+                                </div>
                             </div>
                             <div class="wh-param-panel" data-wh-panel="in" role="tabpanel">
                                 <div class="wh-param-field">
@@ -446,6 +452,11 @@
                             if (reusableCb.checked) row.setAttribute('data-reusable-consumable', 'true');
                             else row.removeAttribute('data-reusable-consumable');
                         }
+                        const sortingScanSkuCb = document.getElementById('editParamSortingScanSku');
+                        if (sortingScanSkuCb) {
+                            if (sortingScanSkuCb.checked) row.setAttribute('data-sorting-scan-sku', 'true');
+                            else row.removeAttribute('data-sorting-scan-sku');
+                        }
                         const fullReceiptAutoCloseCb = document.getElementById('editParamFullReceiptAutoClose');
                         if (fullReceiptAutoCloseCb) {
                             if (fullReceiptAutoCloseCb.checked) row.setAttribute('data-full-receipt-auto-close', 'true');
@@ -524,6 +535,10 @@
                 const reusableCb = document.getElementById('editParamReusableConsumable');
                 if (reusableCb) {
                     reusableCb.checked = !!(row && row.getAttribute('data-reusable-consumable') === 'true');
+                }
+                const sortingScanSkuCb = document.getElementById('editParamSortingScanSku');
+                if (sortingScanSkuCb) {
+                    sortingScanSkuCb.checked = !!(row && row.getAttribute('data-sorting-scan-sku') === 'true');
                 }
                 const fullReceiptAutoCloseCb = document.getElementById('editParamFullReceiptAutoClose');
                 if (fullReceiptAutoCloseCb) {
