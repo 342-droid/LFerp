@@ -1537,6 +1537,10 @@ body[data-order-page="proxy"] .order-live-table__express:hover {
 }
 
 .order-proxy-shipment__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 0;
 }
 
@@ -1544,6 +1548,31 @@ body[data-order-page="proxy"] .order-live-table__express:hover {
   font-size: 13px;
   font-weight: 600;
   color: #303133;
+}
+
+.order-proxy-shipment__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.order-proxy-shipment__action {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 13px;
+  color: var(--color-primary, #ff7019);
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.order-proxy-shipment__action:hover {
+  opacity: 0.85;
+}
+
+.order-proxy-shipment__action--danger {
+  color: #f56c6c;
 }
 
 .order-proxy-goods-card {

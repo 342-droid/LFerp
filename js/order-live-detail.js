@@ -1225,14 +1225,24 @@
 
     var deliveryCard;
     if (isProxyOrderPage() && window.OrderProxyExpress) {
-      deliveryCard = OrderProxyExpress.buildDeliveryCard(detail, drawer && drawer._orderId, drawer && drawer._sourceRow, function () {
-        if (!drawer) return;
-        OrderProxyExpress.openUploadModal(drawer._orderId, detail.goods, function () {
+      deliveryCard = OrderProxyExpress.buildDeliveryCard(detail, drawer && drawer._orderId, drawer && drawer._sourceRow, {
+        goods: detail.goods,
+        onRefresh: function () {
+          if (!drawer) return;
           var orderId = drawer._orderId;
           var row = drawer._sourceRow;
           closeDrawer();
           openDrawer(orderId, row);
-        });
+        },
+        onUpload: function () {
+          if (!drawer) return;
+          OrderProxyExpress.openUploadModal(drawer._orderId, detail.goods, function () {
+            var orderId = drawer._orderId;
+            var row = drawer._sourceRow;
+            closeDrawer();
+            openDrawer(orderId, row);
+          });
+        }
       });
     } else {
       deliveryCard = el('div', 'order-detail-card');

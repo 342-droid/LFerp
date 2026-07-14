@@ -260,7 +260,7 @@
         var row = uploadBtn.closest('tr');
         if (!orderId || !row || !window.OrderProxyExpress) return;
         if (!isStoreFulfillment(orderId, row)) {
-          if (typeof showToast === 'function') showToast('仓配订单无需上传快递单', 'error');
+          if (typeof showToast === 'function') showToast('平台配送订单无需上传快递单', 'error');
           return;
         }
         if (!canUploadExpress(row)) {

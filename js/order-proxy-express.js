@@ -110,10 +110,15 @@
       serialNo: '1234567890',
       courier: '申通快递',
       trackingNo: '773075059702651',
-      status: '在途中',
+      status: '待揽件',
       goodId: 'g1',
       goodName: '微辣萝卜干 500g 4号…',
-      timeline: DEFAULT_TIMELINE
+      timeline: [{
+        time: '06-05\n20:50',
+        title: '已发货',
+        desc: '商家已上传快递单号，包裹等待揽收',
+        active: true
+      }]
     }],
     'ORD-3212689201599001': [{
       id: 'SH-1599001-1',
@@ -215,7 +220,7 @@
   }
 
   function fulfillmentLabel(mode) {
-    return mode === 'WAREHOUSE' ? '仓配' : '到店';
+    return mode === 'WAREHOUSE' ? '平台配送' : '快递到店';
   }
 
   function getShipments(orderId) {
@@ -255,6 +260,57 @@
     list.push(shipment);
     saveShipments(orderId, list);
     return shipment;
+  }
+
+  function updateShipment(orderId, shipmentId, payload) {
+    var list = getShipments(orderId);
+    var idx = -1;
+    var current = null;
+    list.forEach(function (item, i) {
+      if (item.id === shipmentId) {
+        idx = i;
+        current = item;
+      }
+    });
+    if (idx < 0 || !current) return null;
+    if (current.status !== '待揽件') return null;
+
+    var goods = payload.goods && payload.goods.length
+      ? payload.goods
+      : [{ id: payload.goodId, name: payload.goodName }];
+    var next = Object.assign({}, current, {
+      courier: payload.courier,
+      trackingNo: payload.trackingNo,
+      goodId: goods[0].id,
+      goodIds: goods.map(function (g) { return g.id; }),
+      goodName: formatGoodsLabel(goods),
+      goods: goods,
+      timeline: [{
+        time: formatNowShort(),
+        title: '已发货',
+        desc: '商家已修改快递单号，包裹等待揽收',
+        active: true
+      }]
+    });
+    list[idx] = next;
+    saveShipments(orderId, list);
+    return next;
+  }
+
+  function deleteShipment(orderId, shipmentId) {
+    var list = getShipments(orderId);
+    var target = null;
+    list.forEach(function (item) {
+      if (item.id === shipmentId) target = item;
+    });
+    if (!target || target.status !== '待揽件') return false;
+    var next = list.filter(function (item) { return item.id !== shipmentId; });
+    saveShipments(orderId, next);
+    return true;
+  }
+
+  function canEditShipment(shipment) {
+    return !!(shipment && shipment.status === '待揽件');
   }
 
   function formatNowShort() {
@@ -351,11 +407,19 @@
     );
   }
 
-  function buildShipmentBlock(shipment, index, orderId) {
+  function buildShipmentBlock(shipment, index, orderId, handlers) {
+    handlers = handlers || {};
+    var editable = canEditShipment(shipment);
     var block = el('div', 'order-proxy-shipment');
     block.innerHTML =
       '<div class="order-proxy-shipment__head">' +
         '<span class="order-proxy-shipment__label">包裹' + (index + 1) + '</span>' +
+        (editable
+          ? '<div class="order-proxy-shipment__actions">' +
+              '<button type="button" class="order-proxy-shipment__action js-proxy-shipment-edit">修改</button>' +
+              '<button type="button" class="order-proxy-shipment__action order-proxy-shipment__action--danger js-proxy-shipment-del">删除</button>' +
+            '</div>'
+          : '') +
       '</div>' +
       buildShipmentGoodsHtml(shipment) +
       '<div class="order-proxy-shipment__card">' +
@@ -372,6 +436,18 @@
     block.querySelector('.js-proxy-track').addEventListener('click', function () {
       openTrackingModal(orderId, shipment.id);
     });
+    var editBtn = block.querySelector('.js-proxy-shipment-edit');
+    if (editBtn) {
+      editBtn.addEventListener('click', function () {
+        if (typeof handlers.onEdit === 'function') handlers.onEdit(shipment);
+      });
+    }
+    var delBtn = block.querySelector('.js-proxy-shipment-del');
+    if (delBtn) {
+      delBtn.addEventListener('click', function () {
+        if (typeof handlers.onDelete === 'function') handlers.onDelete(shipment);
+      });
+    }
     return block;
   }
 
@@ -379,14 +455,21 @@
     return status === '已创建' || status === '待收货';
   }
 
-  function buildDeliveryCard(detail, orderId, row, onUploadClick) {
+  function buildDeliveryCard(detail, orderId, row, options) {
+    var handlers = typeof options === 'function'
+      ? { onUpload: options }
+      : (options || {});
+    var goods = handlers.goods || (detail && detail.goods) || [];
+    var onRefresh = handlers.onRefresh;
+    var onUpload = handlers.onUpload;
+
     var mode = getFulfillmentMode(orderId, row);
     var card = el('div', 'order-detail-card order-proxy-delivery-card');
     card.appendChild(el('h3', 'order-detail-card__title', '配送信息'));
 
     var baseKv = el('dl', 'order-detail-kv');
     baseKv.innerHTML =
-      '<dt>履约方式</dt><dd><span class="order-tag order-tag--scene">' + fulfillmentLabel(mode) + '</span></dd>' +
+      '<dt>配送方式</dt><dd><span class="order-tag order-tag--scene">' + fulfillmentLabel(mode) + '</span></dd>' +
       '<dt>收货人</dt><dd>' + escapeHtml(detail.delivery.name) + '</dd>' +
       '<dt>电话</dt><dd>' + escapeHtml(detail.delivery.phone) + '</dd>' +
       '<dt>地址</dt><dd>' + escapeHtml(detail.delivery.address) + '</dd>' +
@@ -398,10 +481,34 @@
       var expressWrap = el('div', 'order-proxy-express-section');
       expressWrap.appendChild(el('div', 'order-proxy-express-section__title', '快递信息'));
 
+      function refreshAfterChange() {
+        if (typeof onRefresh === 'function') onRefresh();
+        else if (typeof onUpload === 'function') {
+          /* legacy upload-only callback path has no refresh */
+        }
+      }
+
       if (shipments.length) {
         var list = el('div', 'order-proxy-shipment-list');
         shipments.forEach(function (sh, idx) {
-          list.appendChild(buildShipmentBlock(sh, idx, orderId));
+          list.appendChild(buildShipmentBlock(sh, idx, orderId, {
+            onEdit: function (shipment) {
+              openUploadModal(orderId, goods, refreshAfterChange, shipment);
+            },
+            onDelete: function (shipment) {
+              if (!canEditShipment(shipment)) {
+                if (typeof showToast === 'function') showToast('仅待揽件包裹可删除', 'error');
+                return;
+              }
+              if (!window.confirm('确认删除该包裹快递信息？删除后不可恢复。')) return;
+              if (!deleteShipment(orderId, shipment.id)) {
+                if (typeof showToast === 'function') showToast('删除失败，包裹可能已发货', 'error');
+                return;
+              }
+              if (typeof showToast === 'function') showToast('包裹已删除', 'success');
+              refreshAfterChange();
+            }
+          }));
         });
         expressWrap.appendChild(list);
       } else {
@@ -417,7 +524,13 @@
       if (canUploadExpressStatus(orderStatus)) {
         var uploadBtn = el('button', 'order-detail-btn order-detail-btn--primary order-proxy-upload-btn', '+ 上传快递单');
         uploadBtn.type = 'button';
-        uploadBtn.addEventListener('click', onUploadClick);
+        uploadBtn.addEventListener('click', function () {
+          if (typeof onUpload === 'function') {
+            onUpload();
+            return;
+          }
+          openUploadModal(orderId, goods, refreshAfterChange);
+        });
         expressWrap.appendChild(uploadBtn);
       }
       card.appendChild(expressWrap);
@@ -575,8 +688,14 @@
     document.addEventListener('keydown', onEsc);
   }
 
-  function openUploadModal(orderId, goods, onSaved) {
+  function openUploadModal(orderId, goods, onSaved, editShipment) {
     closeOverlay('orderProxyExpressOverlay');
+    var isEdit = !!(editShipment && editShipment.id);
+    if (isEdit && !canEditShipment(editShipment)) {
+      if (typeof showToast === 'function') showToast('仅待揽件包裹可修改', 'error');
+      return;
+    }
+
     var normalized = (goods || []).map(function (g, idx) {
       return {
         id: g.id || ('g' + (idx + 1)),
@@ -587,14 +706,26 @@
       normalized.push({ id: 'g1', name: '商品' });
     }
 
+    var selectedMap = {};
+    if (isEdit) {
+      getShipmentGoods(editShipment).forEach(function (g) {
+        selectedMap[g.id] = true;
+      });
+    }
+
     var courierOptions = '<option value="">请选择快递公司</option>' + COURIERS.map(function (c) {
-      return '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>';
+      return '<option value="' + escapeHtml(c) + '"' +
+        (isEdit && editShipment.courier === c ? ' selected' : '') + '>' +
+        escapeHtml(c) + '</option>';
     }).join('');
 
     var goodsHtml = normalized.map(function (g) {
+      var checked = isEdit ? !!selectedMap[g.id] : true;
+      if (isEdit && !Object.keys(selectedMap).length) checked = true;
       return (
         '<label class="order-proxy-upload-good">' +
-          '<input type="checkbox" class="order-proxy-upload-good__check js-proxy-upload-good" value="' + escapeHtml(g.id) + '" checked>' +
+          '<input type="checkbox" class="order-proxy-upload-good__check js-proxy-upload-good" value="' + escapeHtml(g.id) + '"' +
+          (checked ? ' checked' : '') + '>' +
           '<span class="order-proxy-upload-good__name">' + escapeHtml(g.name) + '</span>' +
         '</label>'
       );
@@ -605,7 +736,9 @@
     backdrop.innerHTML =
       '<div class="order-proxy-upload-modal" role="dialog" aria-labelledby="orderProxyUploadTitle">' +
         '<div class="order-proxy-upload-modal__head">' +
-          '<h3 id="orderProxyUploadTitle" class="order-proxy-upload-modal__title">上传快递单</h3>' +
+          '<h3 id="orderProxyUploadTitle" class="order-proxy-upload-modal__title">' +
+            (isEdit ? '修改快递单' : '上传快递单') +
+          '</h3>' +
           '<button type="button" class="order-proxy-upload-modal__close js-proxy-express-close" aria-label="关闭">×</button>' +
         '</div>' +
         '<div class="order-proxy-upload-modal__body">' +
@@ -618,7 +751,8 @@
           '</div>' +
           '<div class="order-proxy-upload-field">' +
             '<label class="order-proxy-upload-field__label" for="proxyUploadTrackingNo">物流单号</label>' +
-            '<input class="order-proxy-upload-field__input" id="proxyUploadTrackingNo" type="text" placeholder="请输入物流单号，将自动识别快递公司" maxlength="32">' +
+            '<input class="order-proxy-upload-field__input" id="proxyUploadTrackingNo" type="text" placeholder="请输入物流单号，将自动识别快递公司" maxlength="32" value="' +
+              (isEdit ? escapeHtml(editShipment.trackingNo || '') : '') + '">' +
           '</div>' +
           '<div class="order-proxy-upload-field">' +
             '<label class="order-proxy-upload-field__label" for="proxyUploadCourier">配送方式</label>' +
@@ -628,7 +762,9 @@
         '</div>' +
         '<div class="order-proxy-upload-modal__foot">' +
           '<button type="button" class="order-detail-btn js-proxy-express-close">取消</button>' +
-          '<button type="button" class="order-detail-btn order-detail-btn--primary js-proxy-upload-submit">确认上传</button>' +
+          '<button type="button" class="order-detail-btn order-detail-btn--primary js-proxy-upload-submit">' +
+            (isEdit ? '确认保存' : '确认上传') +
+          '</button>' +
         '</div>' +
       '</div>';
 
@@ -695,6 +831,7 @@
     goodChecks.forEach(function (cb) {
       cb.addEventListener('change', updateToggleAllLabel);
     });
+    updateToggleAllLabel();
 
     backdrop.querySelector('.js-proxy-upload-submit').addEventListener('click', function () {
       var selectedGoods = [];
@@ -721,13 +858,24 @@
         return;
       }
 
-      addShipment(orderId, {
+      var payload = {
         goods: selectedGoods,
         courier: courier,
         trackingNo: trackingNo
-      });
-      closeOverlay('orderProxyExpressOverlay');
-      if (typeof showToast === 'function') showToast('快递单号上传成功', 'success');
+      };
+
+      if (isEdit) {
+        if (!updateShipment(orderId, editShipment.id, payload)) {
+          if (typeof showToast === 'function') showToast('修改失败，包裹可能已发货', 'error');
+          return;
+        }
+        closeOverlay('orderProxyExpressOverlay');
+        if (typeof showToast === 'function') showToast('快递单已更新', 'success');
+      } else {
+        addShipment(orderId, payload);
+        closeOverlay('orderProxyExpressOverlay');
+        if (typeof showToast === 'function') showToast('快递单号上传成功', 'success');
+      }
       if (typeof onSaved === 'function') onSaved();
     });
 
@@ -740,6 +888,7 @@
     getFulfillmentMode: getFulfillmentMode,
     fulfillmentLabel: fulfillmentLabel,
     getShipments: getShipments,
+    canEditShipment: canEditShipment,
     buildDeliveryCard: buildDeliveryCard,
     openUploadModal: openUploadModal,
     openTrackingModal: openTrackingModal,
