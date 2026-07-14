@@ -94,9 +94,15 @@ function loadHeader() {
         const isMdmAuditPage = pageFile.startsWith('mdm_audit_');
         const isMdmOrderPage = pageFile.startsWith('mdm_order_');
         const isMdmMarketingPage = pageFile.startsWith('mdm_marketing_');
+        const isMdmSettlePage = pageFile.startsWith('mdm_settle_');
         const isMdmBdPage = pageFile.startsWith('mdm_bd_');
         const isMdmProductPage = pageFile.startsWith('mdm_product_');
-        const isMdmBasePage = isMdmPage && !isMdmAuditPage && !isMdmOrderPage && !isMdmMarketingPage;
+        const isMdmBasePage =
+            isMdmPage &&
+            !isMdmAuditPage &&
+            !isMdmOrderPage &&
+            !isMdmMarketingPage &&
+            !isMdmSettlePage;
         const isMdmWorkbenchPage = pageFile === 'mdm_workbench.html';
         const isMdmDataCenterPage = isMdmBasePage && !isMdmWorkbenchPage && !isMdmBdPage && !isMdmProductPage;
         // 直接使用 header HTML 内容，避免 fetch 问题
@@ -118,6 +124,7 @@ function loadHeader() {
                     <a href="${wp.page('index.html')}" class="${!isTmsPage && !isPurchasePage && !isBasicSettingsPage && !isMdmPage && !isMobilePage ? 'active' : ''}">仓储</a>
                     <a href="${wp.page('TMS_index.html')}" class="${isTmsPage ? 'active' : ''}">物流</a>
                     <a href="${wp.page('purchase_index.html')}" class="${isPurchasePage ? 'active' : ''}">采购</a>
+                    <a href="${wp.page('mdm_settle_index.html')}" class="${isMdmSettlePage ? 'active' : ''}">结算</a>
                     <a href="${wp.page('basic_settings_miniprogram_agreement.html')}" class="${isBasicSettingsPage ? 'active' : ''}">基础设置</a>
                 </nav>
                 
