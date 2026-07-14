@@ -6,6 +6,49 @@
     <title>冷丰WMS - 负库存</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .negative-timer-config-modal .modal-content {
+            width: 95%;
+            max-width: 560px;
+            max-height: 88vh;
+            overflow: auto;
+            margin: 8% auto;
+        }
+
+        .negative-timer-config-modal .config-modal-hint {
+            margin: 0 0 14px;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .negative-timer-config-form .form-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .negative-timer-config-form .form-group label {
+            width: 110px;
+            flex-shrink: 0;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .negative-timer-config-form .form-group .input-wrapper {
+            flex: 1;
+        }
+
+        .negative-timer-config-input {
+            width: 100%;
+            height: 32px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 0 8px;
+            box-sizing: border-box;
+            font-size: 13px;
+        }
+    </style>
 </head>
 <body>
     <!-- 侧边栏容器 -->
@@ -75,6 +118,7 @@
                         <button type="button" class="btn btn-primary" onclick="searchInventory()">查询</button>
                         <button type="button" class="btn btn-secondary" onclick="executeNegativeInventory()">执行</button>
                         <button type="button" class="btn btn-secondary">导出</button>
+                        <button type="button" class="btn btn-secondary" id="btnNegativeTimerConfig">负库存定时器</button>
                     </div>
                 </form>
             </section>
@@ -108,6 +152,36 @@
                 <div id="pagination-container"></div>
             </section>
         </main>
+    </div>
+
+    <div id="negativeTimerConfigModal" class="modal negative-timer-config-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">负库存定时器</div>
+                <span class="close" id="negativeTimerConfigCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p class="config-modal-hint">配置负库存自动执行的定时任务表达式与描述。</p>
+                <div class="negative-timer-config-form">
+                    <div class="form-group">
+                        <label>定时器表达式:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="negativeTimerExpression" class="negative-timer-config-input" placeholder="如 0 0 2 * * ?">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>定时器描述:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="negativeTimerDesc" class="negative-timer-config-input" placeholder="如 每日02:00自动执行负库存">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="negativeTimerConfigCancelBtn">取消</button>
+                <button type="button" class="btn btn-primary" id="negativeTimerConfigSaveBtn">保存</button>
+            </div>
+        </div>
     </div>
 
     <!-- 引入公共脚本 -->
@@ -306,6 +380,77 @@
                 });
                 
                 page.init();
+
+                var NEGATIVE_TIMER_CONFIG_KEY = 'negative_inventory_timer_config';
+
+                function getDefaultNegativeTimerConfig() {
+                    return { timerExpression: '', timerDesc: '' };
+                }
+
+                function loadNegativeTimerConfig() {
+                    try {
+                        var raw = localStorage.getItem(NEGATIVE_TIMER_CONFIG_KEY);
+                        if (!raw) return getDefaultNegativeTimerConfig();
+                        var parsed = JSON.parse(raw);
+                        return {
+                            timerExpression: parsed && parsed.timerExpression != null
+                                ? String(parsed.timerExpression).trim()
+                                : '',
+                            timerDesc: parsed && parsed.timerDesc != null
+                                ? String(parsed.timerDesc).trim()
+                                : ''
+                        };
+                    } catch (e) {
+                        return getDefaultNegativeTimerConfig();
+                    }
+                }
+
+                function saveNegativeTimerConfig(config) {
+                    localStorage.setItem(NEGATIVE_TIMER_CONFIG_KEY, JSON.stringify(config));
+                }
+
+                function fillNegativeTimerConfigForm(config) {
+                    var exprInput = document.getElementById('negativeTimerExpression');
+                    var descInput = document.getElementById('negativeTimerDesc');
+                    if (exprInput) exprInput.value = (config && config.timerExpression) || '';
+                    if (descInput) descInput.value = (config && config.timerDesc) || '';
+                }
+
+                function readNegativeTimerConfigForm() {
+                    var exprInput = document.getElementById('negativeTimerExpression');
+                    var descInput = document.getElementById('negativeTimerDesc');
+                    return {
+                        timerExpression: exprInput ? String(exprInput.value || '').trim() : '',
+                        timerDesc: descInput ? String(descInput.value || '').trim() : ''
+                    };
+                }
+
+                function openNegativeTimerConfigModal() {
+                    fillNegativeTimerConfigForm(loadNegativeTimerConfig());
+                    var modal = document.getElementById('negativeTimerConfigModal');
+                    if (modal) modal.style.display = 'block';
+                }
+
+                function closeNegativeTimerConfigModal() {
+                    var modal = document.getElementById('negativeTimerConfigModal');
+                    if (modal) modal.style.display = 'none';
+                }
+
+                document.getElementById('btnNegativeTimerConfig').addEventListener('click', openNegativeTimerConfigModal);
+                document.getElementById('negativeTimerConfigCloseBtn').addEventListener('click', closeNegativeTimerConfigModal);
+                document.getElementById('negativeTimerConfigCancelBtn').addEventListener('click', closeNegativeTimerConfigModal);
+                document.getElementById('negativeTimerConfigSaveBtn').addEventListener('click', function() {
+                    saveNegativeTimerConfig(readNegativeTimerConfigForm());
+                    closeNegativeTimerConfigModal();
+                    if (typeof showToast === 'function') {
+                        showToast('负库存定时器配置已保存', 'success');
+                    }
+                });
+                document.getElementById('negativeTimerConfigModal').addEventListener('click', function(e) {
+                    if (e.target && e.target.id === 'negativeTimerConfigModal') {
+                        closeNegativeTimerConfigModal();
+                    }
+                });
 
                 // 默认按「初始」状态查询
                 document.getElementById('searchStatus').value = '初始';
