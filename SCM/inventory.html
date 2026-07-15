@@ -104,6 +104,7 @@
                                 <th>货主</th>
                                 <th>商品编码</th>
                                 <th>商品名称</th>
+                                <th>单位</th>
                                 <th>库存量</th>
                                 <th>占用量</th>
                                 <th>储位</th>
@@ -146,6 +147,7 @@
                 company: 'C001 货主1',
                 skuCode: 'SKU001',
                 skuName: '商品A',
+                unit: '件',
                 inventoryStatus: '正常',
                 quantity: 100,
                 occupied: 20,
@@ -165,6 +167,7 @@
                 company: 'C002 货主2',
                 skuCode: 'SKU002',
                 skuName: '商品B',
+                unit: '箱',
                 inventoryStatus: '正常',
                 quantity: 200,
                 occupied: 50,
@@ -184,6 +187,7 @@
                 company: 'C003 货主3',
                 skuCode: 'SKU003',
                 skuName: '商品C',
+                unit: '个',
                 inventoryStatus: '异常',
                 quantity: 50,
                 occupied: 10,
@@ -232,6 +236,7 @@
                             <td>${item.company}</td>
                             <td>${item.skuCode}</td>
                             <td>${item.skuName}</td>
+                            <td>${item.unit || '-'}</td>
                             <td>${item.quantity}</td>
                             <td>${item.occupied}</td>
                             <td>${item.location}</td>
@@ -293,7 +298,7 @@
                 // 使用PageManager简化页面逻辑
                 const page = new PageManager({
                     entityName: '库存',
-                    statusColumnIndex: 15,
+                    statusColumnIndex: 16,
                     
                     // 搜索区域下拉框
                     customSelects: [
