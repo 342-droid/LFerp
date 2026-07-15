@@ -9,7 +9,6 @@
   var STATUSES = ['待审批', '退款中', '已拒绝', '待退货', '已收货', '退款异常', '已完成', '已取消'];
   var ORDER_SOURCES = ['商城', '直播', '代采'];
   var LIVE_SESSIONS = ['默认经营池', 'ZB20260714-晚场', 'ZB20260713-早场'];
-  var FULFILLMENTS = ['门店自提', '快递到店', '平台配送'];
   var NICKNAMES = ['牛小牛呀', '冷丰用户', '悠悠生鲜粉', '门店会员A'];
   var PHONES = ['17739589272', '13800138000', '15922345621', '18600001111'];
   var STORES = ['南京万达店', '斯斯门店商家2', '杭州西湖店', '上海徐家汇店'];
@@ -79,6 +78,12 @@
     return i % 2 === 0 ? '已完成' : STATUSES[Math.floor(i / 2) % STATUSES.length];
   }
 
+  /** 商城 / 直播固定门店自提；代采为快递到店或平台配送 */
+  function resolveFulfillment(orderSource, i) {
+    if (orderSource === '商城' || orderSource === '直播') return '门店自提';
+    return i % 2 === 0 ? '快递到店' : '平台配送';
+  }
+
   function pad(n, len) {
     var s = String(n);
     while (s.length < (len || 2)) s = '0' + s;
@@ -106,14 +111,15 @@
       var status = resolveTicketStatus(type, i);
       var refundExec = resolveRefundExec(type, status, i);
       var hasRefund = createsRefundDoc(type);
+      var orderSource = ORDER_SOURCES[i % ORDER_SOURCES.length];
       list.push({
         id: 'AS-335' + String(300000000000000 + i * 117 + day).slice(0, 15),
         source: SOURCES[i % SOURCES.length],
         type: type,
         status: status,
-        orderSource: ORDER_SOURCES[i % ORDER_SOURCES.length],
-        liveSession: LIVE_SESSIONS[i % LIVE_SESSIONS.length],
-        fulfillment: i % 3 === 0 ? '快递到店' : FULFILLMENTS[i % FULFILLMENTS.length],
+        orderSource: orderSource,
+        liveSession: orderSource === '直播' ? LIVE_SESSIONS[i % LIVE_SESSIONS.length] : '-',
+        fulfillment: resolveFulfillment(orderSource, i),
         nickname: NICKNAMES[i % NICKNAMES.length],
         phone: PHONES[i % PHONES.length],
         store: STORES[i % STORES.length],

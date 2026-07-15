@@ -553,9 +553,11 @@
       id = queryParam('id') || 'AS-334259025065558016';
     }
 
-    // 代采快递到店场景演示（可用 query 覆盖：delivery=平台配送）
-    var deliveryMode = queryParam('delivery') || '快递到店';
+    // 商城 / 直播固定门店自提；代采默认快递到店（可用 query delivery 覆盖）
     var orderSource = queryParam('orderSource') || '代采';
+    var deliveryMode =
+      queryParam('delivery') ||
+      (orderSource === '商城' || orderSource === '直播' ? '门店自提' : '快递到店');
 
     var detail = {
       id: id,
