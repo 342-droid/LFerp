@@ -262,11 +262,7 @@
                             <input type="text" id="searchOrderSource" placeholder="请选择" readonly>
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchOrderSourceDropdown">
-                                <div class="select-option" data-value="">全部</div>
-                                <div class="select-option" data-value="商城/直播间">商城/直播间</div>
-                                <div class="select-option" data-value="代采订单">代采订单</div>
-                            </div>
+                            <div class="select-dropdown" id="searchOrderSourceDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -275,12 +271,7 @@
                             <input type="text" id="searchFulfillmentMethod" placeholder="请选择" readonly>
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchFulfillmentMethodDropdown">
-                                <div class="select-option" data-value="">全部</div>
-                                <div class="select-option" data-value="快递到店">快递到店</div>
-                                <div class="select-option" data-value="快递到家">快递到家</div>
-                                <div class="select-option" data-value="平台配送">平台配送</div>
-                            </div>
+                            <div class="select-dropdown" id="searchFulfillmentMethodDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -885,8 +876,8 @@
     }
 
     var AUTO_CUTOFF_CONFIG_KEY = 'purchase_store_auto_cutoff_config';
-    var AUTO_CUTOFF_ORDER_SOURCES = ['商城/直播间', '代采订单'];
-    var AUTO_CUTOFF_FULFILLMENT_METHODS = ['快递到店', '快递到家', '平台配送'];
+    var AUTO_CUTOFF_ORDER_SOURCES = (CommonOptions.orderSource || []).map(function(o) { return o.value; });
+    var AUTO_CUTOFF_FULFILLMENT_METHODS = (CommonOptions.fulfillmentMethod || []).map(function(o) { return o.value; });
 
     function autoCutoffRuleKey(orderSource, fulfillmentMethod) {
         return String(orderSource || '') + '|' + String(fulfillmentMethod || '');
@@ -894,13 +885,15 @@
 
     function normalizeAutoCutoffOrderSource(orderSource) {
         var s = String(orderSource || '').trim();
-        if (s === '商城' || s === '直播间' || s === '商品/直播间') return '商城/直播间';
+        if (s === '商城' || s === '直播间' || s === '商品/直播间' || s === '商城/直播间') return '零售订单';
         return s;
     }
 
     function isAutoCutoffRuleAllowed(orderSource, fulfillmentMethod) {
-        if (orderSource === '代采订单' && fulfillmentMethod === '快递到家') return false;
-        if (orderSource === '商城/直播间' && fulfillmentMethod === '快递到店') return false;
+        if (typeof isOrderSourceFulfillmentAllowed === 'function') {
+            return isOrderSourceFulfillmentAllowed(orderSource, fulfillmentMethod);
+        }
+        if (orderSource === '零售订单' && fulfillmentMethod === '快递到店') return false;
         return true;
     }
 
@@ -1178,6 +1171,8 @@
     initSkuCategoryOptions();
     initStoreOptions();
 
+    renderSelectOptions('searchOrderSourceDropdown', [{ value: '', text: '全部' }].concat(CommonOptions.orderSource || []));
+    renderSelectOptions('searchFulfillmentMethodDropdown', [{ value: '', text: '全部' }].concat(CommonOptions.fulfillmentMethod || []));
     renderSelectOptions('searchMarketingTypeDropdown', CommonOptions.marketingType);
 
     if (typeof initCustomSelect === 'function') {

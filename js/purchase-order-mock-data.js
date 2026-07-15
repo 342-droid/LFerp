@@ -64,23 +64,20 @@
             receivePhone: (info && info.receivePhone) || row.receivePhone || fallback.receivePhone || empty,
             receiver: (info && info.receiver) || row.receiver || fallback.receiver || empty
         };
-        if (String(row.fulfillmentMethod || '').trim() === '快递到家') {
-            receiveInfo.receiveName = '快递到家';
-        }
         return receiveInfo;
     };
 
     /**
-     * orderSource 枚举含商城/直播间、代采订单；fulfillmentMethod 枚举含快递到店、快递到家、平台配送。
-     * sourceOrderNo 为来源单号（门店订货单号 MDH 前缀，可逗号分隔多个）；单据来源为手动新增时列表/详情展示层将来源单号置空；relatedOrderNo 为关联单号（如 WMS 采购入库单号）；履约方式为快递到家时列表/详情展示层将关联单号置空、收货地名称展示为「快递到家」。
+     * orderSource / fulfillmentMethod 枚举见 CommonOptions（零售订单仅平台配送；代采订单支持快递到店、平台配送）。
+     * sourceOrderNo 为来源单号（门店订货单号 MDH 前缀，可逗号分隔多个）；单据来源为手动新增时列表/详情展示层将来源单号置空；relatedOrderNo 为关联单号（如 WMS 采购入库单号）。
      * 明细行 logisticsNo 支持多个物流单号（逗号/分号/空格分隔）；物流确认按采购单+商品维度维护。
      */
     window.PURCHASE_ORDERS = [
         {
             poNo: 'PO2026042012000001',
-            sourceOrderNo: 'MDH2026042012000037, MDH2026042015301528',
+            sourceOrderNo: 'MDH2026042012000037',
             relatedOrderNo: 'IBD2026042012000001',
-            orderSource: '商城/直播间',
+            orderSource: '零售订单',
             fulfillmentMethod: '平台配送',
             warehouse: 'W001 南京仓',
             supplier: '华东果蔬有限公司',
@@ -97,9 +94,9 @@
         },
         {
             poNo: 'PO2026042012150002',
-            sourceOrderNo: 'MDH2026042015301528',
+            sourceOrderNo: 'MDH2026042012000037',
             relatedOrderNo: 'IBD2026042012150002',
-            orderSource: '商城/直播间',
+            orderSource: '零售订单',
             fulfillmentMethod: '平台配送',
             warehouse: 'W002 嘉兴仓',
             supplier: '浙北农产品合作社',
@@ -115,25 +112,6 @@
             ]
         },
         {
-            poNo: 'PO2026042110300003',
-            sourceOrderNo: 'MDH2026042118154291',
-            orderSource: '商城/直播间',
-            fulfillmentMethod: '快递到家',
-            warehouse: 'W003 上海仓',
-            supplier: '上海鲜达供应链',
-            docStatus: '已完成',
-            docSource: '手动新增',
-            logisticsNo: 'YT9876543210987',
-            deliveryDate: '2026-04-24',
-            remark: '合同价已确认',
-            createdAt: '2026-04-21 10:30:00',
-            createdBy: '王华',
-            lines: [
-                { skuCode: 'SKU001', skuName: '红富士苹果', spec: '5kg/箱', skuCategory: '生鲜 / 水果 / 仁果类', qtyUnit: '件', buyer: '王华', purchaseQty: 60, receivedQty: 60, suggestedUnitPrice: 5.2, actualUnitPrice: 5.1, saleUnitPrice: 4.8, purchaseAmount: 306, saleAmount: 288, prepaidAmount: 60, lineRemark: '', logisticsNo: 'YT9876543210987, YT9876543210999' },
-                { skuCode: 'SKU004', skuName: '山东大蒜', spec: '12袋/箱', skuCategory: '生鲜 / 蔬菜 / 根茎类', qtyUnit: '斤', buyer: '张敏', purchaseQty: 200, receivedQty: 200, suggestedUnitPrice: 3.0, actualUnitPrice: 2.95, saleUnitPrice: 2.8, purchaseAmount: 590, saleAmount: 560, prepaidAmount: 200, lineRemark: '净重计价', logisticsNo: 'YT9876543210999' }
-            ]
-        },
-        {
             poNo: 'PO2026042114000004',
             sourceOrderNo: 'MDH2026042512000001',
             relatedOrderNo: 'IBD2026042114000004',
@@ -142,7 +120,7 @@
             warehouse: 'W001 南京仓',
             supplier: '苏果直采中心',
             docStatus: '已取消',
-            docSource: '手动新增',
+            docSource: '采购需求汇总',
             deliveryDate: '2026-04-27',
             remark: '客户撤单',
             createdAt: '2026-04-21 14:00:18',
@@ -155,7 +133,7 @@
             poNo: 'PO2026042209000005',
             sourceOrderNo: 'MDH2026042210300055',
             relatedOrderNo: 'IBD2026042209000005',
-            orderSource: '商城/直播间',
+            orderSource: '零售订单',
             fulfillmentMethod: '平台配送',
             warehouse: 'W004 北京仓',
             supplier: '华北冷链物流',
@@ -171,9 +149,9 @@
         },
         {
             poNo: 'PO2026042211000006',
-            sourceOrderNo: 'MDH2026042310050088, MDH2026042311450096',
+            sourceOrderNo: 'MDH2026042311450096',
             relatedOrderNo: 'IBD2026042211000006',
-            orderSource: '商城/直播间',
+            orderSource: '零售订单',
             fulfillmentMethod: '平台配送',
             warehouse: 'W002 嘉兴仓',
             supplier: '浙北农产品合作社',
@@ -192,8 +170,8 @@
             poNo: 'PO2026042308000007',
             sourceOrderNo: 'MDH2026042311450096',
             relatedOrderNo: 'IBD2026042308000007',
-            orderSource: '商城/直播间',
-            fulfillmentMethod: '快递到店',
+            orderSource: '零售订单',
+            fulfillmentMethod: '平台配送',
             warehouse: 'W003 上海仓',
             supplier: '上海鲜达供应链',
             docStatus: '已完成',
@@ -213,20 +191,41 @@
             ]
         },
         {
-            poNo: 'PO2026042316000008',
+            poNo: 'PO2026042514300009',
             sourceOrderNo: 'MDH2026042512000002',
+            relatedOrderNo: 'IBD2026042514300009',
             orderSource: '代采订单',
-            fulfillmentMethod: '快递到家',
+            fulfillmentMethod: '平台配送',
+            warehouse: 'W002 嘉兴仓',
+            supplier: '浙北农产品合作社',
+            docStatus: '部分收货',
+            docSource: '采购需求汇总',
+            logisticsNo: 'JD5566778899001',
+            deliveryDate: '2026-04-28',
+            remark: '代采平台配送，按仓配发',
+            createdAt: '2026-04-25 14:30:00',
+            createdBy: '刘洋',
+            lines: [
+                { skuCode: 'SKU002', skuName: '香蕉', spec: '4kg/箱', skuCategory: '生鲜 / 水果 / 浆果类', qtyUnit: '份', buyer: '刘洋', purchaseQty: 60, receivedQty: 30, suggestedUnitPrice: 4.5, actualUnitPrice: 4.4, saleUnitPrice: 4.2, purchaseAmount: 264, saleAmount: 252, prepaidAmount: 80, lineRemark: '代采补货', logisticsNo: 'JD5566778899001' },
+                { skuCode: 'SKU001', skuName: '红富士苹果', spec: '5kg/箱', skuCategory: '生鲜 / 水果 / 仁果类', qtyUnit: '件', buyer: '陈晨', purchaseQty: 40, receivedQty: 0, suggestedUnitPrice: 5.2, actualUnitPrice: 5.0, saleUnitPrice: 4.8, purchaseAmount: 200, saleAmount: 192, prepaidAmount: 0, lineRemark: '待二批发运' }
+            ]
+        },
+        {
+            poNo: 'PO2026042610150010',
+            sourceOrderNo: '',
+            relatedOrderNo: 'IBD2026042610150010',
+            orderSource: '',
+            fulfillmentMethod: '',
             warehouse: 'W001 南京仓',
             supplier: '华东果蔬有限公司',
             docStatus: '初始',
             docSource: '手动新增',
             deliveryDate: '2026-04-30',
-            remark: '临时加单',
-            createdAt: '2026-04-23 16:20:00',
-            createdBy: '李强',
+            remark: '手工建单补货',
+            createdAt: '2026-04-26 10:15:00',
+            createdBy: '王华',
             lines: [
-                { skuCode: 'SKU007', skuName: '进口车厘子', spec: '1000g/袋', skuCategory: '生鲜 / 水果 / 浆果类', qtyUnit: '箱', buyer: '李强', purchaseQty: 30, receivedQty: 0, suggestedUnitPrice: 88, actualUnitPrice: 85, saleUnitPrice: 80, purchaseAmount: 2550, saleAmount: 2400, prepaidAmount: 500, lineRemark: 'J级' }
+                { skuCode: 'SKU001', skuName: '红富士苹果', spec: '5kg/箱', skuCategory: '生鲜 / 水果 / 仁果类', qtyUnit: '件', buyer: '王华', purchaseQty: 50, receivedQty: 0, suggestedUnitPrice: 5.2, actualUnitPrice: 5.0, saleUnitPrice: 4.8, purchaseAmount: 250, saleAmount: 240, prepaidAmount: 0, lineRemark: '' }
             ]
         }
     ];

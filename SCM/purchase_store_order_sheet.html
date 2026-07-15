@@ -335,11 +335,7 @@
                             <input type="text" id="searchOrderSource" placeholder="请选择" readonly>
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchOrderSourceDropdown">
-                                <div class="select-option" data-value="">全部</div>
-                                <div class="select-option" data-value="商城/直播间">商城/直播间</div>
-                                <div class="select-option" data-value="代采订单">代采订单</div>
-                            </div>
+                            <div class="select-dropdown" id="searchOrderSourceDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -348,12 +344,7 @@
                             <input type="text" id="searchFulfillmentMethod" placeholder="请选择" readonly>
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchFulfillmentMethodDropdown">
-                                <div class="select-option" data-value="">全部</div>
-                                <div class="select-option" data-value="快递到店">快递到店</div>
-                                <div class="select-option" data-value="快递到家">快递到家</div>
-                                <div class="select-option" data-value="平台配送">平台配送</div>
-                            </div>
+                            <div class="select-dropdown" id="searchFulfillmentMethodDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -404,7 +395,6 @@
                             <div class="select-dropdown" id="searchDocSourceDropdown">
                                 <div class="select-option" data-value="">全部</div>
                                 <div class="select-option" data-value="门店订货汇总生成">门店订货汇总生成</div>
-                                <div class="select-option" data-value="手动新增">手动新增</div>
                                 <div class="select-option" data-value="售后补送">售后补送</div>
                             </div>
                         </div>
@@ -625,6 +615,7 @@
     </div>
 
     <script src="../js/purchase-store-order-data.js"></script>
+    <script src="../js/modal-manager.js"></script>
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
@@ -763,8 +754,7 @@
     }
 
     function isExpressFulfillmentMethod(fulfillmentMethod) {
-        var fm = String(fulfillmentMethod || '').trim();
-        return fm === '快递到店' || fm === '快递到家';
+        return String(fulfillmentMethod || '').trim() === '快递到店';
     }
 
     function resolveSheetWarehouses(fulfillmentMethod, deliveryWarehouse, receivingWarehouse) {
@@ -1111,8 +1101,8 @@
             lines.push({
                 placeOrderDate: datePart,
                 paymentDate: datePart,
-                orderSource: '商城/直播间',
-                fulfillmentMethod: '快递到店',
+                orderSource: '零售订单',
+                fulfillmentMethod: '平台配送',
                 orderStatus: '待发货',
                 deliveryWarehouse: '',
                 receivingWarehouse: '',
@@ -1130,7 +1120,7 @@
                 receivedQty: 0,
                 sheetNo: sheetNo,
                 sheetHeaderStatus: '初始',
-                docSource: '手动新增',
+                docSource: '门店订货汇总生成',
                 expectedShipTime: shipDateVal || datePart,
                 remark: ix === 0 ? remarkText : '',
                 createdBy: createdByVal,
@@ -1829,6 +1819,9 @@
     });
 
     renderSearchStoreDropdown();
+
+    renderSelectOptions('searchOrderSourceDropdown', [{ value: '', text: '全部' }].concat(CommonOptions.orderSource || []));
+    renderSelectOptions('searchFulfillmentMethodDropdown', [{ value: '', text: '全部' }].concat(CommonOptions.fulfillmentMethod || []));
 
     if (typeof initCustomSelect === 'function') {
         initCustomSelect('searchOrderSource', 'searchOrderSourceDropdown');
