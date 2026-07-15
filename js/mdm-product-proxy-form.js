@@ -357,7 +357,7 @@
       '          </div>' +
       '        </div>' +
       '        <div class="product-proxy-form__field">' +
-      '          <label class="product-proxy-form__label">配送方式</label>' +
+      '          <label class="product-proxy-form__label">履约方式</label>' +
       '          <div class="product-proxy-form__control">' +
       '            <div class="product-add-radio-row">' +
       DELIVERY_MODE_OPTIONS.map(function (opt) {

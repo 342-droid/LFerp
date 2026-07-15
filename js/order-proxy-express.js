@@ -426,7 +426,7 @@
         '<dl class="order-detail-kv order-proxy-shipment__kv">' +
           '<dt>发货单流水号</dt><dd>' + escapeHtml(shipment.serialNo) + '</dd>' +
           '<dt>物流单号</dt><dd>' + escapeHtml(shipment.trackingNo) + '</dd>' +
-          '<dt>配送方式</dt><dd>' + escapeHtml(shipment.courier) + '</dd>' +
+          '<dt>物流公司</dt><dd>' + escapeHtml(shipment.courier) + '</dd>' +
           '<dt>配送状态</dt><dd class="order-proxy-shipment__status">' +
             '<span>' + escapeHtml(shipment.status) + '</span>' +
             '<button type="button" class="order-proxy-shipment__track js-proxy-track" data-shipment-id="' + escapeHtml(shipment.id) + '">跟踪信息</button>' +
@@ -469,7 +469,7 @@
 
     var baseKv = el('dl', 'order-detail-kv');
     baseKv.innerHTML =
-      '<dt>配送方式</dt><dd><span class="order-tag order-tag--scene">' + fulfillmentLabel(mode) + '</span></dd>' +
+      '<dt>履约方式</dt><dd><span class="order-tag order-tag--scene">' + fulfillmentLabel(mode) + '</span></dd>' +
       '<dt>收货人</dt><dd>' + escapeHtml(detail.delivery.name) + '</dd>' +
       '<dt>电话</dt><dd>' + escapeHtml(detail.delivery.phone) + '</dd>' +
       '<dt>地址</dt><dd>' + escapeHtml(detail.delivery.address) + '</dd>' +
@@ -755,7 +755,7 @@
               (isEdit ? escapeHtml(editShipment.trackingNo || '') : '') + '">' +
           '</div>' +
           '<div class="order-proxy-upload-field">' +
-            '<label class="order-proxy-upload-field__label" for="proxyUploadCourier">配送方式</label>' +
+            '<label class="order-proxy-upload-field__label" for="proxyUploadCourier">物流公司</label>' +
             '<select class="order-proxy-upload-field__input order-proxy-upload-field__input--courier" id="proxyUploadCourier">' + courierOptions + '</select>' +
             '<p class="order-proxy-upload-field__auto-hint" id="proxyUploadCourierHint" hidden></p>' +
           '</div>' +
@@ -808,7 +808,7 @@
       courierSelect.addEventListener('change', function () {
         if (courierHint && courierSelect.value) {
           courierHint.hidden = false;
-          courierHint.textContent = '当前配送方式：' + courierSelect.value;
+          courierHint.textContent = '当前物流公司：' + courierSelect.value;
         }
       });
     }
@@ -854,7 +854,7 @@
       applyCourierFromTracking();
       var courier = courierSelect ? courierSelect.value : '';
       if (!courier) {
-        if (typeof showToast === 'function') showToast('未能识别快递公司，请手动选择配送方式', 'error');
+        if (typeof showToast === 'function') showToast('未能识别快递公司，请手动选择物流公司', 'error');
         return;
       }
 
