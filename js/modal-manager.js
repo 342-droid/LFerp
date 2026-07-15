@@ -399,6 +399,22 @@ const CommonOptions = {
         { value: 'L004-广州地点', text: 'L004-广州地点' },
         { value: 'L005-深圳地点', text: 'L005-深圳地点' }
     ],
+    // 订单渠道选项（采购/门店订货相关页面共用）
+    orderSource: [
+        { value: '零售订单', text: '零售订单' },
+        { value: '代采订单', text: '代采订单' }
+    ],
+    // 履约方式选项（采购/门店订货相关页面共用）
+    // 约束：零售订单仅支持「平台配送」；代采订单支持「快递到店」「平台配送」
+    fulfillmentMethod: [
+        { value: '快递到店', text: '快递到店' },
+        { value: '平台配送', text: '平台配送' }
+    ],
+    // 订单渠道可用履约方式
+    orderSourceFulfillmentMap: {
+        '零售订单': ['平台配送'],
+        '代采订单': ['快递到店', '平台配送']
+    },
     // 营销类型选项
     marketingType: [
         { value: '普通售卖', text: '普通售卖' },
@@ -426,8 +442,20 @@ function getDistributionStatusClass(status) {
     return distributionStatusBadgeClass[status] || 'dist-st-default';
 }
 
+/** 订单渠道是否允许该履约方式（零售订单不含快递到店） */
+function isOrderSourceFulfillmentAllowed(orderSource, fulfillmentMethod) {
+    var source = String(orderSource || '').trim();
+    var method = String(fulfillmentMethod || '').trim();
+    if (!source || !method) return true;
+    var map = (CommonOptions && CommonOptions.orderSourceFulfillmentMap) || {};
+    var allowed = map[source];
+    if (!allowed) return true;
+    return allowed.indexOf(method) !== -1;
+}
+
 // 导出到全局
 window.ModalManager = ModalManager;
 window.CommonOptions = CommonOptions;
 window.getDistributionStatusClass = getDistributionStatusClass;
 window.distributionStatusBadgeClass = distributionStatusBadgeClass;
+window.isOrderSourceFulfillmentAllowed = isOrderSourceFulfillmentAllowed;

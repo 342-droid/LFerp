@@ -459,11 +459,7 @@
                             <input type="text" id="searchOrderSource" placeholder="请选择" readonly>
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchOrderSourceDropdown">
-                                <div class="select-option" data-value="">全部</div>
-                                <div class="select-option" data-value="商城/直播间">商城/直播间</div>
-                                <div class="select-option" data-value="代采订单">代采订单</div>
-                            </div>
+                            <div class="select-dropdown" id="searchOrderSourceDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -472,12 +468,7 @@
                             <input type="text" id="searchFulfillmentMethod" placeholder="请选择" readonly>
                             <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchFulfillmentMethodDropdown">
-                                <div class="select-option" data-value="">全部</div>
-                                <div class="select-option" data-value="快递到店">快递到店</div>
-                                <div class="select-option" data-value="快递到家">快递到家</div>
-                                <div class="select-option" data-value="平台配送">平台配送</div>
-                            </div>
+                            <div class="select-dropdown" id="searchFulfillmentMethodDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -797,6 +788,7 @@
     </div>
 
     <script src="../js/purchase-order-mock-data.js"></script>
+    <script src="../js/modal-manager.js"></script>
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
@@ -843,9 +835,6 @@
             receivePhone: row && row.receivePhone ? row.receivePhone : '—',
             receiver: row && row.receiver ? row.receiver : '—'
         };
-        if (row && String(row.fulfillmentMethod || '').trim() === '快递到家') {
-            receiveInfo.receiveName = '快递到家';
-        }
         return receiveInfo;
     }
 
@@ -1006,7 +995,6 @@
 
     function resolvePoRelatedOrderNo(row) {
         if (!row) return '';
-        if (String(row.fulfillmentMethod || '').trim() === '快递到家') return '';
         return row.relatedOrderNo;
     }
 
@@ -1702,7 +1690,7 @@
             var operator = getLineBuyer(lines[0]) || '系统';
             allRows.unshift({
                 poNo: currentAddPoNo || generatePurchaseOrderNo(),
-                orderSource: '商城/直播间',
+                orderSource: '零售订单',
                 fulfillmentMethod: '平台配送',
                 warehouse: wh,
                 supplier: sp,
@@ -2377,6 +2365,16 @@
     });
 
     if (typeof initCustomSelect === 'function') {
+        renderSelectOptions(
+            'searchOrderSource',
+            'searchOrderSourceDropdown',
+            (CommonOptions.orderSource || []).map(function(o) { return o.value; })
+        );
+        renderSelectOptions(
+            'searchFulfillmentMethod',
+            'searchFulfillmentMethodDropdown',
+            (CommonOptions.fulfillmentMethod || []).map(function(o) { return o.value; })
+        );
         initCustomSelect('searchWarehouse', 'searchWarehouseDropdown');
         initCustomSelect('searchOrderSource', 'searchOrderSourceDropdown');
         initCustomSelect('searchFulfillmentMethod', 'searchFulfillmentMethodDropdown');
