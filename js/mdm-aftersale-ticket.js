@@ -94,57 +94,120 @@
     return (Math.round(n * 100) / 100).toFixed(2);
   }
 
-  function buildMockRows(count) {
+  function makeRow(opts, i) {
+    var type = opts.type;
+    var status = opts.status;
+    var orderSource = opts.orderSource;
+    var fulfillment = opts.fulfillment;
+    var applyAmt = opts.applyAmt != null ? opts.applyAmt : [0.03, 0.02, 2.75, 0.75, 2.0, 0.1, 0.04, 1.2][i % 8];
+    var refundExec = resolveRefundExec(type, status, i);
+    var hasRefund = createsRefundDoc(type);
+    var day = pad((i % 28) + 1);
+    var hour = pad(10 + (i % 10));
+    var minute = pad((i * 3) % 60);
+    var second = pad((i * 7) % 60);
+    var occurAt = '2026-07-14 ' + hour + ':' + minute + ':' + second;
+    var applyAt = '2026-07-14 ' + hour + ':' + minute + ':' + pad(Math.max(0, parseInt(second, 10) - 1), 2);
+    var idPrefix = opts.idPrefix || 'AS-335';
+    return {
+      id: idPrefix + String(300000000000000 + i * 117 + day).slice(0, 15),
+      source: SOURCES[i % SOURCES.length],
+      type: type,
+      status: status,
+      orderSource: orderSource,
+      liveSession: orderSource === '直播' ? LIVE_SESSIONS[i % LIVE_SESSIONS.length] : '-',
+      fulfillment: fulfillment,
+      nickname: NICKNAMES[i % NICKNAMES.length],
+      phone: PHONES[i % PHONES.length],
+      store: STORES[i % STORES.length],
+      storeAddress: ADDRESSES[i % ADDRESSES.length],
+      productName: opts.productName || PRODUCTS[i % PRODUCTS.length],
+      applyAmount: money(applyAmt),
+      approveAmount: money(applyAmt),
+      refundExecStatus: refundExec,
+      actualAmount:
+        hasRefund && refundExec === '退款成功'
+          ? money(applyAmt)
+          : hasRefund && refundExec !== '未发起退款'
+            ? money(applyAmt)
+            : '0.00',
+      couponAmount: '0.00',
+      pointsAmount: 0,
+      reason: REASONS[i % REASONS.length],
+      approver: APPROVERS[i % APPROVERS.length],
+      settleStatus: '-',
+      occurTime: occurAt,
+      approveTime: occurAt,
+      applyTime: applyAt,
+      updateTime:
+        '2026-07-14 ' + hour + ':' + pad((parseInt(minute, 10) + 1) % 60) + ':' + pad((parseInt(second, 10) + 8) % 60),
+      orderNo: 'ORD-3212689' + pad(200000 + i, 7)
+    };
+  }
+
+  /**
+   * 代采演示矩阵：补货 / 换货 / 退货退款 × 平台配送 / 快递到店 × 各业务状态
+   * 置顶方便筛「订单来源=代采」后自查详情页
+   */
+  function buildProxyDemoRows() {
+    var PROXY_FULFILLMENTS = ['快递到店', '平台配送'];
+    var STATUS_MAP = {
+      退货退款: ['待审批', '已拒绝', '待退货', '已收货', '退款中', '退款异常', '已完成', '已取消'],
+      补货: ['待审批', '已拒绝', '待退货', '已收货', '已完成', '已取消'],
+      换货: ['待审批', '已拒绝', '待退货', '已收货', '已完成', '已取消']
+    };
+    var types = ['退货退款', '补货', '换货'];
     var list = [];
-    for (var i = 0; i < count; i++) {
-      var applyAmt = [0.03, 0.02, 2.75, 0.75, 2.0, 0.1, 0.04, 1.2][i % 8];
-      var day = pad((i % 28) + 1);
-      var hour = pad(10 + (i % 10));
-      var minute = pad((i * 3) % 60);
-      var second = pad((i * 7) % 60);
-      var occurAt = '2026-07-14 ' + hour + ':' + minute + ':' + second;
-      var applyAt = '2026-07-14 ' + hour + ':' + minute + ':' + pad(Math.max(0, parseInt(second, 10) - 1), 2);
-      var approveAt = occurAt;
-      var updateAt = '2026-07-14 ' + hour + ':' + pad((parseInt(minute, 10) + 1) % 60) + ':' + pad((parseInt(second, 10) + 8) % 60);
-      // 全量覆盖枚举；约一半为已完成，其余按类型轮询合理状态
-      var type = TYPES[i % TYPES.length];
-      var status = resolveTicketStatus(type, i);
-      var refundExec = resolveRefundExec(type, status, i);
-      var hasRefund = createsRefundDoc(type);
-      var orderSource = ORDER_SOURCES[i % ORDER_SOURCES.length];
-      list.push({
-        id: 'AS-335' + String(300000000000000 + i * 117 + day).slice(0, 15),
-        source: SOURCES[i % SOURCES.length],
-        type: type,
-        status: status,
-        orderSource: orderSource,
-        liveSession: orderSource === '直播' ? LIVE_SESSIONS[i % LIVE_SESSIONS.length] : '-',
-        fulfillment: resolveFulfillment(orderSource, i),
-        nickname: NICKNAMES[i % NICKNAMES.length],
-        phone: PHONES[i % PHONES.length],
-        store: STORES[i % STORES.length],
-        storeAddress: ADDRESSES[i % ADDRESSES.length],
-        productName: PRODUCTS[i % PRODUCTS.length],
-        applyAmount: money(applyAmt),
-        approveAmount: money(applyAmt),
-        refundExecStatus: refundExec,
-        actualAmount: hasRefund && refundExec === '退款成功' ? money(applyAmt) : hasRefund && refundExec !== '未发起退款' ? money(applyAmt) : '0.00',
-        couponAmount: '0.00',
-        pointsAmount: 0,
-        reason: REASONS[i % REASONS.length],
-        approver: APPROVERS[i % APPROVERS.length],
-        settleStatus: '-',
-        occurTime: occurAt,
-        approveTime: approveAt,
-        applyTime: applyAt,
-        updateTime: updateAt,
-        orderNo: 'ORD-3212689' + pad(200000 + i, 7)
+    var seq = 0;
+    types.forEach(function (type) {
+      PROXY_FULFILLMENTS.forEach(function (fulfillment) {
+        (STATUS_MAP[type] || []).forEach(function (status) {
+          list.push(
+            makeRow(
+              {
+                type: type,
+                status: status,
+                orderSource: '代采',
+                fulfillment: fulfillment,
+                idPrefix: 'AS-PX',
+                productName: '【代采+' + fulfillment + '】' + type + '·' + status,
+                applyAmt: type === '退货退款' ? 12.5 : 8.8
+              },
+              seq++
+            )
+          );
+        });
       });
+    });
+    return list;
+  }
+
+  function buildMockRows(count) {
+    var list = buildProxyDemoRows();
+    var start = list.length;
+    for (var i = start; i < start + count; i++) {
+      var type = TYPES[i % TYPES.length];
+      var orderSource = ORDER_SOURCES[i % ORDER_SOURCES.length];
+      // 代采演示已由矩阵覆盖，这里让代采略少，优先补商城/直播
+      if (orderSource === '代采' && i % 2 === 0) {
+        orderSource = ORDER_SOURCES[i % 2];
+      }
+      list.push(
+        makeRow(
+          {
+            type: type,
+            status: resolveTicketStatus(type, i),
+            orderSource: orderSource,
+            fulfillment: resolveFulfillment(orderSource, i)
+          },
+          i
+        )
+      );
     }
     return list;
   }
 
-  var ALL_ROWS = buildMockRows(115);
+  var ALL_ROWS = buildMockRows(80);
 
   var state = {
     page: 1,
