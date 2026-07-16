@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-order.css">
 </head>
-<body>
+<body data-order-page="retail">
     <div id="sidebar-container"></div>
     <script src="../js/path-prefix.js"></script>
     <script src="../js/order-sidebar.js"></script>
@@ -50,6 +50,14 @@
                                         <option value="">全部</option>
                                         <option value="wechat">微信支付</option>
                                         <option value="alipay">支付宝</option>
+                                    </select>
+                                </div>
+                                <div class="order-filter-field">
+                                    <label class="order-filter-field__label" for="qDeliveryMode">配送方式</label>
+                                    <select class="order-filter-field__select" id="qDeliveryMode">
+                                        <option value="">全部</option>
+                                        <option value="pickup">自提</option>
+                                        <option value="express">快递</option>
                                     </select>
                                 </div>
                             </div>
@@ -113,6 +121,9 @@
                     </section>
 
                     <section class="erp-page__card order-table-card">
+                        <div class="order-table-toolbar">
+                            <button type="button" class="order-table-toolbar__btn order-table-toolbar__btn--primary" id="orderRetailBatchUpload">批量上传快递单</button>
+                        </div>
                         <div class="order-live-table-wrap">
                             <table class="order-live-table">
                                 <thead>
@@ -132,13 +143,14 @@
                                         <th><span class="order-th-label">积分抵扣金额 <i class="order-th-help" title="积分抵扣金额">?</i></span></th>
                                         <th><span class="order-th-label">实付金额 <i class="order-th-help" title="用户实付金额">?</i></span></th>
                                         <th>订单场景</th>
+                                        <th>配送方式</th>
                                         <th>支付渠道</th>
                                         <th>订单状态</th>
                                         <th class="order-live-table__sticky-col">操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr data-order-id="ORD-3212689201598341">
+                                    <tr data-order-id="ORD-3212689201598341" data-delivery-mode="pickup">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201598341">ORD-3212689201598341</a></td>
                                         <td>2026-06-05 20:47</td>
                                         <td>赵金芝</td>
@@ -159,11 +171,12 @@
                                         <td>¥0.00</td>
                                         <td>¥0.01</td>
                                         <td><span class="order-scene">直播</span></td>
+                                        <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--closed">已关闭</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201598341">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201588561">
+                                    <tr data-order-id="ORD-3212689201588561" data-delivery-mode="express">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561">ORD-3212689201588561</a></td>
                                         <td>2026-06-05 20:46</td>
                                         <td>赵金芝</td>
@@ -184,11 +197,17 @@
                                         <td>¥0.00</td>
                                         <td>¥0.90</td>
                                         <td><span class="order-scene">商城</span></td>
+                                        <td><span class="order-tag order-tag--scene order-delivery-mode">快递</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--created">已创建</span></td>
-                                        <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561">查看</a></td>
+                                        <td class="order-live-table__sticky-col">
+                                            <div class="order-live-table__actions">
+                                                <a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561">查看</a>
+                                                <button type="button" class="order-live-table__action js-retail-upload-express" data-order-id="ORD-3212689201588561">上传快递单</button>
+                                            </div>
+                                        </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201588561-B">
+                                    <tr data-order-id="ORD-3212689201588561-B" data-delivery-mode="pickup">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561-B">ORD-3212689201588561</a></td>
                                         <td>2026-06-03 09:36</td>
                                         <td>赵金芝</td>
@@ -209,11 +228,12 @@
                                         <td>¥0.00</td>
                                         <td>¥10.90</td>
                                         <td><span class="order-scene">直播、商城</span></td>
+                                        <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--created">已创建</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561-B">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201584693">
+                                    <tr data-order-id="ORD-3212689201584693" data-delivery-mode="pickup">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201584693">ORD-3212689201584693</a></td>
                                         <td>2026-06-02 18:07</td>
                                         <td>赵金芝</td>
@@ -234,11 +254,12 @@
                                         <td>¥0.00</td>
                                         <td>¥0.90</td>
                                         <td><span class="order-scene">直播</span></td>
+                                        <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--created">已创建</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201584693">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201562037-A">
+                                    <tr data-order-id="ORD-3212689201562037-A" data-delivery-mode="pickup">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-A">ORD-3212689201562037</a></td>
                                         <td>2026-06-02 18:06</td>
                                         <td>赵金芝</td>
@@ -259,11 +280,12 @@
                                         <td>¥0.00</td>
                                         <td>¥8.80</td>
                                         <td><span class="order-scene">商城</span></td>
+                                        <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--created">已创建</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-A">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201562037-B">
+                                    <tr data-order-id="ORD-3212689201562037-B" data-delivery-mode="pickup">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-B">ORD-3212689201562037</a></td>
                                         <td>2026-06-02 18:05</td>
                                         <td>赵金芝</td>
@@ -284,11 +306,12 @@
                                         <td>¥0.00</td>
                                         <td>¥10.50</td>
                                         <td><span class="order-scene">直播、商城</span></td>
+                                        <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--created">已创建</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-B">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201560683">
+                                    <tr data-order-id="ORD-3212689201560683" data-delivery-mode="pickup">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560683">ORD-3212689201560683</a></td>
                                         <td>2026-06-02 18:04</td>
                                         <td>赵金芝</td>
@@ -309,11 +332,12 @@
                                         <td>¥0.00</td>
                                         <td>¥6.60</td>
                                         <td><span class="order-scene">直播</span></td>
+                                        <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--created">已创建</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560683">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599001">
+                                    <tr data-order-id="ORD-3212689201599001" data-delivery-mode="express">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599001">ORD-3212689201599001</a></td>
                                         <td>2026-06-04 14:20</td>
                                         <td>宁静致远</td>
@@ -334,16 +358,17 @@
                                         <td>¥0.00</td>
                                         <td>¥118.18</td>
                                         <td><span class="order-scene">商城</span></td>
+                                        <td><span class="order-tag order-tag--scene order-delivery-mode">快递</span></td>
                                         <td>-</td>
-                                        <td><span class="order-tag order-tag--pickup">待提货</span></td>
+                                        <td><span class="order-tag order-tag--receipt">待收货</span></td>
                                         <td class="order-live-table__sticky-col">
                                             <div class="order-live-table__actions">
                                                 <a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599001">查看</a>
-                                                <button type="button" class="order-live-table__verify js-order-verify" data-order-id="ORD-3212689201599001">核销</button>
+                                                <button type="button" class="order-live-table__action js-retail-upload-express" data-order-id="ORD-3212689201599001">上传快递单</button>
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599002">
+                                    <tr data-order-id="ORD-3212689201599002" data-delivery-mode="pickup">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599002">ORD-3212689201599002</a></td>
                                         <td>2026-06-04 11:35</td>
                                         <td>宋雨琦</td>
@@ -364,6 +389,7 @@
                                         <td>¥0.00</td>
                                         <td>¥54.18</td>
                                         <td><span class="order-scene">直播</span></td>
+                                        <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -373,7 +399,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599003">
+                                    <tr data-order-id="ORD-3212689201599003" data-delivery-mode="express">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599003">ORD-3212689201599003</a></td>
                                         <td>2026-06-03 16:48</td>
                                         <td>赵金芝</td>
@@ -394,16 +420,17 @@
                                         <td>¥0.00</td>
                                         <td>¥46.18</td>
                                         <td><span class="order-scene">商城</span></td>
+                                        <td><span class="order-tag order-tag--scene order-delivery-mode">快递</span></td>
                                         <td>-</td>
-                                        <td><span class="order-tag order-tag--pickup">待提货</span></td>
+                                        <td><span class="order-tag order-tag--receipt">待收货</span></td>
                                         <td class="order-live-table__sticky-col">
                                             <div class="order-live-table__actions">
                                                 <a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599003">查看</a>
-                                                <button type="button" class="order-live-table__verify js-order-verify" data-order-id="ORD-3212689201599003">核销</button>
+                                                <button type="button" class="order-live-table__action js-retail-upload-express" data-order-id="ORD-3212689201599003">上传快递单</button>
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201560682">
+                                    <tr data-order-id="ORD-3212689201560682" data-delivery-mode="express">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560682">ORD-3212689201560682</a></td>
                                         <td>2026-06-02 18:03</td>
                                         <td>赵金芝</td>
@@ -424,6 +451,7 @@
                                         <td>¥0.00</td>
                                         <td>¥15.00</td>
                                         <td><span class="order-scene">直播、商城</span></td>
+                                        <td><span class="order-tag order-tag--scene order-delivery-mode">快递</span></td>
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--completed">已完成</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560682">查看</a></td>
@@ -455,6 +483,7 @@
         </main>
     </div>
     <script src="../js/common.js"></script>
+    <script src="../js/order-proxy-express.js"></script>
     <script src="../js/order-live-list.js"></script>
     <script src="../js/order-live-detail.js"></script>
 </body>
