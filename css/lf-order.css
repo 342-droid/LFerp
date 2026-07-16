@@ -455,7 +455,8 @@
   gap: 8px;
 }
 
-body[data-order-page="proxy"] .order-live-table__sticky-col {
+body[data-order-page="proxy"] .order-live-table__sticky-col,
+body[data-order-page="retail"] .order-live-table__sticky-col {
   text-align: left;
   width: 1%;
   white-space: nowrap;
@@ -482,7 +483,8 @@ body[data-order-page="proxy"] .order-live-table__actions-item {
 body[data-order-page="proxy"] .order-live-table__actions-item--view .order-live-table__link,
 body[data-order-page="proxy"] .order-live-table__action,
 body[data-order-page="proxy"] .order-live-table__confirm-receipt,
-body[data-order-page="proxy"] .order-live-table__express {
+body[data-order-page="proxy"] .order-live-table__express,
+body[data-order-page="retail"] .order-live-table__action {
   padding: 0;
   border: none;
   background: transparent;
@@ -501,7 +503,8 @@ body[data-order-page="proxy"] .order-live-table__actions-item--view .order-live-
 body[data-order-page="proxy"] .order-live-table__actions-item--view .order-live-table__link:hover,
 body[data-order-page="proxy"] .order-live-table__action:hover,
 body[data-order-page="proxy"] .order-live-table__confirm-receipt:hover,
-body[data-order-page="proxy"] .order-live-table__express:hover {
+body[data-order-page="proxy"] .order-live-table__express:hover,
+body[data-order-page="retail"] .order-live-table__action:hover {
   text-decoration: underline;
 }
 

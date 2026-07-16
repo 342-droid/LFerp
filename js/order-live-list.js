@@ -30,15 +30,38 @@
           expandBtn.classList.toggle('is-expanded', defaultExpanded);
         }
         if (expandLabel) expandLabel.textContent = defaultExpanded ? '收起' : '展开';
+        applyRetailFilters();
       });
     }
 
     if (queryBtn) {
       queryBtn.addEventListener('click', function () {
+        applyRetailFilters();
         if (typeof showToast === 'function') {
           showToast('查询完成（演示）', 'success');
         }
       });
+    }
+  }
+
+  function applyRetailFilters() {
+    if (document.body && document.body.getAttribute('data-order-page') === 'proxy') return;
+    var deliverySel = document.getElementById('qDeliveryMode');
+    if (!deliverySel) return;
+    var delivery = (deliverySel.value || '').trim();
+    var tbody = document.querySelector('.order-live-table tbody');
+    if (!tbody) return;
+    var rows = tbody.querySelectorAll('tr[data-order-id]');
+    var visible = 0;
+    rows.forEach(function (row) {
+      var mode = row.getAttribute('data-delivery-mode') || 'pickup';
+      var show = !delivery || mode === delivery;
+      row.hidden = !show;
+      if (show) visible += 1;
+    });
+    var totalEl = document.querySelector('.order-pagination__total');
+    if (totalEl && delivery) {
+      totalEl.textContent = '共 ' + visible + ' 条';
     }
   }
 
@@ -113,6 +136,10 @@
       var orderId = btn.getAttribute('data-order-id');
       var row = btn.closest('tr');
       if (!orderId || !row) return;
+      if ((row.getAttribute('data-delivery-mode') || '') === 'express') {
+        if (typeof showToast === 'function') showToast('快递订单无需核销', 'warning');
+        return;
+      }
 
       showOrderVerifyConfirm(orderId, function () {
         var verified = false;
@@ -127,15 +154,86 @@
     });
   }
 
+  function getRowOrderStatus(row) {
+    var statusEl = row ? row.querySelector('td:nth-last-child(2) .order-tag') : null;
+    return statusEl ? statusEl.textContent.trim() : '';
+  }
+
+  function getOrderGoods(orderId, row) {
+    if (window.OrderLiveDetail && typeof window.OrderLiveDetail.resolveDetail === 'function') {
+      var detail = window.OrderLiveDetail.resolveDetail(orderId, row);
+      if (detail && detail.goods && detail.goods.length) return detail.goods;
+    }
+    var nameEl = row ? row.querySelector('.order-product-cell__name') : null;
+    var name = nameEl ? nameEl.textContent.trim() : '商品';
+    return [{ id: 'g1', name: name.replace(/\s等\d+种$/, '') }];
+  }
+
+  function canUploadRetailExpress(row) {
+    var status = getRowOrderStatus(row);
+    if (window.OrderProxyExpress && typeof window.OrderProxyExpress.canUploadExpressStatus === 'function') {
+      return window.OrderProxyExpress.canUploadExpressStatus(status, 'retail');
+    }
+    return !!status && status !== '已完成' && status !== '已关闭' && status !== '已取消';
+  }
+
+  function initRetailExpressUpload() {
+    if (!document.body || document.body.getAttribute('data-order-page') !== 'retail') return;
+
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.js-retail-upload-express');
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      var orderId = btn.getAttribute('data-order-id');
+      var row = btn.closest('tr');
+      if (!orderId || !row) return;
+      if ((row.getAttribute('data-delivery-mode') || '') !== 'express') {
+        if (typeof showToast === 'function') showToast('仅快递订单可上传快递单', 'error');
+        return;
+      }
+      if (!canUploadRetailExpress(row)) {
+        if (typeof showToast === 'function') showToast('当前订单状态不可上传快递单', 'error');
+        return;
+      }
+      if (!window.OrderProxyExpress) {
+        if (typeof showToast === 'function') showToast('快递模块未加载', 'error');
+        return;
+      }
+      window.OrderProxyExpress.openUploadModal(orderId, getOrderGoods(orderId, row));
+    });
+  }
+
+  function initRetailBatchExpressUpload() {
+    if (!document.body || document.body.getAttribute('data-order-page') !== 'retail') return;
+
+    var batchBtn = document.getElementById('orderRetailBatchUpload');
+    if (!batchBtn) return;
+    batchBtn.addEventListener('click', function () {
+      if (!window.OrderProxyExpress || typeof window.OrderProxyExpress.openBatchUploadModal !== 'function') {
+        if (typeof showToast === 'function') showToast('快递模块未加载', 'error');
+        return;
+      }
+      window.OrderProxyExpress.openBatchUploadModal({
+        hint: '通过 Excel / CSV 批量上传快递单号。请先下载模板，按「订单号、物流单号、快递公司」填写后上传。仅适用于配送方式为快递的订单；下单后至收货前均可导入。'
+      });
+    });
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
       initFilter();
       initPagination();
       initVerifyPickup();
+      initRetailExpressUpload();
+      initRetailBatchExpressUpload();
     });
   } else {
     initFilter();
     initPagination();
     initVerifyPickup();
+    initRetailExpressUpload();
+    initRetailBatchExpressUpload();
   }
 })();

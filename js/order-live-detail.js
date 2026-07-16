@@ -17,13 +17,37 @@
 
   function getListCellIndices(row) {
     var sceneEl = row ? row.querySelector('.order-scene') : null;
+    var hasDeliveryCol = !!(row && (row.getAttribute('data-delivery-mode') || row.querySelector('.order-delivery-mode')));
     if (isProxyOrderPage()) {
       return { goods: 7, discount: 8, paid: 12, payChannel: 13 };
     }
     if (sceneEl) {
-      return { goods: 8, discount: 9, paid: 13, payChannel: 15 };
+      // 有配送方式列时：…场景(14) 配送(15) 支付(16) 状态(17)
+      return {
+        goods: 8,
+        discount: 9,
+        paid: 13,
+        payChannel: hasDeliveryCol ? 16 : 15
+      };
     }
     return { goods: 8, discount: 9, paid: 13, payChannel: 14 };
+  }
+
+  function retailDeliveryLabel(typeOrLabel) {
+    var v = String(typeOrLabel || '').trim();
+    if (v === 'EXPRESS' || v === 'express' || v === '快递') return '快递';
+    if (v === 'SELF_PICKUP' || v === 'pickup' || v === '自提') return '自提';
+    if (v === 'PROXY') return '-';
+    return v || '自提';
+  }
+
+  function readDeliveryModeFromRow(row) {
+    if (!row) return '自提';
+    var el = row.querySelector('.order-delivery-mode');
+    if (el) return retailDeliveryLabel(el.textContent);
+    var attr = row.getAttribute('data-delivery-mode');
+    if (attr) return retailDeliveryLabel(attr);
+    return '自提';
   }
 
   var DETAILS = {
@@ -87,10 +111,11 @@
       progress: {
         completedSteps: 1,
         outcome: null,
-        status: '运输中',
+        status: '已创建',
         submitTime: '2026-06-05 20:46'
       },
       goods: [{
+        id: 'g1',
         name: '微辣萝卜干 500g 4号…',
         spec: '规格：500g',
         img: '../user-app/assets/order-product-2.svg',
@@ -114,10 +139,11 @@
       paymentCount: 1,
       customer: { nickname: '赵金芝', phone: '13800001987', userId: '318605592681791401' },
       delivery: {
-        type: 'SELF_PICKUP',
+        type: 'EXPRESS',
         name: '刘十九',
         phone: '13800001987',
         address: '浙江省杭州市西湖区文三路168号',
+        homeAddress: '浙江省杭州市西湖区文三路168号1幢502室',
         store: '悠悠生鲜超市'
       },
       tags: {
@@ -138,12 +164,13 @@
     'ORD-3212689201599001': {
       displayId: 'ORD-3212689201599001',
       progress: {
-        completedSteps: 3,
+        completedSteps: 2,
         outcome: null,
-        status: '待提货',
+        status: '待收货',
         submitTime: '2026-06-04 14:20'
       },
       goods: [{
+        id: 'g1',
         name: '冷丰优选3J智利车厘子 3斤装',
         spec: '规格：3斤',
         img: '../user-app/assets/order-detail-cherry.svg',
@@ -167,10 +194,11 @@
       paymentCount: 1,
       customer: { nickname: '宁静致远', phone: '155****9061', userId: '318605592681791501' },
       delivery: {
-        type: 'SELF_PICKUP',
+        type: 'EXPRESS',
         name: '宁静致远',
         phone: '155****9061',
         address: '浙江省杭州市上城区望江街道望江路16号',
+        homeAddress: '浙江省杭州市上城区望江街道望江路16号2单元801',
         store: '悠悠生鲜超市'
       },
       tags: {
@@ -185,7 +213,7 @@
       },
       logs: [
         { time: '2026-06-04 14:20', title: '订单已创建', desc: '订单创建，金额 ¥118.18' },
-        { time: '2026-06-05 09:30', title: '商品已到提货点', desc: '请尽快前往门店提货' }
+        { time: '2026-06-05 09:30', title: '商家已发货', desc: '快递已发出，配送至用户收货地址' }
       ],
       clearingEmpty: true
     },
@@ -269,7 +297,7 @@
     'ORD-3212689201599003': {
       displayId: 'ORD-3212689201599003',
       progress: {
-        completedSteps: 3,
+        completedSteps: 2,
         outcome: null,
         status: '待收货',
         submitTime: '2026-06-03 16:48'
@@ -313,10 +341,11 @@
       paymentCount: 1,
       customer: { nickname: '赵金芝', phone: '18715449646', userId: '318605592681791502' },
       delivery: {
-        type: 'SELF_PICKUP',
+        type: 'EXPRESS',
         name: '杜建锋',
         phone: '18715449646',
         address: '萧山区经济开发区鸿兴路158号',
+        homeAddress: '浙江省杭州市萧山区鸿兴路158号锦绣家园3幢1201',
         store: '悠悠生鲜超市'
       },
       tags: {
@@ -331,20 +360,21 @@
       },
       logs: [
         { time: '2026-06-03 16:48', title: '订单已创建', desc: '订单创建，金额 ¥46.18' },
-        { time: '2026-06-04 10:00', title: '商品已到提货点', desc: '请尽快前往门店提货' }
+        { time: '2026-06-04 10:00', title: '商家已发货', desc: '快递已发出，配送至用户收货地址' }
       ],
       clearingEmpty: true
     },
     'ORD-3212689201560682': {
       displayId: 'ORD-3212689201560682',
       progress: {
-        completedSteps: 4,
+        completedSteps: 3,
         outcome: 'success',
         status: '已完成',
         submitTime: '2026-06-02 18:03',
         finishTime: '2026-06-03 11:20'
       },
       goods: [{
+        id: 'g1',
         name: '精品牛腩 500g',
         spec: '规格：500g',
         img: '../user-app/assets/order-product-2.svg',
@@ -368,10 +398,11 @@
       paymentCount: 1,
       customer: { nickname: '赵金芝', phone: '13800001234', userId: '318605592681791499' },
       delivery: {
-        type: 'SELF_PICKUP',
+        type: 'EXPRESS',
         name: '李四',
         phone: '13800001234',
         address: '浙江省杭州市上城区望江街道望江路16号',
+        homeAddress: '浙江省杭州市上城区望江街道望江路28号阳光公寓5-602',
         store: '悠悠生鲜超市'
       },
       tags: {
@@ -386,23 +417,8 @@
       },
       logs: [
         { time: '2026-06-02 18:03', type: 'create', title: '订单已创建', desc: '订单创建，金额 ¥15.00' },
-        { time: '2026-06-03 09:00', type: 'arrival', title: '商品已到提货点', desc: '请尽快前往门店提货' },
-        {
-          time: '2026-06-03 11:18',
-          type: 'pickup',
-          title: '商品提货',
-          desc: '精品牛腩 500g 提货 1 件（累计已提 1/1）',
-          pickup: {
-            productName: '精品牛腩 500g',
-            sku: 'SKU-3301…',
-            spu: 'SPU-3301…',
-            qty: 1,
-            pickedQty: 1,
-            totalQty: 1,
-            operator: '门店核销员'
-          }
-        },
-        { time: '2026-06-03 11:20', type: 'success', title: '交易成功', desc: '全部商品核销完成，订单已完成' }
+        { time: '2026-06-03 09:00', type: 'ship', title: '商家已发货', desc: '快递已发出，配送至用户收货地址' },
+        { time: '2026-06-03 11:20', type: 'success', title: '交易成功', desc: '用户已签收，订单已完成' }
       ],
       clearingEmpty: true
     }
@@ -411,8 +427,25 @@
   var MID_STEPS = ['提交订单', '运输中', '待收货', '待提货'];
   var PROXY_MID_STEPS = ['提交订单', '运输中', '待收货'];
 
-  function getMidSteps() {
-    return isProxyOrderPage() ? PROXY_MID_STEPS : MID_STEPS;
+  function isRetailExpressDetail(detail, row) {
+    if (isProxyOrderPage()) return false;
+    if (detail && detail.delivery) {
+      var typeLabel = retailDeliveryLabel(detail.delivery.type || detail.delivery.deliveryMode);
+      if (typeLabel === '快递') return true;
+    }
+    if (row) {
+      if ((row.getAttribute('data-delivery-mode') || '') === 'express') return true;
+      if (readDeliveryModeFromRow(row) === '快递') return true;
+    }
+    return false;
+  }
+
+  function usesExpressProgress(detail, row) {
+    return isProxyOrderPage() || isRetailExpressDetail(detail, row);
+  }
+
+  function getMidSteps(detail, row) {
+    return usesExpressProgress(detail, row) ? PROXY_MID_STEPS : MID_STEPS;
   }
 
   function normalizeProxyProgress(progress) {
@@ -505,7 +538,7 @@
     var wrap = el('div', 'order-detail-steps');
     var completedSteps = progress.completedSteps || 0;
     var outcome = progress.outcome || null;
-    var midSteps = getMidSteps();
+    var midSteps = getMidSteps(detail);
 
     midSteps.forEach(function (label, index) {
       var step = el('div', 'order-detail-step');
@@ -587,8 +620,9 @@
     };
   }
 
-  function isPickupOrder(status) {
+  function isPickupOrder(status, detail, row) {
     if (isProxyOrderPage()) return false;
+    if (isRetailExpressDetail(detail, row)) return false;
     return status === '待提货';
   }
 
@@ -961,12 +995,15 @@
     if (!state || !refs) return;
 
     var status = state.progress.status;
-    var pickupMode = isPickupOrder(status);
+    var pickupMode = isPickupOrder(status, { delivery: drawer._deliveryMeta }, drawer._sourceRow);
 
     refs.statusTag.textContent = status;
     refs.statusTag.className = 'order-detail-status ' + getProgressStatusClass(status);
 
-    var newSteps = buildSteps({ progress: state.progress });
+    var newSteps = buildSteps({
+      progress: state.progress,
+      delivery: drawer._deliveryMeta
+    });
     refs.stepsContainer.replaceWith(newSteps);
     refs.stepsContainer = newSteps;
 
@@ -1110,7 +1147,7 @@
     var goods = state ? state.goods : detail.goods;
     var logs = state ? state.logs : detail.logs;
     var progress = state ? state.progress : detail.progress;
-    var pickupMode = state && isPickupOrder(progress.status);
+    var pickupMode = state && isPickupOrder(progress.status, detail, drawer && drawer._sourceRow);
 
     var main = el('div', 'order-detail-main');
 
@@ -1120,7 +1157,10 @@
     var statusTag = buildProgressStatusTag(progress.status || '运输中');
     progressHead.appendChild(statusTag);
     progressCard.appendChild(progressHead);
-    var stepsEl = buildSteps({ progress: progress });
+    var stepsEl = buildSteps({
+      progress: progress,
+      delivery: detail.delivery
+    });
     progressCard.appendChild(stepsEl);
     main.appendChild(progressCard);
 
@@ -1225,8 +1265,12 @@
     aside.appendChild(customerCard);
 
     var deliveryCard;
-    if (isProxyOrderPage() && window.OrderProxyExpress) {
-      deliveryCard = OrderProxyExpress.buildDeliveryCard(detail, drawer && drawer._orderId, drawer && drawer._sourceRow, {
+    var useExpressCard = window.OrderProxyExpress && (
+      isProxyOrderPage() || isRetailExpressDetail(detail, drawer && drawer._sourceRow)
+    );
+    if (useExpressCard) {
+      var expressOpts = {
+        context: isProxyOrderPage() ? undefined : 'retail',
         goods: detail.goods,
         onRefresh: function () {
           if (!drawer) return;
@@ -1234,8 +1278,10 @@
           var row = drawer._sourceRow;
           closeDrawer();
           openDrawer(orderId, row);
-        },
-        onUpload: function () {
+        }
+      };
+      if (!isProxyOrderPage()) {
+        expressOpts.onUpload = function () {
           if (!drawer) return;
           OrderProxyExpress.openUploadModal(drawer._orderId, detail.goods, function () {
             var orderId = drawer._orderId;
@@ -1243,13 +1289,19 @@
             closeDrawer();
             openDrawer(orderId, row);
           });
-        }
-      });
+        };
+      }
+      deliveryCard = OrderProxyExpress.buildDeliveryCard(
+        detail,
+        drawer && drawer._orderId,
+        drawer && drawer._sourceRow,
+        expressOpts
+      );
     } else {
       deliveryCard = el('div', 'order-detail-card');
       deliveryCard.appendChild(el('h3', 'order-detail-card__title', '收货 / 自提信息'));
       deliveryCard.appendChild(buildKv({
-        '配送': detail.delivery.type,
+        '配送方式': retailDeliveryLabel(detail.delivery.deliveryMode || detail.delivery.type),
         '收货人': detail.delivery.name,
         '电话': detail.delivery.phone,
         '地址': detail.delivery.address,
@@ -1306,7 +1358,9 @@
       logs.push({
         time: progress.finishTime || progress.submitTime || '',
         title: '交易成功',
-        desc: '全部商品核销完成，订单已完成'
+        desc: isRetailExpressDetail(null, row)
+          ? '用户已签收，订单已完成'
+          : '全部商品核销完成，订单已完成'
       });
     }
     return {
@@ -1340,11 +1394,14 @@
         userId: '318605592681791488'
       },
       delivery: {
-        type: isProxyOrderPage() ? 'PROXY' : 'SELF_PICKUP',
+        type: isProxyOrderPage() ? 'PROXY' : (isRetailExpressDetail(null, row) ? 'EXPRESS' : 'SELF_PICKUP'),
+        deliveryMode: isProxyOrderPage() ? '-' : readDeliveryModeFromRow(row),
         name: cells[3] ? cells[3].textContent.trim() : '-',
         phone: cells[4] ? cells[4].textContent.trim() : '-',
-        address: isProxyOrderPage() ? '浙江省杭州市上城区望江街道望江路16号' : '浙江省杭州市上城区望江街道望江路16号',
-        store: isProxyOrderPage() ? '悠悠生鲜超市' : '悠悠生鲜超市'
+        address: isRetailExpressDetail(null, row)
+          ? '浙江省杭州市西湖区文三路168号1幢502室'
+          : '浙江省杭州市上城区望江街道望江路16号',
+        store: '悠悠生鲜超市'
       },
       tags: {
         channel: 'MINI_PROGRAM',
@@ -1387,10 +1444,21 @@
             return Object.assign({}, g, { marketing: marketingLabel });
           });
         }
+        var modeLabel = readDeliveryModeFromRow(row);
+        detail.delivery = detail.delivery || {};
+        detail.delivery.deliveryMode = modeLabel;
+        if (modeLabel === '快递') {
+          detail.delivery.type = 'EXPRESS';
+          if (detail.delivery.homeAddress) {
+            detail.delivery.address = detail.delivery.homeAddress;
+          }
+        } else if (modeLabel === '自提') {
+          detail.delivery.type = 'SELF_PICKUP';
+        }
       }
     }
     detail.progress = resolveProgress(detail.progress, row);
-    if (isProxyOrderPage()) {
+    if (usesExpressProgress(detail, row)) {
       detail.progress = normalizeProxyProgress(detail.progress);
     }
 
@@ -1402,6 +1470,7 @@
     drawer.id = 'orderDetailDrawer';
     drawer._orderId = orderId;
     drawer._sourceRow = row;
+    drawer._deliveryMeta = detail.delivery;
 
     var header = el('div', 'store-drawer__header');
     header.appendChild(el('h2', 'store-drawer__title', '订单详情 · ' + detail.displayId));
@@ -1412,7 +1481,7 @@
     header.appendChild(closeBtn);
     drawer.appendChild(header);
 
-    if (isPickupOrder(detail.progress.status)) {
+    if (isPickupOrder(detail.progress.status, detail, row)) {
       drawer._pickupState = {
         goods: detail.goods.map(normalizeGood),
         logs: detail.logs.slice(),
@@ -1424,7 +1493,7 @@
     body.appendChild(buildDrawerContent(detail, drawer));
     drawer.appendChild(body);
 
-    if (drawer._pickupState && isPickupOrder(drawer._pickupState.progress.status)) {
+    if (drawer._pickupState && isPickupOrder(drawer._pickupState.progress.status, detail, row)) {
       bindPickupEvents(drawer);
     }
 
@@ -1460,7 +1529,7 @@
   function verifyWholeOrder(orderId) {
     var detail = DETAILS[orderId];
     if (!detail || !detail.progress) return false;
-    if (!isPickupOrder(detail.progress.status)) return false;
+    if (!isPickupOrder(detail.progress.status, detail)) return false;
 
     var goods = detail.goods.map(normalizeGood);
     var pickupItems = [];
@@ -1551,8 +1620,21 @@
   window.OrderLiveDetail = {
     resolveDetail: function (orderId, row) {
       var detail = DETAILS[orderId] || fallbackDetail(orderId, row);
+      if (row && !isProxyOrderPage()) {
+        var modeLabel = readDeliveryModeFromRow(row);
+        detail.delivery = detail.delivery || {};
+        detail.delivery.deliveryMode = modeLabel;
+        if (modeLabel === '快递') {
+          detail.delivery.type = 'EXPRESS';
+          if (detail.delivery.homeAddress) {
+            detail.delivery.address = detail.delivery.homeAddress;
+          }
+        } else if (modeLabel === '自提') {
+          detail.delivery.type = 'SELF_PICKUP';
+        }
+      }
       detail.progress = resolveProgress(detail.progress, row);
-      if (isProxyOrderPage()) {
+      if (usesExpressProgress(detail, row)) {
         detail.progress = normalizeProxyProgress(detail.progress);
       }
       return detail;

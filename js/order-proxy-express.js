@@ -219,8 +219,13 @@
     return PROXY_FULFILLMENT[orderId] || 'STORE';
   }
 
-  function fulfillmentLabel(mode) {
+  function fulfillmentLabel(mode, context) {
+    if (context === 'retail') return '快递';
     return mode === 'WAREHOUSE' ? '平台配送' : '快递到店';
+  }
+
+  function isRetailExpressContext(options) {
+    return !!(options && options.context === 'retail');
   }
 
   function getShipments(orderId) {
@@ -355,7 +360,8 @@
     if (
       !document.getElementById('orderDetailBackdrop') &&
       !document.getElementById('orderProxyExpressOverlay') &&
-      !document.getElementById('orderProxyTrackBackdrop')
+      !document.getElementById('orderProxyTrackBackdrop') &&
+      !document.getElementById('orderProxyBatchUploadBackdrop')
     ) {
       document.body.style.overflow = '';
     } else {
@@ -409,12 +415,12 @@
 
   function buildShipmentBlock(shipment, index, orderId, handlers) {
     handlers = handlers || {};
-    var editable = canEditShipment(shipment);
+    var allowManage = handlers.allowManage === true && canEditShipment(shipment);
     var block = el('div', 'order-proxy-shipment');
     block.innerHTML =
       '<div class="order-proxy-shipment__head">' +
         '<span class="order-proxy-shipment__label">包裹' + (index + 1) + '</span>' +
-        (editable
+        (allowManage
           ? '<div class="order-proxy-shipment__actions">' +
               '<button type="button" class="order-proxy-shipment__action js-proxy-shipment-edit">修改</button>' +
               '<button type="button" class="order-proxy-shipment__action order-proxy-shipment__action--danger js-proxy-shipment-del">删除</button>' +
@@ -451,8 +457,13 @@
     return block;
   }
 
-  function canUploadExpressStatus(status) {
-    return status === '已创建' || status === '待收货';
+  function canUploadExpressStatus(status, context) {
+    // 代采快递由采购单回传，订单侧不再上传；仅零售快递可上传
+    if (context === 'retail') {
+      if (!status) return false;
+      return status !== '已完成' && status !== '已关闭' && status !== '已取消';
+    }
+    return false;
   }
 
   function buildDeliveryCard(detail, orderId, row, options) {
@@ -462,24 +473,38 @@
     var goods = handlers.goods || (detail && detail.goods) || [];
     var onRefresh = handlers.onRefresh;
     var onUpload = handlers.onUpload;
+    var isRetail = isRetailExpressContext(handlers);
 
-    var mode = getFulfillmentMode(orderId, row);
+    // 零售快递与代采快递到店共用快递单上传/跟踪；零售强制走 STORE 快递区块
+    var mode = isRetail ? 'STORE' : getFulfillmentMode(orderId, row);
     var card = el('div', 'order-detail-card order-proxy-delivery-card');
     card.appendChild(el('h3', 'order-detail-card__title', '配送信息'));
 
     var baseKv = el('dl', 'order-detail-kv');
-    baseKv.innerHTML =
-      '<dt>履约方式</dt><dd><span class="order-tag order-tag--scene">' + fulfillmentLabel(mode) + '</span></dd>' +
-      '<dt>收货人</dt><dd>' + escapeHtml(detail.delivery.name) + '</dd>' +
-      '<dt>电话</dt><dd>' + escapeHtml(detail.delivery.phone) + '</dd>' +
-      '<dt>地址</dt><dd>' + escapeHtml(detail.delivery.address) + '</dd>' +
-      '<dt>所属门店</dt><dd>' + escapeHtml(detail.delivery.store) + '</dd>';
+    if (isRetail) {
+      baseKv.innerHTML =
+        '<dt>配送方式</dt><dd><span class="order-tag order-tag--scene">' + fulfillmentLabel(mode, 'retail') + '</span></dd>' +
+        '<dt>收货人</dt><dd>' + escapeHtml(detail.delivery.name) + '</dd>' +
+        '<dt>电话</dt><dd>' + escapeHtml(detail.delivery.phone) + '</dd>' +
+        '<dt>收货地址</dt><dd>' + escapeHtml(detail.delivery.address) + '</dd>' +
+        (detail.delivery.store
+          ? '<dt>下单门店</dt><dd>' + escapeHtml(detail.delivery.store) + '</dd>'
+          : '');
+    } else {
+      baseKv.innerHTML =
+        '<dt>履约方式</dt><dd><span class="order-tag order-tag--scene">' + fulfillmentLabel(mode) + '</span></dd>' +
+        '<dt>收货人</dt><dd>' + escapeHtml(detail.delivery.name) + '</dd>' +
+        '<dt>电话</dt><dd>' + escapeHtml(detail.delivery.phone) + '</dd>' +
+        '<dt>地址</dt><dd>' + escapeHtml(detail.delivery.address) + '</dd>' +
+        '<dt>所属门店</dt><dd>' + escapeHtml(detail.delivery.store) + '</dd>';
+    }
     card.appendChild(baseKv);
 
     if (mode === 'STORE') {
       var shipments = getShipments(orderId);
       var expressWrap = el('div', 'order-proxy-express-section');
       expressWrap.appendChild(el('div', 'order-proxy-express-section__title', '快递信息'));
+      var allowManage = isRetail;
 
       function refreshAfterChange() {
         if (typeof onRefresh === 'function') onRefresh();
@@ -491,11 +516,12 @@
       if (shipments.length) {
         var list = el('div', 'order-proxy-shipment-list');
         shipments.forEach(function (sh, idx) {
-          list.appendChild(buildShipmentBlock(sh, idx, orderId, {
-            onEdit: function (shipment) {
+          var shipmentHandlers = { allowManage: allowManage };
+          if (allowManage) {
+            shipmentHandlers.onEdit = function (shipment) {
               openUploadModal(orderId, goods, refreshAfterChange, shipment);
-            },
-            onDelete: function (shipment) {
+            };
+            shipmentHandlers.onDelete = function (shipment) {
               if (!canEditShipment(shipment)) {
                 if (typeof showToast === 'function') showToast('仅待揽件包裹可删除', 'error');
                 return;
@@ -507,12 +533,17 @@
               }
               if (typeof showToast === 'function') showToast('包裹已删除', 'success');
               refreshAfterChange();
-            }
-          }));
+            };
+          }
+          list.appendChild(buildShipmentBlock(sh, idx, orderId, shipmentHandlers));
         });
         expressWrap.appendChild(list);
       } else {
-        expressWrap.appendChild(el('div', 'order-proxy-express-empty', '暂未上传快递单号'));
+        expressWrap.appendChild(el(
+          'div',
+          'order-proxy-express-empty',
+          isRetail ? '暂未上传快递单号' : '暂无快递信息，将由采购单回传'
+        ));
       }
 
       var orderStatus = detail.progress && detail.progress.status ? detail.progress.status : '';
@@ -521,7 +552,7 @@
         if (statusEl) orderStatus = statusEl.textContent.trim();
       }
 
-      if (canUploadExpressStatus(orderStatus)) {
+      if (allowManage && canUploadExpressStatus(orderStatus, 'retail')) {
         var uploadBtn = el('button', 'order-detail-btn order-detail-btn--primary order-proxy-upload-btn', '+ 上传快递单');
         uploadBtn.type = 'button';
         uploadBtn.addEventListener('click', function () {
@@ -884,14 +915,111 @@
     if (trackingInput) trackingInput.focus();
   }
 
+  function downloadBatchExpressTemplate() {
+    var csv =
+      '\uFEFF订单号,物流单号,快递公司\n' +
+      'ORD-3212689201588561,773075059702651,申通快递\n' +
+      'ORD-3212689201599001,SF1234567890123,顺丰速运\n' +
+      'ORD-3212689201599003,773088899900011,申通快递\n';
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = '批量上传快递单模板.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function openBatchUploadModal(options) {
+    var opts = options || {};
+    var hint = opts.hint ||
+      '通过 Excel / CSV 批量上传快递单号。请先下载模板，按「订单号、物流单号、快递公司」填写后上传。';
+
+    closeOverlay('orderProxyBatchUploadBackdrop');
+    var backdrop = el('div', 'order-proxy-express-overlay');
+    backdrop.id = 'orderProxyBatchUploadBackdrop';
+    backdrop.innerHTML =
+      '<div class="order-proxy-upload-modal order-proxy-batch-upload-modal" role="dialog" aria-labelledby="orderProxyBatchUploadTitle">' +
+        '<div class="order-proxy-upload-modal__head">' +
+          '<h3 id="orderProxyBatchUploadTitle" class="order-proxy-upload-modal__title">批量上传快递单</h3>' +
+          '<button type="button" class="order-proxy-upload-modal__close js-batch-express-close" aria-label="关闭">×</button>' +
+        '</div>' +
+        '<div class="order-proxy-upload-modal__body">' +
+          '<p class="order-proxy-upload-modal__hint">' + escapeHtml(hint) + '</p>' +
+          '<div class="order-proxy-batch-upload__template">' +
+            '<button type="button" class="order-proxy-upload-field__link js-batch-express-template">下载导入模板</button>' +
+          '</div>' +
+          '<div class="order-proxy-upload-field">' +
+            '<label class="order-proxy-upload-field__label" for="orderProxyBatchFile">上传文件</label>' +
+            '<div class="order-proxy-batch-upload__file-row">' +
+              '<input type="file" id="orderProxyBatchFile" class="order-proxy-batch-upload__file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv">' +
+              '<span class="order-proxy-batch-upload__file-name js-batch-express-file-name">未选择文件</span>' +
+            '</div>' +
+            '<p class="order-proxy-upload-field__auto-hint">支持 .xlsx / .xls / .csv，单次建议不超过 1000 条</p>' +
+          '</div>' +
+        '</div>' +
+        '<div class="order-proxy-upload-modal__foot">' +
+          '<button type="button" class="order-detail-btn js-batch-express-close">取消</button>' +
+          '<button type="button" class="order-detail-btn order-detail-btn--primary js-batch-express-submit">确认上传</button>' +
+        '</div>' +
+      '</div>';
+
+    document.body.appendChild(backdrop);
+    syncBodyOverflow();
+
+    var fileInput = backdrop.querySelector('#orderProxyBatchFile');
+    var fileNameEl = backdrop.querySelector('.js-batch-express-file-name');
+
+    backdrop.addEventListener('click', function (e) {
+      if (e.target === backdrop) closeOverlay('orderProxyBatchUploadBackdrop');
+    });
+    backdrop.querySelectorAll('.js-batch-express-close').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        closeOverlay('orderProxyBatchUploadBackdrop');
+      });
+    });
+    backdrop.querySelector('.js-batch-express-template').addEventListener('click', function () {
+      downloadBatchExpressTemplate();
+      if (typeof showToast === 'function') showToast('模板已下载', 'success');
+    });
+    if (fileInput) {
+      fileInput.addEventListener('change', function () {
+        var file = fileInput.files && fileInput.files[0];
+        if (fileNameEl) fileNameEl.textContent = file ? file.name : '未选择文件';
+      });
+    }
+    backdrop.querySelector('.js-batch-express-submit').addEventListener('click', function () {
+      var file = fileInput && fileInput.files && fileInput.files[0];
+      if (!file) {
+        if (typeof showToast === 'function') showToast('请先选择 Excel 文件', 'error');
+        return;
+      }
+      var name = String(file.name || '').toLowerCase();
+      if (!/\.(xlsx|xls|csv)$/.test(name)) {
+        if (typeof showToast === 'function') showToast('请上传 .xlsx / .xls / .csv 文件', 'error');
+        return;
+      }
+      closeOverlay('orderProxyBatchUploadBackdrop');
+      if (typeof showToast === 'function') {
+        showToast('已解析「' + file.name + '」并完成快递单号批量上传（演示）', 'success');
+      }
+      if (typeof opts.onSuccess === 'function') opts.onSuccess(file);
+    });
+  }
+
   window.OrderProxyExpress = {
     getFulfillmentMode: getFulfillmentMode,
     fulfillmentLabel: fulfillmentLabel,
     getShipments: getShipments,
     canEditShipment: canEditShipment,
+    canUploadExpressStatus: canUploadExpressStatus,
     buildDeliveryCard: buildDeliveryCard,
     openUploadModal: openUploadModal,
     openTrackingModal: openTrackingModal,
+    openBatchUploadModal: openBatchUploadModal,
+    downloadBatchExpressTemplate: downloadBatchExpressTemplate,
     closeOverlay: closeOverlay,
     closeTrackingDrawer: closeTrackingDrawer
   };
