@@ -233,7 +233,7 @@
   }
 
   var store = {
-    BLOCK_MSG: '当前类目及下级类目已关联商品，请先解除绑定后再操作',
+    BLOCK_MSG: '类目及下级类目已关联商品，请先解除绑定后再操作',
 
     load: function () {
       try {
@@ -320,7 +320,6 @@
     collectDescendantIds: collectDescendantIds,
     hasBindingsInTree: hasBindingsInTree,
     canDelete: function (id) { return !hasBindingsInTree(id); },
-    canOffShelf: function (id) { return !hasBindingsInTree(id); },
 
     isSelectableL3: isSelectableL3,
 

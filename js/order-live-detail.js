@@ -22,7 +22,7 @@
       return { goods: 7, discount: 8, paid: 12, payChannel: 13 };
     }
     if (sceneEl) {
-      // 有配送方式列时：…场景(14) 配送(15) 支付(16) 状态(17)
+      // 有履约方式列时：…场景(14) 履约(15) 支付(16) 状态(17)
       return {
         goods: 8,
         discount: 9,
@@ -1301,7 +1301,7 @@
       deliveryCard = el('div', 'order-detail-card');
       deliveryCard.appendChild(el('h3', 'order-detail-card__title', '收货 / 自提信息'));
       deliveryCard.appendChild(buildKv({
-        '配送方式': retailDeliveryLabel(detail.delivery.deliveryMode || detail.delivery.type),
+        '履约方式': retailDeliveryLabel(detail.delivery.deliveryMode || detail.delivery.type),
         '收货人': detail.delivery.name,
         '电话': detail.delivery.phone,
         '地址': detail.delivery.address,

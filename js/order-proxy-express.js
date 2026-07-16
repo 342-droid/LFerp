@@ -483,7 +483,7 @@
     var baseKv = el('dl', 'order-detail-kv');
     if (isRetail) {
       baseKv.innerHTML =
-        '<dt>配送方式</dt><dd><span class="order-tag order-tag--scene">' + fulfillmentLabel(mode, 'retail') + '</span></dd>' +
+        '<dt>履约方式</dt><dd><span class="order-tag order-tag--scene">' + fulfillmentLabel(mode, 'retail') + '</span></dd>' +
         '<dt>收货人</dt><dd>' + escapeHtml(detail.delivery.name) + '</dd>' +
         '<dt>电话</dt><dd>' + escapeHtml(detail.delivery.phone) + '</dd>' +
         '<dt>收货地址</dt><dd>' + escapeHtml(detail.delivery.address) + '</dd>' +

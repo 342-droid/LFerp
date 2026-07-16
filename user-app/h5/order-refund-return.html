@@ -40,6 +40,10 @@
 
       <section class="ua-or-card ua-or-product" id="refundProductCard"></section>
 
+      <div class="ua-or-goods-tip" role="note">
+        请确保退回商品完好(包含赠品配件，未拆封/使用/标签损坏)
+      </div>
+
       <section class="ua-or-card ua-or-form">
         <button type="button" class="ua-or-field" id="refundGoodsStatusRow" hidden>
           <span class="ua-or-field__label">货物状态</span>
@@ -67,17 +71,48 @@
           <input type="number" class="ua-or-amount-input" id="refundAmountInput" step="0.01" min="0" inputmode="decimal">
         </div>
         <div class="ua-or-field-hint" id="refundAmountHint">可修改，最多¥97.90，含运费¥0.00</div>
+        <button type="button" class="ua-or-field ua-or-field--evidence" id="refundEvidenceToggle">
+          <span class="ua-or-field__label">上传描述和凭证</span>
+          <span class="ua-or-field__value ua-or-field__value--placeholder" id="refundEvidenceHint">上传有助处理退款</span>
+          <span class="ua-or-field__arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
+        </button>
+        <div class="ua-or-evidence-panel" id="refundEvidencePanel" hidden>
+          <div class="ua-or-desc ua-or-desc--embedded">
+            <textarea id="refundDescInput" maxlength="200" placeholder="补充描述，有助于商家更好的处理售后问题"></textarea>
+            <div class="ua-or-desc__count"><span id="refundDescCount">0</span>/200</div>
+          </div>
+          <div class="ua-or-upload ua-or-upload--embedded">
+            <div class="ua-or-upload__grid" id="refundUploadGrid"></div>
+          </div>
+        </div>
       </section>
 
-      <section class="ua-or-card">
-        <div class="ua-or-desc">
-          <div class="ua-or-desc__label">补充描述和凭证</div>
-          <textarea id="refundDescInput" maxlength="200" placeholder="补充描述，有助于商家更好的处理售后问题"></textarea>
-          <div class="ua-or-desc__count"><span id="refundDescCount">0</span>/200</div>
+      <section class="ua-or-card ua-or-return-method" id="refundReturnMethodCard">
+        <button type="button" class="ua-or-field" id="refundReturnMethodRow">
+          <span class="ua-or-field__label">退货方式</span>
+          <span class="ua-or-field__value" id="refundReturnMethodValue">快递上门取货</span>
+          <span class="ua-or-field__arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
+        </button>
+        <div class="ua-or-pickup-fields" id="refundPickupFields">
+          <button type="button" class="ua-or-field" id="refundPickupAddressRow">
+            <span class="ua-or-field__label">取件地址</span>
+            <span class="ua-or-field__value ua-or-field__value--multi" id="refundPickupAddressValue">
+              <em id="refundPickupAddressText">杭州市 西湖区文三路168号</em>
+              <small id="refundPickupContactText">刘十九 13800001987</small>
+            </span>
+            <span class="ua-or-field__arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
+          </button>
+          <button type="button" class="ua-or-field" id="refundPickupTimeRow">
+            <span class="ua-or-field__label">上门时间<span class="ua-or-required">*</span></span>
+            <span class="ua-or-field__value ua-or-field__value--placeholder" id="refundPickupTimeValue">请选择上门时间</span>
+            <span class="ua-or-field__arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
+          </button>
         </div>
-        <div class="ua-or-upload">
-          <div class="ua-or-upload__grid" id="refundUploadGrid"></div>
-        </div>
+        <label class="ua-or-auth-waybill" id="refundAuthWaybillRow">
+          <input type="checkbox" id="refundAuthWaybill" checked>
+          <span class="ua-or-auth-waybill__box" aria-hidden="true"></span>
+          <span class="ua-or-auth-waybill__text">授权商家填写运单号</span>
+        </label>
       </section>
     </div>
 
@@ -100,6 +135,33 @@
         <h3 class="ua-or-sheet__title">退款原因</h3>
         <div class="ua-or-picker__list" id="refundReasonList"></div>
         <button type="button" class="ua-or-sheet__confirm" id="refundReasonConfirm">确定</button>
+      </div>
+    </div>
+
+    <div class="ua-or-sheet" id="refundReturnMethodSheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="refundReturnMethodSheet"></div>
+      <div class="ua-or-sheet__panel">
+        <h3 class="ua-or-sheet__title">退货方式</h3>
+        <div class="ua-or-picker__list" id="refundReturnMethodList"></div>
+        <button type="button" class="ua-or-sheet__confirm" id="refundReturnMethodConfirm">确定</button>
+      </div>
+    </div>
+
+    <div class="ua-or-sheet" id="refundPickupAddressSheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="refundPickupAddressSheet"></div>
+      <div class="ua-or-sheet__panel">
+        <h3 class="ua-or-sheet__title">取件地址</h3>
+        <div class="ua-or-picker__list" id="refundPickupAddressList"></div>
+        <button type="button" class="ua-or-sheet__confirm" id="refundPickupAddressConfirm">确定</button>
+      </div>
+    </div>
+
+    <div class="ua-or-sheet" id="refundPickupTimeSheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="refundPickupTimeSheet"></div>
+      <div class="ua-or-sheet__panel">
+        <h3 class="ua-or-sheet__title">上门时间</h3>
+        <div class="ua-or-picker__list" id="refundPickupTimeList"></div>
+        <button type="button" class="ua-or-sheet__confirm" id="refundPickupTimeConfirm">确定</button>
       </div>
     </div>
   </div>
