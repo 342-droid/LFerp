@@ -11,6 +11,8 @@
     pickerInstance: null
   };
 
+  var DETAIL_ACTION_TIP = '删除前，请确保当前类目及下级类目未关联商品。类目下架后，前端将隐藏该类目及路径内商品；关联其他模块的商品仍可展示，并支持搜索查找。';
+
   function escapeHtml(str) {
     return String(str || '')
       .replace(/&/g, '&amp;')
@@ -51,7 +53,7 @@
     }
     var hotHtml = node.is_hot ? '<span class="product-category-cascade__hot" title="爆品">🔥</span>' : '';
     var blocked = store.hasBindingsInTree(node.id);
-    var lockHtml = blocked ? '<span class="product-category-cascade__lock" title="含绑定商品">🔒</span>' : '';
+    var lockHtml = blocked ? '<span class="product-category-cascade__lock" title="含绑定商品，删除前需解绑">🔒</span>' : '';
     return (
       '<li class="product-category-cascade__item' + active + off + '" data-id="' + node.id + '" data-level="' + node.level + '">' +
       iconHtml +
@@ -121,6 +123,7 @@
     if (paneProducts) paneProducts.hidden = state.detailTab !== 'products';
 
     var blocked = store.hasBindingsInTree(node.id);
+    var deleteBlocked = blocked;
 
     if (paneInfo) {
       var levelText = node.level === 1 ? '一级 · 频道类目' : node.level === 2 ? '二级 · 分组类目' : '三级 · 叶子类目（商品挂载点）';
@@ -128,17 +131,13 @@
         ? '<img class="product-category-detail__icon" src="' + node.icon + '" alt="">'
         : '<span class="product-category-detail__icon product-category-detail__icon--placeholder">' + escapeHtml(node.name.charAt(0)) + '</span>';
 
-      var offShelfBtn = blocked
-        ? '  <button type="button" class="erp-btn" disabled title="' + escapeHtml(store.BLOCK_MSG) + '">下架</button>'
-        : '  <button type="button" class="erp-btn" data-detail-action="off-shelf" data-id="' + node.id + '">下架</button>';
+      var offShelfBtn = '  <button type="button" class="erp-btn" data-detail-action="off-shelf" data-id="' + node.id + '">下架</button>';
 
-      var deleteBtn = blocked
+      var deleteBtn = deleteBlocked
         ? '  <button type="button" class="erp-btn erp-btn--danger" disabled title="' + escapeHtml(store.BLOCK_MSG) + '">删除</button>'
         : '  <button type="button" class="erp-btn erp-btn--danger" data-detail-action="delete" data-id="' + node.id + '">删除</button>';
 
-      var blockedTip = blocked
-        ? '<p class="product-category-detail__tip product-category-detail__tip--warn">' + escapeHtml(store.BLOCK_MSG) + '</p>'
-        : '';
+      var detailTip = '<p class="product-category-detail__tip' + (deleteBlocked ? ' product-category-detail__tip--warn' : '') + '">' + escapeHtml(DETAIL_ACTION_TIP) + '</p>';
 
       paneInfo.innerHTML =
         '<div class="product-category-detail__hero">' +
@@ -161,7 +160,7 @@
         (node.status === 'on_shelf' ? offShelfBtn : '  <button type="button" class="erp-btn" data-detail-action="on-shelf" data-id="' + node.id + '">上架</button>') +
         deleteBtn +
         '</div>' +
-        blockedTip;
+        detailTip;
     }
 
     if (paneProducts && node.level === 3) {
@@ -179,7 +178,7 @@
             '</div>'
           );
         }).join('')
-        : '<div class="product-category-detail__products-empty">暂无绑定商品，解绑全部商品后可删除或下架</div>';
+        : '<div class="product-category-detail__products-empty">暂无绑定商品；删除类目前需解绑全部商品</div>';
 
       paneProducts.innerHTML =
         '<div class="product-category-detail__products-head">共 ' + products.length + ' 个商品</div>' +
@@ -238,10 +237,16 @@
     if (modal) modal.remove();
   }
 
-  function renderCategoryIconUploadField() {
+  function renderFieldLabel(text, required, optionalText) {
+    var req = required ? '<span class="erp-req">*</span>' : '';
+    var opt = !required && optionalText ? '<span class="product-category-modal__optional">' + escapeHtml(optionalText) + '</span>' : '';
+    return req + escapeHtml(text) + opt;
+  }
+
+  function renderCategoryIconUploadField(required) {
     return (
       '<div class="product-category-modal__field">' +
-      '  <label class="product-category-modal__label">类目图标</label>' +
+      '  <label class="product-category-modal__label">' + renderFieldLabel('类目图标', required, required ? '' : '选填') + '</label>' +
       '  <div class="product-add-upload product-category-modal__upload">' +
       '    <button type="button" class="product-add-upload__box" id="proxyCatIconBtn" aria-label="上传类目图标">' +
       '      <span class="product-add-upload__plus">+</span>' +
@@ -314,15 +319,16 @@
     var parentL2 = options.parentL2 ? store.getNode(options.parentL2) : null;
 
     var title = isEdit ? '编辑类目' : ('新增' + (createLevel === 1 ? '一级' : createLevel === 2 ? '二级' : '三级') + '类目');
+    var effectiveLevel = isEdit ? node.level : createLevel;
     var hint = isEdit ? '编辑「' + node.path + '」'
-      : createLevel === 1 ? '一级类目需上传图标，上架后展示于 APP 进货首页与分类页。'
-      : createLevel === 2 && parentL1 ? '将在「' + parentL1.name + '」下创建二级分组类目。'
-      : createLevel === 3 && parentL1 && parentL2 ? '将在「' + parentL1.name + ' / ' + parentL2.name + '」下创建三级叶子类目。'
+      : effectiveLevel === 1 ? '类目名称、类目图标均为必填；上架后展示于 APP 进货首页与分类页。'
+      : effectiveLevel === 2 && parentL1 ? '将在「' + parentL1.name + '」下创建二级分组类目；类目名称必填，图标选填。'
+      : effectiveLevel === 3 && parentL1 && parentL2 ? '将在「' + parentL1.name + ' / ' + parentL2.name + '」下创建三级叶子类目；类目名称必填。'
       : '';
 
-    var showIcon = isEdit ? node.level === 1 : createLevel === 1;
-    var showHot = isEdit ? node.level === 2 : createLevel === 2;
-    var showBindAfter = !isEdit && createLevel === 3;
+    var showIcon = effectiveLevel === 1 || effectiveLevel === 2;
+    var iconRequired = effectiveLevel === 1;
+    var showHot = effectiveLevel === 2;
 
     var backdrop = document.createElement('div');
     backdrop.className = 'erp-modal-backdrop product-category-modal-backdrop';
@@ -334,11 +340,10 @@
       '  <div class="erp-modal__body"><p class="product-category-modal__hint">' + escapeHtml(hint) + '</p>' +
       (createLevel === 2 && parentL1 && !isEdit ? '<div class="product-category-modal__readonly"><label>所属一级</label><span>' + escapeHtml(parentL1.name) + '</span></div>' : '') +
       (createLevel === 3 && parentL1 && parentL2 && !isEdit ? '<div class="product-category-modal__readonly"><label>所属一级</label><span>' + escapeHtml(parentL1.name) + '</span></div><div class="product-category-modal__readonly"><label>所属二级</label><span>' + escapeHtml(parentL2.name) + '</span></div>' : '') +
-      '    <div class="product-category-modal__field"><label class="product-category-modal__label" for="proxyCatName">类目名称</label><input class="product-category-modal__input" id="proxyCatName" type="text" placeholder="请输入类目名称" value="' + escapeHtml(isEdit ? node.name : '') + '"></div>' +
-      (showIcon ? renderCategoryIconUploadField() : '') +
+      '    <div class="product-category-modal__field"><label class="product-category-modal__label" for="proxyCatName">' + renderFieldLabel('类目名称', true) + '</label><input class="product-category-modal__input" id="proxyCatName" type="text" placeholder="请输入类目名称" value="' + escapeHtml(isEdit ? node.name : '') + '"></div>' +
+      (showIcon ? renderCategoryIconUploadField(iconRequired) : '') +
       '    <div class="product-category-modal__field"><label class="product-category-modal__label" for="proxyCatSort">排序</label><input class="product-category-modal__input" id="proxyCatSort" type="number" min="0" value="' + (isEdit ? node.sort : 10) + '"></div>' +
       (showHot ? '<div class="product-category-modal__field product-category-modal__field--check"><label><input type="checkbox" id="proxyCatHot"' + (isEdit && node.is_hot ? ' checked' : '') + '> 标记为爆品频道</label></div>' : '') +
-      (showBindAfter ? '<div class="product-category-modal__field product-category-modal__field--check"><label><input type="checkbox" id="proxyCatBindAfter" checked> 创建后立即绑定商品</label></div>' : '') +
       '  </div>' +
       '  <div class="erp-modal__footer"><button type="button" class="erp-btn" data-modal-cancel>取消</button><button type="button" class="erp-btn erp-btn--primary" data-modal-save>确定</button></div></div>';
 
@@ -351,13 +356,12 @@
 
     backdrop.querySelector('[data-modal-save]').addEventListener('click', function () {
       var name = (document.getElementById('proxyCatName') || {}).value.trim();
-      var icon = showIcon ? getCategoryIconValue() : (isEdit ? node.icon : '');
+      var icon = showIcon ? getCategoryIconValue() : '';
       var sort = parseInt((document.getElementById('proxyCatSort') || {}).value, 10) || 10;
       var isHot = showHot && document.getElementById('proxyCatHot') && document.getElementById('proxyCatHot').checked;
-      var bindAfter = showBindAfter && document.getElementById('proxyCatBindAfter') && document.getElementById('proxyCatBindAfter').checked;
 
       if (!name) { if (typeof showToast === 'function') showToast('请输入类目名称', 'warning'); return; }
-      if (showIcon && !icon) { if (typeof showToast === 'function') showToast('一级类目请上传图标', 'warning'); return; }
+      if (iconRequired && !icon) { if (typeof showToast === 'function') showToast('请上传类目图标', 'warning'); return; }
 
       if (isEdit) {
         node.name = name;
@@ -399,13 +403,7 @@
 
       if (createLevel === 1) state.selectedL1 = newId;
       if (createLevel === 2) state.selectedL2 = newId;
-      if (createLevel === 3) {
-        state.selectedL3 = newId;
-        if (bindAfter) {
-          var demos = store.getDemoProducts();
-          store.bindProduct(newId, demos[Math.floor(Math.random() * demos.length)]);
-        }
-      }
+      if (createLevel === 3) state.selectedL3 = newId;
 
       closeModal();
       ensureDefaultSelection();
@@ -459,13 +457,16 @@
   }
 
   function toggleShelf(id, status) {
-    if (status === 'off_shelf' && !store.canOffShelf(id)) {
-      if (typeof showToast === 'function') showToast(store.BLOCK_MSG, 'warning');
-      return;
-    }
     store.setCategoryStatus(id, status);
     renderAll();
-    if (typeof showToast === 'function') showToast(status === 'on_shelf' ? '类目已上架' : '类目已下架', 'success');
+    if (typeof showToast === 'function') {
+      showToast(
+        status === 'on_shelf'
+          ? '类目已上架'
+          : '类目已下架，前端分类页将隐藏该类目及路径内商品',
+        'success'
+      );
+    }
   }
 
   function bindEvents() {

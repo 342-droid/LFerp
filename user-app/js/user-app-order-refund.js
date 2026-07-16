@@ -76,6 +76,33 @@
 
   var STORAGE_KEY = 'ua_refund_application';
 
+  var RETURN_METHODS = ['快递上门取货'];
+
+  var PICKUP_ADDRESSES = [
+    {
+      id: 'addr-1',
+      label: '杭州市 西湖区文三路168号',
+      contact: '刘十九',
+      phone: '13800001987',
+      full: '浙江省杭州市西湖区文三路168号1幢502室'
+    },
+    {
+      id: 'addr-2',
+      label: '杭州市 上城区望江路16号',
+      contact: '宋雨琦',
+      phone: '15236806537',
+      full: '浙江省杭州市上城区望江街道望江路16号'
+    }
+  ];
+
+  var PICKUP_TIME_SLOTS = [
+    '2026-07-16 09:00-11:00',
+    '2026-07-16 13:00-15:00',
+    '2026-07-16 15:00-17:00',
+    '2026-07-17 09:00-11:00',
+    '2026-07-17 13:00-15:00'
+  ];
+
   var COURIERS = [
     { id: 'sf', name: '顺丰速运', abbr: '顺' },
     { id: 'sto', name: '申通快递', abbr: '申' },
@@ -368,13 +395,14 @@
     });
   }
 
-  function bindDescAndUpload(state, descInput, descCount, uploadGrid, item) {
+  function bindDescAndUpload(state, descInput, descCount, uploadGrid, item, onChange) {
     if (descInput) {
       descInput.addEventListener('input', function () {
         var text = descInput.value.slice(0, 200);
         descInput.value = text;
         state.desc = text;
         if (descCount) descCount.textContent = String(text.length);
+        if (typeof onChange === 'function') onChange();
       });
     }
 
@@ -406,6 +434,7 @@
           if (state.images.length >= 3) return;
           state.images.push(item.img);
           renderUploads();
+          if (typeof onChange === 'function') onChange();
         });
       }
       uploadGrid.querySelectorAll('[data-remove-idx]').forEach(function (btn) {
@@ -414,12 +443,198 @@
           var idx = parseInt(btn.getAttribute('data-remove-idx'), 10);
           state.images.splice(idx, 1);
           renderUploads();
+          if (typeof onChange === 'function') onChange();
         });
       });
     }
 
     renderUploads();
     return renderUploads;
+  }
+
+  function getDefaultPickupAddress() {
+    return PICKUP_ADDRESSES[0];
+  }
+
+  function createPickupState(app) {
+    var addr = getDefaultPickupAddress();
+    if (app && app.pickupAddressId) {
+      var found = PICKUP_ADDRESSES.find(function (a) {
+        return a.id === app.pickupAddressId;
+      });
+      if (found) addr = found;
+    }
+    return {
+      returnMethod: (app && app.returnMethod) || '快递上门取货',
+      pickupAddressId: addr.id,
+      pickupAddress: addr.label,
+      pickupContact: addr.contact + ' ' + addr.phone,
+      pickupTime: (app && app.pickupTime) || '',
+      authMerchantWaybill: app && typeof app.authMerchantWaybill === 'boolean' ? app.authMerchantWaybill : true,
+      evidenceOpen: !!(app && ((app.desc && app.desc.length) || (app.images && app.images.length)))
+    };
+  }
+
+  function bindEvidenceToggle(state) {
+    var toggle = document.getElementById('refundEvidenceToggle');
+    var panel = document.getElementById('refundEvidencePanel');
+    var hint = document.getElementById('refundEvidenceHint');
+    if (!toggle || !panel) return;
+
+    function syncEvidenceUI() {
+      panel.hidden = !state.evidenceOpen;
+      toggle.classList.toggle('is-open', !!state.evidenceOpen);
+      if (!hint) return;
+      var filled = (state.desc && state.desc.length) || (state.images && state.images.length);
+      if (filled) {
+        var parts = [];
+        if (state.desc) parts.push('已填描述');
+        if (state.images && state.images.length) parts.push(state.images.length + '张图');
+        hint.textContent = parts.join(' · ');
+        hint.classList.remove('ua-or-field__value--placeholder');
+      } else {
+        hint.textContent = hint.getAttribute('data-placeholder') || '上传有助处理退款';
+        hint.classList.add('ua-or-field__value--placeholder');
+      }
+    }
+
+    if (hint && !hint.getAttribute('data-placeholder')) {
+      hint.setAttribute('data-placeholder', hint.textContent.trim() || '上传有助处理退款');
+    }
+
+    toggle.addEventListener('click', function () {
+      state.evidenceOpen = !state.evidenceOpen;
+      syncEvidenceUI();
+    });
+
+    syncEvidenceUI();
+    return syncEvidenceUI;
+  }
+
+  function bindPickupReturnCard(state) {
+    var methodValue = document.getElementById('refundReturnMethodValue');
+    var addressText = document.getElementById('refundPickupAddressText');
+    var contactText = document.getElementById('refundPickupContactText');
+    var timeValue = document.getElementById('refundPickupTimeValue');
+    var pickupFields = document.getElementById('refundPickupFields');
+    var authRow = document.getElementById('refundAuthWaybillRow');
+    var authInput = document.getElementById('refundAuthWaybill');
+
+    function isDoorPickup() {
+      return state.returnMethod === '快递上门取货';
+    }
+
+    function syncPickupUI() {
+      if (methodValue) methodValue.textContent = state.returnMethod || '请选择';
+      if (pickupFields) pickupFields.hidden = !isDoorPickup();
+      if (authRow) authRow.hidden = !isDoorPickup();
+      if (authInput) authInput.checked = !!state.authMerchantWaybill;
+      if (addressText) addressText.textContent = state.pickupAddress || '';
+      if (contactText) contactText.textContent = state.pickupContact || '';
+      if (timeValue) {
+        timeValue.textContent = state.pickupTime || '请选择上门时间';
+        timeValue.classList.toggle('ua-or-field__value--placeholder', !state.pickupTime);
+      }
+    }
+
+    var methodRow = document.getElementById('refundReturnMethodRow');
+    if (methodRow) {
+      methodRow.addEventListener('click', function () {
+        renderPickerOptions('refundReturnMethodList', RETURN_METHODS, state.returnMethod, 'returnMethod');
+        openSheet('refundReturnMethodSheet');
+      });
+    }
+    document.getElementById('refundReturnMethodConfirm') &&
+      document.getElementById('refundReturnMethodConfirm').addEventListener('click', function () {
+        var val = getCheckedValue('refundReturnMethodList', 'returnMethod');
+        if (!val) return;
+        state.returnMethod = val;
+        syncPickupUI();
+        closeSheet('refundReturnMethodSheet');
+      });
+
+    var addressRow = document.getElementById('refundPickupAddressRow');
+    if (addressRow) {
+      addressRow.addEventListener('click', function () {
+        var labels = PICKUP_ADDRESSES.map(function (a) {
+          return a.label + ' · ' + a.contact + ' ' + a.phone;
+        });
+        var selectedLabel = '';
+        PICKUP_ADDRESSES.forEach(function (a) {
+          if (a.id === state.pickupAddressId) {
+            selectedLabel = a.label + ' · ' + a.contact + ' ' + a.phone;
+          }
+        });
+        renderPickerOptions('refundPickupAddressList', labels, selectedLabel, 'pickupAddress');
+        openSheet('refundPickupAddressSheet');
+      });
+    }
+    document.getElementById('refundPickupAddressConfirm') &&
+      document.getElementById('refundPickupAddressConfirm').addEventListener('click', function () {
+        var val = getCheckedValue('refundPickupAddressList', 'pickupAddress');
+        if (!val) return;
+        var addr = PICKUP_ADDRESSES.find(function (a) {
+          return val.indexOf(a.label) === 0;
+        });
+        if (!addr) return;
+        state.pickupAddressId = addr.id;
+        state.pickupAddress = addr.label;
+        state.pickupContact = addr.contact + ' ' + addr.phone;
+        syncPickupUI();
+        closeSheet('refundPickupAddressSheet');
+      });
+
+    var timeRow = document.getElementById('refundPickupTimeRow');
+    if (timeRow) {
+      timeRow.addEventListener('click', function () {
+        renderPickerOptions('refundPickupTimeList', PICKUP_TIME_SLOTS, state.pickupTime, 'pickupTime');
+        openSheet('refundPickupTimeSheet');
+      });
+    }
+    document.getElementById('refundPickupTimeConfirm') &&
+      document.getElementById('refundPickupTimeConfirm').addEventListener('click', function () {
+        var val = getCheckedValue('refundPickupTimeList', 'pickupTime');
+        if (!val) return;
+        state.pickupTime = val;
+        syncPickupUI();
+        closeSheet('refundPickupTimeSheet');
+      });
+
+    if (authInput) {
+      authInput.addEventListener('change', function () {
+        state.authMerchantWaybill = !!authInput.checked;
+      });
+    }
+
+    syncPickupUI();
+    return {
+      sync: syncPickupUI,
+      validate: function () {
+        if (!state.returnMethod) {
+          window.alert('请选择退货方式');
+          return false;
+        }
+        if (isDoorPickup() && !state.pickupTime) {
+          window.alert('请选择上门时间');
+          return false;
+        }
+        if (isDoorPickup() && !state.pickupAddress) {
+          window.alert('请选择取件地址');
+          return false;
+        }
+        return true;
+      },
+      payload: function () {
+        return {
+          returnMethod: state.returnMethod,
+          pickupAddressId: state.pickupAddressId,
+          pickupAddress: state.pickupAddress,
+          pickupContact: state.pickupContact,
+          pickupTime: state.pickupTime,
+          authMerchantWaybill: !!state.authMerchantWaybill
+        };
+      }
+    };
   }
 
   function renderSpecQtyList(containerId, specs, qtyMap, onChange) {
@@ -581,6 +796,8 @@
     var samePriceSpecs = specs.filter(function (spec) {
       return spec.priceNum === orderSpec.priceNum && spec.id !== orderSpec.id;
     });
+    var app = loadApplication();
+    var isEdit = getParams().get('edit') === '1';
     var state = {
       reason: '',
       sourceSpecId: orderSpec.id,
@@ -590,6 +807,14 @@
       desc: '',
       images: []
     };
+    Object.assign(state, createPickupState(isEdit ? app : null));
+    if (isEdit && app) {
+      if (app.reason) state.reason = app.reason;
+      if (app.desc) state.desc = app.desc;
+      if (app.images && app.images.length) state.images = app.images.slice();
+      if (app.exchangeTo && app.exchangeTo.specId) state.targetSpecId = app.exchangeTo.specId;
+      if (app.exchangeTo && app.exchangeTo.qty) state.targetQty = app.exchangeTo.qty;
+    }
 
     initNav('换货', buildSelectHref());
     renderProductCard('refundProductCard');
@@ -609,6 +834,10 @@
 
     if (sourceSpecEl) sourceSpecEl.textContent = orderSpec.label;
     if (sourceQtyEl) sourceQtyEl.textContent = String(item.qty);
+    if (descInput && state.desc) {
+      descInput.value = state.desc;
+      if (descCount) descCount.textContent = String(state.desc.length);
+    }
 
     function getTargetSpec() {
       return samePriceSpecs.find(function (s) {
@@ -696,7 +925,9 @@
       });
     }
 
-    bindDescAndUpload(state, descInput, descCount, uploadGrid, item);
+    var syncEvidenceUI = bindEvidenceToggle(state);
+    bindDescAndUpload(state, descInput, descCount, uploadGrid, item, syncEvidenceUI);
+    var pickupApi = bindPickupReturnCard(state);
 
     if (submitBtn) {
       submitBtn.addEventListener('click', function () {
@@ -717,26 +948,38 @@
           window.alert('请选择换货数量');
           return;
         }
-        persistAndGoDetail('exchange', {
-          reason: state.reason,
-          exchangeFrom: { specId: orderSpec.id, label: orderSpec.label, qty: item.qty, priceNum: orderSpec.priceNum },
-          exchangeTo: {
-            specId: targetSpec.id,
-            label: targetSpec.label,
-            qty: state.targetQty,
-            priceNum: targetSpec.priceNum
-          },
-          exchangeSummary:
-            orderSpec.label +
-            '×' +
-            item.qty +
-            ' 换成 ' +
-            targetSpec.label +
-            '×' +
-            state.targetQty,
-          desc: state.desc,
-          images: state.images
-        });
+        if (!pickupApi.validate()) return;
+        persistAndGoDetail(
+          'exchange',
+          Object.assign(
+            {
+              reason: state.reason,
+              exchangeFrom: {
+                specId: orderSpec.id,
+                label: orderSpec.label,
+                qty: item.qty,
+                priceNum: orderSpec.priceNum
+              },
+              exchangeTo: {
+                specId: targetSpec.id,
+                label: targetSpec.label,
+                qty: state.targetQty,
+                priceNum: targetSpec.priceNum
+              },
+              exchangeSummary:
+                orderSpec.label +
+                '×' +
+                item.qty +
+                ' 换成 ' +
+                targetSpec.label +
+                '×' +
+                state.targetQty,
+              desc: state.desc,
+              images: state.images
+            },
+            pickupApi.payload()
+          )
+        );
       });
     }
 
@@ -1055,6 +1298,9 @@
       if (app.desc) state.desc = app.desc;
       if (app.images && app.images.length) state.images = app.images.slice();
     }
+    if (formType === 'return') {
+      Object.assign(state, createPickupState(isEdit ? app : null));
+    }
     return state;
   }
 
@@ -1205,6 +1451,7 @@
         descInput.value = text;
         state.desc = text;
         if (descCount) descCount.textContent = String(text.length);
+        if (typeof syncEvidenceUI === 'function') syncEvidenceUI();
       });
     }
 
@@ -1236,6 +1483,7 @@
           if (state.images.length >= 3) return;
           state.images.push('../assets/order-product-1.svg');
           renderUploads();
+          if (typeof syncEvidenceUI === 'function') syncEvidenceUI();
         });
       }
       uploadGrid.querySelectorAll('[data-remove-idx]').forEach(function (btn) {
@@ -1244,11 +1492,15 @@
           var idx = parseInt(btn.getAttribute('data-remove-idx'), 10);
           state.images.splice(idx, 1);
           renderUploads();
+          if (typeof syncEvidenceUI === 'function') syncEvidenceUI();
         });
       });
     }
 
     renderUploads();
+
+    var syncEvidenceUI = isReturn ? bindEvidenceToggle(state) : null;
+    var pickupApi = isReturn ? bindPickupReturnCard(state) : null;
 
     if (submitBtn) {
       submitBtn.addEventListener('click', function () {
@@ -1268,14 +1520,17 @@
           window.alert('请填写退款金额');
           return;
         }
-        persistAndGoDetail(isReturn ? 'return' : 'refund_only', {
+        if (pickupApi && !pickupApi.validate()) return;
+        var payload = {
           reason: state.reason,
           qty: state.qty,
           amount: state.amount,
           goodsStatus: state.goodsStatus,
           desc: state.desc,
           images: state.images
-        });
+        };
+        if (pickupApi) Object.assign(payload, pickupApi.payload());
+        persistAndGoDetail(isReturn ? 'return' : 'refund_only', payload);
       });
     }
 
