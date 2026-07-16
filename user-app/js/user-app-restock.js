@@ -2610,12 +2610,19 @@
     return tags.length > COLLAPSED_TAG_SLOTS + 1;
   }
 
+  function syncFilterSortActive() {
+    var filterBtn = document.querySelector('.ua-restock-cat-sortitem[data-sort="filter"]');
+    if (!filterBtn) return;
+    filterBtn.classList.toggle('ua-restock-cat-sortitem--active', !!catState.tagsExpanded);
+  }
+
   function closeTagsExpand() {
     catState.tagsExpanded = false;
     if (tagsExpandEl) {
       tagsExpandEl.hidden = true;
       tagsExpandEl.classList.remove('is-open');
     }
+    syncFilterSortActive();
   }
 
   function openTagsExpand() {
@@ -2627,6 +2634,16 @@
       tagsExpandEl.classList.add('is-open');
     }
     renderTagsExpandGrid();
+    syncFilterSortActive();
+  }
+
+  function toggleTagsExpand() {
+    if (catState.tagsExpanded) {
+      closeTagsExpand();
+      applyTagsVisibility();
+      return;
+    }
+    openTagsExpand();
   }
 
   function measureTopnavHeights() {
@@ -3929,9 +3946,10 @@
   document.querySelectorAll('.ua-restock-cat-sortitem').forEach(function (btn) {
     btn.addEventListener('click', function () {
       if (btn.getAttribute('data-sort') === 'filter') {
-        window.alert('筛选（演示）');
+        toggleTagsExpand();
         return;
       }
+      closeTagsExpand();
       setActiveItem(document.querySelectorAll('.ua-restock-cat-sortitem'), btn, 'ua-restock-cat-sortitem--active');
     });
   });
