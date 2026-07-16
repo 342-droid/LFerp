@@ -919,6 +919,11 @@
   color: #666;
 }
 
+.ua-restock-cat-sortitem--filter.ua-restock-cat-sortitem--active,
+.ua-restock-cat-sortitem--filter.ua-restock-cat-sortitem--active svg {
+  color: #ff4d30;
+}
+
 .ua-restock-cat-tags-sticky-wrap {
   background: #fff;
   overflow: hidden;
