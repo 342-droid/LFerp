@@ -95,13 +95,234 @@
     }
   ];
 
-  var PICKUP_TIME_SLOTS = [
-    '2026-07-16 09:00-11:00',
-    '2026-07-16 13:00-15:00',
-    '2026-07-16 15:00-17:00',
-    '2026-07-17 09:00-11:00',
-    '2026-07-17 13:00-15:00'
+  var PICKUP_TIME_WINDOWS = [
+    { start: '09:00', end: '11:00', label: '09:00–11:00' },
+    { start: '11:00', end: '13:00', label: '11:00–13:00', popular: true },
+    { start: '13:00', end: '15:00', label: '13:00–15:00' },
+    // 原型演示：今日该档默认约满，点「今」即可看到「已约满」
+    { start: '15:00', end: '17:00', label: '15:00–17:00', demoFull: true },
+    { start: '17:00', end: '19:00', label: '17:00–19:00' }
   ];
+  var PICKUP_SAME_DAY_CUTOFF_HOUR = 7;
+  /** 晚上 8 点后，今日全部时段不可预约 */
+  var PICKUP_DAY_CLOSE_HOUR = 20;
+
+  function pad2(n) {
+    return n < 10 ? '0' + n : String(n);
+  }
+
+  function startOfDay(date) {
+    var d = new Date(date.getTime());
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  function addDays(date, days) {
+    var d = new Date(date.getTime());
+    d.setDate(d.getDate() + days);
+    return d;
+  }
+
+  function sameDay(a, b) {
+    return (
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate()
+    );
+  }
+
+  function dateKey(date) {
+    return date.getFullYear() + '-' + pad2(date.getMonth() + 1) + '-' + pad2(date.getDate());
+  }
+
+  function parseTimeParts(hm) {
+    var parts = String(hm || '').split(':');
+    return {
+      h: parseInt(parts[0], 10) || 0,
+      m: parseInt(parts[1], 10) || 0
+    };
+  }
+
+  /** 取件弹窗统一时钟；支持 ?pickupNow=20:05 或 ISO，便于演示「今晚 8 点后今日全不可约」 */
+  function getPickupNow() {
+    var raw = '';
+    try {
+      raw = (getParams().get('pickupNow') || '').trim();
+    } catch (e) {
+      raw = '';
+    }
+    if (!raw) return new Date();
+    if (/^\d{1,2}:\d{2}$/.test(raw)) {
+      var hm = parseTimeParts(raw);
+      var d = new Date();
+      d.setHours(hm.h, hm.m, 0, 0);
+      return d;
+    }
+    var parsed = new Date(raw);
+    if (!isNaN(parsed.getTime())) return parsed;
+    return new Date();
+  }
+
+  /** 演示：?pickupFull=1 模拟当天所有时段已约满 */
+  function isPickupTodayFullyBooked() {
+    try {
+      var v = (getParams().get('pickupFull') || '').trim().toLowerCase();
+      return v === '1' || v === 'true' || v === 'all';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function isTodayAllSlotsPassed(now) {
+    now = now || getPickupNow();
+    return !dateHasAvailablePickupSlot(startOfDay(now), now);
+  }
+
+  function canIncludeTodayInPickup(now) {
+    now = now || getPickupNow();
+    // 当天 7 点之后：预约从明天起；7 点前可预约今日
+    return now.getHours() < PICKUP_SAME_DAY_CUTOFF_HOUR;
+  }
+
+  function getBookablePickupDays(now) {
+    now = now || getPickupNow();
+    var today = startOfDay(now);
+    var start = canIncludeTodayInPickup(now) ? today : addDays(today, 1);
+    return [start, addDays(start, 1), addDays(start, 2)];
+  }
+
+  function isPickupDayBookable(date, now) {
+    now = now || getPickupNow();
+    return getBookablePickupDays(now).some(function (d) {
+      return sameDay(d, date);
+    });
+  }
+
+  function getSelectablePickupDays(now) {
+    now = now || getPickupNow();
+    var today = startOfDay(now);
+    var days = getBookablePickupDays(now).slice();
+    // 「今」始终可点选：便于查看今日剩余/已不可约时段；能否提交由 bookable + 可用时段决定
+    var hasToday = days.some(function (d) {
+      return sameDay(d, today);
+    });
+    if (!hasToday) days.unshift(today);
+    return days;
+  }
+
+  function dateHasAvailablePickupSlot(date, now) {
+    now = now || getPickupNow();
+    return PICKUP_TIME_WINDOWS.some(function (slot) {
+      return !getPickupSlotBlockReason(date, slot, now);
+    });
+  }
+
+  function getDefaultPickupDate(selectableDays, now) {
+    now = now || getPickupNow();
+    for (var i = 0; i < selectableDays.length; i++) {
+      var day = selectableDays[i];
+      if (isPickupDayBookable(day, now) && dateHasAvailablePickupSlot(day, now)) {
+        return day;
+      }
+    }
+    for (var j = 0; j < selectableDays.length; j++) {
+      if (dateHasAvailablePickupSlot(selectableDays[j], now)) return selectableDays[j];
+    }
+    return selectableDays[0] || null;
+  }
+
+  function mondayOfWeek(date) {
+    return addDays(date, -((date.getDay() + 6) % 7));
+  }
+
+  function sundayOfWeek(date) {
+    return addDays(mondayOfWeek(date), 6);
+  }
+
+  /**
+   * 今日时段不可约原因：
+   * - 当天全部约满（?pickupFull=1）→ 已约满
+   * - 超过晚上 8 点 → 时段已过（全部）
+   * - 单档演示约满（demoFull）→ 已约满
+   * - 已到/已过该档开始时间 → 时段已过
+   */
+  function getPickupSlotBlockReason(date, slot, now) {
+    now = now || getPickupNow();
+    if (!slot || !sameDay(date, now)) return '';
+    if (isPickupTodayFullyBooked()) return '已约满';
+    if (now.getHours() >= PICKUP_DAY_CLOSE_HOUR) return '时段已过';
+    if (slot.demoFull) return '已约满';
+    var start = parseTimeParts(slot.start);
+    var startAt = new Date(date.getTime());
+    startAt.setHours(start.h, start.m, 0, 0);
+    if (now.getTime() >= startAt.getTime()) return '时段已过';
+    return '';
+  }
+
+  function isPickupSlotPassed(date, slot, now) {
+    return !!getPickupSlotBlockReason(date, slot, now);
+  }
+
+  function shouldFocusTodayPickupDemo(now) {
+    now = now || getPickupNow();
+    if (isPickupTodayFullyBooked()) return true;
+    if (now.getHours() >= PICKUP_DAY_CLOSE_HOUR) return true;
+    try {
+      if ((getParams().get('pickupNow') || '').trim()) return true;
+    } catch (e) {
+      /* ignore */
+    }
+    // 今日已有不可约档时，打开直接落在「今」，避免被预填「明天」挡住标识
+    var today = startOfDay(now);
+    return PICKUP_TIME_WINDOWS.some(function (slot) {
+      return !!getPickupSlotBlockReason(today, slot, now);
+    });
+  }
+
+  function formatPickupDisplay(date, slotLabel) {
+    var dayText = date.getMonth() + 1 + '月' + date.getDate() + '日';
+    return slotLabel ? dayText + ' ' + slotLabel : dayText;
+  }
+
+  function normalizePickupSlotLabel(label) {
+    return String(label || '').replace(/-/g, '–');
+  }
+
+  function parsePickupValue(value) {
+    var text = String(value || '').trim();
+    if (!text) return null;
+    var m = text.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}:\d{2}[-–]\d{2}:\d{2})/);
+    if (m) {
+      return {
+        date: new Date(+m[1], +m[2] - 1, +m[3]),
+        slotLabel: normalizePickupSlotLabel(m[4])
+      };
+    }
+    m = text.match(/(\d{1,2})月(\d{1,2})日(?:\s+(\d{2}:\d{2}[-–]\d{2}:\d{2}))?/);
+    if (m) {
+      var now = new Date();
+      return {
+        date: new Date(now.getFullYear(), +m[1] - 1, +m[2]),
+        slotLabel: normalizePickupSlotLabel(m[3] || '')
+      };
+    }
+    return null;
+  }
+
+  function getSlotDisplayLabel(slot, blockReason) {
+    if (blockReason) return slot.label + ' (' + blockReason + ')';
+    if (slot.popular) return slot.label + ' (常选时段)';
+    return slot.label;
+  }
+
+  function findPickupSlot(label) {
+    var normalized = normalizePickupSlotLabel(label);
+    return (
+      PICKUP_TIME_WINDOWS.find(function (s) {
+        return s.label === normalized || s.label === label;
+      }) || null
+    );
+  }
 
   var COURIERS = [
     { id: 'sf', name: '顺丰速运', abbr: '顺' },
@@ -456,6 +677,41 @@
     return PICKUP_ADDRESSES[0];
   }
 
+  function ensurePickupBoardData(app) {
+    if (!app) return app;
+    var addr = getDefaultPickupAddress();
+    if (!app.pickupCode) app.pickupCode = '1333';
+    if (!app.pickupTime) {
+      app.pickupTime = formatPickupDisplay(addDays(startOfDay(new Date()), 1), '09:00–11:00');
+    }
+    if (!app.pickupAddress) {
+      app.pickupAddress = addr.full || addr.label;
+    }
+    if (!app.pickupContact) {
+      app.pickupContact = addr.contact + ' ' + addr.phone;
+    }
+    if (!app.pickupCourierStatus) app.pickupCourierStatus = '快递员已接单';
+    if (!app.pickupCourierPhone) app.pickupCourierPhone = '4008001234';
+    app.pickupFeeText = '¥0';
+    app.pickupFeeSub = '平台承担退货运费';
+    saveApplication(app);
+    return app;
+  }
+
+  function formatRelativePickupSchedule(pickupTime) {
+    var parsed = parsePickupValue(pickupTime);
+    var slot = '09:00–11:00';
+    var dayLabel = '明天';
+    if (parsed) {
+      slot = parsed.slotLabel || slot;
+      var today = startOfDay(new Date());
+      if (sameDay(parsed.date, today)) dayLabel = '今天';
+      else if (sameDay(parsed.date, addDays(today, 1))) dayLabel = '明天';
+      else dayLabel = parsed.date.getMonth() + 1 + '月' + parsed.date.getDate() + '日';
+    }
+    return dayLabel + ' ' + slot;
+  }
+
   function createPickupState(app) {
     var addr = getDefaultPickupAddress();
     if (app && app.pickupAddressId) {
@@ -585,17 +841,212 @@
       });
 
     var timeRow = document.getElementById('refundPickupTimeRow');
-    if (timeRow) {
-      timeRow.addEventListener('click', function () {
-        renderPickerOptions('refundPickupTimeList', PICKUP_TIME_SLOTS, state.pickupTime, 'pickupTime');
-        openSheet('refundPickupTimeSheet');
+    var pickupTimeUi = {
+      selectedDate: null,
+      selectedSlot: '',
+      selectableDays: []
+    };
+
+    function syncPickupConfirmBtn() {
+      var btn = document.getElementById('refundPickupTimeConfirm');
+      if (!btn) return;
+      var now = getPickupNow();
+      if (!pickupTimeUi.selectedDate) {
+        btn.textContent = '请选择上门时间';
+        btn.disabled = true;
+        btn.classList.add('is-disabled');
+        return;
+      }
+      if (!pickupTimeUi.selectedSlot) {
+        btn.textContent = formatPickupDisplay(pickupTimeUi.selectedDate, '');
+        btn.disabled = true;
+        btn.classList.add('is-disabled');
+        return;
+      }
+      var slot = findPickupSlot(pickupTimeUi.selectedSlot);
+      var canConfirm =
+        isPickupDayBookable(pickupTimeUi.selectedDate, now) &&
+        slot &&
+        !isPickupSlotPassed(pickupTimeUi.selectedDate, slot, now);
+      btn.textContent = formatPickupDisplay(pickupTimeUi.selectedDate, pickupTimeUi.selectedSlot);
+      btn.disabled = !canConfirm;
+      btn.classList.toggle('is-disabled', !canConfirm);
+    }
+
+    function renderPickupSlots() {
+      var list = document.getElementById('refundPickupTimeList');
+      if (!list || !pickupTimeUi.selectedDate) return;
+      var now = getPickupNow();
+      var allPassed = !dateHasAvailablePickupSlot(pickupTimeUi.selectedDate, now);
+      if (allPassed) pickupTimeUi.selectedSlot = '';
+      list.classList.toggle('is-all-passed', allPassed);
+      list.innerHTML = PICKUP_TIME_WINDOWS.map(function (slot) {
+        var blockReason = getPickupSlotBlockReason(pickupTimeUi.selectedDate, slot, now);
+        var passed = !!blockReason;
+        var selected = !passed && pickupTimeUi.selectedSlot === slot.label;
+        return (
+          '<button type="button" class="ua-or-pickup-slot' +
+          (passed ? ' is-disabled' : '') +
+          (selected ? ' is-selected' : '') +
+          '" data-slot="' +
+          slot.label +
+          '"' +
+          (passed ? ' disabled' : '') +
+          '>' +
+          '<span class="ua-or-pickup-slot__label">' +
+          getSlotDisplayLabel(slot, blockReason) +
+          '</span>' +
+          '<span class="ua-or-pickup-slot__radio" aria-hidden="true"></span>' +
+          '</button>'
+        );
+      }).join('');
+
+      list.querySelectorAll('.ua-or-pickup-slot:not(.is-disabled)').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          pickupTimeUi.selectedSlot = btn.getAttribute('data-slot') || '';
+          renderPickupSlots();
+          syncPickupConfirmBtn();
+        });
       });
+      syncPickupConfirmBtn();
+    }
+
+    function renderPickupCalendar() {
+      var monthEl = document.getElementById('refundPickupCalMonth');
+      var gridEl = document.getElementById('refundPickupCalGrid');
+      if (!gridEl || !pickupTimeUi.selectableDays.length) return;
+
+      var first = pickupTimeUi.selectableDays[0];
+      var last = pickupTimeUi.selectableDays[pickupTimeUi.selectableDays.length - 1];
+      var now = getPickupNow();
+      var anchor = pickupTimeUi.selectedDate || first;
+      if (monthEl) {
+        monthEl.textContent = anchor.getFullYear() + '年' + (anchor.getMonth() + 1) + '月';
+      }
+
+      var today = startOfDay(now);
+      // 始终至少展示两整周，覆盖跨周可选日（如周六、周日、周一）
+      var gridStart = mondayOfWeek(first);
+      var twoWeekEnd = addDays(gridStart, 13);
+      var lastWeekEnd = sundayOfWeek(last);
+      var gridEnd = lastWeekEnd.getTime() > twoWeekEnd.getTime() ? lastWeekEnd : twoWeekEnd;
+
+      var selectableKeys = {};
+      pickupTimeUi.selectableDays.forEach(function (d) {
+        selectableKeys[dateKey(d)] = true;
+      });
+
+      var html = '';
+      for (var cur = new Date(gridStart.getTime()); cur.getTime() <= gridEnd.getTime(); cur = addDays(cur, 1)) {
+        var key = dateKey(cur);
+        var selectable = !!selectableKeys[key];
+        var isToday = sameDay(cur, today);
+        var selected = pickupTimeUi.selectedDate && sameDay(cur, pickupTimeUi.selectedDate);
+        var otherMonth = cur.getMonth() !== anchor.getMonth();
+        var todayAllPassed = isToday && isTodayAllSlotsPassed(now);
+        var label = isToday ? '今' : String(cur.getDate());
+        html +=
+          '<button type="button" class="ua-or-pickup-cal__day' +
+          (selectable ? ' is-selectable' : '') +
+          (isToday ? ' is-today' : '') +
+          (selected ? ' is-selected' : '') +
+          (otherMonth ? ' is-other-month' : '') +
+          (todayAllPassed ? ' is-today-passed' : '') +
+          '" data-date="' +
+          key +
+          '"' +
+          (selectable ? '' : ' disabled') +
+          '><span class="ua-or-pickup-cal__day-num">' +
+          label +
+          '</span></button>';
+      }
+      gridEl.innerHTML = html;
+
+      gridEl.querySelectorAll('.ua-or-pickup-cal__day.is-selectable').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var key = btn.getAttribute('data-date');
+          var next = pickupTimeUi.selectableDays.find(function (d) {
+            return dateKey(d) === key;
+          });
+          if (!next) return;
+          pickupTimeUi.selectedDate = next;
+          var slot = findPickupSlot(pickupTimeUi.selectedSlot);
+          if (!slot || isPickupSlotPassed(next, slot, now)) {
+            var firstAvail = PICKUP_TIME_WINDOWS.find(function (s) {
+              return !isPickupSlotPassed(next, s, now);
+            });
+            pickupTimeUi.selectedSlot = firstAvail ? firstAvail.label : '';
+          }
+          renderPickupCalendar();
+          renderPickupSlots();
+          syncPickupConfirmBtn();
+        });
+      });
+    }
+
+    function openPickupTimeSheet() {
+      var now = getPickupNow();
+      var today = startOfDay(now);
+      pickupTimeUi.selectableDays = getSelectablePickupDays(now);
+      var parsed = parsePickupValue(state.pickupTime);
+      pickupTimeUi.selectedDate = getDefaultPickupDate(pickupTimeUi.selectableDays, now);
+      pickupTimeUi.selectedSlot = '';
+
+      // 演示晚 8 点后 / 全约满 / pickupNow：直接落在「今」，避免被预填的「明天」挡住标识
+      if (shouldFocusTodayPickupDemo(now)) {
+        var todayDay = pickupTimeUi.selectableDays.find(function (d) {
+          return sameDay(d, today);
+        });
+        if (todayDay) {
+          pickupTimeUi.selectedDate = todayDay;
+          pickupTimeUi.selectedSlot = '';
+          renderPickupCalendar();
+          renderPickupSlots();
+          syncPickupConfirmBtn();
+          openSheet('refundPickupTimeSheet');
+          return;
+        }
+      }
+
+      if (parsed) {
+        var matched = pickupTimeUi.selectableDays.find(function (d) {
+          return sameDay(d, parsed.date);
+        });
+        if (matched) {
+          pickupTimeUi.selectedDate = matched;
+          var slot = findPickupSlot(parsed.slotLabel);
+          if (
+            slot &&
+            isPickupDayBookable(matched, now) &&
+            !isPickupSlotPassed(matched, slot, now)
+          ) {
+            pickupTimeUi.selectedSlot = slot.label;
+          }
+        }
+      }
+
+      if (!pickupTimeUi.selectedSlot && pickupTimeUi.selectedDate) {
+        if (isPickupDayBookable(pickupTimeUi.selectedDate, now)) {
+          var firstAvailable = PICKUP_TIME_WINDOWS.find(function (s) {
+            return !isPickupSlotPassed(pickupTimeUi.selectedDate, s, now);
+          });
+          pickupTimeUi.selectedSlot = firstAvailable ? firstAvailable.label : '';
+        }
+      }
+
+      renderPickupCalendar();
+      renderPickupSlots();
+      syncPickupConfirmBtn();
+      openSheet('refundPickupTimeSheet');
+    }
+
+    if (timeRow) {
+      timeRow.addEventListener('click', openPickupTimeSheet);
     }
     document.getElementById('refundPickupTimeConfirm') &&
       document.getElementById('refundPickupTimeConfirm').addEventListener('click', function () {
-        var val = getCheckedValue('refundPickupTimeList', 'pickupTime');
-        if (!val) return;
-        state.pickupTime = val;
+        if (!pickupTimeUi.selectedDate || !pickupTimeUi.selectedSlot) return;
+        state.pickupTime = formatPickupDisplay(pickupTimeUi.selectedDate, pickupTimeUi.selectedSlot);
         syncPickupUI();
         closeSheet('refundPickupTimeSheet');
       });
@@ -1889,6 +2340,8 @@
 
     var productEl = document.getElementById('refundDetailProduct');
     if (productEl) {
+      var tags = [];
+      if (isReturn || app.reason === '七天无理由退换货') tags.push('7天无理由退换');
       productEl.innerHTML =
         '<img class="ua-or-product__img" src="' +
         (app.productImg || item.img) +
@@ -1899,7 +2352,11 @@
         '</div>' +
         '<div class="ua-or-product__spec">' +
         (app.restockSummary || app.exchangeSummary || app.productSpec || item.spec) +
-        '</div></div>';
+        '</div>' +
+        (tags.length
+          ? '<div class="ua-or-product__tags">' + tags.join(' · ') + '</div>'
+          : '') +
+        '</div>';
     }
 
     var reasonLabelEl = document.querySelector('#refundDetailReason')
@@ -1911,12 +2368,12 @@
         : isExchange
           ? '换货原因'
           : isReturn
-            ? '退货原因'
+            ? '退款原因'
             : '退款原因';
     }
 
     var reasonEl = document.getElementById('refundDetailReason');
-    if (reasonEl) reasonEl.textContent = app.reason || '—';
+    if (reasonEl) reasonEl.textContent = app.reason || getParams().get('reason') || '—';
 
     var amountRow = document.getElementById('refundDetailAmount');
     if (amountRow) {
@@ -1925,7 +2382,8 @@
         if (amountRowWrap) amountRowWrap.hidden = true;
       } else {
         if (amountRowWrap) amountRowWrap.hidden = false;
-        amountRow.textContent = formatPrice(app.amount != null ? app.amount : item.priceNum * item.qty);
+        var amountNum = app.amount != null ? app.amount : item.paidAmount != null ? item.paidAmount : item.priceNum * item.qty;
+        amountRow.textContent = '共' + Number(amountNum).toFixed(2) + '元';
       }
     }
 
@@ -1943,7 +2401,7 @@
           : isExchange
             ? '换货编号'
             : isReturn
-              ? '退货编号'
+              ? '退款编号'
               : '退款编号';
       }
     }
@@ -1953,12 +2411,53 @@
 
     var copyBtn = document.getElementById('refundDetailCopyBtn');
     if (copyBtn) {
-      copyBtn.onclick = function () {
+      copyBtn.onclick = function (e) {
+        e.stopPropagation();
         copyText(
           (noEl && noEl.textContent) || '',
           isRestock ? '已复制补货编号' : isExchange ? '已复制换货编号' : '已复制退款编号'
         );
       };
+    }
+
+    var aftersaleEl = document.getElementById('refundDetailAftersale');
+    var toggleBtn = document.getElementById('refundAftersaleToggle');
+    var toggleText = document.getElementById('refundAftersaleToggleText');
+
+    function syncAftersaleToggle(open) {
+      if (aftersaleEl) aftersaleEl.hidden = !open;
+      if (toggleBtn) {
+        toggleBtn.classList.toggle('is-open', open);
+        toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      if (toggleText) {
+        toggleText.textContent = open ? '收起售后信息' : '查看全部售后信息';
+      }
+    }
+
+    if (toggleBtn && !toggleBtn.getAttribute('data-bound')) {
+      toggleBtn.setAttribute('data-bound', '1');
+      toggleBtn.addEventListener('click', function () {
+        var open = toggleBtn.getAttribute('aria-expanded') !== 'true';
+        syncAftersaleToggle(open);
+      });
+    }
+    syncAftersaleToggle(toggleBtn && toggleBtn.getAttribute('aria-expanded') === 'true');
+
+    var negotiateBtn = document.getElementById('refundNegotiateHistoryBtn');
+    if (negotiateBtn && !negotiateBtn.getAttribute('data-bound')) {
+      negotiateBtn.setAttribute('data-bound', '1');
+      negotiateBtn.addEventListener('click', function () {
+        showToast('协商历史（演示）');
+      });
+    }
+
+    var historyBtn = document.getElementById('refundHistoryRefundBtn');
+    if (historyBtn && !historyBtn.getAttribute('data-bound')) {
+      historyBtn.setAttribute('data-bound', '1');
+      historyBtn.addEventListener('click', function () {
+        showToast('历史退款记录（演示）');
+      });
     }
   }
 
@@ -2176,13 +2675,15 @@
             var next = getNextStage(stage);
             if (!next) return;
             if (stage === 'return' && next === 'refund') {
-              if (!app.courier) app.courier = state.courier || '顺丰速运';
-              if (!app.trackingNo) app.trackingNo = state.trackingNo || 'SF1234567890123';
+              ensurePickupBoardData(app);
+              if (!app.courier) app.courier = '上门取件';
+              if (!app.trackingNo) app.trackingNo = app.pickupCode || '1333';
               saveApplication(app);
             }
             if (stage === 'return' && next === 'reship') {
-              if (!app.courier) app.courier = state.courier || '顺丰速运';
-              if (!app.trackingNo) app.trackingNo = state.trackingNo || 'SF1234567890123';
+              ensurePickupBoardData(app);
+              if (!app.courier) app.courier = '上门取件';
+              if (!app.trackingNo) app.trackingNo = app.pickupCode || '1333';
               ensureReshipData(app);
               saveApplication(app);
             }
@@ -2238,40 +2739,42 @@
     var returnSection = document.getElementById('refundDetailReturnSection');
     var rejectReturnSection = document.getElementById('refundDetailRejectReturnSection');
     var reshipSection = document.getElementById('refundDetailReshipSection');
-    var addrEl = document.getElementById('refundDetailReturnAddr');
-    var logisticsForm = document.getElementById('refundDetailLogisticsForm');
-    var logisticsView = document.getElementById('refundDetailLogisticsView');
-    var companyValue = document.getElementById('refundLogisticsCompanyValue');
-    var trackingInput = document.getElementById('refundTrackingInput');
-    var companyDisplay = document.getElementById('refundLogisticsCompanyDisplay');
-    var trackingDisplay = document.getElementById('refundTrackingDisplay');
+    var pickupActions = document.getElementById('refundPickupActions');
 
-    function renderReturnAddr() {
-      var addr = RETURN_ADDRESSES[state.delivery] || RETURN_ADDRESSES.warehouse;
-      if (!addrEl) return;
-      addrEl.innerHTML =
-        '<p class="ua-or-detail-return__tip">' +
-        getReturnSectionTip(refundType, state.delivery) +
-        '</p>' +
-        '<p class="ua-or-detail-return__line"><em>收件人</em>' +
-        addr.name +
-        '</p>' +
-        '<p class="ua-or-detail-return__line"><em>联系电话</em>' +
-        addr.phone +
-        '</p>' +
-        '<p class="ua-or-detail-return__line"><em>退货地址</em>' +
-        addr.address +
-        '</p>';
-    }
-
-    function syncLogisticsUI() {
-      if (companyValue) {
-        companyValue.textContent = state.courier || '请选择';
-        companyValue.classList.toggle('ua-or-field__value--placeholder', !state.courier);
+    function renderPickupBoard() {
+      ensurePickupBoardData(app);
+      var codeEl = document.getElementById('refundPickupCode');
+      var scheduleEl = document.getElementById('refundPickupScheduleText');
+      var addrEl = document.getElementById('refundPickupAddrText');
+      var statusEl = document.getElementById('refundPickupCourierStatus');
+      var phoneEl = document.getElementById('refundPickupCourierPhone');
+      var feeValueEl = document.getElementById('refundPickupFeeValue');
+      var feeSubEl = document.getElementById('refundPickupFeeSub');
+      var guardTextEl = document.getElementById('refundPickupGuardText');
+      var scheduleLabel = formatRelativePickupSchedule(app.pickupTime);
+      if (codeEl) codeEl.textContent = app.pickupCode || '1333';
+      if (scheduleEl) {
+        scheduleEl.innerHTML =
+          '等待快递员<span class="is-hl">' + scheduleLabel + '</span>上门取件';
       }
-      if (trackingInput) trackingInput.value = state.trackingNo || '';
-      if (companyDisplay) companyDisplay.textContent = state.courier || '—';
-      if (trackingDisplay) trackingDisplay.textContent = state.trackingNo || '—';
+      if (addrEl) {
+        var contact = app.pickupContact || '';
+        var parts = contact.split(/\s+/);
+        var name = parts[0] || '';
+        var phone = parts.slice(1).join(' ') || '';
+        addrEl.textContent =
+          (app.pickupAddress || '') +
+          (name || phone ? '，' + name + (phone ? '，' + phone : '') : '');
+      }
+      if (statusEl) statusEl.textContent = app.pickupCourierStatus || '快递员已接单';
+      if (phoneEl) phoneEl.href = 'tel:' + (app.pickupCourierPhone || '4008001234');
+      if (feeValueEl) feeValueEl.textContent = app.pickupFeeText || '¥0';
+      if (feeSubEl) feeSubEl.textContent = app.pickupFeeSub || '平台承担退货运费';
+      if (guardTextEl) {
+        guardTextEl.textContent = isExchange
+          ? '本单享主动保障服务，平台同意换货'
+          : '本单享主动保障服务，平台同意退货';
+      }
     }
 
     if (isReturn && stage === 'reject_return') {
@@ -2303,56 +2806,21 @@
 
     if ((isReturn && (stage === 'return' || stage === 'refund')) || (isExchange && stage === 'return')) {
       if (returnSection) returnSection.hidden = false;
-      renderReturnAddr();
-      syncLogisticsUI();
-      var showForm = stage === 'return' || (stage === 'refund' && state.logisticsEdit);
-      if (logisticsForm) logisticsForm.hidden = !showForm;
-      if (logisticsView) logisticsView.hidden = showForm;
+      renderPickupBoard();
+      if (pickupActions) pickupActions.hidden = stage !== 'return';
     } else if (returnSection) {
       returnSection.hidden = true;
     }
 
-    function renderCourierList() {
-      var el = document.getElementById('refundCourierList');
-      if (!el) return;
-      el.innerHTML = COURIERS.map(function (c) {
-        var active = c.name === state.courier;
-        return (
-          '<label class="ua-or-courier__option">' +
-          '<span class="ua-or-courier__logo">' +
-          c.abbr +
-          '</span>' +
-          '<span class="ua-or-courier__name">' +
-          c.name +
-          '</span>' +
-          '<input type="radio" name="courier" value="' +
-          c.name +
-          '"' +
-          (active ? ' checked' : '') +
-          '>' +
-          '<span class="ua-or-courier__radio"></span></label>'
-        );
-      }).join('');
-      el.querySelectorAll('input[name="courier"]').forEach(function (input) {
-        input.addEventListener('change', function () {
-          state.courier = input.value;
-          syncLogisticsUI();
-          closeSheet('refundCourierSheet');
-        });
-      });
-    }
-
-    document.getElementById('refundLogisticsCompanyRow') &&
-      document.getElementById('refundLogisticsCompanyRow').addEventListener('click', function () {
-        renderCourierList();
-        openSheet('refundCourierSheet');
+    document.getElementById('refundPickupScheduleRow') &&
+      document.getElementById('refundPickupScheduleRow').addEventListener('click', function () {
+        if (typeof showToast === 'function') showToast('修改时间/地址（演示）');
       });
 
-    if (trackingInput) {
-      trackingInput.addEventListener('input', function () {
-        state.trackingNo = trackingInput.value.trim();
+    document.getElementById('refundPickupModifyBtn') &&
+      document.getElementById('refundPickupModifyBtn').addEventListener('click', function () {
+        if (typeof showToast === 'function') showToast('修改时间/地址（演示）');
       });
-    }
 
     function renderFooter() {
       var footer = document.getElementById('refundDetailFooter');
@@ -2364,20 +2832,14 @@
       }
       if ((isReturn || isExchange) && stage === 'return') {
         footer.innerHTML =
-          '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--ghost" id="refundDetailCancelBtn">撤销申请</button>' +
-          '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--primary" id="refundDetailSubmitLogisticsBtn">提交</button>';
+          '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--outline" id="refundDetailPlatformBtn">平台介入</button>' +
+          '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--outline" id="refundDetailCloseReturnBtn">关闭退货</button>';
         return;
       }
-      if (isReturn && stage === 'refund' && !state.logisticsEdit) {
+      if (isReturn && stage === 'refund') {
         footer.className = 'ua-or-detail-footer ua-or-detail-footer--single';
         footer.innerHTML =
-          '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--outline" id="refundDetailEditLogisticsBtn">修改物流信息</button>';
-        return;
-      }
-      if (isReturn && stage === 'refund' && state.logisticsEdit) {
-        footer.innerHTML =
-          '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--ghost" id="refundDetailCancelBtn">撤销申请</button>' +
-          '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--primary" id="refundDetailSubmitLogisticsBtn">提交</button>';
+          '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--outline" id="refundDetailPlatformBtn">平台介入</button>';
         return;
       }
       footer.innerHTML =
@@ -2417,6 +2879,16 @@
       var cancelBtn = document.getElementById('refundDetailCancelBtn');
       if (cancelBtn) cancelBtn.addEventListener('click', openCancelModal);
 
+      var closeReturnBtn = document.getElementById('refundDetailCloseReturnBtn');
+      if (closeReturnBtn) closeReturnBtn.addEventListener('click', openCancelModal);
+
+      var platformBtn = document.getElementById('refundDetailPlatformBtn');
+      if (platformBtn) {
+        platformBtn.addEventListener('click', function () {
+          if (typeof showToast === 'function') showToast('已申请平台介入（演示）');
+        });
+      }
+
       var modifyBtn = document.getElementById('refundDetailModifyBtn');
       if (modifyBtn) {
         modifyBtn.addEventListener('click', function () {
@@ -2436,36 +2908,6 @@
           } else {
             window.location.href = buildFormHref(formType);
           }
-        });
-      }
-
-      var submitLogisticsBtn = document.getElementById('refundDetailSubmitLogisticsBtn');
-      if (submitLogisticsBtn) {
-        submitLogisticsBtn.addEventListener('click', function () {
-          if (!state.courier) {
-            window.alert('请选择物流公司');
-            return;
-          }
-          if (!state.trackingNo) {
-            window.alert('请输入退货单号');
-            return;
-          }
-          app.courier = state.courier;
-          app.trackingNo = state.trackingNo;
-          saveApplication(app);
-          if (isExchange) {
-            ensureReshipData(app);
-            window.location.href = buildDetailHref({ type: 'exchange', stage: 'reship' });
-          } else {
-            window.location.href = buildDetailHref({ type: 'return', stage: 'refund' });
-          }
-        });
-      }
-
-      var editLogisticsBtn = document.getElementById('refundDetailEditLogisticsBtn');
-      if (editLogisticsBtn) {
-        editLogisticsBtn.addEventListener('click', function () {
-          window.location.href = buildDetailHref({ type: 'return', stage: 'refund', logistics: 'edit' });
         });
       }
     }

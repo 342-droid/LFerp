@@ -155,14 +155,32 @@
 
     <div class="ua-or-sheet" id="refundPickupTimeSheet" hidden>
       <div class="ua-or-sheet__mask" data-or-sheet-close="refundPickupTimeSheet"></div>
-      <div class="ua-or-sheet__panel">
-        <h3 class="ua-or-sheet__title">上门时间</h3>
-        <div class="ua-or-picker__list" id="refundPickupTimeList"></div>
-        <button type="button" class="ua-or-sheet__confirm" id="refundPickupTimeConfirm">确定</button>
+      <div class="ua-or-sheet__panel ua-or-pickup-time-panel">
+        <div class="ua-or-pickup-time-panel__head">
+          <h3 class="ua-or-pickup-time-panel__title">选择上门时间段</h3>
+          <button type="button" class="ua-or-sheet__close" data-or-sheet-close="refundPickupTimeSheet" aria-label="关闭">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+        <div class="ua-or-pickup-time-panel__notice">
+          <span class="ua-or-pickup-time-panel__notice-icon" aria-hidden="true">i</span>
+          <span>请选择上门时间，可随时修改取消</span>
+        </div>
+        <div class="ua-or-pickup-time-panel__body">
+          <div class="ua-or-pickup-cal" id="refundPickupCal">
+            <div class="ua-or-pickup-cal__month" id="refundPickupCalMonth"></div>
+            <div class="ua-or-pickup-cal__weekdays">
+              <span>周一</span><span>周二</span><span>周三</span><span>周四</span><span>周五</span><span>周六</span><span>周日</span>
+            </div>
+            <div class="ua-or-pickup-cal__grid" id="refundPickupCalGrid"></div>
+          </div>
+          <div class="ua-or-pickup-slots" id="refundPickupTimeList"></div>
+        </div>
+        <button type="button" class="ua-or-pickup-time-panel__confirm" id="refundPickupTimeConfirm">请选择上门时间</button>
       </div>
     </div>
   </div>
-  <script src="../js/user-app-order-refund.js"></script>
+  <script src="../js/user-app-order-refund.js?v=20260717-pickup"></script>
   <script>UAOrderRefund.initExchangePage();</script>
 </body>
 </html>
