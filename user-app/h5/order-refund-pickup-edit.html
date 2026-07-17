@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>修改上门取件信息 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-or-pickup-edit-page">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-or-pickup-edit-scroll">
+      <div class="ua-status-bar">
+        <span>9:41</span>
+        <span class="ua-status-bar__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#111"><path d="M1 7h2v4H1V7zm4-2h2v6H5V5zm4-3h2v9H9V2zm4 5h2v4h-2V7z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#111"/></svg>
+        </span>
+      </div>
+
+      <header class="ua-or-pickup-edit-nav">
+        <a href="order-refund-detail.html" class="ua-or-pickup-edit-nav__back" id="pickupEditBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="ua-or-pickup-edit-nav__title">修改上门取件信息</h1>
+      </header>
+
+      <div class="ua-or-pickup-edit-banner" id="pickupEditBanner">
+        <span class="ua-or-pickup-edit-banner__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 10.5v3l6 2.2V8.3L4 10.5z" fill="#ff6a00"/><path d="M10 8.3l9-3.2v13.8l-9-3.2V8.3z" fill="#ff6a00"/><path d="M19 9.2c1.4.9 2.2 2.1 2.2 3.5s-.8 2.6-2.2 3.5" stroke="#ff6a00" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </span>
+        <span class="ua-or-pickup-edit-banner__text" id="pickupEditRemainText">您一共可修改3次，目前剩余3次</span>
+        <button type="button" class="ua-or-pickup-edit-banner__close" id="pickupEditBannerClose" aria-label="关闭提示">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+
+      <section class="ua-or-pickup-edit-card">
+        <button type="button" class="ua-or-pickup-edit-addr" id="refundPickupAddressRow">
+          <span class="ua-or-pickup-edit-addr__tag" aria-hidden="true">寄</span>
+          <span class="ua-or-pickup-edit-addr__body">
+            <span class="ua-or-pickup-edit-addr__contact" id="pickupEditContact">林晓棠 13856781234</span>
+            <span class="ua-or-pickup-edit-addr__line" id="pickupEditAddress">浙江省杭州市西湖区文三路 西溪花园3幢2单元501室</span>
+            <span id="refundPickupContactText" hidden></span>
+            <span id="refundPickupAddressText" hidden></span>
+          </span>
+          <span class="ua-or-pickup-edit-addr__arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          </span>
+        </button>
+        <div class="ua-or-pickup-edit-warn">
+          修改收件地址前请和平台确认，因收件地址不准确导致商家未收到货，后续产生的退款纠纷，需您自行承担
+        </div>
+      </section>
+
+      <section class="ua-or-pickup-edit-card ua-or-pickup-edit-card--time">
+        <button type="button" class="ua-or-pickup-edit-time" id="pickupEditTimeRow">
+          <span class="ua-or-pickup-edit-time__label">取件时间</span>
+          <span class="ua-or-pickup-edit-time__value ua-or-pickup-edit-time__value--placeholder" id="pickupEditTimeValue">请选择上门时间</span>
+          <span class="ua-or-pickup-edit-time__arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          </span>
+        </button>
+      </section>
+    </div>
+
+    <footer class="ua-or-pickup-edit-footer">
+      <button type="button" class="ua-or-pickup-edit-footer__btn" id="pickupEditConfirmBtn">确认</button>
+    </footer>
+
+    <div class="ua-or-sheet" id="refundPickupAddressSheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="refundPickupAddressSheet"></div>
+      <div class="ua-or-sheet__panel">
+        <h3 class="ua-or-sheet__title">取件地址</h3>
+        <div class="ua-or-picker__list" id="refundPickupAddressList"></div>
+        <button type="button" class="ua-or-sheet__confirm" id="refundPickupAddressConfirm">确定</button>
+      </div>
+    </div>
+
+    <div class="ua-or-sheet" id="pickupEditTimeSheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="pickupEditTimeSheet"></div>
+      <div class="ua-or-sheet__panel ua-or-simple-time-panel">
+        <div class="ua-or-simple-time-panel__head">
+          <h3 class="ua-or-simple-time-panel__title">请选择时间</h3>
+        </div>
+        <div class="ua-or-simple-time-panel__body">
+          <div class="ua-or-simple-time-panel__dates" id="pickupEditTimeDates" role="tablist" aria-label="日期"></div>
+          <div class="ua-or-simple-time-panel__slots" id="pickupEditTimeSlots" role="listbox" aria-label="时段"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ua-or-toast" id="refundDetailToast" hidden></div>
+  </div>
+  <script src="../js/user-app-order-refund.js?v=20260717-addrbook"></script>
+  <script>UAOrderRefund.initPickupEditPage();</script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>新建寄件人地址 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260717-city">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-or-addr-create-page">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-or-addr-create-scroll">
+      <div class="ua-status-bar">
+        <span>9:41</span>
+        <span class="ua-status-bar__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#111"><path d="M1 7h2v4H1V7zm4-2h2v6H5V5zm4-3h2v9H9V2zm4 5h2v4h-2V7z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#111"/></svg>
+        </span>
+      </div>
+
+      <header class="ua-or-addr-create-nav">
+        <a href="order-refund-address-book.html" class="ua-or-addr-create-nav__back" id="addrCreateBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="ua-or-addr-create-nav__title" id="addrCreateTitle">新建寄件人地址</h1>
+      </header>
+
+      <section class="ua-or-addr-create-smart" id="addrCreateSmart">
+        <button type="button" class="ua-or-addr-create-smart__collapsed" id="addrCreateSmartOpen">
+          请粘贴/输入地址，可智能识别
+        </button>
+        <div class="ua-or-addr-create-smart__expanded" id="addrCreateSmartExpanded" hidden>
+          <div class="ua-or-addr-create-smart__example">示例：冷小丰，136xxxx0000，浙江省杭州市西湖区某小区</div>
+          <textarea
+            class="ua-or-addr-create-smart__textarea"
+            id="addrCreateSmartInput"
+            rows="4"
+            placeholder="请粘贴或输入文本，点击“识别”自动识别姓名、电话和地址"
+          ></textarea>
+          <div class="ua-or-addr-create-smart__actions">
+            <button type="button" class="ua-or-addr-create-smart__recognize" id="addrCreateRecognizeBtn">识别</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="ua-or-addr-create-form">
+        <label class="ua-or-addr-create-row">
+          <span class="ua-or-addr-create-row__label">姓名</span>
+          <input class="ua-or-addr-create-row__input" id="addrCreateName" type="text" placeholder="请输入姓名" autocomplete="name">
+        </label>
+        <div class="ua-or-addr-create-row">
+          <span class="ua-or-addr-create-row__label" id="addrCreatePhoneLabel">手机号</span>
+          <input class="ua-or-addr-create-row__input" id="addrCreatePhone" type="tel" placeholder="请输入手机号" inputmode="tel" autocomplete="tel">
+          <button type="button" class="ua-or-addr-create-row__link" id="addrCreatePhoneSwitch">切换座机</button>
+        </div>
+        <button type="button" class="ua-or-addr-create-row ua-or-addr-create-row--btn" id="addrCreateRegionRow">
+          <span class="ua-or-addr-create-row__label">省市区</span>
+          <span class="ua-or-addr-create-row__value ua-or-addr-create-row__value--placeholder" id="addrCreateRegionValue">请选择省市区</span>
+          <span class="ua-or-addr-create-row__chevron" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </span>
+        </button>
+        <label class="ua-or-addr-create-row">
+          <span class="ua-or-addr-create-row__label">详细地址</span>
+          <input class="ua-or-addr-create-row__input" id="addrCreateDetail" type="text" placeholder="输入小区/写字楼，可精准识别">
+        </label>
+      </section>
+    </div>
+
+    <footer class="ua-or-addr-create-footer">
+      <button type="button" class="ua-or-addr-create-footer__btn" id="addrCreateSaveBtn">保存</button>
+    </footer>
+
+    <div class="ua-or-sheet" id="addrCreateRegionSheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="addrCreateRegionSheet"></div>
+      <div class="ua-or-sheet__panel ua-or-city-panel">
+        <div class="ua-or-city-panel__head">
+          <h3 class="ua-or-city-panel__title">城市地区</h3>
+          <button type="button" class="ua-or-sheet__close" data-or-sheet-close="addrCreateRegionSheet" aria-label="关闭">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <div class="ua-or-city-panel__search">
+          <span class="ua-or-city-panel__search-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="7"/>
+              <path d="M20 20l-3.5-3.5"/>
+            </svg>
+          </span>
+          <input
+            type="search"
+            class="ua-or-city-panel__search-input"
+            id="cityRegionSearch"
+            placeholder="请输入省份/城市/市区搜索"
+            autocomplete="off"
+          >
+        </div>
+
+        <div class="ua-or-city-panel__body" id="cityRegionBody">
+          <div class="ua-or-city-hot">
+            <div class="ua-or-city-hot__title">热门城市</div>
+            <div class="ua-or-city-hot__grid" id="cityHotGrid"></div>
+          </div>
+
+          <div class="ua-or-city-picker">
+            <div class="ua-or-city-picker__heads">
+              <span>省份</span>
+              <span>城市</span>
+              <span>区县</span>
+            </div>
+            <div class="ua-or-city-picker__wheels">
+              <div class="ua-or-city-picker__indicator" aria-hidden="true"></div>
+              <div class="ua-or-city-wheel" id="cityProvWheel" data-col="province"></div>
+              <div class="ua-or-city-wheel" id="cityCityWheel" data-col="city"></div>
+              <div class="ua-or-city-wheel" id="cityDistWheel" data-col="district"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ua-or-city-search-results" id="citySearchResults" hidden></div>
+
+        <div class="ua-or-city-panel__footer">
+          <button type="button" class="ua-or-city-panel__save" id="addrCreateRegionConfirm">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ua-or-toast" id="refundDetailToast" hidden></div>
+  </div>
+  <script src="../js/user-app-order-refund.js?v=20260717-city"></script>
+  <script>UAOrderRefund.initAddressCreatePage();</script>
+</body>
+</html>
