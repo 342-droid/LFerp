@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>地址簿 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-or-addrbook-page">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-or-addrbook-scroll">
+      <div class="ua-status-bar">
+        <span>9:41</span>
+        <span class="ua-status-bar__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#111"><path d="M1 7h2v4H1V7zm4-2h2v6H5V5zm4-3h2v9H9V2zm4 5h2v4h-2V7z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#111"/></svg>
+        </span>
+      </div>
+
+      <header class="ua-or-addrbook-nav">
+        <a href="order-refund-pickup-edit.html" class="ua-or-addrbook-nav__back" id="addrBookBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="ua-or-addrbook-nav__title">地址簿</h1>
+      </header>
+
+      <div class="ua-or-addrbook-search">
+        <span class="ua-or-addrbook-search__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6.5"/><path d="M16.5 16.5L20 20"/></svg>
+        </span>
+        <input type="search" class="ua-or-addrbook-search__input" id="addrBookSearch" placeholder="搜索姓名、电话、地址" enterkeyhint="search">
+      </div>
+
+      <div class="ua-or-addrbook-list" id="addrBookList"></div>
+    </div>
+
+    <footer class="ua-or-addrbook-footer" id="addrBookFooter">
+      <button type="button" class="ua-or-addrbook-footer__btn ua-or-addrbook-footer__btn--outline" id="addrBookBatchBtn">批量删除</button>
+      <button type="button" class="ua-or-addrbook-footer__btn ua-or-addrbook-footer__btn--primary" id="addrBookCreateBtn">新建地址</button>
+    </footer>
+
+    <footer class="ua-or-addrbook-footer ua-or-addrbook-footer--batch" id="addrBookBatchFooter" hidden>
+      <button type="button" class="ua-or-addrbook-footer__btn ua-or-addrbook-footer__btn--outline ua-or-addrbook-footer__btn--batch-cancel" id="addrBookBatchCancel">取消</button>
+      <button type="button" class="ua-or-addrbook-footer__btn ua-or-addrbook-footer__btn--primary ua-or-addrbook-footer__btn--batch-confirm" id="addrBookBatchDelete">确认删除(0)</button>
+    </footer>
+
+    <div class="ua-or-addrbook-modal" id="addrBookDeleteModal" hidden>
+      <div class="ua-or-addrbook-modal__mask" data-addrbook-modal-close></div>
+      <div class="ua-or-addrbook-modal__panel" role="dialog" aria-modal="true" aria-labelledby="addrBookDeleteModalTitle">
+        <p class="ua-or-addrbook-modal__text" id="addrBookDeleteModalTitle">是否要删除这些地址</p>
+        <div class="ua-or-addrbook-modal__actions">
+          <button type="button" class="ua-or-addrbook-modal__btn" data-addrbook-modal-close>取消</button>
+          <button type="button" class="ua-or-addrbook-modal__btn ua-or-addrbook-modal__btn--confirm" id="addrBookDeleteConfirm">确认</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ua-or-toast" id="refundDetailToast" hidden></div>
+  </div>
+  <script src="../js/user-app-order-refund.js?v=20260717-addr-edit"></script>
+  <script>UAOrderRefund.initAddressBookPage();</script>
+</body>
+</html>

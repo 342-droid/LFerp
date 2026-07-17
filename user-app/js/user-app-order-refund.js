@@ -78,7 +78,23 @@
 
   var RETURN_METHODS = ['快递上门取货'];
 
+  /** 售后演示买家账号/地址（禁止再用「斯斯love家」及昆仑天籁地址） */
+  var DEMO_BUYER = {
+    account: '林晓棠家',
+    contact: '林晓棠',
+    phone: '13856781234',
+    address: '浙江省杭州市西湖区文三路 西溪花园3幢2单元501室',
+    postcode: '310012'
+  };
+
   var PICKUP_ADDRESSES = [
+    {
+      id: 'addr-buyer',
+      label: '杭州市 西湖区文三路西溪花园',
+      contact: DEMO_BUYER.contact,
+      phone: DEMO_BUYER.phone,
+      full: DEMO_BUYER.address
+    },
     {
       id: 'addr-1',
       label: '杭州市 西湖区文三路168号',
@@ -94,6 +110,173 @@
       full: '浙江省杭州市上城区望江街道望江路16号'
     }
   ];
+
+  /** 地址簿演示数据（勿用设计稿中的账号/地址） */
+  var ADDRESS_BOOK_GROUPS = [
+    {
+      id: 'ab-g1',
+      name: '林晓棠',
+      phone: '13856781234',
+      phoneDisplay: '138 5678 1234',
+      tags: ['家', '默认'],
+      addresses: [
+        {
+          id: 'ab-a1',
+          text: '浙江省杭州市西湖区文三路 西溪花园3幢2单元501室'
+        },
+        {
+          id: 'ab-a2',
+          text: '浙江省杭州市余杭区仓前街道 梦想小镇创业大街12号'
+        }
+      ]
+    },
+    {
+      id: 'ab-g2',
+      name: '周启明',
+      phone: '15022338866',
+      phoneDisplay: '150 2233 8866',
+      tags: ['公司'],
+      addresses: [
+        {
+          id: 'ab-a3',
+          text: '浙江省杭州市滨江区网商路 阿里中心4号楼'
+        },
+        {
+          id: 'ab-a4',
+          text: '浙江省杭州市拱墅区莫干山路 远洋国际中心B座'
+        },
+        {
+          id: 'ab-a5',
+          text: '浙江省宁波市鄞州区中山东路 和丰创意广场'
+        },
+        {
+          id: 'ab-a6',
+          text: '浙江省嘉兴市南湖区中环南路 科技城孵化园'
+        }
+      ]
+    },
+    {
+      id: 'ab-g3',
+      name: '何雨桐',
+      phone: '18699881200',
+      phoneDisplay: '186 9988 1200',
+      tags: ['父母'],
+      addresses: [
+        {
+          id: 'ab-a7',
+          text: '浙江省绍兴市越城区解放南路 镜湖新区公馆'
+        }
+      ]
+    }
+  ];
+  var ADDRESS_BOOK_COLLAPSE_LIMIT = 2;
+  var ADDRESS_BOOK_STORAGE_KEY = 'ua_refund_address_book';
+
+  function getDemoBuyerReceiveAddress() {
+    return (
+      DEMO_BUYER.contact +
+      '， ' +
+      DEMO_BUYER.phone +
+      '， ' +
+      DEMO_BUYER.address +
+      '， ' +
+      DEMO_BUYER.postcode
+    );
+  }
+
+  function getDemoSupplierName() {
+    try {
+      return (getParams().get('supplier') || '').trim() || '华东冷链供应商';
+    } catch (e) {
+      return '华东冷链供应商';
+    }
+  }
+
+  function getDemoSupplierReturnAddress(supplierName) {
+    var name = supplierName || getDemoSupplierName();
+    return name + '， 021-58901234， 上海市浦东新区外高桥保税区 冷链物流园A区12号';
+  }
+
+  var CLOSE_RETURN_REASONS = [
+    '信息填错了(需修改取件时间/地址等)',
+    '想去附近的服务点寄件',
+    '计划有变，暂时不需要寄了',
+    '我想换个上门取件时间',
+    '价格有点贵',
+    '快递员未按时上门/上门慢',
+    '快递员不上门',
+    '快递员服务不好（不上门/推脱/态度差）',
+    '物品类型无法邮寄',
+    '快递员反馈因运力紧张暂无法揽收'
+  ];
+  var CLOSE_RETURN_MAX_TIMES = 3;
+  var CLOSE_RETURN_REMAIN_KEY = 'ua_refund_close_remain';
+  var PICKUP_EDIT_MAX_TIMES = 3;
+  var PICKUP_EDIT_REMAIN_PREFIX = 'ua_refund_pickup_edit_remain_';
+
+  function getCloseReturnRemain() {
+    try {
+      var raw = sessionStorage.getItem(CLOSE_RETURN_REMAIN_KEY);
+      if (raw == null || raw === '') return CLOSE_RETURN_MAX_TIMES;
+      var n = parseInt(raw, 10);
+      if (isNaN(n)) return CLOSE_RETURN_MAX_TIMES;
+      return Math.max(0, Math.min(CLOSE_RETURN_MAX_TIMES, n));
+    } catch (e) {
+      return CLOSE_RETURN_MAX_TIMES;
+    }
+  }
+
+  function setCloseReturnRemain(n) {
+    try {
+      sessionStorage.setItem(
+        CLOSE_RETURN_REMAIN_KEY,
+        String(Math.max(0, Math.min(CLOSE_RETURN_MAX_TIMES, n)))
+      );
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function consumeCloseReturnChance() {
+    var remain = getCloseReturnRemain();
+    if (remain <= 0) return false;
+    setCloseReturnRemain(remain - 1);
+    return true;
+  }
+
+  function getPickupEditRemainKey(refundNo) {
+    return PICKUP_EDIT_REMAIN_PREFIX + String(refundNo || 'default');
+  }
+
+  function getPickupEditRemain(refundNo) {
+    try {
+      var raw = sessionStorage.getItem(getPickupEditRemainKey(refundNo));
+      if (raw == null || raw === '') return PICKUP_EDIT_MAX_TIMES;
+      var n = parseInt(raw, 10);
+      if (isNaN(n)) return PICKUP_EDIT_MAX_TIMES;
+      return Math.max(0, Math.min(PICKUP_EDIT_MAX_TIMES, n));
+    } catch (e) {
+      return PICKUP_EDIT_MAX_TIMES;
+    }
+  }
+
+  function setPickupEditRemain(refundNo, n) {
+    try {
+      sessionStorage.setItem(
+        getPickupEditRemainKey(refundNo),
+        String(Math.max(0, Math.min(PICKUP_EDIT_MAX_TIMES, n)))
+      );
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function consumePickupEditChance(refundNo) {
+    var remain = getPickupEditRemain(refundNo);
+    if (remain <= 0) return false;
+    setPickupEditRemain(refundNo, remain - 1);
+    return true;
+  }
 
   var PICKUP_TIME_WINDOWS = [
     { start: '09:00', end: '11:00', label: '09:00–11:00' },
@@ -449,6 +632,7 @@
     var reason = (getParams().get('closeReason') || 'cancel').trim();
     if (reason === 'timeout') return 'timeout';
     if (reason === 'reject_receive' || reason === 'rejected') return 'reject_receive';
+    if (reason === 'close_return') return 'close_return';
     return 'cancel';
   }
 
@@ -583,6 +767,22 @@
     return 'order-refund-detail.html?' + buildQuery(extra);
   }
 
+  function buildPickupEditHref(extra) {
+    return 'order-refund-pickup-edit.html?' + buildQuery(extra || {});
+  }
+
+  function buildPickupOrderHref(extra) {
+    return 'order-refund-pickup-order.html?' + buildQuery(extra || {});
+  }
+
+  function buildAddressBookHref(extra) {
+    return 'order-refund-address-book.html?' + buildQuery(extra || {});
+  }
+
+  function buildAddressCreateHref(extra) {
+    return 'order-refund-address-create.html?' + buildQuery(extra || {});
+  }
+
   function buildPreShipHrefWithEdit() {
     return 'order-refund-pre-ship.html?' + buildQuery({ edit: '1' });
   }
@@ -680,12 +880,16 @@
   function ensurePickupBoardData(app) {
     if (!app) return app;
     var addr = getDefaultPickupAddress();
-    if (!app.pickupCode) app.pickupCode = '1333';
+    if (!app.pickupCode) app.pickupCode = '0030';
     if (!app.pickupTime) {
       app.pickupTime = formatPickupDisplay(addDays(startOfDay(new Date()), 1), '09:00–11:00');
     }
+    if (!app.pickupAddressId) app.pickupAddressId = addr.id;
     if (!app.pickupAddress) {
       app.pickupAddress = addr.full || addr.label;
+    }
+    if (!app.pickupAddressLabel) {
+      app.pickupAddressLabel = addr.label;
     }
     if (!app.pickupContact) {
       app.pickupContact = addr.contact + ' ' + addr.phone;
@@ -723,11 +927,13 @@
     return {
       returnMethod: (app && app.returnMethod) || '快递上门取货',
       pickupAddressId: addr.id,
-      pickupAddress: addr.label,
-      pickupContact: addr.contact + ' ' + addr.phone,
+      pickupAddress: (app && app.pickupAddressLabel) || addr.label,
+      pickupAddressFull: (app && app.pickupAddress) || addr.full || addr.label,
+      pickupContact: (app && app.pickupContact) || addr.contact + ' ' + addr.phone,
       pickupTime: (app && app.pickupTime) || '',
       authMerchantWaybill: app && typeof app.authMerchantWaybill === 'boolean' ? app.authMerchantWaybill : true,
-      evidenceOpen: !!(app && ((app.desc && app.desc.length) || (app.images && app.images.length)))
+      evidenceOpen: !!(app && ((app.desc && app.desc.length) || (app.images && app.images.length))),
+      onPickupSync: null
     };
   }
 
@@ -790,7 +996,9 @@
       if (timeValue) {
         timeValue.textContent = state.pickupTime || '请选择上门时间';
         timeValue.classList.toggle('ua-or-field__value--placeholder', !state.pickupTime);
+        timeValue.classList.toggle('ua-or-pickup-edit-time__value--placeholder', !state.pickupTime);
       }
+      if (typeof state.onPickupSync === 'function') state.onPickupSync();
     }
 
     var methodRow = document.getElementById('refundReturnMethodRow');
@@ -812,6 +1020,14 @@
     var addressRow = document.getElementById('refundPickupAddressRow');
     if (addressRow) {
       addressRow.addEventListener('click', function () {
+        // 修改取件信息页：进入地址簿；申请表单页：仍用半遮罩选择
+        if (document.querySelector('.ua-or-pickup-edit-page')) {
+          window.location.href = buildAddressBookHref({
+            type: getRefundType(),
+            stage: getDetailStage() || 'return'
+          });
+          return;
+        }
         var labels = PICKUP_ADDRESSES.map(function (a) {
           return a.label + ' · ' + a.contact + ' ' + a.phone;
         });
@@ -835,6 +1051,7 @@
         if (!addr) return;
         state.pickupAddressId = addr.id;
         state.pickupAddress = addr.label;
+        state.pickupAddressFull = addr.full || addr.label;
         state.pickupContact = addr.contact + ' ' + addr.phone;
         syncPickupUI();
         closeSheet('refundPickupAddressSheet');
@@ -2274,6 +2491,21 @@
                 : '因您撤销退款申请，退款已关闭，交易将正常进行。请注意交易超时';
             }
           }
+        } else if (closeReason === 'close_return') {
+          if (mainEl) {
+            mainEl.textContent = isExchange
+              ? '因您关闭退货寄回，本次换货申请已关闭，交易将正常进行。'
+              : '因您关闭退货寄回，本次退货退款申请已关闭，交易将正常进行。';
+          }
+          if (subEl) {
+            subEl.hidden = false;
+            subEl.textContent = '如果您的问题未解决，您可以重新发起申请';
+          }
+          if (reasonEl) {
+            reasonEl.hidden = false;
+            reasonEl.textContent =
+              '关闭原因：' + (app.closeReturnReason || '计划有变，暂时不需要寄了');
+          }
         } else if (closeReason === 'reject_receive') {
           if (mainEl) mainEl.textContent = buildRejectedReceiveCloseText(appDelivery);
           if (subEl) {
@@ -2329,6 +2561,280 @@
           });
         }
       }
+    }
+  }
+
+  function parseDateTimeText(text) {
+    var m = String(text || '').match(
+      /^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})(?::(\d{2}))?/
+    );
+    if (!m) return null;
+    return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0));
+  }
+
+  function formatChineseDateTime(date) {
+    var d = date instanceof Date ? date : parseDateTimeText(date) || new Date();
+    return (
+      d.getFullYear() +
+      '-' +
+      pad2(d.getMonth() + 1) +
+      '-' +
+      pad2(d.getDate()) +
+      ' ' +
+      pad2(d.getHours()) +
+      '时' +
+      pad2(d.getMinutes()) +
+      '分' +
+      pad2(d.getSeconds()) +
+      '秒'
+    );
+  }
+
+  function shiftSeconds(date, delta) {
+    var d = new Date(date.getTime());
+    d.setSeconds(d.getSeconds() + delta);
+    return d;
+  }
+
+  function getNegotiateTypeLabels(refundType) {
+    if (refundType === 'exchange') {
+      return {
+        action: '换货',
+        goods: '换货商品',
+        qty: '换货数量',
+        reason: '换货原因',
+        desc: '换货说明',
+        agree: '换货'
+      };
+    }
+    if (refundType === 'restock') {
+      return {
+        action: '补货',
+        goods: '补货商品',
+        qty: '补货数量',
+        reason: '补货原因',
+        desc: '补货说明',
+        agree: '补货'
+      };
+    }
+    if (refundType === 'return') {
+      return {
+        action: '退货退款',
+        goods: '退货商品',
+        qty: '退货数量',
+        reason: '退货原因',
+        desc: '退货说明',
+        agree: '退货退款'
+      };
+    }
+    return {
+      action: '退款',
+      goods: '退款商品',
+      qty: '退款数量',
+      reason: '退款原因',
+      desc: '退款说明',
+      agree: '退款'
+    };
+  }
+
+  /** 协商历史演示数据，按时间倒序（最新在前） */
+  function buildNegotiateHistory(app, item, refundType, stage) {
+    var labels = getNegotiateTypeLabels(refundType);
+    var buyerName = DEMO_BUYER.account;
+    var sellerName = getDemoSupplierName();
+    var applyRaw = app.applyTime || formatDateTime();
+    var applyDate = parseDateTimeText(applyRaw) || new Date();
+    var applyTime = formatDateTime(applyDate);
+    var productName = app.productName || item.name || '';
+    var productSpec = app.productSpec || item.spec || '';
+    var qty = app.qty != null ? app.qty : item.qty;
+    var reason = app.reason || getParams().get('reason') || '七天无理由退换货';
+    var receiveAddr = app.receiveAddress || getDemoBuyerReceiveAddress();
+    var returnAddr = app.returnAddress || getDemoSupplierReturnAddress(sellerName);
+    var agreeDate = shiftSeconds(applyDate, 14);
+    var buyerFields = [
+      { label: labels.goods, value: productName + (productSpec ? ' ' + productSpec : '') },
+      { label: labels.qty, value: String(qty) }
+    ];
+    if (refundType === 'exchange' || refundType === 'return' || refundType === 'restock') {
+      buyerFields.push({ label: '收货地址', value: receiveAddr });
+    }
+    buyerFields.push({ label: labels.reason, value: reason });
+    buyerFields.push({ label: labels.desc, value: app.desc || '' });
+
+    var entries = [
+      {
+        id: 'buyer-create',
+        role: 'buyer',
+        name: buyerName,
+        avatar: '../assets/profile-avatar.svg',
+        time: applyTime,
+        timeMs: applyDate.getTime(),
+        summary:
+          '买家(' +
+          buyerName +
+          ')于' +
+          formatChineseDateTime(applyDate) +
+          '创建了' +
+          labels.action +
+          '申请',
+        fields: buyerFields
+      },
+      {
+        id: 'seller-agree',
+        role: 'seller',
+        name: sellerName,
+        avatar: '../assets/restock/me-shop-avatar.svg',
+        time: formatDateTime(agreeDate),
+        timeMs: agreeDate.getTime(),
+        summary: '卖家(' + sellerName + ')已同意' + labels.agree + '申请',
+        fields: [
+          { label: '退货地址', value: returnAddr },
+          { label: '退货说明', value: app.returnDesc || '' }
+        ],
+        copyText: returnAddr,
+        copyLabel: '复制地址'
+      }
+    ];
+
+    entries.sort(function (a, b) {
+      return b.timeMs - a.timeMs;
+    });
+    return entries;
+  }
+
+  function escapeHtml(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function renderNegotiateHistoryList(entries) {
+    var listEl = document.getElementById('refundNegotiateList');
+    if (!listEl) return;
+    listEl.innerHTML = entries
+      .map(function (entry) {
+        var avatarClass =
+          'ua-or-negotiate-item__avatar ua-or-negotiate-item__avatar--' +
+          (entry.role || 'buyer');
+        var avatarHtml = entry.avatar
+          ? '<img class="' +
+            avatarClass +
+            '" src="' +
+            escapeHtml(entry.avatar) +
+            '" alt="">'
+          : '<span class="' + avatarClass + '" aria-hidden="true"></span>';
+        var fieldsHtml = '';
+        if (entry.fields && entry.fields.length) {
+          fieldsHtml =
+            '<p class="ua-or-negotiate-item__content-label">【内容】</p>' +
+            '<ul class="ua-or-negotiate-item__fields">' +
+            entry.fields
+              .map(function (f) {
+                return (
+                  '<li class="ua-or-negotiate-item__field">' +
+                  '<span class="ua-or-negotiate-item__field-label">' +
+                  escapeHtml(f.label) +
+                  '：</span>' +
+                  '<span class="ua-or-negotiate-item__field-value">' +
+                  escapeHtml(f.value == null ? '' : f.value) +
+                  '</span>' +
+                  '</li>'
+                );
+              })
+              .join('') +
+            '</ul>';
+        }
+        var actionsHtml = '';
+        if (entry.copyText) {
+          actionsHtml =
+            '<div class="ua-or-negotiate-item__actions">' +
+            '<button type="button" class="ua-or-negotiate-item__copy" data-copy="' +
+            escapeHtml(entry.copyText) +
+            '">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">' +
+            '<rect x="8" y="8" width="11" height="13" rx="1.5"/>' +
+            '<path d="M5 16V5.5A1.5 1.5 0 016.5 4H15"/>' +
+            '</svg>' +
+            '<span>' +
+            escapeHtml(entry.copyLabel || '复制') +
+            '</span>' +
+            '</button>' +
+            '</div>';
+        }
+        return (
+          '<article class="ua-or-negotiate-item">' +
+          '<div class="ua-or-negotiate-item__head">' +
+          avatarHtml +
+          '<div class="ua-or-negotiate-item__meta">' +
+          '<span class="ua-or-negotiate-item__name">' +
+          escapeHtml(entry.name) +
+          '</span>' +
+          '<span class="ua-or-negotiate-item__time">' +
+          escapeHtml(entry.time) +
+          '</span>' +
+          '</div>' +
+          '</div>' +
+          '<p class="ua-or-negotiate-item__summary">' +
+          escapeHtml(entry.summary) +
+          '</p>' +
+          fieldsHtml +
+          actionsHtml +
+          '</article>'
+        );
+      })
+      .join('');
+
+    listEl.querySelectorAll('[data-copy]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        copyText(btn.getAttribute('data-copy') || '', '已复制地址');
+      });
+    });
+  }
+
+  function openNegotiateHistory(app, item, refundType, stage) {
+    var panel = document.getElementById('refundNegotiatePanel');
+    if (!panel) return;
+    var entries = buildNegotiateHistory(app, item, refundType, stage || getDetailStage());
+    renderNegotiateHistoryList(entries);
+    panel.hidden = false;
+    var shell = document.querySelector('.ua-order-refund-detail-page');
+    if (shell) shell.classList.add('is-negotiate-open');
+  }
+
+  function closeNegotiateHistory() {
+    var panel = document.getElementById('refundNegotiatePanel');
+    if (panel) panel.hidden = true;
+    var shell = document.querySelector('.ua-order-refund-detail-page');
+    if (shell) shell.classList.remove('is-negotiate-open');
+  }
+
+  var negotiateHistoryCtx = { app: null, item: null, refundType: 'return' };
+
+  function bindNegotiateHistoryPanel(app, item, refundType) {
+    negotiateHistoryCtx.app = app || {};
+    negotiateHistoryCtx.item = item || getItem();
+    negotiateHistoryCtx.refundType = refundType || getRefundType();
+
+    var negotiateBtn = document.getElementById('refundNegotiateHistoryBtn');
+    if (negotiateBtn && !negotiateBtn.getAttribute('data-bound')) {
+      negotiateBtn.setAttribute('data-bound', '1');
+      negotiateBtn.addEventListener('click', function () {
+        openNegotiateHistory(
+          negotiateHistoryCtx.app,
+          negotiateHistoryCtx.item,
+          negotiateHistoryCtx.refundType,
+          getDetailStage()
+        );
+      });
+    }
+
+    var backBtn = document.getElementById('refundNegotiateBack');
+    if (backBtn && !backBtn.getAttribute('data-bound')) {
+      backBtn.setAttribute('data-bound', '1');
+      backBtn.addEventListener('click', closeNegotiateHistory);
     }
   }
 
@@ -2444,21 +2950,125 @@
     }
     syncAftersaleToggle(toggleBtn && toggleBtn.getAttribute('aria-expanded') === 'true');
 
-    var negotiateBtn = document.getElementById('refundNegotiateHistoryBtn');
-    if (negotiateBtn && !negotiateBtn.getAttribute('data-bound')) {
-      negotiateBtn.setAttribute('data-bound', '1');
-      negotiateBtn.addEventListener('click', function () {
-        showToast('协商历史（演示）');
-      });
-    }
+    bindNegotiateHistoryPanel(app, item, refundType);
 
     var historyBtn = document.getElementById('refundHistoryRefundBtn');
     if (historyBtn && !historyBtn.getAttribute('data-bound')) {
       historyBtn.setAttribute('data-bound', '1');
       historyBtn.addEventListener('click', function () {
-        showToast('历史退款记录（演示）');
+        openRefundHistorySheet(app, item, refundType);
       });
     }
+  }
+
+  function buildRefundHistoryRecords(app, item, refundType) {
+    var baseItem = item || getItem();
+    var alt = DEMO_ITEMS[1] || baseItem;
+    var name = (app && app.productName) || baseItem.name;
+    var spec = (app && app.productSpec) || baseItem.spec;
+    var img = (app && app.productImg) || baseItem.img;
+    var qty = (app && app.qty != null ? app.qty : baseItem.qty) || 1;
+    var amount =
+      app && app.amount != null
+        ? app.amount
+        : baseItem.paidAmount != null
+          ? baseItem.paidAmount
+          : baseItem.priceNum * qty;
+
+    return [
+      {
+        id: 'hist-processing',
+        status: '退款中',
+        statusKey: 'processing',
+        name: name,
+        spec: spec,
+        img: img,
+        qty: qty,
+        amount: amount,
+        stage: refundType === 'return' ? 'return' : 'audit'
+      },
+      {
+        id: 'hist-closed',
+        status: '已关闭',
+        statusKey: 'closed',
+        name: alt.name,
+        spec: alt.spec,
+        img: alt.img,
+        qty: alt.qty || 1,
+        amount: alt.paidAmount != null ? alt.paidAmount : alt.priceNum * (alt.qty || 1),
+        stage: 'closed',
+        closeReason: 'close_return'
+      },
+      {
+        id: 'hist-success',
+        status: '已成功',
+        statusKey: 'success',
+        name: name,
+        spec: spec,
+        img: img,
+        qty: 1,
+        amount: baseItem.priceNum || amount,
+        stage: 'success'
+      }
+    ];
+  }
+
+  function openRefundHistorySheet(app, item, refundType) {
+    var listEl = document.getElementById('refundHistoryList');
+    if (!listEl) {
+      showToast('历史退款记录（演示）');
+      return;
+    }
+    var records = buildRefundHistoryRecords(app, item, refundType || getRefundType());
+    listEl.innerHTML = records
+      .map(function (row) {
+        return (
+          '<button type="button" class="ua-or-history-card" data-stage="' +
+          escapeHtml(row.stage || '') +
+          '" data-close="' +
+          escapeHtml(row.closeReason || '') +
+          '">' +
+          '<span class="ua-or-history-card__thumb">' +
+          '<img src="' +
+          escapeHtml(row.img) +
+          '" alt="">' +
+          '<span class="ua-or-history-card__status">' +
+          escapeHtml(row.status) +
+          '</span>' +
+          '</span>' +
+          '<span class="ua-or-history-card__body">' +
+          '<span class="ua-or-history-card__title">' +
+          escapeHtml(row.name) +
+          '</span>' +
+          '<span class="ua-or-history-card__spec">' +
+          escapeHtml(row.spec) +
+          '</span>' +
+          '<span class="ua-or-history-card__meta">数量' +
+          escapeHtml(String(row.qty)) +
+          '; <em>¥ ' +
+          Number(row.amount).toFixed(2) +
+          '</em></span>' +
+          '</span>' +
+          '<span class="ua-or-history-card__action">查看' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>' +
+          '</span>' +
+          '</button>'
+        );
+      })
+      .join('');
+
+    listEl.querySelectorAll('.ua-or-history-card').forEach(function (card) {
+      card.addEventListener('click', function () {
+        var stage = card.getAttribute('data-stage') || 'audit';
+        var closeReason = card.getAttribute('data-close') || '';
+        var extra = { type: refundType || getRefundType(), stage: stage };
+        if (closeReason) extra.closeReason = closeReason;
+        closeSheet('refundHistorySheet');
+        window.location.href = buildDetailHref(extra);
+      });
+    });
+
+    openSheet('refundHistorySheet');
   }
 
   function renderProgressDetail(refundType, stage) {
@@ -2677,13 +3287,13 @@
             if (stage === 'return' && next === 'refund') {
               ensurePickupBoardData(app);
               if (!app.courier) app.courier = '上门取件';
-              if (!app.trackingNo) app.trackingNo = app.pickupCode || '1333';
+              if (!app.trackingNo) app.trackingNo = app.pickupCode || '0030';
               saveApplication(app);
             }
             if (stage === 'return' && next === 'reship') {
               ensurePickupBoardData(app);
               if (!app.courier) app.courier = '上门取件';
-              if (!app.trackingNo) app.trackingNo = app.pickupCode || '1333';
+              if (!app.trackingNo) app.trackingNo = app.pickupCode || '0030';
               ensureReshipData(app);
               saveApplication(app);
             }
@@ -2752,7 +3362,7 @@
       var feeSubEl = document.getElementById('refundPickupFeeSub');
       var guardTextEl = document.getElementById('refundPickupGuardText');
       var scheduleLabel = formatRelativePickupSchedule(app.pickupTime);
-      if (codeEl) codeEl.textContent = app.pickupCode || '1333';
+      if (codeEl) codeEl.textContent = app.pickupCode || '0030';
       if (scheduleEl) {
         scheduleEl.innerHTML =
           '等待快递员<span class="is-hl">' + scheduleLabel + '</span>上门取件';
@@ -2812,36 +3422,61 @@
       returnSection.hidden = true;
     }
 
+    function goPickupEditPage() {
+      ensurePickupBoardData(app);
+      var refundNo = app.refundNo || genRefundNo();
+      if (!app.refundNo) {
+        app.refundNo = refundNo;
+        saveApplication(app);
+      }
+      if (getPickupEditRemain(refundNo) <= 0) {
+        showToast('本单修改次数已用完');
+        return;
+      }
+      window.location.href = buildPickupEditHref({
+        type: refundType,
+        stage: stage
+      });
+    }
+
     document.getElementById('refundPickupScheduleRow') &&
       document.getElementById('refundPickupScheduleRow').addEventListener('click', function () {
-        if (typeof showToast === 'function') showToast('修改时间/地址（演示）');
+        ensurePickupBoardData(app);
+        window.location.href = buildPickupOrderHref({
+          type: refundType,
+          stage: stage
+        });
       });
 
     document.getElementById('refundPickupModifyBtn') &&
-      document.getElementById('refundPickupModifyBtn').addEventListener('click', function () {
-        if (typeof showToast === 'function') showToast('修改时间/地址（演示）');
-      });
+      document.getElementById('refundPickupModifyBtn').addEventListener('click', goPickupEditPage);
 
     function renderFooter() {
       var footer = document.getElementById('refundDetailFooter');
       if (!footer) return;
       footer.className = 'ua-or-detail-footer';
+      var shell = document.querySelector('.ua-order-refund-detail-page');
       if (stage === 'success' || stage === 'reject_return' || stage === 'reship') {
         footer.innerHTML = '';
+        footer.hidden = true;
+        if (shell) shell.classList.add('is-footer-hidden');
         return;
       }
+      // 寄回商品阶段：底部无操作；「关闭退货」已放在取件卡「修改时间/地址」左侧
       if ((isReturn || isExchange) && stage === 'return') {
-        footer.innerHTML =
-          '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--outline" id="refundDetailPlatformBtn">平台介入</button>' +
-          '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--outline" id="refundDetailCloseReturnBtn">关闭退货</button>';
+        footer.innerHTML = '';
+        footer.hidden = true;
+        if (shell) shell.classList.add('is-footer-hidden');
         return;
       }
       if (isReturn && stage === 'refund') {
-        footer.className = 'ua-or-detail-footer ua-or-detail-footer--single';
-        footer.innerHTML =
-          '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--outline" id="refundDetailPlatformBtn">平台介入</button>';
+        footer.innerHTML = '';
+        footer.hidden = true;
+        if (shell) shell.classList.add('is-footer-hidden');
         return;
       }
+      footer.hidden = false;
+      if (shell) shell.classList.remove('is-footer-hidden');
       footer.innerHTML =
         '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--ghost" id="refundDetailCancelBtn">撤销申请</button>' +
         '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--outline" id="refundDetailModifyBtn">修改申请</button>';
@@ -2857,6 +3492,84 @@
     function closeCancelModal() {
       var modal = document.getElementById('refundCancelModal');
       if (modal) modal.hidden = true;
+    }
+
+    var closeReturnUi = { selected: '' };
+
+    function syncCloseReturnTip() {
+      var tip = document.getElementById('refundCloseReturnTip');
+      if (!tip) return;
+      var remain = getCloseReturnRemain();
+      tip.textContent =
+        '最多可取消' + CLOSE_RETURN_MAX_TIMES + '次，您仅剩' + remain + '次取消机会';
+    }
+
+    function syncCloseReturnConfirm() {
+      var btn = document.getElementById('refundCloseReturnConfirm');
+      if (!btn) return;
+      btn.disabled = false;
+      btn.classList.remove('is-disabled');
+    }
+
+    function renderCloseReturnReasons() {
+      var list = document.getElementById('refundCloseReturnList');
+      if (!list) return;
+      list.innerHTML = CLOSE_RETURN_REASONS.map(function (reason) {
+        var selected = closeReturnUi.selected === reason;
+        return (
+          '<button type="button" class="ua-or-close-return-option' +
+          (selected ? ' is-selected' : '') +
+          '" data-reason="' +
+          escapeHtml(reason) +
+          '" role="radio" aria-checked="' +
+          (selected ? 'true' : 'false') +
+          '">' +
+          '<span class="ua-or-close-return-option__label">' +
+          escapeHtml(reason) +
+          '</span>' +
+          '<span class="ua-or-close-return-option__radio" aria-hidden="true"></span>' +
+          '</button>'
+        );
+      }).join('');
+      list.querySelectorAll('.ua-or-close-return-option').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          closeReturnUi.selected = btn.getAttribute('data-reason') || '';
+          renderCloseReturnReasons();
+          syncCloseReturnConfirm();
+        });
+      });
+      syncCloseReturnConfirm();
+    }
+
+    function openCloseReturnSheet() {
+      if (getCloseReturnRemain() <= 0) {
+        showToast('取消次数已用完');
+        return;
+      }
+      closeReturnUi.selected = '';
+      syncCloseReturnTip();
+      renderCloseReturnReasons();
+      openSheet('refundCloseReturnSheet');
+    }
+
+    function confirmCloseReturn() {
+      if (!closeReturnUi.selected) {
+        showToast('请选择关闭原因');
+        return;
+      }
+      if (!consumeCloseReturnChance()) {
+        showToast('取消次数已用完');
+        return;
+      }
+      app.closeReturnReason = closeReturnUi.selected;
+      app.resultTime = formatDateTime();
+      saveApplication(app);
+      closeSheet('refundCloseReturnSheet');
+      window.location.href = buildDetailHref({
+        type: refundType,
+        stage: 'closed',
+        closeReason: 'close_return'
+      });
     }
 
     document.querySelectorAll('[data-or-cancel-close]').forEach(function (el) {
@@ -2875,19 +3588,15 @@
         });
       });
 
+    document.getElementById('refundCloseReturnConfirm') &&
+      document.getElementById('refundCloseReturnConfirm').addEventListener('click', confirmCloseReturn);
+
     function bindFooterActions() {
       var cancelBtn = document.getElementById('refundDetailCancelBtn');
       if (cancelBtn) cancelBtn.addEventListener('click', openCancelModal);
 
       var closeReturnBtn = document.getElementById('refundDetailCloseReturnBtn');
-      if (closeReturnBtn) closeReturnBtn.addEventListener('click', openCancelModal);
-
-      var platformBtn = document.getElementById('refundDetailPlatformBtn');
-      if (platformBtn) {
-        platformBtn.addEventListener('click', function () {
-          if (typeof showToast === 'function') showToast('已申请平台介入（演示）');
-        });
-      }
+      if (closeReturnBtn) closeReturnBtn.addEventListener('click', openCloseReturnSheet);
 
       var modifyBtn = document.getElementById('refundDetailModifyBtn');
       if (modifyBtn) {
@@ -2920,6 +3629,1533 @@
     });
   }
 
+  function getSimplePickupDayOptions(now) {
+    now = now || getPickupNow();
+    var today = startOfDay(now);
+    return [
+      { date: today, label: '今天' },
+      { date: addDays(today, 1), label: '明天' },
+      { date: addDays(today, 2), label: '后天' }
+    ];
+  }
+
+  function bindSimplePickupTimeSheet(state, options) {
+    options = options || {};
+    var timeRow = document.getElementById(options.timeRowId || 'pickupEditTimeRow');
+    var timeValue = document.getElementById(options.timeValueId || 'pickupEditTimeValue');
+    var datesEl = document.getElementById(options.datesId || 'pickupEditTimeDates');
+    var slotsEl = document.getElementById(options.slotsId || 'pickupEditTimeSlots');
+    var sheetId = options.sheetId || 'pickupEditTimeSheet';
+    if (!timeRow || !datesEl || !slotsEl) return;
+
+    var ui = {
+      days: [],
+      selectedDate: null,
+      selectedSlot: ''
+    };
+
+    function syncTimeValue() {
+      if (!timeValue) return;
+      timeValue.textContent = state.pickupTime || '请选择上门时间';
+      timeValue.classList.toggle('ua-or-pickup-edit-time__value--placeholder', !state.pickupTime);
+      if (typeof options.onSync === 'function') options.onSync();
+    }
+
+    function renderSlots() {
+      var now = getPickupNow();
+      var date = ui.selectedDate;
+      if (!date) {
+        slotsEl.innerHTML = '';
+        return;
+      }
+      var parsed = parsePickupValue(state.pickupTime);
+      slotsEl.innerHTML = PICKUP_TIME_WINDOWS.map(function (slot) {
+        var blockReason = getPickupSlotBlockReason(date, slot, now);
+        var passed = !!blockReason;
+        var selected =
+          !passed &&
+          parsed &&
+          sameDay(parsed.date, date) &&
+          normalizePickupSlotLabel(parsed.slotLabel) === slot.label;
+        return (
+          '<button type="button" class="ua-or-simple-time-panel__slot' +
+          (passed ? ' is-disabled' : '') +
+          (selected ? ' is-selected' : '') +
+          '" data-slot="' +
+          escapeHtml(slot.label) +
+          '"' +
+          (passed ? ' disabled' : '') +
+          '>' +
+          escapeHtml(getSlotDisplayLabel(slot, blockReason)) +
+          '</button>'
+        );
+      }).join('');
+
+      slotsEl.querySelectorAll('.ua-or-simple-time-panel__slot:not(.is-disabled)').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var slotLabel = btn.getAttribute('data-slot') || '';
+          if (!slotLabel || !ui.selectedDate) return;
+          ui.selectedSlot = slotLabel;
+          state.pickupTime = formatPickupDisplay(ui.selectedDate, slotLabel);
+          syncTimeValue();
+          closeSheet(sheetId);
+        });
+      });
+    }
+
+    function renderDates() {
+      datesEl.innerHTML = ui.days
+        .map(function (day) {
+          var selected = ui.selectedDate && sameDay(day.date, ui.selectedDate);
+          return (
+            '<button type="button" class="ua-or-simple-time-panel__date' +
+            (selected ? ' is-selected' : '') +
+            '" data-date="' +
+            dateKey(day.date) +
+            '" role="tab" aria-selected="' +
+            (selected ? 'true' : 'false') +
+            '">' +
+            escapeHtml(day.label) +
+            '</button>'
+          );
+        })
+        .join('');
+
+      datesEl.querySelectorAll('.ua-or-simple-time-panel__date').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var key = btn.getAttribute('data-date');
+          var next = ui.days.find(function (d) {
+            return dateKey(d.date) === key;
+          });
+          if (!next) return;
+          ui.selectedDate = next.date;
+          renderDates();
+          renderSlots();
+        });
+      });
+    }
+
+    function openSimpleTimeSheet() {
+      var now = getPickupNow();
+      ui.days = getSimplePickupDayOptions(now);
+      var dayDates = ui.days.map(function (d) {
+        return d.date;
+      });
+      ui.selectedDate = getDefaultPickupDate(dayDates, now) || dayDates[1] || dayDates[0];
+      ui.selectedSlot = '';
+
+      var parsed = parsePickupValue(state.pickupTime);
+      if (parsed) {
+        var matched = ui.days.find(function (d) {
+          return sameDay(d.date, parsed.date);
+        });
+        if (matched) {
+          ui.selectedDate = matched.date;
+          var slot = findPickupSlot(parsed.slotLabel);
+          if (slot && !isPickupSlotPassed(matched.date, slot, now)) {
+            ui.selectedSlot = slot.label;
+          }
+        }
+      }
+
+      renderDates();
+      renderSlots();
+      openSheet(sheetId);
+    }
+
+    timeRow.addEventListener('click', openSimpleTimeSheet);
+    syncTimeValue();
+  }
+
+  function initPickupEditPage() {
+    var refundType = getRefundType() || 'return';
+    var stage = getDetailStage() || 'return';
+    var app = loadApplication() || {};
+    ensurePickupBoardData(app);
+    if (!app.refundNo) {
+      app.refundNo = genRefundNo();
+      saveApplication(app);
+    }
+
+    // 从地址簿带回选中地址
+    try {
+      var pickedRaw = sessionStorage.getItem('ua_refund_picked_address');
+      if (pickedRaw) {
+        var picked = JSON.parse(pickedRaw);
+        sessionStorage.removeItem('ua_refund_picked_address');
+        if (picked && picked.full) {
+          app.pickupAddressId = picked.id || app.pickupAddressId;
+          app.pickupAddress = picked.full;
+          app.pickupAddressLabel = picked.label || picked.full;
+          app.pickupContact = (picked.contact || '') + (picked.phone ? ' ' + picked.phone : '');
+          saveApplication(app);
+        }
+      }
+    } catch (e) {
+      /* ignore */
+    }
+
+    var remain = getPickupEditRemain(app.refundNo);
+    var backHref = buildDetailHref({ type: refundType, stage: stage });
+    var backEl = document.getElementById('pickupEditBack');
+    if (backEl) backEl.setAttribute('href', backHref);
+
+    var remainText = document.getElementById('pickupEditRemainText');
+    function syncRemainText() {
+      if (remainText) {
+        remainText.textContent =
+          '您一共可修改' + PICKUP_EDIT_MAX_TIMES + '次，目前剩余' + remain + '次';
+      }
+    }
+    syncRemainText();
+
+    var banner = document.getElementById('pickupEditBanner');
+    var bannerClose = document.getElementById('pickupEditBannerClose');
+    if (bannerClose) {
+      bannerClose.addEventListener('click', function () {
+        if (banner) banner.hidden = true;
+      });
+    }
+
+    var contactEl = document.getElementById('pickupEditContact');
+    var addressEl = document.getElementById('pickupEditAddress');
+    var timeValueEl = document.getElementById('pickupEditTimeValue');
+    var state = createPickupState(app);
+    if (!state.pickupTime) state.pickupTime = app.pickupTime || '';
+
+    function syncEditFields() {
+      if (contactEl) contactEl.textContent = state.pickupContact || '';
+      if (addressEl) {
+        addressEl.textContent = state.pickupAddressFull || state.pickupAddress || '';
+      }
+      if (timeValueEl) {
+        timeValueEl.textContent = state.pickupTime || '请选择上门时间';
+        timeValueEl.classList.toggle('ua-or-pickup-edit-time__value--placeholder', !state.pickupTime);
+      }
+    }
+
+    state.onPickupSync = syncEditFields;
+
+    bindPickupReturnCard(state);
+    bindSimplePickupTimeSheet(state, { onSync: syncEditFields });
+    bindSheetClose();
+    syncEditFields();
+
+    var confirmBtn = document.getElementById('pickupEditConfirmBtn');
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', function () {
+        if (remain <= 0) {
+          showToast('本单修改次数已用完');
+          return;
+        }
+        if (!state.pickupTime) {
+          showToast('请选择上门时间');
+          return;
+        }
+        if (!consumePickupEditChance(app.refundNo)) {
+          showToast('本单修改次数已用完');
+          return;
+        }
+        remain = getPickupEditRemain(app.refundNo);
+        syncRemainText();
+
+        app.pickupAddressId = state.pickupAddressId;
+        app.pickupAddressLabel = state.pickupAddress;
+        app.pickupAddress = state.pickupAddressFull || state.pickupAddress;
+        app.pickupContact = state.pickupContact;
+        app.pickupTime = state.pickupTime;
+        saveApplication(app);
+        showToast('修改成功');
+        window.setTimeout(function () {
+          window.location.href = backHref;
+        }, 500);
+      });
+    }
+  }
+
+  function loadAddressBookGroups() {
+    try {
+      var raw = sessionStorage.getItem(ADDRESS_BOOK_STORAGE_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) return parsed;
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return ADDRESS_BOOK_GROUPS.map(function (g) {
+      return {
+        id: g.id,
+        name: g.name,
+        phone: g.phone,
+        phoneDisplay: g.phoneDisplay,
+        tags: (g.tags || []).slice(),
+        addresses: (g.addresses || []).map(function (a) {
+          return { id: a.id, text: a.text };
+        })
+      };
+    });
+  }
+
+  function saveAddressBookGroups(groups) {
+    try {
+      sessionStorage.setItem(ADDRESS_BOOK_STORAGE_KEY, JSON.stringify(groups));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function formatPhoneDisplay(phone) {
+    var digits = String(phone || '').replace(/\D/g, '');
+    if (digits.length === 11) {
+      return digits.slice(0, 3) + ' ' + digits.slice(3, 7) + ' ' + digits.slice(7);
+    }
+    return String(phone || '');
+  }
+
+  function initPickupOrderPage() {
+    var refundType = getRefundType() || 'return';
+    var stage = getDetailStage() || 'return';
+    var backHref = buildDetailHref({ type: refundType, stage: stage });
+    var backEl = document.getElementById('pickupOrderBack');
+    if (backEl) backEl.setAttribute('href', backHref);
+
+    var app = loadApplication() || {};
+    ensurePickupBoardData(app);
+    app = loadApplication() || app;
+
+    var scheduleEl = document.getElementById('pickupOrderScheduleText');
+    if (scheduleEl) {
+      var schedule = formatRelativePickupSchedule(app.pickupTime);
+      scheduleEl.textContent = '预约' + schedule.replace('–', '-') + ' 上门取件';
+    }
+
+    var codeEl = document.getElementById('pickupOrderCode');
+    if (codeEl) codeEl.textContent = app.pickupCode || '0030';
+
+    var phoneEl = document.getElementById('pickupOrderPhoneBtn');
+    if (phoneEl) phoneEl.setAttribute('href', 'tel:' + (app.pickupCourierPhone || '4008001234'));
+
+    var sendContact = document.getElementById('pickupOrderSendContact');
+    var sendAddr = document.getElementById('pickupOrderSendAddr');
+    var contact = app.pickupContact || DEMO_BUYER.contact + ' ' + DEMO_BUYER.phone;
+    var fullAddr = app.pickupAddress || DEMO_BUYER.address;
+    if (sendContact) sendContact.textContent = contact;
+    if (sendAddr) {
+      var shortAddr = String(fullAddr || '');
+      if (shortAddr.length > 18) shortAddr = shortAddr.slice(0, 16) + '...';
+      sendAddr.textContent = shortAddr;
+    }
+
+    var item = getItem();
+    var goodsImg = document.getElementById('pickupOrderGoodsImg');
+    var goodsText = document.getElementById('pickupOrderGoodsText');
+    if (goodsImg && item && item.img) goodsImg.src = item.img;
+    if (goodsText) goodsText.textContent = '天猫退货 | ' + (item && item.qty ? item.qty : 1) + '件';
+
+    var orderNoEl = document.getElementById('pickupOrderNo');
+    var orderTimeEl = document.getElementById('pickupOrderTime');
+    var orderNo = app.expressOrderNo || '22281689699248315';
+    if (!app.expressOrderNo) {
+      app.expressOrderNo = orderNo;
+      saveApplication(app);
+    }
+    if (orderNoEl) orderNoEl.textContent = orderNo;
+    if (orderTimeEl) {
+      orderTimeEl.textContent = app.expressOrderTime || app.applyTime || '2026-07-17 13:53:44';
+    }
+
+    var shipCard = document.getElementById('pickupOrderShipCard');
+    var toggleBtn = document.getElementById('pickupOrderToggleBtn');
+    var collapsed = false;
+    function syncCollapse() {
+      if (!shipCard || !toggleBtn) return;
+      shipCard.classList.toggle('is-collapsed', collapsed);
+      toggleBtn.innerHTML =
+        (collapsed ? '展开' : '收起') +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 14l6-6 6 6"/></svg>';
+    }
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', function () {
+        collapsed = !collapsed;
+        syncCollapse();
+      });
+    }
+
+    function copyText(text, okMsg) {
+      var value = String(text || '');
+      if (!value) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(value).then(
+          function () {
+            showToast(okMsg || '复制成功');
+          },
+          function () {
+            showToast(okMsg || '复制成功');
+          }
+        );
+        return;
+      }
+      showToast(okMsg || '复制成功');
+    }
+
+    document.getElementById('pickupOrderCopyBtn') &&
+      document.getElementById('pickupOrderCopyBtn').addEventListener('click', function () {
+        copyText(orderNo, '复制成功');
+      });
+
+    document.getElementById('pickupOrderShareCode') &&
+      document.getElementById('pickupOrderShareCode').addEventListener('click', function () {
+        copyText(app.pickupCode || '0030', '寄件码已复制');
+      });
+
+    document.getElementById('pickupOrderShareNav') &&
+      document.getElementById('pickupOrderShareNav').addEventListener('click', function () {
+        showToast('分享功能演示');
+      });
+
+    document.getElementById('pickupOrderStatusBtn') &&
+      document.getElementById('pickupOrderStatusBtn').addEventListener('click', function () {
+        showToast('物流轨迹演示');
+      });
+
+    document.getElementById('pickupOrderUrgeBtn') &&
+      document.getElementById('pickupOrderUrgeBtn').addEventListener('click', function () {
+        showToast('已催促快递员');
+      });
+
+    document.getElementById('pickupOrderEditBtn') &&
+      document.getElementById('pickupOrderEditBtn').addEventListener('click', function () {
+        if (getPickupEditRemain(app.refundNo || genRefundNo()) <= 0) {
+          showToast('本单修改次数已用完');
+          return;
+        }
+        window.location.href = buildPickupEditHref({ type: refundType, stage: stage });
+      });
+
+    document.getElementById('pickupOrderHandoverBtn') &&
+      document.getElementById('pickupOrderHandoverBtn').addEventListener('click', function () {
+        showToast('交件方式设置演示');
+      });
+
+    document.getElementById('pickupOrderCancelBtn') &&
+      document.getElementById('pickupOrderCancelBtn').addEventListener('click', function () {
+        showToast('取消寄件演示');
+      });
+
+    document.getElementById('pickupOrderPayBtn') &&
+      document.getElementById('pickupOrderPayBtn').addEventListener('click', function () {
+        showToast('本单无需支付');
+      });
+
+    document.getElementById('pickupOrderCsBtn') &&
+      document.getElementById('pickupOrderCsBtn').addEventListener('click', function () {
+        showToast('客服演示');
+      });
+
+    document.getElementById('pickupOrderGoodsLink') &&
+      document.getElementById('pickupOrderGoodsLink').addEventListener('click', function () {
+        showToast('退货商品详情演示');
+      });
+  }
+
+  function initAddressBookPage() {
+    var refundType = getRefundType() || 'return';
+    var stage = getDetailStage() || 'return';
+    var backHref = buildPickupEditHref({ type: refundType, stage: stage });
+    var backEl = document.getElementById('addrBookBack');
+    if (backEl) backEl.setAttribute('href', backHref);
+
+    var groups = loadAddressBookGroups();
+    var ui = {
+      keyword: '',
+      batchMode: false,
+      checked: {},
+      expanded: {}
+    };
+
+    var listEl = document.getElementById('addrBookList');
+    var searchEl = document.getElementById('addrBookSearch');
+    var shell = document.querySelector('.ua-or-addrbook-page');
+    var normalFooter = document.getElementById('addrBookFooter');
+    var batchFooter = document.getElementById('addrBookBatchFooter');
+    var batchDeleteBtn = document.getElementById('addrBookBatchDelete');
+
+    function matchKeyword(group, addr, kw) {
+      if (!kw) return true;
+      var hay =
+        group.name +
+        ' ' +
+        group.phone +
+        ' ' +
+        (group.phoneDisplay || '') +
+        ' ' +
+        (addr ? addr.text : '');
+      return hay.toLowerCase().indexOf(kw) >= 0;
+    }
+
+    function getVisibleGroups() {
+      var kw = String(ui.keyword || '').trim().toLowerCase();
+      return groups
+        .map(function (g) {
+          var addrs = (g.addresses || []).filter(function (a) {
+            return matchKeyword(g, a, kw);
+          });
+          if (!addrs.length && kw && !matchKeyword(g, null, kw)) return null;
+          if (!addrs.length && kw) return null;
+          return {
+            id: g.id,
+            name: g.name,
+            phone: g.phone,
+            phoneDisplay: g.phoneDisplay || formatPhoneDisplay(g.phone),
+            tags: g.tags || [],
+            addresses: kw ? addrs : g.addresses || []
+          };
+        })
+        .filter(Boolean);
+    }
+
+    function getCheckedIds() {
+      return Object.keys(ui.checked).filter(function (k) {
+        return ui.checked[k];
+      });
+    }
+
+    function syncBatchFooter() {
+      var count = getCheckedIds().length;
+      if (batchDeleteBtn) {
+        batchDeleteBtn.disabled = false;
+        batchDeleteBtn.textContent = '确认删除(' + count + ')';
+      }
+    }
+
+    function setBatchMode(on) {
+      ui.batchMode = !!on;
+      ui.checked = {};
+      if (shell) shell.classList.toggle('is-batch', ui.batchMode);
+      if (normalFooter) normalFooter.hidden = ui.batchMode;
+      if (batchFooter) batchFooter.hidden = !ui.batchMode;
+      closeDeleteModal();
+      syncBatchFooter();
+      renderList();
+    }
+
+    function openDeleteModal() {
+      var modal = document.getElementById('addrBookDeleteModal');
+      if (modal) modal.hidden = false;
+    }
+
+    function closeDeleteModal() {
+      var modal = document.getElementById('addrBookDeleteModal');
+      if (modal) modal.hidden = true;
+    }
+
+    function performBatchDelete() {
+      var ids = getCheckedIds();
+      if (!ids.length) return;
+      groups = groups
+        .map(function (g) {
+          return {
+            id: g.id,
+            name: g.name,
+            phone: g.phone,
+            phoneDisplay: g.phoneDisplay,
+            tags: g.tags || [],
+            addresses: (g.addresses || []).filter(function (a) {
+              return ids.indexOf(a.id) < 0;
+            })
+          };
+        })
+        .filter(function (g) {
+          return g.addresses && g.addresses.length;
+        });
+      saveAddressBookGroups(groups);
+      ui.checked = {};
+      closeDeleteModal();
+      showToast('已删除' + ids.length + '条地址');
+      setBatchMode(false);
+    }
+
+    function selectAddress(group, addr) {
+      try {
+        sessionStorage.setItem(
+          'ua_refund_picked_address',
+          JSON.stringify({
+            id: addr.id,
+            contact: group.name,
+            phone: group.phone,
+            label: addr.text,
+            full: addr.text
+          })
+        );
+      } catch (e) {
+        /* ignore */
+      }
+      window.location.href = backHref;
+    }
+
+    function renderList() {
+      if (!listEl) return;
+      var visible = getVisibleGroups();
+      if (!visible.length) {
+        listEl.innerHTML = '<div class="ua-or-addrbook-empty">暂无匹配地址</div>';
+        return;
+      }
+
+      listEl.innerHTML = visible
+        .map(function (group) {
+          var allAddrs = group.addresses || [];
+          var multi = allAddrs.length > 1;
+          var needCollapse = allAddrs.length > ADDRESS_BOOK_COLLAPSE_LIMIT;
+          var expanded = !!ui.expanded[group.id];
+          var showAddrs =
+            needCollapse && !expanded
+              ? allAddrs.slice(0, ADDRESS_BOOK_COLLAPSE_LIMIT)
+              : allAddrs;
+
+          var rows = showAddrs
+            .map(function (addr) {
+              var checked = !!ui.checked[addr.id];
+              return (
+                '<button type="button" class="ua-or-addrbook-row' +
+                (checked ? ' is-checked' : '') +
+                '" data-group="' +
+                escapeHtml(group.id) +
+                '" data-addr="' +
+                escapeHtml(addr.id) +
+                '">' +
+                (ui.batchMode
+                  ? '<span class="ua-or-addrbook-row__check" aria-hidden="true"></span>'
+                  : '') +
+                '<span class="ua-or-addrbook-row__text">' +
+                escapeHtml(addr.text) +
+                '</span>' +
+                '<span class="ua-or-addrbook-row__edit" data-edit="' +
+                escapeHtml(addr.id) +
+                '" role="button" aria-label="编辑地址">' +
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">' +
+                '<path d="M4 20h4l10.5-10.5a2.1 2.1 0 00-3-3L5 17v3z"/>' +
+                '<path d="M13.5 6.5l3 3"/>' +
+                '</svg>' +
+                '</span>' +
+                '</button>'
+              );
+            })
+            .join('');
+
+          var moreHtml = '';
+          if (needCollapse) {
+            moreHtml =
+              '<button type="button" class="ua-or-addrbook-card__more' +
+              (expanded ? ' is-open' : '') +
+              '" data-expand="' +
+              escapeHtml(group.id) +
+              '">' +
+              (expanded ? '收起' : '展开更多') +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>' +
+              '</button>';
+          }
+
+          return (
+            '<section class="ua-or-addrbook-card' +
+            (multi ? ' is-multi' : ' is-single') +
+            '">' +
+            '<div class="ua-or-addrbook-card__head">' +
+            '<div class="ua-or-addrbook-card__name">' +
+            escapeHtml(group.name) +
+            '<span class="ua-or-addrbook-card__phone">' +
+            escapeHtml(group.phoneDisplay || formatPhoneDisplay(group.phone)) +
+            '</span>' +
+            '</div>' +
+            '</div>' +
+            '<div class="ua-or-addrbook-card__rows">' +
+            rows +
+            '</div>' +
+            moreHtml +
+            '</section>'
+          );
+        })
+        .join('');
+
+      listEl.querySelectorAll('.ua-or-addrbook-row').forEach(function (row) {
+        row.addEventListener('click', function (e) {
+          var editEl = e.target.closest('[data-edit]');
+          if (editEl) {
+            e.stopPropagation();
+            var editGroupId = row.getAttribute('data-group');
+            var editAddrId = row.getAttribute('data-addr');
+            if (!editGroupId || !editAddrId) return;
+            window.location.href = buildAddressCreateHref({
+              type: refundType,
+              stage: stage,
+              edit: '1',
+              groupId: editGroupId,
+              addrId: editAddrId
+            });
+            return;
+          }
+          var groupId = row.getAttribute('data-group');
+          var addrId = row.getAttribute('data-addr');
+          var group = groups.find(function (g) {
+            return g.id === groupId;
+          });
+          var addr =
+            group &&
+            (group.addresses || []).find(function (a) {
+              return a.id === addrId;
+            });
+          if (!group || !addr) return;
+
+          if (ui.batchMode) {
+            ui.checked[addrId] = !ui.checked[addrId];
+            renderList();
+            syncBatchFooter();
+            return;
+          }
+          selectAddress(group, addr);
+        });
+      });
+
+      listEl.querySelectorAll('[data-expand]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var gid = btn.getAttribute('data-expand');
+          ui.expanded[gid] = !ui.expanded[gid];
+          renderList();
+        });
+      });
+    }
+
+    if (searchEl) {
+      searchEl.addEventListener('input', function () {
+        ui.keyword = searchEl.value || '';
+        renderList();
+      });
+    }
+
+    document.getElementById('addrBookBatchBtn') &&
+      document.getElementById('addrBookBatchBtn').addEventListener('click', function () {
+        setBatchMode(true);
+      });
+    document.getElementById('addrBookBatchCancel') &&
+      document.getElementById('addrBookBatchCancel').addEventListener('click', function () {
+        setBatchMode(false);
+      });
+    document.getElementById('addrBookCreateBtn') &&
+      document.getElementById('addrBookCreateBtn').addEventListener('click', function () {
+        window.location.href = buildAddressCreateHref({
+          type: refundType,
+          stage: stage
+        });
+      });
+    if (batchDeleteBtn) {
+      batchDeleteBtn.addEventListener('click', function () {
+        var ids = getCheckedIds();
+        if (!ids.length) {
+          showToast('请选择要删除的地址');
+          return;
+        }
+        openDeleteModal();
+      });
+    }
+
+    document.querySelectorAll('[data-addrbook-modal-close]').forEach(function (el) {
+      el.addEventListener('click', closeDeleteModal);
+    });
+
+    document.getElementById('addrBookDeleteConfirm') &&
+      document.getElementById('addrBookDeleteConfirm').addEventListener('click', performBatchDelete);
+
+    renderList();
+  }
+
+  var CITY_DISTRICT_NONE = '暂不识别';
+
+  var CITY_REGION_TREE = {
+    北京市: {
+      北京市: ['东城区', '西城区', '朝阳区', '海淀区', '丰台区', '通州区', '昌平区']
+    },
+    天津市: {
+      天津市: ['和平区', '河东区', '河西区', '南开区', '河北区']
+    },
+    河北省: {
+      石家庄市: ['长安区', '桥西区', '新华区', '裕华区'],
+      唐山市: ['路南区', '路北区', '丰南区']
+    },
+    山西省: {
+      太原市: ['小店区', '迎泽区', '杏花岭区']
+    },
+    辽宁省: {
+      沈阳市: ['和平区', '沈河区', '大东区', '铁西区'],
+      大连市: ['中山区', '西岗区', '沙河口区', '甘井子区']
+    },
+    吉林省: {
+      长春市: ['南关区', '宽城区', '朝阳区', '二道区'],
+      吉林市: ['昌邑区', '龙潭区', '船营区']
+    },
+    黑龙江省: {
+      哈尔滨市: ['道里区', '南岗区', '道外区', '香坊区'],
+      齐齐哈尔市: ['龙沙区', '建华区', '铁锋区']
+    },
+    上海: {
+      上海市: ['黄浦区', '徐汇区', '长宁区', '静安区', '浦东新区', '闵行区', '松江区', '嘉定区']
+    },
+    江苏省: {
+      南京市: ['玄武区', '秦淮区', '建邺区', '鼓楼区', '栖霞区', '雨花台区', '江宁区'],
+      无锡市: ['锡山区', '惠山区', '滨湖区', '梁溪区'],
+      徐州市: ['鼓楼区', '云龙区', '贾汪区', '泉山区'],
+      常州市: ['天宁区', '钟楼区', '新北区', '武进区'],
+      苏州市: ['姑苏区', '虎丘区', '吴中区', '相城区', '工业园区'],
+      南通市: ['崇川区', '通州区']
+    },
+    浙江省: {
+      杭州市: ['上城区', '拱墅区', '西湖区', '滨江区', '萧山区', '余杭区', '临平区', '钱塘区'],
+      宁波市: ['海曙区', '江北区', '鄞州区', '镇海区'],
+      温州市: ['鹿城区', '龙湾区', '瓯海区'],
+      嘉兴市: ['南湖区', '秀洲区']
+    },
+    安徽省: {
+      合肥市: ['瑶海区', '庐阳区', '蜀山区', '包河区'],
+      芜湖市: ['镜湖区', '弋江区', '鸠江区']
+    },
+    福建省: {
+      福州市: ['鼓楼区', '台江区', '仓山区', '晋安区'],
+      厦门市: ['思明区', '湖里区', '集美区', '海沧区']
+    },
+    江西省: {
+      南昌市: ['东湖区', '西湖区', '青云谱区', '青山湖区']
+    },
+    山东省: {
+      济南市: ['历下区', '市中区', '槐荫区', '历城区'],
+      青岛市: ['市南区', '市北区', '崂山区', '黄岛区']
+    },
+    河南省: {
+      郑州市: ['中原区', '二七区', '金水区', '惠济区']
+    },
+    湖北省: {
+      武汉市: ['江岸区', '江汉区', '硚口区', '武昌区', '洪山区']
+    },
+    湖南省: {
+      长沙市: ['芙蓉区', '天心区', '岳麓区', '开福区']
+    },
+    广东省: {
+      广州市: ['越秀区', '荔湾区', '海珠区', '天河区', '白云区', '番禺区'],
+      深圳市: ['罗湖区', '福田区', '南山区', '宝安区', '龙岗区'],
+      东莞市: ['东城街道', '南城街道', '莞城街道', '万江街道', '虎门镇'],
+      佛山市: ['禅城区', '南海区', '顺德区']
+    },
+    四川省: {
+      成都市: ['锦江区', '青羊区', '金牛区', '武侯区', '成华区', '高新区']
+    },
+    重庆市: {
+      重庆市: ['渝中区', '江北区', '南岸区', '渝北区', '沙坪坝区']
+    },
+    陕西省: {
+      西安市: ['新城区', '碑林区', '雁塔区', '未央区']
+    }
+  };
+
+  var CITY_HOT_LIST = [
+    { label: '北京', province: '北京市', city: '北京市' },
+    { label: '上海', province: '上海', city: '上海市' },
+    { label: '广州', province: '广东省', city: '广州市' },
+    { label: '深圳', province: '广东省', city: '深圳市' },
+    { label: '东莞', province: '广东省', city: '东莞市' },
+    { label: '杭州', province: '浙江省', city: '杭州市' },
+    { label: '成都', province: '四川省', city: '成都市' },
+    { label: '南京', province: '江苏省', city: '南京市' }
+  ];
+
+  var CITY_WHEEL_ITEM_H = 36;
+
+  function getCityProvinces() {
+    return Object.keys(CITY_REGION_TREE);
+  }
+
+  function getCityCities(province) {
+    var node = CITY_REGION_TREE[province];
+    return node ? Object.keys(node) : [];
+  }
+
+  function getCityDistricts(province, city) {
+    var node = CITY_REGION_TREE[province];
+    var list = node && city && node[city] ? node[city].slice() : [];
+    return [CITY_DISTRICT_NONE].concat(
+      list.filter(function (d) {
+        return d !== CITY_DISTRICT_NONE;
+      })
+    );
+  }
+
+  function formatCityRegion(province, city, district) {
+    return [province, city, district].filter(Boolean).join(' ');
+  }
+
+  function parseCityRegionParts(text) {
+    var raw = String(text || '').trim();
+    if (!raw) return null;
+    var compact = raw.replace(/\s+/g, '');
+    var provinces = getCityProvinces().slice().sort(function (a, b) {
+      return b.length - a.length;
+    });
+    var province = '';
+    for (var i = 0; i < provinces.length; i++) {
+      var p = provinces[i];
+      var pCompact = p.replace(/\s+/g, '');
+      if (compact.indexOf(pCompact) === 0 || raw.indexOf(p) === 0) {
+        province = p;
+        break;
+      }
+      if (p === '上海' && (compact.indexOf('上海市') === 0 || compact.indexOf('上海') === 0)) {
+        province = p;
+        break;
+      }
+      if (p === '北京市' && compact.indexOf('北京') === 0) {
+        province = p;
+        break;
+      }
+    }
+    if (!province) return null;
+    var rest = compact;
+    if (province === '上海') {
+      if (rest.indexOf('上海市') === 0) rest = rest.slice(3);
+      else if (rest.indexOf('上海') === 0) rest = rest.slice(2);
+    } else if (rest.indexOf(province.replace(/\s+/g, '')) === 0) {
+      rest = rest.slice(province.replace(/\s+/g, '').length);
+    }
+
+    var cities = getCityCities(province).slice().sort(function (a, b) {
+      return b.length - a.length;
+    });
+    var city = '';
+    for (var c = 0; c < cities.length; c++) {
+      var cityName = cities[c];
+      if (rest.indexOf(cityName) === 0) {
+        city = cityName;
+        rest = rest.slice(cityName.length);
+        break;
+      }
+    }
+    if (!city) city = cities[0] || '';
+    var districts = getCityDistricts(province, city);
+    var district = CITY_DISTRICT_NONE;
+    for (var d = 0; d < districts.length; d++) {
+      if (rest.indexOf(districts[d]) === 0) {
+        district = districts[d];
+        break;
+      }
+    }
+    return { province: province, city: city, district: district };
+  }
+
+  function flattenCitySearchIndex() {
+    var rows = [];
+    getCityProvinces().forEach(function (province) {
+      getCityCities(province).forEach(function (city) {
+        getCityDistricts(province, city).forEach(function (district) {
+          rows.push({
+            province: province,
+            city: city,
+            district: district,
+            label: formatCityRegion(province, city, district),
+            keywords: (province + city + district).toLowerCase()
+          });
+        });
+      });
+    });
+    return rows;
+  }
+
+  function parseSmartAddressText(text) {
+    var raw = String(text || '').trim();
+    if (!raw) return null;
+    var phoneMatch = raw.match(/1\d{10}|\d{3,4}-\d{7,8}/);
+    var phone = phoneMatch ? phoneMatch[0] : '';
+    var withoutPhone = phone ? raw.replace(phone, ' ') : raw;
+    var parts = withoutPhone
+      .split(/[，,；;、\s]+/)
+      .map(function (p) {
+        return p.trim();
+      })
+      .filter(Boolean);
+    var name = '';
+    var region = '';
+    var detail = '';
+    parts.forEach(function (p) {
+      if (!name && p.length <= 4 && !/省|市|区|县|路|街|号|小区|园/.test(p)) {
+        name = p;
+        return;
+      }
+      if (!region && /省|市|区|县/.test(p)) {
+        region = p;
+        return;
+      }
+      detail = detail ? detail + p : p;
+    });
+    if (!detail && parts.length) detail = parts[parts.length - 1];
+    return { name: name, phone: phone, region: region, detail: detail };
+  }
+
+  function splitStoredAddress(full) {
+    var text = String(full || '').trim();
+    if (!text) return { region: '', detail: '' };
+    var parts = parseCityRegionParts(text);
+    if (parts) {
+      var region = formatCityRegion(parts.province, parts.city, parts.district);
+      var regionCompact = region.replace(/\s+/g, '');
+      var textCompact = text.replace(/\s+/g, '');
+      var detail = '';
+      if (textCompact.indexOf(regionCompact) === 0) {
+        var i = 0;
+        var j = 0;
+        while (i < text.length && j < regionCompact.length) {
+          if (/\s/.test(text.charAt(i))) {
+            i += 1;
+            continue;
+          }
+          if (text.charAt(i) === regionCompact.charAt(j)) {
+            i += 1;
+            j += 1;
+            continue;
+          }
+          break;
+        }
+        detail = text.slice(i).trim();
+      } else {
+        detail = text;
+      }
+      return { region: region, detail: detail };
+    }
+    var m = text.match(/^((?:[^省]+省)?(?:[^市]+市)?(?:[^区县]+[区县]))\s*(.+)$/);
+    if (m) {
+      var regionRaw = m[1].replace(/([省市])/g, '$1 ').replace(/\s+/g, ' ').trim();
+      return { region: regionRaw, detail: m[2].trim() };
+    }
+    return { region: '', detail: text };
+  }
+
+  function initAddressCreatePage() {
+    var refundType = getRefundType() || 'return';
+    var stage = getDetailStage() || 'return';
+    var params = getParams();
+    var editGroupId = params.get('groupId') || '';
+    var editAddrId = params.get('addrId') || '';
+    var isEdit = params.get('edit') === '1' && !!editGroupId && !!editAddrId;
+    var backHref = buildAddressBookHref({ type: refundType, stage: stage });
+    var backEl = document.getElementById('addrCreateBack');
+    if (backEl) backEl.setAttribute('href', backHref);
+
+    var titleEl = document.getElementById('addrCreateTitle');
+    if (isEdit) {
+      if (titleEl) titleEl.textContent = '编辑寄件人信息';
+      document.title = '编辑寄件人信息 · 用户 APP';
+    }
+
+    var state = {
+      landline: false,
+      region: '',
+      editGroupId: editGroupId,
+      editAddrId: editAddrId,
+      isEdit: isEdit
+    };
+
+    var smartOpen = document.getElementById('addrCreateSmartOpen');
+    var smartExpanded = document.getElementById('addrCreateSmartExpanded');
+    var smartInput = document.getElementById('addrCreateSmartInput');
+    var recognizeBtn = document.getElementById('addrCreateRecognizeBtn');
+    var nameEl = document.getElementById('addrCreateName');
+    var phoneEl = document.getElementById('addrCreatePhone');
+    var phoneLabel = document.getElementById('addrCreatePhoneLabel');
+    var phoneSwitch = document.getElementById('addrCreatePhoneSwitch');
+    var regionRow = document.getElementById('addrCreateRegionRow');
+    var regionValue = document.getElementById('addrCreateRegionValue');
+    var detailEl = document.getElementById('addrCreateDetail');
+    var saveBtn = document.getElementById('addrCreateSaveBtn');
+
+    if (isEdit) {
+      var groupsForEdit = loadAddressBookGroups();
+      var editGroup = groupsForEdit.find(function (g) {
+        return g.id === editGroupId;
+      });
+      var editAddr =
+        editGroup &&
+        (editGroup.addresses || []).find(function (a) {
+          return a.id === editAddrId;
+        });
+      if (editGroup && editAddr) {
+        if (nameEl) nameEl.value = editGroup.name || '';
+        if (phoneEl) phoneEl.value = editGroup.phone || '';
+        var split = splitStoredAddress(editAddr.text);
+        if (split.region) {
+          state.region = split.region;
+          if (regionValue) {
+            regionValue.textContent = split.region;
+            regionValue.classList.remove('ua-or-addr-create-row__value--placeholder');
+          }
+        }
+        if (detailEl) detailEl.value = split.detail || '';
+      }
+    }
+
+    var baseline = {
+      name: ((nameEl && nameEl.value) || '').trim(),
+      phone: ((phoneEl && phoneEl.value) || '').trim().replace(/\D/g, ''),
+      region: state.region || '',
+      detail: ((detailEl && detailEl.value) || '').trim()
+    };
+
+    function getFormSnapshot() {
+      return {
+        name: ((nameEl && nameEl.value) || '').trim(),
+        phone: ((phoneEl && phoneEl.value) || '').trim().replace(/\D/g, ''),
+        region: state.region || '',
+        detail: ((detailEl && detailEl.value) || '').trim()
+      };
+    }
+
+    function isAddressDirty() {
+      if (!state.isEdit) return true;
+      var cur = getFormSnapshot();
+      return (
+        cur.name !== baseline.name ||
+        cur.phone !== baseline.phone ||
+        cur.region !== baseline.region ||
+        cur.detail !== baseline.detail
+      );
+    }
+
+    function syncSaveBtn() {
+      if (!saveBtn) return;
+      if (!state.isEdit) {
+        saveBtn.classList.add('is-active');
+        return;
+      }
+      saveBtn.classList.toggle('is-active', isAddressDirty());
+    }
+
+    function expandSmart() {
+      if (smartOpen) smartOpen.hidden = true;
+      if (smartExpanded) smartExpanded.hidden = false;
+      if (smartInput) {
+        window.setTimeout(function () {
+          smartInput.focus();
+        }, 50);
+      }
+    }
+
+    if (smartOpen) smartOpen.addEventListener('click', expandSmart);
+
+    function syncRecognizeBtn() {
+      if (!recognizeBtn) return;
+      var hasText = !!(smartInput && String(smartInput.value || '').trim());
+      recognizeBtn.classList.toggle('is-active', hasText);
+      recognizeBtn.disabled = !hasText;
+    }
+
+    if (smartInput) {
+      smartInput.addEventListener('input', syncRecognizeBtn);
+      smartInput.addEventListener('paste', function () {
+        window.setTimeout(syncRecognizeBtn, 0);
+      });
+    }
+    syncRecognizeBtn();
+
+    if (recognizeBtn) {
+      recognizeBtn.addEventListener('click', function () {
+        if (recognizeBtn.disabled || !recognizeBtn.classList.contains('is-active')) return;
+        var parsed = parseSmartAddressText(smartInput && smartInput.value);
+        if (!parsed || (!parsed.name && !parsed.phone && !parsed.detail && !parsed.region)) {
+          showToast('未能识别地址，请完善文本');
+          return;
+        }
+        if (nameEl && parsed.name) nameEl.value = parsed.name;
+        if (phoneEl && parsed.phone) {
+          phoneEl.value = parsed.phone;
+          if (parsed.phone.indexOf('-') >= 0 && !state.landline) {
+            phoneSwitch && phoneSwitch.click();
+          }
+        }
+        if (parsed.region) {
+          state.region = parsed.region;
+          if (regionValue) {
+            regionValue.textContent = parsed.region;
+            regionValue.classList.remove('ua-or-addr-create-row__value--placeholder');
+          }
+        }
+        if (detailEl && parsed.detail) detailEl.value = parsed.detail;
+        syncSaveBtn();
+        showToast('识别完成');
+      });
+    }
+
+    if (phoneSwitch) {
+      phoneSwitch.addEventListener('click', function () {
+        state.landline = !state.landline;
+        if (phoneLabel) phoneLabel.textContent = state.landline ? '座机号' : '手机号';
+        if (phoneEl) {
+          phoneEl.placeholder = state.landline ? '请输入座机号' : '请输入手机号';
+          phoneEl.type = state.landline ? 'text' : 'tel';
+          phoneEl.setAttribute('inputmode', state.landline ? 'numeric' : 'tel');
+        }
+        phoneSwitch.textContent = state.landline ? '切换手机' : '切换座机';
+      });
+    }
+
+    if (regionRow) {
+      regionRow.addEventListener('click', function () {
+        openCityRegionSheet();
+      });
+    }
+
+    var cityPicker = {
+      province: '江苏省',
+      city: '南京市',
+      district: CITY_DISTRICT_NONE,
+      searchIndex: null,
+      bound: false
+    };
+
+    function getCitySearchIndex() {
+      if (!cityPicker.searchIndex) cityPicker.searchIndex = flattenCitySearchIndex();
+      return cityPicker.searchIndex;
+    }
+
+    function syncHotActive() {
+      var grid = document.getElementById('cityHotGrid');
+      if (!grid) return;
+      grid.querySelectorAll('.ua-or-city-hot__btn').forEach(function (btn) {
+        var p = btn.getAttribute('data-province');
+        var c = btn.getAttribute('data-city');
+        btn.classList.toggle('is-active', p === cityPicker.province && c === cityPicker.city);
+      });
+    }
+
+    function renderHotCities() {
+      var grid = document.getElementById('cityHotGrid');
+      if (!grid) return;
+      grid.innerHTML = CITY_HOT_LIST.map(function (item) {
+        return (
+          '<button type="button" class="ua-or-city-hot__btn" data-province="' +
+          escapeHtml(item.province) +
+          '" data-city="' +
+          escapeHtml(item.city) +
+          '">' +
+          escapeHtml(item.label) +
+          '</button>'
+        );
+      }).join('');
+      grid.querySelectorAll('.ua-or-city-hot__btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          cityPicker.province = btn.getAttribute('data-province');
+          cityPicker.city = btn.getAttribute('data-city');
+          cityPicker.district = CITY_DISTRICT_NONE;
+          renderCityWheels();
+          syncHotActive();
+        });
+      });
+      syncHotActive();
+    }
+
+    function renderWheelColumn(wheelEl, items, selected, onSelect) {
+      if (!wheelEl) return;
+      var html =
+        '<div class="ua-or-city-wheel__pad"></div>' +
+        items
+          .map(function (item) {
+            return (
+              '<div class="ua-or-city-wheel__item' +
+              (item === selected ? ' is-selected' : '') +
+              '" data-value="' +
+              escapeHtml(item) +
+              '">' +
+              escapeHtml(item) +
+              '</div>'
+            );
+          })
+          .join('') +
+        '<div class="ua-or-city-wheel__pad"></div>';
+      wheelEl.innerHTML = html;
+      var idx = Math.max(0, items.indexOf(selected));
+      wheelEl._cityItems = items;
+      wheelEl._cityOnSelect = onSelect;
+      window.requestAnimationFrame(function () {
+        var padH = Math.max(0, wheelEl.clientHeight / 2 - CITY_WHEEL_ITEM_H / 2);
+        wheelEl.querySelectorAll('.ua-or-city-wheel__pad').forEach(function (pad) {
+          pad.style.height = padH + 'px';
+        });
+        wheelEl.scrollTop = idx * CITY_WHEEL_ITEM_H;
+      });
+    }
+
+    function readWheelIndex(wheelEl) {
+      var items = wheelEl._cityItems || [];
+      if (!items.length) return 0;
+      var idx = Math.round(wheelEl.scrollTop / CITY_WHEEL_ITEM_H);
+      if (idx < 0) idx = 0;
+      if (idx > items.length - 1) idx = items.length - 1;
+      return idx;
+    }
+
+    function applyWheelSelection(wheelEl, snap) {
+      var items = wheelEl._cityItems || [];
+      if (!items.length) return;
+      var idx = readWheelIndex(wheelEl);
+      if (snap) {
+        wheelEl.scrollTop = idx * CITY_WHEEL_ITEM_H;
+      }
+      var value = items[idx];
+      wheelEl.querySelectorAll('.ua-or-city-wheel__item').forEach(function (itemEl, i) {
+        itemEl.classList.toggle('is-selected', i === idx);
+      });
+      if (typeof wheelEl._cityOnSelect === 'function') {
+        wheelEl._cityOnSelect(value, idx);
+      }
+    }
+
+    function bindCityWheel(wheelEl) {
+      if (!wheelEl || wheelEl._cityBound) return;
+      wheelEl._cityBound = true;
+      wheelEl.addEventListener('scroll', function () {
+        var idx = readWheelIndex(wheelEl);
+        wheelEl.querySelectorAll('.ua-or-city-wheel__item').forEach(function (itemEl, i) {
+          itemEl.classList.toggle('is-selected', i === idx);
+        });
+        window.clearTimeout(wheelEl._cityTimer);
+        wheelEl._cityTimer = window.setTimeout(function () {
+          applyWheelSelection(wheelEl, true);
+        }, 80);
+      });
+      wheelEl.addEventListener('click', function (e) {
+        var itemEl = e.target.closest('.ua-or-city-wheel__item');
+        if (!itemEl || !wheelEl.contains(itemEl)) return;
+        var items = wheelEl._cityItems || [];
+        var value = itemEl.getAttribute('data-value');
+        var idx = items.indexOf(value);
+        if (idx < 0) return;
+        wheelEl.scrollTop = idx * CITY_WHEEL_ITEM_H;
+        applyWheelSelection(wheelEl, true);
+      });
+    }
+
+    function renderCityWheels() {
+      var provWheel = document.getElementById('cityProvWheel');
+      var cityWheel = document.getElementById('cityCityWheel');
+      var distWheel = document.getElementById('cityDistWheel');
+      [provWheel, cityWheel, distWheel].forEach(function (el) {
+        if (el && el._cityTimer) window.clearTimeout(el._cityTimer);
+      });
+      var provinces = getCityProvinces();
+      if (provinces.indexOf(cityPicker.province) < 0) cityPicker.province = provinces[0] || '';
+      var cities = getCityCities(cityPicker.province);
+      if (cities.indexOf(cityPicker.city) < 0) cityPicker.city = cities[0] || '';
+      var districts = getCityDistricts(cityPicker.province, cityPicker.city);
+      if (districts.indexOf(cityPicker.district) < 0) cityPicker.district = CITY_DISTRICT_NONE;
+
+      renderWheelColumn(provWheel, provinces, cityPicker.province, function (value) {
+        if (value === cityPicker.province) return;
+        cityPicker.province = value;
+        var nextCities = getCityCities(value);
+        cityPicker.city = nextCities[0] || '';
+        cityPicker.district = CITY_DISTRICT_NONE;
+        renderCityWheels();
+        syncHotActive();
+      });
+      renderWheelColumn(cityWheel, cities, cityPicker.city, function (value) {
+        if (value === cityPicker.city) return;
+        cityPicker.city = value;
+        cityPicker.district = CITY_DISTRICT_NONE;
+        renderCityWheels();
+        syncHotActive();
+      });
+      renderWheelColumn(distWheel, districts, cityPicker.district, function (value) {
+        cityPicker.district = value;
+      });
+
+      bindCityWheel(provWheel);
+      bindCityWheel(cityWheel);
+      bindCityWheel(distWheel);
+      syncHotActive();
+    }
+
+    function setCitySearchMode(on) {
+      var body = document.getElementById('cityRegionBody');
+      var results = document.getElementById('citySearchResults');
+      if (body) body.hidden = !!on;
+      if (results) results.hidden = !on;
+    }
+
+    function renderCitySearch(keyword) {
+      var results = document.getElementById('citySearchResults');
+      if (!results) return;
+      var q = String(keyword || '').trim().toLowerCase();
+      if (!q) {
+        setCitySearchMode(false);
+        return;
+      }
+      setCitySearchMode(true);
+      var matched = getCitySearchIndex()
+        .filter(function (row) {
+          return row.keywords.indexOf(q) >= 0 || row.label.toLowerCase().indexOf(q) >= 0;
+        })
+        .slice(0, 40);
+      if (!matched.length) {
+        results.innerHTML = '<div class="ua-or-city-search-empty">未找到相关地区</div>';
+        return;
+      }
+      results.innerHTML = matched
+        .map(function (row) {
+          return (
+            '<button type="button" class="ua-or-city-search-item" data-province="' +
+            escapeHtml(row.province) +
+            '" data-city="' +
+            escapeHtml(row.city) +
+            '" data-district="' +
+            escapeHtml(row.district) +
+            '">' +
+            '<div>' +
+            escapeHtml(row.district === CITY_DISTRICT_NONE ? row.city : row.district) +
+            '</div>' +
+            '<div class="ua-or-city-search-item__path">' +
+            escapeHtml(row.label) +
+            '</div>' +
+            '</button>'
+          );
+        })
+        .join('');
+      results.querySelectorAll('.ua-or-city-search-item').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          cityPicker.province = btn.getAttribute('data-province');
+          cityPicker.city = btn.getAttribute('data-city');
+          cityPicker.district = btn.getAttribute('data-district');
+          var searchInput = document.getElementById('cityRegionSearch');
+          if (searchInput) searchInput.value = '';
+          setCitySearchMode(false);
+          renderCityWheels();
+          syncHotActive();
+        });
+      });
+    }
+
+    function openCityRegionSheet() {
+      var parsed = parseCityRegionParts(state.region);
+      if (parsed) {
+        cityPicker.province = parsed.province;
+        cityPicker.city = parsed.city;
+        cityPicker.district = parsed.district;
+      } else {
+        cityPicker.province = '江苏省';
+        cityPicker.city = '南京市';
+        cityPicker.district = CITY_DISTRICT_NONE;
+      }
+      var searchInput = document.getElementById('cityRegionSearch');
+      if (searchInput) searchInput.value = '';
+      setCitySearchMode(false);
+      openSheet('addrCreateRegionSheet');
+      renderHotCities();
+      renderCityWheels();
+    }
+
+    if (!cityPicker.bound) {
+      cityPicker.bound = true;
+      var searchInputEl = document.getElementById('cityRegionSearch');
+      if (searchInputEl) {
+        searchInputEl.addEventListener('input', function () {
+          renderCitySearch(searchInputEl.value);
+        });
+      }
+      document.getElementById('addrCreateRegionConfirm') &&
+        document.getElementById('addrCreateRegionConfirm').addEventListener('click', function () {
+          var val = formatCityRegion(cityPicker.province, cityPicker.city, cityPicker.district);
+          if (!cityPicker.province || !cityPicker.city) {
+            showToast('请选择城市地区');
+            return;
+          }
+          state.region = val;
+          if (regionValue) {
+            regionValue.textContent = val;
+            regionValue.classList.remove('ua-or-addr-create-row__value--placeholder');
+          }
+          closeSheet('addrCreateRegionSheet');
+          syncSaveBtn();
+        });
+    }
+
+    [nameEl, phoneEl, detailEl].forEach(function (el) {
+      if (!el) return;
+      el.addEventListener('input', syncSaveBtn);
+    });
+    syncSaveBtn();
+
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function () {
+        if (state.isEdit && !isAddressDirty()) {
+          showToast('地址未修改，无需保存');
+          return;
+        }
+        var name = ((nameEl && nameEl.value) || '').trim();
+        var phone = ((phoneEl && phoneEl.value) || '').trim();
+        var detail = ((detailEl && detailEl.value) || '').trim();
+        if (!name) {
+          showToast('请输入姓名');
+          return;
+        }
+        if (!phone) {
+          showToast(state.landline ? '请输入座机号' : '请输入手机号');
+          return;
+        }
+        if (!state.region) {
+          showToast('请选择省市区');
+          return;
+        }
+        if (!detail) {
+          showToast('请输入详细地址');
+          return;
+        }
+
+        var groups = loadAddressBookGroups();
+        var full = state.region + ' ' + detail;
+        var phoneDigits = phone.replace(/\D/g, '');
+        var addrId = state.isEdit ? state.editAddrId : 'ab-a' + Date.now();
+
+        if (state.isEdit) {
+          groups.forEach(function (g) {
+            g.addresses = (g.addresses || []).filter(function (a) {
+              return a.id !== state.editAddrId;
+            });
+          });
+          groups = groups.filter(function (g) {
+            return (g.addresses || []).length > 0;
+          });
+        }
+
+        var group = groups.find(function (g) {
+          return g.name === name && String(g.phone).replace(/\D/g, '') === phoneDigits;
+        });
+        if (group) {
+          group.addresses = group.addresses || [];
+          group.addresses.push({ id: addrId, text: full });
+          group.phone = phone;
+          group.phoneDisplay = formatPhoneDisplay(phone);
+        } else {
+          groups.unshift({
+            id: 'ab-g' + Date.now(),
+            name: name,
+            phone: phone,
+            phoneDisplay: formatPhoneDisplay(phone),
+            tags: [],
+            addresses: [{ id: addrId, text: full }]
+          });
+        }
+        saveAddressBookGroups(groups);
+        showToast(state.isEdit ? '地址已更新' : '地址已保存');
+        window.setTimeout(function () {
+          window.location.href = backHref;
+        }, 400);
+      });
+    }
+
+    bindSheetClose();
+  }
+
   global.UAOrderRefund = {
     DEMO_ITEMS: DEMO_ITEMS,
     getParams: getParams,
@@ -2939,7 +5175,15 @@
     initRestockPage: initRestockPage,
     initExchangePage: initExchangePage,
     initDetailPage: initDetailPage,
+    initPickupEditPage: initPickupEditPage,
+    initPickupOrderPage: initPickupOrderPage,
+    initAddressBookPage: initAddressBookPage,
+    initAddressCreatePage: initAddressCreatePage,
     buildDetailHref: buildDetailHref,
+    buildPickupEditHref: buildPickupEditHref,
+    buildPickupOrderHref: buildPickupOrderHref,
+    buildAddressBookHref: buildAddressBookHref,
+    buildAddressCreateHref: buildAddressCreateHref,
     renderProductCard: renderProductCard,
     initNav: initNav
   };
