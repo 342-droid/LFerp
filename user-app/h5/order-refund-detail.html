@@ -78,26 +78,59 @@
       </section>
 
       <section class="ua-or-detail-return" id="refundDetailReturnSection" hidden>
-        <div class="ua-or-detail-return__addr" id="refundDetailReturnAddr"></div>
-        <div class="ua-or-card ua-or-detail-logistics" id="refundDetailLogisticsForm">
-          <button type="button" class="ua-or-field" id="refundLogisticsCompanyRow">
-            <span class="ua-or-field__label">物流公司</span>
-            <span class="ua-or-field__value ua-or-field__value--placeholder" id="refundLogisticsCompanyValue">请选择</span>
-            <span class="ua-or-field__arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
-          </button>
-          <div class="ua-or-field-row ua-or-detail-tracking-row">
-            <span class="ua-or-field__label">退货单号</span>
-            <input type="text" class="ua-or-detail-tracking-input" id="refundTrackingInput" placeholder="请输入退货单号" maxlength="32">
+        <div class="ua-or-pickup-board" id="refundPickupBoard">
+          <div class="ua-or-pickup-board__head">
+            <div class="ua-or-pickup-board__code">
+              取件码 <em id="refundPickupCode">1333</em>
+            </div>
+            <div class="ua-or-pickup-board__guard">
+              <span class="ua-or-pickup-board__guard-tag">主动保障</span>
+              <span class="ua-or-pickup-board__guard-text" id="refundPickupGuardText">本单享主动保障服务，平台同意退货</span>
+            </div>
           </div>
-        </div>
-        <div class="ua-or-card ua-or-detail-logistics ua-or-detail-logistics--view" id="refundDetailLogisticsView" hidden>
-          <div class="ua-or-detail-info-row">
-            <span class="ua-or-detail-info-row__label">物流公司</span>
-            <span class="ua-or-detail-info-row__value" id="refundLogisticsCompanyDisplay">—</span>
-          </div>
-          <div class="ua-or-detail-info-row">
-            <span class="ua-or-detail-info-row__label">退货单号</span>
-            <span class="ua-or-detail-info-row__value" id="refundTrackingDisplay">—</span>
+
+          <div class="ua-or-card ua-or-pickup-board__card">
+            <button type="button" class="ua-or-pickup-board__row" id="refundPickupScheduleRow">
+              <span class="ua-or-pickup-board__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5h18v11a1.5 1.5 0 01-1.5 1.5h-15A1.5 1.5 0 013 19.5v-11z"/><path d="M3 8.5L5.5 4h13L21 8.5"/><path d="M8 12h8"/></svg>
+              </span>
+              <span class="ua-or-pickup-board__content">
+                <span class="ua-or-pickup-board__main" id="refundPickupScheduleText">等待快递员上门取件</span>
+                <span class="ua-or-pickup-board__sub" id="refundPickupAddrText"></span>
+              </span>
+              <span class="ua-or-pickup-board__chevron" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+              </span>
+            </button>
+
+            <div class="ua-or-pickup-board__row ua-or-pickup-board__row--static">
+              <span class="ua-or-pickup-board__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5 19c1.6-3.2 4-4.8 7-4.8s5.4 1.6 7 4.8"/></svg>
+              </span>
+              <span class="ua-or-pickup-board__content ua-or-pickup-board__content--inline">
+                <span class="ua-or-pickup-board__main ua-or-pickup-board__main--plain" id="refundPickupCourierStatus">快递员已接单</span>
+                <a class="ua-or-pickup-board__phone" id="refundPickupCourierPhone" href="tel:4008001234" aria-label="联系快递员">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3.5h3.2l1.2 4.2-2 1.2a12 12 0 005.7 5.7l1.2-2 4.2 1.2V19a2 2 0 01-2.2 2A15.5 15.5 0 015 5.7 2 2 0 017 3.5z"/></svg>
+                </a>
+              </span>
+            </div>
+
+            <div class="ua-or-pickup-board__row ua-or-pickup-board__row--static" id="refundPickupFeeRow">
+              <span class="ua-or-pickup-board__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7.5h11.5v9H4z"/><path d="M15.5 10.5H19l2 2.2V16.5h-5.5"/><circle cx="8" cy="17.5" r="1.6"/><circle cx="17.5" cy="17.5" r="1.6"/></svg>
+              </span>
+              <span class="ua-or-pickup-board__content ua-or-pickup-board__content--fee">
+                <span class="ua-or-pickup-board__fee-top">
+                  <span class="ua-or-pickup-board__fee-label">预估费用</span>
+                  <span class="ua-or-pickup-board__fee-value" id="refundPickupFeeValue">¥0</span>
+                </span>
+                <span class="ua-or-pickup-board__fee-sub" id="refundPickupFeeSub">平台承担退货运费</span>
+              </span>
+            </div>
+
+            <div class="ua-or-pickup-board__actions" id="refundPickupActions">
+              <button type="button" class="ua-or-pickup-board__btn ua-or-pickup-board__btn--primary" id="refundPickupModifyBtn">修改时间/地址</button>
+            </div>
           </div>
         </div>
       </section>
@@ -118,25 +151,42 @@
       <section class="ua-or-card ua-or-detail-info" id="refundDetailInfoCard">
         <h2 class="ua-or-detail-info__title" id="refundInfoSectionTitle" hidden>退款信息</h2>
         <div class="ua-or-product ua-or-detail-product" id="refundDetailProduct"></div>
-        <div class="ua-or-detail-info-row">
-          <span class="ua-or-detail-info-row__label">退款原因</span>
-          <span class="ua-or-detail-info-row__value" id="refundDetailReason">—</span>
+
+        <button type="button" class="ua-or-detail-link-row" id="refundNegotiateHistoryBtn">
+          <span class="ua-or-detail-link-row__label">协商历史</span>
+          <span class="ua-or-detail-link-row__action">查看</span>
+        </button>
+        <button type="button" class="ua-or-detail-link-row" id="refundHistoryRefundBtn">
+          <span class="ua-or-detail-link-row__label">历史退款记录</span>
+          <span class="ua-or-detail-link-row__action">查看</span>
+        </button>
+
+        <div class="ua-or-detail-aftersale" id="refundDetailAftersale" hidden>
+          <div class="ua-or-detail-info-row">
+            <span class="ua-or-detail-info-row__label">退款原因</span>
+            <span class="ua-or-detail-info-row__value" id="refundDetailReason">—</span>
+          </div>
+          <div class="ua-or-detail-info-row">
+            <span class="ua-or-detail-info-row__label">申请金额</span>
+            <span class="ua-or-detail-info-row__value ua-or-detail-info-row__value--amount" id="refundDetailAmount">—</span>
+          </div>
+          <div class="ua-or-detail-info-row">
+            <span class="ua-or-detail-info-row__label">申请时间</span>
+            <span class="ua-or-detail-info-row__value" id="refundDetailApplyTime">—</span>
+          </div>
+          <div class="ua-or-detail-info-row">
+            <span class="ua-or-detail-info-row__label">退款编号</span>
+            <span class="ua-or-detail-info-row__value ua-or-detail-info-row__value--copy">
+              <span id="refundDetailNo">—</span>
+              <button type="button" class="ua-or-detail-copy" id="refundDetailCopyBtn">复制</button>
+            </span>
+          </div>
         </div>
-        <div class="ua-or-detail-info-row">
-          <span class="ua-or-detail-info-row__label">退款金额</span>
-          <span class="ua-or-detail-info-row__value ua-or-detail-info-row__value--amount" id="refundDetailAmount">—</span>
-        </div>
-        <div class="ua-or-detail-info-row">
-          <span class="ua-or-detail-info-row__label">申请时间</span>
-          <span class="ua-or-detail-info-row__value" id="refundDetailApplyTime">—</span>
-        </div>
-        <div class="ua-or-detail-info-row">
-          <span class="ua-or-detail-info-row__label">退款编号</span>
-          <span class="ua-or-detail-info-row__value ua-or-detail-info-row__value--copy">
-            <span id="refundDetailNo">—</span>
-            <button type="button" class="ua-or-detail-copy" id="refundDetailCopyBtn">复制</button>
-          </span>
-        </div>
+
+        <button type="button" class="ua-or-detail-aftersale-toggle" id="refundAftersaleToggle" aria-expanded="false">
+          <span id="refundAftersaleToggleText">查看全部售后信息</span>
+          <svg class="ua-or-detail-aftersale-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
       </section>
     </div>
 
