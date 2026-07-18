@@ -202,7 +202,6 @@
     '想去附近的服务点寄件',
     '计划有变，暂时不需要寄了',
     '我想换个上门取件时间',
-    '价格有点贵',
     '快递员未按时上门/上门慢',
     '快递员不上门',
     '快递员服务不好（不上门/推脱/态度差）',
@@ -792,6 +791,10 @@
 
   function buildPickupOrderHref(extra) {
     return 'order-refund-pickup-order.html?' + buildQuery(extra || {});
+  }
+
+  function buildReturnGoodsHref(extra) {
+    return 'order-refund-return-goods.html?' + buildQuery(extra || {});
   }
 
   function buildAddressBookHref(extra) {
@@ -1915,6 +1918,103 @@
         closeSheet(el.getAttribute('data-or-sheet-close'));
       });
     });
+  }
+
+  function bindCloseReturnSheet(app, refundType, triggerIds) {
+    var ui = { selected: '' };
+    var sheetId = 'refundCloseReturnSheet';
+
+    function syncCloseReturnTip() {
+      var tip = document.getElementById('refundCloseReturnTip');
+      if (!tip) return;
+      var remain = getCloseReturnRemain();
+      tip.textContent =
+        '最多可取消' + CLOSE_RETURN_MAX_TIMES + '次，您仅剩' + remain + '次取消机会';
+    }
+
+    function syncCloseReturnConfirm() {
+      var btn = document.getElementById('refundCloseReturnConfirm');
+      if (!btn) return;
+      btn.disabled = false;
+      btn.classList.remove('is-disabled');
+    }
+
+    function renderCloseReturnReasons() {
+      var list = document.getElementById('refundCloseReturnList');
+      if (!list) return;
+      list.innerHTML = CLOSE_RETURN_REASONS.map(function (reason) {
+        var selected = ui.selected === reason;
+        return (
+          '<button type="button" class="ua-or-close-return-option' +
+          (selected ? ' is-selected' : '') +
+          '" data-reason="' +
+          escapeHtml(reason) +
+          '" role="radio" aria-checked="' +
+          (selected ? 'true' : 'false') +
+          '">' +
+          '<span class="ua-or-close-return-option__label">' +
+          escapeHtml(reason) +
+          '</span>' +
+          '<span class="ua-or-close-return-option__radio" aria-hidden="true"></span>' +
+          '</button>'
+        );
+      }).join('');
+      list.querySelectorAll('.ua-or-close-return-option').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          ui.selected = btn.getAttribute('data-reason') || '';
+          renderCloseReturnReasons();
+          syncCloseReturnConfirm();
+        });
+      });
+      syncCloseReturnConfirm();
+    }
+
+    function openCloseReturnSheet() {
+      if (getCloseReturnRemain() <= 0) {
+        showToast('取消次数已用完');
+        return;
+      }
+      ui.selected = '';
+      syncCloseReturnTip();
+      renderCloseReturnReasons();
+      openSheet(sheetId);
+    }
+
+    function confirmCloseReturn() {
+      if (!ui.selected) {
+        showToast('请选择关闭原因');
+        return;
+      }
+      if (!consumeCloseReturnChance()) {
+        showToast('取消次数已用完');
+        return;
+      }
+      app.closeReturnReason = ui.selected;
+      app.resultTime = formatDateTime();
+      saveApplication(app);
+      closeSheet(sheetId);
+      window.location.href = buildDetailHref({
+        type: refundType,
+        stage: 'closed',
+        closeReason: 'close_return'
+      });
+    }
+
+    var confirmBtn = document.getElementById('refundCloseReturnConfirm');
+    if (confirmBtn && !confirmBtn.getAttribute('data-close-return-bound')) {
+      confirmBtn.setAttribute('data-close-return-bound', '1');
+      confirmBtn.addEventListener('click', confirmCloseReturn);
+    }
+
+    (triggerIds || []).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el && !el.getAttribute('data-close-return-trigger')) {
+        el.setAttribute('data-close-return-trigger', '1');
+        el.addEventListener('click', openCloseReturnSheet);
+      }
+    });
+
+    return { open: openCloseReturnSheet };
   }
 
   function initSelectPage() {
@@ -3513,83 +3613,7 @@
       if (modal) modal.hidden = true;
     }
 
-    var closeReturnUi = { selected: '' };
-
-    function syncCloseReturnTip() {
-      var tip = document.getElementById('refundCloseReturnTip');
-      if (!tip) return;
-      var remain = getCloseReturnRemain();
-      tip.textContent =
-        '最多可取消' + CLOSE_RETURN_MAX_TIMES + '次，您仅剩' + remain + '次取消机会';
-    }
-
-    function syncCloseReturnConfirm() {
-      var btn = document.getElementById('refundCloseReturnConfirm');
-      if (!btn) return;
-      btn.disabled = false;
-      btn.classList.remove('is-disabled');
-    }
-
-    function renderCloseReturnReasons() {
-      var list = document.getElementById('refundCloseReturnList');
-      if (!list) return;
-      list.innerHTML = CLOSE_RETURN_REASONS.map(function (reason) {
-        var selected = closeReturnUi.selected === reason;
-        return (
-          '<button type="button" class="ua-or-close-return-option' +
-          (selected ? ' is-selected' : '') +
-          '" data-reason="' +
-          escapeHtml(reason) +
-          '" role="radio" aria-checked="' +
-          (selected ? 'true' : 'false') +
-          '">' +
-          '<span class="ua-or-close-return-option__label">' +
-          escapeHtml(reason) +
-          '</span>' +
-          '<span class="ua-or-close-return-option__radio" aria-hidden="true"></span>' +
-          '</button>'
-        );
-      }).join('');
-      list.querySelectorAll('.ua-or-close-return-option').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          closeReturnUi.selected = btn.getAttribute('data-reason') || '';
-          renderCloseReturnReasons();
-          syncCloseReturnConfirm();
-        });
-      });
-      syncCloseReturnConfirm();
-    }
-
-    function openCloseReturnSheet() {
-      if (getCloseReturnRemain() <= 0) {
-        showToast('取消次数已用完');
-        return;
-      }
-      closeReturnUi.selected = '';
-      syncCloseReturnTip();
-      renderCloseReturnReasons();
-      openSheet('refundCloseReturnSheet');
-    }
-
-    function confirmCloseReturn() {
-      if (!closeReturnUi.selected) {
-        showToast('请选择关闭原因');
-        return;
-      }
-      if (!consumeCloseReturnChance()) {
-        showToast('取消次数已用完');
-        return;
-      }
-      app.closeReturnReason = closeReturnUi.selected;
-      app.resultTime = formatDateTime();
-      saveApplication(app);
-      closeSheet('refundCloseReturnSheet');
-      window.location.href = buildDetailHref({
-        type: refundType,
-        stage: 'closed',
-        closeReason: 'close_return'
-      });
-    }
+    bindCloseReturnSheet(app, refundType, ['refundDetailCloseReturnBtn']);
 
     document.querySelectorAll('[data-or-cancel-close]').forEach(function (el) {
       el.addEventListener('click', closeCancelModal);
@@ -3607,15 +3631,9 @@
         });
       });
 
-    document.getElementById('refundCloseReturnConfirm') &&
-      document.getElementById('refundCloseReturnConfirm').addEventListener('click', confirmCloseReturn);
-
     function bindFooterActions() {
       var cancelBtn = document.getElementById('refundDetailCancelBtn');
       if (cancelBtn) cancelBtn.addEventListener('click', openCancelModal);
-
-      var closeReturnBtn = document.getElementById('refundDetailCloseReturnBtn');
-      if (closeReturnBtn) closeReturnBtn.addEventListener('click', openCloseReturnSheet);
 
       var modifyBtn = document.getElementById('refundDetailModifyBtn');
       if (modifyBtn) {
@@ -3970,7 +3988,7 @@
     var goodsImg = document.getElementById('pickupOrderGoodsImg');
     var goodsText = document.getElementById('pickupOrderGoodsText');
     if (goodsImg && item && item.img) goodsImg.src = item.img;
-    if (goodsText) goodsText.textContent = '天猫退货 | ' + (item && item.qty ? item.qty : 1) + '件';
+    if (goodsText) goodsText.textContent = '冷丰退货 | ' + (item && item.qty ? item.qty : 1) + '件';
 
     var orderNoEl = document.getElementById('pickupOrderNo');
     var orderTimeEl = document.getElementById('pickupOrderTime');
@@ -4023,11 +4041,6 @@
         copyText(orderNo, '复制成功');
       });
 
-    document.getElementById('pickupOrderShareCode') &&
-      document.getElementById('pickupOrderShareCode').addEventListener('click', function () {
-        copyText(app.pickupCode || '0030', '寄件码已复制');
-      });
-
     document.getElementById('pickupOrderShareNav') &&
       document.getElementById('pickupOrderShareNav').addEventListener('click', function () {
         showToast('分享功能演示');
@@ -4038,10 +4051,8 @@
         showToast('物流轨迹演示');
       });
 
-    document.getElementById('pickupOrderUrgeBtn') &&
-      document.getElementById('pickupOrderUrgeBtn').addEventListener('click', function () {
-        showToast('已催促快递员');
-      });
+    bindCloseReturnSheet(app, refundType, ['pickupOrderCancelBtn']);
+    bindSheetClose();
 
     document.getElementById('pickupOrderEditBtn') &&
       document.getElementById('pickupOrderEditBtn').addEventListener('click', function () {
@@ -4052,29 +4063,79 @@
         window.location.href = buildPickupEditHref({ type: refundType, stage: stage });
       });
 
-    document.getElementById('pickupOrderHandoverBtn') &&
-      document.getElementById('pickupOrderHandoverBtn').addEventListener('click', function () {
-        showToast('交件方式设置演示');
-      });
-
-    document.getElementById('pickupOrderCancelBtn') &&
-      document.getElementById('pickupOrderCancelBtn').addEventListener('click', function () {
-        showToast('取消寄件演示');
-      });
-
-    document.getElementById('pickupOrderPayBtn') &&
-      document.getElementById('pickupOrderPayBtn').addEventListener('click', function () {
-        showToast('本单无需支付');
-      });
-
-    document.getElementById('pickupOrderCsBtn') &&
-      document.getElementById('pickupOrderCsBtn').addEventListener('click', function () {
-        showToast('客服演示');
-      });
-
     document.getElementById('pickupOrderGoodsLink') &&
       document.getElementById('pickupOrderGoodsLink').addEventListener('click', function () {
-        showToast('退货商品详情演示');
+        window.location.href = buildReturnGoodsHref({
+          type: refundType,
+          stage: stage
+        });
+      });
+  }
+
+  function initReturnGoodsPage() {
+    var refundType = getRefundType() || 'return';
+    var stage = getDetailStage() || 'return';
+    var backHref = buildPickupOrderHref({ type: refundType, stage: stage });
+    var backEl = document.getElementById('returnGoodsBack');
+    if (backEl) backEl.setAttribute('href', backHref);
+
+    var app = loadApplication() || {};
+    ensurePickupBoardData(app);
+    app = loadApplication() || app;
+
+    var item = getItem();
+    var qty = (app && app.qty != null ? app.qty : item.qty) || 1;
+    var productName = (app && app.productName) || item.name;
+    var productSpec = (app && app.productSpec) || item.spec || '';
+    var productImg = (app && app.productImg) || item.img;
+
+    var schedule = formatRelativePickupSchedule(app.pickupTime);
+    var timeEl = document.getElementById('returnGoodsPickupTime');
+    if (timeEl) timeEl.textContent = schedule.replace('–', '-') + ' 上门';
+
+    var contact = app.pickupContact || DEMO_BUYER.contact + ' ' + DEMO_BUYER.phone;
+    var senderEl = document.getElementById('returnGoodsSender');
+    if (senderEl) senderEl.textContent = '寄件信息：' + contact;
+
+    var addrEl = document.getElementById('returnGoodsAddr');
+    if (addrEl) addrEl.textContent = app.pickupAddress || DEMO_BUYER.address;
+
+    var pickupImg = document.getElementById('returnGoodsPickupImg');
+    var itemImg = document.getElementById('returnGoodsItemImg');
+    if (pickupImg && productImg) pickupImg.src = productImg;
+    if (itemImg && productImg) itemImg.src = productImg;
+
+    var nameEl = document.getElementById('returnGoodsItemName');
+    if (nameEl) nameEl.textContent = productName;
+
+    var specEl = document.getElementById('returnGoodsItemSpec');
+    if (specEl) specEl.textContent = productSpec.replace(/^规格：/, '规格:');
+
+    var qtyEl = document.getElementById('returnGoodsItemQty');
+    if (qtyEl) qtyEl.textContent = 'x' + qty;
+
+    var card = document.querySelector('.ua-or-rg-card');
+    var toggleBtn = document.getElementById('returnGoodsToggleBtn');
+    var collapsed = false;
+
+    function syncToggle() {
+      if (!card || !toggleBtn) return;
+      card.classList.toggle('is-collapsed', collapsed);
+      toggleBtn.innerHTML =
+        (collapsed ? '展开' : '收起') +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 14l6-6 6 6"/></svg>';
+    }
+
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', function () {
+        collapsed = !collapsed;
+        syncToggle();
+      });
+    }
+
+    document.getElementById('returnGoodsShare') &&
+      document.getElementById('returnGoodsShare').addEventListener('click', function () {
+        showToast('分享功能演示');
       });
   }
 
@@ -5196,11 +5257,13 @@
     initDetailPage: initDetailPage,
     initPickupEditPage: initPickupEditPage,
     initPickupOrderPage: initPickupOrderPage,
+    initReturnGoodsPage: initReturnGoodsPage,
     initAddressBookPage: initAddressBookPage,
     initAddressCreatePage: initAddressCreatePage,
     buildDetailHref: buildDetailHref,
     buildPickupEditHref: buildPickupEditHref,
     buildPickupOrderHref: buildPickupOrderHref,
+    buildReturnGoodsHref: buildReturnGoodsHref,
     buildAddressBookHref: buildAddressBookHref,
     buildAddressCreateHref: buildAddressCreateHref,
     renderProductCard: renderProductCard,
