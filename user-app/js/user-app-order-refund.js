@@ -1169,7 +1169,36 @@
     if (pickupCode && app.trackingNo === pickupCode) {
       delete app.trackingNo;
     }
+    app.pickupCanceled = true;
     saveApplication(app);
+  }
+
+  function hasSelfShipTracking(app) {
+    return !!(app && app.trackingNo && app.courier && app.courier !== '上门取件');
+  }
+
+  function autoSchedulePlatformPickup(app) {
+    if (!app || isPickupScheduled(app)) return app;
+    var addr = getDefaultPickupAddress();
+    var defaultTime = formatPickupDisplay(addDays(startOfDay(new Date()), 1), '09:00–11:00');
+    scheduleDoorPickup(app, {
+      pickupAddressId: addr.id,
+      pickupAddress: addr.label,
+      pickupAddressFull: addr.full || addr.label,
+      pickupContact: addr.contact + ' ' + addr.phone,
+      pickupTime: defaultTime
+    });
+    delete app.pickupCanceled;
+    return app;
+  }
+
+  function ensureReturnStagePickup(app) {
+    if (hasSelfShipTracking(app) || isPickupScheduled(app) || app.pickupCanceled) return app;
+    return autoSchedulePlatformPickup(app);
+  }
+
+  function shouldRedirectReturnShip(app) {
+    return !hasSelfShipTracking(app) && !isPickupScheduled(app) && !!app.pickupCanceled;
   }
 
   function getSelfShipFormState(app) {
@@ -1243,6 +1272,7 @@
     app.pickupFeeSub = '平台承担退货运费';
     app.courier = '上门取件';
     app.trackingNo = app.pickupCode;
+    delete app.pickupCanceled;
     saveApplication(app);
   }
 
@@ -4030,9 +4060,12 @@
     }
 
     if ((isReturn && (stage === 'return' || stage === 'refund')) || (isExchange && stage === 'return')) {
-      if (stage === 'return' && !isPickupScheduled(app) && !app.trackingNo) {
-        window.location.href = buildReturnShipHref({ type: refundType, stage: 'return' });
-        return;
+      if (stage === 'return') {
+        if (shouldRedirectReturnShip(app)) {
+          window.location.href = buildReturnShipHref({ type: refundType, stage: stage });
+          return;
+        }
+        ensureReturnStagePickup(app);
       }
       if (returnSection) returnSection.hidden = false;
       if (isPickupScheduled(app)) {
@@ -4477,11 +4510,21 @@
   function initPickupOrderPage() {
     var refundType = getRefundType() || 'return';
     var stage = getDetailStage() || 'return';
+    var app = loadApplication() || {};
+
+    if (!isPickupScheduled(app)) {
+      if (shouldRedirectReturnShip(app)) {
+        window.location.href = buildReturnShipHref({ type: refundType, stage: stage });
+        return;
+      }
+      window.location.href = buildDetailHref({ type: refundType, stage: stage });
+      return;
+    }
+
     var backHref = buildDetailHref({ type: refundType, stage: stage });
     var backEl = document.getElementById('pickupOrderBack');
     if (backEl) backEl.setAttribute('href', backHref);
 
-    var app = loadApplication() || {};
     ensurePickupBoardData(app);
     app = loadApplication() || app;
 
