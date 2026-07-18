@@ -214,6 +214,59 @@
   var PICKUP_EDIT_MAX_TIMES = 3;
   var PICKUP_EDIT_REMAIN_PREFIX = 'ua_refund_pickup_edit_remain_';
 
+  /** 演示：已完成订单修改次数已用完，待收货等订单可正常修改 */
+  function getOrderStatus() {
+    return (getParams().get('status') || '').trim();
+  }
+
+  function isPickupEditExhaustedDemo() {
+    return getOrderStatus() === 'completed';
+  }
+
+  function getPickupEditRemainKey(refundNo) {
+    return (
+      PICKUP_EDIT_REMAIN_PREFIX +
+      getOrderStatus() +
+      '_item' +
+      getItemIndex() +
+      '_' +
+      String(refundNo || 'default')
+    );
+  }
+
+  function getPickupEditRemain(refundNo) {
+    if (isPickupEditExhaustedDemo()) return 0;
+    try {
+      var raw = sessionStorage.getItem(getPickupEditRemainKey(refundNo));
+      if (raw == null || raw === '') return PICKUP_EDIT_MAX_TIMES;
+      var n = parseInt(raw, 10);
+      if (isNaN(n)) return PICKUP_EDIT_MAX_TIMES;
+      return Math.max(0, Math.min(PICKUP_EDIT_MAX_TIMES, n));
+    } catch (e) {
+      return PICKUP_EDIT_MAX_TIMES;
+    }
+  }
+
+  function setPickupEditRemain(refundNo, n) {
+    if (isPickupEditExhaustedDemo()) return;
+    try {
+      sessionStorage.setItem(
+        getPickupEditRemainKey(refundNo),
+        String(Math.max(0, Math.min(PICKUP_EDIT_MAX_TIMES, n)))
+      );
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function consumePickupEditChance(refundNo) {
+    if (isPickupEditExhaustedDemo()) return false;
+    var remain = getPickupEditRemain(refundNo);
+    if (remain <= 0) return false;
+    setPickupEditRemain(refundNo, remain - 1);
+    return true;
+  }
+
   function getCloseReturnRemain() {
     try {
       var raw = sessionStorage.getItem(CLOSE_RETURN_REMAIN_KEY);
@@ -241,40 +294,6 @@
     var remain = getCloseReturnRemain();
     if (remain <= 0) return false;
     setCloseReturnRemain(remain - 1);
-    return true;
-  }
-
-  function getPickupEditRemainKey(refundNo) {
-    return PICKUP_EDIT_REMAIN_PREFIX + String(refundNo || 'default');
-  }
-
-  function getPickupEditRemain(refundNo) {
-    try {
-      var raw = sessionStorage.getItem(getPickupEditRemainKey(refundNo));
-      if (raw == null || raw === '') return PICKUP_EDIT_MAX_TIMES;
-      var n = parseInt(raw, 10);
-      if (isNaN(n)) return PICKUP_EDIT_MAX_TIMES;
-      return Math.max(0, Math.min(PICKUP_EDIT_MAX_TIMES, n));
-    } catch (e) {
-      return PICKUP_EDIT_MAX_TIMES;
-    }
-  }
-
-  function setPickupEditRemain(refundNo, n) {
-    try {
-      sessionStorage.setItem(
-        getPickupEditRemainKey(refundNo),
-        String(Math.max(0, Math.min(PICKUP_EDIT_MAX_TIMES, n)))
-      );
-    } catch (e) {
-      /* ignore */
-    }
-  }
-
-  function consumePickupEditChance(refundNo) {
-    var remain = getPickupEditRemain(refundNo);
-    if (remain <= 0) return false;
-    setPickupEditRemain(refundNo, remain - 1);
     return true;
   }
 
