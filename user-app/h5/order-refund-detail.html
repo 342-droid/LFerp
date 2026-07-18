@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>退款详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
-  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260718-detail-fix">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260718-closed-no-steps">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-order-refund-detail-page">
@@ -27,13 +27,14 @@
         <a href="order-detail.html" class="ua-or-detail-nav__back" id="refundDetailBack" aria-label="返回">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
         </a>
-        <h1 class="ua-or-detail-nav__title">退款详情</h1>
-        <div class="ua-or-detail-nav__actions">
-          <button type="button" class="ua-or-detail-nav__icon" aria-label="更多">
-            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
-          </button>
-        </div>
+        <h1 class="ua-or-detail-nav__title" id="refundDetailNavTitle">退款详情</h1>
+        <span class="ua-or-detail-nav__placeholder" aria-hidden="true"></span>
       </header>
+
+      <section class="ua-or-closed-cancel-head" id="refundClosedCancelHead" hidden>
+        <h2 class="ua-or-closed-cancel-head__title" id="refundClosedCancelTitle">因您撤销，退款已关闭</h2>
+        <p class="ua-or-closed-cancel-head__sub" id="refundClosedCancelSub">若您的问题未解决，可在有效期内再次申请售后</p>
+      </section>
 
       <section class="ua-or-detail-hero" id="refundDetailHero">
         <h2 class="ua-or-detail-hero__title" id="refundDetailStatusTitle">请等待平台审核</h2>
@@ -129,7 +130,7 @@
             </div>
 
             <div class="ua-or-pickup-board__actions" id="refundPickupActions">
-              <button type="button" class="ua-or-pickup-board__btn" id="refundDetailCloseReturnBtn">关闭退货</button>
+              <button type="button" class="ua-or-pickup-board__btn" id="refundDetailCancelPickupBtn">取消寄件</button>
               <button type="button" class="ua-or-pickup-board__btn ua-or-pickup-board__btn--primary" id="refundPickupModifyBtn">修改时间/地址</button>
             </div>
           </div>
@@ -171,6 +172,10 @@
             <span class="ua-or-detail-info-row__label">申请金额</span>
             <span class="ua-or-detail-info-row__value ua-or-detail-info-row__value--amount" id="refundDetailAmount">—</span>
           </div>
+          <div class="ua-or-detail-info-row" id="refundDetailFinishRow" hidden>
+            <span class="ua-or-detail-info-row__label">退款完结</span>
+            <span class="ua-or-detail-info-row__value" id="refundDetailFinishTime">—</span>
+          </div>
           <div class="ua-or-detail-info-row">
             <span class="ua-or-detail-info-row__label">申请时间</span>
             <span class="ua-or-detail-info-row__value" id="refundDetailApplyTime">—</span>
@@ -208,6 +213,23 @@
         <h2 class="ua-or-negotiate__title">协商历史</h2>
       </header>
       <div class="ua-or-negotiate__scroll" id="refundNegotiateList"></div>
+    </div>
+
+    <div class="ua-or-sheet" id="refundCancelPickupSheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="refundCancelPickupSheet"></div>
+      <div class="ua-or-sheet__panel ua-or-close-return-panel">
+        <div class="ua-or-close-return-panel__head">
+          <h3 class="ua-or-close-return-panel__title">请选择取消原因</h3>
+          <button type="button" class="ua-or-sheet__close" data-or-sheet-close="refundCancelPickupSheet" aria-label="关闭">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="ua-or-close-return-panel__tip" id="refundCancelPickupTip">最多可取消3次，您仅剩3次取消机会</div>
+        <div class="ua-or-close-return-panel__list" id="refundCancelPickupList" role="radiogroup" aria-label="取消原因"></div>
+        <div class="ua-or-close-return-panel__foot">
+          <button type="button" class="ua-or-close-return-panel__confirm" id="refundCancelPickupConfirm">完成</button>
+        </div>
+      </div>
     </div>
 
     <div class="ua-or-sheet" id="refundCloseReturnSheet" hidden>
@@ -267,7 +289,7 @@
 
     <div class="ua-or-toast" id="refundDetailToast" hidden></div>
   </div>
-  <script src="../js/user-app-order-refund.js?v=20260718-pickup-demo"></script>
+  <script src="../js/user-app-order-refund.js?v=20260718-closed-no-steps"></script>
   <script>UAOrderRefund.initDetailPage();</script>
 </body>
 </html>
