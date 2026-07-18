@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>预约寄件 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260718-return-ship-v5">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-order-refund-detail-page ua-or-return-ship-page">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-or-detail-scroll ua-or-return-ship-scroll">
+      <div class="ua-status-bar ua-status-bar--light">
+        <span>9:41</span>
+        <span class="ua-status-bar__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#fff"><path d="M1 7h2v4H1V7zm4-2h2v6H5V5zm4-3h2v9H9V2zm4 5h2v4h-2V7z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#fff"/></svg>
+        </span>
+      </div>
+
+      <header class="ua-or-detail-nav" id="refundDetailNav">
+        <a href="order-refund-detail.html" class="ua-or-detail-nav__back" id="refundDetailBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="ua-or-detail-nav__title" id="refundDetailNavTitle">退货详情</h1>
+        <span class="ua-or-detail-nav__placeholder" aria-hidden="true"></span>
+      </header>
+
+      <section class="ua-or-detail-hero" id="refundDetailHero">
+        <h2 class="ua-or-detail-hero__title" id="refundDetailStatusTitle">请寄回退货商品</h2>
+        <p class="ua-or-detail-hero__timer" id="refundDetailTimer">6天23时59分后未寄回将撤销退货申请</p>
+        <div class="ua-or-detail-steps" id="refundDetailSteps"></div>
+      </section>
+
+      <section class="ua-or-rs-card">
+        <div class="ua-or-rs-tabs" id="returnShipTabs" role="tablist">
+          <button type="button" class="ua-or-rs-tab is-active" data-tab="pickup" role="tab" aria-selected="true">
+            <span class="ua-or-rs-tab__name">上门取件</span>
+            <span class="ua-or-rs-tab__sub">快递员上门</span>
+          </button>
+          <button type="button" class="ua-or-rs-tab" data-tab="self" role="tab" aria-selected="false">
+            <span class="ua-or-rs-tab__name">自行寄回</span>
+            <span class="ua-or-rs-tab__sub">填写物流单号</span>
+          </button>
+        </div>
+
+        <p class="ua-or-rs-promo" id="returnShipPromo">免费上门 免填地址 丢损必赔</p>
+
+        <div class="ua-or-rs-panel" id="returnShipPickupPanel">
+          <button type="button" class="ua-or-rs-field" id="returnShipTimeRow">
+            <span class="ua-or-rs-field__label">上门时间</span>
+            <span class="ua-or-rs-field__value ua-or-rs-field__value--placeholder" id="returnShipTimeValue">请选择上门时间</span>
+            <span class="ua-or-rs-field__arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
+          </button>
+          <button type="button" class="ua-or-rs-field" id="returnShipMyAddrRow">
+            <span class="ua-or-rs-field__label">我的地址</span>
+            <span class="ua-or-rs-field__value ua-or-rs-field__value--multi" id="returnShipMyAddrValue">
+              <em id="returnShipMyAddrText">浙江省杭州市西湖区文三路 西溪花园3幢2单元501室 林晓棠，13856781234</em>
+            </span>
+            <span class="ua-or-rs-field__arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
+          </button>
+          <button type="button" class="ua-or-rs-field ua-or-rs-field--merchant" id="returnShipMerchantRow">
+            <span class="ua-or-rs-field__label">商家地址</span>
+            <span class="ua-or-rs-field__value ua-or-rs-field__value--multi" id="returnShipMerchantSummary">
+              <em id="returnShipMerchantSummaryText">浙江省杭州市萧山区宁围街道 冷丰仓储物流中心 A区退货组 杭州萧山仓 售后组 0571-88887777</em>
+            </span>
+            <span class="ua-or-rs-field__arrow ua-or-rs-field__arrow--toggle" id="returnShipMerchantArrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
+          </button>
+          <div class="ua-or-rs-merchant-detail" id="returnShipMerchantDetail" hidden>
+            <p id="returnShipMerchantFull">浙江省杭州市萧山区宁围街道 冷丰仓储物流中心 A区退货组 杭州萧山仓 售后组 0571-88887777</p>
+          </div>
+        </div>
+
+        <div class="ua-or-rs-panel" id="returnShipSelfPanel" hidden>
+          <div class="ua-or-rs-field ua-or-rs-field--merchant ua-or-rs-field--static" id="returnShipSelfMerchantRow">
+            <span class="ua-or-rs-field__label">商家地址</span>
+            <span class="ua-or-rs-field__value ua-or-rs-field__value--multi" id="returnShipSelfMerchantSummary">
+              <em id="returnShipSelfMerchantAddr">浙江省杭州市萧山区宁围街道 冷丰仓储物流中心 A区退货组</em>
+              <small id="returnShipSelfMerchantContact">杭州萧山仓 售后组 0571-88887777</small>
+            </span>
+          </div>
+          <button type="button" class="ua-or-rs-field" id="returnShipCourierRow">
+            <span class="ua-or-rs-field__label">快递公司</span>
+            <span class="ua-or-rs-field__value ua-or-rs-field__value--placeholder" id="returnShipCourierValue">请选择快递公司</span>
+            <span class="ua-or-rs-field__arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
+          </button>
+          <label class="ua-or-rs-field ua-or-rs-field--input">
+            <span class="ua-or-rs-field__label">物流单号</span>
+            <input type="text" class="ua-or-rs-field__input" id="returnShipTrackingInput" placeholder="请填写物流单号" inputmode="text">
+          </label>
+        </div>
+
+        <p class="ua-or-rs-agreement">提交代表您已阅读并同意<a href="#">《冷丰服务协议》</a></p>
+        <button type="button" class="ua-or-rs-submit" id="returnShipSubmitBtn">预约上门</button>
+      </section>
+
+      <section class="ua-or-card ua-or-detail-info" id="refundDetailInfoCard">
+        <div class="ua-or-product ua-or-detail-product" id="refundDetailProduct"></div>
+
+        <button type="button" class="ua-or-detail-link-row" id="refundNegotiateHistoryBtn">
+          <span class="ua-or-detail-link-row__label">协商历史</span>
+          <span class="ua-or-detail-link-row__action">查看</span>
+        </button>
+        <button type="button" class="ua-or-detail-link-row" id="refundHistoryRefundBtn">
+          <span class="ua-or-detail-link-row__label">历史退款记录</span>
+          <span class="ua-or-detail-link-row__action">查看</span>
+        </button>
+
+        <div class="ua-or-detail-aftersale" id="refundDetailAftersale" hidden>
+          <div class="ua-or-detail-info-row">
+            <span class="ua-or-detail-info-row__label">退款原因</span>
+            <span class="ua-or-detail-info-row__value" id="refundDetailReason">—</span>
+          </div>
+          <div class="ua-or-detail-info-row">
+            <span class="ua-or-detail-info-row__label">申请金额</span>
+            <span class="ua-or-detail-info-row__value ua-or-detail-info-row__value--amount" id="refundDetailAmount">—</span>
+          </div>
+          <div class="ua-or-detail-info-row">
+            <span class="ua-or-detail-info-row__label">申请时间</span>
+            <span class="ua-or-detail-info-row__value" id="refundDetailApplyTime">—</span>
+          </div>
+          <div class="ua-or-detail-info-row">
+            <span class="ua-or-detail-info-row__label">退款编号</span>
+            <span class="ua-or-detail-info-row__value ua-or-detail-info-row__value--copy">
+              <span id="refundDetailNo">—</span>
+              <button type="button" class="ua-or-detail-copy" id="refundDetailCopyBtn">复制</button>
+            </span>
+          </div>
+        </div>
+
+        <button type="button" class="ua-or-detail-aftersale-toggle" id="refundAftersaleToggle" aria-expanded="false">
+          <span id="refundAftersaleToggleText">查看全部售后信息</span>
+          <svg class="ua-or-detail-aftersale-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+      </section>
+    </div>
+
+    <footer class="ua-or-detail-footer ua-or-detail-footer--close-return" id="refundDetailFooter">
+      <button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--ghost" id="refundDetailCloseReturnBtn">关闭退货</button>
+    </footer>
+
+    <div class="ua-or-negotiate" id="refundNegotiatePanel" hidden>
+      <div class="ua-or-negotiate__status">
+        <span>9:41</span>
+        <span class="ua-status-bar__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#111"><path d="M1 7h2v4H1V7zm4-2h2v6H5V5zm4-3h2v9H9V2zm4 5h2v4h-2V7z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#111"/></svg>
+        </span>
+      </div>
+      <header class="ua-or-negotiate__nav">
+        <button type="button" class="ua-or-negotiate__back" id="refundNegotiateBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+        <h2 class="ua-or-negotiate__title">协商历史</h2>
+      </header>
+      <div class="ua-or-negotiate__scroll" id="refundNegotiateList"></div>
+    </div>
+
+    <div class="ua-or-sheet" id="refundCloseReturnSheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="refundCloseReturnSheet"></div>
+      <div class="ua-or-sheet__panel ua-or-close-return-panel">
+        <div class="ua-or-close-return-panel__head">
+          <h3 class="ua-or-close-return-panel__title">请选择关闭原因</h3>
+          <button type="button" class="ua-or-sheet__close" data-or-sheet-close="refundCloseReturnSheet" aria-label="关闭">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="ua-or-close-return-panel__tip" id="refundCloseReturnTip">最多可取消3次，您仅剩3次取消机会</div>
+        <div class="ua-or-close-return-panel__list" id="refundCloseReturnList" role="radiogroup" aria-label="关闭原因"></div>
+        <div class="ua-or-close-return-panel__foot">
+          <button type="button" class="ua-or-close-return-panel__confirm" id="refundCloseReturnConfirm">完成</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ua-or-sheet" id="refundHistorySheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="refundHistorySheet"></div>
+      <div class="ua-or-sheet__panel ua-or-history-panel">
+        <div class="ua-or-history-panel__head">
+          <h3 class="ua-or-history-panel__title">宝贝售后详情</h3>
+          <button type="button" class="ua-or-sheet__close" data-or-sheet-close="refundHistorySheet" aria-label="关闭">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="ua-or-history-panel__list" id="refundHistoryList"></div>
+      </div>
+    </div>
+
+    <div class="ua-or-sheet" id="refundPickupAddressSheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="refundPickupAddressSheet"></div>
+      <div class="ua-or-sheet__panel">
+        <h3 class="ua-or-sheet__title">取件地址</h3>
+        <div class="ua-or-picker__list" id="refundPickupAddressList"></div>
+        <button type="button" class="ua-or-sheet__confirm" id="refundPickupAddressConfirm">确定</button>
+      </div>
+    </div>
+
+    <div class="ua-or-sheet" id="refundPickupTimeSheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="refundPickupTimeSheet"></div>
+      <div class="ua-or-sheet__panel ua-or-pickup-time-panel">
+        <div class="ua-or-pickup-time-panel__head">
+          <h3 class="ua-or-pickup-time-panel__title">选择上门时间段</h3>
+          <button type="button" class="ua-or-sheet__close" data-or-sheet-close="refundPickupTimeSheet" aria-label="关闭">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+        <div class="ua-or-pickup-time-panel__notice">
+          <span class="ua-or-pickup-time-panel__notice-icon" aria-hidden="true">i</span>
+          <span>请选择上门时间，可随时修改取消</span>
+        </div>
+        <div class="ua-or-pickup-time-panel__body">
+          <div class="ua-or-pickup-cal" id="refundPickupCal">
+            <div class="ua-or-pickup-cal__month" id="refundPickupCalMonth"></div>
+            <div class="ua-or-pickup-cal__weekdays">
+              <span>周一</span><span>周二</span><span>周三</span><span>周四</span><span>周五</span><span>周六</span><span>周日</span>
+            </div>
+            <div class="ua-or-pickup-cal__grid" id="refundPickupCalGrid"></div>
+          </div>
+          <div class="ua-or-pickup-slots" id="refundPickupTimeList"></div>
+        </div>
+        <button type="button" class="ua-or-pickup-time-panel__confirm" id="refundPickupTimeConfirm">请选择上门时间</button>
+      </div>
+    </div>
+
+    <div class="ua-or-sheet" id="refundCourierSheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="refundCourierSheet"></div>
+      <div class="ua-or-sheet__panel ua-or-sheet__panel--courier">
+        <div class="ua-or-sheet__head">
+          <h3 class="ua-or-sheet__title ua-or-sheet__title--left">快递选择</h3>
+          <button type="button" class="ua-or-sheet__close" data-or-sheet-close="refundCourierSheet" aria-label="关闭">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="ua-or-picker__list" id="refundCourierList"></div>
+      </div>
+    </div>
+
+    <div class="ua-or-toast" id="refundDetailToast" hidden></div>
+  </div>
+  <script src="../js/user-app-order-refund.js?v=20260718-return-ship-v7"></script>
+  <script>UAOrderRefund.initReturnShipPage();</script>
+</body>
+</html>

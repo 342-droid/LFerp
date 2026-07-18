@@ -1131,19 +1131,33 @@ body.ua-or-sheet-open {
   z-index: 10;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 4px;
   height: 44px;
-  padding: 0 88px 0 44px;
+  padding: 0 8px 0 4px;
   background: #ff7a45;
 }
 
+.ua-or-detail-nav__title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  line-height: 1;
+  text-align: center;
+}
+
+.ua-or-nav-steps[hidden] {
+  display: none !important;
+}
+
 .ua-or-detail-nav__back {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 32px;
-  height: 32px;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1152,39 +1166,14 @@ body.ua-or-sheet-open {
 }
 
 .ua-or-detail-nav__back svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
 }
 
-.ua-or-detail-nav__title {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 700;
-  color: #fff;
-}
-
-.ua-or-detail-nav__actions {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.ua-or-detail-nav__icon {
-  width: 32px;
-  height: 32px;
-  border: 0;
-  background: transparent;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-
-.ua-or-detail-nav__icon svg {
-  width: 18px;
-  height: 18px;
+.ua-or-detail-nav__placeholder {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
 }
 
 .ua-or-detail-hero {
@@ -1939,9 +1928,13 @@ body.ua-or-sheet-open {
 }
 
 .ua-order-refund-detail-page--result .ua-or-detail-nav__back,
-.ua-order-refund-detail-page--result .ua-or-detail-nav__title,
-.ua-order-refund-detail-page--result .ua-or-detail-nav__icon {
+.ua-order-refund-detail-page--result .ua-or-detail-nav__title {
   color: #333;
+}
+
+.ua-order-refund-detail-page--closed-hero .ua-or-detail-nav__back,
+.ua-order-refund-detail-page--closed-hero .ua-or-detail-nav__title {
+  color: #fff;
 }
 
 .ua-order-refund-detail-page--result .ua-or-detail-scroll {
@@ -2087,6 +2080,212 @@ body.ua-or-sheet-open {
   flex: none;
   min-width: 120px;
   padding: 0 20px;
+}
+
+.ua-or-detail-footer--close-return {
+  justify-content: flex-end;
+  gap: 0;
+  padding: 8px 14px calc(8px + env(safe-area-inset-bottom, 0));
+}
+
+.ua-or-detail-footer--close-return .ua-or-detail-footer__btn {
+  flex: none;
+  min-width: 0;
+  height: 36px;
+  padding: 0 18px;
+  border-radius: 18px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 34px;
+  border-color: #e5e5e5;
+  color: #333;
+}
+
+/* ── 退款结束（关闭）Hero 风格 ── */
+.ua-order-refund-detail-page--closed-hero .ua-or-detail-scroll {
+  padding-bottom: 24px;
+}
+
+.ua-order-refund-detail-page--closed-hero #refundClosedCancelHead {
+  display: none !important;
+}
+
+.ua-order-refund-detail-page--closed-hero #refundDetailSteps {
+  display: none !important;
+}
+
+.ua-order-refund-detail-page--closed-hero .ua-or-detail-hero {
+  padding-bottom: 16px;
+}
+
+/* ── 撤销关闭结果页（旧，保留兼容） ── */
+.ua-order-refund-detail-page--closed-cancel .ua-or-detail-nav {
+  height: auto;
+  min-height: 44px;
+  padding: 8px 88px 10px 44px;
+  align-items: flex-start;
+}
+
+.ua-order-refund-detail-page--closed-cancel .ua-or-detail-nav__title {
+  display: none;
+}
+
+.ua-or-nav-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.ua-or-nav-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  line-height: 1.3;
+  color: #999;
+  white-space: nowrap;
+}
+
+.ua-or-nav-step.is-active {
+  color: #111;
+  font-weight: 700;
+}
+
+.ua-or-nav-step__mark {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.ua-or-nav-step.is-done .ua-or-nav-step__mark {
+  color: #bbb;
+}
+
+.ua-or-closed-cancel-head {
+  padding: 14px 16px 12px;
+  background: #fff;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.ua-or-closed-cancel-head__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.35;
+}
+
+.ua-or-closed-cancel-head__sub {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #999;
+  line-height: 1.5;
+}
+
+.ua-order-refund-detail-page--closed-cancel .ua-or-detail-info {
+  margin: 0;
+  border-radius: 0;
+}
+
+.ua-order-refund-detail-page--closed-cancel .ua-or-detail-info__title {
+  display: none;
+}
+
+.ua-order-refund-detail-page--closed-cancel .ua-or-detail-product {
+  border-bottom: none;
+}
+
+.ua-or-product__vip-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #ff5000;
+  line-height: 1.4;
+  text-decoration: none;
+}
+
+.ua-or-product__vip-link svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.ua-or-detail-info-row__value--amount-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  text-align: right;
+}
+
+.ua-or-detail-info-row__amount-main {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.45;
+}
+
+.ua-or-detail-info-row__amount-sub {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.45;
+}
+
+.ua-or-detail-footer--seller {
+  justify-content: flex-start;
+  padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0));
+}
+
+.ua-or-detail-footer__seller {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 44px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #ff5000;
+  font-size: 11px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.ua-or-detail-footer__seller svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ua-order-refund-detail-page--closed-cancel .ua-or-detail-scroll {
+  padding-bottom: 56px;
+}
+
+.ua-order-refund-detail-page--closed-cancel .ua-or-detail-aftersale-toggle.is-open .ua-or-detail-aftersale-toggle__icon {
+  transform: rotate(180deg);
+}
+
+.ua-order-refund-detail-page--closed-cancel .ua-or-detail-link-row__action::after {
+  content: ' >';
+}
+
+.ua-order-refund-detail-page--closed-cancel .ua-or-detail-copy {
+  color: #666;
+}
+
+.ua-order-refund-detail-page--closed-cancel .ua-or-product__name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ua-or-nav-step.is-done .ua-or-nav-step__mark {
+  font-size: 10px;
+  color: #ccc;
+  margin-left: 1px;
 }
 
 /* ── 补货/换货规格选择 ── */
@@ -4852,4 +5051,209 @@ body.ua-or-sheet-open {
   transform: rotate(180deg);
 }
 
+/* ── 预约寄件 / 重新寄回页 ── */
+.ua-or-return-ship-page .ua-or-return-ship-scroll {
+  padding-bottom: 88px;
+}
+
+.ua-or-return-ship-page .ua-or-detail-info {
+  margin-top: 10px;
+}
+
+.ua-or-rs-field--static {
+  cursor: default;
+  pointer-events: none;
+}
+
+.ua-or-rs-field__value--multi small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #666;
+  font-style: normal;
+  line-height: 1.45;
+}
+
+.ua-or-rs-card {
+  margin: 10px 12px 0;
+  padding: 0 0 14px;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.ua-or-rs-tabs {
+  display: flex;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.ua-or-rs-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 6px 10px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  text-align: center;
+}
+
+.ua-or-rs-tab.is-active {
+  border-bottom-color: #ff5000;
+}
+
+.ua-or-rs-tab__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.3;
+}
+
+.ua-or-rs-tab.is-active .ua-or-rs-tab__name {
+  color: #ff5000;
+}
+
+.ua-or-rs-tab__sub {
+  font-size: 11px;
+  color: #999;
+  line-height: 1.3;
+}
+
+.ua-or-rs-promo {
+  margin: 0;
+  padding: 10px 14px 0;
+  font-size: 12px;
+  color: #ff5000;
+  line-height: 1.45;
+}
+
+.ua-or-rs-panel {
+  padding: 0 14px;
+}
+
+.ua-or-rs-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 0;
+  border: none;
+  border-bottom: 1px solid #f5f5f5;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.ua-or-rs-field:last-child {
+  border-bottom: none;
+}
+
+.ua-or-rs-field--input {
+  cursor: default;
+  align-items: center;
+}
+
+.ua-or-rs-field__label {
+  flex-shrink: 0;
+  width: 72px;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.45;
+}
+
+.ua-or-rs-field__value {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.45;
+  text-align: right;
+}
+
+.ua-or-rs-field__value--placeholder {
+  color: #ccc;
+}
+
+.ua-or-rs-field__value--multi em {
+  font-style: normal;
+  display: block;
+}
+
+.ua-or-rs-field__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: #333;
+  text-align: right;
+  outline: none;
+}
+
+.ua-or-rs-field__input::placeholder {
+  color: #ccc;
+}
+
+.ua-or-rs-field__arrow {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: #ccc;
+  margin-top: 2px;
+}
+
+.ua-or-rs-field__arrow svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ua-or-rs-field__arrow--toggle.is-open svg {
+  transform: rotate(180deg);
+}
+
+.ua-or-rs-merchant-detail {
+  padding: 0 0 12px 82px;
+  font-size: 13px;
+  color: #666;
+  line-height: 1.55;
+}
+
+.ua-or-rs-agreement {
+  margin: 8px 14px 0;
+  font-size: 11px;
+  color: #999;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.ua-or-rs-agreement a {
+  color: #ff5000;
+  text-decoration: none;
+}
+
+.ua-or-rs-submit {
+  display: block;
+  width: calc(100% - 28px);
+  height: 44px;
+  margin: 12px 14px 0;
+  border: none;
+  border-radius: 22px;
+  background: linear-gradient(90deg, #ff7a45 0%, #ff5000 100%);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ua-or-cancel-pickup-panel__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #111;
+  text-align: center;
+}
 

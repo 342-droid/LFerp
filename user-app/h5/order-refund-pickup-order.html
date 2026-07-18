@@ -126,8 +126,8 @@
           <div class="ua-or-po-ship__addr">
             <span class="ua-or-po-ship__tag ua-or-po-ship__tag--recv">收</span>
             <div class="ua-or-po-ship__addr-body">
-              <div class="ua-or-po-ship__contact" id="pickupOrderRecvContact">马小羊 18915686957</div>
-              <div class="ua-or-po-ship__line" id="pickupOrderRecvAddr">江苏省苏州市张家港市后塍街道 健康南路 12号</div>
+              <div class="ua-or-po-ship__contact" id="pickupOrderRecvContact">杭州萧山仓 售后组 0571-88887777</div>
+              <div class="ua-or-po-ship__line" id="pickupOrderRecvAddr">浙江省杭州市萧山区宁围街道 冷丰仓储物流中心 A区退货组</div>
             </div>
           </div>
         </div>
@@ -172,6 +172,23 @@
       </section>
     </div>
 
+    <div class="ua-or-sheet" id="refundCancelPickupSheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="refundCancelPickupSheet"></div>
+      <div class="ua-or-sheet__panel ua-or-close-return-panel">
+        <div class="ua-or-close-return-panel__head">
+          <h3 class="ua-or-close-return-panel__title">请选择取消原因</h3>
+          <button type="button" class="ua-or-sheet__close" data-or-sheet-close="refundCancelPickupSheet" aria-label="关闭">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="ua-or-close-return-panel__tip" id="refundCancelPickupTip">最多可取消3次，您仅剩3次取消机会</div>
+        <div class="ua-or-close-return-panel__list" id="refundCancelPickupList" role="radiogroup" aria-label="取消原因"></div>
+        <div class="ua-or-close-return-panel__foot">
+          <button type="button" class="ua-or-close-return-panel__confirm" id="refundCancelPickupConfirm">完成</button>
+        </div>
+      </div>
+    </div>
+
     <div class="ua-or-sheet" id="refundCloseReturnSheet" hidden>
       <div class="ua-or-sheet__mask" data-or-sheet-close="refundCloseReturnSheet"></div>
       <div class="ua-or-sheet__panel ua-or-close-return-panel">
@@ -191,7 +208,7 @@
 
     <div class="ua-or-toast" id="refundDetailToast" hidden></div>
   </div>
-  <script src="../js/user-app-order-refund.js?v=20260718-pickup-share"></script>
+  <script src="../js/user-app-order-refund.js?v=20260718-return-ship-v4"></script>
   <script>UAOrderRefund.initPickupOrderPage();</script>
 </body>
 </html>
