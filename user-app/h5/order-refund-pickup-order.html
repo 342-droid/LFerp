@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>订单详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
-  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260718-detail-fix">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260718-pickup-share">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-or-pickup-order-page">
@@ -54,15 +54,6 @@
               <span class="ua-or-po-code__label">寄件码</span>
               <span class="ua-or-po-code__value" id="pickupOrderCode">0030</span>
             </div>
-            <button type="button" class="ua-or-po-code__share" id="pickupOrderShareCode">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <circle cx="18" cy="5" r="2"/>
-                <circle cx="6" cy="12" r="2"/>
-                <circle cx="18" cy="19" r="2"/>
-                <path d="M8.1 10.9l7.8-4.3M8.1 13.1l7.8 4.3"/>
-              </svg>
-              分享
-            </button>
           </div>
         </div>
 
@@ -82,7 +73,6 @@
             <span class="ua-or-po-guard__text">官方退货提供全程保障</span>
           </div>
           <div class="ua-or-po-guard__actions">
-            <button type="button" class="ua-or-po-guard__urge" id="pickupOrderUrgeBtn">催一催</button>
             <a class="ua-or-po-guard__phone" id="pickupOrderPhoneBtn" href="tel:4008001234" aria-label="联系快递员">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M7.2 3.8h3.1l1.2 4.2-2 1.2a12.5 12.5 0 005.3 5.3l1.2-2 4.2 1.2v3.1c0 .8-.4 1.5-1.2 1.8A16.6 16.6 0 015.4 5c.3-.8 1-.1.2-1.2z"/>
@@ -102,16 +92,6 @@
           </span>
           <span>修改信息</span>
         </button>
-        <button type="button" class="ua-or-po-actions__item" id="pickupOrderHandoverBtn">
-          <span class="ua-or-po-actions__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-              <rect x="4" y="8" width="16" height="11" rx="1.5"/>
-              <path d="M8 8V6.5A2.5 2.5 0 0110.5 4h3A2.5 2.5 0 0116 6.5V8"/>
-            </svg>
-            <i class="ua-or-po-actions__dot"></i>
-          </span>
-          <span>交件方式</span>
-        </button>
         <button type="button" class="ua-or-po-actions__item" id="pickupOrderCancelBtn">
           <span class="ua-or-po-actions__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
@@ -121,33 +101,13 @@
           </span>
           <span>取消寄件</span>
         </button>
-        <button type="button" class="ua-or-po-actions__item" id="pickupOrderPayBtn">
-          <span class="ua-or-po-actions__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-              <circle cx="12" cy="12" r="8"/>
-              <path d="M12 7v10M9.5 9.5c.6-.8 1.5-1.2 2.5-1.2 1.4 0 2.5.8 2.5 2s-1.1 2-2.5 2h-1c-1.4 0-2.5.8-2.5 2s1.1 2 2.5 2c1 0 1.9-.4 2.5-1.2"/>
-            </svg>
-          </span>
-          <span>支付</span>
-        </button>
-        <button type="button" class="ua-or-po-actions__item" id="pickupOrderCsBtn">
-          <span class="ua-or-po-actions__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-              <path d="M5 13v-2a7 7 0 0114 0v2"/>
-              <rect x="3.5" y="12" width="4" height="5.5" rx="1.5"/>
-              <rect x="16.5" y="12" width="4" height="5.5" rx="1.5"/>
-              <path d="M17 18.5v.5a3 3 0 01-3 3h-1"/>
-            </svg>
-          </span>
-          <span>客服</span>
-        </button>
       </section>
 
       <section class="ua-or-po-card ua-or-po-ship" id="pickupOrderShipCard">
         <div class="ua-or-po-ship__goods" id="pickupOrderGoodsBlock">
           <div class="ua-or-po-ship__goods-left">
             <img class="ua-or-po-ship__thumb" id="pickupOrderGoodsImg" src="../assets/order-product-1.svg" alt="">
-            <span class="ua-or-po-ship__goods-text" id="pickupOrderGoodsText">天猫退货 | 1件</span>
+            <span class="ua-or-po-ship__goods-text" id="pickupOrderGoodsText">冷丰退货 | 1件</span>
           </div>
           <button type="button" class="ua-or-po-ship__goods-link" id="pickupOrderGoodsLink">
             查看退货商品详情
@@ -212,9 +172,26 @@
       </section>
     </div>
 
+    <div class="ua-or-sheet" id="refundCloseReturnSheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="refundCloseReturnSheet"></div>
+      <div class="ua-or-sheet__panel ua-or-close-return-panel">
+        <div class="ua-or-close-return-panel__head">
+          <h3 class="ua-or-close-return-panel__title">请选择关闭原因</h3>
+          <button type="button" class="ua-or-sheet__close" data-or-sheet-close="refundCloseReturnSheet" aria-label="关闭">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="ua-or-close-return-panel__tip" id="refundCloseReturnTip">最多可取消3次，您仅剩3次取消机会</div>
+        <div class="ua-or-close-return-panel__list" id="refundCloseReturnList" role="radiogroup" aria-label="关闭原因"></div>
+        <div class="ua-or-close-return-panel__foot">
+          <button type="button" class="ua-or-close-return-panel__confirm" id="refundCloseReturnConfirm">完成</button>
+        </div>
+      </div>
+    </div>
+
     <div class="ua-or-toast" id="refundDetailToast" hidden></div>
   </div>
-  <script src="../js/user-app-order-refund.js?v=20260718-pickup-demo"></script>
+  <script src="../js/user-app-order-refund.js?v=20260718-pickup-share"></script>
   <script>UAOrderRefund.initPickupOrderPage();</script>
 </body>
 </html>

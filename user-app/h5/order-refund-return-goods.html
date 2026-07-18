@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>退货商品详情 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260718-return-goods">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-or-return-goods-page">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-or-return-goods-scroll">
+      <div class="ua-status-bar ua-status-bar--light">
+        <span>9:41</span>
+        <span class="ua-status-bar__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#fff"><path d="M1 7h2v4H1V7zm4-2h2v6H5V5zm4-3h2v9H9V2zm4 5h2v4h-2V7z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#fff"/></svg>
+        </span>
+      </div>
+
+      <header class="ua-or-rg-nav">
+        <a href="order-refund-pickup-order.html" class="ua-or-rg-nav__back" id="returnGoodsBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="ua-or-rg-nav__title">退货商品详情</h1>
+        <button type="button" class="ua-or-rg-nav__share" id="returnGoodsShare" aria-label="分享">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="18" cy="5" r="2.2"/>
+            <circle cx="6" cy="12" r="2.2"/>
+            <circle cx="18" cy="19" r="2.2"/>
+            <path d="M8.1 10.9l7.8-4.3M8.1 13.1l7.8 4.3"/>
+          </svg>
+        </button>
+      </header>
+
+      <section class="ua-or-rg-card">
+        <div class="ua-or-rg-pickup">
+          <img class="ua-or-rg-pickup__thumb" id="returnGoodsPickupImg" src="../assets/order-product-1.svg" alt="">
+          <div class="ua-or-rg-pickup__body">
+            <div class="ua-or-rg-pickup__time" id="returnGoodsPickupTime">明天 09:00-11:00 上门</div>
+            <div class="ua-or-rg-pickup__sender" id="returnGoodsSender">寄件信息：林晓棠 13856781234</div>
+            <div class="ua-or-rg-pickup__addr" id="returnGoodsAddr">浙江省杭州市西湖区文三路 西溪花园3幢2单元501室</div>
+          </div>
+        </div>
+
+        <div class="ua-or-rg-items" id="returnGoodsItems">
+          <div class="ua-or-rg-items__label">该订单包含商品：</div>
+          <div class="ua-or-rg-item">
+            <img class="ua-or-rg-item__thumb" id="returnGoodsItemImg" src="../assets/order-product-1.svg" alt="">
+            <div class="ua-or-rg-item__body">
+              <div class="ua-or-rg-item__name" id="returnGoodsItemName">冷丰优选智利车厘子 鲜脆清甜 礼盒装</div>
+              <div class="ua-or-rg-item__meta">
+                <span class="ua-or-rg-item__spec" id="returnGoodsItemSpec">规格：2.5kg</span>
+                <span class="ua-or-rg-item__qty" id="returnGoodsItemQty">x1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="ua-or-rg-toggle" id="returnGoodsToggleBtn">
+          收起
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 14l6-6 6 6"/></svg>
+        </button>
+      </section>
+    </div>
+
+    <div class="ua-or-toast" id="refundDetailToast" hidden></div>
+  </div>
+  <script src="../js/user-app-order-refund.js?v=20260718-return-goods"></script>
+  <script>UAOrderRefund.initReturnGoodsPage();</script>
+</body>
+</html>

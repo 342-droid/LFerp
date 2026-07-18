@@ -4147,7 +4147,8 @@ body.ua-or-sheet-open {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 .ua-or-po-code__box {
@@ -4171,25 +4172,6 @@ body.ua-or-sheet-open {
   font-size: 18px;
   font-weight: 800;
   letter-spacing: 0.5px;
-}
-
-.ua-or-po-code__share {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #ff6a00;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.ua-or-po-code__share svg {
-  width: 16px;
-  height: 16px;
 }
 
 .ua-or-po-guard {
@@ -4227,17 +4209,6 @@ body.ua-or-sheet-open {
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
-}
-
-.ua-or-po-guard__urge {
-  height: 28px;
-  padding: 0 12px;
-  border: 1px solid #eee;
-  border-radius: 14px;
-  background: #f7f7f7;
-  color: #ff6a00;
-  font-size: 13px;
-  cursor: pointer;
 }
 
 .ua-or-po-guard__phone {
@@ -4681,6 +4652,204 @@ body.ua-or-sheet-open {
   margin-top: 2px;
   font-size: 11px;
   color: #999;
+}
+
+/* 退货商品详情 */
+.ua-or-return-goods-page {
+  background: #eef1f6;
+}
+
+.ua-or-return-goods-scroll {
+  background: linear-gradient(180deg, #ecc394 0%, #f0d0b0 100px, #eef1f6 180px);
+  min-height: 100%;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0));
+  box-sizing: border-box;
+}
+
+.ua-or-rg-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px 12px 4px;
+  color: #333;
+}
+
+.ua-or-rg-nav__back,
+.ua-or-rg-nav__share {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.ua-or-rg-nav__back svg,
+.ua-or-rg-nav__share svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ua-or-rg-nav__title {
+  margin: 0;
+  flex: 1;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 700;
+  color: #222;
+}
+
+.ua-or-rg-card {
+  margin: 0 12px;
+  padding: 14px 12px 10px;
+  background: #fff;
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+
+.ua-or-rg-pickup {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding-bottom: 14px;
+}
+
+.ua-or-rg-pickup__thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #f3f3f3;
+  flex-shrink: 0;
+}
+
+.ua-or-rg-pickup__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.ua-or-rg-pickup__time {
+  font-size: 15px;
+  font-weight: 700;
+  color: #222;
+  line-height: 1.35;
+}
+
+.ua-or-rg-pickup__sender {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #888;
+  line-height: 1.4;
+}
+
+.ua-or-rg-pickup__addr {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #888;
+  line-height: 1.45;
+}
+
+.ua-or-rg-items {
+  padding: 12px 10px;
+  border-radius: 8px;
+  background: #f7f8fb;
+  box-sizing: border-box;
+}
+
+.ua-or-rg-items__label {
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.3;
+}
+
+.ua-or-rg-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.ua-or-rg-item__thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #eee;
+  flex-shrink: 0;
+}
+
+.ua-or-rg-item__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.ua-or-rg-item__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ua-or-rg-item__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.ua-or-rg-item__spec {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ua-or-rg-item__qty {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #999;
+}
+
+.ua-or-rg-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 4px 0 0;
+  border: 0;
+  background: transparent;
+  color: #c8956a;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.ua-or-rg-toggle svg {
+  width: 14px;
+  height: 14px;
+}
+
+.ua-or-rg-card.is-collapsed .ua-or-rg-items {
+  display: none;
+}
+
+.ua-or-rg-card.is-collapsed .ua-or-rg-toggle svg {
+  transform: rotate(180deg);
 }
 
 
