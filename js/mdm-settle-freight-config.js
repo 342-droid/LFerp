@@ -4,6 +4,10 @@
 (function () {
   var PAGE_SIZE_OPTIONS = [20, 50, 100];
   var APP_PORTS = ['代采端', 'c端'];
+  var FULFILLMENT_BY_PORT = {
+    代采端: ['配送', '快递'],
+    c端: ['自提', '快递']
+  };
   var BILLING_METHOD = '货款阶梯价格';
   var REGION_NATIONWIDE = '全国';
   var REGION_TREE_4 = {
@@ -99,6 +103,7 @@
       code: '202509290003',
       name: '山东仓-代采费',
       appPort: '代采端',
+      fulfillmentMethod: '配送',
       validStart: '2025-09-01',
       validEnd: '2025-10-31',
       billingMethod: BILLING_METHOD,
@@ -108,6 +113,7 @@
       code: '202509290002',
       name: '南京仓-全量撮合',
       appPort: '代采端',
+      fulfillmentMethod: '快递',
       validStart: '2025-09-01',
       validEnd: '2025-12-31',
       billingMethod: BILLING_METHOD,
@@ -117,6 +123,7 @@
       code: '202509240002',
       name: '山东仓-运费模板',
       appPort: 'c端',
+      fulfillmentMethod: '快递',
       validStart: '2025-09-01',
       validEnd: '2025-12-31',
       billingMethod: BILLING_METHOD,
@@ -126,6 +133,7 @@
       code: '202509230008',
       name: '嘉兴仓-代采费',
       appPort: '代采端',
+      fulfillmentMethod: '配送',
       validStart: '2025-09-01',
       validEnd: '2025-10-31',
       billingMethod: BILLING_METHOD,
@@ -135,6 +143,7 @@
       code: '202509230004',
       name: '山东仓-自提费',
       appPort: '代采端',
+      fulfillmentMethod: '配送',
       validStart: '2025-09-01',
       validEnd: '2026-03-01',
       billingMethod: BILLING_METHOD,
@@ -144,6 +153,7 @@
       code: '202509230003',
       name: '南京仓-代采费',
       appPort: '代采端',
+      fulfillmentMethod: '快递',
       validStart: '2025-09-01',
       validEnd: '2025-11-01',
       billingMethod: BILLING_METHOD,
@@ -153,6 +163,7 @@
       code: '202509230001',
       name: '山东仓-基础运费',
       appPort: 'c端',
+      fulfillmentMethod: '自提',
       validStart: '2025-09-01',
       validEnd: '2025-10-31',
       billingMethod: BILLING_METHOD,
@@ -164,6 +175,7 @@
     keywordCode: '',
     keywordName: '',
     filterAppPort: '',
+    filterFulfillment: '',
     page: 1,
     pageSize: 20,
     selected: {},
@@ -216,10 +228,12 @@
     var code = String(state.keywordCode || '').trim().toLowerCase();
     var name = String(state.keywordName || '').trim().toLowerCase();
     var port = String(state.filterAppPort || '').trim();
+    var fulfillment = String(state.filterFulfillment || '').trim();
     return MOCK_ROWS.filter(function (row) {
       if (code && String(row.code).toLowerCase().indexOf(code) < 0) return false;
       if (name && String(row.name).toLowerCase().indexOf(name) < 0) return false;
       if (port && String(row.appPort || '') !== port) return false;
+      if (fulfillment && String(row.fulfillmentMethod || '') !== fulfillment) return false;
       return true;
     });
   }
@@ -287,6 +301,9 @@
             '</td>' +
             '<td class="sf-table__port">' +
             escapeHtml(row.appPort) +
+            '</td>' +
+            '<td class="sf-table__fulfillment">' +
+            escapeHtml(row.fulfillmentMethod || '—') +
             '</td>' +
             '<td class="sf-table__valid" title="' +
             escapeHtml(period) +
@@ -614,9 +631,15 @@
     renderLists();
   }
 
+  function ensureFirstTierStartZero() {
+    if (!state.tiers.length) return;
+    state.tiers[0].startAmount = '0';
+  }
+
   function renderTier(tbody, readonly) {
     if (!tbody) return;
     var isReadonly = !!readonly;
+    ensureFirstTierStartZero();
     if (!state.tiers.length) {
       tbody.innerHTML =
         '<tr><td colspan="' +
@@ -629,6 +652,7 @@
     tbody.innerHTML = state.tiers
       .map(function (tier, idx) {
         var regionText = tier.region || '';
+        var startVal = idx === 0 ? '0' : tier.startAmount;
         if (isReadonly) {
           return (
             '<tr data-tier-idx="' +
@@ -640,7 +664,7 @@
             escapeHtml(regionText || '—') +
             '</td>' +
             '<td>' +
-            escapeHtml(tier.startAmount) +
+            escapeHtml(startVal) +
             '</td>' +
             '<td>' +
             escapeHtml(tier.endAmount) +
@@ -664,8 +688,10 @@
           '<span class="sf-region-trigger__arrow">▾</span>' +
           '</button></td>' +
           '<td><input class="sf-input js-tier-start" type="number" step="0.01" min="0" value="' +
-          escapeHtml(tier.startAmount) +
-          '"></td>' +
+          escapeHtml(startVal) +
+          '"' +
+          (idx === 0 ? ' disabled title="第一条起始货款固定为0"' : '') +
+          '></td>' +
           '<td><input class="sf-input js-tier-end" type="number" step="0.01" min="0" value="' +
           escapeHtml(tier.endAmount) +
           '"></td>' +
@@ -695,11 +721,12 @@
       }
       state.tiers[idx] = {
         region: regionText,
-        startAmount: start ? start.value : '0.00',
-        endAmount: end ? end.value : '0.00',
-        freight: freight ? freight.value : '0.00'
+        startAmount: idx === 0 ? '0' : start ? start.value : '',
+        endAmount: end ? end.value : '',
+        freight: freight ? freight.value : ''
       };
     });
+    ensureFirstTierStartZero();
   }
 
   function validateTiers(tiers) {
@@ -757,15 +784,16 @@
     state.editCode = isEdit || isView ? row.code : null;
     state.tiers = (row && row.tiers && row.tiers.length
       ? row.tiers
-      : [{ region: '', startAmount: '0.00', endAmount: '0.00', freight: '0.00' }]
+      : [{ region: '', startAmount: '0', endAmount: '', freight: '' }]
     ).map(function (t) {
       return {
         region: t.region || '',
-        startAmount: t.startAmount != null ? String(t.startAmount) : '0.00',
-        endAmount: t.endAmount != null ? String(t.endAmount) : '0.00',
-        freight: t.freight != null ? String(t.freight) : '0.00'
+        startAmount: t.startAmount != null ? String(t.startAmount) : '',
+        endAmount: t.endAmount != null ? String(t.endAmount) : '',
+        freight: t.freight != null ? String(t.freight) : ''
       };
     });
+    ensureFirstTierStartZero();
 
     var backdrop = el('div', 'sf-drawer-backdrop' + (isView ? ' is-view' : ''));
     var drawer = el('aside', 'sf-drawer' + (isView ? ' sf-drawer--view' : ''));
@@ -838,6 +866,39 @@
       portSel.appendChild(opt);
     });
 
+    var fulfillmentSel = document.createElement('select');
+    fulfillmentSel.className = 'sf-select';
+    fulfillmentSel.id = 'sfFormFulfillment';
+    fulfillmentSel.disabled = isView;
+
+    function fillFulfillmentOptions(port, preferred) {
+      var options = FULFILLMENT_BY_PORT[port] || [];
+      var keep = preferred && options.indexOf(preferred) >= 0 ? preferred : '';
+      fulfillmentSel.innerHTML = '';
+      var ph = document.createElement('option');
+      ph.value = '';
+      ph.textContent = port ? '请选择' : '请先选择应用端口';
+      fulfillmentSel.appendChild(ph);
+      options.forEach(function (v) {
+        var opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = v;
+        if (keep && v === keep) opt.selected = true;
+        fulfillmentSel.appendChild(opt);
+      });
+      fulfillmentSel.disabled = isView || !port;
+    }
+
+    fillFulfillmentOptions(
+      isCreate ? '' : row.appPort || '',
+      isCreate ? '' : row.fulfillmentMethod || ''
+    );
+
+    portSel.addEventListener('change', function () {
+      var prev = fulfillmentSel.value;
+      fillFulfillmentOptions(portSel.value, prev);
+    });
+
     var dateWrap = el('div', 'sf-date-range' + (isView ? ' is-disabled' : ''));
     var startInp = document.createElement('input');
     startInp.type = 'date';
@@ -869,6 +930,7 @@
     grid.appendChild(formItem('模板编码', true, codeInp));
     grid.appendChild(formItem('模板名称', true, nameInp));
     grid.appendChild(formItem('应用端口', true, portSel));
+    grid.appendChild(formItem('履约方式', true, fulfillmentSel));
     grid.appendChild(formItem('有效期', true, dateWrap));
     grid.appendChild(formItem('计费方式', true, billingSel));
     basicBody.appendChild(grid);
@@ -967,7 +1029,14 @@
 
     addTierBtn.addEventListener('click', function () {
       syncTierFromDom(tierTbody);
-      state.tiers.push({ region: '', startAmount: '0.00', endAmount: '0.00', freight: '0.00' });
+      var isFirst = state.tiers.length === 0;
+      state.tiers.push({
+        region: '',
+        startAmount: isFirst ? '0' : '',
+        endAmount: '',
+        freight: ''
+      });
+      ensureFirstTierStartZero();
       renderTier(tierTbody, false);
     });
 
@@ -993,6 +1062,7 @@
       syncTierFromDom(tierTbody);
       var idx = parseInt(tr.getAttribute('data-tier-idx'), 10);
       state.tiers.splice(idx, 1);
+      ensureFirstTierStartZero();
       renderTier(tierTbody, false);
     });
 
@@ -1000,9 +1070,11 @@
       syncTierFromDom(tierTbody);
       var name = String(nameInp.value || '').trim();
       var port = portSel.value;
+      var fulfillment = fulfillmentSel.value;
       var start = startInp.value;
       var end = endInp.value;
       var code = codeInp.value;
+      var allowedFulfillment = FULFILLMENT_BY_PORT[port] || [];
 
       if (!name) {
         if (typeof showToast === 'function') showToast('请输入模板名称', 'error');
@@ -1011,6 +1083,14 @@
       }
       if (!port) {
         if (typeof showToast === 'function') showToast('请选择应用端口', 'error');
+        return;
+      }
+      if (!fulfillment) {
+        if (typeof showToast === 'function') showToast('请选择履约方式', 'error');
+        return;
+      }
+      if (allowedFulfillment.indexOf(fulfillment) < 0) {
+        if (typeof showToast === 'function') showToast('履约方式与应用端口不匹配', 'error');
         return;
       }
       if (!start || !end) {
@@ -1035,6 +1115,7 @@
         code: code,
         name: name,
         appPort: port,
+        fulfillmentMethod: fulfillment,
         validStart: start,
         validEnd: end,
         billingMethod: BILLING_METHOD,
@@ -1063,6 +1144,27 @@
     }, 0);
   }
 
+  function syncFilterFulfillmentOptions() {
+    var portEl = $('sfAppPort');
+    var fulfillmentEl = $('sfFulfillment');
+    if (!fulfillmentEl) return;
+    var port = portEl ? portEl.value : '';
+    var preferred = fulfillmentEl.value;
+    var options = port ? FULFILLMENT_BY_PORT[port] || [] : ['配送', '自提', '快递'];
+    fulfillmentEl.innerHTML = '';
+    var allOpt = document.createElement('option');
+    allOpt.value = '';
+    allOpt.textContent = '全部';
+    fulfillmentEl.appendChild(allOpt);
+    options.forEach(function (v) {
+      var opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = v;
+      if (preferred && preferred === v) opt.selected = true;
+      fulfillmentEl.appendChild(opt);
+    });
+  }
+
   function bindEvents() {
     var queryBtn = $('sfFilterQuery');
     var resetBtn = $('sfFilterReset');
@@ -1075,12 +1177,20 @@
     var pagesEl = $('sfPaginationPages');
     var jumpEl = $('sfJumpPage');
     var jumpGo = $('sfJumpGo');
+    var appPortEl = $('sfAppPort');
+
+    if (appPortEl) {
+      appPortEl.addEventListener('change', function () {
+        syncFilterFulfillmentOptions();
+      });
+    }
 
     if (queryBtn) {
       queryBtn.addEventListener('click', function () {
         state.keywordCode = ($('sfCode') && $('sfCode').value) || '';
         state.keywordName = ($('sfName') && $('sfName').value) || '';
         state.filterAppPort = ($('sfAppPort') && $('sfAppPort').value) || '';
+        state.filterFulfillment = ($('sfFulfillment') && $('sfFulfillment').value) || '';
         state.page = 1;
         renderTable();
       });
@@ -1091,9 +1201,12 @@
         if ($('sfCode')) $('sfCode').value = '';
         if ($('sfName')) $('sfName').value = '';
         if ($('sfAppPort')) $('sfAppPort').value = '';
+        if ($('sfFulfillment')) $('sfFulfillment').value = '';
+        syncFilterFulfillmentOptions();
         state.keywordCode = '';
         state.keywordName = '';
         state.filterAppPort = '';
+        state.filterFulfillment = '';
         state.page = 1;
         renderTable();
       });
@@ -1236,6 +1349,7 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     bindEvents();
+    syncFilterFulfillmentOptions();
     renderTable();
   });
 })();

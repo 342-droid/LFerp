@@ -2019,7 +2019,8 @@
   font-size: 11px;
   color: #666;
   text-align: right;
-  line-height: 1.3;
+  line-height: 1.35;
+  word-break: break-all;
 }
 
 .ua-restock-cart-freight--done .ua-restock-cart-freight__text {
@@ -2549,6 +2550,150 @@
 
 .ua-restock-cart-delete-modal__btn--confirm:active {
   background: #e6452b;
+}
+
+.ua-restock-freight-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 28px;
+}
+
+.ua-restock-freight-modal[hidden] {
+  display: none !important;
+}
+
+.ua-restock-freight-modal__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.ua-restock-freight-modal__panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 320px;
+  max-height: min(72vh, 520px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.ua-restock-freight-modal__head {
+  position: relative;
+  flex-shrink: 0;
+  padding: 18px 40px 10px;
+  text-align: center;
+}
+
+.ua-restock-freight-modal__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1.4;
+}
+
+.ua-restock-freight-modal__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: #999;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ua-restock-freight-modal__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 16px 8px;
+}
+
+.ua-restock-freight-rules__intro {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.ua-restock-freight-rules__section {
+  margin-bottom: 14px;
+}
+
+.ua-restock-freight-rules__section:last-child {
+  margin-bottom: 0;
+}
+
+.ua-restock-freight-rules__title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.ua-restock-freight-rules__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 13px;
+  color: #666;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.ua-restock-freight-rules__item:last-child {
+  border-bottom: none;
+}
+
+.ua-restock-freight-rules__fee {
+  flex-shrink: 0;
+  color: #333;
+}
+
+.ua-restock-freight-rules__note {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
+.ua-restock-freight-modal__foot {
+  flex-shrink: 0;
+  padding: 8px 16px 14px;
+  display: flex;
+  justify-content: center;
+}
+
+.ua-restock-freight-modal__ok {
+  min-width: 88px;
+  height: 32px;
+  padding: 0 16px;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  background: #fff;
+  color: #666;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.ua-restock-freight-modal__ok:active {
+  background: #f5f5f5;
 }
 
 .ua-restock-cart-qty {

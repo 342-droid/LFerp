@@ -262,6 +262,7 @@ select.sf-filter-field__input {
 }
 
 .sf-table__port,
+.sf-table__fulfillment,
 .sf-table__valid,
 .sf-table__billing-method {
   min-width: 120px;

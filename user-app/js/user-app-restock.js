@@ -196,10 +196,206 @@
 
   var DEFAULT_SUPPLIER = { id: 'supplier-lengfeng', name: '冷丰优选供应链' };
 
-  var PLATFORM_FREIGHT = {
-    threshold: 399,
-    fee: 6
+  /* 配送货款阶梯运费；现阶段快递不收运费 */
+  var DELIVERY_FREIGHT_TIERS = [
+    { start: 0, end: 200, freight: 12 },
+    { start: 200, end: 399, freight: 8 },
+    { start: 399, end: Infinity, freight: 0 }
+  ];
+  var EXPRESS_FREIGHT_ENABLED = false;
+
+  var FULFILLMENT_BY_SPU = {
+    cola: '快递',
+    water: '快递',
+    tea: '快递',
+    egg: '快递',
+    'eggplant-long': '配送',
+    'eggplant-round': '配送',
+    'leaf-y1': '配送',
+    'leaf-y4': '配送',
+    tomato: '配送',
+    'leaf-c1': '配送'
   };
+
+  function resolveFulfillmentMethod(item) {
+    if (item && item.fulfillmentMethod) return item.fulfillmentMethod;
+    var spuId = (item && (item.spuId || item.id)) || '';
+    spuId = String(spuId).replace(/-\d+$/, '').replace(/-default$/, '');
+    return FULFILLMENT_BY_SPU[spuId] || '配送';
+  }
+
+  function formatFreightYuan(num) {
+    var n = Math.round(Number(num) * 100) / 100;
+    return n % 1 === 0 ? String(Math.round(n)) : n.toFixed(2);
+  }
+
+  function matchFreightTier(amount, tiers) {
+    var list = tiers || [];
+    var amt = Math.max(0, Number(amount) || 0);
+    var current = list[0] || { start: 0, end: Infinity, freight: 0 };
+    var idx = 0;
+    for (var i = 0; i < list.length; i++) {
+      var t = list[i];
+      if (amt >= t.start && amt < t.end) {
+        current = t;
+        idx = i;
+        break;
+      }
+      if (i === list.length - 1 && amt >= t.start) {
+        current = t;
+        idx = i;
+      }
+    }
+    var next = null;
+    for (var j = idx + 1; j < list.length; j++) {
+      if (list[j].freight < current.freight) {
+        next = list[j];
+        break;
+      }
+    }
+    return { current: current, next: next, amount: amt };
+  }
+
+  function buildDeliveryFreightTip(amount) {
+    var matched = matchFreightTier(amount, DELIVERY_FREIGHT_TIERS);
+    var fee = matched.current.freight;
+    var text;
+    var done = fee <= 0;
+    if (done) {
+      text = '配送已免运费';
+    } else if (matched.next) {
+      var gap = Math.max(0, matched.next.start - matched.amount);
+      var nextFeeText =
+        matched.next.freight <= 0 ? '免运费' : '¥' + formatFreightYuan(matched.next.freight);
+      text =
+        '配送运费¥' +
+        formatFreightYuan(fee) +
+        '｜再买¥' +
+        formatFreightYuan(gap) +
+        '可减至' +
+        nextFeeText;
+    } else {
+      text = '配送运费¥' + formatFreightYuan(fee);
+    }
+    return { text: text, done: done, fee: fee, amount: matched.amount, matched: matched };
+  }
+
+  function calcCartFreight(items) {
+    var list = items || [];
+    var deliveryAmount = 0;
+    var expressAmount = 0;
+    var deliveryCount = 0;
+    var expressCount = 0;
+    list.forEach(function (item) {
+      var line = (Number(item.priceNum) || 0) * (Number(item.qty) || 0);
+      var mode = resolveFulfillmentMethod(item);
+      if (mode === '快递') {
+        expressAmount += line;
+        expressCount += 1;
+      } else {
+        deliveryAmount += line;
+        deliveryCount += 1;
+      }
+    });
+
+    var delivery =
+      deliveryCount > 0
+        ? buildDeliveryFreightTip(deliveryAmount)
+        : { text: '', done: true, fee: 0, amount: 0, matched: null };
+    var expressFee = 0; /* 现阶段快递不收运费 */
+    var fee = (deliveryCount > 0 ? delivery.fee : 0) + expressFee;
+    var text = '';
+    var done = true;
+
+    if (deliveryCount > 0 && expressCount > 0) {
+      text = delivery.text + (expressFee <= 0 ? '，快递免运费' : '');
+      done = delivery.done;
+    } else if (deliveryCount > 0) {
+      text = delivery.text;
+      done = delivery.done;
+    } else if (expressCount > 0) {
+      text = '快递暂不收取运费';
+      done = true;
+    } else {
+      text = '';
+      done = true;
+    }
+
+    return {
+      text: text,
+      done: done,
+      fee: fee,
+      deliveryAmount: deliveryAmount,
+      expressAmount: expressAmount,
+      deliveryCount: deliveryCount,
+      expressCount: expressCount,
+      delivery: delivery
+    };
+  }
+
+  function formatFreightMoney(num) {
+    return '¥' + (Math.round(Number(num) * 100) / 100).toFixed(2);
+  }
+
+  function formatFreightTierRange(tier) {
+    if (tier.end === Infinity) {
+      return '货款满' + formatFreightMoney(tier.start);
+    }
+    return '货款' + formatFreightMoney(tier.start) + '～' + formatFreightMoney(tier.end);
+  }
+
+  function buildFreightRulesHtml() {
+    var tiersHtml = DELIVERY_FREIGHT_TIERS.map(function (tier) {
+      var feeText = tier.freight <= 0 ? '免运费' : formatFreightMoney(tier.freight);
+      return (
+        '<div class="ua-restock-freight-rules__item">' +
+        '<span>' +
+        formatFreightTierRange(tier) +
+        '</span>' +
+        '<span class="ua-restock-freight-rules__fee">' +
+        feeText +
+        '</span></div>'
+      );
+    }).join('');
+
+    return (
+      '<div class="ua-restock-freight-rules">' +
+      '<p class="ua-restock-freight-rules__intro">快递与配送分开计算；同履约方式商品合并货款后匹配档位。现阶段快递不收取运费。</p>' +
+      '<div class="ua-restock-freight-rules__section">' +
+      '<h4 class="ua-restock-freight-rules__title">配送运费档位</h4>' +
+      tiersHtml +
+      '</div>' +
+      '<div class="ua-restock-freight-rules__section">' +
+      '<h4 class="ua-restock-freight-rules__title">快递运费</h4>' +
+      '<div class="ua-restock-freight-rules__item"><span>全部快递订单</span><span class="ua-restock-freight-rules__fee">免运费</span></div>' +
+      '<p class="ua-restock-freight-rules__note">快递暂不收取运费，后续如有调整将按最新规则执行。</p>' +
+      '</div></div>'
+    );
+  }
+
+  function openFreightRulesModal() {
+    var modal = document.getElementById('restockFreightRulesModal');
+    var body = document.getElementById('restockFreightRulesBody');
+    if (body) body.innerHTML = buildFreightRulesHtml();
+    if (modal) modal.hidden = false;
+  }
+
+  function closeFreightRulesModal() {
+    var modal = document.getElementById('restockFreightRulesModal');
+    if (modal) modal.hidden = true;
+  }
+
+  function bindFreightRulesModal() {
+    var modal = document.getElementById('restockFreightRulesModal');
+    if (!modal || modal._freightRulesBound) return;
+    modal._freightRulesBound = true;
+    var mask = document.getElementById('restockFreightRulesModalMask');
+    var closeBtn = document.getElementById('restockFreightRulesModalClose');
+    var okBtn = document.getElementById('restockFreightRulesModalOk');
+    if (mask) mask.addEventListener('click', closeFreightRulesModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeFreightRulesModal);
+    if (okBtn) okBtn.addEventListener('click', closeFreightRulesModal);
+  }
 
   function resolveSupplier(payload) {
     if (payload.supplierId && payload.supplierName) {
@@ -239,6 +435,7 @@
           priceNum: 21,
           qty: 1,
           selected: false,
+          fulfillmentMethod: '配送',
           img: '../assets/restock/product-eggplant-long.svg',
           supplierId: 'supplier-jiangnan',
           supplierName: '江南果蔬批发'
@@ -251,6 +448,7 @@
           priceNum: 40,
           qty: 2,
           selected: true,
+          fulfillmentMethod: '配送',
           img: '../assets/restock/product-eggplant-long.svg',
           supplierId: 'supplier-jiangnan',
           supplierName: '江南果蔬批发'
@@ -263,6 +461,7 @@
           priceNum: 29,
           qty: 1,
           selected: true,
+          fulfillmentMethod: '配送',
           img: '../assets/restock/product-tomato.svg',
           supplierId: 'supplier-jiangnan',
           supplierName: '江南果蔬批发'
@@ -277,6 +476,7 @@
           priceNum: 30,
           qty: 1,
           selected: true,
+          fulfillmentMethod: '配送',
           img: '../assets/restock/product-leaf.svg',
           supplierId: 'supplier-xianfeng',
           supplierName: '鲜丰蔬菜批发'
@@ -291,6 +491,7 @@
           priceNum: 52,
           qty: 1,
           selected: true,
+          fulfillmentMethod: '快递',
           img: '../assets/restock/product-cola.svg',
           supplierId: 'supplier-lengfeng',
           supplierName: '冷丰优选供应链'
@@ -305,6 +506,7 @@
           priceNum: 28.9,
           qty: 1,
           selected: false,
+          fulfillmentMethod: '快递',
           img: '../assets/restock/product-egg.svg',
           supplierId: 'supplier-huadong',
           supplierName: '华东冷链供应商'
@@ -332,22 +534,6 @@
     } catch (e) {
       /* ignore */
     }
-  }
-
-  function calcPlatformFreight(subtotal) {
-    var gap = Math.max(0, PLATFORM_FREIGHT.threshold - subtotal);
-    if (gap <= 0) {
-      return {
-        text: '已满' + PLATFORM_FREIGHT.threshold + '元，已减' + PLATFORM_FREIGHT.fee.toFixed(2) + '元运费',
-        done: true,
-        fee: 0
-      };
-    }
-    return {
-      text: '差' + gap.toFixed(2) + '元减' + PLATFORM_FREIGHT.fee.toFixed(2) + '元运费',
-      done: false,
-      fee: PLATFORM_FREIGHT.fee
-    };
   }
 
   var SPU_SPEC_CATALOG = {
@@ -697,6 +883,7 @@
           var supplier = resolveSupplier(item);
           item.supplierId = supplier.id;
           item.supplierName = supplier.name;
+          item.fulfillmentMethod = resolveFulfillmentMethod(item);
           if (!grouped[supplier.id]) {
             grouped[supplier.id] = createSupplierStore(supplier, []);
           }
@@ -774,7 +961,8 @@
       userAdded: true,
       spuId: (findSpuBySpecId(payload.id) || {}).spuId || payload.spuId || '',
       supplierId: supplier.id,
-      supplierName: supplier.name
+      supplierName: supplier.name,
+      fulfillmentMethod: resolveFulfillmentMethod(payload)
     });
     writeCartPageState(state);
     syncFlatCartFromPageState(state);
@@ -998,7 +1186,8 @@
         img: u.img || CART_PLACEHOLDER_IMG,
         userAdded: true,
         supplierId: supplier.id,
-        supplierName: supplier.name
+        supplierName: supplier.name,
+        fulfillmentMethod: resolveFulfillmentMethod(u)
       });
     });
     return normalizeCartBySupplier(state);
@@ -1201,13 +1390,13 @@
   }
 
   function renderCartFreightHtml(freightInfo) {
-    if (!freightInfo) return '';
+    if (!freightInfo || !freightInfo.text) return '';
     var shipClass = freightInfo.done ? ' ua-restock-cart-freight--done' : '';
     return (
       '<section class="ua-restock-cart-freight' +
       shipClass +
       '">' +
-      '<span class="ua-restock-cart-freight__label">平台运费</span>' +
+      '<span class="ua-restock-cart-freight__label">运费</span>' +
       '<span class="ua-restock-cart-freight__text">' +
       freightInfo.text +
       CHEVRON_SVG +
@@ -1331,8 +1520,9 @@
     var selectedQty = selected.reduce(function (sum, i) {
       return sum + (i.qty || 0);
     }, 0);
-    var selectedSubtotal = getCartSubtotal(state, true);
-    var freightInfo = calcPlatformFreight(selectedSubtotal);
+    var freightBaseItems = selectedQty > 0 ? selected : items;
+    var selectedSubtotal = getCartSubtotal(state, selectedQty > 0);
+    var freightInfo = calcCartFreight(freightBaseItems);
     var total = selectedSubtotal + (selectedQty > 0 ? freightInfo.fee : 0);
     var allSelected = items.length > 0 && selected.length === items.length;
     if (cartSelectAllEl) {
@@ -1375,9 +1565,7 @@
 
     cartEmptyEl.hidden = true;
     cartFooterEl.hidden = false;
-    var allSubtotal = getCartSubtotal(state, false);
-    var freightInfo = calcPlatformFreight(allSubtotal);
-    updateCartBar(state, loggedIn);
+    var freightInfo = updateCartBar(state, loggedIn);
     var storesHtml = (state.stores || [])
       .filter(function (store) {
         var qty = 0;
@@ -1708,6 +1896,7 @@
   function bindCartPageEvents() {
     bindSpecReselectSheetEvents();
     bindCartDeleteConfirmEvents();
+    bindFreightRulesModal();
     var panel = document.getElementById('restockPanelCart');
     if (!panel || panel._cartBound) return;
     panel._cartBound = true;
@@ -1751,7 +1940,7 @@
         return;
       }
       if (e.target.closest('.ua-restock-cart-freight')) {
-        window.alert('平台运费按整单计算（演示）');
+        openFreightRulesModal();
         return;
       }
       if (e.target.closest('.ua-restock-cart-item__spec')) {
@@ -2114,7 +2303,8 @@
           img: p.imgs[0],
           userAdded: true,
           supplierId: supplier.id,
-          supplierName: supplier.name
+          supplierName: supplier.name,
+          fulfillmentMethod: resolveFulfillmentMethod({ id: spec.id, spuId: p.spuId })
         });
       }
     });
@@ -4045,7 +4235,8 @@
             img: item.img,
             spuId: item.spuId || '',
             supplierId: item.supplierId || '',
-            supplierName: item.supplierName || ''
+            supplierName: item.supplierName || '',
+            fulfillmentMethod: item.fulfillmentMethod || ''
           };
         })
       };

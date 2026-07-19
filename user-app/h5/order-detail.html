@@ -47,6 +47,27 @@
           <p class="ua-od-banner__sub" id="orderStatusSub">逾期未支付订单将自动关闭</p>
         </section>
 
+        <section class="ua-od-card ua-od-logistics ua-od-logistics--pending" id="orderLogisticsPendingCard" hidden>
+          <div class="ua-od-logistics__main">
+            <span class="ua-od-logistics__icon ua-od-logistics__icon--muted" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M2 11.5h2.2M2.8 9h1.6M2.8 14h1.6"/>
+                <rect x="6" y="8" width="12" height="9" rx="1.2"/>
+                <path d="M6 11.5h12M10 8v9"/>
+              </svg>
+            </span>
+            <div class="ua-od-logistics__info">
+              <div class="ua-od-logistics__status" id="orderLogisticsPendingTitle">由第三方物流配送</div>
+              <div class="ua-od-logistics__text ua-od-logistics__text--single" id="orderLogisticsPendingSub">请关注发货后物流详情</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="ua-od-logistics-track" id="orderLogisticsTrackWrap" hidden>
+          <div class="ua-od-logistics-track__scroll" id="orderLogisticsTrackScroll"></div>
+          <div class="ua-od-logistics-track__dots" id="orderLogisticsTrackDots" hidden></div>
+        </section>
+
         <section class="ua-od-card ua-od-logistics" id="orderLogisticsCard" hidden>
           <div class="ua-od-logistics__main">
             <span class="ua-od-logistics__icon" aria-hidden="true">
