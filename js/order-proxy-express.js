@@ -113,6 +113,7 @@
       status: '待揽件',
       goodId: 'g1',
       goodName: '微辣萝卜干 500g 4号…',
+      goods: [{ id: 'g1', name: '微辣萝卜干 500g 4号…', barcode: '6901001001001' }],
       timeline: [{
         time: '06-05\n20:50',
         title: '已发货',
@@ -190,8 +191,8 @@
       goodIds: ['g1', 'g2'],
       goodName: '新鲜红颜草莓 香甜多汁 500g装 等2种',
       goods: [
-        { id: 'g1', name: '新鲜红颜草莓 香甜多汁 500g装' },
-        { id: 'g2', name: '进口香蕉 香甜软糯 3斤装' }
+        { id: 'g1', name: '新鲜红颜草莓 香甜多汁 500g装', barcode: '6901003001003' },
+        { id: 'g2', name: '进口香蕉 香甜软糯 3斤装', barcode: '6901003001004' }
       ],
       timeline: DEFAULT_TIMELINE
     }]
@@ -372,11 +373,19 @@
   function getShipmentGoods(shipment) {
     if (shipment.goods && shipment.goods.length) {
       return shipment.goods.map(function (g) {
-        return { id: g.id, name: g.name };
+        return {
+          id: g.id,
+          name: g.name,
+          barcode: g.barcode || g.sku || ''
+        };
       });
     }
     if (shipment.goodName) {
-      return [{ id: shipment.goodId || 'g1', name: shipment.goodName }];
+      return [{
+        id: shipment.goodId || 'g1',
+        name: shipment.goodName,
+        barcode: shipment.barcode || ''
+      }];
     }
     return [];
   }
@@ -915,12 +924,257 @@
     if (trackingInput) trackingInput.focus();
   }
 
+  function splitCsvLine(line) {
+    var result = [];
+    var cur = '';
+    var inQuotes = false;
+    for (var i = 0; i < line.length; i++) {
+      var ch = line.charAt(i);
+      if (ch === '"') {
+        if (inQuotes && line.charAt(i + 1) === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if ((ch === ',' || ch === '\t') && !inQuotes) {
+        result.push(cur.trim());
+        cur = '';
+      } else {
+        cur += ch;
+      }
+    }
+    result.push(cur.trim());
+    return result;
+  }
+
+  function normalizeBarcode(val) {
+    return String(val || '')
+      .trim()
+      .replace(/[….]/g, '')
+      .toUpperCase();
+  }
+
+  function goodBarcodeOf(good) {
+    if (!good) return '';
+    return String(good.barcode || good.sku || good.id || '').trim();
+  }
+
+  function goodMatchesBarcode(good, barcode) {
+    if (!good || !barcode) return false;
+    var target = normalizeBarcode(barcode);
+    var candidates = [good.barcode, good.sku, good.id];
+    for (var i = 0; i < candidates.length; i++) {
+      if (!candidates[i]) continue;
+      if (normalizeBarcode(candidates[i]) === target) return true;
+      if (normalizeBarcode(candidates[i]).indexOf(target) === 0) return true;
+      if (target.indexOf(normalizeBarcode(candidates[i])) === 0) return true;
+    }
+    return false;
+  }
+
+  function resolveOrderGoodsList(orderId) {
+    if (window.OrderLiveDetail && typeof window.OrderLiveDetail.resolveDetail === 'function') {
+      var detail = window.OrderLiveDetail.resolveDetail(orderId, null);
+      if (detail && detail.goods && detail.goods.length) return detail.goods;
+    }
+    return [];
+  }
+
+  function resolveGoodByBarcode(orderId, barcode) {
+    var goods = resolveOrderGoodsList(orderId);
+    for (var i = 0; i < goods.length; i++) {
+      if (goodMatchesBarcode(goods[i], barcode)) {
+        return {
+          id: goods[i].id || ('g' + (i + 1)),
+          name: goods[i].name || '商品',
+          barcode: goodBarcodeOf(goods[i]) || String(barcode).trim()
+        };
+      }
+    }
+    return {
+      id: 'bc-' + normalizeBarcode(barcode),
+      name: '商品(' + String(barcode).trim() + ')',
+      barcode: String(barcode).trim()
+    };
+  }
+
+  function parseBatchExpressRows(text) {
+    var lines = String(text || '')
+      .replace(/^\uFEFF/, '')
+      .split(/\r?\n/)
+      .map(function (l) {
+        return l.trim();
+      })
+      .filter(Boolean);
+    if (lines.length < 2) return { rows: [], error: '文件无有效数据行' };
+
+    var headers = splitCsvLine(lines[0]).map(function (h) {
+      return String(h || '').trim();
+    });
+    var idxOrder = -1;
+    var idxBarcode = -1;
+    var idxTracking = -1;
+    headers.forEach(function (h, i) {
+      if (/订单号/.test(h)) idxOrder = i;
+      else if (/条形码|条码|商品编码/.test(h)) idxBarcode = i;
+      else if (/物流单号|快递单号|运单号/.test(h)) idxTracking = i;
+    });
+    if (idxOrder < 0 || idxBarcode < 0 || idxTracking < 0) {
+      if (headers.length >= 3) {
+        idxOrder = 0;
+        idxBarcode = 1;
+        idxTracking = 2;
+      } else {
+        return { rows: [], error: '表头需包含：订单号、商品条形码、物流单号' };
+      }
+    }
+
+    var rows = [];
+    for (var r = 1; r < lines.length; r++) {
+      var cols = splitCsvLine(lines[r]);
+      var orderId = String(cols[idxOrder] || '').trim();
+      var barcode = String(cols[idxBarcode] || '').trim();
+      var trackingNo = String(cols[idxTracking] || '').trim();
+      if (!orderId && !barcode && !trackingNo) continue;
+      rows.push({
+        orderId: orderId,
+        barcode: barcode,
+        trackingNo: trackingNo,
+        line: r + 1
+      });
+    }
+    return { rows: rows, error: '' };
+  }
+
+  function findShipmentByTracking(list, trackingNo) {
+    var no = String(trackingNo || '').trim();
+    for (var i = 0; i < list.length; i++) {
+      if (String(list[i].trackingNo || '').trim() === no) return list[i];
+    }
+    return null;
+  }
+
+  function shipmentHasBarcode(shipment, barcode) {
+    var goods = getShipmentGoods(shipment);
+    for (var i = 0; i < goods.length; i++) {
+      if (goodMatchesBarcode(goods[i], barcode)) return true;
+    }
+    return false;
+  }
+
+  function rebuildShipmentGoodsMeta(shipment, goods) {
+    shipment.goods = goods;
+    shipment.goodIds = goods.map(function (g) {
+      return g.id;
+    });
+    shipment.goodId = goods[0] ? goods[0].id : '';
+    shipment.goodName = formatGoodsLabel(goods);
+    return shipment;
+  }
+
+  function applyBatchExpressUpload(rows) {
+    var added = 0;
+    var merged = 0;
+    var skipped = 0;
+    var invalid = 0;
+
+    (rows || []).forEach(function (row) {
+      if (!row.orderId || !row.barcode || !row.trackingNo) {
+        invalid += 1;
+        return;
+      }
+      var good = resolveGoodByBarcode(row.orderId, row.barcode);
+      var list = getShipments(row.orderId);
+      var existing = findShipmentByTracking(list, row.trackingNo);
+      if (existing) {
+        if (shipmentHasBarcode(existing, row.barcode)) {
+          skipped += 1;
+          return;
+        }
+        var goods = getShipmentGoods(existing).slice();
+        goods.push(good);
+        rebuildShipmentGoodsMeta(existing, goods);
+        saveShipments(
+          row.orderId,
+          list.map(function (item) {
+            return item.id === existing.id ? existing : item;
+          })
+        );
+        merged += 1;
+        return;
+      }
+      addShipment(row.orderId, {
+        courier: inferCourierFromTrackingNo(row.trackingNo) || '申通快递',
+        trackingNo: row.trackingNo,
+        goods: [good]
+      });
+      added += 1;
+    });
+
+    return { added: added, merged: merged, skipped: skipped, invalid: invalid };
+  }
+
+  function applyBatchExpressDelete(rows) {
+    var removed = 0;
+    var cleared = 0;
+    var skipped = 0;
+    var invalid = 0;
+    var notFound = 0;
+
+    (rows || []).forEach(function (row) {
+      if (!row.orderId || !row.barcode || !row.trackingNo) {
+        invalid += 1;
+        return;
+      }
+      var list = getShipments(row.orderId);
+      var existing = findShipmentByTracking(list, row.trackingNo);
+      if (!existing) {
+        notFound += 1;
+        return;
+      }
+      if (!canEditShipment(existing)) {
+        skipped += 1;
+        return;
+      }
+      if (!shipmentHasBarcode(existing, row.barcode)) {
+        notFound += 1;
+        return;
+      }
+      var nextGoods = getShipmentGoods(existing).filter(function (g) {
+        return !goodMatchesBarcode(g, row.barcode);
+      });
+      if (!nextGoods.length) {
+        saveShipments(
+          row.orderId,
+          list.filter(function (item) {
+            return item.id !== existing.id;
+          })
+        );
+        cleared += 1;
+        removed += 1;
+        return;
+      }
+      rebuildShipmentGoodsMeta(existing, nextGoods);
+      saveShipments(
+        row.orderId,
+        list.map(function (item) {
+          return item.id === existing.id ? existing : item;
+        })
+      );
+      removed += 1;
+    });
+
+    return { removed: removed, cleared: cleared, skipped: skipped, invalid: invalid, notFound: notFound };
+  }
+
   function downloadBatchExpressTemplate() {
     var csv =
-      '\uFEFF订单号,物流单号,快递公司\n' +
-      'ORD-3212689201588561,773075059702651,申通快递\n' +
-      'ORD-3212689201599001,SF1234567890123,顺丰速运\n' +
-      'ORD-3212689201599003,773088899900011,申通快递\n';
+      '\uFEFF订单号,商品条形码,物流单号\n' +
+      'ORD-3212689201599003,6901003001003,773088899900099\n' +
+      'ORD-3212689201599003,6901003001004,773088899900099\n' +
+      'ORD-3212689201588561,6901001001001,773075059702651\n' +
+      'ORD-3212689201599001,6901002002002,SF9988776655443\n';
     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
@@ -932,10 +1186,34 @@
     URL.revokeObjectURL(url);
   }
 
+  function downloadBatchExpressDeleteTemplate() {
+    var csv =
+      '\uFEFF订单号,商品条形码,物流单号\n' +
+      'ORD-3212689201599003,6901003001004,773088899900011\n' +
+      'ORD-3212689201588561,6901001001001,773075059702651\n';
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = '批量删除快递单模板.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
   function openBatchUploadModal(options) {
     var opts = options || {};
-    var hint = opts.hint ||
-      '通过 Excel / CSV 批量上传快递单号。请先下载模板，按「订单号、物流单号、快递公司」填写后上传。';
+    var mode = opts.mode === 'delete' ? 'delete' : 'upload';
+    var isDelete = mode === 'delete';
+    var title = isDelete ? '批量删除快递单' : '批量上传快递单';
+    var hint =
+      opts.hint ||
+      (isDelete
+        ? '通过 Excel / CSV 批量删除快递单。请先下载模板，按「订单号、商品条形码、物流单号」填写：一商品一行。同一物流含多商品时，删除其中一条仅从该物流中移除对应商品；若移除后无商品则删除整条物流。'
+        : '通过 Excel / CSV 批量上传快递单。请先下载模板，按「订单号、商品条形码、物流单号」填写：一商品一行。同物流单号+同订单号+不同条形码将合并为一条物流；同物流单号+不同订单号仅展示本订单商品；三者均一致则跳过不重复上传。');
+    var submitText = isDelete ? '确认删除' : '确认上传';
+    var templateName = isDelete ? '下载删除模板' : '下载导入模板';
 
     closeOverlay('orderProxyBatchUploadBackdrop');
     var backdrop = el('div', 'order-proxy-express-overlay');
@@ -943,26 +1221,34 @@
     backdrop.innerHTML =
       '<div class="order-proxy-upload-modal order-proxy-batch-upload-modal" role="dialog" aria-labelledby="orderProxyBatchUploadTitle">' +
         '<div class="order-proxy-upload-modal__head">' +
-          '<h3 id="orderProxyBatchUploadTitle" class="order-proxy-upload-modal__title">批量上传快递单</h3>' +
+          '<h3 id="orderProxyBatchUploadTitle" class="order-proxy-upload-modal__title">' +
+          escapeHtml(title) +
+          '</h3>' +
           '<button type="button" class="order-proxy-upload-modal__close js-batch-express-close" aria-label="关闭">×</button>' +
         '</div>' +
         '<div class="order-proxy-upload-modal__body">' +
-          '<p class="order-proxy-upload-modal__hint">' + escapeHtml(hint) + '</p>' +
+          '<p class="order-proxy-upload-modal__hint">' +
+          escapeHtml(hint) +
+          '</p>' +
           '<div class="order-proxy-batch-upload__template">' +
-            '<button type="button" class="order-proxy-upload-field__link js-batch-express-template">下载导入模板</button>' +
+            '<button type="button" class="order-proxy-upload-field__link js-batch-express-template">' +
+            escapeHtml(templateName) +
+            '</button>' +
           '</div>' +
           '<div class="order-proxy-upload-field">' +
             '<label class="order-proxy-upload-field__label" for="orderProxyBatchFile">上传文件</label>' +
             '<div class="order-proxy-batch-upload__file-row">' +
-              '<input type="file" id="orderProxyBatchFile" class="order-proxy-batch-upload__file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv">' +
+              '<input type="file" id="orderProxyBatchFile" class="order-proxy-batch-upload__file" accept=".csv,text/csv">' +
               '<span class="order-proxy-batch-upload__file-name js-batch-express-file-name">未选择文件</span>' +
             '</div>' +
-            '<p class="order-proxy-upload-field__auto-hint">支持 .xlsx / .xls / .csv，单次建议不超过 1000 条</p>' +
+            '<p class="order-proxy-upload-field__auto-hint">请使用 CSV（可用 Excel 另存为），单次建议不超过 1000 条</p>' +
           '</div>' +
         '</div>' +
         '<div class="order-proxy-upload-modal__foot">' +
-          '<button type="button" class="order-detail-btn js-batch-express-close">取消</button>' +
-          '<button type="button" class="order-detail-btn order-detail-btn--primary js-batch-express-submit">确认上传</button>' +
+          '<button type="button" class="order-filter-btn order-filter-btn--default js-batch-express-close">取消</button>' +
+          '<button type="button" class="order-filter-btn order-filter-btn--primary js-batch-express-submit">' +
+          escapeHtml(submitText) +
+          '</button>' +
         '</div>' +
       '</div>';
 
@@ -981,7 +1267,8 @@
       });
     });
     backdrop.querySelector('.js-batch-express-template').addEventListener('click', function () {
-      downloadBatchExpressTemplate();
+      if (isDelete) downloadBatchExpressDeleteTemplate();
+      else downloadBatchExpressTemplate();
       if (typeof showToast === 'function') showToast('模板已下载', 'success');
     });
     if (fileInput) {
@@ -993,19 +1280,66 @@
     backdrop.querySelector('.js-batch-express-submit').addEventListener('click', function () {
       var file = fileInput && fileInput.files && fileInput.files[0];
       if (!file) {
-        if (typeof showToast === 'function') showToast('请先选择 Excel 文件', 'error');
+        if (typeof showToast === 'function') showToast('请先选择 CSV 文件', 'error');
         return;
       }
       var name = String(file.name || '').toLowerCase();
-      if (!/\.(xlsx|xls|csv)$/.test(name)) {
-        if (typeof showToast === 'function') showToast('请上传 .xlsx / .xls / .csv 文件', 'error');
+      if (!/\.csv$/.test(name)) {
+        if (typeof showToast === 'function') showToast('请上传 CSV 文件（可用 Excel 另存为）', 'error');
         return;
       }
-      closeOverlay('orderProxyBatchUploadBackdrop');
-      if (typeof showToast === 'function') {
-        showToast('已解析「' + file.name + '」并完成快递单号批量上传（演示）', 'success');
-      }
-      if (typeof opts.onSuccess === 'function') opts.onSuccess(file);
+
+      var reader = new FileReader();
+      reader.onload = function () {
+        var parsed = parseBatchExpressRows(String(reader.result || ''));
+        if (parsed.error) {
+          if (typeof showToast === 'function') showToast(parsed.error, 'error');
+          return;
+        }
+        if (!parsed.rows.length) {
+          if (typeof showToast === 'function') showToast('文件中没有可处理的数据', 'error');
+          return;
+        }
+
+        closeOverlay('orderProxyBatchUploadBackdrop');
+        if (isDelete) {
+          var delResult = applyBatchExpressDelete(parsed.rows);
+          if (typeof showToast === 'function') {
+            showToast(
+              '删除完成：移除 ' +
+                delResult.removed +
+                ' 条商品（其中清空物流 ' +
+                delResult.cleared +
+                '），跳过 ' +
+                delResult.skipped +
+                '，未匹配 ' +
+                delResult.notFound +
+                (delResult.invalid ? '，无效 ' + delResult.invalid : ''),
+              'success'
+            );
+          }
+          if (typeof opts.onSuccess === 'function') opts.onSuccess(file, delResult);
+        } else {
+          var upResult = applyBatchExpressUpload(parsed.rows);
+          if (typeof showToast === 'function') {
+            showToast(
+              '上传完成：新增 ' +
+                upResult.added +
+                '，合并 ' +
+                upResult.merged +
+                '，跳过重复 ' +
+                upResult.skipped +
+                (upResult.invalid ? '，无效 ' + upResult.invalid : ''),
+              'success'
+            );
+          }
+          if (typeof opts.onSuccess === 'function') opts.onSuccess(file, upResult);
+        }
+      };
+      reader.onerror = function () {
+        if (typeof showToast === 'function') showToast('文件读取失败', 'error');
+      };
+      reader.readAsText(file, 'UTF-8');
     });
   }
 
@@ -1020,6 +1354,9 @@
     openTrackingModal: openTrackingModal,
     openBatchUploadModal: openBatchUploadModal,
     downloadBatchExpressTemplate: downloadBatchExpressTemplate,
+    downloadBatchExpressDeleteTemplate: downloadBatchExpressDeleteTemplate,
+    applyBatchExpressUpload: applyBatchExpressUpload,
+    applyBatchExpressDelete: applyBatchExpressDelete,
     closeOverlay: closeOverlay,
     closeTrackingDrawer: closeTrackingDrawer
   };

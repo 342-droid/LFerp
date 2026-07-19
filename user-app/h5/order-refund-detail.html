@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>退款详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
-  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260719-close-return-fix">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260720-merge-pickup">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-order-refund-detail-page">
@@ -165,15 +165,24 @@
       </section>
 
       <section class="ua-or-detail-reship" id="refundDetailReshipSection" hidden>
-        <div class="ua-or-card ua-or-detail-logistics ua-or-detail-logistics--view">
-          <div class="ua-or-detail-info-row">
-            <span class="ua-or-detail-info-row__label">寄出物流公司</span>
-            <span class="ua-or-detail-info-row__value" id="refundOutCourierDisplay">—</span>
+        <div class="ua-or-card ua-or-reship-pending" id="refundReshipPendingCard" hidden>
+          <div class="ua-or-reship-pending__main">
+            <span class="ua-or-reship-pending__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M2 11.5h2.2M2.8 9h1.6M2.8 14h1.6"/>
+                <rect x="6" y="8" width="12" height="9" rx="1.2"/>
+                <path d="M6 11.5h12M10 8v9"/>
+              </svg>
+            </span>
+            <div class="ua-or-reship-pending__info">
+              <div class="ua-or-reship-pending__status">由第三方物流配送</div>
+              <div class="ua-or-reship-pending__text">请关注发货后物流详情</div>
+            </div>
           </div>
-          <div class="ua-or-detail-info-row">
-            <span class="ua-or-detail-info-row__label">寄出单号</span>
-            <span class="ua-or-detail-info-row__value" id="refundOutTrackingDisplay">—</span>
-          </div>
+        </div>
+        <div class="ua-or-reship-logistics" id="refundReshipLogisticsTrack" hidden>
+          <div class="ua-or-reship-logistics__scroll" id="refundReshipLogisticsScroll"></div>
+          <div class="ua-or-reship-logistics__dots" id="refundReshipLogisticsDots" hidden></div>
         </div>
       </section>
 
@@ -316,7 +325,7 @@
 
     <div class="ua-or-toast" id="refundDetailToast" hidden></div>
   </div>
-  <script src="../js/user-app-order-refund.js?v=20260719-self-ship-refund"></script>
+  <script src="../js/user-app-order-refund.js?v=20260720-merge-pickup"></script>
   <script>UAOrderRefund.initDetailPage();</script>
 </body>
 </html>

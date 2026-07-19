@@ -226,20 +226,33 @@
   }
 
   function normalizeDeliveryMode(mode) {
-    if (mode === 'platform' || mode === '平台配送' || mode === 'warehouse') return 'platform';
-    if (mode === 'express' || mode === '快递到店' || mode === 'store') return 'express';
+    if (mode === 'platform' || mode === '平台配送' || mode === '配送' || mode === 'warehouse' || mode === 'delivery') {
+      return 'platform';
+    }
+    if (mode === 'express' || mode === '快递到店' || mode === '快递' || mode === 'store') {
+      return 'express';
+    }
     return 'platform';
   }
 
   function deliveryModeLabel(mode) {
-    return normalizeDeliveryMode(mode) === 'express' ? '快递到店' : '平台配送';
+    return normalizeDeliveryMode(mode) === 'express' ? '快递' : '配送';
   }
 
   function normalizeProduct(item, idx) {
     if (!item) return item;
     var raw = item.deliveryMode || item.fulfillmentMode;
-    if (raw !== 'platform' && raw !== 'express' && raw !== 'store' && raw !== 'warehouse' &&
-        raw !== '平台配送' && raw !== '快递到店') {
+    if (
+      raw !== 'platform' &&
+      raw !== 'express' &&
+      raw !== 'store' &&
+      raw !== 'warehouse' &&
+      raw !== 'delivery' &&
+      raw !== '平台配送' &&
+      raw !== '快递到店' &&
+      raw !== '配送' &&
+      raw !== '快递'
+    ) {
       item.deliveryMode = idx % 2 === 1 ? 'platform' : 'express';
     } else {
       item.deliveryMode = normalizeDeliveryMode(raw);

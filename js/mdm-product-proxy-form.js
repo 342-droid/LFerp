@@ -9,13 +9,17 @@
   var SALE_UNIT_OPTIONS = ['件', '箱', '瓶', '袋', 'kg', 'L', '罐', '包', '套', '卷', '个', '斤', '盒'];
   var ETA_COUNTDOWN_UNITS = ['天', '小时'];
   var DELIVERY_MODE_OPTIONS = [
-    { value: 'platform', label: '平台配送' },
-    { value: 'express', label: '快递到店' }
+    { value: 'express', label: '快递' },
+    { value: 'platform', label: '配送' }
   ];
 
   function normalizeDeliveryMode(mode) {
-    if (mode === 'platform' || mode === '平台配送' || mode === 'warehouse') return 'platform';
-    if (mode === 'express' || mode === '快递到店' || mode === 'store') return 'express';
+    if (mode === 'platform' || mode === '平台配送' || mode === '配送' || mode === 'warehouse' || mode === 'delivery') {
+      return 'platform';
+    }
+    if (mode === 'express' || mode === '快递到店' || mode === '快递' || mode === 'store') {
+      return 'express';
+    }
     return 'platform';
   }
 

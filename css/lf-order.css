@@ -316,6 +316,11 @@
   color: var(--color-text-secondary, #666666);
 }
 
+.order-filter-btn--default:hover {
+  border-color: var(--color-primary, #ff7019);
+  color: var(--color-primary, #ff7019);
+}
+
 .order-filter-btn--text {
   border: none;
   background: transparent;

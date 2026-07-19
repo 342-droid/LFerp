@@ -424,6 +424,51 @@
     if (addrEl) addrEl.textContent = s.address;
   }
 
+  function maskPhone(phone) {
+    var digits = String(phone || '').replace(/\D/g, '');
+    if (digits.length >= 7) {
+      return digits.slice(0, 3) + '****' + digits.slice(-4);
+    }
+    return String(phone || '');
+  }
+
+  function persistCheckoutStore() {
+    try {
+      var payload = readCheckoutPayload() || {};
+      payload.store = state.store;
+      if (!payload.items) payload.items = [];
+      sessionStorage.setItem(CHECKOUT_KEY, JSON.stringify(payload));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function applyPickedAddressFromBook() {
+    try {
+      var raw = sessionStorage.getItem('ua_refund_picked_address');
+      if (!raw) return;
+      var picked = JSON.parse(raw);
+      sessionStorage.removeItem('ua_refund_picked_address');
+      if (!picked || !picked.full) return;
+      state.store = {
+        name: state.store.name || '悠悠生鲜超市',
+        contact: picked.contact || state.store.contact,
+        phone: maskPhone(picked.phone) || state.store.phone,
+        address: picked.full
+      };
+      persistCheckoutStore();
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function openAddressBook() {
+    var params = new URLSearchParams(window.location.search);
+    var from = params.get('from') || 'restock.html';
+    window.location.href =
+      'order-refund-address-book.html?addrFrom=checkout&from=' + encodeURIComponent(from);
+  }
+
   function formatItemPrice(num) {
     var n = Math.round(num * 100) / 100;
     var str =
@@ -967,9 +1012,7 @@
 
   function bindEvents() {
     document.getElementById('checkoutStoreCard') &&
-      document.getElementById('checkoutStoreCard').addEventListener('click', function () {
-        window.alert('切换配送门店（演示）');
-      });
+      document.getElementById('checkoutStoreCard').addEventListener('click', openAddressBook);
 
     document.getElementById('checkoutSupplierList') &&
       document.getElementById('checkoutSupplierList').addEventListener('click', function (e) {
@@ -1077,6 +1120,7 @@
   }
 
   initState();
+  applyPickedAddressFromBook();
   renderAll();
   bindEvents();
 })();

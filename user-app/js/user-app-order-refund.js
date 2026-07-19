@@ -33,6 +33,23 @@
         { id: 'berry-250', label: '250g', priceNum: 10, available: true },
         { id: 'berry-1kg', label: '1kg', priceNum: 18, available: true }
       ]
+    },
+    {
+      id: 'item-3',
+      name: '海南贵妃芒 香甜软糯 礼盒装',
+      spec: '规格：2.5kg',
+      img: '../assets/order-product-3.svg',
+      priceNum: 39.9,
+      paidAmount: 39.9,
+      qty: 1,
+      freight: 0,
+      shippingFee: 0,
+      orderSpecId: 'mango-25',
+      specs: [
+        { id: 'mango-125', label: '1.25kg', priceNum: 22.9, available: true },
+        { id: 'mango-25', label: '2.5kg', priceNum: 39.9, available: true },
+        { id: 'mango-50', label: '5kg', priceNum: 69.9, available: true }
+      ]
     }
   ];
 
@@ -68,13 +85,389 @@
       '发票问题',
       '假冒品牌'
     ],
-    restock: ['少件/漏发/少配件', '包装/商品破损/污渍', '质量问题', '卖家发错货', '商品信息描述不符'],
+    restock: [
+      '收到商品破损/污渍等',
+      '包裹少件/漏发',
+      '卖家发错货',
+      '物流一直未送到',
+      '协商一致'
+    ],
     exchange: ['规格/颜色拍错', '大小/尺寸/重量与商品描述不符', '质量问题', '卖家发错货', '商品信息描述不符']
   };
 
   var GOODS_STATUS = ['未收到货', '已收到货'];
 
   var STORAGE_KEY = 'ua_refund_application';
+  var AFTERSALE_RECORDS_KEY = 'ua_aftersale_records_v4';
+  var DEMO_ORDER_NO = '1089765423471123';
+
+  var AFTERSALE_TYPE_LABEL = {
+    refund_only: '退款',
+    pre_ship: '退款',
+    return: '退货',
+    restock: '补货',
+    exchange: '换货'
+  };
+
+  function getAftersaleTypeGroup(type) {
+    if (type === 'restock') return 'restock';
+    if (type === 'exchange') return 'exchange';
+    return 'refund'; /* refund_only / return / pre_ship */
+  }
+
+  function isAftersaleFinished(rec) {
+    if (!rec) return true;
+    var stage = rec.stage || '';
+    return stage === 'success' || stage === 'closed' || stage === 'failed';
+  }
+
+  function loadAftersaleRecords() {
+    try {
+      var raw = sessionStorage.getItem(AFTERSALE_RECORDS_KEY);
+      var list = raw ? JSON.parse(raw) : null;
+      if (Array.isArray(list) && list.length) return list;
+    } catch (e) {
+      /* ignore */
+    }
+    return seedDemoAftersaleRecords();
+  }
+
+  function saveAftersaleRecords(list) {
+    try {
+      sessionStorage.setItem(AFTERSALE_RECORDS_KEY, JSON.stringify(list || []));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function seedDemoAftersaleRecords() {
+    var item0 = DEMO_ITEMS[0];
+    var item1 = DEMO_ITEMS[1];
+    var list = [
+      /* 商品0：多次售后（不同类型/状态）—— 关闭后再发起并退款成功 + 补货中，关闭不展示 */
+      {
+        id: 'as-demo-refund-closed-0',
+        orderNo: DEMO_ORDER_NO,
+        itemIndex: 0,
+        type: 'refund_only',
+        stage: 'closed',
+        closeReason: 'cancel',
+        amount: 28.4,
+        reason: '不想要了',
+        productName: item0.name,
+        productSpec: item0.spec,
+        productImg: item0.img,
+        shopName: '江南果蔬批发',
+        applyTime: '2026-07-17 09:20:00',
+        resultTime: '2026-07-17 20:00:00'
+      },
+      {
+        id: 'as-demo-refund-0',
+        orderNo: DEMO_ORDER_NO,
+        itemIndex: 0,
+        type: 'refund_only',
+        stage: 'success',
+        amount: 28.4,
+        reason: '收到商品破损/污渍等',
+        productName: item0.name,
+        productSpec: item0.spec,
+        productImg: item0.img,
+        shopName: '江南果蔬批发',
+        applyTime: '2026-07-18 10:20:00',
+        resultTime: '2026-07-18 18:30:00'
+      },
+      {
+        id: 'as-demo-restock-0',
+        orderNo: DEMO_ORDER_NO,
+        itemIndex: 0,
+        type: 'restock',
+        stage: 'reship',
+        amount: 0,
+        reason: '包裹少件/漏发',
+        productName: item0.name,
+        productSpec: item0.spec,
+        productImg: item0.img,
+        shopName: '江南果蔬批发',
+        applyTime: '2026-07-18 11:05:00'
+      },
+      /* 商品1：仅一笔售后（已关闭）—— 显示退款关闭，点击直达详情 */
+      {
+        id: 'as-demo-closed-1',
+        orderNo: DEMO_ORDER_NO,
+        itemIndex: 1,
+        type: 'return',
+        stage: 'closed',
+        closeReason: 'cancel',
+        amount: 10,
+        reason: '不喜欢/不想要',
+        productName: item1.name,
+        productSpec: item1.spec,
+        productImg: item1.img,
+        shopName: '江南果蔬批发',
+        applyTime: '2026-07-17 16:40:00',
+        resultTime: '2026-07-17 16:45:00'
+      }
+      /* 商品2：无售后 —— 可正常点「申请退款」发起 */
+    ];
+    saveAftersaleRecords(list);
+    return list;
+  }
+
+  function upsertAftersaleRecord(rec) {
+    if (!rec || !rec.id) return;
+    var list = loadAftersaleRecords();
+    var idx = -1;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === rec.id) {
+        idx = i;
+        break;
+      }
+    }
+    if (idx >= 0) list[idx] = Object.assign({}, list[idx], rec);
+    else list.unshift(rec);
+    saveAftersaleRecords(list);
+    return list;
+  }
+
+  function getAftersaleRecordsByItem(itemIndex, orderNo) {
+    var list = loadAftersaleRecords();
+    var idx = Number(itemIndex);
+    return list.filter(function (r) {
+      if (Number(r.itemIndex) !== idx) return false;
+      if (orderNo && r.orderNo && r.orderNo !== orderNo) return false;
+      return true;
+    });
+  }
+
+  function sortAftersaleByTimeDesc(list) {
+    return (list || []).slice().sort(function (a, b) {
+      return String(b.applyTime || b.resultTime || '').localeCompare(
+        String(a.applyTime || a.resultTime || '')
+      );
+    });
+  }
+
+  /**
+   * 订单详情商品下售后进度条展示规则：
+   * - 有进行中：只显示进行中（同组关闭的不显示）
+   * - 无进行中、有多笔退款成功：合并为一条
+   * - 无进行中、仅关闭：显示最新一条关闭
+   * - 不同售后类型（退款/补货/换货）可同时各展示一条（组）
+   */
+  function getAftersaleDisplayBars(itemIndex, orderNo) {
+    var records = sortAftersaleByTimeDesc(getAftersaleRecordsByItem(itemIndex, orderNo));
+    var bars = [];
+    ['refund', 'restock', 'exchange'].forEach(function (group) {
+      var groupRecs = records.filter(function (r) {
+        return getAftersaleTypeGroup(r.type) === group;
+      });
+      if (!groupRecs.length) return;
+
+      var openOnes = groupRecs.filter(function (r) {
+        return !isAftersaleFinished(r);
+      });
+      var successOnes = groupRecs.filter(function (r) {
+        return r.stage === 'success';
+      });
+      var closedOnes = groupRecs.filter(function (r) {
+        return r.stage === 'closed' || r.stage === 'failed';
+      });
+
+      if (openOnes.length) {
+        /* 有进行中：默认显示最新一次进行中，关闭不展示 */
+        bars.push({
+          kind: 'single',
+          group: group,
+          record: openOnes[0],
+          records: [openOnes[0]]
+        });
+        return;
+      }
+
+      if (successOnes.length) {
+        if (group === 'refund' && successOnes.length > 1) {
+          bars.push({
+            kind: 'merged_refund_success',
+            group: group,
+            record: successOnes[0],
+            records: successOnes,
+            amount: getMergedRefundAmount(successOnes)
+          });
+        } else {
+          bars.push({
+            kind: 'single',
+            group: group,
+            record: successOnes[0],
+            records: [successOnes[0]]
+          });
+        }
+        return;
+      }
+
+      if (closedOnes.length) {
+        /* 仅发起过且已关闭：展示关闭 */
+        bars.push({
+          kind: 'single',
+          group: group,
+          record: closedOnes[0],
+          records: [closedOnes[0]]
+        });
+      }
+    });
+    return bars;
+  }
+
+  function hasOpenAftersaleOfGroup(itemIndex, typeOrGroup) {
+    var group =
+      typeOrGroup === 'refund' || typeOrGroup === 'restock' || typeOrGroup === 'exchange'
+        ? typeOrGroup
+        : getAftersaleTypeGroup(typeOrGroup);
+    return getAftersaleRecordsByItem(itemIndex).some(function (r) {
+      return getAftersaleTypeGroup(r.type) === group && !isAftersaleFinished(r);
+    });
+  }
+
+  function getMergedRefundAmount(records) {
+    return (records || [])
+      .filter(function (r) {
+        return getAftersaleTypeGroup(r.type) === 'refund' && r.stage === 'success';
+      })
+      .reduce(function (sum, r) {
+        return sum + (Number(r.amount) || 0);
+      }, 0);
+  }
+
+  function getAftersaleProgressView(rec) {
+    var type = rec.type || 'refund_only';
+    var stage = rec.stage || 'audit';
+    var typeLabel = AFTERSALE_TYPE_LABEL[type] || '售后';
+    var finished = isAftersaleFinished(rec);
+    var view = {
+      id: rec.id,
+      type: type,
+      stage: stage,
+      icon: 'progress',
+      title: typeLabel + '中',
+      desc: '',
+      amountText: '',
+      showAmount: false
+    };
+
+    if (type === 'restock') {
+      if (stage === 'success') {
+        view.icon = 'success';
+        view.title = '补货完成';
+        view.desc = '补货已完成';
+      } else if (stage === 'closed' || stage === 'failed') {
+        view.icon = 'closed';
+        view.title = '补货关闭';
+        view.desc =
+          rec.closeReason === 'cancel' ? '因您撤销，补货关闭' : '补货已关闭';
+      } else {
+        view.title = '补货中';
+        view.desc = stage === 'reship' ? '补货寄出中' : '请等待平台处理';
+      }
+      return view;
+    }
+
+    if (type === 'exchange') {
+      if (stage === 'success') {
+        view.icon = 'success';
+        view.title = '换货完成';
+        view.desc = '换货已完成';
+      } else if (stage === 'closed' || stage === 'failed') {
+        view.icon = 'closed';
+        view.title = '换货关闭';
+        view.desc =
+          rec.closeReason === 'cancel' ? '因您撤销，换货关闭' : '换货已关闭';
+      } else {
+        view.title = '换货中';
+        view.desc = '请等待平台处理';
+      }
+      return view;
+    }
+
+    /* 退款 / 退货退款 */
+    if (stage === 'success') {
+      view.icon = 'success';
+      view.title = '退款成功';
+      view.showAmount = true;
+      view.amountText = '¥' + Number(rec.amount || 0).toFixed(2);
+      view.desc = '金额';
+    } else if (stage === 'closed' || stage === 'failed') {
+      view.icon = 'closed';
+      view.title = '退款关闭';
+      if (rec.closeReason === 'cancel' || rec.closeReason === 'close_return') {
+        view.desc = '因您撤销，退款关闭';
+      } else if (rec.closeReason === 'reject_receive') {
+        view.desc = '因退货商品不符，退款关闭';
+      } else if (rec.closeReason === 'timeout') {
+        view.desc = '因超时未处理，退款关闭';
+      } else {
+        view.desc = '退款已关闭';
+      }
+    } else {
+      view.icon = 'progress';
+      view.title = '退款中';
+      view.desc = type === 'return' ? '退货退款处理中' : '请等待平台处理';
+    }
+    return view;
+  }
+
+  function buildAftersaleDetailHref(rec, extra) {
+    extra = extra || {};
+    return buildDetailHref(
+      Object.assign(
+        {
+          type: rec.type === 'pre_ship' ? 'refund_only' : rec.type || 'refund_only',
+          stage: rec.stage || 'audit',
+          item: rec.itemIndex != null ? String(rec.itemIndex) : '0',
+          reason: rec.reason || '',
+          closeReason: rec.closeReason || '',
+          asId: rec.id || ''
+        },
+        extra
+      )
+    );
+  }
+
+  function buildAftersaleListHref(extra) {
+    return 'order-aftersale-list.html?' + buildQuery(extra || {});
+  }
+
+  function syncAftersaleRecordFromApp(app, type, stage) {
+    if (!app) return;
+    var id = app.aftersaleId || app.refundNo || genRefundNo();
+    app.aftersaleId = id;
+    var amount =
+      app.amount != null
+        ? app.amount
+        : app.restockItems
+          ? 0
+          : null;
+    if (amount == null) {
+      var item = getItem();
+      amount =
+        item.paidAmount != null ? item.paidAmount : (item.priceNum || 0) * (item.qty || 1);
+    }
+    upsertAftersaleRecord({
+      id: id,
+      orderNo: app.orderNo || '1089765423471123',
+      itemIndex: app.itemIndex != null ? app.itemIndex : getItemIndex(),
+      type: type || app.formType || 'refund_only',
+      stage: stage || 'audit',
+      closeReason: app.closeReason || '',
+      amount: Number(amount) || 0,
+      reason: app.reason || '',
+      productName: app.productName || '',
+      productSpec: app.productSpec || '',
+      productImg: app.productImg || '',
+      shopName: getParams().get('supplier') || '冷丰优选供应链',
+      applyTime: app.applyTime || formatDateTime(),
+      resultTime: app.resultTime || app.closedTime || ''
+    });
+    saveApplication(app);
+  }
 
   var RETURN_METHODS = ['快递上门取货'];
 
@@ -195,6 +588,44 @@
   function getDemoSupplierReturnAddress(supplierName) {
     var name = supplierName || getDemoSupplierName();
     return name + '， 021-58901234， 上海市浦东新区外高桥保税区 冷链物流园A区12号';
+  }
+
+  /** delivery=store 快递；delivery=warehouse 配送（经仓） */
+  function isExpressDelivery(delivery) {
+    return (delivery || getDelivery()) === 'store';
+  }
+
+  function formatWarehouseReturnAddressText() {
+    var info = RETURN_ADDRESSES.warehouse;
+    return info.name + '， ' + info.phone + '， ' + info.address;
+  }
+
+  /**
+   * 退货回退地址文案：
+   * - 配送(warehouse)：仓库地址
+   * - 快递(store)：供应商收货地址（快递售后不变）
+   */
+  function getReturnAddressText(app, supplierName) {
+    var delivery = (app && app.delivery) || getDelivery();
+    if (!isExpressDelivery(delivery)) {
+      if (app && app.returnAddress && String(app.returnAddress).indexOf('仓') >= 0) {
+        return app.returnAddress;
+      }
+      return formatWarehouseReturnAddressText();
+    }
+    return (app && app.returnAddress) || getDemoSupplierReturnAddress(supplierName);
+  }
+
+  function ensureReturnAddressOnApp(app) {
+    if (!app) return app;
+    var delivery = app.delivery || getDelivery();
+    app.delivery = delivery;
+    if (!isExpressDelivery(delivery)) {
+      app.returnAddress = formatWarehouseReturnAddressText();
+    } else if (!app.returnAddress) {
+      app.returnAddress = getDemoSupplierReturnAddress();
+    }
+    return app;
   }
 
   var CANCEL_PICKUP_REASONS = [
@@ -589,11 +1020,198 @@
     return '因退货商品不符，' + party + '已拒收，商品正在退回，请留意物流信息。';
   }
 
-  function ensureReshipData(app) {
-    if (!app.outCourier) app.outCourier = '顺丰速运';
-    if (!app.outTrackingNo) app.outTrackingNo = 'SF1122334455667';
+  function isReshipShipped(app) {
+    var q = getParams().get('shipped');
+    if (q === '1') return true;
+    if (q === '0') return false;
+    return !!(app && app.outShipped);
+  }
+
+  function markReshipShipped(app) {
+    app = app || {};
+    app.outShipped = true;
+    app.outCourier = '申通快递';
+    app.outTrackingNo = '773075059702651';
+    app.outLogisticsStatus = '运输中';
+    app.outLogisticsText = '【杭州市】快件已到达 杭州萧山转运中心';
+    app.outShipTime = app.outShipTime || formatDateTime();
     saveApplication(app);
     return app;
+  }
+
+  function ensureReshipData(app) {
+    app = app || {};
+    /* 仅已寄出时补齐物流演示数据；待寄出不生成运单 */
+    if (isReshipShipped(app)) {
+      if (!app.outCourier || app.outCourier === '顺丰速运') app.outCourier = '申通快递';
+      if (!app.outTrackingNo || String(app.outTrackingNo).indexOf('SF') === 0) {
+        app.outTrackingNo = '773075059702651';
+      }
+      if (!app.outLogisticsStatus) app.outLogisticsStatus = '运输中';
+      if (!app.outLogisticsText) {
+        app.outLogisticsText = '【杭州市】快件已到达 杭州萧山转运中心';
+      }
+      app.outShipped = true;
+      saveApplication(app);
+    }
+    return app;
+  }
+
+  function getReshipLogisticsPackages(app) {
+    app = ensureReshipData(app || {});
+    var primary = {
+      status: app.outLogisticsStatus || '运输中',
+      courier: app.outCourier || '申通快递',
+      trackingNo: app.outTrackingNo || '773075059702651',
+      text: app.outLogisticsText || '【杭州市】快件已到达 杭州萧山转运中心'
+    };
+    /* 补货寄出默认单包裹；pkgs=2 时演示多包裹 */
+    if (getParams().get('pkgs') === '2' || getParams().get('multiPkg') === '1') {
+      return [
+        primary,
+        {
+          status: '派送中',
+          courier: '中通快递',
+          trackingNo: '788012345678901',
+          text: '【杭州市】快件正在派送中，派送员：李师傅'
+        }
+      ];
+    }
+    return [primary];
+  }
+
+  function buildOrderLogisticsHref(pkgIndex, packageCount) {
+    var count = packageCount != null ? packageCount : 1;
+    var extra = {
+      refundBack: '1',
+      type: getRefundType(),
+      stage: getDetailStage() || 'reship',
+      shipped: '1',
+      pkg: pkgIndex != null ? String(pkgIndex) : '0',
+      /* 单包裹跟踪页不展示包裹1/包裹2页签 */
+      pkgs: count <= 1 ? '1' : String(count)
+    };
+    var item = getParams().get('item');
+    if (item != null && item !== '') extra.item = item;
+    return 'order-logistics.html?' + buildQuery(extra);
+  }
+
+  function renderReshipPendingCard(app, refundType) {
+    var pending = document.getElementById('refundReshipPendingCard');
+    var track = document.getElementById('refundReshipLogisticsTrack');
+    if (pending) {
+      pending.hidden = false;
+      pending.onclick = function () {
+        /* 演示：点击待发货卡 → 模拟已寄出 */
+        markReshipShipped(app);
+        window.location.href = buildDetailHref({
+          type: refundType,
+          stage: 'reship',
+          shipped: '1'
+        });
+      };
+    }
+    if (track) {
+      track.hidden = true;
+      var scroll = document.getElementById('refundReshipLogisticsScroll');
+      if (scroll) scroll.innerHTML = '';
+    }
+  }
+
+  function renderReshipLogisticsTrack(app) {
+    var section = document.getElementById('refundDetailReshipSection');
+    var pending = document.getElementById('refundReshipPendingCard');
+    var track = document.getElementById('refundReshipLogisticsTrack');
+    var scroll = document.getElementById('refundReshipLogisticsScroll');
+    var dots = document.getElementById('refundReshipLogisticsDots');
+    if (!section || !scroll) return;
+
+    if (pending) {
+      pending.hidden = true;
+      pending.onclick = null;
+    }
+    if (track) track.hidden = false;
+
+    var packages = getReshipLogisticsPackages(app);
+    var chevron =
+      '<svg class="ua-or-reship-logistics__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
+    var truckIcon =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="8" width="13" height="9" rx="1"/><path d="M15 10h4l3 4v3h-7V10z"/><circle cx="7" cy="18" r="1.5"/><circle cx="18" cy="18" r="1.5"/></svg>';
+
+    scroll.innerHTML = packages
+      .map(function (pkg, idx) {
+        return (
+          '<button type="button" class="ua-or-reship-logistics__card" data-pkg-index="' +
+          idx +
+          '">' +
+          '<span class="ua-or-reship-logistics__icon" aria-hidden="true">' +
+          truckIcon +
+          '</span>' +
+          '<div class="ua-or-reship-logistics__body">' +
+          '<div class="ua-or-reship-logistics__status">' +
+          escapeHtml(pkg.status) +
+          '</div>' +
+          '<div class="ua-or-reship-logistics__courier">' +
+          escapeHtml(pkg.courier) +
+          ' ' +
+          escapeHtml(pkg.trackingNo) +
+          '</div>' +
+          '<div class="ua-or-reship-logistics__text">' +
+          escapeHtml(pkg.text) +
+          '</div></div>' +
+          chevron +
+          '</button>'
+        );
+      })
+      .join('');
+
+    if (dots) {
+      if (packages.length > 1) {
+        dots.hidden = false;
+        dots.innerHTML = packages
+          .map(function (_, idx) {
+            return (
+              '<span class="ua-or-reship-logistics__dot' +
+              (idx === 0 ? ' is-active' : '') +
+              '"></span>'
+            );
+          })
+          .join('');
+      } else {
+        dots.innerHTML = '';
+        dots.hidden = true;
+      }
+    }
+
+    scroll.querySelectorAll('.ua-or-reship-logistics__card').forEach(function (card) {
+      card.addEventListener('click', function () {
+        var idx = Number(card.getAttribute('data-pkg-index') || 0);
+        window.location.href = buildOrderLogisticsHref(idx, packages.length);
+      });
+    });
+
+    if (packages.length > 1 && dots) {
+      scroll.addEventListener('scroll', function () {
+        var card = scroll.querySelector('.ua-or-reship-logistics__card');
+        if (!card) return;
+        var idx = Math.round(scroll.scrollLeft / (card.offsetWidth + 10));
+        dots.querySelectorAll('.ua-or-reship-logistics__dot').forEach(function (dot, i) {
+          dot.classList.toggle('is-active', i === idx);
+        });
+      });
+    }
+  }
+
+  function renderReshipSection(app, refundType) {
+    var section = document.getElementById('refundDetailReshipSection');
+    if (!section) return;
+    section.hidden = false;
+    ensureReshipData(app);
+    if (isReshipShipped(app)) {
+      renderReshipLogisticsTrack(app);
+    } else {
+      renderReshipPendingCard(app, refundType);
+    }
   }
 
   function getReturnSectionTip(refundType, delivery) {
@@ -1002,6 +1620,15 @@
     return from === 'pickup_order' ? 'pickup_order' : 'detail';
   }
 
+  function getAddrFrom() {
+    return (getParams().get('addrFrom') || '').trim();
+  }
+
+  function buildCheckoutReturnHref() {
+    var from = getParams().get('from') || 'restock.html';
+    return 'checkout.html?from=' + encodeURIComponent(from);
+  }
+
   function buildPickupEditReturnHref(extra) {
     extra = extra || {};
     var refundType = extra.type || getRefundType() || 'return';
@@ -1098,15 +1725,18 @@
     });
     if (!isEdit) {
       resetRefundFlowForNewApplication(app);
+      app.aftersaleId = app.refundNo;
     }
     saveApplication(app);
-    var typeMap = { return: 'return', restock: 'restock', exchange: 'exchange' };
+    var typeMap = { return: 'return', restock: 'restock', exchange: 'exchange', pre_ship: 'refund_only' };
     var type = typeMap[formType] || 'refund_only';
+    syncAftersaleRecordFromApp(app, type, 'audit');
     window.location.href = buildDetailHref({
       type: type,
       stage: 'audit',
       reason: app.reason || '',
-      pickupPhase: ''
+      pickupPhase: '',
+      asId: app.aftersaleId || app.refundNo || ''
     });
   }
 
@@ -1336,11 +1966,16 @@
   function clearPickupScheduled(app) {
     if (!app) return;
     var pickupCode = app.pickupCode;
+    var mergeKey = app.pickupMergeKey;
+    var memberId = getAppPickupMemberId(app);
+    if (mergeKey) unregisterMergedPickupMember(mergeKey, memberId);
     app.pickupScheduled = false;
     delete app.pickupTime;
     delete app.pickupCode;
     delete app.expressOrderNo;
     delete app.expressOrderTime;
+    delete app.pickupMergeKey;
+    delete app.pickupMerged;
     app.pickupCourierStatus = '';
     delete app.pickupPhase;
     delete app.pickupPickedTime;
@@ -1426,7 +2061,10 @@
 
   function getMerchantReturnDisplay() {
     var delivery = getDelivery();
-    var info = RETURN_ADDRESSES[delivery] || RETURN_ADDRESSES.warehouse;
+    /* 配送回仓库；快递沿用现有门店/商家寄回地址配置，不改快递售后 */
+    var info = isExpressDelivery(delivery)
+      ? RETURN_ADDRESSES.store
+      : RETURN_ADDRESSES.warehouse;
     return {
       summary: info.address,
       full: info.address + ' ' + info.name + ' ' + info.phone,
@@ -1434,6 +2072,181 @@
       phone: info.phone,
       address: info.address
     };
+  }
+
+  var MERGED_PICKUP_KEY = 'ua_refund_merged_pickup_v1';
+
+  /** 需寄回商品的售后类型（退货/换货）可合并物流 */
+  function getReturnShipTypeGroup(type) {
+    if (type === 'exchange') return 'exchange';
+    if (type === 'return' || type === 'goods') return 'return';
+    return '';
+  }
+
+  function normalizeReturnAddressKey(addr) {
+    return String(addr || '')
+      .replace(/\s+/g, '')
+      .replace(/，/g, ',')
+      .toLowerCase();
+  }
+
+  function buildPickupMergeKey(delivery, shipType, returnAddress) {
+    return (
+      String(delivery || 'warehouse') +
+      '|' +
+      String(shipType || 'return') +
+      '|' +
+      normalizeReturnAddressKey(returnAddress)
+    );
+  }
+
+  function getAppReturnAddressForMerge(app) {
+    ensureReturnAddressOnApp(app || {});
+    if (app && app.returnAddress) return app.returnAddress;
+    var merchant = getMerchantReturnDisplay();
+    return merchant.full || merchant.address || '';
+  }
+
+  function getAppPickupMemberId(app) {
+    if (!app) return 'anon';
+    return String(
+      app.aftersaleId ||
+        app.refundNo ||
+        (app.orderNo || DEMO_ORDER_NO) + '_item' + (app.itemIndex != null ? app.itemIndex : getItemIndex())
+    );
+  }
+
+  function loadMergedPickupPool() {
+    try {
+      var raw = sessionStorage.getItem(MERGED_PICKUP_KEY);
+      var data = raw ? JSON.parse(raw) : null;
+      return data && typeof data === 'object' ? data : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveMergedPickupPool(pool) {
+    try {
+      sessionStorage.setItem(MERGED_PICKUP_KEY, JSON.stringify(pool || {}));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function findMergedPickupEntry(mergeKey) {
+    var pool = loadMergedPickupPool();
+    return pool[mergeKey] || null;
+  }
+
+  function upsertMergedPickupEntry(mergeKey, patch) {
+    var pool = loadMergedPickupPool();
+    var cur = pool[mergeKey] || {};
+    pool[mergeKey] = Object.assign({}, cur, patch || {}, { mergeKey: mergeKey });
+    saveMergedPickupPool(pool);
+    return pool[mergeKey];
+  }
+
+  function registerMergedPickupMember(mergeKey, memberId, meta) {
+    var entry = findMergedPickupEntry(mergeKey) || {};
+    var members = Array.isArray(entry.members) ? entry.members.slice() : [];
+    if (members.indexOf(memberId) < 0) members.push(memberId);
+    return upsertMergedPickupEntry(
+      mergeKey,
+      Object.assign({}, entry, meta || {}, { members: members })
+    );
+  }
+
+  function unregisterMergedPickupMember(mergeKey, memberId) {
+    if (!mergeKey) return;
+    var pool = loadMergedPickupPool();
+    var entry = pool[mergeKey];
+    if (!entry) return;
+    var members = (entry.members || []).filter(function (id) {
+      return id !== memberId;
+    });
+    if (!members.length) {
+      delete pool[mergeKey];
+    } else {
+      entry.members = members;
+      pool[mergeKey] = entry;
+    }
+    saveMergedPickupPool(pool);
+  }
+
+  /**
+   * 同履约方式 + 同售后寄回类型 + 同回退地址 → 合并为同一物流单，共用取件码/快递单号
+   * 快递(store)、配送(warehouse) 均适用
+   */
+  function resolveMergedPickupForApp(app, shipType) {
+    app = app || {};
+    var delivery = app.delivery || getDelivery();
+    var typeGroup = getReturnShipTypeGroup(shipType || app.formType || getRefundType());
+    if (!typeGroup) return null;
+    var returnAddr = getAppReturnAddressForMerge(app);
+    var mergeKey = buildPickupMergeKey(delivery, typeGroup, returnAddr);
+    var existing = findMergedPickupEntry(mergeKey);
+    var memberId = getAppPickupMemberId(app);
+    if (existing && existing.pickupCode) {
+      registerMergedPickupMember(mergeKey, memberId, {
+        delivery: delivery,
+        shipType: typeGroup,
+        returnAddress: returnAddr,
+        pickupCode: existing.pickupCode,
+        expressOrderNo: existing.expressOrderNo,
+        expressOrderTime: existing.expressOrderTime,
+        pickupTime: existing.pickupTime || app.pickupTime,
+        pickupCourierPhone: existing.pickupCourierPhone || '4008001234'
+      });
+      return {
+        mergeKey: mergeKey,
+        pickupCode: existing.pickupCode,
+        expressOrderNo: existing.expressOrderNo,
+        expressOrderTime: existing.expressOrderTime,
+        pickupTime: existing.pickupTime,
+        pickupCourierPhone: existing.pickupCourierPhone,
+        merged: true,
+        memberCount: (existing.members || []).length
+      };
+    }
+    var pickupCode = app.pickupCode || String(Math.floor(1000 + Math.random() * 9000));
+    var expressOrderNo = app.expressOrderNo || String(Date.now()).slice(-17);
+    var expressOrderTime = app.expressOrderTime || formatDateTime();
+    registerMergedPickupMember(mergeKey, memberId, {
+      delivery: delivery,
+      shipType: typeGroup,
+      returnAddress: returnAddr,
+      pickupCode: pickupCode,
+      expressOrderNo: expressOrderNo,
+      expressOrderTime: expressOrderTime,
+      pickupTime: app.pickupTime || '',
+      pickupCourierPhone: app.pickupCourierPhone || '4008001234'
+    });
+    return {
+      mergeKey: mergeKey,
+      pickupCode: pickupCode,
+      expressOrderNo: expressOrderNo,
+      expressOrderTime: expressOrderTime,
+      pickupTime: app.pickupTime,
+      pickupCourierPhone: app.pickupCourierPhone,
+      merged: false,
+      memberCount: 1
+    };
+  }
+
+  function applyMergedPickupToApp(app, shipType) {
+    if (!app) return app;
+    var resolved = resolveMergedPickupForApp(app, shipType);
+    if (!resolved) return app;
+    app.pickupMergeKey = resolved.mergeKey;
+    app.pickupCode = resolved.pickupCode;
+    app.expressOrderNo = resolved.expressOrderNo;
+    app.expressOrderTime = resolved.expressOrderTime || app.expressOrderTime;
+    if (resolved.pickupTime && !app.pickupTime) app.pickupTime = resolved.pickupTime;
+    if (resolved.pickupCourierPhone) app.pickupCourierPhone = resolved.pickupCourierPhone;
+    app.pickupMerged = !!resolved.merged || (resolved.memberCount || 0) > 1;
+    app.trackingNo = app.pickupCode;
+    return app;
   }
 
   function scheduleDoorPickup(app, state) {
@@ -1448,10 +2261,19 @@
     app.pickupAddress = state.pickupAddressFull || addr.full || addr.label;
     app.pickupAddressLabel = state.pickupAddress || addr.label;
     app.pickupContact = state.pickupContact || addr.contact + ' ' + addr.phone;
-    app.pickupCode = app.pickupCode || String(Math.floor(1000 + Math.random() * 9000));
-    app.expressOrderNo = app.expressOrderNo || String(Date.now()).slice(-17);
-    app.expressOrderTime = formatDateTime();
-    app.pickupCourierStatus = '快递员已接单';
+    ensureReturnAddressOnApp(app);
+    applyMergedPickupToApp(app, app.formType || getRefundType());
+    /* 若合并池尚无预约时间，写入本次时间供后续售后复用 */
+    if (app.pickupMergeKey && app.pickupTime) {
+      var entry = findMergedPickupEntry(app.pickupMergeKey);
+      if (entry && !entry.pickupTime) {
+        upsertMergedPickupEntry(app.pickupMergeKey, { pickupTime: app.pickupTime });
+      } else if (entry && entry.pickupTime && !state.pickupTime) {
+        app.pickupTime = entry.pickupTime;
+      }
+    }
+    app.expressOrderTime = app.expressOrderTime || formatDateTime();
+    app.pickupCourierStatus = app.pickupCourierStatus || '快递员已接单';
     app.pickupCourierPhone = app.pickupCourierPhone || '4008001234';
     app.pickupFeeText = '¥0';
     app.pickupFeeSub = '平台承担退货运费';
@@ -1459,15 +2281,33 @@
     app.trackingNo = app.pickupCode;
     delete app.pickupCanceled;
     saveApplication(app);
+    if (app.aftersaleId || app.refundNo) {
+      upsertAftersaleRecord({
+        id: app.aftersaleId || app.refundNo,
+        pickupCode: app.pickupCode,
+        expressOrderNo: app.expressOrderNo,
+        pickupMergeKey: app.pickupMergeKey,
+        returnAddress: app.returnAddress,
+        delivery: app.delivery || getDelivery()
+      });
+    }
   }
 
   function ensurePickupBoardData(app) {
     if (!app) return app;
     if (!isPickupScheduled(app)) return app;
     var addr = getDefaultPickupAddress();
+    ensureReturnAddressOnApp(app);
+    applyMergedPickupToApp(app, app.formType || getRefundType());
     if (!app.pickupCode) app.pickupCode = '0030';
     if (!app.pickupTime) {
-      app.pickupTime = formatPickupDisplay(addDays(startOfDay(new Date()), 1), '09:00–11:00');
+      var merged = app.pickupMergeKey ? findMergedPickupEntry(app.pickupMergeKey) : null;
+      app.pickupTime =
+        (merged && merged.pickupTime) ||
+        formatPickupDisplay(addDays(startOfDay(new Date()), 1), '09:00–11:00');
+      if (app.pickupMergeKey) {
+        upsertMergedPickupEntry(app.pickupMergeKey, { pickupTime: app.pickupTime });
+      }
     }
     if (!app.pickupAddressId) app.pickupAddressId = addr.id;
     if (!app.pickupAddress) {
@@ -1483,6 +2323,7 @@
     if (!app.pickupCourierPhone) app.pickupCourierPhone = '4008001234';
     app.pickupFeeText = '¥0';
     app.pickupFeeSub = '平台承担退货运费';
+    app.trackingNo = app.pickupCode;
     saveApplication(app);
     return app;
   }
@@ -1907,23 +2748,24 @@
     };
   }
 
-  function renderSpecQtyList(containerId, specs, qtyMap, onChange) {
+  function renderSpecQtyList(containerId, specs, qtyMap, onChange, maxQtyMap) {
     var el = document.getElementById(containerId);
     if (!el) return;
     el.innerHTML = specs
       .map(function (spec) {
         var qty = qtyMap[spec.id] || 0;
+        var maxQty =
+          maxQtyMap && maxQtyMap[spec.id] != null ? Number(maxQtyMap[spec.id]) : 99;
+        if (!(maxQty >= 0)) maxQty = 99;
         return (
           '<div class="ua-or-spec-row" data-spec-id="' +
           spec.id +
           '">' +
+          '<div class="ua-or-spec-row__main">' +
           '<div class="ua-or-spec-row__info">' +
           '<div class="ua-or-spec-row__label">' +
-          spec.label +
-          '</div>' +
-          '<div class="ua-or-spec-row__price">' +
-          formatPrice(spec.priceNum) +
-          '/件</div></div>' +
+          escapeHtml(spec.label) +
+          '</div></div>' +
           '<div class="ua-or-stepper">' +
           '<button type="button" class="ua-or-spec-minus" data-spec-id="' +
           spec.id +
@@ -1934,10 +2776,17 @@
           spec.id +
           '" value="' +
           qty +
-          '" min="0" readonly tabindex="-1">' +
+          '" min="0" max="' +
+          maxQty +
+          '" readonly tabindex="-1">' +
           '<button type="button" class="ua-or-spec-plus" data-spec-id="' +
           spec.id +
-          '" aria-label="增加">+</button></div></div>'
+          '" aria-label="增加"' +
+          (qty >= maxQty ? ' disabled' : '') +
+          '>+</button></div></div>' +
+          '<p class="ua-or-spec-row__hint">最多可补寄' +
+          maxQty +
+          '件</p></div>'
         );
       })
       .join('');
@@ -1953,7 +2802,11 @@
     el.querySelectorAll('.ua-or-spec-plus').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var id = btn.getAttribute('data-spec-id');
-        qtyMap[id] = Math.min(99, (qtyMap[id] || 0) + 1);
+        var maxQty =
+          maxQtyMap && maxQtyMap[id] != null ? Number(maxQtyMap[id]) : 99;
+        if (!(maxQty >= 0)) maxQty = 99;
+        if ((qtyMap[id] || 0) >= maxQty) return;
+        qtyMap[id] = Math.min(maxQty, (qtyMap[id] || 0) + 1);
         onChange();
       });
     });
@@ -1972,7 +2825,13 @@
 
   function initRestockPage() {
     var item = getItem();
-    var specs = getItemSpecs(item);
+    var orderSpec = getOrderSpec(item);
+    var specs = orderSpec ? [orderSpec] : [];
+    var maxOrderQty = Math.max(0, Number(item.qty) || 0);
+    var maxQtyMap = {};
+    specs.forEach(function (spec) {
+      maxQtyMap[spec.id] = maxOrderQty;
+    });
     var state = {
       reason: '',
       specQtys: {},
@@ -1987,8 +2846,6 @@
     renderProductCard('refundProductCard');
 
     var reasonValue = document.getElementById('refundReasonValue');
-    var specList = document.getElementById('refundRestockSpecList');
-    var specSummary = document.getElementById('refundRestockSpecSummary');
     var descInput = document.getElementById('refundDescInput');
     var descCount = document.getElementById('refundDescCount');
     var uploadGrid = document.getElementById('refundUploadGrid');
@@ -1999,15 +2856,16 @@
         reasonValue.textContent = state.reason || '请选择';
         reasonValue.classList.toggle('ua-or-field__value--placeholder', !state.reason);
       }
-      if (specSummary) {
-        var summary = summarizeSpecQty(specs, state.specQtys);
-        specSummary.textContent = summary || '请选择需补商品的规格及数量';
-        specSummary.classList.toggle('ua-or-field__value--placeholder', !summary);
-      }
     }
 
     function refreshSpecList() {
-      renderSpecQtyList('refundRestockSpecList', specs, state.specQtys, refreshSpecList);
+      renderSpecQtyList(
+        'refundRestockSpecList',
+        specs,
+        state.specQtys,
+        refreshSpecList,
+        maxQtyMap
+      );
       syncUI();
     }
 
@@ -2034,6 +2892,17 @@
       submitBtn.addEventListener('click', function () {
         if (!state.reason) {
           window.alert('请选择补货原因');
+          return;
+        }
+        if (!specs.length) {
+          window.alert('暂无可补货规格');
+          return;
+        }
+        var overLimit = specs.some(function (spec) {
+          return (state.specQtys[spec.id] || 0) > maxOrderQty;
+        });
+        if (overLimit) {
+          window.alert('补货数量不能超过下单数量（最多' + maxOrderQty + '件）');
           return;
         }
         var picked = specs.filter(function (spec) {
@@ -2337,7 +3206,17 @@
       'closeReason',
       'expired',
       'pickupPhase',
-      'pickupEditFrom'
+      'pickupEditFrom',
+      'addrFrom',
+      'refundBack',
+      'pkg',
+      'pkgs',
+      'multiPkg',
+      'asId',
+      'asIds',
+      'asFilter',
+      'asItem',
+      'shipped'
     ];
     var qs = [];
     keys.forEach(function (key) {
@@ -2722,6 +3601,18 @@
       row.addEventListener('click', function () {
         state.service = row.getAttribute('data-service');
         syncRadio();
+        var group =
+          state.service === 'restock'
+            ? 'restock'
+            : state.service === 'exchange'
+              ? 'exchange'
+              : 'refund';
+        if (hasOpenAftersaleOfGroup(getItemIndex(), group)) {
+          var label =
+            group === 'restock' ? '补货' : group === 'exchange' ? '换货' : '退款/退货';
+          showToast('该商品已有进行中的' + label + '售后，请先处理完成后再申请');
+          return;
+        }
         window.setTimeout(function () {
           if (state.service === 'refund_only') {
             window.location.href = buildOnlyHref();
@@ -3182,6 +4073,11 @@
       saveApplication(app);
     }
 
+    if (getParams().get('closeReason')) {
+      app.closeReason = getParams().get('closeReason');
+    }
+    syncAftersaleRecordFromApp(app, refundType, stage);
+
     var resultTime = app.resultTime || app.closedTime || formatDateTime();
     if (stage === 'success' && !app.resultTime) {
       app.resultTime = resultTime;
@@ -3456,7 +4352,7 @@
     var qty = app.qty != null ? app.qty : item.qty;
     var reason = app.reason || getParams().get('reason') || '七天无理由退换货';
     var receiveAddr = app.receiveAddress || getDemoBuyerReceiveAddress();
-    var returnAddr = app.returnAddress || getDemoSupplierReturnAddress(sellerName);
+    var returnAddr = getReturnAddressText(app, sellerName);
     var agreeDate = shiftSeconds(applyDate, 14);
     var buyerFields = [
       { label: labels.goods, value: productName + (productSpec ? ' ' + productSpec : '') },
@@ -3960,8 +4856,14 @@
         },
         app
       );
+      ensureReturnAddressOnApp(app);
+      saveApplication(app);
+    } else {
+      ensureReturnAddressOnApp(app);
       saveApplication(app);
     }
+
+    syncAftersaleRecordFromApp(app, refundType, stage);
 
     var state = {
       refundType: refundType,
@@ -4046,11 +4948,19 @@
     }
     if (stage === 'reship') {
       ensureReshipData(app);
-      cfg = Object.assign({}, cfg, {
-        notice: isRestock
-          ? '平台已同意补货，正在为您安排寄出，请留意物流信息。'
-          : '平台已收到退回商品，正在为您安排换货寄出，请留意物流信息。'
-      });
+      if (isReshipShipped(app)) {
+        cfg = Object.assign({}, cfg, {
+          title: isRestock ? '补货已寄出' : '换货已寄出',
+          notice: isRestock
+            ? '补货商品已发出，请留意物流信息，确认收货后完成本次补货。'
+            : '换货商品已发出，请留意物流信息，确认收货后完成本次换货。'
+        });
+      } else {
+        cfg = Object.assign({}, cfg, {
+          title: isRestock ? '请等待补货寄出' : '请等待换货寄出',
+          notice: ''
+        });
+      }
     }
 
     var titleEl = document.getElementById('refundDetailStatusTitle');
@@ -4058,7 +4968,7 @@
 
     var noticeEl = document.getElementById('refundDetailNotice');
     if (noticeEl) {
-      if (isReturn && stage === 'refund') {
+      if ((isReturn && stage === 'refund') || !cfg.notice) {
         noticeEl.textContent = '';
         noticeEl.hidden = true;
       } else {
@@ -4100,7 +5010,11 @@
         if (isExchange) return 'reship';
         return 'refund';
       }
-      if (current === 'reship') return 'success';
+      if (current === 'reship') {
+        /* 待寄出 → 已寄出；已寄出 → 完成 */
+        if (!isReshipShipped(app)) return 'reship_shipped';
+        return 'success';
+      }
       if (current === 'refund') return 'success';
       if (current === 'reject_return') return 'closed_reject';
       return null;
@@ -4137,12 +5051,9 @@
           if (idx < activeIdx) cls += ' is-done';
           else if (idx === activeIdx) cls += ' is-active';
           else cls += ' is-pending';
-          if (idx === activeIdx && stage !== 'success') {
-            if (isReturn && stage === 'return' && !isReturnShipCompleted(app)) {
-              /* 取件完成前不可点击跳至待商家退款 */
-            } else {
-              cls += ' is-tappable';
-            }
+          /* 原型演示：当前高亮节点可点击进入下一阶段 */
+          if (idx === activeIdx && stage !== 'success' && stage !== 'closed') {
+            cls += ' is-tappable';
           }
           return (
             '<div class="' +
@@ -4160,25 +5071,18 @@
         })
         .join('');
 
-      if (stage !== 'success') {
+      if (stage !== 'success' && stage !== 'closed') {
         el.querySelectorAll('.ua-or-detail-step.is-tappable').forEach(function (stepEl) {
           stepEl.addEventListener('click', function () {
             var next = getNextStage(stage);
             if (!next) return;
-            if (isReturn && stage === 'return' && next === 'refund' && !isReturnShipCompleted(app)) {
-              showToast('请等待快递员取走包裹后再进入待商家退款');
-              return;
-            }
             if (stage === 'return' && next === 'refund') {
               ensurePickupBoardData(app);
-              if (!app.courier) app.courier = '上门取件';
-              if (!app.trackingNo) app.trackingNo = app.pickupCode || '0030';
-              saveApplication(app);
+              markPickupPickedUp(app);
             }
             if (stage === 'return' && next === 'reship') {
               ensurePickupBoardData(app);
-              if (!app.courier) app.courier = '上门取件';
-              if (!app.trackingNo) app.trackingNo = app.pickupCode || '0030';
+              markPickupPickedUp(app);
               ensureReshipData(app);
               saveApplication(app);
             }
@@ -4186,13 +5090,19 @@
               ensureReshipData(app);
             }
             if (next === 'success') {
+              if (isReturn && !isReturnShipCompleted(app)) {
+                ensurePickupBoardData(app);
+                markPickupPickedUp(app);
+              }
               app.resultTime = formatDateTime();
               saveApplication(app);
             }
             if (next === 'closed_reject') {
               ensureRejectReturnData(app, state);
               app.closedTime = formatDateTime();
+              app.closeReason = 'reject_receive';
               saveApplication(app);
+              syncAftersaleRecordFromApp(app, refundType, 'closed');
               window.location.href = buildDetailHref({
                 type: refundType,
                 stage: 'closed',
@@ -4200,7 +5110,33 @@
               });
               return;
             }
-            window.location.href = buildDetailHref({ type: refundType, stage: next });
+            if (next === 'reship_shipped') {
+              markReshipShipped(app);
+              syncAftersaleRecordFromApp(app, refundType, 'reship');
+              window.location.href = buildDetailHref({
+                type: refundType,
+                stage: 'reship',
+                shipped: '1'
+              });
+              return;
+            }
+            if (next === 'reship') {
+              app.outShipped = false;
+              saveApplication(app);
+              syncAftersaleRecordFromApp(app, refundType, 'reship');
+              window.location.href = buildDetailHref({
+                type: refundType,
+                stage: 'reship',
+                shipped: '0'
+              });
+              return;
+            }
+            syncAftersaleRecordFromApp(app, refundType, next === 'closed_reject' ? 'closed' : next);
+            window.location.href = buildDetailHref({
+              type: refundType,
+              stage: next,
+              shipped: next === 'success' && (isRestock || isExchange) ? '1' : ''
+            });
           });
         });
       }
@@ -4256,6 +5192,25 @@
       var guardTextEl = document.getElementById('refundPickupGuardText');
       var scheduleLabel = formatRelativePickupSchedule(app.pickupTime);
       if (codeEl) codeEl.textContent = app.pickupCode || '0030';
+      var mergeTipEl = document.getElementById('refundPickupMergeTip');
+      if (!mergeTipEl && codeEl && codeEl.parentNode) {
+        mergeTipEl = document.createElement('div');
+        mergeTipEl.id = 'refundPickupMergeTip';
+        mergeTipEl.className = 'ua-or-pickup-board__merge-tip';
+        codeEl.parentNode.appendChild(mergeTipEl);
+      }
+      if (mergeTipEl) {
+        var mergeEntry = app.pickupMergeKey ? findMergedPickupEntry(app.pickupMergeKey) : null;
+        var memberCount = mergeEntry && mergeEntry.members ? mergeEntry.members.length : 0;
+        if (memberCount > 1 || app.pickupMerged) {
+          mergeTipEl.hidden = false;
+          mergeTipEl.textContent =
+            '同履约、同回退地址的售后已合并物流，共用取件码 ' + (app.pickupCode || '');
+        } else {
+          mergeTipEl.hidden = true;
+          mergeTipEl.textContent = '';
+        }
+      }
       if (scheduleEl) {
         scheduleEl.innerHTML =
           '等待快递员<span class="is-hl">' + scheduleLabel + '</span>上门取件';
@@ -4297,12 +5252,7 @@
     }
 
     if ((isRestock || isExchange) && stage === 'reship') {
-      if (reshipSection) reshipSection.hidden = false;
-      ensureReshipData(app);
-      var outCourierEl = document.getElementById('refundOutCourierDisplay');
-      var outTrackingEl = document.getElementById('refundOutTrackingDisplay');
-      if (outCourierEl) outCourierEl.textContent = app.outCourier || '—';
-      if (outTrackingEl) outTrackingEl.textContent = app.outTrackingNo || '—';
+      renderReshipSection(app, refundType);
     } else if (reshipSection) {
       reshipSection.hidden = true;
     }
@@ -4378,7 +5328,35 @@
       if (!footer) return;
       footer.className = 'ua-or-detail-footer';
       var shell = document.querySelector('.ua-order-refund-detail-page');
-      if (stage === 'success' || stage === 'reject_return' || stage === 'reship') {
+      if (stage === 'success' || stage === 'reject_return') {
+        footer.innerHTML = '';
+        footer.hidden = true;
+        if (shell) shell.classList.add('is-footer-hidden');
+        return;
+      }
+      if ((isRestock || isExchange) && stage === 'reship' && isReshipShipped(app)) {
+        footer.hidden = false;
+        if (shell) shell.classList.remove('is-footer-hidden');
+        footer.className = 'ua-or-detail-footer ua-or-detail-footer--confirm-receipt';
+        footer.innerHTML =
+          '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--primary" id="refundReshipConfirmBtn">确认收货</button>';
+        var confirmBtn = document.getElementById('refundReshipConfirmBtn');
+        if (confirmBtn) {
+          confirmBtn.addEventListener('click', function () {
+            app.resultTime = formatDateTime();
+            app.outShipped = true;
+            saveApplication(app);
+            syncAftersaleRecordFromApp(app, refundType, 'success');
+            window.location.href = buildDetailHref({
+              type: refundType,
+              stage: 'success',
+              shipped: '1'
+            });
+          });
+        }
+        return;
+      }
+      if (stage === 'reship') {
         footer.innerHTML = '';
         footer.hidden = true;
         if (shell) shell.classList.add('is-footer-hidden');
@@ -5108,7 +6086,9 @@
           '</span>';
       }
       if (scheduleEl) {
-        scheduleEl.textContent = '快件正在发往商家退货地址';
+        scheduleEl.textContent = isExpressDelivery(getDelivery())
+          ? '快件正在发往商家退货地址'
+          : '快件正在发往仓库退货地址';
       }
     } else if (postCollect) {
       if (statusBtn) {
@@ -5138,6 +6118,24 @@
 
     var codeEl = document.getElementById('pickupOrderCode');
     if (codeEl && !postCollect) codeEl.textContent = app.pickupCode || '0030';
+    var poMergeTip = document.getElementById('pickupOrderMergeTip');
+    if (!poMergeTip && codeWrap && !postCollect) {
+      poMergeTip = document.createElement('div');
+      poMergeTip.id = 'pickupOrderMergeTip';
+      poMergeTip.className = 'ua-or-po-code__merge-tip';
+      codeWrap.appendChild(poMergeTip);
+    }
+    if (poMergeTip) {
+      var poEntry = app.pickupMergeKey ? findMergedPickupEntry(app.pickupMergeKey) : null;
+      var poCount = poEntry && poEntry.members ? poEntry.members.length : 0;
+      if (!postCollect && (poCount > 1 || app.pickupMerged)) {
+        poMergeTip.hidden = false;
+        poMergeTip.textContent = '同履约、同回退地址售后已合并，取件码一致';
+      } else {
+        poMergeTip.hidden = true;
+        poMergeTip.textContent = '';
+      }
+    }
 
     if (codeWrap && !postCollect) {
       codeWrap.classList.add('is-tappable');
@@ -5612,8 +6610,9 @@
         },
         app
       );
-      saveApplication(app);
     }
+    ensureReturnAddressOnApp(app);
+    saveApplication(app);
 
     var backHref = buildDetailHref({ type: refundType, stage: stage });
     initNav(getDetailNavTitle(refundType), backHref);
@@ -5864,11 +6863,15 @@
   function initAddressBookPage() {
     var refundType = getRefundType() || 'return';
     var stage = getDetailStage() || 'return';
-    var backHref = buildPickupEditHref({
-      type: refundType,
-      stage: stage,
-      pickupEditFrom: getPickupEditFrom()
-    });
+    var addrFrom = getAddrFrom();
+    var backHref =
+      addrFrom === 'checkout'
+        ? buildCheckoutReturnHref()
+        : buildPickupEditHref({
+            type: refundType,
+            stage: stage,
+            pickupEditFrom: getPickupEditFrom()
+          });
     var backEl = document.getElementById('addrBookBack');
     if (backEl) backEl.setAttribute('href', backHref);
 
@@ -6095,6 +7098,7 @@
               type: refundType,
               stage: stage,
               pickupEditFrom: getPickupEditFrom(),
+              addrFrom: addrFrom || '',
               edit: '1',
               groupId: editGroupId,
               addrId: editAddrId
@@ -6152,7 +7156,8 @@
         window.location.href = buildAddressCreateHref({
           type: refundType,
           stage: stage,
-          pickupEditFrom: getPickupEditFrom()
+          pickupEditFrom: getPickupEditFrom(),
+          addrFrom: addrFrom || ''
         });
       });
     if (batchDeleteBtn) {
@@ -6451,7 +7456,8 @@
     var backHref = buildAddressBookHref({
       type: refundType,
       stage: stage,
-      pickupEditFrom: getPickupEditFrom()
+      pickupEditFrom: getPickupEditFrom(),
+      addrFrom: getAddrFrom() || ''
     });
     var backEl = document.getElementById('addrCreateBack');
     if (backEl) backEl.setAttribute('href', backHref);
@@ -6968,6 +7974,187 @@
     bindSheetClose();
   }
 
+  function initAftersaleListPage() {
+    var params = getParams();
+    var filter = params.get('asFilter') || 'processing';
+    if (filter !== 'done' && filter !== 'all') filter = 'processing';
+    var itemFilter = params.get('asItem');
+    var asIdsRaw = params.get('asIds') || '';
+    var asIdSet = null;
+    if (asIdsRaw) {
+      asIdSet = {};
+      asIdsRaw.split(',').forEach(function (id) {
+        var trimmed = String(id || '').trim();
+        if (trimmed) asIdSet[trimmed] = true;
+      });
+    }
+
+    /* 按 asIds 限定时，优先展示对应完结记录 */
+    if (asIdSet && !params.get('asFilter')) filter = 'done';
+
+    var backHref = 'restock.html?tab=me';
+    if (params.get('fromDetail') === '1') {
+      var odQs = [];
+      ['from', 'status', 'supplier', 'delivery', 'cutoff', 'reason', 'scene'].forEach(function (key) {
+        var val = params.get(key);
+        if (val) odQs.push(key + '=' + encodeURIComponent(val));
+      });
+      if (!params.get('status')) odQs.push('status=receipt');
+      backHref = 'order-detail.html?' + odQs.join('&');
+    }
+
+    var backEl = document.getElementById('aftersaleListBack');
+    if (backEl) backEl.setAttribute('href', backHref);
+
+    var listEl = document.getElementById('aftersaleList');
+    var emptyEl = document.getElementById('aftersaleListEmpty');
+    var tabs = document.querySelectorAll('[data-as-filter]');
+
+    function isProcessing(rec) {
+      return !isAftersaleFinished(rec);
+    }
+
+    function getVisible() {
+      var all = loadAftersaleRecords();
+      return all.filter(function (rec) {
+        if (asIdSet && !asIdSet[rec.id]) return false;
+        if (itemFilter != null && itemFilter !== '' && String(rec.itemIndex) !== String(itemFilter)) {
+          return false;
+        }
+        if (filter === 'processing') return isProcessing(rec);
+        if (filter === 'done') return !isProcessing(rec);
+        return true;
+      });
+    }
+
+    function renderTabs() {
+      tabs.forEach(function (tab) {
+        var key = tab.getAttribute('data-as-filter');
+        tab.classList.toggle('is-active', key === filter);
+      });
+    }
+
+    function renderList() {
+      var rows = getVisible();
+      renderTabs();
+      if (!listEl) return;
+      if (!rows.length) {
+        listEl.innerHTML = '';
+        if (emptyEl) emptyEl.hidden = false;
+        return;
+      }
+      if (emptyEl) emptyEl.hidden = true;
+
+      listEl.innerHTML = rows
+        .map(function (rec) {
+          var view = getAftersaleProgressView(rec);
+          var typeLabel = AFTERSALE_TYPE_LABEL[rec.type] || '售后';
+          var amountLine =
+            getAftersaleTypeGroup(rec.type) === 'refund' && Number(rec.amount) > 0
+              ? '<div class="ua-as-card__amount">退款: ¥ ' +
+                Number(rec.amount).toFixed(2) +
+                '</div>'
+              : '';
+          var barDesc = view.showAmount
+            ? escapeHtml(view.desc) +
+              '<em class="ua-as-bar__amount">' +
+              escapeHtml(view.amountText) +
+              '</em>'
+            : escapeHtml(view.desc);
+          var actions = '';
+          if (isProcessing(rec)) {
+            actions =
+              '<button type="button" class="ua-as-card__btn ua-as-card__btn--primary" data-as-open="' +
+              escapeHtml(rec.id) +
+              '">查看详情</button>';
+          } else {
+            actions =
+              '<button type="button" class="ua-as-card__btn" data-as-open="' +
+              escapeHtml(rec.id) +
+              '">查看详情</button>' +
+              '<button type="button" class="ua-as-card__btn ua-as-card__btn--primary" data-as-open="' +
+              escapeHtml(rec.id) +
+              '">删除记录</button>';
+          }
+
+          return (
+            '<article class="ua-as-card" data-as-id="' +
+            escapeHtml(rec.id) +
+            '">' +
+            '<div class="ua-as-card__head">' +
+            '<span class="ua-as-card__shop">' +
+            escapeHtml(rec.shopName || '冷丰优选供应链') +
+            '</span>' +
+            '<span class="ua-as-card__type">' +
+            escapeHtml(typeLabel) +
+            '</span></div>' +
+            '<button type="button" class="ua-as-card__product" data-as-open="' +
+            escapeHtml(rec.id) +
+            '">' +
+            '<img class="ua-as-card__img" src="' +
+            escapeHtml(rec.productImg || '../assets/order-product-1.svg') +
+            '" alt="">' +
+            '<span class="ua-as-card__info">' +
+            '<span class="ua-as-card__name">' +
+            escapeHtml(rec.productName || '') +
+            '</span>' +
+            '<span class="ua-as-card__spec">' +
+            escapeHtml(rec.productSpec || '') +
+            '</span>' +
+            amountLine +
+            '</span></button>' +
+            '<button type="button" class="ua-as-bar" data-as-open="' +
+            escapeHtml(rec.id) +
+            '">' +
+            '<span class="ua-as-bar__title">' +
+            escapeHtml(view.title) +
+            '</span>' +
+            (barDesc
+              ? '<span class="ua-as-bar__desc">' + barDesc + '</span>'
+              : '') +
+            '<svg class="ua-as-bar__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>' +
+            '</button>' +
+            '<div class="ua-as-card__actions">' +
+            actions +
+            '</div></article>'
+          );
+        })
+        .join('');
+
+      listEl.querySelectorAll('[data-as-open]').forEach(function (el) {
+        el.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var id = el.getAttribute('data-as-open');
+          var rec = loadAftersaleRecords().find(function (r) {
+            return r.id === id;
+          });
+          if (!rec) return;
+          if (el.textContent && el.textContent.indexOf('删除') >= 0) {
+            showToast('已删除（演示）');
+            return;
+          }
+          window.location.href = buildAftersaleDetailHref(rec, {
+            from: params.get('from') || 'restock.html',
+            status: params.get('status') || 'receipt',
+            supplier: rec.shopName || params.get('supplier') || '',
+            delivery: params.get('delivery') || 'warehouse',
+            scene: params.get('scene') || 'post_ship'
+          });
+        });
+      });
+    }
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        filter = tab.getAttribute('data-as-filter') || 'processing';
+        renderList();
+      });
+    });
+
+    renderList();
+  }
+
   global.UAOrderRefund = {
     DEMO_ITEMS: DEMO_ITEMS,
     getParams: getParams,
@@ -6993,6 +8180,18 @@
     initReturnShipPage: initReturnShipPage,
     initAddressBookPage: initAddressBookPage,
     initAddressCreatePage: initAddressCreatePage,
+    initAftersaleListPage: initAftersaleListPage,
+    loadAftersaleRecords: loadAftersaleRecords,
+    getAftersaleRecordsByItem: getAftersaleRecordsByItem,
+    getAftersaleDisplayBars: getAftersaleDisplayBars,
+    getAftersaleProgressView: getAftersaleProgressView,
+    getAftersaleTypeGroup: getAftersaleTypeGroup,
+    hasOpenAftersaleOfGroup: hasOpenAftersaleOfGroup,
+    getMergedRefundAmount: getMergedRefundAmount,
+    isAftersaleFinished: isAftersaleFinished,
+    buildAftersaleDetailHref: buildAftersaleDetailHref,
+    buildAftersaleListHref: buildAftersaleListHref,
+    AFTERSALE_TYPE_LABEL: AFTERSALE_TYPE_LABEL,
     buildDetailHref: buildDetailHref,
     buildPickupEditHref: buildPickupEditHref,
     buildPickupOrderHref: buildPickupOrderHref,

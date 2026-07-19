@@ -57,7 +57,7 @@
 
   var ME_ACTION_LABELS = {
     deposit: '退押金',
-    returns: '退货/售后',
+    returns: '退款/售后',
     invoice: '开发票',
     bill: '账单',
     support: '联系客服',
@@ -97,6 +97,10 @@
       return;
     }
     if (!requireLoginForMe(label)) return;
+    if (action === 'returns') {
+      window.location.href = 'order-aftersale-list.html?from=restock.html';
+      return;
+    }
     window.alert(label + '（演示）');
   }
 

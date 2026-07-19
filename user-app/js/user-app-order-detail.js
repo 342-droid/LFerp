@@ -374,9 +374,8 @@
   }
 
   function renderItemActions(mode) {
-    var primary = document.getElementById('orderItemActionsPrimary');
-    var secondary = document.getElementById('orderItemActionsSecondary');
-    if (!primary || !secondary) return;
+    var actionWraps = document.querySelectorAll('.ua-od-item__actions');
+    if (!actionWraps.length) return;
 
     function makeBtn(label, itemIndex) {
       return (
@@ -390,20 +389,247 @@
       );
     }
 
-    if (mode === 'refund') {
-      primary.innerHTML = makeBtn('申请退款', 0);
-      secondary.innerHTML = makeBtn('申请退款', 1);
+    actionWraps.forEach(function (wrap, index) {
+      var itemEl = wrap.closest('.ua-od-item');
+      var itemIndex = itemEl
+        ? parseInt(itemEl.getAttribute('data-item-index') || String(index), 10)
+        : index;
+      if (mode === 'refund') {
+        wrap.innerHTML = makeBtn('申请退款', itemIndex);
+        return;
+      }
+      if (mode === 'aftersale') {
+        wrap.innerHTML = makeBtn('申请售后', itemIndex);
+        return;
+      }
+      wrap.innerHTML = '';
+    });
+  }
+
+  function getAftersaleApi() {
+    return window.UAOrderRefund || null;
+  }
+
+  function escapeOdHtml(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function getAftersaleBarIcon(kind) {
+    if (kind === 'closed') {
+      return (
+        '<span class="ua-od-as-bar__icon" aria-hidden="true">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M7 7l10 10M17 7L7 17"/></svg>' +
+        '</span>'
+      );
+    }
+    if (kind === 'success') {
+      return (
+        '<span class="ua-od-as-bar__icon ua-od-as-bar__icon--success" aria-hidden="true">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L19 7"/></svg>' +
+        '</span>'
+      );
+    }
+    return (
+      '<span class="ua-od-as-bar__icon ua-od-as-bar__icon--progress" aria-hidden="true">' +
+      '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h7l-1 8 10-14h-7l1-6z"/></svg>' +
+      '</span>'
+    );
+  }
+
+  function getDemoOrderNo() {
+    var el = document.getElementById('orderNoText');
+    return (el && el.textContent && el.textContent.trim()) || '1089765423471123';
+  }
+
+  function buildAftersaleListFromDetailHref(itemIndex, extra) {
+    var api = getAftersaleApi();
+    var p = getParams();
+    extra = extra || {};
+    var payload = {
+      fromDetail: '1',
+      from: p.get('from') || 'restock.html',
+      status: getStatus(),
+      supplier: p.get('supplier') || '',
+      delivery: p.get('delivery') || '',
+      asItem: itemIndex != null ? String(itemIndex) : '',
+      asFilter: extra.asFilter || 'all'
+    };
+    if (extra.asIds) payload.asIds = extra.asIds;
+    if (api && api.buildAftersaleListHref) {
+      return api.buildAftersaleListHref(payload);
+    }
+    var qs = [];
+    Object.keys(payload).forEach(function (key) {
+      if (payload[key] !== '' && payload[key] != null) {
+        qs.push(key + '=' + encodeURIComponent(payload[key]));
+      }
+    });
+    return 'order-aftersale-list.html?' + qs.join('&');
+  }
+
+  function canShowItemAftersale(status) {
+    /* 待付款/已关闭：仅取消等订单操作，不展示售后进度与申请入口 */
+    return status !== 'unpaid' && status !== 'closed';
+  }
+
+  function filterAftersaleBarsForStatus(bars, status) {
+    var list = bars || [];
+    /* 待发货：仅支持仅退款，不展示补货/换货进度条 */
+    if (status === 'shipping') {
+      return list.filter(function (bar) {
+        return bar.group === 'refund';
+      });
+    }
+    return list;
+  }
+
+  function renderItemAftersaleBars() {
+    var status = getStatus();
+    if (!canShowItemAftersale(status)) {
+      [0, 1, 2].forEach(function (itemIndex) {
+        var wrap = document.getElementById('orderItemAsBars' + itemIndex);
+        if (wrap) wrap.innerHTML = '';
+      });
       return;
     }
 
-    if (mode === 'aftersale') {
-      primary.innerHTML = makeBtn('申请售后', 0);
-      secondary.innerHTML = makeBtn('申请售后', 1);
+    var api = getAftersaleApi();
+    if (!api || !api.getAftersaleProgressView) return;
+    var orderNo = getDemoOrderNo();
+
+    [0, 1, 2].forEach(function (itemIndex) {
+      var wrap = document.getElementById('orderItemAsBars' + itemIndex);
+      if (!wrap) return;
+      var bars = filterAftersaleBarsForStatus(
+        api.getAftersaleDisplayBars
+          ? api.getAftersaleDisplayBars(itemIndex, orderNo)
+          : [],
+        status
+      );
+      if (!bars.length) {
+        wrap.innerHTML = '';
+        return;
+      }
+
+      wrap.innerHTML = bars
+        .map(function (bar) {
+          var rec = bar.record;
+          var view = api.getAftersaleProgressView(rec);
+          var asIds = (bar.records || [rec])
+            .map(function (r) {
+              return r.id;
+            })
+            .filter(Boolean)
+            .join(',');
+          var descHtml = '';
+
+          if (bar.kind === 'merged_refund_success') {
+            view.icon = 'success';
+            view.title = '退款成功';
+            view.showAmount = true;
+            view.desc = '金额';
+            view.amountText = '¥' + Number(bar.amount || 0).toFixed(2);
+          }
+
+          if (view.showAmount) {
+            descHtml =
+              escapeOdHtml(view.desc) +
+              '<em class="ua-od-as-bar__amount">' +
+              escapeOdHtml(view.amountText) +
+              '</em>';
+          } else if (view.desc) {
+            descHtml = escapeOdHtml(view.desc);
+          }
+
+          return (
+            '<button type="button" class="ua-od-as-bar" data-as-id="' +
+            escapeOdHtml(rec.id) +
+            '" data-as-kind="' +
+            escapeOdHtml(bar.kind || 'single') +
+            '" data-as-ids="' +
+            escapeOdHtml(asIds) +
+            '" data-item-index="' +
+            itemIndex +
+            '">' +
+            getAftersaleBarIcon(view.icon) +
+            '<span class="ua-od-as-bar__title">' +
+            escapeOdHtml(view.title) +
+            '</span>' +
+            (descHtml
+              ? '<span class="ua-od-as-bar__divider" aria-hidden="true"></span>' +
+                '<span class="ua-od-as-bar__desc">' +
+                descHtml +
+                '</span>'
+              : '<span class="ua-od-as-bar__desc"></span>') +
+            '<svg class="ua-od-as-bar__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>' +
+            '</button>'
+          );
+        })
+        .join('');
+    });
+  }
+
+  function openAftersaleFromBar(asId, itemIndex, asKind, asIds) {
+    var api = getAftersaleApi();
+    if (!api) return;
+    var orderNo = getDemoOrderNo();
+    var p = getParams();
+    var detailExtra = {
+      from: p.get('from') || 'restock.html',
+      status: getStatus(),
+      supplier: p.get('supplier') || '',
+      delivery: p.get('delivery') || 'warehouse',
+      scene: getRefundScene()
+    };
+
+    /* 多笔成功退款合并：进列表，仅展示对应售后 */
+    if (asKind === 'merged_refund_success') {
+      window.location.href = buildAftersaleListFromDetailHref(itemIndex, {
+        asFilter: 'done',
+        asIds: asIds || asId
+      });
       return;
     }
 
-    primary.innerHTML = '';
-    secondary.innerHTML = '';
+    var bars = filterAftersaleBarsForStatus(
+      api.getAftersaleDisplayBars
+        ? api.getAftersaleDisplayBars(itemIndex, orderNo)
+        : [],
+      getStatus()
+    );
+    var bar =
+      bars.find(function (b) {
+        return b.record && b.record.id === asId;
+      }) || bars[0];
+    var rec = bar && bar.record;
+    if (!rec) {
+      var records = api.getAftersaleRecordsByItem
+        ? api.getAftersaleRecordsByItem(itemIndex, orderNo)
+        : [];
+      rec = records.find(function (r) {
+        return r.id === asId;
+      });
+    }
+    if (!rec) return;
+
+    /* 仅对应一次申请：直达详情 */
+    window.location.href = api.buildAftersaleDetailHref(rec, detailExtra);
+  }
+
+  function canStartAftersaleForItem(itemIndex, actionMode) {
+    var api = getAftersaleApi();
+    if (!api || !api.hasOpenAftersaleOfGroup) return { ok: true };
+    /* 申请退款：同类型（退款/退货）进行中不可再发起 */
+    if (actionMode === 'refund') {
+      if (api.hasOpenAftersaleOfGroup(itemIndex, 'refund')) {
+        return { ok: false, msg: '该商品已有进行中的退款/退货售后，请先处理完成后再申请' };
+      }
+    }
+    return { ok: true };
   }
 
   function renderFooter(actions) {
@@ -560,8 +786,27 @@
       wrap.addEventListener('click', function (e) {
         var btn = e.target.closest('.ua-od-item__btn');
         if (!btn) return;
-        var itemIndex = btn.getAttribute('data-item-index') || '0';
-        window.location.href = buildItemRefundHref(parseInt(itemIndex, 10));
+        var itemIndex = parseInt(btn.getAttribute('data-item-index') || '0', 10);
+        var actionMode = btn.getAttribute('data-item-action') || 'refund';
+        var check = canStartAftersaleForItem(itemIndex, actionMode);
+        if (!check.ok) {
+          window.alert(check.msg);
+          return;
+        }
+        window.location.href = buildItemRefundHref(itemIndex);
+      });
+    });
+
+    document.querySelectorAll('.ua-od-as-bars').forEach(function (wrap) {
+      wrap.addEventListener('click', function (e) {
+        var bar = e.target.closest('.ua-od-as-bar');
+        if (!bar) return;
+        openAftersaleFromBar(
+          bar.getAttribute('data-as-id'),
+          parseInt(bar.getAttribute('data-item-index') || '0', 10),
+          bar.getAttribute('data-as-kind') || 'single',
+          bar.getAttribute('data-as-ids') || ''
+        );
       });
     });
 
@@ -641,7 +886,8 @@
     var payMethodRow = document.getElementById('orderPayMethodRow');
     if (payMethodRow) payMethodRow.hidden = !config.showPayMethod;
 
-    renderItemActions(config.itemActions);
+    renderItemActions(canShowItemAftersale(status) ? config.itemActions : 'none');
+    renderItemAftersaleBars();
     renderFooter(config.footer);
     applyInvoiceType();
 

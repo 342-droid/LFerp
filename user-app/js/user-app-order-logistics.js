@@ -125,6 +125,28 @@
 
   function buildDetailBackHref() {
     var params = getParams();
+    if (params.get('refundBack') === '1') {
+      var refundQs = [];
+      [
+        'from',
+        'status',
+        'supplier',
+        'delivery',
+        'cutoff',
+        'reason',
+        'scene',
+        'item',
+        'type',
+        'stage',
+        'pkgs'
+      ].forEach(function (key) {
+        var val = params.get(key);
+        if (val) refundQs.push(key + '=' + encodeURIComponent(val));
+      });
+      if (!params.get('type')) refundQs.push('type=restock');
+      if (!params.get('stage')) refundQs.push('stage=reship');
+      return 'order-refund-detail.html?' + refundQs.join('&');
+    }
     var qs = [];
     ['from', 'status', 'supplier', 'delivery', 'cutoff', 'reason', 'pkgs'].forEach(function (key) {
       var val = params.get(key);
