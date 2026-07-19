@@ -208,20 +208,7 @@
     '物品类型无法邮寄',
     '快递员反馈因运力紧张暂无法揽收'
   ];
-  var CANCEL_PICKUP_MAX_TIMES = 3;
-  var CANCEL_PICKUP_REMAIN_KEY = 'ua_refund_cancel_pickup_remain';
-
-  var CLOSE_RETURN_REASONS = [
-    '信息填错了(需修改取件时间/地址等)',
-    '想去附近的服务点寄件',
-    '计划有变，暂时不需要寄了',
-    '我想换个上门取件时间',
-    '快递员未按时上门/上门慢',
-    '快递员不上门',
-    '快递员服务不好（不上门/推脱/态度差）',
-    '物品类型无法邮寄',
-    '快递员反馈因运力紧张暂无法揽收'
-  ];
+  var CLOSE_RETURN_REASONS = CANCEL_PICKUP_REASONS.slice();
   var CLOSE_RETURN_MAX_TIMES = 3;
   var CLOSE_RETURN_REMAIN_KEY = 'ua_refund_close_remain';
   var PICKUP_EDIT_MAX_TIMES = 3;
@@ -280,9 +267,13 @@
     return true;
   }
 
+  function getCloseReturnRemainKey() {
+    return CLOSE_RETURN_REMAIN_KEY + '_item' + getItemIndex();
+  }
+
   function getCloseReturnRemain() {
     try {
-      var raw = sessionStorage.getItem(CLOSE_RETURN_REMAIN_KEY);
+      var raw = sessionStorage.getItem(getCloseReturnRemainKey());
       if (raw == null || raw === '') return CLOSE_RETURN_MAX_TIMES;
       var n = parseInt(raw, 10);
       if (isNaN(n)) return CLOSE_RETURN_MAX_TIMES;
@@ -295,7 +286,7 @@
   function setCloseReturnRemain(n) {
     try {
       sessionStorage.setItem(
-        CLOSE_RETURN_REMAIN_KEY,
+        getCloseReturnRemainKey(),
         String(Math.max(0, Math.min(CLOSE_RETURN_MAX_TIMES, n)))
       );
     } catch (e) {
@@ -1006,8 +997,36 @@
     return 'order-refund-detail.html?' + buildQuery(extra);
   }
 
+  function getPickupEditFrom() {
+    var from = (getParams().get('pickupEditFrom') || '').trim();
+    return from === 'pickup_order' ? 'pickup_order' : 'detail';
+  }
+
+  function buildPickupEditReturnHref(extra) {
+    extra = extra || {};
+    var refundType = extra.type || getRefundType() || 'return';
+    var stage = extra.stage || getDetailStage() || 'return';
+    var from = extra.pickupEditFrom != null ? extra.pickupEditFrom : getPickupEditFrom();
+    if (from === 'pickup_order') {
+      var phase =
+        extra.pickupPhase != null ? extra.pickupPhase : getParams().get('pickupPhase') || '';
+      return buildPickupOrderHref({
+        type: refundType,
+        stage: stage,
+        pickupPhase: phase || ''
+      });
+    }
+    return buildDetailHref({
+      type: refundType,
+      stage: stage,
+      pickupPhase: ''
+    });
+  }
+
   function buildPickupEditHref(extra) {
-    return 'order-refund-pickup-edit.html?' + buildQuery(extra || {});
+    extra = Object.assign({}, extra || {});
+    if (!extra.pickupEditFrom) extra.pickupEditFrom = getPickupEditFrom();
+    return 'order-refund-pickup-edit.html?' + buildQuery(extra);
   }
 
   function buildReturnShipHref(extra) {
@@ -1040,26 +1059,54 @@
     return 'order-refund-only.html?' + buildQuery({ edit: '1' });
   }
 
+  function resetRefundFlowForNewApplication(app) {
+    if (!app) return app;
+    app.pickupScheduled = false;
+    delete app.pickupPhase;
+    delete app.pickupCode;
+    delete app.pickupTime;
+    delete app.expressOrderNo;
+    delete app.expressOrderTime;
+    delete app.waybillNo;
+    delete app.pickupPickedTime;
+    delete app.pickupTransitTime;
+    delete app.pickupTransitDetail;
+    delete app.shippingFeeGuard;
+    delete app.pickupCanceled;
+    app.pickupCourierStatus = '';
+    if (!app.returnShipTab || app.returnShipTab === 'pickup') {
+      delete app.courier;
+      delete app.courierId;
+      delete app.trackingNo;
+    }
+    return app;
+  }
+
   function persistAndGoDetail(formType, payload) {
     var item = getItem();
     var existing = loadApplication() || {};
+    var isEdit = getParams().get('edit') === '1';
     var app = Object.assign({}, existing, payload, {
       formType: formType,
       itemIndex: getItemIndex(),
       delivery: getDelivery(),
-      applyTime: existing.applyTime || formatDateTime(),
-      refundNo: existing.refundNo || genRefundNo(),
+      applyTime: isEdit && existing.applyTime ? existing.applyTime : formatDateTime(),
+      refundNo: isEdit && existing.refundNo ? existing.refundNo : genRefundNo(),
       productName: item.name,
       productSpec: item.spec,
       productImg: item.img
     });
+    if (!isEdit) {
+      resetRefundFlowForNewApplication(app);
+    }
     saveApplication(app);
     var typeMap = { return: 'return', restock: 'restock', exchange: 'exchange' };
     var type = typeMap[formType] || 'refund_only';
     window.location.href = buildDetailHref({
       type: type,
       stage: 'audit',
-      reason: app.reason || ''
+      reason: app.reason || '',
+      pickupPhase: ''
     });
   }
 
@@ -1124,33 +1171,166 @@
     return PICKUP_ADDRESSES[0];
   }
 
-  function getCancelPickupRemain() {
-    try {
-      var raw = sessionStorage.getItem(CANCEL_PICKUP_REMAIN_KEY);
-      if (raw == null || raw === '') return CANCEL_PICKUP_MAX_TIMES;
-      var n = parseInt(raw, 10);
-      if (isNaN(n)) return CANCEL_PICKUP_MAX_TIMES;
-      return Math.max(0, Math.min(CANCEL_PICKUP_MAX_TIMES, n));
-    } catch (e) {
-      return CANCEL_PICKUP_MAX_TIMES;
-    }
-  }
-
-  function consumeCancelPickupChance() {
-    var remain = getCancelPickupRemain();
-    if (remain <= 0) return false;
-    try {
-      sessionStorage.setItem(CANCEL_PICKUP_REMAIN_KEY, String(remain - 1));
-    } catch (e) {
-      /* ignore */
-    }
-    return true;
-  }
-
   function isPickupScheduled(app) {
     if (!app) return false;
     if (app.pickupScheduled === false) return false;
     return !!(app.pickupScheduled || app.expressOrderNo || (app.pickupTime && app.pickupCode));
+  }
+
+  function getPickupPhaseFromUrl() {
+    var phase = getParams().get('pickupPhase') || '';
+    if (phase === 'transit') return 'transit';
+    if (phase === 'picked') return 'picked';
+    return '';
+  }
+
+  function isPickupPickedUp(app) {
+    return getPickupPhaseFromUrl() === 'picked';
+  }
+
+  function isPickupInTransit(app) {
+    return getPickupPhaseFromUrl() === 'transit';
+  }
+
+  function isPickupPostCollect(app) {
+    var phase = getPickupPhaseFromUrl();
+    return phase === 'picked' || phase === 'transit';
+  }
+
+  function isReturnShipCompleted(app) {
+    if (!app) return false;
+    if (app.pickupPhase === 'picked' || app.pickupPhase === 'transit') return true;
+    return hasSelfShipTracking(app);
+  }
+
+  function truncateTrackingDisplay(no) {
+    var s = String(no || '');
+    if (s.length <= 6) return s;
+    return s.slice(0, 4) + '...';
+  }
+
+  function formatDayHourMinTimer(remainMs) {
+    var d = Math.floor(remainMs / 86400000);
+    var h = Math.floor((remainMs % 86400000) / 3600000);
+    var m = Math.floor((remainMs % 3600000) / 60000);
+    return d + '天' + h + '时' + m + '分';
+  }
+
+  function renderRefundStageCards(app) {
+    app = app || {};
+    var section = document.getElementById('refundDetailRefundStage');
+    if (!section) return;
+    var courierLabel =
+      app.courier && app.courier !== '上门取件' ? app.courier : '上门取件';
+    var waybill =
+      courierLabel === '上门取件'
+        ? app.pickupCode || app.trackingNo || app.waybillNo || ''
+        : app.waybillNo || app.trackingNo || app.pickupCode || '';
+    var mainEl = document.getElementById('refundReturnLogisticsMain');
+    var subEl = document.getElementById('refundReturnLogisticsSub');
+    var feeEl = document.getElementById('refundReturnFeeGuardSub');
+    if (mainEl) {
+      mainEl.textContent =
+        '退货物流：已下单 ' +
+        courierLabel +
+        ' 运单号:' +
+        truncateTrackingDisplay(waybill);
+    }
+    if (subEl) subEl.textContent = '商品已经下单';
+    if (feeEl) {
+      var fee = app.shippingFeeGuard != null ? app.shippingFeeGuard : '5.40';
+      feeEl.textContent =
+        '您已享受全额保障' + (String(fee).indexOf('¥') >= 0 ? fee : String(fee) + '元');
+    }
+  }
+
+  function syncDetailStageCards(refundType, stage, app) {
+    var isReturn = refundType === 'return';
+    var isExchange = refundType === 'exchange';
+    var returnSection = document.getElementById('refundDetailReturnSection');
+    var refundStageSection = document.getElementById('refundDetailRefundStage');
+    var pickupActions = document.getElementById('refundPickupActions');
+    var showReturnCard = (isReturn && stage === 'return') || (isExchange && stage === 'return');
+    var showRefundCard = isReturn && stage === 'refund';
+    var pickupReady = showReturnCard && isPickupScheduled(app);
+
+    if (refundStageSection) refundStageSection.hidden = !showRefundCard;
+    if (returnSection) returnSection.hidden = !pickupReady;
+    if (pickupActions) pickupActions.hidden = !pickupReady;
+    if (showRefundCard) renderRefundStageCards(app);
+  }
+
+  function truncateTrackingNo(no) {
+    var s = String(no || '');
+    if (s.length <= 8) return s;
+    return s.slice(0, 4) + '...';
+  }
+
+  function getReturnShipCourier(app) {
+    app = app || {};
+    if (app.courier && app.courier !== '上门取件') return app.courier;
+    return '申通快递';
+  }
+
+  function getReturnShipTrackingNo(app) {
+    app = app || {};
+    return app.waybillNo || app.trackingNo || '772071763686613';
+  }
+
+  function resetPickupPickedDemoState(app) {
+    if (!app) return app;
+    delete app.pickupPhase;
+    delete app.waybillNo;
+    delete app.pickupPickedTime;
+    delete app.pickupTransitTime;
+    delete app.pickupTransitDetail;
+    if (isPickupScheduled(app)) {
+      app.courier = '上门取件';
+      app.trackingNo = app.pickupCode;
+      app.pickupCourierStatus = app.pickupCourierStatus || '快递员已接单';
+    }
+    saveApplication(app);
+    return app;
+  }
+
+  function markPickupPickedUp(app) {
+    if (!app) return app;
+    if (app.pickupPhase !== 'transit') app.pickupPhase = 'picked';
+    if (!app.waybillNo) app.waybillNo = '772071763686613';
+    if (!app.pickupPickedTime) app.pickupPickedTime = formatDateTime();
+    app.courier = '申通快递';
+    app.trackingNo = app.waybillNo;
+    if (!isPickupInTransit(app)) {
+      app.pickupCourierStatus = '快递员已取包裹，即将开始运输';
+    }
+    if (app.shippingFeeGuard == null) app.shippingFeeGuard = '5.40';
+    saveApplication(app);
+    return app;
+  }
+
+  function markPickupInTransit(app) {
+    if (!app) return app;
+    markPickupPickedUp(app);
+    app.pickupPhase = 'transit';
+    if (!app.pickupTransitTime) app.pickupTransitTime = formatDateTime();
+    app.pickupTransitDetail =
+      app.pickupTransitDetail ||
+      '【杭州市】快件已发往 江苏江阴转运中心，可关注"申通快递"官方微信公众号获取实时物流信息';
+    app.pickupCourierStatus = '运输中';
+    saveApplication(app);
+    return app;
+  }
+
+  function ensurePickupPickedData(app) {
+    if (!app || !isPickupPickedUp(app)) return app;
+    return markPickupPickedUp(app);
+  }
+
+  function ensurePickupPostCollectData(app) {
+    if (!app || !isPickupPostCollect(app)) return app;
+    markPickupPickedUp(app);
+    if (isPickupInTransit(app)) markPickupInTransit(app);
+    return app;
   }
 
   function clearPickupScheduled(app) {
@@ -1162,6 +1342,11 @@
     delete app.expressOrderNo;
     delete app.expressOrderTime;
     app.pickupCourierStatus = '';
+    delete app.pickupPhase;
+    delete app.pickupPickedTime;
+    delete app.pickupTransitTime;
+    delete app.pickupTransitDetail;
+    delete app.waybillNo;
     if (app.courier === '上门取件') {
       delete app.courier;
       delete app.courierId;
@@ -1316,6 +1501,22 @@
     return dayLabel + ' ' + slot;
   }
 
+  function parsePickupFeeAmount(feeText) {
+    var raw = String(feeText || '¥0').replace(/[¥￥,\s]/g, '');
+    var num = parseFloat(raw);
+    return isNaN(num) ? 0 : num;
+  }
+
+  function formatPickupPaidDisplay(feeText) {
+    return parsePickupFeeAmount(feeText).toFixed(2);
+  }
+
+  function formatPickupFeeCurrency(amount) {
+    var num = typeof amount === 'number' ? amount : parseFloat(amount);
+    if (isNaN(num)) num = 0;
+    return '¥' + num.toFixed(2);
+  }
+
   function createPickupState(app) {
     var addr = getDefaultPickupAddress();
     if (app && app.pickupAddressId) {
@@ -1424,7 +1625,8 @@
         if (document.querySelector('.ua-or-pickup-edit-page')) {
           window.location.href = buildAddressBookHref({
             type: getRefundType(),
-            stage: getDetailStage() || 'return'
+            stage: getDetailStage() || 'return',
+            pickupEditFrom: getPickupEditFrom()
           });
           return;
         }
@@ -2120,7 +2322,23 @@
 
   function buildQuery(extra) {
     var p = getParams();
-    var keys = ['from', 'status', 'supplier', 'delivery', 'cutoff', 'reason', 'scene', 'item', 'type', 'stage', 'logistics', 'closeReason', 'expired'];
+    var keys = [
+      'from',
+      'status',
+      'supplier',
+      'delivery',
+      'cutoff',
+      'reason',
+      'scene',
+      'item',
+      'type',
+      'stage',
+      'logistics',
+      'closeReason',
+      'expired',
+      'pickupPhase',
+      'pickupEditFrom'
+    ];
     var qs = [];
     keys.forEach(function (key) {
       var val = p.get(key);
@@ -2128,6 +2346,12 @@
     });
     if (extra) {
       Object.keys(extra).forEach(function (key) {
+        if (extra[key] === '' || extra[key] == null) {
+          qs = qs.filter(function (part) {
+            return part.indexOf(key + '=') !== 0;
+          });
+          return;
+        }
         var existing = qs.filter(function (part) {
           return part.indexOf(key + '=') === 0;
         });
@@ -2385,28 +2609,25 @@
       confirmBtn.addEventListener('click', confirmCloseReturn);
     }
 
+    function bindTrigger(el) {
+      if (!el || el.getAttribute('data-close-return-trigger')) return;
+      el.setAttribute('data-close-return-trigger', '1');
+      el.addEventListener('click', function (e) {
+        if (e && typeof e.preventDefault === 'function') e.preventDefault();
+        openCloseReturnSheet();
+      });
+    }
+
     (triggerIds || []).forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el && !el.getAttribute('data-close-return-trigger')) {
-        el.setAttribute('data-close-return-trigger', '1');
-        el.addEventListener('click', openCloseReturnSheet);
-      }
+      bindTrigger(document.getElementById(id));
     });
 
-    return { open: openCloseReturnSheet };
+    return { open: openCloseReturnSheet, bindTrigger: bindTrigger };
   }
 
   function bindCancelPickupSheet(app, refundType, triggerIds) {
     var ui = { selected: '' };
     var sheetId = 'refundCancelPickupSheet';
-
-    function syncCancelPickupTip() {
-      var tip = document.getElementById('refundCancelPickupTip');
-      if (!tip) return;
-      var remain = getCancelPickupRemain();
-      tip.textContent =
-        '最多可取消' + CANCEL_PICKUP_MAX_TIMES + '次，您仅剩' + remain + '次取消机会';
-    }
 
     function renderCancelPickupReasons() {
       var list = document.getElementById('refundCancelPickupList');
@@ -2437,12 +2658,7 @@
     }
 
     function openCancelPickupSheet() {
-      if (getCancelPickupRemain() <= 0) {
-        showToast('取消次数已用完');
-        return;
-      }
       ui.selected = '';
-      syncCancelPickupTip();
       renderCancelPickupReasons();
       openSheet(sheetId);
     }
@@ -2450,10 +2666,6 @@
     function confirmCancelPickup() {
       if (!ui.selected) {
         showToast('请选择取消原因');
-        return;
-      }
-      if (!consumeCancelPickupChance()) {
-        showToast('取消次数已用完');
         return;
       }
       app.cancelPickupReason = ui.selected;
@@ -3758,8 +3970,21 @@
       logisticsEdit: logisticsEdit,
       courier: app.courier || '顺丰速运',
       trackingNo: app.trackingNo || '',
-      deadline: Date.now() + 24 * 60 * 60 * 1000
+      deadline:
+        isReturn && (stage === 'return' || stage === 'refund')
+          ? Date.now() + 7 * 24 * 60 * 60 * 1000 - 1000
+          : Date.now() + 24 * 60 * 60 * 1000
     };
+
+    if (isReturn && stage === 'return' && isReturnShipCompleted(app)) {
+      window.location.replace(buildDetailHref({ type: refundType, stage: 'refund', pickupPhase: '' }));
+      return;
+    }
+
+    if (isReturn && stage === 'refund' && !isReturnShipCompleted(app)) {
+      window.location.replace(buildDetailHref({ type: refundType, stage: 'return', pickupPhase: '' }));
+      return;
+    }
 
     initNav(getDetailNavTitle(refundType), buildDetailBackHref());
     var backEl = document.getElementById('refundDetailBack');
@@ -3786,7 +4011,7 @@
         notice: ''
       },
       refund: {
-        title: '请等待平台退款',
+        title: isReturn ? '待商家退款' : '请等待平台退款',
         notice: ''
       },
       reject_return: {
@@ -3808,7 +4033,7 @@
     };
 
     var cfg = statusConfig[stage] || statusConfig.audit;
-    if (stage === 'refund') {
+    if (stage === 'refund' && !isReturn) {
       cfg = Object.assign({}, cfg, {
         notice: buildRefundStageNotice(state.delivery)
       });
@@ -3833,33 +4058,38 @@
 
     var noticeEl = document.getElementById('refundDetailNotice');
     if (noticeEl) {
-      noticeEl.textContent = cfg.notice;
-      if (stage === 'refund' && isReturn) {
-        noticeEl.classList.add('ua-or-detail-notice--demo');
-        noticeEl.title = '点击模拟拒收退回（演示）';
-        noticeEl.addEventListener('click', function () {
-          ensureRejectReturnData(app, state);
-          window.location.href = buildDetailHref({
-            type: refundType,
-            stage: 'reject_return'
+      if (isReturn && stage === 'refund') {
+        noticeEl.textContent = '';
+        noticeEl.hidden = true;
+      } else {
+        noticeEl.hidden = false;
+        noticeEl.textContent = cfg.notice;
+        if (stage === 'refund' && !isReturn) {
+          noticeEl.classList.add('ua-or-detail-notice--demo');
+          noticeEl.title = '点击模拟拒收退回（演示）';
+          noticeEl.addEventListener('click', function () {
+            ensureRejectReturnData(app, state);
+            window.location.href = buildDetailHref({
+              type: refundType,
+              stage: 'reject_return'
+            });
           });
-        });
-      }
-      if (stage === 'reject_return') {
-        noticeEl.classList.add('ua-or-detail-notice--demo');
-        noticeEl.title = '点击进入关闭结果（演示）';
-        noticeEl.addEventListener('click', function () {
-          app.closedTime = formatDateTime();
-          saveApplication(app);
-          window.location.href = buildDetailHref({
-            type: refundType,
-            stage: 'closed',
-            closeReason: 'reject_receive'
+        }
+        if (stage === 'reject_return') {
+          noticeEl.classList.add('ua-or-detail-notice--demo');
+          noticeEl.title = '点击进入关闭结果（演示）';
+          noticeEl.addEventListener('click', function () {
+            app.closedTime = formatDateTime();
+            saveApplication(app);
+            window.location.href = buildDetailHref({
+              type: refundType,
+              stage: 'closed',
+              closeReason: 'reject_receive'
+            });
           });
-        });
+        }
       }
     }
-
     function getNextStage(current) {
       if (current === 'audit') {
         if (isExchange) return 'return';
@@ -3907,7 +4137,13 @@
           if (idx < activeIdx) cls += ' is-done';
           else if (idx === activeIdx) cls += ' is-active';
           else cls += ' is-pending';
-          if (idx === activeIdx && stage !== 'success') cls += ' is-tappable';
+          if (idx === activeIdx && stage !== 'success') {
+            if (isReturn && stage === 'return' && !isReturnShipCompleted(app)) {
+              /* 取件完成前不可点击跳至待商家退款 */
+            } else {
+              cls += ' is-tappable';
+            }
+          }
           return (
             '<div class="' +
             cls +
@@ -3929,6 +4165,10 @@
           stepEl.addEventListener('click', function () {
             var next = getNextStage(stage);
             if (!next) return;
+            if (isReturn && stage === 'return' && next === 'refund' && !isReturnShipCompleted(app)) {
+              showToast('请等待快递员取走包裹后再进入待商家退款');
+              return;
+            }
             if (stage === 'return' && next === 'refund') {
               ensurePickupBoardData(app);
               if (!app.courier) app.courier = '上门取件';
@@ -3981,20 +4221,28 @@
       if (timerEl) {
         if (stage === 'success') {
           timerEl.textContent = '';
+        } else if (isReturn && stage === 'refund') {
+          timerEl.textContent =
+            formatDayHourMinTimer(remain) + '后商家未处理将自动退款给你';
+        } else if (isReturn && stage === 'return') {
+          timerEl.textContent =
+            formatDayHourMinTimer(remain) + '后未寄回将撤销退货申请';
         } else {
           timerEl.textContent = '剩余 ' + h + 'h ' + pad(m) + 'm ' + pad(s) + 's';
         }
       }
     }
     tickTimer();
-    timerId = window.setInterval(tickTimer, 1000);
+    timerId = window.setInterval(
+      tickTimer,
+      isReturn && (stage === 'return' || stage === 'refund') ? 60000 : 1000
+    );
 
     renderDetailInfoCard(app, item, refundType);
 
     var returnSection = document.getElementById('refundDetailReturnSection');
     var rejectReturnSection = document.getElementById('refundDetailRejectReturnSection');
     var reshipSection = document.getElementById('refundDetailReshipSection');
-    var pickupActions = document.getElementById('refundPickupActions');
 
     function renderPickupBoard() {
       ensurePickupBoardData(app);
@@ -4059,24 +4307,27 @@
       reshipSection.hidden = true;
     }
 
-    if ((isReturn && (stage === 'return' || stage === 'refund')) || (isExchange && stage === 'return')) {
-      if (stage === 'return') {
-        if (shouldRedirectReturnShip(app)) {
-          window.location.href = buildReturnShipHref({ type: refundType, stage: stage });
-          return;
-        }
-        ensureReturnStagePickup(app);
+    if ((isReturn && stage === 'return') || (isExchange && stage === 'return')) {
+      if (shouldRedirectReturnShip(app)) {
+        window.location.href = buildReturnShipHref({ type: refundType, stage: stage });
+        return;
       }
-      if (returnSection) returnSection.hidden = false;
+      ensureReturnStagePickup(app);
+      app = loadApplication() || app;
+
       if (isPickupScheduled(app)) {
+        if (!isReturnShipCompleted(app)) {
+          var pickedStatuses = ['快递员已取包裹，即将开始运输', '运输中'];
+          if (pickedStatuses.indexOf(app.pickupCourierStatus) >= 0) {
+            app.pickupCourierStatus = '快递员已接单';
+            saveApplication(app);
+          }
+        }
         renderPickupBoard();
-      } else if (returnSection) {
-        returnSection.hidden = true;
       }
-      if (pickupActions) pickupActions.hidden = stage !== 'return' || !isPickupScheduled(app);
-    } else if (returnSection) {
-      returnSection.hidden = true;
     }
+
+    syncDetailStageCards(refundType, stage, app);
 
     function goPickupEditPage() {
       ensurePickupBoardData(app);
@@ -4091,21 +4342,36 @@
       }
       window.location.href = buildPickupEditHref({
         type: refundType,
-        stage: stage
+        stage: stage,
+        pickupEditFrom: 'detail'
       });
     }
 
     document.getElementById('refundPickupScheduleRow') &&
       document.getElementById('refundPickupScheduleRow').addEventListener('click', function () {
         ensurePickupBoardData(app);
+        resetPickupPickedDemoState(app);
         window.location.href = buildPickupOrderHref({
           type: refundType,
-          stage: stage
+          stage: stage,
+          pickupPhase: ''
+        });
+      });
+
+    document.getElementById('refundReturnLogisticsRow') &&
+      document.getElementById('refundReturnLogisticsRow').addEventListener('click', function () {
+        var pickupPhase = app.pickupPhase === 'transit' ? 'transit' : 'picked';
+        window.location.href = buildPickupOrderHref({
+          type: refundType,
+          stage: 'refund',
+          pickupPhase: pickupPhase
         });
       });
 
     document.getElementById('refundPickupModifyBtn') &&
       document.getElementById('refundPickupModifyBtn').addEventListener('click', goPickupEditPage);
+
+    var closeReturnSheetApi = bindCloseReturnSheet(app, refundType, []);
 
     function renderFooter() {
       var footer = document.getElementById('refundDetailFooter');
@@ -4125,6 +4391,9 @@
         footer.className = 'ua-or-detail-footer ua-or-detail-footer--close-return';
         footer.innerHTML =
           '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--ghost" id="refundDetailCloseReturnBtn">关闭退货</button>';
+        if (closeReturnSheetApi && closeReturnSheetApi.bindTrigger) {
+          closeReturnSheetApi.bindTrigger(document.getElementById('refundDetailCloseReturnBtn'));
+        }
         return;
       }
       if (isReturn && stage === 'refund') {
@@ -4164,8 +4433,6 @@
       var modal = document.getElementById('refundCancelModal');
       if (modal) modal.hidden = true;
     }
-
-    bindCloseReturnSheet(app, refundType, ['refundDetailCloseReturnBtn']);
 
     bindCancelPickupSheet(app, refundType, ['refundDetailCancelPickupBtn']);
 
@@ -4390,7 +4657,7 @@
     }
 
     var remain = getPickupEditRemain(app.refundNo);
-    var backHref = buildDetailHref({ type: refundType, stage: stage });
+    var backHref = buildPickupEditReturnHref({ type: refundType, stage: stage });
     var backEl = document.getElementById('pickupEditBack');
     if (backEl) backEl.setAttribute('href', backHref);
 
@@ -4458,6 +4725,7 @@
         app.pickupAddress = state.pickupAddressFull || state.pickupAddress;
         app.pickupContact = state.pickupContact;
         app.pickupTime = state.pickupTime;
+        recordPickupProgressEdit(app, state.pickupTime);
         saveApplication(app);
         showToast('修改成功');
         window.setTimeout(function () {
@@ -4507,6 +4775,297 @@
     return String(phone || '');
   }
 
+  function formatProgressShortTime(date) {
+    var d = date instanceof Date ? date : parseDateTimeText(date);
+    if (!d || isNaN(d.getTime())) return '';
+    return pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
+
+  function formatProgressFullTime(date) {
+    var d = date instanceof Date ? date : parseDateTimeText(date);
+    if (!d || isNaN(d.getTime())) return '';
+    return formatDateTime(d);
+  }
+
+  function maskPhoneDisplay(phone) {
+    var digits = String(phone || '').replace(/\D/g, '');
+    if (digits.length === 11) return digits.slice(0, 3) + '****' + digits.slice(7);
+    return String(phone || '');
+  }
+
+  function getCourierServicePhone(courier) {
+    var map = {
+      '申通快递': '95543',
+      '顺丰速运': '95338',
+      '圆通速递': '95554',
+      '韵达快递': '95546',
+      '中通快递': '95311',
+      '京东物流': '950616'
+    };
+    return map[courier] || '95543';
+  }
+
+  function getCourierBrandAbbr(courier) {
+    var map = {
+      '申通快递': '申',
+      '顺丰速运': '顺',
+      '圆通速递': '圆',
+      '韵达快递': '韵',
+      '中通快递': '中',
+      '京东物流': '京'
+    };
+    return map[courier] || String(courier || '快').charAt(0);
+  }
+
+  function formatExpectedPickupRange(app) {
+    var parsed = parsePickupValue(app && app.pickupTime);
+    if (!parsed) return '';
+    var d = parsed.date;
+    var dateStr = d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+    var slot = String(parsed.slotLabel || '').replace(/–/g, '-');
+    var parts = slot.split('-').map(function (s) {
+      return s.trim();
+    });
+    if (parts.length >= 2 && parts[0] && parts[1]) {
+      return dateStr + ' ' + parts[0] + '~' + dateStr + ' ' + parts[1];
+    }
+    return dateStr + (slot ? ' ' + slot : '');
+  }
+
+  function formatPickupEditTimeLabel(pickupTime) {
+    var parsed = parsePickupValue(pickupTime);
+    if (!parsed) return '';
+    var slotStart = String(parsed.slotLabel || '').split(/[-–]/)[0] || '';
+    slotStart = slotStart.trim();
+    if (slotStart.length >= 5 && slotStart.charAt(2) === ':') {
+      slotStart = slotStart.slice(0, 2) + '时' + slotStart.slice(3, 5);
+    }
+    return parsed.date.getDate() + '日' + slotStart;
+  }
+
+  function buildPickupOrderProgress(app) {
+    app = app || {};
+    ensurePickupBoardData(app);
+    var orderTime = parseDateTimeText(app.expressOrderTime || app.applyTime) || new Date();
+    var editTime = shiftSeconds(orderTime, 180);
+    var edits = Array.isArray(app.pickupProgressEdits) ? app.pickupProgressEdits : [];
+    var showDemoEdits = !edits.length && app.pickupProgressDemo !== false;
+    var schedule = formatRelativePickupSchedule(app.pickupTime);
+    var steps = [
+      {
+        kind: 'check',
+        title: '下单成功',
+        sub: '期望揽收时间' + formatExpectedPickupRange(app),
+        time: formatProgressShortTime(orderTime)
+      },
+      {
+        kind: 'dot',
+        title: '订单分单至申通快递',
+        time: formatProgressShortTime(orderTime)
+      }
+    ];
+
+    if (showDemoEdits || edits.some(function (e) { return e.type === 'info'; })) {
+      var infoTime = edits.find(function (e) { return e.type === 'info'; });
+      steps.push({
+        kind: 'dot',
+        title: '您修改了寄件信息',
+        time: formatProgressShortTime(infoTime ? infoTime.time : editTime)
+      });
+    }
+
+    if (showDemoEdits || edits.some(function (e) { return e.type === 'time'; })) {
+      var timeEdit = edits.find(function (e) { return e.type === 'time'; });
+      steps.push({
+        kind: 'dot',
+        title:
+          '您修改上门时间为' +
+          (timeEdit && timeEdit.label ? timeEdit.label : formatPickupEditTimeLabel(app.pickupTime)),
+        time: formatProgressShortTime(timeEdit ? timeEdit.time : editTime)
+      });
+    }
+
+    if (isPickupInTransit(app)) {
+      ensurePickupPostCollectData(app);
+      var pickedTime =
+        parseDateTimeText(app.pickupPickedTime) || shiftSeconds(orderTime, 3600);
+      var transitTime = parseDateTimeText(app.pickupTransitTime) || new Date();
+      steps.push({
+        kind: 'dot',
+        title: '待上门取件',
+        sub: '预约' + schedule.replace(/–/g, '-') + '上门取件',
+        time: formatProgressShortTime(pickedTime)
+      });
+      steps.push({
+        kind: 'dot',
+        title: '快递员已取包裹，即将开始运输',
+        time: formatProgressFullTime(pickedTime)
+      });
+      steps.push({
+        kind: 'active-check',
+        title: '运输中',
+        detail:
+          app.pickupTransitDetail ||
+          '【杭州市】快件已发往 江苏江阴转运中心，可关注"申通快递"官方微信公众号获取实时物流信息',
+        time: formatProgressFullTime(transitTime)
+      });
+    } else if (isPickupPostCollect(app)) {
+      ensurePickupPostCollectData(app);
+      steps.push({
+        kind: 'dot',
+        title: '待上门取件',
+        sub: '预约' + schedule.replace(/–/g, '-') + '上门取件',
+        time: formatProgressShortTime(parseDateTimeText(app.pickupPickedTime) || shiftSeconds(orderTime, 3600))
+      });
+      steps.push({
+        kind: 'active',
+        title: '快递员已取包裹，即将开始运输',
+        time: formatProgressFullTime(parseDateTimeText(app.pickupPickedTime) || new Date())
+      });
+    } else {
+      steps.push({
+        kind: 'active',
+        title: '待上门取件',
+        sub: '预约' + schedule.replace(/–/g, '-') + '上门取件'
+      });
+    }
+    return steps;
+  }
+
+  function buildPickupProgressIntro(app) {
+    app = app || {};
+    if (!isPickupPostCollect(app)) return '';
+    var courier = app.courier || '申通快递';
+    var waybill = app.waybillNo || app.trackingNo || '';
+    var merchant = getMerchantReturnDisplay();
+    var addrText =
+      '[收货地址] ' +
+      (merchant.address || '') +
+      (merchant.phone ? ' ' + maskPhoneDisplay(merchant.phone) : '');
+    var servicePhone = getCourierServicePhone(courier);
+    var brandAbbr = getCourierBrandAbbr(courier);
+    var html = '<div class="ua-or-po-progress-intro">';
+    if (waybill) {
+      html +=
+        '<div class="ua-or-po-progress-intro__row">' +
+        '<div class="ua-or-po-progress-intro__rail">' +
+        '<span class="ua-or-po-progress-intro__icon ua-or-po-progress-intro__icon--brand">' +
+        escapeHtml(brandAbbr) +
+        '</span></div>' +
+        '<div class="ua-or-po-progress-intro__content">' +
+        '<div class="ua-or-po-progress-intro__courier-line">' +
+        '<span class="ua-or-po-progress-intro__courier-text">' +
+        escapeHtml(courier + ' ' + waybill) +
+        '</span>' +
+        '<a class="ua-or-po-progress-intro__call" href="tel:' +
+        escapeHtml(servicePhone) +
+        '">打电话</a>' +
+        '</div></div></div>';
+    }
+    html +=
+      '<div class="ua-or-po-progress-intro__row">' +
+      '<div class="ua-or-po-progress-intro__rail">' +
+      '<span class="ua-or-po-progress-intro__icon ua-or-po-progress-intro__icon--recv">收</span>' +
+      '</div>' +
+      '<div class="ua-or-po-progress-intro__content">' +
+      '<div class="ua-or-po-progress-intro__addr-text">' +
+      escapeHtml(addrText) +
+      '</div></div></div>' +
+      '</div>';
+    return html;
+  }
+
+  function renderPickupOrderProgressList(app) {
+    var introEl = document.getElementById('pickupOrderProgressIntro');
+    var listEl = document.getElementById('pickupOrderProgressList');
+    if (!listEl) return;
+    var checkSvg =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L19 7"/></svg>';
+    var steps = buildPickupOrderProgress(app);
+    steps = steps.slice().reverse();
+    if (introEl) {
+      var introHtml = buildPickupProgressIntro(app);
+      introEl.innerHTML = introHtml;
+      introEl.hidden = !introHtml;
+    }
+    listEl.innerHTML = steps
+      .map(function (step) {
+        var cls = 'ua-or-po-progress-item';
+        if (step.kind === 'check') cls += ' is-done-check';
+        else if (step.kind === 'dot') cls += ' is-done-dot';
+        else if (step.kind === 'active-check') cls += ' is-active-check';
+        else if (step.kind === 'active') cls += ' is-active';
+        return (
+          '<div class="' +
+          cls +
+          '">' +
+          '<div class="ua-or-po-progress-item__rail">' +
+          '<span class="ua-or-po-progress-item__dot">' +
+          (step.kind === 'check' || step.kind === 'active-check' ? checkSvg : '') +
+          '</span></div>' +
+          '<div class="ua-or-po-progress-item__content">' +
+          '<div class="ua-or-po-progress-item__title">' +
+          escapeHtml(step.title) +
+          '</div>' +
+          (step.sub ? '<div class="ua-or-po-progress-item__sub">' + escapeHtml(step.sub) + '</div>' : '') +
+          (step.time ? '<div class="ua-or-po-progress-item__time">' + escapeHtml(step.time) + '</div>' : '') +
+          (step.detail
+            ? '<div class="ua-or-po-progress-item__detail">' + escapeHtml(step.detail) + '</div>'
+            : '') +
+          '</div></div>'
+        );
+      })
+      .join('');
+  }
+
+  function renderPickupOrderFeeSummary(app) {
+    var showFee = isPickupPostCollect(app);
+    var section = document.getElementById('pickupOrderFeeSummary');
+    if (section) section.hidden = !showFee;
+    if (!showFee) return;
+
+    var paidAmount = formatPickupPaidDisplay(app && app.pickupFeeText);
+    var paidEl = document.getElementById('pickupOrderPaidAmount');
+    if (paidEl) paidEl.textContent = paidAmount;
+
+    var baseAmount = parsePickupFeeAmount(app && app.pickupFeeText);
+    var baseEl = document.getElementById('pickupOrderFeeSheetBase');
+    var subsidyEl = document.getElementById('pickupOrderFeeSheetSubsidy');
+    var sheetPaidEl = document.getElementById('pickupOrderFeeSheetPaid');
+    var noteEl = document.getElementById('pickupOrderFeeSheetNote');
+    if (baseEl) baseEl.textContent = formatPickupFeeCurrency(baseAmount);
+    if (subsidyEl) {
+      subsidyEl.textContent =
+        baseAmount > 0 ? '-' + formatPickupFeeCurrency(baseAmount) : '-¥0.00';
+    }
+    if (sheetPaidEl) sheetPaidEl.textContent = formatPickupFeeCurrency(baseAmount);
+    if (noteEl) {
+      noteEl.textContent = (app && app.pickupFeeSub) || '平台承担退货运费';
+    }
+  }
+
+  function openPickupOrderFeeSheet() {
+    openSheet('pickupOrderFeeSheet');
+  }
+
+  function openPickupOrderProgressSheet(app) {
+    renderPickupOrderProgressList(app);
+    openSheet('pickupOrderProgressSheet');
+  }
+
+  function recordPickupProgressEdit(app, pickupTime) {
+    if (!app) return;
+    var now = formatDateTime();
+    if (!Array.isArray(app.pickupProgressEdits)) app.pickupProgressEdits = [];
+    app.pickupProgressEdits.push({ type: 'info', time: now });
+    app.pickupProgressEdits.push({
+      type: 'time',
+      time: now,
+      label: formatPickupEditTimeLabel(pickupTime)
+    });
+    app.pickupProgressDemo = false;
+  }
+
   function initPickupOrderPage() {
     var refundType = getRefundType() || 'return';
     var stage = getDetailStage() || 'return';
@@ -4521,21 +5080,119 @@
       return;
     }
 
-    var backHref = buildDetailHref({ type: refundType, stage: stage });
+    var backStage = isReturnShipCompleted(app) ? 'refund' : stage;
+    var backHref = buildDetailHref({ type: refundType, stage: backStage, pickupPhase: '' });
     var backEl = document.getElementById('pickupOrderBack');
     if (backEl) backEl.setAttribute('href', backHref);
 
     ensurePickupBoardData(app);
+    if (isPickupPostCollect(app)) ensurePickupPostCollectData(app);
     app = loadApplication() || app;
 
-    var scheduleEl = document.getElementById('pickupOrderScheduleText');
-    if (scheduleEl) {
-      var schedule = formatRelativePickupSchedule(app.pickupTime);
-      scheduleEl.textContent = '预约' + schedule.replace('–', '-') + ' 上门取件';
+    var postCollect = isPickupPostCollect(app);
+    var inTransit = isPickupInTransit(app);
+    var pageShell = document.querySelector('.ua-or-pickup-order-page');
+    if (pageShell) {
+      pageShell.classList.toggle('ua-or-pickup-order-page--picked', postCollect);
+      pageShell.classList.toggle('ua-or-pickup-order-page--transit', inTransit);
     }
 
+    var statusBtn = document.getElementById('pickupOrderStatusBtn');
+    var scheduleEl = document.getElementById('pickupOrderScheduleText');
+    if (inTransit) {
+      if (statusBtn) {
+        statusBtn.innerHTML =
+          '运输中' +
+          '<span class="ua-or-po-status__chevron" aria-hidden="true">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg>' +
+          '</span>';
+      }
+      if (scheduleEl) {
+        scheduleEl.textContent = '快件正在发往商家退货地址';
+      }
+    } else if (postCollect) {
+      if (statusBtn) {
+        statusBtn.innerHTML =
+          '即将开始运输' +
+          '<span class="ua-or-po-status__chevron" aria-hidden="true">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg>' +
+          '</span>';
+      }
+      if (scheduleEl) scheduleEl.textContent = '请耐心等待快递网点发件运输';
+    } else {
+      if (statusBtn) {
+        statusBtn.innerHTML =
+          '待上门取件' +
+          '<span class="ua-or-po-status__chevron" aria-hidden="true">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg>' +
+          '</span>';
+      }
+      if (scheduleEl) {
+        var schedule = formatRelativePickupSchedule(app.pickupTime);
+        scheduleEl.textContent = '预约' + schedule.replace('–', '-') + ' 上门取件';
+      }
+    }
+
+    var codeWrap = document.getElementById('pickupOrderCodeWrap');
+    if (codeWrap) codeWrap.hidden = postCollect;
+
     var codeEl = document.getElementById('pickupOrderCode');
-    if (codeEl) codeEl.textContent = app.pickupCode || '0030';
+    if (codeEl && !postCollect) codeEl.textContent = app.pickupCode || '0030';
+
+    if (codeWrap && !postCollect) {
+      codeWrap.classList.add('is-tappable');
+      codeWrap.setAttribute('role', 'button');
+      codeWrap.setAttribute('tabindex', '0');
+      codeWrap.setAttribute('aria-label', '寄件码，点击切换为快递员已取走');
+      codeWrap.addEventListener('click', function () {
+        markPickupPickedUp(app);
+        window.location.href = buildPickupOrderHref({
+          type: refundType,
+          stage: stage,
+          pickupPhase: 'picked'
+        });
+      });
+    }
+
+    var waybillRow = document.getElementById('pickupOrderWaybillRow');
+    if (waybillRow) waybillRow.hidden = !postCollect;
+    if (postCollect) {
+      var waybillNo = app.waybillNo || app.trackingNo || '772071763686613';
+      var courierNameEl = document.getElementById('pickupOrderCourierName');
+      if (courierNameEl) courierNameEl.textContent = app.courier || '申通快递';
+      var waybillNoEl = document.getElementById('pickupOrderWaybillNo');
+      if (waybillNoEl) waybillNoEl.textContent = waybillNo;
+    }
+
+    var guardPhoneWrap = document.getElementById('pickupOrderGuardPhoneWrap');
+    if (guardPhoneWrap) guardPhoneWrap.hidden = postCollect;
+
+    var actionsSection = document.getElementById('pickupOrderActions');
+    var editBtn = document.getElementById('pickupOrderEditBtn');
+    var cancelBtn = document.getElementById('pickupOrderCancelBtn');
+    if (editBtn) editBtn.hidden = postCollect;
+    if (cancelBtn) cancelBtn.hidden = postCollect;
+    if (actionsSection) {
+      actionsSection.hidden = postCollect;
+      actionsSection.classList.toggle('ua-or-po-actions--picked', postCollect);
+    }
+
+    var expressProgress = document.getElementById('pickupOrderExpressProgress');
+    if (expressProgress) expressProgress.hidden = !postCollect;
+
+    var expressProgressTime = document.getElementById('pickupOrderExpressProgressTime');
+    var expressProgressText = document.getElementById('pickupOrderExpressProgressText');
+    if (expressProgressTime) {
+      expressProgressTime.textContent = inTransit
+        ? app.pickupTransitTime || formatDateTime()
+        : app.pickupPickedTime || formatDateTime();
+    }
+    if (expressProgressText) {
+      expressProgressText.textContent = inTransit
+        ? app.pickupTransitDetail ||
+          '【杭州市】快件已发往 江苏江阴转运中心，可关注"申通快递"官方微信公众号获取实时物流信息'
+        : app.pickupCourierStatus || '快递员已取包裹，即将开始运输';
+    }
 
     var phoneEl = document.getElementById('pickupOrderPhoneBtn');
     if (phoneEl) phoneEl.setAttribute('href', 'tel:' + (app.pickupCourierPhone || '4008001234'));
@@ -4574,6 +5231,8 @@
     if (orderTimeEl) {
       orderTimeEl.textContent = app.expressOrderTime || app.applyTime || '2026-07-17 13:53:44';
     }
+
+    renderPickupOrderFeeSummary(app);
 
     var shipCard = document.getElementById('pickupOrderShipCard');
     var toggleBtn = document.getElementById('pickupOrderToggleBtn');
@@ -4619,22 +5278,53 @@
         showToast('分享功能演示');
       });
 
+    document.getElementById('pickupOrderWaybillCopyBtn') &&
+      document.getElementById('pickupOrderWaybillCopyBtn').addEventListener('click', function () {
+        copyText(app.waybillNo || app.trackingNo || '772071763686613', '复制成功');
+      });
+
+    document.getElementById('pickupOrderExpressProgressBtn') &&
+      document.getElementById('pickupOrderExpressProgressBtn').addEventListener('click', function () {
+        if (isPickupPickedUp(app)) {
+          markPickupInTransit(app);
+          window.location.href = buildPickupOrderHref({
+            type: refundType,
+            stage: stage,
+            pickupPhase: 'transit'
+          });
+          return;
+        }
+        openPickupOrderProgressSheet(app);
+      });
+
     document.getElementById('pickupOrderStatusBtn') &&
       document.getElementById('pickupOrderStatusBtn').addEventListener('click', function () {
-        showToast('物流轨迹演示');
+        openPickupOrderProgressSheet(app);
+      });
+
+    document.getElementById('pickupOrderFeeDetailBtn') &&
+      document.getElementById('pickupOrderFeeDetailBtn').addEventListener('click', function () {
+        openPickupOrderFeeSheet();
       });
 
     bindCancelPickupSheet(app, refundType, ['pickupOrderCancelBtn']);
     bindSheetClose();
 
-    document.getElementById('pickupOrderEditBtn') &&
-      document.getElementById('pickupOrderEditBtn').addEventListener('click', function () {
-        if (getPickupEditRemain(app.refundNo || genRefundNo()) <= 0) {
-          showToast('本单修改次数已用完');
-          return;
-        }
-        window.location.href = buildPickupEditHref({ type: refundType, stage: stage });
-      });
+    if (!postCollect) {
+      document.getElementById('pickupOrderEditBtn') &&
+        document.getElementById('pickupOrderEditBtn').addEventListener('click', function () {
+          if (getPickupEditRemain(app.refundNo || genRefundNo()) <= 0) {
+            showToast('本单修改次数已用完');
+            return;
+          }
+          window.location.href = buildPickupEditHref({
+            type: refundType,
+            stage: stage,
+            pickupEditFrom: 'pickup_order',
+            pickupPhase: getPickupPhaseFromUrl() || ''
+          });
+        });
+    }
 
     document.getElementById('pickupOrderGoodsLink') &&
       document.getElementById('pickupOrderGoodsLink').addEventListener('click', function () {
@@ -5142,10 +5832,12 @@
         app.courier = state.courierName;
         app.courierId = state.courierId;
         app.trackingNo = trackingNo;
+        app.waybillNo = trackingNo;
+        if (app.shippingFeeGuard == null) app.shippingFeeGuard = '5.40';
         saveApplication(app);
         showToast('物流信息已提交');
         window.setTimeout(function () {
-          window.location.href = buildDetailHref({ type: refundType, stage: 'return' });
+          window.location.href = buildDetailHref({ type: refundType, stage: 'refund' });
         }, 600);
       });
     }
@@ -5172,7 +5864,11 @@
   function initAddressBookPage() {
     var refundType = getRefundType() || 'return';
     var stage = getDetailStage() || 'return';
-    var backHref = buildPickupEditHref({ type: refundType, stage: stage });
+    var backHref = buildPickupEditHref({
+      type: refundType,
+      stage: stage,
+      pickupEditFrom: getPickupEditFrom()
+    });
     var backEl = document.getElementById('addrBookBack');
     if (backEl) backEl.setAttribute('href', backHref);
 
@@ -5398,6 +6094,7 @@
             window.location.href = buildAddressCreateHref({
               type: refundType,
               stage: stage,
+              pickupEditFrom: getPickupEditFrom(),
               edit: '1',
               groupId: editGroupId,
               addrId: editAddrId
@@ -5454,7 +6151,8 @@
       document.getElementById('addrBookCreateBtn').addEventListener('click', function () {
         window.location.href = buildAddressCreateHref({
           type: refundType,
-          stage: stage
+          stage: stage,
+          pickupEditFrom: getPickupEditFrom()
         });
       });
     if (batchDeleteBtn) {
@@ -5750,7 +6448,11 @@
     var editGroupId = params.get('groupId') || '';
     var editAddrId = params.get('addrId') || '';
     var isEdit = params.get('edit') === '1' && !!editGroupId && !!editAddrId;
-    var backHref = buildAddressBookHref({ type: refundType, stage: stage });
+    var backHref = buildAddressBookHref({
+      type: refundType,
+      stage: stage,
+      pickupEditFrom: getPickupEditFrom()
+    });
     var backEl = document.getElementById('addrCreateBack');
     if (backEl) backEl.setAttribute('href', backHref);
 

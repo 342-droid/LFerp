@@ -221,7 +221,7 @@
 
   function fulfillmentLabel(mode, context) {
     if (context === 'retail') return '快递';
-    return mode === 'WAREHOUSE' ? '平台配送' : '快递到店';
+    return mode === 'WAREHOUSE' ? '配送' : '快递';
   }
 
   function isRetailExpressContext(options) {

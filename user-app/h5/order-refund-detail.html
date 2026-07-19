@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>退款详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
-  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260718-closed-no-steps">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260719-close-return-fix">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-order-refund-detail-page">
@@ -63,6 +63,33 @@
       </section>
 
       <section class="ua-or-detail-notice" id="refundDetailNotice"></section>
+
+      <section class="ua-or-detail-refund-stage" id="refundDetailRefundStage" hidden>
+        <button type="button" class="ua-or-refund-logistics-row" id="refundReturnLogisticsRow">
+          <span class="ua-or-refund-logistics-row__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M3 7h11v8H3z"/>
+              <path d="M14 10h4l3 3v2h-7"/>
+              <circle cx="7.5" cy="17.5" r="1.5"/>
+              <circle cx="17.5" cy="17.5" r="1.5"/>
+            </svg>
+          </span>
+          <span class="ua-or-refund-logistics-row__body">
+            <span class="ua-or-refund-logistics-row__main" id="refundReturnLogisticsMain">退货物流：已下单 申通快递 运单号:7720...</span>
+            <span class="ua-or-refund-logistics-row__sub" id="refundReturnLogisticsSub">商品已经下单</span>
+          </span>
+          <span class="ua-or-refund-logistics-row__chevron" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          </span>
+        </button>
+        <div class="ua-or-refund-fee-guard">
+          <span class="ua-or-refund-fee-guard__icon" aria-hidden="true">¥</span>
+          <span class="ua-or-refund-fee-guard__body">
+            <span class="ua-or-refund-fee-guard__title">运费保障</span>
+            <span class="ua-or-refund-fee-guard__sub" id="refundReturnFeeGuardSub">您已享受全额保障5.40元</span>
+          </span>
+        </div>
+      </section>
 
       <section class="ua-or-detail-reject-return" id="refundDetailRejectReturnSection" hidden>
         <div class="ua-or-card ua-or-detail-reject-card">
@@ -224,7 +251,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
           </button>
         </div>
-        <div class="ua-or-close-return-panel__tip" id="refundCancelPickupTip">最多可取消3次，您仅剩3次取消机会</div>
+        <div class="ua-or-close-return-panel__tip" id="refundCancelPickupTip" hidden></div>
         <div class="ua-or-close-return-panel__list" id="refundCancelPickupList" role="radiogroup" aria-label="取消原因"></div>
         <div class="ua-or-close-return-panel__foot">
           <button type="button" class="ua-or-close-return-panel__confirm" id="refundCancelPickupConfirm">完成</button>
@@ -289,7 +316,7 @@
 
     <div class="ua-or-toast" id="refundDetailToast" hidden></div>
   </div>
-  <script src="../js/user-app-order-refund.js?v=20260718-return-flow-v2"></script>
+  <script src="../js/user-app-order-refund.js?v=20260719-self-ship-refund"></script>
   <script>UAOrderRefund.initDetailPage();</script>
 </body>
 </html>
