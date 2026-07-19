@@ -64,7 +64,7 @@
       return i % 2 === 0 ? '已完成' : exchangeStatuses[Math.floor(i / 2) % exchangeStatuses.length];
     }
     if (type === '补货') {
-      var restockStatuses = ['待审批', '已拒绝', '待退货', '已收货', '已完成', '已取消'];
+      var restockStatuses = ['待审批', '已拒绝', '已收货', '已完成', '已取消'];
       return i % 2 === 0 ? '已完成' : restockStatuses[Math.floor(i / 2) % restockStatuses.length];
     }
     if (type === '仅退款') {
@@ -78,10 +78,9 @@
     return i % 2 === 0 ? '已完成' : STATUSES[Math.floor(i / 2) % STATUSES.length];
   }
 
-  /** 商城 / 直播固定门店自提；代采为快递到店或平台配送 */
+  /** 履约方式枚举仅：快递、配送 */
   function resolveFulfillment(orderSource, i) {
-    if (orderSource === '商城' || orderSource === '直播') return '门店自提';
-    return i % 2 === 0 ? '快递到店' : '平台配送';
+    return i % 2 === 0 ? '快递' : '配送';
   }
 
   function pad(n, len) {
@@ -146,14 +145,14 @@
   }
 
   /**
-   * 代采演示矩阵：补货 / 换货 / 退货退款 × 平台配送 / 快递到店 × 各业务状态
+   * 代采演示矩阵：补货 / 换货 / 退货退款 × 快递 / 配送 × 各业务状态
    * 置顶方便筛「订单来源=代采」后自查详情页
    */
   function buildProxyDemoRows() {
-    var PROXY_FULFILLMENTS = ['快递到店', '平台配送'];
+    var PROXY_FULFILLMENTS = ['快递', '配送'];
     var STATUS_MAP = {
       退货退款: ['待审批', '已拒绝', '待退货', '已收货', '退款中', '退款异常', '已完成', '已取消'],
-      补货: ['待审批', '已拒绝', '待退货', '已收货', '已完成', '已取消'],
+      补货: ['待审批', '已拒绝', '已收货', '已完成', '已取消'],
       换货: ['待审批', '已拒绝', '待退货', '已收货', '已完成', '已取消']
     };
     var types = ['退货退款', '补货', '换货'];

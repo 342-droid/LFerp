@@ -50,20 +50,38 @@
                 <button type="button" class="aftersale-detail-page__close" data-reject-close aria-label="关闭">×</button>
             </div>
             <div class="aftersale-addr-modal__body">
-                <p class="aftersale-reject-modal__tip">拒收后门店寄回商品将退回门店，本次售后关闭且不发起退款。</p>
+                <p class="aftersale-reject-modal__tip">拒收后商品将退回。请选择退回方式：原路退回或重新寄回。用户端退回物流「已签收」后，本售后单才会关闭。</p>
                 <label class="aftersale-reject-modal__field">拒收原因
                     <textarea id="asRejectReason" class="aftersale-approve-textarea" maxlength="200" placeholder="请输入拒收原因，如：退货商品与申请不符"></textarea>
                     <span class="aftersale-approve-counter"><span id="asRejectReasonCount">0</span>/200</span>
                 </label>
-                <div class="aftersale-reject-modal__ship">
-                    <div class="aftersale-reject-modal__ship-title">退回门店物流</div>
+                <div class="aftersale-reject-modal__field">
+                    <span>退回方式</span>
+                    <div class="aftersale-reject-mode" role="radiogroup" aria-label="退回方式">
+                        <label class="aftersale-reject-mode__item is-selected">
+                            <input type="radio" name="asRejectMode" value="原路退回" checked>
+                            <span>
+                                <strong>原路退回</strong>
+                                <em>拒绝签收当前物流，商品由承运商原路退回</em>
+                            </span>
+                        </label>
+                        <label class="aftersale-reject-mode__item">
+                            <input type="radio" name="asRejectMode" value="重新寄回">
+                            <span>
+                                <strong>重新寄回</strong>
+                                <em>另行寄回门店，需填写退回物流单号</em>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+                <div class="aftersale-reject-modal__ship" id="asRejectReshipBlock" hidden>
+                    <div class="aftersale-reject-modal__ship-title">重新寄回物流</div>
                     <div class="aftersale-flow-form">
                         <label class="aftersale-flow-form__field">物流单号
                             <input class="aftersale-filter-field__input" id="asRejectShipNo" type="text" maxlength="32" placeholder="请输入物流单号，将自动识别物流公司">
                         </label>
                         <label class="aftersale-flow-form__field">物流公司
                             <select class="aftersale-filter-field__input aftersale-flow-form__select" id="asRejectShipCompany" aria-label="物流公司"></select>
-                            <span class="aftersale-flow-form__hint" id="asRejectShipHint" hidden></span>
                         </label>
                     </div>
                 </div>
@@ -71,6 +89,43 @@
             <div class="aftersale-addr-modal__foot">
                 <button type="button" class="aftersale-btn aftersale-btn--ghost" data-reject-close>取消</button>
                 <button type="button" class="aftersale-btn aftersale-btn--danger" id="asRejectConfirm">确认拒收</button>
+            </div>
+        </div>
+    </div>
+    <div class="aftersale-addr-modal" id="asAuditConfirmModal" hidden>
+        <div class="aftersale-addr-modal__mask" data-audit-close></div>
+        <div class="aftersale-addr-modal__panel aftersale-audit-modal__panel" role="dialog" aria-modal="true" aria-labelledby="asAuditConfirmTitle">
+            <div class="aftersale-addr-modal__head">
+                <h3 id="asAuditConfirmTitle">确认审批</h3>
+                <button type="button" class="aftersale-detail-page__close" data-audit-close aria-label="关闭">×</button>
+            </div>
+            <div class="aftersale-addr-modal__body">
+                <p class="aftersale-audit-modal__tip" id="asAuditConfirmTip">请确认审批操作并填写审核原因。</p>
+                <label class="aftersale-reject-modal__field">审核原因
+                    <textarea id="asAuditReason" class="aftersale-approve-textarea" maxlength="200" placeholder="请输入审核原因"></textarea>
+                    <span class="aftersale-approve-counter"><span id="asAuditReasonCount">0</span>/200</span>
+                </label>
+            </div>
+            <div class="aftersale-addr-modal__foot">
+                <button type="button" class="aftersale-btn aftersale-btn--ghost" data-audit-close>取消</button>
+                <button type="button" class="aftersale-btn aftersale-btn--success" id="asAuditConfirmBtn">确认通过</button>
+            </div>
+        </div>
+    </div>
+    <div class="aftersale-addr-modal" id="asCancelShipModal" hidden>
+        <div class="aftersale-addr-modal__mask" data-cancel-ship-close></div>
+        <div class="aftersale-addr-modal__panel aftersale-cancel-ship-modal__panel" role="dialog" aria-modal="true" aria-labelledby="asCancelShipModalTitle">
+            <div class="aftersale-addr-modal__head">
+                <h3 id="asCancelShipModalTitle">请选择取消原因</h3>
+                <button type="button" class="aftersale-detail-page__close" data-cancel-ship-close aria-label="关闭">×</button>
+            </div>
+            <div class="aftersale-addr-modal__body">
+                <p class="aftersale-cancel-ship-modal__tip">取消寄件后可点击「上传物流单号」由后台上传，也可等待用户再次自行发起寄件。该原因将记录在售后单中。</p>
+                <div class="aftersale-reason-list" id="asCancelShipReasonList" role="radiogroup" aria-label="取消原因"></div>
+            </div>
+            <div class="aftersale-addr-modal__foot">
+                <button type="button" class="aftersale-btn aftersale-btn--ghost" data-cancel-ship-close>取消</button>
+                <button type="button" class="aftersale-btn aftersale-btn--primary" id="asCancelShipConfirm">确定</button>
             </div>
         </div>
     </div>
