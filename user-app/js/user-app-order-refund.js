@@ -1017,7 +1017,24 @@
 
   function buildRejectReturnNotice(delivery) {
     var party = getReturnConfirmParty(delivery);
-    return '因退货商品不符，' + party + '已拒收，商品正在退回，请留意物流信息。';
+    return (
+      '因退货商品不符，' +
+      party +
+      '已拒收，商品正在退回。退回物流签收（已签收）后，本次售后单才会关闭，请留意物流信息。'
+    );
+  }
+
+  function isRejectBackSigned(app) {
+    return !!(app && (app.backLogisticsStatus === '已签收' || app.backSigned));
+  }
+
+  function markRejectBackSigned(app) {
+    app = app || {};
+    app.backLogisticsStatus = '已签收';
+    app.backSigned = true;
+    app.backSignedTime = app.backSignedTime || formatDateTime();
+    saveApplication(app);
+    return app;
   }
 
   function isReshipShipped(app) {
@@ -1230,6 +1247,12 @@
     }
     if (!app.backTrackingNo) {
       app.backTrackingNo = 'SF9876543210987';
+    }
+    if (!app.backLogisticsStatus) {
+      app.backLogisticsStatus = '运输中';
+    }
+    if (app.backSigned && app.backLogisticsStatus !== '已签收') {
+      app.backLogisticsStatus = '已签收';
     }
     saveApplication(app);
     return app;
@@ -4941,10 +4964,13 @@
       });
     }
     if (stage === 'reject_return') {
-      cfg = Object.assign({}, cfg, {
-        notice: buildRejectReturnNotice(state.delivery)
-      });
       ensureRejectReturnData(app, state);
+      cfg = Object.assign({}, cfg, {
+        title: isRejectBackSigned(app) ? '退回已签收' : '商品退回中',
+        notice: isRejectBackSigned(app)
+          ? '退回物流已签收，本次售后单即将关闭。'
+          : buildRejectReturnNotice(state.delivery)
+      });
     }
     if (stage === 'reship') {
       ensureReshipData(app);
@@ -4987,16 +5013,29 @@
         }
         if (stage === 'reject_return') {
           noticeEl.classList.add('ua-or-detail-notice--demo');
-          noticeEl.title = '点击进入关闭结果（演示）';
-          noticeEl.addEventListener('click', function () {
-            app.closedTime = formatDateTime();
-            saveApplication(app);
-            window.location.href = buildDetailHref({
-              type: refundType,
-              stage: 'closed',
-              closeReason: 'reject_receive'
+          if (isRejectBackSigned(app)) {
+            noticeEl.title = '退回已签收，点击关闭售后单（演示）';
+            noticeEl.addEventListener('click', function () {
+              app.closedTime = formatDateTime();
+              app.closeReason = 'reject_receive';
+              saveApplication(app);
+              syncAftersaleRecordFromApp(app, refundType, 'closed');
+              window.location.href = buildDetailHref({
+                type: refundType,
+                stage: 'closed',
+                closeReason: 'reject_receive'
+              });
             });
-          });
+          } else {
+            noticeEl.title = '点击模拟退回物流已签收（演示）';
+            noticeEl.addEventListener('click', function () {
+              markRejectBackSigned(app);
+              window.location.href = buildDetailHref({
+                type: refundType,
+                stage: 'reject_return'
+              });
+            });
+          }
         }
       }
     }
@@ -5016,7 +5055,9 @@
         return 'success';
       }
       if (current === 'refund') return 'success';
-      if (current === 'reject_return') return 'closed_reject';
+      if (current === 'reject_return') {
+        return isRejectBackSigned(app) ? 'closed_reject' : 'reject_back_signed';
+      }
       return null;
     }
 
@@ -5097,7 +5138,19 @@
               app.resultTime = formatDateTime();
               saveApplication(app);
             }
+            if (next === 'reject_back_signed') {
+              markRejectBackSigned(app);
+              syncAftersaleRecordFromApp(app, refundType, 'reject_return');
+              window.location.href = buildDetailHref({
+                type: refundType,
+                stage: 'reject_return'
+              });
+              return;
+            }
             if (next === 'closed_reject') {
+              if (!isRejectBackSigned(app)) {
+                markRejectBackSigned(app);
+              }
               ensureRejectReturnData(app, state);
               app.closedTime = formatDateTime();
               app.closeReason = 'reject_receive';
@@ -5241,12 +5294,19 @@
       var reasonTextEl = document.getElementById('refundRejectReasonText');
       var backCourierEl = document.getElementById('refundBackCourierDisplay');
       var backTrackingEl = document.getElementById('refundBackTrackingDisplay');
+      var backStatusEl = document.getElementById('refundBackLogisticsStatus');
       if (reasonTextEl) {
         reasonTextEl.textContent =
           '拒收原因：' + (app.rejectReceiveReason || '退货商品与申请不符，不符合退货要求');
       }
       if (backCourierEl) backCourierEl.textContent = app.backCourier || '—';
       if (backTrackingEl) backTrackingEl.textContent = app.backTrackingNo || '—';
+      if (backStatusEl) {
+        backStatusEl.textContent = app.backLogisticsStatus || '运输中';
+      }
+      if (titleEl) {
+        titleEl.textContent = isRejectBackSigned(app) ? '退回已签收' : '商品退回中';
+      }
     } else if (rejectReturnSection) {
       rejectReturnSection.hidden = true;
     }
