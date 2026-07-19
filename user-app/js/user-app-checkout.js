@@ -3,11 +3,25 @@
   var CART_PAGE_KEY = 'ua_restock_cart_page_v2';
   var CHEVRON = '<svg class="ua-co-package__row-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>';
 
-  var PLATFORM_FREIGHT = { threshold: 399, fee: 6 };
+  /* 与进货购物车一致：配送按货款阶梯；现阶段快递不收运费 */
+  var DELIVERY_FREIGHT_TIERS = [
+    { start: 0, end: 200, freight: 12 },
+    { start: 200, end: 399, freight: 8 },
+    { start: 399, end: Infinity, freight: 0 }
+  ];
 
-  /** 供应商直配到门店（到店）；其余经仓库分拣为仓配 */
-  var DIRECT_TO_STORE_SUPPLIERS = {
-    'supplier-xianfeng': true
+  var FULFILLMENT_BY_SPU = {
+    cola: '快递',
+    water: '快递',
+    tea: '快递',
+    egg: '快递',
+    'eggplant-long': '配送',
+    'eggplant-round': '配送',
+    'leaf-y1': '配送',
+    'leaf-y4': '配送',
+    tomato: '配送',
+    'leaf-c1': '配送',
+    caul: '配送'
   };
 
   var WAREHOUSE_RULES = {
@@ -32,20 +46,7 @@
     ]
   };
 
-  var TIME_DATES = [
-    { key: 'today', label: '今天\n07-10' },
-    { key: 'tomorrow', label: '明天\n07-11' },
-    { key: 'day3', label: '后天\n07-12' }
-  ];
-
-  var TIME_SLOTS = {
-    today: ['09:00-11:00', '11:00-13:00', '14:00-16:00', '16:00-18:00'],
-    tomorrow: ['09:00-11:00', '11:00-13:00', '14:00-16:00', '16:00-18:00', '18:00-20:00'],
-    day3: ['09:00-11:00', '14:00-16:00', '16:00-18:00']
-  };
-
   var state = null;
-  var timeCtx = null;
   var payPwd = '';
   var couponTab = 'available';
 
@@ -81,7 +82,7 @@
               warehouseId: 'wh-xiaoshan',
               warehouse: '杭州萧山仓',
               deliveryType: 'warehouse',
-              deliveryTime: '今天 14:00-16:00',
+              deliveryTime: '',
               remark: '',
               items: [
                 {
@@ -90,6 +91,7 @@
                   spec: '5斤',
                   priceNum: 21,
                   qty: 1,
+                  fulfillmentMethod: '配送',
                   img: '../assets/restock/product-eggplant-long.svg'
                 }
               ]
@@ -108,6 +110,7 @@
                   spec: '5斤',
                   priceNum: 29,
                   qty: 2,
+                  fulfillmentMethod: '配送',
                   img: '../assets/restock/product-tomato.svg'
                 },
                 {
@@ -116,6 +119,7 @@
                   spec: '10斤',
                   priceNum: 46,
                   qty: 1,
+                  fulfillmentMethod: '配送',
                   img: '../assets/restock/product-tomato.svg'
                 },
                 {
@@ -124,6 +128,7 @@
                   spec: '5斤',
                   priceNum: 24,
                   qty: 2,
+                  fulfillmentMethod: '配送',
                   img: '../assets/restock/product-leaf.svg'
                 }
               ]
@@ -148,6 +153,7 @@
                   spec: '10斤',
                   priceNum: 30,
                   qty: 1,
+                  fulfillmentMethod: '快递',
                   img: '../assets/restock/product-leaf.svg'
                 }
               ]
@@ -173,12 +179,24 @@
     return rules[rules.length - 1];
   }
 
-  function resolveDeliveryType(supplierId) {
-    return DIRECT_TO_STORE_SUPPLIERS[supplierId] ? 'store' : 'warehouse';
+  function getPackageFulfillment(pkg) {
+    return pkg && pkg.deliveryType === 'store' ? '快递' : '配送';
   }
 
   function getPackageDeliveryLabel(pkg) {
-    return pkg.deliveryType === 'store' ? '到店' : '仓配';
+    return getPackageFulfillment(pkg);
+  }
+
+  function getPackageGoodsAmount(pkg) {
+    return (pkg.items || []).reduce(function (sum, item) {
+      return sum + (Number(item.priceNum) || 0) * (Number(item.qty) || 0);
+    }, 0);
+  }
+
+  function formatEstimatedArrival(offsetDays) {
+    var d = new Date();
+    d.setDate(d.getDate() + (offsetDays == null ? 1 : offsetDays));
+    return '预计' + (d.getMonth() + 1) + '月' + d.getDate() + '号送达';
   }
 
   function buildCheckoutFromItems(items, store) {
@@ -190,13 +208,15 @@
         supplierMap[sid] = { id: sid, name: sname, packages: {} };
       }
       var wh = resolveWarehouse(sid, item);
-      var pkgKey = resolveDeliveryType(sid) + ':' + wh.id;
+      var fulfillment = resolveFulfillmentMethod(item);
+      var deliveryType = fulfillment === '快递' ? 'store' : 'warehouse';
+      var pkgKey = deliveryType + ':' + wh.id;
       if (!supplierMap[sid].packages[pkgKey]) {
         supplierMap[sid].packages[pkgKey] = {
-          id: 'pkg-' + sid + '-' + wh.id,
+          id: 'pkg-' + sid + '-' + deliveryType + '-' + wh.id,
           warehouseId: wh.id,
           warehouse: wh.name,
-          deliveryType: resolveDeliveryType(sid),
+          deliveryType: deliveryType,
           deliveryTime: '',
           remark: '',
           items: []
@@ -209,7 +229,8 @@
         priceNum: item.priceNum,
         qty: item.qty || 1,
         img: item.img || '../assets/restock/product-leaf.svg',
-        spuId: item.spuId || ''
+        spuId: item.spuId || '',
+        fulfillmentMethod: fulfillment
       });
     });
 
@@ -231,14 +252,11 @@
   }
 
   function applyDefaultDeliveryTimes() {
-    var slotLabels = ['今天 14:00-16:00', '明天 11:00-13:00', '后天 09:00-11:00'];
     var n = 0;
     (state.suppliers || []).forEach(function (sup) {
       (sup.packages || []).forEach(function (pkg) {
-        if (!pkg.deliveryTime) {
-          pkg.deliveryTime = slotLabels[n % slotLabels.length];
-          n += 1;
-        }
+        pkg.deliveryTime = formatEstimatedArrival(1 + (n % 2));
+        n += 1;
       });
     });
   }
@@ -266,14 +284,121 @@
     return total;
   }
 
-  function calcFreight(subtotal) {
-    if (subtotal >= PLATFORM_FREIGHT.threshold) return 0;
-    return PLATFORM_FREIGHT.fee;
+  function resolveFulfillmentMethod(item) {
+    if (item && item.fulfillmentMethod) return item.fulfillmentMethod;
+    var spuId = (item && (item.spuId || item.id)) || '';
+    spuId = String(spuId).replace(/-\d+$/, '').replace(/-default$/, '');
+    return FULFILLMENT_BY_SPU[spuId] || '配送';
+  }
+
+  function matchDeliveryFreight(amount) {
+    var amt = Math.max(0, Number(amount) || 0);
+    var current = DELIVERY_FREIGHT_TIERS[0];
+    for (var i = 0; i < DELIVERY_FREIGHT_TIERS.length; i++) {
+      var t = DELIVERY_FREIGHT_TIERS[i];
+      if (amt >= t.start && amt < t.end) {
+        current = t;
+        break;
+      }
+      if (i === DELIVERY_FREIGHT_TIERS.length - 1 && amt >= t.start) current = t;
+    }
+    return current ? current.freight : 0;
+  }
+
+  function calcFreightBreakdown() {
+    var deliveryAmount = 0;
+    var expressAmount = 0;
+    var packageRows = [];
+
+    (state.suppliers || []).forEach(function (sup) {
+      (sup.packages || []).forEach(function (pkg, idx) {
+        var amount = getPackageGoodsAmount(pkg);
+        var mode = getPackageFulfillment(pkg);
+        if (mode === '快递') expressAmount += amount;
+        else deliveryAmount += amount;
+        packageRows.push({
+          id: pkg.id,
+          supplierName: sup.name,
+          pkgIndex: idx + 1,
+          mode: mode,
+          amount: amount
+        });
+      });
+    });
+
+    var expressFee = 0; /* 现阶段快递不收运费 */
+    var deliveryFee = deliveryAmount > 0 ? matchDeliveryFreight(deliveryAmount) : 0;
+
+    var deliveryShares = allocateFreightByAmount(
+      packageRows.filter(function (r) {
+        return r.mode === '配送';
+      }),
+      deliveryFee
+    );
+    var expressShares = allocateFreightByAmount(
+      packageRows.filter(function (r) {
+        return r.mode === '快递';
+      }),
+      expressFee
+    );
+    var shareMap = {};
+    deliveryShares.concat(expressShares).forEach(function (s) {
+      shareMap[s.id] = s.fee;
+    });
+
+    var packages = packageRows.map(function (row) {
+      return {
+        id: row.id,
+        supplierName: row.supplierName,
+        pkgIndex: row.pkgIndex,
+        mode: row.mode,
+        amount: row.amount,
+        fee: shareMap[row.id] != null ? shareMap[row.id] : 0
+      };
+    });
+
+    return {
+      expressFee: expressFee,
+      deliveryFee: deliveryFee,
+      total: expressFee + deliveryFee,
+      expressAmount: expressAmount,
+      deliveryAmount: deliveryAmount,
+      packages: packages,
+      label: formatMoney(expressFee + deliveryFee)
+    };
+  }
+
+  function allocateFreightByAmount(rows, totalFee) {
+    if (!rows.length) return [];
+    var fee = Math.round((Number(totalFee) || 0) * 100);
+    var amountSum = rows.reduce(function (sum, r) {
+      return sum + r.amount;
+    }, 0);
+    if (fee <= 0 || amountSum <= 0) {
+      return rows.map(function (r) {
+        return { id: r.id, fee: 0 };
+      });
+    }
+    var allocated = 0;
+    return rows.map(function (r, idx) {
+      var part;
+      if (idx === rows.length - 1) {
+        part = fee - allocated;
+      } else {
+        part = Math.round((fee * r.amount) / amountSum);
+        allocated += part;
+      }
+      return { id: r.id, fee: part / 100 };
+    });
+  }
+
+  function calcFreight() {
+    return calcFreightBreakdown().total;
   }
 
   function getPayable() {
     var goods = getGoodsSubtotal();
-    var freight = calcFreight(goods);
+    var freight = calcFreight();
     var coupon = state.coupon ? state.coupon.amount : 0;
     var points = state.pointsEnabled ? state.pointsDeduct : 0;
     var activity = state.activityDiscount || 0;
@@ -381,7 +506,7 @@
       : items.length
         ? renderItemHtml(items[0])
         : '';
-    var timeLabel = pkg.deliveryTime || '选择时间';
+    var timeLabel = pkg.deliveryTime || formatEstimatedArrival(1);
 
     return (
       '<div class="ua-co-card ua-co-package-card" data-pkg-id="' +
@@ -393,18 +518,11 @@
       '（' +
       getPackageDeliveryLabel(pkg) +
       '）</span>' +
-      '<button type="button" class="ua-co-package__time' +
-      (pkg.deliveryTime ? ' ua-co-package__time--picked' : '') +
-      '" data-time-pkg="' +
-      pkg.id +
-      '" data-supplier-id="' +
-      supplier.id +
-      '" id="pkgTime-' +
+      '<span class="ua-co-package__time ua-co-package__time--static" id="pkgTime-' +
       pkg.id +
       '">' +
       timeLabel +
-      CHEVRON +
-      '</button></div>' +
+      '</span></div>' +
       '<div class="ua-co-package__body" id="pkgItems-' +
       pkg.id +
       '">' +
@@ -449,14 +567,14 @@
 
   function renderSummary() {
     var goods = getGoodsSubtotal();
-    var freight = calcFreight(goods);
+    var freightInfo = calcFreightBreakdown();
     var coupon = state.coupon ? state.coupon.amount : 0;
     var points = state.pointsEnabled ? state.pointsDeduct : 0;
     var activity = state.activityDiscount || 0;
     var payable = getPayable();
 
     setText('checkoutGoodsTotal', formatMoney(goods));
-    setText('checkoutFreight', freight > 0 ? formatMoney(freight) : '免运费');
+    setText('checkoutFreight', freightInfo.label);
     setText('checkoutActivityDiscount', activity > 0 ? '-' + formatMoney(activity) : '-¥0.00');
     setText('checkoutCouponDiscount', state.coupon ? '-¥' + coupon.toFixed(2) : '-¥0.00');
     setText('checkoutPayable', formatMoney(payable));
@@ -517,7 +635,8 @@
 
   function openSheet(name) {
     var map = {
-      time: 'checkoutTimeSheet',
+      freight: 'checkoutFreightSheet',
+      freightRules: 'checkoutFreightRulesSheet',
       coupon: 'checkoutCouponSheet',
       invoice: 'checkoutInvoiceSheet',
       pay: 'checkoutPaySheet'
@@ -531,7 +650,8 @@
 
   function closeSheet(name) {
     var map = {
-      time: 'checkoutTimeSheet',
+      freight: 'checkoutFreightSheet',
+      freightRules: 'checkoutFreightRulesSheet',
       coupon: 'checkoutCouponSheet',
       invoice: 'checkoutInvoiceSheet',
       pay: 'checkoutPaySheet'
@@ -543,57 +663,92 @@
     }
   }
 
-  function openTimeSheet(supplierId, pkgId) {
-    timeCtx = { supplierId: supplierId, pkgId: pkgId, dateKey: 'today', slot: '' };
-    renderTimeSheet();
-    openSheet('time');
+  function formatFreightTierRange(tier) {
+    if (tier.end === Infinity) {
+      return '货款满' + formatMoney(tier.start);
+    }
+    return '货款' + formatMoney(tier.start) + '～' + formatMoney(tier.end);
   }
 
-  function renderTimeSheet() {
-    var datesEl = document.getElementById('checkoutTimeDates');
-    var slotsEl = document.getElementById('checkoutTimeSlots');
-    if (!datesEl || !slotsEl || !timeCtx) return;
-
-    datesEl.innerHTML = TIME_DATES.map(function (d) {
+  function renderFreightRules() {
+    var el = document.getElementById('checkoutFreightRulesBody');
+    if (!el) return;
+    var tiersHtml = DELIVERY_FREIGHT_TIERS.map(function (tier) {
+      var feeText = tier.freight <= 0 ? '免运费' : formatMoney(tier.freight);
       return (
-        '<button type="button" class="ua-co-time__date' +
-        (timeCtx.dateKey === d.key ? ' ua-co-time__date--active' : '') +
-        '" data-date-key="' +
-        d.key +
-        '">' +
-        d.label.replace('\n', '<br>') +
-        '</button>'
+        '<div class="ua-co-freight-rules__item">' +
+        '<span>' +
+        formatFreightTierRange(tier) +
+        '</span>' +
+        '<span class="ua-co-freight-rules__fee">' +
+        feeText +
+        '</span></div>'
       );
     }).join('');
 
-    var slots = TIME_SLOTS[timeCtx.dateKey] || [];
-    slotsEl.innerHTML = slots
-      .map(function (slot) {
-        var active = timeCtx.slot === slot;
+    el.innerHTML =
+      '<div class="ua-co-freight-rules">' +
+      '<p class="ua-co-freight-rules__intro">快递与配送分开计算；同履约方式商品合并货款后匹配档位。现阶段快递不收取运费。</p>' +
+      '<div class="ua-co-freight-rules__section">' +
+      '<h4 class="ua-co-freight-rules__title">配送运费档位</h4>' +
+      tiersHtml +
+      '</div>' +
+      '<div class="ua-co-freight-rules__section">' +
+      '<h4 class="ua-co-freight-rules__title">快递运费</h4>' +
+      '<div class="ua-co-freight-rules__item"><span>全部快递订单</span><span class="ua-co-freight-rules__fee">免运费</span></div>' +
+      '<p class="ua-co-freight-rules__note">快递暂不收取运费，后续如有调整将按最新规则执行。</p>' +
+      '</div></div>';
+  }
+
+  function openFreightRulesSheet() {
+    renderFreightRules();
+    openSheet('freightRules');
+  }
+
+  function renderFreightDetail() {
+    var el = document.getElementById('checkoutFreightDetail');
+    if (!el) return;
+    var info = calcFreightBreakdown();
+    var pkgsHtml = (info.packages || [])
+      .map(function (pkg) {
         return (
-          '<button type="button" class="ua-co-time__slot' +
-          (active ? ' ua-co-time__slot--active' : '') +
-          '" data-time-slot="' +
-          slot +
-          '">' +
-          slot +
-          '</button>'
+          '<div class="ua-co-freight-detail__pkg">' +
+          '<div class="ua-co-freight-detail__pkg-main">' +
+          '<span class="ua-co-freight-detail__pkg-name">' +
+          pkg.supplierName +
+          ' 包裹' +
+          pkg.pkgIndex +
+          '（' +
+          pkg.mode +
+          '）</span>' +
+          '<span class="ua-co-freight-detail__pkg-sub">货款' +
+          formatMoney(pkg.amount) +
+          '</span></div>' +
+          '<span class="ua-co-freight-detail__pkg-fee">' +
+          formatMoney(pkg.fee) +
+          '</span></div>'
         );
       })
       .join('');
+
+    el.innerHTML =
+      '<div class="ua-co-freight-detail">' +
+      '<div class="ua-co-freight-detail__totals">' +
+      '<div class="ua-co-freight-detail__total"><span>快递总计</span><strong>' +
+      formatMoney(info.expressFee) +
+      '</strong></div>' +
+      '<div class="ua-co-freight-detail__total"><span>配送总计</span><strong>' +
+      formatMoney(info.deliveryFee) +
+      '</strong></div></div>' +
+      '<div class="ua-co-freight-detail__section">' +
+      '<h4 class="ua-co-freight-detail__section-title">各包裹均摊</h4>' +
+      (pkgsHtml || '<div class="ua-co-freight-detail__pkg"><span>暂无包裹</span></div>') +
+      '</div></div>';
   }
 
-  function confirmTimeSelection() {
-    if (!timeCtx || !timeCtx.slot) return;
-    var found = findPackage(timeCtx.pkgId);
-    if (!found) return;
-    var dateLabel = TIME_DATES.find(function (d) {
-      return d.key === timeCtx.dateKey;
-    });
-    var label = (dateLabel ? dateLabel.label.split('\n')[0] : '今天') + ' ' + timeCtx.slot;
-    found.package.deliveryTime = label;
-    closeSheet('time');
-    renderSuppliers();
+  function openFreightSheet() {
+    renderFreightDetail();
+    openSheet('freight');
   }
 
   function renderCouponList() {
@@ -807,18 +962,6 @@
   }
 
   function validateBeforeSubmit() {
-    var missing = [];
-    (state.suppliers || []).forEach(function (sup) {
-      (sup.packages || []).forEach(function (pkg, idx) {
-        if (!pkg.deliveryTime) {
-          missing.push(sup.name + ' 包裹' + (idx + 1));
-        }
-      });
-    });
-    if (missing.length) {
-      window.alert('请选择以下包裹的送达时间：\n' + missing.join('\n'));
-      return false;
-    }
     return true;
   }
 
@@ -830,11 +973,6 @@
 
     document.getElementById('checkoutSupplierList') &&
       document.getElementById('checkoutSupplierList').addEventListener('click', function (e) {
-        var timeBtn = e.target.closest('[data-time-pkg]');
-        if (timeBtn) {
-          openTimeSheet(timeBtn.getAttribute('data-supplier-id'), timeBtn.getAttribute('data-time-pkg'));
-          return;
-        }
         var expandBtn = e.target.closest('[data-expand-pkg]');
         if (expandBtn) expandPackage(expandBtn.getAttribute('data-expand-pkg'));
       });
@@ -846,6 +984,12 @@
         var found = findPackage(input.getAttribute('data-remark-pkg'));
         if (found) found.package.remark = input.value;
       });
+
+    document.getElementById('checkoutFreightHelpBtn') &&
+      document.getElementById('checkoutFreightHelpBtn').addEventListener('click', openFreightRulesSheet);
+
+    document.getElementById('checkoutFreightDetailBtn') &&
+      document.getElementById('checkoutFreightDetailBtn').addEventListener('click', openFreightSheet);
 
     document.getElementById('checkoutCouponRow') &&
       document.getElementById('checkoutCouponRow').addEventListener('click', openCouponSheet);
@@ -864,24 +1008,6 @@
         closeSheet(el.getAttribute('data-sheet-close'));
       });
     });
-
-    document.getElementById('checkoutTimeDates') &&
-      document.getElementById('checkoutTimeDates').addEventListener('click', function (e) {
-        var btn = e.target.closest('[data-date-key]');
-        if (!btn || !timeCtx) return;
-        timeCtx.dateKey = btn.getAttribute('data-date-key');
-        timeCtx.slot = '';
-        renderTimeSheet();
-      });
-
-    document.getElementById('checkoutTimeSlots') &&
-      document.getElementById('checkoutTimeSlots').addEventListener('click', function (e) {
-        var btn = e.target.closest('[data-time-slot]');
-        if (!btn || !timeCtx) return;
-        timeCtx.slot = btn.getAttribute('data-time-slot');
-        renderTimeSheet();
-        confirmTimeSelection();
-      });
 
     document.getElementById('checkoutCouponTabs') &&
       document.getElementById('checkoutCouponTabs').addEventListener('click', function (e) {

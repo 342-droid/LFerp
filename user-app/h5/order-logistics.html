@@ -40,11 +40,16 @@
       </header>
 
       <div class="ua-ol-body">
-        <h2 class="ua-ol-status" id="logisticsMainStatus">已签收</h2>
+        <div class="ua-ol-pkg-tabs" id="logisticsPkgTabs" hidden></div>
+
+        <div class="ua-ol-status-row">
+          <h2 class="ua-ol-status" id="logisticsMainStatus">已签收</h2>
+          <span class="ua-ol-status__pkg" id="logisticsPkgBadge" hidden>1</span>
+        </div>
 
         <section class="ua-ol-card">
           <div class="ua-ol-products" id="logisticsProducts">
-            <div class="ua-ol-products__scroll">
+            <div class="ua-ol-products__scroll" id="logisticsProductsScroll">
               <div class="ua-ol-products__item">
                 <img src="../assets/order-product-1.svg" alt="">
               </div>
@@ -62,7 +67,7 @@
                 <img src="../assets/restock/product-tomato.svg" alt="">
               </div>
             </div>
-            <div class="ua-ol-products__total">共7件</div>
+            <div class="ua-ol-products__total" id="logisticsProductsTotal">共7件</div>
           </div>
 
           <div class="ua-ol-courier">

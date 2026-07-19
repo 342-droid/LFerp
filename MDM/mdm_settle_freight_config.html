@@ -38,6 +38,15 @@
                                     <option value="c端">c端</option>
                                 </select>
                             </div>
+                            <div class="sf-filter-field">
+                                <label class="sf-filter-field__label" for="sfFulfillment">履约方式</label>
+                                <select class="sf-filter-field__input" id="sfFulfillment" aria-label="履约方式">
+                                    <option value="">全部</option>
+                                    <option value="配送">配送</option>
+                                    <option value="自提">自提</option>
+                                    <option value="快递">快递</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="sf-filter-actions">
                             <button type="button" class="sf-btn sf-btn--primary" id="sfFilterQuery">
@@ -84,6 +93,7 @@
                                     <th class="sf-table__code">费用模板编码</th>
                                     <th class="sf-table__name">费用模板名称</th>
                                     <th class="sf-table__port">应用端口</th>
+                                    <th class="sf-table__fulfillment">履约方式</th>
                                     <th class="sf-table__valid">有效期</th>
                                     <th class="sf-table__billing-method">计费方式</th>
                                     <th class="sf-table__action">操作</th>

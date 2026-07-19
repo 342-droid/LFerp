@@ -140,7 +140,7 @@
     return getDeliveryType() === 'store';
   }
 
-  function buildLogisticsHref() {
+  function buildLogisticsHref(pkgIndex) {
     var params = getParams();
     var href = 'order-logistics.html?';
     var qs = [];
@@ -150,7 +150,111 @@
     if (params.get('delivery')) qs.push('delivery=' + encodeURIComponent(params.get('delivery')));
     if (params.get('cutoff')) qs.push('cutoff=' + encodeURIComponent(params.get('cutoff')));
     if (params.get('reason')) qs.push('reason=' + encodeURIComponent(params.get('reason')));
+    if (pkgIndex != null) qs.push('pkg=' + encodeURIComponent(String(pkgIndex)));
     return href + qs.join('&');
+  }
+
+  var DEMO_EXPRESS_PACKAGES = [
+    {
+      status: '运输中',
+      courier: '申通快递',
+      trackingNo: '773075059702651',
+      text: '【杭州市】快件已到达 杭州萧山转运中心'
+    },
+    {
+      status: '派送中',
+      courier: '中通快递',
+      trackingNo: '788012345678901',
+      text: '【杭州市】快件正在派送中，派送员：李师傅'
+    }
+  ];
+
+  function getReceiptPackages() {
+    var pkgs = getParams().get('pkgs');
+    if (pkgs === '1') return DEMO_EXPRESS_PACKAGES.slice(0, 1);
+    return DEMO_EXPRESS_PACKAGES;
+  }
+
+  function applyPendingLogisticsCard(status) {
+    var pendingCard = document.getElementById('orderLogisticsPendingCard');
+    if (!pendingCard) return;
+    var show = isFromRestock() && status === 'shipping';
+    pendingCard.hidden = !show;
+  }
+
+  function renderReceiptLogisticsTrack(status) {
+    var wrap = document.getElementById('orderLogisticsTrackWrap');
+    var scroll = document.getElementById('orderLogisticsTrackScroll');
+    var dots = document.getElementById('orderLogisticsTrackDots');
+    if (!wrap || !scroll) return;
+
+    /* 仅快递配送到店展示物流；配送到门店不展示物流信息 */
+    var show = isFromRestock() && status === 'receipt' && isStoreDirectDelivery();
+
+    wrap.hidden = !show;
+    if (!show) {
+      scroll.innerHTML = '';
+      if (dots) {
+        dots.innerHTML = '';
+        dots.hidden = true;
+      }
+      return;
+    }
+
+    var packages = getReceiptPackages();
+    var chevron =
+      '<svg class="ua-od-logistics__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
+
+    scroll.innerHTML = packages
+      .map(function (pkg, idx) {
+        return (
+          '<button type="button" class="ua-od-logistics-track__card" data-pkg-index="' +
+          idx +
+          '">' +
+          '<span class="ua-od-logistics__icon" aria-hidden="true">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="8" width="13" height="9" rx="1"/><path d="M15 10h4l3 4v3h-7V10z"/><circle cx="7" cy="18" r="1.5"/><circle cx="18" cy="18" r="1.5"/></svg>' +
+          '</span>' +
+          '<div class="ua-od-logistics-track__body">' +
+          '<div class="ua-od-logistics-track__head">' +
+          '<span class="ua-od-logistics-track__status">' +
+          pkg.status +
+          '</span></div>' +
+          '<div class="ua-od-logistics-track__courier">' +
+          pkg.courier +
+          ' ' +
+          pkg.trackingNo +
+          '</div>' +
+          '<div class="ua-od-logistics-track__text">' +
+          pkg.text +
+          '</div></div>' +
+          chevron +
+          '</button>'
+        );
+      })
+      .join('');
+
+    if (dots) {
+      if (packages.length > 1) {
+        dots.hidden = false;
+        dots.innerHTML = packages
+          .map(function (_, idx) {
+            return (
+              '<span class="ua-od-logistics-track__dot' +
+              (idx === 0 ? ' is-active' : '') +
+              '" data-dot-index="' +
+              idx +
+              '"></span>'
+            );
+          })
+          .join('');
+      } else {
+        dots.hidden = true;
+        dots.innerHTML = '';
+      }
+    }
+
+    var expressCard = document.getElementById('orderExpressCard');
+    if (expressCard) expressCard.hidden = true;
   }
 
   function applyStoreExpressCard(status) {
@@ -158,11 +262,13 @@
     var logisticsBtn = document.getElementById('orderExpressLogisticsBtn');
     if (!expressCard) return;
 
-    var showExpress = isFromRestock() && status === 'receipt' && isStoreDirectDelivery();
+    /* 进货场景改用横向物流卡，旧单卡仅非 restock 保留 */
+    var showExpress =
+      !isFromRestock() && status === 'receipt' && isStoreDirectDelivery();
     expressCard.hidden = !showExpress;
 
     if (logisticsBtn && showExpress) {
-      logisticsBtn.setAttribute('href', buildLogisticsHref());
+      logisticsBtn.setAttribute('href', buildLogisticsHref(0));
     }
   }
 
@@ -361,6 +467,8 @@
       }
     }
 
+    applyPendingLogisticsCard(status);
+    renderReceiptLogisticsTrack(status);
     applyStoreExpressCard(status);
 
     var backEl = document.getElementById('orderDetailBack');
@@ -404,6 +512,26 @@
       logisticsLink.addEventListener('click', function (e) {
         e.preventDefault();
         toast('查看物流');
+      });
+    }
+
+    var trackScroll = document.getElementById('orderLogisticsTrackScroll');
+    if (trackScroll) {
+      trackScroll.addEventListener('click', function (e) {
+        var card = e.target.closest('[data-pkg-index]');
+        if (!card) return;
+        var idx = parseInt(card.getAttribute('data-pkg-index'), 10) || 0;
+        window.location.href = buildLogisticsHref(idx);
+      });
+      trackScroll.addEventListener('scroll', function () {
+        var dots = document.getElementById('orderLogisticsTrackDots');
+        if (!dots || dots.hidden) return;
+        var card = trackScroll.querySelector('.ua-od-logistics-track__card');
+        if (!card) return;
+        var idx = Math.round(trackScroll.scrollLeft / (card.offsetWidth + 10));
+        dots.querySelectorAll('.ua-od-logistics-track__dot').forEach(function (dot, i) {
+          dot.classList.toggle('is-active', i === idx);
+        });
       });
     }
 
@@ -503,6 +631,8 @@
       }
     }
 
+    applyPendingLogisticsCard(status);
+    renderReceiptLogisticsTrack(status);
     applyStoreExpressCard(status);
 
     var pointsCard = document.getElementById('orderPointsCard');

@@ -72,7 +72,16 @@
         <!-- 金额明细 -->
         <section class="ua-co-card ua-co-summary">
           <div class="ua-co-summary__row"><span>商品总额</span><span id="checkoutGoodsTotal">¥0.00</span></div>
-          <div class="ua-co-summary__row"><span>运费</span><span id="checkoutFreight">¥6.00</span></div>
+          <div class="ua-co-summary__row ua-co-summary__row--freight">
+            <span class="ua-co-summary__label">
+              运费
+              <button type="button" class="ua-co-summary__help" id="checkoutFreightHelpBtn" aria-label="运费计费说明">?</button>
+            </span>
+            <button type="button" class="ua-co-summary__freight-value" id="checkoutFreightDetailBtn" aria-label="查看运费明细">
+              <span id="checkoutFreight">¥0.00</span>
+              <svg class="ua-co-summary__freight-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
           <div class="ua-co-summary__row ua-co-summary__row--discount"><span>活动优惠</span><span id="checkoutActivityDiscount">-¥0.00</span></div>
           <div class="ua-co-summary__row ua-co-summary__row--discount" id="checkoutCouponDiscountRow"><span>优惠券</span><span id="checkoutCouponDiscount">-¥10.00</span></div>
           <div class="ua-co-summary__row ua-co-summary__row--discount" id="checkoutPointsDiscountRow" hidden><span>积分抵扣</span><span id="checkoutPointsDiscount">-¥12.00</span></div>
@@ -86,18 +95,27 @@
       <button type="button" class="ua-co-footer__submit" id="checkoutSubmitBtn">提交订单</button>
     </footer>
 
-    <!-- 配送时间 -->
-    <div class="ua-co-sheet" id="checkoutTimeSheet" hidden>
-      <div class="ua-co-sheet__mask" data-sheet-close="time"></div>
-      <div class="ua-co-sheet__panel ua-co-sheet__panel--time">
+    <!-- 运费计费说明 -->
+    <div class="ua-co-sheet" id="checkoutFreightRulesSheet" hidden>
+      <div class="ua-co-sheet__mask" data-sheet-close="freightRules"></div>
+      <div class="ua-co-sheet__panel ua-co-sheet__panel--freight">
         <div class="ua-co-sheet__head">
-          <h3 class="ua-co-sheet__title">选择送达时间</h3>
-          <button type="button" class="ua-co-sheet__close" data-sheet-close="time" aria-label="关闭">×</button>
+          <h3 class="ua-co-sheet__title">运费计费说明</h3>
+          <button type="button" class="ua-co-sheet__close" data-sheet-close="freightRules" aria-label="关闭">×</button>
         </div>
-        <div class="ua-co-time">
-          <div class="ua-co-time__dates" id="checkoutTimeDates"></div>
-          <div class="ua-co-time__slots" id="checkoutTimeSlots"></div>
+        <div class="ua-co-sheet__body" id="checkoutFreightRulesBody"></div>
+      </div>
+    </div>
+
+    <!-- 运费明细 -->
+    <div class="ua-co-sheet" id="checkoutFreightSheet" hidden>
+      <div class="ua-co-sheet__mask" data-sheet-close="freight"></div>
+      <div class="ua-co-sheet__panel ua-co-sheet__panel--freight">
+        <div class="ua-co-sheet__head">
+          <h3 class="ua-co-sheet__title">运费明细</h3>
+          <button type="button" class="ua-co-sheet__close" data-sheet-close="freight" aria-label="关闭">×</button>
         </div>
+        <div class="ua-co-sheet__body" id="checkoutFreightDetail"></div>
       </div>
     </div>
 
