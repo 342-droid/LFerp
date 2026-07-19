@@ -658,6 +658,97 @@
   color: #999999;
 }
 
+/* 商品金额下售后进度条 */
+.ua-od-as-bars {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ua-od-as-bars:empty {
+  display: none;
+}
+
+.ua-od-as-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: #f5f5f5;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.ua-od-as-bar__icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #333;
+  color: #fff;
+}
+
+.ua-od-as-bar__icon svg {
+  width: 10px;
+  height: 10px;
+  display: block;
+}
+
+.ua-od-as-bar__icon--success {
+  background: #ff4d30;
+}
+
+.ua-od-as-bar__icon--progress {
+  background: #1677ff;
+}
+
+.ua-od-as-bar__title {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #333;
+}
+
+.ua-od-as-bar__divider {
+  flex-shrink: 0;
+  width: 1px;
+  height: 12px;
+  background: #ddd;
+}
+
+.ua-od-as-bar__desc {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: #999;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ua-od-as-bar__amount {
+  color: #ff4d30;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.ua-od-as-bar__chev {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  color: #ccc;
+}
+
 .ua-od-item__actions {
   flex-shrink: 0;
   display: flex;

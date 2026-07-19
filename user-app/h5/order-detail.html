@@ -6,7 +6,7 @@
   <title>订单详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
-  <link rel="stylesheet" href="../css/user-app-order-detail.css">
+  <link rel="stylesheet" href="../css/user-app-order-detail.css?v=20260719-aftersale-bars">
   <link rel="stylesheet" href="../css/user-app-order-refund.css">
 </head>
 <body class="user-app-body">
@@ -134,6 +134,7 @@
               <div class="ua-od-item__name">冷丰优选智利车厘子 鲜脆清甜 礼盒装</div>
               <div class="ua-od-item__spec">规格：2.5kg；颜色：白色</div>
               <div class="ua-od-item__meta"><span class="ua-od-item__price">¥10.00</span><span class="ua-od-item__qty">× 1</span></div>
+              <div class="ua-od-as-bars" id="orderItemAsBars0" data-item-index="0"></div>
             </div>
             <div class="ua-od-item__actions" id="orderItemActionsPrimary"></div>
           </article>
@@ -144,8 +145,20 @@
               <div class="ua-od-item__name">新鲜红颜草莓 香甜多汁 500g装</div>
               <div class="ua-od-item__spec">规格：500g；颜色：红色</div>
               <div class="ua-od-item__meta"><span class="ua-od-item__price">¥10.00</span><span class="ua-od-item__qty">× 1</span></div>
+              <div class="ua-od-as-bars" id="orderItemAsBars1" data-item-index="1"></div>
             </div>
             <div class="ua-od-item__actions" id="orderItemActionsSecondary"></div>
+          </article>
+
+          <article class="ua-od-item" data-item-index="2">
+            <img class="ua-od-item__img" src="../assets/order-product-3.svg" alt="">
+            <div class="ua-od-item__body">
+              <div class="ua-od-item__name">海南贵妃芒 香甜软糯 礼盒装</div>
+              <div class="ua-od-item__spec">规格：2.5kg</div>
+              <div class="ua-od-item__meta"><span class="ua-od-item__price">¥39.90</span><span class="ua-od-item__qty">× 1</span></div>
+              <div class="ua-od-as-bars" id="orderItemAsBars2" data-item-index="2"></div>
+            </div>
+            <div class="ua-od-item__actions" id="orderItemActionsTertiary"></div>
           </article>
         </section>
 
@@ -156,7 +169,7 @@
 
         <section class="ua-od-card ua-od-price">
           <div class="ua-od-price__row"><span>商品总价</span><span>¥120.99</span></div>
-          <div class="ua-od-price__row"><span>配送费</span><span>¥15.00</span></div>
+          <div class="ua-od-price__row"><span>运费</span><span>¥15.00</span></div>
           <div class="ua-od-price__row ua-od-price__row--discount"><span>优惠券</span><span>-¥10.00</span></div>
           <div class="ua-od-price__row ua-od-price__row--discount"><span>免邮券</span><span>-¥15.00</span></div>
           <div class="ua-od-price__row ua-od-price__row--discount"><span>活动优惠</span><span>-¥5.00</span></div>
@@ -202,8 +215,8 @@
       </div>
     </div>
   </div>
-  <script src="../js/user-app-order-refund.js"></script>
-  <script src="../js/user-app-order-detail.js"></script>
+  <script src="../js/user-app-order-refund.js?v=20260720-as-refund-success"></script>
+  <script src="../js/user-app-order-detail.js?v=20260720-shipping-no-restock"></script>
   <script src="../js/user-app-auth.js"></script>
 </body>
 </html>

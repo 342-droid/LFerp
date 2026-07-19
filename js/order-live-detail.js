@@ -121,6 +121,7 @@
         img: '../user-app/assets/order-product-2.svg',
         spu: 'SPU-2101…',
         sku: 'SKU-2101…',
+        barcode: '6901001001001',
         weight: '0.50',
         price: '¥0.90',
         qty: '1',
@@ -176,6 +177,7 @@
         img: '../user-app/assets/order-detail-cherry.svg',
         spu: 'SPU-1001…',
         sku: 'SKU-1001…',
+        barcode: '6901002002002',
         weight: '1.50',
         price: '¥128.18',
         qty: '1',
@@ -309,6 +311,7 @@
         img: '../user-app/assets/order-product-1.svg',
         spu: 'SPU-1003…',
         sku: 'SKU-1003…',
+        barcode: '6901003001003',
         weight: '0.50',
         price: '¥19.59',
         qty: '2',
@@ -322,6 +325,7 @@
         img: '../user-app/assets/order-detail-orange.svg',
         spu: 'SPU-1004…',
         sku: 'SKU-1004…',
+        barcode: '6901003001004',
         weight: '1.50',
         price: '¥12.00',
         qty: '1',
@@ -854,7 +858,7 @@
         selectCell +
         buildGoodsProductCell(item) +
         '<td>' + item.spu + '</td>' +
-        '<td>' + item.sku + '</td>' +
+        '<td>' + (item.barcode || item.sku) + '</td>' +
         '<td>' + item.weight + '</td>' +
         '<td>' + item.price + '</td>' +
         '<td>' + item.qty + '</td>' +

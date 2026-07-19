@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>退款/售后 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260720-as-display-bars">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-as-list-page">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-as-list-scroll">
+      <div class="ua-status-bar">
+        <span>9:41</span>
+        <span class="ua-status-bar__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#111"><path d="M1 7h2v4H1V7zm4-2h2v6H5V5zm4-3h2v9H9V2zm4 5h2v4h-2V7z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#111"/></svg>
+        </span>
+      </div>
+
+      <header class="ua-as-list-nav">
+        <a href="restock.html?tab=me" class="ua-as-list-nav__back" id="aftersaleListBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="ua-as-list-nav__title">退款/售后</h1>
+        <span class="ua-as-list-nav__placeholder" aria-hidden="true"></span>
+      </header>
+
+      <div class="ua-as-list-filters">
+        <button type="button" class="ua-as-list-filter is-active" data-as-filter="processing">进行中</button>
+        <button type="button" class="ua-as-list-filter" data-as-filter="done">已完结</button>
+      </div>
+
+      <div class="ua-as-list" id="aftersaleList"></div>
+      <div class="ua-as-list-empty" id="aftersaleListEmpty" hidden>暂无售后记录</div>
+    </div>
+
+    <div class="ua-or-toast" id="refundDetailToast" hidden></div>
+  </div>
+  <script src="../js/user-app-order-refund.js?v=20260720-as-refund-success"></script>
+  <script>UAOrderRefund.initAftersaleListPage();</script>
+</body>
+</html>

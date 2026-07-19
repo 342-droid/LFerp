@@ -208,17 +208,41 @@
   function initRetailBatchExpressUpload() {
     if (!document.body || document.body.getAttribute('data-order-page') !== 'retail') return;
 
-    var batchBtn = document.getElementById('orderRetailBatchUpload');
-    if (!batchBtn) return;
-    batchBtn.addEventListener('click', function () {
+    function openBatch(mode) {
       if (!window.OrderProxyExpress || typeof window.OrderProxyExpress.openBatchUploadModal !== 'function') {
         if (typeof showToast === 'function') showToast('快递模块未加载', 'error');
         return;
       }
+      var isDelete = mode === 'delete';
       window.OrderProxyExpress.openBatchUploadModal({
-        hint: '通过 Excel / CSV 批量上传快递单号。请先下载模板，按「订单号、物流单号、快递公司」填写后上传。仅适用于履约方式为快递的订单；下单后至收货前均可导入。'
+        mode: isDelete ? 'delete' : 'upload',
+        hint: isDelete
+          ? '按「订单号、商品条形码、物流单号」批量删除：一商品一行。同一物流含多商品时，删除其中一条仅移除该商品；若该物流下已无商品则删除整条物流。仅待揽件包裹可删。'
+          : '按「订单号、商品条形码、物流单号」批量上传：一商品一行。同物流+同订单+不同条形码合并为一条物流；同物流+不同订单仅展示本订单商品；三者均一致则跳过。仅适用于履约方式为快递的订单。',
+        onSuccess: function () {
+          var drawer = document.getElementById('orderDetailDrawer');
+          if (drawer && drawer.classList.contains('is-open') && drawer._orderId && window.OrderLiveDetail) {
+            /* 详情打开时刷新配送信息 */
+            if (typeof window.OrderLiveDetail.refreshOpenDrawer === 'function') {
+              window.OrderLiveDetail.refreshOpenDrawer();
+            }
+          }
+        }
       });
-    });
+    }
+
+    var batchBtn = document.getElementById('orderRetailBatchUpload');
+    if (batchBtn) {
+      batchBtn.addEventListener('click', function () {
+        openBatch('upload');
+      });
+    }
+    var deleteBtn = document.getElementById('orderRetailBatchDelete');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', function () {
+        openBatch('delete');
+      });
+    }
   }
 
   if (document.readyState === 'loading') {
