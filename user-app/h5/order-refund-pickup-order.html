@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>订单详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
-  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260718-pickup-share">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260719-pickup-fee-after-pickup">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-or-pickup-order-page">
@@ -49,7 +49,7 @@
             </button>
             <p class="ua-or-po-status__sub" id="pickupOrderScheduleText">预约明天 09:00-11:00 上门取件</p>
           </div>
-          <div class="ua-or-po-code">
+          <div class="ua-or-po-code" id="pickupOrderCodeWrap">
             <div class="ua-or-po-code__box">
               <span class="ua-or-po-code__label">寄件码</span>
               <span class="ua-or-po-code__value" id="pickupOrderCode">0030</span>
@@ -70,9 +70,17 @@
                 <path d="M17 19c1.2 1.2 4.8 1.2 6 0" stroke="#333" stroke-width="1.2" fill="none" stroke-linecap="round"/>
               </svg>
             </span>
-            <span class="ua-or-po-guard__text">官方退货提供全程保障</span>
+            <div class="ua-or-po-guard__copy">
+              <span class="ua-or-po-guard__text">官方退货提供全程保障</span>
+              <div class="ua-or-po-guard__waybill" id="pickupOrderWaybillRow" hidden>
+                <span class="ua-or-po-guard__waybill-text">[<span id="pickupOrderCourierName">申通快递</span>承运] 运单号 <span id="pickupOrderWaybillNo">772071763686613</span></span>
+                <button type="button" class="ua-or-po-guard__waybill-copy" id="pickupOrderWaybillCopyBtn" aria-label="复制运单号">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>
+                </button>
+              </div>
+            </div>
           </div>
-          <div class="ua-or-po-guard__actions">
+          <div class="ua-or-po-guard__actions" id="pickupOrderGuardPhoneWrap">
             <a class="ua-or-po-guard__phone" id="pickupOrderPhoneBtn" href="tel:4008001234" aria-label="联系快递员">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M7.2 3.8h3.1l1.2 4.2-2 1.2a12.5 12.5 0 005.3 5.3l1.2-2 4.2 1.2v3.1c0 .8-.4 1.5-1.2 1.8A16.6 16.6 0 015.4 5c.3-.8 1-.1.2-1.2z"/>
@@ -82,7 +90,19 @@
         </div>
       </section>
 
-      <section class="ua-or-po-actions">
+      <section class="ua-or-po-card ua-or-po-express-progress" id="pickupOrderExpressProgress" hidden>
+        <button type="button" class="ua-or-po-express-progress__btn" id="pickupOrderExpressProgressBtn">
+          <div class="ua-or-po-express-progress__main">
+            <div class="ua-or-po-express-progress__time" id="pickupOrderExpressProgressTime">2026-07-18 09:41:06</div>
+            <div class="ua-or-po-express-progress__text" id="pickupOrderExpressProgressText">快递员已取包裹，即将开始运输</div>
+          </div>
+          <span class="ua-or-po-express-progress__chevron" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg>
+          </span>
+        </button>
+      </section>
+
+      <section class="ua-or-po-actions" id="pickupOrderActions">
         <button type="button" class="ua-or-po-actions__item" id="pickupOrderEditBtn">
           <span class="ua-or-po-actions__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
@@ -152,6 +172,15 @@
         </button>
       </section>
 
+      <section class="ua-or-po-card ua-or-po-fee-summary" id="pickupOrderFeeSummary" hidden>
+        <div class="ua-or-po-fee-summary__row">
+          <span class="ua-or-po-fee-summary__paid">
+            已付 <em id="pickupOrderPaidAmount">0.00</em>元
+          </span>
+          <button type="button" class="ua-or-po-fee-summary__detail" id="pickupOrderFeeDetailBtn">费用明细</button>
+        </div>
+      </section>
+
       <section class="ua-or-po-card ua-or-po-rights">
         <h2 class="ua-or-po-rights__title">官方退货平台权益</h2>
         <div class="ua-or-po-rights__item">
@@ -172,6 +201,49 @@
       </section>
     </div>
 
+    <div class="ua-or-sheet" id="pickupOrderFeeSheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="pickupOrderFeeSheet"></div>
+      <div class="ua-or-sheet__panel ua-or-po-fee-panel">
+        <div class="ua-or-po-fee-panel__head">
+          <h3 class="ua-or-po-fee-panel__title">费用明细</h3>
+          <button type="button" class="ua-or-sheet__close" data-or-sheet-close="pickupOrderFeeSheet" aria-label="关闭">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="ua-or-po-fee-panel__body">
+          <div class="ua-or-po-fee-panel__row">
+            <span>退货运费</span>
+            <span id="pickupOrderFeeSheetBase">¥0.00</span>
+          </div>
+          <div class="ua-or-po-fee-panel__row ua-or-po-fee-panel__row--accent">
+            <span>平台支付</span>
+            <span id="pickupOrderFeeSheetSubsidy">-¥0.00</span>
+          </div>
+          <div class="ua-or-po-fee-panel__row ua-or-po-fee-panel__row--total">
+            <span>实付</span>
+            <span id="pickupOrderFeeSheetPaid">¥0.00</span>
+          </div>
+          <p class="ua-or-po-fee-panel__note" id="pickupOrderFeeSheetNote">平台承担退货运费</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="ua-or-sheet" id="pickupOrderProgressSheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="pickupOrderProgressSheet"></div>
+      <div class="ua-or-sheet__panel ua-or-po-progress-panel">
+        <div class="ua-or-po-progress-panel__head">
+          <h3 class="ua-or-po-progress-panel__title">订单进度</h3>
+          <button type="button" class="ua-or-sheet__close" data-or-sheet-close="pickupOrderProgressSheet" aria-label="关闭">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="ua-or-po-progress-panel__body">
+          <div class="ua-or-po-progress-panel__intro" id="pickupOrderProgressIntro" hidden></div>
+          <div class="ua-or-po-progress-panel__list" id="pickupOrderProgressList"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="ua-or-sheet" id="refundCancelPickupSheet" hidden>
       <div class="ua-or-sheet__mask" data-or-sheet-close="refundCancelPickupSheet"></div>
       <div class="ua-or-sheet__panel ua-or-close-return-panel">
@@ -181,7 +253,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
           </button>
         </div>
-        <div class="ua-or-close-return-panel__tip" id="refundCancelPickupTip">最多可取消3次，您仅剩3次取消机会</div>
+        <div class="ua-or-close-return-panel__tip" id="refundCancelPickupTip" hidden></div>
         <div class="ua-or-close-return-panel__list" id="refundCancelPickupList" role="radiogroup" aria-label="取消原因"></div>
         <div class="ua-or-close-return-panel__foot">
           <button type="button" class="ua-or-close-return-panel__confirm" id="refundCancelPickupConfirm">完成</button>
@@ -208,7 +280,7 @@
 
     <div class="ua-or-toast" id="refundDetailToast" hidden></div>
   </div>
-  <script src="../js/user-app-order-refund.js?v=20260718-return-flow-v2"></script>
+  <script src="../js/user-app-order-refund.js?v=20260719-pickup-edit-return"></script>
   <script>UAOrderRefund.initPickupOrderPage();</script>
 </body>
 </html>

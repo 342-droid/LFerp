@@ -1306,6 +1306,123 @@ body.ua-or-sheet-open {
   cursor: pointer;
 }
 
+.ua-or-detail-refund-stage[hidden],
+.ua-or-detail-return[hidden] {
+  display: none !important;
+}
+
+.ua-or-detail-refund-stage {
+  margin: -8px 12px 10px;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ua-or-refund-logistics-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 14px 12px;
+  border: 0;
+  border-bottom: 1px solid #f2f2f2;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.ua-or-refund-logistics-row__icon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  color: #ff6a00;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ua-or-refund-logistics-row__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ua-or-refund-logistics-row__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.ua-or-refund-logistics-row__main {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ua-or-refund-logistics-row__sub {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.35;
+}
+
+.ua-or-refund-logistics-row__chevron {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ua-or-refund-logistics-row__chevron svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ua-or-refund-fee-guard {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 12px;
+}
+
+.ua-or-refund-fee-guard__icon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff3e8;
+  color: #ff6a00;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 22px;
+  text-align: center;
+}
+
+.ua-or-refund-fee-guard__title {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.4;
+}
+
+.ua-or-refund-fee-guard__sub {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.35;
+}
+
 .ua-or-detail-reject-return {
   margin: 0 12px 10px;
 }
@@ -1338,6 +1455,11 @@ body.ua-or-sheet-open {
   font-weight: 700;
   color: #222;
   line-height: 1.3;
+}
+
+.ua-or-pickup-board__code.is-tappable {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .ua-or-pickup-board__code em {
@@ -4350,6 +4472,19 @@ body.ua-or-sheet-open {
   margin-left: auto;
 }
 
+.ua-or-po-code.is-tappable {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ua-or-po-code[hidden] {
+  display: none !important;
+}
+
+.ua-or-pickup-order-page--picked #pickupOrderCodeWrap {
+  display: none !important;
+}
+
 .ua-or-po-code__box {
   display: flex;
   align-items: baseline;
@@ -4401,6 +4536,55 @@ body.ua-or-sheet-open {
   font-size: 13px;
   color: #333;
   line-height: 1.3;
+}
+
+.ua-or-po-guard__copy {
+  min-width: 0;
+}
+
+.ua-or-po-guard__waybill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  min-width: 0;
+}
+
+.ua-or-po-guard__waybill[hidden] {
+  display: none !important;
+}
+
+.ua-or-pickup-order-page:not(.ua-or-pickup-order-page--picked) #pickupOrderWaybillRow {
+  display: none !important;
+}
+
+.ua-or-po-guard__waybill-text {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ua-or-po-guard__waybill-copy {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+}
+
+.ua-or-po-guard__waybill-copy svg {
+  width: 14px;
+  height: 14px;
 }
 
 .ua-or-po-guard__actions {
@@ -4486,6 +4670,15 @@ body.ua-or-sheet-open {
   cursor: pointer;
 }
 
+.ua-or-po-actions__item[hidden] {
+  display: none !important;
+}
+
+.ua-or-po-actions[hidden],
+.ua-or-pickup-order-page--picked #pickupOrderActions {
+  display: none !important;
+}
+
 .ua-or-po-actions__icon {
   position: relative;
   width: 28px;
@@ -4511,6 +4704,58 @@ body.ua-or-sheet-open {
   background: #ff3b30;
   border: 1.5px solid #fff;
   box-sizing: border-box;
+}
+
+.ua-or-po-express-progress {
+  margin-top: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.ua-or-po-express-progress__btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 14px 12px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ua-or-po-express-progress__main {
+  min-width: 0;
+  flex: 1;
+}
+
+.ua-or-po-express-progress__time {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ff6a00;
+  line-height: 1.35;
+}
+
+.ua-or-po-express-progress__text {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ff6a00;
+  line-height: 1.4;
+}
+
+.ua-or-po-express-progress__chevron {
+  flex-shrink: 0;
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  color: #ff6a00;
+}
+
+.ua-or-po-express-progress__chevron svg {
+  width: 16px;
+  height: 16px;
 }
 
 .ua-or-po-card {
@@ -4680,8 +4925,7 @@ body.ua-or-sheet-open {
   height: 14px;
 }
 
-.ua-or-po-ship.is-collapsed .ua-or-po-ship__goods,
-.ua-or-po-ship.is-collapsed .ua-or-po-ship__addrs {
+.ua-or-po-ship.is-collapsed .ua-or-po-ship__meta {
   display: none;
 }
 
@@ -4786,6 +5030,103 @@ body.ua-or-sheet-open {
   flex-shrink: 0;
 }
 
+.ua-or-po-fee-summary {
+  padding: 12px 14px;
+}
+
+.ua-or-po-fee-summary[hidden] {
+  display: none !important;
+}
+
+.ua-or-po-fee-summary__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ua-or-po-fee-summary__paid {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.ua-or-po-fee-summary__paid em {
+  font-style: normal;
+  color: #ff6a00;
+  font-weight: 600;
+}
+
+.ua-or-po-fee-summary__detail {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font-size: 14px;
+  color: #ff6a00;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.ua-or-po-fee-panel {
+  max-height: 52%;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.ua-or-po-fee-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.ua-or-po-fee-panel__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.2;
+}
+
+.ua-or-po-fee-panel__head .ua-or-sheet__close {
+  position: static;
+  margin: 0;
+}
+
+.ua-or-po-fee-panel__body {
+  padding: 8px 16px 20px;
+}
+
+.ua-or-po-fee-panel__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.ua-or-po-fee-panel__row + .ua-or-po-fee-panel__row {
+  border-top: 1px solid #f5f5f5;
+}
+
+.ua-or-po-fee-panel__row--accent {
+  color: #ff6a00;
+}
+
+.ua-or-po-fee-panel__row--total {
+  font-weight: 700;
+}
+
+.ua-or-po-fee-panel__note {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
 .ua-or-po-rights__title {
   margin-bottom: 14px;
 }
@@ -4851,6 +5192,304 @@ body.ua-or-sheet-open {
   margin-top: 2px;
   font-size: 11px;
   color: #999;
+}
+
+/* ── 物流订单 · 订单进度半遮罩 ── */
+.ua-or-po-progress-panel {
+  max-height: 72%;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.ua-or-po-progress-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.ua-or-po-progress-panel__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.2;
+}
+
+.ua-or-po-progress-panel__head .ua-or-sheet__close {
+  position: static;
+  width: 28px;
+  height: 28px;
+  color: #333;
+}
+
+.ua-or-po-progress-panel__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 18px 16px 24px;
+}
+
+.ua-or-po-progress-panel__intro + .ua-or-po-progress-panel__list {
+  margin-top: 2px;
+}
+
+.ua-or-po-progress-intro__row {
+  display: flex;
+  gap: 12px;
+  position: relative;
+}
+
+.ua-or-po-progress-intro__row + .ua-or-po-progress-intro__row {
+  margin-top: 14px;
+}
+
+.ua-or-po-progress-intro__rail {
+  flex-shrink: 0;
+  width: 22px;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.ua-or-po-progress-intro__row:not(:last-child) .ua-or-po-progress-intro__rail::after {
+  content: '';
+  position: absolute;
+  top: 24px;
+  bottom: -14px;
+  left: 50%;
+  width: 0;
+  transform: translateX(-50%);
+  border-left: 1px dashed #d6d6d6;
+}
+
+.ua-or-po-progress-intro__icon {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.ua-or-po-progress-intro__icon--brand {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #ececec;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ff5000;
+  line-height: 1;
+}
+
+.ua-or-po-progress-intro__icon--recv {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #666;
+  line-height: 1;
+}
+
+.ua-or-po-progress-intro__content {
+  flex: 1;
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.ua-or-po-progress-intro__courier-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ua-or-po-progress-intro__courier-text {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.ua-or-po-progress-intro__call {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: #666;
+  text-decoration: none;
+}
+
+.ua-or-po-progress-intro__addr-text {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.55;
+}
+
+.ua-or-po-progress-intro__row:last-child .ua-or-po-progress-intro__rail::after {
+  content: '';
+  position: absolute;
+  top: 24px;
+  height: 16px;
+  left: 50%;
+  width: 0;
+  transform: translateX(-50%);
+  border-left: 1px dashed #d6d6d6;
+}
+
+.ua-or-po-progress-intro:not([hidden]) + .ua-or-po-progress-panel__list .ua-or-po-progress-item:first-child {
+  margin-top: 0;
+}
+
+.ua-or-po-progress-item {
+  display: flex;
+  gap: 12px;
+  position: relative;
+}
+
+.ua-or-po-progress-item + .ua-or-po-progress-item {
+  margin-top: 0;
+}
+
+.ua-or-po-progress-item__rail {
+  flex-shrink: 0;
+  width: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.ua-or-po-progress-item:not(:last-child) .ua-or-po-progress-item__rail::after {
+  content: '';
+  position: absolute;
+  top: 22px;
+  bottom: -18px;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: #e8e8e8;
+}
+
+.ua-or-po-progress-item.is-done-dot:not(:last-child) .ua-or-po-progress-item__rail::after {
+  top: 14px;
+}
+
+.ua-or-po-progress-item__dot {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.ua-or-po-progress-item.is-done-check .ua-or-po-progress-item__dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #d9d9d9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.ua-or-po-progress-item.is-done-check .ua-or-po-progress-item__dot svg {
+  width: 12px;
+  height: 12px;
+}
+
+.ua-or-po-progress-item.is-done-dot .ua-or-po-progress-item__dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: #d9d9d9;
+}
+
+.ua-or-po-progress-item.is-active .ua-or-po-progress-item__dot {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  border-radius: 50%;
+  border: 2px solid #ff5000;
+  background: #fff;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.ua-or-po-progress-item.is-active .ua-or-po-progress-item__dot::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: #ff5000;
+}
+
+.ua-or-po-progress-item__content {
+  flex: 1;
+  min-width: 0;
+  padding-bottom: 22px;
+}
+
+.ua-or-po-progress-item:last-child .ua-or-po-progress-item__content {
+  padding-bottom: 0;
+}
+
+.ua-or-po-progress-item__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1.35;
+}
+
+.ua-or-po-progress-item.is-active .ua-or-po-progress-item__title {
+  color: #ff5000;
+}
+
+.ua-or-po-progress-item.is-active-check .ua-or-po-progress-item__dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ff5000;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ua-or-po-progress-item.is-active-check .ua-or-po-progress-item__dot svg {
+  width: 12px;
+  height: 12px;
+}
+
+.ua-or-po-progress-item.is-active-check .ua-or-po-progress-item__title,
+.ua-or-po-progress-item.is-active-check .ua-or-po-progress-item__time {
+  color: #ff5000;
+}
+
+.ua-or-po-progress-item__sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.45;
+}
+
+.ua-or-po-progress-item__time {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.ua-or-po-progress-item__detail {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #333;
+  line-height: 1.55;
 }
 
 /* 退货商品详情 */
