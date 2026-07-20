@@ -1,10 +1,24 @@
 {
-  "latestSha": "d858095779a608dbf870c894fbfcba12dcfc0bbc",
-  "total": 159,
+  "latestSha": "51898b1ac8d06bd67b44d16b5465c0928baf5dc2",
+  "total": 161,
   "days": [
     {
       "date": "2026-07-20",
       "items": [
+        {
+          "sha": "51898b1",
+          "type": "feat",
+          "text": "完善采购单物流轨迹 mock 与多运单明细",
+          "author": "342-droid",
+          "time": "17:26"
+        },
+        {
+          "sha": "5015ef3",
+          "type": "feat",
+          "text": "进货「我的」常用服务改为地址管理入口",
+          "author": "sisi",
+          "time": "10:16"
+        },
         {
           "sha": "d858095",
           "type": "feat",
