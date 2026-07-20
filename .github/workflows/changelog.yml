@@ -1,0 +1,32 @@
+name: 更新日志
+
+on:
+  schedule:
+    - cron: '0 22 * * *' # 每天北京时间 06:00
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 生成 changelog.json
+        run: node tools/generate-changelog.mjs
+
+      - name: 有变化才提交
+        run: |
+          if git diff --quiet -- changelog.json; then
+            echo "changelog.json 无变化，跳过提交"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add changelog.json
+          git commit -m "chore: 更新更新日志数据"
+          git push

@@ -1,0 +1,1347 @@
+{
+  "latestSha": "449536c5259bb7e7f507cbd866d5979686be05b3",
+  "total": 158,
+  "days": [
+    {
+      "date": "2026-07-20",
+      "items": [
+        {
+          "sha": "449536c",
+          "type": "feat",
+          "text": "完善售后管理履约与拒收退回闭环",
+          "author": "sisi",
+          "time": "02:05"
+        },
+        {
+          "sha": "a5e6e1c",
+          "type": "feat",
+          "text": "完善售后展示规则与零售快递批量导入删除",
+          "author": "sisi",
+          "time": "01:13"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-19",
+      "items": [
+        {
+          "sha": "59f13ff",
+          "type": "feat",
+          "text": "完善运费履约配置与进货订单物流体验",
+          "author": "sisi",
+          "time": "21:08"
+        },
+        {
+          "sha": "a519c23",
+          "type": "feat",
+          "text": "完善退货售后详情与寄回物流演示流程",
+          "author": "sisi",
+          "time": "09:40"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-18",
+      "items": [
+        {
+          "sha": "6eb4e79",
+          "type": "fix",
+          "text": "修正退货寄回流程的页面跳转层级",
+          "author": "sisi",
+          "time": "16:10"
+        },
+        {
+          "sha": "8eae681",
+          "type": "feat",
+          "text": "完善预约寄件页与退款关闭结果页体验",
+          "author": "sisi",
+          "time": "15:53"
+        },
+        {
+          "sha": "bdaae90",
+          "type": "feat",
+          "text": "完善寄件订单页与退货商品详情演示流程",
+          "author": "sisi",
+          "time": "13:47"
+        },
+        {
+          "sha": "4bcce46",
+          "type": "fix",
+          "text": "按订单状态区分上门取件修改次数演示",
+          "author": "sisi",
+          "time": "09:50"
+        },
+        {
+          "sha": "38d264f",
+          "type": "fix",
+          "text": "为售后详情相关页面 CSS/JS 添加缓存版本号",
+          "author": "sisi",
+          "time": "09:31"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-17",
+      "items": [
+        {
+          "sha": "2fa9b5d",
+          "type": "feat",
+          "text": "完善售后地址簿、城市地区选择与寄件订单详情",
+          "author": "sisi",
+          "time": "18:41"
+        },
+        {
+          "sha": "ab459d6",
+          "type": "feat",
+          "text": "完善售后上门取件时段与详情售后信息展示",
+          "author": "sisi",
+          "time": "13:34"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-16",
+      "items": [
+        {
+          "sha": "3becb0d",
+          "type": "feat",
+          "text": "进货分类页筛选按钮展开筛选商品半遮罩",
+          "author": "sisi",
+          "time": "15:51"
+        },
+        {
+          "sha": "d1fb7de",
+          "type": "feat",
+          "text": "完善代采类目删除下架规则、售后上门取货与零售履约文案",
+          "author": "sisi",
+          "time": "15:26"
+        },
+        {
+          "sha": "bbfd7ff",
+          "type": "feat",
+          "text": "零售快递履约迁移，代采改为采购单回传快递信息",
+          "author": "sisi",
+          "time": "10:10"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-15",
+      "items": [
+        {
+          "sha": "e1bae42",
+          "type": "feat",
+          "text": "库存查询表增加单位列",
+          "author": "342-droid",
+          "time": "14:45"
+        },
+        {
+          "sha": "b45060c",
+          "type": "feat",
+          "text": "代采「配送方式」更名为履约方式，并补齐售后演示数据",
+          "author": "sisi",
+          "time": "14:27"
+        },
+        {
+          "sha": "9d5ecda",
+          "type": "feat",
+          "text": "统一采购订单渠道与履约方式枚举并校准 mock",
+          "author": "342-droid",
+          "time": "12:40"
+        },
+        {
+          "sha": "d48aefe",
+          "type": "fix",
+          "text": "商城/直播售后履约方式固定为门店自提",
+          "author": "sisi",
+          "time": "09:11"
+        },
+        {
+          "sha": "4aa9505",
+          "type": "feat",
+          "text": "完善售后退货拒收与退款单生成时机",
+          "author": "sisi",
+          "time": "01:34"
+        },
+        {
+          "sha": "b7f7eb5",
+          "type": "feat",
+          "text": "新增售后管理模块，完善代采快递到店售后物流链路",
+          "author": "sisi",
+          "time": "00:44"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-14",
+      "items": [
+        {
+          "sha": "47062aa",
+          "type": "feat",
+          "text": "代采订单配送方式更名，待揽件包裹支持改删",
+          "author": "sisi",
+          "time": "21:50"
+        },
+        {
+          "sha": "66a0f40",
+          "type": "feat",
+          "text": "完善代采商品配送方式与规格展示字段",
+          "author": "sisi",
+          "time": "21:24"
+        },
+        {
+          "sha": "04c2a1b",
+          "type": "feat",
+          "text": "运费配置筛选支持应用端口并调整端口枚举",
+          "author": "sisi",
+          "time": "18:43"
+        },
+        {
+          "sha": "aceef42",
+          "type": "feat",
+          "text": "新增结算中心与运费配置模板能力",
+          "author": "sisi",
+          "time": "18:30"
+        },
+        {
+          "sha": "929c7bb",
+          "type": "feat",
+          "text": "仓库出库参数增加分拣是否扫商品",
+          "author": "342-droid",
+          "time": "17:52"
+        },
+        {
+          "sha": "db870dc",
+          "type": "feat",
+          "text": "负库存页增加定时器配置入口",
+          "author": "342-droid",
+          "time": "17:34"
+        },
+        {
+          "sha": "96f2dda",
+          "type": "feat",
+          "text": "资源档案进件页签拆分与收货地址能力",
+          "author": "sisi",
+          "time": "15:23"
+        },
+        {
+          "sha": "ce46a78",
+          "type": "fix",
+          "text": "恢复门店订货汇总自动截单配置中的快递履约方式",
+          "author": "342-droid",
+          "time": "13:43"
+        },
+        {
+          "sha": "bf011c4",
+          "type": "feat",
+          "text": "代采订单列表工具栏与取消/退款操作",
+          "author": "sisi",
+          "time": "00:05"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-13",
+      "items": [
+        {
+          "sha": "2f7ff3d",
+          "type": "feat",
+          "text": "代采订单列表操作栏与筛选交互优化",
+          "author": "sisi",
+          "time": "23:22"
+        },
+        {
+          "sha": "26f6dfb",
+          "type": "feat",
+          "text": "代采/零售订单页与快递履约能力完善",
+          "author": "sisi",
+          "time": "17:51"
+        },
+        {
+          "sha": "3dee02e",
+          "type": "feat",
+          "text": "完善采购单与门店订货单物流、来源及截单配置展示",
+          "author": "342-droid",
+          "time": "14:15"
+        },
+        {
+          "sha": "45186f6",
+          "type": "feat",
+          "text": "代采商品编辑表单与售卖范围、类目及标签管理",
+          "author": "sisi",
+          "time": "11:32"
+        },
+        {
+          "sha": "3132caa",
+          "type": "feat",
+          "text": "商城类目管理、商品库添加抽屉与动态页签",
+          "author": "sisi",
+          "time": "01:05"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-12",
+      "items": [
+        {
+          "sha": "4d968c9",
+          "type": "feat",
+          "text": "补货换货申请流程及详情页寄回寄出环节",
+          "author": "sisi",
+          "time": "01:54"
+        },
+        {
+          "sha": "d0a9c76",
+          "type": "feat",
+          "text": "用户APP退款/售后完整套流程与详情结果页",
+          "author": "sisi",
+          "time": "01:39"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-11",
+      "items": [
+        {
+          "sha": "4a26e0d",
+          "type": "feat",
+          "text": "首页多规格商品加购复用详情页规格半遮罩弹窗",
+          "author": "sisi",
+          "time": "22:24"
+        },
+        {
+          "sha": "2b07624",
+          "type": "feat",
+          "text": "进货页分类「全部」下拉面板展示17个一级分类",
+          "author": "sisi",
+          "time": "22:12"
+        },
+        {
+          "sha": "3866dd3",
+          "type": "feat",
+          "text": "进货页购物车与分类多规格交叉组合展示优化",
+          "author": "sisi",
+          "time": "20:24"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-10",
+      "items": [
+        {
+          "sha": "0d8ebe6",
+          "type": "feat",
+          "text": "到店订单快递卡片与物流追踪页，结算包裹区分仓配/到店",
+          "author": "sisi",
+          "time": "14:16"
+        },
+        {
+          "sha": "7956f90",
+          "type": "fix",
+          "text": "订单详情退款/取消按钮按截单状态与商品维度展示",
+          "author": "sisi",
+          "time": "10:54"
+        },
+        {
+          "sha": "4c7bdca",
+          "type": "feat",
+          "text": "购物车数量为 1 时减号弹出删除确认框",
+          "author": "sisi",
+          "time": "01:46"
+        },
+        {
+          "sha": "21a908b",
+          "type": "feat",
+          "text": "完善用户 APP 代采结算、商品详情与订单闭环",
+          "author": "sisi",
+          "time": "01:39"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-09",
+      "items": [
+        {
+          "sha": "6cb2266",
+          "type": "fix",
+          "text": "移除进货页「我的」底部快驴进货品牌展示",
+          "author": "sisi",
+          "time": "15:35"
+        },
+        {
+          "sha": "19f81ed",
+          "type": "chore",
+          "text": "将 node_modules 加入 .gitignore",
+          "author": "sisi",
+          "time": "15:17"
+        },
+        {
+          "sha": "62225bb",
+          "type": "feat",
+          "text": "新增商品选品库、代采商品列表与营销积分及用户补货页",
+          "author": "sisi",
+          "time": "15:08"
+        },
+        {
+          "sha": "0cf43a3",
+          "type": "feat",
+          "text": "采购单弹窗展示物流轨迹并完善截单排除规则",
+          "author": "342-droid",
+          "time": "15:05"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-08",
+      "items": [
+        {
+          "sha": "ffc9252",
+          "type": "feat",
+          "text": "采购流程页面补充订单渠道、履约方式及截单配置",
+          "author": "342-droid",
+          "time": "18:16"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-03",
+      "items": [
+        {
+          "sha": "82ca1bb",
+          "type": "feat",
+          "text": "新增省市区级联组件，支持按区域集波及多页面地址拆分",
+          "author": "342-droid",
+          "time": "16:00"
+        },
+        {
+          "sha": "903a0a6",
+          "type": "fix",
+          "text": "统一收货记录确认收货二次提示语",
+          "author": "342-droid",
+          "time": "14:50"
+        },
+        {
+          "sha": "a1c227f",
+          "type": "feat",
+          "text": "APP收货记录支持勾选部分确认收货",
+          "author": "342-droid",
+          "time": "14:43"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-02",
+      "items": [
+        {
+          "sha": "db67fb5",
+          "type": "fix",
+          "text": "发货单详情包裹信息改为展示出库类型字段",
+          "author": "342-droid",
+          "time": "10:39"
+        },
+        {
+          "sha": "c139c13",
+          "type": "fix",
+          "text": "移除包裹详情页顶部出库单号字段",
+          "author": "342-droid",
+          "time": "10:34"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-29",
+      "items": [
+        {
+          "sha": "2f05662",
+          "type": "fix",
+          "text": "优化采购单预览列表展示",
+          "author": "342-droid",
+          "time": "14:32"
+        },
+        {
+          "sha": "cd36166",
+          "type": "feat",
+          "text": "供应商档案新增余额支付字段与进件状态筛选",
+          "author": "sisi",
+          "time": "13:36"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-24",
+      "items": [
+        {
+          "sha": "c9e3c8b",
+          "type": "feat",
+          "text": "用户APP新增注册登录流程与多方式登录页",
+          "author": "sisi",
+          "time": "21:12"
+        },
+        {
+          "sha": "13de3ea",
+          "type": "feat",
+          "text": "供应商进件支持斗拱支付服务协议签署与展示",
+          "author": "sisi",
+          "time": "15:01"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-22",
+      "items": [
+        {
+          "sha": "cc899b2",
+          "type": "feat",
+          "text": "采购需求明细增加规格与采购单新增收货信息",
+          "author": "342-droid",
+          "time": "15:57"
+        },
+        {
+          "sha": "af5fa51",
+          "type": "feat",
+          "text": "重构采购预览明细与采购单字段下沉",
+          "author": "342-droid",
+          "time": "15:35"
+        },
+        {
+          "sha": "506c86c",
+          "type": "feat",
+          "text": "采购需求汇总预览按维度展示收货信息",
+          "author": "342-droid",
+          "time": "14:19"
+        },
+        {
+          "sha": "d71a9ae",
+          "type": "feat",
+          "text": "完善采购单详情与需求汇总生成预览",
+          "author": "342-droid",
+          "time": "14:07"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-16",
+      "items": [
+        {
+          "sha": "d226bcc",
+          "type": "feat",
+          "text": "仓储运维工具新增一键初始化页面",
+          "author": "342-droid",
+          "time": "20:40"
+        },
+        {
+          "sha": "3abc77d",
+          "type": "feat",
+          "text": "采购汇总/订货单列表增加商品图片列",
+          "author": "342-droid",
+          "time": "11:40"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-12",
+      "items": [
+        {
+          "sha": "d194f3b",
+          "type": "feat",
+          "text": "商户进件支持绑定门店主体或门店",
+          "author": "sisi",
+          "time": "15:28"
+        },
+        {
+          "sha": "08880b3",
+          "type": "feat",
+          "text": "入库单按类型查询页展示各类型单据数量角标",
+          "author": "342-droid",
+          "time": "09:10"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-10",
+      "items": [
+        {
+          "sha": "fa433bf",
+          "type": "feat",
+          "text": "出库拣货/分拣页去除批次字段",
+          "author": "342-droid",
+          "time": "15:07"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-09",
+      "items": [
+        {
+          "sha": "2edcd89",
+          "type": "fix",
+          "text": "采购需求汇总筛选字段标签改为营销类型",
+          "author": "342-droid",
+          "time": "19:57"
+        },
+        {
+          "sha": "f03e78d",
+          "type": "feat",
+          "text": "供应商档案列表与详情用配送方式替换进件渠道",
+          "author": "sisi",
+          "time": "16:25"
+        },
+        {
+          "sha": "f160a1a",
+          "type": "feat",
+          "text": "优化出库/发货/库存日志页面字段与状态配置",
+          "author": "342-droid",
+          "time": "16:22"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-08",
+      "items": [
+        {
+          "sha": "2290df9",
+          "type": "feat",
+          "text": "用户端排队信息新增商家呼叫中状态页",
+          "author": "sisi",
+          "time": "19:49"
+        },
+        {
+          "sha": "5f73fbb",
+          "type": "feat",
+          "text": "新增排队记录页与用户留言同步门店端",
+          "author": "sisi",
+          "time": "18:41"
+        },
+        {
+          "sha": "3e782c0",
+          "type": "feat",
+          "text": "MDM 直播订单核销与用户端订单流程完善",
+          "author": "sisi",
+          "time": "18:23"
+        },
+        {
+          "sha": "7eafe31",
+          "type": "feat",
+          "text": "入库策略列表精简展示列",
+          "author": "342-droid",
+          "time": "14:45"
+        },
+        {
+          "sha": "bedfaee",
+          "type": "feat",
+          "text": "新增用户 APP H5 模块及订单详情提货状态展示",
+          "author": "sisi",
+          "time": "14:31"
+        },
+        {
+          "sha": "51cb5e8",
+          "type": "feat",
+          "text": "仓库SKU页增加供应商字段并调整规格信息展示",
+          "author": "342-droid",
+          "time": "11:51"
+        },
+        {
+          "sha": "4ed2f13",
+          "type": "feat",
+          "text": "基础设置模块与门店订单配置文案优化",
+          "author": "sisi",
+          "time": "01:12"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-06",
+      "items": [
+        {
+          "sha": "d60c1bb",
+          "type": "feat",
+          "text": "移动端入库单录入页增加采购入库生产日期字段",
+          "author": "342-droid",
+          "time": "14:54"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-05",
+      "items": [
+        {
+          "sha": "97a3929",
+          "type": "feat",
+          "text": "统一库存枚举并优化移动端盘点调整逻辑",
+          "author": "342-droid",
+          "time": "18:34"
+        },
+        {
+          "sha": "13c41d4",
+          "type": "feat",
+          "text": "新增移动端库存查询页并统一库存相关枚举",
+          "author": "342-droid",
+          "time": "15:30"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-04",
+      "items": [
+        {
+          "sha": "9d468d7",
+          "type": "other",
+          "text": "feat(mdm): 配送仓库与门头照必填，审核/BD/H5/PC 标红对齐",
+          "author": "sisi",
+          "time": "02:19"
+        },
+        {
+          "sha": "6852de4",
+          "type": "other",
+          "text": "feat(mdm): 审核编辑验证码与 BD 门店表单绑定 BD 规则",
+          "author": "sisi",
+          "time": "01:54"
+        },
+        {
+          "sha": "ecbcbd8",
+          "type": "other",
+          "text": "fix(mdm-audit): 恢复进件审核入口并完善门店注册审核弹窗",
+          "author": "sisi",
+          "time": "01:38"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-02",
+      "items": [
+        {
+          "sha": "f9f82c2",
+          "type": "feat",
+          "text": "统一储位类型枚举并收敛为 7 项",
+          "author": "342-droid",
+          "time": "10:57"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-01",
+      "items": [
+        {
+          "sha": "dcdbc62",
+          "type": "feat",
+          "text": "精简采购/门店订货汇总页维度页签与列表字段",
+          "author": "342-droid",
+          "time": "18:15"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-30",
+      "items": [
+        {
+          "sha": "e1cf41e",
+          "type": "fix",
+          "text": "修正出库业务类型「商城订单」选项的 value",
+          "author": "342-droid",
+          "time": "16:19"
+        },
+        {
+          "sha": "88a3860",
+          "type": "feat",
+          "text": "门店需求汇总改用营销类型筛选，入库单移除下单时间",
+          "author": "342-droid",
+          "time": "15:47"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-29",
+      "items": [
+        {
+          "sha": "3304aa5",
+          "type": "feat",
+          "text": "波次模板增强配置项并统一下拉选项",
+          "author": "342-droid",
+          "time": "19:39"
+        },
+        {
+          "sha": "16b5319",
+          "type": "feat",
+          "text": "负库存页面新增状态筛选与批量执行功能",
+          "author": "342-droid",
+          "time": "10:45"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-28",
+      "items": [
+        {
+          "sha": "b45a3ba",
+          "type": "feat",
+          "text": "统一 SCM 查询条件占位符并合并商品/站点字段",
+          "author": "342-droid",
+          "time": "15:46"
+        },
+        {
+          "sha": "103cb3b",
+          "type": "feat",
+          "text": "新增负库存页面并在库存相关页面展示仓库字段",
+          "author": "342-droid",
+          "time": "10:03"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-27",
+      "items": [
+        {
+          "sha": "7de552b",
+          "type": "feat",
+          "text": "波次流程与模板支持摘果/播种/一键出库流程类型",
+          "author": "342-droid",
+          "time": "15:46"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-26",
+      "items": [
+        {
+          "sha": "dd6ca46",
+          "type": "fix",
+          "text": "入库策略关单操作移除按0关单选项",
+          "author": "342-droid",
+          "time": "18:14"
+        },
+        {
+          "sha": "48bf546",
+          "type": "refactor",
+          "text": "入库策略超时关单改用启用/禁用并优化模态框分区",
+          "author": "342-droid",
+          "time": "11:11"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-25",
+      "items": [
+        {
+          "sha": "9f4a5f1",
+          "type": "feat",
+          "text": "供应商档案结算字段统一为订单结算与先货后款",
+          "author": "sisi",
+          "time": "23:59"
+        },
+        {
+          "sha": "d3fb5b8",
+          "type": "feat",
+          "text": "供应商档案弹窗配送方式改为统配/直配",
+          "author": "sisi",
+          "time": "20:46"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-22",
+      "items": [
+        {
+          "sha": "5bccc72",
+          "type": "feat",
+          "text": "入库策略新增超时关单配置",
+          "author": "342-droid",
+          "time": "16:23"
+        },
+        {
+          "sha": "d5ced61",
+          "type": "feat",
+          "text": "采购需求汇总按供应商生成采购单，调整单号规范为KT格式",
+          "author": "342-droid",
+          "time": "15:15"
+        },
+        {
+          "sha": "d9bf901",
+          "type": "feat",
+          "text": "完善入库单移动端收货录入与商品展示",
+          "author": "342-droid",
+          "time": "09:51"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-21",
+      "items": [
+        {
+          "sha": "cd67c17",
+          "type": "fix",
+          "text": "用户公司与档案页将用户编码字段文案改为用户账号",
+          "author": "342-droid",
+          "time": "11:46"
+        },
+        {
+          "sha": "ddd4219",
+          "type": "feat",
+          "text": "人员中心新增采购员并统一各角色启用/禁用确认弹窗",
+          "author": "sisi",
+          "time": "09:45"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-20",
+      "items": [
+        {
+          "sha": "0dd5006",
+          "type": "feat",
+          "text": "统一人员中心弹窗样式并完善 BD 详情与侧栏",
+          "author": "sisi",
+          "time": "20:47"
+        },
+        {
+          "sha": "6e14592",
+          "type": "feat",
+          "text": "实现入库单列表查询与列表式收货录入",
+          "author": "342-droid",
+          "time": "18:43"
+        },
+        {
+          "sha": "2d93012",
+          "type": "feat",
+          "text": "仓库表单补充短信验证码校验",
+          "author": "sisi",
+          "time": "16:00"
+        },
+        {
+          "sha": "116cf00",
+          "type": "fix",
+          "text": "门店类型下禁用仓库级别选择",
+          "author": "sisi",
+          "time": "15:48"
+        },
+        {
+          "sha": "3fbba63",
+          "type": "feat",
+          "text": "调整仓库档案类型与级别展示",
+          "author": "sisi",
+          "time": "15:05"
+        },
+        {
+          "sha": "d035f3a",
+          "type": "other",
+          "text": "feat(mdm-supplier): 新增入库仓库字段并在详情展示",
+          "author": "sisi",
+          "time": "12:04"
+        },
+        {
+          "sha": "1e03dc8",
+          "type": "other",
+          "text": "feat(mdm-supplier): 新增入库仓库字段并在详情展示",
+          "author": "sisi",
+          "time": "12:04"
+        },
+        {
+          "sha": "5d281f1",
+          "type": "other",
+          "text": "feat(mdm-supplier): 新增入库仓库字段并在详情展示",
+          "author": "sisi",
+          "time": "12:04"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-19",
+      "items": [
+        {
+          "sha": "a2f12e9",
+          "type": "feat",
+          "text": "完善采购页面筛选并统一采购单价字段",
+          "author": "342-droid",
+          "time": "20:05"
+        },
+        {
+          "sha": "b9b6d79",
+          "type": "feat",
+          "text": "调整MDM侧栏导航分组与激活逻辑",
+          "author": "342-droid",
+          "time": "14:22"
+        },
+        {
+          "sha": "c6a8ab6",
+          "type": "feat",
+          "text": "新增收货列表入口并补充资源中心供货关系菜单",
+          "author": "342-droid",
+          "time": "13:58"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-18",
+      "items": [
+        {
+          "sha": "9b07996",
+          "type": "fix",
+          "text": "统一OBD页面站点文案并精简门店订单字段",
+          "author": "342-droid",
+          "time": "17:17"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-16",
+      "items": [
+        {
+          "sha": "acce2c6",
+          "type": "other",
+          "text": "feat(mdm-store): 新增绑定BD必填下拉",
+          "author": "sisi",
+          "time": "17:32"
+        },
+        {
+          "sha": "760dda1",
+          "type": "other",
+          "text": "feat(mdm-store): 新增绑定BD必填下拉",
+          "author": "sisi",
+          "time": "17:32"
+        },
+        {
+          "sha": "c523f93",
+          "type": "fix",
+          "text": "未完成明细收货自动预填商品信息",
+          "author": "342-droid",
+          "time": "16:49"
+        },
+        {
+          "sha": "62c6b76",
+          "type": "feat",
+          "text": "新增库存调整单菜单与弹窗详情页",
+          "author": "342-droid",
+          "time": "16:19"
+        },
+        {
+          "sha": "1ecf040",
+          "type": "fix",
+          "text": "精简任务来源业务类型选项",
+          "author": "342-droid",
+          "time": "15:27"
+        },
+        {
+          "sha": "46e5b15",
+          "type": "refactor",
+          "text": "统一业务页面枚举为公共常量",
+          "author": "342-droid",
+          "time": "15:12"
+        },
+        {
+          "sha": "c8c33d0",
+          "type": "feat",
+          "text": "新增发货单打印能力并补充商品规格字段",
+          "author": "342-droid",
+          "time": "14:33"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-15",
+      "items": [
+        {
+          "sha": "f42f35a",
+          "type": "fix",
+          "text": "移除周转策略列表周转规则字段",
+          "author": "342-droid",
+          "time": "17:03"
+        },
+        {
+          "sha": "a20c632",
+          "type": "feat",
+          "text": "任务组页增加改派与取消指派入口",
+          "author": "342-droid",
+          "time": "15:33"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-14",
+      "items": [
+        {
+          "sha": "494242e",
+          "type": "other",
+          "text": "fix(mdm-bd): 停用仓库绑定自动失效并可恢复",
+          "author": "sisi",
+          "time": "09:43"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-13",
+      "items": [
+        {
+          "sha": "5b2c3fa",
+          "type": "other",
+          "text": "feat(mdm): 支持BD绑定仓库并统一仓库类型枚举",
+          "author": "sisi",
+          "time": "21:14"
+        },
+        {
+          "sha": "3fd2eab",
+          "type": "feat",
+          "text": "调整任务引擎字段与枚举配置",
+          "author": "342-droid",
+          "time": "21:10"
+        },
+        {
+          "sha": "7e76beb",
+          "type": "feat",
+          "text": "完善收货记录与入库配置联动",
+          "author": "342-droid",
+          "time": "16:49"
+        },
+        {
+          "sha": "45fa273",
+          "type": "feat",
+          "text": "新增上架完成库存规则mock数据",
+          "author": "342-droid",
+          "time": "16:48"
+        },
+        {
+          "sha": "4375fa0",
+          "type": "feat",
+          "text": "新增合并到main时中文变更说明规则",
+          "author": "342-droid",
+          "time": "11:24"
+        },
+        {
+          "sha": "78b2ce8",
+          "type": "other",
+          "text": "fix(mdm-onboarding): 调整进件审核列表与详情文案",
+          "author": "sisi",
+          "time": "11:18"
+        },
+        {
+          "sha": "bf5a343",
+          "type": "fix",
+          "text": "修正移动端仓储APP菜单跳转地址",
+          "author": "342-droid",
+          "time": "11:14"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-12",
+      "items": [
+        {
+          "sha": "9be7036",
+          "type": "feat",
+          "text": "完善入库策略与商品仓库规则配置",
+          "author": "342-droid",
+          "time": "20:32"
+        },
+        {
+          "sha": "3a326c7",
+          "type": "other",
+          "text": "feat(mdm-onboarding): 同步PC进件采集与详情字段",
+          "author": "sisi",
+          "time": "20:32"
+        },
+        {
+          "sha": "eb3feb6",
+          "type": "feat",
+          "text": "收货记录页新增确认收货按钮",
+          "author": "342-droid",
+          "time": "20:31"
+        },
+        {
+          "sha": "8b71cd1",
+          "type": "other",
+          "text": "feat(mdm-bd): 优化商户进件分步采集表单",
+          "author": "sisi",
+          "time": "17:25"
+        },
+        {
+          "sha": "6c22731",
+          "type": "other",
+          "text": "fix(mdm-bd): 清理门店合作类型下拉选项",
+          "author": "sisi",
+          "time": "10:30"
+        },
+        {
+          "sha": "397c25e",
+          "type": "fix",
+          "text": "确认即保存耗材分站数据",
+          "author": "342-droid",
+          "time": "10:28"
+        },
+        {
+          "sha": "8e887d7",
+          "type": "feat",
+          "text": "优化装载页耗材录入与展示流程",
+          "author": "342-droid",
+          "time": "10:06"
+        },
+        {
+          "sha": "5481c7f",
+          "type": "other",
+          "text": "feat(mdm-onboarding): 完善多端进件审核流程",
+          "author": "sisi",
+          "time": "09:03"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-11",
+      "items": [
+        {
+          "sha": "afdf1e2",
+          "type": "feat",
+          "text": "库存页面新增批次字段展示",
+          "author": "342-droid",
+          "time": "17:57"
+        },
+        {
+          "sha": "19b4b7c",
+          "type": "feat",
+          "text": "完善采购单与需求汇总交互流程",
+          "author": "342-droid",
+          "time": "17:42"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-09",
+      "items": [
+        {
+          "sha": "0940518",
+          "type": "other",
+          "text": "feat(mdm-bd): 门店表单对齐 bd-guanli（数据嵌入、分段区块、视频与样式）",
+          "author": "sisi",
+          "time": "18:54"
+        },
+        {
+          "sha": "fa1751f",
+          "type": "other",
+          "text": "feat(mdm-bd): H5/store form、工作台与归档相关脚本样式更新",
+          "author": "sisi",
+          "time": "18:29"
+        },
+        {
+          "sha": "a2ecc9c",
+          "type": "other",
+          "text": "feat(common): 顶栏「移动端」移到首位",
+          "author": "342-droid",
+          "time": "18:10"
+        },
+        {
+          "sha": "ebca5eb",
+          "type": "other",
+          "text": "MDM: archive drawer, ERP lists, audit UI, sidebar; docs & skills",
+          "author": "sisi",
+          "time": "17:39"
+        },
+        {
+          "sha": "ff7330a",
+          "type": "feat",
+          "text": "调整顶栏导航与移动端侧栏入口",
+          "author": "342-droid",
+          "time": "17:17"
+        },
+        {
+          "sha": "16f6918",
+          "type": "chore",
+          "text": "整理 skills 目录（合并根 SKILL，移除 prd-skill 与 WMS 子技能）",
+          "author": "342-droid",
+          "time": "16:37"
+        },
+        {
+          "sha": "5cbe023",
+          "type": "other",
+          "text": "Ignore docs/ and stop tracking markdown flow docs",
+          "author": "342-droid",
+          "time": "16:13"
+        },
+        {
+          "sha": "31bfe2f",
+          "type": "other",
+          "text": "Ignore components/ and stop tracking pagination usage doc",
+          "author": "342-droid",
+          "time": "16:12"
+        },
+        {
+          "sha": "2c5f665",
+          "type": "other",
+          "text": "Add scripts/ to .gitignore for local-only scripts",
+          "author": "342-droid",
+          "time": "15:57"
+        },
+        {
+          "sha": "40203e5",
+          "type": "chore",
+          "text": "移除 BD APP/门店H5 旧静态副本，path 不再解析 BD APP/",
+          "author": "sisi",
+          "time": "15:43"
+        },
+        {
+          "sha": "4a38d13",
+          "type": "other",
+          "text": "feat(SCM): 应用列表增加盘点入口",
+          "author": "342-droid",
+          "time": "15:31"
+        },
+        {
+          "sha": "fab1dff",
+          "type": "other",
+          "text": "Stop tracking .DS_Store files and ignore them",
+          "author": "342-droid",
+          "time": "15:30"
+        },
+        {
+          "sha": "3b2beed",
+          "type": "feat",
+          "text": "移动端模块入口与 shop-h5 路由对齐",
+          "author": "sisi",
+          "time": "15:15"
+        },
+        {
+          "sha": "cd9cb7c",
+          "type": "other",
+          "text": "Add shop-h5 static store registration and status pages",
+          "author": "342-droid",
+          "time": "15:08"
+        },
+        {
+          "sha": "1dca2ac",
+          "type": "docs",
+          "text": "增加 Git 提交规范与 prepare-commit-msg 钩子",
+          "author": "342-droid",
+          "time": "11:19"
+        },
+        {
+          "sha": "f8fead2",
+          "type": "other",
+          "text": "feat(bd-app): 门店H5 静态页、侧栏入口与路径解析",
+          "author": "sisi",
+          "time": "11:14"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-08",
+      "items": [
+        {
+          "sha": "949f6ed",
+          "type": "other",
+          "text": "update MDM top navigation to place BD运营管理 next to 基础数据中心.",
+          "author": "sisi",
+          "time": "20:53"
+        },
+        {
+          "sha": "b22da37",
+          "type": "other",
+          "text": "LF ERP: sync local workspace with remote main",
+          "author": "sisi",
+          "time": "20:46"
+        },
+        {
+          "sha": "b783a96",
+          "type": "other",
+          "text": "Initial commit: LF ERP project",
+          "author": "342-droid",
+          "time": "19:44"
+        }
+      ]
+    }
+  ]
+}
