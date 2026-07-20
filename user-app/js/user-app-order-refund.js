@@ -1647,6 +1647,15 @@
     return (getParams().get('addrFrom') || '').trim();
   }
 
+  function buildProfileReturnHref() {
+    var from = getParams().get('from') || 'restock.html?tab=me';
+    try {
+      return decodeURIComponent(from);
+    } catch (e) {
+      return from;
+    }
+  }
+
   function buildCheckoutReturnHref() {
     var from = getParams().get('from') || 'restock.html';
     return 'checkout.html?from=' + encodeURIComponent(from);
@@ -6927,11 +6936,13 @@
     var backHref =
       addrFrom === 'checkout'
         ? buildCheckoutReturnHref()
-        : buildPickupEditHref({
-            type: refundType,
-            stage: stage,
-            pickupEditFrom: getPickupEditFrom()
-          });
+        : addrFrom === 'profile'
+          ? buildProfileReturnHref()
+          : buildPickupEditHref({
+              type: refundType,
+              stage: stage,
+              pickupEditFrom: getPickupEditFrom()
+            });
     var backEl = document.getElementById('addrBookBack');
     if (backEl) backEl.setAttribute('href', backHref);
 
