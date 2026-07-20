@@ -108,7 +108,9 @@
             createdAt: '2026-04-20 15:30:22',
             createdBy: '李强',
             lines: [
-                { skuCode: 'SKU003', skuName: '脐橙', spec: '10kg/箱', skuCategory: '生鲜 / 水果 / 柑橘类', qtyUnit: '箱', buyer: '李强', purchaseQty: 80, receivedQty: 45, suggestedUnitPrice: 6.8, actualUnitPrice: 6.5, saleUnitPrice: 6.2, purchaseAmount: 520, saleAmount: 496, prepaidAmount: 150, lineRemark: '礼盒优先发', logisticsNo: 'SF1234567890123' }
+                { skuCode: 'SKU003', skuName: '脐橙', spec: '10kg/箱', skuCategory: '生鲜 / 水果 / 柑橘类', qtyUnit: '箱', buyer: '李强', purchaseQty: 80, receivedQty: 45, suggestedUnitPrice: 6.8, actualUnitPrice: 6.5, saleUnitPrice: 6.2, purchaseAmount: 520, saleAmount: 496, prepaidAmount: 150, lineRemark: '礼盒优先发', logisticsNo: 'SF1234567890123,SF1234567890124' },
+                { skuCode: 'SKU001', skuName: '红富士苹果', spec: '5kg/箱', skuCategory: '生鲜 / 水果 / 仁果类', qtyUnit: '件', buyer: '李强', purchaseQty: 60, receivedQty: 60, suggestedUnitPrice: 5.2, actualUnitPrice: 5.0, saleUnitPrice: 4.8, purchaseAmount: 300, saleAmount: 288, prepaidAmount: 50, lineRemark: '', logisticsNo: 'YT9876543210987' },
+                { skuCode: 'SKU002', skuName: '香蕉', spec: '4kg/箱', skuCategory: '生鲜 / 水果 / 浆果类', qtyUnit: '箱', buyer: '陈晨', purchaseQty: 40, receivedQty: 0, suggestedUnitPrice: 4.5, actualUnitPrice: 4.3, saleUnitPrice: 4.0, purchaseAmount: 172, saleAmount: 160, prepaidAmount: 0, lineRemark: '待发第二批', logisticsNo: 'YT9876543210999' }
             ]
         },
         {
