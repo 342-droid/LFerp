@@ -785,3 +785,62 @@ if (document.readyState === 'loading') {
     // DOM已经加载完成，直接执行
     initPage();
 }
+
+/**
+ * 更新日志全站入口：右下角浮动按钮，changelog.json 有新提交时显示红点。
+ * shop-h5 / user-app 手机端原型不加载 common.js，天然不受影响；这里再做一层路径防御。
+ */
+(function () {
+    if (/\/(shop-h5|user-app)\//i.test(window.location.pathname)) return;
+
+    function assetHref(p) {
+        return (window.wmsPath && window.wmsPath.asset) ? window.wmsPath.asset(p) : p;
+    }
+
+    function initChangelogEntry() {
+        if (document.getElementById('changelog-entry')) return;
+
+        var style = document.createElement('style');
+        style.textContent = [
+            '#changelog-entry {',
+            '    position: fixed; right: 20px; bottom: 20px; z-index: 1300;',
+            '    display: flex; align-items: center; gap: 6px;',
+            '    background: #2c313c; color: #fff; text-decoration: none;',
+            '    font-size: 12px; padding: 7px 14px; border-radius: 16px;',
+            '    box-shadow: 0 2px 8px rgba(0,0,0,0.25); opacity: 0.85;',
+            '}',
+            '#changelog-entry:hover { opacity: 1; }',
+            '#changelog-entry .changelog-entry-dot {',
+            '    position: absolute; top: -2px; right: 2px;',
+            '    width: 8px; height: 8px; border-radius: 50%;',
+            '    background: #f5222d; border: 1px solid #fff;',
+            '}'
+        ].join('\n');
+        document.head.appendChild(style);
+
+        var link = document.createElement('a');
+        link.id = 'changelog-entry';
+        link.href = assetHref('changelog.html');
+        link.title = '查看最近更新';
+        link.innerHTML = '<span>📋</span><span>更新日志</span><span class="changelog-entry-dot" hidden></span>';
+        document.body.appendChild(link);
+
+        fetch(assetHref('changelog.json'), { cache: 'no-cache' })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (data) {
+                if (!data || !data.latestSha) return;
+                var seen = null;
+                try { seen = localStorage.getItem('lfChangelogSeenSha'); } catch (e) { /* 隐私模式忽略 */ }
+                if (seen !== data.latestSha) {
+                    link.querySelector('.changelog-entry-dot').hidden = false;
+                }
+            })
+            .catch(function () { /* file:// 或数据未生成时静默 */ });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initChangelogEntry);
+    } else {
+        initChangelogEntry();
+    }
+})();
