@@ -56,8 +56,8 @@
   }
 
   var ME_ACTION_LABELS = {
-    deposit: '退押金',
     returns: '退款/售后',
+    address: '地址管理',
     invoice: '开发票',
     bill: '账单',
     support: '联系客服',
@@ -99,6 +99,12 @@
     if (!requireLoginForMe(label)) return;
     if (action === 'returns') {
       window.location.href = 'order-aftersale-list.html?from=restock.html';
+      return;
+    }
+    if (action === 'address') {
+      window.location.href =
+        'order-refund-address-book.html?addrFrom=profile&from=' +
+        encodeURIComponent('restock.html?tab=me');
       return;
     }
     window.alert(label + '（演示）');
