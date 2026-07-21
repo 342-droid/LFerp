@@ -48,7 +48,8 @@
     ];
 
     const memberItems = [
-        { href: 'mdm_member_c.html', text: 'C端会员' }
+        { href: 'mdm_member_c.html', text: 'C端会员' },
+        { href: 'mdm_member_tag.html', text: '会员标签' }
     ];
 
     const auditItems = [
