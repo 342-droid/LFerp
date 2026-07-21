@@ -2785,25 +2785,69 @@
         });
         pm.init();
         bindSimpleFilter(pm, {
-            resetFields: ['qMemberId', 'qBindWay', 'qPhone'],
+            resetFields: ['qMemberId', 'qBindWay', 'qPhone', 'qMemberLevel', 'qMemberTag'],
             filterFn: function (p) {
                 var tbody = document.getElementById(p.config.tableBodyId);
                 if (!tbody) return;
                 var qId = (document.getElementById('qMemberId') || {}).value.trim();
                 var qB = (document.getElementById('qBindWay') || {}).value.trim();
                 var qP = ((document.getElementById('qPhone') || {}).value || '').replace(/\D/g, '');
+                var qLevel = (document.getElementById('qMemberLevel') || {}).value.trim();
+                var qTag = (document.getElementById('qMemberTag') || {}).value.trim();
                 tbody.querySelectorAll('tr').forEach(function (tr) {
                     var c = tr.querySelectorAll('td');
-                    if (c.length < 17) return;
+                    if (c.length < 18) return;
                     var ok = true;
                     if (qId && c[0].textContent.trim().indexOf(qId) === -1) ok = false;
-                    if (qB && c[8].textContent.trim() !== qB) ok = false;
+                    if (qB && c[9].textContent.trim() !== qB) ok = false;
                     if (qP && c[3].textContent.replace(/\D/g, '').indexOf(qP) === -1) ok = false;
+                    if (qLevel && c[6].textContent.trim() !== qLevel) ok = false;
+                    if (qTag && c[7].textContent.trim().indexOf(qTag) === -1) ok = false;
                     tr.style.display = ok ? '' : 'none';
                 });
                 p.refreshPagination();
             }
         });
+        // 支持从会员等级 / 会员标签 / 成长值明细跳转携带筛选参数
+        try {
+            var params = new URLSearchParams(window.location.search || '');
+            var levelParam = params.get('level');
+            var tagParam = params.get('tag');
+            var memberIdParam = params.get('memberId');
+            var openDetail = params.get('detail') === '1';
+            var levelEl = document.getElementById('qMemberLevel');
+            var tagEl = document.getElementById('qMemberTag');
+            var memberIdEl = document.getElementById('qMemberId');
+            if (levelParam && levelEl) {
+                levelEl.value = levelParam;
+                if (!levelEl.value) {
+                    var opt = document.createElement('option');
+                    opt.value = levelParam;
+                    opt.textContent = levelParam;
+                    levelEl.appendChild(opt);
+                    levelEl.value = levelParam;
+                }
+            }
+            if (tagParam && tagEl) tagEl.value = tagParam;
+            if (memberIdParam && memberIdEl) memberIdEl.value = memberIdParam;
+            if (levelParam || tagParam || memberIdParam) {
+                var queryBtn = document.getElementById('btnFilterQuery');
+                if (queryBtn) queryBtn.click();
+            }
+            if (openDetail && memberIdParam) {
+                setTimeout(function () {
+                    var tbody = document.getElementById(pm.config.tableBodyId);
+                    if (!tbody || !window.MdmMemberCUi) return;
+                    var target = null;
+                    tbody.querySelectorAll('tr').forEach(function (tr) {
+                        if (target || tr.style.display === 'none') return;
+                        var idCell = tr.querySelector('td');
+                        if (idCell && idCell.textContent.trim() === memberIdParam) target = tr;
+                    });
+                    if (target) window.MdmMemberCUi.openDetailFromRow(target);
+                }, 120);
+            }
+        } catch (e) { /* ignore */ }
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
         }, 0);

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 会员等级规则说明</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <style>
+        .member-level-desc-toolbar {
+            margin: 0 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .flow-box {
+            margin: 0 0 14px;
+            padding: 12px 14px;
+            background: #fafafa;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.65;
+        }
+        .member-level-desc-card {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        .member-level-desc-field {
+            margin-bottom: 14px;
+        }
+        .member-level-desc-field label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #333;
+            font-weight: 600;
+        }
+        .member-level-desc-field .erp-input {
+            width: 100%;
+            max-width: 560px;
+            height: 36px;
+            box-sizing: border-box;
+        }
+        .ml-editor {
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .ml-editor-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 10px;
+            background: #fafafa;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        .ml-editor-toolbar button {
+            min-width: 28px;
+            height: 28px;
+            padding: 0 8px;
+            border: 1px solid transparent;
+            background: transparent;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #333;
+        }
+        .ml-editor-toolbar button:hover {
+            background: #eee;
+            border-color: #ddd;
+        }
+        .ml-editor-toolbar .ml-toolbar-divider {
+            width: 1px;
+            height: 18px;
+            background: #ddd;
+            margin: 0 4px;
+        }
+        .ml-editor-body {
+            min-height: 420px;
+            padding: 16px 18px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: #333;
+            outline: none;
+            background: #fff;
+        }
+        .ml-editor-body:empty::before {
+            content: attr(data-placeholder);
+            color: #bbb;
+        }
+        .ml-editor-body h3 {
+            font-size: 15px;
+            margin: 16px 0 8px;
+            font-weight: 600;
+        }
+        .ml-editor-body p {
+            margin: 0 0 10px;
+        }
+        .ml-editor-body img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .member-level-desc-actions {
+            display: flex;
+            gap: 10px;
+            padding-bottom: 32px;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">规则说明</button></div>
+            <hr class="content-divider">
+            <div class="content-title">业务伙伴 / 会员中心 / 会员等级 / 规则说明</div>
+
+            <div class="flow-box">
+                规则说明将展示给运营及 C 端用户（如会员中心说明页）。可通过下方编辑器填写图文内容，保存后生效。
+            </div>
+
+            <div class="member-level-desc-toolbar">
+                <button type="button" class="erp-btn" id="btnBackLevel">返回会员等级</button>
+            </div>
+
+            <div class="member-level-desc-card">
+                <div class="member-level-desc-field">
+                    <label for="ruleDescTitle">说明标题</label>
+                    <input class="erp-input" id="ruleDescTitle" type="text" maxlength="50" placeholder="请输入规则说明标题">
+                </div>
+                <div class="member-level-desc-field">
+                    <label>说明正文</label>
+                    <div class="ml-editor">
+                        <div class="ml-editor-toolbar">
+                            <button type="button" data-cmd="bold" title="加粗"><strong>B</strong></button>
+                            <button type="button" data-cmd="italic" title="斜体"><em>I</em></button>
+                            <button type="button" data-cmd="underline" title="下划线"><u>U</u></button>
+                            <span class="ml-toolbar-divider"></span>
+                            <button type="button" data-cmd="insertUnorderedList" title="无序列表">• 列表</button>
+                            <button type="button" data-cmd="insertOrderedList" title="有序列表">1. 列表</button>
+                            <span class="ml-toolbar-divider"></span>
+                            <button type="button" data-cmd="formatBlock" data-val="h3" title="小标题">标题</button>
+                            <button type="button" data-cmd="foreColor" data-val="#ff7019" title="主题色">A</button>
+                            <button type="button" id="btnInsertImage" title="上传图片">图片</button>
+                            <button type="button" data-cmd="removeFormat" title="清除格式">清除</button>
+                            <input type="file" id="ruleDescImageInput" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
+                        </div>
+                        <div class="ml-editor-body" id="ruleDescEditor" contenteditable="true" data-placeholder="请输入会员等级规则说明…"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="member-level-desc-actions">
+                <button type="button" class="btn btn-secondary" id="btnDescReset">恢复默认</button>
+                <button type="button" class="btn btn-primary" id="btnDescSave">保存</button>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-member-level-desc.js"></script>
+</body>
+</html>

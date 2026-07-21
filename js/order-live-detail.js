@@ -1642,12 +1642,36 @@
         detail.progress = normalizeProxyProgress(detail.progress);
       }
       return detail;
-    }
+    },
+    openDrawer: openDrawer
   };
 
+  function openFromQuery() {
+    try {
+      var params = new URLSearchParams(window.location.search || '');
+      var orderId = params.get('orderId');
+      if (!orderId) return;
+      var row = document.querySelector('tr[data-order-id="' + orderId.replace(/"/g, '') + '"]');
+      if (!row) {
+        document.querySelectorAll('tr[data-order-id]').forEach(function (tr) {
+          if (row) return;
+          var id = tr.getAttribute('data-order-id') || '';
+          if (id === orderId || id.indexOf(orderId) === 0 || orderId.indexOf(id) === 0) row = tr;
+        });
+      }
+      setTimeout(function () {
+        openDrawer(orderId, row || null);
+      }, 80);
+    } catch (e) { /* ignore */ }
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initViewLinks);
+    document.addEventListener('DOMContentLoaded', function () {
+      initViewLinks();
+      openFromQuery();
+    });
   } else {
     initViewLinks();
+    openFromQuery();
   }
 })();

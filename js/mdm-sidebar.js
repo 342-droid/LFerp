@@ -49,7 +49,11 @@
 
     const memberItems = [
         { href: 'mdm_member_c.html', text: 'C端会员' },
-        { href: 'mdm_member_tag.html', text: '会员标签' }
+        { href: 'mdm_member_tag.html', text: '会员标签' },
+        { href: 'mdm_member_level.html', text: '会员等级' },
+        { href: 'mdm_member_level_rule.html', text: '成长值规则' },
+        { href: 'mdm_member_level_growth.html', text: '成长值明细' },
+        { href: 'mdm_member_level_desc.html', text: '规则说明' }
     ];
 
     const auditItems = [

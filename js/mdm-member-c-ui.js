@@ -126,7 +126,7 @@
     function rowToMember(tr) {
         if (!tr) return null;
         var c = tr.querySelectorAll('td');
-        if (c.length < 18) return null;
+        if (c.length < 19) return null;
         var av = c[2].querySelector('span');
         return {
             id: c[0].textContent.trim(),
@@ -135,18 +135,19 @@
             phone: c[3].textContent.trim(),
             gender: c[4].textContent.trim(),
             isMember: c[5].textContent.trim(),
-            tags: c[6].textContent.trim(),
-            source: c[7].textContent.trim(),
-            bindMethod: c[8].textContent.trim(),
-            channelCount: c[9].textContent.trim(),
-            points: c[10].textContent.trim(),
-            satisMinutes: c[11].textContent.trim(),
-            satisFeedback: c[12].textContent.trim(),
-            growthScore: c[13].textContent.trim(),
-            amount: c[14].textContent.trim(),
-            orderCount: c[15].textContent.trim(),
-            lastConsume: c[16].textContent.trim(),
-            status: (c[17].querySelector('.status') || c[17]).textContent.trim()
+            level: c[6].textContent.trim(),
+            tags: c[7].textContent.trim(),
+            source: c[8].textContent.trim(),
+            bindMethod: c[9].textContent.trim(),
+            channelCount: c[10].textContent.trim(),
+            points: c[11].textContent.trim(),
+            satisMinutes: c[12].textContent.trim(),
+            satisFeedback: c[13].textContent.trim(),
+            growthScore: c[14].textContent.trim(),
+            amount: c[15].textContent.trim(),
+            orderCount: c[16].textContent.trim(),
+            lastConsume: c[17].textContent.trim(),
+            status: (c[18].querySelector('.status') || c[18]).textContent.trim()
         };
     }
 
@@ -193,6 +194,7 @@
             ['会员性别', rec.gender],
             ['手机号码', rec.phone],
             ['是否会员', rec.isMember],
+            ['会员等级', rec.level || '—'],
             ['会员标签', rec.tags],
             ['会员来源', rec.source],
             ['绑定方式', rec.bindMethod],

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 会员等级</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <style>
+        .member-level-toolbar {
+            margin: 0 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .member-level-toolbar__hint {
+            font-size: 13px;
+            color: #888;
+            margin-left: 4px;
+        }
+        .member-level-benefit-summary {
+            max-width: 420px;
+            font-size: 12px;
+            color: #555;
+            line-height: 1.55;
+            white-space: normal;
+        }
+        .member-level-benefit-summary span {
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
+        .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
+        .member-level-coupon-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .member-level-coupon-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .member-level-coupon-row .erp-select {
+            flex: 1;
+            min-width: 0;
+        }
+        .member-level-coupon-picker {
+            position: relative;
+            flex: 1;
+            min-width: 0;
+        }
+        .member-level-coupon-picker__trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            height: 32px;
+            padding: 0 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #fff;
+            font-size: 13px;
+            color: #333;
+            cursor: pointer;
+            box-sizing: border-box;
+            text-align: left;
+        }
+        .member-level-coupon-picker__trigger:hover {
+            border-color: #ff7019;
+        }
+        .member-level-coupon-picker__trigger.is-placeholder {
+            color: #999;
+        }
+        .member-level-coupon-picker__panel {
+            display: none;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: calc(100% + 4px);
+            z-index: 30;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+            padding: 8px;
+        }
+        .member-level-coupon-picker.is-open .member-level-coupon-picker__panel {
+            display: block;
+        }
+        .member-level-coupon-picker__filter {
+            width: 100%;
+            height: 32px;
+            margin-bottom: 6px;
+            box-sizing: border-box;
+        }
+        .member-level-coupon-picker__list {
+            max-height: 180px;
+            overflow-y: auto;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .member-level-coupon-picker__item {
+            padding: 8px 10px;
+            font-size: 13px;
+            color: #333;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .member-level-coupon-picker__item:hover,
+        .member-level-coupon-picker__item.is-active {
+            background: #fff7f0;
+            color: #ff7019;
+        }
+        .member-level-coupon-picker__empty {
+            padding: 12px 8px;
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+        }
+        .member-level-coupon-qty {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .member-level-coupon-qty .erp-input {
+            width: 72px;
+        }
+        .member-level-coupon-remove {
+            flex-shrink: 0;
+            border: none;
+            background: transparent;
+            color: #2196F3;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 0 4px;
+            line-height: 32px;
+        }
+        .member-level-coupon-remove:hover { text-decoration: underline; }
+        .member-level-coupon-add {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 34px;
+            margin-top: 8px;
+            border: 1px dashed #ddd;
+            border-radius: 4px;
+            background: #fafafa;
+            color: #333;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .member-level-coupon-add:hover {
+            border-color: #ff7019;
+            color: #ff7019;
+            background: #fff7f0;
+        }
+        .flow-box {
+            margin: 0 0 14px;
+            padding: 12px 14px;
+            background: #fafafa;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.65;
+        }
+        .erp-modal--member-level {
+            max-width: 720px;
+            width: min(96vw, 720px);
+        }
+        .erp-modal--member-level .erp-modal-field__label {
+            flex: 0 0 128px;
+        }
+        .erp-modal--member-level .erp-modal__body {
+            max-height: min(72vh, 640px);
+            overflow-y: auto;
+        }
+        .member-level-section-title {
+            margin: 4px 0 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+        .member-level-field-tip {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #999;
+            line-height: 1.45;
+        }
+        .member-level-unit {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+        .member-level-unit .erp-input {
+            flex: 1;
+            min-width: 0;
+        }
+        .member-level-unit__text {
+            flex-shrink: 0;
+            font-size: 13px;
+            color: #666;
+            white-space: nowrap;
+        }
+        .member-level-check-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            min-height: 32px;
+        }
+        .member-level-check-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .member-level-growth-cell {
+            font-weight: 600;
+            color: #ff7019;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">会员等级</button></div>
+            <hr class="content-divider">
+            <div class="content-title">业务伙伴 / 会员中心 / 会员等级</div>
+
+            <div class="flow-box">
+                最多可设置 <strong>10</strong> 个会员等级；列表按成长值从低到高排列。
+                升降级策略：当前成长值满足某等级门槛即可升级（达标后立即生效）；不满足则降级（每月 1 号统一处理）。
+                成长值可通过消费、活跃获取，有效期与获取规则请在「成长值规则」中配置。
+                点击会员人数可跳转 C 端会员并按当前等级筛选。
+            </div>
+
+            <div class="member-level-toolbar">
+                <button type="button" class="erp-btn erp-btn--outline-primary" id="btnAddLevel">新增等级</button>
+                <button type="button" class="erp-btn" id="btnGotoRule">成长值规则</button>
+                <button type="button" class="erp-btn" id="btnGotoGrowth">成长值明细</button>
+                <button type="button" class="erp-btn" id="btnGotoDesc">规则说明</button>
+                <span class="member-level-toolbar__hint" id="levelCountHint">已设置 0 / 10 个等级</span>
+            </div>
+
+            <section class="search-section">
+                <form class="search-form" id="memberLevelSearchForm">
+                    <div class="form-group">
+                        <label>等级名称:</label>
+                        <div class="input-wrapper">
+                            <input id="qLevelName" placeholder="请输入等级名称">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>状态:</label>
+                        <select id="qStatus">
+                            <option value="">全部</option>
+                            <option value="启用">启用</option>
+                            <option value="禁用">禁用</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button>
+                        <button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>等级名称</th>
+                                <th>成长值</th>
+                                <th>会员权益</th>
+                                <th>会员人数</th>
+                                <th>更新时间</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/mdm-member-level.js"></script>
+</body>
+</html>
