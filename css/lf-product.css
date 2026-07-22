@@ -3180,6 +3180,108 @@ body.product-add-drawer-open {
   max-width: none;
 }
 
+.proxy-region-picker-modal--compact {
+  width: min(860px, 94vw);
+  max-height: min(640px, calc(100vh - 96px));
+  height: min(640px, calc(100vh - 96px));
+}
+
+.proxy-region-picker-modal--compact .proxy-region-picker__body,
+.proxy-region-picker-modal--compact .proxy-region-picker__panel,
+.proxy-region-picker-modal--compact .proxy-region-picker__cols,
+.proxy-region-picker-modal--compact .proxy-region-picker__col {
+  min-height: 0;
+}
+
+.proxy-region-picker__body--columns {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.proxy-region-picker__cols {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  border-right: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.proxy-region-picker__col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #f0f0f0;
+}
+
+.proxy-region-picker__col:last-child {
+  border-right: none;
+}
+
+.proxy-region-picker__col-head {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  flex-shrink: 0;
+}
+
+.proxy-region-picker__col .proxy-region-picker__list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.proxy-region-picker__row.is-focus {
+  background: rgba(255, 112, 25, 0.08);
+}
+
+.proxy-store-picker-modal--compact {
+  width: min(860px, 94vw);
+  max-height: min(640px, calc(100vh - 96px));
+  height: min(640px, calc(100vh - 96px));
+}
+
+.proxy-store-picker-modal--compact .proxy-store-picker__body,
+.proxy-store-picker-modal--compact .proxy-store-picker__layout,
+.proxy-store-picker-modal--compact .proxy-store-picker__main {
+  min-height: 0;
+  height: 100%;
+}
+
+.proxy-store-picker__main--flat {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.proxy-store-picker__toolbar--flat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.proxy-store-picker__region-select {
+  height: 32px;
+  min-width: 140px;
+  padding: 0 8px;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  font-size: 13px;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.proxy-store-picker__toolbar--flat .proxy-store-picker__search {
+  flex: 1;
+  min-width: 0;
+}
+
 .proxy-region-picker-modal .erp-modal__body {
   padding: 0;
 }

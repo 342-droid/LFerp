@@ -15,6 +15,10 @@
             path === currentPage ||
             pathForMatch.endsWith('/' + path) ||
             pathForMatch.endsWith(path);
+        // 人群列表页归属「会员分群」高亮
+        if (!samePath && path === 'mdm_member_segment.html' && /mdm_member_segment_members\.html/i.test(currentPage)) {
+            samePath = true;
+        }
         if (!samePath) return false;
         var curHash = String(window.location.hash || '').replace(/^#/, '');
         if (!hash) {
@@ -53,7 +57,8 @@
         { href: 'mdm_member_level.html', text: '会员等级' },
         { href: 'mdm_member_level_rule.html', text: '成长值规则' },
         { href: 'mdm_member_level_growth.html', text: '成长值明细' },
-        { href: 'mdm_member_level_desc.html', text: '规则说明' }
+        { href: 'mdm_member_level_desc.html', text: '规则说明' },
+        { href: 'mdm_member_segment.html', text: '会员分群' }
     ];
 
     const auditItems = [

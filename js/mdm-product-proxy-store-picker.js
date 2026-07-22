@@ -154,54 +154,98 @@
   function openStorePicker(options) {
     options = options || {};
     var selected = cloneSelected(options.selected || {});
+    var flatFilter = !!options.flatFilter;
     var state = {
       regionId: 'all',
       keyword: ''
     };
 
+    var regionSelectHtml = REGIONS.map(function (region) {
+      return '<option value="' + region.id + '">' + escapeHtml(region.name) + '</option>';
+    }).join('');
+
     var backdrop = document.createElement('div');
     backdrop.className = 'erp-modal-backdrop proxy-store-picker-backdrop';
     backdrop.setAttribute('data-proxy-store-picker', '1');
-    backdrop.innerHTML =
-      '<div class="erp-modal proxy-store-picker-modal">' +
-      '  <div class="erp-modal__header">' +
-      '    <h2 class="erp-modal__title">选择门店</h2>' +
-      '    <div class="erp-modal__header-actions">' +
-      '      <button type="button" class="erp-modal__header-btn" data-store-close aria-label="关闭">&times;</button>' +
-      '    </div>' +
-      '  </div>' +
-      '  <div class="erp-modal__body proxy-store-picker__body">' +
-      '    <div class="proxy-store-picker__layout">' +
-      '      <aside class="proxy-store-picker__sidebar">' +
-      '        <div class="proxy-store-picker__regions" id="proxyStorePickerRegions"></div>' +
-      '      </aside>' +
-      '      <div class="proxy-store-picker__main">' +
-      '        <div class="proxy-store-picker__toolbar">' +
-      '          <div class="proxy-store-picker__search">' +
-      '            <span class="proxy-store-picker__search-icon" aria-hidden="true">⌕</span>' +
-      '            <input type="text" class="proxy-store-picker__search-input" id="proxyStorePickerSearch" placeholder="搜索门店名称..." autocomplete="off">' +
-      '          </div>' +
-      '          <label class="proxy-store-picker__select-all">' +
-      '            <input type="checkbox" class="proxy-store-picker__select-all-input" id="proxyStorePickerSelectAll">' +
-      '            <span>全选</span>' +
-      '          </label>' +
-      '        </div>' +
-      '        <div class="proxy-store-picker__bar">' +
-      '          <span class="proxy-store-picker__bar-count" id="proxyStorePickerBarCount">已选 0 家门店</span>' +
-      '          <button type="button" class="proxy-store-picker__bar-clear" id="proxyStorePickerClear">清空</button>' +
-      '        </div>' +
-      '        <div class="proxy-store-picker__list" id="proxyStorePickerList"></div>' +
-      '      </div>' +
-      '    </div>' +
-      '  </div>' +
-      '  <div class="erp-modal__footer proxy-store-picker__footer">' +
-      '    <span class="proxy-store-picker__footer-count" id="proxyStorePickerFooterCount">共选 0 家门店</span>' +
-      '    <div class="proxy-store-picker__footer-actions">' +
-      '      <button type="button" class="erp-btn" data-store-cancel>取消</button>' +
-      '      <button type="button" class="erp-btn erp-btn--primary" data-store-ok>确定</button>' +
-      '    </div>' +
-      '  </div>' +
-      '</div>';
+    backdrop.innerHTML = flatFilter
+      ? (
+        '<div class="erp-modal proxy-store-picker-modal proxy-store-picker-modal--compact">' +
+        '  <div class="erp-modal__header">' +
+        '    <h2 class="erp-modal__title">选择门店</h2>' +
+        '    <div class="erp-modal__header-actions">' +
+        '      <button type="button" class="erp-modal__header-btn" data-store-close aria-label="关闭">&times;</button>' +
+        '    </div>' +
+        '  </div>' +
+        '  <div class="erp-modal__body proxy-store-picker__body">' +
+        '    <div class="proxy-store-picker__main proxy-store-picker__main--flat">' +
+        '      <div class="proxy-store-picker__toolbar proxy-store-picker__toolbar--flat">' +
+        '        <select class="proxy-store-picker__region-select" id="proxyStorePickerRegionSelect">' + regionSelectHtml + '</select>' +
+        '        <div class="proxy-store-picker__search">' +
+        '          <span class="proxy-store-picker__search-icon" aria-hidden="true">⌕</span>' +
+        '          <input type="text" class="proxy-store-picker__search-input" id="proxyStorePickerSearch" placeholder="搜索门店名称..." autocomplete="off">' +
+        '        </div>' +
+        '        <label class="proxy-store-picker__select-all">' +
+        '          <input type="checkbox" class="proxy-store-picker__select-all-input" id="proxyStorePickerSelectAll">' +
+        '          <span>全选</span>' +
+        '        </label>' +
+        '      </div>' +
+        '      <div class="proxy-store-picker__bar">' +
+        '        <span class="proxy-store-picker__bar-count" id="proxyStorePickerBarCount">已选 0 家门店</span>' +
+        '        <button type="button" class="proxy-store-picker__bar-clear" id="proxyStorePickerClear">清空</button>' +
+        '      </div>' +
+        '      <div class="proxy-store-picker__list" id="proxyStorePickerList"></div>' +
+        '    </div>' +
+        '  </div>' +
+        '  <div class="erp-modal__footer proxy-store-picker__footer">' +
+        '    <span class="proxy-store-picker__footer-count" id="proxyStorePickerFooterCount">共选 0 家门店</span>' +
+        '    <div class="proxy-store-picker__footer-actions">' +
+        '      <button type="button" class="erp-btn" data-store-cancel>取消</button>' +
+        '      <button type="button" class="erp-btn erp-btn--primary" data-store-ok>确定</button>' +
+        '    </div>' +
+        '  </div>' +
+        '</div>'
+      )
+      : (
+        '<div class="erp-modal proxy-store-picker-modal' + (options.compactHeight ? ' proxy-store-picker-modal--compact' : '') + '">' +
+        '  <div class="erp-modal__header">' +
+        '    <h2 class="erp-modal__title">选择门店</h2>' +
+        '    <div class="erp-modal__header-actions">' +
+        '      <button type="button" class="erp-modal__header-btn" data-store-close aria-label="关闭">&times;</button>' +
+        '    </div>' +
+        '  </div>' +
+        '  <div class="erp-modal__body proxy-store-picker__body">' +
+        '    <div class="proxy-store-picker__layout">' +
+        '      <aside class="proxy-store-picker__sidebar">' +
+        '        <div class="proxy-store-picker__regions" id="proxyStorePickerRegions"></div>' +
+        '      </aside>' +
+        '      <div class="proxy-store-picker__main">' +
+        '        <div class="proxy-store-picker__toolbar">' +
+        '          <div class="proxy-store-picker__search">' +
+        '            <span class="proxy-store-picker__search-icon" aria-hidden="true">⌕</span>' +
+        '            <input type="text" class="proxy-store-picker__search-input" id="proxyStorePickerSearch" placeholder="搜索门店名称..." autocomplete="off">' +
+        '          </div>' +
+        '          <label class="proxy-store-picker__select-all">' +
+        '            <input type="checkbox" class="proxy-store-picker__select-all-input" id="proxyStorePickerSelectAll">' +
+        '            <span>全选</span>' +
+        '          </label>' +
+        '        </div>' +
+        '        <div class="proxy-store-picker__bar">' +
+        '          <span class="proxy-store-picker__bar-count" id="proxyStorePickerBarCount">已选 0 家门店</span>' +
+        '          <button type="button" class="proxy-store-picker__bar-clear" id="proxyStorePickerClear">清空</button>' +
+        '        </div>' +
+        '        <div class="proxy-store-picker__list" id="proxyStorePickerList"></div>' +
+        '      </div>' +
+        '    </div>' +
+        '  </div>' +
+        '  <div class="erp-modal__footer proxy-store-picker__footer">' +
+        '    <span class="proxy-store-picker__footer-count" id="proxyStorePickerFooterCount">共选 0 家门店</span>' +
+        '    <div class="proxy-store-picker__footer-actions">' +
+        '      <button type="button" class="erp-btn" data-store-cancel>取消</button>' +
+        '      <button type="button" class="erp-btn erp-btn--primary" data-store-ok>确定</button>' +
+        '    </div>' +
+        '  </div>' +
+        '</div>'
+      );
 
     function close() {
       backdrop.remove();
@@ -217,6 +261,8 @@
       var visibleStores = getVisibleStores();
       if (regionsEl) regionsEl.innerHTML = renderRegionList(state.regionId);
       if (listEl) listEl.innerHTML = renderStoreRows(visibleStores, selected);
+      var regionSelect = backdrop.querySelector('#proxyStorePickerRegionSelect');
+      if (regionSelect) regionSelect.value = state.regionId;
       updateSelectAllState(backdrop, visibleStores, selected);
       updateCounts(backdrop, selected);
     }
@@ -258,6 +304,14 @@
       state.keyword = e.target.value;
       refresh();
     });
+
+    var regionSelectEl = backdrop.querySelector('#proxyStorePickerRegionSelect');
+    if (regionSelectEl) {
+      regionSelectEl.addEventListener('change', function (e) {
+        state.regionId = e.target.value || 'all';
+        refresh();
+      });
+    }
 
     backdrop.addEventListener('change', function (e) {
       if (e.target.id === 'proxyStorePickerSelectAll') {

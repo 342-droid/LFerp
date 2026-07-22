@@ -508,12 +508,60 @@
         if (backdrop) backdrop.remove();
     }
 
-    function openAdjustModal(item) {
-        closeAdjustModal();
-        if (!item) return;
+    function maskPhone(phone) {
+        var raw = String(phone == null ? '' : phone).trim();
+        if (!raw || raw === '—') return '—';
+        var digits = raw.replace(/\D/g, '');
+        if (digits.length === 11) return digits.slice(0, 3) + '****' + digits.slice(7);
+        if (digits.length >= 7) return digits.slice(0, 3) + '****' + digits.slice(-4);
+        return raw;
+    }
 
-        var currentValue = getLatestAfterValue(item.memberId);
+    function collectMembers() {
+        var map = {};
+        state.list.forEach(function (item) {
+            if (!item.memberId || map[item.memberId]) return;
+            map[item.memberId] = {
+                memberId: item.memberId,
+                nickname: item.nickname,
+                phone: item.phone
+            };
+        });
+        // 补充演示会员，便于搜索调整
+        [
+            { memberId: 'U10001', nickname: '小程序用户A', phone: '138****2211' },
+            { memberId: 'U10002', nickname: 'APP会员B', phone: '139****9033' },
+            { memberId: 'U10003', nickname: '访客C', phone: '—' },
+            { memberId: 'U10004', nickname: '演示会员4', phone: '137****1004' },
+            { memberId: 'U10005', nickname: '演示会员5', phone: '137****1005' }
+        ].forEach(function (m) {
+            if (!map[m.memberId]) map[m.memberId] = m;
+        });
+        return Object.keys(map).map(function (k) { return map[k]; });
+    }
+
+    function searchMembers(keyword) {
+        var kw = String(keyword || '').trim().toLowerCase();
+        if (!kw) return [];
+        return collectMembers().filter(function (m) {
+            var phoneDigits = String(m.phone || '').replace(/\D/g, '');
+            var kwDigits = kw.replace(/\D/g, '');
+            return String(m.memberId).toLowerCase().indexOf(kw) >= 0 ||
+                String(m.nickname).toLowerCase().indexOf(kw) >= 0 ||
+                String(m.phone).toLowerCase().indexOf(kw) >= 0 ||
+                (kwDigits && phoneDigits.indexOf(kwDigits) >= 0);
+        }).slice(0, 20);
+    }
+
+    function openAdjustModal(presetItem) {
+        closeAdjustModal();
         var operator = getCurrentOperator();
+        var picked = presetItem ? {
+            memberId: presetItem.memberId,
+            nickname: presetItem.nickname,
+            phone: presetItem.phone
+        } : null;
+
         var backdrop = document.createElement('div');
         backdrop.className = 'erp-modal-backdrop';
         backdrop.setAttribute('data-growth-adjust-modal', '1');
@@ -525,109 +573,192 @@
             '      <button type="button" class="erp-modal__header-btn" data-modal-close aria-label="关闭">&times;</button>' +
             '    </div>' +
             '  </div>' +
-            '  <div class="erp-modal__body">' +
-            '    <div class="erp-modal-field">' +
-            '      <label class="erp-modal-field__label">会员</label>' +
-            '      <div class="erp-modal-field__control">' +
-            '        <div class="growth-adjust-member">' +
-            escapeHtml(item.memberId) + ' / ' + escapeHtml(item.nickname) +
-            (item.phone && item.phone !== '—' ? ' / ' + escapeHtml(item.phone) : '') +
-            '        </div>' +
-            '        <div class="growth-adjust-tip">当前有效成长值约 ' + currentValue + ' 分（演示）</div>' +
-            '      </div>' +
-            '    </div>' +
-            '    <div class="erp-modal-field">' +
-            '      <label class="erp-modal-field__label">操作人</label>' +
-            '      <div class="erp-modal-field__control">' +
-            '        <div class="growth-adjust-member">' + escapeHtml(operator) + '</div>' +
-            '      </div>' +
-            '    </div>' +
-            '    <div class="erp-modal-field">' +
-            '      <label class="erp-modal-field__label"><span class="erp-req">*</span>调整类型</label>' +
-            '      <div class="erp-modal-field__control">' +
-            '        <div class="growth-adjust-radio-row">' +
-            '          <label class="growth-adjust-radio-label"><input type="radio" name="adjType" value="manual_add" checked> 手工增加</label>' +
-            '          <label class="growth-adjust-radio-label"><input type="radio" name="adjType" value="manual_sub"> 手工减少</label>' +
-            '        </div>' +
-            '      </div>' +
-            '    </div>' +
-            '    <div class="erp-modal-field">' +
-            '      <label class="erp-modal-field__label" for="adjAmount"><span class="erp-req">*</span>调整数值</label>' +
-            '      <div class="erp-modal-field__control">' +
-            '        <input class="erp-input" id="adjAmount" type="number" min="1" step="1" placeholder="请输入正整数">' +
-            '      </div>' +
-            '    </div>' +
-            '    <div class="erp-modal-field">' +
-            '      <label class="erp-modal-field__label" for="adjRemark"><span class="erp-req">*</span>备注</label>' +
-            '      <div class="erp-modal-field__control">' +
-            '        <textarea class="erp-textarea" id="adjRemark" maxlength="' + REMARK_MAX + '" placeholder="请填写调整原因，最多' + REMARK_MAX + '字"></textarea>' +
-            '      </div>' +
-            '    </div>' +
-            '  </div>' +
-            '  <div class="erp-modal__footer">' +
-            '    <button type="button" class="erp-btn" data-modal-cancel>取消</button>' +
-            '    <button type="button" class="erp-btn erp-btn--primary" data-modal-ok>确定</button>' +
-            '  </div>' +
+            '  <div class="erp-modal__body" id="growthAdjustBody"></div>' +
+            '  <div class="erp-modal__footer" id="growthAdjustFooter"></div>' +
             '</div>';
+
+        function renderSearchStep() {
+            var body = backdrop.querySelector('#growthAdjustBody');
+            var footer = backdrop.querySelector('#growthAdjustFooter');
+            body.innerHTML =
+                '<div class="erp-modal-field">' +
+                '  <label class="erp-modal-field__label"><span class="erp-req">*</span>搜索会员</label>' +
+                '  <div class="erp-modal-field__control">' +
+                '    <div class="growth-member-search-box">' +
+                '      <input class="erp-input" id="growthMemberKeyword" type="text" placeholder="会员ID / 手机号 / 昵称" autocomplete="off">' +
+                '      <button type="button" class="erp-btn erp-btn--primary" id="growthMemberSearchBtn">搜索</button>' +
+                '    </div>' +
+                '    <div class="growth-member-result" id="growthMemberResult">' +
+                '      <div class="growth-member-result-empty">请先搜索并选择会员</div>' +
+                '    </div>' +
+                '  </div>' +
+                '</div>';
+            footer.innerHTML =
+                '<button type="button" class="erp-btn" data-modal-cancel>取消</button>';
+
+            function doSearch() {
+                var kw = (backdrop.querySelector('#growthMemberKeyword').value || '').trim();
+                var list = searchMembers(kw);
+                var wrap = backdrop.querySelector('#growthMemberResult');
+                if (!kw) {
+                    wrap.innerHTML = '<div class="growth-member-result-empty">请输入会员ID / 手机号 / 昵称</div>';
+                    return;
+                }
+                if (!list.length) {
+                    wrap.innerHTML = '<div class="growth-member-result-empty">未找到匹配会员</div>';
+                    return;
+                }
+                wrap.innerHTML = list.map(function (m) {
+                    return (
+                        '<div class="growth-member-result-item" data-member-id="' + escapeHtml(m.memberId) + '">' +
+                        '  <span>' + escapeHtml(m.memberId) + ' / ' + escapeHtml(m.nickname) + ' / ' + escapeHtml(maskPhone(m.phone)) + '</span>' +
+                        '  <span style="color:#2196F3;">选择</span>' +
+                        '</div>'
+                    );
+                }).join('');
+            }
+
+            backdrop.querySelector('#growthMemberSearchBtn').addEventListener('click', doSearch);
+            backdrop.querySelector('#growthMemberKeyword').addEventListener('keydown', function (ev) {
+                if (ev.key === 'Enter') {
+                    ev.preventDefault();
+                    doSearch();
+                }
+            });
+            backdrop.querySelector('#growthMemberResult').addEventListener('click', function (ev) {
+                var row = ev.target.closest('[data-member-id]');
+                if (!row) return;
+                var id = row.getAttribute('data-member-id');
+                var found = collectMembers().filter(function (m) { return m.memberId === id; })[0];
+                if (!found) return;
+                picked = found;
+                renderAdjustStep();
+            });
+            setTimeout(function () {
+                var input = backdrop.querySelector('#growthMemberKeyword');
+                if (input) input.focus();
+            }, 0);
+        }
+
+        function renderAdjustStep() {
+            var currentValue = getLatestAfterValue(picked.memberId);
+            var body = backdrop.querySelector('#growthAdjustBody');
+            var footer = backdrop.querySelector('#growthAdjustFooter');
+            body.innerHTML =
+                '<div class="erp-modal-field">' +
+                '  <label class="erp-modal-field__label">会员</label>' +
+                '  <div class="erp-modal-field__control">' +
+                '    <div class="growth-adjust-member">' +
+                escapeHtml(picked.memberId) + ' / ' + escapeHtml(picked.nickname) +
+                (picked.phone && picked.phone !== '—' ? ' / ' + escapeHtml(maskPhone(picked.phone)) : '') +
+                '    </div>' +
+                '    <div class="growth-adjust-tip">当前剩余成长值 <strong id="growthRemainValue">' + currentValue + '</strong> 分</div>' +
+                (!presetItem ? '<div class="growth-adjust-tip"><a href="javascript:;" id="growthReselectMember">重新选择会员</a></div>' : '') +
+                '  </div>' +
+                '</div>' +
+                '<div class="erp-modal-field">' +
+                '  <label class="erp-modal-field__label">操作人</label>' +
+                '  <div class="erp-modal-field__control">' +
+                '    <div class="growth-adjust-member">' + escapeHtml(operator) + '</div>' +
+                '  </div>' +
+                '</div>' +
+                '<div class="erp-modal-field">' +
+                '  <label class="erp-modal-field__label"><span class="erp-req">*</span>调整类型</label>' +
+                '  <div class="erp-modal-field__control">' +
+                '    <div class="growth-adjust-radio-row">' +
+                '      <label class="growth-adjust-radio-label"><input type="radio" name="adjType" value="manual_add" checked> 手工增加</label>' +
+                '      <label class="growth-adjust-radio-label"><input type="radio" name="adjType" value="manual_sub"> 手工减少</label>' +
+                '    </div>' +
+                '  </div>' +
+                '</div>' +
+                '<div class="erp-modal-field">' +
+                '  <label class="erp-modal-field__label" for="adjAmount"><span class="erp-req">*</span>调整数值</label>' +
+                '  <div class="erp-modal-field__control">' +
+                '    <input class="erp-input" id="adjAmount" type="number" min="1" step="1" placeholder="请输入正整数">' +
+                '  </div>' +
+                '</div>' +
+                '<div class="erp-modal-field">' +
+                '  <label class="erp-modal-field__label" for="adjRemark"><span class="erp-req">*</span>备注</label>' +
+                '  <div class="erp-modal-field__control">' +
+                '    <textarea class="erp-textarea" id="adjRemark" maxlength="' + REMARK_MAX + '" placeholder="请填写调整原因，最多' + REMARK_MAX + '字"></textarea>' +
+                '  </div>' +
+                '</div>';
+            footer.innerHTML =
+                '<button type="button" class="erp-btn" data-modal-cancel>取消</button>' +
+                '<button type="button" class="erp-btn erp-btn--primary" data-modal-ok>确定</button>';
+
+            var reselect = backdrop.querySelector('#growthReselectMember');
+            if (reselect) {
+                reselect.addEventListener('click', function (ev) {
+                    ev.preventDefault();
+                    picked = null;
+                    renderSearchStep();
+                });
+            }
+
+            backdrop.querySelector('[data-modal-ok]').addEventListener('click', function () {
+                var adjTypeEl = backdrop.querySelector('input[name="adjType"]:checked');
+                var adjType = adjTypeEl ? adjTypeEl.value : '';
+                var amountRaw = ((backdrop.querySelector('#adjAmount') || {}).value || '').trim();
+                var remark = ((backdrop.querySelector('#adjRemark') || {}).value || '').trim();
+                var remain = getLatestAfterValue(picked.memberId);
+
+                if (!adjType) {
+                    toast('请选择调整类型', 'warning');
+                    return;
+                }
+                if (!amountRaw || !/^\d+$/.test(amountRaw) || Number(amountRaw) < 1) {
+                    toast('调整数值须为正整数', 'warning');
+                    return;
+                }
+                if (!remark) {
+                    toast('请填写备注信息', 'warning');
+                    return;
+                }
+
+                var amount = Number(amountRaw);
+                if (adjType === 'manual_sub' && amount > remain) {
+                    toast('扣减数量不得大于会员剩余成长值（当前剩余 ' + remain + ' 分）', 'warning');
+                    return;
+                }
+
+                var change = adjType === 'manual_sub' ? -amount : amount;
+                var afterValue = remain + change;
+                state.list.unshift({
+                    id: genId(),
+                    memberId: picked.memberId,
+                    nickname: picked.nickname,
+                    phone: picked.phone,
+                    acquireType: 'manual',
+                    acquireSub: adjType,
+                    change: change,
+                    afterValue: afterValue,
+                    refNo: '—',
+                    remark: remark,
+                    occurAt: nowStr(),
+                    operator: operator
+                });
+
+                closeAdjustModal();
+                toast(adjType === 'manual_sub' ? '已手工减少成长值' : '已手工增加成长值', 'success');
+                state.page = 1;
+                render(false);
+            });
+
+            setTimeout(function () {
+                var amountInput = backdrop.querySelector('#adjAmount');
+                if (amountInput) amountInput.focus();
+            }, 0);
+        }
 
         backdrop.addEventListener('click', function (ev) {
             if (ev.target === backdrop) closeAdjustModal();
-        });
-        backdrop.querySelectorAll('[data-modal-close], [data-modal-cancel]').forEach(function (btn) {
-            btn.addEventListener('click', closeAdjustModal);
-        });
-
-        backdrop.querySelector('[data-modal-ok]').addEventListener('click', function () {
-            var adjTypeEl = backdrop.querySelector('input[name="adjType"]:checked');
-            var adjType = adjTypeEl ? adjTypeEl.value : '';
-            var amountRaw = ((backdrop.querySelector('#adjAmount') || {}).value || '').trim();
-            var remark = ((backdrop.querySelector('#adjRemark') || {}).value || '').trim();
-
-            if (!adjType) {
-                toast('请选择调整类型', 'warning');
-                return;
-            }
-            if (!amountRaw || !/^\d+$/.test(amountRaw) || Number(amountRaw) < 1) {
-                toast('调整数值须为正整数', 'warning');
-                return;
-            }
-            if (!remark) {
-                toast('请填写备注信息', 'warning');
-                return;
-            }
-
-            var amount = Number(amountRaw);
-            var change = adjType === 'manual_sub' ? -amount : amount;
-            var afterValue = currentValue + change;
-            if (afterValue < 0) {
-                toast('减少后成长值不能小于 0', 'warning');
-                return;
-            }
-
-            state.list.unshift({
-                id: genId(),
-                memberId: item.memberId,
-                nickname: item.nickname,
-                phone: item.phone,
-                acquireType: 'manual',
-                acquireSub: adjType,
-                change: change,
-                afterValue: afterValue,
-                refNo: '—',
-                remark: remark,
-                occurAt: nowStr(),
-                operator: operator
-            });
-
-            closeAdjustModal();
-            toast(adjType === 'manual_sub' ? '已手工减少成长值' : '已手工增加成长值', 'success');
-            state.page = 1;
-            render(false);
+            if (ev.target.closest('[data-modal-close], [data-modal-cancel]')) closeAdjustModal();
         });
 
         document.body.appendChild(backdrop);
-        var amountInput = backdrop.querySelector('#adjAmount');
-        if (amountInput) amountInput.focus();
+        if (picked) renderAdjustStep();
+        else renderSearchStep();
     }
 
     function renderTable(pageItems) {
@@ -730,12 +861,47 @@
                 readFilter();
                 if (state.filter.timeStart && state.filter.timeEnd &&
                     toComparable(state.filter.timeStart) > toComparable(state.filter.timeEnd)) {
-                    toast('开始时间不能晚于结束时间', 'warning');
+                    toast('获取时间起始不能晚于结束时间', 'warning');
                     return;
                 }
                 render(true);
             });
         }
+
+        var adjustBtn = document.getElementById('btnAdjustGrowth');
+        if (adjustBtn) {
+            adjustBtn.addEventListener('click', function () {
+                openAdjustModal(null);
+            });
+        }
+
+        function syncDatetimeClearState() {
+            document.querySelectorAll('[data-datetime-wrap]').forEach(function (wrap) {
+                var input = wrap.querySelector('input');
+                wrap.classList.toggle('has-value', !!(input && input.value));
+            });
+        }
+
+        var searchForm = document.getElementById('growthDetailSearchForm');
+        if (searchForm) {
+            searchForm.addEventListener('click', function (ev) {
+                var btn = ev.target.closest('[data-clear-datetime]');
+                if (!btn) return;
+                var id = btn.getAttribute('data-clear-datetime');
+                var input = document.getElementById(id);
+                if (input) {
+                    input.value = '';
+                    syncDatetimeClearState();
+                }
+            });
+        }
+        ['qTimeStart', 'qTimeEnd'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', syncDatetimeClearState);
+            el.addEventListener('change', syncDatetimeClearState);
+        });
+        syncDatetimeClearState();
 
         var resetBtn = document.getElementById('btnFilterReset');
         if (resetBtn) {
@@ -751,6 +917,7 @@
                     status: ''
                 };
                 syncSubSelect();
+                syncDatetimeClearState();
                 render(true);
             });
         }

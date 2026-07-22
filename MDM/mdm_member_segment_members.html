@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 人群列表</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <style>
+        .segment-members-toolbar {
+            margin: 0 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .segment-members-back {
+            color: #2196F3;
+            text-decoration: none;
+            font-size: 13px;
+        }
+        .segment-members-back:hover { text-decoration: underline; }
+        .segment-members-title-name {
+            font-size: 13px;
+            color: #666;
+        }
+        .segment-members-title-name #segmentNameLabel {
+            font-weight: 600;
+            color: #333;
+        }
+        .segment-members-avatar {
+            display: inline-flex;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 112, 25, 0.12);
+            color: #ff7019;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            overflow: hidden;
+        }
+        .segment-members-datetime-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+        }
+        .datetime-clear-wrap {
+            position: relative;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .datetime-clear-wrap input[type="datetime-local"] {
+            height: 32px;
+            width: 210px;
+            padding: 0 28px 0 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+        .datetime-clear-btn {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            border: none;
+            border-radius: 50%;
+            background: #ddd;
+            color: #666;
+            font-size: 12px;
+            line-height: 18px;
+            text-align: center;
+            cursor: pointer;
+            padding: 0;
+            display: none;
+        }
+        .datetime-clear-wrap.has-value .datetime-clear-btn { display: block; }
+        .datetime-clear-btn:hover { background: #ccc; color: #333; }
+        .segment-members-datetime-row .sep {
+            color: #999;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        .form-group--datetime {
+            flex: 0 0 auto;
+            min-width: 0;
+        }
+        .form-group--datetime > label { white-space: nowrap; }
+        .subject-name-link {
+            color: #2196F3;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .subject-name-link:hover {
+            text-decoration: underline;
+            color: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">人群列表</button></div>
+            <hr class="content-divider">
+            <div class="content-title">业务伙伴 / 会员中心 / 会员分群 / 人群列表</div>
+
+            <div class="segment-members-toolbar">
+                <a class="segment-members-back" id="btnBackSegment" href="mdm_member_segment.html">← 返回会员分群</a>
+                <span class="segment-members-title-name">人群名称：<span id="segmentNameLabel">—</span></span>
+            </div>
+
+            <section class="search-section">
+                <form class="search-form" id="membersSearchForm">
+                    <div class="form-group">
+                        <label>会员:</label>
+                        <div class="input-wrapper">
+                            <input id="qKeyword" placeholder="会员ID / 昵称 / 手机号">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group form-group--datetime">
+                        <label>注册时间:</label>
+                        <div class="segment-members-datetime-row">
+                            <span class="datetime-clear-wrap" data-datetime-wrap>
+                                <input id="qRegStart" type="datetime-local" step="1" title="开始时间">
+                                <button type="button" class="datetime-clear-btn" data-clear-datetime="qRegStart" aria-label="清空">×</button>
+                            </span>
+                            <span class="sep">至</span>
+                            <span class="datetime-clear-wrap" data-datetime-wrap>
+                                <input id="qRegEnd" type="datetime-local" step="1" title="结束时间">
+                                <button type="button" class="datetime-clear-btn" data-clear-datetime="qRegEnd" aria-label="清空">×</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button>
+                        <button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button>
+                        <button type="button" class="erp-btn erp-btn--outline-primary" id="btnExport">导出</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>会员头像</th>
+                                <th>昵称</th>
+                                <th>会员ID</th>
+                                <th>手机号</th>
+                                <th>注册时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/mdm-member-segment-members.js"></script>
+</body>
+</html>

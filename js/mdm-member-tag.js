@@ -413,7 +413,9 @@
                 '<td>' + escapeHtml(item.tagValue) + '</td>' +
                 '<td>' + escapeHtml(item.tagGroup) + '</td>' +
                 '<td>' + escapeHtml(item.tagRule) + '</td>' +
-                '<td>' + item.userCount + '</td>' +
+                '<td>' + (item.userCount > 0
+                    ? '<a href="#" class="subject-name-link" data-action="users">' + item.userCount + '</a>'
+                    : '0') + '</td>' +
                 '<td>' + escapeHtml(item.createdAt) + '</td>' +
                 '<td><span class="status ' + statusClass + '">' + escapeHtml(item.status) + '</span></td>' +
                 '<td class="action-links">' +

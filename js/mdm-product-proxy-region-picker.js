@@ -257,8 +257,137 @@
     });
   }
 
+  function openRegionPickerColumns(options) {
+    options = options || {};
+    var state = {
+      provinceId: '',
+      cityId: '',
+      selected: cloneSelected(options.selected || {})
+    };
+    var backdrop = document.createElement('div');
+    backdrop.className = 'erp-modal-backdrop proxy-region-picker-backdrop';
+    backdrop.setAttribute('data-proxy-region-picker', '1');
+    backdrop.innerHTML =
+      '<div class="erp-modal proxy-region-picker-modal proxy-region-picker-modal--compact">' +
+      '  <div class="erp-modal__header">' +
+      '    <h2 class="erp-modal__title">选择区域</h2>' +
+      '    <div class="erp-modal__header-actions">' +
+      '      <button type="button" class="erp-modal__header-btn" data-region-close aria-label="关闭">&times;</button>' +
+      '    </div>' +
+      '  </div>' +
+      '  <div class="erp-modal__body proxy-region-picker__body proxy-region-picker__body--columns">' +
+      '    <div class="proxy-region-picker__cols">' +
+      '      <div class="proxy-region-picker__col"><div class="proxy-region-picker__col-head">省</div><div class="proxy-region-picker__list" id="proxyRegionColProvince"></div></div>' +
+      '      <div class="proxy-region-picker__col"><div class="proxy-region-picker__col-head">市</div><div class="proxy-region-picker__list" id="proxyRegionColCity"></div></div>' +
+      '      <div class="proxy-region-picker__col"><div class="proxy-region-picker__col-head">区</div><div class="proxy-region-picker__list" id="proxyRegionColDistrict"></div></div>' +
+      '    </div>' +
+      '    <div class="proxy-region-picker__panel proxy-region-picker__panel--right">' +
+      '      <div class="proxy-region-picker__right-head">已选区域</div>' +
+      '      <div class="proxy-region-picker__selected" id="proxyRegionRightList"></div>' +
+      '    </div>' +
+      '  </div>' +
+      '  <div class="erp-modal__footer">' +
+      '    <button type="button" class="erp-btn" data-region-cancel>取消</button>' +
+      '    <button type="button" class="erp-btn erp-btn--primary" data-region-ok>确定</button>' +
+      '  </div>' +
+      '</div>';
+
+    function close() { backdrop.remove(); }
+
+    function renderCol(nodes, focusId, attrName) {
+      if (!nodes || !nodes.length) return '<div class="proxy-region-picker__empty">请先选择上级</div>';
+      return nodes.map(function (node) {
+        var c = countSelected(node, state.selected);
+        var checked = isChecked(node, state.selected);
+        var indeterminate = isIndeterminate(node, state.selected);
+        return (
+          '<div class="proxy-region-picker__row' + (checked || indeterminate ? ' is-active' : '') + (node.id === focusId ? ' is-focus' : '') + '" ' + attrName + '="' + node.id + '">' +
+          '  <label class="proxy-region-picker__check-wrap"><input type="checkbox" class="proxy-region-picker__check" data-node-id="' + node.id + '"' + (checked ? ' checked' : '') + (indeterminate ? ' data-indeterminate="1"' : '') + '></label>' +
+          '  <span class="proxy-region-picker__name">' + escapeHtml(node.name) + '</span>' +
+          (node.children && node.children.length ? '<span class="proxy-region-picker__count' + (checked || indeterminate ? ' is-active' : '') + '">' + c.picked + '/' + c.total + '</span>' : '') +
+          '</div>'
+        );
+      }).join('');
+    }
+
+    function refresh() {
+      var province = REGION_TREE.filter(function (p) { return p.id === state.provinceId; })[0];
+      var cities = province ? (province.children || []) : [];
+      var city = cities.filter(function (c) { return c.id === state.cityId; })[0];
+      var districts = city ? (city.children || []) : [];
+      backdrop.querySelector('#proxyRegionColProvince').innerHTML = renderCol(REGION_TREE, state.provinceId, 'data-province-id');
+      backdrop.querySelector('#proxyRegionColCity').innerHTML = renderCol(cities, state.cityId, 'data-city-id');
+      backdrop.querySelector('#proxyRegionColDistrict').innerHTML = renderCol(districts, '', 'data-district-id');
+      backdrop.querySelector('#proxyRegionRightList').innerHTML = renderRightList(state.selected);
+      applyIndeterminate(backdrop);
+    }
+
+    function toggleNode(nodeId, checked) {
+      var found = findNodeAndPath(nodeId);
+      if (!found) return;
+      getSubtreeIds(found.node).forEach(function (id) {
+        if (checked) state.selected[id] = true;
+        else delete state.selected[id];
+      });
+      refresh();
+    }
+
+    backdrop.addEventListener('click', function (e) {
+      if (e.target === backdrop || e.target.closest('[data-region-close], [data-region-cancel]')) {
+        close();
+        return;
+      }
+      if (e.target.closest('[data-region-ok]')) {
+        if (typeof options.onConfirm === 'function') {
+          options.onConfirm(cloneSelected(state.selected), summarizeSelections(state.selected));
+        }
+        close();
+        return;
+      }
+      var removeBtn = e.target.closest('.proxy-region-picker__selected-remove[data-remove-id]');
+      if (removeBtn) {
+        var items = summarizeSelections(state.selected);
+        for (var i = 0; i < items.length; i++) {
+          if (items[i].id === removeBtn.getAttribute('data-remove-id')) {
+            items[i].removeIds.forEach(function (id) { delete state.selected[id]; });
+            break;
+          }
+        }
+        refresh();
+        return;
+      }
+      if (!e.target.closest('.proxy-region-picker__check-wrap')) {
+        var p = e.target.closest('[data-province-id]');
+        if (p) {
+          state.provinceId = p.getAttribute('data-province-id');
+          state.cityId = '';
+          refresh();
+          return;
+        }
+        var c = e.target.closest('[data-city-id]');
+        if (c) {
+          state.cityId = c.getAttribute('data-city-id');
+          refresh();
+        }
+      }
+    });
+
+    backdrop.addEventListener('change', function (e) {
+      var checkbox = e.target.closest('.proxy-region-picker__check');
+      if (!checkbox) return;
+      toggleNode(checkbox.getAttribute('data-node-id'), checkbox.checked);
+    });
+
+    document.body.appendChild(backdrop);
+    refresh();
+  }
+
   function openRegionPicker(options) {
     options = options || {};
+    if (options.layout === 'columns') {
+      openRegionPickerColumns(options);
+      return;
+    }
     var initial = cloneSelected(options.selected || {});
     var state = {
       pathIds: [],
@@ -270,7 +399,7 @@
     backdrop.className = 'erp-modal-backdrop proxy-region-picker-backdrop';
     backdrop.setAttribute('data-proxy-region-picker', '1');
     backdrop.innerHTML =
-      '<div class="erp-modal proxy-region-picker-modal">' +
+      '<div class="erp-modal proxy-region-picker-modal' + (options.compactHeight ? ' proxy-region-picker-modal--compact' : '') + '">' +
       '  <div class="erp-modal__header">' +
       '    <h2 class="erp-modal__title">选择区域</h2>' +
       '    <div class="erp-modal__header-actions">' +
