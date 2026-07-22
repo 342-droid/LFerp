@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 批量打标签</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-product.css">
+    <link rel="stylesheet" href="../css/mdm-member-segment-filter.css">
+    <style>
+        .batch-tag-form-toolbar {
+            margin: 0 0 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .batch-tag-form-back {
+            color: #2196F3;
+            text-decoration: none;
+            font-size: 13px;
+        }
+        .batch-tag-form-back:hover { text-decoration: underline; }
+        .batch-tag-form-panel {
+            background: #fff;
+            border: 1px solid var(--color-border, #e8e8e8);
+            border-radius: var(--radius-md, 6px);
+            padding: 20px 24px 8px;
+            max-width: 760px;
+        }
+        .batch-tag-form-panel .erp-modal-field__label {
+            flex: 0 0 108px;
+        }
+        .batch-tag-form-footer {
+            margin-top: 16px;
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+            max-width: 760px;
+        }
+        .member-batch-tip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            margin-left: 4px;
+            border-radius: 50%;
+            border: 1px solid #c0c4cc;
+            color: #999;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: help;
+            background: #fff;
+            vertical-align: middle;
+        }
+        .member-tag-radio-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px 24px;
+            align-items: center;
+            min-height: 32px;
+        }
+        .member-tag-radio {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #333;
+            cursor: pointer;
+            user-select: none;
+        }
+        .member-tag-radio input {
+            accent-color: var(--color-primary, #ff7019);
+            margin: 0;
+        }
+        .member-tag-radio.is-disabled {
+            color: #bbb;
+            cursor: not-allowed;
+        }
+        .member-tag-field-hint {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #999;
+            line-height: 1.45;
+        }
+        .member-tag-batch-tags {
+            max-height: 280px;
+            overflow: auto;
+            border: 1px solid var(--color-border, #e8e8e8);
+            border-radius: var(--radius-sm, 4px);
+            background: #fafafa;
+            padding: 8px 10px;
+        }
+        .member-tag-batch-group { margin-bottom: 10px; }
+        .member-tag-batch-group:last-child { margin-bottom: 0; }
+        .member-tag-batch-group__title {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+        .member-tag-batch-group__title strong {
+            color: #555;
+            font-weight: 600;
+        }
+        .member-tag-batch-group__tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+        }
+        .member-tag-check {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #333;
+            cursor: pointer;
+            user-select: none;
+        }
+        .member-tag-check input {
+            accent-color: var(--color-primary, #ff7019);
+            margin: 0;
+        }
+        .member-tag-audience-box {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-start;
+        }
+        .member-tag-audience-summary {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.5;
+        }
+        .member-tag-audience-summary em {
+            font-style: normal;
+            color: var(--color-primary, #ff7019);
+            font-weight: 600;
+        }
+        .member-tag-audience-empty { color: #999; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active" id="formTabTitle">批量打标签</button></div>
+            <hr class="content-divider">
+            <div class="content-title">会员 / 会员360 / 批量打标签 / <span id="formCrumb">新建</span></div>
+
+            <div class="batch-tag-form-toolbar">
+                <a class="batch-tag-form-back" id="btnBackList" href="mdm_member_batch_tag.html">← 返回批量打标签</a>
+            </div>
+
+            <div class="batch-tag-form-panel" id="batchTagForm">
+                <div class="erp-modal-field">
+                    <label class="erp-modal-field__label"><span class="erp-req">*</span>打标方式 <span class="member-batch-tip" title="手动则需要用户手动点击更新，才会触发更新；自动为系统每天凌晨开始更新">?</span></label>
+                    <div class="erp-modal-field__control">
+                        <div class="member-tag-radio-row">
+                            <label class="member-tag-radio"><input type="radio" name="batchUpdateMode" value="manual" checked><span>手动</span></label>
+                            <label class="member-tag-radio"><input type="radio" name="batchUpdateMode" value="auto"><span>自动</span></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="erp-modal-field">
+                    <label class="erp-modal-field__label"><span class="erp-req">*</span>标签值处理</label>
+                    <div class="erp-modal-field__control">
+                        <div class="member-tag-radio-row">
+                            <label class="member-tag-radio"><input type="radio" name="batchApplyMode" value="overwrite" checked><span>覆盖</span></label>
+                            <label class="member-tag-radio" data-batch-apply-add><input type="radio" name="batchApplyMode" value="append"><span>添加</span></label>
+                        </div>
+                        <div class="member-tag-field-hint" data-batch-apply-hint>同一标签组内：覆盖将替换原有标签值；添加则在原有基础上追加（单选标签组仅支持覆盖）</div>
+                    </div>
+                </div>
+                <div class="erp-modal-field">
+                    <label class="erp-modal-field__label"><span class="erp-req">*</span>选择标签</label>
+                    <div class="erp-modal-field__control">
+                        <div class="member-tag-batch-tags" data-batch-tags id="batchTagOptions"></div>
+                    </div>
+                </div>
+                <div class="erp-modal-field">
+                    <label class="erp-modal-field__label"><span class="erp-req">*</span>选择人群</label>
+                    <div class="erp-modal-field__control">
+                        <div class="member-tag-audience-box">
+                            <button type="button" class="erp-btn erp-btn--primary" id="btnPickAudience">筛选人群</button>
+                            <div class="member-tag-audience-summary member-tag-audience-empty" id="audienceSummary">尚未选择人群，请点击「筛选人群」</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="batch-tag-form-footer">
+                <button type="button" class="erp-btn" id="btnCancel">取消</button>
+                <button type="button" class="erp-btn erp-btn--primary" id="btnSave">保存</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/mdm-product-proxy-region-picker.js"></script>
+    <script src="../js/mdm-product-proxy-store-picker.js"></script>
+    <script src="../js/mdm-member-segment-filter.js"></script>
+    <script src="../js/mdm-member-batch-tag-form.js"></script>
+</body>
+</html>

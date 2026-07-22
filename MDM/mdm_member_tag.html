@@ -21,6 +21,12 @@
             color: #e85f10;
             border-color: #e85f10;
         }
+        a.btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
         .member-tag-option-list {
             display: flex;
             flex-direction: column;
@@ -129,6 +135,7 @@
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button>
                         <button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button>
+                        <a class="btn btn-primary" id="btnBatchTag" href="mdm_member_batch_tag_form.html">批量打标签</a>
                         <button type="button" class="btn btn-outline" id="btnAddTag">新增标签</button>
                     </div>
                 </form>

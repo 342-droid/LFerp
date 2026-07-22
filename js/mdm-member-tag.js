@@ -475,6 +475,11 @@
             });
         }
 
+        var batchLink = document.getElementById('btnBatchTag');
+        if (batchLink && window.wmsPath && typeof window.wmsPath.page === 'function') {
+            batchLink.setAttribute('href', window.wmsPath.page('mdm_member_batch_tag_form.html'));
+        }
+
         var queryBtn = document.getElementById('btnFilterQuery');
         if (queryBtn) {
             queryBtn.addEventListener('click', function () {

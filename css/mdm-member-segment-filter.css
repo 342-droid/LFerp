@@ -769,7 +769,13 @@
 
 /* 商品/类目多选弹层 */
 .crm-af-pick-backdrop {
-  z-index: 2700;
+  z-index: 4000;
+}
+
+/* 所在地区 / 绑定门店：必须压过人群筛选弹窗（2600），否则会点不到、像卡住 */
+.crm-audience-filter-backdrop ~ .proxy-region-picker-backdrop,
+.crm-audience-filter-backdrop ~ .proxy-store-picker-backdrop {
+  z-index: 4000;
 }
 
 .crm-af-pick-modal {

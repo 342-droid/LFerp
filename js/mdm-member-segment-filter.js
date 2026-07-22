@@ -1762,6 +1762,9 @@
             renderEditor();
           }
         });
+        // 确保叠在人群筛选弹窗之上（部分页面未加载 lf-product.css 时默认 z-index 仅 2000）
+        var regionPicker = document.querySelector('[data-proxy-region-picker]');
+        if (regionPicker) regionPicker.style.zIndex = '4000';
         return;
       }
 
@@ -1781,6 +1784,8 @@
             renderEditor();
           }
         });
+        var storePicker = document.querySelector('[data-proxy-store-picker]');
+        if (storePicker) storePicker.style.zIndex = '4000';
         return;
       }
 

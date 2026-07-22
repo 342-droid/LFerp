@@ -30,6 +30,11 @@
         if (!samePath && hrefBase === 'mdm_member_segment' && currentPage === 'mdm_member_segment_members') {
             samePath = true;
         }
+        // 批量打标签新建/编辑/人群列表归属「批量打标签」高亮
+        if (!samePath && hrefBase === 'mdm_member_batch_tag' &&
+            (currentPage === 'mdm_member_batch_tag_form' || currentPage === 'mdm_member_batch_tag_members')) {
+            samePath = true;
+        }
         if (!samePath) return false;
         var curHash = String(window.location.hash || '').replace(/^#/, '');
         if (!hash) {
@@ -66,6 +71,7 @@
     const member360Items = [
         { href: 'mdm_member_c.html', text: '会员管理' },
         { href: 'mdm_member_tag.html', text: '会员标签' },
+        { href: 'mdm_member_batch_tag.html', text: '批量打标签' },
         { href: 'mdm_member_segment.html', text: '会员分群' }
     ];
 

@@ -283,6 +283,9 @@
           : '<span style="color:#999;">停用</span>';
         var switchAct = item.updateMode === 'auto' ? 'to-manual' : 'to-auto';
         var switchText = item.updateMode === 'auto' ? '切为手动' : '切为自动';
+        var updateBtn = (item.updateMode === 'manual' && item.status === '启用')
+          ? '<a href="javascript:;" data-act="refresh">更新</a>'
+          : '';
         var membersUrl = pageHref('mdm_member_segment_members.html') +
           '?segmentId=' + encodeURIComponent(item.id) +
           '&name=' + encodeURIComponent(item.name);
@@ -301,6 +304,7 @@
           '  <td class="member-segment-ops">' +
           '    <a href="javascript:;" data-act="filter">筛选条件</a>' +
           '    <a href="javascript:;" data-act="rename">重命名</a>' +
+          (updateBtn ? '    ' + updateBtn : '') +
           '    <a href="javascript:;" data-act="' + switchAct + '">' + switchText + '</a>' +
           '    <a href="javascript:;" data-act="toggle">' + (item.status === '启用' ? '停用' : '启用') + '</a>' +
           '  </td>' +
@@ -455,6 +459,17 @@
             renderTable();
             toast('已重命名', 'success');
           }
+        });
+        return;
+      }
+      if (act === 'refresh') {
+        if (item.updateMode !== 'manual' || item.status !== '启用') return;
+        openWarmConfirm('确认按当前筛选条件立即更新人群？', function () {
+          item.updatedAt = nowStr();
+          item.memberCount = Math.max(1, item.memberCount + Math.floor(Math.random() * 50) - 20);
+          persistList();
+          renderTable();
+          toast('已更新', 'success');
         });
         return;
       }
