@@ -405,15 +405,15 @@ const CommonOptions = {
         { value: '代采订单', text: '代采订单' }
     ],
     // 履约方式选项（采购/门店订货相关页面共用）
-    // 约束：零售订单仅支持「平台配送」；代采订单支持「快递到店」「平台配送」
+    // 约束：零售订单仅支持「平台配送」；代采订单支持「快递配送」「平台配送」
     fulfillmentMethod: [
-        { value: '快递到店', text: '快递到店' },
+        { value: '快递配送', text: '快递配送' },
         { value: '平台配送', text: '平台配送' }
     ],
     // 订单渠道可用履约方式
     orderSourceFulfillmentMap: {
         '零售订单': ['平台配送'],
-        '代采订单': ['快递到店', '平台配送']
+        '代采订单': ['快递配送', '平台配送']
     },
     // 营销类型选项
     marketingType: [
@@ -442,7 +442,7 @@ function getDistributionStatusClass(status) {
     return distributionStatusBadgeClass[status] || 'dist-st-default';
 }
 
-/** 订单渠道是否允许该履约方式（零售订单不含快递到店） */
+/** 订单渠道是否允许该履约方式（零售订单不含快递配送） */
 function isOrderSourceFulfillmentAllowed(orderSource, fulfillmentMethod) {
     var source = String(orderSource || '').trim();
     var method = String(fulfillmentMethod || '').trim();
