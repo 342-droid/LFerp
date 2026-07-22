@@ -961,16 +961,242 @@
     );
   }
 
+  /** 售后寄回快递公司（id=快递100编码；letter=拼音首字母，用于分组排序） */
   var COURIERS = [
-    { id: 'sf', name: '顺丰速运', abbr: '顺' },
-    { id: 'sto', name: '申通快递', abbr: '申' },
-    { id: 'yto', name: '圆通速递', abbr: '圆' },
-    { id: 'zto', name: '中通快递', abbr: '中' },
-    { id: 'yd', name: '韵达快递', abbr: '韵' },
-    { id: 'best', name: '百世快递', abbr: '百' },
-    { id: 'jd', name: '京东物流', abbr: '京' },
-    { id: 'jt', name: '极兔速递', abbr: '极' }
+    { id: 'shunfeng', name: '顺丰速运', abbr: '顺', letter: 'S' },
+    { id: 'zhongtong', name: '中通快递', abbr: '中', letter: 'Z' },
+    { id: 'yuantong', name: '圆通速递', abbr: '圆', letter: 'Y' },
+    { id: 'yunda', name: '韵达快递', abbr: '韵', letter: 'Y' },
+    { id: 'shentong', name: '申通快递', abbr: '申', letter: 'S' },
+    { id: 'jtexpress', name: '极兔速递', abbr: '极', letter: 'J' },
+    { id: 'jd', name: '京东物流', abbr: '京', letter: 'J' },
+    { id: 'ems', name: 'EMS', abbr: 'E', letter: 'E' },
+    { id: 'youzhengguonei', name: '邮政快递包裹', abbr: '邮', letter: 'Y' },
+    { id: 'debangkuaidi', name: '德邦快递', abbr: '德', letter: 'D' },
+    { id: 'debangwuliu', name: '德邦物流', abbr: '邦', letter: 'D' },
+    { id: 'zhongtongkuaiyun', name: '中通快运', abbr: '通', letter: 'Z' },
+    { id: 'annengwuliu', name: '安能物流', abbr: '安', letter: 'A' },
+    { id: 'kuayue', name: '跨越速运', abbr: '跨', letter: 'K' },
+    { id: 'yimidida', name: '壹米滴答', abbr: '壹', letter: 'Y' },
+    { id: 'baishiwuliu', name: '百世快运', abbr: '快', letter: 'B' },
+    { id: 'danniao', name: '丹鸟', abbr: '丹', letter: 'D' },
+    { id: 'zhaijisong', name: '宅急送', abbr: '宅', letter: 'Z' },
+    { id: 'yundakuaiyun', name: '韵达快运', abbr: '达', letter: 'Y' },
+    { id: 'sxjdfreight', name: '顺心捷达', abbr: '心', letter: 'S' },
+    { id: 'youshuwuliu', name: '优速快递', abbr: '优', letter: 'Y' },
+    { id: 'fengwang', name: '丰网速运', abbr: '丰', letter: 'F' },
+    { id: 'suning', name: '苏宁物流', abbr: '苏', letter: 'S' },
+    { id: 'huitongkuaidi', name: '百世快递', abbr: '百', letter: 'B' }
   ];
+  var COURIER_INDEX_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#'.split('');
+  var FREQUENT_COURIER_KEY = 'ua_or_frequent_couriers_v1';
+  var DEFAULT_FREQUENT_COURIER_IDS = ['shunfeng', 'zhongtong', 'yuantong'];
+
+  function getCourierLetter(courier) {
+    var letter = String((courier && courier.letter) || '').toUpperCase();
+    if (/^[A-Z]$/.test(letter)) return letter;
+    return '#';
+  }
+
+  function loadFrequentCourierIds() {
+    try {
+      var raw = localStorage.getItem(FREQUENT_COURIER_KEY);
+      var list = raw ? JSON.parse(raw) : null;
+      if (Array.isArray(list) && list.length) {
+        return list.filter(function (id) {
+          return COURIERS.some(function (c) {
+            return c.id === id;
+          });
+        });
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return DEFAULT_FREQUENT_COURIER_IDS.slice();
+  }
+
+  function rememberFrequentCourier(courierId) {
+    if (!courierId) return;
+    var list = loadFrequentCourierIds().filter(function (id) {
+      return id !== courierId;
+    });
+    list.unshift(courierId);
+    try {
+      localStorage.setItem(FREQUENT_COURIER_KEY, JSON.stringify(list.slice(0, 5)));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function filterCouriersByKeyword(keyword) {
+    var key = String(keyword || '')
+      .trim()
+      .toLowerCase();
+    if (!key) return COURIERS.slice();
+    return COURIERS.filter(function (c) {
+      return (
+        String(c.name).toLowerCase().indexOf(key) >= 0 ||
+        String(c.id).toLowerCase().indexOf(key) >= 0 ||
+        String(c.abbr).toLowerCase().indexOf(key) >= 0 ||
+        String(c.letter).toLowerCase() === key
+      );
+    });
+  }
+
+  function groupCouriersByLetter(list) {
+    var groups = {};
+    list.forEach(function (c) {
+      var letter = getCourierLetter(c);
+      if (!groups[letter]) groups[letter] = [];
+      groups[letter].push(c);
+    });
+    Object.keys(groups).forEach(function (letter) {
+      groups[letter].sort(function (a, b) {
+        return String(a.name).localeCompare(String(b.name), 'zh-CN');
+      });
+    });
+    return groups;
+  }
+
+  function renderCourierPickerList(listEl, keyword, selectedId) {
+    if (!listEl) return;
+    var filtered = filterCouriersByKeyword(keyword);
+    var groups = groupCouriersByLetter(filtered);
+    var html = '';
+
+    if (!keyword) {
+      var frequentIds = loadFrequentCourierIds();
+      var frequent = frequentIds
+        .map(function (id) {
+          return COURIERS.find(function (c) {
+            return c.id === id;
+          });
+        })
+        .filter(Boolean);
+      if (frequent.length) {
+        html +=
+          '<div class="ua-or-courier-picker__section" data-letter="freq">' +
+          '<div class="ua-or-courier-picker__section-title">我常用的快递</div>';
+        frequent.forEach(function (c) {
+          html +=
+            '<button type="button" class="ua-or-courier-picker__item' +
+            (c.id === selectedId ? ' is-selected' : '') +
+            '" data-courier-id="' +
+            escapeHtml(c.id) +
+            '">' +
+            escapeHtml(c.name) +
+            '</button>';
+        });
+        html += '</div>';
+      }
+    }
+
+    COURIER_INDEX_LETTERS.forEach(function (letter) {
+      var items = groups[letter];
+      if (!items || !items.length) return;
+      html +=
+        '<div class="ua-or-courier-picker__section" data-letter="' +
+        escapeHtml(letter) +
+        '" id="courierLetter-' +
+        escapeHtml(letter) +
+        '">' +
+        '<div class="ua-or-courier-picker__letter">' +
+        escapeHtml(letter) +
+        '</div>';
+      items.forEach(function (c) {
+        html +=
+          '<button type="button" class="ua-or-courier-picker__item' +
+          (c.id === selectedId ? ' is-selected' : '') +
+          '" data-courier-id="' +
+          escapeHtml(c.id) +
+          '">' +
+          escapeHtml(c.name) +
+          '</button>';
+      });
+      html += '</div>';
+    });
+
+    if (!html) {
+      html = '<div class="ua-or-courier-picker__empty">未找到相关快递公司</div>';
+    }
+    listEl.innerHTML = html;
+  }
+
+  function renderCourierIndex(indexEl, keyword) {
+    if (!indexEl) return;
+    var filtered = filterCouriersByKeyword(keyword);
+    var available = {};
+    filtered.forEach(function (c) {
+      available[getCourierLetter(c)] = true;
+    });
+    indexEl.innerHTML = COURIER_INDEX_LETTERS.map(function (letter) {
+      var active = !!available[letter];
+      return (
+        '<button type="button" class="ua-or-courier-picker__index-item' +
+        (active ? ' is-active' : '') +
+        '" data-letter="' +
+        escapeHtml(letter) +
+        '"' +
+        (active ? '' : ' disabled') +
+        '>' +
+        escapeHtml(letter) +
+        '</button>'
+      );
+    }).join('');
+  }
+
+  function openCourierPicker(options) {
+    options = options || {};
+    var selectedId = options.selectedId || '';
+    var onSelect = typeof options.onSelect === 'function' ? options.onSelect : null;
+    var sheet = document.getElementById('refundCourierSheet');
+    var listEl = document.getElementById('refundCourierList');
+    var indexEl = document.getElementById('refundCourierIndex');
+    var searchEl = document.getElementById('refundCourierSearch');
+    if (!sheet || !listEl) return;
+
+    function refresh() {
+      var keyword = searchEl ? searchEl.value : '';
+      renderCourierPickerList(listEl, keyword, selectedId);
+      renderCourierIndex(indexEl, keyword);
+    }
+
+    if (searchEl) {
+      searchEl.value = '';
+      searchEl.oninput = refresh;
+    }
+
+    listEl.onclick = function (e) {
+      var btn = e.target.closest('[data-courier-id]');
+      if (!btn) return;
+      var id = btn.getAttribute('data-courier-id');
+      var found = COURIERS.find(function (c) {
+        return c.id === id;
+      });
+      if (!found) return;
+      rememberFrequentCourier(found.id);
+      if (onSelect) onSelect(found);
+      closeSheet('refundCourierSheet');
+    };
+
+    if (indexEl) {
+      indexEl.onclick = function (e) {
+        var btn = e.target.closest('[data-letter]');
+        if (!btn || btn.disabled) return;
+        var letter = btn.getAttribute('data-letter');
+        var target = listEl.querySelector('[data-letter="' + letter + '"]');
+        if (!target) return;
+        var y =
+          target.getBoundingClientRect().top -
+          listEl.getBoundingClientRect().top +
+          listEl.scrollTop;
+        listEl.scrollTop = y;
+      };
+    }
+
+    refresh();
+    openSheet('refundCourierSheet');
+  }
 
   var RETURN_ADDRESSES = {
     store: {
@@ -5842,26 +6068,40 @@
 
   function getCourierServicePhone(courier) {
     var map = {
-      '申通快递': '95543',
-      '顺丰速运': '95338',
-      '圆通速递': '95554',
-      '韵达快递': '95546',
-      '中通快递': '95311',
-      '京东物流': '950616'
+      顺丰速运: '95338',
+      中通快递: '95311',
+      圆通速递: '95554',
+      韵达快递: '95546',
+      申通快递: '95543',
+      极兔速递: '956025',
+      京东物流: '950616',
+      EMS: '11183',
+      邮政快递包裹: '11183',
+      德邦快递: '95353',
+      德邦物流: '95353',
+      中通快运: '95311',
+      安能物流: '4001040178',
+      跨越速运: '95324',
+      壹米滴答: '4001671688',
+      百世快运: '4008856656',
+      丹鸟: '9519165',
+      宅急送: '4006789000',
+      韵达快运: '95546',
+      顺心捷达: '95352',
+      优速快递: '4001111119',
+      丰网速运: '95338',
+      苏宁物流: '95315',
+      百世快递: '9556'
     };
     return map[courier] || '95543';
   }
 
   function getCourierBrandAbbr(courier) {
-    var map = {
-      '申通快递': '申',
-      '顺丰速运': '顺',
-      '圆通速递': '圆',
-      '韵达快递': '韵',
-      '中通快递': '中',
-      '京东物流': '京'
-    };
-    return map[courier] || String(courier || '快').charAt(0);
+    var found = COURIERS.find(function (c) {
+      return c.name === courier;
+    });
+    if (found) return found.abbr;
+    return String(courier || '快').charAt(0);
   }
 
   function formatExpectedPickupRange(app) {
@@ -6832,40 +7072,14 @@
 
     document.getElementById('returnShipCourierRow') &&
       document.getElementById('returnShipCourierRow').addEventListener('click', function () {
-        var list = document.getElementById('refundCourierList');
-        if (!list) return;
-        list.innerHTML = COURIERS.map(function (c) {
-          var checked = state.courierId === c.id;
-          return (
-            '<label class="ua-or-courier__option">' +
-            '<span class="ua-or-courier__logo">' +
-            escapeHtml(c.abbr) +
-            '</span>' +
-            '<span class="ua-or-courier__name">' +
-            escapeHtml(c.name) +
-            '</span>' +
-            '<input type="radio" name="returnShipCourier" value="' +
-            escapeHtml(c.id) +
-            '"' +
-            (checked ? ' checked' : '') +
-            '>' +
-            '<span class="ua-or-courier__radio"></span></label>'
-          );
-        }).join('');
-        list.querySelectorAll('input[name="returnShipCourier"]').forEach(function (input) {
-          input.addEventListener('change', function () {
-            var found = COURIERS.find(function (c) {
-              return c.id === input.value;
-            });
-            if (found) {
-              state.courierId = found.id;
-              state.courierName = found.name;
-              syncTabUI();
-              closeSheet('refundCourierSheet');
-            }
-          });
+        openCourierPicker({
+          selectedId: state.courierId,
+          onSelect: function (found) {
+            state.courierId = found.id;
+            state.courierName = found.name;
+            syncTabUI();
+          }
         });
-        openSheet('refundCourierSheet');
       });
 
     renderDetailInfoCard(app, item, refundType);
