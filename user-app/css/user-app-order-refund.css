@@ -1470,29 +1470,6 @@ body.ua-or-sheet-open {
   letter-spacing: 0.5px;
 }
 
-.ua-or-pickup-board__merge-tip {
-  margin-top: 6px;
-  font-size: 12px;
-  font-weight: 400;
-  color: #888;
-  line-height: 1.4;
-}
-
-.ua-or-pickup-board__merge-tip[hidden] {
-  display: none;
-}
-
-.ua-or-po-code__merge-tip {
-  margin-top: 8px;
-  font-size: 12px;
-  color: #888;
-  line-height: 1.4;
-}
-
-.ua-or-po-code__merge-tip[hidden] {
-  display: none;
-}
-
 .ua-or-pickup-board__guard {
   display: flex;
   align-items: center;
@@ -4857,9 +4834,11 @@ body.ua-or-sheet-open {
 .ua-or-po-code {
   flex-shrink: 0;
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
   margin-left: auto;
+  max-width: 42%;
 }
 
 .ua-or-po-code.is-tappable {

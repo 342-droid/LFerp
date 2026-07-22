@@ -5480,25 +5480,6 @@
       var guardTextEl = document.getElementById('refundPickupGuardText');
       var scheduleLabel = formatRelativePickupSchedule(app.pickupTime);
       if (codeEl) codeEl.textContent = app.pickupCode || '0030';
-      var mergeTipEl = document.getElementById('refundPickupMergeTip');
-      if (!mergeTipEl && codeEl && codeEl.parentNode) {
-        mergeTipEl = document.createElement('div');
-        mergeTipEl.id = 'refundPickupMergeTip';
-        mergeTipEl.className = 'ua-or-pickup-board__merge-tip';
-        codeEl.parentNode.appendChild(mergeTipEl);
-      }
-      if (mergeTipEl) {
-        var mergeEntry = app.pickupMergeKey ? findMergedPickupEntry(app.pickupMergeKey) : null;
-        var memberCount = mergeEntry && mergeEntry.members ? mergeEntry.members.length : 0;
-        if (memberCount > 1 || app.pickupMerged) {
-          mergeTipEl.hidden = false;
-          mergeTipEl.textContent =
-            '同履约、同回退地址的售后已合并物流，共用取件码 ' + (app.pickupCode || '');
-        } else {
-          mergeTipEl.hidden = true;
-          mergeTipEl.textContent = '';
-        }
-      }
       if (scheduleEl) {
         scheduleEl.innerHTML =
           '等待快递员<span class="is-hl">' + scheduleLabel + '</span>上门取件';
@@ -6427,24 +6408,6 @@
 
     var codeEl = document.getElementById('pickupOrderCode');
     if (codeEl && !postCollect) codeEl.textContent = app.pickupCode || '0030';
-    var poMergeTip = document.getElementById('pickupOrderMergeTip');
-    if (!poMergeTip && codeWrap && !postCollect) {
-      poMergeTip = document.createElement('div');
-      poMergeTip.id = 'pickupOrderMergeTip';
-      poMergeTip.className = 'ua-or-po-code__merge-tip';
-      codeWrap.appendChild(poMergeTip);
-    }
-    if (poMergeTip) {
-      var poEntry = app.pickupMergeKey ? findMergedPickupEntry(app.pickupMergeKey) : null;
-      var poCount = poEntry && poEntry.members ? poEntry.members.length : 0;
-      if (!postCollect && (poCount > 1 || app.pickupMerged)) {
-        poMergeTip.hidden = false;
-        poMergeTip.textContent = '同履约、同回退地址售后已合并，取件码一致';
-      } else {
-        poMergeTip.hidden = true;
-        poMergeTip.textContent = '';
-      }
-    }
 
     if (codeWrap && !postCollect) {
       codeWrap.classList.add('is-tappable');
