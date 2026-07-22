@@ -85,7 +85,9 @@ function loadHeader() {
         const wp = window.wmsPath || { page: function (f) { return f; }, asset: function (r) { return r; } };
         const path = window.location.pathname || '';
         const href = window.location.href || '';
-        const pageFile = (path.split('/').pop() || '').toLowerCase();
+        // serve 等会去掉 .html，统一成带后缀的文件名再判断模块
+        let pageFile = (path.split('/').pop() || '').toLowerCase().split('?')[0];
+        if (pageFile && !pageFile.endsWith('.html')) pageFile += '.html';
         const isTmsPage = pageFile.startsWith('tms_') || path.includes('TMS_index.html') || href.includes('TMS_index.html');
         const isPurchasePage = pageFile === 'purchase_index.html' || pageFile.startsWith('purchase_');
         const isBasicSettingsPage = pageFile === 'basic_settings_index.html' || pageFile.startsWith('basic_settings_');
@@ -98,6 +100,7 @@ function loadHeader() {
         const isMdmSettlePage = pageFile.startsWith('mdm_settle_');
         const isMdmBdPage = pageFile.startsWith('mdm_bd_');
         const isMdmProductPage = pageFile.startsWith('mdm_product_');
+        const isMdmMemberPage = pageFile.startsWith('mdm_member_');
         const isMdmBasePage =
             isMdmPage &&
             !isMdmAuditPage &&
@@ -106,7 +109,12 @@ function loadHeader() {
             !isMdmMarketingPage &&
             !isMdmSettlePage;
         const isMdmWorkbenchPage = pageFile === 'mdm_workbench.html';
-        const isMdmDataCenterPage = isMdmBasePage && !isMdmWorkbenchPage && !isMdmBdPage && !isMdmProductPage;
+        const isMdmDataCenterPage =
+            isMdmBasePage &&
+            !isMdmWorkbenchPage &&
+            !isMdmBdPage &&
+            !isMdmProductPage &&
+            !isMdmMemberPage;
         // 直接使用 header HTML 内容，避免 fetch 问题
         const headerHtml = `
             <!-- 顶部导航栏组件 -->
@@ -119,6 +127,7 @@ function loadHeader() {
                     <a href="${wp.page('mobile_index.html')}" class="${isMobilePage ? 'active' : ''}">移动端</a>
                     <a href="${wp.page('mdm_workbench.html')}" class="${isMdmWorkbenchPage ? 'active' : ''}">工作台</a>
                     <a href="${wp.page('mdm_party_store.html')}" class="${isMdmDataCenterPage ? 'active' : ''}">业务伙伴</a>
+                    <a href="${wp.page('mdm_member_c.html')}" class="${isMdmMemberPage ? 'active' : ''}">会员</a>
                     <a href="${wp.page('mdm_product_selection.html')}" class="${isMdmProductPage ? 'active' : ''}">商品</a>
                     <a href="${wp.page('mdm_audit_store_registration.html')}" class="${isMdmAuditPage ? 'active' : ''}">审核中心</a>
                     <a href="${wp.page('mdm_order_retail.html')}" class="${isMdmOrderPage ? 'active' : ''}">订单</a>

@@ -1,22 +1,33 @@
-/* MDM 侧栏：业务伙伴页展示主体/资源/人员/会员；顶栏「审核中心」独立入口页仅展示审核分组 */
+/* MDM 侧栏：业务伙伴页展示主体/资源/人员；会员页展示会员360/会员体系；顶栏「审核中心」独立入口页仅展示审核分组 */
 (function () {
     const wp = window.wmsPath || { page: function (f) { return f; }, asset: function (r) { return r; } };
     const pageHref = function (f) { return wp.page(f); };
     const assetHref = function (r) { return wp.asset(r); };
     const pathForMatch = window.location.pathname.replace(/\\/g, '/');
-    const currentPage = pathForMatch.split('/').pop() || 'mdm_party_store.html';
+    // serve 等静态服务器常去掉 .html，匹配时统一去掉后缀与查询串
+    function pageBase(name) {
+        return String(name || '')
+            .split('?')[0]
+            .split('#')[0]
+            .replace(/\.html$/i, '')
+            .split('/')
+            .pop() || '';
+    }
+    const currentPage = pageBase(pathForMatch.split('/').pop()) || 'mdm_party_store';
 
     function hrefMatchesCurrentPage(href) {
         var full = String(href || '');
         var seg = full.split('#');
         var path = seg[0] || '';
         var hash = seg[1] || '';
+        var hrefBase = pageBase(path);
         var samePath =
-            path === currentPage ||
+            hrefBase === currentPage ||
             pathForMatch.endsWith('/' + path) ||
-            pathForMatch.endsWith(path);
+            pathForMatch.endsWith(path) ||
+            pathForMatch.replace(/\.html$/i, '').endsWith('/' + hrefBase);
         // 人群列表页归属「会员分群」高亮
-        if (!samePath && path === 'mdm_member_segment.html' && /mdm_member_segment_members\.html/i.test(currentPage)) {
+        if (!samePath && hrefBase === 'mdm_member_segment' && currentPage === 'mdm_member_segment_members') {
             samePath = true;
         }
         if (!samePath) return false;
@@ -51,14 +62,19 @@
         { href: 'mdm_people_anchor.html', text: '主播' }
     ];
 
-    const memberItems = [
-        { href: 'mdm_member_c.html', text: 'C端会员' },
+    /** 会员 · 会员360 */
+    const member360Items = [
+        { href: 'mdm_member_c.html', text: '会员管理' },
         { href: 'mdm_member_tag.html', text: '会员标签' },
+        { href: 'mdm_member_segment.html', text: '会员分群' }
+    ];
+
+    /** 会员 · 会员体系 */
+    const memberSystemItems = [
         { href: 'mdm_member_level.html', text: '会员等级' },
         { href: 'mdm_member_level_rule.html', text: '成长值规则' },
         { href: 'mdm_member_level_growth.html', text: '成长值明细' },
-        { href: 'mdm_member_level_desc.html', text: '规则说明' },
-        { href: 'mdm_member_segment.html', text: '会员分群' }
+        { href: 'mdm_member_level_desc.html', text: '规则说明' }
     ];
 
     const auditItems = [
@@ -73,7 +89,13 @@
     const isPartyPage = groupHasActive(partyItems);
     const isArchivePage = groupHasActive(archiveItems);
     const isPeoplePage = groupHasActive(peopleItems);
-    const isMemberPage = groupHasActive(memberItems);
+    const isMember360Page = groupHasActive(member360Items);
+    const isMemberSystemPage = groupHasActive(memberSystemItems);
+    // 兜底：路径以 mdm_member_ 开头即视为会员模块（兼容无html 后缀被剥离）
+    const isMemberPage =
+        isMember360Page ||
+        isMemberSystemPage ||
+        /^mdm_member_/i.test(currentPage);
     const isAuditPage = groupHasActive(auditItems);
 
     /**
@@ -104,24 +126,34 @@
             '</li>';
     }
 
-    /** 顶栏「审核中心」独立入口：仅在该模块页面展示侧栏审核菜单 */
-    var itemsHtml = isAuditPage
-        ? renderCollapsibleGroup('审核中心', '任务管理', auditItems, true)
-        : renderCollapsibleGroup('商家主体', '基础信息', partyItems, isPartyPage) +
-        renderCollapsibleGroup('资源中心', '策略管理', archiveItems, isArchivePage) +
-        renderCollapsibleGroup('人员中心', '权限管理', peopleItems, isPeoplePage) +
-        renderCollapsibleGroup('会员中心', '基础信息', memberItems, isMemberPage);
+    var itemsHtml;
+    if (isAuditPage) {
+        /** 顶栏「审核中心」独立入口：仅在该模块页面展示侧栏审核菜单 */
+        itemsHtml = renderCollapsibleGroup('审核中心', '任务管理', auditItems, true);
+    } else if (isMemberPage) {
+        /** 顶栏「会员」独立入口：两组均默认展开，便于一眼看到完整菜单 */
+        itemsHtml =
+            renderCollapsibleGroup('会员360', '基础信息', member360Items, true) +
+            renderCollapsibleGroup('会员体系', '策略管理', memberSystemItems, true);
+    } else {
+        itemsHtml =
+            renderCollapsibleGroup('商家主体', '基础信息', partyItems, isPartyPage) +
+            renderCollapsibleGroup('资源中心', '策略管理', archiveItems, isArchivePage) +
+            renderCollapsibleGroup('人员中心', '权限管理', peopleItems, isPeoplePage);
+    }
 
     var sidebarContainer = document.getElementById('sidebar-container');
     if (!sidebarContainer) {
         return;
     }
 
+    var sidebarTitle = isMemberPage ? '冷丰会员' : '冷丰MDM';
+
     sidebarContainer.innerHTML =
         '<aside class="sidebar" id="sidebar">' +
         '<div class="sidebar-header">' +
-        '<img src="' + assetHref('image/冷丰图标.png') + '" alt="冷丰MDM">' +
-        '<span>冷丰MDM</span>' +
+        '<img src="' + assetHref('image/冷丰图标.png') + '" alt="' + sidebarTitle + '">' +
+        '<span>' + sidebarTitle + '</span>' +
         '</div>' +
         '<ul class="sidebar-menu">' + itemsHtml + '</ul>' +
         '</aside>';

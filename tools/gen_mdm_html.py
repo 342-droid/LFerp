@@ -551,7 +551,7 @@ def main():
     mem_inner += "".join(mem_row(m) for m in members) + "</tbody></table></div><div id=\"pagination-container\"></div></section>"
 
     with open(f"{LF}/mdm_member_c.html", "w", encoding="utf-8") as f:
-        f.write(page_shell("冷丰WMS - C端会员", "C端会员", "业务伙伴 / 会员中心 / C端会员列表", mem_inner, "        MdmErpLists.initMemberC();"))
+        f.write(page_shell("冷丰WMS - 会员管理", "会员管理", "会员 / 会员360 / 会员管理", mem_inner, "        MdmErpLists.initMemberC();"))
 
     AUD = [
         dict(id="WF-STORE-20260507001", src="PC 创建门店", sub="冷丰演示门店", sn="冷丰演示门店文一西路店", bd="王强", ct="周敏", ph="138****2201", ast="待审核", mdm="未生成", ts="2026-05-07 15:20", rv=True),

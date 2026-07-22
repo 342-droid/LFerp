@@ -2741,7 +2741,7 @@
 
     function initMemberC() {
         var pm = new PageManager({
-            entityName: 'C端会员',
+            entityName: '会员管理',
             checkboxColumn: false,
             fields: [],
             pageSize: 10,
