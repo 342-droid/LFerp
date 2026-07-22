@@ -725,6 +725,26 @@
   word-break: break-all;
 }
 
+.aftersale-apply-field__select {
+  display: block;
+  width: 100%;
+  max-width: 220px;
+  height: 32px;
+  margin-top: 2px;
+  padding: 0 8px;
+  border: 1px solid #dcdfe6;
+  border-radius: 3px;
+  background: #fff;
+  color: #303133;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.aftersale-apply-field__select:focus {
+  outline: none;
+  border-color: var(--color-primary, #ff7019);
+}
+
 .aftersale-apply-proof {
   margin-top: 4px;
 }
@@ -830,6 +850,40 @@
   cursor: pointer;
   border: 0;
   font-size: 13px;
+}
+
+/* 补货等场景：退款金额固定展示，不可编辑 */
+.aftersale-goods-fixed {
+  display: inline-block;
+  min-width: 72px;
+  padding: 4px 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #303133;
+}
+
+/* 商品明细：点击编辑后的文本框 */
+.aftersale-goods-input {
+  display: inline-block;
+  width: 88px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  color: #303133;
+  font-size: 13px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.aftersale-goods-input:focus {
+  outline: none;
+  border-color: var(--color-primary, #ff7019);
+}
+
+.aftersale-goods-table tr.is-editing td {
+  background: #fffaf5;
 }
 
 .aftersale-goods-edit:hover {

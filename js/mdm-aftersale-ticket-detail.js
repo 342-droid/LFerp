@@ -13,6 +13,7 @@
     '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 3h7l5 5v13a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" stroke-width="1.6"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6"/></svg>';
 
   var ALL_TYPES = ['仅退款', '退货退款', '补货', '换货'];
+  var GOODS_STATUS_OPTIONS = ['已收到货', '未收到货'];
   var SUPPLIER_RECEIVE_ADDR_KEY = 'mdm_supplier_receive_addr_v1';
   var DEMO_SUPPLIER_ID = 'SUP-DEMO-001';
   var COURIERS = ['申通快递', '顺丰速运', '圆通速递', '韵达快递', '京东物流', '中通快递'];
@@ -127,7 +128,13 @@
     selectedAddrId: '',
     addrList: [],
     cancelShipReason: '',
-    auditAction: ''
+    auditAction: '',
+    /** 行内编辑：货物状态下拉 / 商品明细文本框 */
+    editing: {
+      goodsStatus: false,
+      amountIdx: -1,
+      qtyIdx: -1
+    }
   };
 
   function $(id) {
@@ -197,6 +204,146 @@
   /** 仅「仅退款 / 退货退款」会生成退款单；换货、补货不产生退款 */
   function createsRefundDoc(type) {
     return type === '仅退款' || type === '退货退款';
+  }
+
+  /** 申请时订单处于待收货 / 待自提 / 已完成 */
+  function isPostReceiveOrderStatus(orderStatus) {
+    return orderStatus === '待收货' || orderStatus === '待自提' || orderStatus === '已完成';
+  }
+
+  function isPreShipOrderStatus(orderStatus) {
+    return orderStatus === '待发货';
+  }
+
+  function applyInfoType(detail) {
+    return isPending(detail.status) ? state.approveType : detail.type;
+  }
+
+  /**
+   * 货物状态展示规则（按售后类型 + 申请时订单状态）：
+   * - 补货 / 待发货仅退款：展示「/」，不可改
+   * - 待收货(待自提)/已完成 + 仅退款：可选已收到货/未收到货，待审批时可改
+   * - 待收货(待自提)/已完成 + 退货退款：固定已收到货，不可改
+   */
+  function resolveGoodsStatusMode(type, orderStatus) {
+    if (type === '补货') {
+      return { mode: 'na', value: '/' };
+    }
+    if (type === '仅退款' && isPreShipOrderStatus(orderStatus)) {
+      return { mode: 'na', value: '/' };
+    }
+    if (type === '仅退款' && isPostReceiveOrderStatus(orderStatus)) {
+      return { mode: 'editable', value: null };
+    }
+    if (type === '退货退款' && isPostReceiveOrderStatus(orderStatus)) {
+      return { mode: 'fixed', value: '已收到货' };
+    }
+    if (type === '换货' && isPostReceiveOrderStatus(orderStatus)) {
+      return { mode: 'fixed', value: '已收到货' };
+    }
+    return { mode: 'na', value: '/' };
+  }
+
+  function demoRefundReason(type, goodsStatus, orderStatus) {
+    if (type === '补货') return '收到商品破损/污渍等';
+    if (type === '换货') return '质量问题';
+    if (type === '退货退款') return '质量问题';
+    if (type === '仅退款' && isPreShipOrderStatus(orderStatus)) return '我不想要了';
+    if (goodsStatus === '未收到货') return '不喜欢/不想要';
+    return '质量问题';
+  }
+
+  function syncGoodsStatusForType(detail, type) {
+    if (!detail || !detail.apply) return;
+    var mode = resolveGoodsStatusMode(type, detail.orderApplyStatus);
+    if (mode.mode === 'fixed') {
+      detail.apply.goodsStatus = mode.value;
+    } else if (mode.mode === 'editable' && GOODS_STATUS_OPTIONS.indexOf(detail.apply.goodsStatus) < 0) {
+      detail.apply.goodsStatus = '未收到货';
+    }
+  }
+
+  function clearInlineEditing() {
+    state.editing.goodsStatus = false;
+    state.editing.amountIdx = -1;
+    state.editing.qtyIdx = -1;
+  }
+
+  function refreshGoodsSummary(detail) {
+    if (!detail || !detail.goods) return;
+    var refundAmount = 0;
+    var refundQty = 0;
+    detail.goods.forEach(function (g) {
+      refundAmount += Number(g.refundAmount) || 0;
+      refundQty += Number(isRestockGoods(detail) ? g.restockQty || g.refundQty : g.refundQty) || 0;
+    });
+    detail.summary = detail.summary || {};
+    detail.summary.refundAmount = Math.round(refundAmount * 100) / 100;
+    detail.summary.refundQty = refundQty;
+  }
+
+  function isRestockGoods(detail) {
+    return goodsTableType(detail) === '补货';
+  }
+
+  function focusActiveEditor() {
+    var sel = $('asGoodsStatus');
+    if (sel) {
+      sel.focus();
+      return;
+    }
+    var inp = document.querySelector('.js-as-goods-input');
+    if (inp) {
+      inp.focus();
+      if (typeof inp.select === 'function') inp.select();
+    }
+  }
+
+  /** 将行内输入写入模型；校验失败返回 false */
+  function applyGoodsInputValue(input) {
+    if (!input || !state.detail || !state.detail.goods) return true;
+    var idx = parseInt(input.getAttribute('data-idx'), 10);
+    var editType = input.getAttribute('data-edit');
+    var g = state.detail.goods[idx];
+    if (!g || isNaN(idx)) return true;
+    var raw = String(input.value || '').trim();
+    if (editType === 'amount') {
+      var amount = parseFloat(raw);
+      if (isNaN(amount) || amount < 0) {
+        if (typeof showToast === 'function') showToast('请输入有效的退款金额', 'error');
+        return false;
+      }
+      g.refundAmount = Math.round(amount * 100) / 100;
+    } else if (editType === 'qty') {
+      var qty = parseInt(raw, 10);
+      if (isNaN(qty) || qty < 0) {
+        if (typeof showToast === 'function') {
+          showToast(
+            isRestockGoods(state.detail) ? '请输入有效的补货数量' : '请输入有效的退款数量',
+            'error'
+          );
+        }
+        return false;
+      }
+      g.refundQty = qty;
+      if (isRestockGoods(state.detail)) g.restockQty = qty;
+    }
+    refreshGoodsSummary(state.detail);
+    return true;
+  }
+
+  function commitGoodsInput(input) {
+    if (!applyGoodsInputValue(input)) {
+      focusActiveEditor();
+      return;
+    }
+    clearInlineEditing();
+    renderPage();
+  }
+
+  function commitOpenGoodsInput() {
+    var inp = document.querySelector('.js-as-goods-input');
+    if (inp) applyGoodsInputValue(inp);
   }
 
   /**
@@ -644,6 +791,26 @@
     // 履约方式枚举仅：快递、配送（可用 query delivery 覆盖，历史值会归一化）
     var orderSource = queryParam('orderSource') || '代采';
     var deliveryMode = normalizeFulfillmentMode(queryParam('delivery') || '快递');
+    // 申请时订单状态：待发货 / 待收货 / 待自提 / 已完成（可用 query orderStatus 覆盖）
+    var orderApplyStatus = queryParam('orderStatus') || '';
+    if (!orderApplyStatus) {
+      if (type === '仅退款' && queryParam('preShip') === '1') {
+        orderApplyStatus = '待发货';
+      } else if (type === '补货' || type === '换货' || type === '退货退款') {
+        orderApplyStatus = isDone ? '已完成' : '待收货';
+      } else {
+        orderApplyStatus = isDone ? '已完成' : '待收货';
+      }
+    }
+
+    var goodsStatusSeed = '';
+    var goodsModeSeed = resolveGoodsStatusMode(type, orderApplyStatus);
+    if (goodsModeSeed.mode === 'fixed') {
+      goodsStatusSeed = goodsModeSeed.value;
+    } else if (goodsModeSeed.mode === 'editable') {
+      goodsStatusSeed = queryParam('goodsStatus') || (isDone ? '已收到货' : '未收到货');
+      if (GOODS_STATUS_OPTIONS.indexOf(goodsStatusSeed) < 0) goodsStatusSeed = '未收到货';
+    }
 
     var detail = {
       id: id,
@@ -654,9 +821,10 @@
       waitTime: '-',
       orderSource: orderSource,
       deliveryMode: deliveryMode,
+      orderApplyStatus: orderApplyStatus,
       apply: {
-        reasonL1: isDone ? '质量问题' : '其他',
-        reasonL2: '-',
+        goodsStatus: goodsStatusSeed,
+        refundReason: demoRefundReason(type, goodsStatusSeed, orderApplyStatus),
         ratio: '-',
         desc: isDone ? '1111111' : 'eee',
         proofCount: isDone ? 1 : 0
@@ -665,9 +833,10 @@
         {
           name: productName,
           spec: productSpec,
-          refundAmount: amount,
+          refundAmount: type === '补货' ? 0 : amount,
           refundQty: qty,
           applyAmount: amount,
+          applyQty: qty,
           buyQty: qty,
           paidAmount: amount,
           couponShare: 0,
@@ -678,7 +847,7 @@
         }
       ],
       summary: {
-        refundAmount: amount,
+        refundAmount: type === '补货' ? 0 : amount,
         refundQty: qty,
         coupon: 0,
         points: 0,
@@ -686,7 +855,7 @@
       },
       approval: {
         result: status === '已完成' ? '已通过' : status === '已拒绝' ? '已拒绝' : '-',
-        refundAmount: amount,
+        refundAmount: type === '补货' ? 0 : amount,
         refundQty: qty,
         coupon: 0,
         points: 0,
@@ -708,7 +877,7 @@
         receiver: applicant,
         phone: isDone ? '17739589272' : '15236806537',
         amount: isDone ? 17 : 0.6,
-        status: isDone ? '已关闭' : '已完成',
+        status: isDone ? '已关闭' : orderApplyStatus,
         source: orderSource,
         store: '德清乾元天恩冷丰店'
       },
@@ -958,6 +1127,67 @@
     );
   }
 
+  function renderGoodsStatusField(detail) {
+    var type = applyInfoType(detail);
+    var mode = resolveGoodsStatusMode(type, detail.orderApplyStatus);
+    var pending = isPending(detail.status);
+    var label = '<span class="aftersale-apply-field__label">货物状态</span>';
+
+    if (mode.mode === 'na') {
+      return (
+        '<div class="aftersale-apply-field">' +
+        label +
+        '<div class="aftersale-apply-field__value">/</div></div>'
+      );
+    }
+
+    if (mode.mode === 'fixed') {
+      return (
+        '<div class="aftersale-apply-field">' +
+        label +
+        '<div class="aftersale-apply-field__value">' +
+        escapeHtml(mode.value) +
+        '</div></div>'
+      );
+    }
+
+    // editable：默认展示值+编辑图标；点击后变为下拉
+    var current =
+      GOODS_STATUS_OPTIONS.indexOf(detail.apply.goodsStatus) >= 0
+        ? detail.apply.goodsStatus
+        : '未收到货';
+    if (pending && state.editing.goodsStatus) {
+      var options = GOODS_STATUS_OPTIONS.map(function (opt) {
+        return (
+          '<option value="' +
+          escapeHtml(opt) +
+          '"' +
+          (opt === current ? ' selected' : '') +
+          '>' +
+          escapeHtml(opt) +
+          '</option>'
+        );
+      }).join('');
+      return (
+        '<div class="aftersale-apply-field">' +
+        label +
+        '<select class="aftersale-apply-field__select" id="asGoodsStatus" aria-label="货物状态">' +
+        options +
+        '</select></div>'
+      );
+    }
+    return (
+      '<div class="aftersale-apply-field">' +
+      label +
+      '<button type="button" class="aftersale-goods-edit js-as-edit-goods-status"' +
+      (pending ? '' : ' disabled') +
+      '>' +
+      escapeHtml(current) +
+      EDIT_SVG +
+      '</button></div>'
+    );
+  }
+
   function renderApply(detail) {
     var a = detail.apply;
     var proofInner =
@@ -968,8 +1198,8 @@
       '<section class="aftersale-detail-card">' +
       '<h2 class="aftersale-detail-card__title">售后申请信息</h2>' +
       '<div class="aftersale-apply-grid">' +
-      field('一级退款原因', a.reasonL1) +
-      field('二级退款原因', a.reasonL2) +
+      renderGoodsStatusField(detail) +
+      field('退款原因', a.refundReason || '/') +
       field('此类问题出现比例', a.ratio) +
       '<div class="aftersale-apply-field aftersale-apply-field--desc">' +
       '<span class="aftersale-apply-field__label">补充描述</span>' +
@@ -985,26 +1215,78 @@
     );
   }
 
+  function goodsTableType(detail) {
+    return isPending(detail.status) ? state.approveType : detail.type;
+  }
+
+  function renderGoodsAmountCell(g, idx, editable, isRestock) {
+    if (isRestock) {
+      return '<span class="aftersale-goods-fixed">' + money(0) + '</span>';
+    }
+    if (editable && state.editing.amountIdx === idx) {
+      return (
+        '<input type="text" class="aftersale-goods-input js-as-goods-input" data-edit="amount" data-idx="' +
+        idx +
+        '" value="' +
+        escapeHtml(g.refundAmount) +
+        '" inputmode="decimal" aria-label="退款金额">'
+      );
+    }
+    return (
+      '<button type="button" class="aftersale-goods-edit js-as-edit-amount" data-idx="' +
+      idx +
+      '"' +
+      (editable ? '' : ' disabled') +
+      '>' +
+      money(g.refundAmount) +
+      EDIT_SVG +
+      '</button>'
+    );
+  }
+
+  function renderGoodsQtyCell(g, idx, editable, isRestock) {
+    var qtyValue = isRestock ? g.restockQty || g.refundQty : g.refundQty;
+    var qtyAria = isRestock ? '补货数量' : '退款数量';
+    if (editable && state.editing.qtyIdx === idx) {
+      return (
+        '<input type="text" class="aftersale-goods-input js-as-goods-input" data-edit="qty" data-idx="' +
+        idx +
+        '" value="' +
+        escapeHtml(qtyValue) +
+        '" inputmode="numeric" aria-label="' +
+        qtyAria +
+        '">'
+      );
+    }
+    return (
+      '<button type="button" class="aftersale-goods-edit js-as-edit-qty" data-idx="' +
+      idx +
+      '"' +
+      (editable ? '' : ' disabled') +
+      '>' +
+      escapeHtml(qtyValue) +
+      EDIT_SVG +
+      '</button>'
+    );
+  }
+
   function renderGoods(detail, editable) {
+    var isRestock = goodsTableType(detail) === '补货';
+    var qtyLabel = isRestock ? '补货数量' : '退款数量';
+    var applyLabel = isRestock ? '用户申请数量' : '用户申请金额';
     var rows = detail.goods
-      .map(function (g) {
-        // 设计稿已完成态仍展示橙色编辑态单元格
-        var amtCell =
-          '<button type="button" class="aftersale-goods-edit js-as-edit-amount"' +
-          (editable ? '' : ' disabled') +
-          '>' +
-          money(g.refundAmount) +
-          EDIT_SVG +
-          '</button>';
-        var qtyCell =
-          '<button type="button" class="aftersale-goods-edit js-as-edit-qty"' +
-          (editable ? '' : ' disabled') +
-          '>' +
-          escapeHtml(g.refundQty) +
-          EDIT_SVG +
-          '</button>';
+      .map(function (g, idx) {
+        var amtCell = renderGoodsAmountCell(g, idx, editable, isRestock);
+        var qtyCell = renderGoodsQtyCell(g, idx, editable, isRestock);
+        var applyCell = isRestock
+          ? escapeHtml(g.applyQty != null ? g.applyQty : g.refundQty)
+          : money(g.applyAmount);
         return (
-          '<tr>' +
+          '<tr' +
+          (state.editing.amountIdx === idx || state.editing.qtyIdx === idx
+            ? ' class="is-editing"'
+            : '') +
+          '>' +
           '<td class="aftersale-goods-table__td--product"><div class="aftersale-goods-product">' +
           '<span class="aftersale-goods-product__img" role="img" aria-label="商品图"></span>' +
           '<div><div class="aftersale-goods-product__name">' +
@@ -1017,7 +1299,7 @@
           '</td><td>' +
           qtyCell +
           '</td><td>' +
-          money(g.applyAmount) +
+          applyCell +
           '</td><td>' +
           escapeHtml(g.buyQty) +
           '</td><td>' +
@@ -1040,16 +1322,22 @@
       ' 件商品）</h2>' +
       '<div class="aftersale-goods-table-wrap"><table class="aftersale-goods-table"><thead><tr>' +
       '<th class="aftersale-goods-table__th--product">商品</th>' +
-      '<th>退款金额</th><th>退款数量</th><th>用户申请金额</th><th>购买数量</th>' +
+      '<th>退款金额</th><th>' +
+      qtyLabel +
+      '</th><th>' +
+      applyLabel +
+      '</th><th>购买数量</th>' +
       '<th>实付金额</th><th>优惠券分摊金额</th><th>积分分摊金额</th><th>SKU编码</th>' +
       '</tr></thead><tbody>' +
       rows +
       '</tbody></table>' +
       '<div class="aftersale-goods-summary">' +
       '<div class="aftersale-goods-summary__item">总计退款金额<strong class="is-money">' +
-      money(s.refundAmount) +
+      money(isRestock ? 0 : s.refundAmount) +
       '</strong></div>' +
-      '<div class="aftersale-goods-summary__item">总计退款数量<strong>' +
+      '<div class="aftersale-goods-summary__item">总计' +
+      (isRestock ? '补货数量' : '退款数量') +
+      '<strong>' +
       escapeHtml(s.refundQty) +
       '</strong></div>' +
       '<div class="aftersale-goods-summary__item">总计退还优惠券<strong>' +
@@ -1203,7 +1491,6 @@
       radios +
       '</div></div>' +
       (needsReturnAddrTemplate(state.approveType) ? renderAddrTemplateRow() : '') +
-      '<p class="aftersale-approve-ops__hint">点击底部「审批通过」或「拒绝」后，需二次确认并填写审核原因。</p>' +
       '</div></section>'
     );
   }
@@ -2077,6 +2364,7 @@
     bindShipFormAutoCourier();
     var page = $('asDetailPage');
     if (page) page.classList.toggle('has-footer', pending);
+    focusActiveEditor();
   }
 
   function openAddrModal(onConfirm) {
@@ -2521,14 +2809,36 @@
     var modal = $('asAddrModal');
 
     function onRootClick(e) {
+      var editGoodsStatus = e.target.closest('.js-as-edit-goods-status');
+      if (editGoodsStatus) {
+        if (editGoodsStatus.disabled) return;
+        commitOpenGoodsInput();
+        state.editing.goodsStatus = true;
+        state.editing.amountIdx = -1;
+        state.editing.qtyIdx = -1;
+        renderPage();
+        return;
+      }
       var editAmt = e.target.closest('.js-as-edit-amount');
       if (editAmt) {
-        if (typeof showToast === 'function') showToast('修改退款金额（演示）', 'success');
+        if (editAmt.disabled) return;
+        commitOpenGoodsInput();
+        var amtIdx = parseInt(editAmt.getAttribute('data-idx'), 10);
+        state.editing.goodsStatus = false;
+        state.editing.amountIdx = isNaN(amtIdx) ? 0 : amtIdx;
+        state.editing.qtyIdx = -1;
+        renderPage();
         return;
       }
       var editQty = e.target.closest('.js-as-edit-qty');
       if (editQty) {
-        if (typeof showToast === 'function') showToast('修改退款数量（演示）', 'success');
+        if (editQty.disabled) return;
+        commitOpenGoodsInput();
+        var qtyIdx = parseInt(editQty.getAttribute('data-idx'), 10);
+        state.editing.goodsStatus = false;
+        state.editing.amountIdx = -1;
+        state.editing.qtyIdx = isNaN(qtyIdx) ? 0 : qtyIdx;
+        renderPage();
         return;
       }
       var tag = e.target.closest('.aftersale-reason-tag');
@@ -2790,11 +3100,65 @@
         if (e.target && e.target.name === 'asApproveType') {
           state.approveType = e.target.value;
           if (needsReturnAddrTemplate(state.approveType)) ensureAddrState();
+          syncGoodsStatusForType(state.detail, state.approveType);
+          clearInlineEditing();
+          renderPage();
+          return;
+        }
+        if (e.target && e.target.id === 'asGoodsStatus') {
+          if (state.detail && state.detail.apply) {
+            state.detail.apply.goodsStatus = e.target.value || '';
+          }
+          state.editing.goodsStatus = false;
           renderPage();
           return;
         }
         if (e.target && e.target.id === 'asReturnAddrSelect') {
           state.selectedAddrId = e.target.value || '';
+          renderPage();
+        }
+      });
+
+      body.addEventListener('focusout', function (e) {
+        if (e.target && e.target.id === 'asGoodsStatus') {
+          // 下拉展开选项时可能触发 blur，延迟关闭避免误关
+          setTimeout(function () {
+            if (state.editing.goodsStatus && document.activeElement !== $('asGoodsStatus')) {
+              state.editing.goodsStatus = false;
+              renderPage();
+            }
+          }, 150);
+          return;
+        }
+        if (e.target && e.target.classList && e.target.classList.contains('js-as-goods-input')) {
+          var input = e.target;
+          var idx = parseInt(input.getAttribute('data-idx'), 10);
+          var editType = input.getAttribute('data-edit');
+          var ok = applyGoodsInputValue(input);
+          setTimeout(function () {
+            if (!ok) {
+              focusActiveEditor();
+              return;
+            }
+            if (editType === 'amount' && state.editing.amountIdx !== idx) return;
+            if (editType === 'qty' && state.editing.qtyIdx !== idx) return;
+            if (document.activeElement && document.activeElement.classList.contains('js-as-goods-input')) {
+              return;
+            }
+            clearInlineEditing();
+            renderPage();
+          }, 0);
+        }
+      });
+
+      body.addEventListener('keydown', function (e) {
+        if (!e.target || !e.target.classList || !e.target.classList.contains('js-as-goods-input')) return;
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          commitGoodsInput(e.target);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          clearInlineEditing();
           renderPage();
         }
       });
