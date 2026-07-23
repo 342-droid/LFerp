@@ -800,7 +800,7 @@ if (document.readyState === 'loading') {
  * shop-h5 / user-app 手机端原型不加载 common.js，天然不受影响；这里再做一层路径防御。
  */
 (function () {
-    if (/\/(shop-h5|user-app)\//i.test(window.location.pathname)) return;
+    if (/\/(shop-h5|user-app|store-app)\//i.test(window.location.pathname)) return;
 
     function assetHref(p) {
         return (window.wmsPath && window.wmsPath.asset) ? window.wmsPath.asset(p) : p;

@@ -23,8 +23,8 @@
     }
     function page(filename) {
         filename = normPath(filename);
-        /** shop-h5 / user-app 静态目录：自根目录起的相对路径 */
-        if (/^(shop-h5|user-app)\//i.test(filename)) {
+        /** shop-h5 / user-app / store-app 静态目录：自根目录起的相对路径 */
+        if (/^(shop-h5|user-app|store-app)\//i.test(filename)) {
             var up = inSubModuleFolder() ? '../' : '';
             return up + filename;
         }
