@@ -6,27 +6,89 @@
   <title>首页 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
+  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260723-live">
 </head>
 <body class="user-app-body">
-  <div class="ua-mobile-shell">
-    <div class="ua-scroll ua-home-scroll">
-      <div class="ua-home-placeholder">首页（演示占位）</div>
+  <div class="ua-mobile-shell ua-home-page">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
     </div>
-    <nav class="user-app-tabbar">
+
+    <div class="ua-scroll ua-home-scroll">
+      <div class="ua-home-top">
+        <a href="#" class="ua-home-locate" id="homeLocate">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+          生产验证门店
+        </a>
+      </div>
+
+      <div class="ua-home-live-meta">
+        <div class="ua-home-avatar-wrap">
+          <div class="ua-home-avatar">
+            <img src="../assets/shop/live-avatar.svg" alt="黑灯直播间">
+            <span class="ua-live-pill">
+              <span class="ua-live-pill__bars" aria-hidden="true"><i></i><i></i><i></i></span>
+              直播中
+            </span>
+          </div>
+          <div class="ua-home-live-name">黑灯直播间</div>
+        </div>
+      </div>
+
+      <button type="button" class="ua-home-live-card" id="homeLiveCard">
+        <div class="ua-home-live-card__bg">
+          <div class="ua-home-live-card__content">
+            <h1 class="ua-home-live-card__title">黑灯直播间</h1>
+            <span class="ua-home-live-card__enter" id="homeEnterLiveBtn">
+              <svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="10" width="2.5" height="4"/><rect x="8" y="7" width="2.5" height="10"/><rect x="12" y="5" width="2.5" height="14"/><rect x="16" y="8" width="2.5" height="8"/></svg>
+              点击进入直播间
+            </span>
+            <div class="ua-home-live-card__foot">
+              <div class="ua-home-live-card__brand">
+                <span class="ua-home-live-card__logo">冷丰<br>特选</span>
+                <span>黑灯直播间</span>
+              </div>
+              <span class="ua-live-pill">
+                <span class="ua-live-pill__bars" aria-hidden="true"><i></i><i></i><i></i></span>
+                直播中
+              </span>
+            </div>
+            <p class="ua-home-live-card__time">开播时间 2026-07-16 00:00:00</p>
+          </div>
+        </div>
+      </button>
+    </div>
+
+    <nav class="user-app-tabbar ua-shop-tabbar">
       <span class="ua-tab ua-tab--active">
-        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M4 10.5L12 4l8 6.5V19a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-8.5z"/></svg>
+        <span class="ua-tab-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 10.5L12 4l8 6.5V19a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-8.5z"/></svg>
+        </span>
         <span>首页</span>
       </span>
-      <a href="#" class="ua-tab ua-tab--ai">
-        <span class="ua-tab-ai-btn">AI</span>
-        <span class="ua-tab-label">AI管家</span>
+      <a href="mall.html" class="ua-tab">
+        <span class="ua-tab-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9h16l-1.2 11H5.2L4 9z"/><path d="M8 9V7a4 4 0 018 0v2"/></svg>
+        </span>
+        <span>商城</span>
+      </a>
+      <a href="cart.html" class="ua-tab">
+        <span class="ua-tab-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/><path d="M3 4h2l2.2 11h9.6L19 8H7"/></svg>
+          <span class="ua-tab-badge" data-ua-cart-badge hidden></span>
+        </span>
+        <span>购物车</span>
       </a>
       <a href="profile.html" class="ua-tab">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>
+        <span class="ua-tab-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>
+        </span>
         <span>我的</span>
       </a>
     </nav>
   </div>
-  <script src="../js/user-app-auth.js"></script>
+  <script src="../js/user-app-shop.js?v=20260723-live"></script>
+  <script>UAShop.initHomePage();</script>
 </body>
 </html>

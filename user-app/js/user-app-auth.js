@@ -5,7 +5,6 @@
   var SMS_COOLDOWN = 60;
   var APP_PAGES = [
     'profile.html',
-    'home.html',
     'orders.html',
     'order-detail-shipping.html',
     'order-detail-pickup.html',

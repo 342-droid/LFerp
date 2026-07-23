@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="900" viewBox="0 0 750 900" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a120e"/>
+      <stop offset="55%" stop-color="#2b1a14"/>
+      <stop offset="100%" stop-color="#120c09"/>
+    </linearGradient>
+    <linearGradient id="raw" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e07a6a"/>
+      <stop offset="45%" stop-color="#c24a3a"/>
+      <stop offset="100%" stop-color="#8a2a22"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f6e2a8"/>
+      <stop offset="100%" stop-color="#c9a24a"/>
+    </linearGradient>
+  </defs>
+  <rect width="750" height="900" fill="url(#bg)"/>
+  <ellipse cx="420" cy="480" rx="260" ry="220" fill="#3a2018" opacity="0.55"/>
+  <!-- chopsticks -->
+  <g transform="translate(180 220) rotate(18)">
+    <rect x="40" y="20" width="18" height="420" rx="8" fill="#d8b07a"/>
+    <rect x="78" y="8" width="18" height="420" rx="8" fill="#c99a62"/>
+  </g>
+  <!-- raw beef chunk -->
+  <g transform="translate(250 300)">
+    <ellipse cx="160" cy="180" rx="150" ry="120" fill="url(#raw)"/>
+    <path d="M40 170c25-70 90-115 170-105 55 8 100 50 115 105-25 55-85 95-155 98-70 3-115-35-130-98z" fill="#a8382c"/>
+    <path d="M70 150c30-40 85-55 140-35 35 12 60 40 72 70-30 20-75 35-125 35-52 0-78-30-87-70z" fill="#f0c8b0" opacity="0.55"/>
+    <path d="M95 130c40-18 95-15 140 20" stroke="#f7d8c4" stroke-width="10" stroke-linecap="round" opacity="0.5"/>
+    <circle cx="130" cy="160" r="16" fill="#f4d2bc" opacity="0.45"/>
+  </g>
+  <!-- vertical calligraphy -->
+  <text x="108" y="250" fill="url(#gold)" font-family="Songti SC, STSong, serif" font-size="86" font-weight="700" writing-mode="tb" letter-spacing="18">q[‰</text>
+  <!-- badge -->
+  <rect x="200" y="220" width="36" height="150" rx="8" fill="#c0392b"/>
+  <text x="218" y="245" fill="#fff" font-family="PingFang SC, sans-serif" font-size="18" writing-mode="tb" letter-spacing="6">[‰ öŽ‰</text>
+</svg>
