@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+<rect width="400" height="400" fill="#f4efe6"/>
+<rect x="70" y="90" width="160" height="200" rx="12" fill="#f7f7f7" stroke="#ddd" stroke-width="3"/>
+<text x="150" y="180" text-anchor="middle" font-size="22" font-family="PingFang SC,sans-serif" fill="#333">鸭杂</text>
+<text x="150" y="210" text-anchor="middle" font-size="14" font-family="PingFang SC,sans-serif" fill="#888">复合包</text>
+<ellipse cx="275" cy="230" rx="70" ry="55" fill="#f3d7a8" stroke="#d8b07a" stroke-width="3"/>
+<path d="M230 220c20-25 50-35 80-20" fill="none" stroke="#c4985a" stroke-width="3"/>
+</svg>

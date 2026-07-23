@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="960" viewBox="0 0 720 960">
+<defs>
+<radialGradient id="spot" cx="50%" cy="18%" r="58%"><stop offset="0%" stop-color="#6a4a28"/><stop offset="42%" stop-color="#24180f"/><stop offset="100%" stop-color="#0d0a08"/></radialGradient>
+<linearGradient id="beamL" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#d4a96a" stop-opacity=".62"/><stop offset="100%" stop-color="#d4a96a" stop-opacity="0"/></linearGradient>
+<linearGradient id="beamR" x1="1" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d4a96a" stop-opacity=".62"/><stop offset="100%" stop-color="#d4a96a" stop-opacity="0"/></linearGradient>
+<linearGradient id="glow" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c98a4a" stop-opacity=".55"/><stop offset="100%" stop-color="#c98a4a" stop-opacity="0"/></linearGradient>
+</defs>
+<rect width="720" height="960" fill="url(#spot)"/>
+<path d="M110 0 L295 540 L175 540 Z" fill="url(#beamL)"/>
+<path d="M610 0 L425 540 L545 540 Z" fill="url(#beamR)"/>
+<ellipse cx="360" cy="780" rx="150" ry="28" fill="url(#glow)"/>
+<path d="M230 640 L490 640 L455 780 L265 780 Z" fill="#8b2f1f"/>
+<path d="M245 640 L475 640 L450 605 L270 605 Z" fill="#a8432a"/>
+<path d="M265 780 L455 780 L440 820 L280 820 Z" fill="#6d2418"/>
+<path d="M270 650 L450 650 L430 760 L290 760 Z" fill="#e7c49a" opacity=".55"/>
+</svg>

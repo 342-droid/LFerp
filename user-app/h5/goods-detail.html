@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>商品详情 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-profile.css">
+  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260723-goods">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-gd-page">
+    <div class="ua-mp-capsule ua-mp-capsule--light" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-gd-scroll" id="goodsDetailScroll">
+      <section class="ua-gd-hero">
+        <a href="mall.html" class="ua-gd-hero__back" id="goodsDetailBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <img class="ua-gd-hero__img" id="goodsDetailHero" src="../assets/shop/beef-hero.svg" alt="">
+        <div class="ua-gd-hero__tags" id="goodsDetailTags">
+          <span class="ua-gd-hero__tag">
+            <i></i>精选新鲜牛后腿肉
+          </span>
+          <span class="ua-gd-hero__tag">
+            <i></i>大块整切 拒绝合成
+          </span>
+        </div>
+      </section>
+
+      <section class="ua-gd-info">
+        <div class="ua-gd-info__price-row">
+          <div class="ua-gd-info__prices">
+            <span class="ua-gd-info__price" id="goodsDetailPrice"><small>¥</small>96.8</span>
+            <span class="ua-gd-info__origin" id="goodsDetailOrigin">¥196.8</span>
+          </div>
+          <span class="ua-gd-info__sold" id="goodsDetailSold">已售888</span>
+        </div>
+        <h1 class="ua-gd-info__title" id="goodsDetailTitle">精选金钱牛腱子肉 软嫩弹牙</h1>
+        <p class="ua-gd-info__service" id="goodsDetailService">坏了包退 三天内到货</p>
+      </section>
+
+      <section class="ua-gd-pickup">
+        <div class="ua-gd-pickup__main">
+          <div class="ua-gd-pickup__store" id="goodsDetailPickupStore">提货点：冷丰特选-博地中心店</div>
+          <div class="ua-gd-pickup__meta">
+            <span class="ua-gd-pickup__dist">据您<span id="goodsDetailDistance">180m</span></span>
+            <span class="ua-gd-pickup__badge" id="goodsDetailPickupBadge">后天可提</span>
+          </div>
+        </div>
+      </section>
+
+      <button type="button" class="ua-gd-spec" id="goodsDetailSpecRow">
+        <span class="ua-gd-spec__label">规格</span>
+        <span class="ua-gd-spec__value" id="goodsDetailSpecValue">精选金钱牛腱子肉 1kg</span>
+        <span class="ua-gd-spec__more">共<span id="goodsDetailSpecCount">5</span>款</span>
+        <svg class="ua-gd-spec__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+
+      <section class="ua-gd-review">
+        <div class="ua-gd-review__head">
+          <h2 class="ua-gd-review__title">商品评价 (<span id="goodsDetailReviewCount">1906</span>)</h2>
+          <button type="button" class="ua-gd-review__more" id="goodsDetailReviewMore">查看更多 <span>›</span></button>
+        </div>
+        <div class="ua-gd-review__user">
+          <img class="ua-gd-review__avatar" src="../assets/shop/review-avatar.svg" alt="">
+          <div class="ua-gd-review__user-meta">
+            <div class="ua-gd-review__name">宁静致远</div>
+            <div class="ua-gd-review__stars" aria-label="5星">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </div>
+        </div>
+        <p class="ua-gd-review__spec">规格：精选金钱牛腱子肉1kg;</p>
+        <p class="ua-gd-review__text">冷丰特选上东西的品质都很好，家里的大人小孩都爱吃，吃完还会回购的。</p>
+        <div class="ua-gd-review__photos">
+          <img src="../assets/shop/beef-review-1.svg" alt="">
+          <img src="../assets/shop/beef-review-2.svg" alt="">
+          <img src="../assets/shop/beef-review-3.svg" alt="">
+        </div>
+      </section>
+
+      <section class="ua-gd-detail">
+        <div class="ua-gd-detail__divider"><span>商品详情</span></div>
+        <img class="ua-gd-detail__img" id="goodsDetailDetailImg" src="../assets/shop/beef-detail.svg" alt="商品详情">
+      </section>
+    </div>
+
+    <footer class="ua-gd-footer">
+      <button type="button" class="ua-gd-footer__icon" id="goodsDetailServiceBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+          <path d="M4.5 13.5v-1.2a7.5 7.5 0 0115 0v1.2"/>
+          <path d="M6.5 13.5v2.2a1.8 1.8 0 001.8 1.8H10v-4H6.5zM14 13.5v4h1.7a1.8 1.8 0 001.8-1.8v-2.2H14z"/>
+          <path d="M12 19.5v1"/>
+        </svg>
+        <span>客服</span>
+      </button>
+      <button type="button" class="ua-gd-footer__icon" id="goodsDetailShareBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+          <path d="M12 3v11"/>
+          <path d="M8 7l4-4 4 4"/>
+          <path d="M5 12v7a1 1 0 001 1h12a1 1 0 001-1v-7"/>
+        </svg>
+        <span>分享</span>
+      </button>
+      <div class="ua-gd-footer__actions">
+        <button type="button" class="ua-gd-footer__cart" id="goodsDetailAddCart">加入购物车</button>
+        <button type="button" class="ua-gd-footer__buy" id="goodsDetailBuyNow">立即购买</button>
+      </div>
+    </footer>
+
+    <div class="ua-gd-sheet" id="goodsDetailSpecSheet" hidden>
+      <div class="ua-gd-sheet__mask" data-gd-close></div>
+      <div class="ua-gd-sheet__panel">
+        <div class="ua-gd-sheet__head">
+          <h3>选择规格</h3>
+          <button type="button" class="ua-gd-sheet__close" data-gd-close aria-label="关闭">×</button>
+        </div>
+        <div class="ua-gd-sheet__list" id="goodsDetailSpecList"></div>
+        <div class="ua-gd-sheet__foot">
+          <button type="button" class="ua-gd-sheet__confirm" id="goodsDetailSpecConfirm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/user-app-shop.js?v=20260723-goods"></script>
+  <script>UAShop.initGoodsDetailPage();</script>
+</body>
+</html>

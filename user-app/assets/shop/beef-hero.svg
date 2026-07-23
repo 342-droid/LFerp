@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="750" viewBox="0 0 750 750" fill="none">
+  <defs>
+    <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6b3f24"/>
+      <stop offset="45%" stop-color="#8a5230"/>
+      <stop offset="100%" stop-color="#5a321c"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="55%" r="55%">
+      <stop offset="0%" stop-color="#fff2d8" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#2a160c" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="meat" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c45a3a"/>
+      <stop offset="40%" stop-color="#9a3a28"/>
+      <stop offset="100%" stop-color="#6e2418"/>
+    </linearGradient>
+    <linearGradient id="fat" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f3e0b8"/>
+      <stop offset="100%" stop-color="#d9b67a"/>
+    </linearGradient>
+  </defs>
+  <rect width="750" height="750" fill="url(#wood)"/>
+  <g opacity="0.25">
+    <path d="M0 120h750M0 240h750M0 360h750M0 480h750M0 600h750" stroke="#3d2414" stroke-width="10"/>
+    <path d="M80 0v750M220 0v750M360 0v750M500 0v750M640 0v750" stroke="#3d2414" stroke-width="6"/>
+  </g>
+  <ellipse cx="375" cy="420" rx="290" ry="210" fill="url(#glow)"/>
+  <g transform="translate(120 170)">
+    <ellipse cx="250" cy="300" rx="250" ry="70" fill="#2a160c" opacity="0.35"/>
+    <!-- stacked slices -->
+    <g transform="translate(40 40) rotate(-8)">
+      <ellipse cx="180" cy="220" rx="170" ry="95" fill="url(#meat)"/>
+      <path d="M40 210c40-70 120-110 200-95 55 10 95 50 110 95-35 45-95 75-160 78-70 3-120-25-150-78z" fill="#8b3424"/>
+      <path d="M70 200c35-40 90-55 145-40 30 8 55 28 70 50-25 18-60 30-100 32-50 2-85-15-115-42z" fill="url(#fat)" opacity="0.85"/>
+      <path d="M95 185c20-8 55-10 90 0 18 5 35 16 48 28" stroke="#f0d7a4" stroke-width="8" stroke-linecap="round" opacity="0.7"/>
+    </g>
+    <g transform="translate(90 10) rotate(6)">
+      <ellipse cx="180" cy="200" rx="165" ry="90" fill="url(#meat)"/>
+      <path d="M45 195c35-65 115-100 190-82 50 12 88 48 100 85-30 42-90 70-155 72-65 2-110-28-135-75z" fill="#a84430"/>
+      <path d="M80 180c40-35 100-45 150-20 28 14 48 35 58 55-30 12-70 22-115 22-48 0-78-20-93-57z" fill="url(#fat)" opacity="0.9"/>
+      <circle cx="150" cy="175" r="18" fill="#f6e4b8" opacity="0.55"/>
+      <circle cx="210" cy="190" r="12" fill="#f6e4b8" opacity="0.45"/>
+    </g>
+    <g transform="translate(150 -20) rotate(14)">
+      <ellipse cx="160" cy="180" rx="145" ry="80" fill="#b24a32"/>
+      <path d="M40 175c30-55 95-85 160-70 42 10 75 40 85 72-28 35-80 58-138 58-55 0-90-25-107-60z" fill="#7d2c1e"/>
+      <path d="M70 160c35-28 90-35 135-10 22 12 38 30 45 46-25 8-58 14-95 14-40 0-67-18-85-50z" fill="url(#fat)"/>
+    </g>
+  </g>
+  <rect width="750" height="160" fill="url(#glow)" opacity="0.35"/>
+</svg>

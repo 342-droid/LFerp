@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>黑灯直播间 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-profile.css">
+  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260723-live-shop">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-live-room-page">
+    <div class="ua-mp-capsule ua-mp-capsule--light" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-live-room">
+      <div class="ua-live-room__stage" aria-hidden="true"></div>
+
+      <header class="ua-live-room__top">
+        <a href="home.html" class="ua-live-room__back" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <div class="ua-live-room__host">
+          <span class="ua-live-room__logo">冷丰<br>特选</span>
+          <div class="ua-live-room__host-text">
+            <span class="ua-live-room__name">黑灯直播间</span>
+            <span class="ua-live-room__viewers">1人正在观看</span>
+          </div>
+        </div>
+      </header>
+
+      <button type="button" class="ua-live-room__report" id="liveReportBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ff4d3a" stroke-width="1.8">
+          <path d="M12 4l9 16H3L12 4z"/>
+          <path d="M12 10v5" stroke-linecap="round"/>
+          <circle cx="12" cy="17.5" r="1" fill="#ff4d3a" stroke="none"/>
+        </svg>
+        举报
+      </button>
+
+      <div class="ua-live-room__center">
+        <span class="ua-live-room__live">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><rect x="4" y="10" width="2.5" height="4"/><rect x="8" y="7" width="2.5" height="10"/><rect x="12" y="5" width="2.5" height="14"/><rect x="16" y="8" width="2.5" height="8"/></svg>
+          直播中
+        </span>
+      </div>
+
+      <div class="ua-live-room__box" aria-hidden="true"></div>
+
+      <footer class="ua-live-room__bar">
+        <button type="button" class="ua-live-room__like" id="liveLikeBtn" aria-label="点赞">
+          <svg viewBox="0 0 24 24" fill="#ff4da6"><path d="M2 12.5V21h4.5V12.5H2zm5.5-.3l3.2-6.5c.4-.8 1.4-1.2 2.3-.9.7.3 1.1 1 1.1 1.8V10H20c1.3 0 2.3 1.2 2.1 2.5l-1.1 6C20.7 20 19.5 21 18.1 21H7.5V12.2z"/></svg>
+        </button>
+        <div class="ua-live-room__input-wrap">
+          <input type="text" class="ua-live-room__input" id="liveCommentInput" placeholder="说点什么..." autocomplete="off">
+          <button type="button" class="ua-live-room__send" id="liveSendBtn">发送</button>
+        </div>
+        <button type="button" class="ua-live-room__action" id="liveShareBtn" aria-label="分享">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v11"/><path d="M8 7l4-4 4 4"/><path d="M5 13v6a2 2 0 002 2h10a2 2 0 002-2v-6"/></svg>
+        </button>
+        <button type="button" class="ua-live-room__cart" id="liveCartBtn" aria-label="购物车">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4h2l2.1 10.5h9.8L19 8H7"/></svg>
+        </button>
+      </footer>
+    </div>
+
+    <!-- 图一：商品列表半遮罩 -->
+    <div class="ua-live-sheet" id="liveGoodsSheet" hidden>
+      <div class="ua-live-sheet__mask" data-live-close="goods"></div>
+      <div class="ua-live-sheet__panel ua-live-goods">
+        <div class="ua-live-goods__toolbar">
+          <label class="ua-live-goods__search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+            <input type="search" id="liveGoodsSearch" placeholder="输入商品关键词" autocomplete="off">
+          </label>
+          <div class="ua-live-goods__tools">
+            <button type="button" class="ua-live-goods__tool" id="liveCouponBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8.5A2.5 2.5 0 015.5 6H19a2 2 0 012 2v1.2a2.2 2.2 0 000 4.4V17a2 2 0 01-2 2H5.5A2.5 2.5 0 013 16.5v-8z"/><text x="9" y="15" fill="currentColor" stroke="none" font-size="9" font-weight="700">¥</text></svg>
+              <span>优惠券</span>
+            </button>
+            <button type="button" class="ua-live-goods__tool" id="liveOrderBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 3h10a2 2 0 012 2v16l-3.5-2-3.5 2-3.5-2L5 21V5a2 2 0 012-2z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>
+              <span>订单</span>
+            </button>
+          </div>
+        </div>
+        <div class="ua-live-goods__tabs">
+          <button type="button" class="ua-live-goods__tab is-active">全部</button>
+        </div>
+        <div class="ua-live-goods__list" id="liveGoodsList"></div>
+        <div class="ua-live-goods__footer">
+          <button type="button" class="ua-live-goods__cart-btn" id="liveGoodsCartIcon" aria-label="直播购物车">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4h2l2.1 10.5h9.8L19 8H7"/></svg>
+            <em class="ua-live-goods__badge" id="liveGoodsBadge" hidden>0</em>
+          </button>
+          <div class="ua-live-goods__total" id="liveGoodsTotal">¥0.00</div>
+          <button type="button" class="ua-live-goods__checkout" id="liveGoodsCheckout">立即下单</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 图二：规格数量选择 -->
+    <div class="ua-live-sheet ua-live-sheet--sku" id="liveSkuSheet" hidden>
+      <div class="ua-live-sheet__mask" data-live-close="sku"></div>
+      <div class="ua-live-sheet__panel ua-live-sku">
+        <button type="button" class="ua-live-sku__close" data-live-close="sku" aria-label="关闭">×</button>
+        <div class="ua-live-sku__head">
+          <img class="ua-live-sku__thumb" id="liveSkuThumb" src="" alt="">
+          <div class="ua-live-sku__meta">
+            <div class="ua-live-sku__price" id="liveSkuPrice">¥0.00</div>
+            <div class="ua-live-sku__name" id="liveSkuName"></div>
+            <div class="ua-live-sku__picked" id="liveSkuPicked">已选 </div>
+          </div>
+        </div>
+        <div class="ua-live-sku__section">
+          <div class="ua-live-sku__label">规格</div>
+          <div class="ua-live-sku__specs" id="liveSkuSpecs"></div>
+        </div>
+        <div class="ua-live-sku__qty-row">
+          <div class="ua-live-sku__label">购买数量</div>
+          <div class="ua-live-sku__stepper">
+            <button type="button" id="liveSkuMinus">−</button>
+            <span id="liveSkuQty">1</span>
+            <button type="button" id="liveSkuPlus">+</button>
+          </div>
+        </div>
+        <div class="ua-live-sku__actions">
+          <button type="button" class="ua-live-sku__cart" id="liveSkuAddCart">加入购物车</button>
+          <button type="button" class="ua-live-sku__buy" id="liveSkuBuyNow">立即购买</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 图三：确认订单 -->
+    <div class="ua-live-sheet ua-live-sheet--confirm" id="liveConfirmSheet" hidden>
+      <div class="ua-live-sheet__mask" data-live-close="confirm"></div>
+      <div class="ua-live-sheet__panel ua-live-confirm">
+        <div class="ua-live-confirm__head">
+          <h3>确认订单</h3>
+          <button type="button" class="ua-live-confirm__close" data-live-close="confirm" aria-label="关闭">×</button>
+        </div>
+        <div class="ua-live-confirm__body" id="liveConfirmBody"></div>
+        <div class="ua-live-confirm__footer">
+          <div class="ua-live-confirm__pay-text">实付 <strong id="liveConfirmPay">¥0.00</strong></div>
+          <button type="button" class="ua-live-confirm__pay-btn" id="liveConfirmPayBtn">立即支付</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/user-app-shop.js?v=20260723-live-shop"></script>
+  <script>UAShop.initLiveRoomPage();</script>
+</body>
+</html>

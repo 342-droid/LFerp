@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>退款详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
-  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260720-merge-pickup">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260722-hide-merge-tip">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-order-refund-detail-page">
@@ -305,13 +305,23 @@
     <div class="ua-or-sheet" id="refundCourierSheet" hidden>
       <div class="ua-or-sheet__mask" data-or-sheet-close="refundCourierSheet"></div>
       <div class="ua-or-sheet__panel ua-or-sheet__panel--courier">
-        <div class="ua-or-sheet__head">
-          <h3 class="ua-or-sheet__title ua-or-sheet__title--left">快递选择</h3>
+        <div class="ua-or-sheet__head ua-or-courier-picker__head">
+          <h3 class="ua-or-sheet__title ua-or-courier-picker__title">选择退货物流</h3>
           <button type="button" class="ua-or-sheet__close" data-or-sheet-close="refundCourierSheet" aria-label="关闭">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
           </button>
         </div>
-        <div class="ua-or-picker__list" id="refundCourierList"></div>
+        <div class="ua-or-courier-picker__search">
+          <svg class="ua-or-courier-picker__search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M16 16l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <input type="search" id="refundCourierSearch" class="ua-or-courier-picker__search-input" placeholder="搜索快递公司" autocomplete="off">
+        </div>
+        <div class="ua-or-courier-picker__body">
+          <div class="ua-or-courier-picker__scroll" id="refundCourierList"></div>
+          <nav class="ua-or-courier-picker__index" id="refundCourierIndex" aria-label="字母索引"></nav>
+        </div>
       </div>
     </div>
 
@@ -329,7 +339,7 @@
 
     <div class="ua-or-toast" id="refundDetailToast" hidden></div>
   </div>
-  <script src="../js/user-app-order-refund.js?v=20260720-merge-pickup"></script>
+  <script src="../js/user-app-order-refund.js?v=20260722-hide-merge-tip"></script>
   <script>UAOrderRefund.initDetailPage();</script>
 </body>
 </html>

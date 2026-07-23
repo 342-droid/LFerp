@@ -1,10 +1,57 @@
 {
-  "latestSha": "d858095779a608dbf870c894fbfcba12dcfc0bbc",
-  "total": 159,
+  "latestSha": "06975448b14abe7b45b29f30c11b037268252bc9",
+  "total": 165,
   "days": [
+    {
+      "date": "2026-07-22",
+      "items": [
+        {
+          "sha": "0697544",
+          "type": "fix",
+          "text": "修复寄件订单合并取件提示布局并不再透出文案",
+          "author": "sisi",
+          "time": "18:04"
+        },
+        {
+          "sha": "f801048",
+          "type": "fix",
+          "text": "自行寄件表单调整为物流单号在前、快递公司在后",
+          "author": "sisi",
+          "time": "16:15"
+        },
+        {
+          "sha": "d33a018",
+          "type": "feat",
+          "text": "售后寄回快递公司扩展为24家并支持搜索索引",
+          "author": "sisi",
+          "time": "16:01"
+        },
+        {
+          "sha": "a805bb1",
+          "type": "feat",
+          "text": "优化售后详情申请信息与补货明细交互",
+          "author": "sisi",
+          "time": "10:53"
+        }
+      ]
+    },
     {
       "date": "2026-07-20",
       "items": [
+        {
+          "sha": "51898b1",
+          "type": "feat",
+          "text": "完善采购单物流轨迹 mock 与多运单明细",
+          "author": "342-droid",
+          "time": "17:26"
+        },
+        {
+          "sha": "5015ef3",
+          "type": "feat",
+          "text": "进货「我的」常用服务改为地址管理入口",
+          "author": "sisi",
+          "time": "10:16"
+        },
         {
           "sha": "d858095",
           "type": "feat",
