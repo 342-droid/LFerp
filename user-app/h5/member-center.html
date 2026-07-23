@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>会员中心 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-profile.css">
+  <link rel="stylesheet" href="../css/user-app-member-center.css">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-mc-page">
+    <div class="ua-mp-capsule ua-mp-capsule--light" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-mc-scroll" id="memberCenterScroll">
+      <div class="ua-status-bar ua-mc-status">
+        <span>9:41</span>
+        <span class="ua-status-bar__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#fff"><path d="M1 7h2v4H1V7zm4-2h2v6H5V5zm4-3h2v9H9V2zm4 5h2v4h-2V7z"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="#fff"><path d="M8 2.4C10.8 2.4 13.2 3.6 15 5.6 15.2 5.8 15.5 5.8 15.7 5.6 15.9 5.4 15.9 5.1 15.7 4.9 13.6 2.6 10.9 1.2 8 1.2S2.4 2.6.3 4.9C.1 5.1.1 5.4.3 5.6.5 5.8.8 5.8 1 5.6 2.8 3.6 5.2 2.4 8 2.4zm0 3.6c1.8 0 3.4.8 4.5 2.1.2.2.5.2.7 0 .2-.2.2-.5 0-.7C11.9 5.4 10.1 4.4 8 4.4S4.1 5.4 2.8 6.9c-.2.2-.2.5 0 .7.2.2.5.2.7 0C4.6 6.8 6.2 6 8 6zm0 3c1 0 1.8.5 2.4 1.2.2.2.5.2.7 0 .2-.2.2-.5 0-.7C10.3 9.2 9.2 8.6 8 8.6S5.7 9.2 4.9 10.5c-.2.2-.2.5 0 .7.2.2.5.2.7 0 .6-.7 1.4-1.2 2.4-1.2z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="20" height="11" rx="2.5" stroke="#fff" opacity=".5"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#fff"/><path d="M22 4.5v3a1.5 1.5 0 000-3z" fill="#fff" opacity=".5"/></svg>
+        </span>
+      </div>
+
+      <header class="ua-mc-hero">
+        <div class="ua-mc-nav">
+          <a href="profile.html" class="ua-mc-nav__back" aria-label="返回">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+          </a>
+          <h1 class="ua-mc-nav__title">会员中心</h1>
+        </div>
+
+        <div class="ua-mc-user">
+          <div class="ua-mc-avatar">
+            <img src="../assets/profile-avatar.svg" alt="头像">
+          </div>
+          <div class="ua-mc-user-meta">
+            <div class="ua-mc-user-name" id="mcUserName">宁静致远</div>
+            <div class="ua-mc-user-level" id="mcUserLevel">普通会员</div>
+          </div>
+          <a href="growth-detail.html" class="ua-mc-growth-pill" id="mcGrowthPill" aria-label="查看成长值明细">
+            <span>当前成长值：<em id="mcGrowthValue">0</em></span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+          </a>
+        </div>
+      </header>
+
+      <section class="ua-mc-carousel-wrap" aria-label="会员等级">
+        <div class="ua-mc-carousel" id="mcCarousel" tabindex="0"></div>
+        <div class="ua-mc-dots" id="mcDots" aria-hidden="true"></div>
+      </section>
+
+      <section class="ua-mc-section" id="earnGrowth">
+        <h2 class="ua-mc-section__title">获取成长值</h2>
+        <div class="ua-mc-rule-list" id="mcRuleList"></div>
+      </section>
+
+      <section class="ua-mc-section ua-mc-section--levels">
+        <h2 class="ua-mc-section__title">会员等级说明</h2>
+        <div class="ua-mc-level-desc" id="mcLevelDesc"></div>
+      </section>
+    </div>
+  </div>
+  <script src="../js/user-app-member-center.js"></script>
+</body>
+</html>

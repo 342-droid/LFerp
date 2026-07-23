@@ -176,6 +176,7 @@
   font-weight: 600;
   line-height: 19px;
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .ua-profile-level__v {
@@ -279,6 +280,7 @@
   flex: 1;
   font-size: 12px;
   color: #d4b48c;
+  text-decoration: none;
 }
 
 .ua-vip-card__head-right svg {

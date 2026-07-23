@@ -230,6 +230,52 @@
             font-weight: 600;
             color: #ff7019;
         }
+        .member-level-preset-tag {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 0 6px;
+            border-radius: 3px;
+            background: #f5f5f5;
+            color: #8c8c8c;
+            border: 1px solid #e8e8e8;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 18px;
+            vertical-align: middle;
+        }
+        .action-link-disabled {
+            color: #c0c0c0;
+            cursor: not-allowed;
+            user-select: none;
+            pointer-events: none;
+        }
+        .erp-modal--member-level .erp-input:disabled,
+        .erp-modal--member-level .erp-select:disabled,
+        .erp-modal--member-level input:disabled,
+        .erp-modal--member-level select:disabled,
+        .erp-modal--member-level textarea:disabled {
+            background: #f5f5f5 !important;
+            color: #bbb !important;
+            border-color: #e8e8e8 !important;
+            cursor: not-allowed;
+            opacity: 1;
+            -webkit-text-fill-color: #bbb;
+        }
+        .erp-modal--member-level .erp-btn:disabled,
+        .erp-modal--member-level button:disabled {
+            background: #f5f5f5 !important;
+            color: #bbb !important;
+            border-color: #e8e8e8 !important;
+            cursor: not-allowed;
+            opacity: 1;
+            box-shadow: none;
+        }
+        .erp-modal--member-level .member-level-unit:has(.erp-input:disabled) {
+            opacity: 1;
+        }
+        .erp-modal--member-level .member-level-unit:has(.erp-input:disabled) .member-level-unit__text {
+            color: #bbb;
+        }
         .member-level-tip {
             display: inline-flex;
             align-items: center;
@@ -375,7 +421,8 @@
 
             <div class="flow-box">
                 最多可设置 <strong>15</strong> 个会员等级；列表按成长值从低到高排列。
-                升降级策略：当前成长值满足某等级门槛即可升级（达标后立即生效）；不满足则降级（每月 1 号统一处理）。
+                成长值为 <strong>0</strong> 的等级为默认等级，不支持删除、禁用，且成长值不可修改。
+                升降级策略：当前成长值满足某等级门槛即可升级（达标后立即生效）；不满足则降级（每日统一处理）。
                 成长值可通过消费、活跃获取，有效期与获取规则请在「成长值规则」中配置。
                 点击会员人数可跳转 C 端会员并按当前等级筛选。
             </div>
@@ -438,6 +485,7 @@
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
+    <script src="../js/mdm-member-level-data.js"></script>
     <script src="../js/mdm-member-level.js"></script>
 </body>
 </html>
