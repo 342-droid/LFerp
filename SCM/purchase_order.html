@@ -128,6 +128,16 @@
             color: #616161;
         }
 
+        .status.doc-pending-audit {
+            background-color: #fff8e1;
+            color: #f57f17;
+        }
+
+        .status.doc-rejected {
+            background-color: #fce4ec;
+            color: #c62828;
+        }
+
         .status.doc-partial {
             background-color: #fff3e0;
             color: #e65100;
@@ -511,7 +521,9 @@
                             <span class="clear-btn">×</span>
                             <div class="select-dropdown" id="searchDocStatusDropdown">
                                 <div class="select-option" data-value="">全部</div>
-                                <div class="select-option" data-value="初始">初始</div>
+                                <div class="select-option" data-value="待审核">待审核</div>
+                                <div class="select-option" data-value="已驳回">已驳回</div>
+                                <div class="select-option" data-value="初始">待收货</div>
                                 <div class="select-option" data-value="部分收货">部分收货</div>
                                 <div class="select-option" data-value="已完成">已完成</div>
                                 <div class="select-option" data-value="已取消">已取消</div>
@@ -1383,7 +1395,7 @@
         if (!row) return;
         if (row.docStatus !== '初始') {
             if (typeof showToast === 'function') {
-                showToast('仅初始状态采购单可编辑', 'error');
+                showToast('仅待收货状态采购单可编辑', 'error');
             }
             return;
         }
@@ -1678,7 +1690,7 @@
             }
             if (row.docStatus !== '初始') {
                 if (typeof showToast === 'function') {
-                    showToast('仅初始状态采购单可编辑', 'error');
+                    showToast('仅待收货状态采购单可编辑', 'error');
                 }
                 return;
             }
@@ -1742,7 +1754,7 @@
         }
         if (row.docStatus !== '初始') {
             if (typeof showToast === 'function') {
-                showToast('仅初始状态采购单可取消', 'error');
+                showToast('仅待收货状态采购单可取消', 'error');
             }
             return;
         }
@@ -1766,7 +1778,7 @@
                 sourceOrderNoDetailItemHtml(resolvePoSourceOrderNos(row)),
                 detailInfoItemHtml('关联单号', resolvePoRelatedOrderNo(row)),
                 detailInfoItemHtml('供应商', row.supplier),
-                detailInfoItemHtml('单据状态', row.docStatus),
+                detailInfoItemHtml('单据状态', formatDocStatusLabel(row.docStatus)),
                 detailInfoItemHtml('订单渠道', row.orderSource),
                 detailInfoItemHtml('履约方式', row.fulfillmentMethod),
                 detailInfoItemHtml('单据来源', row.docSource),
@@ -1921,9 +1933,20 @@
         });
     }
 
+    function formatDocStatusLabel(status) {
+        if (status === '初始') return '待收货';
+        return status == null || status === '' ? '' : String(status);
+    }
+
     function statusCellHtml(text) {
+        if (text === '待审核') {
+            return '<span class="status doc-pending-audit">待审核</span>';
+        }
+        if (text === '已驳回') {
+            return '<span class="status doc-rejected">已驳回</span>';
+        }
         if (text === '初始') {
-            return '<span class="status doc-initial">初始</span>';
+            return '<span class="status doc-initial">待收货</span>';
         }
         if (text === '部分收货') {
             return '<span class="status doc-partial">部分收货</span>';

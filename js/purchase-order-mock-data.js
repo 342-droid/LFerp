@@ -69,6 +69,7 @@
 
     /**
      * orderSource / fulfillmentMethod 枚举见 CommonOptions（零售订单仅平台配送；代采订单支持快递配送、平台配送）。
+     * docStatus 枚举见 CommonOptions.purchaseOrderDocStatus：待审核、已驳回、初始（列表展示为待收货）、部分收货、已完成、已取消。
      * sourceOrderNo 为来源单号（门店订货单号 MDH 前缀，可逗号分隔多个）；单据来源为手动新增时列表/详情展示层将来源单号置空；relatedOrderNo 为关联单号（如 WMS 采购入库单号）。
      * 明细行 logisticsNo 支持多个物流单号（逗号/分号/空格分隔）；物流确认按采购单+商品维度维护。
      */
@@ -81,7 +82,7 @@
             fulfillmentMethod: '平台配送',
             warehouse: 'W001 南京仓',
             supplier: '华东果蔬有限公司',
-            docStatus: '初始',
+            docStatus: '待审核',
             docSource: '采购需求汇总',
             deliveryDate: '2026-04-28',
             remark: '首批补货',
@@ -139,7 +140,7 @@
             fulfillmentMethod: '平台配送',
             warehouse: 'W004 北京仓',
             supplier: '华北冷链物流',
-            docStatus: '初始',
+            docStatus: '已驳回',
             docSource: '采购需求汇总',
             deliveryDate: '2026-04-29',
             remark: '需冷链',
