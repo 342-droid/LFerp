@@ -56,18 +56,29 @@
     return [];
   }
 
+  function buildDefaultDisplayName(productName, specValue, saleUnit) {
+    var name = String(productName || '').trim();
+    var spec = String(specValue == null ? '' : specValue).trim();
+    var unit = String(saleUnit == null ? '' : saleUnit).trim();
+    var tail = spec && unit ? (spec + '/' + unit) : (spec || unit);
+    if (name && tail) return name + ' ' + tail;
+    return name || tail || '';
+  }
+
   function defaultSku(id, product, index) {
     var specs = ['2.5kg', '500g', '1kg', '12箱', '1'];
-    var names = ['2.5kg装', '500g装', '1kg装', '箱装', '标准装'];
+    var specValue = specs[index] || '1';
+    var saleUnit = '个';
     return {
       id: id,
-      displayName: names[index] || ('规格' + (index + 1)),
+      displayName: buildDefaultDisplayName(product.name, specValue, saleUnit),
+      displayNameManual: false,
       internalCode: (product.code || 'SPU') + '-' + String(index + 1).padStart(2, '0'),
-      specValue: specs[index] || '1',
+      specValue: specValue,
       baseUnit: '个',
       purchasePrice: index === 0 ? '12.50' : '8.00',
       stockStatus: '1',
-      saleUnit: '个',
+      saleUnit: saleUnit,
       skuStatus: '现货',
       salePrice: index === 0 ? String(product.priceMoney || '0.01') : '0.01',
       linePrice: product.linePrice != null ? String(product.linePrice) : '',
@@ -99,6 +110,14 @@
       if (savedSkus[s.id]) {
         Object.assign(s, savedSkus[s.id], { id: s.id });
       }
+      if (s.displayNameManual) {
+        if (!String(s.displayName || '').trim()) {
+          s.displayName = buildDefaultDisplayName(product.name, s.specValue, s.saleUnit);
+        }
+      } else {
+        s.displayNameManual = false;
+        s.displayName = buildDefaultDisplayName(product.name, s.specValue, s.saleUnit);
+      }
     });
 
     var selectedIds = Array.isArray(detail.selectedSkuIds) && detail.selectedSkuIds.length
@@ -117,6 +136,7 @@
     }
 
     var result = {
+      productName: product.name || '',
       summary: detail.summary || '',
       displaySales: detail.displaySales != null ? String(detail.displaySales) : (detail.summary || ''),
       textDesc: detail.textDesc || '',
@@ -444,6 +464,7 @@
   }
 
   function refreshSpecList(backdrop) {
+    syncAutoDisplayNames(backdrop);
     var listEl = backdrop.querySelector('#proxyFormSpecList');
     var triggerEl = backdrop.querySelector('#proxyFormSkuTrigger');
     if (listEl) listEl.innerHTML = renderSkuPanels(formState);
@@ -475,6 +496,26 @@
     formState.skuPool = formState.skuPool.map(function (s) { return poolMap[s.id] || s; });
   }
 
+  function getFormProductName(backdrop) {
+    var nameInput = backdrop.querySelector('#proxyFormName');
+    if (nameInput) return String(nameInput.value || '').trim();
+    return String((formState && formState.productName) || '').trim();
+  }
+
+  function syncAutoDisplayNames(backdrop, productName) {
+    var name = productName != null ? String(productName || '').trim() : getFormProductName(backdrop);
+    formState.productName = name;
+    formState.skuPool.forEach(function (sku) {
+      if (sku.displayNameManual) return;
+      sku.displayName = buildDefaultDisplayName(name, sku.specValue, sku.saleUnit);
+    });
+  }
+
+  function updatePanelDisplayNameInput(panel, sku) {
+    var input = panel.querySelector('[data-field="displayName"]');
+    if (input) input.value = sku.displayName || '';
+  }
+
   function bindSpecEvents(backdrop) {
     backdrop.querySelectorAll('.product-proxy-spec [data-action="set-default"]').forEach(function (btn) {
       btn.onclick = function () {
@@ -496,6 +537,46 @@
         });
         refreshSpecList(backdrop);
       };
+    });
+
+    backdrop.querySelectorAll('.product-proxy-spec').forEach(function (panel) {
+      var id = panel.getAttribute('data-sku-id');
+      var sku = formState.skuPool.find(function (s) { return s.id === id; });
+      if (!sku) return;
+
+      var displayInput = panel.querySelector('[data-field="displayName"]');
+      if (displayInput) {
+        displayInput.addEventListener('input', function () {
+          sku.displayName = displayInput.value;
+          sku.displayNameManual = true;
+        });
+      }
+
+      panel.querySelectorAll('[data-field="specValue"], [data-field="saleUnit"]').forEach(function (input) {
+        var handler = function () {
+          sku[input.getAttribute('data-field')] = input.value;
+          if (!sku.displayNameManual) {
+            sku.displayName = buildDefaultDisplayName(getFormProductName(backdrop), sku.specValue, sku.saleUnit);
+            updatePanelDisplayNameInput(panel, sku);
+          }
+        };
+        input.addEventListener('input', handler);
+        input.addEventListener('change', handler);
+      });
+    });
+  }
+
+  function bindProductNameSync(backdrop) {
+    var nameInput = backdrop.querySelector('#proxyFormName');
+    if (!nameInput) return;
+    nameInput.addEventListener('input', function () {
+      readSpecPanelsFromDom(backdrop);
+      syncAutoDisplayNames(backdrop, nameInput.value);
+      formState.skuPool.forEach(function (sku) {
+        if (sku.displayNameManual) return;
+        var panel = backdrop.querySelector('.product-proxy-spec[data-sku-id="' + sku.id + '"]');
+        if (panel) updatePanelDisplayNameInput(panel, sku);
+      });
     });
   }
 
@@ -669,7 +750,7 @@
       category: pickerInstance ? pickerInstance.getPaths().join('、') : (product.category || product.category_path || ''),
       img: formState.images[0] || product.img,
       specCount: formState.selectedSkuIds.length,
-      spec: defaultSku ? defaultSku.specValue : product.spec,
+      spec: defaultSku ? (defaultSku.displayName || defaultSku.specValue) : product.spec,
       priceMoney: defaultSku ? parseFloat(defaultSku.salePrice) || 0.01 : product.priceMoney,
       linePrice: defaultSku && defaultSku.linePrice ? parseFloat(defaultSku.linePrice) : null,
       detail: {
@@ -765,6 +846,7 @@
     }
 
     bindSpecEvents(backdrop);
+    bindProductNameSync(backdrop);
     bindImageEvents(backdrop);
     bindSkuPicker(backdrop);
     bindSaleScopeEvents(backdrop);
