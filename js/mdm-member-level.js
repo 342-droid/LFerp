@@ -1,9 +1,9 @@
 /**
- * 会员等级 — 列表（按成长值升序）、新增/编辑（最多10级）、启禁用、删除
+ * 会员等级 — 列表（按成长值升序）、新增/编辑（最多15级）、启禁用、删除
  * 赠送券 / 生日券：累计|每月|每日，支持多券及发放数量
  */
 (function () {
-    var LEVEL_MAX = 10;
+    var LEVEL_MAX = 15;
     var NAME_MAX = 20;
 
     var COUPON_OPTIONS = [
@@ -24,6 +24,16 @@
         daily: '每日赠送'
     };
 
+    /** 原型演示用等级图标（SVG data URI） */
+    function levelIconSvg(bg, fg, label) {
+        var svg =
+            '<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72">' +
+            '<rect width="72" height="72" rx="14" fill="' + bg + '"/>' +
+            '<text x="36" y="42" text-anchor="middle" font-size="22" font-weight="700" fill="' + fg + '" ' +
+            'font-family="PingFang SC,Microsoft YaHei,sans-serif">' + label + '</text></svg>';
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
     var state = {
         page: 1,
         pageSize: 10,
@@ -35,6 +45,7 @@
             {
                 id: 'ML10004',
                 name: '普通会员',
+                icon: levelIconSvg('#E8ECF0', '#6B7280', '普'),
                 growthValue: 0,
                 giftPoints: 0,
                 giftCouponMode: 'total',
@@ -51,6 +62,7 @@
             {
                 id: 'ML10003',
                 name: '银牌会员',
+                icon: levelIconSvg('#D7DEE8', '#5B6B7C', '银'),
                 growthValue: 2000,
                 giftPoints: 100,
                 giftCouponMode: 'total',
@@ -73,6 +85,7 @@
             {
                 id: 'ML10002',
                 name: '金牌会员',
+                icon: levelIconSvg('#F5D78E', '#8A5A00', '金'),
                 growthValue: 5000,
                 giftPoints: 200,
                 giftCouponMode: 'monthly',
@@ -94,6 +107,7 @@
             {
                 id: 'ML10001',
                 name: '钻石会员',
+                icon: levelIconSvg('#B8D4F8', '#1E4F8C', '钻'),
                 growthValue: 10000,
                 giftPoints: 500,
                 giftCouponMode: 'daily',
@@ -476,6 +490,80 @@
         });
     }
 
+    function renderLevelIconCell(item) {
+        if (item.icon) {
+            return (
+                '<span class="member-level-icon-cell">' +
+                '<img src="' + escapeHtml(item.icon) + '" alt="' + escapeHtml(item.name) + '">' +
+                '</span>'
+            );
+        }
+        var initial = item.name ? String(item.name).charAt(0) : '—';
+        return '<span class="member-level-icon-cell member-level-icon-cell--empty">' + escapeHtml(initial) + '</span>';
+    }
+
+    function setupLevelIconUpload(backdrop, initialIcon) {
+        var iconValue = initialIcon || '';
+        var btn = backdrop.querySelector('#mlIconBtn');
+        var fileInput = backdrop.querySelector('#mlIconFile');
+        var clearBtn = backdrop.querySelector('#mlIconClear');
+
+        function renderPreview() {
+            if (!btn) return;
+            if (!iconValue) {
+                btn.innerHTML = '<span class="member-level-upload__plus">+</span>';
+                btn.classList.remove('member-level-upload__box--filled');
+                if (clearBtn) clearBtn.hidden = true;
+                return;
+            }
+            btn.innerHTML = '<img class="member-level-upload__preview" src="" alt="">';
+            btn.classList.add('member-level-upload__box--filled');
+            var img = btn.querySelector('.member-level-upload__preview');
+            if (img) img.src = iconValue;
+            if (clearBtn) clearBtn.hidden = false;
+        }
+
+        renderPreview();
+
+        if (btn && fileInput) {
+            btn.addEventListener('click', function () {
+                fileInput.click();
+            });
+            fileInput.addEventListener('change', function () {
+                var file = fileInput.files && fileInput.files[0];
+                if (!file) return;
+                if (!/^image\/(jpeg|png|webp|svg\+xml)$/.test(file.type)) {
+                    toast('请上传 JPG/PNG/WEBP/SVG 格式图片', 'warning');
+                    fileInput.value = '';
+                    return;
+                }
+                if (file.size > 2 * 1024 * 1024) {
+                    toast('图片不能超过 2MB', 'warning');
+                    fileInput.value = '';
+                    return;
+                }
+                var reader = new FileReader();
+                reader.onload = function () {
+                    iconValue = reader.result;
+                    renderPreview();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function () {
+                iconValue = '';
+                if (fileInput) fileInput.value = '';
+                renderPreview();
+            });
+        }
+
+        return function getLevelIconValue() {
+            return iconValue;
+        };
+    }
+
     function openLevelModal(options) {
         closeModal();
         options = options || {};
@@ -483,6 +571,7 @@
         var isEdit = !!editItem;
 
         var name = isEdit ? editItem.name : '';
+        var icon = isEdit ? (editItem.icon || '') : '';
         var growthValue = isEdit ? editItem.growthValue : '';
         var giftPoints = isEdit ? editItem.giftPoints : 0;
         var giftCouponMode = isEdit ? (editItem.giftCouponMode || 'total') : 'total';
@@ -510,6 +599,21 @@
             '      <label class="erp-modal-field__label" for="mlName"><span class="erp-req">*</span>等级名称</label>' +
             '      <div class="erp-modal-field__control">' +
             '        <input class="erp-input" id="mlName" type="text" maxlength="' + NAME_MAX + '" placeholder="请输入等级名称，' + NAME_MAX + '字以内" value="' + escapeHtml(name) + '">' +
+            '      </div>' +
+            '    </div>' +
+            '    <div class="erp-modal-field">' +
+            '      <label class="erp-modal-field__label"><span class="erp-req">*</span>等级图标</label>' +
+            '      <div class="erp-modal-field__control">' +
+            '        <div class="member-level-upload">' +
+            '          <div class="member-level-upload__actions">' +
+            '            <button type="button" class="member-level-upload__box" id="mlIconBtn" aria-label="上传等级图标">' +
+            '              <span class="member-level-upload__plus">+</span>' +
+            '            </button>' +
+            '            <button type="button" class="member-level-upload__clear" id="mlIconClear" hidden>清除</button>' +
+            '          </div>' +
+            '          <input type="file" id="mlIconFile" accept="image/jpeg,image/png,image/webp,image/svg+xml" hidden>' +
+            '          <p class="member-level-upload__hint">支持 JPG/PNG/WEBP/SVG，建议正方形，单张不超过 2MB；将展示给 C 端用户。</p>' +
+            '        </div>' +
             '      </div>' +
             '    </div>' +
             '    <div class="erp-modal-field">' +
@@ -581,6 +685,7 @@
         });
 
         backdrop.querySelectorAll('[data-coupon-block]').forEach(bindCouponBlock);
+        var getLevelIconValue = setupLevelIconUpload(backdrop, icon);
 
         backdrop.addEventListener('click', function (ev) {
             if (ev.target === backdrop) closeModal();
@@ -592,6 +697,7 @@
 
         backdrop.querySelector('[data-modal-ok]').addEventListener('click', function () {
             var levelName = (backdrop.querySelector('#mlName').value || '').trim();
+            var levelIcon = getLevelIconValue();
             var growthRaw = (backdrop.querySelector('#mlGrowth').value || '').trim();
             var giftPointsRaw = (backdrop.querySelector('#mlGiftPoints').value || '').trim();
             var discountRaw = (backdrop.querySelector('#mlDiscount').value || '').trim();
@@ -634,6 +740,10 @@
                 toast('请输入等级名称', 'warning');
                 return;
             }
+            if (!levelIcon) {
+                toast('请上传等级图标', 'warning');
+                return;
+            }
             if (growthRaw === '' || isNaN(Number(growthRaw)) || Number(growthRaw) < 0 || !/^\d+$/.test(growthRaw)) {
                 toast('请输入有效的成长值（非负整数）', 'warning');
                 return;
@@ -672,6 +782,7 @@
 
             var payload = {
                 name: levelName,
+                icon: levelIcon,
                 growthValue: growthNum,
                 giftPoints: giftPointsNum,
                 giftCouponMode: giftMode,
@@ -699,6 +810,7 @@
                     memberCount: 0,
                     status: '启用',
                     name: payload.name,
+                    icon: payload.icon,
                     growthValue: payload.growthValue,
                     giftPoints: payload.giftPoints,
                     giftCouponMode: payload.giftCouponMode,
@@ -728,7 +840,7 @@
         if (!tbody) return;
 
         if (!pageItems.length) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#999;padding:24px;">暂无数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#999;padding:24px;">暂无数据</td></tr>';
             return;
         }
 
@@ -738,6 +850,7 @@
             return (
                 '<tr data-id="' + escapeHtml(item.id) + '">' +
                 '<td>' + (startIndex + idx + 1) + '</td>' +
+                '<td>' + renderLevelIconCell(item) + '</td>' +
                 '<td>' + escapeHtml(item.name) + '</td>' +
                 '<td><span class="member-level-growth-cell">' + item.growthValue + '</span></td>' +
                 '<td><div class="member-level-benefit-summary">' + formatBenefitSummary(item) + '</div></td>' +
