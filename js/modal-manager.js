@@ -405,16 +405,25 @@ const CommonOptions = {
         { value: '代采订单', text: '代采订单' }
     ],
     // 履约方式选项（采购/门店订货相关页面共用）
-    // 约束：零售订单仅支持「平台配送」；代采订单支持「快递到店」「平台配送」
+    // 约束：零售订单仅支持「平台配送」；代采订单支持「快递配送」「平台配送」
     fulfillmentMethod: [
-        { value: '快递到店', text: '快递到店' },
+        { value: '快递配送', text: '快递配送' },
         { value: '平台配送', text: '平台配送' }
     ],
     // 订单渠道可用履约方式
     orderSourceFulfillmentMap: {
         '零售订单': ['平台配送'],
-        '代采订单': ['快递到店', '平台配送']
+        '代采订单': ['快递配送', '平台配送']
     },
+    // 采购单单据状态（列表展示「初始」为「待收货」）
+    purchaseOrderDocStatus: [
+        { value: '待审核', text: '待审核' },
+        { value: '已驳回', text: '已驳回' },
+        { value: '初始', text: '待收货' },
+        { value: '部分收货', text: '部分收货' },
+        { value: '已完成', text: '已完成' },
+        { value: '已取消', text: '已取消' }
+    ],
     // 营销类型选项
     marketingType: [
         { value: '普通售卖', text: '普通售卖' },
@@ -454,7 +463,7 @@ function getDistributionStatusClass(status) {
     return distributionStatusBadgeClass[status] || 'dist-st-default';
 }
 
-/** 订单渠道是否允许该履约方式（零售订单不含快递到店） */
+/** 订单渠道是否允许该履约方式（零售订单不含快递配送） */
 function isOrderSourceFulfillmentAllowed(orderSource, fulfillmentMethod) {
     var source = String(orderSource || '').trim();
     var method = String(fulfillmentMethod || '').trim();

@@ -893,7 +893,7 @@
         if (typeof isOrderSourceFulfillmentAllowed === 'function') {
             return isOrderSourceFulfillmentAllowed(orderSource, fulfillmentMethod);
         }
-        if (orderSource === '零售订单' && fulfillmentMethod === '快递到店') return false;
+        if (orderSource === '零售订单' && fulfillmentMethod === '快递配送') return false;
         return true;
     }
 
