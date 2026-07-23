@@ -1,16 +1,84 @@
 {
-  "latestSha": "06975448b14abe7b45b29f30c11b037268252bc9",
-  "total": 165,
+  "latestSha": "319d8ed671a135e9e323291dcc9ab32af11055c3",
+  "total": 178,
   "days": [
+    {
+      "date": "2026-07-23",
+      "items": [
+        {
+          "sha": "319d8ed",
+          "type": "feat",
+          "text": "新增门店APP工作台并完善进货与订单价格展示",
+          "author": "sisi",
+          "time": "18:39"
+        },
+        {
+          "sha": "bef2870",
+          "type": "feat",
+          "text": "采购单单据状态增加待审核/已驳回并更名待收货",
+          "author": "342-droid",
+          "time": "18:08"
+        },
+        {
+          "sha": "1113d6d",
+          "type": "feat",
+          "text": "完善会员等级配置页与 C 端会员中心",
+          "author": "zhangzheng",
+          "time": "15:47"
+        },
+        {
+          "sha": "51f3022",
+          "type": "feat",
+          "text": "还原 C 端商城首页直播间商品详情与直播下单链路",
+          "author": "sisi",
+          "time": "11:54"
+        },
+        {
+          "sha": "6562219",
+          "type": "feat",
+          "text": "会员等级支持图标上传并将上限调整为15级",
+          "author": "zhangzheng",
+          "time": "10:56"
+        }
+      ]
+    },
     {
       "date": "2026-07-22",
       "items": [
+        {
+          "sha": "d4f0c0b",
+          "type": "feat",
+          "text": "新增批量打标签流程，并优化分群手动更新与筛选弹层",
+          "author": "zhangzheng",
+          "time": "18:07"
+        },
         {
           "sha": "0697544",
           "type": "fix",
           "text": "修复寄件订单合并取件提示布局并不再透出文案",
           "author": "sisi",
           "time": "18:04"
+        },
+        {
+          "sha": "642923f",
+          "type": "feat",
+          "text": "优化采购需求汇总预览并统一履约方式文案",
+          "author": "342-droid",
+          "time": "17:25"
+        },
+        {
+          "sha": "6e8afc5",
+          "type": "refactor",
+          "text": "会员模块独立为顶栏入口并重组侧栏为会员360/会员体系",
+          "author": "zhangzheng",
+          "time": "16:56"
+        },
+        {
+          "sha": "37789d3",
+          "type": "feat",
+          "text": "新增会员分群与筛选弹窗，并优化会员中心相关页",
+          "author": "zhangzheng",
+          "time": "16:20"
         },
         {
           "sha": "f801048",
@@ -32,6 +100,25 @@
           "text": "优化售后详情申请信息与补货明细交互",
           "author": "sisi",
           "time": "10:53"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-21",
+      "items": [
+        {
+          "sha": "9aa8b54",
+          "type": "feat",
+          "text": "新增会员等级、成长值规则/明细与规则说明",
+          "author": "zhangzheng",
+          "time": "18:30"
+        },
+        {
+          "sha": "b513963",
+          "type": "feat",
+          "text": "新增会员标签页面",
+          "author": "zhangzheng",
+          "time": "15:28"
         }
       ]
     },
@@ -499,6 +586,25 @@
           "text": "移除包裹详情页顶部出库单号字段",
           "author": "342-droid",
           "time": "10:34"
+        }
+      ]
+    },
+    {
+      "date": "2026-07-01",
+      "items": [
+        {
+          "sha": "1194acc",
+          "type": "feat",
+          "text": "优化移动端入库单按类型查询与来源地选择流程",
+          "author": "342-droid",
+          "time": "20:12"
+        },
+        {
+          "sha": "63e90ba",
+          "type": "feat",
+          "text": "采购入库按供应商选择并直接进入录入页",
+          "author": "342-droid",
+          "time": "11:52"
         }
       ]
     },
