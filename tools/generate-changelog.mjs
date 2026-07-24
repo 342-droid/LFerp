@@ -87,7 +87,7 @@ function mapFilesToPages(files) {
     const pages = new Set();
     let global = false;
     for (const f of files) {
-        if (f === 'changelog.html') continue; // 日志页自身不算业务页面更新
+        if (f === 'changelog.html' || f === 'compare.html') continue; // 日志/对比页自身不算业务页面更新
         if (htmlSet.has(f)) {
             pages.add(f);
             continue;

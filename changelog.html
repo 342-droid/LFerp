@@ -104,6 +104,8 @@
         .cl-sub-title:hover { color: #4a90d9; }
         .cl-page-row { border-bottom: 1px solid #f0f0f0; }
         .cl-page-row:last-child { border-bottom: none; }
+        .cl-page-row--quiet .cl-page-head { opacity: 0.45; }
+        .cl-page-row--quiet .cl-page-head:hover { opacity: 1; }
         .cl-page-head { display: flex; align-items: center; gap: 10px; padding: 10px 16px; }
         .cl-page-module {
             flex: none;
@@ -232,16 +234,25 @@
                     others: others
                 };
             }
+            /* 该页面当天所有提交都有对比结论且全部无界面变化 → 整行弱化 */
+            function isQuiet(p) {
+                var entries = p.commits.map(function (it) { return MANIFEST[it.sha + '|' + p.file]; });
+                return entries.length > 0 && entries.every(function (e) {
+                    return e && e.status === 'diff' && e.regions === 0;
+                });
+            }
             function pageRowHtml(p, expanded) {
-                return '<div class="cl-page-row">' +
+                var quiet = isQuiet(p);
+                var countText = quiet ? '界面无变化' : p.commits.length + ' 处更新';
+                return '<div class="cl-page-row' + (quiet ? ' cl-page-row--quiet' : '') + '">' +
                     '<div class="cl-page-head">' +
                     (p.module ? '<span class="cl-page-module">' + esc(p.module) + '</span>' : '') +
                     '<a class="cl-page-name" href="' + esc(p.file) + '" target="_blank" rel="noopener">' +
                     esc(p.title) + ' <span class="cl-page-go">↗</span></a>' +
-                    '<span class="cl-page-count">' + p.commits.length + ' 处更新</span>' +
-                    '<button class="cl-page-toggle" type="button">' + (expanded ? '收起 ▴' : '明细 ▾') + '</button>' +
+                    '<span class="cl-page-count">' + countText + '</span>' +
+                    '<button class="cl-page-toggle" type="button">' + (expanded && !quiet ? '收起 ▴' : '明细 ▾') + '</button>' +
                     '</div>' +
-                    '<div class="cl-page-commits"' + (expanded ? '' : ' hidden') + '>' +
+                    '<div class="cl-page-commits"' + (expanded && !quiet ? '' : ' hidden') + '>' +
                     p.commits.map(function (it) { return commitRow(it, p.file, p.title); }).join('') + '</div>' +
                     '</div>';
             }
@@ -257,7 +268,10 @@
                     countText = day.items.length + ' 条';
                 } else {
                     var expanded = day.date === bjToday(0); // 今天的明细默认展开
-                    body = agg.pages.map(function (p) { return pageRowHtml(p, expanded); }).join('');
+                    var pagesSorted = agg.pages.slice().sort(function (a, b) {
+                        return (isQuiet(a) ? 1 : 0) - (isQuiet(b) ? 1 : 0); // 无界面变化的沉底
+                    });
+                    body = pagesSorted.map(function (p) { return pageRowHtml(p, expanded); }).join('');
                     if (agg.others.length) {
                         body += '<button class="cl-sub-title cl-others-toggle" type="button">其他改动（全局样式 / 框架 / 文档等）' +
                             agg.others.length + ' 条 ▾</button>' +
