@@ -103,13 +103,50 @@ function mapFilesToPages(files) {
     return { pages: [...pages].sort().map(metaOf), global };
 }
 
+/* ---------- 按页面说明：commit body 的「- 页面名: 说明」行 + changelog-notes.json 补录 ---------- */
+
+const NOTE_RE = /^\s*[-*·]\s*(.{1,24}?)\s*[:：]\s*(.+)$/;
+
+/** 历史提交的补录说明（body 里没写的老提交），格式 { "<sha7>": ["页面名: 说明", ...] } */
+const backfillNotes = (() => {
+    try {
+        return JSON.parse(readFileSync(join(repoRoot, 'changelog-notes.json'), 'utf8'));
+    } catch (e) {
+        return {};
+    }
+})();
+
+/** body/补录行 → [{file, text}]；页面名匹配不上且不是「通用」的行丢弃 */
+function parseNotes(lines, pages) {
+    const notes = [];
+    for (const line of lines) {
+        const m = line.match(NOTE_RE);
+        if (!m) continue;
+        const name = m[1].trim();
+        const text = m[2].trim();
+        if (name === '通用') {
+            notes.push({ file: null, text });
+            continue;
+        }
+        if (name.includes('/')) continue; // 文件路径类 dev 行，不面向业务
+        const page = pages.find((p) =>
+            p.title === name ||
+            p.title.replace(/\s/g, '') === name.replace(/\s/g, '') ||
+            posix.basename(p.file, '.html') === name
+        );
+        if (page) notes.push({ file: page.file, text });
+    }
+    return notes;
+}
+
 /* ---------- git log 解析 ---------- */
 
 const SEP = '\x1f';
 const RECORD = '\x1e';
+const BODY_END = '\x02';
 const raw = execFileSync(
     'git',
-    ['log', '--no-merges', '--name-only', `--pretty=format:${RECORD}%H${SEP}%an${SEP}%aI${SEP}%s`],
+    ['log', '--no-merges', '--name-only', `--pretty=format:${RECORD}%H${SEP}%an${SEP}%aI${SEP}%s${SEP}%b${BODY_END}`],
     { cwd: repoRoot, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }
 );
 
@@ -134,13 +171,14 @@ let latestSha = '';
 let total = 0;
 
 for (const record of raw.split(RECORD)) {
-    const lines = record.replace(/^\n/, '').split('\n');
-    if (!lines[0]) continue;
-    const [sha, author, isoDate, subject] = lines[0].split(SEP);
+    const bodyEnd = record.indexOf(BODY_END);
+    if (bodyEnd < 0) continue;
+    const fields = record.slice(0, bodyEnd).replace(/^\n/, '').split(SEP);
+    const [sha, author, isoDate, subject, body] = fields;
     if (!sha || !subject) continue;
     if (SKIP_AUTHORS.test(author) || SKIP_SUBJECTS.test(subject)) continue;
 
-    const files = lines.slice(1).map((l) => l.trim()).filter(Boolean);
+    const files = record.slice(bodyEnd + 1).split('\n').map((l) => l.trim()).filter(Boolean);
     const m = subject.match(TYPE_RE);
     const type = m ? m[1].toLowerCase() : 'other';
     const text = m ? m[2].trim() : subject.trim();
@@ -151,6 +189,13 @@ for (const record of raw.split(RECORD)) {
     if (!dayMap.has(date)) dayMap.set(date, []);
     const item = { sha: sha.slice(0, 7), type, text, author, time, pages };
     if (global) item.global = true;
+    // 说明优先取 commit body，老提交回退到 changelog-notes.json 补录
+    const bodyLines = (body || '').split('\n');
+    let notes = parseNotes(bodyLines, pages);
+    if (!notes.length && backfillNotes[item.sha]) {
+        notes = parseNotes(backfillNotes[item.sha].map((l) => '- ' + l), pages);
+    }
+    if (notes.length) item.notes = notes;
     dayMap.get(date).push(item);
     total += 1;
 }

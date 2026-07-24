@@ -1,10 +1,18 @@
 {
-  "latestSha": "a503ca1e51be54f139427e5389510ca137ebef05",
-  "total": 184,
+  "latestSha": "1457302c1368461079a6fd3850dfb7fe0fc363b7",
+  "total": 185,
   "days": [
     {
       "date": "2026-07-25",
       "items": [
+        {
+          "sha": "1457302",
+          "type": "chore",
+          "text": "补齐近7天页面变更对比图存量",
+          "author": "weekwood",
+          "time": "00:08",
+          "pages": []
+        },
         {
           "sha": "a503ca1",
           "type": "feat",
@@ -83,6 +91,28 @@
               "module": "冷丰WMS",
               "title": "零售订单"
             }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "text": "售后状态「已收货」调整为「待收货」，筛选项与列表徽章同步"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "三类售后的状态矩阵定稿——仅退款走「退款中→退款执行中→已完成/退款异常」；退货退款走「待退货→操作退回→待收货→确认收货→退款」，门店拒收签收后终态「已拒绝」（不生成退款单）；补货无退款单，走「待收货（采购补货中）→已完成」；退款单支持模拟通道退款中/成功/失败并可重新发起"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "批量上传/删除快递单从「商品条形码」改为按「商品名称+规格」匹配"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "批量上传/删除快递单改按「商品名称+规格」匹配（同零售订单）"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "text": "批量上传/删除快递单改按「商品名称+规格」匹配（同零售订单）"
+            }
           ]
         }
       ]
@@ -138,7 +168,37 @@
               "title": "进货 · 用户 APP"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "store-app/h5/home.html",
+              "text": "新增门店APP工作台——快捷核销（扫码/输码/待核销）与基础工具（门店会员码/门店订单/库存查询/商户进件）"
+            },
+            {
+              "file": "store-app/index.html",
+              "text": "新增门店APP入口页"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "商品行价格改为「售价+实付」双价展示"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "text": "进货页归入门店APP，顶部支持返回工作台；规格显示名自动按「商品名 规格/单位」生成"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "text": "移除「我要进货」入口（进货能力移至门店APP）"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "新增/编辑商品时规格显示名自动跟随商品名与规格生成，手动改过的不再覆盖"
+            },
+            {
+              "file": "SCM/mobile_index.html",
+              "text": "导航新增「门店APP」入口"
+            }
+          ]
         },
         {
           "sha": "bef2870",
@@ -153,7 +213,13 @@
               "title": "采购单"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "单据状态新增「待审核」「已驳回」，原「初始」更名为「待收货」；编辑/取消操作仅限待收货状态"
+            }
+          ]
         },
         {
           "sha": "1113d6d",
@@ -252,6 +318,36 @@
               "module": "",
               "title": "我的 · 用户 APP"
             }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_member_level_form.html",
+              "text": "新增独立配置页替代弹窗——基础信息（等级名称/等级图标上传/成长值）+ 五类会员权益（赠送积分/赠送券/商品会员折扣/积分等级赠送比例/生日送券），折扣可配适用范围，赠券复用会员管理的优惠券选择器"
+            },
+            {
+              "file": "MDM/mdm_member_level.html",
+              "text": "规则调整——成长值为 0 的等级为默认等级，不可删除/禁用；降级改为每日统一处理"
+            },
+            {
+              "file": "user-app/h5/member-center.html",
+              "text": "新增 C 端会员中心——等级卡片、获取成长值途径、会员等级说明"
+            },
+            {
+              "file": "user-app/h5/checkin.html",
+              "text": "新增每日签到页"
+            },
+            {
+              "file": "user-app/h5/growth-detail.html",
+              "text": "新增成长值明细页"
+            },
+            {
+              "file": "user-app/h5/growth-rule-desc.html",
+              "text": "新增成长值规则说明页"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "text": "新增会员中心入口"
+            }
           ]
         },
         {
@@ -331,6 +427,36 @@
               "module": "",
               "title": "我的 · 用户 APP"
             }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/home.html",
+              "text": "还原 C 端商城首页（直播位与商品流）"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "text": "还原商城列表页"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "text": "还原购物车"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "text": "还原商品详情与加购/下单入口"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "还原直播间与直播下单链路"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "text": "还原下单确认页"
+            },
+            {
+              "file": null,
+              "text": "C 端商城从首页浏览到下单的完整链路恢复可用（含手机快速登录/微信授权登录）"
+            }
           ]
         },
         {
@@ -349,6 +475,16 @@
               "file": "MDM/mdm_member_level_desc.html",
               "module": "冷丰WMS",
               "title": "会员等级规则说明"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_member_level.html",
+              "text": "支持上传等级图标（列表新增图标列），等级上限从 10 调整为 15"
+            },
+            {
+              "file": "MDM/mdm_member_level_desc.html",
+              "text": "等级上限文案同步为 15 级"
             }
           ]
         }
@@ -395,7 +531,25 @@
               "title": "工作台"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_member_batch_tag.html",
+              "text": "新增批量打标签流程——按筛选圈选会员后选择标签与标签值提交"
+            },
+            {
+              "file": "MDM/mdm_member_segment.html",
+              "text": "人群更新方式支持手动/自动（每天凌晨），手动可立即按当前筛选条件更新"
+            },
+            {
+              "file": "MDM/mdm_member_batch_tag_members.html",
+              "text": "同步展示人群更新方式"
+            },
+            {
+              "file": null,
+              "text": "会员筛选弹层层级修复，避免被人群筛选弹窗遮挡"
+            }
+          ]
         },
         {
           "sha": "0697544",
@@ -479,6 +633,16 @@
               "module": "",
               "title": "选择服务类型 · 用户 APP"
             }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "text": "合并取件的提示布局修复，不再透出「已合并」说明文案，仅保留取件码"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "text": "合并取件提示同步调整"
+            }
           ]
         },
         {
@@ -509,7 +673,25 @@
               "title": "门店订货单"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/purchase_demand_summary.html",
+              "text": "预览表头「收货仓库」改为「收货地名称」，按履约方式取值——快递配送取门店、平台配送取收货仓库；预览行待采购量支持直接编辑；快递配送生成的采购单不带关联单号"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "履约方式「快递到店」统一更名为「快递配送」（零售订单仅平台配送，代采订单支持快递配送/平台配送）"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "text": "履约方式文案同步为「快递配送」"
+            },
+            {
+              "file": "SCM/purchase_store_order_sheet.html",
+              "text": "履约方式文案同步为「快递配送」"
+            }
+          ]
         },
         {
           "sha": "6e8afc5",
@@ -619,7 +801,17 @@
               "title": "工作台"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_member_c.html",
+              "text": "「C端会员」更名为「会员管理」，归入「会员360」"
+            },
+            {
+              "file": null,
+              "text": "会员模块独立为顶栏入口，侧栏重组为「会员360」与「会员体系」两组，相关页面面包屑同步"
+            }
+          ]
         },
         {
           "sha": "37789d3",
@@ -709,7 +901,21 @@
               "title": "工作台"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_member_segment.html",
+              "text": "新增会员分群页——按条件筛选圈人并保存人群"
+            },
+            {
+              "file": "MDM/mdm_member_segment_members.html",
+              "text": "新增人群列表页"
+            },
+            {
+              "file": null,
+              "text": "新增三栏式会员筛选弹窗（左侧维度/中部配置/右侧已选），支持区域、门店、商品/类目多选"
+            }
+          ]
         },
         {
           "sha": "f801048",
@@ -722,6 +928,12 @@
               "file": "user-app/h5/order-refund-return-ship.html",
               "module": "",
               "title": "预约寄件 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "text": "自行寄件表单字段顺序调整为物流单号在前、快递公司在后"
             }
           ]
         },
@@ -822,6 +1034,20 @@
               "module": "",
               "title": "选择服务类型 · 用户 APP"
             }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "售后寄回的快递公司下拉扩展为 24 家，支持搜索、按拼音首字母分组"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "text": "快递公司选择同步扩展为 24 家、可搜索"
+            },
+            {
+              "file": null,
+              "text": "售后寄回快递公司枚举全链路统一为 24 家，编码对齐快递100"
+            }
           ]
         },
         {
@@ -845,6 +1071,12 @@
               "file": "MDM/mdm_aftersale_ticket_detail.html",
               "module": "冷丰售后",
               "title": "售后详情"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "申请信息支持行内编辑——货物状态按售后类型与订单状态联动（补货/发货前仅退款展示「/」；收货后仅退款可改已/未收到货；退货退款固定已收到货）；商品明细点击可编辑；补货场景退款金额固定不可编辑"
             }
           ]
         }
@@ -5569,6 +5801,16 @@
               "file": "SCM/purchase_store_demand_summary.html",
               "module": "冷丰采购",
               "title": "门店订货汇总"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/app_ibd_receipt_list.html",
+              "text": "查询筛选、录入页、本次收货量校验与多级确认收货"
+            },
+            {
+              "file": "SCM/obd_wave.html",
+              "text": "模板明细表头改为创建时间/创建人"
             }
           ]
         },

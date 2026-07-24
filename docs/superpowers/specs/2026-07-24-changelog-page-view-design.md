@@ -74,6 +74,18 @@ changelog 页目前是 commit 流水（日期 → commit 标题一句话）。�
 - **已知边界**：只覆盖页面默认状态的可见变化；弹窗/抽屉/tab 内的改动截不到，
   由「无界面变化」标注 + commit 一句话说明兜底。
 
+## 呈现层 4：按页面人话说明（commit body 约定）
+
+截图对比拍不到弹窗/抽屉/流程类变化，由文字说明兜底。数据源两级：
+
+- **未来提交**：`.cursor/rules/changelog-commit.mdc`（alwaysApply）约定 commit body 按
+  `- <页面中文名>: <一句人话>` 写按页面说明，并优先引用代码中的中文业务注释；
+  生成脚本解析 `%b` 中的该格式行，按页面 `<title>` 名匹配挂到 `item.notes`。
+- **历史提交补录**：`changelog-notes.json`（{sha7: ["页面名: 说明", ...]}），
+  body 没写说明的老提交回退用它；近 3 天（07-22~24）的 14 个提交已人工分析 diff+注释补录。
+- 页面名匹配不上且非「通用」的行丢弃（防 dev 向内容漏给业务）；「通用」行只在
+  「其他改动」/旧格式上下文展示。changelog 页在对应页面的提交行下渲染说明 bullets。
+
 ## 验收
 
 - 本地 `node tools/generate-changelog.mjs`：断言样例 commit 的 `pages` 正确（含 js 反查、全局阈值、title 拆分）。

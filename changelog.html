@@ -61,15 +61,23 @@
             border-radius: 6px;
             overflow: hidden;
         }
+        .cl-entry { border-bottom: 1px solid #f0f0f0; }
+        .cl-entry:last-child { border-bottom: none; }
         .cl-item {
             display: flex;
             align-items: baseline;
             gap: 10px;
             padding: 10px 16px;
-            border-bottom: 1px solid #f0f0f0;
             font-size: 13px;
         }
-        .cl-item:last-child { border-bottom: none; }
+        .cl-note {
+            margin: 0 16px 9px 66px;
+            padding: 1px 0 1px 10px;
+            border-left: 2px solid #e0e4ea;
+            font-size: 12px;
+            color: #7a8088;
+            line-height: 1.7;
+        }
         .cl-badge {
             flex: none;
             font-size: 11px;
@@ -130,7 +138,9 @@
             padding: 2px 4px;
         }
         .cl-page-commits { background: #fafafa; border-top: 1px dashed #f0f0f0; }
-        .cl-page-commits .cl-item { padding-left: 32px; border-bottom-color: #f5f5f5; }
+        .cl-page-commits .cl-entry { border-bottom-color: #f5f5f5; }
+        .cl-page-commits .cl-item { padding-left: 32px; }
+        .cl-page-commits .cl-note { margin-left: 82px; }
         .cl-cmp-link { flex: none; font-size: 12px; color: #4a90d9; text-decoration: none; white-space: nowrap; }
         .cl-cmp-link:hover { text-decoration: underline; }
         .cl-cmp-none { flex: none; font-size: 11px; color: #bbb; white-space: nowrap; cursor: help; }
@@ -205,11 +215,16 @@
                         }
                     }
                 }
-                return '<div class="cl-item">' +
+                // 按页面说明：页面上下文取该页的行，无页面上下文（其他改动/旧格式）取「通用」行
+                var noteHtml = (it.notes || [])
+                    .filter(function (n) { return file ? n.file === file : n.file === null; })
+                    .map(function (n) { return '<div class="cl-note">' + esc(n.text) + '</div>'; })
+                    .join('');
+                return '<div class="cl-entry"><div class="cl-item">' +
                     '<span class="cl-badge ' + cls + '">' + label + '</span>' +
                     '<span class="cl-text">' + esc(it.text) + '</span>' + cmp +
                     '<span class="cl-item-meta">' + esc(it.author) + ' · ' + esc(it.time) + '</span>' +
-                    '</div>';
+                    '</div>' + noteHtml + '</div>';
             }
             /** 按页面聚合一天的提交；数据没有 pages 字段（旧格式）时返回 null 走原样渲染 */
             function aggDay(day) {
