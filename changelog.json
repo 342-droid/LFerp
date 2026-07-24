@@ -1,10 +1,28 @@
 {
-  "latestSha": "1457302c1368461079a6fd3850dfb7fe0fc363b7",
-  "total": 185,
+  "latestSha": "fa0c3ea89676aac5040cb29c532562cd1e74f01e",
+  "total": 186,
   "days": [
     {
       "date": "2026-07-25",
       "items": [
+        {
+          "sha": "fa0c3ea",
+          "type": "feat",
+          "text": "更新日志支持按页面人话说明（Cursor规范+近3天补录）",
+          "author": "weekwood",
+          "time": "00:19",
+          "pages": [],
+          "notes": [
+            {
+              "file": null,
+              "text": "新增 .cursor/rules 提交信息规范——commit body 按「- 页面名: 说明」写按页面人话，Cursor 自动加载；生成脚本解析 body 与 changelog-notes.json 补录，说明以引用条样式挂在对应页面的提交行下"
+            },
+            {
+              "file": null,
+              "text": "人工分析 07-22~24 共 14 个提交的 diff 与代码注释，补录 49 条按页面说明"
+            }
+          ]
+        },
         {
           "sha": "1457302",
           "type": "chore",
