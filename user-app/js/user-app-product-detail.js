@@ -589,11 +589,6 @@
         window.alert('联系客服（演示）');
       });
 
-    document.getElementById('productDetailSupplierEnter') &&
-      document.getElementById('productDetailSupplierEnter').addEventListener('click', function () {
-        window.alert('进入供应商：' + state.product.supplier.name + '（演示）');
-      });
-
     document.body.addEventListener('click', function (e) {
       var mini = e.target.closest('[data-pd-id]');
       if (mini) window.location.href = buildDetailUrl(mini.getAttribute('data-pd-id'));
