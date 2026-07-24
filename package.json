@@ -1,0 +1,11 @@
+{
+  "name": "lferp-prototype",
+  "private": true,
+  "description": "冷丰ERP 原型站工具依赖（changelog 生成与页面变更对比图）",
+  "type": "module",
+  "devDependencies": {
+    "jpeg-js": "^0.4.4",
+    "playwright": "^1.61.1",
+    "pngjs": "^7.0.0"
+  }
+}

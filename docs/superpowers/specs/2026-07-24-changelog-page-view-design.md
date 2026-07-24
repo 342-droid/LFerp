@@ -53,6 +53,27 @@ changelog 页目前是 commit 流水（日期 → commit 标题一句话）。�
   append 小号「新」角标（样式随 common.js 注入）。若此时侧边栏尚未渲染完成，用 MutationObserver 兜底一次。
 - 12 个 sidebar 脚本一律不改。
 
+## 呈现层 3：页面变更前后对照图（看对比）
+
+回答「页面上**哪里**变了」：每条「提交×页面」用 git archive 导出该提交的父提交树（改动前）
+与提交树（改动后），同环境静态服务并整页截图，像素对比后在**前后两张图的相同位置圈红框**。
+
+- `tools/visual-diff.mjs`：8px 网格比对（容忍轻微渲染抖动）→ 连通域聚类 → 小噪声过滤、
+  邻近框合并 → 前后两张图画红框，输出 JPEG(q80)。
+- `tools/generate-changelog-diffs.mjs`：读 changelog.json 取近 DIFF_DAYS(默认3) 天的提交×页面，
+  幂等生成（已有的跳过），playwright 单浏览器复用批量截图；产物落
+  `changelog-assets/<sha7>/<页面slug>.before.jpg / .after.jpg` + `manifest.json`。
+- **体积控制**：JPEG 而非 PNG；`regions=0`（界面无可见变化）只记 manifest 结论不存图；
+  超过 RETAIN_DAYS(默认14) 天的图与 manifest 项由脚本裁剪。
+- `compare.html`：对照查看器，读 manifest，支持「并排」与「滑动对比」两种模式；
+  新增页面显示单图（status=added）。
+- changelog 页说明行按 manifest 挂入口：`regions>0`→「看对比」；`regions=0`→灰字「无界面变化」
+  （悬浮提示改动在交互/弹层里）；`added`→「新增 · 看截图」。
+- CI（changelog.yml）：装 fonts-noto-cjk + chromium，daily 依次跑两个生成脚本，
+  changelog.json 与 changelog-assets 一并提交。
+- **已知边界**：只覆盖页面默认状态的可见变化；弹窗/抽屉/tab 内的改动截不到，
+  由「无界面变化」标注 + commit 一句话说明兜底。
+
 ## 验收
 
 - 本地 `node tools/generate-changelog.mjs`：断言样例 commit 的 `pages` 正确（含 js 反查、全局阈值、title 拆分）。

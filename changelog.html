@@ -129,6 +129,9 @@
         }
         .cl-page-commits { background: #fafafa; border-top: 1px dashed #f0f0f0; }
         .cl-page-commits .cl-item { padding-left: 32px; border-bottom-color: #f5f5f5; }
+        .cl-cmp-link { flex: none; font-size: 12px; color: #4a90d9; text-decoration: none; white-space: nowrap; }
+        .cl-cmp-link:hover { text-decoration: underline; }
+        .cl-cmp-none { flex: none; font-size: 11px; color: #bbb; white-space: nowrap; cursor: help; }
         .cl-more, .cl-status {
             display: block;
             width: 100%;
@@ -179,13 +182,30 @@
                 var d = new Date(Date.now() - (offsetDays || 0) * 86400000);
                 return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Shanghai' }).format(d);
             }
+            var MANIFEST = {}; // 变更对比图清单（changelog-assets/manifest.json）
+
             /* 面向看原型的同事：只展示「改了什么」的一句话说明，不透出 sha/diff 等代码信息 */
-            function commitRow(it) {
+            function commitRow(it, file, pageTitle) {
                 var cls = BADGE_CLASS[it.type] || 'other';
                 var label = TYPE_LABELS[it.type] || TYPE_LABELS.other;
+                var cmp = '';
+                if (file) {
+                    var e = MANIFEST[it.sha + '|' + file];
+                    if (e) {
+                        var href = 'compare.html?k=' + encodeURIComponent(it.sha + '|' + file) +
+                            '&t=' + encodeURIComponent((pageTitle || '') + ' · ' + it.text);
+                        if (e.status === 'added') {
+                            cmp = '<a class="cl-cmp-link" href="' + href + '" target="_blank" rel="noopener">新增 · 看截图</a>';
+                        } else if (e.regions > 0) {
+                            cmp = '<a class="cl-cmp-link" href="' + href + '" target="_blank" rel="noopener">看对比</a>';
+                        } else {
+                            cmp = '<span class="cl-cmp-none" title="改动在交互或数据逻辑里，打开页面的默认状态截图看不出差异">无界面变化</span>';
+                        }
+                    }
+                }
                 return '<div class="cl-item">' +
                     '<span class="cl-badge ' + cls + '">' + label + '</span>' +
-                    '<span class="cl-text">' + esc(it.text) + '</span>' +
+                    '<span class="cl-text">' + esc(it.text) + '</span>' + cmp +
                     '<span class="cl-item-meta">' + esc(it.author) + ' · ' + esc(it.time) + '</span>' +
                     '</div>';
             }
@@ -222,7 +242,7 @@
                     '<button class="cl-page-toggle" type="button">' + (expanded ? '收起 ▴' : '明细 ▾') + '</button>' +
                     '</div>' +
                     '<div class="cl-page-commits"' + (expanded ? '' : ' hidden') + '>' +
-                    p.commits.map(commitRow).join('') + '</div>' +
+                    p.commits.map(function (it) { return commitRow(it, p.file, p.title); }).join('') + '</div>' +
                     '</div>';
             }
             function dayHtml(day) {
@@ -233,7 +253,7 @@
                 var body;
                 var countText;
                 if (!agg) {
-                    body = day.items.map(commitRow).join('');
+                    body = day.items.map(function (it) { return commitRow(it); }).join('');
                     countText = day.items.length + ' 条';
                 } else {
                     var expanded = day.date === bjToday(0); // 今天的明细默认展开
@@ -241,7 +261,8 @@
                     if (agg.others.length) {
                         body += '<button class="cl-sub-title cl-others-toggle" type="button">其他改动（全局样式 / 框架 / 文档等）' +
                             agg.others.length + ' 条 ▾</button>' +
-                            '<div class="cl-others" hidden>' + agg.others.map(commitRow).join('') + '</div>';
+                            '<div class="cl-others" hidden>' +
+                            agg.others.map(function (it) { return commitRow(it); }).join('') + '</div>';
                     }
                     countText = agg.pages.length ? agg.pages.length + ' 个页面更新' : day.items.length + ' 条';
                 }
@@ -284,9 +305,17 @@
                     sub.textContent = sub.textContent.replace(others.hidden ? '▴' : '▾', others.hidden ? '▾' : '▴');
                 }
             });
-            fetch('changelog.json', { cache: 'no-cache' })
-                .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-                .then(render)
+            Promise.all([
+                fetch('changelog.json', { cache: 'no-cache' })
+                    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }),
+                fetch('changelog-assets/manifest.json', { cache: 'no-cache' })
+                    .then(function (r) { return r.ok ? r.json() : {}; })
+                    .catch(function () { return {}; })
+            ])
+                .then(function (rs) {
+                    MANIFEST = rs[1] || {};
+                    render(rs[0]);
+                })
                 .catch(function () {
                     document.getElementById('cl-content').innerHTML =
                         '<div class="cl-status">更新日志数据加载失败，可直接查看 <a href="' + REPO_URL +
