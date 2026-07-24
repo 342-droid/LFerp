@@ -974,11 +974,17 @@
     return result;
   }
 
-  function normalizeBarcode(val) {
+  function normalizeGoodsText(val) {
     return String(val || '')
       .trim()
-      .replace(/[….]/g, '')
-      .toUpperCase();
+      .replace(/\s+/g, '')
+      .replace(/^规格[:：]/, '')
+      .toLowerCase();
+  }
+
+  function goodSpecOf(good) {
+    if (!good) return '';
+    return String(good.spec || good.specName || good.skuName || '').trim();
   }
 
   function goodBarcodeOf(good) {
@@ -986,17 +992,13 @@
     return String(good.barcode || good.sku || good.id || '').trim();
   }
 
-  function goodMatchesBarcode(good, barcode) {
-    if (!good || !barcode) return false;
-    var target = normalizeBarcode(barcode);
-    var candidates = [good.barcode, good.sku, good.id];
-    for (var i = 0; i < candidates.length; i++) {
-      if (!candidates[i]) continue;
-      if (normalizeBarcode(candidates[i]) === target) return true;
-      if (normalizeBarcode(candidates[i]).indexOf(target) === 0) return true;
-      if (target.indexOf(normalizeBarcode(candidates[i])) === 0) return true;
-    }
-    return false;
+  function goodMatchesNameSpec(good, name, spec) {
+    if (!good || !name || !spec) return false;
+    if (normalizeGoodsText(good.name) !== normalizeGoodsText(name)) return false;
+    var gSpec = normalizeGoodsText(goodSpecOf(good));
+    var tSpec = normalizeGoodsText(spec);
+    if (!gSpec || !tSpec) return false;
+    return gSpec === tSpec || gSpec.indexOf(tSpec) >= 0 || tSpec.indexOf(gSpec) >= 0;
   }
 
   function resolveOrderGoodsList(orderId) {
@@ -1007,21 +1009,23 @@
     return [];
   }
 
-  function resolveGoodByBarcode(orderId, barcode) {
+  function resolveGoodByNameSpec(orderId, name, spec) {
     var goods = resolveOrderGoodsList(orderId);
     for (var i = 0; i < goods.length; i++) {
-      if (goodMatchesBarcode(goods[i], barcode)) {
+      if (goodMatchesNameSpec(goods[i], name, spec)) {
         return {
           id: goods[i].id || ('g' + (i + 1)),
-          name: goods[i].name || '商品',
-          barcode: goodBarcodeOf(goods[i]) || String(barcode).trim()
+          name: goods[i].name || String(name).trim(),
+          spec: goodSpecOf(goods[i]) || String(spec).trim(),
+          barcode: goodBarcodeOf(goods[i])
         };
       }
     }
     return {
-      id: 'bc-' + normalizeBarcode(barcode),
-      name: '商品(' + String(barcode).trim() + ')',
-      barcode: String(barcode).trim()
+      id: 'ns-' + normalizeGoodsText(name) + '-' + normalizeGoodsText(spec),
+      name: String(name).trim(),
+      spec: String(spec).trim(),
+      barcode: ''
     };
   }
 
@@ -1039,20 +1043,23 @@
       return String(h || '').trim();
     });
     var idxOrder = -1;
-    var idxBarcode = -1;
+    var idxName = -1;
+    var idxSpec = -1;
     var idxTracking = -1;
     headers.forEach(function (h, i) {
       if (/订单号/.test(h)) idxOrder = i;
-      else if (/条形码|条码|商品编码/.test(h)) idxBarcode = i;
+      else if (/商品名称|商品名|品名/.test(h)) idxName = i;
+      else if (/规格/.test(h)) idxSpec = i;
       else if (/物流单号|快递单号|运单号/.test(h)) idxTracking = i;
     });
-    if (idxOrder < 0 || idxBarcode < 0 || idxTracking < 0) {
-      if (headers.length >= 3) {
+    if (idxOrder < 0 || idxName < 0 || idxSpec < 0 || idxTracking < 0) {
+      if (headers.length >= 4) {
         idxOrder = 0;
-        idxBarcode = 1;
-        idxTracking = 2;
+        idxName = 1;
+        idxSpec = 2;
+        idxTracking = 3;
       } else {
-        return { rows: [], error: '表头需包含：订单号、商品条形码、物流单号' };
+        return { rows: [], error: '表头需包含：订单号、商品名称、规格、物流单号' };
       }
     }
 
@@ -1060,12 +1067,14 @@
     for (var r = 1; r < lines.length; r++) {
       var cols = splitCsvLine(lines[r]);
       var orderId = String(cols[idxOrder] || '').trim();
-      var barcode = String(cols[idxBarcode] || '').trim();
+      var productName = String(cols[idxName] || '').trim();
+      var spec = String(cols[idxSpec] || '').trim();
       var trackingNo = String(cols[idxTracking] || '').trim();
-      if (!orderId && !barcode && !trackingNo) continue;
+      if (!orderId && !productName && !spec && !trackingNo) continue;
       rows.push({
         orderId: orderId,
-        barcode: barcode,
+        productName: productName,
+        spec: spec,
         trackingNo: trackingNo,
         line: r + 1
       });
@@ -1081,10 +1090,10 @@
     return null;
   }
 
-  function shipmentHasBarcode(shipment, barcode) {
+  function shipmentHasNameSpec(shipment, name, spec) {
     var goods = getShipmentGoods(shipment);
     for (var i = 0; i < goods.length; i++) {
-      if (goodMatchesBarcode(goods[i], barcode)) return true;
+      if (goodMatchesNameSpec(goods[i], name, spec)) return true;
     }
     return false;
   }
@@ -1106,15 +1115,15 @@
     var invalid = 0;
 
     (rows || []).forEach(function (row) {
-      if (!row.orderId || !row.barcode || !row.trackingNo) {
+      if (!row.orderId || !row.productName || !row.spec || !row.trackingNo) {
         invalid += 1;
         return;
       }
-      var good = resolveGoodByBarcode(row.orderId, row.barcode);
+      var good = resolveGoodByNameSpec(row.orderId, row.productName, row.spec);
       var list = getShipments(row.orderId);
       var existing = findShipmentByTracking(list, row.trackingNo);
       if (existing) {
-        if (shipmentHasBarcode(existing, row.barcode)) {
+        if (shipmentHasNameSpec(existing, row.productName, row.spec)) {
           skipped += 1;
           return;
         }
@@ -1149,7 +1158,7 @@
     var notFound = 0;
 
     (rows || []).forEach(function (row) {
-      if (!row.orderId || !row.barcode || !row.trackingNo) {
+      if (!row.orderId || !row.productName || !row.spec || !row.trackingNo) {
         invalid += 1;
         return;
       }
@@ -1163,12 +1172,12 @@
         skipped += 1;
         return;
       }
-      if (!shipmentHasBarcode(existing, row.barcode)) {
+      if (!shipmentHasNameSpec(existing, row.productName, row.spec)) {
         notFound += 1;
         return;
       }
       var nextGoods = getShipmentGoods(existing).filter(function (g) {
-        return !goodMatchesBarcode(g, row.barcode);
+        return !goodMatchesNameSpec(g, row.productName, row.spec);
       });
       if (!nextGoods.length) {
         saveShipments(
@@ -1196,11 +1205,11 @@
 
   function downloadBatchExpressTemplate() {
     var csv =
-      '\uFEFF订单号,商品条形码,物流单号\n' +
-      'ORD-3212689201599003,6901003001003,773088899900099\n' +
-      'ORD-3212689201599003,6901003001004,773088899900099\n' +
-      'ORD-3212689201588561,6901001001001,773075059702651\n' +
-      'ORD-3212689201599001,6901002002002,SF9988776655443\n';
+      '\uFEFF订单号,商品名称,规格,物流单号\n' +
+      'ORD-3212689201599003,新鲜红颜草莓 香甜多汁 500g装,规格：500g,773088899900099\n' +
+      'ORD-3212689201599003,进口香蕉 香甜软糯 3斤装,规格：3斤,773088899900099\n' +
+      'ORD-3212689201588561,微辣萝卜干 500g 4号…,规格：500g,773075059702651\n' +
+      'ORD-3212689201599001,冷丰优选3J智利车厘子 3斤装,规格：3斤,SF9988776655443\n';
     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
@@ -1214,9 +1223,9 @@
 
   function downloadBatchExpressDeleteTemplate() {
     var csv =
-      '\uFEFF订单号,商品条形码,物流单号\n' +
-      'ORD-3212689201599003,6901003001004,773088899900011\n' +
-      'ORD-3212689201588561,6901001001001,773075059702651\n';
+      '\uFEFF订单号,商品名称,规格,物流单号\n' +
+      'ORD-3212689201599003,进口香蕉 香甜软糯 3斤装,规格：3斤,773088899900011\n' +
+      'ORD-3212689201588561,微辣萝卜干 500g 4号…,规格：500g,773075059702651\n';
     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
@@ -1236,8 +1245,8 @@
     var hint =
       opts.hint ||
       (isDelete
-        ? '通过 Excel / CSV 批量删除快递单。请先下载模板，按「订单号、商品条形码、物流单号」填写：一商品一行。同一物流含多商品时，删除其中一条仅从该物流中移除对应商品；若移除后无商品则删除整条物流。'
-        : '通过 Excel / CSV 批量上传快递单。请先下载模板，按「订单号、商品条形码、物流单号」填写：一商品一行。同物流单号+同订单号+不同条形码将合并为一条物流；同物流单号+不同订单号仅展示本订单商品；三者均一致则跳过不重复上传。');
+        ? '通过 Excel / CSV 批量删除快递单。请先下载模板，按「订单号、商品名称、规格、物流单号」填写：一商品一行。同一物流含多商品时，删除其中一条仅从该物流中移除对应商品；若移除后无商品则删除整条物流。'
+        : '通过 Excel / CSV 批量上传快递单。请先下载模板，按「订单号、商品名称、规格、物流单号」填写：一商品一行。同物流单号+同订单号+不同商品将合并为一条物流；同物流单号+不同订单号仅展示本订单商品；四者均一致则跳过不重复上传。');
     var submitText = isDelete ? '确认删除' : '确认上传';
     var templateName = isDelete ? '下载删除模板' : '下载导入模板';
 

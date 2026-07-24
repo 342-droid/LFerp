@@ -217,8 +217,8 @@
       window.OrderProxyExpress.openBatchUploadModal({
         mode: isDelete ? 'delete' : 'upload',
         hint: isDelete
-          ? '按「订单号、商品条形码、物流单号」批量删除：一商品一行。同一物流含多商品时，删除其中一条仅移除该商品；若该物流下已无商品则删除整条物流。仅待揽件包裹可删。'
-          : '按「订单号、商品条形码、物流单号」批量上传：一商品一行。同物流+同订单+不同条形码合并为一条物流；同物流+不同订单仅展示本订单商品；三者均一致则跳过。仅适用于履约方式为快递的订单。',
+          ? '按「订单号、商品名称、规格、物流单号」批量删除：一商品一行。同一物流含多商品时，删除其中一条仅移除该商品；若该物流下已无商品则删除整条物流。仅待揽件包裹可删。'
+          : '按「订单号、商品名称、规格、物流单号」批量上传：一商品一行。同物流+同订单+不同商品合并为一条物流；同物流+不同订单仅展示本订单商品；四者均一致则跳过。仅适用于履约方式为快递的订单。',
         onSuccess: function () {
           var drawer = document.getElementById('orderDetailDrawer');
           if (drawer && drawer.classList.contains('is-open') && drawer._orderId && window.OrderLiveDetail) {

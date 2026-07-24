@@ -1,6 +1,12 @@
 /**
  * 售后详情 — 按状态/类型分支
  * 对齐用户端我要进货：仅退款 / 退货退款 / 补货 / 换货
+ *
+ * 状态矩阵要点：
+ * - 仅退款：审核通过 → 退款中/待退款 →（通道）退款执行中 → 已完成/退款成功 或 退款异常/退款失败
+ * - 退货退款：审核通过 → 待退货 → 操作退回 → 待收货 → 确认收货 → 退款中/待退款 → …
+ *             门店拒绝收货签收后 → 已拒绝（不生成退款单）
+ * - 补货：无退款单；审核通过 → 待收货（采购补货中）→ 已完成
  */
 (function () {
   var CHECK_SVG =
@@ -395,6 +401,26 @@
   function renderRefundTicketCard(detail) {
     var ticket = detail.refundTicket;
     if (!ticket || !ticket.id) return '';
+    var refundStatus = ticket.status || '待退款';
+    var canAdvance =
+      detail.status === '退款中' ||
+      detail.status === '退款异常' ||
+      refundStatus === '待退款' ||
+      refundStatus === '退款执行中' ||
+      refundStatus === '退款失败';
+    var actions = '';
+    if (canAdvance && refundStatus !== '退款成功') {
+      actions =
+        '<div class="aftersale-flow-card__actions" style="margin-top:12px">' +
+        (refundStatus === '待退款'
+          ? '<button type="button" class="aftersale-btn aftersale-btn--ghost" id="asRefundExecuting">模拟支付通道退款中</button>'
+          : '') +
+        '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asRefundSuccess">模拟退款成功</button>' +
+        (refundStatus !== '退款失败'
+          ? '<button type="button" class="aftersale-btn aftersale-btn--danger" id="asRefundFail">模拟退款失败</button>'
+          : '<button type="button" class="aftersale-btn aftersale-btn--ghost" id="asRefundRetry">重新发起退款</button>') +
+        '</div>';
+    }
     return (
       '<section class="aftersale-detail-card aftersale-flow-card">' +
       '<h2 class="aftersale-detail-card__title">退款单</h2>' +
@@ -411,9 +437,33 @@
       escapeHtml(ticket.createdAt || '-') +
       '</dd>' +
       '<dt>执行状态</dt><dd>' +
-      escapeHtml(ticket.status || '待退款') +
-      '</dd></dl></div></div></section>'
+      escapeHtml(refundStatus) +
+      '</dd></dl></div></div>' +
+      actions +
+      '</section>'
     );
+  }
+
+  /** 退款单状态推进：同步售后单状态 */
+  function applyRefundTicketStatus(nextRefundStatus) {
+    var detail = state.detail;
+    if (!detail || !detail.refundTicket) return;
+    detail.refundTicket.status = nextRefundStatus;
+    if (nextRefundStatus === '待退款' || nextRefundStatus === '退款执行中') {
+      detail.status = '退款中';
+    } else if (nextRefundStatus === '退款成功') {
+      detail.status = '已完成';
+    } else if (nextRefundStatus === '退款失败') {
+      detail.status = '退款异常';
+    }
+    detail.progress = buildProgress(
+      detail.type,
+      detail.status,
+      detail.id,
+      detail.applyTime,
+      detail.order.receiver
+    );
+    renderPage();
   }
 
   function loadSupplierAddresses() {
@@ -507,12 +557,13 @@
 
     if (status === '已拒绝' || status === '已取消') {
       var cancelDesc = '售后单已取消';
-      if (status === '已取消' && state.detail && state.detail.rejectReceive) {
-        var rejectMode = state.detail.rejectReceive.mode || '重新寄回';
+      var rejectReceive = state.detail && state.detail.rejectReceive;
+      if (rejectReceive) {
+        var rejectMode = rejectReceive.mode || '重新寄回';
         cancelDesc =
           rejectMode === '原路退回'
-            ? '退回物流已签收，商品原路退回完成，售后关闭'
-            : '退回物流已签收，重新寄回完成，售后关闭';
+            ? '门店/供应商拒绝收货，退回物流已签收，售后关闭'
+            : '门店/供应商拒绝收货并重新寄回，退回物流已签收，售后关闭';
       }
       return [
         {
@@ -523,10 +574,15 @@
           done: true
         },
         {
-          title: status === '已拒绝' ? '审批拒绝' : '供应商拒收',
+          title: rejectReceive ? '拒绝收货' : status === '已拒绝' ? '审批拒绝' : '用户取消',
           time: nowText(),
-          desc: status === '已拒绝' ? '管理员已拒绝该申请' : cancelDesc,
-          operator: '超级管理员',
+          desc:
+            rejectReceive
+              ? cancelDesc
+              : status === '已拒绝'
+                ? '管理员已拒绝该申请'
+                : cancelDesc,
+          operator: rejectReceive || status === '已拒绝' ? '超级管理员' : applicant,
           done: true
         }
       ];
@@ -537,17 +593,20 @@
     if (type === '补货') {
       if (status === '已完成') {
         mark = { submit: 1, audit: 1, purchase: 1, done: 1 };
-      } else if (status === '已收货' || status === '待退货' || status === '退款中') {
+      } else if (status === '待收货') {
         mark = { submit: 1, audit: 1, purchase: 'current' };
       } else {
         mark = { submit: 1, audit: 1, purchase: 'current' };
       }
     } else if (status === '待退货') {
       mark = { submit: 1, audit: 1, return: 'current' };
-    } else if (status === '已收货' || status === '退款中') {
+    } else if (status === '待收货') {
+      // 退货已寄回，等待商家确认收货（尚未生成退款单）
+      mark = { submit: 1, audit: 1, return: 'current' };
+    } else if (status === '退款中') {
       mark = { submit: 1, audit: 1, return: 1, refund: 'current', ship: 'current' };
     } else if (status === '退款异常') {
-      mark = { submit: 1, audit: 1, return: 1, refund: 1 };
+      mark = { submit: 1, audit: 1, return: 1, refund: 'current' };
     } else if (status === '已完成') {
       mark = { submit: 1, audit: 1, return: 1, refund: 1, ship: 1, done: 1 };
     } else {
@@ -701,7 +760,8 @@
    *
    * 退货退款 / 换货：
    *   配送 → 仓库收货地址；快递 → 供应商收货地址
-   *   待退货：展示地址；支持取消寄件 / 上传物流单号；确认或拒绝收货
+   *   待退货：展示地址；支持取消寄件 / 上传物流单号
+   *   退货退款操作退回后 → 待收货；后台确认收货后触发退款
    *
    * 补货：
    *   不展示收货地址；审核通过后向采购端下发补货指令生成订货单
@@ -748,10 +808,22 @@
       detail.returnAddress = resolveReturnAddress(detail, detail.returnAddress);
     }
 
+    // 退货退款已有寄回物流但状态仍为待退货时，对齐为待收货
+    if (
+      type === '退货退款' &&
+      status === '待退货' &&
+      detail.shipments &&
+      detail.shipments.returnShip &&
+      detail.shipments.returnShip.trackingNo
+    ) {
+      detail.status = '待收货';
+      status = '待收货';
+    }
+
     if (!isProxyOrder(detail)) return detail;
 
     if (type === '退货退款') {
-      if (status === '退款中' || status === '已收货' || status === '已完成') {
+      if (status === '退款中' || status === '待收货' || status === '已完成') {
         if (!detail.shipments.returnShip) {
           detail.shipments.returnShip = makeShip('顺丰速运', 'SF' + String(detail.id).slice(-12), '运输中');
         }
@@ -759,7 +831,7 @@
     }
 
     if (type === '换货') {
-      if (status === '已收货' || status === '退款中' || status === '已完成') {
+      if (status === '待收货' || status === '退款中' || status === '已完成') {
         if (!detail.shipments.returnShip) {
           detail.shipments.returnShip = makeShip('中通快递', 'ZT' + String(detail.id).slice(-12), '已签收');
         }
@@ -778,7 +850,8 @@
           id: 'RF-' + String(detail.id).slice(-12),
           createdAt: detail.approval && detail.approval.time !== '-' ? detail.approval.time : nowText(),
           trigger: 'approve',
-          status: status === '已完成' ? '退款成功' : status === '退款异常' ? '退款失败' : '退款执行中'
+          status:
+            status === '已完成' ? '退款成功' : status === '退款异常' ? '退款失败' : '待退款'
         };
       } else if (
         type === '退货退款' &&
@@ -788,7 +861,8 @@
           id: 'RF-' + String(detail.id).slice(-12),
           createdAt: nowText(),
           trigger: 'receive',
-          status: status === '已完成' ? '退款成功' : status === '退款异常' ? '退款失败' : '退款执行中'
+          status:
+            status === '已完成' ? '退款成功' : status === '退款异常' ? '退款失败' : '待退款'
         };
       }
     }
@@ -1627,33 +1701,41 @@
   function renderAwaitReturnPanel(detail) {
     var type = detail.type;
     var status = detail.status;
-    if (status !== '待退货' || (type !== '退货退款' && type !== '换货')) {
+    // 换货确认收货后的待收货由换货寄出面板承接
+    if (type !== '退货退款' && type !== '换货') return '';
+    if (status === '待收货' && type === '换货') return '';
+    if (status !== '待退货' && !(status === '待收货' && type === '退货退款')) {
       return '';
     }
 
     var ships = detail.shipments || {};
     var ship = ships.returnShip;
     var hasShip = hasTrackableReturnShip(detail);
-    var activePickup = hasActivePickup(detail);
-    var canUpload = !hasShip && !activePickup && !!detail.shipCanceled;
+    var awaitingReceive = status === '待收货' && type === '退货退款';
+    var activePickup = !awaitingReceive && hasActivePickup(detail);
+    var canUpload = !awaitingReceive && !hasShip && !activePickup && !!detail.shipCanceled;
     var showUpload = canUpload && !!detail.showShipUploadForm;
     var awaitingShip = canUpload;
-    var title =
-      type === '换货'
-        ? hasShip
-          ? '换货处理 · 待退货'
-          : activePickup
-            ? '换货处理 · 待揽收'
-            : awaitingShip
-              ? '换货处理 · 待寄件'
-              : '换货处理 · 待退货'
-        : hasShip
-          ? '退货退款 · 待退货'
-          : activePickup
-            ? '退货退款 · 待揽收'
-            : awaitingShip
-              ? '退货退款 · 待寄件'
-              : '退货退款 · 待退货';
+    var title;
+    if (awaitingReceive) {
+      title = '退货退款 · 待收货';
+    } else if (type === '换货') {
+      title = hasShip
+        ? '换货处理 · 待退货'
+        : activePickup
+          ? '换货处理 · 待揽收'
+          : awaitingShip
+            ? '换货处理 · 待寄件'
+            : '换货处理 · 待退货';
+    } else {
+      title = hasShip
+        ? '退货退款 · 待收货'
+        : activePickup
+          ? '退货退款 · 待揽收'
+          : awaitingShip
+            ? '退货退款 · 待寄件'
+            : '退货退款 · 待退货';
+    }
     var addrTitle = returnAddrTitle(detail);
 
     var shipHtml;
@@ -1677,6 +1759,12 @@
         '</dd>' +
         (ship.uploadedAt ? '<dt>上传时间</dt><dd>' + escapeHtml(ship.uploadedAt) + '</dd>' : '') +
         '</dl></div></div>';
+    } else if (awaitingReceive) {
+      shipHtml =
+        '<div class="aftersale-return-ship aftersale-return-ship--waiting">' +
+        '<div class="aftersale-return-ship__title">寄回物流信息</div>' +
+        '<div class="aftersale-return-ship__wait">退回已登记（快递退回供应商 / 退回仓库或门店），等待后台确认收货后触发退款</div>' +
+        '</div>';
     } else if (showUpload) {
       shipHtml =
         '<div class="aftersale-return-ship">' +
@@ -1714,8 +1802,8 @@
     var actions = '';
     if (showUpload) {
       actions = '';
-    } else if (hasShip) {
-      /* 已有可跟踪物流：隐藏取消寄件 / 上传物流单号 */
+    } else if (awaitingReceive || hasShip) {
+      /* 退货退款·待收货 / 换货已寄回：确认或拒绝收货 */
       var confirmId = type === '换货' ? 'asExchangeReceived' : 'asReturnReceived';
       var confirmText = type === '退货退款' ? '确认收货并退款' : '确认收货';
       actions =
@@ -1783,12 +1871,8 @@
   function renderRestockPurchasePanel(detail) {
     if (detail.type !== '补货') return '';
     var status = detail.status;
-    if (
-      status !== '已收货' &&
-      status !== '待退货' &&
-      status !== '退款中' &&
-      status !== '已完成'
-    ) {
+    // 补货无退款单：审核通过后为待收货（采购补货中），完成后为已完成
+    if (status !== '待收货' && status !== '已完成') {
       return '';
     }
 
@@ -1977,7 +2061,7 @@
   function renderExchangeOutPanel(detail) {
     if (detail.type !== '换货') return '';
     var status = detail.status;
-    if (status !== '已收货' && status !== '退款中' && status !== '已完成') {
+    if (status !== '待收货' && status !== '退款中' && status !== '已完成') {
       return '';
     }
 
@@ -1993,7 +2077,7 @@
       : '门店退货已签收，下一节点由供应商寄出换货商品至门店。';
 
     var returnHtml = returnShip
-      ? renderShipInfoCard(returnShip, done ? '门店寄回物流' : '门店寄回物流（已收货）', 'returnShip')
+      ? renderShipInfoCard(returnShip, done ? '门店寄回物流' : '门店寄回物流（已签收）', 'returnShip')
       : '';
 
     var outHtml;
@@ -2213,20 +2297,20 @@
 
     var type = detail.type;
     var status = detail.status;
-    // 退货/换货待退货、补货采购面板由专用区域承载，避免重复
+    // 退货/换货待退货、退货退款待收货、补货采购面板由专用区域承载，避免重复
     if ((type === '退货退款' || type === '换货') && status === '待退货') {
+      return '';
+    }
+    if (type === '退货退款' && status === '待收货') {
       return '';
     }
     if (
       type === '换货' &&
-      (status === '已收货' || status === '退款中' || status === '已完成')
+      (status === '待收货' || status === '退款中' || status === '已完成')
     ) {
       return '';
     }
-    if (
-      type === '补货' &&
-      (status === '已收货' || status === '待退货' || status === '退款中' || status === '已完成')
-    ) {
+    if (type === '补货' && (status === '待收货' || status === '已完成')) {
       return '';
     }
     if (detail.rejectReceive && (status === '已取消' || status === '已拒绝' || isRejectReturnPending(detail))) {
@@ -2459,10 +2543,10 @@
 
     if (type === '仅退款') {
       detail.returnAddress = null;
-      detail.status = '已完成';
+      detail.status = '退款中';
       detail.approval.refundAmount = detail.applyAmount;
       detail.refundTicket = makeRefundTicket('approve');
-      detail.refundTicket.status = '退款成功';
+      detail.refundTicket.status = '待退款';
     } else if (type === '退货退款') {
       detail.returnAddress = resolveReturnAddress(detail, addr);
       detail.status = '待退货';
@@ -2475,7 +2559,7 @@
       // 补货：不下发收货地址；向采购端下发补货指令
       detail.returnAddress = null;
       detail.purchaseOrder = makePurchaseOrder(detail);
-      detail.status = '已收货';
+      detail.status = '待收货';
       detail.approval.refundAmount = 0;
       detail.approval.coupon = 0;
       detail.approval.points = 0;
@@ -2496,11 +2580,11 @@
     renderPage();
     if (typeof showToast === 'function') {
       if (type === '仅退款') {
-        showToast('审批通过，已生成退款单', 'success');
+        showToast('审批通过，已生成退款单（待退款）', 'success');
       } else if (type === '退货退款') {
-        showToast('审批通过，请等待用户寄回后再确认收货生成退款单', 'success');
+        showToast('审批通过，售后单待退货；买家退回后确认收货再生成退款单', 'success');
       } else if (type === '补货') {
-        showToast('审批通过，已向采购端下发补货指令', 'success');
+        showToast('审批通过，已向采购端下发补货指令（无退款单）', 'success');
       } else {
         showToast('审批通过（' + typeActionLabel(type) + '）', 'success');
       }
@@ -2954,6 +3038,10 @@
         if (!state.detail.returnAddress) {
           state.detail.returnAddress = resolveReturnAddress(state.detail, null);
         }
+        // 退货退款：操作退回后进入待收货，后台确认收货再触发退款
+        if (state.detail.type === '退货退款') {
+          state.detail.status = '待收货';
+        }
         state.detail.progress = buildProgress(
           state.detail.type,
           state.detail.status,
@@ -2962,7 +3050,14 @@
           state.detail.order.receiver
         );
         renderPage();
-        if (typeof showToast === 'function') showToast('物流信息已提交，可跟踪物流', 'success');
+        if (typeof showToast === 'function') {
+          showToast(
+            state.detail.type === '退货退款'
+              ? '退回已登记，售后单已变更为待收货'
+              : '物流信息已提交，可跟踪物流',
+            'success'
+          );
+        }
         return;
       }
       if (e.target.closest('#asMockPurchaseShip')) {
@@ -2975,7 +3070,7 @@
         if (state.detail.purchaseOrder) {
           state.detail.purchaseOrder.status = '采购已回传物流';
         }
-        if (state.detail.status === '待退货') state.detail.status = '已收货';
+        if (state.detail.status !== '已完成') state.detail.status = '待收货';
         state.detail.progress = buildProgress(
           '补货',
           state.detail.status,
@@ -3027,17 +3122,17 @@
         if (state.detail.shipments && state.detail.shipments.returnShip) {
           state.detail.shipments.returnShip.status = '已拒收';
         }
-        state.detail.status = '已取消';
+        state.detail.status = '已拒绝';
         state.detail.progress = buildProgress(
           state.detail.type,
-          '已取消',
+          '已拒绝',
           state.detail.id,
           state.detail.applyTime,
           state.detail.order.receiver
         );
         renderPage();
         if (typeof showToast === 'function') {
-          showToast('退回物流已签收，售后单已关闭', 'success');
+          showToast('退回物流已签收，售后单已拒绝关闭（未生成退款单）', 'success');
         }
         return;
       }
@@ -3046,7 +3141,7 @@
         return;
       }
       if (e.target.closest('#asExchangeReceived')) {
-        state.detail.status = '已收货';
+        state.detail.status = '待收货';
         if (!state.detail.shipments.returnShip) {
           state.detail.shipments.returnShip = makeShip(
             '中通快递',
@@ -3056,7 +3151,7 @@
         }
         state.detail.progress = buildProgress(
           '换货',
-          '已收货',
+          '待收货',
           state.detail.id,
           state.detail.applyTime,
           state.detail.order.receiver
@@ -3101,13 +3196,13 @@
             '已签收'
           );
         }
-        // 退货退款：确认收货后生成退款单
+        // 退货退款：商家确认收货后生成退款单 → 售后单退款中 / 退款单待退款
         state.detail.refundTicket = makeRefundTicket('receive');
-        state.detail.refundTicket.status = '退款成功';
-        state.detail.status = '已完成';
+        state.detail.refundTicket.status = '待退款';
+        state.detail.status = '退款中';
         state.detail.progress = buildProgress(
           '退货退款',
-          '已完成',
+          '退款中',
           state.detail.id,
           state.detail.applyTime,
           state.detail.order.receiver
@@ -3115,8 +3210,29 @@
         seedLogisticsByStatus(state.detail);
         renderPage();
         if (typeof showToast === 'function') {
-          showToast('已确认收货，已生成退款单', 'success');
+          showToast('已确认收货，已生成退款单（待退款）', 'success');
         }
+        return;
+      }
+      if (e.target.closest('#asRefundExecuting')) {
+        applyRefundTicketStatus('退款执行中');
+        if (typeof showToast === 'function') showToast('支付通道退款中', 'success');
+        return;
+      }
+      if (e.target.closest('#asRefundSuccess')) {
+        applyRefundTicketStatus('退款成功');
+        if (typeof showToast === 'function') showToast('退款成功，售后单已完成', 'success');
+        return;
+      }
+      if (e.target.closest('#asRefundFail')) {
+        applyRefundTicketStatus('退款失败');
+        if (typeof showToast === 'function') showToast('退款失败，售后单进入退款异常', 'error');
+        return;
+      }
+      if (e.target.closest('#asRefundRetry')) {
+        applyRefundTicketStatus('待退款');
+        if (typeof showToast === 'function') showToast('已重新发起退款（待退款）', 'success');
+        return;
       }
     }
 
