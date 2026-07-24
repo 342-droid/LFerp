@@ -35,10 +35,13 @@ changelog 页目前是 commit 流水（日期 → commit 标题一句话）。�
 
 ## 呈现层 1：changelog.html 页面为主体视图
 
-- 每天一个 section，先渲染当天「更新的页面」卡片：把当天所有 commit 的 `pages` 按页面聚合去重，
-  每张卡片显示 module 徽章 + 页面中文名 + 更新次数，整卡可点直达页面。
-- 点卡片上的「明细」展开该页面当天关联的 commit 行（复用现有 type 徽章/作者/时间/sha 样式）。
-- 当天 `global: true` 与 `pages` 为空的 commit 收进「其他改动」分组，按现有 commit 行样式渲染。
+- 每天一个 section，先渲染当天「更新的页面」行：把当天所有 commit 的 `pages` 按页面聚合去重，
+  每行显示 module 徽章 + 页面中文名 + 更新次数，点页面名新开页直达；今天（东八区）默认展开明细。
+- 「明细」展开的是**更新说明**而非代码变更：类型徽章 + commit 标题一句话 + 作者·时间。
+  受众是看原型的产品/业务同事，**不透出 sha / diff / GitHub commit 链接等代码信息**
+  （commit 标题是唯一保留的部分——它是「这个页面具体改了什么」的唯一人话描述）；
+  页头右上角保留一个「GitHub 提交记录」总入口给开发。
+- `pages` 为空的 commit（文档/工具/纯全局改动）收进「其他改动」分组，默认折叠成一行，点开才展示。
 - 保留现有行为：今天/昨天 tag、前 10 天分批加载、`lfChangelogSeenSha` 红点逻辑。
 - 向后兼容：item 无 `pages` 字段时（CI 尚未重新生成的过渡期）整天回退为现有 commit 流水渲染。
 
@@ -49,6 +52,39 @@ changelog 页目前是 commit 流水（日期 → commit 标题一句话）。�
 - DOMContentLoaded 后扫描侧边栏容器内的 `a[href]`，将 href 解析为 repo 相对路径，命中集合则在链接文案后
   append 小号「新」角标（样式随 common.js 注入）。若此时侧边栏尚未渲染完成，用 MutationObserver 兜底一次。
 - 12 个 sidebar 脚本一律不改。
+
+## 呈现层 3：页面变更前后对照图（看对比）
+
+回答「页面上**哪里**变了」：每条「提交×页面」用 git archive 导出该提交的父提交树（改动前）
+与提交树（改动后），同环境静态服务并整页截图，像素对比后在**前后两张图的相同位置圈红框**。
+
+- `tools/visual-diff.mjs`：8px 网格比对（容忍轻微渲染抖动）→ 连通域聚类 → 小噪声过滤、
+  邻近框合并 → 前后两张图画红框，输出 JPEG(q80)。
+- `tools/generate-changelog-diffs.mjs`：读 changelog.json 取近 DIFF_DAYS(默认3) 天的提交×页面，
+  幂等生成（已有的跳过），playwright 单浏览器复用批量截图；产物落
+  `changelog-assets/<sha7>/<页面slug>.before.jpg / .after.jpg` + `manifest.json`。
+- **体积控制**：JPEG 而非 PNG；`regions=0`（界面无可见变化）只记 manifest 结论不存图；
+  超过 RETAIN_DAYS(默认14) 天的图与 manifest 项由脚本裁剪。
+- `compare.html`：对照查看器，读 manifest，支持「并排」与「滑动对比」两种模式；
+  新增页面显示单图（status=added）。
+- changelog 页说明行按 manifest 挂入口：`regions>0`→「看对比」；`regions=0`→灰字「无界面变化」
+  （悬浮提示改动在交互/弹层里）；`added`→「新增 · 看截图」。
+- CI（changelog.yml）：装 fonts-noto-cjk + chromium，daily 依次跑两个生成脚本，
+  changelog.json 与 changelog-assets 一并提交。
+- **已知边界**：只覆盖页面默认状态的可见变化；弹窗/抽屉/tab 内的改动截不到，
+  由「无界面变化」标注 + commit 一句话说明兜底。
+
+## 呈现层 4：按页面人话说明（commit body 约定）
+
+截图对比拍不到弹窗/抽屉/流程类变化，由文字说明兜底。数据源两级：
+
+- **未来提交**：`.cursor/rules/changelog-commit.mdc`（alwaysApply）约定 commit body 按
+  `- <页面中文名>: <一句人话>` 写按页面说明，并优先引用代码中的中文业务注释；
+  生成脚本解析 `%b` 中的该格式行，按页面 `<title>` 名匹配挂到 `item.notes`。
+- **历史提交补录**：`changelog-notes.json`（{sha7: ["页面名: 说明", ...]}），
+  body 没写说明的老提交回退用它；近 3 天（07-22~24）的 14 个提交已人工分析 diff+注释补录。
+- 页面名匹配不上且非「通用」的行丢弃（防 dev 向内容漏给业务）；「通用」行只在
+  「其他改动」/旧格式上下文展示。changelog 页在对应页面的提交行下渲染说明 bullets。
 
 ## 验收
 
