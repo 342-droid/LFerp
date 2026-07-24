@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>退款详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
-  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260725-restock-qty">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260725-delivery-steps">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-order-refund-detail-page">
@@ -135,7 +135,7 @@
               </span>
             </button>
 
-            <div class="ua-or-pickup-board__row ua-or-pickup-board__row--static">
+            <div class="ua-or-pickup-board__row ua-or-pickup-board__row--static" id="refundPickupCourierRow">
               <span class="ua-or-pickup-board__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5 19c1.6-3.2 4-4.8 7-4.8s5.4 1.6 7 4.8"/></svg>
               </span>
@@ -378,7 +378,7 @@
 
     <div class="ua-or-toast" id="refundDetailToast" hidden></div>
   </div>
-  <script src="../js/user-app-order-refund.js?v=20260725-restock-qty"></script>
+  <script src="../js/user-app-order-refund.js?v=20260725-step-order"></script>
   <script>UAOrderRefund.initDetailPage();</script>
 </body>
 </html>

@@ -414,9 +414,9 @@
       view.icon = 'progress';
       view.title = '退款中';
       if (type === 'return' && isWarehouseDelivery(rec.delivery)) {
-        if (stage === 'return') view.desc = '待司机取货';
+        if (stage === 'return') view.desc = '待取货';
         else if (stage === 'refund') {
-          view.desc = rec.warehouseInbound ? '平台退款中' : '待仓库入库';
+          view.desc = rec.warehouseInbound ? '平台退款中' : '待入库';
         } else view.desc = '退货退款处理中';
       } else {
         view.desc = type === 'return' ? '退货退款处理中' : '请等待平台处理';
@@ -1265,12 +1265,12 @@
 
   var REFUND_ONLY_STEPS = ['提交申请', '平台审核', '退款成功'];
   var RETURN_STEPS = ['提交申请', '平台审核', '寄回商品', '平台退款', '退款成功'];
-  /** 配送退货：寄回商品节点拆为待司机取货（后台待退货）→ 待仓库入库（后台待收货） */
+  /** 配送退货：寄回商品节点拆为待取货（后台待退货）→ 待入库（后台待收货） */
   var RETURN_STEPS_WAREHOUSE = [
     '提交申请',
     '平台审核',
-    '待司机取货',
-    '待仓库入库',
+    '待取货',
+    '待入库',
     '平台退款',
     '退款成功'
   ];
@@ -2334,11 +2334,23 @@
     return hasSelfShipTracking(app);
   }
 
+  function resetDeliveryReturnProgress(app) {
+    app = app || {};
+    app.driverPickedUp = false;
+    app.warehouseInbound = false;
+    delete app.driverPickedAt;
+    delete app.warehouseInboundAt;
+    saveApplication(app);
+    return app;
+  }
+
   function markDeliveryDriverPicked(app) {
     app = app || {};
     app.driverPickedUp = true;
-    app.driverPickedAt = app.driverPickedAt || formatDateTime();
+    app.driverPickedAt = formatDateTime();
+    /* 取货后进入待入库，入库标记必须清空，避免直接跳到平台退款 */
     app.warehouseInbound = false;
+    delete app.warehouseInboundAt;
     saveApplication(app);
     return app;
   }
@@ -2348,7 +2360,7 @@
     app.driverPickedUp = true;
     app.driverPickedAt = app.driverPickedAt || formatDateTime();
     app.warehouseInbound = true;
-    app.warehouseInboundAt = app.warehouseInboundAt || formatDateTime();
+    app.warehouseInboundAt = formatDateTime();
     saveApplication(app);
     return app;
   }
@@ -2944,6 +2956,7 @@
   }
 
   function bindPickupReturnCard(state) {
+    var methodCard = document.getElementById('refundReturnMethodCard');
     var methodValue = document.getElementById('refundReturnMethodValue');
     var addressText = document.getElementById('refundPickupAddressText');
     var contactText = document.getElementById('refundPickupContactText');
@@ -2951,12 +2964,22 @@
     var pickupFields = document.getElementById('refundPickupFields');
     var authRow = document.getElementById('refundAuthWaybillRow');
     var authInput = document.getElementById('refundAuthWaybill');
+    /* 配送单退货：司机取货，无需预约快递上门取货，整卡隐藏 */
+    var warehouseDelivery = isWarehouseDelivery(getDelivery());
 
     function isDoorPickup() {
-      return state.returnMethod === '快递上门取货';
+      return !warehouseDelivery && state.returnMethod === '快递上门取货';
     }
 
     function syncPickupUI() {
+      if (methodCard) methodCard.hidden = !!warehouseDelivery;
+      if (warehouseDelivery) {
+        state.returnMethod = '物流司机取货';
+        state.pickupTime = '';
+        state.authMerchantWaybill = false;
+        if (typeof state.onPickupSync === 'function') state.onPickupSync();
+        return;
+      }
       if (methodValue) methodValue.textContent = state.returnMethod || '请选择';
       if (pickupFields) pickupFields.hidden = !isDoorPickup();
       if (authRow) authRow.hidden = !isDoorPickup();
@@ -3249,6 +3272,7 @@
     return {
       sync: syncPickupUI,
       validate: function () {
+        if (warehouseDelivery) return true;
         if (!state.returnMethod) {
           window.alert('请选择退货方式');
           return false;
@@ -3264,6 +3288,18 @@
         return true;
       },
       payload: function () {
+        if (warehouseDelivery) {
+          return {
+            returnMethod: '物流司机取货',
+            delivery: 'warehouse',
+            pickupAddressId: '',
+            pickupAddress: '',
+            pickupContact: '',
+            pickupTime: '',
+            authMerchantWaybill: false,
+            pickupScheduled: false
+          };
+        }
         return {
           returnMethod: state.returnMethod,
           pickupAddressId: state.pickupAddressId,
@@ -5430,6 +5466,17 @@
       app = loadApplication() || app;
     }
 
+    /*
+     * 配送退货必须逐步推进：平台审核 → 待取货 → 待入库 → 平台退款
+     * 审核中清掉历史取货/入库标记，避免点审核后被旧状态直接拽到平台退款
+     */
+    if (warehouseReturn && stage === 'audit') {
+      if (app.driverPickedUp || app.warehouseInbound) {
+        resetDeliveryReturnProgress(app);
+        app = loadApplication() || app;
+      }
+    }
+
     syncAftersaleRecordFromApp(app, refundType, stage);
 
     var state = {
@@ -5445,12 +5492,25 @@
           : Date.now() + 24 * 60 * 60 * 1000
     };
 
+    /* 配送：仅司机已取货后才从待取货对齐到待入库；入库后不再回退 */
     if (isReturn && stage === 'return' && isReturnShipCompleted(app)) {
-      window.location.replace(buildDetailHref({ type: refundType, stage: 'refund', pickupPhase: '' }));
-      return;
+      if (warehouseReturn && app.warehouseInbound) {
+        resetDeliveryReturnProgress(app);
+        app = loadApplication() || app;
+      } else {
+        window.location.replace(
+          buildDetailHref({ type: refundType, stage: 'refund', pickupPhase: '' })
+        );
+        return;
+      }
     }
 
     if (isReturn && stage === 'refund' && !isReturnShipCompleted(app)) {
+      if (warehouseReturn) {
+        app.warehouseInbound = false;
+        delete app.warehouseInboundAt;
+        saveApplication(app);
+      }
       window.location.replace(buildDetailHref({ type: refundType, stage: 'return', pickupPhase: '' }));
       return;
     }
@@ -5476,16 +5536,16 @@
                 '申请，请耐心等待平台审核。若平台在倒计时结束前未处理，系统将自动同意您的申请。'
       },
       return: {
-        title: warehouseReturn ? '待司机取货' : '请寄回退货商品',
+        title: warehouseReturn ? '待取货' : '请寄回退货商品',
         notice: warehouseReturn
-          ? '平台已同意退货。配送订单由门店退回仓库，物流司机将上门取货，无需取件码。'
+          ? '平台已同意退货。配送订单由门店退回仓库，物流司机将上门取货。'
           : ''
       },
       refund: {
         title: warehouseReturn
           ? isDeliveryWarehouseInbound(app)
             ? '平台退款中'
-            : '待仓库入库'
+            : '待入库'
           : isReturn
             ? '待商家退款'
             : '请等待平台退款',
@@ -5650,7 +5710,7 @@
       }
       if (isReturn) {
         if (warehouseReturn) {
-          /* 提交申请0 平台审核1 待司机取货2 待仓库入库3 平台退款4 退款成功5 */
+          /* 提交申请0 平台审核1 待取货2 待入库3 平台退款4 退款成功5 */
           if (stage === 'return') return 2;
           if (stage === 'refund' || stage === 'reject_return') {
             return isDeliveryWarehouseInbound(app) ? 4 : 3;
@@ -5701,9 +5761,15 @@
           stepEl.addEventListener('click', function () {
             var next = getNextStage(stage);
             if (!next) return;
+            /* 平台审核 → 待取货：重置配送进度，确保下一步停在待取货 */
+            if (stage === 'audit' && next === 'return' && warehouseReturn) {
+              resetDeliveryReturnProgress(app);
+              app = loadApplication() || app;
+            }
             if (stage === 'return' && next === 'refund') {
               if (warehouseReturn) {
                 markDeliveryDriverPicked(app);
+                app = loadApplication() || app;
               } else {
                 ensurePickupBoardData(app);
                 markPickupPickedUp(app);
@@ -5718,6 +5784,7 @@
             if (next === 'reship' && isRestock) {
               ensureReshipData(app);
             }
+            /* 待入库 → 平台退款：仅标记入库，仍停留 refund 阶段 */
             if (next === 'warehouse_inbound') {
               markDeliveryWarehouseInbound(app);
               syncAftersaleRecordFromApp(app, refundType, 'refund');
@@ -5737,15 +5804,14 @@
                 );
                 return;
               }
-              if (isReturn && !isReturnShipCompleted(app)) {
-                if (warehouseReturn) markDeliveryDriverPicked(app);
-                else {
-                  ensurePickupBoardData(app);
-                  markPickupPickedUp(app);
+              /* 配送退货不允许从中间节点一次跳到成功；须已完成取货+入库 */
+              if (warehouseReturn) {
+                if (!isDeliveryDriverPicked(app) || !isDeliveryWarehouseInbound(app)) {
+                  return;
                 }
-              }
-              if (warehouseReturn && !isDeliveryWarehouseInbound(app)) {
-                markDeliveryWarehouseInbound(app);
+              } else if (isReturn && !isReturnShipCompleted(app)) {
+                ensurePickupBoardData(app);
+                markPickupPickedUp(app);
               }
               app.resultTime = formatDateTime();
               saveApplication(app);
@@ -5855,48 +5921,47 @@
       var scheduleRow = document.getElementById('refundPickupScheduleRow');
       var scheduleEl = document.getElementById('refundPickupScheduleText');
       var addrEl = document.getElementById('refundPickupAddrText');
+      var courierRow = document.getElementById('refundPickupCourierRow');
       var statusEl = document.getElementById('refundPickupCourierStatus');
       var phoneEl = document.getElementById('refundPickupCourierPhone');
       var feeRow = document.getElementById('refundPickupFeeRow');
       var feeValueEl = document.getElementById('refundPickupFeeValue');
       var feeSubEl = document.getElementById('refundPickupFeeSub');
+      var guardEl = board && board.querySelector('.ua-or-pickup-board__guard');
       var guardTextEl = document.getElementById('refundPickupGuardText');
+      var headEl = board && board.querySelector('.ua-or-pickup-board__head');
       var chevron = scheduleRow && scheduleRow.querySelector('.ua-or-pickup-board__chevron');
       var merchant = getMerchantReturnDisplay();
       var waitingInbound = stage === 'refund' || isDeliveryDriverPicked(app);
 
       if (board) board.classList.add('is-delivery-return');
       if (codeWrap) codeWrap.hidden = true;
+      if (guardEl) guardEl.hidden = true;
+      if (guardTextEl) guardTextEl.textContent = '';
+      if (headEl) headEl.hidden = true;
       if (chevron) chevron.hidden = true;
       if (scheduleRow) {
         scheduleRow.classList.add('ua-or-pickup-board__row--static');
         scheduleRow.style.pointerEvents = 'none';
       }
       if (scheduleEl) {
-        scheduleEl.innerHTML = waitingInbound
+        scheduleEl.textContent = waitingInbound
           ? isDeliveryWarehouseInbound(app)
             ? '仓库已入库，等待平台退款'
             : '司机已取货，商品退回仓库中'
-          : '等待物流司机上门取货<span class="is-hl">（无需取件码）</span>';
+          : '等待物流司机上门取货';
       }
       if (addrEl) {
         addrEl.textContent =
           '退回仓库：' + (merchant.name || '') + ' ' + (merchant.address || '');
       }
-      if (statusEl) {
-        statusEl.textContent = waitingInbound
-          ? isDeliveryWarehouseInbound(app)
-            ? '平台退款中'
-            : '待仓库入库'
-          : '待司机取货';
-      }
+      /* 配送无司机电话，整行联系人去掉 */
+      if (courierRow) courierRow.hidden = true;
+      if (statusEl) statusEl.textContent = '';
       if (phoneEl) phoneEl.hidden = true;
       if (feeRow) feeRow.hidden = true;
       if (feeValueEl) feeValueEl.textContent = '¥0';
       if (feeSubEl) feeSubEl.textContent = '配送退仓，由物流司机取货';
-      if (guardTextEl) {
-        guardTextEl.textContent = '平台已同意退货，门店退回仓库，物流司机将直接取货';
-      }
     }
 
     function renderPickupBoard() {
@@ -5907,9 +5972,12 @@
       ensurePickupBoardData(app);
       var board = document.getElementById('refundPickupBoard');
       var codeWrap = board && board.querySelector('.ua-or-pickup-board__code');
+      var headEl = board && board.querySelector('.ua-or-pickup-board__head');
+      var guardEl = board && board.querySelector('.ua-or-pickup-board__guard');
       var codeEl = document.getElementById('refundPickupCode');
       var scheduleEl = document.getElementById('refundPickupScheduleText');
       var addrEl = document.getElementById('refundPickupAddrText');
+      var courierRow = document.getElementById('refundPickupCourierRow');
       var statusEl = document.getElementById('refundPickupCourierStatus');
       var phoneEl = document.getElementById('refundPickupCourierPhone');
       var feeRow = document.getElementById('refundPickupFeeRow');
@@ -5918,7 +5986,10 @@
       var guardTextEl = document.getElementById('refundPickupGuardText');
       var scheduleLabel = formatRelativePickupSchedule(app.pickupTime);
       if (board) board.classList.remove('is-delivery-return');
+      if (headEl) headEl.hidden = false;
+      if (guardEl) guardEl.hidden = false;
       if (codeWrap) codeWrap.hidden = false;
+      if (courierRow) courierRow.hidden = false;
       if (phoneEl) phoneEl.hidden = false;
       if (feeRow) feeRow.hidden = false;
       if (codeEl) codeEl.textContent = app.pickupCode || '0030';

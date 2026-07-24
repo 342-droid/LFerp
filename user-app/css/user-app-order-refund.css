@@ -1457,16 +1457,14 @@ body.ua-or-sheet-open {
   line-height: 1.3;
 }
 
-.ua-or-pickup-board.is-delivery-return .ua-or-pickup-board__code {
-  display: none;
-}
-
-.ua-or-pickup-board.is-delivery-return .ua-or-pickup-board__actions {
-  display: none;
-}
-
-.ua-or-pickup-board.is-delivery-return .ua-or-pickup-board__chevron {
-  display: none;
+.ua-or-pickup-board.is-delivery-return .ua-or-pickup-board__code,
+.ua-or-pickup-board.is-delivery-return .ua-or-pickup-board__head,
+.ua-or-pickup-board.is-delivery-return .ua-or-pickup-board__guard,
+.ua-or-pickup-board.is-delivery-return .ua-or-pickup-board__actions,
+.ua-or-pickup-board.is-delivery-return .ua-or-pickup-board__chevron,
+.ua-or-pickup-board.is-delivery-return .ua-or-pickup-board__phone,
+.ua-or-pickup-board.is-delivery-return #refundPickupCourierRow {
+  display: none !important;
 }
 
 .ua-or-pickup-board__code.is-tappable {
