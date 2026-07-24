@@ -129,6 +129,42 @@
             </div>
         </div>
     </div>
+    <div class="aftersale-addr-modal" id="asPickupConfirmModal" hidden>
+        <div class="aftersale-addr-modal__mask" data-pickup-close></div>
+        <div class="aftersale-addr-modal__panel aftersale-audit-modal__panel" role="dialog" aria-modal="true" aria-labelledby="asPickupConfirmTitle">
+            <div class="aftersale-addr-modal__head">
+                <h3 id="asPickupConfirmTitle">确认已取货</h3>
+                <button type="button" class="aftersale-detail-page__close" data-pickup-close aria-label="关闭">×</button>
+            </div>
+            <div class="aftersale-addr-modal__body">
+                <p class="aftersale-audit-modal__tip">请确认物流司机是否已从门店取货？确认后售后单将变更为「待收货」，等待仓库入仓结果返回后触发退款。</p>
+            </div>
+            <div class="aftersale-addr-modal__foot">
+                <button type="button" class="aftersale-btn aftersale-btn--ghost" data-pickup-close>取消</button>
+                <button type="button" class="aftersale-btn aftersale-btn--primary" id="asPickupConfirmBtn">确认已取货</button>
+            </div>
+        </div>
+    </div>
+    <div class="aftersale-addr-modal" id="asRestockQtyModal" hidden>
+        <div class="aftersale-addr-modal__mask" data-restock-qty-close></div>
+        <div class="aftersale-addr-modal__panel aftersale-audit-modal__panel" role="dialog" aria-modal="true" aria-labelledby="asRestockQtyTitle">
+            <div class="aftersale-addr-modal__head">
+                <h3 id="asRestockQtyTitle">确认收货</h3>
+                <button type="button" class="aftersale-detail-page__close" data-restock-qty-close aria-label="关闭">×</button>
+            </div>
+            <div class="aftersale-addr-modal__body">
+                <p class="aftersale-audit-modal__tip" id="asRestockQtyTip">请填写实际收到的补货数量，该数量将记录在售后单中。</p>
+                <div class="aftersale-restock-qty-meta" id="asRestockQtyMeta"></div>
+                <label class="aftersale-flow-form__field">实际补货数量
+                    <input type="number" id="asRestockActualQty" class="aftersale-flow-form__input" min="0" step="1" inputmode="numeric" placeholder="请输入实际数量">
+                </label>
+            </div>
+            <div class="aftersale-addr-modal__foot">
+                <button type="button" class="aftersale-btn aftersale-btn--ghost" data-restock-qty-close>取消</button>
+                <button type="button" class="aftersale-btn aftersale-btn--primary" id="asRestockQtyConfirm">确认并完成补货</button>
+            </div>
+        </div>
+    </div>
     <script src="../js/common.js"></script>
     <script src="../js/mdm-aftersale-ticket-detail.js"></script>
 </body>
