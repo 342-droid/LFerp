@@ -1,0 +1,58 @@
+# 更新日志「页面级视图」+ 侧边栏「新」角标 设计
+
+日期：2026-07-24
+
+## 背景与问题
+
+changelog 页目前是 commit 流水（日期 → commit 标题一句话）。产品/业务同事看原型时，
+从「完善售后管理履约与拒收退回闭环」这样的标题里看不出**哪些页面**改了，也没有链接可以点过去看。
+
+## 目标
+
+- changelog 页按天先回答「今天更新了哪些页面」：页面中文名 + 直达链接，点开才看 commit 明细。
+- 侧边栏里最近 7 天改过的页面自动挂「新」角标，浏览时自然发现。
+
+## 非目标（YAGNI）
+
+- 不做群推送（企微/飞书）。
+- 角标不做「已读消失」，只按 7 天时间窗口。
+- 不做 AI/手写的页面级摘要，改动说明沿用 commit 标题。
+
+## 数据层：tools/generate-changelog.mjs 升级
+
+1. `git log` 增加 `--name-only` 取每次提交的改动文件；`--no-merges`、SKIP 规则、东八区日期均保持不变。
+2. 文件 → 页面映射：
+   - 非 `vendor/` 下的 `*.html` 改动，本身就是页面；
+   - `js/**`、`css/**`、`components/**` 改动：启动时扫描全部非 vendor HTML，把 `src=`/`href=` 相对引用解析成 repo 相对路径，建一次「资源 → 引用页面」反向索引，再据此反查（例：`js/order-live-list.js` → `mdm_order_proxy/live/retail` 三页）。用解析后的完整 repo 路径比对，不用 basename，避免多模块重名。
+3. 全局改动阈值：单文件被 **> 10** 个页面引用（如 `js/common.js`、`css/common.css`）视为全局改动，不展开页面列表，该 commit 标记 `global: true`。
+4. 页面显示名：读当前工作区 HTML 的 `<title>`，按「模块 - 页面名」拆出 `module` 与 `title`（例：`冷丰WMS - 直播订单`）；无 title 或拆不出时回退文件名；文件已被删除的跳过。
+5. `changelog.json` 结构：顶层 `latestSha/total/days` 与 item 现有字段全部不变，item 新增：
+   ```json
+   { "pages": [{ "file": "MDM/mdm_order_live.html", "module": "冷丰WMS", "title": "直播订单" }],
+     "global": true }
+   ```
+   `pages` 可为空数组，`global` 仅在触发阈值时出现。
+
+## 呈现层 1：changelog.html 页面为主体视图
+
+- 每天一个 section，先渲染当天「更新的页面」卡片：把当天所有 commit 的 `pages` 按页面聚合去重，
+  每张卡片显示 module 徽章 + 页面中文名 + 更新次数，整卡可点直达页面。
+- 点卡片上的「明细」展开该页面当天关联的 commit 行（复用现有 type 徽章/作者/时间/sha 样式）。
+- 当天 `global: true` 与 `pages` 为空的 commit 收进「其他改动」分组，按现有 commit 行样式渲染。
+- 保留现有行为：今天/昨天 tag、前 10 天分批加载、`lfChangelogSeenSha` 红点逻辑。
+- 向后兼容：item 无 `pages` 字段时（CI 尚未重新生成的过渡期）整天回退为现有 commit 流水渲染。
+
+## 呈现层 2：侧边栏「新」角标（js/common.js）
+
+- 复用现有 changelog-entry 浮动入口的 `fetch('changelog.json')` 回调（每页已在请求，不加新请求）：
+  从 `days` 取最近 7 天（东八区）所有 item 的 `pages`，得到「近期改过页面」的 repo 路径集合。
+- DOMContentLoaded 后扫描侧边栏容器内的 `a[href]`，将 href 解析为 repo 相对路径，命中集合则在链接文案后
+  append 小号「新」角标（样式随 common.js 注入）。若此时侧边栏尚未渲染完成，用 MutationObserver 兜底一次。
+- 12 个 sidebar 脚本一律不改。
+
+## 验收
+
+- 本地 `node tools/generate-changelog.mjs`：断言样例 commit 的 `pages` 正确（含 js 反查、全局阈值、title 拆分）。
+- 本地静态服务器打开 `changelog.html`：页面卡片聚合、明细展开、旧数据回退各验一遍。
+- 打开任一 MDM 页面：侧边栏命中页挂「新」角标，未命中页无角标。
+- 纯静态原型仓库，无自动化测试框架，验收以脚本输出断言 + 手动过一遍为准。
