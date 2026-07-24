@@ -109,7 +109,7 @@ function drawBoxes(img, boxes, W, H) {
 }
 
 /**
- * @returns {{regions: number}} 圈出的变化区域数
+ * @returns {object} regions=圈出的变化区域数
  */
 export function visualDiff(beforePath, afterPath, outBeforePath, outAfterPath) {
     const a = PNG.sync.read(fs.readFileSync(beforePath));
