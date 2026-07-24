@@ -1,7 +1,20 @@
 {
-  "latestSha": "21fb759841f577eb9593188e6870be3506c1cdf6",
-  "total": 183,
+  "latestSha": "a503ca1e51be54f139427e5389510ca137ebef05",
+  "total": 184,
   "days": [
+    {
+      "date": "2026-07-25",
+      "items": [
+        {
+          "sha": "a503ca1",
+          "type": "feat",
+          "text": "无界面变化页面行弱化沉底；排除 compare.html 自身",
+          "author": "weekwood",
+          "time": "00:03",
+          "pages": []
+        }
+      ]
+    },
     {
       "date": "2026-07-24",
       "items": [
@@ -11,13 +24,7 @@
           "text": "页面变更前后对照图与看对比入口",
           "author": "weekwood",
           "time": "23:57",
-          "pages": [
-            {
-              "file": "compare.html",
-              "module": "冷丰ERP",
-              "title": "变更对比"
-            }
-          ]
+          "pages": []
         },
         {
           "sha": "c9195c1",
