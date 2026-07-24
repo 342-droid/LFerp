@@ -1,4 +1,79 @@
 {
+  "0697544|user-app/h5/order-aftersale-list.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "0697544|user-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "0697544|user-app/h5/order-refund-address-book.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "0697544|user-app/h5/order-refund-address-create.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "0697544|user-app/h5/order-refund-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "0697544|user-app/h5/order-refund-exchange.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "0697544|user-app/h5/order-refund-only.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "0697544|user-app/h5/order-refund-pickup-edit.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "0697544|user-app/h5/order-refund-pickup-order.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "0697544|user-app/h5/order-refund-pre-ship.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "0697544|user-app/h5/order-refund-restock.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "0697544|user-app/h5/order-refund-return-goods.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "0697544|user-app/h5/order-refund-return-ship.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "0697544|user-app/h5/order-refund-return.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "0697544|user-app/h5/order-refund-select.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
   "1113d6d|MDM/mdm_member_level.html": {
     "before": "changelog-assets/1113d6d/MDM__mdm_member_level.html.before.jpg",
     "after": "changelog-assets/1113d6d/MDM__mdm_member_level.html.after.jpg",
@@ -70,6 +145,11 @@
     "status": "diff",
     "date": "2026-07-23"
   },
+  "21fb759|compare.html": {
+    "after": "changelog-assets/21fb759/compare.html.after.jpg",
+    "status": "added",
+    "date": "2026-07-24"
+  },
   "319d8ed|MDM/mdm_product_proxy_list.html": {
     "regions": 0,
     "status": "diff",
@@ -113,6 +193,84 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-07-23"
+  },
+  "37789d3|MDM/mdm_member_level.html": {
+    "before": "changelog-assets/37789d3/MDM__mdm_member_level.html.before.jpg",
+    "after": "changelog-assets/37789d3/MDM__mdm_member_level.html.after.jpg",
+    "regions": 4,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "37789d3|MDM/mdm_member_level_growth.html": {
+    "before": "changelog-assets/37789d3/MDM__mdm_member_level_growth.html.before.jpg",
+    "after": "changelog-assets/37789d3/MDM__mdm_member_level_growth.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "37789d3|MDM/mdm_member_segment.html": {
+    "after": "changelog-assets/37789d3/MDM__mdm_member_segment.html.after.jpg",
+    "status": "added",
+    "date": "2026-07-22"
+  },
+  "37789d3|MDM/mdm_member_segment_members.html": {
+    "after": "changelog-assets/37789d3/MDM__mdm_member_segment_members.html.after.jpg",
+    "status": "added",
+    "date": "2026-07-22"
+  },
+  "37789d3|MDM/mdm_member_tag.html": {
+    "before": "changelog-assets/37789d3/MDM__mdm_member_tag.html.before.jpg",
+    "after": "changelog-assets/37789d3/MDM__mdm_member_tag.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "37789d3|MDM/mdm_product_audit.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "37789d3|MDM/mdm_product_brand.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "37789d3|MDM/mdm_product_category.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "37789d3|MDM/mdm_product_mall.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "37789d3|MDM/mdm_product_proxy_category.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "37789d3|MDM/mdm_product_proxy_list.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "37789d3|MDM/mdm_product_proxy_tag.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "37789d3|MDM/mdm_product_selection.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "37789d3|MDM/mdm_workbench.html": {
+    "before": "changelog-assets/37789d3/MDM__mdm_workbench.html.before.jpg",
+    "after": "changelog-assets/37789d3/MDM__mdm_workbench.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-07-22"
   },
   "51f3022|user-app/h5/cart.html": {
     "after": "changelog-assets/51f3022/user-app__h5__cart.html.after.jpg",
@@ -186,6 +344,26 @@
     "status": "diff",
     "date": "2026-07-23"
   },
+  "642923f|SCM/purchase_demand_summary.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "642923f|SCM/purchase_order.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "642923f|SCM/purchase_store_demand_summary.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "642923f|SCM/purchase_store_order_sheet.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
   "6562219|MDM/mdm_member_level.html": {
     "before": "changelog-assets/6562219/MDM__mdm_member_level.html.before.jpg",
     "after": "changelog-assets/6562219/MDM__mdm_member_level.html.after.jpg",
@@ -199,6 +377,146 @@
     "regions": 1,
     "status": "diff",
     "date": "2026-07-23"
+  },
+  "6e8afc5|MDM/mdm_archive_carrier.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_archive_carrier.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_archive_carrier.html.after.jpg",
+    "regions": 10,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_archive_live_room.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_archive_live_room.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_archive_live_room.html.after.jpg",
+    "regions": 10,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_archive_store.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_archive_store.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_archive_store.html.after.jpg",
+    "regions": 10,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_archive_supplier.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_archive_supplier.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_archive_supplier.html.after.jpg",
+    "regions": 10,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_archive_warehouse.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_archive_warehouse.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_archive_warehouse.html.after.jpg",
+    "regions": 10,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_audit_store_registration.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_audit_store_registration.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_audit_store_registration.html.after.jpg",
+    "regions": 9,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_member_c.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_member_c.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_member_c.html.after.jpg",
+    "regions": 17,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_member_level.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_member_level.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_member_level.html.after.jpg",
+    "regions": 19,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_member_level_desc.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_member_level_desc.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_member_level_desc.html.after.jpg",
+    "regions": 19,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_member_level_growth.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_member_level_growth.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_member_level_growth.html.after.jpg",
+    "regions": 19,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_member_level_rule.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_member_level_rule.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_member_level_rule.html.after.jpg",
+    "regions": 20,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_member_segment.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_member_segment.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_member_segment.html.after.jpg",
+    "regions": 20,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_member_segment_members.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_member_segment_members.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_member_segment_members.html.after.jpg",
+    "regions": 20,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_member_tag.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_member_tag.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_member_tag.html.after.jpg",
+    "regions": 19,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_people_anchor.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_people_anchor.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_people_anchor.html.after.jpg",
+    "regions": 10,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_people_bd.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_people_bd.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_people_bd.html.after.jpg",
+    "regions": 10,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_people_driver.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_people_driver.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_people_driver.html.after.jpg",
+    "regions": 10,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_people_purchaser.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_people_purchaser.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_people_purchaser.html.after.jpg",
+    "regions": 10,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_super_admin_accounts.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_super_admin_accounts.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_super_admin_accounts.html.after.jpg",
+    "regions": 10,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "6e8afc5|MDM/mdm_workbench.html": {
+    "before": "changelog-assets/6e8afc5/MDM__mdm_workbench.html.before.jpg",
+    "after": "changelog-assets/6e8afc5/MDM__mdm_workbench.html.after.jpg",
+    "regions": 12,
+    "status": "diff",
+    "date": "2026-07-22"
   },
   "81ee1d4|MDM/mdm_aftersale_ticket.html": {
     "before": "changelog-assets/81ee1d4/MDM__mdm_aftersale_ticket.html.before.jpg",
@@ -227,9 +545,157 @@
     "status": "diff",
     "date": "2026-07-24"
   },
+  "a805bb1|MDM/mdm_aftersale_refund.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "a805bb1|MDM/mdm_aftersale_ticket.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "a805bb1|MDM/mdm_aftersale_ticket_detail.html": {
+    "before": "changelog-assets/a805bb1/MDM__mdm_aftersale_ticket_detail.html.before.jpg",
+    "after": "changelog-assets/a805bb1/MDM__mdm_aftersale_ticket_detail.html.after.jpg",
+    "regions": 9,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
   "bef2870|SCM/purchase_order.html": {
     "regions": 0,
     "status": "diff",
     "date": "2026-07-23"
+  },
+  "d33a018|MDM/mdm_aftersale_ticket_detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d33a018|MDM/mdm_order_proxy.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d33a018|MDM/mdm_order_retail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d33a018|user-app/h5/order-aftersale-list.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d33a018|user-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d33a018|user-app/h5/order-refund-address-book.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d33a018|user-app/h5/order-refund-address-create.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d33a018|user-app/h5/order-refund-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d33a018|user-app/h5/order-refund-exchange.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d33a018|user-app/h5/order-refund-only.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d33a018|user-app/h5/order-refund-pickup-edit.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d33a018|user-app/h5/order-refund-pickup-order.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d33a018|user-app/h5/order-refund-pre-ship.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d33a018|user-app/h5/order-refund-restock.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d33a018|user-app/h5/order-refund-return-goods.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d33a018|user-app/h5/order-refund-return-ship.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d33a018|user-app/h5/order-refund-return.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d33a018|user-app/h5/order-refund-select.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d4f0c0b|MDM/mdm_member_batch_tag.html": {
+    "after": "changelog-assets/d4f0c0b/MDM__mdm_member_batch_tag.html.after.jpg",
+    "status": "added",
+    "date": "2026-07-22"
+  },
+  "d4f0c0b|MDM/mdm_member_batch_tag_form.html": {
+    "after": "changelog-assets/d4f0c0b/MDM__mdm_member_batch_tag_form.html.after.jpg",
+    "status": "added",
+    "date": "2026-07-22"
+  },
+  "d4f0c0b|MDM/mdm_member_batch_tag_members.html": {
+    "after": "changelog-assets/d4f0c0b/MDM__mdm_member_batch_tag_members.html.after.jpg",
+    "status": "added",
+    "date": "2026-07-22"
+  },
+  "d4f0c0b|MDM/mdm_member_segment.html": {
+    "before": "changelog-assets/d4f0c0b/MDM__mdm_member_segment.html.before.jpg",
+    "after": "changelog-assets/d4f0c0b/MDM__mdm_member_segment.html.after.jpg",
+    "regions": 12,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d4f0c0b|MDM/mdm_member_tag.html": {
+    "before": "changelog-assets/d4f0c0b/MDM__mdm_member_tag.html.before.jpg",
+    "after": "changelog-assets/d4f0c0b/MDM__mdm_member_tag.html.after.jpg",
+    "regions": 10,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "d4f0c0b|MDM/mdm_workbench.html": {
+    "before": "changelog-assets/d4f0c0b/MDM__mdm_workbench.html.before.jpg",
+    "after": "changelog-assets/d4f0c0b/MDM__mdm_workbench.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-07-22"
+  },
+  "f801048|user-app/h5/order-refund-return-ship.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-22"
   }
 }

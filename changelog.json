@@ -1,10 +1,41 @@
 {
-  "latestSha": "5e3498710259e1cb323ff112a5f345b38070c1db",
-  "total": 180,
+  "latestSha": "21fb759841f577eb9593188e6870be3506c1cdf6",
+  "total": 183,
   "days": [
     {
       "date": "2026-07-24",
       "items": [
+        {
+          "sha": "21fb759",
+          "type": "feat",
+          "text": "页面变更前后对照图与看对比入口",
+          "author": "weekwood",
+          "time": "23:57",
+          "pages": [
+            {
+              "file": "compare.html",
+              "module": "冷丰ERP",
+              "title": "变更对比"
+            }
+          ]
+        },
+        {
+          "sha": "c9195c1",
+          "type": "refactor",
+          "text": "更新说明面向业务受众，去除 sha/diff 等代码信息",
+          "author": "weekwood",
+          "time": "23:36",
+          "pages": []
+        },
+        {
+          "sha": "27974fa",
+          "type": "feat",
+          "text": "更新日志按页面聚合展示并为侧边栏挂新角标",
+          "author": "weekwood",
+          "time": "23:33",
+          "pages": [],
+          "global": true
+        },
         {
           "sha": "5e34987",
           "type": "docs",
