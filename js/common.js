@@ -806,6 +806,57 @@ if (document.readyState === 'loading') {
         return (window.wmsPath && window.wmsPath.asset) ? window.wmsPath.asset(p) : p;
     }
 
+    var NEW_BADGE_DAYS = 7;
+
+    /** 最近 N 天有改动的页面，在侧边栏对应链接后挂「新」角标 */
+    function badgeRecentPages(data) {
+        if (!data.days || !data.days.length) return;
+        var cutoff = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Shanghai' })
+            .format(new Date(Date.now() - (NEW_BADGE_DAYS - 1) * 86400000));
+        // 站点根路径（本地 / 与 GitHub Pages /LFerp/ 都适配）
+        var base = new URL(assetHref('changelog.json'), window.location.href).pathname
+            .replace(/changelog\.json$/, '');
+        var recent = {};
+        var any = false;
+        data.days.forEach(function (day) {
+            if (day.date < cutoff) return;
+            day.items.forEach(function (it) {
+                (it.pages || []).forEach(function (p) {
+                    recent[base + p.file] = true;
+                    any = true;
+                });
+            });
+        });
+        if (!any) return;
+
+        function apply() {
+            var container = document.getElementById('sidebar-container');
+            if (!container) return true; // 本页没有侧边栏
+            var links = container.querySelectorAll('a[href]');
+            if (!links.length) return false; // 侧边栏还没渲染完
+            Array.prototype.forEach.call(links, function (a) {
+                var href = a.getAttribute('href');
+                if (!href || href.charAt(0) === '#') return;
+                if (a.querySelector('.lf-new-badge')) return;
+                var path;
+                try { path = new URL(href, window.location.href).pathname; } catch (e) { return; }
+                if (!recent[path]) return;
+                var badge = document.createElement('span');
+                badge.className = 'lf-new-badge';
+                badge.textContent = '新';
+                a.appendChild(badge);
+            });
+            return true;
+        }
+
+        if (apply()) return;
+        var mo = new MutationObserver(function () {
+            if (apply()) mo.disconnect();
+        });
+        mo.observe(document.getElementById('sidebar-container'), { childList: true, subtree: true });
+        setTimeout(function () { mo.disconnect(); }, 10000);
+    }
+
     function initChangelogEntry() {
         if (document.getElementById('changelog-entry')) return;
 
@@ -823,6 +874,11 @@ if (document.readyState === 'loading') {
             '    position: absolute; top: -2px; right: 2px;',
             '    width: 8px; height: 8px; border-radius: 50%;',
             '    background: #f5222d; border: 1px solid #fff;',
+            '}',
+            '.lf-new-badge {',
+            '    display: inline-block; margin-left: 6px; vertical-align: middle;',
+            '    font-size: 10px; line-height: 14px; color: #fff; background: #f5222d;',
+            '    border-radius: 7px; padding: 0 5px; font-weight: normal;',
             '}'
         ].join('\n');
         document.head.appendChild(style);
@@ -843,6 +899,7 @@ if (document.readyState === 'loading') {
                 if (seen !== data.latestSha) {
                     link.querySelector('.changelog-entry-dot').hidden = false;
                 }
+                badgeRecentPages(data);
             })
             .catch(function () { /* file:// 或数据未生成时静默 */ });
     }
