@@ -1,10 +1,24 @@
 {
-  "latestSha": "6d1fda79e384c1e1e31f0564d8d93a524c1acd15",
-  "total": 193,
+  "latestSha": "27653e17c33d0d0a601dd853593e9d4f3718b746",
+  "total": 194,
   "days": [
     {
       "date": "2026-07-25",
       "items": [
+        {
+          "sha": "27653e1",
+          "type": "feat",
+          "text": "更新日志改为提交为主体组织",
+          "author": "weekwood",
+          "time": "09:31",
+          "pages": [],
+          "notes": [
+            {
+              "file": null,
+              "text": "每天按提交列条目，提交下拆分受影响页面（页面名+说明+对比入口），无说明且无界面变化的页面行弱化沉底；今天/昨天默认展开；消除一个提交动多页时的标题重复"
+            }
+          ]
+        },
         {
           "sha": "6d1fda7",
           "type": "feat",

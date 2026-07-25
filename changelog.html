@@ -110,11 +110,6 @@
             border-top: 1px solid #f0f0f0;
         }
         .cl-sub-title:hover { color: #4a90d9; }
-        .cl-page-row { border-bottom: 1px solid #f0f0f0; }
-        .cl-page-row:last-child { border-bottom: none; }
-        .cl-page-row--quiet .cl-page-head { opacity: 0.45; }
-        .cl-page-row--quiet .cl-page-head:hover { opacity: 1; }
-        .cl-page-head { display: flex; align-items: center; gap: 10px; padding: 10px 16px; }
         .cl-page-module {
             flex: none;
             font-size: 11px;
@@ -123,12 +118,8 @@
             border-radius: 3px;
             padding: 1px 6px;
         }
-        .cl-page-name { flex: 1; font-size: 13px; font-weight: 600; color: #2c313c; text-decoration: none; }
-        .cl-page-name:hover { color: #4a90d9; }
-        .cl-page-name .cl-page-go { font-weight: normal; color: #bbb; font-size: 12px; }
-        .cl-page-name:hover .cl-page-go { color: #4a90d9; }
-        .cl-page-count { flex: none; font-size: 12px; color: #999; }
-        .cl-page-toggle {
+        .cl-page-go { font-weight: normal; color: #bbb; font-size: 12px; }
+        .cl-cmt-toggle {
             flex: none;
             border: none;
             background: none;
@@ -137,10 +128,20 @@
             cursor: pointer;
             padding: 2px 4px;
         }
-        .cl-page-commits { background: #fafafa; border-top: 1px dashed #f0f0f0; }
-        .cl-page-commits .cl-entry { border-bottom-color: #f5f5f5; }
-        .cl-page-commits .cl-item { padding-left: 32px; }
-        .cl-page-commits .cl-note { margin-left: 82px; }
+        .cl-cmt-body { padding-bottom: 6px; }
+        .cl-cpage {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            padding: 5px 16px 5px 66px;
+            font-size: 12.5px;
+        }
+        .cl-cpage--quiet { opacity: 0.45; }
+        .cl-cpage--quiet:hover { opacity: 1; }
+        .cl-cpage-name { flex: none; font-weight: 600; color: #2c313c; text-decoration: none; }
+        .cl-cpage-name:hover { color: #4a90d9; }
+        .cl-cpage-name:hover .cl-page-go { color: #4a90d9; }
+        .cl-cpage-note { flex: 1; color: #7a8088; line-height: 1.7; min-width: 0; }
         .cl-cmp-link { flex: none; font-size: 12px; color: #4a90d9; text-decoration: none; white-space: nowrap; }
         .cl-cmp-link:hover { text-decoration: underline; }
         .cl-cmp-none { flex: none; font-size: 11px; color: #bbb; white-space: nowrap; cursor: help; }
@@ -226,49 +227,72 @@
                     '<span class="cl-item-meta">' + esc(it.author) + ' · ' + esc(it.time) + '</span>' +
                     '</div>' + noteHtml + '</div>';
             }
-            /** 按页面聚合一天的提交；数据没有 pages 字段（旧格式）时返回 null 走原样渲染 */
+            /** 按提交拆分一天：有页面的走 commitBlock，无页面的进「其他改动」；旧格式返回 null */
             function aggDay(day) {
                 var hasPages = day.items.some(function (it) { return 'pages' in it; });
                 if (!hasPages) return null;
-                var byFile = {};
-                var order = [];
+                var commits = [];
                 var others = [];
                 day.items.forEach(function (it) {
-                    var pages = it.pages || [];
-                    if (!pages.length) { others.push(it); return; }
-                    pages.forEach(function (p) {
-                        if (!byFile[p.file]) {
-                            byFile[p.file] = { file: p.file, module: p.module, title: p.title, commits: [] };
-                            order.push(p.file);
-                        }
-                        byFile[p.file].commits.push(it);
-                    });
+                    if ((it.pages || []).length) commits.push(it);
+                    else others.push(it);
                 });
-                return {
-                    pages: order.map(function (f) { return byFile[f]; }),
-                    others: others
-                };
+                return { commits: commits, others: others };
             }
-            /* 该页面当天所有提交都有对比结论且全部无界面变化 → 整行弱化 */
-            function isQuiet(p) {
-                var entries = p.commits.map(function (it) { return MANIFEST[it.sha + '|' + p.file]; });
-                return entries.length > 0 && entries.every(function (e) {
-                    return e && e.status === 'diff' && e.regions === 0;
-                });
+            /* 提交下的页面拆分行：页面名 + 该页说明 + 对比入口 */
+            function cmpEntry(it, file, pageTitle) {
+                var e = MANIFEST[it.sha + '|' + file];
+                if (!e) return '';
+                var href = 'compare.html?k=' + encodeURIComponent(it.sha + '|' + file) +
+                    '&t=' + encodeURIComponent((pageTitle || '') + ' · ' + it.text);
+                if (e.status === 'added') {
+                    return '<a class="cl-cmp-link" href="' + href + '" target="_blank" rel="noopener">新增 · 看截图</a>';
+                }
+                if (e.regions > 0) {
+                    return '<a class="cl-cmp-link" href="' + href + '" target="_blank" rel="noopener">看对比</a>';
+                }
+                return '<span class="cl-cmp-none" title="改动在交互或数据逻辑里，打开页面的默认状态截图看不出差异">无界面变化</span>';
             }
-            function pageRowHtml(p, expanded) {
-                var quiet = isQuiet(p);
-                var countText = quiet ? '界面无变化' : p.commits.length + ' 处更新';
-                return '<div class="cl-page-row' + (quiet ? ' cl-page-row--quiet' : '') + '">' +
-                    '<div class="cl-page-head">' +
+            function pageNotesOf(it, file) {
+                return (it.notes || []).filter(function (n) { return n.file === file; });
+            }
+            /** 没有说明且截图无差异的页面行弱化 */
+            function isQuietPage(it, p) {
+                var e = MANIFEST[it.sha + '|' + p.file];
+                return !pageNotesOf(it, p.file).length && e && e.status === 'diff' && e.regions === 0;
+            }
+            function commitPageRow(it, p) {
+                var notes = pageNotesOf(it, p.file);
+                return '<div class="cl-cpage' + (isQuietPage(it, p) ? ' cl-cpage--quiet' : '') + '">' +
                     (p.module ? '<span class="cl-page-module">' + esc(p.module) + '</span>' : '') +
-                    '<a class="cl-page-name" href="' + esc(p.file) + '" target="_blank" rel="noopener">' +
+                    '<a class="cl-cpage-name" href="' + esc(p.file) + '" target="_blank" rel="noopener">' +
                     esc(p.title) + ' <span class="cl-page-go">↗</span></a>' +
-                    '<span class="cl-page-count">' + countText + '</span>' +
-                    '<button class="cl-page-toggle" type="button">' + (expanded && !quiet ? '收起 ▴' : '明细 ▾') + '</button>' +
+                    '<span class="cl-cpage-note">' +
+                    notes.map(function (n) { return esc(n.text); }).join('；') + '</span>' +
+                    cmpEntry(it, p.file, p.title) +
+                    '</div>';
+            }
+            /** 提交为主体的条目：标题行 + 提交级说明 + 页面拆分（弱化的沉底） */
+            function commitBlock(it, expanded) {
+                var cls = BADGE_CLASS[it.type] || 'other';
+                var label = TYPE_LABELS[it.type] || TYPE_LABELS.other;
+                var generalNotes = (it.notes || [])
+                    .filter(function (n) { return n.file === null; })
+                    .map(function (n) { return '<div class="cl-note">' + esc(n.text) + '</div>'; })
+                    .join('');
+                var pages = it.pages.slice().sort(function (a, b) {
+                    return (isQuietPage(it, a) ? 1 : 0) - (isQuietPage(it, b) ? 1 : 0);
+                });
+                var body = generalNotes + pages.map(function (p) { return commitPageRow(it, p); }).join('');
+                return '<div class="cl-entry">' +
+                    '<div class="cl-item">' +
+                    '<span class="cl-badge ' + cls + '">' + label + '</span>' +
+                    '<span class="cl-text">' + esc(it.text) + '</span>' +
+                    '<button class="cl-cmt-toggle" type="button" data-count="' + it.pages.length + '">' +
+                    (expanded ? '收起 ▴' : it.pages.length + ' 个页面 ▾') + '</button>' +
+                    '<span class="cl-item-meta">' + esc(it.author) + ' · ' + esc(it.time) + '</span>' +
                     '</div>' +
-                    '<div class="cl-page-commits"' + (expanded && !quiet ? '' : ' hidden') + '>' +
-                    p.commits.map(function (it) { return commitRow(it, p.file, p.title); }).join('') + '</div>' +
+                    '<div class="cl-cmt-body"' + (expanded ? '' : ' hidden') + '>' + body + '</div>' +
                     '</div>';
             }
             function dayHtml(day) {
@@ -282,18 +306,19 @@
                     body = day.items.map(function (it) { return commitRow(it); }).join('');
                     countText = day.items.length + ' 条';
                 } else {
-                    var expanded = day.date === bjToday(0); // 今天的明细默认展开
-                    var pagesSorted = agg.pages.slice().sort(function (a, b) {
-                        return (isQuiet(a) ? 1 : 0) - (isQuiet(b) ? 1 : 0); // 无界面变化的沉底
-                    });
-                    body = pagesSorted.map(function (p) { return pageRowHtml(p, expanded); }).join('');
+                    // 今天/昨天默认展开页面拆分，更早的收起
+                    var expanded = day.date === bjToday(0) || day.date === bjToday(1);
+                    body = agg.commits.map(function (it) { return commitBlock(it, expanded); }).join('');
                     if (agg.others.length) {
                         body += '<button class="cl-sub-title cl-others-toggle" type="button">其他改动（全局样式 / 框架 / 文档等）' +
                             agg.others.length + ' 条 ▾</button>' +
                             '<div class="cl-others" hidden>' +
                             agg.others.map(function (it) { return commitRow(it); }).join('') + '</div>';
                     }
-                    countText = agg.pages.length ? agg.pages.length + ' 个页面更新' : day.items.length + ' 条';
+                    var pageCount = agg.commits.reduce(function (s, it) { return s + it.pages.length; }, 0);
+                    countText = agg.commits.length
+                        ? agg.commits.length + ' 项更新 · ' + pageCount + ' 个页面'
+                        : day.items.length + ' 条';
                 }
                 return '<section class="cl-day">' +
                     '<h2 class="cl-day-title">' + esc(day.date) + tag +
@@ -320,11 +345,11 @@
                 try { localStorage.setItem('lfChangelogSeenSha', data.latestSha || ''); } catch (e) { /* 隐私模式忽略 */ }
             }
             document.getElementById('cl-content').addEventListener('click', function (e) {
-                var btn = e.target.closest('.cl-page-toggle');
+                var btn = e.target.closest('.cl-cmt-toggle');
                 if (btn) {
-                    var commits = btn.closest('.cl-page-row').querySelector('.cl-page-commits');
-                    commits.hidden = !commits.hidden;
-                    btn.textContent = commits.hidden ? '明细 ▾' : '收起 ▴';
+                    var bodyEl = btn.closest('.cl-entry').querySelector('.cl-cmt-body');
+                    bodyEl.hidden = !bodyEl.hidden;
+                    btn.textContent = bodyEl.hidden ? btn.getAttribute('data-count') + ' 个页面 ▾' : '收起 ▴';
                     return;
                 }
                 var sub = e.target.closest('.cl-others-toggle');
