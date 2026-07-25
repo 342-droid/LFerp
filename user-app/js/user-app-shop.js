@@ -212,10 +212,7 @@
         fulfillType: 'express',
         merchantId: supplier.id,
         merchantName: supplier.name,
-        merchantAvatar: supplier.avatar,
-        tag: '快递',
-        tipTag: '快递',
-        tipText: '由供应商发货，预计按物流时效送达'
+        merchantAvatar: supplier.avatar
       };
     }
     var store =
@@ -225,11 +222,8 @@
       fulfillType: 'pickup',
       merchantId: store.id,
       merchantName: store.name,
-      merchantAvatar: store.avatar,
-      tag: '自提',
-      tipTag: '自提',
-        tipText: '到店自提，下单后按提货时间到店核销'
-      };
+      merchantAvatar: store.avatar
+    };
   }
 
   function enrichCartItem(item) {
@@ -261,9 +255,6 @@
           merchantId: info.merchantId,
           merchantName: info.merchantName,
           merchantAvatar: info.merchantAvatar,
-          tag: info.tag,
-          tipTag: info.tipTag,
-          tipText: info.tipText,
           items: []
         };
         groups.push(map[key]);
@@ -1443,16 +1434,6 @@
           shopIcon +
           '<span class="ua-cart-group__name">' +
           group.merchantName +
-          '</span>' +
-          '<span class="ua-cart-group__tag">' +
-          group.tag +
-          '</span></div>' +
-          '<div class="ua-cart-group__tip">' +
-          '<span class="ua-cart-group__tip-tag">' +
-          group.tipTag +
-          '</span>' +
-          '<span class="ua-cart-group__tip-text">' +
-          group.tipText +
           '</span></div>' +
           itemsHtml +
           '</section>'

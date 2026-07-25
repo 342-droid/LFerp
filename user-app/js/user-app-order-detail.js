@@ -140,6 +140,17 @@
     return getDeliveryType() === 'store';
   }
 
+  /* 用户 APP 快递单：供应商直发到家（delivery=store）；补货场景仍为快递到店 */
+  function isUserAppExpressHome() {
+    return !isFromRestock() && isStoreDirectDelivery();
+  }
+
+  var DEMO_HOME_ADDRESS = {
+    name: '武者',
+    phone: '181****4215',
+    text: '四川省成都市武侯区天府大道中段666号天府软件园A区'
+  };
+
   function buildLogisticsHref(pkgIndex) {
     var params = getParams();
     var href = 'order-logistics.html?';
@@ -262,14 +273,63 @@
     var logisticsBtn = document.getElementById('orderExpressLogisticsBtn');
     if (!expressCard) return;
 
-    /* 进货场景改用横向物流卡，旧单卡仅非 restock 保留 */
+    /* 进货场景改用横向物流卡；用户 APP 快递到家保留物流单卡 */
     var showExpress =
       !isFromRestock() && status === 'receipt' && isStoreDirectDelivery();
     expressCard.hidden = !showExpress;
 
-    if (logisticsBtn && showExpress) {
-      logisticsBtn.setAttribute('href', buildLogisticsHref(0));
+    if (showExpress) {
+      var statusEl = document.getElementById('orderExpressStatus');
+      var textEl = document.getElementById('orderExpressText');
+      if (statusEl) statusEl.textContent = '派送中';
+      if (textEl) {
+        textEl.textContent =
+          '【杭州市】快件正在派送中，派送员：李师傅，请保持电话畅通';
+      }
+      if (logisticsBtn) logisticsBtn.setAttribute('href', buildLogisticsHref(0));
     }
+  }
+
+  /* 用户 APP 快递到家：顶部家庭收货地址；隐藏配送门店 / 配送到店卡片 */
+  function applyUserAppExpressLayout(status, config) {
+    var addressCard = document.getElementById('orderAddressCard');
+    var storeCard = document.getElementById('orderStoreCard');
+    var addrEdit = document.getElementById('orderAddrEdit');
+    var isExpressHome = isUserAppExpressHome();
+
+    if (addressCard) {
+      addressCard.hidden = !isExpressHome;
+      if (isExpressHome) {
+        var nameEl = document.getElementById('orderAddrName');
+        var phoneEl = document.getElementById('orderAddrPhone');
+        var textEl = document.getElementById('orderAddrText');
+        if (nameEl) nameEl.textContent = DEMO_HOME_ADDRESS.name;
+        if (phoneEl) phoneEl.textContent = DEMO_HOME_ADDRESS.phone;
+        if (textEl) textEl.textContent = DEMO_HOME_ADDRESS.text;
+      }
+    }
+
+    if (storeCard) {
+      /* 快递到家不展示门店；配送/补货仍展示配送门店 */
+      storeCard.hidden = isExpressHome;
+    }
+
+    if (addrEdit) {
+      addrEdit.hidden = !(isExpressHome && status === 'unpaid');
+    }
+
+    if (!isExpressHome) return config;
+
+    config = Object.assign({}, config);
+    config.showStoreDelivery = false;
+    if (status === 'receipt') {
+      config.title = '商家已发货';
+      config.sub = '快递配送到家，还剩14天23小时自动确认收货';
+    } else if (status === 'shipping') {
+      config.sub = '供应商正在备货，将快递配送到家';
+    }
+
+    return config;
   }
 
   function applyDeliveryMode(status, config) {
@@ -708,7 +768,8 @@
   }
 
   function mapStatusToTab(status) {
-    if (status === 'receipt') return 'review';
+    /* 用户 APP：待收货归入「待自提/待收货」；补货入口仍用 review（展示为待收货） */
+    if (status === 'receipt') return isFromRestock() ? 'review' : 'pickup';
     if (status === 'closed') return 'all';
     return status;
   }
@@ -842,6 +903,8 @@
     if (isFromRestock()) {
       config = applyRestockMode(status, config);
       config = applyDeliveryMode(status, config);
+    } else {
+      config = applyUserAppExpressLayout(status, config);
     }
 
     config = applyClosedReason(config);
@@ -872,7 +935,7 @@
         var timeEl = document.getElementById('orderStoreDeliveryTime');
         if (statusEl) statusEl.textContent = '订单配送中';
         if (textEl) textEl.textContent = '商品正在配送到门店，请耐心等待';
-        if (timeEl) timeEl.textContent = '预计 2026-03-09 18:00 前送达门店';
+        if (timeEl) timeEl.textContent = '预计 2026-03-09 18:00 前到达门店';
       }
     }
 
