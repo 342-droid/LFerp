@@ -1,10 +1,28 @@
 {
-  "latestSha": "882b7ec36dd239f89b22d85c007d2c9c5d67a851",
-  "total": 191,
+  "latestSha": "0064e4437ef4903848fe2a1aa33cfc2564d51130",
+  "total": 192,
   "days": [
     {
       "date": "2026-07-25",
       "items": [
+        {
+          "sha": "0064e44",
+          "type": "feat",
+          "text": "说明解析容错升级并改为 push 即触发 CI",
+          "author": "weekwood",
+          "time": "09:21",
+          "pages": [],
+          "notes": [
+            {
+              "file": null,
+              "text": "解析器支持无前缀 bullet 与成段散文——按「；。」拆条后用页面短名出现位置归属，嵌套短名去重防误挂；命名前缀补短名相等匹配；人工补录优先于 body 解析"
+            },
+            {
+              "file": null,
+              "text": "workflow 增加 push 到 main 触发，提交后日志即时更新，不再等次日定时"
+            }
+          ]
+        },
         {
           "sha": "882b7ec",
           "type": "feat",
