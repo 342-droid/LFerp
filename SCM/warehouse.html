@@ -372,6 +372,12 @@
                                     </label>
                                 </div>
                                 <div class="wh-param-field">
+                                    <label class="param-checkbox-row">
+                                        <input type="checkbox" id="editParamShortageReceiptUploadVoucher">
+                                        <span>缺量收货上传凭证</span>
+                                    </label>
+                                </div>
+                                <div class="wh-param-field">
                                     <div class="param-select-row">
                                         <label for="editReceiptInteractionMode">收货交互方式</label>
                                         <div class="custom-select">
@@ -462,6 +468,11 @@
                             if (fullReceiptAutoCloseCb.checked) row.setAttribute('data-full-receipt-auto-close', 'true');
                             else row.removeAttribute('data-full-receipt-auto-close');
                         }
+                        const shortageReceiptUploadVoucherCb = document.getElementById('editParamShortageReceiptUploadVoucher');
+                        if (shortageReceiptUploadVoucherCb) {
+                            if (shortageReceiptUploadVoucherCb.checked) row.setAttribute('data-shortage-receipt-upload-voucher', 'true');
+                            else row.removeAttribute('data-shortage-receipt-upload-voucher');
+                        }
                         const receiptInteractionMode = document.getElementById('editReceiptInteractionMode');
                         if (receiptInteractionMode) {
                             const mode = (receiptInteractionMode.dataset.value || '').trim();
@@ -543,6 +554,10 @@
                 const fullReceiptAutoCloseCb = document.getElementById('editParamFullReceiptAutoClose');
                 if (fullReceiptAutoCloseCb) {
                     fullReceiptAutoCloseCb.checked = !!(row && row.getAttribute('data-full-receipt-auto-close') === 'true');
+                }
+                const shortageReceiptUploadVoucherCb = document.getElementById('editParamShortageReceiptUploadVoucher');
+                if (shortageReceiptUploadVoucherCb) {
+                    shortageReceiptUploadVoucherCb.checked = !!(row && row.getAttribute('data-shortage-receipt-upload-voucher') === 'true');
                 }
                 const receiptInteractionMode = document.getElementById('editReceiptInteractionMode');
                 if (receiptInteractionMode) {

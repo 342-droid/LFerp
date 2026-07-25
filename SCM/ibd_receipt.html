@@ -101,6 +101,196 @@
             outline: none;
             color: #333;
         }
+
+        /* 缺量上传凭证弹窗 */
+        .voucher-modal-content {
+            width: 720px;
+            max-width: calc(100vw - 40px);
+        }
+
+        .voucher-notice {
+            background-color: #fff8f0;
+            border: 1px solid #ffe0b2;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 16px;
+        }
+
+        .voucher-notice-lead {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .voucher-notice-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .voucher-notice-list li {
+            position: relative;
+            padding-left: 18px;
+            font-size: 13px;
+            line-height: 1.55;
+            color: #555555;
+        }
+
+        .voucher-notice-list li::before {
+            content: '';
+            position: absolute;
+            left: 4px;
+            top: 7px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #fb8c00;
+        }
+
+        .voucher-notice-list .voucher-notice-warn {
+            display: block;
+            margin-top: 4px;
+            color: #e65100;
+        }
+
+        .voucher-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 10px;
+        }
+
+        .voucher-hint {
+            font-size: 12px;
+            color: #999999;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .voucher-diff-table-wrap {
+            max-height: 220px;
+            overflow-y: auto;
+            margin-bottom: 18px;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+        }
+
+        .voucher-diff-table-wrap .table {
+            margin: 0;
+        }
+
+        .voucher-diff-table-wrap .diff-highlight {
+            color: #e65100;
+            font-weight: 500;
+        }
+
+        .voucher-upload-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .voucher-upload-item {
+            position: relative;
+            width: 96px;
+            height: 96px;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #f0f0f0;
+            border: 1px solid #e0e0e0;
+        }
+
+        .voucher-upload-item img,
+        .voucher-upload-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .voucher-upload-item .voucher-media-tag {
+            position: absolute;
+            left: 4px;
+            bottom: 4px;
+            padding: 1px 5px;
+            border-radius: 4px;
+            background-color: rgba(0, 0, 0, 0.55);
+            color: #ffffff;
+            font-size: 10px;
+            line-height: 1.4;
+        }
+
+        .voucher-upload-remove {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 20px;
+            height: 20px;
+            border: none;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.55);
+            color: #ffffff;
+            font-size: 14px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .voucher-upload-add {
+            width: 96px;
+            height: 96px;
+            border: 1px dashed #bdbdbd;
+            border-radius: 8px;
+            background-color: #fafafa;
+            color: #757575;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            line-height: 1.3;
+            text-align: center;
+            padding: 6px;
+        }
+
+        .voucher-upload-add:hover {
+            background-color: #f5f5f5;
+            border-color: #2196f3;
+            color: #2196f3;
+        }
+
+        .voucher-upload-add svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .voucher-upload-add em {
+            font-style: normal;
+            color: #999999;
+            font-size: 11px;
+        }
+
+        .voucher-file-input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
     </style>
 </head>
 <body>
@@ -300,7 +490,7 @@
                                 <td>赵六</td>
                                 <td class="action-links">
                                     <a href="#" class="receipt-record-btn" data-order-id="IBD2026022712345678">收货记录</a>
-                                    <a href="#" class="delete-btn">关闭</a>
+                                    <a href="#" class="close-order-btn">关闭</a>
                                 </td>
                             </tr>
                             <tr>
@@ -330,7 +520,7 @@
                                 <td>郑一</td>
                                 <td class="action-links">
                                     <a href="#" class="receipt-record-btn" data-order-id="IBD2026022787654321">收货记录</a>
-                                    <a href="#" class="delete-btn">关闭</a>
+                                    <a href="#" class="close-order-btn">关闭</a>
                                 </td>
                             </tr>
                         </tbody>
@@ -529,6 +719,52 @@
         </div>
     </div>
 
+    <!-- 缺量收货上传凭证弹窗 -->
+    <div id="shortageVoucherModal" class="modal">
+        <div class="modal-content voucher-modal-content">
+            <div class="modal-header">
+                <div class="modal-title">上传缺量凭证</div>
+                <span class="close" id="shortageVoucherCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="voucher-section-title">差异明细</div>
+                <div class="voucher-notice">
+                    <div class="voucher-notice-lead">以下商品实际入库量小于计划入库量</div>
+                    <ul class="voucher-notice-list">
+                        <li>如以下商品需继续收货，请关闭当前弹窗</li>
+                        <li>
+                            如以下商品已确认缺货，请上传缺量凭证
+                            <span class="voucher-notice-warn">（点击确认关闭后，以下商品将无法继续收货）</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="voucher-diff-table-wrap">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>商品编码</th>
+                                <th>商品名称</th>
+                                <th>单位</th>
+                                <th>计划入库量</th>
+                                <th>实际入库量</th>
+                                <th>差异量</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shortageVoucherDiffList"></tbody>
+                    </table>
+                </div>
+                <div class="voucher-section-title">上传凭证</div>
+                <div class="voucher-hint">支持图片、视频，最多上传 6 个文件</div>
+                <div class="voucher-upload-grid" id="shortageVoucherUploadGrid"></div>
+                <input type="file" id="shortageVoucherFileInput" class="voucher-file-input" accept="image/*,video/*" multiple>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="submitShortageVoucherBtn">确认关闭</button>
+                <button type="button" class="btn btn-secondary" id="cancelShortageVoucherBtn">取消</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 引入公共脚本 -->
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
@@ -558,7 +794,7 @@
                 
                 editModal: {},
                 
-                deleteModal: {}
+                deleteModal: null
             });
             
             renderSelectOptions('searchOrderTypeDropdown', CommonOptions.inboundType);
@@ -571,7 +807,245 @@
             
             // 初始化收货记录模态框
             initReceiptRecordModal();
+
+            // 初始化关闭入库单 / 缺量凭证
+            initCloseOrderFlow();
         });
+
+        const RECEIPT_PRODUCT_DATA = {
+            'IBD2026022712345678': [
+                { skuCode: 'SKU001', skuName: '商品1', unit: '件', planQty: 100, actualQty: 98 },
+                { skuCode: 'SKU002', skuName: '商品2', unit: '箱', planQty: 50, actualQty: 50 },
+                { skuCode: 'SKU003', skuName: '商品3', unit: '个', planQty: 200, actualQty: 195 }
+            ],
+            'IBD2026022787654321': [
+                { skuCode: 'SKU004', skuName: '商品4', unit: '件', planQty: 150, actualQty: 150 },
+                { skuCode: 'SKU005', skuName: '商品5', unit: '箱', planQty: 80, actualQty: 80 }
+            ]
+        };
+
+        const SHORTAGE_VOUCHER_MAX = 6;
+        let shortageVoucherFiles = [];
+        let pendingCloseOrderRow = null;
+        let pendingShortageProducts = [];
+
+        function getOrderIdFromRow(row) {
+            if (!row) return '';
+            const link = row.querySelector('.order-number-link');
+            return (link && (link.getAttribute('data-order-id') || link.textContent.trim())) || '';
+        }
+
+        function getRowStatusText(row) {
+            const statusEl = row ? row.querySelector('.status-badge') : null;
+            return statusEl ? statusEl.textContent.trim() : '';
+        }
+
+        function getShortageProductsByOrderId(orderId) {
+            const products = RECEIPT_PRODUCT_DATA[orderId] || [];
+            return products
+                .filter((item) => Number(item.actualQty) < Number(item.planQty))
+                .map((item) => ({
+                    ...item,
+                    diff: Math.round((Number(item.planQty) - Number(item.actualQty)) * 1000) / 1000
+                }));
+        }
+
+        function revokeShortageVoucherUrls() {
+            shortageVoucherFiles.forEach((item) => {
+                if (item.url) URL.revokeObjectURL(item.url);
+            });
+        }
+
+        function resetShortageVoucherState() {
+            revokeShortageVoucherUrls();
+            shortageVoucherFiles = [];
+            pendingShortageProducts = [];
+            const fileInput = document.getElementById('shortageVoucherFileInput');
+            if (fileInput) fileInput.value = '';
+        }
+
+        function renderShortageVoucherDiffList(products) {
+            const listEl = document.getElementById('shortageVoucherDiffList');
+            if (!listEl) return;
+            if (!products.length) {
+                listEl.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">暂无差异商品</td></tr>';
+                return;
+            }
+            listEl.innerHTML = products
+                .map(
+                    (item) => `
+                    <tr>
+                        <td>${item.skuCode}</td>
+                        <td>${item.skuName}</td>
+                        <td>${item.unit}</td>
+                        <td>${item.planQty}</td>
+                        <td>${item.actualQty}</td>
+                        <td class="diff-highlight">${item.diff}</td>
+                    </tr>
+                `
+                )
+                .join('');
+        }
+
+        function renderShortageVoucherUploadGrid() {
+            const grid = document.getElementById('shortageVoucherUploadGrid');
+            if (!grid) return;
+            let html = shortageVoucherFiles
+                .map((item, idx) => {
+                    const media =
+                        item.kind === 'video'
+                            ? `<video src="${item.url}" muted></video><span class="voucher-media-tag">视频</span>`
+                            : `<img src="${item.url}" alt="">`;
+                    return `
+                        <div class="voucher-upload-item">
+                            ${media}
+                            <button type="button" class="voucher-upload-remove" data-remove-idx="${idx}" aria-label="删除">×</button>
+                        </div>
+                    `;
+                })
+                .join('');
+            if (shortageVoucherFiles.length < SHORTAGE_VOUCHER_MAX) {
+                html += `
+                    <button type="button" class="voucher-upload-add" id="shortageVoucherAddBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 5v14M5 12h14"/></svg>
+                        <span>上传图片/视频<br><em>(最多${SHORTAGE_VOUCHER_MAX}个)</em></span>
+                    </button>
+                `;
+            }
+            grid.innerHTML = html;
+
+            const addBtn = document.getElementById('shortageVoucherAddBtn');
+            if (addBtn) {
+                addBtn.addEventListener('click', () => {
+                    document.getElementById('shortageVoucherFileInput')?.click();
+                });
+            }
+            grid.querySelectorAll('[data-remove-idx]').forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const idx = parseInt(btn.getAttribute('data-remove-idx'), 10);
+                    const removed = shortageVoucherFiles.splice(idx, 1)[0];
+                    if (removed?.url) URL.revokeObjectURL(removed.url);
+                    renderShortageVoucherUploadGrid();
+                });
+            });
+        }
+
+        function handleShortageVoucherFilesSelected(event) {
+            const files = Array.from(event.target.files || []);
+            if (!files.length) return;
+            const remain = SHORTAGE_VOUCHER_MAX - shortageVoucherFiles.length;
+            if (remain <= 0) {
+                showToast(`最多上传${SHORTAGE_VOUCHER_MAX}个文件`);
+                event.target.value = '';
+                return;
+            }
+            const accepted = files.slice(0, remain).filter((file) => {
+                const type = file.type || '';
+                return type.startsWith('image/') || type.startsWith('video/');
+            });
+            if (!accepted.length) {
+                showToast('仅支持上传图片或视频');
+                event.target.value = '';
+                return;
+            }
+            accepted.forEach((file) => {
+                shortageVoucherFiles.push({
+                    file,
+                    kind: file.type.startsWith('video/') ? 'video' : 'image',
+                    url: URL.createObjectURL(file)
+                });
+            });
+            if (files.length > remain) {
+                showToast(`最多上传${SHORTAGE_VOUCHER_MAX}个文件，已添加前${remain}个`);
+            }
+            event.target.value = '';
+            renderShortageVoucherUploadGrid();
+        }
+
+        function openShortageVoucherModal(products) {
+            pendingShortageProducts = products;
+            revokeShortageVoucherUrls();
+            shortageVoucherFiles = [];
+            renderShortageVoucherDiffList(products);
+            renderShortageVoucherUploadGrid();
+            document.getElementById('shortageVoucherModal').style.display = 'block';
+        }
+
+        function closeShortageVoucherModal() {
+            document.getElementById('shortageVoucherModal').style.display = 'none';
+            resetShortageVoucherState();
+            pendingCloseOrderRow = null;
+        }
+
+        function markOrderRowClosed(row) {
+            if (!row) return;
+            const statusCell = row.querySelectorAll('td')[9];
+            if (statusCell) {
+                statusCell.innerHTML = '<span class="status-badge status-closed">已关闭</span>';
+            }
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const timeStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+            const cells = row.querySelectorAll('td');
+            if (cells[15]) cells[15].textContent = timeStr;
+            if (cells[16]) cells[16].textContent = '当前用户';
+        }
+
+        function doCloseOrderSuccess() {
+            markOrderRowClosed(pendingCloseOrderRow);
+            closeShortageVoucherModal();
+            showToast('入库单已关闭', 'success');
+        }
+
+        function submitShortageVoucher() {
+            if (!shortageVoucherFiles.length) {
+                showToast('请至少上传一张图片或一个视频作为凭证');
+                return;
+            }
+            doCloseOrderSuccess();
+        }
+
+        function handleCloseOrderClick(btn) {
+            const row = btn.closest('tr');
+            if (!row) return;
+            const status = getRowStatusText(row);
+            if (status === '已关闭' || status === '已取消') {
+                showToast(`当前单据状态为${status}，无法关闭`);
+                return;
+            }
+            const orderId = getOrderIdFromRow(row);
+            const shortageProducts = getShortageProductsByOrderId(orderId);
+            pendingCloseOrderRow = row;
+            if (shortageProducts.length) {
+                openShortageVoucherModal(shortageProducts);
+                return;
+            }
+            markOrderRowClosed(row);
+            pendingCloseOrderRow = null;
+            showToast('入库单已关闭', 'success');
+        }
+
+        function initCloseOrderFlow() {
+            const tableBody = document.getElementById('tableBody');
+            if (tableBody) {
+                tableBody.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.close-order-btn');
+                    if (!btn) return;
+                    e.preventDefault();
+                    handleCloseOrderClick(btn);
+                });
+            }
+
+            const modal = document.getElementById('shortageVoucherModal');
+            document.getElementById('shortageVoucherCloseBtn').addEventListener('click', closeShortageVoucherModal);
+            document.getElementById('cancelShortageVoucherBtn').addEventListener('click', closeShortageVoucherModal);
+            document.getElementById('submitShortageVoucherBtn').addEventListener('click', submitShortageVoucher);
+            document.getElementById('shortageVoucherFileInput').addEventListener('change', handleShortageVoucherFilesSelected);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeShortageVoucherModal();
+            });
+        }
         
         function initOrderDetailModal() {
             const modal = document.getElementById('orderDetailModal');
@@ -697,20 +1171,7 @@
             
             // 填充商品明细列表
             function fillProductList(orderId) {
-                // 模拟数据 - 实际项目中应从后端获取
-                const productData = {
-                    'IBD2026022712345678': [
-                        { skuCode: 'SKU001', skuName: '商品1', unit: '件', planQty: 100, actualQty: 98 },
-                        { skuCode: 'SKU002', skuName: '商品2', unit: '箱', planQty: 50, actualQty: 50 },
-                        { skuCode: 'SKU003', skuName: '商品3', unit: '个', planQty: 200, actualQty: 195 }
-                    ],
-                    'IBD2026022787654321': [
-                        { skuCode: 'SKU004', skuName: '商品4', unit: '件', planQty: 150, actualQty: 150 },
-                        { skuCode: 'SKU005', skuName: '商品5', unit: '箱', planQty: 80, actualQty: 80 }
-                    ]
-                };
-                
-                const products = productData[orderId] || [];
+                const products = RECEIPT_PRODUCT_DATA[orderId] || [];
                 const table = document.getElementById('detailProductList');
                 const tbody = table.querySelector('tbody');
                 
