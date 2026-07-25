@@ -1,10 +1,24 @@
 {
-  "latestSha": "0064e4437ef4903848fe2a1aa33cfc2564d51130",
-  "total": 192,
+  "latestSha": "6d1fda79e384c1e1e31f0564d8d93a524c1acd15",
+  "total": 193,
   "days": [
     {
       "date": "2026-07-25",
       "items": [
+        {
+          "sha": "6d1fda7",
+          "type": "feat",
+          "text": "归属不上的说明原样保留为提交级展示",
+          "author": "weekwood",
+          "time": "09:25",
+          "pages": [],
+          "notes": [
+            {
+              "file": null,
+              "text": "拆条后仍匹配不到页面的说明不再丢弃，保留为提交级(file=null)，在该提交出现的各页面上下文与其他改动里原样展示，确保信息永不丢失"
+            }
+          ]
+        },
         {
           "sha": "0064e44",
           "type": "feat",
