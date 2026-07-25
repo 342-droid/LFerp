@@ -1,10 +1,30 @@
 {
-  "latestSha": "f85713be76f12f457a983f15f3df5b1f2acfc33a",
-  "total": 195,
+  "latestSha": "eff937d18f3e6951d9ac48d85d640499382535c5",
+  "total": 196,
   "days": [
     {
       "date": "2026-07-25",
       "items": [
+        {
+          "sha": "eff937d",
+          "type": "feat",
+          "text": "采购单支持审核驳回与按状态操作权限",
+          "author": "342-droid",
+          "time": "10:11",
+          "pages": [
+            {
+              "file": "SCM/purchase_order.html",
+              "module": "冷丰采购",
+              "title": "采购单"
+            }
+          ],
+          "notes": [
+            {
+              "file": null,
+              "text": "本次修改总结："
+            }
+          ]
+        },
         {
           "sha": "f85713b",
           "type": "feat",

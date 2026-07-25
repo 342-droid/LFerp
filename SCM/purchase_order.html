@@ -183,6 +183,117 @@
             color: #666;
         }
 
+        .po-audit-modal .modal-content {
+            max-width: 520px;
+        }
+
+        .po-audit-form-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .po-audit-form-item .label {
+            width: 78px;
+            color: #666;
+            font-size: 13px;
+            flex-shrink: 0;
+            line-height: 32px;
+        }
+
+        .po-audit-form-item .label .required {
+            color: #c62828;
+            margin-right: 2px;
+        }
+
+        .po-audit-form-item textarea {
+            flex: 1;
+            min-height: 96px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 8px;
+            font-size: 13px;
+            box-sizing: border-box;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .po-audit-hint {
+            margin: 0 0 12px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .action-links {
+            align-items: center;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+        }
+
+        .po-action-more {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .po-action-more-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            color: #2196F3;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .po-action-more-toggle:hover {
+            text-decoration: underline;
+        }
+
+        .po-action-more-caret {
+            width: 10px;
+            height: 7px;
+            flex-shrink: 0;
+            transition: transform 0.15s ease;
+        }
+
+        .po-action-more.is-open .po-action-more-caret {
+            transform: rotate(180deg);
+        }
+
+        .po-action-more-menu {
+            display: none;
+            position: fixed;
+            z-index: 1200;
+            min-width: 88px;
+            padding: 4px 0;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            text-align: left;
+        }
+
+        .po-action-more.is-open .po-action-more-menu {
+            display: block;
+        }
+
+        .po-action-more-menu a {
+            display: block;
+            padding: 8px 14px;
+            color: #2196F3;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .po-action-more-menu a:hover {
+            background: #f5f5f5;
+            text-decoration: none;
+        }
+
+        .table td.action-links-cell.is-more-open {
+            z-index: 30;
+        }
+
         /* 自定义下拉触发框为 readonly，但不使用灰底，与其它表单项一致 */
         .add-po-form-item .custom-select input,
         .add-po-form-item .custom-select input[readonly] {
@@ -559,6 +670,8 @@
                         <button type="button" class="btn btn-primary" id="btnSearch">查询</button>
                         <button type="button" class="btn btn-secondary" id="btnAddPurchaseOrder">新增采购单</button>
                         <button type="button" class="btn btn-secondary" id="btnLogisticsConfirm">物流确认</button>
+                        <button type="button" class="btn btn-secondary" id="btnAudit">审核</button>
+                        <button type="button" class="btn btn-secondary" id="btnReject">驳回</button>
                     </div>
                 </form>
             </section>
@@ -579,6 +692,9 @@
                                 <th>订单渠道</th>
                                 <th>履约方式</th>
                                 <th>单据状态</th>
+                                <th>审批人</th>
+                                <th>审批时间</th>
+                                <th>审批原因</th>
                                 <th>单据来源</th>
                                 <th>备注</th>
                                 <th>创建时间</th>
@@ -614,6 +730,10 @@
                 <div class="detail-section">
                     <div class="detail-section-title">金额信息</div>
                     <div class="detail-amount-grid" id="poDetailAmountInfo"></div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-section-title">审批信息</div>
+                    <div class="detail-info-grid" id="poDetailAuditInfo"></div>
                 </div>
                 <div class="detail-section">
                     <div class="detail-section-title">商品明细列表</div>
@@ -799,6 +919,26 @@
         </div>
     </div>
 
+    <div id="poAuditModal" class="modal detail-modal po-audit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="poAuditModalTitle">审核</div>
+                <span class="close" id="poAuditCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p class="po-audit-hint" id="poAuditHint"></p>
+                <div class="po-audit-form-item">
+                    <span class="label"><span class="required">*</span>审批原因:</span>
+                    <textarea id="poAuditReason" placeholder="请填写审批原因" maxlength="200"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="poAuditConfirmBtn">确认</button>
+                <button type="button" class="btn btn-secondary" id="poAuditCancelBtn">取消</button>
+            </div>
+        </div>
+    </div>
+
     <script src="../js/purchase-order-mock-data.js"></script>
     <script src="../js/modal-manager.js"></script>
     <script src="../js/common.js"></script>
@@ -817,6 +957,8 @@
     var addPoMode = 'add';
     var editingPoNo = '';
     var logisticsConfirmEntries = [];
+    var pendingAuditAction = null;
+    var pendingAuditRows = [];
     const resolvePurchaseOrderReceiveInfo = window.resolvePurchaseOrderReceiveInfo;
     var productMaster = buildProductMaster(allRows);
     var SPEC_MAP_BY_SKU = {
@@ -1393,9 +1535,9 @@
     function openEditPoModal(poNo) {
         var row = findOrderByPoNo(poNo);
         if (!row) return;
-        if (row.docStatus !== '初始') {
+        if (row.docStatus !== '已驳回') {
             if (typeof showToast === 'function') {
-                showToast('仅待收货状态采购单可编辑', 'error');
+                showToast('仅已驳回状态采购单可编辑', 'error');
             }
             return;
         }
@@ -1688,14 +1830,18 @@
                 }
                 return;
             }
-            if (row.docStatus !== '初始') {
+            if (row.docStatus !== '已驳回') {
                 if (typeof showToast === 'function') {
-                    showToast('仅待收货状态采购单可编辑', 'error');
+                    showToast('仅已驳回状态采购单可编辑', 'error');
                 }
                 return;
             }
             row.remark = remark;
             row.lines = lines;
+            row.docStatus = '待审核';
+            row.auditBy = '';
+            row.auditAt = '';
+            row.auditReason = '';
             row.updatedAt = nowDateTimeText();
             row.updatedBy = getLineBuyer(lines[0]) || row.updatedBy || row.createdBy;
         } else {
@@ -1726,7 +1872,7 @@
         closeAddPoModal();
         if (typeof showToast === 'function') {
             if (savedMode === 'edit') {
-                showToast('采购单已编辑，单号 ' + (savedPoNo || ''), 'success');
+                showToast('采购单已编辑并重新提交审核，单号 ' + (savedPoNo || ''), 'success');
             } else {
                 showToast('采购单已新增，单号 ' + (savedAddPoNo || ''), 'success');
             }
@@ -1752,9 +1898,9 @@
             }
             return;
         }
-        if (row.docStatus !== '初始') {
+        if (row.docStatus !== '已驳回') {
             if (typeof showToast === 'function') {
-                showToast('仅待收货状态采购单可取消', 'error');
+                showToast('仅已驳回状态采购单可取消', 'error');
             }
             return;
         }
@@ -1765,6 +1911,133 @@
         if (typeof showToast === 'function') {
             showToast('采购单已取消，单号 ' + poNo, 'success');
         }
+    }
+
+    function getPendingAuditCheckedRows() {
+        if (!hasCheckedPoRows()) {
+            if (typeof showToast === 'function') {
+                showToast('请先勾选待审核的采购单', 'error');
+            }
+            return null;
+        }
+        var checkedRows = getCheckedPurchaseOrders();
+        var invalid = checkedRows.filter(function(row) {
+            return row.docStatus !== '待审核';
+        });
+        if (invalid.length) {
+            if (typeof showToast === 'function') {
+                showToast('仅待审核状态采购单可操作，请重新勾选', 'error');
+            }
+            return null;
+        }
+        return checkedRows;
+    }
+
+    function openPoAuditModal(action, rows) {
+        if (!rows) {
+            rows = getPendingAuditCheckedRows();
+        }
+        if (!rows || !rows.length) return;
+        pendingAuditAction = action;
+        pendingAuditRows = rows;
+        var isReject = action === 'reject';
+        var titleEl = document.getElementById('poAuditModalTitle');
+        var hintEl = document.getElementById('poAuditHint');
+        var reasonEl = document.getElementById('poAuditReason');
+        var confirmBtn = document.getElementById('poAuditConfirmBtn');
+        if (titleEl) titleEl.textContent = isReject ? '驳回' : '审核';
+        if (hintEl) {
+            hintEl.textContent = rows.length === 1
+                ? '采购单 ' + (rows[0].poNo || '') + '，请填写审批原因后确认。'
+                : '已勾选 ' + rows.length + ' 张待审核采购单，请填写审批原因后确认。';
+        }
+        if (reasonEl) reasonEl.value = '';
+        if (confirmBtn) confirmBtn.textContent = isReject ? '确认驳回' : '确认通过';
+        var modal = document.getElementById('poAuditModal');
+        if (modal) modal.style.display = 'block';
+        if (reasonEl) reasonEl.focus();
+    }
+
+    function openRowAuditModal(poNo, action) {
+        var row = findOrderByPoNo(poNo);
+        if (!row) {
+            if (typeof showToast === 'function') {
+                showToast('未找到采购单', 'error');
+            }
+            return;
+        }
+        if (row.docStatus !== '待审核') {
+            if (typeof showToast === 'function') {
+                showToast('仅待审核状态采购单可' + (action === 'reject' ? '驳回' : '审核'), 'error');
+            }
+            return;
+        }
+        openPoAuditModal(action, [row]);
+    }
+
+    function closePoAuditModal() {
+        pendingAuditAction = null;
+        pendingAuditRows = [];
+        var reasonEl = document.getElementById('poAuditReason');
+        if (reasonEl) reasonEl.value = '';
+        var modal = document.getElementById('poAuditModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function getCurrentAuditOperator() {
+        if (typeof getCurrentUser === 'function') {
+            var user = getCurrentUser();
+            if (user && (user.name || user.username)) {
+                return user.name || user.username;
+            }
+        }
+        return '管理员';
+    }
+
+    function confirmPoAudit() {
+        if (!pendingAuditAction || !pendingAuditRows.length) {
+            closePoAuditModal();
+            return;
+        }
+        var reasonEl = document.getElementById('poAuditReason');
+        var reason = reasonEl ? (reasonEl.value || '').trim() : '';
+        if (!reason) {
+            if (typeof showToast === 'function') {
+                showToast('请填写审批原因', 'error');
+            }
+            if (reasonEl) reasonEl.focus();
+            return;
+        }
+        var nextStatus = pendingAuditAction === 'reject' ? '已驳回' : '初始';
+        var successMsg = pendingAuditAction === 'reject'
+            ? '已驳回 {n} 张采购单'
+            : '已审核通过 {n} 张采购单';
+        var count = pendingAuditRows.length;
+        var now = nowDateTimeText();
+        var auditor = getCurrentAuditOperator();
+        pendingAuditRows.forEach(function(row) {
+            row.docStatus = nextStatus;
+            row.auditBy = auditor;
+            row.auditAt = now;
+            row.auditReason = reason;
+            row.updatedAt = now;
+            row.updatedBy = auditor;
+        });
+        closePoAuditModal();
+        filteredRows = applyFilters();
+        currentPage = 1;
+        renderTable();
+        if (typeof showToast === 'function') {
+            showToast(successMsg.replace('{n}', String(count)), 'success');
+        }
+    }
+
+    function auditPurchaseOrders() {
+        openPoAuditModal('audit');
+    }
+
+    function rejectPurchaseOrders() {
+        openPoAuditModal('reject');
     }
 
     function openPoDetailModal(poNo) {
@@ -1811,6 +2084,14 @@
                 detailInfoItemHtml('采购总价', formatYuan(totals.totalPurchaseAmount)),
                 detailInfoItemHtml('销售总价', formatYuan(totals.totalSalesAmount)),
                 detailInfoItemHtml('预估利润', formatYuan(estimatedProfit))
+            ].join('');
+        }
+        var auditBox = document.getElementById('poDetailAuditInfo');
+        if (auditBox) {
+            auditBox.innerHTML = [
+                detailInfoItemHtml('审批人', row.auditBy),
+                detailInfoItemHtml('审批时间', row.auditAt),
+                detailInfoItemHtml('审批原因', row.auditReason)
             ].join('');
         }
         var lineBody = document.getElementById('poDetailLinesTbody');
@@ -2147,6 +2428,24 @@
         if (modal) modal.style.display = 'none';
     }
 
+    function renderRowMoreActionsHtml(row) {
+        var items = [];
+        if (row.docStatus === '待审核') {
+            items.push('<a href="#" class="row-audit-btn">审核</a>');
+            items.push('<a href="#" class="row-reject-btn">驳回</a>');
+        }
+        if (row.docStatus === '已驳回') {
+            items.push('<a href="#" class="edit-btn">编辑</a>');
+            items.push('<a href="#" class="delete-btn">取消</a>');
+        }
+        if (!items.length) return '';
+        return (
+            '<span class="po-action-more">' +
+            '<a href="#" class="po-action-more-toggle">更多<svg class="po-action-more-caret" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1.5L6 6.5L11 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>' +
+            '<span class="po-action-more-menu">' + items.join('') + '</span></span>'
+        );
+    }
+
     function renderTable() {
         var tbody = document.getElementById('poListTbody');
         var countEl = document.getElementById('poListCount');
@@ -2160,7 +2459,7 @@
         var pageRows = filteredRows.slice(start, start + pageSize);
 
         if (pageRows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="16" style="text-align:center;color:#999;">暂无数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="19" style="text-align:center;color:#999;">暂无数据</td></tr>';
         } else {
             tbody.innerHTML = pageRows.map(function(r) {
                 return (
@@ -2174,13 +2473,19 @@
                     '<td>' + escapeHtml(r.orderSource || '—') + '</td>' +
                     '<td>' + escapeHtml(r.fulfillmentMethod || '—') + '</td>' +
                     '<td>' + statusCellHtml(r.docStatus) + '</td>' +
+                    '<td>' + escapeHtml(displayCellText(r.auditBy)) + '</td>' +
+                    '<td>' + escapeHtml(displayCellText(r.auditAt)) + '</td>' +
+                    '<td>' + escapeHtml(displayCellText(r.auditReason)) + '</td>' +
                     '<td>' + escapeHtml(r.docSource) + '</td>' +
                     '<td>' + escapeHtml(r.remark || '') + '</td>' +
                     '<td>' + escapeHtml(r.createdAt) + '</td>' +
                     '<td>' + escapeHtml(r.createdBy) + '</td>' +
                     '<td>' + escapeHtml(r.updatedAt || r.createdAt || '') + '</td>' +
                     '<td>' + escapeHtml(r.updatedBy || r.createdBy || '') + '</td>' +
-                    '<td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="logistics-track-btn">物流轨迹</a><a href="#" class="delete-btn">取消</a></td>' +
+                    '<td class="action-links action-links-cell">' +
+                    '<a href="#" class="logistics-track-btn">物流轨迹</a>' +
+                    renderRowMoreActionsHtml(r) +
+                    '</td>' +
                     '</tr>'
                 );
             }).join('');
@@ -2226,16 +2531,27 @@
 
     document.getElementById('btnAddPurchaseOrder').addEventListener('click', openAddPoModal);
     document.getElementById('btnLogisticsConfirm').addEventListener('click', openLogisticsConfirmModal);
+    document.getElementById('btnAudit').addEventListener('click', auditPurchaseOrders);
+    document.getElementById('btnReject').addEventListener('click', rejectPurchaseOrders);
 
     bindSourceOrderTipEvents(document.getElementById('poListTbody'));
     bindSourceOrderTipEvents(document.getElementById('poDetailInfo'));
 
     var poTableScrollContainer = document.querySelector('.table-section .table-scroll-container');
     if (poTableScrollContainer) {
-        poTableScrollContainer.addEventListener('scroll', hideSourceOrderTip);
+        poTableScrollContainer.addEventListener('scroll', function() {
+            hideSourceOrderTip();
+            closeAllPoMoreMenus();
+        });
     }
-    window.addEventListener('scroll', hideSourceOrderTip, true);
-    window.addEventListener('resize', hideSourceOrderTip);
+    window.addEventListener('scroll', function() {
+        hideSourceOrderTip();
+        closeAllPoMoreMenus();
+    }, true);
+    window.addEventListener('resize', function() {
+        hideSourceOrderTip();
+        closeAllPoMoreMenus();
+    });
 
     document.querySelector('.table-section').addEventListener('change', function(e) {
         var t = e.target;
@@ -2250,10 +2566,64 @@
         updateLogisticsConfirmBtnState();
     });
 
+    function closeAllPoMoreMenus() {
+        document.querySelectorAll('.po-action-more.is-open').forEach(function(wrap) {
+            wrap.classList.remove('is-open');
+            var td = wrap.closest('.action-links-cell');
+            if (td) td.classList.remove('is-more-open');
+            var menu = wrap.querySelector('.po-action-more-menu');
+            if (menu) {
+                menu.style.top = '';
+                menu.style.left = '';
+            }
+        });
+    }
+
+    function positionPoMoreMenu(wrap) {
+        var toggle = wrap.querySelector('.po-action-more-toggle');
+        var menu = wrap.querySelector('.po-action-more-menu');
+        if (!toggle || !menu) return;
+        var rect = toggle.getBoundingClientRect();
+        var menuWidth = Math.max(88, menu.offsetWidth || 88);
+        var left = rect.right - menuWidth;
+        var top = rect.bottom + 6;
+        if (left < 8) left = 8;
+        if (left + menuWidth > window.innerWidth - 8) {
+            left = window.innerWidth - menuWidth - 8;
+        }
+        if (top + menu.offsetHeight > window.innerHeight - 8) {
+            top = Math.max(8, rect.top - menu.offsetHeight - 6);
+        }
+        menu.style.top = top + 'px';
+        menu.style.left = left + 'px';
+    }
+
+    function openPoMoreMenu(wrap) {
+        closeAllPoMoreMenus();
+        wrap.classList.add('is-open');
+        var td = wrap.closest('.action-links-cell');
+        if (td) td.classList.add('is-more-open');
+        positionPoMoreMenu(wrap);
+    }
+
     document.getElementById('poListTbody').addEventListener('click', function(e) {
+        var moreToggle = e.target.closest('.po-action-more-toggle');
+        if (moreToggle) {
+            e.preventDefault();
+            e.stopPropagation();
+            var moreWrap = moreToggle.closest('.po-action-more');
+            if (!moreWrap) return;
+            if (moreWrap.classList.contains('is-open')) {
+                closeAllPoMoreMenus();
+            } else {
+                openPoMoreMenu(moreWrap);
+            }
+            return;
+        }
         var link = e.target.closest('.js-open-po-detail');
         if (link) {
             e.preventDefault();
+            closeAllPoMoreMenus();
             var no = link.getAttribute('data-po-no');
             if (no) openPoDetailModal(no);
             return;
@@ -2263,12 +2633,32 @@
             e.preventDefault();
             var tr = editBtn.closest('tr');
             var poNo = tr ? tr.getAttribute('data-po-no') : '';
+            closeAllPoMoreMenus();
             if (poNo) openEditPoModal(poNo);
+            return;
+        }
+        var rowAuditBtn = e.target.closest('.row-audit-btn');
+        if (rowAuditBtn) {
+            e.preventDefault();
+            var auditTr = rowAuditBtn.closest('tr');
+            var auditPoNo = auditTr ? auditTr.getAttribute('data-po-no') : '';
+            closeAllPoMoreMenus();
+            if (auditPoNo) openRowAuditModal(auditPoNo, 'audit');
+            return;
+        }
+        var rowRejectBtn = e.target.closest('.row-reject-btn');
+        if (rowRejectBtn) {
+            e.preventDefault();
+            var rejectTr = rowRejectBtn.closest('tr');
+            var rejectPoNo = rejectTr ? rejectTr.getAttribute('data-po-no') : '';
+            closeAllPoMoreMenus();
+            if (rejectPoNo) openRowAuditModal(rejectPoNo, 'reject');
             return;
         }
         var trackBtn = e.target.closest('.logistics-track-btn');
         if (trackBtn) {
             e.preventDefault();
+            closeAllPoMoreMenus();
             var trackTr = trackBtn.closest('tr');
             var trackPoNo = trackTr ? trackTr.getAttribute('data-po-no') : '';
             if (trackPoNo) openLogisticsTrackModal(trackPoNo);
@@ -2279,7 +2669,14 @@
             e.preventDefault();
             var cancelTr = cancelBtn.closest('tr');
             var cancelPoNo = cancelTr ? cancelTr.getAttribute('data-po-no') : '';
+            closeAllPoMoreMenus();
             if (cancelPoNo) cancelPurchaseOrder(cancelPoNo);
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.po-action-more')) {
+            closeAllPoMoreMenus();
         }
     });
 
@@ -2392,6 +2789,15 @@
     document.getElementById('logisticsConfirmModal').addEventListener('click', function(e) {
         if (e.target && e.target.id === 'logisticsConfirmModal') {
             closeLogisticsConfirmModal();
+        }
+    });
+
+    document.getElementById('poAuditCloseBtn').addEventListener('click', closePoAuditModal);
+    document.getElementById('poAuditCancelBtn').addEventListener('click', closePoAuditModal);
+    document.getElementById('poAuditConfirmBtn').addEventListener('click', confirmPoAudit);
+    document.getElementById('poAuditModal').addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'poAuditModal') {
+            closePoAuditModal();
         }
     });
 
