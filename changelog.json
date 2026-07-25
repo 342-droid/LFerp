@@ -1,12 +1,12 @@
 {
-  "latestSha": "27653e17c33d0d0a601dd853593e9d4f3718b746",
+  "latestSha": "0fcf4b0128fc3e624b2578a8310c7544a710265b",
   "total": 194,
   "days": [
     {
       "date": "2026-07-25",
       "items": [
         {
-          "sha": "27653e1",
+          "sha": "0fcf4b0",
           "type": "feat",
           "text": "更新日志改为提交为主体组织",
           "author": "weekwood",
