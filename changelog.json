@@ -1,10 +1,24 @@
 {
-  "latestSha": "0fcf4b0128fc3e624b2578a8310c7544a710265b",
-  "total": 194,
+  "latestSha": "9d20ba1e24ac1d886853051cf06719b295e5a999",
+  "total": 195,
   "days": [
     {
       "date": "2026-07-25",
       "items": [
+        {
+          "sha": "9d20ba1",
+          "type": "feat",
+          "text": "无专属说明的页面收成「涉及页面」链接串",
+          "author": "weekwood",
+          "time": "09:46",
+          "pages": [],
+          "notes": [
+            {
+              "file": null,
+              "text": "提交下有专属说明的页面才单独成行；其余页面合并为一行紧凑链接串（有对比图的排前带入口，其余灰化），说明拆不开的提交=说明写在一起+页面串一行"
+            }
+          ]
+        },
         {
           "sha": "0fcf4b0",
           "type": "feat",

@@ -142,6 +142,23 @@
         .cl-cpage-name:hover { color: #4a90d9; }
         .cl-cpage-name:hover .cl-page-go { color: #4a90d9; }
         .cl-cpage-note { flex: 1; color: #7a8088; line-height: 1.7; min-width: 0; }
+        .cl-chips-label { flex: none; font-size: 11px; color: #aaa; padding-top: 2px; }
+        .cl-chips-wrap { flex: 1; display: flex; flex-wrap: wrap; gap: 6px 8px; min-width: 0; }
+        .cl-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            background: #f5f6f8;
+            border-radius: 3px;
+            padding: 1px 7px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .cl-chip a { color: #2c313c; text-decoration: none; }
+        .cl-chip a:hover { color: #4a90d9; }
+        .cl-chip--quiet a { color: #9aa0a8; }
+        .cl-chip-cmp { font-size: 11px; color: #4a90d9 !important; }
+        .cl-chip-cmp:hover { text-decoration: underline; }
         .cl-cmp-link { flex: none; font-size: 12px; color: #4a90d9; text-decoration: none; white-space: nowrap; }
         .cl-cmp-link:hover { text-decoration: underline; }
         .cl-cmp-none { flex: none; font-size: 11px; color: #bbb; white-space: nowrap; cursor: help; }
@@ -272,7 +289,34 @@
                     cmpEntry(it, p.file, p.title) +
                     '</div>';
             }
-            /** 提交为主体的条目：标题行 + 提交级说明 + 页面拆分（弱化的沉底） */
+            /** 无专属说明的页面收成一行紧凑链接串（有对比图的排前面并带入口） */
+            function pageChips(it, pages) {
+                if (!pages.length) return '';
+                var sorted = pages.slice().sort(function (a, b) {
+                    var ea = MANIFEST[it.sha + '|' + a.file] || {};
+                    var eb = MANIFEST[it.sha + '|' + b.file] || {};
+                    var wa = ea.status === 'added' || ea.regions > 0 ? 0 : 1;
+                    var wb = eb.status === 'added' || eb.regions > 0 ? 0 : 1;
+                    return wa - wb;
+                });
+                var chips = sorted.map(function (p) {
+                    var e = MANIFEST[it.sha + '|' + p.file] || {};
+                    var lively = e.status === 'added' || e.regions > 0;
+                    var cmp = '';
+                    if (lively) {
+                        var href = 'compare.html?k=' + encodeURIComponent(it.sha + '|' + p.file) +
+                            '&t=' + encodeURIComponent(p.title + ' · ' + it.text);
+                        cmp = '<a class="cl-chip-cmp" href="' + href + '" target="_blank" rel="noopener">' +
+                            (e.status === 'added' ? '新增' : '对比') + '</a>';
+                    }
+                    return '<span class="cl-chip' + (lively ? '' : ' cl-chip--quiet') + '">' +
+                        '<a href="' + esc(p.file) + '" target="_blank" rel="noopener">' + esc(p.title) + '</a>' + cmp +
+                        '</span>';
+                }).join('');
+                return '<div class="cl-cpage cl-cpage-chips"><span class="cl-chips-label">涉及页面</span>' +
+                    '<span class="cl-chips-wrap">' + chips + '</span></div>';
+            }
+            /** 提交为主体的条目：标题行 + 提交级说明写在一起 + 有专属说明的页面单独成行 + 其余收成链接串 */
             function commitBlock(it, expanded) {
                 var cls = BADGE_CLASS[it.type] || 'other';
                 var label = TYPE_LABELS[it.type] || TYPE_LABELS.other;
@@ -280,10 +324,11 @@
                     .filter(function (n) { return n.file === null; })
                     .map(function (n) { return '<div class="cl-note">' + esc(n.text) + '</div>'; })
                     .join('');
-                var pages = it.pages.slice().sort(function (a, b) {
-                    return (isQuietPage(it, a) ? 1 : 0) - (isQuietPage(it, b) ? 1 : 0);
-                });
-                var body = generalNotes + pages.map(function (p) { return commitPageRow(it, p); }).join('');
+                var noted = it.pages.filter(function (p) { return pageNotesOf(it, p.file).length; });
+                var bare = it.pages.filter(function (p) { return !pageNotesOf(it, p.file).length; });
+                var body = generalNotes +
+                    noted.map(function (p) { return commitPageRow(it, p); }).join('') +
+                    pageChips(it, bare);
                 return '<div class="cl-entry">' +
                     '<div class="cl-item">' +
                     '<span class="cl-badge ' + cls + '">' + label + '</span>' +
