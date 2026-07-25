@@ -142,7 +142,7 @@ function attachByMention(content, pages, notes) {
  * body/补录行 → [{file, text}]。
  * 规范格式「- 页面名: 说明」按名字匹配（全名/短名/文件名）；
  * 无前缀的 bullet 或成段散文：按「；。」拆条后用页面短名在正文中的出现位置归属；
- * 都对不上则丢弃（不把 dev 向内容漏给业务）。
+ * 归属不上的原样保留为提交级说明（file=null，跟随该提交在各页面上下文展示）。
  */
 function parseNotes(lines, pages) {
     const notes = [];
@@ -173,10 +173,12 @@ function parseNotes(lines, pages) {
                 continue;
             }
         }
-        // 无前缀/名字没对上：按强分隔符拆条后逐条归属
+        // 无前缀/名字没对上：按强分隔符拆条后逐条归属；仍归属不上的原样保留为提交级说明
         for (const clause of content.split(/[；。]/)) {
             const c = clause.trim();
-            if (c.length >= 6) attachByMention(c, pages, notes);
+            if (c.length >= 6 && !attachByMention(c, pages, notes)) {
+                notes.push({ file: null, text: c });
+            }
         }
     }
     return notes;

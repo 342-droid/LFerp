@@ -215,9 +215,9 @@
                         }
                     }
                 }
-                // 按页面说明：页面上下文取该页的行，无页面上下文（其他改动/旧格式）取「通用」行
+                // 按页面说明：页面上下文取该页的行 + 提交级(通用/未归属)行；其他改动/旧格式只取提交级行
                 var noteHtml = (it.notes || [])
-                    .filter(function (n) { return file ? n.file === file : n.file === null; })
+                    .filter(function (n) { return file ? (n.file === file || n.file === null) : n.file === null; })
                     .map(function (n) { return '<div class="cl-note">' + esc(n.text) + '</div>'; })
                     .join('');
                 return '<div class="cl-entry"><div class="cl-item">' +
