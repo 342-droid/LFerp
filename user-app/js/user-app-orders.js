@@ -35,6 +35,11 @@
       el.textContent = '待收货';
     });
 
+    /* 补货入口无「待自提」：快递/配送待收货挂到 review（展示为待收货） */
+    document.querySelectorAll('.ua-order-card[data-status="receiving"]').forEach(function (card) {
+      card.setAttribute('data-status', 'review');
+    });
+
     document.querySelectorAll('.ua-order-card[data-status]').forEach(function (card) {
       var supplierName = card.getAttribute('data-supplier-name');
       var storeMerchant = card.querySelector('.ua-order-merchant--store');
@@ -80,7 +85,11 @@
     var visible = 0;
     cards.forEach(function (card) {
       var status = card.getAttribute('data-status');
-      var show = tab === 'all' || status === tab;
+      /* 待自提/待收货：自提单（pickup）与快递待收货（receiving）同屏 */
+      var show =
+        tab === 'all' ||
+        status === tab ||
+        (tab === 'pickup' && status === 'receiving');
       card.hidden = !show;
       if (show) visible += 1;
     });

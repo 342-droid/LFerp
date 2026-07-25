@@ -70,7 +70,7 @@
                 '</form>' +
               '</div>' +
               '<div class="ua-queue-actions">' +
-                '<button type="button" class="ua-queue-btn ua-queue-btn--primary" id="viewPickupOrdersBtn">查看待提货订单</button>' +
+                '<button type="button" class="ua-queue-btn ua-queue-btn--primary" id="viewPickupOrdersBtn">查看待自提订单</button>' +
                 '<button type="button" class="ua-queue-btn ua-queue-btn--secondary" id="cancelQueueBtn">取消排队</button>' +
               '</div>' +
             '</div>' +
