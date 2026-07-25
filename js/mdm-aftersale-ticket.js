@@ -6,7 +6,7 @@
 
   var SOURCES = ['用户自助发起', '运营代用户发起'];
   var TYPES = ['仅退款', '退货退款', '补货', '换货'];
-  var STATUSES = ['待审批', '退款中', '已拒绝', '待退货', '已收货', '退款异常', '已完成', '已取消'];
+  var STATUSES = ['待审批', '退款中', '已拒绝', '待退货', '待收货', '退款异常', '已完成', '已取消'];
   var ORDER_SOURCES = ['商城', '直播', '代采'];
   var LIVE_SESSIONS = ['默认经营池', 'ZB20260714-晚场', 'ZB20260713-早场'];
   var NICKNAMES = ['牛小牛呀', '冷丰用户', '悠悠生鲜粉', '门店会员A'];
@@ -34,16 +34,17 @@
   }
 
   /**
-   * 退款单生成时机：
-   * - 仅退款：审核通过后生成
-   * - 退货退款：供应商确认收货后生成
-   * 列表退款执行状态据此推导
+   * 退款单生成时机（与售后单状态矩阵对齐）：
+   * - 仅退款：审核通过 → 售后单「退款中」+ 退款单「待退款」
+   * - 退货退款：商家确认收货 → 售后单「退款中」+ 退款单「待退款」
+   * - 补货 / 换货：不生成退款单（始终「未发起退款」）
+   * 列表「退款执行状态」据此推导
    */
   function resolveRefundExec(type, status, i) {
     if (!createsRefundDoc(type)) return '未发起退款';
 
     if (type === '退货退款') {
-      // 确认收货前（待审批/待退货/已拒绝/已取消等）均未生成退款单
+      // 确认收货前（待审批/待退货/待收货/已拒绝/已取消）均未生成退款单
       if (status === '已完成') return '退款成功';
       if (status === '退款中') return i % 3 === 0 ? '退款执行中' : '待退款';
       if (status === '退款异常') return '退款失败';
@@ -60,11 +61,11 @@
   /** 换货 / 补货不走退款态；仅退款不走退货环节 */
   function resolveTicketStatus(type, i) {
     if (type === '换货') {
-      var exchangeStatuses = ['待审批', '已拒绝', '待退货', '已收货', '已完成', '已取消'];
+      var exchangeStatuses = ['待审批', '已拒绝', '待退货', '待收货', '已完成', '已取消'];
       return i % 2 === 0 ? '已完成' : exchangeStatuses[Math.floor(i / 2) % exchangeStatuses.length];
     }
     if (type === '补货') {
-      var restockStatuses = ['待审批', '已拒绝', '已收货', '已完成', '已取消'];
+      var restockStatuses = ['待审批', '已拒绝', '待收货', '已完成', '已取消'];
       return i % 2 === 0 ? '已完成' : restockStatuses[Math.floor(i / 2) % restockStatuses.length];
     }
     if (type === '仅退款') {
@@ -72,7 +73,7 @@
       return i % 2 === 0 ? '已完成' : refundOnlyStatuses[Math.floor(i / 2) % refundOnlyStatuses.length];
     }
     if (type === '退货退款') {
-      var returnRefundStatuses = ['待审批', '已拒绝', '待退货', '退款中', '退款异常', '已完成', '已取消'];
+      var returnRefundStatuses = ['待审批', '已拒绝', '待退货', '待收货', '退款中', '退款异常', '已完成', '已取消'];
       return i % 2 === 0 ? '已完成' : returnRefundStatuses[Math.floor(i / 2) % returnRefundStatuses.length];
     }
     return i % 2 === 0 ? '已完成' : STATUSES[Math.floor(i / 2) % STATUSES.length];
@@ -151,9 +152,9 @@
   function buildProxyDemoRows() {
     var PROXY_FULFILLMENTS = ['快递', '配送'];
     var STATUS_MAP = {
-      退货退款: ['待审批', '已拒绝', '待退货', '已收货', '退款中', '退款异常', '已完成', '已取消'],
-      补货: ['待审批', '已拒绝', '已收货', '已完成', '已取消'],
-      换货: ['待审批', '已拒绝', '待退货', '已收货', '已完成', '已取消']
+      退货退款: ['待审批', '已拒绝', '待退货', '待收货', '退款中', '退款异常', '已完成', '已取消'],
+      补货: ['待审批', '已拒绝', '待收货', '已完成', '已取消'],
+      换货: ['待审批', '已拒绝', '待退货', '待收货', '已完成', '已取消']
     };
     var types = ['退货退款', '补货', '换货'];
     var list = [];
@@ -237,7 +238,7 @@
       status === '待审批' ||
       status === '退款中' ||
       status === '待退货' ||
-      status === '已收货'
+      status === '待收货'
     ) {
       cls = 'aftersale-tag aftersale-tag--warning';
     }

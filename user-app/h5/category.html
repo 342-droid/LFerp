@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>分类 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260725-category">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-cat-page">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <header class="ua-cat-head">
+      <a href="mall.html" class="ua-cat-head__back" id="catBack" aria-label="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+      </a>
+      <h1 class="ua-cat-head__title">分类</h1>
+      <form class="ua-cat-search" role="search" onsubmit="return false;">
+        <svg class="ua-cat-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+        <input type="search" class="ua-cat-search__input" id="catSearchInput" placeholder="搜索商品" autocomplete="off">
+      </form>
+    </header>
+
+    <div class="ua-cat-topnav-wrap">
+      <div class="ua-cat-topnav" id="catTopnav" role="tablist" aria-label="商品类目"></div>
+      <button type="button" class="ua-cat-all" id="catAllBtn" aria-label="全部品类">
+        <span>全部品类</span>
+      </button>
+    </div>
+
+    <div class="ua-cat-toolbar">
+      <h2 class="ua-cat-toolbar__title" id="catTitle">生产测试商</h2>
+      <div class="ua-cat-sort" role="tablist">
+        <button type="button" class="ua-cat-sort__btn" id="catSortSales" data-sort="sales">销量</button>
+        <button type="button" class="ua-cat-sort__btn" id="catSortPrice" data-sort="price">
+          价格
+          <span class="ua-cat-sort__arrows" aria-hidden="true">
+            <svg viewBox="0 0 8 12" fill="currentColor"><path d="M4 0L7 4H1z"/></svg>
+            <svg viewBox="0 0 8 12" fill="currentColor"><path d="M4 12L1 8h6z"/></svg>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div class="ua-cat-scroll" id="catScroll">
+      <div class="ua-cat-list" id="catProductList"></div>
+      <div class="ua-cat-empty" id="catEmpty" hidden>暂无相关商品</div>
+    </div>
+
+    <footer class="ua-cat-cartbar" id="catCartBar">
+      <a href="cart.html" class="ua-cat-cartbar__icon" id="catCartIcon" aria-label="购物车">
+        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <path d="M10 16h28l-2.5 18.5a3 3 0 01-3 2.5H15.5a3 3 0 01-3-2.5L10 16z" fill="#ff6a00"/>
+          <path d="M16 16V13a8 8 0 0116 0v3" stroke="#ff6a00" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M14 22h20M14 28h16" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".85"/>
+        </svg>
+        <span class="ua-cat-cartbar__badge" data-ua-cart-badge hidden>0</span>
+      </a>
+      <div class="ua-cat-cartbar__total" id="catCartTotal">¥0.00</div>
+      <button type="button" class="ua-cat-cartbar__checkout" id="catCheckoutBtn">去结算</button>
+    </footer>
+
+    <div class="ua-cat-all-panel" id="catAllPanel" hidden>
+      <div class="ua-cat-all-panel__mask" id="catAllMask"></div>
+      <div class="ua-cat-all-panel__sheet">
+        <div class="ua-cat-all-panel__head">
+          <h3 class="ua-cat-all-panel__title">全部品类</h3>
+          <button type="button" class="ua-cat-all-panel__close" id="catAllClose" aria-label="关闭">×</button>
+        </div>
+        <div class="ua-cat-all-panel__grid" id="catAllGrid"></div>
+      </div>
+    </div>
+
+    <div class="ua-shop-toast" id="uaShopToast" hidden></div>
+  </div>
+  <script src="../js/user-app-shop.js?v=20260725-category"></script>
+  <script>UAShop.initCategoryPage();</script>
+</body>
+</html>

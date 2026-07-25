@@ -6,7 +6,7 @@
   <title>订单详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
-  <link rel="stylesheet" href="../css/user-app-order-detail.css?v=20260719-aftersale-bars">
+  <link rel="stylesheet" href="../css/user-app-order-detail.css?v=20260725-express-home">
   <link rel="stylesheet" href="../css/user-app-order-refund.css">
 </head>
 <body class="user-app-body">
@@ -45,6 +45,23 @@
         <section class="ua-od-banner" id="orderStatusBanner">
           <h2 class="ua-od-banner__title" id="orderStatusTitle">等待买家付款</h2>
           <p class="ua-od-banner__sub" id="orderStatusSub">逾期未支付订单将自动关闭</p>
+        </section>
+
+        <!-- 快递到家：家庭收货地址（仅用户 APP 快递单展示） -->
+        <section class="ua-od-card ua-od-address" id="orderAddressCard" hidden>
+          <div class="ua-od-address__main">
+            <span class="ua-od-address__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 00-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 00-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+            </span>
+            <div>
+              <div class="ua-od-address__user">
+                <span id="orderAddrName">武者</span>
+                <span id="orderAddrPhone">181****4215</span>
+              </div>
+              <div class="ua-od-address__text" id="orderAddrText">四川省成都市武侯区天府大道中段666号天府软件园A区</div>
+            </div>
+          </div>
+          <button type="button" class="ua-od-address__edit" id="orderAddrEdit" hidden>修改</button>
         </section>
 
         <section class="ua-od-card ua-od-logistics ua-od-logistics--pending" id="orderLogisticsPendingCard" hidden>
@@ -133,7 +150,13 @@
             <div class="ua-od-item__body">
               <div class="ua-od-item__name">冷丰优选智利车厘子 鲜脆清甜 礼盒装</div>
               <div class="ua-od-item__spec">规格：2.5kg；颜色：白色</div>
-              <div class="ua-od-item__meta"><span class="ua-od-item__price">¥10.00</span><span class="ua-od-item__qty">× 1</span></div>
+              <div class="ua-od-item__meta">
+                <div class="ua-od-item__prices">
+                  <span class="ua-od-item__sale"><em>售价</em>¥18.00</span>
+                  <span class="ua-od-item__paid"><em>实付</em>¥10.00</span>
+                </div>
+                <span class="ua-od-item__qty">× 1</span>
+              </div>
               <div class="ua-od-as-bars" id="orderItemAsBars0" data-item-index="0"></div>
             </div>
             <div class="ua-od-item__actions" id="orderItemActionsPrimary"></div>
@@ -144,7 +167,13 @@
             <div class="ua-od-item__body">
               <div class="ua-od-item__name">新鲜红颜草莓 香甜多汁 500g装</div>
               <div class="ua-od-item__spec">规格：500g；颜色：红色</div>
-              <div class="ua-od-item__meta"><span class="ua-od-item__price">¥10.00</span><span class="ua-od-item__qty">× 1</span></div>
+              <div class="ua-od-item__meta">
+                <div class="ua-od-item__prices">
+                  <span class="ua-od-item__sale"><em>售价</em>¥16.00</span>
+                  <span class="ua-od-item__paid"><em>实付</em>¥10.00</span>
+                </div>
+                <span class="ua-od-item__qty">× 1</span>
+              </div>
               <div class="ua-od-as-bars" id="orderItemAsBars1" data-item-index="1"></div>
             </div>
             <div class="ua-od-item__actions" id="orderItemActionsSecondary"></div>
@@ -155,7 +184,13 @@
             <div class="ua-od-item__body">
               <div class="ua-od-item__name">海南贵妃芒 香甜软糯 礼盒装</div>
               <div class="ua-od-item__spec">规格：2.5kg</div>
-              <div class="ua-od-item__meta"><span class="ua-od-item__price">¥39.90</span><span class="ua-od-item__qty">× 1</span></div>
+              <div class="ua-od-item__meta">
+                <div class="ua-od-item__prices">
+                  <span class="ua-od-item__sale"><em>售价</em>¥59.90</span>
+                  <span class="ua-od-item__paid"><em>实付</em>¥39.90</span>
+                </div>
+                <span class="ua-od-item__qty">× 1</span>
+              </div>
               <div class="ua-od-as-bars" id="orderItemAsBars2" data-item-index="2"></div>
             </div>
             <div class="ua-od-item__actions" id="orderItemActionsTertiary"></div>
@@ -216,7 +251,7 @@
     </div>
   </div>
   <script src="../js/user-app-order-refund.js?v=20260720-as-refund-success"></script>
-  <script src="../js/user-app-order-detail.js?v=20260720-shipping-no-restock"></script>
+  <script src="../js/user-app-order-detail.js?v=20260725-express-home"></script>
   <script src="../js/user-app-auth.js"></script>
 </body>
 </html>

@@ -19,8 +19,17 @@
     const mobileAppItems = [
         { href: 'app_list.html', text: '仓储APP' },
         { href: 'mdm_bd_workbench.html', text: 'BD APP' },
+        {
+            href: 'store-app/h5/home.html',
+            text: '门店APP',
+            match: /store-app\/h5\/|user-app\/h5\/(?:restock|checkout|product-detail)\.html/i
+        },
         { href: 'shop-h5/h5/store/register.html', text: '门店H5' },
-        { href: 'user-app/h5/login.html', text: '用户 APP', match: /user-app\/h5\//i },
+        {
+            href: 'user-app/h5/login.html',
+            text: '用户 APP',
+            match: /user-app\/h5\/(?!(?:restock|checkout|product-detail)\.html)/i
+        },
     ];
 
     const isMobileAppPage = mobileAppItems.some(function (item) {

@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: '0 22 * * *' # 每天北京时间 06:00
   workflow_dispatch: {}
+  push:
+    branches: [main] # bot 用 GITHUB_TOKEN 回推不会再次触发，无循环
 
 permissions:
   contents: write
@@ -16,17 +18,26 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: 安装依赖（中文字体 + playwright）
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
       - name: 生成 changelog.json
         run: node tools/generate-changelog.mjs
 
+      - name: 生成页面变更对比图
+        run: node tools/generate-changelog-diffs.mjs
+
       - name: 有变化才提交
         run: |
-          if git diff --quiet -- changelog.json; then
-            echo "changelog.json 无变化，跳过提交"
+          git add changelog.json changelog-assets
+          if git diff --cached --quiet; then
+            echo "无变化，跳过提交"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add changelog.json
           git commit -m "chore: 更新更新日志数据"
           git push

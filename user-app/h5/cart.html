@@ -6,7 +6,7 @@
   <title>购物车 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
-  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260723-shop">
+  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260725-cart-no-fulfill">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-cart-page">
@@ -18,23 +18,20 @@
     <header class="ua-cart-nav">
       <h1 class="ua-cart-nav__title">购物车</h1>
     </header>
+    <div class="ua-cart-toolbar">
+      <button type="button" class="ua-cart-toolbar__clear" id="cartClearBtn">清空</button>
+    </div>
 
     <div class="ua-scroll">
       <div class="ua-cart-body">
         <div class="ua-cart-empty" id="cartEmpty" hidden>购物车还是空的</div>
-        <section class="ua-cart-card" id="cartCard">
-          <div class="ua-cart-store">
-            <button type="button" class="ua-shop-check is-checked" id="cartStoreCheck" aria-checked="true" aria-label="全选门店"></button>
-            <img class="ua-cart-store__avatar" src="../assets/restock/me-shop-avatar.svg" alt="">
-            <span class="ua-cart-store__name">生产验证门店</span>
-            <button type="button" class="ua-cart-store__clear" id="cartClearBtn">清空购物车</button>
-          </div>
-          <div id="cartItemList"></div>
-        </section>
+        <div class="ua-cart-groups" id="cartGroupList"></div>
       </div>
     </div>
 
     <footer class="ua-cart-footer">
+      <button type="button" class="ua-shop-check" id="cartSelectAll" aria-checked="false" aria-label="全选"></button>
+      <span class="ua-cart-footer__all-label">全选</span>
       <div class="ua-cart-footer__total">合计 <strong id="cartTotal">¥0.00</strong></div>
       <button type="button" class="ua-cart-footer__btn" id="cartCheckoutBtn">立即下单(0)</button>
     </footer>
@@ -67,7 +64,7 @@
       </a>
     </nav>
   </div>
-  <script src="../js/user-app-shop.js?v=20260723-shop"></script>
+  <script src="../js/user-app-shop.js?v=20260725-cart-no-fulfill"></script>
   <script>UAShop.initCartPage();</script>
 </body>
 </html>

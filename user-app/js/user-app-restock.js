@@ -19,6 +19,15 @@
   var mobileShellEl = document.querySelector('.ua-mobile-shell');
   var memoryCart = null;
   var memoryCartPage = null;
+  var pageParams = new URLSearchParams(window.location.search);
+  var fromStoreApp = pageParams.get('from') === 'store-app';
+
+  function restockPageHref(extra) {
+    var q = [];
+    if (fromStoreApp) q.push('from=store-app');
+    if (extra) q.push(extra.replace(/^\?/, ''));
+    return 'restock.html' + (q.length ? '?' + q.join('&') : '');
+  }
 
   function readCart() {
     if (!memoryCart) {
@@ -73,8 +82,7 @@
   };
 
   function goLogin(nextTab) {
-    var next = 'restock.html';
-    if (nextTab) next += '?tab=' + encodeURIComponent(nextTab);
+    var next = restockPageHref(nextTab ? 'tab=' + encodeURIComponent(nextTab) : '');
     window.location.href = 'login.html?next=' + encodeURIComponent(next) + '&force=1';
   }
 
@@ -4258,9 +4266,19 @@
       window.location.href = 'checkout.html?from=restock.html';
     });
 
-  var params = new URLSearchParams(window.location.search);
-  var initialTab = params.get('tab') || 'cart';
-  if (['home', 'category', 'cart', 'me'].indexOf(initialTab) < 0) initialTab = 'cart';
+  var initialTab = pageParams.get('tab') || (fromStoreApp ? 'home' : 'cart');
+  if (['home', 'category', 'cart', 'me'].indexOf(initialTab) < 0) {
+    initialTab = fromStoreApp ? 'home' : 'cart';
+  }
+
+  if (fromStoreApp) {
+    document.title = '进货 · 门店APP';
+    var backEl = document.querySelector('.ua-restock-back');
+    if (backEl) {
+      backEl.setAttribute('href', '../../store-app/h5/home.html');
+      backEl.setAttribute('aria-label', '返回工作台');
+    }
+  }
 
   ensureDemoLoggedIn();
   bindCartPageEvents();

@@ -161,11 +161,36 @@
     return PACKAGES;
   }
 
+  /* 用户 APP 快递到家：物流轨迹顶部收货地址用家庭地址，不用门店 */
+  function adaptTimeline(timeline) {
+    var params = getParams();
+    var isHomeExpress =
+      params.get('from') !== 'restock.html' && params.get('delivery') === 'store';
+    if (!isHomeExpress) return timeline || [];
+
+    return (timeline || []).map(function (item) {
+      if (item.type === 'address') {
+        return Object.assign({}, item, {
+          text:
+            '【收货地址】四川省成都市武侯区天府大道中段666号天府软件园A区 武者 181****4215'
+        });
+      }
+      if (item.title === '待取件' && item.desc && item.desc.indexOf('蜂站') !== -1) {
+        return Object.assign({}, item, {
+          title: '派送中',
+          desc:
+            '【杭州市】快件正在派送中，派送员：李师傅，联系电话 <a href="tel:13800138000" class="ua-ol-tl-phone">13800138000</a>，请保持电话畅通'
+        });
+      }
+      return item;
+    });
+  }
+
   function renderTimeline(timeline) {
     var container = document.getElementById('logisticsTimeline');
     if (!container) return;
 
-    container.innerHTML = (timeline || [])
+    container.innerHTML = adaptTimeline(timeline)
       .map(function (item) {
         if (item.type === 'address') {
           return (

@@ -1668,6 +1668,40 @@
   color: #f56c6c;
 }
 
+.aftersale-restock-qty-meta {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  background: #fafafa;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.6;
+}
+
+.aftersale-restock-qty-meta strong {
+  color: #303133;
+  font-weight: 600;
+}
+
+.aftersale-flow-form__input {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #303133;
+  box-sizing: border-box;
+}
+
+.aftersale-flow-form__input:focus {
+  outline: none;
+  border-color: #409eff;
+}
+
 .aftersale-cancel-ship-modal__panel {
   width: 520px;
   max-width: calc(100vw - 32px);

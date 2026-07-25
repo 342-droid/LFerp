@@ -37,7 +37,7 @@
           <a href="#" class="ua-orders-tab ua-orders-tab--active" data-tab="all">全部</a>
           <a href="#" class="ua-orders-tab" data-tab="unpaid">待付款</a>
           <a href="#" class="ua-orders-tab" data-tab="shipping">待发货</a>
-          <a href="#" class="ua-orders-tab" data-tab="pickup">待提货</a>
+          <a href="#" class="ua-orders-tab" data-tab="pickup">待自提/待收货</a>
           <a href="#" class="ua-orders-tab" data-tab="review">待评价</a>
         </nav>
       </header>
@@ -48,7 +48,7 @@
             <div class="ua-order-card__head">
               <span class="ua-order-merchant ua-order-merchant--store"><span class="ua-order-store">悠悠生鲜超市</span></span>
               <span class="ua-order-merchant ua-order-merchant--supplier" hidden><span class="ua-order-supplier">冷丰优选供应链</span></span>
-              <span class="ua-order-status ua-order-status--red">待提货</span>
+              <span class="ua-order-status ua-order-status--red">待自提</span>
             </div>
             <div class="ua-order-card__body">
               <div class="ua-order-imgs">
@@ -78,7 +78,7 @@
             <div class="ua-order-card__head">
               <span class="ua-order-merchant ua-order-merchant--store"><span class="ua-order-store">悠悠生鲜超市</span></span>
               <span class="ua-order-merchant ua-order-merchant--supplier" hidden><span class="ua-order-supplier">冷丰优选供应链</span></span>
-              <span class="ua-order-status ua-order-status--red">待提货</span>
+              <span class="ua-order-status ua-order-status--red">待自提</span>
             </div>
             <div class="ua-order-card__body">
               <div class="ua-order-imgs">
@@ -131,7 +131,7 @@
           </div>
         </article>
 
-        <article class="ua-order-card" data-status="review" data-supplier-name="江南果蔬批发" data-detail-status="receipt" data-delivery="warehouse">
+        <article class="ua-order-card" data-status="receiving" data-supplier-name="江南果蔬批发" data-detail-status="receipt" data-delivery="warehouse">
           <a href="order-detail.html?status=receipt&amp;delivery=warehouse" class="ua-order-card--link">
             <div class="ua-order-card__head">
               <span class="ua-order-merchant ua-order-merchant--store"><span class="ua-order-store">悠悠生鲜超市</span></span>
@@ -159,7 +159,7 @@
           </div>
         </article>
 
-        <article class="ua-order-card" data-status="review" data-supplier-name="鲜丰蔬菜批发" data-detail-status="receipt" data-delivery="store">
+        <article class="ua-order-card" data-status="receiving" data-supplier-name="鲜丰蔬菜批发" data-detail-status="receipt" data-delivery="store">
           <a href="order-detail.html?status=receipt&amp;delivery=store" class="ua-order-card--link">
             <div class="ua-order-card__head">
               <span class="ua-order-merchant ua-order-merchant--store"><span class="ua-order-store">悠悠生鲜超市</span></span>
@@ -357,7 +357,7 @@
       <p class="ua-orders-end">我也是有底线的～</p>
     </div>
   </div>
-  <script src="../js/user-app-orders.js"></script>
+  <script src="../js/user-app-orders.js?v=20260725-pickup-receiving"></script>
   <script src="../js/user-app-auth.js"></script>
   <script src="../js/user-app-queue.js"></script>
 </body>

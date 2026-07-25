@@ -6,7 +6,7 @@
   <title>商品详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
-  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260723-goods">
+  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260725-gd-cart">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-gd-page">
@@ -43,22 +43,27 @@
         <p class="ua-gd-info__service" id="goodsDetailService">坏了包退 三天内到货</p>
       </section>
 
-      <section class="ua-gd-pickup">
-        <div class="ua-gd-pickup__main">
-          <div class="ua-gd-pickup__store" id="goodsDetailPickupStore">提货点：冷丰特选-博地中心店</div>
-          <div class="ua-gd-pickup__meta">
-            <span class="ua-gd-pickup__dist">据您<span id="goodsDetailDistance">180m</span></span>
-            <span class="ua-gd-pickup__badge" id="goodsDetailPickupBadge">后天可提</span>
-          </div>
-        </div>
+      <section class="ua-gd-card ua-gd-rows">
+        <button type="button" class="ua-gd-row" id="goodsDetailFulfillRow">
+          <span class="ua-gd-row__label">配送</span>
+          <span class="ua-gd-row__value" id="goodsDetailFulfillText">自提 · 后天可提</span>
+          <svg class="ua-gd-row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button type="button" class="ua-gd-row" id="goodsDetailSpecRow">
+          <span class="ua-gd-row__label">规格</span>
+          <span class="ua-gd-row__value ua-gd-row__value--ellipsis" id="goodsDetailSpecValue">精选金钱牛腱子肉 1kg</span>
+          <span class="ua-gd-row__more">共<span id="goodsDetailSpecCount">5</span>款</span>
+          <svg class="ua-gd-row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
       </section>
 
-      <button type="button" class="ua-gd-spec" id="goodsDetailSpecRow">
-        <span class="ua-gd-spec__label">规格</span>
-        <span class="ua-gd-spec__value" id="goodsDetailSpecValue">精选金钱牛腱子肉 1kg</span>
-        <span class="ua-gd-spec__more">共<span id="goodsDetailSpecCount">5</span>款</span>
-        <svg class="ua-gd-spec__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-      </button>
+      <section class="ua-gd-card ua-gd-merchant" id="goodsDetailMerchant">
+        <img class="ua-gd-merchant__avatar" id="goodsDetailMerchantAvatar" src="../assets/restock/me-shop-avatar.svg" alt="">
+        <div class="ua-gd-merchant__body">
+          <div class="ua-gd-merchant__name" id="goodsDetailMerchantName">生产验证门店</div>
+          <div class="ua-gd-merchant__meta" id="goodsDetailMerchantMeta">4.9分 · 距您180m</div>
+        </div>
+      </section>
 
       <section class="ua-gd-review">
         <div class="ua-gd-review__head">
@@ -98,14 +103,17 @@
         </svg>
         <span>客服</span>
       </button>
-      <button type="button" class="ua-gd-footer__icon" id="goodsDetailShareBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
-          <path d="M12 3v11"/>
-          <path d="M8 7l4-4 4 4"/>
-          <path d="M5 12v7a1 1 0 001 1h12a1 1 0 001-1v-7"/>
-        </svg>
-        <span>分享</span>
-      </button>
+      <a href="cart.html" class="ua-gd-footer__icon ua-gd-footer__icon--cart" id="goodsDetailCartBtn" aria-label="购物车">
+        <span class="ua-gd-footer__icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+            <circle cx="9" cy="20" r="1.5"/>
+            <circle cx="17" cy="20" r="1.5"/>
+            <path d="M3 4h2l2.2 11h9.6L19 8H7"/>
+          </svg>
+          <span class="ua-gd-footer__badge" data-ua-cart-badge hidden>0</span>
+        </span>
+        <span>购物车</span>
+      </a>
       <div class="ua-gd-footer__actions">
         <button type="button" class="ua-gd-footer__cart" id="goodsDetailAddCart">加入购物车</button>
         <button type="button" class="ua-gd-footer__buy" id="goodsDetailBuyNow">立即购买</button>
@@ -113,11 +121,11 @@
     </footer>
 
     <div class="ua-gd-sheet" id="goodsDetailSpecSheet" hidden>
-      <div class="ua-gd-sheet__mask" data-gd-close></div>
+      <div class="ua-gd-sheet__mask" data-gd-close="spec"></div>
       <div class="ua-gd-sheet__panel">
         <div class="ua-gd-sheet__head">
           <h3>选择规格</h3>
-          <button type="button" class="ua-gd-sheet__close" data-gd-close aria-label="关闭">×</button>
+          <button type="button" class="ua-gd-sheet__close" data-gd-close="spec" aria-label="关闭">×</button>
         </div>
         <div class="ua-gd-sheet__list" id="goodsDetailSpecList"></div>
         <div class="ua-gd-sheet__foot">
@@ -125,8 +133,22 @@
         </div>
       </div>
     </div>
+
+    <div class="ua-gd-sheet" id="goodsDetailFulfillSheet" hidden>
+      <div class="ua-gd-sheet__mask" data-gd-close="fulfill"></div>
+      <div class="ua-gd-sheet__panel">
+        <div class="ua-gd-sheet__head">
+          <h3>配送说明</h3>
+          <button type="button" class="ua-gd-sheet__close" data-gd-close="fulfill" aria-label="关闭">×</button>
+        </div>
+        <div class="ua-gd-sheet__body" id="goodsDetailFulfillList"></div>
+        <div class="ua-gd-sheet__foot">
+          <button type="button" class="ua-gd-sheet__confirm" data-gd-close="fulfill">我知道了</button>
+        </div>
+      </div>
+    </div>
   </div>
-  <script src="../js/user-app-shop.js?v=20260723-goods"></script>
+  <script src="../js/user-app-shop.js?v=20260725-gd-cart"></script>
   <script>UAShop.initGoodsDetailPage();</script>
 </body>
 </html>

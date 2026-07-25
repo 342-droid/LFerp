@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>退款详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
-  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260722-hide-merge-tip">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260725-delivery-steps">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-order-refund-detail-page">
@@ -135,7 +135,7 @@
               </span>
             </button>
 
-            <div class="ua-or-pickup-board__row ua-or-pickup-board__row--static">
+            <div class="ua-or-pickup-board__row ua-or-pickup-board__row--static" id="refundPickupCourierRow">
               <span class="ua-or-pickup-board__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5 19c1.6-3.2 4-4.8 7-4.8s5.4 1.6 7 4.8"/></svg>
               </span>
@@ -207,6 +207,14 @@
           <div class="ua-or-detail-info-row">
             <span class="ua-or-detail-info-row__label">退款原因</span>
             <span class="ua-or-detail-info-row__value" id="refundDetailReason">—</span>
+          </div>
+          <div class="ua-or-detail-info-row" id="refundDetailApplyQtyRow" hidden>
+            <span class="ua-or-detail-info-row__label">申请补货数量</span>
+            <span class="ua-or-detail-info-row__value" id="refundDetailApplyQty">—</span>
+          </div>
+          <div class="ua-or-detail-info-row" id="refundDetailActualQtyRow" hidden>
+            <span class="ua-or-detail-info-row__label">实际补货数量</span>
+            <span class="ua-or-detail-info-row__value" id="refundDetailActualQty">—</span>
           </div>
           <div class="ua-or-detail-info-row">
             <span class="ua-or-detail-info-row__label">申请金额</span>
@@ -325,6 +333,37 @@
       </div>
     </div>
 
+    <div class="ua-or-sheet" id="refundStoreInboundSheet" hidden>
+      <div class="ua-or-sheet__mask" data-or-sheet-close="refundStoreInboundSheet"></div>
+      <div class="ua-or-sheet__panel ua-or-inbound-panel">
+        <div class="ua-or-inbound-panel__head">
+          <h3 class="ua-or-inbound-panel__title">门店入库单</h3>
+          <button type="button" class="ua-or-sheet__close" data-or-sheet-close="refundStoreInboundSheet" aria-label="关闭">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <p class="ua-or-inbound-panel__tip" id="refundInboundTip">补货商品已送达门店，请填写实际入库数量后完成入库（演示）</p>
+        <div class="ua-or-inbound-panel__meta" id="refundInboundMetaRow">
+          <span class="ua-or-inbound-panel__meta-label">入库单号</span>
+          <span class="ua-or-inbound-panel__meta-value" id="refundInboundOrderNo">—</span>
+        </div>
+        <div class="ua-or-inbound-panel__goods">
+          <div class="ua-or-inbound-panel__goods-main">
+            <div class="ua-or-inbound-panel__name" id="refundInboundProductName">—</div>
+            <div class="ua-or-inbound-panel__spec" id="refundInboundProductSpec"></div>
+            <div class="ua-or-inbound-panel__apply" id="refundInboundApplyQty">申请补货数量：—</div>
+          </div>
+        </div>
+        <label class="ua-or-inbound-panel__qty-field">
+          <span class="ua-or-inbound-panel__qty-label" id="refundInboundQtyLabel">实际入库数量</span>
+          <input type="number" class="ua-or-inbound-panel__qty-input" id="refundInboundQtyInput" min="0" step="1" inputmode="numeric" value="1">
+        </label>
+        <div class="ua-or-inbound-panel__foot">
+          <button type="button" class="ua-or-inbound-panel__confirm" id="refundInboundConfirmBtn">确认入库</button>
+        </div>
+      </div>
+    </div>
+
     <div class="ua-or-cancel-modal" id="refundCancelModal" hidden>
       <div class="ua-or-cancel-modal__mask" data-or-cancel-close></div>
       <div class="ua-or-cancel-modal__panel">
@@ -339,7 +378,7 @@
 
     <div class="ua-or-toast" id="refundDetailToast" hidden></div>
   </div>
-  <script src="../js/user-app-order-refund.js?v=20260722-hide-merge-tip"></script>
+  <script src="../js/user-app-order-refund.js?v=20260725-step-order"></script>
   <script>UAOrderRefund.initDetailPage();</script>
 </body>
 </html>

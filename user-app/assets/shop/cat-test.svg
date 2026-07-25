@@ -1,4 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
-<circle cx="80" cy="80" r="72" fill="#ffe4d1"/>
-<text x="80" y="88" text-anchor="middle" font-size="28" font-family="PingFang SC,sans-serif" fill="#333">测试</text>
+  <rect width="160" height="160" rx="16" fill="#fff5f0"/>
+  <rect x="8" y="8" width="144" height="144" rx="12" fill="#ffe8dc" stroke="#ffd0b8" stroke-width="2"/>
+  <text x="80" y="68" text-anchor="middle" font-size="18" font-weight="700" font-family="PingFang SC,sans-serif" fill="#e03d2a">测试商品</text>
+  <text x="80" y="98" text-anchor="middle" font-size="18" font-weight="700" font-family="PingFang SC,sans-serif" fill="#e03d2a">请勿下单</text>
 </svg>
