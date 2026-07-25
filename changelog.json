@@ -1,10 +1,39 @@
 {
-  "latestSha": "9114dda33959ab348426eb160859692c6f9aceaa",
-  "total": 197,
+  "latestSha": "b2f12327f6261935cddc1c93fcfb34ce9a4b90b0",
+  "total": 198,
   "days": [
     {
       "date": "2026-07-25",
       "items": [
+        {
+          "sha": "b2f1232",
+          "type": "feat",
+          "text": "入库缺量关单支持上传凭证",
+          "author": "342-droid",
+          "time": "17:22",
+          "pages": [
+            {
+              "file": "SCM/app_ibd_receipt.html",
+              "module": "冷丰WMS",
+              "title": "查询入库单"
+            },
+            {
+              "file": "SCM/app_ibd_receipt_list.html",
+              "module": "冷丰WMS",
+              "title": "入库单查询"
+            },
+            {
+              "file": "SCM/ibd_receipt.html",
+              "module": "冷丰WMS",
+              "title": "入库单"
+            },
+            {
+              "file": "SCM/warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库管理"
+            }
+          ]
+        },
         {
           "sha": "9114dda",
           "type": "feat",

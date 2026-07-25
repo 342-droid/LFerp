@@ -1574,6 +1574,26 @@
     "status": "diff",
     "date": "2026-07-22"
   },
+  "b2f1232|SCM/app_ibd_receipt.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-25"
+  },
+  "b2f1232|SCM/app_ibd_receipt_list.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-25"
+  },
+  "b2f1232|SCM/ibd_receipt.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-25"
+  },
+  "b2f1232|SCM/warehouse.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-25"
+  },
   "b513963|MDM/mdm_member_tag.html": {
     "after": "changelog-assets/b513963/MDM__mdm_member_tag.html.after.jpg",
     "status": "added",
