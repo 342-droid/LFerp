@@ -65,7 +65,8 @@
         item.birthdayDesc = item.birthdayDesc || '';
         item.discountScope = normalizeDiscountScope(item.discountScope);
         if (!item.giftCouponMode) item.giftCouponMode = 'total';
-        if (!item.birthdayCouponMode) item.birthdayCouponMode = 'total';
+        /* 生日送券仅生日月每年一次，统一为 total，不再使用每月/每日 */
+        item.birthdayCouponMode = 'total';
         if (!Array.isArray(item.giftCoupons)) item.giftCoupons = [];
         if (!Array.isArray(item.birthdayCoupons)) item.birthdayCoupons = [];
         return item;
@@ -198,7 +199,7 @@
                 pointsRatio: 200,
                 pointsRatioDesc: '',
                 birthdayEnabled: true,
-                birthdayCouponMode: 'monthly',
+                birthdayCouponMode: 'total',
                 birthdayCoupons: [
                     { coupon: '生日专属券', qty: 1 },
                     { coupon: '满200减30券', qty: 1 }
@@ -251,6 +252,13 @@
         return modeText + '：' + detail;
     }
 
+    function formatBirthdayCouponList(items) {
+        if (!items || !items.length) return '';
+        return items.map(function (it) {
+            return it.coupon + '×' + it.qty;
+        }).join('、');
+    }
+
     function formatBenefitSummary(item) {
         item = normalizeLevel(item);
         var parts = [];
@@ -271,8 +279,8 @@
             parts.push('积分倍率 ' + (item.pointsRatio / 100).toFixed(2).replace(/\.?0+$/, '') + ' 倍');
         }
         if (item.birthdayEnabled) {
-            var birthText = formatCouponList(item.birthdayCouponMode, item.birthdayCoupons);
-            parts.push(birthText ? '生日券（' + birthText + '）' : '生日券 已开启');
+            var birthText = formatBirthdayCouponList(item.birthdayCoupons);
+            parts.push(birthText ? '生日券（生日月赠送：' + birthText + '）' : '生日券 已开启');
         }
         if (!parts.length) parts.push('暂无权益');
         return parts.map(function (p) {

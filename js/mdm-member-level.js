@@ -44,8 +44,9 @@
     }
 
     function findById(id) {
+        var sid = String(id == null ? '' : id);
         for (var i = 0; i < state.list.length; i++) {
-            if (state.list[i].id === id) return state.list[i];
+            if (String(state.list[i].id) === sid) return state.list[i];
         }
         return null;
     }
@@ -199,7 +200,12 @@
                     toast('最多可设置 ' + Data.LEVEL_MAX + ' 个会员等级', 'warning');
                     return;
                 }
-                window.location.href = 'mdm_member_level_form.html';
+                try {
+                    sessionStorage.removeItem('mdm_member_level_edit_v1');
+                } catch (e) { /* ignore */ }
+                window.location.href = (window.wmsPath && typeof window.wmsPath.page === 'function')
+                    ? window.wmsPath.page('mdm_member_level_form.html')
+                    : 'mdm_member_level_form.html';
             });
         }
 
@@ -257,7 +263,15 @@
             if (!item) return;
 
             if (action === 'edit') {
-                window.location.href = 'mdm_member_level_form.html?id=' + encodeURIComponent(item.id);
+                try {
+                    sessionStorage.setItem('mdm_member_level_edit_v1', JSON.stringify(item));
+                } catch (e) { /* ignore */ }
+                var editUrl = 'mdm_member_level_form.html?id=' + encodeURIComponent(String(item.id));
+                if (window.wmsPath && typeof window.wmsPath.page === 'function') {
+                    editUrl = window.wmsPath.page('mdm_member_level_form.html') +
+                        '?id=' + encodeURIComponent(String(item.id));
+                }
+                window.location.href = editUrl;
                 return;
             }
 

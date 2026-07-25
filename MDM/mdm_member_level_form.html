@@ -31,6 +31,28 @@
         .member-level-form-panel .erp-modal-field__label {
             flex: 0 0 128px;
         }
+        .member-level-label-tip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            margin-left: 4px;
+            border-radius: 50%;
+            border: 1px solid #bbb;
+            color: #888;
+            font-size: 11px;
+            line-height: 1;
+            cursor: help;
+            vertical-align: middle;
+            user-select: none;
+            position: relative;
+            top: -1px;
+        }
+        .member-level-label-tip:hover {
+            border-color: #ff7019;
+            color: #ff7019;
+        }
         .member-level-form-footer {
             margin-top: 16px;
             display: flex;
@@ -717,7 +739,10 @@
 
                 <!-- 生日送券 -->
                 <div class="erp-modal-field" data-benefit="birthday">
-                    <label class="erp-modal-field__label">生日送券</label>
+                    <label class="erp-modal-field__label">
+                        生日送券
+                        <span class="member-level-label-tip" title="会员生日月进行赠送，每年只会赠送一次" aria-label="会员生日月进行赠送，每年只会赠送一次">?</span>
+                    </label>
                     <div class="erp-modal-field__control">
                         <div class="member-level-benefit-head">
                             <label class="member-level-check-label">
@@ -726,7 +751,7 @@
                         </div>
                         <div class="member-level-benefit-body is-disabled" data-benefit-body>
                             <div class="member-level-coupon-block" data-coupon-block="birthday">
-                                <div class="member-level-check-row" style="margin-bottom:8px;" data-coupon-modes></div>
+                                <div class="member-level-check-row" style="margin-bottom:8px;display:none;" data-coupon-modes hidden></div>
                                 <div class="member-level-coupon-list" data-coupon-list></div>
                                 <button type="button" class="member-level-coupon-add" data-coupon-add disabled>+ 添加优惠券</button>
                             </div>

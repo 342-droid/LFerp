@@ -83,6 +83,12 @@
         { href: 'mdm_member_level_desc.html', text: '规则说明' }
     ];
 
+    /** 会员 · 积分管理 */
+    const memberPointsItems = [
+        { href: 'mdm_member_points_rule.html', text: '积分规则' },
+        { href: 'mdm_member_points_detail.html', text: '积分明细' }
+    ];
+
     const auditItems = [
         { href: 'mdm_audit_store_registration.html', text: '门店注册审核' },
         { href: 'mdm_audit_store_registration.html#onboarding-review', text: '进件审核' }
@@ -97,10 +103,12 @@
     const isPeoplePage = groupHasActive(peopleItems);
     const isMember360Page = groupHasActive(member360Items);
     const isMemberSystemPage = groupHasActive(memberSystemItems);
+    const isMemberPointsPage = groupHasActive(memberPointsItems);
     // 兜底：路径以 mdm_member_ 开头即视为会员模块（兼容无html 后缀被剥离）
     const isMemberPage =
         isMember360Page ||
         isMemberSystemPage ||
+        isMemberPointsPage ||
         /^mdm_member_/i.test(currentPage);
     const isAuditPage = groupHasActive(auditItems);
 
@@ -137,10 +145,11 @@
         /** 顶栏「审核中心」独立入口：仅在该模块页面展示侧栏审核菜单 */
         itemsHtml = renderCollapsibleGroup('审核中心', '任务管理', auditItems, true);
     } else if (isMemberPage) {
-        /** 顶栏「会员」独立入口：两组均默认展开，便于一眼看到完整菜单 */
+        /** 顶栏「会员」独立入口：分组均默认展开，便于一眼看到完整菜单 */
         itemsHtml =
             renderCollapsibleGroup('会员360', '基础信息', member360Items, true) +
-            renderCollapsibleGroup('会员体系', '策略管理', memberSystemItems, true);
+            renderCollapsibleGroup('会员体系', '策略管理', memberSystemItems, true) +
+            renderCollapsibleGroup('积分管理', '任务管理', memberPointsItems, true);
     } else {
         itemsHtml =
             renderCollapsibleGroup('商家主体', '基础信息', partyItems, isPartyPage) +

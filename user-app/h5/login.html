@@ -32,7 +32,7 @@
             <div class="ua-login-carrier">中国移动提供认证服务</div>
           </div>
           <div class="ua-login-actions">
-            <button type="button" class="ua-login-btn ua-login-btn--primary" id="uaLoginOneClickBtn">本机号码一键登录</button>
+            <button type="button" class="ua-login-btn ua-login-btn--primary" id="uaLoginOneClickBtn" onclick="if(window.UaUserAuth&amp;&amp;window.UaUserAuth.oneClickLogin){window.UaUserAuth.oneClickLogin();return false;}">本机号码一键登录</button>
           </div>
           <div class="ua-login-other-methods">
             <p class="ua-login-other-methods__title">其他登录方式</p>
@@ -81,6 +81,6 @@
       <div class="ua-login-toast" id="uaLoginToast" role="status" aria-live="polite"></div>
     </div>
   </div>
-  <script src="../js/user-app-auth.js"></script>
+  <script src="../js/user-app-auth.js?v=20260725"></script>
 </body>
 </html>

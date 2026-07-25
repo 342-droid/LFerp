@@ -64,11 +64,13 @@
         icon: levelIconSvg('#D7DEE8', '#5B6B7C', '银'),
         growthValue: 2000,
         giftPoints: 100,
+        giftPointsDesc: '升级至银牌会员后立即到账 100 积分，可用于积分抵现与积分商城兑换。',
         giftCouponMode: 'total',
         giftCoupons: [
           { coupon: '满50减5券', qty: 2 },
           { coupon: '免运费券', qty: 1 }
         ],
+        giftCouponDesc: '累计赠送满50减5券×2、免运费券×1，领取后请在优惠券有效期内使用，过期自动失效。',
         memberDiscount: 95,
         pointsRatio: 120,
         birthdayEnabled: true,
@@ -77,6 +79,7 @@
           { coupon: '生日专属券', qty: 1 },
           { coupon: '免运费券', qty: 1 }
         ],
+        birthdayDesc: '生日当月可领取生日专属券×1、免运费券×1，完善生日信息后系统将在生日当天推送提醒。',
         status: '启用'
       },
       {
@@ -112,7 +115,7 @@
         memberDiscount: 85,
         pointsRatio: 200,
         birthdayEnabled: true,
-        birthdayCouponMode: 'monthly',
+        birthdayCouponMode: 'total',
         birthdayCoupons: [
           { coupon: '生日专属券', qty: 1 },
           { coupon: '满200减30券', qty: 1 }
@@ -129,7 +132,7 @@
       consumeEnabled: true,
       consumeAmount: 1,
       consumeGrowth: 1,
-      activityEnabled: true,
+      activityEnabled: false,
       activities: {
         signin: { enabled: true, growth: 5, dailyLimit: 5 },
         browse: { enabled: true, growth: 1, dailyLimit: 10 },
@@ -182,6 +185,8 @@
           }
         });
       }
+      /* 活跃获成长值待开发：C 端不展示活跃入口 */
+      rule.activityEnabled = false;
       return rule;
     } catch (e) {
       return defaultRule();
@@ -235,6 +240,21 @@
     return (n / 100).toFixed(2).replace(/\.?0+$/, '') + ' 倍';
   }
 
+  function loadUserBirthday() {
+    try {
+      var raw = localStorage.getItem('ua_member_profile_v1');
+      if (!raw) return '';
+      var parsed = JSON.parse(raw);
+      return parsed && parsed.birthday ? String(parsed.birthday).trim() : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function hasBirthdayFilled() {
+    return !!loadUserBirthday();
+  }
+
   function buildBenefits(level) {
     var items = [];
     var giftPointsOn = level.giftPointsEnabled == null ? level.giftPoints > 0 : !!level.giftPointsEnabled;
@@ -282,12 +302,18 @@
       });
     }
     if (level.birthdayEnabled) {
-      var birthText = formatCouponList(level.birthdayCouponMode, level.birthdayCoupons);
+      var birthDetail = '';
+      if (level.birthdayCoupons && level.birthdayCoupons.length) {
+        birthDetail = level.birthdayCoupons.map(function (it) {
+          return it.coupon + '×' + it.qty;
+        }).join('、');
+      }
       items.push({
         key: 'birthday',
-        name: '生日特权',
-        desc: (level.birthdayDesc && String(level.birthdayDesc).trim()) || birthText || '生日送券',
-        icon: 'birthday'
+        name: '生日送券',
+        desc: (level.birthdayDesc && String(level.birthdayDesc).trim()) || birthDetail || '生日月赠送，每年一次',
+        icon: 'birthday',
+        needBirthday: !hasBirthdayFilled()
       });
     }
     return items;
@@ -309,20 +335,121 @@
     return map[type] || map.points;
   }
 
+  function profileEditHref() {
+    /* 明确来源为会员中心，避免本地预览 pathname 识别失败导致 from 丢失 */
+    if (window.UaNav) {
+      return window.UaNav.withFrom('profile-edit.html', 'member-center.html');
+    }
+    return 'profile-edit.html?from=member-center.html';
+  }
+
   function renderBenefitsHtml(benefits) {
     if (!benefits.length) {
       return '<div class="ua-mc-benefits ua-mc-benefits--empty">暂无权益</div>';
     }
+    var editHref = profileEditHref();
     var cells = benefits.map(function (b) {
+      var tipHtml = '';
+      if (b.needBirthday) {
+        tipHtml =
+          '<div class="ua-mc-benefit-birthday-tip">' +
+          '  <span class="ua-mc-benefit-birthday-tip__text">生日未填写无法发放</span>' +
+          '  <a class="ua-mc-benefit-birthday-tip__link" href="' + escapeHtml(editHref) + '">去填写</a>' +
+          '</div>';
+      }
       return (
-        '<div class="ua-mc-benefit-item">' +
+        '<div class="ua-mc-benefit-item' + (b.needBirthday ? ' ua-mc-benefit-item--need-birthday' : '') + '"' +
+        ' data-benefit-key="' + escapeHtml(b.key || '') + '"' +
+        ' data-benefit-name="' + escapeHtml(b.name) + '"' +
+        ' data-benefit-desc="' + escapeHtml(b.desc) + '"' +
+        ' data-need-birthday="' + (b.needBirthday ? '1' : '0') + '">' +
         '  <div class="ua-mc-benefit-icon">' + benefitIconSvg(b.icon) + '</div>' +
         '  <div class="ua-mc-benefit-name">' + escapeHtml(b.name) + '</div>' +
-        '  <div class="ua-mc-benefit-desc">' + escapeHtml(b.desc) + '</div>' +
+        '  <div class="ua-mc-benefit-desc-row">' +
+        '    <div class="ua-mc-benefit-desc">' + escapeHtml(b.desc) + '</div>' +
+        '    <span class="ua-mc-benefit-more" hidden aria-hidden="true">' +
+        '      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>' +
+        '    </span>' +
+        '  </div>' +
+        tipHtml +
         '</div>'
       );
     }).join('');
     return '<div class="ua-mc-benefits"><div class="ua-mc-benefit-grid">' + cells + '</div></div>';
+  }
+
+  function ensureBenefitSheet() {
+    var sheet = document.getElementById('mcBenefitSheet');
+    if (sheet) return sheet;
+    sheet = document.createElement('div');
+    sheet.id = 'mcBenefitSheet';
+    sheet.className = 'ua-mc-sheet';
+    sheet.hidden = true;
+    sheet.innerHTML =
+      '<div class="ua-mc-sheet__mask" data-mc-sheet-close></div>' +
+      '<div class="ua-mc-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="mcBenefitSheetTitle">' +
+      '  <div class="ua-mc-sheet__head">' +
+      '    <h3 id="mcBenefitSheetTitle">权益说明</h3>' +
+      '    <button type="button" class="ua-mc-sheet__close" data-mc-sheet-close aria-label="关闭">' +
+      '      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
+      '    </button>' +
+      '  </div>' +
+      '  <div class="ua-mc-sheet__body" id="mcBenefitSheetBody"></div>' +
+      '</div>';
+    var shell = document.querySelector('.ua-mobile-shell') || document.body;
+    shell.appendChild(sheet);
+    sheet.addEventListener('click', function (ev) {
+      if (ev.target.closest('[data-mc-sheet-close]')) closeBenefitSheet();
+    });
+    return sheet;
+  }
+
+  function openBenefitSheet(title, desc, opts) {
+    opts = opts || {};
+    var sheet = ensureBenefitSheet();
+    var titleEl = document.getElementById('mcBenefitSheetTitle');
+    var bodyEl = document.getElementById('mcBenefitSheetBody');
+    if (titleEl) titleEl.textContent = title || '权益说明';
+    if (bodyEl) {
+      var html = '<div class="ua-mc-sheet__desc">' + escapeHtml(desc || '') + '</div>';
+      if (opts.needBirthday) {
+        html +=
+          '<div class="ua-mc-sheet__birthday-tip">' +
+          '  <p class="ua-mc-sheet__birthday-tip__text">生日未填写无法发放</p>' +
+          '  <a class="ua-mc-sheet__birthday-tip__btn" href="' + escapeHtml(profileEditHref()) + '">去填写</a>' +
+          '</div>';
+      }
+      bodyEl.innerHTML = html;
+    }
+    sheet.hidden = false;
+    document.body.classList.add('ua-mc-sheet-open');
+  }
+
+  function closeBenefitSheet() {
+    var sheet = document.getElementById('mcBenefitSheet');
+    if (sheet) sheet.hidden = true;
+    document.body.classList.remove('ua-mc-sheet-open');
+  }
+
+  function syncBenefitMoreButtons(root) {
+    var scope = root || document;
+    scope.querySelectorAll('.ua-mc-benefit-item').forEach(function (item) {
+      var desc = item.querySelector('.ua-mc-benefit-desc');
+      var more = item.querySelector('.ua-mc-benefit-more');
+      if (!desc || !more) return;
+      var overflow = desc.scrollHeight > desc.clientHeight + 1;
+      more.hidden = !overflow;
+      item.classList.toggle('has-more', overflow);
+      if (overflow) {
+        item.setAttribute('role', 'button');
+        item.setAttribute('tabindex', '0');
+        item.setAttribute('aria-label', '查看' + (item.getAttribute('data-benefit-name') || '权益') + '完整说明');
+      } else {
+        item.removeAttribute('role');
+        item.removeAttribute('tabindex');
+        item.removeAttribute('aria-label');
+      }
+    });
   }
 
   function progressPercent(current, from, to) {
@@ -385,9 +512,16 @@
       '  <div class="ua-mc-progress__bar"><div class="ua-mc-progress__fill" style="width:' + pct + '%"></div></div>' +
       '</div>';
 
+    var iconSrc = level.icon
+      ? String(level.icon)
+      : levelIconSvg('#E8ECF0', '#6B7280', (level.name || '会').charAt(0));
+
     return (
       '<article class="ua-mc-slide" data-index="' + index + '">' +
       '  <div class="ua-mc-slide__head">' +
+      '    <div class="ua-mc-slide__icon-wrap">' +
+      '      <img class="ua-mc-slide__icon" src="' + escapeHtml(iconSrc) + '" alt="' + escapeHtml(level.name || '会员等级') + '">' +
+      '    </div>' +
       '    <div class="ua-mc-slide__info">' +
       '      <div class="ua-mc-slide__title">' + escapeHtml(title) + '</div>' +
       '      <div class="ua-mc-slide__sub">' + escapeHtml(sub) + '</div>' +
@@ -442,8 +576,9 @@
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>' +
         '</span>';
       if (it.href) {
+        var href = window.UaNav ? window.UaNav.withFrom(it.href) : it.href;
         return (
-          '<a class="ua-mc-rule-item ua-mc-rule-item--link" href="' + escapeHtml(it.href) + '">' +
+          '<a class="ua-mc-rule-item ua-mc-rule-item--link" href="' + escapeHtml(href) + '">' +
           '  <div class="ua-mc-rule-item__body">' +
           '    <div class="ua-mc-rule-item__title">' + escapeHtml(it.title) + '</div>' +
           '    <div class="ua-mc-rule-item__desc">' + escapeHtml(it.desc) + '</div>' +
@@ -477,8 +612,12 @@
           ? formatGrowth(min) + ' &lt;= 成长值 &lt; ' + formatGrowth(next.growthValue)
           : '成长值 &gt;= ' + formatGrowth(min);
         var cls = i === currentIdx ? 'ua-mc-level-row is-current' : 'ua-mc-level-row';
+        var iconSrc = level.icon
+          ? String(level.icon)
+          : levelIconSvg('#E8ECF0', '#6B7280', (level.name || '会').charAt(0));
         return (
           '<div class="' + cls + '">' +
+          '<img class="ua-mc-level-row__icon" src="' + escapeHtml(iconSrc) + '" alt="">' +
           '<span class="ua-mc-level-row__name">' + escapeHtml(level.name) + '</span>：' + rangeText +
           '</div>'
         );
@@ -549,6 +688,7 @@
     setTrackOffset(track, carousel, i, 0);
     updateDots(i);
     syncCarouselHeight(carousel);
+    syncBenefitMoreButtons(carousel);
     if (animate === false) {
       // force reflow then restore transition
       void track.offsetHeight;
@@ -573,7 +713,7 @@
 
     function onPointerDown(ev) {
       if (ev.button != null && ev.button !== 0) return;
-      if (ev.target.closest && ev.target.closest('button, a')) return;
+      if (ev.target.closest && ev.target.closest('button, a, .ua-mc-benefit-item.has-more')) return;
       drag.active = true;
       drag.pointerId = ev.pointerId;
       drag.startX = ev.clientX;
@@ -684,9 +824,25 @@
 
       requestAnimationFrame(function () {
         goToIndex(carousel, currentIdx, false);
+        syncBenefitMoreButtons(carousel);
       });
 
       carousel.addEventListener('click', function (ev) {
+        /* 「去填写」走链接跳转，不打开权益弹窗 */
+        if (ev.target.closest('.ua-mc-benefit-birthday-tip__link')) return;
+
+        var benefitItem = ev.target.closest('.ua-mc-benefit-item.has-more, .ua-mc-benefit-item--need-birthday');
+        if (benefitItem) {
+          if (ev.target.closest('a')) return;
+          ev.preventDefault();
+          ev.stopPropagation();
+          openBenefitSheet(
+            benefitItem.getAttribute('data-benefit-name') || '权益说明',
+            benefitItem.getAttribute('data-benefit-desc') || '',
+            { needBirthday: benefitItem.getAttribute('data-need-birthday') === '1' }
+          );
+          return;
+        }
         var btn = ev.target.closest('[data-go]');
         if (!btn || btn.disabled) return;
         var idx = Number(btn.getAttribute('data-go'));
@@ -695,7 +851,19 @@
 
       window.addEventListener('resize', function () {
         goToIndex(carousel, currentSlideIndex(carousel), false);
+        syncBenefitMoreButtons(carousel);
       });
+    }
+
+    if (window.UaNav) {
+      window.UaNav.applyBackLink('.ua-mc-nav__back', 'profile.html');
+      var growthPill = document.getElementById('mcGrowthPill');
+      if (growthPill) {
+        growthPill.setAttribute(
+          'href',
+          window.UaNav.withFrom(growthPill.getAttribute('href') || 'growth-detail.html')
+        );
+      }
     }
   }
 

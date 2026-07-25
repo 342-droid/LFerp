@@ -13,7 +13,7 @@
       '<p><strong>升级：</strong>当会员当前有效成长值达到某等级门槛时，系统自动升至满足条件的最高等级，达标后立即生效。</p>' +
       '<p><strong>降级：</strong>当会员当前有效成长值低于当前等级门槛时，系统将降至满足条件的最高等级，于每日统一处理。</p>' +
       '<h3>三、会员权益</h3>' +
-      '<p>不同等级可配置赠送积分、赠送优惠券、商品会员折扣、积分倍率及生日送券等权益。赠送券与生日券支持累计 / 每月 / 每日发放，并可配置多种优惠券及数量。</p>' +
+      '<p>不同等级可配置赠送积分、赠送优惠券、商品会员折扣、积分倍率及生日送券等权益。赠送券支持累计 / 每月 / 每日发放；生日送券于会员生日月赠送，每年仅一次。均可配置多种优惠券及数量。</p>' +
       '<h3>四、其他说明</h3>' +
       '<p>消费获取成长值：每支付约定金额可获得对应成长值；订单售后成功时，按获取时的比例扣除。会员等级最多可设置 15 个，列表按成长值从低到高排列。本说明内容可随时编辑更新。</p>'
   };
@@ -33,6 +33,9 @@
   }
 
   function init() {
+    if (window.UaNav) {
+      window.UaNav.applyBackLink('.ua-gd-nav__back', 'growth-detail.html');
+    }
     var data = loadDesc();
     var titleEl = document.getElementById('grTitle');
     var contentEl = document.getElementById('grContent');

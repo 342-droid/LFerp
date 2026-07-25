@@ -1,5 +1,6 @@
 (function () {
   var STORAGE_KEY = 'ua_user_session_v1';
+  var SESSION_HANDOFF_KEY = '_ua_s';
   var DEFAULT_PHONE = '15912344315';
   var DEFAULT_MASKED = '159****4315';
   var SMS_COOLDOWN = 60;
@@ -11,12 +12,25 @@
     'restock.html'
   ];
 
-  var page = (window.location.pathname.split('/').pop() || '').toLowerCase();
-  var isLoginPage = page === 'login.html';
-  var isPhoneLoginPage = page === 'login-phone.html';
-  var isWechatLoginPage = page === 'login-wechat.html';
-  var isProfilePage = page === 'profile.html';
-  var isAppInterior = APP_PAGES.indexOf(page) >= 0;
+  /* 本地预览 / Simple Browser 的 pathname 可能不含文件名，优先用 DOM 识别页面 */
+  function resolvePageName() {
+    var raw = (window.location.pathname || '').replace(/\\/g, '/');
+    var fromPath = (raw.split('/').pop() || '').split('?')[0].toLowerCase();
+    if (fromPath && /\.html$/i.test(fromPath)) return fromPath;
+    if (document.getElementById('uaLoginScreen')) return 'login.html';
+    if (document.querySelector('.ua-phone-login-screen')) return 'login-phone.html';
+    if (document.querySelector('.ua-wechat-auth-screen')) return 'login-wechat.html';
+    if (document.getElementById('uaProfileContent')) return 'profile.html';
+    if (document.getElementById('uaLoginOneClickBtn')) return 'login.html';
+    return fromPath;
+  }
+
+  var page = resolvePageName();
+  var isLoginPage = page === 'login.html' || !!document.getElementById('uaLoginScreen');
+  var isPhoneLoginPage = page === 'login-phone.html' || !!document.querySelector('.ua-phone-login-screen');
+  var isWechatLoginPage = page === 'login-wechat.html' || !!document.querySelector('.ua-wechat-auth-screen');
+  var isProfilePage = page === 'profile.html' || !!document.getElementById('uaProfileContent');
+  var isAppInterior = APP_PAGES.indexOf(page) >= 0 || isProfilePage;
   var isLoginFlowPage = isLoginPage || isPhoneLoginPage || isWechatLoginPage;
 
   if (!isLoginFlowPage && !isAppInterior) return;
@@ -58,8 +72,12 @@
 
   var smsTimer = null;
   var smsLeft = 0;
+  var memorySession = null;
+  var pendingOneClickAfterAgree = false;
+  var authNavigating = false;
 
   function readSession() {
+    if (memorySession) return memorySession;
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return null;
@@ -71,15 +89,19 @@
   }
 
   function writeSession(data) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    memorySession = data;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+      /* file:// / 部分本地预览可能写不进 localStorage，靠 URL 交接 */
+    }
   }
 
   function clearSession() {
-    localStorage.removeItem(STORAGE_KEY);
-  }
-
-  function isLoggedIn(session) {
-    return !!(session && session.loggedIn);
+    memorySession = null;
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {}
   }
 
   function hasProfileAccess(session) {
@@ -96,6 +118,21 @@
     return session;
   }
 
+  /* 本地 file:// 或隔离预览下，各 HTML 的 localStorage 互不共享；用 URL 参数把登录态带到下一页 */
+  function hydrateSessionFromQuery() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var raw = params.get(SESSION_HANDOFF_KEY);
+      if (!raw) return;
+      var data = JSON.parse(decodeURIComponent(raw));
+      if (data && typeof data === 'object') writeSession(data);
+      params.delete(SESSION_HANDOFF_KEY);
+      var qs = params.toString();
+      var clean = (page || 'profile.html') + (qs ? '?' + qs : '') + (window.location.hash || '');
+      history.replaceState(null, '', clean);
+    } catch (e) {}
+  }
+
   function maskPhone(phone) {
     var d = String(phone || '').replace(/\D/g, '');
     if (d.length !== 11) return d || DEFAULT_MASKED;
@@ -103,23 +140,24 @@
   }
 
   function showToast(msg) {
-    if (!toastEl) return;
+    if (!toastEl) {
+      window.alert(msg);
+      return;
+    }
     toastEl.textContent = msg;
     toastEl.classList.add('is-show');
     clearTimeout(showToast._t);
     showToast._t = setTimeout(function () {
       toastEl.classList.remove('is-show');
-    }, 2000);
+    }, 2200);
   }
 
   function isAgreed() {
-    return agreeCheckbox && agreeCheckbox.checked;
+    return !!(agreeCheckbox && agreeCheckbox.checked);
   }
 
-  function requireAgreement() {
-    if (isAgreed()) return true;
-    showToast('请先阅读并同意相关协议');
-    return false;
+  function markAgreed() {
+    if (agreeCheckbox) agreeCheckbox.checked = true;
   }
 
   function resolveNextPage() {
@@ -141,8 +179,26 @@
     return url;
   }
 
-  function redirectAfterAuth() {
-    window.location.href = resolveNextPage();
+  function goTo(url) {
+    try {
+      window.location.assign(url);
+    } catch (e1) {
+      try {
+        window.location.href = url;
+      } catch (e2) {
+        showToast('无法跳转，请用浏览器打开本页');
+      }
+    }
+  }
+
+  function redirectAfterAuth(session) {
+    var next = resolveNextPage();
+    var data = session || readSession();
+    if (data) {
+      var sep = next.indexOf('?') >= 0 ? '&' : '?';
+      next += sep + SESSION_HANDOFF_KEY + '=' + encodeURIComponent(JSON.stringify(data));
+    }
+    goTo(next);
   }
 
   function redirectToLogin() {
@@ -188,28 +244,52 @@
   }
 
   function completeLogin(phone, nickname) {
-    writeSession({
+    var session = {
       loggedIn: true,
       phone: phone,
       phoneMasked: maskPhone(phone),
       nickname: nickname || '冷丰用户'
-    });
-    redirectAfterAuth();
+    };
+    writeSession(session);
+    redirectAfterAuth(session);
   }
 
   function completeWechatLogin() {
-    writeSession({
+    var session = {
       loggedIn: true,
       loginMethod: 'wechat',
       nickname: '微信用户',
       phoneMasked: '微信已授权'
-    });
-    redirectAfterAuth();
+    };
+    writeSession(session);
+    redirectAfterAuth(session);
   }
 
   function completeSkip() {
-    writeSession({ loggedIn: false, skipped: true });
-    redirectAfterAuth();
+    var session = { loggedIn: false, skipped: true };
+    writeSession(session);
+    redirectAfterAuth(session);
+  }
+
+  function handleOneClickLogin() {
+    if (authNavigating) return;
+    if (!isAgreed()) {
+      showToast('请先阅读并同意相关协议');
+      pendingOneClickAfterAgree = true;
+      if (wechatAgreeModal) {
+        wechatAgreeModal.hidden = false;
+        return;
+      }
+      if (agreeCheckbox) {
+        try {
+          agreeCheckbox.focus();
+        } catch (e) {}
+      }
+      return;
+    }
+    pendingOneClickAfterAgree = false;
+    authNavigating = true;
+    completeLogin(DEFAULT_PHONE, '宁静致远');
   }
 
   function resetSmsBtn() {
@@ -238,39 +318,52 @@
 
   function bindOneClickLoginEvents() {
     if (oneClickBtn) {
-      oneClickBtn.addEventListener('click', function () {
-        if (!requireAgreement()) return;
-        completeLogin(DEFAULT_PHONE, '宁静致远');
+      oneClickBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        handleOneClickLogin();
       });
     }
 
     if (wechatEntryBtn) {
       wechatEntryBtn.addEventListener('click', function () {
+        pendingOneClickAfterAgree = false;
         if (wechatAgreeModal) wechatAgreeModal.hidden = false;
       });
     }
 
     if (phoneMethodBtn) {
       phoneMethodBtn.addEventListener('click', function () {
-        window.location.href = buildLoginUrl('login-phone.html');
+        goTo(buildLoginUrl('login-phone.html'));
       });
     }
 
     if (wechatAgreeCancelBtn) {
       wechatAgreeCancelBtn.addEventListener('click', function () {
+        pendingOneClickAfterAgree = false;
         if (wechatAgreeModal) wechatAgreeModal.hidden = true;
       });
     }
 
     if (wechatAgreeConfirmBtn) {
       wechatAgreeConfirmBtn.addEventListener('click', function () {
-        window.location.href = buildLoginUrl('login-wechat.html');
+        markAgreed();
+        if (wechatAgreeModal) wechatAgreeModal.hidden = true;
+        if (pendingOneClickAfterAgree) {
+          pendingOneClickAfterAgree = false;
+          authNavigating = true;
+          completeLogin(DEFAULT_PHONE, '宁静致远');
+          return;
+        }
+        goTo(buildLoginUrl('login-wechat.html'));
       });
     }
 
     if (wechatAgreeModal) {
       wechatAgreeModal.addEventListener('click', function (e) {
-        if (e.target === wechatAgreeModal) wechatAgreeModal.hidden = true;
+        if (e.target === wechatAgreeModal) {
+          pendingOneClickAfterAgree = false;
+          wechatAgreeModal.hidden = true;
+        }
       });
     }
 
@@ -282,13 +375,13 @@
   function bindPhoneLoginEvents() {
     if (phoneBackBtn) {
       phoneBackBtn.addEventListener('click', function () {
-        window.location.href = buildLoginUrl('login.html');
+        goTo(buildLoginUrl('login.html'));
       });
     }
 
     if (phoneSkipBtn) {
       phoneSkipBtn.addEventListener('click', function () {
-        window.location.href = buildLoginUrl('login.html');
+        goTo(buildLoginUrl('login.html'));
       });
     }
 
@@ -300,7 +393,7 @@
 
     if (phoneOneClickLinkBtn) {
       phoneOneClickLinkBtn.addEventListener('click', function () {
-        window.location.href = buildLoginUrl('login.html');
+        goTo(buildLoginUrl('login.html'));
       });
     }
 
@@ -312,7 +405,7 @@
 
     if (wechatAgreeConfirmBtn) {
       wechatAgreeConfirmBtn.addEventListener('click', function () {
-        window.location.href = buildLoginUrl('login-wechat.html');
+        goTo(buildLoginUrl('login-wechat.html'));
       });
     }
 
@@ -336,7 +429,10 @@
 
     if (phoneLoginBtn) {
       phoneLoginBtn.addEventListener('click', function () {
-        if (!requireAgreement()) return;
+        if (!isAgreed()) {
+          showToast('请先阅读并同意相关协议');
+          return;
+        }
         var phone = phoneInput ? phoneInput.value.replace(/\D/g, '') : '';
         var code = codeInput ? codeInput.value.replace(/\D/g, '') : '';
         if (phone.length !== 11) {
@@ -355,7 +451,9 @@
   function initLoginPage() {
     if (/[?&]logout=1(?:&|$)/.test(location.search)) {
       clearSession();
-      history.replaceState(null, '', 'login.html');
+      try {
+        history.replaceState(null, '', 'login.html');
+      } catch (e) {}
     }
 
     if (/[?&]force=1(?:&|$)/.test(location.search)) {
@@ -380,13 +478,13 @@
 
     if (wechatAuthBackBtn) {
       wechatAuthBackBtn.addEventListener('click', function () {
-        window.location.href = buildLoginUrl('login.html');
+        goTo(buildLoginUrl('login.html'));
       });
     }
 
     if (wechatAuthCancelBtn) {
       wechatAuthCancelBtn.addEventListener('click', function () {
-        window.location.href = buildLoginUrl('login.html');
+        goTo(buildLoginUrl('login.html'));
       });
     }
 
@@ -398,7 +496,7 @@
   function initProfilePage() {
     if (/[?&]logout=1(?:&|$)/.test(location.search)) {
       clearSession();
-      window.location.href = 'login.html';
+      goTo('login.html');
       return;
     }
 
@@ -409,11 +507,13 @@
       profilePhoneEl.addEventListener('click', function () {
         var current = readSession();
         if (current && current.skipped && !current.loggedIn) {
-          window.location.href = 'login.html?next=profile.html&force=1';
+          goTo('login.html?next=profile.html&force=1');
         }
       });
     }
   }
+
+  hydrateSessionFromQuery();
 
   if (isLoginPage) {
     initLoginPage();
@@ -426,7 +526,7 @@
   } else if (isAppInterior) {
     if (/[?&]logout=1(?:&|$)/.test(location.search)) {
       clearSession();
-      window.location.href = 'login.html';
+      goTo('login.html');
       return;
     }
     guardAppInterior();
@@ -436,9 +536,10 @@
     readSession: function () {
       return normalizeLegacySession(readSession());
     },
+    oneClickLogin: handleOneClickLogin,
     logout: function () {
       clearSession();
-      window.location.href = 'login.html';
+      goTo('login.html');
     }
   };
 })();

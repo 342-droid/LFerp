@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 积分明细</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <style>
+        .flow-box {
+            margin: 0 0 14px;
+            padding: 12px 14px;
+            background: #fafafa;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.65;
+        }
+        .member-points-toolbar {
+            margin: 0 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
+        .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
+        .pts-change--plus { color: #2e7d32; font-weight: 600; }
+        .pts-change--minus { color: #d32f2f; font-weight: 600; }
+        .search-form .form-group input[type="datetime-local"] {
+            height: 32px;
+            min-width: 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 0 28px 0 8px;
+            box-sizing: border-box;
+        }
+        .pts-datetime-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+        }
+        .pts-datetime-wrap {
+            position: relative;
+            display: inline-block;
+        }
+        .pts-datetime-wrap input[type="datetime-local"] {
+            width: 190px;
+        }
+        .pts-datetime-clear {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            border: none;
+            border-radius: 50%;
+            background: #ddd;
+            color: #666;
+            font-size: 12px;
+            line-height: 18px;
+            text-align: center;
+            cursor: pointer;
+            padding: 0;
+            display: none;
+        }
+        .pts-datetime-wrap.has-value .pts-datetime-clear { display: block; }
+        .pts-datetime-clear:hover { background: #ccc; color: #333; }
+        .pts-datetime-row .sep { color: #999; font-size: 12px; }
+        #pointsDetailSearchForm.search-form {
+            gap: 16px 20px;
+        }
+        #pointsDetailSearchForm.search-form > .form-group {
+            flex: 0 0 auto;
+            max-width: none;
+            width: auto;
+        }
+        #pointsDetailSearchForm .form-group input,
+        #pointsDetailSearchForm .form-group select {
+            width: 180px;
+        }
+        .btn.btn-outline {
+            background: #fff;
+            color: #ff7019;
+            border: 1px solid #ff7019;
+            box-sizing: border-box;
+        }
+        .btn.btn-outline:hover {
+            background: #fff7f0;
+            color: #e85f10;
+            border-color: #e85f10;
+        }
+        .pts-member-search-box {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .pts-member-search-box .erp-input { flex: 1; }
+        .pts-member-result {
+            margin-top: 10px;
+            max-height: 180px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+        .pts-member-result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-bottom: 1px solid #f5f5f5;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .pts-member-result-item:last-child { border-bottom: none; }
+        .pts-member-result-item:hover { background: #fff7f0; }
+        .pts-member-result-empty {
+            padding: 16px;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+        }
+        .pts-member-picked {
+            margin-top: 8px;
+            padding: 8px 10px;
+            background: #fafafa;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .erp-modal--pts-adjust {
+            max-width: 520px;
+            width: min(96vw, 520px);
+        }
+        .erp-modal--pts-adjust .erp-modal-field__label {
+            flex: 0 0 112px;
+        }
+        .pts-adjust-member {
+            min-height: 32px;
+            line-height: 32px;
+            font-size: 13px;
+            color: #333;
+        }
+        .pts-adjust-tip {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #999;
+            line-height: 1.45;
+        }
+        .pts-adjust-radio-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            min-height: 32px;
+        }
+        .pts-adjust-radio-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">积分明细</button></div>
+            <hr class="content-divider">
+            <div class="content-title">会员 / 积分管理 / 积分明细</div>
+
+            <div class="flow-box">
+                记录会员积分变动明细。变动类型包含：消费送积分、积分抵现、积分兑换、售后退还、积分过期、手工调整。
+                有效 / 过期按「获取时间 + 积分规则有效期」计算；有效记录不展示过期时间；手工调整会记录操作人。
+            </div>
+
+            <div class="member-points-toolbar">
+                <button type="button" class="erp-btn" id="btnGotoPtsRule">积分规则</button>
+            </div>
+
+            <section class="search-section">
+                <form class="search-form" id="pointsDetailSearchForm">
+                    <div class="form-group">
+                        <label>会员:</label>
+                        <div class="input-wrapper">
+                            <input id="qMember" placeholder="会员ID / 昵称 / 手机号">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group form-group--datetime">
+                        <label>变动时间:</label>
+                        <div class="pts-datetime-row">
+                            <span class="pts-datetime-wrap" data-datetime-wrap>
+                                <input id="qTimeStart" type="datetime-local" step="1" title="开始时间">
+                                <button type="button" class="pts-datetime-clear" data-clear-datetime="qTimeStart" aria-label="清空">×</button>
+                            </span>
+                            <span class="sep">至</span>
+                            <span class="pts-datetime-wrap" data-datetime-wrap>
+                                <input id="qTimeEnd" type="datetime-local" step="1" title="结束时间">
+                                <button type="button" class="pts-datetime-clear" data-clear-datetime="qTimeEnd" aria-label="清空">×</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>变动类型:</label>
+                        <select id="qChangeType">
+                            <option value="">全部</option>
+                            <option value="consume">消费送积分</option>
+                            <option value="cash">积分抵现</option>
+                            <option value="exchange">积分兑换</option>
+                            <option value="refund">售后退还</option>
+                            <option value="expire">积分过期</option>
+                            <option value="manual">手工调整</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>状态:</label>
+                        <select id="qStatus">
+                            <option value="">全部</option>
+                            <option value="有效">有效</option>
+                            <option value="过期">过期</option>
+                            <option value="已消耗">已消耗</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button>
+                        <button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button>
+                        <button type="button" class="btn btn-outline" id="btnAdjustPoints">调整</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>流水号</th>
+                                <th>会员ID</th>
+                                <th>会员昵称</th>
+                                <th>手机号</th>
+                                <th>变动类型</th>
+                                <th>变动积分</th>
+                                <th>变动后余额</th>
+                                <th>关联单号</th>
+                                <th>备注</th>
+                                <th>变动时间</th>
+                                <th>过期时间</th>
+                                <th>状态</th>
+                                <th>操作人</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/mdm-member-points-detail.js"></script>
+</body>
+</html>

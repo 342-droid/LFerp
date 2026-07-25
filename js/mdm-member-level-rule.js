@@ -3,6 +3,8 @@
  */
 (function () {
     var STORAGE_KEY = 'mdm_member_level_growth_rule_v1';
+    /** 活跃获取成长值：待开发，配置项不可操作 */
+    var ACTIVITY_PENDING = true;
 
     var defaultRule = {
         validityType: 'rolling',
@@ -10,7 +12,7 @@
         consumeEnabled: true,
         consumeAmount: 1,
         consumeGrowth: 1,
-        activityEnabled: true,
+        activityEnabled: false,
         activities: {
             signin: { enabled: true, growth: 5, dailyLimit: 5 },
             browse: { enabled: true, growth: 1, dailyLimit: 10 },
@@ -53,6 +55,7 @@
                     }
                 });
             }
+            if (ACTIVITY_PENDING) rule.activityEnabled = false;
             return rule;
         } catch (e) {
             return clone(defaultRule);
@@ -81,8 +84,25 @@
     }
 
     function syncActivityUI() {
+        var card = document.getElementById('activityRuleCard');
         var enabled = document.getElementById('activityEnabled');
         var row = document.getElementById('activityRuleRow');
+        if (ACTIVITY_PENDING) {
+            if (enabled) {
+                enabled.checked = false;
+                enabled.disabled = true;
+            }
+            if (card) {
+                card.querySelectorAll('input').forEach(function (input) {
+                    input.disabled = true;
+                });
+            } else if (row) {
+                row.querySelectorAll('input').forEach(function (input) {
+                    input.disabled = true;
+                });
+            }
+            return;
+        }
         if (!row) return;
         var on = !!(enabled && enabled.checked);
         row.style.opacity = on ? '1' : '0.45';
@@ -111,7 +131,9 @@
         if (consumeGrowth) consumeGrowth.value = rule.consumeGrowth;
 
         var activityEnabled = document.getElementById('activityEnabled');
-        if (activityEnabled) activityEnabled.checked = !!rule.activityEnabled;
+        if (activityEnabled) {
+            activityEnabled.checked = ACTIVITY_PENDING ? false : !!rule.activityEnabled;
+        }
 
         var list = document.getElementById('activityRuleList');
         if (list) {
@@ -141,7 +163,9 @@
         var consumeEnabled = !!(document.getElementById('consumeEnabled') || {}).checked;
         var consumeAmount = Number((document.getElementById('consumeAmount') || {}).value);
         var consumeGrowth = Number((document.getElementById('consumeGrowth') || {}).value);
-        var activityEnabled = !!(document.getElementById('activityEnabled') || {}).checked;
+        var activityEnabled = ACTIVITY_PENDING
+            ? false
+            : !!(document.getElementById('activityEnabled') || {}).checked;
 
         var activities = {};
         var list = document.getElementById('activityRuleList');
@@ -184,7 +208,7 @@
                 return false;
             }
         }
-        if (rule.activityEnabled) {
+        if (!ACTIVITY_PENDING && rule.activityEnabled) {
             var keys = Object.keys(rule.activities);
             var anyEnabled = false;
             for (var i = 0; i < keys.length; i++) {
@@ -205,8 +229,10 @@
                 return false;
             }
         }
-        if (!rule.consumeEnabled && !rule.activityEnabled) {
-            toast('请至少开启一种成长值获取方式（消费或活跃）', 'warning');
+        if (!rule.consumeEnabled && !(rule.activityEnabled && !ACTIVITY_PENDING)) {
+            toast(ACTIVITY_PENDING
+                ? '请开启消费获成长值'
+                : '请至少开启一种成长值获取方式（消费或活跃）', 'warning');
             return false;
         }
         return true;
@@ -228,7 +254,9 @@
         if (consumeEnabled) consumeEnabled.addEventListener('change', syncConsumeUI);
 
         var activityEnabled = document.getElementById('activityEnabled');
-        if (activityEnabled) activityEnabled.addEventListener('change', syncActivityUI);
+        if (activityEnabled && !ACTIVITY_PENDING) {
+            activityEnabled.addEventListener('change', syncActivityUI);
+        }
 
         var resetBtn = document.getElementById('btnRuleReset');
         if (resetBtn) {

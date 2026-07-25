@@ -152,6 +152,30 @@
         .member-level-rule-strategy strong {
             color: #ff7019;
         }
+        .member-level-rule-pending-badge {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 0 6px;
+            height: 18px;
+            line-height: 18px;
+            font-size: 12px;
+            font-weight: 400;
+            color: #999;
+            background: #f0f0f0;
+            border-radius: 2px;
+            vertical-align: middle;
+        }
+        .member-level-rule-card--pending {
+            opacity: 0.72;
+        }
+        .member-level-rule-card--pending .member-level-rule-card__body {
+            pointer-events: none;
+            user-select: none;
+        }
+        .member-level-rule-card--pending .member-level-rule-radio-label,
+        .member-level-rule-card--pending .member-level-check-label {
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -166,7 +190,7 @@
             <div class="content-title">会员 / 会员体系 / 成长值规则</div>
 
             <div class="flow-box">
-                成长值可通过<strong>消费</strong>与<strong>活跃</strong>两种方式获取。
+                成长值可通过<strong>消费</strong>获取（<strong>活跃</strong>获成长值待开发）。
                 会员等级升降级：当前有效成长值满足某等级门槛即可升级（达标后立即生效）；不满足则降级（每日统一处理）。
                 成长值有效期可在下方自行配置，过期成长值将失效并可能触发降级。
             </div>
@@ -246,15 +270,19 @@
                     </div>
                 </div>
 
-                <div class="member-level-rule-card">
-                    <div class="member-level-rule-card__title">活跃获取成长值</div>
+                <div class="member-level-rule-card member-level-rule-card--pending" id="activityRuleCard">
+                    <div class="member-level-rule-card__title">
+                        活跃获取成长值
+                        <span class="member-level-rule-pending-badge">待开发</span>
+                    </div>
                     <div class="member-level-rule-card__body">
+                        <div class="member-level-rule-tip" style="margin:0 0 14px;">该能力待开发，暂不可配置。</div>
                         <div class="member-level-rule-field">
                             <label class="member-level-rule-field__label">规则开关</label>
                             <div class="member-level-rule-field__control">
                                 <div class="member-level-rule-radio-row">
                                     <label class="member-level-rule-radio-label">
-                                        <input type="checkbox" id="activityEnabled" checked> 开启活跃获成长值
+                                        <input type="checkbox" id="activityEnabled" disabled> 开启活跃获成长值
                                     </label>
                                 </div>
                             </div>
@@ -265,50 +293,50 @@
                                 <div class="member-level-rule-activity-list" id="activityRuleList">
                                     <div class="member-level-rule-activity-row" data-activity="signin">
                                         <label class="member-level-check-label" style="display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;">
-                                            <input type="checkbox" data-act-enable checked>
+                                            <input type="checkbox" data-act-enable disabled>
                                             <span class="member-level-rule-activity-row__name">每日签到</span>
                                         </label>
                                         <span class="member-level-rule-unit__text">每次获得</span>
-                                        <input class="erp-input" type="number" min="0" step="1" value="5" data-act-growth>
+                                        <input class="erp-input" type="number" min="0" step="1" value="5" data-act-growth disabled>
                                         <span class="member-level-rule-unit__text">成长值</span>
                                         <span class="member-level-rule-unit__text">每日上限</span>
-                                        <input class="erp-input" type="number" min="0" step="1" value="5" data-act-limit>
+                                        <input class="erp-input" type="number" min="0" step="1" value="5" data-act-limit disabled>
                                         <span class="member-level-rule-unit__text">分</span>
                                     </div>
                                     <div class="member-level-rule-activity-row" data-activity="browse">
                                         <label class="member-level-check-label" style="display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;">
-                                            <input type="checkbox" data-act-enable checked>
+                                            <input type="checkbox" data-act-enable disabled>
                                             <span class="member-level-rule-activity-row__name">浏览商品</span>
                                         </label>
                                         <span class="member-level-rule-unit__text">每次获得</span>
-                                        <input class="erp-input" type="number" min="0" step="1" value="1" data-act-growth>
+                                        <input class="erp-input" type="number" min="0" step="1" value="1" data-act-growth disabled>
                                         <span class="member-level-rule-unit__text">成长值</span>
                                         <span class="member-level-rule-unit__text">每日上限</span>
-                                        <input class="erp-input" type="number" min="0" step="1" value="10" data-act-limit>
+                                        <input class="erp-input" type="number" min="0" step="1" value="10" data-act-limit disabled>
                                         <span class="member-level-rule-unit__text">分</span>
                                     </div>
                                     <div class="member-level-rule-activity-row" data-activity="share">
                                         <label class="member-level-check-label" style="display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;">
-                                            <input type="checkbox" data-act-enable>
+                                            <input type="checkbox" data-act-enable disabled>
                                             <span class="member-level-rule-activity-row__name">分享邀请</span>
                                         </label>
                                         <span class="member-level-rule-unit__text">每次获得</span>
-                                        <input class="erp-input" type="number" min="0" step="1" value="20" data-act-growth>
+                                        <input class="erp-input" type="number" min="0" step="1" value="20" data-act-growth disabled>
                                         <span class="member-level-rule-unit__text">成长值</span>
                                         <span class="member-level-rule-unit__text">每日上限</span>
-                                        <input class="erp-input" type="number" min="0" step="1" value="40" data-act-limit>
+                                        <input class="erp-input" type="number" min="0" step="1" value="40" data-act-limit disabled>
                                         <span class="member-level-rule-unit__text">分</span>
                                     </div>
                                     <div class="member-level-rule-activity-row" data-activity="review">
                                         <label class="member-level-check-label" style="display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;">
-                                            <input type="checkbox" data-act-enable checked>
+                                            <input type="checkbox" data-act-enable disabled>
                                             <span class="member-level-rule-activity-row__name">评价订单</span>
                                         </label>
                                         <span class="member-level-rule-unit__text">每次获得</span>
-                                        <input class="erp-input" type="number" min="0" step="1" value="10" data-act-growth>
+                                        <input class="erp-input" type="number" min="0" step="1" value="10" data-act-growth disabled>
                                         <span class="member-level-rule-unit__text">成长值</span>
                                         <span class="member-level-rule-unit__text">每日上限</span>
-                                        <input class="erp-input" type="number" min="0" step="1" value="30" data-act-limit>
+                                        <input class="erp-input" type="number" min="0" step="1" value="30" data-act-limit disabled>
                                         <span class="member-level-rule-unit__text">分</span>
                                     </div>
                                 </div>

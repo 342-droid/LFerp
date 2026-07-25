@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>会员资料 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-profile.css">
+  <link rel="stylesheet" href="../css/user-app-profile-edit.css">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-pe-page">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-pe-scroll">
+      <div class="ua-status-bar ua-pe-status">
+        <span>9:41</span>
+        <span class="ua-status-bar__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#111"><path d="M1 7h2v4H1V7zm4-2h2v6H5V5zm4-3h2v9H9V2zm4 5h2v4h-2V7z"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="#111"><path d="M8 2.4C10.8 2.4 13.2 3.6 15 5.6 15.2 5.8 15.5 5.8 15.7 5.6 15.9 5.4 15.9 5.1 15.7 4.9 13.6 2.6 10.9 1.2 8 1.2S2.4 2.6.3 4.9C.1 5.1.1 5.4.3 5.6.5 5.8.8 5.8 1 5.6 2.8 3.6 5.2 2.4 8 2.4zm0 3.6c1.8 0 3.4.8 4.5 2.1.2.2.5.2.7 0 .2-.2.2-.5 0-.7C11.9 5.4 10.1 4.4 8 4.4S4.1 5.4 2.8 6.9c-.2.2-.2.5 0 .7.2.2.5.2.7 0C4.6 6.8 6.2 6 8 6zm0 3c1 0 1.8.5 2.4 1.2.2.2.5.2.7 0 .2-.2.2-.5 0-.7C10.3 9.2 9.2 8.6 8 8.6S5.7 9.2 4.9 10.5c-.2.2-.2.5 0 .7.2.2.5.2.7 0 .6-.7 1.4-1.2 2.4-1.2z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="20" height="11" rx="2.5" stroke="#111" opacity=".35"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#111"/><path d="M22 4.5v3a1.5 1.5 0 000-3z" fill="#111" opacity=".4"/></svg>
+        </span>
+      </div>
+
+      <header class="ua-pe-nav">
+        <a href="profile.html" class="ua-pe-nav__back" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="ua-pe-nav__title">会员资料</h1>
+        <button type="button" class="ua-pe-nav__save" id="peSaveBtn">保存</button>
+      </header>
+
+      <div class="ua-pe-body">
+        <section class="ua-pe-card">
+          <button type="button" class="ua-pe-avatar-row" id="peAvatarBtn">
+            <span class="ua-pe-label">头像</span>
+            <span class="ua-pe-avatar">
+              <img id="peAvatarImg" src="../assets/profile-avatar.svg" alt="头像">
+            </span>
+            <span class="ua-pe-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+            </span>
+          </button>
+          <input type="file" id="peAvatarInput" accept="image/*" hidden>
+
+          <label class="ua-pe-row" for="peNickname">
+            <span class="ua-pe-label">昵称</span>
+            <input type="text" id="peNickname" class="ua-pe-input" maxlength="20" placeholder="请输入昵称">
+          </label>
+
+          <div class="ua-pe-row ua-pe-row--readonly">
+            <span class="ua-pe-label">手机号</span>
+            <span class="ua-pe-value" id="pePhoneText">—</span>
+            <input type="hidden" id="pePhone" value="">
+          </div>
+
+          <div class="ua-pe-row ua-pe-row--stack">
+            <button type="button" class="ua-pe-row__main ua-pe-row__main--action" id="peBirthdayBtn">
+              <span class="ua-pe-label">生日</span>
+              <span class="ua-pe-value ua-pe-value--placeholder" id="peBirthdayText">请选择生日</span>
+              <span class="ua-pe-arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+              </span>
+            </button>
+            <input type="hidden" id="peBirthday" value="">
+            <span class="ua-pe-tip">完善生日信息，才可享受生日惊喜福利~</span>
+          </div>
+
+          <button type="button" class="ua-pe-row ua-pe-row--action" id="peDistrictBtn">
+            <span class="ua-pe-label">所在城区</span>
+            <span class="ua-pe-value ua-pe-value--placeholder" id="peDistrictText">请选择所在城区</span>
+            <span class="ua-pe-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+            </span>
+          </button>
+          <input type="hidden" id="peDistrict" value="">
+        </section>
+      </div>
+    </div>
+
+    <div class="ua-pe-sheet" id="peBirthdaySheet" hidden>
+      <div class="ua-pe-sheet__mask" data-pe-birthday-close></div>
+      <div class="ua-pe-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="peBirthdayTitle">
+        <div class="ua-pe-sheet__head">
+          <button type="button" class="ua-pe-sheet__cancel" data-pe-birthday-close>取消</button>
+          <h3 id="peBirthdayTitle">选择生日</h3>
+          <button type="button" class="ua-pe-sheet__ok" id="peBirthdayConfirm">确定</button>
+        </div>
+        <div class="ua-pe-region">
+          <div class="ua-pe-region__heads">
+            <span>年</span><span>月</span><span>日</span>
+          </div>
+          <div class="ua-pe-region__wheels">
+            <div class="ua-pe-region__indicator" aria-hidden="true"></div>
+            <div class="ua-pe-region-wheel" id="peYearWheel"></div>
+            <div class="ua-pe-region-wheel" id="peMonthWheel"></div>
+            <div class="ua-pe-region-wheel" id="peDayWheel"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ua-pe-sheet" id="peRegionSheet" hidden>
+      <div class="ua-pe-sheet__mask" data-pe-region-close></div>
+      <div class="ua-pe-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="peRegionTitle">
+        <div class="ua-pe-sheet__head">
+          <button type="button" class="ua-pe-sheet__cancel" data-pe-region-close>取消</button>
+          <h3 id="peRegionTitle">选择所在城区</h3>
+          <button type="button" class="ua-pe-sheet__ok" id="peRegionConfirm">确定</button>
+        </div>
+        <div class="ua-pe-region">
+          <div class="ua-pe-region__heads">
+            <span>省</span><span>市</span><span>区</span>
+          </div>
+          <div class="ua-pe-region__wheels">
+            <div class="ua-pe-region__indicator" aria-hidden="true"></div>
+            <div class="ua-pe-region-wheel" id="peProvWheel"></div>
+            <div class="ua-pe-region-wheel" id="peCityWheel"></div>
+            <div class="ua-pe-region-wheel" id="peDistWheel"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ua-pe-toast" id="peToast" role="status" aria-live="polite" hidden></div>
+  </div>
+  <script src="../js/user-app-nav.js?v=20260725-back"></script>
+  <script src="../js/user-app-profile.js"></script>
+  <script src="../js/user-app-profile-edit.js?v=20260725-back"></script>
+</body>
+</html>

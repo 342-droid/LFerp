@@ -2739,6 +2739,164 @@
         }, 0);
     }
 
+    function syncCMemberRowsToTable() {
+        var MEMBER_LIST_KEY = 'mdm_member_c_list_v1';
+        var PROFILE_KEY = 'ua_member_profile_v1';
+        var C_MEMBER_ID = 'UC10001';
+        var tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+
+        function maskPhone(phone) {
+            var s = String(phone || '').replace(/\D/g, '');
+            if (s.length < 7) return phone || '—';
+            return s.slice(0, 3) + '****' + s.slice(-4);
+        }
+
+        function loadSyncedMembers() {
+            var list = [];
+            try {
+                var raw = localStorage.getItem(MEMBER_LIST_KEY);
+                if (raw) {
+                    var parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) list = parsed;
+                }
+            } catch (e) { /* ignore */ }
+
+            /* 兼容：仅保存过 C 端资料、尚未写入会员列表时，现场补一条 */
+            if (!list.length) {
+                try {
+                    var pref = localStorage.getItem(PROFILE_KEY);
+                    if (pref) {
+                        var profile = JSON.parse(pref) || {};
+                        var nick = profile.nickname || '宁静致远';
+                        var phone = profile.displayPhone || '15589069061';
+                        var levelName = '普通会员';
+                        try {
+                            var levelsRaw = localStorage.getItem('mdm_member_level_list_v1');
+                            var levels = levelsRaw ? JSON.parse(levelsRaw) : null;
+                            if (Array.isArray(levels) && levels.length) {
+                                var growth = 1485;
+                                var sorted = levels
+                                    .filter(function (it) {
+                                        return it && it.status !== '禁用';
+                                    })
+                                    .sort(function (a, b) {
+                                        return Number(a.growthValue || 0) - Number(b.growthValue || 0);
+                                    });
+                                sorted.forEach(function (lv) {
+                                    if (growth >= Number(lv.growthValue || 0)) levelName = lv.name;
+                                });
+                            }
+                        } catch (e2) { /* ignore */ }
+                        list = [
+                            {
+                                id: C_MEMBER_ID,
+                                nickname: nick,
+                                avatarText: String(nick).charAt(0) || '会',
+                                phone: phone,
+                                phoneMasked: maskPhone(phone),
+                                gender: '未知',
+                                isMember: '是',
+                                level: levelName,
+                                tags: 'C端注册',
+                                source: '微信小程序',
+                                bindMethod: '手机',
+                                channelCount: '1',
+                                points: '500',
+                                satisMinutes: '0',
+                                satisFeedback: '0',
+                                growthScore: '1485',
+                                amount: '0.00',
+                                orderCount: '0',
+                                lastConsume: '—',
+                                status: '正常',
+                                birthday: profile.birthday || '',
+                                district: profile.district || ''
+                            }
+                        ];
+                        localStorage.setItem(MEMBER_LIST_KEY, JSON.stringify(list));
+                    }
+                } catch (e3) { /* ignore */ }
+            }
+            return list;
+        }
+
+        function buildRow(m) {
+            var tr = document.createElement('tr');
+            tr.setAttribute('data-c-member', '1');
+            tr.setAttribute('data-member-id', m.id || C_MEMBER_ID);
+            if (m.birthday) tr.setAttribute('data-birthday', m.birthday);
+            if (m.district) tr.setAttribute('data-district', m.district);
+            if (m.phone) tr.setAttribute('data-phone-full', m.phone);
+
+            var phoneShow = m.phoneMasked || maskPhone(m.phone) || m.phone || '—';
+            var avatarText = m.avatarText || String(m.nickname || '会').charAt(0);
+            var cells = [
+                m.id || C_MEMBER_ID,
+                m.nickname || '—',
+                null,
+                phoneShow,
+                m.gender || '未知',
+                m.isMember || '是',
+                m.level || '普通会员',
+                m.tags || 'C端注册',
+                m.source || '微信小程序',
+                m.bindMethod || '手机',
+                m.channelCount || '1',
+                m.points || '500',
+                m.satisMinutes || '0',
+                m.satisFeedback || '0',
+                m.growthScore || '1485',
+                m.amount || '0.00',
+                m.orderCount || '0',
+                m.lastConsume || '—',
+                null,
+                null
+            ];
+            cells.forEach(function (val, idx) {
+                var td = document.createElement('td');
+                if (idx === 2) {
+                    var span = document.createElement('span');
+                    span.style.cssText =
+                        'display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;background:#e8f5ef;color:#0b5c3b;font-weight:600;';
+                    span.textContent = avatarText;
+                    td.appendChild(span);
+                } else if (idx === 18) {
+                    var st = document.createElement('span');
+                    st.className = 'status active';
+                    st.textContent = m.status || '正常';
+                    td.appendChild(st);
+                } else if (idx === 19) {
+                    td.className = 'action-links';
+                    td.innerHTML =
+                        '<a href="#" class="mdm-mem-detail">查看详情</a>　' +
+                        '<a href="#" class="mdm-mem-coupon">优惠券</a>　' +
+                        '<a href="#" class="mdm-mem-points">积分</a>　' +
+                        '<a href="#" class="mdm-mem-growth">调整成长值</a>';
+                } else {
+                    td.textContent = val;
+                }
+                tr.appendChild(td);
+            });
+            return tr;
+        }
+
+        var members = loadSyncedMembers();
+        if (!members.length) return;
+
+        /* 先移除旧的 C 端同步行，再按最新数据插入表头 */
+        tbody.querySelectorAll('tr[data-c-member="1"]').forEach(function (tr) {
+            tr.remove();
+        });
+        members
+            .slice()
+            .reverse()
+            .forEach(function (m) {
+                if (!m || !m.id) return;
+                tbody.insertBefore(buildRow(m), tbody.firstChild);
+            });
+    }
+
     function initMemberC() {
         var pm = new PageManager({
             entityName: '会员管理',
@@ -2780,16 +2938,28 @@
                             window.MdmMemberCUi.openPointsFromRow(el.closest('tr'));
                         }
                     }
+                },
+                {
+                    selector: '.mdm-mem-growth',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (window.MdmMemberCUi) {
+                            window.MdmMemberCUi.openGrowthFromRow(el.closest('tr'));
+                        }
+                    }
                 }
             ]
         });
+        // 将 C 端已保存会员资料同步进列表（localStorage）
+        syncCMemberRowsToTable();
         pm.init();
         bindSimpleFilter(pm, {
-            resetFields: ['qMemberId', 'qBindWay', 'qPhone', 'qMemberLevel', 'qMemberTag'],
+            resetFields: ['qMemberId', 'qNickname', 'qBindWay', 'qPhone', 'qMemberLevel', 'qMemberTag'],
             filterFn: function (p) {
                 var tbody = document.getElementById(p.config.tableBodyId);
                 if (!tbody) return;
                 var qId = (document.getElementById('qMemberId') || {}).value.trim();
+                var qNick = (document.getElementById('qNickname') || {}).value.trim();
                 var qB = (document.getElementById('qBindWay') || {}).value.trim();
                 var qP = ((document.getElementById('qPhone') || {}).value || '').replace(/\D/g, '');
                 var qLevel = (document.getElementById('qMemberLevel') || {}).value.trim();
@@ -2799,6 +2969,7 @@
                     if (c.length < 18) return;
                     var ok = true;
                     if (qId && c[0].textContent.trim().indexOf(qId) === -1) ok = false;
+                    if (qNick && c[1].textContent.trim().indexOf(qNick) === -1) ok = false;
                     if (qB && c[9].textContent.trim() !== qB) ok = false;
                     if (qP && c[3].textContent.replace(/\D/g, '').indexOf(qP) === -1) ok = false;
                     if (qLevel && c[6].textContent.trim() !== qLevel) ok = false;
@@ -2808,16 +2979,43 @@
                 p.refreshPagination();
             }
         });
+        // 会员等级下拉：优先读取后台已配置等级
+        try {
+            var levelElInit = document.getElementById('qMemberLevel');
+            if (levelElInit) {
+                var levelRaw = localStorage.getItem('mdm_member_level_list_v1');
+                var levelList = levelRaw ? JSON.parse(levelRaw) : null;
+                if (Array.isArray(levelList) && levelList.length) {
+                    var keep = levelElInit.value || '';
+                    levelElInit.innerHTML = '<option value="">全部</option>';
+                    levelList
+                        .slice()
+                        .sort(function (a, b) {
+                            return Number(a.growthValue || 0) - Number(b.growthValue || 0);
+                        })
+                        .forEach(function (item) {
+                            if (!item || !item.name) return;
+                            var opt = document.createElement('option');
+                            opt.value = item.name;
+                            opt.textContent = item.name;
+                            levelElInit.appendChild(opt);
+                        });
+                    if (keep) levelElInit.value = keep;
+                }
+            }
+        } catch (eLevel) { /* ignore */ }
         // 支持从会员等级 / 会员标签 / 成长值明细跳转携带筛选参数
         try {
             var params = new URLSearchParams(window.location.search || '');
             var levelParam = params.get('level');
             var tagParam = params.get('tag');
             var memberIdParam = params.get('memberId');
+            var nicknameParam = params.get('nickname');
             var openDetail = params.get('detail') === '1';
             var levelEl = document.getElementById('qMemberLevel');
             var tagEl = document.getElementById('qMemberTag');
             var memberIdEl = document.getElementById('qMemberId');
+            var nicknameEl = document.getElementById('qNickname');
             if (levelParam && levelEl) {
                 levelEl.value = levelParam;
                 if (!levelEl.value) {
@@ -2830,7 +3028,8 @@
             }
             if (tagParam && tagEl) tagEl.value = tagParam;
             if (memberIdParam && memberIdEl) memberIdEl.value = memberIdParam;
-            if (levelParam || tagParam || memberIdParam) {
+            if (nicknameParam && nicknameEl) nicknameEl.value = nicknameParam;
+            if (levelParam || tagParam || memberIdParam || nicknameParam) {
                 var queryBtn = document.getElementById('btnFilterQuery');
                 if (queryBtn) queryBtn.click();
             }

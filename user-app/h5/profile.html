@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../css/user-app-shop.css?v=20260723-shop">
 </head>
 <body class="user-app-body">
-  <div class="ua-mobile-shell">
+  <div class="ua-mobile-shell ua-profile-page">
     <div class="ua-mp-capsule" aria-hidden="true">
       <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
       <span class="ua-mp-capsule__ring"></span>
@@ -30,24 +30,32 @@
       <header class="ua-profile-head">
         <div class="ua-profile-user">
           <div class="ua-profile-avatar">
-            <img src="../assets/profile-avatar.svg" alt="头像">
+            <img id="uaProfileAvatar" src="../assets/profile-avatar.svg" alt="头像">
           </div>
           <div class="ua-profile-meta">
             <div class="ua-profile-name-row">
-              <span class="ua-profile-name">宁静致远</span>
-              <a href="member-center.html" class="ua-profile-level">
-                <span class="ua-profile-level__v"><span>V</span></span>
-                普通会员
+              <span class="ua-profile-name" id="uaProfileName">宁静致远</span>
+              <a href="member-center.html?from=profile.html" class="ua-profile-level" id="uaProfileLevel">
+                <img class="ua-profile-level__icon" id="uaProfileLevelIcon" src="" alt="" hidden>
+                <span class="ua-profile-level__name" id="uaProfileLevelName">普通会员</span>
               </a>
             </div>
-            <div class="ua-profile-phone">155****9061</div>
+            <div class="ua-profile-phone" id="uaProfilePhone">155****9061</div>
           </div>
-          <button type="button" class="ua-profile-settings" aria-label="设置">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-              <path d="M12 2l2.2 1.3 2.5-.3 1.3 2.2 2.2 1.3-.3 2.5 1.3 2.2-1.3 2.2.3 2.5-1.3 2.2-2.2 1.3-1.3 2.2-2.5-.3L12 22l-2.2-1.3-2.5.3-1.3-2.2-2.2-1.3.3-2.5-1.3-2.2 1.3-2.2-.3-2.5 1.3-2.2 2.2-1.3 1.3-2.2 2.5.3L12 2z"/>
-              <circle cx="12" cy="12" r="3.5"/>
-            </svg>
-          </button>
+          <div class="ua-profile-actions">
+            <a href="profile-edit.html?from=profile.html" class="ua-profile-edit" aria-label="编辑资料">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12.5 5.5l6 6"/>
+                <path d="M4 20l.8-3.8L16.7 4.3a1.8 1.8 0 012.5 0l.5.5a1.8 1.8 0 010 2.5L7.8 19.2 4 20z"/>
+              </svg>
+            </a>
+            <button type="button" class="ua-profile-settings" aria-label="设置">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                <path d="M12 2l2.2 1.3 2.5-.3 1.3 2.2 2.2 1.3-.3 2.5 1.3 2.2-1.3 2.2.3 2.5-1.3 2.2-2.2 1.3-1.3 2.2-2.5-.3L12 22l-2.2-1.3-2.5.3-1.3-2.2-2.2-1.3.3-2.5-1.3-2.2 1.3-2.2-.3-2.5 1.3-2.2 2.2-1.3 1.3-2.2 2.5.3L12 2z"/>
+                <circle cx="12" cy="12" r="3.5"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -61,7 +69,7 @@
               <span>冷丰会员</span>
             </div>
             <span class="ua-vip-card__head-divider" aria-hidden="true"></span>
-            <a href="member-center.html" class="ua-vip-card__head-right">
+            <a href="member-center.html?from=profile.html" class="ua-vip-card__head-right">
               <span>您当前会员等级：Lv1</span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
             </a>
@@ -240,6 +248,7 @@
   <script src="../js/user-app-queue.js"></script>
   <script src="../js/user-app-auth.js"></script>
   <script src="../js/user-app-shop.js?v=20260723-shop"></script>
+  <script src="../js/user-app-profile.js"></script>
   <script>UAShop.ensureCart(); UAShop.syncBadges();</script>
 </body>
 </html>

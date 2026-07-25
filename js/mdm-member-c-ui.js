@@ -97,14 +97,18 @@
             phone: String(z(m.phone, '—')),
             gender: String(z(m.gender, '—')),
             isMember: String(z(m.isMember, '—')),
+            level: String(z(m.level, '普通会员')),
             tags: String(z(m.tags, '—')),
             source: String(z(m.source, '—')),
+            birthday: String(z(m.birthday, '')),
+            district: String(z(m.district, '')),
             bindMethod: String(z(m.bindMethod, '—')),
             channelCount: String(z(m.channelCount, '—')),
             points: String(z(m.points, '—')),
             satisMinutes: String(z(m.satisMinutes, '—')),
             satisFeedback: String(z(m.satisFeedback, '—')),
-            growthScore: String(z(m.growthScore, '—')),
+            growthScore: String(z(m.growthScore, '1485')),
+            growthTotal: String(z(m.growthTotal, '3260')),
             amount: String(z(m.amount, '—')),
             orderCount: String(z(m.orderCount, '—')),
             lastConsume: String(z(m.lastConsume, '—')),
@@ -115,6 +119,8 @@
             watchTotalMin: m.watchTotalMin != null ? String(m.watchTotalMin) : String(z(m.satisMinutes, '341')),
             liveWatchCount: m.liveWatchCount != null ? String(m.liveWatchCount) : String(z(m.satisFeedback, '342')),
             firstLogin: m.firstLogin != null ? String(m.firstLogin) : '2021-09-09 13:00',
+            inviteMemberId: String(z(m.inviteMemberId, 'U10088')),
+            inviteNickname: String(z(m.inviteNickname, '邀请达人小王')),
             latestLogin: m.latestLogin != null ? String(m.latestLogin) : '2021-09-19 13:00',
             latestBindStore: m.latestBindStore != null ? String(m.latestBindStore) : '—',
             phoneBrand: m.phoneBrand != null ? String(m.phoneBrand) : '—',
@@ -128,7 +134,7 @@
         var c = tr.querySelectorAll('td');
         if (c.length < 19) return null;
         var av = c[2].querySelector('span');
-        return {
+        var base = {
             id: c[0].textContent.trim(),
             nickname: c[1].textContent.trim(),
             avatarText: av ? av.textContent.trim() : '',
@@ -149,6 +155,29 @@
             lastConsume: c[17].textContent.trim(),
             status: (c[18].querySelector('.status') || c[18]).textContent.trim()
         };
+        if (tr.getAttribute('data-birthday')) base.birthday = tr.getAttribute('data-birthday');
+        if (tr.getAttribute('data-district')) base.district = tr.getAttribute('data-district');
+        if (tr.getAttribute('data-phone-full')) base.phone = tr.getAttribute('data-phone-full');
+
+        /* 再从同步列表补全生日 / 城区等扩展字段 */
+        try {
+            var raw = localStorage.getItem('mdm_member_c_list_v1');
+            if (raw) {
+                var list = JSON.parse(raw);
+                if (Array.isArray(list)) {
+                    for (var i = 0; i < list.length; i++) {
+                        if (list[i] && list[i].id === base.id) {
+                            if (list[i].birthday) base.birthday = list[i].birthday;
+                            if (list[i].district) base.district = list[i].district;
+                            if (list[i].phone) base.phone = list[i].phone;
+                            if (list[i].growthTotal) base.growthTotal = list[i].growthTotal;
+                            break;
+                        }
+                    }
+                }
+            }
+        } catch (e) { /* ignore */ }
+        return base;
     }
 
     function wrapTable(headers, rows, wrapExtraClass) {
@@ -197,6 +226,8 @@
             ['会员等级', rec.level || '—'],
             ['会员标签', rec.tags],
             ['会员来源', rec.source],
+            ['生日', rec.birthday || '—'],
+            ['所在城区', rec.district],
             ['绑定方式', rec.bindMethod],
             ['绑定门店数量', rec.bindStoreCount],
             ['上级推荐人', rec.superiorReferrer, refDangerMod(rec.superiorReferrer)],
@@ -209,6 +240,7 @@
             ['成交订单数', rec.orderCount],
             ['最近消费时间', rec.lastConsume],
             ['第一次登录时间', rec.firstLogin],
+            ['注册邀请人', rec.inviteMemberId + ' / ' + rec.inviteNickname],
             ['最近登录时间', rec.latestLogin],
             ['最近绑定门店名称', rec.latestBindStore],
             ['手机品牌', rec.phoneBrand],
@@ -275,6 +307,332 @@
         ];
         root.appendChild(wrapTable(cpHeaders, cpRows, 'member-drawer-table--center'));
         root.appendChild(fakePaginationBar());
+        return root;
+    }
+
+    function mkField(label, control) {
+        var field = el('div', 'erp-field');
+        field.appendChild(el('div', 'erp-field__label', label));
+        field.appendChild(control);
+        return field;
+    }
+
+    function mkInput(placeholder, type) {
+        var inp = document.createElement('input');
+        inp.className = 'erp-input';
+        inp.type = type || 'text';
+        if (placeholder) inp.placeholder = placeholder;
+        return inp;
+    }
+
+    function mkSelect(options) {
+        var sel = document.createElement('select');
+        sel.className = 'erp-select';
+        (options || []).forEach(function (opt) {
+            var o = document.createElement('option');
+            o.value = opt.value;
+            o.textContent = opt.label;
+            sel.appendChild(o);
+        });
+        return sel;
+    }
+
+    function mockGrowthRows(rec) {
+        return [
+            {
+                occurAt: '2026-07-20 14:20:03',
+                acquireType: '购物消费',
+                acquireSub: '订单完成',
+                change: '+86',
+                afterValue: String(rec.growthScore || '1485'),
+                status: '有效',
+                refNo: 'ORD-3212689201598341',
+                remark: '订单实付 ¥86.00'
+            },
+            {
+                occurAt: '2026-07-18 08:01:12',
+                acquireType: '用户活跃',
+                acquireSub: '每日签到',
+                change: '+5',
+                afterValue: '1399',
+                status: '有效',
+                refNo: '—',
+                remark: '每日签到'
+            },
+            {
+                occurAt: '2026-06-12 19:33:41',
+                acquireType: '购物消费',
+                acquireSub: '订单完成',
+                change: '+129',
+                afterValue: '1394',
+                status: '有效',
+                refNo: 'ORD-3212689201588561',
+                remark: '订单实付 ¥129.50'
+            },
+            {
+                occurAt: '2026-05-24 21:15:08',
+                acquireType: '购物消费',
+                acquireSub: '售后完成',
+                change: '-30',
+                afterValue: '1265',
+                status: '有效',
+                refNo: 'AS202605240018',
+                remark: '售后退款扣减成长值'
+            },
+            {
+                occurAt: '2025-12-01 10:00:00',
+                acquireType: '手工调整',
+                acquireSub: '手工增加',
+                change: '+200',
+                afterValue: '980',
+                status: '过期',
+                refNo: '—',
+                remark: '活动补偿'
+            },
+            {
+                occurAt: '2025-08-08 16:45:09',
+                acquireType: '用户活跃',
+                acquireSub: '评价订单',
+                change: '+10',
+                afterValue: '780',
+                status: '过期',
+                refNo: 'ORD-3212689201584693',
+                remark: '评价订单'
+            }
+        ];
+    }
+
+    function panelMemberGrowth(rec) {
+        var root = el('div', 'member-drawer-panel');
+
+        var sectionHead = el('div', 'member-growth-section-head');
+        sectionHead.appendChild(el('div', 'supplier-detail-section-title', '成长值'));
+        var btnAdjustGrowth = mkBtn('调整成长值', true);
+        sectionHead.appendChild(btnAdjustGrowth);
+        root.appendChild(sectionHead);
+
+        var summary = el('div', 'member-growth-summary');
+        [
+            ['当前等级', rec.level || '—'],
+            ['成长值', rec.growthScore || '—'],
+            ['累计成长值', rec.growthTotal || '—']
+        ].forEach(function (item) {
+            var card = el('div', 'member-growth-summary__item');
+            card.appendChild(el('div', 'member-growth-summary__label', item[0]));
+            card.appendChild(el('div', 'member-growth-summary__value', item[1]));
+            summary.appendChild(card);
+        });
+        root.appendChild(summary);
+
+        var SUB_OPTIONS = {
+            购物消费: [
+                { value: '订单完成', label: '订单完成' },
+                { value: '售后完成', label: '售后完成' }
+            ],
+            用户活跃: [
+                { value: '每日签到', label: '每日签到' },
+                { value: '浏览商品', label: '浏览商品' },
+                { value: '分享邀请', label: '分享邀请' },
+                { value: '评价订单', label: '评价订单' }
+            ],
+            手工调整: [
+                { value: '手工增加', label: '手工增加' },
+                { value: '手工减少', label: '手工减少' }
+            ]
+        };
+        var SUB_LABELS = {
+            购物消费: '明细类型',
+            用户活跃: '活跃行为',
+            手工调整: '调整类型'
+        };
+
+        var allRows = mockGrowthRows(rec);
+        var state = { timeStart: '', timeEnd: '', acquireType: '', acquireSub: '', status: '' };
+
+        var toolbar = el('div', 'erp-toolbar member-drawer-filter-toolbar');
+        var timeStart = mkInput('', 'datetime-local');
+        timeStart.step = '1';
+        var timeEnd = mkInput('', 'datetime-local');
+        timeEnd.step = '1';
+        var timeWrap = el('div', 'member-growth-time-range');
+        timeWrap.appendChild(timeStart);
+        timeWrap.appendChild(el('span', 'member-growth-time-range__sep', '至'));
+        timeWrap.appendChild(timeEnd);
+        toolbar.appendChild(mkField('获取时间', timeWrap));
+
+        var typeSel = mkSelect([
+            { value: '', label: '全部' },
+            { value: '购物消费', label: '购物消费' },
+            { value: '用户活跃', label: '用户活跃' },
+            { value: '手工调整', label: '手工调整' }
+        ]);
+        toolbar.appendChild(mkField('获取方式', typeSel));
+
+        var subSel = mkSelect([{ value: '', label: '全部' }]);
+        var subField = mkField('明细类型', subSel);
+        subField.style.display = 'none';
+        toolbar.appendChild(subField);
+
+        var statusSel = mkSelect([
+            { value: '', label: '全部' },
+            { value: '有效', label: '有效' },
+            { value: '过期', label: '过期' }
+        ]);
+        toolbar.appendChild(mkField('状态', statusSel));
+
+        var actions = el('div', 'erp-toolbar__actions');
+        var btnReset = mkBtn('重置', false);
+        btnReset.classList.add('erp-btn--outline-primary');
+        var btnQuery = mkBtn('查询', true);
+        actions.appendChild(btnReset);
+        actions.appendChild(btnQuery);
+        toolbar.appendChild(actions);
+        root.appendChild(toolbar);
+
+        var tableHost = el('div', 'member-growth-table-host');
+        root.appendChild(tableHost);
+        var pageHost = el('div', 'member-growth-page-host');
+        root.appendChild(pageHost);
+
+        function refreshSummary() {
+            var cards = summary.querySelectorAll('.member-growth-summary__value');
+            if (cards[0]) cards[0].textContent = rec.level || '—';
+            if (cards[1]) cards[1].textContent = rec.growthScore || '—';
+            if (cards[2]) cards[2].textContent = rec.growthTotal || '—';
+        }
+
+        function toComparable(v) {
+            return String(v || '').replace('T', ' ').slice(0, 19);
+        }
+
+        function nowStr() {
+            var d = new Date();
+            function pad(n) { return n < 10 ? '0' + n : String(n); }
+            return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+                ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+        }
+
+        btnAdjustGrowth.addEventListener('click', function () {
+            openGrowthAdjustModal(rec, {
+                onSuccess: function (result) {
+                    rec.growthScore = String(result.afterValue);
+                    if (result.change > 0) {
+                        rec.growthTotal = String((Number(rec.growthTotal) || 0) + result.change);
+                    }
+                    allRows.unshift({
+                        occurAt: result.occurAt || nowStr(),
+                        acquireType: '手工调整',
+                        acquireSub: result.change < 0 ? '手工减少' : '手工增加',
+                        change: (result.change > 0 ? '+' : '') + result.change,
+                        afterValue: String(result.afterValue),
+                        status: '有效',
+                        refNo: '—',
+                        remark: result.remark || '手工调整'
+                    });
+                    refreshSummary();
+                    renderList();
+                }
+            });
+        });
+
+        function syncSubSelect() {
+            var type = typeSel.value || '';
+            var options = SUB_OPTIONS[type] || [];
+            var labelEl = subField.querySelector('.erp-field__label');
+            empty(subSel);
+            var allOpt = document.createElement('option');
+            allOpt.value = '';
+            allOpt.textContent = '全部';
+            subSel.appendChild(allOpt);
+
+            if (!type || !options.length) {
+                subField.style.display = 'none';
+                subSel.value = '';
+                if (labelEl) labelEl.textContent = '明细类型';
+                return;
+            }
+
+            options.forEach(function (opt) {
+                var o = document.createElement('option');
+                o.value = opt.value;
+                o.textContent = opt.label;
+                subSel.appendChild(o);
+            });
+            if (labelEl) labelEl.textContent = SUB_LABELS[type] || '明细类型';
+            subField.style.display = '';
+            subSel.value = '';
+        }
+
+        function getFiltered() {
+            return allRows.filter(function (row) {
+                if (state.timeStart && toComparable(row.occurAt) < toComparable(state.timeStart)) return false;
+                if (state.timeEnd && toComparable(row.occurAt) > toComparable(state.timeEnd)) return false;
+                if (state.acquireType && row.acquireType !== state.acquireType) return false;
+                if (state.acquireSub && row.acquireSub !== state.acquireSub) return false;
+                if (state.status && row.status !== state.status) return false;
+                return true;
+            });
+        }
+
+        function renderList() {
+            var filtered = getFiltered();
+            empty(tableHost);
+            empty(pageHost);
+            var headers = ['获取时间', '获取方式', '明细类型', '变动值', '变动后成长值', '状态', '关联单号', '备注'];
+            var rows = filtered.map(function (row) {
+                return [
+                    row.occurAt,
+                    row.acquireType,
+                    row.acquireSub,
+                    row.change,
+                    row.afterValue,
+                    row.status,
+                    row.refNo,
+                    row.remark
+                ];
+            });
+            if (!rows.length) {
+                rows = [['—', '—', '—', '—', '—', '—', '—', '暂无匹配明细']];
+            }
+            tableHost.appendChild(wrapTable(headers, rows, 'member-drawer-table--wide'));
+            var bar = el('div', 'erp-pagination');
+            bar.appendChild(el('span', 'erp-pagination__total', '共 ' + filtered.length + ' 条'));
+            pageHost.appendChild(bar);
+        }
+
+        function readState() {
+            state.timeStart = timeStart.value || '';
+            state.timeEnd = timeEnd.value || '';
+            state.acquireType = typeSel.value || '';
+            state.acquireSub = subField.style.display === 'none' ? '' : (subSel.value || '');
+            state.status = statusSel.value || '';
+        }
+
+        typeSel.addEventListener('change', function () {
+            syncSubSelect();
+        });
+
+        btnQuery.addEventListener('click', function () {
+            readState();
+            if (state.timeStart && state.timeEnd && toComparable(state.timeStart) > toComparable(state.timeEnd)) {
+                window.alert('获取时间起始不能晚于结束时间');
+                return;
+            }
+            renderList();
+        });
+
+        btnReset.addEventListener('click', function () {
+            timeStart.value = '';
+            timeEnd.value = '';
+            typeSel.value = '';
+            statusSel.value = '';
+            syncSubSelect();
+            state = { timeStart: '', timeEnd: '', acquireType: '', acquireSub: '', status: '' };
+            renderList();
+        });
+
+        syncSubSelect();
+        renderList();
         return root;
     }
 
@@ -378,12 +736,13 @@
         );
 
         var tabsWrap = el('div', 'store-drawer__tabs');
-        var tabIds = ['detail', 'assets', 'stores', 'watch', 'orders'];
-        var tabLabels = ['会员详情', '会员资产', '绑定门店', '观看记录', '订单记录'];
+        var tabIds = ['detail', 'growth', 'assets', 'stores', 'watch', 'orders'];
+        var tabLabels = ['会员详情', '成长值', '会员资产', '绑定门店', '观看记录', '订单记录'];
         var bodyHost = el('div', 'store-drawer__body');
 
         var panels = {
             detail: panelMemberDetail(rec),
+            growth: panelMemberGrowth(rec),
             assets: panelMemberAssets(),
             stores: panelBindStores(),
             watch: panelWatchRecords(),
@@ -464,6 +823,243 @@
         right.appendChild(el('span', 'erp-pagination__goto-label', '页'));
         bar.appendChild(right);
         return bar;
+    }
+
+    function getCurrentOperatorName() {
+        try {
+            if (typeof getCurrentUser === 'function') {
+                var u = getCurrentUser();
+                if (u && (u.name || u.username)) return u.name || u.username;
+            }
+        } catch (e) { /* ignore */ }
+        return '演示运营';
+    }
+
+    function syncMemberGrowthToListStorage(member) {
+        try {
+            var key = 'mdm_member_c_list_v1';
+            var raw = localStorage.getItem(key);
+            var list = raw ? JSON.parse(raw) : [];
+            if (!Array.isArray(list)) list = [];
+            var found = false;
+            for (var i = 0; i < list.length; i++) {
+                if (list[i] && String(list[i].id) === String(member.id)) {
+                    list[i].growthScore = member.growthScore;
+                    list[i].growthTotal = member.growthTotal;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                list.unshift({
+                    id: member.id,
+                    nickname: member.nickname,
+                    phone: member.phone,
+                    level: member.level,
+                    growthScore: member.growthScore,
+                    growthTotal: member.growthTotal
+                });
+            }
+            localStorage.setItem(key, JSON.stringify(list));
+        } catch (e) { /* ignore */ }
+    }
+
+    function syncMemberGrowthToTableRow(member) {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody || !member || !member.id) return;
+        var rows = tbody.querySelectorAll('tr');
+        for (var i = 0; i < rows.length; i++) {
+            var tr = rows[i];
+            var idCell = tr.querySelector('td');
+            if (!idCell || idCell.textContent.trim() !== String(member.id)) continue;
+            var cells = tr.querySelectorAll('td');
+            /* 会员成长分在第 15 列（0-based index 14） */
+            if (cells[14]) cells[14].textContent = String(member.growthScore || '0');
+            break;
+        }
+    }
+
+    function openGrowthAdjustModal(member, opts) {
+        opts = opts || {};
+        if (!member) return;
+        removeMemberCUi();
+
+        var remain = Number(String(member.growthScore || '0').replace(/[^\d.-]/g, '')) || 0;
+        var operator = getCurrentOperatorName();
+
+        var backdrop = el('div', 'erp-modal-backdrop erp-modal-backdrop--over-drawer');
+        backdrop.setAttribute('data-member-c-ui', '1');
+        var modal = el('div', 'erp-modal erp-modal--member-c-points');
+        var header = el('div', 'erp-modal__header');
+        header.appendChild(el('h2', 'erp-modal__title', '调整成长值'));
+        var bx = el('button', 'erp-modal__header-btn');
+        bx.type = 'button';
+        bx.innerHTML = '&times;';
+        bx.addEventListener('click', function () {
+            backdrop.remove();
+        });
+        var ha = el('div', 'erp-modal__header-actions');
+        ha.appendChild(bx);
+        header.appendChild(ha);
+
+        var body = el('div', 'erp-modal__body');
+
+        var rowMember = el('div', 'erp-modal-field');
+        rowMember.appendChild(el('label', 'erp-modal-field__label', '会员'));
+        var memberCtrl = el('div', 'erp-modal-field__control');
+        memberCtrl.appendChild(
+            el(
+                'div',
+                'member-growth-adjust-member',
+                member.id + ' / ' + (member.nickname || '—') +
+                    (member.phone && member.phone !== '—' ? ' / ' + member.phone : '')
+            )
+        );
+        memberCtrl.appendChild(
+            el('div', 'member-growth-adjust-tip', '当前剩余成长值 ')
+        );
+        memberCtrl.lastChild.appendChild(el('strong', '', String(remain)));
+        memberCtrl.lastChild.appendChild(document.createTextNode(' 分'));
+        rowMember.appendChild(memberCtrl);
+        body.appendChild(rowMember);
+
+        var rowOp = el('div', 'erp-modal-field');
+        rowOp.appendChild(el('label', 'erp-modal-field__label', '操作人'));
+        var opCtrl = el('div', 'erp-modal-field__control');
+        opCtrl.appendChild(el('div', 'member-growth-adjust-member', operator));
+        rowOp.appendChild(opCtrl);
+        body.appendChild(rowOp);
+
+        var rowType = el('div', 'erp-modal-field');
+        var labType = el('label', 'erp-modal-field__label');
+        labType.innerHTML = '<span class="erp-req">*</span>调整类型';
+        rowType.appendChild(labType);
+        var typeCtrl = el('div', 'erp-modal-field__control');
+        var radioRow = el('div', 'member-c-radio-row');
+        var rAdd = document.createElement('input');
+        rAdd.type = 'radio';
+        rAdd.name = 'mc-growth-type';
+        rAdd.value = 'add';
+        rAdd.checked = true;
+        var rSub = document.createElement('input');
+        rSub.type = 'radio';
+        rSub.name = 'mc-growth-type';
+        rSub.value = 'sub';
+        var labAdd = el('label', 'member-c-radio-label');
+        labAdd.appendChild(rAdd);
+        labAdd.appendChild(document.createTextNode(' 手工增加'));
+        var labSub = el('label', 'member-c-radio-label');
+        labSub.appendChild(rSub);
+        labSub.appendChild(document.createTextNode(' 手工减少'));
+        radioRow.appendChild(labAdd);
+        radioRow.appendChild(labSub);
+        typeCtrl.appendChild(radioRow);
+        rowType.appendChild(typeCtrl);
+        body.appendChild(rowType);
+
+        var rowQty = el('div', 'erp-modal-field');
+        var labQty = el('label', 'erp-modal-field__label');
+        labQty.innerHTML = '<span class="erp-req">*</span>调整数值';
+        rowQty.appendChild(labQty);
+        var qtyCtrl = el('div', 'erp-modal-field__control');
+        var qtyInp = el('input', 'erp-input');
+        qtyInp.type = 'number';
+        qtyInp.min = '1';
+        qtyInp.step = '1';
+        qtyInp.placeholder = '请输入正整数';
+        qtyCtrl.appendChild(qtyInp);
+        rowQty.appendChild(qtyCtrl);
+        body.appendChild(rowQty);
+
+        var rowReason = el('div', 'erp-modal-field');
+        var labReason = el('label', 'erp-modal-field__label');
+        labReason.innerHTML = '<span class="erp-req">*</span>备注';
+        rowReason.appendChild(labReason);
+        var reasonCtrl = el('div', 'erp-modal-field__control');
+        var ta = el('textarea', 'erp-textarea');
+        ta.maxLength = 200;
+        ta.rows = 4;
+        ta.placeholder = '请填写调整原因，最多 200 字';
+        var counter = el('div', 'member-c-textarea-counter');
+        var cntSpan = el('span', '', '0');
+        counter.appendChild(cntSpan);
+        counter.appendChild(document.createTextNode('/200'));
+        ta.addEventListener('input', function () {
+            cntSpan.textContent = String((ta.value || '').length);
+        });
+        reasonCtrl.appendChild(ta);
+        reasonCtrl.appendChild(counter);
+        rowReason.appendChild(reasonCtrl);
+        body.appendChild(rowReason);
+
+        var footer = el('div', 'erp-modal__footer');
+        var bCancel = mkBtn('取消', false);
+        var bOk = mkBtn('确定', true);
+        bCancel.addEventListener('click', function () {
+            backdrop.remove();
+        });
+        bOk.addEventListener('click', function () {
+            var type =
+                (backdrop.querySelector('input[name="mc-growth-type"]:checked') || {}).value || 'add';
+            var qtyRaw = (qtyInp.value || '').trim();
+            var remark = (ta.value || '').trim();
+            if (!qtyRaw || !/^\d+$/.test(qtyRaw) || Number(qtyRaw) < 1) {
+                window.alert('调整数值须为正整数');
+                return;
+            }
+            if (!remark) {
+                window.alert('请填写备注信息');
+                return;
+            }
+            var amount = Number(qtyRaw);
+            if (type === 'sub' && amount > remain) {
+                window.alert('扣减数量不得大于会员剩余成长值（当前剩余 ' + remain + ' 分）');
+                return;
+            }
+            var change = type === 'sub' ? -amount : amount;
+            var afterValue = remain + change;
+            member.growthScore = String(afterValue);
+            var total = Number(String(member.growthTotal || remain).replace(/[^\d.-]/g, '')) || remain;
+            if (change > 0) member.growthTotal = String(total + change);
+
+            syncMemberGrowthToTableRow(member);
+            syncMemberGrowthToListStorage(member);
+
+            var result = {
+                change: change,
+                afterValue: afterValue,
+                remark: remark,
+                operator: operator,
+                occurAt: (function () {
+                    var d = new Date();
+                    function pad(n) { return n < 10 ? '0' + n : String(n); }
+                    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+                        ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+                })()
+            };
+
+            backdrop.remove();
+            if (typeof showToast === 'function') {
+                showToast(type === 'sub' ? '已手工减少成长值' : '已手工增加成长值', 'success');
+            } else {
+                window.alert(type === 'sub' ? '已手工减少成长值' : '已手工增加成长值');
+            }
+            if (typeof opts.onSuccess === 'function') opts.onSuccess(result);
+        });
+        footer.appendChild(bCancel);
+        footer.appendChild(bOk);
+
+        modal.appendChild(header);
+        modal.appendChild(body);
+        modal.appendChild(footer);
+        backdrop.appendChild(modal);
+        backdrop.addEventListener('click', function (ev) {
+            if (ev.target === backdrop) backdrop.remove();
+        });
+        document.body.appendChild(backdrop);
+        setTimeout(function () {
+            qtyInp.focus();
+        }, 0);
     }
 
     function openPointsModal(member) {
@@ -764,6 +1360,15 @@
             var m = rowToMember(tr);
             if (!m) return;
             openPointsModal(m);
-        }
+        },
+        openGrowthFromRow: function (tr) {
+            var m = rowToMember(tr);
+            if (!m) {
+                showToast('无法读取该行会员数据', 'error');
+                return;
+            }
+            openGrowthAdjustModal(m);
+        },
+        openGrowthAdjust: openGrowthAdjustModal
     };
 })();

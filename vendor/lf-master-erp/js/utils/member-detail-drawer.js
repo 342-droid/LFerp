@@ -21,7 +21,7 @@ function refDangerMod(v) {
 
 /**
  * @param {Record<string, unknown>} member 列表行数据
- * @param {'detail'|'assets'|'stores'|'watch'|'orders'} [initialTab]
+ * @param {'detail'|'growth'|'assets'|'stores'|'watch'|'orders'} [initialTab]
  */
 export function openMemberDetailDrawer(member, initialTab = 'detail') {
   removeMemberDetailDrawer();
@@ -56,13 +56,14 @@ export function openMemberDetailDrawer(member, initialTab = 'detail') {
   );
 
   const tabsWrap = el('div', 'store-drawer__tabs');
-  const tabIds = ['detail', 'assets', 'stores', 'watch', 'orders'];
-  const tabLabels = ['会员详情', '会员资产', '绑定门店', '观看记录', '订单记录'];
+  const tabIds = ['detail', 'growth', 'assets', 'stores', 'watch', 'orders'];
+  const tabLabels = ['会员详情', '成长值', '会员资产', '绑定门店', '观看记录', '订单记录'];
 
   const bodyHost = el('div', 'store-drawer__body');
 
   const panels = {
     detail: panelMemberDetail(rec),
+    growth: panelMemberGrowth(rec),
     assets: panelMemberAssets(),
     stores: panelBindStores(),
     watch: panelWatchRecords(),
@@ -112,12 +113,15 @@ function enrichMemberRecord(m) {
     isMember: String(m.isMember ?? '—'),
     tags: String(m.tags ?? '—'),
     source: String(m.source ?? '—'),
+    birthday: String(m.birthday ?? '1992-08-16'),
+    district: String(m.district ?? '南京市 · 鼓楼区'),
     bindMethod: String(m.bindMethod ?? '—'),
     channelCount: String(m.channelCount ?? '—'),
     points: String(m.points ?? '—'),
     satisMinutes: String(m.satisMinutes ?? '—'),
     satisFeedback: String(m.satisFeedback ?? '—'),
-    growthScore: String(m.growthScore ?? '—'),
+    growthScore: String(m.growthScore ?? '1485'),
+    growthTotal: String(m.growthTotal ?? '3260'),
     amount: String(m.amount ?? '—'),
     orderCount: String(m.orderCount ?? '—'),
     lastConsume: String(m.lastConsume ?? '—'),
@@ -128,11 +132,14 @@ function enrichMemberRecord(m) {
     watchTotalMin: m.watchTotalMin != null ? String(m.watchTotalMin) : String(m.satisMinutes ?? '341'),
     liveWatchCount: m.liveWatchCount != null ? String(m.liveWatchCount) : String(m.satisFeedback ?? '342'),
     firstLogin: m.firstLogin != null ? String(m.firstLogin) : '2021-09-09 13:00',
+    inviteMemberId: String(m.inviteMemberId ?? 'U10088'),
+    inviteNickname: String(m.inviteNickname ?? '邀请达人小王'),
     latestLogin: m.latestLogin != null ? String(m.latestLogin) : '2021-09-19 13:00',
     latestBindStore: m.latestBindStore != null ? String(m.latestBindStore) : '—',
     phoneBrand: m.phoneBrand != null ? String(m.phoneBrand) : '—',
     phoneModel: m.phoneModel != null ? String(m.phoneModel) : '—',
     bindStoreCount: m.bindStoreCount != null ? String(m.bindStoreCount) : String(m.channelCount ?? '2342'),
+    level: String(m.level ?? '普通会员'),
   };
 }
 
@@ -155,6 +162,8 @@ function panelMemberDetail(rec) {
     ['是否会员', rec.isMember],
     ['会员标签', rec.tags],
     ['会员来源', rec.source],
+    ['生日', rec.birthday],
+    ['所在城区', rec.district],
     ['绑定方式', rec.bindMethod],
     ['绑定门店数量', rec.bindStoreCount],
     ['上级推荐人', rec.superiorReferrer, refDangerMod(rec.superiorReferrer)],
@@ -167,6 +176,7 @@ function panelMemberDetail(rec) {
     ['成交订单数', rec.orderCount],
     ['最近消费时间', rec.lastConsume],
     ['第一次登录时间', rec.firstLogin],
+    ['注册邀请人', `${rec.inviteMemberId} / ${rec.inviteNickname}`],
     ['最近登录时间', rec.latestLogin],
     ['最近绑定门店名称', rec.latestBindStore],
     ['手机品牌', rec.phoneBrand],
@@ -257,6 +267,200 @@ function panelMemberAssets() {
   root.appendChild(wrapTable(cpHeaders, cpRows, 'member-drawer-table--center'));
   root.appendChild(paginationBar({ total: 16, page: 1, pageSize: 10 }));
 
+  return root;
+}
+
+/**
+ * @param {ReturnType<typeof enrichMemberRecord>} rec
+ */
+function panelMemberGrowth(rec) {
+  const root = el('div', 'member-drawer-panel');
+  root.appendChild(el('div', 'supplier-detail-section-title', '成长值'));
+
+  const summary = el('div', 'member-growth-summary');
+  [
+    ['当前等级', rec.level || '—'],
+    ['成长值', rec.growthScore || '—'],
+    ['累计成长值', rec.growthTotal || '—'],
+  ].forEach(([label, value]) => {
+    const card = el('div', 'member-growth-summary__item');
+    card.appendChild(el('div', 'member-growth-summary__label', label));
+    card.appendChild(el('div', 'member-growth-summary__value', value));
+    summary.appendChild(card);
+  });
+  root.appendChild(summary);
+
+  const allRows = [
+    {
+      occurAt: '2026-07-20 14:20:03',
+      acquireType: '购物消费',
+      acquireSub: '订单完成',
+      change: '+86',
+      afterValue: String(rec.growthScore || '1485'),
+      status: '有效',
+      refNo: 'ORD-3212689201598341',
+      remark: '订单实付 ¥86.00',
+    },
+    {
+      occurAt: '2026-07-18 08:01:12',
+      acquireType: '用户活跃',
+      acquireSub: '每日签到',
+      change: '+5',
+      afterValue: '1399',
+      status: '有效',
+      refNo: '—',
+      remark: '每日签到',
+    },
+    {
+      occurAt: '2026-06-12 19:33:41',
+      acquireType: '购物消费',
+      acquireSub: '订单完成',
+      change: '+129',
+      afterValue: '1394',
+      status: '有效',
+      refNo: 'ORD-3212689201588561',
+      remark: '订单实付 ¥129.50',
+    },
+    {
+      occurAt: '2026-05-24 21:15:08',
+      acquireType: '购物消费',
+      acquireSub: '售后完成',
+      change: '-30',
+      afterValue: '1265',
+      status: '有效',
+      refNo: 'AS202605240018',
+      remark: '售后退款扣减成长值',
+    },
+    {
+      occurAt: '2025-12-01 10:00:00',
+      acquireType: '手工调整',
+      acquireSub: '手工增加',
+      change: '+200',
+      afterValue: '980',
+      status: '过期',
+      refNo: '—',
+      remark: '活动补偿',
+    },
+  ];
+
+  const state = { timeStart: '', timeEnd: '', acquireType: '', status: '' };
+
+  const toolbar = el('div', 'erp-toolbar member-drawer-filter-toolbar');
+  const timeStart = textInput('');
+  timeStart.type = 'datetime-local';
+  timeStart.step = '1';
+  const timeEnd = textInput('');
+  timeEnd.type = 'datetime-local';
+  timeEnd.step = '1';
+  const timeWrap = el('div', 'member-growth-time-range');
+  timeWrap.appendChild(timeStart);
+  timeWrap.appendChild(el('span', 'member-growth-time-range__sep', '至'));
+  timeWrap.appendChild(timeEnd);
+  toolbar.appendChild(fieldRow('获取时间', timeWrap));
+  toolbar.appendChild(
+    fieldRow(
+      '获取方式',
+      selectInput(
+        [
+          { value: '', label: '全部' },
+          { value: '购物消费', label: '购物消费' },
+          { value: '用户活跃', label: '用户活跃' },
+          { value: '手工调整', label: '手工调整' },
+        ],
+        '',
+      ),
+    ),
+  );
+  toolbar.appendChild(
+    fieldRow(
+      '状态',
+      selectInput(
+        [
+          { value: '', label: '全部' },
+          { value: '有效', label: '有效' },
+          { value: '过期', label: '过期' },
+        ],
+        '',
+      ),
+    ),
+  );
+  const ta = el('div', 'erp-toolbar__actions');
+  const btnReset = button('重置', 'default');
+  btnReset.classList.add('erp-btn--outline-primary');
+  const btnQuery = button('查询', 'primary');
+  ta.appendChild(btnReset);
+  ta.appendChild(btnQuery);
+  toolbar.appendChild(ta);
+  root.appendChild(toolbar);
+
+  const tableHost = el('div', 'member-growth-table-host');
+  root.appendChild(tableHost);
+  const pageHost = el('div', 'member-growth-page-host');
+  root.appendChild(pageHost);
+
+  const typeSel = toolbar.querySelectorAll('select')[0];
+  const statusSel = toolbar.querySelectorAll('select')[1];
+
+  function toComparable(v) {
+    return String(v || '').replace('T', ' ').slice(0, 19);
+  }
+
+  function getFiltered() {
+    return allRows.filter((row) => {
+      if (state.timeStart && toComparable(row.occurAt) < toComparable(state.timeStart)) return false;
+      if (state.timeEnd && toComparable(row.occurAt) > toComparable(state.timeEnd)) return false;
+      if (state.acquireType && row.acquireType !== state.acquireType) return false;
+      if (state.status && row.status !== state.status) return false;
+      return true;
+    });
+  }
+
+  function renderList() {
+    const filtered = getFiltered();
+    tableHost.replaceChildren();
+    pageHost.replaceChildren();
+    const headers = ['获取时间', '获取方式', '明细类型', '变动值', '变动后成长值', '状态', '关联单号', '备注'];
+    const rows = filtered.map((row) => [
+      row.occurAt,
+      row.acquireType,
+      row.acquireSub,
+      row.change,
+      row.afterValue,
+      row.status,
+      row.refNo,
+      row.remark,
+    ]);
+    tableHost.appendChild(
+      wrapTable(headers, rows.length ? rows : [['—', '—', '—', '—', '—', '—', '—', '暂无匹配明细']], 'member-drawer-table--wide'),
+    );
+    pageHost.appendChild(paginationBar({ total: filtered.length, page: 1, pageSize: 10 }));
+  }
+
+  btnQuery.addEventListener('click', () => {
+    state.timeStart = timeStart.value || '';
+    state.timeEnd = timeEnd.value || '';
+    state.acquireType = typeSel ? typeSel.value : '';
+    state.status = statusSel ? statusSel.value : '';
+    if (state.timeStart && state.timeEnd && toComparable(state.timeStart) > toComparable(state.timeEnd)) {
+      window.alert('获取时间起始不能晚于结束时间');
+      return;
+    }
+    renderList();
+  });
+
+  btnReset.addEventListener('click', () => {
+    timeStart.value = '';
+    timeEnd.value = '';
+    if (typeSel) typeSel.value = '';
+    if (statusSel) statusSel.value = '';
+    state.timeStart = '';
+    state.timeEnd = '';
+    state.acquireType = '';
+    state.status = '';
+    renderList();
+  });
+
+  renderList();
   return root;
 }
 

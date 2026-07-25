@@ -81,6 +81,11 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
+/* 个人中心：胶囊上移，避免遮挡编辑 / 设置 */
+.ua-profile-page .ua-mp-capsule {
+  top: 12px;
+}
+
 .ua-mp-capsule__dots {
   display: flex;
   align-items: center;
@@ -167,8 +172,8 @@
 .ua-profile-level {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 8px 2px 5px;
+  gap: 5px;
+  padding: 2px 8px 2px 3px;
   border-radius: 11px;
   background: linear-gradient(90deg, #fde8cc 0%, #f5d4a8 100%);
   color: #c17a2e;
@@ -179,25 +184,22 @@
   text-decoration: none;
 }
 
-.ua-profile-level__v {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 15px;
-  height: 15px;
-  border-radius: 3px;
-  transform: rotate(45deg);
-  background: rgba(193, 122, 46, 0.15);
-  font-size: 9px;
-  font-weight: 800;
-  font-style: normal;
-  color: #c17a2e;
+.ua-profile-level__icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.55);
+  display: block;
 }
 
-.ua-profile-level__v span {
-  transform: rotate(-45deg);
-  display: block;
-  line-height: 1;
+.ua-profile-level__icon[hidden] {
+  display: none;
+}
+
+.ua-profile-level__name {
+  line-height: 1.2;
 }
 
 .ua-profile-phone {
@@ -207,6 +209,14 @@
   line-height: 1.4;
 }
 
+.ua-profile-actions {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ua-profile-edit,
 .ua-profile-settings {
   flex-shrink: 0;
   width: 26px;
@@ -216,6 +226,16 @@
   color: #999999;
   cursor: pointer;
   padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.ua-profile-edit svg {
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 
 .ua-profile-settings svg {

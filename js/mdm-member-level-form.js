@@ -26,24 +26,62 @@
         { value: 'daily', label: '每日' }
     ];
 
+    var EDIT_CACHE_KEY = 'mdm_member_level_edit_v1';
     var params = new URLSearchParams(window.location.search || '');
-    var editId = params.get('id') || '';
+    var editId = params.get('id') || params.get('Id') || '';
     var list = Data.loadLevelList();
     var editItem = null;
     var growthLocked = false;
     var iconValue = '';
     var scopeState = Data.defaultDiscountScope();
+    var isEdit = false;
 
-    if (editId) {
+    function findLevelById(id) {
+        if (id == null || id === '') return null;
+        var sid = String(id);
         for (var i = 0; i < list.length; i++) {
-            if (list[i].id === editId) {
-                editItem = Data.normalizeLevel(list[i]);
-                break;
+            if (String(list[i].id) === sid) {
+                return Data.normalizeLevel(list[i]);
             }
         }
+        return null;
     }
-    var isEdit = !!editItem;
-    growthLocked = isEdit && Data.isSystemPreset(editItem);
+
+    function loadEditCache() {
+        try {
+            var raw = sessionStorage.getItem(EDIT_CACHE_KEY);
+            if (!raw) return null;
+            var parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed !== 'object') return null;
+            if (editId && String(parsed.id) !== String(editId)) return null;
+            return Data.normalizeLevel(parsed);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function clearEditCache() {
+        try {
+            sessionStorage.removeItem(EDIT_CACHE_KEY);
+        } catch (e) { /* ignore */ }
+    }
+
+    function resolveEditItem() {
+        list = Data.loadLevelList();
+        editItem = findLevelById(editId);
+        if (!editItem && editId) {
+            /* URL 带了 id 但列表未命中时，尝试列表页写入的缓存 */
+            editItem = loadEditCache();
+        } else if (!editItem && !editId) {
+            /* 部分本地预览会丢 query，仅依赖缓存判断是否编辑 */
+            editItem = loadEditCache();
+            if (editItem && editItem.id) editId = String(editItem.id);
+        }
+        isEdit = !!editItem;
+        growthLocked = isEdit && Data.isSystemPreset(editItem);
+    }
+
+    resolveEditItem();
 
     function toast(msg, type) {
         if (typeof showToast === 'function') {
@@ -563,7 +601,18 @@
         if (!block) return;
         var modes = block.querySelector('[data-coupon-modes]');
         var listEl = block.querySelector('[data-coupon-list]');
-        if (modes) modes.innerHTML = buildModeRadios(prefix + 'Mode', mode || 'total');
+        if (modes) {
+            if (prefix === 'birthday') {
+                /* 生日送券固定生日月每年赠送一次，不展示累计/每月/每日 */
+                modes.innerHTML = '';
+                modes.hidden = true;
+                modes.style.display = 'none';
+            } else {
+                modes.hidden = false;
+                modes.style.display = '';
+                modes.innerHTML = buildModeRadios(prefix + 'Mode', mode || 'total');
+            }
+        }
         var rows = (items && items.length)
             ? items.map(function (it) { return buildCouponRowHtml(it); }).join('')
             : buildCouponRowHtml({ coupon: '', qty: 1 });
@@ -1031,12 +1080,23 @@
             birthdayDesc: ''
         });
 
-        document.getElementById('mlName').value = item.name || '';
+        function setVal(id, value) {
+            var el = document.getElementById(id);
+            if (el) el.value = value;
+        }
+        function setChecked(id, on) {
+            var el = document.getElementById(id);
+            if (el) el.checked = !!on;
+        }
+
+        setVal('mlName', item.name || '');
         iconValue = item.icon || '';
 
         var growthInput = document.getElementById('mlGrowth');
-        growthInput.value = item.growthValue === '' || item.growthValue == null ? '' : String(item.growthValue);
-        growthInput.disabled = growthLocked;
+        if (growthInput) {
+            growthInput.value = item.growthValue === '' || item.growthValue == null ? '' : String(item.growthValue);
+            growthInput.disabled = growthLocked;
+        }
         var tip = document.getElementById('mlGrowthTip');
         if (tip) {
             tip.textContent = growthLocked
@@ -1044,29 +1104,29 @@
                 : '列表按成长值从低到高排序；达标后立即升级生效，降级于每日统一处理。成长值 0 为默认等级专用，新增不可使用。';
         }
 
-        document.getElementById('mlGiftPointsEnable').checked = !!item.giftPointsEnabled;
-        document.getElementById('mlGiftPoints').value = item.giftPoints != null ? String(item.giftPoints) : '0';
-        document.getElementById('mlGiftPointsDesc').value = item.giftPointsDesc || '';
+        setChecked('mlGiftPointsEnable', item.giftPointsEnabled);
+        setVal('mlGiftPoints', item.giftPoints != null ? String(item.giftPoints) : '0');
+        setVal('mlGiftPointsDesc', item.giftPointsDesc || '');
 
-        document.getElementById('mlGiftCouponEnable').checked = !!item.giftCouponEnabled;
-        document.getElementById('mlGiftCouponDesc').value = item.giftCouponDesc || '';
+        setChecked('mlGiftCouponEnable', item.giftCouponEnabled);
+        setVal('mlGiftCouponDesc', item.giftCouponDesc || '');
         initCouponBlock('gift', item.giftCouponMode || 'total', item.giftCoupons || []);
 
-        document.getElementById('mlDiscountEnable').checked = !!item.memberDiscountEnabled;
-        document.getElementById('mlDiscount').value = item.memberDiscount != null ? String(item.memberDiscount) : '100';
-        document.getElementById('mlDiscountDesc').value = item.memberDiscountDesc || '';
+        setChecked('mlDiscountEnable', item.memberDiscountEnabled);
+        setVal('mlDiscount', item.memberDiscount != null ? String(item.memberDiscount) : '100');
+        setVal('mlDiscountDesc', item.memberDiscountDesc || '');
         scopeState = Data.normalizeDiscountScope(item.discountScope);
         var scopeRadios = document.querySelectorAll('input[name="mlScopeType"]');
         scopeRadios.forEach(function (radio) {
             radio.checked = radio.value === scopeState.type;
         });
 
-        document.getElementById('mlPointsRatioEnable').checked = !!item.pointsRatioEnabled;
-        document.getElementById('mlPointsRatio').value = item.pointsRatio != null ? String(item.pointsRatio) : '100';
-        document.getElementById('mlPointsRatioDesc').value = item.pointsRatioDesc || '';
+        setChecked('mlPointsRatioEnable', item.pointsRatioEnabled);
+        setVal('mlPointsRatio', item.pointsRatio != null ? String(item.pointsRatio) : '100');
+        setVal('mlPointsRatioDesc', item.pointsRatioDesc || '');
 
-        document.getElementById('mlBirthdayEnable').checked = !!item.birthdayEnabled;
-        document.getElementById('mlBirthdayDesc').value = item.birthdayDesc || '';
+        setChecked('mlBirthdayEnable', item.birthdayEnabled);
+        setVal('mlBirthdayDesc', item.birthdayDesc || '');
         initCouponBlock(
             'birthday',
             item.birthdayCouponMode || 'total',
@@ -1187,7 +1247,8 @@
         }
 
         var birthdayEnabled = document.getElementById('mlBirthdayEnable').checked;
-        var birthdayMode = getSelectedMode('birthdayMode');
+        /* 生日送券：生日月赠送，每年一次，不区分每月/每日 */
+        var birthdayMode = 'total';
         var birthdayCoupons = [];
         var birthdayDesc = document.getElementById('mlBirthdayDesc').value || '';
         if (birthdayEnabled) {
@@ -1236,6 +1297,7 @@
                 }
             }
             Data.saveLevelList(list);
+            clearEditCache();
             toast('会员等级已更新', 'success');
         } else {
             payload.id = genId();
@@ -1243,6 +1305,7 @@
             payload.status = '启用';
             list.push(payload);
             Data.saveLevelList(list);
+            clearEditCache();
             toast('会员等级已新增', 'success');
         }
 
@@ -1254,21 +1317,31 @@
         if (back) {
             back.addEventListener('click', function (ev) {
                 ev.preventDefault();
+                clearEditCache();
                 goList();
             });
         }
         var cancel = document.getElementById('btnCancel');
-        if (cancel) cancel.addEventListener('click', goList);
+        if (cancel) {
+            cancel.addEventListener('click', function () {
+                clearEditCache();
+                goList();
+            });
+        }
         var saveBtn = document.getElementById('btnSave');
         if (saveBtn) saveBtn.addEventListener('click', save);
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
+    function boot() {
+        resolveEditItem();
+
         if (editId && !editItem) {
             toast('未找到该会员等级', 'warning');
+            clearEditCache();
             setTimeout(goList, 600);
             return;
         }
+
         setTitles();
         fillForm();
         setupIconUpload();
@@ -1276,5 +1349,11 @@
         syncScopeUi();
         bindBenefitSwitches();
         bindEvents();
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', boot);
+    } else {
+        boot();
+    }
 })();

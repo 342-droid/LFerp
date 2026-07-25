@@ -1,0 +1,392 @@
+/* 用户 APP — 会员资料编辑 */
+.ua-pe-page {
+  background: #f5f5f5;
+}
+
+.ua-pe-scroll {
+  background: #f5f5f5;
+}
+
+/* 状态栏与标题栏统一白色 */
+.ua-pe-page .ua-status-bar,
+.ua-pe-page .ua-pe-status {
+  background: #fff;
+}
+
+.ua-pe-page .ua-mp-capsule {
+  top: 12px;
+}
+
+.ua-pe-nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 56px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ua-pe-nav__back {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a1a1a;
+  text-decoration: none;
+}
+
+.ua-pe-nav__back svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ua-pe-nav__title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.ua-pe-nav__save {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: #0b5c3b;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.ua-pe-body {
+  padding: 12px 12px 28px;
+}
+
+.ua-pe-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ua-pe-row,
+.ua-pe-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 54px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #f3f3f3;
+  width: 100%;
+  box-sizing: border-box;
+  background: #fff;
+  text-align: left;
+}
+
+.ua-pe-avatar-row,
+.ua-pe-row--action {
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  border-bottom: 1px solid #f3f3f3;
+}
+
+.ua-pe-row:last-child,
+.ua-pe-card > :last-child {
+  border-bottom: none;
+}
+
+.ua-pe-row--stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.ua-pe-row__main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ua-pe-row__main--action {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+.ua-pe-row--stack {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.ua-pe-row--stack .ua-pe-tip {
+  margin-top: 2px;
+}
+
+.ua-pe-label {
+  flex-shrink: 0;
+  width: 84px;
+  font-size: 15px;
+  color: #1a1a1a;
+  line-height: 1.4;
+}
+
+.ua-pe-value {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  color: #333;
+  text-align: right;
+  line-height: 1.4;
+}
+
+.ua-pe-value--placeholder {
+  color: #bbb;
+}
+
+.ua-pe-row--readonly .ua-pe-value {
+  color: #666;
+}
+
+.ua-pe-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  color: #333;
+  text-align: right;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.ua-pe-input::placeholder {
+  color: #bbb;
+}
+
+.ua-pe-input--date {
+  min-height: 22px;
+}
+
+.ua-pe-avatar {
+  margin-left: auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f0f0f0;
+  flex-shrink: 0;
+}
+
+.ua-pe-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ua-pe-arrow {
+  width: 16px;
+  height: 16px;
+  color: #ccc;
+  flex-shrink: 0;
+  display: inline-flex;
+}
+
+.ua-pe-arrow svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ua-pe-tip {
+  padding-left: 96px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #999;
+}
+
+.ua-pe-toast {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+  z-index: 50;
+  max-width: 80%;
+  padding: 12px 20px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+}
+
+.ua-pe-toast[hidden] {
+  display: none;
+}
+
+/* —— 省市区底部弹窗 —— */
+.ua-pe-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.ua-pe-sheet[hidden] {
+  display: none;
+}
+
+.ua-pe-sheet__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.ua-pe-sheet__panel {
+  position: relative;
+  z-index: 1;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0));
+  animation: ua-pe-sheet-up 0.22s ease;
+}
+
+@keyframes ua-pe-sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.ua-pe-sheet__head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  padding: 0 64px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ua-pe-sheet__head h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.ua-pe-sheet__cancel,
+.ua-pe-sheet__ok {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 6px 4px;
+}
+
+.ua-pe-sheet__cancel {
+  left: 14px;
+  color: #999;
+}
+
+.ua-pe-sheet__ok {
+  right: 14px;
+  color: #0b5c3b;
+  font-weight: 600;
+}
+
+.ua-pe-region {
+  padding: 8px 4px 12px;
+}
+
+.ua-pe-region__heads {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 4px 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #888;
+  text-align: center;
+}
+
+.ua-pe-region__wheels {
+  position: relative;
+  height: 216px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  overflow: hidden;
+}
+
+.ua-pe-region__indicator {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 50%;
+  height: 36px;
+  margin-top: -18px;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ua-pe-region-wheel {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.ua-pe-region-wheel::-webkit-scrollbar {
+  display: none;
+}
+
+.ua-pe-region-wheel__pad {
+  height: 90px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.ua-pe-region-wheel__item {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #c8c8c8;
+  scroll-snap-align: center;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+
+.ua-pe-region-wheel__item.is-selected {
+  color: #111;
+  font-weight: 700;
+}

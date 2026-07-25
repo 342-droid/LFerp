@@ -214,12 +214,16 @@ const MOCK_COUPONS = [
 
 function filterMembers(list, q) {
   const id = (q.memberId || '').trim().toLowerCase();
+  const nickname = (q.nickname || '').trim().toLowerCase();
   const phone = (q.phone || '').trim().toLowerCase();
   const bind = q.bindMethod || '';
+  const level = (q.level || '').trim();
   return list.filter((m) => {
     if (id && !String(m.id).toLowerCase().includes(id)) return false;
+    if (nickname && !String(m.nickname || '').toLowerCase().includes(nickname)) return false;
     if (phone && !String(m.phone).toLowerCase().includes(phone)) return false;
     if (bind && m.bindMethod !== bind) return false;
+    if (level && String(m.level || '') !== level) return false;
     return true;
   });
 }

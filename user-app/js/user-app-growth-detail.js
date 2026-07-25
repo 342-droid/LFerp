@@ -169,6 +169,16 @@
   }
 
   function init() {
+    if (window.UaNav) {
+      window.UaNav.applyBackLink('.ua-gd-nav__back', 'member-center.html');
+      var ruleLink = document.querySelector('.ua-gd-summary__rule');
+      if (ruleLink) {
+        ruleLink.setAttribute(
+          'href',
+          window.UaNav.withFrom(ruleLink.getAttribute('href') || 'growth-rule-desc.html')
+        );
+      }
+    }
     var rule = loadRule();
     var totalEl = document.getElementById('gdTotalValue');
     var rangeEl = document.getElementById('gdValidRange');
