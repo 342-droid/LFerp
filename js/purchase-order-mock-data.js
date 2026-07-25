@@ -106,8 +106,13 @@
             logisticsNo: 'SF1234567890123',
             deliveryDate: '2026-04-26',
             remark: '',
+            auditBy: '王主管',
+            auditAt: '2026-04-20 16:05:00',
+            auditReason: '数量与单价核对无误，审核通过',
             createdAt: '2026-04-20 15:30:22',
             createdBy: '李强',
+            updatedAt: '2026-04-21 09:10:00',
+            updatedBy: '李强',
             lines: [
                 { skuCode: 'SKU003', skuName: '脐橙', spec: '10kg/箱', skuCategory: '生鲜 / 水果 / 柑橘类', qtyUnit: '箱', buyer: '李强', purchaseQty: 80, receivedQty: 45, suggestedUnitPrice: 6.8, actualUnitPrice: 6.5, saleUnitPrice: 6.2, purchaseAmount: 520, saleAmount: 496, prepaidAmount: 150, lineRemark: '礼盒优先发', logisticsNo: 'SF1234567890123,SF1234567890124' },
                 { skuCode: 'SKU001', skuName: '红富士苹果', spec: '5kg/箱', skuCategory: '生鲜 / 水果 / 仁果类', qtyUnit: '件', buyer: '李强', purchaseQty: 60, receivedQty: 60, suggestedUnitPrice: 5.2, actualUnitPrice: 5.0, saleUnitPrice: 4.8, purchaseAmount: 300, saleAmount: 288, prepaidAmount: 50, lineRemark: '', logisticsNo: 'YT9876543210987' },
@@ -144,8 +149,13 @@
             docSource: '采购需求汇总',
             deliveryDate: '2026-04-29',
             remark: '需冷链',
+            auditBy: '王主管',
+            auditAt: '2026-04-22 11:20:00',
+            auditReason: '冷链运力不足，请调整发货仓或拆单后重提',
             createdAt: '2026-04-22 09:00:45',
             createdBy: '刘洋',
+            updatedAt: '2026-04-22 11:20:00',
+            updatedBy: '王主管',
             lines: [
                 { skuCode: 'SKU002', skuName: '香蕉', spec: '4kg/箱', skuCategory: '生鲜 / 水果 / 浆果类', qtyUnit: '件', buyer: '刘洋', purchaseQty: 120, receivedQty: 0, suggestedUnitPrice: 4.5, actualUnitPrice: 4.5, saleUnitPrice: 4.2, purchaseAmount: 540, saleAmount: 504, prepaidAmount: 100, lineRemark: '冷链车' }
             ]
@@ -225,10 +235,71 @@
             docSource: '手动新增',
             deliveryDate: '2026-04-30',
             remark: '手工建单补货',
+            auditBy: '王主管',
+            auditAt: '2026-04-26 11:00:00',
+            auditReason: '手工补货单审核通过',
             createdAt: '2026-04-26 10:15:00',
             createdBy: '王华',
+            updatedAt: '2026-04-26 11:00:00',
+            updatedBy: '王主管',
             lines: [
                 { skuCode: 'SKU001', skuName: '红富士苹果', spec: '5kg/箱', skuCategory: '生鲜 / 水果 / 仁果类', qtyUnit: '件', buyer: '王华', purchaseQty: 50, receivedQty: 0, suggestedUnitPrice: 5.2, actualUnitPrice: 5.0, saleUnitPrice: 4.8, purchaseAmount: 250, saleAmount: 240, prepaidAmount: 0, lineRemark: '' }
+            ]
+        },
+        {
+            poNo: 'PO2026042710000011',
+            sourceOrderNo: 'MDH2026042710000011',
+            relatedOrderNo: 'IBD2026042710000011',
+            orderSource: '零售订单',
+            fulfillmentMethod: '平台配送',
+            warehouse: 'W002 嘉兴仓',
+            supplier: '浙北农产品合作社',
+            docStatus: '待审核',
+            docSource: '采购需求汇总',
+            deliveryDate: '2026-04-30',
+            remark: '周末门店补货',
+            createdAt: '2026-04-27 10:00:00',
+            createdBy: '李强',
+            lines: [
+                { skuCode: 'SKU003', skuName: '脐橙', spec: '10kg/箱', skuCategory: '生鲜 / 水果 / 柑橘类', qtyUnit: '箱', buyer: '李强', purchaseQty: 60, receivedQty: 0, suggestedUnitPrice: 6.8, actualUnitPrice: 6.5, saleUnitPrice: 6.2, purchaseAmount: 390, saleAmount: 372, prepaidAmount: 50, lineRemark: '' },
+                { skuCode: 'SKU002', skuName: '香蕉', spec: '4kg/箱', skuCategory: '生鲜 / 水果 / 浆果类', qtyUnit: '箱', buyer: '陈晨', purchaseQty: 30, receivedQty: 0, suggestedUnitPrice: 4.5, actualUnitPrice: 4.3, saleUnitPrice: 4.0, purchaseAmount: 129, saleAmount: 120, prepaidAmount: 0, lineRemark: '' }
+            ]
+        },
+        {
+            poNo: 'PO2026042714000012',
+            sourceOrderNo: 'MDH2026042714000012',
+            relatedOrderNo: 'IBD2026042714000012',
+            orderSource: '代采订单',
+            fulfillmentMethod: '平台配送',
+            warehouse: 'W003 上海仓',
+            supplier: '上海鲜达供应链',
+            docStatus: '待审核',
+            docSource: '采购需求汇总',
+            deliveryDate: '2026-05-01',
+            remark: '代采急单待审',
+            createdAt: '2026-04-27 14:00:00',
+            createdBy: '刘洋',
+            lines: [
+                { skuCode: 'SKU005', skuName: '精品番茄', spec: '500g/袋', skuCategory: '生鲜 / 蔬菜 / 茄果类', qtyUnit: '件', buyer: '刘洋', purchaseQty: 80, receivedQty: 0, suggestedUnitPrice: 8.0, actualUnitPrice: 7.8, saleUnitPrice: 7.2, purchaseAmount: 624, saleAmount: 576, prepaidAmount: 100, lineRemark: '优先发货' }
+            ]
+        },
+        {
+            poNo: 'PO2026042810000013',
+            sourceOrderNo: '',
+            relatedOrderNo: 'IBD2026042810000013',
+            orderSource: '',
+            fulfillmentMethod: '平台配送',
+            warehouse: 'W004 北京仓',
+            supplier: '华北冷链物流',
+            docStatus: '待审核',
+            docSource: '手动新增',
+            deliveryDate: '2026-05-02',
+            remark: '手工建单待审',
+            createdAt: '2026-04-28 10:00:00',
+            createdBy: '王华',
+            lines: [
+                { skuCode: 'SKU006', skuName: '精品黄瓜', spec: '2kg/袋', skuCategory: '生鲜 / 蔬菜 / 叶菜类', qtyUnit: '斤', buyer: '王华', purchaseQty: 200, receivedQty: 0, suggestedUnitPrice: 2.2, actualUnitPrice: 2.1, saleUnitPrice: 2.0, purchaseAmount: 420, saleAmount: 400, prepaidAmount: 0, lineRemark: '' },
+                { skuCode: 'SKU001', skuName: '红富士苹果', spec: '5kg/箱', skuCategory: '生鲜 / 水果 / 仁果类', qtyUnit: '件', buyer: '王华', purchaseQty: 40, receivedQty: 0, suggestedUnitPrice: 5.2, actualUnitPrice: 5.0, saleUnitPrice: 4.8, purchaseAmount: 200, saleAmount: 192, prepaidAmount: 50, lineRemark: '' }
             ]
         }
     ];
