@@ -116,25 +116,68 @@ const backfillNotes = (() => {
     }
 })();
 
-/** body/补录行 → [{file, text}]；页面名匹配不上且不是「通用」的行丢弃 */
+/** 「商城 · 用户 APP」→「商城」：用于无前缀行的正文包含匹配 */
+function shortTitle(title) {
+    return String(title || '').split('·')[0].trim();
+}
+
+/** 短名在正文中的归属：位置启发（名字在句首附近的优先）+ 嵌套名去重（「我的」让位「我的订单」） */
+function attachByMention(content, pages, notes) {
+    let hits = pages
+        .map((p) => {
+            const st = shortTitle(p.title);
+            return st.length >= 2 ? { p, st, idx: content.indexOf(st) } : null;
+        })
+        .filter((h) => h && h.idx >= 0);
+    hits = hits.filter((h) =>
+        !hits.some((o) => o.p !== h.p && o.st !== h.st && o.st.includes(h.st) && o.idx <= h.idx)
+    );
+    const minIdx = Math.min(...hits.map((h) => h.idx));
+    if (hits.length && minIdx <= 6) hits = hits.filter((h) => h.idx <= 14);
+    for (const h of hits) notes.push({ file: h.p.file, text: content });
+    return hits.length > 0;
+}
+
+/**
+ * body/补录行 → [{file, text}]。
+ * 规范格式「- 页面名: 说明」按名字匹配（全名/短名/文件名）；
+ * 无前缀的 bullet 或成段散文：按「；。」拆条后用页面短名在正文中的出现位置归属；
+ * 都对不上则丢弃（不把 dev 向内容漏给业务）。
+ */
 function parseNotes(lines, pages) {
     const notes = [];
-    for (const line of lines) {
-        const m = line.match(NOTE_RE);
-        if (!m) continue;
-        const name = m[1].trim();
-        const text = m[2].trim();
-        if (name === '通用') {
-            notes.push({ file: null, text });
-            continue;
+    for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line) continue;
+        if (/^(co-authored-by|signed-off-by|change-id|reviewed-by)/i.test(line)) continue;
+        const bullet = line.match(/^[-*·]\s*(.+)$/);
+        const content = (bullet ? bullet[1] : line).trim();
+        if (content.includes('/') && /\.\w{2,4}\b/.test(content.slice(0, 40))) continue; // 文件路径类 dev 行
+
+        const m = content.match(/^(.{1,24}?)\s*[:：]\s*(.+)$/);
+        if (m) {
+            const name = m[1].trim();
+            const text = m[2].trim();
+            if (name === '通用') {
+                notes.push({ file: null, text });
+                continue;
+            }
+            const page = pages.find((p) =>
+                p.title === name ||
+                p.title.replace(/\s/g, '') === name.replace(/\s/g, '') ||
+                shortTitle(p.title) === name ||
+                posix.basename(p.file, '.html') === name
+            );
+            if (page) {
+                notes.push({ file: page.file, text });
+                continue;
+            }
         }
-        if (name.includes('/')) continue; // 文件路径类 dev 行，不面向业务
-        const page = pages.find((p) =>
-            p.title === name ||
-            p.title.replace(/\s/g, '') === name.replace(/\s/g, '') ||
-            posix.basename(p.file, '.html') === name
-        );
-        if (page) notes.push({ file: page.file, text });
+        // 无前缀/名字没对上：按强分隔符拆条后逐条归属
+        for (const clause of content.split(/[；。]/)) {
+            const c = clause.trim();
+            if (c.length >= 6) attachByMention(c, pages, notes);
+        }
     }
     return notes;
 }
@@ -189,12 +232,10 @@ for (const record of raw.split(RECORD)) {
     if (!dayMap.has(date)) dayMap.set(date, []);
     const item = { sha: sha.slice(0, 7), type, text, author, time, pages };
     if (global) item.global = true;
-    // 说明优先取 commit body，老提交回退到 changelog-notes.json 补录
-    const bodyLines = (body || '').split('\n');
-    let notes = parseNotes(bodyLines, pages);
-    if (!notes.length && backfillNotes[item.sha]) {
-        notes = parseNotes(backfillNotes[item.sha].map((l) => '- ' + l), pages);
-    }
+    // 人工补录（changelog-notes.json）优先于 body 解析：补录是逐提交整理的，质量更高
+    const notes = backfillNotes[item.sha]
+        ? parseNotes(backfillNotes[item.sha].map((l) => '- ' + l), pages)
+        : parseNotes((body || '').split('\n'), pages);
     if (notes.length) item.notes = notes;
     dayMap.get(date).push(item);
     total += 1;

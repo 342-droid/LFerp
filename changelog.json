@@ -1,10 +1,93 @@
 {
-  "latestSha": "20ae16c314dfc6646b70707287c681843dc46c5a",
-  "total": 190,
+  "latestSha": "882b7ec36dd239f89b22d85c007d2c9c5d67a851",
+  "total": 191,
   "days": [
     {
       "date": "2026-07-25",
       "items": [
+        {
+          "sha": "882b7ec",
+          "type": "feat",
+          "text": "购物车隐藏履约说明并完善待自提待收货与快递到家",
+          "author": "sisi",
+          "time": "09:01",
+          "pages": [
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/cart.html",
+              "text": "去掉分组上的自提/快递标签及履约说明文案"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "text": "Tab「待提货」改为「待自提/待收货」，自提单与快递待收货同屏展示"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "快递单改为配送到家，顶部展示家庭收货地址；待自提详情布局样式补回"
+            }
+          ]
+        },
         {
           "sha": "20ae16c",
           "type": "feat",
@@ -56,6 +139,32 @@
               "file": "user-app/h5/profile.html",
               "module": "",
               "title": "我的 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/category.html",
+              "text": "商城类目跳转分类页，还原横向类目、列表加购与底栏结算"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "text": "商城类目跳转分类页，还原横向类目、列表加购与底栏结算"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "text": "商品详情透出配送/门店供应商信息，底栏分享改为购物车"
+            },
+            {
+              "file": "user-app/h5/product-detail.html",
+              "text": "商品详情透出配送/门店供应商信息，底栏分享改为购物车"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "text": "购物车按门店与供应商分组，确认订单按履约方式拆单"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "text": "购物车按门店与供应商分组，确认订单按履约方式拆单"
             }
           ]
         },
@@ -239,6 +348,20 @@
               "file": "user-app/h5/order-refund-select.html",
               "module": "",
               "title": "选择服务类型 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/order-refund-restock.html",
+              "text": "配送补货改为仓配到店确认入库"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "text": "快递/配送确认收货时录入实际补货数量并同步后台售后单展示"
+            },
+            {
+              "file": "user-app/h5/order-refund-restock.html",
+              "text": "快递/配送确认收货时录入实际补货数量并同步后台售后单展示"
             }
           ]
         },
@@ -444,7 +567,7 @@
               "text": "新增门店APP工作台——快捷核销（扫码/输码/待核销）与基础工具（门店会员码/门店订单/库存查询/商户进件）"
             },
             {
-              "file": "store-app/index.html",
+              "file": "store-app/h5/home.html",
               "text": "新增门店APP入口页"
             },
             {
@@ -1487,7 +1610,13 @@
               "title": "工作台"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_member_tag.html",
+              "text": "在会员中心增加会员标签列表、筛选与新增编辑弹窗"
+            }
+          ]
         }
       ]
     },
@@ -1594,6 +1723,12 @@
               "file": "user-app/h5/restock.html",
               "module": "",
               "title": "进货 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "text": "去掉退押金，退款/售后左移，新增地址管理并跳转现有地址簿页面"
             }
           ]
         },
@@ -1832,6 +1967,20 @@
               "module": "",
               "title": "进货 · 用户 APP"
             }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "同步履约方式为快递/配送，订单详情按状态过滤售后入口，并支持同回退地址合并取件码"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "text": "同步履约方式为快递/配送，订单详情按状态过滤售后入口，并支持同回退地址合并取件码"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-order.html",
+              "text": "同步履约方式为快递/配送，订单详情按状态过滤售后入口，并支持同回退地址合并取件码"
+            }
           ]
         }
       ]
@@ -1875,6 +2024,20 @@
               "file": "user-app/h5/restock.html",
               "module": "",
               "title": "进货 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/checkout.html",
+              "text": "购物车/确认订单按履约方式分算运费，补充计费说明弹窗与运费明细半遮罩"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "订单详情待发货占位物流、待收货快递物流滑动卡片"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "text": "订单详情待发货占位物流、待收货快递物流滑动卡片"
             }
           ]
         },
@@ -2059,6 +2222,12 @@
               "module": "",
               "title": "选择服务类型 · 用户 APP"
             }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "text": "仅在取消寄件后进入预约寄件页，并修复关闭结果页文案与进度条展示"
+            }
           ]
         },
         {
@@ -2143,6 +2312,12 @@
               "module": "",
               "title": "选择服务类型 · 用户 APP"
             }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "text": "新增预约寄件页并对齐详情页风格，支持上门取件与自行寄回"
+            }
           ]
         },
         {
@@ -2226,6 +2401,12 @@
               "file": "user-app/h5/order-refund-select.html",
               "module": "",
               "title": "选择服务类型 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/order-refund-return-goods.html",
+              "text": "新增退货商品详情页，优化寄件订单取消寄件、分享与关闭原因选项"
             }
           ]
         },
@@ -2463,6 +2644,16 @@
               "file": "user-app/h5/order-refund-select.html",
               "module": "",
               "title": "选择服务类型 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/order-detail.html",
+              "text": "支持编辑寄件人地址、城市地区半遮罩联动，以及待上门取件订单详情页跳转"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-order.html",
+              "text": "支持编辑寄件人地址、城市地区半遮罩联动，以及待上门取件订单详情页跳转"
             }
           ]
         },
@@ -2721,6 +2912,12 @@
               "module": "",
               "title": "选择服务类型 · 用户 APP"
             }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "用户端售后支持上门取货，零售订单配送方式统一为履约方式"
+            }
           ]
         },
         {
@@ -2825,6 +3022,16 @@
               "module": "",
               "title": "选择服务类型 · 用户 APP"
             }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "将代采快递上传能力迁至零售订单（含批量上传与跟踪），代采侧仅只读展示采购单回传物流"
+            },
+            {
+              "file": "user-app/h5/order-refund-restock.html",
+              "text": "并修正用户端补货失败等售后文案"
+            }
           ]
         }
       ]
@@ -2873,6 +3080,12 @@
               "module": "冷丰WMS",
               "title": "代采商品列表"
             }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "代采订单/商品搜索与列表详情文案统一为履约方式"
+            }
           ]
         },
         {
@@ -2903,7 +3116,25 @@
               "title": "门店订货单"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "自动截单与门店订货单/采购单 mock 同步调整"
+            },
+            {
+              "file": "SCM/purchase_store_order_sheet.html",
+              "text": "自动截单与门店订货单/采购单 mock 同步调整"
+            },
+            {
+              "file": "SCM/purchase_store_order_sheet.html",
+              "text": "门店订货单去掉手动新增来源"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "采购单补充手动新增及关联/来源单号样例"
+            }
+          ]
         },
         {
           "sha": "d48aefe",
@@ -2945,6 +3176,12 @@
               "file": "MDM/mdm_aftersale_ticket_detail.html",
               "module": "冷丰售后",
               "title": "售后详情"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "text": "待退货支持拒绝收货并退回门店物流，对齐仅退款审核后生成退款单、退货退款确认收货后生成退款单规则"
             }
           ]
         },
@@ -2991,7 +3228,17 @@
               "title": "零售订单"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "text": "售后单列表/详情按类型与状态支持审批、供应商收货地址、寄回与换出物流跟踪"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "同步代采订单相关交互调整"
+            }
+          ]
         }
       ]
     },
@@ -3246,7 +3493,13 @@
               "title": "选品库"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "代采商品列表补充履约方式"
+            }
+          ]
         },
         {
           "sha": "ce46a78",
@@ -3323,6 +3576,12 @@
               "module": "冷丰WMS",
               "title": "零售订单"
             }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "代采/零售订单筛选默认收起两行，列表透出上传快递单并按订单状态控制显示，操作栏按钮颜色与布局对齐优化"
+            }
           ]
         },
         {
@@ -3378,7 +3637,13 @@
               "title": "选品库"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "新增代采订单列表与详情（到店/仓配、快递上传跟踪、确认收货），列表增加履约方式字段，并同步订单侧边栏与详情页集成"
+            }
+          ]
         },
         {
           "sha": "3dee02e",
@@ -3401,6 +3666,20 @@
               "file": "SCM/purchase_store_order_sheet.html",
               "module": "冷丰采购",
               "title": "门店订货单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "采购单物流确认与轨迹按商品维度支持多单号，并补充合单发运模拟数据"
+            },
+            {
+              "file": "SCM/purchase_store_order_sheet.html",
+              "text": "门店订货单新增售后补送来源，调整列表与详情字段顺序"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "text": "门店订货汇总自动截单配置仅保留平台配送"
             }
           ]
         },
@@ -3465,6 +3744,12 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_product_proxy_tag.html",
+              "text": "商城标签管理页与标签数据层"
             }
           ]
         },
@@ -3551,7 +3836,13 @@
               "title": "选品库"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "实现三级类目级联管理、代采商品列表从商品库添加（175 件卡片选择），并统一商品模块动态页签与布局间距修复"
+            }
+          ]
         }
       ]
     },
@@ -3640,6 +3931,24 @@
               "module": "",
               "title": "选择服务类型 · 用户 APP"
             }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/order-refund-exchange.html",
+              "text": "新增补货/换货服务选项与规格选择申请页，换货支持同价规格互换"
+            },
+            {
+              "file": "user-app/h5/order-refund-restock.html",
+              "text": "新增补货/换货服务选项与规格选择申请页，换货支持同价规格互换"
+            },
+            {
+              "file": "user-app/h5/order-refund-exchange.html",
+              "text": "详情页补全补货寄出、换货先寄回再寄出进度流程"
+            },
+            {
+              "file": "user-app/h5/order-refund-restock.html",
+              "text": "详情页补全补货寄出、换货先寄回再寄出进度流程"
+            }
           ]
         },
         {
@@ -3723,6 +4032,16 @@
               "file": "user-app/h5/order-refund-select.html",
               "module": "",
               "title": "选择服务类型 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/order-refund-only.html",
+              "text": "实现未发货仅退款、发货后选择服务、退货退款进度、拒收退回中间态及成功/失败/关闭等结果场景，并接入订单详情跳转与取消订单弹窗"
+            },
+            {
+              "file": "user-app/h5/order-refund-pre-ship.html",
+              "text": "实现未发货仅退款、发货后选择服务、退货退款进度、拒收退回中间态及成功/失败/关闭等结果场景，并接入订单详情跳转与取消订单弹窗"
             }
           ]
         }
@@ -3814,6 +4133,12 @@
               "file": "user-app/h5/orders.html",
               "module": "",
               "title": "我的订单 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/order-logistics.html",
+              "text": "支持到店待收货独立展示快递信息与订单跟踪页，结算与订单列表按 delivery 参数区分仓配与到店配送"
             }
           ]
         },
@@ -3946,6 +4271,28 @@
               "file": "user-app/h5/restock.html",
               "module": "",
               "title": "进货 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_product_audit.html",
+              "text": "新增结算页与多规格商品详情（平铺规格+批量加购弹层），优化购物车分组、订单列表关闭场景及订单详情代采适配，并同步 MDM 代采商品列表相关调整"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "新增结算页与多规格商品详情（平铺规格+批量加购弹层），优化购物车分组、订单列表关闭场景及订单详情代采适配，并同步 MDM 代采商品列表相关调整"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "新增结算页与多规格商品详情（平铺规格+批量加购弹层），优化购物车分组、订单列表关闭场景及订单详情代采适配，并同步 MDM 代采商品列表相关调整"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "text": "新增结算页与多规格商品详情（平铺规格+批量加购弹层），优化购物车分组、订单列表关闭场景及订单详情代采适配，并同步 MDM 代采商品列表相关调整"
+            },
+            {
+              "file": "user-app/h5/product-detail.html",
+              "text": "新增结算页与多规格商品详情（平铺规格+批量加购弹层），优化购物车分组、订单列表关闭场景及订单详情代采适配，并同步 MDM 代采商品列表相关调整"
             }
           ]
         }
@@ -4099,7 +4446,17 @@
               "title": "进货 · 用户 APP"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_product_audit.html",
+              "text": "完善选品库审核流程、商品详情页与销售规格展示，新增代采商品独立分组及列表页"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "text": "完善选品库审核流程、商品详情页与销售规格展示，新增代采商品独立分组及列表页"
+            }
+          ]
         },
         {
           "sha": "0cf43a3",
@@ -4117,6 +4474,12 @@
               "file": "SCM/purchase_store_demand_summary.html",
               "module": "冷丰采购",
               "title": "门店订货汇总"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "在采购单页内嵌物流轨迹弹窗，展示收货信息与轨迹时间线"
             }
           ]
         }
@@ -4151,6 +4514,16 @@
               "file": "SCM/purchase_store_order_sheet.html",
               "module": "冷丰采购",
               "title": "门店订货单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/purchase_demand_summary.html",
+              "text": "统一门店订货、采购需求汇总与采购单页面的渠道/履约筛选与展示，合并相关枚举并完善 mock 数据与自动截单配置"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "统一门店订货、采购需求汇总与采购单页面的渠道/履约筛选与展示，合并相关枚举并完善 mock 数据与自动截单配置"
             }
           ]
         }
@@ -4197,7 +4570,17 @@
               "title": "仓库管理"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/delivery_hub.html",
+              "text": "仓库/货主/仓间/站点/出库单等页面地址拆分为省市区与详细地址，详情页省市区只读"
+            },
+            {
+              "file": "SCM/obd_outbound.html",
+              "text": "仓库/货主/仓间/站点/出库单等页面地址拆分为省市区与详细地址，详情页省市区只读"
+            }
+          ]
         },
         {
           "sha": "903a0a6",
@@ -4454,6 +4837,16 @@
               "module": "",
               "title": "用户 APP"
             }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/login-phone.html",
+              "text": "支持一键登录、手机快速登录、微信授权及游客跳过，统一鉴权并优化排队入口展示"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "text": "支持一键登录、手机快速登录、微信授权及游客跳过，统一鉴权并优化排队入口展示"
+            }
           ]
         },
         {
@@ -4578,6 +4971,12 @@
               "module": "冷丰采购",
               "title": "采购单"
             }
+          ],
+          "notes": [
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "采购单新增/编辑页根据所选收货地名称自动展示收货信息"
+            }
           ]
         },
         {
@@ -4596,6 +4995,16 @@
               "file": "SCM/purchase_order.html",
               "module": "冷丰采购",
               "title": "采购单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/purchase_demand_summary.html",
+              "text": "采购需求汇总预览支持展开明细并与汇总行列对齐，采购员下沉至明细行"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "采购单将采购员下沉至商品明细，收货仓库更名为收货地名称并优化详情展示"
             }
           ]
         },
@@ -4634,6 +5043,20 @@
               "file": "SCM/purchase_order.html",
               "module": "冷丰采购",
               "title": "采购单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/purchase_demand_summary.html",
+              "text": "采购需求汇总按门店维度预览增加门店地址、手机号、负责人"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "采购单详情增加收货信息与商品规格，单据来源拆分为按供应商/按门店"
+            },
+            {
+              "file": "SCM/app_obd_recheck.html",
+              "text": "复核任务扫描文案优化"
             }
           ]
         }
@@ -4678,6 +5101,20 @@
               "file": "SCM/purchase_store_order_sheet.html",
               "module": "冷丰采购",
               "title": "门店订货单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/purchase_demand_summary.html",
+              "text": "门店订货汇总、采购需求汇总、门店订货单详情在商品编码前展示缩略图，支持点击查看大图"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "text": "门店订货汇总、采购需求汇总、门店订货单详情在商品编码前展示缩略图，支持点击查看大图"
+            },
+            {
+              "file": "SCM/purchase_store_order_sheet.html",
+              "text": "门店订货汇总、采购需求汇总、门店订货单详情在商品编码前展示缩略图，支持点击查看大图"
             }
           ]
         }
@@ -4819,7 +5256,13 @@
               "title": "出库单"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/obd_outbound.html",
+              "text": "移除出库单单据时间字段，简化发货单状态为初始/发货完成/已取消并抽到 modal-manager，库存日志列表新增变更后数据列"
+            }
+          ]
         }
       ]
     },
@@ -4897,6 +5340,16 @@
               "module": "",
               "title": "我的 · 用户 APP"
             }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "text": "新增 MDM 排队记录列表页及同级侧栏菜单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "text": "用户端排队留言支持编辑发送并同步至门店排队记录"
+            }
           ]
         },
         {
@@ -4962,7 +5415,13 @@
               "title": "我的 · 用户 APP"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_order_live.html",
+              "text": "新增直播订单列表、详情抽屉及整单/批量核销与操作日志"
+            }
+          ]
         },
         {
           "sha": "7eafe31",
@@ -5225,7 +5684,25 @@
               "title": "系统管理"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/basic_settings_index.html",
+              "text": "顶栏「采购」后新增「基础设置」入口，含侧栏、小程序协议页与订单配置页"
+            },
+            {
+              "file": "SCM/basic_settings_miniprogram_agreement.html",
+              "text": "顶栏「采购」后新增「基础设置」入口，含侧栏、小程序协议页与订单配置页"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "text": "顶栏「采购」后新增「基础设置」入口，含侧栏、小程序协议页与订单配置页"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "text": "门店详情订单配置文案与必填/温馨提示样式对齐设计稿"
+            }
+          ]
         }
       ]
     },
@@ -5403,6 +5880,12 @@
               "module": "",
               "title": "门店注册 · Shop H5"
             }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "门店创建 H5、PC 门店档案编辑：配送仓库必填标红与校验"
+            }
           ]
         },
         {
@@ -5457,7 +5940,13 @@
               "title": "冷丰 MDM · 添加 / 编辑门店"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "text": "门店注册审核详情/编辑：老板/联系人板块移至档案字段下，字段与 BD 对齐"
+            }
+          ]
         }
       ]
     },
@@ -5487,7 +5976,21 @@
               "title": "任务引擎"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/allocation_strategy.html",
+              "text": "将 CommonOptions.locationType 作为唯一数据源，储位/分配策略/任务引擎页面共用"
+            },
+            {
+              "file": "SCM/location.html",
+              "text": "将 CommonOptions.locationType 作为唯一数据源，储位/分配策略/任务引擎页面共用"
+            },
+            {
+              "file": "SCM/task_engine.html",
+              "text": "将 CommonOptions.locationType 作为唯一数据源，储位/分配策略/任务引擎页面共用"
+            }
+          ]
         }
       ]
     },
@@ -5585,7 +6088,17 @@
               "title": "波次模板"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/wave_flow.html",
+              "text": "将缺量分配等配置从波次流程迁移至波次模板，新增出库状态与过账失败选项，并更新入库业务类型"
+            },
+            {
+              "file": "SCM/wave_template.html",
+              "text": "将缺量分配等配置从波次流程迁移至波次模板，新增出库状态与过账失败选项，并更新入库业务类型"
+            }
+          ]
         },
         {
           "sha": "16b5319",
@@ -5688,7 +6201,21 @@
               "title": "出库异常"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/negative_inventory.html",
+              "text": "侧栏增加负库存入口"
+            },
+            {
+              "file": "SCM/obd_outbound_exception.html",
+              "text": "库存调整与出库异常列表/详情补充仓库列"
+            },
+            {
+              "file": "SCM/inventory.html",
+              "text": "库存查询搜索区标签宽度对齐"
+            }
+          ]
         }
       ]
     },
@@ -5713,7 +6240,17 @@
               "title": "波次模板"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/wave_flow.html",
+              "text": "新增 CommonOptions.flowType 统一流程类型选项，波次流程增加缺量分配字段及一键出库联动逻辑，波次模板增加是否隐藏配置并更新示例数据"
+            },
+            {
+              "file": "SCM/wave_template.html",
+              "text": "新增 CommonOptions.flowType 统一流程类型选项，波次流程增加缺量分配字段及一键出库联动逻辑，波次模板增加是否隐藏配置并更新示例数据"
+            }
+          ]
         }
       ]
     },
@@ -5977,7 +6514,25 @@
               "title": "工作台"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "text": "采购员仅维护姓名/手机/关联组织，新增时按登录公司自动带入组织"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "text": "BD/采购员/司机/主播操作栏支持开启/禁用"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "text": "BD/采购员/司机/主播操作栏支持开启/禁用"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "text": "BD/采购员/司机/主播操作栏支持开启/禁用"
+            }
+          ]
         }
       ]
     },
@@ -6052,7 +6607,17 @@
               "title": "商户主体建档"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "text": "主播/司机添加编辑弹窗对齐 BD（520px、短信验证、共用样式）"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "text": "主播/司机添加编辑弹窗对齐 BD（520px、短信验证、共用样式）"
+            }
+          ]
         },
         {
           "sha": "6e14592",
@@ -6223,6 +6788,12 @@
               "module": "冷丰WMS",
               "title": "商户主体建档"
             }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "text": "更新仓库档案列表与筛选文案，新增仓库类型并将仓库级别独立展示"
+            }
           ]
         },
         {
@@ -6256,6 +6827,12 @@
               "file": "MDM/mdm_archive_warehouse.html",
               "module": "冷丰WMS",
               "title": "仓库档案"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "text": "在新增/编辑供应商弹窗中新增“入库仓库”必填下拉，并从仓库档案页读取启用仓库名称"
             }
           ]
         },
@@ -6291,6 +6868,12 @@
               "module": "冷丰WMS",
               "title": "仓库档案"
             }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "text": "在新增/编辑供应商弹窗中新增“入库仓库”必填下拉，并从仓库档案页读取启用仓库名称"
+            }
           ]
         },
         {
@@ -6325,6 +6908,12 @@
               "module": "冷丰WMS",
               "title": "仓库档案"
             }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "text": "在新增/编辑供应商弹窗中新增“入库仓库”必填下拉，并从仓库档案页读取启用仓库名称"
+            }
           ]
         }
       ]
@@ -6358,6 +6947,16 @@
               "file": "SCM/purchase_store_demand_summary.html",
               "module": "冷丰采购",
               "title": "门店订货汇总"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_supplier_product.html",
+              "text": "优化供货关系与采购汇总/采购单页面展示，补充订单类型筛选，并将建议/实际采购单价统一为采购单价以简化业务口径"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "优化供货关系与采购汇总/采购单页面展示，补充订单类型筛选，并将建议/实际采购单价统一为采购单价以简化业务口径"
             }
           ]
         },
@@ -6398,7 +6997,13 @@
               "title": "仓库管理"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_supplier_product.html",
+              "text": "MDM：资源中心菜单新增「供货关系」，并新增占位页面 `MDM/mdm_supplier_product.html`"
+            }
+          ]
         }
       ]
     },
@@ -6534,7 +7139,17 @@
               "title": "库存调整单"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/inventory_adjustment.html",
+              "text": "在库内管理下新增“库存调整单”菜单入口，并支持当前菜单高亮"
+            },
+            {
+              "file": "SCM/inventory_adjustment.html",
+              "text": "新增库存调整单列表页面，补齐查询条件、状态样式与列表字段顺序"
+            }
+          ]
         },
         {
           "sha": "1ecf040",
@@ -6618,7 +7233,17 @@
               "title": "波次模板"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/delivery_hub.html",
+              "text": "将任务、站点、入库与出库相关下拉枚举统一沉淀到 CommonOptions，并在相关页面改为通过公共渲染函数动态注入，减少重复维护成本并保证跨页面取值一致"
+            },
+            {
+              "file": "SCM/task.html",
+              "text": "将任务、站点、入库与出库相关下拉枚举统一沉淀到 CommonOptions，并在相关页面改为通过公共渲染函数动态注入，减少重复维护成本并保证跨页面取值一致"
+            }
+          ]
         },
         {
           "sha": "c8c33d0",
@@ -6636,6 +7261,12 @@
               "file": "SCM/warehouse_sku.html",
               "module": "冷丰WMS",
               "title": "商品"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/warehouse_sku.html",
+              "text": "统一页面展示字段与详情映射，减少业务人员在商品与发货场景切换时的信息缺口"
             }
           ]
         }
@@ -6656,6 +7287,12 @@
               "module": "冷丰WMS",
               "title": "周转策略"
             }
+          ],
+          "notes": [
+            {
+              "file": "SCM/turn_strategy.html",
+              "text": "去除周转策略列表中的周转规则列，并同步调整状态列与编辑映射索引，避免列表编辑场景出现字段错位"
+            }
           ]
         },
         {
@@ -6669,6 +7306,12 @@
               "file": "SCM/task_group.html",
               "module": "冷丰WMS",
               "title": "任务组"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/task_group.html",
+              "text": "在任务组查询操作区补充改派和取消指派按钮，完善任务分派相关操作入口"
             }
           ]
         }
@@ -6819,7 +7462,17 @@
               "title": "商户主体建档"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "text": "在BD推广员列表新增“绑定仓库”能力，按网格仓/中心仓分组展示启用仓库并支持多选持久化"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "text": "同时统一仓库档案枚举与人员中心导航文案，并同步生成脚本避免后续回滚"
+            }
+          ]
         },
         {
           "sha": "3fd2eab",
@@ -6857,6 +7510,12 @@
               "module": "冷丰WMS",
               "title": "仓库管理"
             }
+          ],
+          "notes": [
+            {
+              "file": "SCM/ibd_strategy.html",
+              "text": "补充收货记录确认收货与页签状态流转逻辑，并完善入库策略自动上架、上架储位及仓库参数配置，提升入库作业配置完整性"
+            }
           ]
         },
         {
@@ -6872,7 +7531,13 @@
               "title": "库存规则"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/inventory_rule.html",
+              "text": "补充来源触发“上架完成”枚举，并新增W012库存规则及其明细mock数据，便于页面联调与演示"
+            }
+          ]
         },
         {
           "sha": "4375fa0",
@@ -6987,6 +7652,12 @@
               "file": "SCM/mobile_index.html",
               "module": "冷丰WMS",
               "title": "移动端"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/mobile_index.html",
+              "text": "移动端二级菜单“仓储APP”应直接进入应用列表页，避免误跳转到登录页"
             }
           ]
         }
@@ -7356,6 +8027,16 @@
               "module": "冷丰WMS",
               "title": "库存查询"
             }
+          ],
+          "notes": [
+            {
+              "file": "SCM/inventory-log.html",
+              "text": "在库存查询和库存日志中于入库日期后新增批次列，并按收货日期(无分隔符)-3位流水号-商品码格式展示，修正状态列索引以保持操作正常"
+            },
+            {
+              "file": "SCM/inventory.html",
+              "text": "在库存查询和库存日志中于入库日期后新增批次列，并按收货日期(无分隔符)-3位流水号-商品码格式展示，修正状态列索引以保持操作正常"
+            }
           ]
         },
         {
@@ -7374,6 +8055,16 @@
               "file": "SCM/purchase_order.html",
               "module": "冷丰采购",
               "title": "采购单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "增强采购单页面：补充销售相关字段展示与计算，调整新增/编辑与物流确认流程，并新增供应商查询下拉筛选"
+            },
+            {
+              "file": "SCM/purchase_demand_summary.html",
+              "text": "重构采购需求汇总生成预览：新增分区式预览弹窗与维度化分组展示，支持预览字段扩展、行内可编辑及确认后生成"
             }
           ]
         }
@@ -7727,7 +8418,13 @@
               "title": "移动端"
             }
           ],
-          "global": true
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/mobile_index.html",
+              "text": "顶栏「移动端」、SCM/mobile_index 与 mobile-sidebar（BD APP→MDM 工作台、门店H5→shop-h5 门店注册页）"
+            }
+          ]
         },
         {
           "sha": "cd9cb7c",

@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: '0 22 * * *' # 每天北京时间 06:00
   workflow_dispatch: {}
+  push:
+    branches: [main] # bot 用 GITHUB_TOKEN 回推不会再次触发，无循环
 
 permissions:
   contents: write
