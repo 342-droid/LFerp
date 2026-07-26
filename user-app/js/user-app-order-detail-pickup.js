@@ -1,7 +1,7 @@
 /**
  * 零售自提订单详情：
  * - 透出售后进度条（同门店/通用订单详情）
- * - 剩余可提数量为 0：该商品无需到店自提；全部为 0 时提示无需核销
+ * - 订单状态：全额退款/退货→已取消；有待提→待自提；剩余已提完→已完成（无「无需自提」）
  * - 核销方式：门店扫用户会员码（用户端不展示核销码）
  */
 (function () {
@@ -68,6 +68,19 @@
       scene: 'post_ship',
       supplier: ''
     };
+  }
+
+  function collectItemSnapshots() {
+    var items = [];
+    document.querySelectorAll('.ua-od-product[data-item-index]').forEach(function (card) {
+      items.push({
+        itemIndex: parseInt(card.getAttribute('data-item-index') || '0', 10),
+        orderQty: parseInt(card.getAttribute('data-order-qty') || '1', 10),
+        pickedQty: parseInt(card.getAttribute('data-picked-qty') || '0', 10),
+        card: card
+      });
+    });
+    return items;
   }
 
   function renderItemAftersaleBars(itemEl, itemIndex) {
@@ -176,16 +189,14 @@
   function applyPickupQtyRules() {
     var api = getApi();
     var orderNo = getOrderNo();
-    var needPickupCount = 0;
+    var snapshots = collectItemSnapshots();
 
-    document.querySelectorAll('.ua-od-product[data-item-index]').forEach(function (card) {
-      var itemIndex = parseInt(card.getAttribute('data-item-index') || '0', 10);
-      var orderQty = parseInt(card.getAttribute('data-order-qty') || '1', 10);
-      var pickedQty = parseInt(card.getAttribute('data-picked-qty') || '0', 10);
+    snapshots.forEach(function (it) {
+      var card = it.card;
       var remaining =
         api && api.getItemRemainingPickupQty
-          ? api.getItemRemainingPickupQty(itemIndex, orderQty, pickedQty, orderNo)
-          : Math.max(0, orderQty - pickedQty);
+          ? api.getItemRemainingPickupQty(it.itemIndex, it.orderQty, it.pickedQty, orderNo)
+          : Math.max(0, it.orderQty - it.pickedQty);
 
       card.setAttribute('data-remain-qty', String(remaining));
       card.classList.toggle('is-no-pickup', remaining <= 0);
@@ -193,27 +204,32 @@
       var qtyEl = card.querySelector('[data-pickup-qty]');
       if (qtyEl) {
         qtyEl.textContent =
-          '规格：' + (card.getAttribute('data-spec') || '') + '　数量：' + orderQty;
+          '规格：' + (card.getAttribute('data-spec') || '') + '　数量：' + it.orderQty;
       }
 
       var tagEl = card.querySelector('.ua-od-product__tag');
       var refundBtn = card.querySelector('.ua-od-refund-btn');
-      var donePicked = pickedQty >= orderQty && orderQty > 0;
+      var donePicked = it.pickedQty >= it.orderQty && it.orderQty > 0;
+      var refunded =
+        api && api.getItemRefundedPickupQty
+          ? Math.min(api.getItemRefundedPickupQty(it.itemIndex, orderNo), it.orderQty)
+          : 0;
+      var fullyRefunded = refunded >= it.orderQty && it.orderQty > 0;
 
       if (remaining <= 0) {
         if (tagEl) {
-          if (donePicked) {
+          if (donePicked && !fullyRefunded) {
             tagEl.hidden = false;
             tagEl.className = 'ua-od-product__tag ua-od-product__tag--done';
             tagEl.textContent = '已提货';
           } else {
+            /* 已退完不展示「无需自提」类标签 */
             tagEl.hidden = true;
             tagEl.textContent = '';
           }
         }
         if (refundBtn) refundBtn.hidden = true;
       } else {
-        needPickupCount += 1;
         if (tagEl && !tagEl.classList.contains('ua-od-product__tag--partial') && !donePicked) {
           tagEl.hidden = false;
           tagEl.className = 'ua-od-product__tag';
@@ -221,34 +237,56 @@
         }
         if (refundBtn) {
           refundBtn.hidden = false;
-          refundBtn.setAttribute('href', buildRefundSelectHref(itemIndex));
+          refundBtn.setAttribute('href', buildRefundSelectHref(it.itemIndex));
         }
       }
 
       if (refundBtn && !refundBtn.hidden) {
-        refundBtn.setAttribute('href', buildRefundSelectHref(itemIndex));
+        refundBtn.setAttribute('href', buildRefundSelectHref(it.itemIndex));
       }
 
-      renderItemAftersaleBars(card, itemIndex);
+      renderItemAftersaleBars(card, it.itemIndex);
     });
 
-    syncPickupHeader(needPickupCount);
+    var orderStatus =
+      api && api.resolveRetailOrderFulfillmentStatus
+        ? api.resolveRetailOrderFulfillmentStatus(snapshots, orderNo, 'pickup')
+        : 'pickup';
+    syncPickupHeader(orderStatus);
   }
 
-  function syncPickupHeader(needPickupCount) {
+  function syncPickupHeader(orderStatus) {
     var titleEl = document.querySelector('.ua-od-pickup__title');
     var subEl = document.querySelector('.ua-od-pickup__sub');
     var voidTip = document.getElementById('pickupVerifyVoidTip');
+    var backEl = document.querySelector('.ua-orders-back');
+    var shell = document.querySelector('.ua-order-detail-page');
 
-    if (needPickupCount <= 0) {
-      if (titleEl) titleEl.textContent = '无需自提';
-      if (subEl) subEl.textContent = '待自提商品已全部退款/退货或已提货';
-      if (voidTip) voidTip.hidden = false;
-    } else {
-      if (titleEl) titleEl.textContent = '待自提';
-      if (subEl) subEl.textContent = '商品已到提货点，到店出示会员码由门店核销提货';
-      if (voidTip) voidTip.hidden = true;
+    if (voidTip) voidTip.hidden = true;
+
+    if (shell) {
+      shell.setAttribute('data-order-status', orderStatus);
+      shell.classList.toggle('is-order-closed', orderStatus === 'closed');
+      shell.classList.toggle('is-order-completed', orderStatus === 'completed');
     }
+
+    if (orderStatus === 'closed') {
+      if (titleEl) titleEl.textContent = '已取消';
+      if (subEl) subEl.textContent = '订单商品已全部退款，订单已取消';
+      if (backEl) backEl.setAttribute('href', 'orders.html');
+      return;
+    }
+
+    if (orderStatus === 'completed') {
+      if (titleEl) titleEl.textContent = '已完成';
+      if (subEl) subEl.textContent = '商品已提货完成';
+      if (backEl) backEl.setAttribute('href', 'orders.html');
+      return;
+    }
+
+    if (titleEl) titleEl.textContent = '待自提';
+    if (subEl) subEl.textContent = '商品已到提货点，到店出示会员码由门店核销提货';
+    if (backEl) backEl.setAttribute('href', 'orders.html?tab=pickup');
   }
 
   function bindEvents() {
