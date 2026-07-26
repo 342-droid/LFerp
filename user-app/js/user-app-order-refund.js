@@ -356,7 +356,7 @@
     }, 0);
   }
 
-  /** 自提剩余需核销数量；<=0 表示该商品无需自提核销 */
+  /** 自提/待收剩余履约数量 = 下单 - 已提(已收) - 已成功退款/退货 */
   function getItemRemainingPickupQty(itemIndex, orderQty, pickedQty, orderNo) {
     var order = Number(orderQty);
     if (isNaN(order) || order < 0) {
@@ -365,6 +365,41 @@
     var picked = Number(pickedQty) || 0;
     var refunded = getItemRefundedPickupQty(itemIndex, orderNo);
     return Math.max(0, order - picked - refunded);
+  }
+
+  /**
+   * 零售订单履约状态（无「无需自提」）：
+   * - 全部商品已退货退款/仅退款成功 → closed（已取消）
+   * - 仍有待自提 → pickup；仍有快递待收货 → receipt
+   * - 退款后剩余均已自提/已收货 → completed（已完成）
+   * mode: 'pickup' | 'express'
+   * items: [{ itemIndex, orderQty, pickedQty }]
+   */
+  function resolveRetailOrderFulfillmentStatus(items, orderNo, mode) {
+    var list = items || [];
+    var awaitKey = mode === 'express' ? 'receipt' : 'pickup';
+    if (!list.length) return awaitKey;
+
+    var hasAwait = false;
+    var allFullyRefunded = true;
+
+    list.forEach(function (it) {
+      var orderQty = Number(it.orderQty);
+      if (isNaN(orderQty) || orderQty < 0) orderQty = 1;
+      var pickedQty = Number(it.pickedQty) || 0;
+      var refunded = Math.min(
+        getItemRefundedPickupQty(it.itemIndex, orderNo),
+        orderQty
+      );
+      if (refunded < orderQty) allFullyRefunded = false;
+      if (getItemRemainingPickupQty(it.itemIndex, orderQty, pickedQty, orderNo) > 0) {
+        hasAwait = true;
+      }
+    });
+
+    if (allFullyRefunded) return 'closed';
+    if (hasAwait) return awaitKey;
+    return 'completed';
   }
 
   function getAftersaleProgressView(rec) {
@@ -9537,6 +9572,7 @@
     getMergedRefundAmount: getMergedRefundAmount,
     getItemRefundedPickupQty: getItemRefundedPickupQty,
     getItemRemainingPickupQty: getItemRemainingPickupQty,
+    resolveRetailOrderFulfillmentStatus: resolveRetailOrderFulfillmentStatus,
     DEMO_ORDER_NO: DEMO_ORDER_NO,
     isAftersaleFinished: isAftersaleFinished,
     buildAftersaleDetailHref: buildAftersaleDetailHref,

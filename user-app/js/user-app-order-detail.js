@@ -69,7 +69,7 @@
       ]
     },
     closed: {
-      title: '订单已关闭',
+      title: '已取消',
       sub: '订单已取消，欢迎下次光临',
       showLogistics: false,
       showPoints: false,
@@ -84,13 +84,16 @@
 
   var CLOSED_REASONS = {
     cancel: {
+      title: '已取消',
       sub: '订单已取消，欢迎下次光临'
     },
     timeout: {
+      title: '已关闭',
       sub: '超时未支付，订单已自动关闭'
     },
     refund: {
-      sub: '订单已全额退款'
+      title: '已取消',
+      sub: '订单商品已全部退款，订单已取消'
     }
   };
 
@@ -145,10 +148,11 @@
   function applyClosedReason(config) {
     if (getStatus() !== 'closed') return config;
     var reasonCfg = CLOSED_REASONS[getClosedReason()];
-    if (reasonCfg && reasonCfg.sub) {
-      config = Object.assign({}, config, { sub: reasonCfg.sub });
-    }
-    return config;
+    if (!reasonCfg) return config;
+    var patch = {};
+    if (reasonCfg.title) patch.title = reasonCfg.title;
+    if (reasonCfg.sub) patch.sub = reasonCfg.sub;
+    return Object.keys(patch).length ? Object.assign({}, config, patch) : config;
   }
 
   function getParams() {
@@ -999,8 +1003,54 @@
       document.getElementById('orderCancelModalConfirm').addEventListener('click', confirmCancelOrder);
   }
 
+  /**
+   * 快递待收货：按售后成功退款推导订单态
+   * 全额退→已取消；仍有待收→待收货；剩余均已收→已完成
+   */
+  function applyRetailExpressFulfillment(status) {
+    if (isFromRestock() || status !== 'receipt' || !isUserAppExpressHome()) {
+      return status;
+    }
+    var api = window.UAOrderRefund;
+    if (!api || !api.resolveRetailOrderFulfillmentStatus) return status;
+
+    var orderNoEl = document.getElementById('orderNoText');
+    var orderNo =
+      (orderNoEl && orderNoEl.textContent && orderNoEl.textContent.trim()) ||
+      api.DEMO_ORDER_NO ||
+      '';
+    var items = [];
+    document.querySelectorAll('.ua-od-item[data-item-index]').forEach(function (el) {
+      var idx = parseInt(el.getAttribute('data-item-index') || '0', 10);
+      var qtyEl = el.querySelector('.ua-od-item__qty');
+      var orderQty = 1;
+      if (qtyEl) {
+        var m = String(qtyEl.textContent || '').match(/(\d+)/);
+        if (m) orderQty = parseInt(m[1], 10) || 1;
+      }
+      items.push({ itemIndex: idx, orderQty: orderQty, pickedQty: 0 });
+    });
+    if (!items.length) return status;
+
+    var next = api.resolveRetailOrderFulfillmentStatus(items, orderNo, 'express');
+    if (next === 'closed') {
+      window.location.replace(
+        'order-detail.html?status=closed&reason=refund&delivery=store'
+      );
+      return null;
+    }
+    if (next === 'completed') {
+      window.location.replace('order-detail.html?status=completed&delivery=store');
+      return null;
+    }
+    return status;
+  }
+
   function init() {
     var status = getStatus();
+    status = applyRetailExpressFulfillment(status);
+    if (status == null) return;
+
     var config = STATUS_CONFIG[status];
 
     document.getElementById('orderDetailShell') &&
