@@ -1,7 +1,147 @@
 {
-  "latestSha": "b2f12327f6261935cddc1c93fcfb34ce9a4b90b0",
-  "total": 198,
+  "latestSha": "5ee9d16e18e28d5d58da9d6733eda8e9356d4c25",
+  "total": 199,
   "days": [
+    {
+      "date": "2026-07-26",
+      "items": [
+        {
+          "sha": "5ee9d16",
+          "type": "feat",
+          "text": "完善零售自提售后核销与快递退货寄回流程",
+          "author": "sisi",
+          "time": "10:55",
+          "pages": [
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/verify.html",
+              "module": "",
+              "title": "门店核销 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-book.html",
+              "module": "",
+              "title": "地址簿 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-create.html",
+              "module": "",
+              "title": "新建寄件人地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-exchange.html",
+              "module": "",
+              "title": "换货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-only.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-edit.html",
+              "module": "",
+              "title": "修改上门取件信息 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-order.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pre-ship.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-restock.html",
+              "module": "",
+              "title": "补货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-goods.html",
+              "module": "",
+              "title": "退货商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "module": "",
+              "title": "预约寄件 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return.html",
+              "module": "",
+              "title": "退货退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-select.html",
+              "module": "",
+              "title": "选择服务类型 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/orders.html",
+              "text": "门店待收货在用户侧展示为待发货，收货入仓后进待自提；自提单门店统一为悠悠生鲜超市"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "自提待发货文案与自提门店信息对齐，不再显示线上商城"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "待自提透出售后进度条，补货随原订单核销不单独建补货单"
+            },
+            {
+              "file": "user-app/h5/order-refund-only.html",
+              "text": "跳过类型选择的场景返回订单详情，避免左上角返回死循环"
+            },
+            {
+              "file": null,
+              "text": "售后详情: 快递退货寄回后停在寄回商品节点，退货物流进入寄件物流详情页"
+            },
+            {
+              "file": "store-app/h5/verify.html",
+              "text": "去掉独立补货提货入口，统一按原订单扫会员码核销"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-07-25",
       "items": [
@@ -502,6 +642,11 @@
               "title": "退款/售后 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
@@ -609,6 +754,11 @@
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-detail.html",
@@ -924,6 +1074,11 @@
               "file": "store-app/h5/home.html",
               "module": "",
               "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/verify.html",
+              "module": "",
+              "title": "门店核销 · 门店APP"
             },
             {
               "file": "store-app/index.html",
@@ -1362,6 +1517,11 @@
               "title": "退款/售后 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
@@ -1438,7 +1598,7 @@
               "text": "合并取件的提示布局修复，不再透出「已合并」说明文案，仅保留取件码"
             },
             {
-              "file": "user-app/h5/order-detail.html",
+              "file": "user-app/h5/order-detail-pickup.html",
               "text": "合并取件提示同步调整"
             }
           ]
@@ -1763,6 +1923,11 @@
               "title": "退款/售后 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
@@ -2057,6 +2222,11 @@
               "title": "退款/售后 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
@@ -2180,6 +2350,11 @@
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-detail.html",
@@ -2499,6 +2674,11 @@
               "title": "退款/售后 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
@@ -2592,6 +2772,11 @@
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-detail.html",
@@ -2688,6 +2873,11 @@
               "title": "退款/售后 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
@@ -2782,6 +2972,11 @@
               "title": "退款/售后 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
@@ -2870,6 +3065,11 @@
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-detail.html",
@@ -3037,6 +3237,11 @@
               "title": "退款/售后 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
@@ -3109,6 +3314,10 @@
           ],
           "notes": [
             {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "支持编辑寄件人地址、城市地区半遮罩联动，以及待上门取件订单详情页跳转"
+            },
+            {
               "file": "user-app/h5/order-detail.html",
               "text": "支持编辑寄件人地址、城市地区半遮罩联动，以及待上门取件订单详情页跳转"
             },
@@ -3129,6 +3338,11 @@
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-detail.html",
@@ -3316,6 +3530,11 @@
               "title": "退款/售后 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
@@ -3428,6 +3647,11 @@
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-detail.html",
@@ -4459,6 +4683,11 @@
               "title": "退款/售后 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
@@ -4559,6 +4788,11 @@
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-detail.html",
