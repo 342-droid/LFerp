@@ -1,10 +1,118 @@
 {
-  "latestSha": "5ee9d16e18e28d5d58da9d6733eda8e9356d4c25",
-  "total": 199,
+  "latestSha": "a63c25779f1967529fef807ab5cf8bbc782a3137",
+  "total": 200,
   "days": [
     {
       "date": "2026-07-26",
       "items": [
+        {
+          "sha": "a63c257",
+          "type": "fix",
+          "text": "按退款履约结果推导订单状态并去掉无需自提",
+          "author": "sisi",
+          "time": "23:16",
+          "pages": [
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-book.html",
+              "module": "",
+              "title": "地址簿 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-create.html",
+              "module": "",
+              "title": "新建寄件人地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-exchange.html",
+              "module": "",
+              "title": "换货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-only.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-edit.html",
+              "module": "",
+              "title": "修改上门取件信息 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-order.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pre-ship.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-restock.html",
+              "module": "",
+              "title": "补货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-goods.html",
+              "module": "",
+              "title": "退货商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "module": "",
+              "title": "预约寄件 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return.html",
+              "module": "",
+              "title": "退货退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-select.html",
+              "module": "",
+              "title": "选择服务类型 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/orders.html",
+              "text": "全额退款/用户取消展示为已取消"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "快递待收货按售后成功退款自动切到已取消或已完成"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "自提单无「无需自提」；全额退为已取消，有待提为待自提，剩余已提为已完成"
+            }
+          ]
+        },
         {
           "sha": "5ee9d16",
           "type": "feat",
