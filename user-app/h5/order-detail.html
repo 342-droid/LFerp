@@ -249,9 +249,21 @@
         </div>
       </div>
     </div>
+
+    <div class="ua-or-cancel-modal" id="orderConfirmReceiptModal" hidden>
+      <div class="ua-or-cancel-modal__mask" id="orderConfirmReceiptModalMask"></div>
+      <div class="ua-or-cancel-modal__panel" role="dialog" aria-modal="true" aria-labelledby="orderConfirmReceiptTitle">
+        <h3 class="ua-or-cancel-modal__title" id="orderConfirmReceiptTitle">温馨提示</h3>
+        <p class="ua-or-cancel-modal__text">请确认已收到商品，确认后订单将完成。</p>
+        <div class="ua-or-cancel-modal__actions">
+          <button type="button" class="ua-or-cancel-modal__btn" id="orderConfirmReceiptDismiss">取消</button>
+          <button type="button" class="ua-or-cancel-modal__btn ua-or-cancel-modal__btn--confirm" id="orderConfirmReceiptConfirm">确认</button>
+        </div>
+      </div>
+    </div>
   </div>
-  <script src="../js/user-app-order-refund.js?v=20260726-order-fulfill-status"></script>
-  <script src="../js/user-app-order-detail.js?v=20260726-order-fulfill-status"></script>
+  <script src="../js/user-app-order-refund.js?v=20260726-confirm-receipt"></script>
+  <script src="../js/user-app-order-detail.js?v=20260726-confirm-receipt"></script>
   <script src="../js/user-app-auth.js"></script>
 </body>
 </html>

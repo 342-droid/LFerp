@@ -491,6 +491,28 @@
     window.location.href = href;
   }
 
+  function openConfirmReceiptModal() {
+    var modal = document.getElementById('orderConfirmReceiptModal');
+    if (modal) modal.hidden = false;
+  }
+
+  function closeConfirmReceiptModal() {
+    var modal = document.getElementById('orderConfirmReceiptModal');
+    if (modal) modal.hidden = true;
+  }
+
+  /** 确认收货 → 交易完成（保留履约/入口参数） */
+  function confirmReceiptOrder() {
+    closeConfirmReceiptModal();
+    var p = getParams();
+    var href = 'order-detail.html?status=completed';
+    if (p.get('from')) href += '&from=' + encodeURIComponent(p.get('from'));
+    if (p.get('supplier')) href += '&supplier=' + encodeURIComponent(p.get('supplier'));
+    if (p.get('delivery')) href += '&delivery=' + encodeURIComponent(p.get('delivery'));
+    else if (!isFromRestock()) href += '&delivery=store';
+    window.location.href = href;
+  }
+
   function toast(msg) {
     window.alert(msg + '（演示）');
   }
@@ -955,11 +977,14 @@
           openCancelModal();
           return;
         }
+        if (action === 'confirm') {
+          openConfirmReceiptModal();
+          return;
+        }
         var map = {
           pay: '立即付款',
           refund: '申请退款',
           logistics: '查看物流',
-          confirm: '确认收货',
           delete: '删除订单',
           cart: '加入购物车',
           rebuy: '重新购买'
@@ -1001,6 +1026,22 @@
       document.getElementById('orderCancelModalMask').addEventListener('click', closeCancelModal);
     document.getElementById('orderCancelModalConfirm') &&
       document.getElementById('orderCancelModalConfirm').addEventListener('click', confirmCancelOrder);
+
+    document.getElementById('orderConfirmReceiptDismiss') &&
+      document.getElementById('orderConfirmReceiptDismiss').addEventListener(
+        'click',
+        closeConfirmReceiptModal
+      );
+    document.getElementById('orderConfirmReceiptModalMask') &&
+      document.getElementById('orderConfirmReceiptModalMask').addEventListener(
+        'click',
+        closeConfirmReceiptModal
+      );
+    document.getElementById('orderConfirmReceiptConfirm') &&
+      document.getElementById('orderConfirmReceiptConfirm').addEventListener(
+        'click',
+        confirmReceiptOrder
+      );
   }
 
   /**
