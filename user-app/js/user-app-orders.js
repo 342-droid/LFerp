@@ -19,7 +19,13 @@
   }
 
   function applyRestockOrdersMode() {
-    if (!isFromRestock()) return;
+    if (!isFromRestock()) {
+      /* 零售列表：移除进货专用仓配演示卡 */
+      document.querySelectorAll('.ua-order-card[data-restock-only="1"]').forEach(function (card) {
+        card.remove();
+      });
+      return;
+    }
 
     document.body.classList.add('ua-orders-from-restock');
 
@@ -28,6 +34,14 @@
     });
 
     document.querySelectorAll('.ua-order-card[data-status="pickup"]').forEach(function (card) {
+      card.remove();
+    });
+
+    /* 进货：展示仓配演示卡，隐藏零售「自提待发货(to_store)/待自提」专属卡 */
+    document.querySelectorAll('.ua-order-card[data-restock-only="1"]').forEach(function (card) {
+      card.hidden = false;
+    });
+    document.querySelectorAll('.ua-order-card[data-detail-status="to_store"]').forEach(function (card) {
       card.remove();
     });
 

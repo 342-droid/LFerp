@@ -20,6 +20,12 @@
     window.location.href = '../../user-app/h5/restock.html?from=store-app';
   }
 
+  function goVerify(mode) {
+    var qs = [];
+    if (mode) qs.push('mode=' + encodeURIComponent(mode));
+    window.location.href = 'verify.html' + (qs.length ? '?' + qs.join('&') : '');
+  }
+
   function bindActions() {
     document.querySelectorAll('[data-sa-action]').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -28,10 +34,16 @@
           goRestock();
           return;
         }
+        /* 核销入口：仅原订单核销（补货随原订单提货，不单独建补货单） */
+        if (action === 'scan') {
+          goVerify('scan');
+          return;
+        }
+        if (action === 'code' || action === 'pending') {
+          goVerify();
+          return;
+        }
         var labels = {
-          scan: '扫码核销',
-          code: '输码核销',
-          pending: '待核销',
           aftersaleQuick: '售后',
           memberCode: '门店会员码',
           orders: '门店订单',

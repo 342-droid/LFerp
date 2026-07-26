@@ -138,6 +138,8 @@
         'item',
         'type',
         'stage',
+        'pickupPhase',
+        'asId',
         'pkgs'
       ].forEach(function (key) {
         var val = params.get(key);
