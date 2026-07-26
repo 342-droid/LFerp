@@ -21,6 +21,31 @@
       itemActions: 'refund',
       footer: []
     },
+    /*
+     * 零售自提·门店待收货（后台零售订单「待收货」）：
+     * 用户侧展示为「待发货」；门店收货入仓后变为「待自提」
+     */
+    to_store: {
+      title: '待发货',
+      sub: '商品配送至自提门店途中，门店收货入仓后即可到店自提',
+      showLogistics: false,
+      showStoreDelivery: true,
+      showPoints: false,
+      showPayMethod: true,
+      itemActions: 'refund_only',
+      footer: []
+    },
+    /* 零售：用户待自提 */
+    pickup: {
+      title: '待自提',
+      sub: '商品已到提货点，请尽快提货',
+      showLogistics: false,
+      showStoreDelivery: false,
+      showPoints: false,
+      showPayMethod: true,
+      itemActions: 'refund',
+      footer: []
+    },
     receipt: {
       title: '商家已发货',
       sub: '还剩14天23小时自动确认收货',
@@ -132,12 +157,20 @@
 
   function getDeliveryType() {
     var delivery = (getParams().get('delivery') || '').trim();
-    if (delivery === 'store' || delivery === 'warehouse') return delivery;
-    return 'warehouse';
+    if (delivery === 'express') delivery = 'store';
+    if (delivery === 'store' || delivery === 'warehouse' || delivery === 'pickup') {
+      return delivery;
+    }
+    /* 零售默认快递；进货默认配送 */
+    return isFromRestock() ? 'warehouse' : 'store';
   }
 
   function isStoreDirectDelivery() {
     return getDeliveryType() === 'store';
+  }
+
+  function isPickupFulfillment() {
+    return getDeliveryType() === 'pickup';
   }
 
   /* 用户 APP 快递单：供应商直发到家（delivery=store）；补货场景仍为快递到店 */
@@ -381,7 +414,11 @@
     qs.push('status=' + encodeURIComponent(getStatus()));
     if (p.get('from')) qs.push('from=' + encodeURIComponent(p.get('from')));
     if (p.get('supplier')) qs.push('supplier=' + encodeURIComponent(p.get('supplier')));
-    if (p.get('delivery')) qs.push('delivery=' + encodeURIComponent(p.get('delivery')));
+    var delivery = p.get('delivery');
+    if (!delivery && !isFromRestock()) {
+      delivery = getStatus() === 'pickup' || isPickupFulfillment() ? 'pickup' : getDeliveryType();
+    }
+    if (delivery) qs.push('delivery=' + encodeURIComponent(delivery));
     if (p.get('cutoff')) qs.push('cutoff=' + encodeURIComponent(p.get('cutoff')));
     if (p.get('reason')) qs.push('reason=' + encodeURIComponent(p.get('reason')));
     qs.push('item=' + encodeURIComponent(String(itemIndex == null ? 0 : itemIndex)));
@@ -391,7 +428,10 @@
   function getRefundScene() {
     var status = getStatus();
     if (status === 'shipping') return 'pre_ship';
+    /* 零售发货后到门店待收货：仅退款 */
+    if (status === 'to_store' && !isFromRestock()) return 'to_store';
     if (status === 'completed') return 'aftersale';
+    /* pickup / receipt → 仅退款、退货退款、补货 */
     return 'post_ship';
   }
 
@@ -399,12 +439,30 @@
     return 'order-refund-pre-ship.html?' + buildRefundQuery(itemIndex);
   }
 
+  function buildOnlyRefundHref(itemIndex) {
+    return (
+      'order-refund-only.html?scene=' +
+      encodeURIComponent(getRefundScene()) +
+      '&' +
+      buildRefundQuery(itemIndex)
+    );
+  }
+
   function buildItemRefundHref(itemIndex) {
     var scene = getRefundScene();
     if (scene === 'pre_ship') {
       return buildPreShipHref(itemIndex);
     }
+    /* 零售·门店待收货：直达仅退款，不进类型选择 */
+    if (scene === 'to_store' && !isFromRestock()) {
+      return buildOnlyRefundHref(itemIndex);
+    }
     var query = buildRefundQuery(itemIndex);
+    /* 零售默认带上履约方式，避免售后误走进货仓配 */
+    if (!isFromRestock() && !getParams().get('delivery')) {
+      var delivery = getStatus() === 'pickup' ? 'pickup' : getDeliveryType();
+      query += '&delivery=' + encodeURIComponent(delivery);
+    }
     return 'order-refund-select.html?scene=' + encodeURIComponent(scene) + '&' + query;
   }
 
@@ -437,10 +495,10 @@
     var actionWraps = document.querySelectorAll('.ua-od-item__actions');
     if (!actionWraps.length) return;
 
-    function makeBtn(label, itemIndex) {
+    function makeBtn(label, itemIndex, actionMode) {
       return (
         '<button type="button" class="ua-od-item__btn" data-item-action="' +
-        (mode === 'aftersale' ? 'aftersale' : 'refund') +
+        (actionMode || (mode === 'aftersale' ? 'aftersale' : 'refund')) +
         '" data-item-index="' +
         itemIndex +
         '">' +
@@ -454,12 +512,12 @@
       var itemIndex = itemEl
         ? parseInt(itemEl.getAttribute('data-item-index') || String(index), 10)
         : index;
-      if (mode === 'refund') {
-        wrap.innerHTML = makeBtn('申请退款', itemIndex);
+      if (mode === 'refund' || mode === 'refund_only') {
+        wrap.innerHTML = makeBtn('申请退款', itemIndex, 'refund');
         return;
       }
       if (mode === 'aftersale') {
-        wrap.innerHTML = makeBtn('申请售后', itemIndex);
+        wrap.innerHTML = makeBtn('申请售后', itemIndex, 'aftersale');
         return;
       }
       wrap.innerHTML = '';
@@ -538,10 +596,16 @@
 
   function filterAftersaleBarsForStatus(bars, status) {
     var list = bars || [];
-    /* 待发货：仅支持仅退款，不展示补货/换货进度条 */
-    if (status === 'shipping') {
+    /* 待发货 / 零售门店待收货：仅支持仅退款 */
+    if (status === 'shipping' || (status === 'to_store' && !isFromRestock())) {
       return list.filter(function (bar) {
-        return bar.group === 'refund';
+        return bar.group === 'refund' && (!bar.record || bar.record.type !== 'return');
+      });
+    }
+    /* 零售：不展示换货进度 */
+    if (!isFromRestock()) {
+      return list.filter(function (bar) {
+        return bar.group !== 'exchange';
       });
     }
     return list;
@@ -768,10 +832,66 @@
   }
 
   function mapStatusToTab(status) {
-    /* 用户 APP：待收货归入「待自提/待收货」；补货入口仍用 review（展示为待收货） */
-    if (status === 'receipt') return isFromRestock() ? 'review' : 'pickup';
+    /*
+     * 用户 APP：
+     * - to_store（门店待收货）→ 待发货
+     * - pickup / receipt → 待自提/待收货
+     * 补货入口 receipt 仍用 review（展示为待收货）
+     */
+    if (status === 'to_store') {
+      return isFromRestock() ? 'review' : 'shipping';
+    }
+    if (status === 'receipt' || status === 'pickup') {
+      return isFromRestock() ? 'review' : 'pickup';
+    }
     if (status === 'closed') return 'all';
     return status;
+  }
+
+  var DEMO_PICKUP_STORE = {
+    name: '悠悠生鲜超市',
+    contact: '张店长',
+    phone: '138****6688',
+    addr: '浙江省杭州市萧山区建设一路88号'
+  };
+
+  /** 零售自提：订单门店 / 自提门店均为悠悠生鲜，不用「线上商城」 */
+  function applyRetailPickupStore(status) {
+    if (isFromRestock() || !isPickupFulfillment()) return;
+
+    var shopNameEl = document.getElementById('orderShopName');
+    if (shopNameEl) {
+      shopNameEl.setAttribute('data-store-name', DEMO_PICKUP_STORE.name);
+      shopNameEl.textContent = DEMO_PICKUP_STORE.name;
+    }
+
+    var storeCard = document.getElementById('orderStoreCard');
+    if (storeCard) {
+      storeCard.hidden = false;
+      var labelEl = storeCard.querySelector('.ua-od-store-info__label');
+      if (labelEl) labelEl.textContent = '自提门店';
+      var nameEl = document.getElementById('orderStoreName');
+      var contactEl = document.getElementById('orderStoreContact');
+      var phoneEl = document.getElementById('orderStorePhone');
+      var addrEl = document.getElementById('orderStoreAddr');
+      if (nameEl) nameEl.textContent = DEMO_PICKUP_STORE.name;
+      if (contactEl) contactEl.textContent = DEMO_PICKUP_STORE.contact;
+      if (phoneEl) phoneEl.textContent = DEMO_PICKUP_STORE.phone;
+      if (addrEl) addrEl.textContent = DEMO_PICKUP_STORE.addr;
+    }
+
+    /* 自提待发货阶段：配送中提示指向自提门店 */
+    if (status === 'to_store') {
+      var statusEl = document.getElementById('orderStoreDeliveryStatus');
+      var textEl = document.getElementById('orderStoreDeliveryText');
+      var timeEl = document.getElementById('orderStoreDeliveryTime');
+      if (statusEl) statusEl.textContent = '配送至自提门店';
+      if (textEl) {
+        textEl.textContent =
+          '商品正在配送至' + DEMO_PICKUP_STORE.name + '，门店收货入仓后可到店自提';
+      }
+      if (timeEl) timeEl.textContent = '预计 2026-03-09 18:00 前到达门店';
+    }
   }
 
   function bindEvents() {
@@ -905,6 +1025,7 @@
       config = applyDeliveryMode(status, config);
     } else {
       config = applyUserAppExpressLayout(status, config);
+      applyRetailPickupStore(status);
     }
 
     config = applyClosedReason(config);
@@ -929,7 +1050,7 @@
     var storeDeliveryCard = document.getElementById('orderStoreDeliveryCard');
     if (storeDeliveryCard) {
       storeDeliveryCard.hidden = !config.showStoreDelivery;
-      if (config.showStoreDelivery && !isFromRestock()) {
+      if (config.showStoreDelivery && !isFromRestock() && !isPickupFulfillment()) {
         var statusEl = document.getElementById('orderStoreDeliveryStatus');
         var textEl = document.getElementById('orderStoreDeliveryText');
         var timeEl = document.getElementById('orderStoreDeliveryTime');

@@ -1083,6 +1083,82 @@
   background: #f0f0f0;
 }
 
+.ua-od-pickup-verify {
+  margin: 0 14px 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fff7ef;
+  border: 1px solid #ffe0bd;
+}
+
+.ua-od-pickup-verify[hidden] {
+  display: none !important;
+}
+
+.ua-od-pickup-verify__label {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.ua-od-pickup-verify__code-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.ua-od-pickup-verify__code {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: #ff6a00;
+  line-height: 1.2;
+}
+
+.ua-od-pickup-verify__copy {
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid #ffb26b;
+  border-radius: 14px;
+  background: #fff;
+  color: #ff6a00;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.ua-od-pickup-verify__tip {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: #999;
+  line-height: 1.45;
+}
+
+.ua-od-pickup-void {
+  margin: 0 14px 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #f5f5f5;
+  color: #999;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.ua-od-pickup-void[hidden] {
+  display: none !important;
+}
+
+.ua-od-product .ua-od-as-bars {
+  margin-top: 10px;
+}
+
+.ua-od-product.is-no-pickup .ua-od-product__tag--void {
+  background: #f5f5f5;
+  color: #999;
+}
+
 .ua-od-info-row {
   display: flex;
   align-items: flex-start;
@@ -1205,6 +1281,15 @@
 .ua-od-product__tag--partial {
   background: #fff7e6;
   color: #fa8c16;
+}
+
+.ua-od-product__tag--void {
+  background: #f5f5f5;
+  color: #999;
+}
+
+.ua-od-refund-btn[hidden] {
+  display: none !important;
 }
 
 .ua-od-refund-btn {

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>门店核销 · 门店APP</title>
+  <link rel="stylesheet" href="../css/store-app.css?v=20260726-order-verify-only">
+</head>
+<body class="store-app-body">
+  <div class="sa-shell">
+    <div class="sa-home">
+      <div class="sa-scroll">
+        <header class="sa-header">
+          <a href="home.html" class="sa-back" aria-label="返回">‹</a>
+          <h1 class="sa-store-name">门店核销</h1>
+        </header>
+
+        <section class="sa-card">
+          <h2 class="sa-card__title">扫会员码核销 · 订单</h2>
+          <!-- 补货到店不单独建补货单/核销入口，随原订单一并核销提货 -->
+          <p class="sa-verify-tip">零售自提单到店提货：扫描或输入用户会员码核销原订单。补货商品随原订单提货，不额外生成补货订单。</p>
+          <label class="sa-verify-label" for="saMemberCode">会员码</label>
+          <input id="saMemberCode" class="sa-verify-input" type="text" maxlength="32" placeholder="扫描/输入会员码" value="LF-VIP-881256">
+          <button type="button" class="sa-verify-btn" id="saOrderVerifyBtn">确认核销</button>
+          <div class="sa-verify-demo" id="saOrderDemo">
+            <div class="sa-verify-demo__row"><span>会员</span><strong>武者 181****4215</strong></div>
+            <div class="sa-verify-demo__row"><span>待核销订单</span><strong>1 笔</strong></div>
+            <div class="sa-verify-demo__row"><span>订单号</span><strong>1089765423471123</strong></div>
+            <div class="sa-verify-demo__row"><span>商品</span><strong>车厘子等可提商品（含补货）</strong></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+  <script src="../js/store-app-verify.js?v=20260726-order-verify-only"></script>
+</body>
+</html>

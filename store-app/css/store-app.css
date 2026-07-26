@@ -285,3 +285,100 @@
 .sa-toast[hidden] {
   display: none !important;
 }
+
+/* 核销页 */
+.sa-back {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: var(--sa-text);
+  font-size: 28px;
+  line-height: 1;
+  margin-right: 2px;
+}
+
+.sa-verify-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.sa-verify-tab {
+  flex: 1;
+  height: 36px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #fff;
+  color: #666;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.sa-verify-tab.is-active {
+  border-color: var(--sa-orange);
+  background: #fff7ef;
+  color: var(--sa-orange-deep);
+  font-weight: 600;
+}
+
+.sa-verify-tip {
+  margin: 0 0 14px;
+  color: #666;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sa-verify-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #333;
+}
+
+.sa-verify-input {
+  width: 100%;
+  height: 44px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0 12px;
+  font-size: 18px;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+}
+
+.sa-verify-btn {
+  width: 100%;
+  height: 44px;
+  border: 0;
+  border-radius: 22px;
+  background: linear-gradient(90deg, #ff9a3d, #ff6a00);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sa-verify-demo {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px dashed #eee;
+}
+
+.sa-verify-demo__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.sa-verify-demo__row strong {
+  color: #222;
+  font-weight: 500;
+  text-align: right;
+}

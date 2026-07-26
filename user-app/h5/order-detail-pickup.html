@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
   <link rel="stylesheet" href="../css/user-app-orders.css">
-  <link rel="stylesheet" href="../css/user-app-order-detail.css?v=20260725-pickup-layout">
+  <link rel="stylesheet" href="../css/user-app-order-detail.css?v=20260725-member-verify">
   <link rel="stylesheet" href="../css/user-app-queue.css">
 </head>
 <body class="user-app-body">
@@ -46,10 +46,12 @@
             </svg>
             <div>
               <div class="ua-od-pickup__title">待自提</div>
-              <div class="ua-od-pickup__sub">商品已到提货点</div>
+              <div class="ua-od-pickup__sub">商品已到提货点，到店出示会员码由门店核销提货</div>
             </div>
           </div>
-          <div class="ua-od-pickup__divider"></div>
+          <p id="pickupVerifyVoidTip" class="ua-od-pickup-void" hidden>待自提商品已全部退款/退货或已提货，无需再到店核销</p>
+
+          <div class="ua-od-pickup__divider" id="pickupStoreDivider"></div>
           <div class="ua-od-info-row">
             <span class="ua-od-info-label">营业时间</span>
             <span class="ua-od-info-value">08:00–22:00</span>
@@ -67,77 +69,69 @@
           </div>
         </section>
 
-        <article class="ua-od-card ua-od-product">
-          <div class="ua-od-product__main">
-            <img class="ua-od-product__img" src="../assets/order-detail-cherry.svg" alt="">
-            <div class="ua-od-product__info">
-              <div class="ua-od-product__name">冷丰优选3J智利车厘子 鲜脆清甜 3斤装</div>
-              <div class="ua-od-product__spec">规格：3斤　数量：1</div>
-            </div>
-            <div class="ua-od-product__price">¥128.18</div>
-          </div>
-          <div class="ua-od-product__foot">
-            <span class="ua-od-product__tag">商品已到提货点请尽快提货</span>
-            <a href="#" class="ua-od-refund-btn">申请退款</a>
-          </div>
-        </article>
-
-        <article class="ua-od-card ua-od-product">
-          <div class="ua-od-product__main">
-            <img class="ua-od-product__img" src="../assets/order-detail-orange.svg" alt="">
-            <div class="ua-od-product__info">
-              <div class="ua-od-product__name">冷丰优选3J智利车厘子 鲜脆清甜 3斤装</div>
-              <div class="ua-od-product__spec">规格：3斤　数量：1</div>
-            </div>
-            <div class="ua-od-product__price">¥28.18</div>
-          </div>
-          <div class="ua-od-product__foot">
-            <span class="ua-od-product__tag">预计最早4月24日可提货</span>
-            <a href="#" class="ua-od-refund-btn">申请退款</a>
-          </div>
-        </article>
-
-        <article class="ua-od-card ua-od-product">
+        <!-- itemIndex 与 DEMO_ITEMS / 售后记录对齐 -->
+        <article
+          class="ua-od-card ua-od-product"
+          data-item-index="0"
+          data-order-qty="2"
+          data-picked-qty="0"
+          data-spec="2.5kg"
+        >
           <div class="ua-od-product__main">
             <img class="ua-od-product__img" src="../assets/order-product-1.svg" alt="">
             <div class="ua-od-product__info">
-              <div class="ua-od-product__name">新鲜红颜草莓 香甜多汁 500g装</div>
-              <div class="ua-od-product__spec">规格：500g　数量：2</div>
+              <div class="ua-od-product__name">冷丰优选智利车厘子 鲜脆清甜 礼盒装</div>
+              <div class="ua-od-product__spec" data-pickup-qty>规格：2.5kg　数量：2</div>
             </div>
-            <div class="ua-od-product__price">¥39.18</div>
+            <div class="ua-od-product__price">¥87.90</div>
           </div>
+          <div class="ua-od-as-bars" data-item-index="0"></div>
           <div class="ua-od-product__foot">
             <span class="ua-od-product__tag">商品已到提货点请尽快提货</span>
             <a href="#" class="ua-od-refund-btn">申请退款</a>
           </div>
         </article>
 
-        <article class="ua-od-card ua-od-product">
+        <article
+          class="ua-od-card ua-od-product"
+          data-item-index="1"
+          data-order-qty="1"
+          data-picked-qty="0"
+          data-spec="500g"
+        >
           <div class="ua-od-product__main">
             <img class="ua-od-product__img" src="../assets/order-product-2.svg" alt="">
             <div class="ua-od-product__info">
-              <div class="ua-od-product__name">赣南脐橙 果大皮薄 5斤装</div>
-              <div class="ua-od-product__spec">规格：5斤　数量：3</div>
+              <div class="ua-od-product__name">新鲜红颜草莓 香甜多汁 500g装</div>
+              <div class="ua-od-product__spec" data-pickup-qty>规格：500g　数量：1</div>
             </div>
-            <div class="ua-od-product__price">¥54.18</div>
+            <div class="ua-od-product__price">¥10.00</div>
           </div>
+          <div class="ua-od-as-bars" data-item-index="1"></div>
           <div class="ua-od-product__foot">
-            <span class="ua-od-product__tag ua-od-product__tag--partial">部分提货，已提2件</span>
+            <span class="ua-od-product__tag">商品已到提货点请尽快提货</span>
             <a href="#" class="ua-od-refund-btn">申请退款</a>
           </div>
         </article>
 
-        <article class="ua-od-card ua-od-product">
+        <article
+          class="ua-od-card ua-od-product"
+          data-item-index="2"
+          data-order-qty="1"
+          data-picked-qty="0"
+          data-spec="2.5kg"
+        >
           <div class="ua-od-product__main">
             <img class="ua-od-product__img" src="../assets/order-product-3.svg" alt="">
             <div class="ua-od-product__info">
-              <div class="ua-od-product__name">进口香蕉 软糯香甜 2斤装</div>
-              <div class="ua-od-product__spec">规格：2斤　数量：1</div>
+              <div class="ua-od-product__name">海南贵妃芒 香甜软糯 礼盒装</div>
+              <div class="ua-od-product__spec" data-pickup-qty>规格：2.5kg　数量：1</div>
             </div>
-            <div class="ua-od-product__price">¥12.18</div>
+            <div class="ua-od-product__price">¥39.90</div>
           </div>
+          <div class="ua-od-as-bars" data-item-index="2"></div>
           <div class="ua-od-product__foot">
-            <span class="ua-od-product__tag ua-od-product__tag--done">已提货</span>
+            <span class="ua-od-product__tag">商品已到提货点请尽快提货</span>
             <a href="#" class="ua-od-refund-btn">申请退款</a>
           </div>
         </article>
@@ -146,7 +140,7 @@
           <div class="ua-od-summary-row">
             <span class="ua-od-summary-label">订单编号</span>
             <span class="ua-od-summary-value ua-od-summary-value--copy">
-              1089765423471123
+              <span id="pickupOrderNoText">1089765423471123</span>
               <a href="#" class="ua-od-copy">复制</a>
             </span>
           </div>
@@ -160,7 +154,7 @@
           </div>
           <div class="ua-od-summary-row">
             <span class="ua-od-summary-label">商品总价</span>
-            <span class="ua-od-summary-value">¥261.90</span>
+            <span class="ua-od-summary-value">¥137.80</span>
           </div>
           <div class="ua-od-summary-row">
             <span class="ua-od-summary-label">订单优惠</span>
@@ -168,7 +162,7 @@
           </div>
           <div class="ua-od-summary-row ua-od-summary-row--total">
             <span class="ua-od-summary-label">实付金额</span>
-            <span class="ua-od-summary-value">¥251.90</span>
+            <span class="ua-od-summary-value">¥127.80</span>
           </div>
         </section>
       </div>
@@ -176,5 +170,7 @@
   </div>
   <script src="../js/user-app-auth.js"></script>
   <script src="../js/user-app-queue.js"></script>
+  <script src="../js/user-app-order-refund.js?v=20260726-form-back"></script>
+  <script src="../js/user-app-order-detail-pickup.js?v=20260726-no-void-tag"></script>
 </body>
 </html>
