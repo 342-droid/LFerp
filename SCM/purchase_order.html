@@ -224,6 +224,161 @@
             color: #888;
         }
 
+        /* 批量上传物流单号：对齐零售订单「批量上传快递单」样式 */
+        .po-batch-upload-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 32px;
+            padding: 0 14px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: inherit;
+            cursor: pointer;
+            white-space: nowrap;
+            border: 1px solid #ff7019;
+            background: #ff7019;
+            color: #ffffff;
+        }
+
+        .po-batch-upload-btn:hover {
+            opacity: 0.92;
+        }
+
+        .po-batch-upload-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2090;
+            background: rgba(0, 0, 0, 0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .po-batch-upload-overlay.is-open {
+            display: flex;
+        }
+
+        .po-batch-upload-modal {
+            width: min(480px, 92vw);
+            max-height: calc(100vh - 48px);
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .po-batch-upload-modal__head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .po-batch-upload-modal__title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #303133;
+        }
+
+        .po-batch-upload-modal__close {
+            border: 0;
+            background: none;
+            font-size: 22px;
+            line-height: 1;
+            color: #909399;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+
+        .po-batch-upload-modal__body {
+            padding: 16px 20px 8px;
+            overflow: auto;
+        }
+
+        .po-batch-upload-modal__hint {
+            margin: 0 0 14px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #606266;
+        }
+
+        .po-batch-upload__template {
+            margin-bottom: 14px;
+        }
+
+        .po-batch-upload__link {
+            border: 0;
+            background: none;
+            padding: 0;
+            font-size: 13px;
+            color: #ff7019;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .po-batch-upload__link:hover {
+            text-decoration: underline;
+        }
+
+        .po-batch-upload-field {
+            margin-bottom: 12px;
+        }
+
+        .po-batch-upload-field__label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #606266;
+        }
+
+        .po-batch-upload__file-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .po-batch-upload__file {
+            flex: 0 0 auto;
+            max-width: 220px;
+            font-size: 13px;
+            color: #606266;
+        }
+
+        .po-batch-upload__file-name {
+            flex: 1;
+            min-width: 0;
+            font-size: 13px;
+            color: #909399;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .po-batch-upload-field__hint {
+            margin: 8px 0 0;
+            font-size: 12px;
+            color: #909399;
+        }
+
+        .po-batch-upload-modal__foot {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 12px 20px 16px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .po-batch-upload-modal__foot .btn {
+            min-width: 88px;
+        }
+
         .action-links {
             align-items: center;
             flex-wrap: nowrap;
@@ -668,8 +823,10 @@
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary" id="btnSearch">查询</button>
+                        <button type="button" class="btn btn-secondary" id="btnExport">导出</button>
                         <button type="button" class="btn btn-secondary" id="btnAddPurchaseOrder">新增采购单</button>
                         <button type="button" class="btn btn-secondary" id="btnLogisticsConfirm">物流确认</button>
+                        <button type="button" class="po-batch-upload-btn" id="btnBatchUploadLogistics">批量上传物流单号</button>
                         <button type="button" class="btn btn-secondary" id="btnAudit">审核</button>
                         <button type="button" class="btn btn-secondary" id="btnReject">驳回</button>
                     </div>
@@ -892,6 +1049,33 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" id="logisticsConfirmSaveBtn">保存</button>
                 <button type="button" class="btn btn-secondary" id="logisticsConfirmCancelBtn">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="poBatchUploadLogisticsOverlay" class="po-batch-upload-overlay" aria-hidden="true">
+        <div class="po-batch-upload-modal" role="dialog" aria-labelledby="poBatchUploadLogisticsTitle">
+            <div class="po-batch-upload-modal__head">
+                <h3 id="poBatchUploadLogisticsTitle" class="po-batch-upload-modal__title">批量上传物流单号</h3>
+                <button type="button" class="po-batch-upload-modal__close" id="poBatchUploadLogisticsCloseBtn" aria-label="关闭">×</button>
+            </div>
+            <div class="po-batch-upload-modal__body">
+                <p class="po-batch-upload-modal__hint">通过 Excel / CSV 批量上传物流单号。请先下载模板，按模板填写：一商品一行。同一商品可填写多个物流单号（逗号分隔）；每次导入，按本次导入结果进行覆盖。</p>
+                <div class="po-batch-upload__template">
+                    <button type="button" class="po-batch-upload__link" id="poBatchUploadLogisticsTemplateBtn">下载导入模板</button>
+                </div>
+                <div class="po-batch-upload-field">
+                    <label class="po-batch-upload-field__label" for="poBatchUploadLogisticsFile">上传文件</label>
+                    <div class="po-batch-upload__file-row">
+                        <input type="file" id="poBatchUploadLogisticsFile" class="po-batch-upload__file" accept=".csv,text/csv">
+                        <span class="po-batch-upload__file-name" id="poBatchUploadLogisticsFileName">未选择文件</span>
+                    </div>
+                    <p class="po-batch-upload-field__hint">请使用 CSV（可用 Excel 另存为），单次建议不超过 1000 条</p>
+                </div>
+            </div>
+            <div class="po-batch-upload-modal__foot">
+                <button type="button" class="btn btn-secondary" id="poBatchUploadLogisticsCancelBtn">取消</button>
+                <button type="button" class="btn btn-primary" id="poBatchUploadLogisticsSubmitBtn">确认上传</button>
             </div>
         </div>
     </div>
@@ -1776,6 +1960,212 @@
         }
     }
 
+    function openBatchUploadLogisticsModal() {
+        var overlay = document.getElementById('poBatchUploadLogisticsOverlay');
+        var fileInput = document.getElementById('poBatchUploadLogisticsFile');
+        var fileNameEl = document.getElementById('poBatchUploadLogisticsFileName');
+        if (fileInput) fileInput.value = '';
+        if (fileNameEl) fileNameEl.textContent = '未选择文件';
+        if (overlay) {
+            overlay.classList.add('is-open');
+            overlay.setAttribute('aria-hidden', 'false');
+        }
+    }
+
+    function closeBatchUploadLogisticsModal() {
+        var overlay = document.getElementById('poBatchUploadLogisticsOverlay');
+        if (overlay) {
+            overlay.classList.remove('is-open');
+            overlay.setAttribute('aria-hidden', 'true');
+        }
+    }
+
+    function splitCsvLine(line) {
+        var result = [];
+        var cur = '';
+        var inQuotes = false;
+        for (var i = 0; i < line.length; i++) {
+            var ch = line.charAt(i);
+            if (ch === '"') {
+                if (inQuotes && line.charAt(i + 1) === '"') {
+                    cur += '"';
+                    i++;
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if ((ch === ',' || ch === '\t') && !inQuotes) {
+                result.push(cur.trim());
+                cur = '';
+            } else {
+                cur += ch;
+            }
+        }
+        result.push(cur.trim());
+        return result;
+    }
+
+    function normalizeMatchText(val) {
+        return String(val || '')
+            .replace(/\s+/g, '')
+            .replace(/规格[:：]/g, '')
+            .toLowerCase();
+    }
+
+    function parseBatchLogisticsRows(text) {
+        var lines = String(text || '')
+            .replace(/^\uFEFF/, '')
+            .split(/\r?\n/)
+            .map(function(l) { return l.trim(); })
+            .filter(Boolean);
+        if (lines.length < 2) return { rows: [], error: '文件无有效数据行' };
+
+        var headers = splitCsvLine(lines[0]).map(function(h) {
+            return String(h || '').trim();
+        });
+        var idxPo = -1;
+        var idxName = -1;
+        var idxSpec = -1;
+        var idxLogistics = -1;
+        headers.forEach(function(h, i) {
+            if (/采购单号|采购单/.test(h)) idxPo = i;
+            else if (/商品名称|商品名|品名/.test(h)) idxName = i;
+            else if (/规格/.test(h)) idxSpec = i;
+            else if (/物流单号|快递单号|运单号/.test(h)) idxLogistics = i;
+        });
+        if (idxPo < 0 || idxName < 0 || idxSpec < 0 || idxLogistics < 0) {
+            if (headers.length >= 4) {
+                idxPo = 0;
+                idxName = 1;
+                idxSpec = 2;
+                idxLogistics = 3;
+            } else {
+                return { rows: [], error: '表头需包含：采购单号、商品名称、规格、物流单号' };
+            }
+        }
+
+        var rows = [];
+        for (var r = 1; r < lines.length; r++) {
+            var cols = splitCsvLine(lines[r]);
+            var poNo = String(cols[idxPo] || '').trim();
+            var productName = String(cols[idxName] || '').trim();
+            var spec = String(cols[idxSpec] || '').trim();
+            var logisticsNo = String(cols[idxLogistics] || '').trim();
+            if (!poNo && !productName && !spec && !logisticsNo) continue;
+            rows.push({
+                poNo: poNo,
+                productName: productName,
+                spec: spec,
+                logisticsNo: logisticsNo,
+                line: r + 1
+            });
+        }
+        return { rows: rows, error: '' };
+    }
+
+    function findPoLineByNameSpec(row, productName, spec) {
+        if (!row || !row.lines || !row.lines.length) return null;
+        var nameKey = normalizeMatchText(productName);
+        var specKey = normalizeMatchText(spec);
+        var i;
+        for (i = 0; i < row.lines.length; i++) {
+            var line = row.lines[i];
+            var lineName = normalizeMatchText(line.skuName);
+            var lineSpec = normalizeMatchText(getLineSpec(line));
+            if (!lineName || lineName !== nameKey) continue;
+            if (!specKey || lineSpec === specKey || lineSpec.indexOf(specKey) >= 0 || specKey.indexOf(lineSpec) >= 0) {
+                return { line: line, index: i };
+            }
+        }
+        for (i = 0; i < row.lines.length; i++) {
+            if (normalizeMatchText(row.lines[i].skuName) === nameKey) {
+                return { line: row.lines[i], index: i };
+            }
+        }
+        return null;
+    }
+
+    function applyBatchLogisticsUpload(rows) {
+        var updated = 0;
+        var invalid = 0;
+        var notFound = 0;
+        var touchedPoNos = {};
+
+        (rows || []).forEach(function(row) {
+            if (!row.poNo || !row.productName || !row.logisticsNo) {
+                invalid += 1;
+                return;
+            }
+            var po = findOrderByPoNo(row.poNo);
+            if (!po) {
+                notFound += 1;
+                return;
+            }
+            var matched = findPoLineByNameSpec(po, row.productName, row.spec);
+            if (!matched) {
+                notFound += 1;
+                return;
+            }
+            var nos = collectLineLogisticsNos(row.logisticsNo);
+            if (!nos.length) {
+                invalid += 1;
+                return;
+            }
+            matched.line.logisticsNo = nos.join(', ');
+            updated += 1;
+            touchedPoNos[po.poNo] = po;
+        });
+
+        Object.keys(touchedPoNos).forEach(function(poNo) {
+            syncPoHeaderLogisticsNo(touchedPoNos[poNo]);
+        });
+
+        return { updated: updated, invalid: invalid, notFound: notFound };
+    }
+
+    function submitBatchUploadLogistics() {
+        var fileInput = document.getElementById('poBatchUploadLogisticsFile');
+        var file = fileInput && fileInput.files && fileInput.files[0];
+        if (!file) {
+            if (typeof showToast === 'function') showToast('请先选择 CSV 文件', 'error');
+            return;
+        }
+        var name = String(file.name || '').toLowerCase();
+        if (!/\.csv$/.test(name)) {
+            if (typeof showToast === 'function') showToast('请上传 CSV 文件（可用 Excel 另存为）', 'error');
+            return;
+        }
+
+        var reader = new FileReader();
+        reader.onload = function() {
+            var parsed = parseBatchLogisticsRows(String(reader.result || ''));
+            if (parsed.error) {
+                if (typeof showToast === 'function') showToast(parsed.error, 'error');
+                return;
+            }
+            if (!parsed.rows.length) {
+                if (typeof showToast === 'function') showToast('文件中没有可处理的数据', 'error');
+                return;
+            }
+            closeBatchUploadLogisticsModal();
+            var result = applyBatchLogisticsUpload(parsed.rows);
+            renderTable();
+            if (typeof showToast === 'function') {
+                showToast(
+                    '上传完成：覆盖更新 ' +
+                        result.updated +
+                        '，未匹配 ' +
+                        result.notFound +
+                        (result.invalid ? '，无效 ' + result.invalid : ''),
+                    'success'
+                );
+            }
+        };
+        reader.onerror = function() {
+            if (typeof showToast === 'function') showToast('文件读取失败', 'error');
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+
     function isAddFormValid() {
         var wh = document.getElementById('addPoWarehouse');
         var sp = document.getElementById('addPoSupplier');
@@ -2529,10 +2919,35 @@
         renderTable();
     });
 
+    document.getElementById('btnExport').addEventListener('click', function() {
+        var count = Array.isArray(filteredRows) ? filteredRows.length : 0;
+        if (typeof showToast === 'function') {
+            showToast('导出（演示）共 ' + count + ' 条', 'success');
+        }
+    });
+
     document.getElementById('btnAddPurchaseOrder').addEventListener('click', openAddPoModal);
     document.getElementById('btnLogisticsConfirm').addEventListener('click', openLogisticsConfirmModal);
+    document.getElementById('btnBatchUploadLogistics').addEventListener('click', openBatchUploadLogisticsModal);
     document.getElementById('btnAudit').addEventListener('click', auditPurchaseOrders);
     document.getElementById('btnReject').addEventListener('click', rejectPurchaseOrders);
+
+    document.getElementById('poBatchUploadLogisticsCloseBtn').addEventListener('click', closeBatchUploadLogisticsModal);
+    document.getElementById('poBatchUploadLogisticsCancelBtn').addEventListener('click', closeBatchUploadLogisticsModal);
+    document.getElementById('poBatchUploadLogisticsTemplateBtn').addEventListener('click', function() {
+        if (typeof showToast === 'function') showToast('导入模板详见需求文档', 'info');
+    });
+    document.getElementById('poBatchUploadLogisticsFile').addEventListener('change', function() {
+        var file = this.files && this.files[0];
+        var fileNameEl = document.getElementById('poBatchUploadLogisticsFileName');
+        if (fileNameEl) fileNameEl.textContent = file ? file.name : '未选择文件';
+    });
+    document.getElementById('poBatchUploadLogisticsSubmitBtn').addEventListener('click', submitBatchUploadLogistics);
+    document.getElementById('poBatchUploadLogisticsOverlay').addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'poBatchUploadLogisticsOverlay') {
+            closeBatchUploadLogisticsModal();
+        }
+    });
 
     bindSourceOrderTipEvents(document.getElementById('poListTbody'));
     bindSourceOrderTipEvents(document.getElementById('poDetailInfo'));
