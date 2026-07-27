@@ -7,7 +7,8 @@
   var SOURCES = ['用户自助发起', '运营代用户发起'];
   var TYPES = ['仅退款', '退货退款', '补货', '换货'];
   var STATUSES = ['待审批', '退款中', '已拒绝', '待退货', '待收货', '退款异常', '已完成', '已取消'];
-  var ORDER_SOURCES = ['商城', '直播', '代采'];
+  /** 订单来源仅：零售、代采 */
+  var ORDER_SOURCES = ['零售', '代采'];
   var LIVE_SESSIONS = ['默认经营池', 'ZB20260714-晚场', 'ZB20260713-早场'];
   var NICKNAMES = ['牛小牛呀', '冷丰用户', '悠悠生鲜粉', '门店会员A'];
   var PHONES = ['17739589272', '13800138000', '15922345621', '18600001111'];
@@ -19,12 +20,13 @@
     '浙江省杭州市上城区望江路...'
   ];
   var PRODUCTS = [
-    '牛牛专用香梨',
-    '爆米花',
+    '牛牛专用大胖猫',
+    '牛牛专用香蕉蕉',
     '冷丰优选车厘子',
     '精品牛腩'
   ];
-  var PRODUCT_SPECS = ['计重·甜香脆', '清分专用小袋装', '3斤装', '500g'];
+  var PRODUCT_SPECS = ['甜糯', '酸甜', '3斤装', '500g'];
+  var PRODUCT_SKUS = ['SKU00148', 'SKU00149', 'SKU00089', 'SKU00091'];
   var REASONS = ['质量问题', '未收到货', '发错货', '其他'];
   var APPROVERS = ['系统', '超级管理员'];
   var REFUND_EXEC = ['未发起退款', '待退款', '退款执行中', '退款成功', '退款失败', '待线下退款', '线下退款完成'];
@@ -114,9 +116,88 @@
     return i % 2 === 0 ? '已完成' : STATUSES[Math.floor(i / 2) % STATUSES.length];
   }
 
-  /** 履约方式枚举仅：快递、配送 */
+  /**
+   * 履约方式：
+   * - 代采：快递 / 配送
+   * - 零售：快递 / 自提
+   */
   function resolveFulfillment(orderSource, i) {
-    return i % 2 === 0 ? '快递' : '配送';
+    if (orderSource === '代采') return i % 2 === 0 ? '快递' : '配送';
+    return i % 2 === 0 ? '快递' : '自提';
+  }
+
+  /** 商品信息展示用履约后缀：平台配送 / 快递配送 / 门店自提 */
+  function productFulfillmentLabel(fulfillment) {
+    if (fulfillment === '配送') return '平台配送';
+    if (fulfillment === '自提') return '门店自提';
+    return '快递配送';
+  }
+
+  function buildProductTitle(name, fulfillment) {
+    return String(name || '') + '-' + productFulfillmentLabel(fulfillment);
+  }
+
+  /**
+   * 各售后类型对应业务状态（与详情状态矩阵对齐）
+   * - 仅退款：无寄回环节
+   * - 退货退款：含待退货 / 待收货 / 退款中
+   * - 补货：无退款态，审核后待收货
+   * - 换货：无退款态
+   */
+  function statusListByType(type) {
+    if (type === '仅退款') {
+      return ['待审批', '已拒绝', '退款中', '退款异常', '已完成', '已取消'];
+    }
+    if (type === '退货退款') {
+      return ['待审批', '已拒绝', '待退货', '待收货', '退款中', '退款异常', '已完成', '已取消'];
+    }
+    if (type === '补货') {
+      return ['待审批', '已拒绝', '待收货', '已完成', '已取消'];
+    }
+    if (type === '换货') {
+      return ['待审批', '已拒绝', '待退货', '待收货', '已完成', '已取消'];
+    }
+    return STATUSES.slice();
+  }
+
+  /**
+   * 按订单来源 × 履约方式 × 售后类型 × 状态铺演示数据，保证筛选可覆盖全矩阵
+   */
+  function buildMatrixRows(opts) {
+    var orderSource = opts.orderSource;
+    var fulfillments = opts.fulfillments || [];
+    var types = opts.types || TYPES;
+    var idPrefix = opts.idPrefix || 'AS-335';
+    var seqBase = opts.seqBase || 0;
+    var list = [];
+    var seq = 0;
+    types.forEach(function (type) {
+      fulfillments.forEach(function (fulfillment) {
+        statusListByType(type).forEach(function (status) {
+          list.push(
+            makeRow(
+              {
+                type: type,
+                status: status,
+                orderSource: orderSource,
+                fulfillment: fulfillment,
+                idPrefix: idPrefix,
+                applyAmt:
+                  type === '退货退款' || type === '仅退款'
+                    ? orderSource === '代采'
+                      ? 12.5
+                      : 9.9
+                    : orderSource === '代采'
+                      ? 8.8
+                      : 6.6
+              },
+              seqBase + seq++
+            )
+          );
+        });
+      });
+    });
+    return list;
   }
 
   function pad(n, len) {
@@ -151,7 +232,7 @@
       type: type,
       status: status,
       orderSource: orderSource,
-      liveSession: orderSource === '直播' ? LIVE_SESSIONS[i % LIVE_SESSIONS.length] : '-',
+      liveSession: '-',
       fulfillment: fulfillment,
       nickname: NICKNAMES[i % NICKNAMES.length],
       phone: PHONES[i % PHONES.length],
@@ -159,6 +240,11 @@
       storeAddress: ADDRESSES[i % ADDRESSES.length],
       productName: opts.productName || PRODUCTS[i % PRODUCTS.length],
       productSpec: opts.productSpec || PRODUCT_SPECS[i % PRODUCT_SPECS.length],
+      productSku: opts.productSku || PRODUCT_SKUS[i % PRODUCT_SKUS.length],
+      productTitle: buildProductTitle(
+        opts.productName || PRODUCTS[i % PRODUCTS.length],
+        fulfillment
+      ),
       applyAmount: money(applyAmt),
       approveAmount: money(applyAmt),
       refundExecStatus: refundExec,
@@ -183,67 +269,48 @@
   }
 
   /**
-   * 代采演示矩阵：补货 / 换货 / 退货退款 × 快递 / 配送 × 各业务状态
-   * 置顶方便筛「订单来源=代采」后自查详情页
+   * 代采演示矩阵：仅退款/退货退款/补货/换货 × 快递/配送 × 各业务状态
+   * 筛「订单来源=代采」可覆盖配送、快递全状态
    */
-  function buildProxyDemoRows() {
-    var PROXY_FULFILLMENTS = ['快递', '配送'];
-    var STATUS_MAP = {
-      退货退款: ['待审批', '已拒绝', '待退货', '待收货', '退款中', '退款异常', '已完成', '已取消'],
-      补货: ['待审批', '已拒绝', '待收货', '已完成', '已取消'],
-      换货: ['待审批', '已拒绝', '待退货', '待收货', '已完成', '已取消']
-    };
-    var types = ['退货退款', '补货', '换货'];
-    var list = [];
-    var seq = 0;
-    types.forEach(function (type) {
-      PROXY_FULFILLMENTS.forEach(function (fulfillment) {
-        (STATUS_MAP[type] || []).forEach(function (status) {
-          list.push(
-            makeRow(
-              {
-                type: type,
-                status: status,
-                orderSource: '代采',
-                fulfillment: fulfillment,
-                idPrefix: 'AS-PX',
-                applyAmt: type === '退货退款' ? 12.5 : 8.8
-              },
-              seq++
-            )
-          );
-        });
-      });
+  function buildProxyDemoRows(seqBase) {
+    return buildMatrixRows({
+      orderSource: '代采',
+      fulfillments: ['快递', '配送'],
+      types: ['仅退款', '退货退款', '补货', '换货'],
+      idPrefix: 'AS-PX',
+      seqBase: seqBase || 0
     });
-    return list;
   }
 
-  function buildMockRows(count) {
-    var list = buildProxyDemoRows();
-    var start = list.length;
-    for (var i = start; i < start + count; i++) {
-      var type = TYPES[i % TYPES.length];
-      var orderSource = ORDER_SOURCES[i % ORDER_SOURCES.length];
-      // 代采演示已由矩阵覆盖，这里让代采略少，优先补商城/直播
-      if (orderSource === '代采' && i % 2 === 0) {
-        orderSource = ORDER_SOURCES[i % 2];
-      }
-      list.push(
-        makeRow(
-          {
-            type: type,
-            status: resolveTicketStatus(type, i),
-            orderSource: orderSource,
-            fulfillment: resolveFulfillment(orderSource, i)
-          },
-          i
-        )
-      );
+  /**
+   * 零售演示矩阵：仅退款/退货退款/补货/换货 × 快递/自提 × 各业务状态
+   * 筛「订单来源=零售」可覆盖自提、快递全状态
+   */
+  function buildRetailDemoRows(seqBase) {
+    return buildMatrixRows({
+      orderSource: '零售',
+      fulfillments: ['快递', '自提'],
+      types: ['仅退款', '退货退款', '补货', '换货'],
+      idPrefix: 'AS-RT',
+      seqBase: seqBase || 0
+    });
+  }
+
+  /** 零售 / 代采交错排列，避免首页全是代采 */
+  function buildMockRows() {
+    var retail = buildRetailDemoRows(0);
+    var proxy = buildProxyDemoRows(retail.length);
+    var list = [];
+    var max = Math.max(retail.length, proxy.length);
+    var i;
+    for (i = 0; i < max; i++) {
+      if (i < retail.length) list.push(retail[i]);
+      if (i < proxy.length) list.push(proxy[i]);
     }
     return list;
   }
 
-  var ALL_ROWS = buildMockRows(80);
+  var ALL_ROWS = buildMockRows();
 
   var state = {
     page: 1,
@@ -296,6 +363,32 @@
     if (status === '已结款') cls = 'aftersale-tag aftersale-tag--success';
     else if (status === '结款中' || status === '待结款') cls = 'aftersale-tag aftersale-tag--warning';
     return '<span class="' + cls + '" title="' + escapeHtml(settleStatusLabel(status)) + '">' + escapeHtml(settleStatusLabel(status)) + '</span>';
+  }
+
+  /**
+   * 商品信息：单行省略「商品名-履约后缀」；悬停黑底气泡展示全称 / 规格 / SKU
+   */
+  function renderProductCell(row) {
+    var title = row.productTitle || buildProductTitle(row.productName, row.fulfillment);
+    var spec = row.productSpec || '-';
+    var sku = row.productSku || '-';
+    return (
+      '<div class="aftersale-product-cell">' +
+      '<span class="aftersale-product-cell__text">' +
+      escapeHtml(title) +
+      '</span>' +
+      '<div class="aftersale-product-tip" role="tooltip">' +
+      '<div class="aftersale-product-tip__line">' +
+      escapeHtml(title) +
+      '</div>' +
+      '<div class="aftersale-product-tip__line">' +
+      escapeHtml(spec) +
+      '</div>' +
+      '<div class="aftersale-product-tip__line">' +
+      escapeHtml(sku) +
+      '</div>' +
+      '</div></div>'
+    );
   }
 
   function detailLinkAttrs(row) {
@@ -381,7 +474,14 @@
     if (f.orderNo && String(row.orderNo).indexOf(f.orderNo) < 0) return false;
     if (f.orderSource && row.orderSource !== f.orderSource) return false;
     if (f.phone && row.phone.indexOf(f.phone) < 0) return false;
-    if (f.productName && row.productName.indexOf(f.productName) < 0) return false;
+    if (
+      f.productName &&
+      row.productName.indexOf(f.productName) < 0 &&
+      String(row.productTitle || '').indexOf(f.productName) < 0 &&
+      String(row.productSku || '').indexOf(f.productName) < 0
+    ) {
+      return false;
+    }
     if (f.type && row.type !== f.type) return false;
     if (f.status && row.status !== f.status) return false;
     if (f.refundExecStatus && row.refundExecStatus !== f.refundExecStatus) return false;
@@ -467,17 +567,9 @@
           '">' +
           escapeHtml(row.storeAddress) +
           '</span></td>' +
-          '<td><div class="aftersale-product" title="' +
-          escapeHtml(row.productName + (row.productSpec ? ' ' + row.productSpec : '')) +
-          '"><span class="aftersale-ellipsis">' +
-          escapeHtml(row.productName) +
-          '</span>' +
-          (row.productSpec
-            ? '<span class="aftersale-product__spec aftersale-ellipsis">' +
-              escapeHtml(row.productSpec) +
-              '</span>'
-            : '') +
-          '</div></td>' +
+          '<td class="aftersale-table__td--product">' +
+          renderProductCell(row) +
+          '</td>' +
           '<td>' +
           escapeHtml(row.applyAmount) +
           '</td>' +

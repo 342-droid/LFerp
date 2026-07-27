@@ -432,6 +432,12 @@
         view.title = '补货中';
         if (stage === 'reship' && isWarehouseDelivery(rec.delivery)) {
           view.desc = rec.outShipped ? '仓库配送到店，待确认收货' : '供应商补发至仓库';
+        } else if (stage === 'reship' && isPickupDelivery(rec.delivery)) {
+          view.desc = rec.restockAwaitPickup
+            ? '待自提'
+            : rec.outShipped
+              ? '补货到店中'
+              : '补货处理中';
         } else {
           view.desc = stage === 'reship' ? '补货寄出中' : '请等待平台处理';
         }
@@ -1408,6 +1414,8 @@
     '退款成功'
   ];
   var RESTOCK_STEPS = ['提交申请', '平台审核', '补货寄出', '补货完成'];
+  /** 平台配送补货：仓配到店，无物流轨迹 */
+  var RESTOCK_STEPS_WAREHOUSE = ['提交申请', '平台审核', '补货到店', '补货完成'];
   /** 零售自提补货：到店后待自提，随原订单扫会员码核销（不单独生成补货订单） */
   var RESTOCK_STEPS_PICKUP = [
     '提交申请',
@@ -1483,21 +1491,37 @@
     return type === 'restock' && isWarehouseDelivery(delivery);
   }
 
+  function isPickupRestock(app, refundType) {
+    var type = refundType || (app && app.formType) || getRefundType();
+    var delivery = (app && app.delivery) || getDelivery();
+    return type === 'restock' && isPickupDelivery(delivery);
+  }
+
+  /** 平台配送 / 自提补货：无法获取物流轨迹，不展示补货物流板块 */
+  function isNoTrackRestock(app, refundType) {
+    return isWarehouseRestock(app, refundType) || isPickupRestock(app, refundType);
+  }
+
   function markReshipShipped(app) {
     app = app || {};
     app.outShipped = true;
     app.outShipTime = app.outShipTime || formatDateTime();
-    /* 配送补货：供应商→仓→门店，不生成快递物流信息 */
-    if (!isWarehouseRestock(app)) {
+    /* 平台配送 / 自提补货：不生成快递物流信息 */
+    if (isNoTrackRestock(app)) {
+      app.outCourier = '';
+      app.outTrackingNo = '';
+      if (isPickupRestock(app)) {
+        app.outLogisticsStatus = '补货到店';
+        app.outLogisticsText = '补货商品已安排到店，请到店自提核销';
+      } else {
+        app.outLogisticsStatus = '仓库配送到店';
+        app.outLogisticsText = '供应商已补发至仓库，仓库配送到门店';
+      }
+    } else {
       app.outCourier = '申通快递';
       app.outTrackingNo = '773075059702651';
       app.outLogisticsStatus = '运输中';
       app.outLogisticsText = '【杭州市】快件已到达 杭州萧山转运中心';
-    } else {
-      app.outCourier = '';
-      app.outTrackingNo = '';
-      app.outLogisticsStatus = '仓库配送到店';
-      app.outLogisticsText = '供应商已补发至仓库，仓库配送到门店';
     }
     saveApplication(app);
     return app;
@@ -1505,15 +1529,22 @@
 
   function ensureReshipData(app) {
     app = app || {};
-    /* 仅已寄出时补齐物流演示数据；待寄出不生成运单；配送补货不补快递单号 */
+    /* 仅已寄出时补齐物流演示数据；待寄出不生成运单；配送/自提补货不补快递单号 */
     if (isReshipShipped(app)) {
       app.outShipped = true;
-      if (isWarehouseRestock(app)) {
+      if (isNoTrackRestock(app)) {
         app.outCourier = '';
         app.outTrackingNo = '';
-        if (!app.outLogisticsStatus) app.outLogisticsStatus = '仓库配送到店';
-        if (!app.outLogisticsText) {
-          app.outLogisticsText = '供应商已补发至仓库，仓库配送到门店';
+        if (isPickupRestock(app)) {
+          if (!app.outLogisticsStatus) app.outLogisticsStatus = '补货到店';
+          if (!app.outLogisticsText) {
+            app.outLogisticsText = '补货商品已安排到店，请到店自提核销';
+          }
+        } else {
+          if (!app.outLogisticsStatus) app.outLogisticsStatus = '仓库配送到店';
+          if (!app.outLogisticsText) {
+            app.outLogisticsText = '供应商已补发至仓库，仓库配送到门店';
+          }
         }
       } else {
         if (!app.outCourier || app.outCourier === '顺丰速运') app.outCourier = '申通快递';
@@ -1724,13 +1755,21 @@
   function renderReshipSection(app, refundType) {
     var section = document.getElementById('refundDetailReshipSection');
     if (!section) return;
-    section.hidden = false;
-    ensureReshipData(app);
-    if (isWarehouseRestock(app, refundType)) {
-      if (isReshipShipped(app)) renderWarehouseRestockShippedCard(app);
-      else renderReshipPendingCard(app, refundType);
+    /* 平台配送 / 自提补货：无法获取物流轨迹，去掉补货物流板块 */
+    if (isNoTrackRestock(app, refundType)) {
+      section.hidden = true;
+      var pending = document.getElementById('refundReshipPendingCard');
+      var track = document.getElementById('refundReshipLogisticsTrack');
+      if (pending) pending.hidden = true;
+      if (track) {
+        track.hidden = true;
+        var scroll = document.getElementById('refundReshipLogisticsScroll');
+        if (scroll) scroll.innerHTML = '';
+      }
       return;
     }
+    section.hidden = false;
+    ensureReshipData(app);
     if (isReshipShipped(app)) {
       renderReshipLogisticsTrack(app);
     } else {
@@ -5848,7 +5887,11 @@
       else if (pickupReturn) steps = RETURN_STEPS_PICKUP.slice();
       else steps = RETURN_STEPS.slice();
     } else if (isRestock) {
-      steps = pickupRestock ? RESTOCK_STEPS_PICKUP.slice() : RESTOCK_STEPS.slice();
+      steps = pickupRestock
+        ? RESTOCK_STEPS_PICKUP.slice()
+        : isRestock && isWarehouseDelivery(delivery)
+          ? RESTOCK_STEPS_WAREHOUSE.slice()
+          : RESTOCK_STEPS.slice();
     } else if (isExchange) {
       steps = EXCHANGE_STEPS;
     }
@@ -6106,7 +6149,7 @@
           notice: pickupRestock
             ? '平台已同意补货。补货将先送达门店，到店后请出示会员码，由门店按原订单核销提货。'
             : warehouseRestock
-              ? '平台已同意补货。供应商将补发至仓库，再由仓库配送到门店，无快递物流信息。'
+              ? '平台已同意补货。供应商将补发至仓库，再由仓库配送到门店。'
               : retailHomeRestock
                 ? '平台已同意补货。供应商将直接补货快递到您的收货地址。'
                 : ''
