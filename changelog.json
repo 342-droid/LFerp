@@ -1,10 +1,44 @@
 {
-  "latestSha": "e883689a369c9c62a8b8439439df3ff927b4dde6",
-  "total": 205,
+  "latestSha": "0188b7ef2b316bf2ecff89e714a78206e9fddc9b",
+  "total": 206,
   "days": [
     {
       "date": "2026-07-27",
       "items": [
+        {
+          "sha": "0188b7e",
+          "type": "feat",
+          "text": "导入弹窗改为批量初始化样式并补充导入记录",
+          "author": "342-droid",
+          "time": "17:38",
+          "pages": [
+            {
+              "file": "SCM/location.html",
+              "module": "冷丰WMS",
+              "title": "储位"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "module": "冷丰采购",
+              "title": "采购单"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/location.html",
+              "text": "导入弹窗改为查询/模板下载/文件浏览/执行导入布局，展示导入成功失败记录"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "批量上传物流单号弹窗同步为同款导入样式与结果展示规则"
+            },
+            {
+              "file": null,
+              "text": "抽取批量导入弹窗共用样式，空态文案居中"
+            }
+          ]
+        },
         {
           "sha": "e883689",
           "type": "feat",
