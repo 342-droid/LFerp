@@ -19,29 +19,64 @@
     '浙江省杭州市上城区望江路...'
   ];
   var PRODUCTS = [
-    '牛牛专用香梨-计重甜香脆',
-    '爆米花--清分专用小袋装',
-    '冷丰优选车厘子 3斤装',
-    '精品牛腩 500g'
+    '牛牛专用香梨',
+    '爆米花',
+    '冷丰优选车厘子',
+    '精品牛腩'
   ];
+  var PRODUCT_SPECS = ['计重·甜香脆', '清分专用小袋装', '3斤装', '500g'];
   var REASONS = ['质量问题', '未收到货', '发错货', '其他'];
   var APPROVERS = ['系统', '超级管理员'];
-  var REFUND_EXEC = ['未发起退款', '待退款', '退款执行中', '退款成功', '退款失败'];
+  var REFUND_EXEC = ['未发起退款', '待退款', '退款执行中', '退款成功', '退款失败', '待线下退款', '线下退款完成'];
+  /** 结算状态：待结算 | 待结款 | 结款中 | 已结款（待结款由结算单生成触发，文案不再带说明） */
+  var SETTLE_STATUSES = ['待结算', '待结款', '结款中', '已结款'];
 
   /** 仅「仅退款 / 退货退款」会生成退款单；换货、补货不产生退款 */
   function createsRefundDoc(type) {
     return type === '仅退款' || type === '退货退款';
   }
 
+  function settleStatusLabel(status) {
+    return status || '待结算';
+  }
+
+  function isPostSettlement(settleStatus) {
+    return settleStatus === '待结款' || settleStatus === '结款中' || settleStatus === '已结款';
+  }
+
+  /**
+   * 演示用结算状态：
+   * - 结算表生成前：待结算（售后流程走线上退款，逻辑不变）
+   * - 结算表生成后：待结款 / 结款中 / 已结款（不自动生成退款单）
+   */
+  function resolveSettleStatus(type, status, i) {
+    if (status === '待审批' || status === '待退货' || status === '待收货') {
+      return i % 5 === 0 ? '待结款' : '待结算';
+    }
+    if (status === '退款中' || status === '退款异常') {
+      return SETTLE_STATUSES[1 + (i % 3)];
+    }
+    if (status === '已完成' && createsRefundDoc(type)) {
+      return i % 3 === 0 ? '已结款' : i % 3 === 1 ? '待结算' : '结款中';
+    }
+    return '待结算';
+  }
+
   /**
    * 退款单生成时机（与售后单状态矩阵对齐）：
-   * - 仅退款：审核通过 → 售后单「退款中」+ 退款单「待退款」
-   * - 退货退款：商家确认收货 → 售后单「退款中」+ 退款单「待退款」
+   * - 结算前：仅退款审核通过 / 退货退款确认收货 → 退款单
+   * - 结算后（待结款/结款中/已结款）：不自动生成退款单，走线下退款
    * - 补货 / 换货：不生成退款单（始终「未发起退款」）
-   * 列表「退款执行状态」据此推导
    */
-  function resolveRefundExec(type, status, i) {
+  function resolveRefundExec(type, status, i, settleStatus) {
     if (!createsRefundDoc(type)) return '未发起退款';
+
+    if (isPostSettlement(settleStatus)) {
+      if (status === '已完成') return '线下退款完成';
+      if (status === '退款中') return '待线下退款';
+      if (status === '退款异常') return '待线下退款';
+      return '未发起退款';
+    }
 
     if (type === '退货退款') {
       // 确认收货前（待审批/待退货/待收货/已拒绝/已取消）均未生成退款单
@@ -100,7 +135,8 @@
     var orderSource = opts.orderSource;
     var fulfillment = opts.fulfillment;
     var applyAmt = opts.applyAmt != null ? opts.applyAmt : [0.03, 0.02, 2.75, 0.75, 2.0, 0.1, 0.04, 1.2][i % 8];
-    var refundExec = resolveRefundExec(type, status, i);
+    var settleStatus = opts.settleStatus || resolveSettleStatus(type, status, i);
+    var refundExec = resolveRefundExec(type, status, i, settleStatus);
     var hasRefund = createsRefundDoc(type);
     var day = pad((i % 28) + 1);
     var hour = pad(10 + (i % 10));
@@ -122,11 +158,12 @@
       store: STORES[i % STORES.length],
       storeAddress: ADDRESSES[i % ADDRESSES.length],
       productName: opts.productName || PRODUCTS[i % PRODUCTS.length],
+      productSpec: opts.productSpec || PRODUCT_SPECS[i % PRODUCT_SPECS.length],
       applyAmount: money(applyAmt),
       approveAmount: money(applyAmt),
       refundExecStatus: refundExec,
       actualAmount:
-        hasRefund && refundExec === '退款成功'
+        hasRefund && (refundExec === '退款成功' || refundExec === '线下退款完成')
           ? money(applyAmt)
           : hasRefund && refundExec !== '未发起退款'
             ? money(applyAmt)
@@ -135,7 +172,7 @@
       pointsAmount: 0,
       reason: REASONS[i % REASONS.length],
       approver: APPROVERS[i % APPROVERS.length],
-      settleStatus: '-',
+      settleStatus: settleStatus,
       occurTime: occurAt,
       approveTime: occurAt,
       applyTime: applyAt,
@@ -170,7 +207,6 @@
                 orderSource: '代采',
                 fulfillment: fulfillment,
                 idPrefix: 'AS-PX',
-                productName: '【代采+' + fulfillment + '】' + type + '·' + status,
                 applyAmt: type === '退货退款' ? 12.5 : 8.8
               },
               seq++
@@ -247,10 +283,19 @@
 
   function refundExecTag(status) {
     var cls = 'aftersale-tag aftersale-tag--info';
-    if (status === '退款成功') cls = 'aftersale-tag aftersale-tag--success';
+    if (status === '退款成功' || status === '线下退款完成') cls = 'aftersale-tag aftersale-tag--success';
     else if (status === '退款失败') cls = 'aftersale-tag aftersale-tag--danger';
-    else if (status === '待退款' || status === '退款执行中') cls = 'aftersale-tag aftersale-tag--warning';
+    else if (status === '待退款' || status === '退款执行中' || status === '待线下退款') {
+      cls = 'aftersale-tag aftersale-tag--warning';
+    }
     return '<span class="' + cls + '">' + escapeHtml(status) + '</span>';
+  }
+
+  function settleStatusTag(status) {
+    var cls = 'aftersale-tag aftersale-tag--info';
+    if (status === '已结款') cls = 'aftersale-tag aftersale-tag--success';
+    else if (status === '结款中' || status === '待结款') cls = 'aftersale-tag aftersale-tag--warning';
+    return '<span class="' + cls + '" title="' + escapeHtml(settleStatusLabel(status)) + '">' + escapeHtml(settleStatusLabel(status)) + '</span>';
   }
 
   function detailLinkAttrs(row) {
@@ -265,6 +310,8 @@
       escapeHtml(row.orderSource) +
       '" data-delivery="' +
       escapeHtml(row.fulfillment) +
+      '" data-settle-status="' +
+      escapeHtml(row.settleStatus || '待结算') +
       '"'
     );
   }
@@ -420,11 +467,17 @@
           '">' +
           escapeHtml(row.storeAddress) +
           '</span></td>' +
-          '<td><span class="aftersale-ellipsis" title="' +
+          '<td><div class="aftersale-product" title="' +
+          escapeHtml(row.productName + (row.productSpec ? ' ' + row.productSpec : '')) +
+          '"><span class="aftersale-ellipsis">' +
           escapeHtml(row.productName) +
-          '">' +
-          escapeHtml(row.productName) +
-          '</span></td>' +
+          '</span>' +
+          (row.productSpec
+            ? '<span class="aftersale-product__spec aftersale-ellipsis">' +
+              escapeHtml(row.productSpec) +
+              '</span>'
+            : '') +
+          '</div></td>' +
           '<td>' +
           escapeHtml(row.applyAmount) +
           '</td>' +
@@ -450,7 +503,7 @@
           escapeHtml(row.approver) +
           '</td>' +
           '<td>' +
-          escapeHtml(row.settleStatus) +
+          settleStatusTag(row.settleStatus) +
           '</td>' +
           '<td>' +
           escapeHtml(row.occurTime) +
@@ -635,6 +688,7 @@
         var type = link.getAttribute('data-type') || '';
         var orderSource = link.getAttribute('data-order-source') || '';
         var delivery = link.getAttribute('data-delivery') || '';
+        var settleStatus = link.getAttribute('data-settle-status') || '待结算';
         var wp = window.wmsPath;
         var base =
           wp && typeof wp.page === 'function'
@@ -651,7 +705,9 @@
           '&orderSource=' +
           encodeURIComponent(orderSource) +
           '&delivery=' +
-          encodeURIComponent(delivery);
+          encodeURIComponent(delivery) +
+          '&settleStatus=' +
+          encodeURIComponent(settleStatus);
       });
     }
 
