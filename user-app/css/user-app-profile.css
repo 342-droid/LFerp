@@ -65,13 +65,13 @@
   display: block;
 }
 
-/* —— 小程序胶囊 —— */
+/* —— 小程序胶囊（用户 APP 已全局隐藏） —— */
 .ua-mp-capsule {
   position: absolute;
   top: 50px;
   right: 11px;
   z-index: 20;
-  display: flex;
+  display: none;
   align-items: center;
   height: 34px;
   padding: 0 11px;

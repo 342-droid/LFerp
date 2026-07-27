@@ -404,7 +404,8 @@
   display: flex;
   align-items: center;
   height: 36px;
-  margin-right: 88px;
+  /* 与下方 banner 左右 12px 边距对齐（不再为小程序胶囊预留右侧空隙） */
+  margin-right: 0;
   padding-left: 12px;
   border-radius: 18px;
   background: #fff;

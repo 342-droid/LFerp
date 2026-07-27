@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <link rel="stylesheet" href="../css/lf-aftersale.css">
+    <link rel="stylesheet" href="../css/lf-aftersale.css?v=20260727-refund-drawer">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -31,17 +31,175 @@
                         <button type="button" class="aftersale-page-tabs__close" aria-label="关闭">×</button>
                     </span>
                 </div>
+
                 <div class="aftersale-page-body">
                     <section class="erp-page__card aftersale-filter-card">
-                        <p style="margin:0;font-size:13px;color:#909399;">退款单列表页（占位，可继续按设计稿扩展）</p>
+                        <form class="aftersale-filter-form" id="asRefundFilterForm" onsubmit="return false;">
+                            <div class="aftersale-filter-grid aftersale-refund-filter-grid" id="asRefundFilterGrid">
+                                <div class="aftersale-filter-field">
+                                    <label class="aftersale-filter-field__label" for="asRefundNo">退款单号</label>
+                                    <input class="aftersale-filter-field__input" id="asRefundNo" type="text" placeholder="请输入退款单号" autocomplete="off">
+                                </div>
+                                <div class="aftersale-filter-field">
+                                    <label class="aftersale-filter-field__label" for="asRefundOrderNo">订单号</label>
+                                    <input class="aftersale-filter-field__input" id="asRefundOrderNo" type="text" placeholder="请输入订单号" autocomplete="off">
+                                </div>
+                                <div class="aftersale-filter-field">
+                                    <label class="aftersale-filter-field__label" for="asRefundSource">退款来源</label>
+                                    <select class="aftersale-filter-field__select" id="asRefundSource">
+                                        <option value="">全部</option>
+                                        <option value="售后退款">售后退款</option>
+                                        <option value="履约调整退款">履约调整退款</option>
+                                        <option value="订单取消退款">订单取消退款</option>
+                                    </select>
+                                </div>
+                                <div class="aftersale-filter-field">
+                                    <label class="aftersale-filter-field__label" for="asRefundStatus">退款状态</label>
+                                    <select class="aftersale-filter-field__select" id="asRefundStatus">
+                                        <option value="">全部</option>
+                                        <option value="未发起退款">未发起退款</option>
+                                        <option value="待退款">待退款</option>
+                                        <option value="退款执行中">退款执行中</option>
+                                        <option value="退款成功">退款成功</option>
+                                        <option value="退款失败">退款失败</option>
+                                    </select>
+                                </div>
+                                <div class="aftersale-filter-field">
+                                    <label class="aftersale-filter-field__label" for="asRefundTxnNo">退款流水号</label>
+                                    <input class="aftersale-filter-field__input" id="asRefundTxnNo" type="text" placeholder="请输入退款流水号" autocomplete="off">
+                                </div>
+                                <div class="aftersale-filter-field aftersale-filter-field--btns">
+                                    <span class="aftersale-filter-field__label" aria-hidden="true"></span>
+                                    <div class="aftersale-filter-actions aftersale-filter-actions--inline">
+                                        <button type="button" class="aftersale-filter-btn aftersale-filter-btn--primary" id="asRefundQuery">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                                            查询
+                                        </button>
+                                        <button type="button" class="aftersale-filter-btn aftersale-filter-btn--default" id="asRefundReset">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M5 19a9 9 0 0014-7"/><path d="M19 5a9 9 0 00-14 7"/></svg>
+                                            重置
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                     </section>
-                    <section class="erp-page__card aftersale-table-card" style="padding:40px 16px;text-align:center;color:#909399;font-size:13px;">
-                        暂无退款单数据
+
+                    <section class="erp-page__card aftersale-table-card">
+                        <div class="aftersale-table-wrap">
+                            <table class="aftersale-table aftersale-refund-table" id="asRefundTable">
+                                <thead>
+                                    <tr>
+                                        <th>退款单号</th>
+                                        <th>订单号</th>
+                                        <th>售后单号</th>
+                                        <th>退款方式</th>
+                                        <th>退款来源</th>
+                                        <th>退款状态</th>
+                                        <th>现金退款金额</th>
+                                        <th>原支付流水号</th>
+                                        <th>退款流水号</th>
+                                        <th>退款渠道</th>
+                                        <th>创建时间</th>
+                                        <th>更新时间</th>
+                                        <th class="aftersale-table__th aftersale-table__th--action">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="asRefundTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="aftersale-empty" id="asRefundEmpty" hidden>暂无退款单数据</div>
+                        <div class="aftersale-pagination" id="asRefundPagination">
+                            <span id="asRefundTotal">共 0 条</span>
+                            <div class="aftersale-pagination__right">
+                                <select class="aftersale-pagination__size" id="asRefundPageSize" aria-label="每页条数">
+                                    <option value="20" selected>20条/页</option>
+                                    <option value="50">50条/页</option>
+                                    <option value="100">100条/页</option>
+                                </select>
+                                <div class="aftersale-pagination__pages" id="asRefundPages"></div>
+                                <div class="aftersale-pagination__jump">
+                                    前往
+                                    <input type="text" id="asRefundJump" inputmode="numeric" aria-label="跳转页码" value="1">
+                                    页
+                                </div>
+                            </div>
+                        </div>
                     </section>
                 </div>
             </div>
         </main>
     </div>
+
+    <!-- 上传付款凭证（线下付款） -->
+    <div class="modal aftersale-refund-modal" id="asRefundUploadModal" aria-hidden="true">
+        <div class="modal-content aftersale-refund-modal__content aftersale-refund-modal__content--upload">
+            <div class="modal-header">
+                <div class="modal-title">上传付款凭证</div>
+                <span class="close" id="asRefundUploadClose" aria-label="关闭">&times;</span>
+            </div>
+            <form class="aftersale-refund-upload-form" id="asRefundUploadForm" onsubmit="return false;">
+                <div class="aftersale-refund-form-item">
+                    <label class="aftersale-refund-form-item__label" for="asUploadAmount"><span class="is-required">*</span>退款金额</label>
+                    <div class="aftersale-refund-form-item__control">
+                        <input class="aftersale-refund-form-item__input" id="asUploadAmount" type="number" step="0.01" min="0" autocomplete="off">
+                        <div class="aftersale-refund-form-item__hint" id="asUploadAmountHint">最大不超过 ¥ 0.00</div>
+                    </div>
+                </div>
+                <div class="aftersale-refund-form-item">
+                    <span class="aftersale-refund-form-item__label"><span class="is-required">*</span>退款方式</span>
+                    <div class="aftersale-refund-form-item__control">
+                        <div class="aftersale-refund-radios" id="asUploadChannel">
+                            <label class="aftersale-refund-radio"><input type="radio" name="asUploadChannel" value="微信"><span>微信</span></label>
+                            <label class="aftersale-refund-radio"><input type="radio" name="asUploadChannel" value="支付宝"><span>支付宝</span></label>
+                            <label class="aftersale-refund-radio"><input type="radio" name="asUploadChannel" value="银行转账" checked><span>银行转账</span></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="aftersale-refund-form-item aftersale-refund-form-item--top">
+                    <label class="aftersale-refund-form-item__label" for="asUploadRemark"><span class="is-required">*</span>退款备注</label>
+                    <div class="aftersale-refund-form-item__control">
+                        <div class="aftersale-refund-textarea-wrap">
+                            <textarea class="aftersale-refund-form-item__textarea" id="asUploadRemark" maxlength="200" placeholder="请输入退款备注" rows="4"></textarea>
+                            <span class="aftersale-refund-textarea-count"><span id="asUploadRemarkCount">0</span> / 200</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="aftersale-refund-form-item aftersale-refund-form-item--top">
+                    <span class="aftersale-refund-form-item__label"><span class="is-required">*</span>退款凭证</span>
+                    <div class="aftersale-refund-form-item__control">
+                        <div class="aftersale-refund-upload" id="asUploadProofBox">
+                            <input type="file" id="asUploadProofInput" accept="image/jpeg,image/png,.jpg,.jpeg,.png" hidden>
+                            <button type="button" class="aftersale-refund-upload__add" id="asUploadProofAdd" aria-label="上传凭证">+</button>
+                            <div class="aftersale-refund-upload__preview" id="asUploadProofPreview" hidden>
+                                <img id="asUploadProofImg" alt="退款凭证预览">
+                                <button type="button" class="aftersale-refund-upload__remove" id="asUploadProofRemove" aria-label="移除凭证">×</button>
+                            </div>
+                        </div>
+                        <div class="aftersale-refund-form-item__hint">最多上传 1 张图片，支持 jpg、png 格式</div>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="aftersale-btn aftersale-btn--ghost" id="asRefundUploadCancel">取消</button>
+                <button type="button" class="aftersale-btn aftersale-btn--primary" id="asRefundUploadConfirm">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 退款单详情：右侧抽屉 -->
+    <div class="aftersale-refund-drawer-backdrop" id="asRefundDetailBackdrop" hidden></div>
+    <aside class="aftersale-refund-drawer" id="asRefundDetailDrawer" aria-hidden="true" hidden>
+        <div class="aftersale-refund-drawer__header">
+            <h2 class="aftersale-refund-drawer__title">退款单详情</h2>
+            <button type="button" class="aftersale-refund-drawer__close" id="asRefundDetailClose" aria-label="关闭">&times;</button>
+        </div>
+        <div class="aftersale-refund-drawer__body">
+            <div class="aftersale-refund-detail" id="asRefundDetailBody"></div>
+        </div>
+    </aside>
+
     <script src="../js/common.js"></script>
+    <script src="../js/mdm-aftersale-refund.js?v=20260727-refund-jump"></script>
 </body>
 </html>
