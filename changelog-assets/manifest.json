@@ -1839,6 +1839,109 @@
     "status": "diff",
     "date": "2026-07-23"
   },
+  "d005dd2|MDM/mdm_aftersale_refund.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "d005dd2|MDM/mdm_aftersale_ticket.html": {
+    "before": "changelog-assets/d005dd2/MDM__mdm_aftersale_ticket.html.before.jpg",
+    "after": "changelog-assets/d005dd2/MDM__mdm_aftersale_ticket.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "d005dd2|MDM/mdm_aftersale_ticket_detail.html": {
+    "before": "changelog-assets/d005dd2/MDM__mdm_aftersale_ticket_detail.html.before.jpg",
+    "after": "changelog-assets/d005dd2/MDM__mdm_aftersale_ticket_detail.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "d005dd2|user-app/h5/order-aftersale-list.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "d005dd2|user-app/h5/order-detail-pickup.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "d005dd2|user-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "d005dd2|user-app/h5/order-refund-address-book.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "d005dd2|user-app/h5/order-refund-address-create.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "d005dd2|user-app/h5/order-refund-detail.html": {
+    "before": "changelog-assets/d005dd2/user-app__h5__order-refund-detail.html.before.jpg",
+    "after": "changelog-assets/d005dd2/user-app__h5__order-refund-detail.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "d005dd2|user-app/h5/order-refund-exchange.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "d005dd2|user-app/h5/order-refund-only.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "d005dd2|user-app/h5/order-refund-pickup-edit.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "d005dd2|user-app/h5/order-refund-pickup-order.html": {
+    "before": "changelog-assets/d005dd2/user-app__h5__order-refund-pickup-order.html.before.jpg",
+    "after": "changelog-assets/d005dd2/user-app__h5__order-refund-pickup-order.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "d005dd2|user-app/h5/order-refund-pre-ship.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "d005dd2|user-app/h5/order-refund-restock.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "d005dd2|user-app/h5/order-refund-return-goods.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "d005dd2|user-app/h5/order-refund-return-ship.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "d005dd2|user-app/h5/order-refund-return.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "d005dd2|user-app/h5/order-refund-select.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
   "d33a018|MDM/mdm_aftersale_ticket_detail.html": {
     "regions": 0,
     "status": "diff",
