@@ -12,7 +12,7 @@
             width: 150px;
         }
 
-        /* 储位导入：尺寸与 .btn 一致，仅保留橙色强调色 */
+        /* 储位导入入口按钮：橙色强调，尺寸与 .btn 一致 */
         .loc-import-btn {
             border: 1px solid #ff7019;
             background: #ff7019;
@@ -21,140 +21,6 @@
 
         .loc-import-btn:hover {
             opacity: 0.92;
-        }
-
-        .loc-import-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 2090;
-            background: rgba(0, 0, 0, 0.45);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-        }
-
-        .loc-import-overlay.is-open {
-            display: flex;
-        }
-
-        .loc-import-modal {
-            width: min(480px, 92vw);
-            max-height: calc(100vh - 48px);
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .loc-import-modal__head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .loc-import-modal__title {
-            margin: 0;
-            font-size: 16px;
-            font-weight: 600;
-            color: #303133;
-        }
-
-        .loc-import-modal__close {
-            border: 0;
-            background: none;
-            font-size: 22px;
-            line-height: 1;
-            color: #909399;
-            cursor: pointer;
-            padding: 0 4px;
-        }
-
-        .loc-import-modal__body {
-            padding: 16px 20px 8px;
-            overflow: auto;
-        }
-
-        .loc-import-modal__hint {
-            margin: 0 0 14px;
-            font-size: 13px;
-            line-height: 1.6;
-            color: #606266;
-        }
-
-        .loc-import__template {
-            margin-bottom: 14px;
-        }
-
-        .loc-import__link {
-            border: 0;
-            background: none;
-            padding: 0;
-            font-size: 13px;
-            color: #ff7019;
-            cursor: pointer;
-            font-family: inherit;
-        }
-
-        .loc-import__link:hover {
-            text-decoration: underline;
-        }
-
-        .loc-import-field {
-            margin-bottom: 12px;
-        }
-
-        .loc-import-field__label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 13px;
-            color: #606266;
-        }
-
-        .loc-import__file-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-width: 0;
-        }
-
-        .loc-import__file {
-            flex: 0 0 auto;
-            max-width: 220px;
-            font-size: 13px;
-            color: #606266;
-        }
-
-        .loc-import__file-name {
-            flex: 1;
-            min-width: 0;
-            font-size: 13px;
-            color: #909399;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .loc-import-field__hint {
-            margin: 8px 0 0;
-            font-size: 12px;
-            color: #909399;
-        }
-
-        .loc-import-modal__foot {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            padding: 12px 20px 16px;
-            border-top: 1px solid #f0f0f0;
-        }
-
-        .loc-import-modal__foot .btn {
-            min-width: 88px;
         }
     </style>
 </head>
@@ -315,29 +181,77 @@
         </main>
     </div>
 
-    <div id="locImportOverlay" class="loc-import-overlay" aria-hidden="true">
-        <div class="loc-import-modal" role="dialog" aria-labelledby="locImportTitle">
-            <div class="loc-import-modal__head">
-                <h3 id="locImportTitle" class="loc-import-modal__title">储位导入</h3>
-                <button type="button" class="loc-import-modal__close" id="locImportCloseBtn" aria-label="关闭">×</button>
+    <div id="locImportOverlay" class="batch-init-overlay" aria-hidden="true">
+        <div class="batch-init-modal" role="dialog" aria-labelledby="locImportTitle">
+            <div class="batch-init-modal__head">
+                <h3 id="locImportTitle" class="batch-init-modal__title">储位导入</h3>
+                <button type="button" class="batch-init-modal__close" id="locImportCloseBtn" aria-label="关闭">×</button>
             </div>
-            <div class="loc-import-modal__body">
-                <p class="loc-import-modal__hint">通过 Excel / CSV 批量导入储位。请先下载模板，按模板填写：一储位一行。每次导入，按本次导入结果进行覆盖。</p>
-                <div class="loc-import__template">
-                    <button type="button" class="loc-import__link" id="locImportTemplateBtn">下载导入模板</button>
-                </div>
-                <div class="loc-import-field">
-                    <label class="loc-import-field__label" for="locImportFile">上传文件</label>
-                    <div class="loc-import__file-row">
-                        <input type="file" id="locImportFile" class="loc-import__file" accept=".csv,text/csv">
-                        <span class="loc-import__file-name" id="locImportFileName">未选择文件</span>
+            <div class="batch-init-modal__body">
+                <div class="batch-init-toolbar">
+                    <div class="batch-init-toolbar__left">
+                        <button type="button" class="batch-init-btn batch-init-btn--query" id="locImportQueryBtn">查询</button>
+                        <button type="button" class="batch-init-btn batch-init-btn--template" id="locImportTemplateBtn">模板下载</button>
                     </div>
-                    <p class="loc-import-field__hint">请使用 CSV（可用 Excel 另存为），单次建议不超过 1000 条</p>
+                    <div class="batch-init-toolbar__center">
+                        <button type="button" class="batch-init-btn batch-init-btn--browse" id="locImportBrowseBtn">文件浏览</button>
+                        <input type="file" id="locImportFile" class="batch-init-file" accept=".csv,text/csv">
+                    </div>
+                    <div class="batch-init-toolbar__right">
+                        <button type="button" class="batch-init-btn batch-init-btn--exec" id="locImportSubmitBtn">执行导入 (上限1000条)</button>
+                    </div>
+                </div>
+                <div class="batch-init-table-wrap">
+                    <table class="batch-init-table">
+                        <thead>
+                            <tr>
+                                <th style="width:22%">文件名</th>
+                                <th style="width:12%">状态</th>
+                                <th style="width:16%">结果</th>
+                                <th style="width:14%">创建人</th>
+                                <th style="width:22%">创建时间</th>
+                                <th style="width:14%">下载结果</th>
+                            </tr>
+                        </thead>
+                        <tbody id="locImportTbody">
+                            <tr>
+                                <td>储位导入_20260727_001.csv</td>
+                                <td>成功</td>
+                                <td>导入成功</td>
+                                <td>张三</td>
+                                <td>2026-07-27 09:12:36</td>
+                                <td><button type="button" class="batch-init-link loc-import-download-result">下载</button></td>
+                            </tr>
+                            <tr>
+                                <td>储位导入_南京仓_补录.csv</td>
+                                <td>失败</td>
+                                <td>导入失败，请下载结果查看</td>
+                                <td>李四</td>
+                                <td>2026-07-26 16:48:05</td>
+                                <td><button type="button" class="batch-init-link loc-import-download-result">下载</button></td>
+                            </tr>
+                            <tr>
+                                <td>location_init_template.csv</td>
+                                <td>成功</td>
+                                <td>导入成功</td>
+                                <td>王五</td>
+                                <td>2026-07-25 11:03:22</td>
+                                <td><button type="button" class="batch-init-link loc-import-download-result">下载</button></td>
+                            </tr>
+                            <tr>
+                                <td>储位批量更新_冷冻区.csv</td>
+                                <td>失败</td>
+                                <td>导入失败，请下载结果查看</td>
+                                <td>赵六</td>
+                                <td>2026-07-24 14:27:51</td>
+                                <td><button type="button" class="batch-init-link loc-import-download-result">下载</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <div class="loc-import-modal__foot">
-                <button type="button" class="btn btn-secondary" id="locImportCancelBtn">取消</button>
-                <button type="button" class="btn btn-primary" id="locImportSubmitBtn">确认上传</button>
+            <div class="batch-init-modal__foot">
+                <button type="button" class="batch-init-btn--close" id="locImportCancelBtn">关闭</button>
             </div>
         </div>
     </div>
@@ -620,9 +534,9 @@
             function openLocationImportModal() {
                 const overlay = document.getElementById('locImportOverlay');
                 const fileInput = document.getElementById('locImportFile');
-                const fileNameEl = document.getElementById('locImportFileName');
+                const execBtn = document.getElementById('locImportSubmitBtn');
                 if (fileInput) fileInput.value = '';
-                if (fileNameEl) fileNameEl.textContent = '未选择文件';
+                if (execBtn) execBtn.classList.remove('is-ready');
                 if (overlay) {
                     overlay.classList.add('is-open');
                     overlay.setAttribute('aria-hidden', 'false');
@@ -637,25 +551,59 @@
                 }
             }
 
+            function getLocImportNowStr() {
+                const d = new Date();
+                const p = (n) => String(n).padStart(2, '0');
+                return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) +
+                    ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+            }
+
+            function appendLocImportRecord(fileName, status) {
+                const tbody = document.getElementById('locImportTbody');
+                if (!tbody) return;
+                const emptyRow = tbody.querySelector('.batch-init-empty');
+                if (emptyRow) emptyRow.closest('tr').remove();
+                const resultText = status === '成功' ? '导入成功' : '导入失败，请下载结果查看';
+                const tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td>' + fileName + '</td>' +
+                    '<td>' + status + '</td>' +
+                    '<td>' + resultText + '</td>' +
+                    '<td>当前用户</td>' +
+                    '<td>' + getLocImportNowStr() + '</td>' +
+                    '<td><button type="button" class="batch-init-link loc-import-download-result">下载</button></td>';
+                tbody.insertBefore(tr, tbody.firstChild);
+            }
+
             const btnLocationImport = document.getElementById('btnLocationImport');
             if (btnLocationImport) {
                 btnLocationImport.addEventListener('click', openLocationImportModal);
             }
             document.getElementById('locImportCloseBtn').addEventListener('click', closeLocationImportModal);
             document.getElementById('locImportCancelBtn').addEventListener('click', closeLocationImportModal);
+            document.getElementById('locImportQueryBtn').addEventListener('click', () => {
+                showToast('已刷新导入记录', 'info');
+            });
             document.getElementById('locImportTemplateBtn').addEventListener('click', () => {
                 showToast('导入模板详见需求文档', 'info');
             });
+            document.getElementById('locImportBrowseBtn').addEventListener('click', () => {
+                document.getElementById('locImportFile').click();
+            });
             document.getElementById('locImportFile').addEventListener('change', function() {
                 const file = this.files && this.files[0];
-                const fileNameEl = document.getElementById('locImportFileName');
-                if (fileNameEl) fileNameEl.textContent = file ? file.name : '未选择文件';
+                const execBtn = document.getElementById('locImportSubmitBtn');
+                if (execBtn) {
+                    if (file) execBtn.classList.add('is-ready');
+                    else execBtn.classList.remove('is-ready');
+                }
+                if (file) showToast('已选择文件：' + file.name, 'info');
             });
             document.getElementById('locImportSubmitBtn').addEventListener('click', () => {
                 const fileInput = document.getElementById('locImportFile');
                 const file = fileInput && fileInput.files && fileInput.files[0];
                 if (!file) {
-                    showToast('请先选择 CSV 文件', 'error');
+                    showToast('请先通过「文件浏览」选择 CSV 文件', 'error');
                     return;
                 }
                 const name = String(file.name || '').toLowerCase();
@@ -663,8 +611,15 @@
                     showToast('请上传 CSV 文件（可用 Excel 另存为）', 'error');
                     return;
                 }
-                closeLocationImportModal();
+                appendLocImportRecord(file.name, '成功');
+                fileInput.value = '';
+                document.getElementById('locImportSubmitBtn').classList.remove('is-ready');
                 showToast('储位导入成功（演示）', 'success');
+            });
+            document.getElementById('locImportTbody').addEventListener('click', (e) => {
+                if (e.target && e.target.classList.contains('loc-import-download-result')) {
+                    showToast('结果文件详见需求文档', 'info');
+                }
             });
             document.getElementById('locImportOverlay').addEventListener('click', (e) => {
                 if (e.target && e.target.id === 'locImportOverlay') {
