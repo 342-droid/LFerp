@@ -11,6 +11,151 @@
         .modal-form-group:has(.radio-group) > label {
             width: 150px;
         }
+
+        /* 储位导入：尺寸与 .btn 一致，仅保留橙色强调色 */
+        .loc-import-btn {
+            border: 1px solid #ff7019;
+            background: #ff7019;
+            color: #ffffff;
+        }
+
+        .loc-import-btn:hover {
+            opacity: 0.92;
+        }
+
+        .loc-import-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2090;
+            background: rgba(0, 0, 0, 0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .loc-import-overlay.is-open {
+            display: flex;
+        }
+
+        .loc-import-modal {
+            width: min(480px, 92vw);
+            max-height: calc(100vh - 48px);
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .loc-import-modal__head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .loc-import-modal__title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #303133;
+        }
+
+        .loc-import-modal__close {
+            border: 0;
+            background: none;
+            font-size: 22px;
+            line-height: 1;
+            color: #909399;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+
+        .loc-import-modal__body {
+            padding: 16px 20px 8px;
+            overflow: auto;
+        }
+
+        .loc-import-modal__hint {
+            margin: 0 0 14px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #606266;
+        }
+
+        .loc-import__template {
+            margin-bottom: 14px;
+        }
+
+        .loc-import__link {
+            border: 0;
+            background: none;
+            padding: 0;
+            font-size: 13px;
+            color: #ff7019;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .loc-import__link:hover {
+            text-decoration: underline;
+        }
+
+        .loc-import-field {
+            margin-bottom: 12px;
+        }
+
+        .loc-import-field__label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #606266;
+        }
+
+        .loc-import__file-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .loc-import__file {
+            flex: 0 0 auto;
+            max-width: 220px;
+            font-size: 13px;
+            color: #606266;
+        }
+
+        .loc-import__file-name {
+            flex: 1;
+            min-width: 0;
+            font-size: 13px;
+            color: #909399;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .loc-import-field__hint {
+            margin: 8px 0 0;
+            font-size: 12px;
+            color: #909399;
+        }
+
+        .loc-import-modal__foot {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 12px 20px 16px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .loc-import-modal__foot .btn {
+            min-width: 88px;
+        }
     </style>
 </head>
 <body>
@@ -96,6 +241,7 @@
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary" id="searchBtn" onclick="location.reload()">查询</button>
                         <button type="button" class="btn btn-secondary" id="addBtn">新增</button>
+                        <button type="button" class="btn loc-import-btn" id="btnLocationImport">储位导入</button>
                     </div>
                 </form>
             </section>
@@ -167,6 +313,33 @@
                 <div id="pagination-container"></div>
             </section>
         </main>
+    </div>
+
+    <div id="locImportOverlay" class="loc-import-overlay" aria-hidden="true">
+        <div class="loc-import-modal" role="dialog" aria-labelledby="locImportTitle">
+            <div class="loc-import-modal__head">
+                <h3 id="locImportTitle" class="loc-import-modal__title">储位导入</h3>
+                <button type="button" class="loc-import-modal__close" id="locImportCloseBtn" aria-label="关闭">×</button>
+            </div>
+            <div class="loc-import-modal__body">
+                <p class="loc-import-modal__hint">通过 Excel / CSV 批量导入储位。请先下载模板，按模板填写：一储位一行。每次导入，按本次导入结果进行覆盖。</p>
+                <div class="loc-import__template">
+                    <button type="button" class="loc-import__link" id="locImportTemplateBtn">下载导入模板</button>
+                </div>
+                <div class="loc-import-field">
+                    <label class="loc-import-field__label" for="locImportFile">上传文件</label>
+                    <div class="loc-import__file-row">
+                        <input type="file" id="locImportFile" class="loc-import__file" accept=".csv,text/csv">
+                        <span class="loc-import__file-name" id="locImportFileName">未选择文件</span>
+                    </div>
+                    <p class="loc-import-field__hint">请使用 CSV（可用 Excel 另存为），单次建议不超过 1000 条</p>
+                </div>
+            </div>
+            <div class="loc-import-modal__foot">
+                <button type="button" class="btn btn-secondary" id="locImportCancelBtn">取消</button>
+                <button type="button" class="btn btn-primary" id="locImportSubmitBtn">确认上传</button>
+            </div>
+        </div>
     </div>
 
     <!-- 引入公共脚本 -->
@@ -426,9 +599,7 @@
                     reset: false
                 });
             });
-            
-            document.getElementById('editCloseBtn').addEventListener('click', () => page.closeModal('edit'));
-            
+
             // 监听仓库选择变化事件
             document.addEventListener('warehouseChange', (e) => {
                 const { code, name } = e.detail;
@@ -443,6 +614,61 @@
                 if (editWarehouseInput) {
                     editWarehouseInput.value = `${code}-${name}`;
                     editWarehouseInput.dataset.value = code;
+                }
+            });
+
+            function openLocationImportModal() {
+                const overlay = document.getElementById('locImportOverlay');
+                const fileInput = document.getElementById('locImportFile');
+                const fileNameEl = document.getElementById('locImportFileName');
+                if (fileInput) fileInput.value = '';
+                if (fileNameEl) fileNameEl.textContent = '未选择文件';
+                if (overlay) {
+                    overlay.classList.add('is-open');
+                    overlay.setAttribute('aria-hidden', 'false');
+                }
+            }
+
+            function closeLocationImportModal() {
+                const overlay = document.getElementById('locImportOverlay');
+                if (overlay) {
+                    overlay.classList.remove('is-open');
+                    overlay.setAttribute('aria-hidden', 'true');
+                }
+            }
+
+            const btnLocationImport = document.getElementById('btnLocationImport');
+            if (btnLocationImport) {
+                btnLocationImport.addEventListener('click', openLocationImportModal);
+            }
+            document.getElementById('locImportCloseBtn').addEventListener('click', closeLocationImportModal);
+            document.getElementById('locImportCancelBtn').addEventListener('click', closeLocationImportModal);
+            document.getElementById('locImportTemplateBtn').addEventListener('click', () => {
+                showToast('导入模板详见需求文档', 'info');
+            });
+            document.getElementById('locImportFile').addEventListener('change', function() {
+                const file = this.files && this.files[0];
+                const fileNameEl = document.getElementById('locImportFileName');
+                if (fileNameEl) fileNameEl.textContent = file ? file.name : '未选择文件';
+            });
+            document.getElementById('locImportSubmitBtn').addEventListener('click', () => {
+                const fileInput = document.getElementById('locImportFile');
+                const file = fileInput && fileInput.files && fileInput.files[0];
+                if (!file) {
+                    showToast('请先选择 CSV 文件', 'error');
+                    return;
+                }
+                const name = String(file.name || '').toLowerCase();
+                if (!/\.csv$/.test(name)) {
+                    showToast('请上传 CSV 文件（可用 Excel 另存为）', 'error');
+                    return;
+                }
+                closeLocationImportModal();
+                showToast('储位导入成功（演示）', 'success');
+            });
+            document.getElementById('locImportOverlay').addEventListener('click', (e) => {
+                if (e.target && e.target.id === 'locImportOverlay') {
+                    closeLocationImportModal();
                 }
             });
         });
