@@ -224,18 +224,8 @@
             color: #888;
         }
 
-        /* 批量上传物流单号：对齐零售订单「批量上传快递单」样式 */
+        /* 批量上传物流单号：尺寸与 .btn 一致，仅保留橙色强调色 */
         .po-batch-upload-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            height: 32px;
-            padding: 0 14px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-family: inherit;
-            cursor: pointer;
-            white-space: nowrap;
             border: 1px solid #ff7019;
             background: #ff7019;
             color: #ffffff;
@@ -826,7 +816,7 @@
                         <button type="button" class="btn btn-secondary" id="btnExport">导出</button>
                         <button type="button" class="btn btn-secondary" id="btnAddPurchaseOrder">新增采购单</button>
                         <button type="button" class="btn btn-secondary" id="btnLogisticsConfirm">物流确认</button>
-                        <button type="button" class="po-batch-upload-btn" id="btnBatchUploadLogistics">批量上传物流单号</button>
+                        <button type="button" class="btn po-batch-upload-btn" id="btnBatchUploadLogistics">批量上传物流单号</button>
                         <button type="button" class="btn btn-secondary" id="btnAudit">审核</button>
                         <button type="button" class="btn btn-secondary" id="btnReject">驳回</button>
                     </div>
