@@ -233,6 +233,13 @@
     "status": "diff",
     "date": "2026-07-23"
   },
+  "16f4e84|SCM/purchase_order.html": {
+    "before": "changelog-assets/16f4e84/SCM__purchase_order.html.before.jpg",
+    "after": "changelog-assets/16f4e84/SCM__purchase_order.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
   "20ae16c|user-app/h5/cart.html": {
     "before": "changelog-assets/20ae16c/user-app__h5__cart.html.before.jpg",
     "after": "changelog-assets/20ae16c/user-app__h5__cart.html.after.jpg",

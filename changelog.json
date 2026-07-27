@@ -1,10 +1,30 @@
 {
-  "latestSha": "d005dd26d3ff7f151d752b12e48d8ba32f193dc8",
-  "total": 203,
+  "latestSha": "16f4e848fca224afdd1e384316dd3a865c92ea18",
+  "total": 204,
   "days": [
     {
       "date": "2026-07-27",
       "items": [
+        {
+          "sha": "16f4e84",
+          "type": "feat",
+          "text": "采购单支持导出与批量上传物流单号",
+          "author": "342-droid",
+          "time": "15:21",
+          "pages": [
+            {
+              "file": "SCM/purchase_order.html",
+              "module": "冷丰采购",
+              "title": "采购单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "操作区新增导出；新增批量上传物流单号（CSV 覆盖导入，模板下载改为提示查阅需求文档）"
+            }
+          ]
+        },
         {
           "sha": "d005dd2",
           "type": "feat",
