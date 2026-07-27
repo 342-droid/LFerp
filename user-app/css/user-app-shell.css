@@ -40,3 +40,8 @@
   -webkit-overflow-scrolling: touch;
   background: #f5f5f5;
 }
+
+/* 用户 APP 不展示微信小程序右上角胶囊 */
+.ua-mp-capsule {
+  display: none !important;
+}

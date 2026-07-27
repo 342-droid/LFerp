@@ -29,7 +29,7 @@
   var PRODUCT_SKUS = ['SKU00148', 'SKU00149', 'SKU00089', 'SKU00091'];
   var REASONS = ['质量问题', '未收到货', '发错货', '其他'];
   var APPROVERS = ['系统', '超级管理员'];
-  var REFUND_EXEC = ['未发起退款', '待退款', '退款执行中', '退款成功', '退款失败', '待线下退款', '线下退款完成'];
+  var REFUND_EXEC = ['未发起退款', '待退款', '退款执行中', '退款成功', '退款失败'];
   /** 结算状态：待结算 | 待结款 | 结款中 | 已结款（待结款由结算单生成触发，文案不再带说明） */
   var SETTLE_STATUSES = ['待结算', '待结款', '结款中', '已结款'];
 
@@ -48,8 +48,8 @@
 
   /**
    * 演示用结算状态：
-   * - 结算表生成前：待结算（售后流程走线上退款，逻辑不变）
-   * - 结算表生成后：待结款 / 结款中 / 已结款（不自动生成退款单）
+   * - 结算表生成前：待结算（退款单走原路退回）
+   * - 结算表生成后：待结款 / 结款中 / 已结款（仍生成退款单，退款方式为线下付款，在退款单页上传凭证）
    */
   function resolveSettleStatus(type, status, i) {
     if (status === '待审批' || status === '待退货' || status === '待收货') {
@@ -65,32 +65,32 @@
   }
 
   /**
-   * 退款单生成时机（与售后单状态矩阵对齐）：
-   * - 结算前：仅退款审核通过 / 退货退款确认收货 → 退款单
-   * - 结算后（待结款/结款中/已结款）：不自动生成退款单，走线下退款
-   * - 补货 / 换货：不生成退款单（始终「未发起退款」）
+   * 退款执行状态（与售后单状态矩阵对齐）：
+   * - 仅退款审核通过 / 退货退款确认收货 → 生成退款单（结算前后统一）
+   * - 结算后为线下付款：列表仍用待退款 / 退款成功（凭证在退款单页上传）
+   * - 补货 / 换货：始终「未发起退款」
    */
   function resolveRefundExec(type, status, i, settleStatus) {
     if (!createsRefundDoc(type)) return '未发起退款';
 
-    if (isPostSettlement(settleStatus)) {
-      if (status === '已完成') return '线下退款完成';
-      if (status === '退款中') return '待线下退款';
-      if (status === '退款异常') return '待线下退款';
-      return '未发起退款';
-    }
-
     if (type === '退货退款') {
       // 确认收货前（待审批/待退货/待收货/已拒绝/已取消）均未生成退款单
       if (status === '已完成') return '退款成功';
-      if (status === '退款中') return i % 3 === 0 ? '退款执行中' : '待退款';
+      if (status === '退款中') {
+        // 结算后线下付款无支付通道「退款执行中」
+        if (isPostSettlement(settleStatus)) return '待退款';
+        return i % 3 === 0 ? '退款执行中' : '待退款';
+      }
       if (status === '退款异常') return '退款失败';
       return '未发起退款';
     }
 
     // 仅退款：审核通过后即有退款单
     if (status === '已完成') return '退款成功';
-    if (status === '退款中') return i % 3 === 0 ? '退款执行中' : '待退款';
+    if (status === '退款中') {
+      if (isPostSettlement(settleStatus)) return '待退款';
+      return i % 3 === 0 ? '退款执行中' : '待退款';
+    }
     if (status === '退款异常') return '退款失败';
     return '未发起退款';
   }
@@ -249,7 +249,7 @@
       approveAmount: money(applyAmt),
       refundExecStatus: refundExec,
       actualAmount:
-        hasRefund && (refundExec === '退款成功' || refundExec === '线下退款完成')
+        hasRefund && refundExec === '退款成功'
           ? money(applyAmt)
           : hasRefund && refundExec !== '未发起退款'
             ? money(applyAmt)
@@ -350,9 +350,9 @@
 
   function refundExecTag(status) {
     var cls = 'aftersale-tag aftersale-tag--info';
-    if (status === '退款成功' || status === '线下退款完成') cls = 'aftersale-tag aftersale-tag--success';
+    if (status === '退款成功') cls = 'aftersale-tag aftersale-tag--success';
     else if (status === '退款失败') cls = 'aftersale-tag aftersale-tag--danger';
-    else if (status === '待退款' || status === '退款执行中' || status === '待线下退款') {
+    else if (status === '待退款' || status === '退款执行中') {
       cls = 'aftersale-tag aftersale-tag--warning';
     }
     return '<span class="' + cls + '">' + escapeHtml(status) + '</span>';

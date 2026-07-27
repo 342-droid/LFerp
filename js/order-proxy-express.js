@@ -451,6 +451,11 @@
   function buildShipmentBlock(shipment, index, orderId, handlers) {
     handlers = handlers || {};
     var allowManage = handlers.allowManage === true && canEditShipment(shipment);
+    /* 零售订单详情不展示发货单流水号 */
+    var isRetailPage =
+      typeof document !== 'undefined' &&
+      document.body &&
+      document.body.getAttribute('data-order-page') === 'retail';
     var block = el('div', 'order-proxy-shipment');
     block.innerHTML =
       '<div class="order-proxy-shipment__head">' +
@@ -465,7 +470,9 @@
       buildShipmentGoodsHtml(shipment) +
       '<div class="order-proxy-shipment__card">' +
         '<dl class="order-detail-kv order-proxy-shipment__kv">' +
-          '<dt>发货单流水号</dt><dd>' + escapeHtml(shipment.serialNo) + '</dd>' +
+          (isRetailPage
+            ? ''
+            : '<dt>发货单流水号</dt><dd>' + escapeHtml(shipment.serialNo) + '</dd>') +
           '<dt>物流单号</dt><dd>' + escapeHtml(shipment.trackingNo) + '</dd>' +
           '<dt>物流公司</dt><dd>' + escapeHtml(shipment.courier) + '</dd>' +
           '<dt>配送状态</dt><dd class="order-proxy-shipment__status">' +

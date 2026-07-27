@@ -376,9 +376,21 @@
       </div>
     </div>
 
+    <div class="ua-or-cancel-modal" id="refundRestockConfirmModal" hidden>
+      <div class="ua-or-cancel-modal__mask" data-or-restock-confirm-close></div>
+      <div class="ua-or-cancel-modal__panel" role="dialog" aria-modal="true" aria-labelledby="refundRestockConfirmTitle">
+        <h3 class="ua-or-cancel-modal__title" id="refundRestockConfirmTitle">温馨提示</h3>
+        <p class="ua-or-cancel-modal__text">请确认已收到补货商品，确认后本次补货将完成。</p>
+        <div class="ua-or-cancel-modal__actions">
+          <button type="button" class="ua-or-cancel-modal__btn" data-or-restock-confirm-close>取消</button>
+          <button type="button" class="ua-or-cancel-modal__btn ua-or-cancel-modal__btn--confirm" id="refundRestockConfirmBtn">确认</button>
+        </div>
+      </div>
+    </div>
+
     <div class="ua-or-toast" id="refundDetailToast" hidden></div>
   </div>
-  <script src="../js/user-app-order-refund.js?v=20260726-form-back"></script>
+  <script src="../js/user-app-order-refund.js?v=20260727-restock-confirm"></script>
   <script>UAOrderRefund.initDetailPage();</script>
 </body>
 </html>

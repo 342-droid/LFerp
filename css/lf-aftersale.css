@@ -761,12 +761,83 @@
   gap: 10px;
 }
 
+.aftersale-apply-grid--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .aftersale-apply-grid .aftersale-apply-field--wide {
-  grid-column: span 1;
+  grid-column: 1 / -1;
+}
+
+.aftersale-apply-grid .aftersale-apply-field--span2 {
+  grid-column: span 2;
 }
 
 .aftersale-apply-grid .aftersale-apply-field--desc {
   grid-column: 1 / 3;
+}
+
+.aftersale-apply-grid--4 .aftersale-apply-field--desc {
+  grid-column: span 2;
+}
+
+/* 内嵌信息面板：退款单 / 采购指令等 */
+.aftersale-info-panel {
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+  background: #fff;
+  padding: 14px 16px;
+}
+
+.aftersale-info-panel__title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.aftersale-info-panel__empty {
+  font-size: 13px;
+  color: #e6a23c;
+  line-height: 1.5;
+}
+
+.aftersale-info-panel + .aftersale-info-panel {
+  margin-top: 12px;
+}
+
+.aftersale-info-panel__actions,
+.aftersale-flow-card .aftersale-info-panel__actions {
+  margin-top: 12px;
+}
+
+.aftersale-flow-card .aftersale-info-panel {
+  margin-bottom: 0;
+}
+
+.aftersale-apply-field__value-text.is-ok {
+  color: #67c23a;
+  font-weight: 600;
+}
+
+.aftersale-apply-field__value-text.is-bad {
+  color: #f56c6c;
+  font-weight: 600;
+}
+
+.aftersale-apply-field__value-text.is-warn {
+  color: #e6a23c;
+  font-weight: 600;
+}
+
+.aftersale-reason-collect {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+  background: #fafafa;
 }
 
 .aftersale-apply-field {
@@ -1019,6 +1090,12 @@
 .aftersale-approve-row__ok {
   color: #67c23a;
   font-weight: 600;
+}
+
+@media (max-width: 1200px) {
+  .aftersale-apply-grid--4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .aftersale-reason-row {
@@ -1565,6 +1642,11 @@
 .aftersale-btn--ghost {
   color: #606266;
   border-color: #dcdfe6;
+}
+
+a.aftersale-btn {
+  text-decoration: none;
+  box-sizing: border-box;
 }
 
 .aftersale-timeline__badge {
@@ -2206,42 +2288,202 @@
   text-decoration: underline;
 }
 
-/* 结算后线下退款 */
-.aftersale-offline-refund__tip {
-  margin: 0 0 14px;
-  padding: 10px 12px;
-  background: #fff7e8;
-  border: 1px solid #ffe1a8;
-  border-radius: 4px;
-  color: #8a6116;
-  font-size: 13px;
-  line-height: 1.55;
+/* —— 退款单列表 —— */
+.aftersale-refund-filter-grid {
+  margin-bottom: 0;
 }
 
-.aftersale-offline-refund__field {
-  margin-top: 14px;
+.aftersale-filter-field--btns .aftersale-filter-field__label {
+  visibility: hidden;
 }
 
-.aftersale-offline-refund__label {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 13px;
-  color: #303133;
-  font-weight: 600;
+.aftersale-filter-actions--inline {
+  margin-top: 0;
+  justify-content: flex-start;
 }
 
-.aftersale-offline-refund__desc {
-  margin: 0 0 8px;
-  font-size: 12px;
+.aftersale-refund-table .aftersale-ellipsis {
+  max-width: 140px;
+}
+
+.aftersale-refund-table .aftersale-table__th--action,
+.aftersale-refund-table .aftersale-table__td--action {
+  min-width: 200px;
+}
+
+.aftersale-action .aftersale-link {
+  text-decoration: none;
+}
+
+.aftersale-action .aftersale-link:hover {
+  text-decoration: underline;
+}
+
+.aftersale-pagination__ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
   color: #909399;
-  line-height: 1.5;
+  font-size: 13px;
 }
 
-.aftersale-offline-refund__input {
-  width: 220px;
-  max-width: 100%;
+/* 退款单弹窗 */
+.aftersale-refund-modal .modal-content {
+  margin: 6vh auto;
+  padding: 0 20px 20px;
+  border: none;
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  background: #fff;
+}
+
+.aftersale-refund-modal__content--upload {
+  width: 520px;
+  max-width: calc(100vw - 32px);
+}
+
+/* 退款单详情：右侧抽屉 */
+.aftersale-refund-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2050;
+  background: rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+
+.aftersale-refund-drawer-backdrop.is-open {
+  opacity: 1;
+}
+
+.aftersale-refund-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 2060;
+  display: flex;
+  flex-direction: column;
+  width: min(920px, 94vw);
+  height: 100%;
+  background: #fff;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+  transform: translateX(100%);
+  transition: transform 0.22s ease-out;
+}
+
+.aftersale-refund-drawer.is-open {
+  transform: translateX(0);
+}
+
+.aftersale-refund-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  height: 56px;
+  padding: 0 20px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.aftersale-refund-drawer__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.aftersale-refund-drawer__close {
+  width: 32px;
   height: 32px;
-  padding: 0 10px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #909399;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.aftersale-refund-drawer__close:hover {
+  color: #303133;
+}
+
+.aftersale-refund-drawer__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px 20px 24px;
+  background: #f5f7fa;
+}
+
+.aftersale-refund-modal .modal-header {
+  margin: 0 -20px 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.aftersale-refund-modal .modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+  border-bottom: none;
+  padding: 0;
+}
+
+.aftersale-refund-modal .close {
+  top: 50%;
+  right: 16px;
+  font-size: 22px;
+  font-weight: 400;
+  color: #909399;
+}
+
+.aftersale-refund-modal .modal-footer {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #ebeef5;
+}
+
+/* 上传付款凭证表单 */
+.aftersale-refund-form-item {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.aftersale-refund-form-item--top {
+  align-items: flex-start;
+}
+
+.aftersale-refund-form-item__label {
+  text-align: right;
+  font-size: 13px;
+  color: #606266;
+  line-height: 32px;
+}
+
+.aftersale-refund-form-item--top .aftersale-refund-form-item__label {
+  line-height: 22px;
+  padding-top: 5px;
+}
+
+.aftersale-refund-form-item__label .is-required {
+  margin-right: 2px;
+  color: #f56c6c;
+}
+
+.aftersale-refund-form-item__control {
+  min-width: 0;
+}
+
+.aftersale-refund-form-item__input {
+  width: 100%;
+  height: 32px;
+  padding: 0 12px;
   border: 1px solid #dcdfe6;
   border-radius: 4px;
   font-size: 13px;
@@ -2249,70 +2491,217 @@
   box-sizing: border-box;
 }
 
-.aftersale-offline-refund__input:focus {
+.aftersale-refund-form-item__input:focus {
   outline: none;
   border-color: var(--color-primary, #ff7019);
 }
 
-.aftersale-offline-refund__value {
-  font-size: 14px;
-  color: #ff7019;
-  font-weight: 600;
+.aftersale-refund-form-item__hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.4;
 }
 
-.aftersale-offline-proof__thumbs {
+.aftersale-refund-radios {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 16px;
   align-items: center;
+  min-height: 32px;
 }
 
-.aftersale-offline-proof__thumb {
-  width: 72px;
-  height: 72px;
-  border: 1px solid #ebeef5;
-  border-radius: 4px;
-  background: linear-gradient(145deg, #e8f3ff, #cfe4ff);
-  padding: 0;
-  cursor: default;
-  display: flex;
+.aftersale-refund-radio {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-}
-
-.aftersale-offline-proof__thumb.js-as-offline-remove {
-  cursor: pointer;
-}
-
-.aftersale-offline-proof__thumb-label {
-  font-size: 12px;
-  color: #409eff;
-}
-
-.aftersale-offline-proof__add {
-  width: 72px;
-  height: 72px;
-  border: 1px dashed #c0c4cc;
-  border-radius: 4px;
-  background: #fafafa;
+  gap: 6px;
+  font-size: 13px;
   color: #606266;
-  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.aftersale-refund-radio input {
+  accent-color: var(--color-primary, #ff7019);
+  width: 14px;
+  height: 14px;
+  margin: 0;
   cursor: pointer;
 }
 
-.aftersale-offline-proof__add:hover {
-  border-color: var(--color-primary, #ff7019);
-  color: var(--color-primary, #ff7019);
+.aftersale-refund-textarea-wrap {
+  position: relative;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
 }
 
-.aftersale-offline-proof__hint {
-  margin-top: 6px;
+.aftersale-refund-textarea-wrap:focus-within {
+  border-color: var(--color-primary, #ff7019);
+}
+
+.aftersale-refund-form-item__textarea {
+  display: block;
+  width: 100%;
+  min-height: 96px;
+  padding: 8px 12px 28px;
+  border: none;
+  border-radius: 4px;
+  resize: vertical;
+  font-size: 13px;
+  color: #303133;
+  line-height: 1.5;
+  box-sizing: border-box;
+  outline: none;
+  background: transparent;
+}
+
+.aftersale-refund-textarea-count {
+  position: absolute;
+  right: 10px;
+  bottom: 6px;
   font-size: 12px;
   color: #c0c4cc;
 }
 
-.aftersale-offline-refund__done {
-  margin-top: 12px;
+.aftersale-refund-upload {
+  position: relative;
+  width: 96px;
+  height: 96px;
+}
+
+.aftersale-refund-upload__add {
+  width: 96px;
+  height: 96px;
+  border: 1px dashed #dcdfe6;
+  border-radius: 4px;
+  background: #fafafa;
+  color: #909399;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.aftersale-refund-upload__add:hover {
+  border-color: var(--color-primary, #ff7019);
+  color: var(--color-primary, #ff7019);
+}
+
+.aftersale-refund-upload__preview {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #f5f7fa;
+}
+
+.aftersale-refund-upload__preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.aftersale-refund-upload__remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* 退款单详情描述列表（图五 / 图六） */
+.aftersale-refund-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.aftersale-refund-desc-card {
+  padding: 16px 16px 18px;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.aftersale-refund-desc-card__title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.aftersale-refund-desc {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid #ebeef5;
+  border-right: none;
+  border-bottom: none;
+  background: #fff;
+}
+
+.aftersale-refund-desc__cell {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  min-height: 40px;
+  border-right: 1px solid #ebeef5;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.aftersale-refund-desc__label {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #fafafa;
+  color: #909399;
   font-size: 13px;
+  border-right: 1px solid #ebeef5;
+  box-sizing: border-box;
+}
+
+.aftersale-refund-desc__value {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  color: #303133;
+  font-size: 13px;
+  word-break: break-all;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.aftersale-refund-detail-proof {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #ebeef5;
+}
+
+.aftersale-refund-detail-proof-ph {
   color: #67c23a;
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .aftersale-refund-desc {
+    grid-template-columns: 1fr;
+  }
+
+  .aftersale-refund-form-item {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .aftersale-refund-form-item__label {
+    text-align: left;
+  }
 }
