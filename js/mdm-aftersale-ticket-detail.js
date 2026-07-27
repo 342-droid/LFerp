@@ -239,6 +239,45 @@
     return type === '仅退款' || type === '退货退款';
   }
 
+  /** 结算状态：待结算 | 待结款 | 结款中 | 已结款 */
+  function settleStatusLabel(status) {
+    return status || '待结算';
+  }
+
+  /**
+   * 结算表已生成之后：待结款 / 结款中 / 已结款
+   * 此时不自动生成退款单
+   */
+  function isPostSettlement(detail) {
+    var s = detail && detail.settleStatus;
+    return s === '待结款' || s === '结款中' || s === '已结款';
+  }
+
+  function isRetailOrder(detail) {
+    return detail && detail.orderSource !== '代采';
+  }
+
+  function shouldAutoCreateRefundTicket(detail) {
+    return createsRefundDoc(detail && detail.type) && !isPostSettlement(detail);
+  }
+
+  function ensureOfflineRefund(detail) {
+    if (!detail) return null;
+    if (!detail.offlineRefund) {
+      detail.offlineRefund = {
+        amount: detail.approval && detail.approval.refundAmount != null
+          ? detail.approval.refundAmount
+          : detail.applyAmount,
+        instructProofs: [],
+        storeProofs: [],
+        completed: false,
+        completedAt: '',
+        remark: ''
+      };
+    }
+    return detail.offlineRefund;
+  }
+
   /** 申请时订单处于待收货 / 待自提 / 已完成 */
   function isPostReceiveOrderStatus(orderStatus) {
     return orderStatus === '待收货' || orderStatus === '待自提' || orderStatus === '已完成';
@@ -405,9 +444,10 @@
   }
 
   /**
-   * 退款单生成时机：
+   * 退款单生成时机（结算表生成前）：
    * - 仅退款：审核通过后生成
    * - 退货退款：供应商确认收货后生成
+   * 结算表生成后（待结款/结款中/已结款）不调用本方法，走线下退款
    */
   function makeRefundTicket(trigger) {
     return {
@@ -430,6 +470,8 @@
   }
 
   function renderRefundTicketCard(detail) {
+    // 结算后不展示线上退款单
+    if (isPostSettlement(detail)) return '';
     var ticket = detail.refundTicket;
     if (!ticket || !ticket.id) return '';
     var refundStatus = ticket.status || '待退款';
@@ -475,6 +517,119 @@
     );
   }
 
+  function renderOfflineProofThumbs(list, key, editable) {
+    list = list || [];
+    var thumbs = list
+      .map(function (item, idx) {
+        return (
+          '<button type="button" class="aftersale-offline-proof__thumb' +
+          (editable ? ' js-as-offline-remove' : '') +
+          '" data-key="' +
+          escapeHtml(key) +
+          '" data-idx="' +
+          idx +
+          '" title="' +
+          (editable ? '点击移除' : escapeHtml(item.name || '凭证')) +
+          '">' +
+          '<span class="aftersale-offline-proof__thumb-label">' +
+          escapeHtml(item.name || '图' + (idx + 1)) +
+          '</span></button>'
+        );
+      })
+      .join('');
+    var addBtn =
+      editable && list.length < 5
+        ? '<button type="button" class="aftersale-offline-proof__add js-as-offline-add" data-key="' +
+          escapeHtml(key) +
+          '">+ 上传截图</button>'
+        : '';
+    return (
+      '<div class="aftersale-offline-proof__thumbs">' + thumbs + addBtn + '</div>' +
+      '<div class="aftersale-offline-proof__hint">最多 5 张</div>'
+    );
+  }
+
+  /**
+   * 结算表生成后的线下退款卡片：
+   * - 零售：待退款时填退款金额 + 转账指引截图；门店退完后上传退款完成截图并完结
+   * - 代采：说明线下结算，支持完结（可选凭证）
+   * 两者均需后续平台与门店结算
+   */
+  function renderOfflineRefundCard(detail) {
+    if (!isPostSettlement(detail) || !createsRefundDoc(detail.type)) return '';
+    if (detail.status !== '退款中' && detail.status !== '已完成' && detail.status !== '退款异常') {
+      return '';
+    }
+    var off = ensureOfflineRefund(detail);
+    var editable = detail.status === '退款中' && !off.completed;
+    var retail = isRetailOrder(detail);
+    var settleTip =
+      '<div class="aftersale-offline-refund__tip">' +
+      '当前订单结算状态为「' +
+      escapeHtml(settleStatusLabel(detail.settleStatus)) +
+      '」，不再自动生成退款单。' +
+      (retail
+        ? '请由门店线下转账退回用户，上传凭证后完结售后单；完结后平台与门店另行结算。'
+        : '申请可走线上，退款走线下；门店与平台线下结算后完结售后单。') +
+      '</div>';
+
+    var amountBlock = retail
+      ? '<div class="aftersale-offline-refund__field">' +
+        '<label class="aftersale-offline-refund__label" for="asOfflineRefundAmount">退款金额（元）</label>' +
+        (editable
+          ? '<input class="aftersale-offline-refund__input" id="asOfflineRefundAmount" type="number" step="0.01" min="0" value="' +
+            escapeHtml(String(off.amount != null ? off.amount : detail.applyAmount)) +
+            '">'
+          : '<div class="aftersale-offline-refund__value">' + money(off.amount) + '</div>') +
+        '</div>'
+      : '';
+
+    var instructBlock = retail
+      ? '<div class="aftersale-offline-refund__field">' +
+        '<div class="aftersale-offline-refund__label">转账指引 / 退款信息截图</div>' +
+        '<div class="aftersale-offline-refund__desc">后台上传给门店参考（收款信息、金额等），最多 5 张</div>' +
+        renderOfflineProofThumbs(off.instructProofs, 'instructProofs', editable) +
+        '</div>'
+      : '';
+
+    var storeBlock =
+      '<div class="aftersale-offline-refund__field">' +
+      '<div class="aftersale-offline-refund__label">' +
+      (retail ? '门店退款完成截图' : '线下结算凭证（可选）') +
+      '</div>' +
+      '<div class="aftersale-offline-refund__desc">' +
+      (retail
+        ? '门店已线下退款给用户后上传截图，用于完结售后单及平台与门店对账'
+        : '门店与平台线下结算完成后可上传凭证并完结') +
+      '</div>' +
+      renderOfflineProofThumbs(off.storeProofs, 'storeProofs', editable) +
+      '</div>';
+
+    var actions = '';
+    if (editable) {
+      actions =
+        '<div class="aftersale-flow-card__actions" style="margin-top:12px">' +
+        '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asOfflineRefundComplete">确认线下退款完成</button>' +
+        '</div>';
+    } else if (off.completed || detail.status === '已完成') {
+      actions =
+        '<div class="aftersale-offline-refund__done">线下退款已完结' +
+        (off.completedAt ? ' · ' + escapeHtml(off.completedAt) : '') +
+        '</div>';
+    }
+
+    return (
+      '<section class="aftersale-detail-card aftersale-flow-card aftersale-offline-refund">' +
+      '<h2 class="aftersale-detail-card__title">线下退款</h2>' +
+      settleTip +
+      amountBlock +
+      instructBlock +
+      storeBlock +
+      actions +
+      '</section>'
+    );
+  }
+
   /** 退款单状态推进：同步售后单状态 */
   function applyRefundTicketStatus(nextRefundStatus) {
     var detail = state.detail;
@@ -495,6 +650,55 @@
       detail.order.receiver
     );
     renderPage();
+  }
+
+  /** 结算后线下退款完结 */
+  function applyOfflineRefundComplete() {
+    var detail = state.detail;
+    if (!detail || !isPostSettlement(detail) || detail.status !== '退款中') return;
+    var off = ensureOfflineRefund(detail);
+    var retail = isRetailOrder(detail);
+    var amountInput = $('asOfflineRefundAmount');
+    if (amountInput) {
+      var amt = parseFloat(amountInput.value);
+      if (isNaN(amt) || amt < 0) {
+        if (typeof showToast === 'function') showToast('请填写有效退款金额', 'error');
+        return;
+      }
+      off.amount = amt;
+    }
+    if (retail && (!off.instructProofs || !off.instructProofs.length)) {
+      if (typeof showToast === 'function') showToast('请先上传转账指引 / 退款信息截图', 'error');
+      return;
+    }
+    if (retail && (!off.storeProofs || !off.storeProofs.length)) {
+      if (typeof showToast === 'function') showToast('请上传门店退款完成截图后再完结', 'error');
+      return;
+    }
+    off.completed = true;
+    off.completedAt = nowText();
+    detail.status = '已完成';
+    detail.refundTicket = null;
+    pushOperationLog(detail, {
+      type: '线下退款完结',
+      reason: retail
+        ? '门店已线下退款给用户，凭证已上传；待平台与门店结算'
+        : '线下退款/结算完成，售后单完结；待平台与门店结算',
+      time: off.completedAt,
+      source: '后台',
+      operator: '超级管理员'
+    });
+    detail.progress = buildProgress(
+      detail.type,
+      detail.status,
+      detail.id,
+      detail.applyTime,
+      detail.order.receiver
+    );
+    renderPage();
+    if (typeof showToast === 'function') {
+      showToast('线下退款已完结，售后单已完成', 'success');
+    }
   }
 
   function loadSupplierAddresses() {
@@ -869,6 +1073,15 @@
       status = '待收货';
     }
 
+    // 结算后：退款中/已完成进入线下退款态（零售与代采均适用）
+    if (isPostSettlement(detail) && createsRefundDoc(type) && (status === '退款中' || status === '已完成')) {
+      ensureOfflineRefund(detail);
+      if (status === '已完成') {
+        detail.offlineRefund.completed = true;
+        detail.offlineRefund.completedAt = detail.offlineRefund.completedAt || nowText();
+      }
+    }
+
     if (!isProxyOrder(detail)) return detail;
 
     if (type === '退货退款' && !isDeliveryFulfillment(detail.deliveryMode)) {
@@ -892,8 +1105,8 @@
       }
     }
 
-    // 按生成时机补齐演示用退款单：仅退款看审核后状态；退货退款看确认收货后状态
-    if (!detail.refundTicket) {
+    // 结算前：按生成时机补齐演示用退款单；结算后不自动生成退款单
+    if (!detail.refundTicket && shouldAutoCreateRefundTicket(detail)) {
       if (type === '仅退款' && (status === '已完成' || status === '退款中' || status === '退款异常')) {
         detail.refundTicket = {
           id: 'RF-' + String(detail.id).slice(-12),
@@ -940,6 +1153,11 @@
     // 履约方式枚举仅：快递、配送（可用 query delivery 覆盖，历史值会归一化）
     var orderSource = queryParam('orderSource') || '代采';
     var deliveryMode = normalizeFulfillmentMode(queryParam('delivery') || '快递');
+    // 结算状态：待结算 | 待结款 | 结款中 | 已结款（可用 query settleStatus 覆盖）
+    var settleStatus = queryParam('settleStatus') || '待结算';
+    if (['待结算', '待结款', '结款中', '已结款'].indexOf(settleStatus) < 0) {
+      settleStatus = '待结算';
+    }
     // 申请时订单状态：待发货 / 待收货 / 待自提 / 已完成（可用 query orderStatus 覆盖）
     var orderApplyStatus = queryParam('orderStatus') || '';
     if (!orderApplyStatus) {
@@ -970,6 +1188,8 @@
       waitTime: '-',
       orderSource: orderSource,
       deliveryMode: deliveryMode,
+      settleStatus: settleStatus,
+      offlineRefund: null,
       orderApplyStatus: orderApplyStatus,
       apply: {
         goodsStatus: goodsStatusSeed,
@@ -2381,6 +2601,11 @@
       '<div class="aftersale-aside-kv"><span>履约方式</span><span>' +
       escapeHtml(detail.deliveryMode || '-') +
       '</span></div>' +
+      '<div class="aftersale-aside-kv"><span>结算状态</span><span class="' +
+      (isPostSettlement(detail) ? 'aftersale-aside-status' : '') +
+      '">' +
+      escapeHtml(settleStatusLabel(detail.settleStatus)) +
+      '</span></div>' +
       '<div class="aftersale-aside-kv"><span>提货门店</span><span>' +
       escapeHtml(o.store) +
       '</span></div></div>' +
@@ -2646,6 +2871,7 @@
       renderFlowPanel(detail) +
       renderUserOpsPanel(detail) +
       renderRefundTicketCard(detail) +
+      renderOfflineRefundCard(detail) +
       renderLogisticsSection(detail) +
       renderReasons(detail, pending) +
       '</div>';
@@ -2725,8 +2951,13 @@
       detail.returnAddress = null;
       detail.status = '退款中';
       detail.approval.refundAmount = detail.applyAmount;
-      detail.refundTicket = makeRefundTicket('approve');
-      detail.refundTicket.status = '待退款';
+      if (shouldAutoCreateRefundTicket(detail)) {
+        detail.refundTicket = makeRefundTicket('approve');
+        detail.refundTicket.status = '待退款';
+      } else {
+        detail.refundTicket = null;
+        ensureOfflineRefund(detail);
+      }
     } else if (type === '退货退款') {
       detail.returnAddress = resolveReturnAddress(detail, addr);
       detail.status = '待退货';
@@ -2768,12 +2999,19 @@
     renderPage();
     if (typeof showToast === 'function') {
       if (type === '仅退款') {
-        showToast('审批通过，已生成退款单（待退款）', 'success');
+        showToast(
+          isPostSettlement(detail)
+            ? '审批通过，已进入线下退款（不自动生成退款单）'
+            : '审批通过，已生成退款单（待退款）',
+          'success'
+        );
       } else if (type === '退货退款') {
         showToast(
           isDeliveryFulfillment(detail.deliveryMode)
             ? '审批通过，售后单待退货；门店退仓，司机取货后操作「已取货」'
-            : '审批通过，售后单待退货；买家退回后确认收货再生成退款单',
+            : isPostSettlement(detail)
+              ? '审批通过，售后单待退货；确认收货后走线下退款（不自动生成退款单）'
+              : '审批通过，售后单待退货；买家退回后确认收货再生成退款单',
           'success'
         );
       } else if (type === '补货') {
@@ -3039,12 +3277,19 @@
     }
     detail.warehouseInbound = true;
     detail.warehouseInboundAt = nowText();
-    detail.refundTicket = makeRefundTicket('receive');
-    detail.refundTicket.status = '待退款';
     detail.status = '退款中';
+    if (shouldAutoCreateRefundTicket(detail)) {
+      detail.refundTicket = makeRefundTicket('receive');
+      detail.refundTicket.status = '待退款';
+    } else {
+      detail.refundTicket = null;
+      ensureOfflineRefund(detail);
+    }
     pushOperationLog(detail, {
       type: '仓库入仓',
-      reason: '仓库入仓结果返回，触发退款',
+      reason: isPostSettlement(detail)
+        ? '仓库入仓结果返回，进入线下退款（不自动生成退款单）'
+        : '仓库入仓结果返回，触发退款',
       time: detail.warehouseInboundAt,
       source: '仓储系统',
       operator: '系统'
@@ -3059,7 +3304,12 @@
     seedLogisticsByStatus(detail);
     renderPage();
     if (typeof showToast === 'function') {
-      showToast('仓库已入仓，已生成退款单（待退款）', 'success');
+      showToast(
+        isPostSettlement(detail)
+          ? '仓库已入仓，进入线下退款（不自动生成退款单）'
+          : '仓库已入仓，已生成退款单（待退款）',
+        'success'
+      );
     }
   }
 
@@ -3557,10 +3807,15 @@
             '已签收'
           );
         }
-        // 退货退款：商家确认收货后生成退款单 → 售后单退款中 / 退款单待退款
-        state.detail.refundTicket = makeRefundTicket('receive');
-        state.detail.refundTicket.status = '待退款';
+        // 退货退款：结算前确认收货生成退款单；结算后进入线下退款
         state.detail.status = '退款中';
+        if (shouldAutoCreateRefundTicket(state.detail)) {
+          state.detail.refundTicket = makeRefundTicket('receive');
+          state.detail.refundTicket.status = '待退款';
+        } else {
+          state.detail.refundTicket = null;
+          ensureOfflineRefund(state.detail);
+        }
         state.detail.progress = buildProgress(
           '退货退款',
           '退款中',
@@ -3571,8 +3826,57 @@
         seedLogisticsByStatus(state.detail);
         renderPage();
         if (typeof showToast === 'function') {
-          showToast('已确认收货，已生成退款单（待退款）', 'success');
+          showToast(
+            isPostSettlement(state.detail)
+              ? '已确认收货，进入线下退款（不自动生成退款单）'
+              : '已确认收货，已生成退款单（待退款）',
+            'success'
+          );
         }
+        return;
+      }
+      if (e.target.closest('.js-as-offline-add')) {
+        var addBtn = e.target.closest('.js-as-offline-add');
+        var addKey = addBtn.getAttribute('data-key');
+        var offAdd = ensureOfflineRefund(state.detail);
+        var amtKeep = $('asOfflineRefundAmount');
+        if (amtKeep) {
+          var keepVal = parseFloat(amtKeep.value);
+          if (!isNaN(keepVal)) offAdd.amount = keepVal;
+        }
+        var addList = offAdd[addKey] || [];
+        if (addList.length >= 5) {
+          if (typeof showToast === 'function') showToast('最多上传 5 张截图', 'error');
+          return;
+        }
+        addList.push({
+          name: '截图' + (addList.length + 1),
+          id: 'P' + Date.now() + addList.length
+        });
+        offAdd[addKey] = addList;
+        renderPage();
+        return;
+      }
+      if (e.target.closest('.js-as-offline-remove')) {
+        var rmBtn = e.target.closest('.js-as-offline-remove');
+        var rmKey = rmBtn.getAttribute('data-key');
+        var rmIdx = parseInt(rmBtn.getAttribute('data-idx'), 10);
+        var offRm = ensureOfflineRefund(state.detail);
+        var amtKeepRm = $('asOfflineRefundAmount');
+        if (amtKeepRm) {
+          var keepValRm = parseFloat(amtKeepRm.value);
+          if (!isNaN(keepValRm)) offRm.amount = keepValRm;
+        }
+        var rmList = (offRm[rmKey] || []).slice();
+        if (!isNaN(rmIdx) && rmIdx >= 0 && rmIdx < rmList.length) {
+          rmList.splice(rmIdx, 1);
+          offRm[rmKey] = rmList;
+          renderPage();
+        }
+        return;
+      }
+      if (e.target.closest('#asOfflineRefundComplete')) {
+        applyOfflineRefundComplete();
         return;
       }
       if (e.target.closest('#asRefundExecuting')) {
