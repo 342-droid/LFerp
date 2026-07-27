@@ -1,10 +1,44 @@
 {
-  "latestSha": "f678bbda7b7b9b19cfe764e9e7d200b67c1909e2",
-  "total": 201,
+  "latestSha": "78d942c3c6949de54e7a83bfe1ed09ce96b09042",
+  "total": 202,
   "days": [
     {
       "date": "2026-07-27",
       "items": [
+        {
+          "sha": "78d942c",
+          "type": "feat",
+          "text": "结算后售后走线下退款并完善列表商品与结算状态",
+          "author": "sisi",
+          "time": "09:50",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "module": "冷丰售后",
+              "title": "退款单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "text": "列表商品信息改为名称+规格；结算状态展示待结算/待结款/结款中/已结款；结算后退款执行显示待线下退款"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "订单信息增加结算状态；结算后不再自动生成退款单；零售待退款支持上传截图与金额并完结线下退款；代采结算后走线下完结"
+            }
+          ]
+        },
         {
           "sha": "f678bbd",
           "type": "fix",

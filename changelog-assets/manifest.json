@@ -985,6 +985,25 @@
     "status": "diff",
     "date": "2026-07-22"
   },
+  "78d942c|MDM/mdm_aftersale_refund.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "78d942c|MDM/mdm_aftersale_ticket.html": {
+    "before": "changelog-assets/78d942c/MDM__mdm_aftersale_ticket.html.before.jpg",
+    "after": "changelog-assets/78d942c/MDM__mdm_aftersale_ticket.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "78d942c|MDM/mdm_aftersale_ticket_detail.html": {
+    "before": "changelog-assets/78d942c/MDM__mdm_aftersale_ticket_detail.html.before.jpg",
+    "after": "changelog-assets/78d942c/MDM__mdm_aftersale_ticket_detail.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
   "81ee1d4|MDM/mdm_aftersale_ticket.html": {
     "before": "changelog-assets/81ee1d4/MDM__mdm_aftersale_ticket.html.before.jpg",
     "after": "changelog-assets/81ee1d4/MDM__mdm_aftersale_ticket.html.after.jpg",
