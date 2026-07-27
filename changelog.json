@@ -1,7 +1,32 @@
 {
-  "latestSha": "a63c25779f1967529fef807ab5cf8bbc782a3137",
-  "total": 200,
+  "latestSha": "f678bbda7b7b9b19cfe764e9e7d200b67c1909e2",
+  "total": 201,
   "days": [
+    {
+      "date": "2026-07-27",
+      "items": [
+        {
+          "sha": "f678bbd",
+          "type": "fix",
+          "text": "待收货确认收货改为二次确认并跳转已完成",
+          "author": "sisi",
+          "time": "01:03",
+          "pages": [
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/order-detail.html",
+              "text": "确认收货弹出温馨提示，点确认后进入交易完成，不再只弹演示提示"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-07-26",
       "items": [

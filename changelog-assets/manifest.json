@@ -1953,6 +1953,11 @@
     "status": "diff",
     "date": "2026-07-25"
   },
+  "f678bbd|user-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
   "f801048|user-app/h5/order-refund-return-ship.html": {
     "regions": 0,
     "status": "diff",
