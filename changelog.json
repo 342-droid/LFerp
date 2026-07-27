@@ -1,10 +1,39 @@
 {
-  "latestSha": "16f4e848fca224afdd1e384316dd3a865c92ea18",
-  "total": 204,
+  "latestSha": "e883689a369c9c62a8b8439439df3ff927b4dde6",
+  "total": 205,
   "days": [
     {
       "date": "2026-07-27",
       "items": [
+        {
+          "sha": "e883689",
+          "type": "feat",
+          "text": "储位支持批量导入并统一导入按钮尺寸",
+          "author": "342-droid",
+          "time": "16:07",
+          "pages": [
+            {
+              "file": "SCM/location.html",
+              "module": "冷丰WMS",
+              "title": "储位"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "module": "冷丰采购",
+              "title": "采购单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/location.html",
+              "text": "新增「储位导入」按钮与 CSV 导入弹窗，支持下载模板与确认上传"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "「批量上传物流单号」按钮尺寸与页面其他按钮对齐"
+            }
+          ]
+        },
         {
           "sha": "16f4e84",
           "type": "feat",

@@ -2075,6 +2075,20 @@
     "status": "diff",
     "date": "2026-07-22"
   },
+  "e883689|SCM/location.html": {
+    "before": "changelog-assets/e883689/SCM__location.html.before.jpg",
+    "after": "changelog-assets/e883689/SCM__location.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
+  "e883689|SCM/purchase_order.html": {
+    "before": "changelog-assets/e883689/SCM__purchase_order.html.before.jpg",
+    "after": "changelog-assets/e883689/SCM__purchase_order.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-07-27"
+  },
   "eff937d|SCM/purchase_order.html": {
     "before": "changelog-assets/eff937d/SCM__purchase_order.html.before.jpg",
     "after": "changelog-assets/eff937d/SCM__purchase_order.html.after.jpg",
