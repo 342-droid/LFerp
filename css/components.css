@@ -234,6 +234,230 @@ input[type="number"] {
     background-color: #0b7dda;
 }
 
+/* 批量导入弹窗（对齐「批量初始化」截图） */
+.batch-init-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2090;
+    background: rgba(0, 0, 0, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.batch-init-overlay.is-open {
+    display: flex;
+}
+
+.batch-init-modal {
+    width: min(900px, 94vw);
+    max-height: calc(100vh - 48px);
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.batch-init-modal__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid #ebeef5;
+    flex-shrink: 0;
+}
+
+.batch-init-modal__title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #303133;
+}
+
+.batch-init-modal__close {
+    border: 0;
+    background: none;
+    font-size: 20px;
+    line-height: 1;
+    color: #909399;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+.batch-init-modal__close:hover {
+    color: #606266;
+}
+
+.batch-init-modal__body {
+    padding: 16px 20px;
+    overflow: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+.batch-init-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.batch-init-toolbar__left,
+.batch-init-toolbar__center,
+.batch-init-toolbar__right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.batch-init-toolbar__center {
+    flex: 1;
+    justify-content: center;
+}
+
+.batch-init-toolbar__right {
+    justify-content: flex-end;
+}
+
+.batch-init-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    color: #fff;
+    transition: opacity 0.2s;
+}
+
+.batch-init-btn:hover {
+    opacity: 0.9;
+}
+
+.batch-init-btn--query {
+    background: #5b9bd5;
+}
+
+.batch-init-btn--template {
+    background: #ff9f43;
+}
+
+.batch-init-btn--browse {
+    background: #67c23a;
+    min-width: 96px;
+}
+
+.batch-init-btn--exec {
+    background: #c0c4cc;
+    color: #fff;
+}
+
+.batch-init-btn--exec.is-ready {
+    background: #909399;
+}
+
+.batch-init-file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    overflow: hidden;
+    z-index: -1;
+}
+
+.batch-init-table-wrap {
+    border: 1px solid #ebeef5;
+    border-radius: 2px;
+    overflow: hidden;
+    min-height: 220px;
+}
+
+.batch-init-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.batch-init-table th,
+.batch-init-table td {
+    padding: 10px 12px;
+    font-size: 13px;
+    text-align: left;
+    border-bottom: 1px solid #ebeef5;
+    color: #606266;
+    word-break: break-all;
+}
+
+.batch-init-table th {
+    background: #f5f7fa;
+    color: #606266;
+    font-weight: 600;
+    border-bottom: 1px solid #ebeef5;
+}
+
+.batch-init-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.batch-init-table td.batch-init-empty {
+    text-align: center;
+    vertical-align: middle;
+    height: 180px;
+    color: #909399;
+    padding: 0 !important;
+    font-size: 13px;
+}
+
+.batch-init-link {
+    border: 0;
+    background: none;
+    padding: 0;
+    color: #409eff;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+}
+
+.batch-init-link:hover {
+    text-decoration: underline;
+}
+
+.batch-init-modal__foot {
+    display: flex;
+    justify-content: flex-end;
+    padding: 12px 20px 16px;
+    border-top: 1px solid #ebeef5;
+    flex-shrink: 0;
+}
+
+.batch-init-modal__foot .batch-init-btn--close {
+    height: 32px;
+    padding: 0 18px;
+    border: 1px solid #dcdfe6;
+    border-radius: 3px;
+    background: #fff;
+    color: #606266;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.batch-init-modal__foot .batch-init-btn--close:hover {
+    color: #409eff;
+    border-color: #c6e2ff;
+    background: #ecf5ff;
+}
+
 /* 表格样式 */
 .table-section {
     background-color: white;
