@@ -86,7 +86,7 @@
           </div>
           <label class="ua-or-rs-field ua-or-rs-field--input">
             <span class="ua-or-rs-field__label">物流单号</span>
-            <input type="text" class="ua-or-rs-field__input" id="returnShipTrackingInput" placeholder="请填写物流单号" inputmode="text">
+            <input type="text" class="ua-or-rs-field__input" id="returnShipTrackingInput" placeholder="请输入物流单号" maxlength="50" autocomplete="off" spellcheck="false" inputmode="text">
           </label>
           <button type="button" class="ua-or-rs-field" id="returnShipCourierRow">
             <span class="ua-or-rs-field__label">快递公司</span>
@@ -252,6 +252,7 @@
 
     <div class="ua-or-toast" id="refundDetailToast" hidden></div>
   </div>
+  <script src="../../js/logistics-tracking-no.js"></script>
   <script src="../js/user-app-order-refund.js?v=20260726-form-back"></script>
   <script>UAOrderRefund.initReturnShipPage();</script>
 </body>

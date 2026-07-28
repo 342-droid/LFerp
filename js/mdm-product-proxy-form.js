@@ -1,19 +1,53 @@
 /**
- * 代采商品列表 — 添加/编辑商品（完整表单）
+ * 代采 / 商城商品列表 — 添加/编辑商品（完整表单）
+ * channel: 'proxy'（快递/配送）| 'mall'（快递/自提）
  */
 (function () {
   var pickerInstance = null;
   var formState = null;
+  var formChannel = 'proxy';
 
-  var SKU_STATUS_OPTIONS = ['现货', '预售', '缺货'];
   var SALE_UNIT_OPTIONS = ['件', '箱', '瓶', '袋', 'kg', 'L', '罐', '包', '套', '卷', '个', '斤', '盒'];
   var ETA_COUNTDOWN_UNITS = ['天', '小时'];
-  var DELIVERY_MODE_OPTIONS = [
+  /** 限购配置（演示枚举） */
+  var LIMIT_CONFIG_OPTIONS = [
+    { value: '', label: '请选择' },
+    { value: 'none', label: '不限购' },
+    { value: 'per_order', label: '每单限购' },
+    { value: 'per_user', label: '每用户限购' }
+  ];
+  /**
+   * 积分兑换三态（售卖规格）：
+   * - cash 现金：展示售价 + 划线价
+   * - points 纯积分兑换：展示积分个数 + 划线价
+   * - points_cash 积分+现金：下拉旁积分/金额 + 售价 + 划线价
+   */
+  var POINT_EXCHANGE_OPTIONS = [
+    { value: 'cash', label: '现金' },
+    { value: 'points', label: '纯积分兑换' },
+    { value: 'points_cash', label: '积分+现金' }
+  ];
+  var PROXY_DELIVERY_MODE_OPTIONS = [
     { value: 'express', label: '快递' },
     { value: 'platform', label: '配送' }
   ];
+  var MALL_DELIVERY_MODE_OPTIONS = [
+    { value: 'express', label: '快递' },
+    { value: 'pickup', label: '自提' }
+  ];
+
+  function getDeliveryModeOptions() {
+    return formChannel === 'mall' ? MALL_DELIVERY_MODE_OPTIONS : PROXY_DELIVERY_MODE_OPTIONS;
+  }
 
   function normalizeDeliveryMode(mode) {
+    if (formChannel === 'mall') {
+      if (mode === 'pickup' || mode === '自提' || mode === '门店自提') return 'pickup';
+      if (mode === 'express' || mode === '快递到店' || mode === '快递' || mode === '快递配送' || mode === 'store') {
+        return 'express';
+      }
+      return 'express';
+    }
     if (mode === 'platform' || mode === '平台配送' || mode === '配送' || mode === 'warehouse' || mode === 'delivery') {
       return 'platform';
     }
@@ -65,22 +99,40 @@
     return name || tail || '';
   }
 
+  function normalizePointExchange(value) {
+    if (value === 'points' || value === '纯积分兑换' || value === 'points_only') return 'points';
+    if (value === 'points_cash' || value === '积分+现金' || value === 'money_points') return 'points_cash';
+    if (value === 'cash' || value === '现金' || value === 'money') return 'cash';
+    return 'cash';
+  }
+
+  function inferPointExchangeFromProduct(product) {
+    if (product.priceType === 'points') return 'points';
+    if (product.priceType === 'money_points') return 'points_cash';
+    return 'cash';
+  }
+
   function defaultSku(id, product, index) {
     var specs = ['2.5kg', '500g', '1kg', '12箱', '1'];
-    var specValue = specs[index] || '1';
-    var saleUnit = '个';
+    var specValue = index === 0 && product.spec ? String(product.spec) : specs[index] || '1';
+    var saleUnit = '';
+    var pointExchange = inferPointExchangeFromProduct(product);
     return {
       id: id,
-      displayName: buildDefaultDisplayName(product.name, specValue, saleUnit),
+      displayName: buildDefaultDisplayName(product.name, specValue, saleUnit || '个'),
       displayNameManual: false,
-      internalCode: (product.code || 'SPU') + '-' + String(index + 1).padStart(2, '0'),
+      internalCode: index === 0 ? '147852369' : (product.code || 'SPU') + '-' + String(index + 1).padStart(2, '0'),
+      barcode: index === 0 ? '147852369' : '',
       specValue: specValue,
       baseUnit: '个',
-      purchasePrice: index === 0 ? '12.50' : '8.00',
-      stockStatus: '1',
+      purchasePrice: index === 0 ? '0.01' : '8.00',
+      saleRatio: '1.000',
       saleUnit: saleUnit,
-      skuStatus: '现货',
-      salePrice: index === 0 ? String(product.priceMoney || '0.01') : '0.01',
+      limitConfig: '',
+      pointExchange: pointExchange,
+      pointsAmount: product.pricePoints != null ? String(product.pricePoints) : '',
+      pointCash: pointExchange === 'points_cash' ? String(product.priceMoney || '0') : '',
+      salePrice: index === 0 ? String(product.priceMoney != null ? product.priceMoney : '0.00') : '0.01',
       linePrice: product.linePrice != null ? String(product.linePrice) : '',
       minQty: '1',
       img: product.img || '../user-app/assets/restock/product-leaf.svg',
@@ -110,6 +162,15 @@
       if (savedSkus[s.id]) {
         Object.assign(s, savedSkus[s.id], { id: s.id });
       }
+      s.pointExchange = normalizePointExchange(
+        s.pointExchange || s.priceType || inferPointExchangeFromProduct(product)
+      );
+      if (s.saleRatio == null && s.stockStatus != null) s.saleRatio = s.stockStatus;
+      if (s.saleRatio == null || s.saleRatio === '') s.saleRatio = '1.000';
+      if (s.limitConfig == null) s.limitConfig = '';
+      if (s.pointsAmount == null) s.pointsAmount = '';
+      if (s.pointCash == null) s.pointCash = '';
+      if (s.barcode && !s.internalCode) s.internalCode = s.barcode;
       if (s.displayNameManual) {
         if (!String(s.displayName || '').trim()) {
           s.displayName = buildDefaultDisplayName(product.name, s.specValue, s.saleUnit);
@@ -165,8 +226,9 @@
   }
 
   function getTagOptions() {
-    if (window.MdmProxyTagStore) {
-      return window.MdmProxyTagStore.getAll().map(function (t) { return t.name; });
+    var tagStore = formChannel === 'mall' ? window.MdmMallTagStore : window.MdmProxyTagStore;
+    if (tagStore) {
+      return tagStore.getAll().map(function (t) { return t.name; });
     }
     return ['冷丰溯源', '冷丰优选', '牛牛专用', '蔬菜水果', '优选商品', '天天平价'];
   }
@@ -236,48 +298,142 @@
     }).join('');
   }
 
-  function renderSpecPanel(sku, index) {
-    var statusOptions = SKU_STATUS_OPTIONS.map(function (opt) {
-      return '<option value="' + opt + '"' + (sku.skuStatus === opt ? ' selected' : '') + '>' + opt + '</option>';
-    }).join('');
-    var saleUnit = SALE_UNIT_OPTIONS.indexOf(sku.saleUnit) >= 0 ? sku.saleUnit : SALE_UNIT_OPTIONS[0];
-    var saleUnitOptions = SALE_UNIT_OPTIONS.map(function (opt) {
-      return '<option value="' + escapeHtml(opt) + '"' + (saleUnit === opt ? ' selected' : '') + '>' + escapeHtml(opt) + '</option>';
+  function renderPointExchangeFields(sku) {
+    var mode = normalizePointExchange(sku.pointExchange);
+    var options = POINT_EXCHANGE_OPTIONS.map(function (opt) {
+      return (
+        '<option value="' +
+        escapeHtml(opt.value) +
+        '"' +
+        (mode === opt.value ? ' selected' : '') +
+        '>' +
+        escapeHtml(opt.label) +
+        '</option>'
+      );
     }).join('');
 
+    var inline = '';
+    if (mode === 'points' || mode === 'points_cash') {
+      inline +=
+        '<div class="product-proxy-spec__points-input">' +
+        '<input type="text" class="product-proxy-spec__input" data-field="pointsAmount" value="' +
+        escapeHtml(sku.pointsAmount || '') +
+        '" placeholder="" inputmode="numeric">' +
+        '<span class="product-proxy-spec__points-suffix">个</span>' +
+        '</div>';
+    }
+    if (mode === 'points_cash') {
+      inline +=
+        '<div class="product-proxy-spec__money product-proxy-spec__money--inline">' +
+        '<span class="product-proxy-spec__money-prefix">¥</span>' +
+        '<input type="text" class="product-proxy-spec__input product-proxy-spec__input--money" data-field="pointCash" value="' +
+        escapeHtml(sku.pointCash || '') +
+        '" inputmode="decimal">' +
+        '</div>';
+    }
+
     return (
-      '<article class="product-proxy-spec" data-sku-id="' + escapeHtml(sku.id) + '">' +
+      '<div class="product-proxy-spec__field product-proxy-spec__field--exchange' +
+      (mode !== 'cash' ? ' is-' + mode : '') +
+      '">' +
+      '<label class="product-proxy-spec__label">积分兑换</label>' +
+      '<div class="product-proxy-spec__exchange-row">' +
+      '<select class="product-proxy-spec__input product-proxy-spec__exchange-select" data-field="pointExchange">' +
+      options +
+      '</select>' +
+      inline +
+      '</div></div>'
+    );
+  }
+
+  function renderPriceFieldsByExchange(sku) {
+    var mode = normalizePointExchange(sku.pointExchange);
+    var html = '';
+    // 现金 / 积分+现金：展示售价；纯积分不展示售价
+    if (mode === 'cash' || mode === 'points_cash') {
+      html += renderMoneyField('售价', 'salePrice', sku.salePrice);
+    }
+    html += renderMoneyField('划线价', 'linePrice', sku.linePrice);
+    return html;
+  }
+
+  function renderSpecPanel(sku) {
+    var saleUnit = SALE_UNIT_OPTIONS.indexOf(sku.saleUnit) >= 0 ? sku.saleUnit : '';
+    var saleUnitOptions =
+      '<option value="">请选择</option>' +
+      SALE_UNIT_OPTIONS.map(function (opt) {
+        return (
+          '<option value="' +
+          escapeHtml(opt) +
+          '"' +
+          (saleUnit === opt ? ' selected' : '') +
+          '>' +
+          escapeHtml(opt) +
+          '</option>'
+        );
+      }).join('');
+    var limitOptions = LIMIT_CONFIG_OPTIONS.map(function (opt) {
+      return (
+        '<option value="' +
+        escapeHtml(opt.value) +
+        '"' +
+        (String(sku.limitConfig || '') === opt.value ? ' selected' : '') +
+        '>' +
+        escapeHtml(opt.label) +
+        '</option>'
+      );
+    }).join('');
+    var barcode = sku.barcode || sku.internalCode || '';
+
+    return (
+      '<article class="product-proxy-spec' +
+      (sku.isDefault ? ' is-default' : '') +
+      '" data-sku-id="' +
+      escapeHtml(sku.id) +
+      '">' +
       '  <div class="product-proxy-spec__head">' +
       '    <span class="product-proxy-spec__head-label">展示规格名称</span>' +
-      '    <input type="text" class="product-proxy-spec__head-input" data-field="displayName" value="' + escapeHtml(sku.displayName) + '">' +
+      '    <input type="text" class="product-proxy-spec__head-input" data-field="displayName" value="' +
+      escapeHtml(sku.displayName || '') +
+      '" placeholder="请输入展示规格名称">' +
       (sku.isDefault ? '<span class="product-proxy-spec__default-tag">默认</span>' : '') +
       '  </div>' +
       '  <div class="product-proxy-spec__body">' +
       '    <div class="product-proxy-spec__thumb">' +
-      '      <img src="' + escapeHtml(sku.img) + '" alt="">' +
+      '      <img src="' +
+      escapeHtml(sku.img) +
+      '" alt="">' +
       '    </div>' +
       '    <div class="product-proxy-spec__grid">' +
-      renderSpecField('商品条形码', 'internalCode', sku.internalCode) +
+      renderSpecField('商品条形码', 'internalCode', barcode) +
       renderSpecField('规格值', 'specValue', sku.specValue) +
       renderSpecField('基础单位', 'baseUnit', sku.baseUnit) +
       renderMoneyField('采购价', 'purchasePrice', sku.purchasePrice) +
-      renderSpecField('售卖系数', 'stockStatus', sku.stockStatus) +
+      renderSpecField('售卖系数', 'saleRatio', sku.saleRatio || '1.000') +
       '      <div class="product-proxy-spec__field">' +
       '        <label class="product-proxy-spec__label">售卖单位</label>' +
-      '        <select class="product-proxy-spec__input" data-field="saleUnit">' + saleUnitOptions + '</select>' +
+      '        <select class="product-proxy-spec__input" data-field="saleUnit">' +
+      saleUnitOptions +
+      '</select>' +
       '      </div>' +
       '      <div class="product-proxy-spec__field">' +
-      '        <label class="product-proxy-spec__label">SKU状态</label>' +
-      '        <select class="product-proxy-spec__input" data-field="skuStatus">' + statusOptions + '</select>' +
+      '        <label class="product-proxy-spec__label">限购配置</label>' +
+      '        <select class="product-proxy-spec__input" data-field="limitConfig">' +
+      limitOptions +
+      '</select>' +
       '      </div>' +
-      renderMoneyField('售价', 'salePrice', sku.salePrice) +
-      renderMoneyField('划线价', 'linePrice', sku.linePrice) +
+      renderPointExchangeFields(sku) +
+      renderPriceFieldsByExchange(sku) +
       renderSpecField('起售量', 'minQty', sku.minQty) +
       '    </div>' +
       '  </div>' +
       '  <div class="product-proxy-spec__foot">' +
-      '    <button type="button" class="product-proxy-spec__btn-default" data-action="set-default"' + (sku.isDefault ? ' disabled' : '') + '>设为默认</button>' +
-      '    <button type="button" class="product-proxy-spec__btn-off' + (sku.onShelf === false ? ' is-off' : '') + '" data-action="toggle-shelf">' +
+      (sku.isDefault
+        ? '<button type="button" class="product-proxy-spec__btn-default" data-action="unset-default">取消默认</button>'
+        : '<button type="button" class="product-proxy-spec__btn-default" data-action="set-default">设为默认</button>') +
+      '    <button type="button" class="product-proxy-spec__btn-off' +
+      (sku.onShelf === false ? ' is-off' : '') +
+      '" data-action="toggle-shelf">' +
       (sku.onShelf === false ? '上架' : '下架') +
       '    </button>' +
       '  </div>' +
@@ -288,8 +444,14 @@
   function renderSpecField(label, field, value) {
     return (
       '<div class="product-proxy-spec__field">' +
-      '  <label class="product-proxy-spec__label">' + label + '</label>' +
-      '  <input type="text" class="product-proxy-spec__input" data-field="' + field + '" value="' + escapeHtml(value) + '">' +
+      '  <label class="product-proxy-spec__label">' +
+      label +
+      '</label>' +
+      '  <input type="text" class="product-proxy-spec__input" data-field="' +
+      field +
+      '" value="' +
+      escapeHtml(value == null ? '' : value) +
+      '">' +
       '</div>'
     );
   }
@@ -297,10 +459,16 @@
   function renderMoneyField(label, field, value) {
     return (
       '<div class="product-proxy-spec__field">' +
-      '  <label class="product-proxy-spec__label">' + label + '</label>' +
+      '  <label class="product-proxy-spec__label">' +
+      label +
+      '</label>' +
       '  <div class="product-proxy-spec__money">' +
       '    <span class="product-proxy-spec__money-prefix">¥</span>' +
-      '    <input type="text" class="product-proxy-spec__input product-proxy-spec__input--money" data-field="' + field + '" value="' + escapeHtml(value) + '">' +
+      '    <input type="text" class="product-proxy-spec__input product-proxy-spec__input--money" data-field="' +
+      field +
+      '" value="' +
+      escapeHtml(value == null ? '' : value) +
+      '">' +
       '  </div>' +
       '</div>'
     );
@@ -381,10 +549,10 @@
       '          </div>' +
       '        </div>' +
       '        <div class="product-proxy-form__field">' +
-      '          <label class="product-proxy-form__label">履约方式</label>' +
+      '          <label class="product-proxy-form__label"><span class="product-proxy-form__req">*</span>履约方式</label>' +
       '          <div class="product-proxy-form__control">' +
       '            <div class="product-add-radio-row">' +
-      DELIVERY_MODE_OPTIONS.map(function (opt) {
+      getDeliveryModeOptions().map(function (opt) {
         return (
           '<label class="product-add-radio' + (state.deliveryMode === opt.value ? ' is-checked' : '') + '">' +
           '<input type="radio" name="proxyDeliveryMode" value="' + opt.value + '"' +
@@ -522,7 +690,33 @@
         readSpecPanelsFromDom(backdrop);
         var panel = btn.closest('.product-proxy-spec');
         var id = panel.getAttribute('data-sku-id');
-        formState.skuPool.forEach(function (s) { s.isDefault = s.id === id; });
+        formState.skuPool.forEach(function (s) {
+          s.isDefault = s.id === id;
+        });
+        refreshSpecList(backdrop);
+      };
+    });
+
+    backdrop.querySelectorAll('.product-proxy-spec [data-action="unset-default"]').forEach(function (btn) {
+      btn.onclick = function () {
+        readSpecPanelsFromDom(backdrop);
+        var panel = btn.closest('.product-proxy-spec');
+        var id = panel.getAttribute('data-sku-id');
+        var selected = formState.selectedSkuIds.slice();
+        var otherId = '';
+        for (var i = 0; i < selected.length; i++) {
+          if (selected[i] !== id) {
+            otherId = selected[i];
+            break;
+          }
+        }
+        if (!otherId) {
+          if (typeof showToast === 'function') showToast('至少保留一个默认规格', 'warning');
+          return;
+        }
+        formState.skuPool.forEach(function (s) {
+          s.isDefault = s.id === otherId;
+        });
         refreshSpecList(backdrop);
       };
     });
@@ -541,7 +735,9 @@
 
     backdrop.querySelectorAll('.product-proxy-spec').forEach(function (panel) {
       var id = panel.getAttribute('data-sku-id');
-      var sku = formState.skuPool.find(function (s) { return s.id === id; });
+      var sku = formState.skuPool.find(function (s) {
+        return s.id === id;
+      });
       if (!sku) return;
 
       var displayInput = panel.querySelector('[data-field="displayName"]');
@@ -556,13 +752,27 @@
         var handler = function () {
           sku[input.getAttribute('data-field')] = input.value;
           if (!sku.displayNameManual) {
-            sku.displayName = buildDefaultDisplayName(getFormProductName(backdrop), sku.specValue, sku.saleUnit);
+            sku.displayName = buildDefaultDisplayName(
+              getFormProductName(backdrop),
+              sku.specValue,
+              sku.saleUnit
+            );
             updatePanelDisplayNameInput(panel, sku);
           }
         };
         input.addEventListener('input', handler);
         input.addEventListener('change', handler);
       });
+
+      // 积分兑换切换：重绘规格卡，露出对应字段
+      var exchangeSelect = panel.querySelector('[data-field="pointExchange"]');
+      if (exchangeSelect) {
+        exchangeSelect.addEventListener('change', function () {
+          readSpecPanelsFromDom(backdrop);
+          sku.pointExchange = normalizePointExchange(exchangeSelect.value);
+          refreshSpecList(backdrop);
+        });
+      }
     });
   }
 
@@ -726,8 +936,10 @@
       if (poolMap[id]) skus[id] = Object.assign({}, poolMap[id]);
     });
 
-    var defaultSku = formState.skuPool.find(function (s) { return s.isDefault; }) ||
-      poolMap[formState.selectedSkuIds[0]];
+    var defaultSkuItem =
+      formState.skuPool.find(function (s) {
+        return s.isDefault;
+      }) || poolMap[formState.selectedSkuIds[0]];
 
     var scopeEl = backdrop.querySelector('input[name="proxySaleScope"]:checked');
     var deliveryEl = backdrop.querySelector('input[name="proxyDeliveryMode"]:checked');
@@ -735,6 +947,24 @@
     var deliveryMode = normalizeDeliveryMode(deliveryEl ? deliveryEl.value : formState.deliveryMode);
     var etaCountdown = ((backdrop.querySelector('#proxyFormEta') || {}).value || '').trim();
     var etaCountdownUnit = ((backdrop.querySelector('#proxyFormEtaUnit') || {}).value || '天').trim() || '天';
+    var exchange = normalizePointExchange(defaultSkuItem && defaultSkuItem.pointExchange);
+    var priceType =
+      exchange === 'points' ? 'points' : exchange === 'points_cash' ? 'money_points' : 'money';
+    var priceMoney = 0.01;
+    var pricePoints = 0;
+    if (defaultSkuItem) {
+      if (exchange === 'points') {
+        pricePoints = parseFloat(defaultSkuItem.pointsAmount) || 0;
+        priceMoney = 0;
+      } else if (exchange === 'points_cash') {
+        pricePoints = parseFloat(defaultSkuItem.pointsAmount) || 0;
+        priceMoney =
+          parseFloat(defaultSkuItem.pointCash != null ? defaultSkuItem.pointCash : defaultSkuItem.salePrice) ||
+          0;
+      } else {
+        priceMoney = parseFloat(defaultSkuItem.salePrice) || 0.01;
+      }
+    }
 
     return {
       name: (backdrop.querySelector('#proxyFormName') || {}).value.trim(),
@@ -750,9 +980,11 @@
       category: pickerInstance ? pickerInstance.getPaths().join('、') : (product.category || product.category_path || ''),
       img: formState.images[0] || product.img,
       specCount: formState.selectedSkuIds.length,
-      spec: defaultSku ? (defaultSku.displayName || defaultSku.specValue) : product.spec,
-      priceMoney: defaultSku ? parseFloat(defaultSku.salePrice) || 0.01 : product.priceMoney,
-      linePrice: defaultSku && defaultSku.linePrice ? parseFloat(defaultSku.linePrice) : null,
+      spec: defaultSkuItem ? defaultSkuItem.specValue || defaultSkuItem.displayName : product.spec,
+      priceType: priceType,
+      priceMoney: priceMoney,
+      pricePoints: pricePoints,
+      linePrice: defaultSkuItem && defaultSkuItem.linePrice ? parseFloat(defaultSkuItem.linePrice) : null,
       detail: {
         summary: (backdrop.querySelector('#proxyFormDisplaySales') || {}).value.trim(),
         displaySales: (backdrop.querySelector('#proxyFormDisplaySales') || {}).value.trim(),
@@ -778,6 +1010,7 @@
     if (!store) return;
 
     options = options || {};
+    formChannel = options.channel === 'mall' ? 'mall' : 'proxy';
     var isEdit = options.mode === 'edit';
     var product = options.product || {};
     var onSave = options.onSave;

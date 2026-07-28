@@ -430,9 +430,16 @@
 
     var SUPPLIER_BALANCE_PAY_KEY = 'mdm_supplier_balance_payment_v1';
     var SUPPLIER_COL = {
-        onboard: 13,
-        balancePay: 14,
-        status: 15
+        name: 2,
+        shortName: 3,
+        region: 4,
+        detailAddr: 5,
+        type: 6,
+        contact: 7,
+        phone: 8,
+        onboard: 14,
+        balancePay: 15,
+        status: 16
     };
 
     function readSupplierBalancePayments() {
@@ -580,6 +587,14 @@
         } else if (kind === 'liveRoom') {
             detailAddrIdx = 2;
             contactMobileIdx = 7;
+        } else if (kind === 'supplier') {
+            var archiveShort = c[SUPPLIER_COL.shortName]
+                ? c[SUPPLIER_COL.shortName].textContent.trim()
+                : '';
+            if (archiveShort === '—' || archiveShort === '-') archiveShort = '';
+            shortName = archiveShort || shortName;
+            detailAddrIdx = SUPPLIER_COL.detailAddr;
+            contactMobileIdx = SUPPLIER_COL.phone;
         }
         var detailAddr = c[detailAddrIdx] ? c[detailAddrIdx].textContent.trim() : '';
         var contactMobile = c[contactMobileIdx]
@@ -957,12 +972,12 @@
             entityName: '供应商档案',
             modalWidth: '640px',
             checkboxColumn: false,
-            statusColumnIndex: 15,
+            statusColumnIndex: SUPPLIER_COL.status,
             actionColumnMode: 'editOnboard',
             fields: fields,
             detailView: {
                 enabled: true,
-                columnIndex: 2,
+                columnIndex: SUPPLIER_COL.name,
                 linkClass: 'subject-name-link',
                 onOpenDetail: function (row) {
                     if (window.MdmArchiveDetailDrawer) {
@@ -1009,11 +1024,11 @@
                     return {
                         editResId: c[0].textContent.trim(),
                         editSubjectName: c[1].textContent.trim(),
-                        editResName: c[2].textContent.trim(),
-                        editContactName: c[6].textContent.trim(),
-                        editPhone: c[7].textContent.trim(),
-                        editResStatus: c[15].querySelector('.status')
-                            ? c[15].querySelector('.status').textContent.trim()
+                        editResName: c[SUPPLIER_COL.name].textContent.trim(),
+                        editContactName: c[SUPPLIER_COL.contact].textContent.trim(),
+                        editPhone: c[SUPPLIER_COL.phone].textContent.trim(),
+                        editResStatus: c[SUPPLIER_COL.status].querySelector('.status')
+                            ? c[SUPPLIER_COL.status].querySelector('.status').textContent.trim()
                             : '正常'
                     };
                 },
@@ -1023,9 +1038,9 @@
                     var st = document.getElementById('editResStatus').value.trim();
                     pm.updateTableRow(row, {
                         2: document.getElementById('editResName').value.trim(),
-                        6: document.getElementById('editContactName').value.trim(),
-                        7: document.getElementById('editPhone').value.trim(),
-                        15: { value: st, isStatus: true }
+                        7: document.getElementById('editContactName').value.trim(),
+                        8: document.getElementById('editPhone').value.trim(),
+                        16: { value: st, isStatus: true }
                     });
                     pm.decorateDetailLinkCell(row);
                     showToast('供应商档案已更新（演示）', 'success');
@@ -1039,7 +1054,8 @@
         window.addEventListener('storage', function (e) {
             if (
                 e.key === 'mdm_unified_onboarding_records_v1' ||
-                e.key === SUPPLIER_BALANCE_PAY_KEY
+                e.key === SUPPLIER_BALANCE_PAY_KEY ||
+                e.key === 'mdm_supplier_archive_v1'
             ) {
                 syncAllSupplierArchiveRows();
             }
@@ -1068,11 +1084,14 @@
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
             syncAllSupplierArchiveRows();
+            if (window.MdmSupplierArchiveStore) {
+                window.MdmSupplierArchiveStore.syncFromArchiveTable();
+            }
             cacheFirstResourceRows('supplier', {
                 subjectCol: 1,
-                resourceNameCol: 2,
-                detailAddrCol: 4,
-                contactMobileCol: 7
+                resourceNameCol: SUPPLIER_COL.name,
+                detailAddrCol: SUPPLIER_COL.detailAddr,
+                contactMobileCol: SUPPLIER_COL.phone
             });
         }, 0);
     }

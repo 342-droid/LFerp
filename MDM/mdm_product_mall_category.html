@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 商城类目</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-product.css?v=20260729-mall-cat">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/product-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="product-page">
+                <div class="product-page-tabs" id="productPageTabs" aria-label="页面页签"></div>
+
+                <div class="product-page-body">
+                    <section class="erp-page__card product-table-card mall-cat-card">
+                        <div class="product-toolbar product-toolbar--proxy">
+                            <button type="button" class="product-toolbar__add" id="mallCatAddBtn">+ 新增类目</button>
+                        </div>
+                        <div class="product-table-wrap">
+                            <table class="product-table mall-cat-table">
+                                <colgroup>
+                                    <col class="mall-cat-table__col mall-cat-table__col--img">
+                                    <col class="mall-cat-table__col mall-cat-table__col--name">
+                                    <col class="mall-cat-table__col mall-cat-table__col--count">
+                                    <col class="mall-cat-table__col mall-cat-table__col--status">
+                                    <col class="mall-cat-table__col mall-cat-table__col--time">
+                                    <col class="mall-cat-table__col mall-cat-table__col--action">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th class="mall-cat-table__th mall-cat-table__th--img">类目图片</th>
+                                        <th class="mall-cat-table__th mall-cat-table__th--name">类目名称</th>
+                                        <th class="mall-cat-table__th mall-cat-table__th--count">已绑定商品数</th>
+                                        <th class="mall-cat-table__th mall-cat-table__th--status">状态</th>
+                                        <th class="mall-cat-table__th mall-cat-table__th--time">创建时间</th>
+                                        <th class="mall-cat-table__th mall-cat-table__th--action">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mallCatTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="product-empty" id="mallCatEmpty" hidden>暂无类目，请先新增</div>
+                        <div class="product-pagination" id="mallCatPagination">
+                            <span id="mallCatPaginationTotal">共 0 条</span>
+                            <div class="product-pagination__right">
+                                <select class="product-pagination__size" id="mallCatPageSize" aria-label="每页条数">
+                                    <option value="20" selected>20条/页</option>
+                                    <option value="50">50条/页</option>
+                                    <option value="100">100条/页</option>
+                                </select>
+                                <div class="product-pagination__pages" id="mallCatPaginationPages"></div>
+                                <label class="product-pagination__goto">
+                                    前往
+                                    <input id="mallCatPageGoto" type="text" value="1" inputmode="numeric">
+                                    页
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/product-page-tabs.js"></script>
+    <script src="../js/mdm-product-mall-category.js?v=20260729-mall-cat"></script>
+</body>
+</html>
