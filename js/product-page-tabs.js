@@ -9,10 +9,12 @@
     'mdm_product_selection.html': '选品库',
     'mdm_product_category.html': '商品类目',
     'mdm_product_brand.html': '商品品牌',
-    'mdm_product_mall.html': '商城商品',
+    'mdm_product_mall.html': '商品列表',
+    'mdm_product_mall_category.html': '商城类目',
+    'mdm_product_mall_tag.html': '商城标签',
     'mdm_product_proxy_list.html': '商品列表',
     'mdm_product_proxy_category.html': '类目管理',
-    'mdm_product_proxy_tag.html': '商城标签',
+    'mdm_product_proxy_tag.html': '标签管理',
     'mdm_product_audit.html': '商品详情'
   };
 

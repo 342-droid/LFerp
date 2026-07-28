@@ -8038,6 +8038,7 @@
       }
       var trackingInput = document.getElementById('returnShipTrackingInput');
       if (trackingInput) {
+        if (window.LogisticsTrackingNo) window.LogisticsTrackingNo.bindInput(trackingInput);
         trackingInput.value = state.shipTab === 'self' ? state.trackingNo || '' : '';
       }
     }
@@ -8131,15 +8132,24 @@
           return;
         }
         var trackingInput = document.getElementById('returnShipTrackingInput');
-        var trackingNo = trackingInput ? String(trackingInput.value || '').trim() : '';
         if (!state.courierName) {
           showToast('请选择快递公司');
           return;
         }
-        if (!trackingNo) {
-          showToast('请填写物流单号');
+        var trackingCheck =
+          window.LogisticsTrackingNo && typeof window.LogisticsTrackingNo.validate === 'function'
+            ? window.LogisticsTrackingNo.validate(trackingInput ? trackingInput.value : '')
+            : {
+                ok: !!(trackingInput && String(trackingInput.value || '').trim()),
+                value: trackingInput ? String(trackingInput.value || '').trim() : '',
+                message: '请输入物流单号'
+              };
+        if (!trackingCheck.ok) {
+          showToast(trackingCheck.message || '请输入物流单号');
           return;
         }
+        var trackingNo = trackingCheck.value;
+        if (trackingInput) trackingInput.value = trackingNo;
         app.pickupScheduled = false;
         app.returnShipTab = 'self';
         app.courier = state.courierName;

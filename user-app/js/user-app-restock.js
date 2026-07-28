@@ -415,28 +415,47 @@
     if (okBtn) okBtn.addEventListener('click', closeFreightRulesModal);
   }
 
+  function applySupplierDisplayName(supplier) {
+    if (!supplier) return DEFAULT_SUPPLIER;
+    var fullName = supplier.name || '';
+    var displayName =
+      window.MdmSupplierArchiveStore && typeof window.MdmSupplierArchiveStore.getDisplayName === 'function'
+        ? window.MdmSupplierArchiveStore.getDisplayName(supplier)
+        : fullName;
+    return {
+      id: supplier.id,
+      name: displayName || fullName,
+      fullName: fullName
+    };
+  }
+
   function resolveSupplier(payload) {
+    var base = null;
     if (payload.supplierId && payload.supplierName) {
-      return { id: payload.supplierId, name: payload.supplierName };
+      base = { id: payload.supplierId, name: payload.supplierName };
+    } else if (payload.spuId && SUPPLIER_BY_SPU[payload.spuId]) {
+      base = SUPPLIER_BY_SPU[payload.spuId];
+    } else {
+      var found = findSpuBySpecId(payload.id);
+      if (found && SUPPLIER_BY_SPU[found.spuId]) {
+        base = SUPPLIER_BY_SPU[found.spuId];
+      } else {
+        var productKey = payload.id
+          ? String(payload.id).replace(/-\d+$/, '').replace(/-default$/, '')
+          : '';
+        if (productKey && SUPPLIER_BY_SPU[productKey]) {
+          base = SUPPLIER_BY_SPU[productKey];
+        }
+      }
     }
-    if (payload.spuId && SUPPLIER_BY_SPU[payload.spuId]) {
-      return SUPPLIER_BY_SPU[payload.spuId];
-    }
-    var found = findSpuBySpecId(payload.id);
-    if (found && SUPPLIER_BY_SPU[found.spuId]) {
-      return SUPPLIER_BY_SPU[found.spuId];
-    }
-    var productKey = payload.id ? String(payload.id).replace(/-\d+$/, '').replace(/-default$/, '') : '';
-    if (productKey && SUPPLIER_BY_SPU[productKey]) {
-      return SUPPLIER_BY_SPU[productKey];
-    }
-    return DEFAULT_SUPPLIER;
+    return applySupplierDisplayName(base || DEFAULT_SUPPLIER);
   }
 
   function createSupplierStore(supplier, items) {
+    var resolved = applySupplierDisplayName(supplier);
     return {
-      id: supplier.id,
-      name: supplier.name,
+      id: resolved.id,
+      name: resolved.name,
       tag: '',
       blocks: [{ items: items || [] }]
     };

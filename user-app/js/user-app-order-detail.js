@@ -824,6 +824,12 @@
         getParams().get('supplier') ||
         shopNameEl.getAttribute('data-supplier-name') ||
         '冷丰优选供应链';
+      if (
+        window.MdmSupplierArchiveStore &&
+        typeof window.MdmSupplierArchiveStore.getDisplayName === 'function'
+      ) {
+        supplier = window.MdmSupplierArchiveStore.getDisplayName({ name: supplier });
+      }
       shopNameEl.textContent = supplier;
     }
 

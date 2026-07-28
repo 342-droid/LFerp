@@ -1,22 +1,25 @@
 (function () {
-  var CANCELLABLE_STATUSES = ['已支付', '待发货', '待收货'];
-  var REFUNDABLE_STATUSES = ['待收货'];
-
   function isProxyOrderPage() {
     return document.body && document.body.getAttribute('data-order-page') === 'proxy';
   }
 
   function getRowOrderStatus(row) {
+    if (window.OrderPlatformAftersale) {
+      return window.OrderPlatformAftersale.getRowOrderStatus(row);
+    }
     var statusEl = row ? row.querySelector('td:nth-last-child(2) .order-tag') : null;
     return statusEl ? statusEl.textContent.trim() : '';
   }
 
   function canCancelOrder(row) {
-    return CANCELLABLE_STATUSES.indexOf(getRowOrderStatus(row)) >= 0;
+    if (window.OrderPlatformAftersale) return window.OrderPlatformAftersale.canCancelOrder(row);
+    var status = getRowOrderStatus(row);
+    return ['待支付', '已创建', '已支付', '待发货'].indexOf(status) >= 0;
   }
 
   function canPlatformRefund(row) {
-    return REFUNDABLE_STATUSES.indexOf(getRowOrderStatus(row)) >= 0;
+    if (window.OrderPlatformAftersale) return window.OrderPlatformAftersale.canPlatformRefund(row);
+    return getRowOrderStatus(row) === '待收货';
   }
 
   function createActionButton(className, orderId, label) {
@@ -107,9 +110,14 @@
   function closeProxyDialog(backdropId) {
     var backdrop = document.getElementById(backdropId);
     if (backdrop) backdrop.remove();
-    if (!document.getElementById('orderDetailBackdrop') && !document.getElementById('orderConfirmReceiptBackdrop') &&
-        !document.getElementById('orderProxyCancelBackdrop') && !document.getElementById('orderProxyRefundBackdrop') &&
-        !document.getElementById('orderProxyBatchUploadBackdrop')) {
+    if (
+      !document.getElementById('orderDetailBackdrop') &&
+      !document.getElementById('orderConfirmReceiptBackdrop') &&
+      !document.getElementById('orderProxyCancelBackdrop') &&
+      !document.getElementById('orderProxyRefundBackdrop') &&
+      !document.getElementById('orderProxyBatchUploadBackdrop') &&
+      !document.getElementById('orderPlatformAsBackdrop')
+    ) {
       document.body.style.overflow = '';
     }
   }
@@ -120,13 +128,23 @@
     backdrop.className = 'order-verify-confirm-backdrop';
     backdrop.id = options.backdropId;
     backdrop.innerHTML =
-      '<div class="order-verify-confirm" role="dialog" aria-labelledby="' + options.titleId + '">' +
-        '<h3 id="' + options.titleId + '" class="order-verify-confirm__title">' + options.title + '</h3>' +
-        '<p class="order-verify-confirm__message">' + options.message + '</p>' +
-        '<div class="order-verify-confirm__actions">' +
-          '<button type="button" class="order-detail-btn js-proxy-dialog-cancel">取消</button>' +
-          '<button type="button" class="order-detail-btn order-detail-btn--primary js-proxy-dialog-ok">' + options.okLabel + '</button>' +
-        '</div>' +
+      '<div class="order-verify-confirm" role="dialog" aria-labelledby="' +
+      options.titleId +
+      '">' +
+      '<h3 id="' +
+      options.titleId +
+      '" class="order-verify-confirm__title">' +
+      options.title +
+      '</h3>' +
+      '<p class="order-verify-confirm__message">' +
+      options.message +
+      '</p>' +
+      '<div class="order-verify-confirm__actions">' +
+      '<button type="button" class="order-detail-btn js-proxy-dialog-cancel">取消</button>' +
+      '<button type="button" class="order-detail-btn order-detail-btn--primary js-proxy-dialog-ok">' +
+      options.okLabel +
+      '</button>' +
+      '</div>' +
       '</div>';
     document.body.appendChild(backdrop);
     document.body.style.overflow = 'hidden';
@@ -148,7 +166,10 @@
       backdropId: 'orderConfirmReceiptBackdrop',
       titleId: 'orderConfirmReceiptTitle',
       title: '确认收货',
-      message: '确认订单 <strong>' + orderId + '</strong> 已收货吗？<br>确认后订单将标记为已完成，此操作不可撤销。',
+      message:
+        '确认订单 <strong>' +
+        orderId +
+        '</strong> 已收货吗？<br>确认后订单将标记为已完成，此操作不可撤销。',
       okLabel: '确认收货',
       onConfirm: onConfirm
     });
@@ -222,7 +243,10 @@
           backdropId: 'orderProxyCancelBackdrop',
           titleId: 'orderProxyCancelTitle',
           title: '取消订单',
-          message: '确认取消订单 <strong>' + cancelOrderId + '</strong> 吗？<br>取消后订单将关闭，此操作不可撤销。',
+          message:
+            '确认取消订单 <strong>' +
+            cancelOrderId +
+            '</strong> 吗？<br>取消后订单将关闭，此操作不可撤销。',
           okLabel: '确认取消',
           onConfirm: function () {
             updateRowAfterCancel(cancelRow);
@@ -243,16 +267,11 @@
           if (typeof showToast === 'function') showToast('当前订单状态不可申请退款', 'error');
           return;
         }
-        showProxyConfirmDialog({
-          backdropId: 'orderProxyRefundBackdrop',
-          titleId: 'orderProxyRefundTitle',
-          title: '平台退款',
-          message: '确认为订单 <strong>' + refundOrderId + '</strong> 发起平台退款吗？<br>提交后将进入平台退款流程。',
-          okLabel: '确认退款',
-          onConfirm: function () {
-            if (typeof showToast === 'function') showToast('平台退款申请已提交', 'success');
-          }
-        });
+        if (window.OrderPlatformAftersale && typeof window.OrderPlatformAftersale.open === 'function') {
+          window.OrderPlatformAftersale.open(refundOrderId, refundRow);
+        } else if (typeof showToast === 'function') {
+          showToast('发起售后模块未加载', 'error');
+        }
       }
     });
   }

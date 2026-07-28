@@ -1030,6 +1030,7 @@
     <script src="../js/purchase-order-mock-data.js"></script>
     <script src="../js/modal-manager.js"></script>
     <script src="../js/common.js"></script>
+    <script src="../js/logistics-tracking-no.js"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
     <script>
@@ -1773,7 +1774,7 @@
                 '<td>' + escapeHtml(entry.skuName) + '</td>' +
                 '<td>' + escapeHtml(entry.spec) + '</td>' +
                 '<td>' + escapeHtml(entry.purchaseQtyText) + '</td>' +
-                '<td><input type="text" class="logistics-line-input" data-entry-index="' + idx + '" value="' + escapeAttr(entry.logisticsNo) + '" placeholder="多个物流单号请用逗号分隔"></td>' +
+                '<td><input type="text" class="logistics-line-input" data-entry-index="' + idx + '" value="' + escapeAttr(entry.logisticsNo) + '" placeholder="多个物流单号请用逗号分隔" autocomplete="off" spellcheck="false"></td>' +
                 '</tr>'
             );
         }).join('');
@@ -1783,7 +1784,10 @@
         document.querySelectorAll('#logisticsConfirmLinesTbody .logistics-line-input').forEach(function(input) {
             var idx = Number(input.getAttribute('data-entry-index'));
             if (isNaN(idx) || !logisticsConfirmEntries[idx]) return;
-            logisticsConfirmEntries[idx].logisticsNo = (input.value || '').trim();
+            logisticsConfirmEntries[idx].logisticsNo =
+                window.LogisticsTrackingNo && window.LogisticsTrackingNo.normalize
+                    ? window.LogisticsTrackingNo.normalize(input.value)
+                    : String(input.value || '').trim();
         });
     }
 
@@ -1834,24 +1838,47 @@
     }
 
     function saveLogisticsConfirm() {
-        if (!isLogisticsConfirmValid()) {
+        var actualEl = document.getElementById('logisticsActualPurchaseTime');
+        var shipEl = document.getElementById('logisticsSupplierShipTime');
+        var etaEl = document.getElementById('logisticsExpectedArrivalTime');
+        if (!actualEl || !shipEl || !etaEl || !actualEl.value || !shipEl.value || !etaEl.value || !logisticsConfirmEntries.length) {
             if (typeof showToast === 'function') {
                 showToast('请完整填写时间节点，并为每条采购单商品明细至少填写一个物流单号', 'error');
             }
             return;
         }
-        var actualPurchaseDate = document.getElementById('logisticsActualPurchaseTime').value;
-        var supplierShipDate = document.getElementById('logisticsSupplierShipTime').value;
-        var expectedArrivalDate = document.getElementById('logisticsExpectedArrivalTime').value;
         readLogisticsConfirmEntriesFromForm();
+        var normalizedNos = [];
+        for (var i = 0; i < logisticsConfirmEntries.length; i++) {
+            var check =
+                window.LogisticsTrackingNo && typeof window.LogisticsTrackingNo.validateMany === 'function'
+                    ? window.LogisticsTrackingNo.validateMany(logisticsConfirmEntries[i].logisticsNo)
+                    : {
+                        ok: !!collectLineLogisticsNos(logisticsConfirmEntries[i].logisticsNo).length,
+                        value: normalizeLineLogisticsNoText(logisticsConfirmEntries[i].logisticsNo),
+                        message: '请输入物流单号'
+                      };
+            if (!check.ok) {
+                if (window.LogisticsTrackingNo && window.LogisticsTrackingNo.toastError) {
+                    window.LogisticsTrackingNo.toastError(check);
+                } else if (typeof showToast === 'function') {
+                    showToast(check.message || '请输入物流单号', 'error');
+                }
+                return;
+            }
+            normalizedNos.push(check.value);
+        }
+        var actualPurchaseDate = actualEl.value;
+        var supplierShipDate = shipEl.value;
+        var expectedArrivalDate = etaEl.value;
         var touchedPoNos = {};
-        logisticsConfirmEntries.forEach(function(entry) {
+        logisticsConfirmEntries.forEach(function(entry, idx) {
             var row = findOrderByPoNo(entry.poNo);
             if (!row || !row.lines || !row.lines[entry.lineIndex]) return;
             row.actualPurchaseDate = actualPurchaseDate;
             row.supplierShipDate = supplierShipDate;
             row.expectedArrivalDate = expectedArrivalDate;
-            row.lines[entry.lineIndex].logisticsNo = normalizeLineLogisticsNoText(entry.logisticsNo);
+            row.lines[entry.lineIndex].logisticsNo = normalizedNos[idx];
             touchedPoNos[entry.poNo] = row;
         });
         Object.keys(touchedPoNos).forEach(function(poNo) {

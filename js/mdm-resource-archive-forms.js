@@ -678,6 +678,8 @@
         body.appendChild(formRow('主体名称', true, refs.subjectSel));
         refs.nameInp = txt('请输入供应商名称', '');
         body.appendChild(formRow('供应商名称', true, refs.nameInp));
+        refs.shortNameInp = txt('请输入供应商简称（商品透出优先展示）', '');
+        body.appendChild(formRow('供应商简称', false, refs.shortNameInp));
         refs.typeSel = sel(
             [
                 { value: '', label: '请选择供应商类型' },
@@ -729,15 +731,21 @@
 
         function fillFromArchiveRow(tr) {
             var c = tr.querySelectorAll('td');
-            if (c.length < 8) return;
+            if (c.length < 9) return;
             selectOptionByLabelText(refs.subjectSel, cellPlainText(c[1]));
             refs.nameInp.value = cellPlainText(c[2]);
-            refs.regionInp.value = cellPlainText(c[3]);
-            if (refs.detailTa) refs.detailTa.value = cellPlainText(c[4]);
+            var shortName = cellPlainText(c[3]);
+            if (shortName === '—' || shortName === '-') shortName = '';
+            if (!shortName && tr.getAttribute('data-short-name')) {
+                shortName = String(tr.getAttribute('data-short-name') || '').trim();
+            }
+            refs.shortNameInp.value = shortName;
+            refs.regionInp.value = cellPlainText(c[4]);
+            if (refs.detailTa) refs.detailTa.value = cellPlainText(c[5]);
             var tmap = { 品牌商: 'brand', 代理商: 'agent', 个人: 'person' };
-            refs.typeSel.value = tmap[cellPlainText(c[5])] || '';
-            refs.contactInp.value = cellPlainText(c[6]);
-            if (refs.phoneInp) refs.phoneInp.value = cellPlainText(c[7]);
+            refs.typeSel.value = tmap[cellPlainText(c[6])] || '';
+            refs.contactInp.value = cellPlainText(c[7]);
+            if (refs.phoneInp) refs.phoneInp.value = cellPlainText(c[8]);
             refs.verifyInp.value = '';
         }
 
@@ -1056,7 +1064,32 @@
                 if (bundle.refs && bundle.refs.inboundWarehouseSel) {
                     selectedWarehouse = String(bundle.refs.inboundWarehouseSel.value || '').trim();
                 }
-                saveSupplierInboundWarehouseBinding(supplierId, supplierName, selectedWarehouse);
+                var nextName =
+                    bundle.refs && bundle.refs.nameInp
+                        ? String(bundle.refs.nameInp.value || '').trim()
+                        : supplierName;
+                var nextShort =
+                    bundle.refs && bundle.refs.shortNameInp
+                        ? String(bundle.refs.shortNameInp.value || '').trim()
+                        : '';
+                if (cells[2]) cells[2].textContent = nextName || supplierName;
+                if (cells[3]) {
+                    cells[3].textContent = nextShort || '—';
+                    cells[3].setAttribute('data-field', 'shortName');
+                }
+                tr.setAttribute('data-short-name', nextShort);
+                if (window.MdmSupplierArchiveStore) {
+                    window.MdmSupplierArchiveStore.upsert({
+                        id: supplierId,
+                        name: nextName || supplierName,
+                        shortName: nextShort
+                    });
+                }
+                saveSupplierInboundWarehouseBinding(
+                    supplierId,
+                    nextName || supplierName,
+                    selectedWarehouse
+                );
             });
         },
         openLiveRoomAdd: function () {

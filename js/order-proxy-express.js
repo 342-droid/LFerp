@@ -824,7 +824,7 @@
           '</div>' +
           '<div class="order-proxy-upload-field">' +
             '<label class="order-proxy-upload-field__label" for="proxyUploadTrackingNo">物流单号</label>' +
-            '<input class="order-proxy-upload-field__input" id="proxyUploadTrackingNo" type="text" placeholder="请输入物流单号，将自动识别快递公司" maxlength="32" value="' +
+            '<input class="order-proxy-upload-field__input" id="proxyUploadTrackingNo" type="text" placeholder="请输入物流单号，将自动识别快递公司" maxlength="50" value="' +
               (isEdit ? escapeHtml(editShipment.trackingNo || '') : '') + '">' +
           '</div>' +
           '<div class="order-proxy-upload-field">' +
@@ -887,6 +887,7 @@
     }
 
     if (trackingInput) {
+      if (window.LogisticsTrackingNo) window.LogisticsTrackingNo.bindInput(trackingInput);
       trackingInput.addEventListener('input', applyCourierFromTracking);
       trackingInput.addEventListener('blur', applyCourierFromTracking);
     }
@@ -918,11 +919,24 @@
         return;
       }
 
-      var trackingNo = trackingInput ? trackingInput.value.trim() : '';
-      if (!trackingNo) {
-        if (typeof showToast === 'function') showToast('请输入物流单号', 'error');
+      var trackingCheck =
+        window.LogisticsTrackingNo && typeof window.LogisticsTrackingNo.validate === 'function'
+          ? window.LogisticsTrackingNo.validate(trackingInput ? trackingInput.value : '')
+          : {
+              ok: !!(trackingInput && String(trackingInput.value || '').trim()),
+              value: trackingInput ? String(trackingInput.value || '').trim() : '',
+              message: '请输入物流单号'
+            };
+      if (!trackingCheck.ok) {
+        if (window.LogisticsTrackingNo && window.LogisticsTrackingNo.toastError) {
+          window.LogisticsTrackingNo.toastError(trackingCheck);
+        } else if (typeof showToast === 'function') {
+          showToast(trackingCheck.message || '请输入物流单号', 'error');
+        }
         return;
       }
+      if (trackingInput) trackingInput.value = trackingCheck.value;
+      var trackingNo = trackingCheck.value;
 
       applyCourierFromTracking();
       var courier = courierSelect ? courierSelect.value : '';
@@ -1126,6 +1140,15 @@
         invalid += 1;
         return;
       }
+      var trackingCheck =
+        window.LogisticsTrackingNo && typeof window.LogisticsTrackingNo.validate === 'function'
+          ? window.LogisticsTrackingNo.validate(row.trackingNo)
+          : { ok: true, value: String(row.trackingNo || '').trim() };
+      if (!trackingCheck.ok) {
+        invalid += 1;
+        return;
+      }
+      row.trackingNo = trackingCheck.value;
       var good = resolveGoodByNameSpec(row.orderId, row.productName, row.spec);
       var list = getShipments(row.orderId);
       var existing = findShipmentByTracking(list, row.trackingNo);

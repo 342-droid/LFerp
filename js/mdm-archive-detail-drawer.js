@@ -1805,32 +1805,38 @@
 
     function rowToSupplier(tr) {
         var c = tr.querySelectorAll('td');
-        if (c.length < 16) return null;
+        if (c.length < 17) return null;
         var supplierId = cellPlain(c[0]);
         var recordKey = onboardRecordKey('supplier', supplierId);
-        var onboardFallback = cellPlain(c[13]);
+        var onboardFallback = cellPlain(c[14]);
         var onboard =
             window.MdmSupplierArchiveUi &&
             typeof window.MdmSupplierArchiveUi.resolveOnboardingDisplay === 'function'
                 ? window.MdmSupplierArchiveUi.resolveOnboardingDisplay(recordKey, onboardFallback)
                 : onboardFallback;
+        var shortName = cellPlain(c[3]);
+        if (shortName === '—' || shortName === '-') shortName = '';
+        if (!shortName && tr.getAttribute('data-short-name')) {
+            shortName = String(tr.getAttribute('data-short-name') || '').trim();
+        }
         return {
             id: supplierId,
             subjectName: cellPlain(c[1]),
             name: cellPlain(c[2]),
-            region: cellPlain(c[3]),
-            detailAddress: cellPlain(c[4]),
-            typeLabel: cellPlain(c[5]),
-            contactName: cellPlain(c[6]),
-            phone: cellPlain(c[7]),
-            createTime: cellPlain(c[8]),
-            productCount: cellPlain(c[9]),
-            settleInfo: cellPlain(c[10]),
-            withdrawPhone: cellPlain(c[11]),
-            deliveryMode: cellPlain(c[12]),
+            shortName: shortName,
+            region: cellPlain(c[4]),
+            detailAddress: cellPlain(c[5]),
+            typeLabel: cellPlain(c[6]),
+            contactName: cellPlain(c[7]),
+            phone: cellPlain(c[8]),
+            createTime: cellPlain(c[9]),
+            productCount: cellPlain(c[10]),
+            settleInfo: cellPlain(c[11]),
+            withdrawPhone: cellPlain(c[12]),
+            deliveryMode: cellPlain(c[13]),
             onboard: onboard,
-            balancePay: cellPlain(c[14]),
-            status: cellStatus(c[15]),
+            balancePay: cellPlain(c[15]),
+            status: cellStatus(c[16]),
             inboundWarehouse: readSupplierInboundWarehouseBinding(supplierId, cellPlain(c[2]))
         };
     }
@@ -1842,6 +1848,7 @@
         grid.appendChild(detailCell('供应商ID', r.id));
         grid.appendChild(detailCell('主体名称', r.subjectName));
         grid.appendChild(detailCell('供应商名称', r.name));
+        grid.appendChild(detailCell('供应商简称', r.shortName || '—'));
         grid.appendChild(detailCell('供应商类型', r.typeLabel));
         grid.appendChild(detailCell('供应商地址', r.region));
         var addr = el('div', 'supplier-detail-cell supplier-detail-cell--span4');
@@ -1888,7 +1895,7 @@
         var bar = el('div', 'erp-actions-row supplier-detail-onboard-actions');
         var go = mkBtn('去进件', true);
         go.addEventListener('click', function () {
-            openOnboardResource('供应商进件', r.name, onboardingDefaults, recordKey, {
+            openOnboardResource('供应商进件', r.shortName || r.name, onboardingDefaults, recordKey, {
                 supplierId: r.id
             });
         });
@@ -1915,9 +1922,14 @@
                                 recordKey: recordKey,
                                 defaults: onboardingDefaults,
                                 title: '供应商进件',
-                                shortName: r.name,
+                                shortName: r.shortName || r.name,
                                 openModal: function (forceView) {
-                                    openOnboardResource('供应商进件', r.name, onboardingDefaults, recordKey, {
+                                    openOnboardResource(
+                                        '供应商进件',
+                                        r.shortName || r.name,
+                                        onboardingDefaults,
+                                        recordKey,
+                                        {
                                         forceView: !!forceView,
                                         supplierId: r.id
                                     });
@@ -1956,7 +1968,7 @@
         else tags.push({ kind: 'gray', label: r.status });
         attachDrawer({
             title: '供应商详情',
-            heroName: r.name,
+            heroName: r.shortName || r.name,
             heroTags: tags,
             metaLines: ['供应商ID：' + r.id + ' · 所属组织：' + r.subjectName],
             wideClass: 'store-drawer--supplier-wide',

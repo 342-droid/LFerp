@@ -27,8 +27,23 @@
   ];
   var PRODUCT_SPECS = ['甜糯', '酸甜', '3斤装', '500g'];
   var PRODUCT_SKUS = ['SKU00148', 'SKU00149', 'SKU00089', 'SKU00091'];
-  var REASONS = ['质量问题', '未收到货', '发错货', '其他'];
   var APPROVERS = ['系统', '超级管理员'];
+
+  function pickRowReason(type, i) {
+    if (window.MdmAftersaleReasons && typeof window.MdmAftersaleReasons.pickDemoReason === 'function') {
+      return window.MdmAftersaleReasons.pickDemoReason(type, i);
+    }
+    return '质量问题';
+  }
+
+  function syncReasonFilterOptions(keepSelected) {
+    var typeEl = $('asType');
+    var reasonEl = $('asReason');
+    if (!reasonEl || !window.MdmAftersaleReasons) return;
+    var type = (typeEl && typeEl.value) || '';
+    var selected = keepSelected ? reasonEl.value : '';
+    window.MdmAftersaleReasons.fillReasonSelect(reasonEl, type, selected);
+  }
   var REFUND_EXEC = ['未发起退款', '待退款', '退款执行中', '退款成功', '退款失败'];
   /** 结算状态：待结算 | 待结款 | 结款中 | 已结款（待结款由结算单生成触发，文案不再带说明） */
   var SETTLE_STATUSES = ['待结算', '待结款', '结款中', '已结款'];
@@ -55,8 +70,19 @@
     if (status === '待审批' || status === '待退货' || status === '待收货') {
       return i % 5 === 0 ? '待结款' : '待结算';
     }
-    if (status === '退款中' || status === '退款异常') {
-      return SETTLE_STATUSES[1 + (i % 3)];
+    /**
+     * 退款中：结算前 / 结算后约各一半。
+     * 注意：仅退款的「退款中」在矩阵里常落在奇数 i，退货退款常落偶数 i；
+     * 不能用单纯 i%2，否则仅退款会全部变成结算后，原路退款演示断掉。
+     */
+    if (status === '退款中') {
+      var preSettle = i % 4 === 0 || i % 4 === 1;
+      if (preSettle) return '待结算';
+      return SETTLE_STATUSES[1 + ((i >> 2) % 3)];
+    }
+    // 退款异常仅结算前有支付通道失败；结算后线下付款无失败态
+    if (status === '退款异常') {
+      return '待结算';
     }
     if (status === '已完成' && createsRefundDoc(type)) {
       return i % 3 === 0 ? '已结款' : i % 3 === 1 ? '待结算' : '结款中';
@@ -67,7 +93,8 @@
   /**
    * 退款执行状态（与售后单状态矩阵对齐）：
    * - 仅退款审核通过 / 退货退款确认收货 → 生成退款单（结算前后统一）
-   * - 结算后为线下付款：列表仍用待退款 / 退款成功（凭证在退款单页上传）
+   * - 结算前：待退款 / 退款执行中（可筛选演示原路通道）
+   * - 结算后线下付款：仅待退款 / 退款成功（无失败、无「退款执行中」）
    * - 补货 / 换货：始终「未发起退款」
    */
   function resolveRefundExec(type, status, i, settleStatus) {
@@ -77,9 +104,9 @@
       // 确认收货前（待审批/待退货/待收货/已拒绝/已取消）均未生成退款单
       if (status === '已完成') return '退款成功';
       if (status === '退款中') {
-        // 结算后线下付款无支付通道「退款执行中」
         if (isPostSettlement(settleStatus)) return '待退款';
-        return i % 3 === 0 ? '退款执行中' : '待退款';
+        // 结算前：退货退款与仅退款都能筛到「退款执行中」
+        return i % 16 === 0 ? '退款执行中' : '待退款';
       }
       if (status === '退款异常') return '退款失败';
       return '未发起退款';
@@ -89,7 +116,7 @@
     if (status === '已完成') return '退款成功';
     if (status === '退款中') {
       if (isPostSettlement(settleStatus)) return '待退款';
-      return i % 3 === 0 ? '退款执行中' : '待退款';
+      return i % 4 === 1 ? '退款执行中' : '待退款';
     }
     if (status === '退款异常') return '退款失败';
     return '未发起退款';
@@ -256,7 +283,7 @@
             : '0.00',
       couponAmount: '0.00',
       pointsAmount: 0,
-      reason: REASONS[i % REASONS.length],
+      reason: pickRowReason(type, i),
       approver: APPROVERS[i % APPROVERS.length],
       settleStatus: settleStatus,
       occurTime: occurAt,
@@ -405,6 +432,10 @@
       escapeHtml(row.fulfillment) +
       '" data-settle-status="' +
       escapeHtml(row.settleStatus || '待结算') +
+      '" data-refund-exec="' +
+      escapeHtml(row.refundExecStatus || '') +
+      '" data-reason="' +
+      escapeHtml(row.reason || '') +
       '"'
     );
   }
@@ -683,6 +714,7 @@
       resetBtn.addEventListener('click', function () {
         var form = $('asTicketFilterForm');
         if (form) form.reset();
+        syncReasonFilterOptions(false);
         refresh(true);
       });
     }
@@ -781,6 +813,8 @@
         var orderSource = link.getAttribute('data-order-source') || '';
         var delivery = link.getAttribute('data-delivery') || '';
         var settleStatus = link.getAttribute('data-settle-status') || '待结算';
+        var refundExec = link.getAttribute('data-refund-exec') || '';
+        var reason = link.getAttribute('data-reason') || '';
         var wp = window.wmsPath;
         var base =
           wp && typeof wp.page === 'function'
@@ -799,7 +833,18 @@
           '&delivery=' +
           encodeURIComponent(delivery) +
           '&settleStatus=' +
-          encodeURIComponent(settleStatus);
+          encodeURIComponent(settleStatus) +
+          (refundExec
+            ? '&refundExec=' + encodeURIComponent(refundExec)
+            : '') +
+          (reason ? '&reason=' + encodeURIComponent(reason) : '');
+      });
+    }
+
+    var typeFilter = $('asType');
+    if (typeFilter) {
+      typeFilter.addEventListener('change', function () {
+        syncReasonFilterOptions(true);
       });
     }
 
@@ -867,6 +912,7 @@
   }
 
   function init() {
+    syncReasonFilterOptions(false);
     bindEvents();
     refresh(true);
   }

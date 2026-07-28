@@ -199,11 +199,27 @@
     return '预计' + (d.getMonth() + 1) + '月' + d.getDate() + '号送达';
   }
 
+  function resolveCheckoutSupplierName(supplierId, fallbackName) {
+    if (
+      window.MdmSupplierArchiveStore &&
+      typeof window.MdmSupplierArchiveStore.getDisplayName === 'function'
+    ) {
+      return window.MdmSupplierArchiveStore.getDisplayName({
+        id: supplierId,
+        name: fallbackName
+      });
+    }
+    return fallbackName || '';
+  }
+
   function buildCheckoutFromItems(items, store) {
     var supplierMap = {};
     items.forEach(function (item) {
       var sid = item.supplierId || 'supplier-default';
-      var sname = item.supplierName || '冷丰优选供应链';
+      var sname = resolveCheckoutSupplierName(
+        sid,
+        item.supplierName || '冷丰优选供应链'
+      );
       if (!supplierMap[sid]) {
         supplierMap[sid] = { id: sid, name: sname, packages: {} };
       }
@@ -318,7 +334,7 @@
         else deliveryAmount += amount;
         packageRows.push({
           id: pkg.id,
-          supplierName: sup.name,
+          supplierName: resolveCheckoutSupplierName(sup.id, sup.name),
           pkgIndex: idx + 1,
           mode: mode,
           amount: amount
@@ -601,7 +617,7 @@
           '<div class="ua-co-supplier__head">' +
           '<svg class="ua-co-supplier__icon" viewBox="0 0 24 24" fill="none"><path d="M6 3h12l2 4v14a1 1 0 01-1 1H5a1 1 0 01-1-1V3h2z" fill="#FFB800"/><path d="M8 3h8v3H8V3z" fill="#FF9500"/></svg>' +
           '<span class="ua-co-supplier__name">' +
-          sup.name +
+          resolveCheckoutSupplierName(sup.id, sup.name) +
           '</span></div>' +
           pkgsHtml +
           '</section>'
