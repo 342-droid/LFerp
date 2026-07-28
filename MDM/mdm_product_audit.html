@@ -16,20 +16,24 @@
     <div id="header-container"></div>
     <div class="container">
         <main class="main-content">
-            <div class="product-audit-page" id="productAuditPage">
-                <header class="product-audit-page__header">
-                    <h1 class="product-audit-page__title">商品详情</h1>
-                    <div class="product-audit-page__actions">
-                        <button type="button" class="product-audit-page__btn product-audit-page__btn--pass" id="productAuditPassBtn">审核通过</button>
-                        <button type="button" class="product-audit-page__btn product-audit-page__btn--reject" id="productAuditRejectBtn">驳回</button>
-                        <button type="button" class="product-audit-page__close" id="productAuditCloseBtn" aria-label="关闭">×</button>
-                    </div>
-                </header>
-                <div class="product-audit-page__body" id="productAuditBody"></div>
+            <div class="product-page">
+                <div class="product-page-tabs" id="productPageTabs" aria-label="页面页签"></div>
+                <div class="product-audit-page" id="productAuditPage">
+                    <header class="product-audit-page__header">
+                        <h1 class="product-audit-page__title">商品详情</h1>
+                        <div class="product-audit-page__actions">
+                            <button type="button" class="product-audit-page__btn product-audit-page__btn--pass" id="productAuditPassBtn">审核通过</button>
+                            <button type="button" class="product-audit-page__btn product-audit-page__btn--reject" id="productAuditRejectBtn">驳回</button>
+                            <button type="button" class="product-audit-page__close" id="productAuditCloseBtn" aria-label="关闭">×</button>
+                        </div>
+                    </header>
+                    <div class="product-audit-page__body" id="productAuditBody"></div>
+                </div>
             </div>
         </main>
     </div>
     <script src="../js/common.js"></script>
+    <script src="../js/product-page-tabs.js"></script>
     <script src="../js/mdm-product-catalog-store.js"></script>
     <script src="../js/mdm-product-audit.js"></script>
 </body>

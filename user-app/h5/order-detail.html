@@ -203,14 +203,18 @@
         </section>
 
         <section class="ua-od-card ua-od-price">
-          <div class="ua-od-price__row"><span>商品总价</span><span>¥120.99</span></div>
-          <div class="ua-od-price__row"><span>运费</span><span>¥15.00</span></div>
+          <div class="ua-od-price__row"><span>商品总价</span><span id="orderGoodsTotal">¥120.99</span></div>
+          <div class="ua-od-price__row"><span>运费</span><span id="orderFreight">¥15.00</span></div>
           <div class="ua-od-price__row ua-od-price__row--discount"><span>优惠券</span><span>-¥10.00</span></div>
           <div class="ua-od-price__row ua-od-price__row--discount"><span>免邮券</span><span>-¥15.00</span></div>
           <div class="ua-od-price__row ua-od-price__row--discount"><span>活动优惠</span><span>-¥5.00</span></div>
           <div class="ua-od-price__row ua-od-price__row--discount"><span>店铺优惠</span><span>-¥10.00</span></div>
-          <div class="ua-od-price__row ua-od-price__row--discount"><span>积分抵扣</span><span>-¥20.00</span></div>
-          <div class="ua-od-price__row ua-od-price__row--total"><span>实付金额</span><span>36元</span></div>
+          <div class="ua-od-price__row ua-od-price__row--discount" id="orderPointsDeductRow"><span>积分抵扣</span><span id="orderPointsDeduct">-¥20.00</span></div>
+          <div class="ua-od-price__row" id="orderExchangePointsRow" hidden>
+            <span>支付积分总额</span>
+            <span id="orderExchangePoints">0积分</span>
+          </div>
+          <div class="ua-od-price__row ua-od-price__row--total"><span>实付金额</span><span id="orderPayTotal">36元</span></div>
         </section>
 
         <section class="ua-od-card ua-od-extra">
@@ -250,8 +254,10 @@
       </div>
     </div>
   </div>
+  <script src="../../js/mdm-marketing-points-mall-config.js"></script>
+  <script src="../js/user-app-orders-store.js?v=20260728-status-sync2"></script>
   <script src="../js/user-app-order-refund.js?v=20260720-as-refund-success"></script>
-  <script src="../js/user-app-order-detail.js?v=20260725-express-home"></script>
+  <script src="../js/user-app-order-detail.js?v=20260728-status-sync2"></script>
   <script src="../js/user-app-auth.js"></script>
 </body>
 </html>

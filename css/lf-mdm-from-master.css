@@ -720,6 +720,46 @@
   max-width: 480px;
 }
 
+.erp-modal--pts-adjust {
+  max-width: 520px;
+  width: min(96vw, 520px);
+}
+
+.erp-modal--pts-adjust .erp-modal-field__label {
+  flex: 0 0 112px;
+}
+
+.pts-adjust-member {
+  min-height: 32px;
+  line-height: 32px;
+  font-size: 13px;
+  color: #333;
+}
+
+.pts-adjust-tip {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.45;
+}
+
+.pts-adjust-radio-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+  min-height: 32px;
+}
+
+.pts-adjust-radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+}
+
 .erp-modal--member-c-coupon {
   max-width: 960px;
   width: min(96vw, 960px);
@@ -2344,6 +2384,16 @@
   margin-bottom: 16px;
 }
 
+.member-growth-summary--points {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (min-width: 1100px) {
+  .member-growth-summary--points {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
 .member-growth-summary__item {
   padding: 14px 16px;
   background: #fafafa;
@@ -2356,6 +2406,9 @@
   color: #888;
   line-height: 1.4;
   margin-bottom: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .member-growth-summary__value {
@@ -2364,6 +2417,59 @@
   color: #1a1a1a;
   line-height: 1.3;
   word-break: break-all;
+}
+
+.member-points-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  color: #999;
+  font-size: 11px;
+  font-style: normal;
+  line-height: 1;
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.member-points-help:hover {
+  border-color: #ff7019;
+  color: #ff7019;
+}
+
+.member-points-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.member-points-status--available {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.member-points-status--frozen {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.member-points-status--expired {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.member-points-change--plus {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.member-points-change--minus {
+  color: #d32f2f;
+  font-weight: 600;
 }
 
 /* 会员详情抽屉内打开的弹窗，需盖过抽屉（drawer ≈ 2060） */

@@ -321,6 +321,9 @@
   flex: 1;
   text-align: center;
   position: relative;
+  text-decoration: none;
+  color: inherit;
+  display: block;
 }
 
 .ua-vip-card__stat:not(:last-child)::after {

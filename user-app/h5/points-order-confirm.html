@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>确认兑换 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-profile.css">
+  <link rel="stylesheet" href="../css/user-app-points-order-confirm.css">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-poc-page">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <header class="ua-poc-nav">
+      <a href="points-mall.html" class="ua-poc-nav__back" id="pocBack" aria-label="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+      </a>
+      <h1 class="ua-poc-nav__title">确认订单</h1>
+    </header>
+
+    <div class="ua-scroll">
+      <div class="ua-poc-body">
+        <button type="button" class="ua-poc-card ua-poc-address" id="pocAddressCard">
+          <span class="ua-poc-address__pin" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 00-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 00-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+          </span>
+          <div class="ua-poc-address__body">
+            <div class="ua-poc-address__user">
+              <span>武者</span>
+              <span>181****4215</span>
+            </div>
+            <p class="ua-poc-address__text">四川省成都市武侯区天府大道中段666号天府软件园A区</p>
+            <p class="ua-poc-address__mode" id="pocDeliveryMode">履约方式：平台配送</p>
+          </div>
+          <svg class="ua-poc-address__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+
+        <section class="ua-poc-card ua-poc-goods" id="pocGoodsCard">
+          <div class="ua-poc-empty" id="pocEmpty" hidden>暂无待兑换商品，请返回积分商城重新选择</div>
+          <div id="pocGoodsList"></div>
+        </section>
+
+        <section class="ua-poc-card ua-poc-summary">
+          <div class="ua-poc-summary__row">
+            <span>兑换积分</span>
+            <span id="pocPointsTotal">0</span>
+          </div>
+          <div class="ua-poc-summary__row" id="pocMoneyRow" hidden>
+            <span>需付现金</span>
+            <span id="pocMoneyTotal">¥0</span>
+          </div>
+          <div class="ua-poc-summary__row">
+            <span>可用积分</span>
+            <span id="pocAvailable">161</span>
+          </div>
+          <div class="ua-poc-summary__row ua-poc-summary__row--total">
+            <span>合计</span>
+            <strong id="pocSum">0积分</strong>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <footer class="ua-poc-footer">
+      <div class="ua-poc-footer__pay" id="pocPayText">需支付 0积分</div>
+      <button type="button" class="ua-poc-footer__btn" id="pocSubmit">确认兑换</button>
+    </footer>
+
+    <!-- 积分+现金且现金>0 时拉起支付 -->
+    <div class="ua-poc-sheet" id="pocPaySheet" hidden>
+      <div class="ua-poc-sheet__mask" data-poc-close="pay"></div>
+      <div class="ua-poc-sheet__panel">
+        <button type="button" class="ua-poc-sheet__close" data-poc-close="pay" aria-label="关闭">×</button>
+        <div class="ua-poc-pay-sheet__points" id="pocPaySheetPoints">将扣除 0 积分</div>
+        <div class="ua-poc-pay-sheet__amount" id="pocPaySheetAmount">¥0.00</div>
+        <div class="ua-poc-pay-sheet__timer">支付剩余时间 <span id="pocPayTimer">29:59</span></div>
+        <div class="ua-poc-pay-sheet__list">
+          <button type="button" class="ua-poc-pay-sheet__item is-active" data-pay-method="wechat">
+            <span class="ua-poc-pay-sheet__icon ua-poc-pay-sheet__icon--wechat">微</span>
+            <span class="ua-poc-pay-sheet__name">微信支付</span>
+            <span class="ua-poc-pay-check is-checked" aria-hidden="true"></span>
+          </button>
+          <button type="button" class="ua-poc-pay-sheet__item" data-pay-method="alipay">
+            <span class="ua-poc-pay-sheet__icon ua-poc-pay-sheet__icon--alipay">支</span>
+            <span class="ua-poc-pay-sheet__name">支付宝</span>
+            <span class="ua-poc-pay-check" aria-hidden="true"></span>
+          </button>
+        </div>
+        <button type="button" class="ua-poc-pay-sheet__submit" id="pocPaySubmit">立即支付</button>
+      </div>
+    </div>
+  </div>
+  <script src="../js/user-app-nav.js"></script>
+  <script src="../js/user-app-points-mall-order.js"></script>
+  <script src="../js/user-app-orders-store.js?v=20260728-status-sync2"></script>
+  <script src="../js/user-app-points-order-confirm.js?v=20260728-status-sync2"></script>
+</body>
+</html>

@@ -20,7 +20,7 @@
         exchange: {
             enabled: true,
             refundEnabled: true,
-            refundValidity: 'recalc'
+            refundValidity: 'keep_original'
         },
         consume: {
             enabled: true,
@@ -88,7 +88,10 @@
             if (parsed.exchange) {
                 if (typeof parsed.exchange.enabled === 'boolean') rule.exchange.enabled = parsed.exchange.enabled;
                 if (typeof parsed.exchange.refundEnabled === 'boolean') rule.exchange.refundEnabled = parsed.exchange.refundEnabled;
-                if (parsed.exchange.refundValidity) rule.exchange.refundValidity = parsed.exchange.refundValidity;
+                if (parsed.exchange.refundValidity === 'keep_original' || parsed.exchange.refundValidity === 'recalc') {
+                    /* recalc 为历史值，统一归一为保留原有效期 */
+                    rule.exchange.refundValidity = 'keep_original';
+                }
             }
             if (parsed.consume) {
                 if (typeof parsed.consume.enabled === 'boolean') rule.consume.enabled = parsed.consume.enabled;
@@ -453,7 +456,7 @@
         document.getElementById('exchangeEnabled').checked = !!rule.exchange.enabled;
         document.getElementById('exchangeRefundEnabled').checked = !!rule.exchange.refundEnabled;
         document.querySelectorAll('input[name="exchangeRefundValidity"]').forEach(function (el) {
-            el.checked = el.value === (rule.exchange.refundValidity || 'recalc');
+            el.checked = el.value === 'keep_original';
         });
 
         document.getElementById('consumeEnabled').checked = !!rule.consume.enabled;
@@ -551,7 +554,10 @@
             exchange: {
                 enabled: document.getElementById('exchangeEnabled').checked,
                 refundEnabled: document.getElementById('exchangeRefundEnabled').checked,
-                refundValidity: 'recalc'
+                refundValidity: (function () {
+                    var el = document.querySelector('input[name="exchangeRefundValidity"]:checked');
+                    return el && el.value ? el.value : 'keep_original';
+                })()
             },
             consume: {
                 enabled: document.getElementById('consumeEnabled').checked,
@@ -663,5 +669,16 @@
             applyRuleToForm(rule);
             toast('积分规则已保存');
         });
+
+        /* 从积分商城「去配置」带 hash 定位到兑换规则卡片 */
+        var hash = String(window.location.hash || '').replace(/^#/, '');
+        if (hash) {
+            var target = document.getElementById(hash);
+            if (target) {
+                setTimeout(function () {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 80);
+            }
+        }
     });
 })();

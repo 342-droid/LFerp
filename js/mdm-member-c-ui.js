@@ -280,16 +280,7 @@
 
     function panelMemberAssets() {
         var root = el('div', 'member-drawer-panel');
-        root.appendChild(el('div', 'supplier-detail-section-title', '会员积分明细'));
-        var ptHeaders = ['时间', '类型', '数据', '余额', '订单编号'];
-        var ptRows = [
-            ['2024-07-14 16:00', '积分抵扣', '-17.00', '5000.00', 'NO.2311312313'],
-            ['2024-07-13 10:00', '观看直播收入', '+17.00', '5017.00', ''],
-            ['2024-07-12 09:30', '后台添加', '+100.00', '5000.00', '']
-        ];
-        root.appendChild(wrapTable(ptHeaders, ptRows, 'member-drawer-table--center'));
-        root.appendChild(fakePaginationBar());
-        root.appendChild(el('div', 'supplier-detail-section-title member-detail-section--spaced', '会员优惠券'));
+        root.appendChild(el('div', 'supplier-detail-section-title', '会员优惠券'));
         var cpHeaders = [
             '优惠券类型',
             '优惠券名称',
@@ -636,6 +627,477 @@
         return root;
     }
 
+    var POINTS_TYPE_LABEL = {
+        consume: '消费赠送',
+        upgrade: '会员升级',
+        checkin: '签到',
+        luckybag: '福袋',
+        watch_task: '观看任务',
+        exchange: '积分兑换',
+        exchange_cancel: '积分兑换取消',
+        cash: '积分抵现',
+        exchange_refund: '积分兑换售后',
+        cash_refund: '积分抵现售后',
+        manual: '手工调整'
+    };
+
+    function mockMemberPointsRows(rec) {
+        var mid = String(rec.id || '');
+        /* 演示数据：消费赠送支付成功为冻结，交易成功后可用；兑换售后保留原有效期 */
+        if (mid === 'U10002') {
+            return [
+                {
+                    occurAt: '2026-07-25 21:06:33',
+                    changeType: 'consume',
+                    change: 68,
+                    remaining: 68,
+                    afterValue: 118,
+                    refNo: 'ORD-3212689201600888',
+                    remark: '支付成功赠送，订单未交易成功',
+                    status: '冻结'
+                },
+                {
+                    occurAt: '2026-04-24 21:15:08',
+                    changeType: 'exchange_refund',
+                    change: 50,
+                    remaining: null,
+                    afterValue: 50,
+                    refNo: 'AS202604240018',
+                    remark: '积分兑换售后，保留原有效期（退还归属 1月2日批次）',
+                    status: '—'
+                },
+                {
+                    occurAt: '2026-04-24 20:11:05',
+                    changeType: 'exchange',
+                    change: -100,
+                    remaining: null,
+                    afterValue: 0,
+                    refNo: 'EX-20260424008',
+                    remark: '兑换商品：冷丰鲜牛奶',
+                    status: '—'
+                },
+                {
+                    occurAt: '2026-01-02 10:00:00',
+                    changeType: 'consume',
+                    change: 80,
+                    remaining: 50,
+                    afterValue: 100,
+                    refNo: 'ORD-3212689201588600',
+                    remark: '支付成功赠送，交易成功后可用',
+                    status: '可用'
+                },
+                {
+                    occurAt: '2026-01-01 10:00:00',
+                    changeType: 'consume',
+                    change: 20,
+                    remaining: 0,
+                    afterValue: 20,
+                    refNo: 'ORD-3212689201588561',
+                    remark: '支付成功赠送，交易成功后可用',
+                    status: '可用'
+                }
+            ];
+        }
+        return [
+            {
+                occurAt: '2026-07-26 10:18:42',
+                changeType: 'consume',
+                change: 45,
+                remaining: 45,
+                afterValue: 206,
+                refNo: 'ORD-3212689201600128',
+                remark: '支付成功赠送，订单未交易成功',
+                status: '冻结'
+            },
+            {
+                occurAt: '2026-04-25 16:20:03',
+                changeType: 'consume',
+                change: 86,
+                remaining: 86,
+                afterValue: 161,
+                refNo: 'ORD-3212689201598341',
+                remark: '支付成功赠送，交易成功后可用',
+                status: '可用'
+            },
+            {
+                occurAt: '2026-04-25 15:08:41',
+                changeType: 'cash',
+                change: -60,
+                remaining: null,
+                afterValue: 75,
+                refNo: 'ORD-3212689201599001',
+                remark: '抵扣 ¥0.60',
+                status: '—'
+            },
+            {
+                occurAt: '2026-04-20 18:40:11',
+                changeType: 'consume',
+                change: 50,
+                remaining: 50,
+                afterValue: 135,
+                refNo: 'ORD-3212689201598100',
+                remark: '支付成功赠送，交易成功后可用',
+                status: '可用'
+            },
+            {
+                occurAt: '2026-04-18 08:01:12',
+                changeType: 'checkin',
+                change: 5,
+                remaining: 5,
+                afterValue: 85,
+                refNo: '—',
+                remark: '每日签到',
+                status: '可用'
+            },
+            {
+                occurAt: '2026-04-10 09:15:22',
+                changeType: 'consume',
+                change: 80,
+                remaining: 25,
+                afterValue: 80,
+                refNo: 'ORD-3212689201598001',
+                remark: '支付成功赠送，交易成功后可用',
+                status: '可用'
+            },
+            {
+                occurAt: '2026-02-15 11:08:20',
+                changeType: 'cash_refund',
+                change: 30,
+                remaining: null,
+                afterValue: 70,
+                refNo: 'AS202602150008',
+                remark: '积分抵现售后，保留原有效期',
+                status: '—'
+            },
+            {
+                occurAt: '2026-02-01 14:22:10',
+                changeType: 'cash',
+                change: -60,
+                remaining: null,
+                afterValue: 40,
+                refNo: 'ORD-3212689201500888',
+                remark: '抵扣 ¥0.60',
+                status: '—'
+            },
+            {
+                occurAt: '2025-03-10 12:00:00',
+                changeType: 'consume',
+                change: 100,
+                remaining: 70,
+                afterValue: 100,
+                refNo: 'ORD-3212689201500001',
+                remark: '支付成功赠送，交易成功后可用',
+                status: '过期'
+            }
+        ];
+    }
+
+    function calcMemberPointsSummary(rows) {
+        var available = 0;
+        var frozen = 0;
+        var earned = 0;
+        var used = 0;
+        var expired = 0;
+        (rows || []).forEach(function (row) {
+            var change = Number(row.change) || 0;
+            var remain = row.remaining == null ? null : (Number(row.remaining) || 0);
+            if (change > 0) earned += change;
+            if (row.changeType === 'cash' || row.changeType === 'exchange') {
+                used += Math.abs(change);
+            }
+            if (row.status === '过期' && remain != null) {
+                /* 过期批次：按已过期仍留存 + 已消耗前的获取额不便拆分时，演示用状态过期且剩余>0 计入 */
+                expired += remain;
+            }
+            if (row.changeType === 'expire') {
+                expired += Math.abs(change);
+            }
+            if (remain != null && remain > 0) {
+                if (row.status === '冻结') frozen += remain;
+                else if (row.status === '可用') available += remain;
+            }
+        });
+        return {
+            current: available + frozen,
+            available: available,
+            frozen: frozen,
+            earned: earned,
+            used: used,
+            expired: expired
+        };
+    }
+
+    function formatPointsChangeCell(val) {
+        var n = Number(val) || 0;
+        var span = document.createElement('span');
+        if (n > 0) {
+            span.className = 'member-points-change--plus';
+            span.textContent = '+' + n;
+        } else if (n < 0) {
+            span.className = 'member-points-change--minus';
+            span.textContent = String(n);
+        } else {
+            span.textContent = '0';
+        }
+        return span;
+    }
+
+    function formatPointsStatusCell(status) {
+        var span = document.createElement('span');
+        var s = status || '—';
+        span.textContent = s;
+        if (s === '可用') span.className = 'member-points-status member-points-status--available';
+        else if (s === '冻结') span.className = 'member-points-status member-points-status--frozen';
+        else if (s === '过期') span.className = 'member-points-status member-points-status--expired';
+        return span;
+    }
+
+    function panelMemberPoints(rec) {
+        var root = el('div', 'member-drawer-panel');
+
+        var sectionHead = el('div', 'member-growth-section-head');
+        sectionHead.appendChild(el('div', 'supplier-detail-section-title', '会员积分'));
+        var btnAdjustPoints = mkBtn('调整积分', true);
+        sectionHead.appendChild(btnAdjustPoints);
+        root.appendChild(sectionHead);
+
+        var allRows = mockMemberPointsRows(rec);
+        var summaryData = calcMemberPointsSummary(allRows);
+
+        var summary = el('div', 'member-growth-summary member-growth-summary--points');
+        var summaryDefs = [
+            { key: 'current', label: '当前积分' },
+            { key: 'available', label: '可用积分' },
+            { key: 'frozen', label: '冻结积分' },
+            { key: 'earned', label: '累计获取积分' },
+            {
+                key: 'used',
+                label: '累计使用积分',
+                tip: '只统计积分抵现和积分兑换之和'
+            },
+            { key: 'expired', label: '累计过期积分' }
+        ];
+        var summaryValueEls = {};
+        summaryDefs.forEach(function (def) {
+            var card = el('div', 'member-growth-summary__item');
+            var lab = el('div', 'member-growth-summary__label');
+            lab.appendChild(document.createTextNode(def.label));
+            if (def.tip) {
+                var tip = el('i', 'member-points-help', '?');
+                tip.title = def.tip;
+                tip.setAttribute('aria-label', def.tip);
+                lab.appendChild(tip);
+            }
+            card.appendChild(lab);
+            var valEl = el('div', 'member-growth-summary__value', String(summaryData[def.key]));
+            summaryValueEls[def.key] = valEl;
+            card.appendChild(valEl);
+            summary.appendChild(card);
+        });
+        root.appendChild(summary);
+
+        var state = { timeStart: '', timeEnd: '', changeType: '', status: '' };
+
+        var toolbar = el('div', 'erp-toolbar member-drawer-filter-toolbar');
+        var timeStart = mkInput('', 'datetime-local');
+        timeStart.step = '1';
+        var timeEnd = mkInput('', 'datetime-local');
+        timeEnd.step = '1';
+        var timeWrap = el('div', 'member-growth-time-range');
+        timeWrap.appendChild(timeStart);
+        timeWrap.appendChild(el('span', 'member-growth-time-range__sep', '至'));
+        timeWrap.appendChild(timeEnd);
+        toolbar.appendChild(mkField('变动时间', timeWrap));
+
+        var typeSel = mkSelect([
+            { value: '', label: '全部' },
+            { value: 'consume', label: '消费赠送' },
+            { value: 'upgrade', label: '会员升级' },
+            { value: 'checkin', label: '签到' },
+            { value: 'luckybag', label: '福袋' },
+            { value: 'watch_task', label: '观看任务' },
+            { value: 'exchange', label: '积分兑换' },
+            { value: 'exchange_cancel', label: '积分兑换取消' },
+            { value: 'cash', label: '积分抵现' },
+            { value: 'exchange_refund', label: '积分兑换售后' },
+            { value: 'cash_refund', label: '积分抵现售后' }
+        ]);
+        toolbar.appendChild(mkField('变动类型', typeSel));
+
+        var statusSel = mkSelect([
+            { value: '', label: '全部' },
+            { value: '可用', label: '可用' },
+            { value: '冻结', label: '冻结' },
+            { value: '过期', label: '过期' }
+        ]);
+        toolbar.appendChild(mkField('状态', statusSel));
+
+        var actions = el('div', 'erp-toolbar__actions');
+        var btnReset = mkBtn('重置', false);
+        btnReset.classList.add('erp-btn--outline-primary');
+        var btnQuery = mkBtn('查询', true);
+        actions.appendChild(btnReset);
+        actions.appendChild(btnQuery);
+        toolbar.appendChild(actions);
+        root.appendChild(toolbar);
+
+        var tableHost = el('div', 'member-growth-table-host');
+        root.appendChild(tableHost);
+        var pageHost = el('div', 'member-growth-page-host');
+        root.appendChild(pageHost);
+
+        function toComparable(v) {
+            return String(v || '').replace('T', ' ').slice(0, 19);
+        }
+
+        function getFiltered() {
+            return allRows.filter(function (row) {
+                if (state.timeStart && toComparable(row.occurAt) < toComparable(state.timeStart)) return false;
+                if (state.timeEnd && toComparable(row.occurAt) > toComparable(state.timeEnd)) return false;
+                if (state.changeType && row.changeType !== state.changeType) return false;
+                if (state.status && row.status !== state.status) return false;
+                return true;
+            });
+        }
+
+        function renderList() {
+            var filtered = getFiltered();
+            empty(tableHost);
+            empty(pageHost);
+
+            var headers = [
+                '变动时间',
+                '变动类型',
+                '变动积分',
+                '本批剩余',
+                '变动后余额',
+                '关联单号',
+                '积分过期时间',
+                '状态',
+                '备注'
+            ];
+            var wrap = el('div', 'erp-table-scroll');
+            var table = el('table', 'erp-table member-drawer-table--wide');
+            var thead = document.createElement('thead');
+            var hr = document.createElement('tr');
+            headers.forEach(function (h) {
+                hr.appendChild(el('th', '', h));
+            });
+            thead.appendChild(hr);
+            var tbody = document.createElement('tbody');
+
+            if (!filtered.length) {
+                var emptyTr = document.createElement('tr');
+                var emptyTd = el('td', '', '暂无匹配明细');
+                emptyTd.colSpan = headers.length;
+                emptyTd.style.textAlign = 'center';
+                emptyTd.style.color = '#999';
+                emptyTr.appendChild(emptyTd);
+                tbody.appendChild(emptyTr);
+            } else {
+                filtered.forEach(function (row) {
+                    var tr = document.createElement('tr');
+                    tr.appendChild(el('td', '', row.occurAt));
+                    tr.appendChild(el('td', '', POINTS_TYPE_LABEL[row.changeType] || row.changeType));
+                    var tdChange = document.createElement('td');
+                    tdChange.appendChild(formatPointsChangeCell(row.change));
+                    tr.appendChild(tdChange);
+                    tr.appendChild(el('td', '', row.remaining == null ? '—' : String(row.remaining)));
+                    tr.appendChild(el('td', '', String(row.afterValue)));
+                    tr.appendChild(el('td', '', row.refNo || '—'));
+                    tr.appendChild(el('td', '', row.expireAt || (row.remaining == null ? '—' : addDaysStr(row.occurAt, 365))));
+                    var tdStatus = document.createElement('td');
+                    tdStatus.appendChild(formatPointsStatusCell(row.status));
+                    tr.appendChild(tdStatus);
+                    tr.appendChild(el('td', '', row.remark || '—'));
+                    tbody.appendChild(tr);
+                });
+            }
+
+            table.appendChild(thead);
+            table.appendChild(tbody);
+            wrap.appendChild(table);
+            tableHost.appendChild(wrap);
+
+            var bar = el('div', 'erp-pagination');
+            bar.appendChild(el('span', 'erp-pagination__total', '共 ' + filtered.length + ' 条'));
+            pageHost.appendChild(bar);
+        }
+
+        btnQuery.addEventListener('click', function () {
+            state.timeStart = timeStart.value || '';
+            state.timeEnd = timeEnd.value || '';
+            state.changeType = typeSel.value || '';
+            state.status = statusSel.value || '';
+            if (state.timeStart && state.timeEnd && toComparable(state.timeStart) > toComparable(state.timeEnd)) {
+                window.alert('变动时间起始不能晚于结束时间');
+                return;
+            }
+            renderList();
+        });
+
+        btnReset.addEventListener('click', function () {
+            timeStart.value = '';
+            timeEnd.value = '';
+            typeSel.value = '';
+            statusSel.value = '';
+            state = { timeStart: '', timeEnd: '', changeType: '', status: '' };
+            renderList();
+        });
+
+        function nowStr() {
+            var d = new Date();
+            function pad(n) { return n < 10 ? '0' + n : String(n); }
+            return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+                ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+        }
+
+        function addDaysStr(dateStr, days) {
+            var s = String(dateStr || '').replace('T', ' ').slice(0, 19);
+            var m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (!m) return '—';
+            var d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+            d.setDate(d.getDate() + days);
+            function pad(n) { return n < 10 ? '0' + n : String(n); }
+            return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' 00:00:00';
+        }
+
+        function refreshSummaryCards() {
+            var data = calcMemberPointsSummary(allRows);
+            Object.keys(summaryValueEls).forEach(function (k) {
+                if (summaryValueEls[k]) summaryValueEls[k].textContent = String(data[k]);
+            });
+            rec.points = String(data.current);
+        }
+
+        btnAdjustPoints.addEventListener('click', function () {
+            var data = calcMemberPointsSummary(allRows);
+            openPointsModal(rec, {
+                overDrawer: true,
+                available: data.available,
+                onSuccess: function (result) {
+                    var occurAt = nowStr();
+                    allRows.unshift({
+                        occurAt: occurAt,
+                        changeType: 'manual',
+                        change: result.change,
+                        remaining: result.change > 0 ? result.change : null,
+                        afterValue: result.afterValue,
+                        refNo: '—',
+                        expireAt: result.change > 0 ? addDaysStr(occurAt, 365) : '—',
+                        remark: result.remark || '手工调整',
+                        status: result.change > 0 ? '可用' : '—'
+                    });
+                    refreshSummaryCards();
+                    renderList();
+                }
+            });
+        });
+
+        renderList();
+        return root;
+    }
+
     function panelBindStores() {
         var root = el('div', 'member-drawer-panel');
         root.appendChild(el('div', 'supplier-detail-section-title', '绑定门店'));
@@ -736,13 +1198,14 @@
         );
 
         var tabsWrap = el('div', 'store-drawer__tabs');
-        var tabIds = ['detail', 'growth', 'assets', 'stores', 'watch', 'orders'];
-        var tabLabels = ['会员详情', '成长值', '会员资产', '绑定门店', '观看记录', '订单记录'];
+        var tabIds = ['detail', 'growth', 'points', 'assets', 'stores', 'watch', 'orders'];
+        var tabLabels = ['会员详情', '成长值', '会员积分', '会员资产', '绑定门店', '观看记录', '订单记录'];
         var bodyHost = el('div', 'store-drawer__body');
 
         var panels = {
             detail: panelMemberDetail(rec),
             growth: panelMemberGrowth(rec),
+            points: panelMemberPoints(rec),
             assets: panelMemberAssets(),
             stores: panelBindStores(),
             watch: panelWatchRecords(),
@@ -1062,13 +1525,21 @@
         }, 0);
     }
 
-    function openPointsModal(member) {
+    function openPointsModal(member, opts) {
+        opts = opts || {};
+        if (!member) return;
         removeMemberCUi();
-        var backdrop = el('div', 'erp-modal-backdrop');
+
+        var pointsNum = Number(String(member.points || '0').replace(/[^\d.-]/g, '')) || 0;
+        var available = opts.available != null ? Number(opts.available) : pointsNum;
+        var operator = getCurrentOperatorName();
+        var REMARK_MAX = 200;
+
+        var backdrop = el('div', 'erp-modal-backdrop' + (opts.overDrawer ? ' erp-modal-backdrop--over-drawer' : ''));
         backdrop.setAttribute('data-member-c-ui', '1');
-        var modal = el('div', 'erp-modal erp-modal--member-c-points');
+        var modal = el('div', 'erp-modal erp-modal--pts-adjust');
         var header = el('div', 'erp-modal__header');
-        header.appendChild(el('h2', 'erp-modal__title', '发放/扣除积分'));
+        header.appendChild(el('h2', 'erp-modal__title', '调整积分'));
         var bx = el('button', 'erp-modal__header-btn');
         bx.type = 'button';
         bx.innerHTML = '&times;';
@@ -1081,64 +1552,81 @@
 
         var body = el('div', 'erp-modal__body');
 
+        var rowMember = el('div', 'erp-modal-field');
+        rowMember.appendChild(el('label', 'erp-modal-field__label', '会员'));
+        var memCtrl = el('div', 'erp-modal-field__control');
+        var memLine = el('div', 'pts-adjust-member');
+        memLine.textContent =
+            (member.nickname || '—') +
+            '（' +
+            (member.id || '—') +
+            '） · 可用积分 ' +
+            available;
+        memCtrl.appendChild(memLine);
+        memCtrl.appendChild(
+            el('div', 'pts-adjust-tip', '减少时按 FIFO 优先扣最早获取的「可用」批次（冻结积分不可扣）')
+        );
+        rowMember.appendChild(memCtrl);
+        body.appendChild(rowMember);
+
         var rowType = el('div', 'erp-modal-field');
-        var lab1 = el('label', 'erp-modal-field__label');
-        lab1.textContent = '类型';
-        rowType.appendChild(lab1);
+        var labType = el('label', 'erp-modal-field__label');
+        labType.innerHTML = '<span class="erp-req">*</span>调整类型';
+        rowType.appendChild(labType);
         var typeCtrl = el('div', 'erp-modal-field__control');
-        var radioRow = el('div', 'member-c-radio-row');
-        var rIssue = document.createElement('input');
-        rIssue.type = 'radio';
-        rIssue.name = 'mc-points-type';
-        rIssue.value = 'issue';
-        rIssue.checked = true;
-        var rDeduct = document.createElement('input');
-        rDeduct.type = 'radio';
-        rDeduct.name = 'mc-points-type';
-        rDeduct.value = 'deduct';
-        var labIssue = el('label', 'member-c-radio-label');
-        labIssue.appendChild(rIssue);
-        labIssue.appendChild(document.createTextNode(' 发放'));
-        var labDeduct = el('label', 'member-c-radio-label');
-        labDeduct.appendChild(rDeduct);
-        labDeduct.appendChild(document.createTextNode(' 扣除'));
-        radioRow.appendChild(labIssue);
-        radioRow.appendChild(labDeduct);
+        var radioRow = el('div', 'pts-adjust-radio-row');
+        var rAdd = document.createElement('input');
+        rAdd.type = 'radio';
+        rAdd.name = 'ptsAdjustDir';
+        rAdd.value = 'add';
+        rAdd.checked = true;
+        var rSub = document.createElement('input');
+        rSub.type = 'radio';
+        rSub.name = 'ptsAdjustDir';
+        rSub.value = 'sub';
+        var labAdd = el('label', 'pts-adjust-radio-label');
+        labAdd.appendChild(rAdd);
+        labAdd.appendChild(document.createTextNode(' 增加'));
+        var labSub = el('label', 'pts-adjust-radio-label');
+        labSub.appendChild(rSub);
+        labSub.appendChild(document.createTextNode(' 减少'));
+        radioRow.appendChild(labAdd);
+        radioRow.appendChild(labSub);
         typeCtrl.appendChild(radioRow);
         rowType.appendChild(typeCtrl);
         body.appendChild(rowType);
 
         var rowQty = el('div', 'erp-modal-field');
-        rowQty.appendChild(el('label', 'erp-modal-field__label', '数量'));
+        var labQty = el('label', 'erp-modal-field__label');
+        labQty.setAttribute('for', 'ptsAdjustValue');
+        labQty.innerHTML = '<span class="erp-req">*</span>调整积分';
+        rowQty.appendChild(labQty);
         var qtyCtrl = el('div', 'erp-modal-field__control');
         var qtyInp = el('input', 'erp-input');
+        qtyInp.id = 'ptsAdjustValue';
         qtyInp.type = 'number';
         qtyInp.min = '1';
         qtyInp.step = '1';
-        qtyInp.placeholder = '请输入发放/扣除积分数量';
+        qtyInp.placeholder = '请输入正整数';
         qtyCtrl.appendChild(qtyInp);
         rowQty.appendChild(qtyCtrl);
         body.appendChild(rowQty);
 
-        var rowReason = el('div', 'erp-modal-field');
-        rowReason.appendChild(el('label', 'erp-modal-field__label', '原因'));
-        var reasonCtrl = el('div', 'erp-modal-field__control');
-        var ta = el('textarea', 'erp-textarea');
-        ta.maxLength = 150;
-        ta.rows = 4;
-        ta.placeholder = '请输入发放/扣除原因';
-        var counter = el('div', 'member-c-textarea-counter');
-        var cntSpan = el('span', '', '0');
-        counter.appendChild(cntSpan);
-        counter.appendChild(document.createTextNode('/150'));
-        function syncCnt() {
-            cntSpan.textContent = String((ta.value || '').length);
-        }
-        ta.addEventListener('input', syncCnt);
-        reasonCtrl.appendChild(ta);
-        reasonCtrl.appendChild(counter);
-        rowReason.appendChild(reasonCtrl);
-        body.appendChild(rowReason);
+        var rowRemark = el('div', 'erp-modal-field');
+        var labRemark = el('label', 'erp-modal-field__label');
+        labRemark.setAttribute('for', 'ptsAdjustRemark');
+        labRemark.textContent = '备注';
+        rowRemark.appendChild(labRemark);
+        var remarkCtrl = el('div', 'erp-modal-field__control');
+        var ta = el('textarea', 'erp-input');
+        ta.id = 'ptsAdjustRemark';
+        ta.rows = 3;
+        ta.maxLength = REMARK_MAX;
+        ta.placeholder = '选填，最多 ' + REMARK_MAX + ' 字';
+        remarkCtrl.appendChild(ta);
+        remarkCtrl.appendChild(el('div', 'pts-adjust-tip', '操作人：' + operator));
+        rowRemark.appendChild(remarkCtrl);
+        body.appendChild(rowRemark);
 
         var footer = el('div', 'erp-modal__footer');
         var bCancel = mkBtn('取消', false);
@@ -1147,24 +1635,35 @@
             backdrop.remove();
         });
         bOk.addEventListener('click', function () {
-            var type =
-                (backdrop.querySelector('input[name="mc-points-type"]:checked') || {}).value || 'issue';
-            var qty = qtyInp.value.trim();
-            var reason = (ta.value || '').trim();
-            if (!qty || Number(qty) <= 0) {
-                window.alert('请输入有效的积分数量');
+            var dirEl = backdrop.querySelector('input[name="ptsAdjustDir"]:checked');
+            var dir = dirEl ? dirEl.value : 'add';
+            var raw = qtyInp.value;
+            var val = Number(raw);
+            if (!raw || isNaN(val) || val < 1 || !/^\d+$/.test(String(raw).trim())) {
+                window.alert('请输入正整数积分');
                 return;
             }
-            if (!reason) {
-                window.alert('请输入原因');
+            if (dir === 'sub' && val > available) {
+                window.alert('扣减不得大于可用积分（当前可用 ' + available + '）');
                 return;
             }
-            var label = type === 'deduct' ? '扣除' : '发放';
-            window.alert('已提交' + label + '积分：会员 ' + member.id + '，数量 ' + qty);
+            var remark = String(ta.value || '').trim();
+            var delta = dir === 'add' ? val : -val;
+            var after = available + delta;
+            var curPts = Number(String(member.points || '0').replace(/[^\d.-]/g, '')) || 0;
+            member.points = String(Math.max(0, curPts + delta));
+            if (typeof opts.onSuccess === 'function') {
+                opts.onSuccess({
+                    change: delta,
+                    afterValue: after,
+                    available: Math.max(0, after),
+                    remark: remark || (dir === 'add' ? '手工增加积分' : '手工减少积分（FIFO）'),
+                    operator: operator
+                });
+            }
             backdrop.remove();
-            showToast('积分操作已记录（演示）', 'success');
+            showToast('积分调整成功', 'success');
         });
-
         footer.appendChild(bCancel);
         footer.appendChild(bOk);
 
@@ -1176,7 +1675,9 @@
             if (ev.target === backdrop) backdrop.remove();
         });
         document.body.appendChild(backdrop);
-        syncCnt();
+        setTimeout(function () {
+            qtyInp.focus();
+        }, 0);
     }
 
     function openCouponDispatchModal(member) {

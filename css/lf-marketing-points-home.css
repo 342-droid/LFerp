@@ -140,6 +140,13 @@
     transform: translateX(22px);
 }
 
+.mkt-points-switch:disabled,
+.mkt-points-switch[aria-disabled='true'] {
+    cursor: not-allowed;
+    opacity: 0.55;
+    pointer-events: none;
+}
+
 .mkt-points-section {
     margin-top: 24px;
 }

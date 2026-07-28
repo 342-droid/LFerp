@@ -637,6 +637,19 @@
   overflow: hidden;
 }
 
+.ua-od-item__name .ua-cart-item__tag {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: linear-gradient(135deg, #ff6b5c, #ff4d3a);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+
 .ua-od-item__spec {
   margin-top: 6px;
   font-size: 11px;

@@ -114,7 +114,12 @@
     }
 
     function goList() {
-        window.location.href = pageHref('mdm_member_level.html');
+        var url = pageHref('mdm_member_level.html') || 'mdm_member_level.html';
+        try {
+            window.location.assign(url);
+        } catch (e) {
+            window.location.href = url;
+        }
     }
 
     function setTitles() {
@@ -1313,8 +1318,10 @@
     }
 
     function bindEvents() {
+        var listUrl = pageHref('mdm_member_level.html') || 'mdm_member_level.html';
         var back = document.getElementById('btnBackList');
         if (back) {
+            back.setAttribute('href', listUrl);
             back.addEventListener('click', function (ev) {
                 ev.preventDefault();
                 clearEditCache();
@@ -1334,6 +1341,8 @@
 
     function boot() {
         resolveEditItem();
+        /* 无论是否找到编辑数据，先绑定返回，避免左上角「返回」无响应 */
+        bindEvents();
 
         if (editId && !editItem) {
             toast('未找到该会员等级', 'warning');
@@ -1348,7 +1357,6 @@
         bindScopeUi();
         syncScopeUi();
         bindBenefitSwitches();
-        bindEvents();
     }
 
     if (document.readyState === 'loading') {

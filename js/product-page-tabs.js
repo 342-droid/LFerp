@@ -33,7 +33,29 @@
   }
 
   function currentPage() {
-    return (window.location.pathname.split('/').pop() || '').toLowerCase();
+    var page = (window.location.pathname.split('/').pop() || '')
+      .split('?')[0]
+      .split('#')[0]
+      .toLowerCase();
+    /* 兼容预览环境 cleanUrl：/mdm_product_audit → mdm_product_audit.html */
+    if (page && !/\.html?$/i.test(page)) page += '.html';
+    return page;
+  }
+
+  function tabHref(tabPage) {
+    var href = wp().page(tabPage);
+    if (tabPage !== 'mdm_product_audit.html') return href;
+    try {
+      var code = (sessionStorage.getItem('mdm_product_detail_code') || '').trim();
+      if (!code) return href;
+      var mode = sessionStorage.getItem('mdm_product_detail_mode') || '';
+      var q = 'code=' + encodeURIComponent(code);
+      if (mode === 'audit') q += '&mode=audit';
+      href = String(href || '').split('#')[0].split('?')[0] + '?' + q + '#' + q;
+    } catch (e) {
+      /* ignore */
+    }
+    return href;
   }
 
   function loadTabs() {
@@ -88,7 +110,7 @@
       } else {
         html +=
           '<a href="' +
-          wp().page(tabPage) +
+          tabHref(tabPage) +
           '" class="product-page-tabs__item">' +
           '<span class="product-page-tabs__label">' +
           escapeHtml(label) +

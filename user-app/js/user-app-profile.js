@@ -11,6 +11,8 @@
   var C_MEMBER_ID = 'UC10001';
   /** 与会员中心演示成长值保持一致 */
   var DEMO_GROWTH = 1485;
+  /** 与积分明细页「当前积分」保持一致（可用+冻结） */
+  var DEMO_POINTS_CURRENT = 206;
 
   var DEFAULT_PROFILE = {
     nickname: '宁静致远',
@@ -176,7 +178,7 @@
       source: '微信小程序',
       bindMethod: '手机',
       channelCount: '1',
-      points: '500',
+      points: String(DEMO_POINTS_CURRENT),
       satisMinutes: '0',
       satisFeedback: '0',
       growthScore: String(DEMO_GROWTH),
@@ -236,13 +238,40 @@
     if (vipText) vipText.textContent = '您当前会员等级：' + level.name;
   }
 
+  function isPointsMallEnabled() {
+    try {
+      var raw = localStorage.getItem('mdm_member_points_rule_v1');
+      if (!raw) return true;
+      var parsed = JSON.parse(raw);
+      if (parsed.enabled === false) return false;
+      if (parsed.exchange && parsed.exchange.enabled === false) return false;
+      return true;
+    } catch (e) {
+      return true;
+    }
+  }
+
   function applyProfileToPage(profile) {
     var nameEl = document.getElementById('uaProfileName');
     var phoneEl = document.getElementById('uaProfilePhone');
     var avatarEl = document.getElementById('uaProfileAvatar');
+    var pointsEl = document.getElementById('uaProfilePoints');
+    var pointsLink = document.getElementById('uaProfilePointsLink');
     if (nameEl) nameEl.textContent = profile.nickname || DEFAULT_PROFILE.nickname;
     if (phoneEl) phoneEl.textContent = maskPhone(profile.displayPhone || DEFAULT_PROFILE.displayPhone);
     if (avatarEl && profile.avatar) avatarEl.src = profile.avatar;
+    /* 我的积分：展示当前积分（可用+冻结） */
+    if (pointsEl) pointsEl.textContent = String(DEMO_POINTS_CURRENT);
+    /* 开启积分商城 → 进商城；关闭 → 直接进积分明细 */
+    if (pointsLink) {
+      var target = isPointsMallEnabled() ? 'points-mall.html' : 'points-detail.html';
+      pointsLink.href =
+        window.UaNav && window.UaNav.withFrom ? window.UaNav.withFrom(target) : target;
+      pointsLink.setAttribute(
+        'aria-label',
+        isPointsMallEnabled() ? '我的积分，进入积分商城' : '我的积分，查看明细'
+      );
+    }
     applyLevelBadge();
   }
 
@@ -251,6 +280,7 @@
     MEMBER_LIST_KEY: MEMBER_LIST_KEY,
     C_MEMBER_ID: C_MEMBER_ID,
     DEFAULT_PROFILE: DEFAULT_PROFILE,
+    DEMO_POINTS_CURRENT: DEMO_POINTS_CURRENT,
     maskPhone: maskPhone,
     load: loadProfile,
     save: saveProfile,

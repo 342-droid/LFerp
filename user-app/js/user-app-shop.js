@@ -200,7 +200,40 @@
     return cart;
   }
 
+  function isPointsExchangeItem(item) {
+    return !!(item && (item.isPointsExchange || String(item.id || '').indexOf('points:') === 0));
+  }
+
+  function resolveCartAsset(src) {
+    src = String(src || '');
+    if (!src) return '';
+    if (/^(data:|https?:|\/\/)/i.test(src)) return src;
+    if (src.indexOf('../user-app/') === 0) return src.replace('../user-app/', '../');
+    if (src.indexOf('user-app/') === 0) return '../' + src.slice('user-app/'.length);
+    return src;
+  }
+
+  function formatPointsExchangePrice(item) {
+    if (global.UaPointsMallOrder && global.UaPointsMallOrder.formatExchangeLabel) {
+      return global.UaPointsMallOrder.formatExchangeLabel(item.points, item.money);
+    }
+    var pts = Number(item && item.points) || 0;
+    var cash = Number(item && item.money) || 0;
+    if (cash > 0) return pts + '积分 + ' + formatMoney(cash);
+    return pts + '积分';
+  }
+
   function getCartItemMerchantInfo(item) {
+    if (isPointsExchangeItem(item)) {
+      var supplierId = item.supplierId || String(item.merchantId || '').replace(/^supplier:/, '') || '斯斯供应商商家';
+      var supplierName = item.supplierName || item.merchantName || supplierId;
+      return {
+        fulfillType: item.fulfillType === 'express' ? 'express' : 'pickup',
+        merchantId: 'supplier:' + supplierId,
+        merchantName: supplierName,
+        merchantAvatar: ''
+      };
+    }
     var p = PRODUCTS[item && item.id];
     var fulfillType =
       (item && item.fulfillType) || (p && getProductFulfillType(p)) || 'pickup';
@@ -227,11 +260,21 @@
   }
 
   function enrichCartItem(item) {
-    if (!item || !PRODUCTS[item.id]) return item;
-    var info = getCartItemMerchantInfo(item);
-    item.fulfillType = info.fulfillType;
-    item.merchantId = info.merchantId;
-    item.merchantName = info.merchantName;
+    if (!item) return item;
+    if (isPointsExchangeItem(item)) {
+      item.isPointsExchange = true;
+      var info = getCartItemMerchantInfo(item);
+      item.fulfillType = info.fulfillType;
+      item.merchantId = info.merchantId;
+      item.merchantName = info.merchantName;
+      item.price = Number(item.money) || 0;
+      return item;
+    }
+    if (!PRODUCTS[item.id]) return item;
+    var mallInfo = getCartItemMerchantInfo(item);
+    item.fulfillType = mallInfo.fulfillType;
+    item.merchantId = mallInfo.merchantId;
+    item.merchantName = mallInfo.merchantName;
     return item;
   }
 
@@ -245,7 +288,7 @@
     var groups = [];
     var map = {};
     (cart.items || []).forEach(function (item) {
-      if (!PRODUCTS[item.id]) return;
+      if (!isPointsExchangeItem(item) && !PRODUCTS[item.id]) return;
       var info = getCartItemMerchantInfo(item);
       var key = info.fulfillType + ':' + info.merchantId;
       if (!map[key]) {
@@ -255,6 +298,7 @@
           merchantId: info.merchantId,
           merchantName: info.merchantName,
           merchantAvatar: info.merchantAvatar,
+          isPointsGroup: false,
           items: []
         };
         groups.push(map[key]);
@@ -283,12 +327,14 @@
   }
 
   function itemUnitPrice(item) {
+    if (isPointsExchangeItem(item)) return Number(item.money) || 0;
     if (item && item.price != null) return Number(item.price);
     var p = PRODUCTS[item && item.id];
     return p ? Number(p.price) : 0;
   }
 
   function itemSpecText(item) {
+    if (isPointsExchangeItem(item)) return String(item.spec || '默认');
     if (item && item.spec != null && item.spec !== '') return String(item.spec);
     var p = PRODUCTS[item && item.id];
     return p ? String(p.spec) : '';
@@ -297,6 +343,7 @@
   function getCartCount(cart) {
     cart = cart || ensureCart();
     return (cart.items || []).reduce(function (sum, item) {
+      if (!isPointsExchangeItem(item) && !PRODUCTS[item.id]) return sum;
       return sum + (item.qty || 0);
     }, 0);
   }
@@ -367,14 +414,23 @@
     cart = cart || ensureCart();
     var total = 0;
     var count = 0;
+    var points = 0;
+    var hasPoints = false;
     (cart.items || []).forEach(function (item) {
       if (!item.checked) return;
+      if (isPointsExchangeItem(item)) {
+        hasPoints = true;
+        total += itemUnitPrice(item) * item.qty;
+        points += (Number(item.points) || 0) * (item.qty || 0);
+        count += item.qty;
+        return;
+      }
       var p = PRODUCTS[item.id];
       if (!p) return;
       total += itemUnitPrice(item) * item.qty;
       count += item.qty;
     });
-    return { total: total, count: count };
+    return { total: total, count: count, points: points, hasPoints: hasPoints };
   }
 
   function formatMoney(n) {
@@ -463,17 +519,27 @@
     var cart = ensureCart();
     var item = findItem(cart, id);
     if (!item) return cart;
-    item.qty = Math.max(1, qty);
+    var min = isPointsExchangeItem(item)
+      ? Math.max(1, Math.round(Number(item.minSaleQty) || 1))
+      : 1;
+    item.qty = Math.max(min, qty);
     writeCart(cart);
+    if (isPointsExchangeItem(item) && global.UaPointsMallOrder && global.UaPointsMallOrder.setCartLineQty) {
+      global.UaPointsMallOrder.setCartLineQty(item.pointsCode, item.skuCode, item.qty);
+    }
     return cart;
   }
 
   function removeCartItem(id) {
     var cart = ensureCart();
+    var removing = findItem(cart, id);
     cart.items = (cart.items || []).filter(function (it) {
       return it.id !== id;
     });
     writeCart(cart);
+    if (removing && isPointsExchangeItem(removing) && global.UaPointsMallOrder) {
+      global.UaPointsMallOrder.removeFromShopCart(removing.pointsCode, removing.skuCode);
+    }
     return cart;
   }
 
@@ -529,6 +595,9 @@
     var cart = ensureCart();
     cart.items = [];
     writeCart(cart);
+    try {
+      global.sessionStorage.removeItem('ua_points_mall_cart_v1');
+    } catch (e) { /* ignore */ }
     return cart;
   }
 
@@ -536,11 +605,36 @@
     var cart = ensureCart();
     return (cart.items || [])
       .filter(function (item) {
-        return item.checked && PRODUCTS[item.id];
+        return item.checked && (isPointsExchangeItem(item) || PRODUCTS[item.id]);
       })
       .map(function (item) {
+        if (isPointsExchangeItem(item)) {
+          var info = getCartItemMerchantInfo(item);
+          return {
+            id: item.id,
+            name: item.name,
+            fullName: item.name,
+            spec: itemSpecText(item),
+            price: itemUnitPrice(item),
+            img: resolveCartAsset(item.img),
+            watermark: false,
+            qty: item.qty,
+            fulfillType: info.fulfillType,
+            merchantId: info.merchantId,
+            merchantName: info.merchantName,
+            isPointsExchange: true,
+            points: Number(item.points) || 0,
+            money: Number(item.money) || 0,
+            exchangeType: item.exchangeType,
+            pointsCode: item.pointsCode,
+            skuCode: item.skuCode,
+            category: item.category || '',
+            deliveryText:
+              info.fulfillType === 'express' ? '预计2-3天送达' : '按履约方式配送'
+          };
+        }
         var p = PRODUCTS[item.id];
-        var info = getCartItemMerchantInfo(item);
+        var mallInfo = getCartItemMerchantInfo(item);
         return {
           id: p.id,
           name: p.shortName || p.name,
@@ -550,11 +644,13 @@
           img: p.img,
           watermark: p.watermark,
           qty: item.qty,
-          fulfillType: info.fulfillType,
-          merchantId: info.merchantId,
-          merchantName: info.merchantName,
+          fulfillType: mallInfo.fulfillType,
+          merchantId: mallInfo.merchantId,
+          merchantName: mallInfo.merchantName,
+          isPointsExchange: false,
+          category: p.category || '',
           deliveryText:
-            info.fulfillType === 'express'
+            mallInfo.fulfillType === 'express'
               ? (p.supplier && p.supplier.deliveryText) || '预计2-3天送达'
               : p.pickupBadge || STORE.pickupBadge || '后天可提'
         };
@@ -1305,9 +1401,12 @@
     document.getElementById('cartSelectAll') &&
       document.getElementById('cartSelectAll').addEventListener('click', function () {
         var cart = ensureCart();
+        var selectable = (cart.items || []).filter(function (it) {
+          return isPointsExchangeItem(it) || PRODUCTS[it.id];
+        });
         var allChecked =
-          cart.items.length > 0 &&
-          cart.items.every(function (it) {
+          selectable.length > 0 &&
+          selectable.every(function (it) {
             return it.checked;
           });
         toggleAll(!allChecked);
@@ -1353,9 +1452,14 @@
 
     if (emptyEl) emptyEl.hidden = true;
 
-    var allChecked = cart.items.every(function (it) {
-      return it.checked;
+    var selectable = (cart.items || []).filter(function (it) {
+      return isPointsExchangeItem(it) || PRODUCTS[it.id];
     });
+    var allChecked =
+      selectable.length > 0 &&
+      selectable.every(function (it) {
+        return it.checked;
+      });
     if (selectAll) {
       selectAll.classList.toggle('is-checked', allChecked);
       selectAll.setAttribute('aria-checked', allChecked ? 'true' : 'false');
@@ -1368,6 +1472,56 @@
         });
         var itemsHtml = group.items
           .map(function (item) {
+            if (isPointsExchangeItem(item)) {
+              var detailHref =
+                'points-product-detail.html?code=' +
+                encodeURIComponent(item.pointsCode || '') +
+                '&from=cart.html';
+              return (
+                '<article class="ua-cart-item ua-cart-item--points" data-id="' +
+                item.id +
+                '">' +
+                '<div class="ua-cart-item__check">' +
+                '<button type="button" class="ua-shop-check' +
+                (item.checked ? ' is-checked' : '') +
+                '" data-cart-check="' +
+                item.id +
+                '" aria-label="选择"></button></div>' +
+                '<div class="ua-cart-item__thumb">' +
+                '<a href="' +
+                detailHref +
+                '">' +
+                '<img src="' +
+                resolveCartAsset(item.img) +
+                '" alt="">' +
+                '</a></div>' +
+                '<div class="ua-cart-item__body">' +
+                '<a class="ua-cart-item__name" href="' +
+                detailHref +
+                '">' +
+                '<span class="ua-cart-item__tag">积分兑换</span>' +
+                (item.name || '') +
+                '</a>' +
+                '<span class="ua-cart-item__spec">' +
+                itemSpecText(item) +
+                '</span>' +
+                '<div class="ua-cart-item__bottom">' +
+                '<div class="ua-cart-item__price ua-cart-item__price--points">' +
+                formatPointsExchangePrice(item) +
+                '</div>' +
+                '<div class="ua-cart-stepper">' +
+                '<button type="button" class="ua-cart-stepper__btn" data-cart-minus="' +
+                item.id +
+                '">−</button>' +
+                '<span class="ua-cart-stepper__num">' +
+                item.qty +
+                '</span>' +
+                '<button type="button" class="ua-cart-stepper__btn ua-cart-stepper__btn--plus" data-cart-plus="' +
+                item.id +
+                '">+</button>' +
+                '</div></div></div></article>'
+              );
+            }
             var p = PRODUCTS[item.id];
             if (!p) return '';
             return (
@@ -1470,7 +1624,10 @@
         var id = btn.getAttribute('data-cart-minus');
         var item = findItem(ensureCart(), id);
         if (!item) return;
-        if (item.qty <= 1) removeCartItem(id);
+        var min = isPointsExchangeItem(item)
+          ? Math.max(1, Math.round(Number(item.minSaleQty) || 1))
+          : 1;
+        if (item.qty <= min) removeCartItem(id);
         else setQty(id, item.qty - 1);
         renderCart();
       });
@@ -1486,7 +1643,20 @@
     });
 
     var summary = getCheckedSummary(cart);
-    if (totalEl) totalEl.textContent = formatMoney(summary.total);
+    if (totalEl) {
+      if (summary.hasPoints && summary.points > 0) {
+        totalEl.innerHTML =
+          summary.total > 0
+            ? '<span class="ua-cart-footer__mix">' +
+              summary.points +
+              '积分 + ' +
+              formatMoney(summary.total) +
+              '</span>'
+            : '<span class="ua-cart-footer__mix">' + summary.points + '积分</span>';
+      } else {
+        totalEl.textContent = formatMoney(summary.total);
+      }
+    }
     if (checkoutBtn) checkoutBtn.textContent = '立即下单(' + summary.count + ')';
     syncBadges();
   }
@@ -1506,6 +1676,7 @@
     var paySheet = document.getElementById('confirmPaySheet');
     var payMethod = 'wechat';
     var remarks = {};
+    var usePointsDeduct = true;
 
     if (!items.length) {
       window.location.href = 'cart.html';
@@ -1519,11 +1690,68 @@
     var hasPickup = splits.some(function (s) {
       return s.fulfillType === 'pickup';
     });
-    var goodsTotal = items.reduce(function (sum, it) {
-      return sum + it.price * it.qty;
-    }, 0);
+
+    /* 商品总价：普通商品货款 + 积分兑换现金加价（积分本身另计） */
+    var mallGoodsTotal = 0;
+    var pointsExchangeCash = 0;
+    var pointsExchangePts = 0;
+    items.forEach(function (it) {
+      if (it.isPointsExchange) {
+        pointsExchangeCash += (Number(it.money) || 0) * (it.qty || 0);
+        pointsExchangePts += (Number(it.points) || 0) * (it.qty || 0);
+      } else {
+        mallGoodsTotal += (Number(it.price) || 0) * (it.qty || 0);
+      }
+    });
+    mallGoodsTotal = Math.round(mallGoodsTotal * 100) / 100;
+    pointsExchangeCash = Math.round(pointsExchangeCash * 100) / 100;
+    var goodsTotal = Math.round((mallGoodsTotal + pointsExchangeCash) * 100) / 100;
     var freight = hasExpress ? 0 : 0;
-    var payable = goodsTotal + freight;
+
+    var cfg = global.MdmPointsMallConfig;
+    var availablePts =
+      (cfg && cfg.AVAILABLE_POINTS_DEMO) || 161;
+    /* 兑换与抵现共用可用积分：先预留兑换所需，剩余才可抵普通商品现金 */
+    var ptsLeftForDeduct = Math.max(0, availablePts - pointsExchangePts);
+    /* 抵扣仅作用普通商品；积分兑换商品不参与可抵基数 */
+    var deductInfo =
+      cfg && cfg.calcCashDeduction
+        ? cfg.calcCashDeduction(
+            items.filter(function (it) {
+              return !it.isPointsExchange;
+            }),
+            ptsLeftForDeduct
+          )
+        : { enabled: false, deductAmount: 0, pointsUsed: 0, tip: '' };
+    if (pointsExchangePts > 0 && deductInfo.enabled) {
+      deductInfo.tip =
+        (deductInfo.deductAmount > 0
+          ? '兑换已占 ' +
+            pointsExchangePts +
+            ' 积分，剩余可抵 ¥' +
+            Number(deductInfo.deductAmount).toFixed(2)
+          : '兑换已占 ' +
+            pointsExchangePts +
+            ' 积分，剩余积分不足抵现') +
+        '（可用共 ' +
+        availablePts +
+        '）';
+    }
+
+    function currentDeduct() {
+      if (!usePointsDeduct || !deductInfo.enabled) {
+        return { deductAmount: 0, pointsUsed: 0 };
+      }
+      return deductInfo;
+    }
+
+    function calcPayable() {
+      var d = currentDeduct();
+      return Math.max(
+        0,
+        Math.round((goodsTotal + freight - (d.deductAmount || 0)) * 100) / 100
+      );
+    }
 
     var shopIcon =
       '<svg class="ua-confirm-split__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path d="M9 22V12h6v10"/></svg>';
@@ -1532,9 +1760,24 @@
 
     if (addressCard) addressCard.hidden = !hasExpress;
 
+    function formatPointsPrice(item) {
+      var pts = Number(item.points) || 0;
+      var cash = Number(item.money) || 0;
+      if (cash > 0) return pts + '积分 + ' + formatMoney(cash);
+      return pts + '积分';
+    }
+
     function renderItemRow(item) {
+      var nameHtml = item.isPointsExchange
+        ? '<span class="ua-cart-item__tag">积分兑换</span>' + item.name
+        : item.name;
+      var priceHtml = item.isPointsExchange
+        ? formatPointsPrice(item)
+        : formatMoney(item.price);
       return (
-        '<div class="ua-confirm-item">' +
+        '<div class="ua-confirm-item' +
+        (item.isPointsExchange ? ' ua-confirm-item--points' : '') +
+        '">' +
         '<div class="ua-confirm-item__thumb">' +
         '<img src="' +
         item.img +
@@ -1545,19 +1788,87 @@
         '</div>' +
         '<div class="ua-confirm-item__body">' +
         '<div class="ua-confirm-item__name">' +
-        item.name +
+        nameHtml +
         '</div>' +
         '<span class="ua-confirm-item__spec">' +
         item.spec +
         '</span>' +
         '<div class="ua-confirm-item__bottom">' +
-        '<span class="ua-confirm-item__price">' +
-        formatMoney(item.price) +
+        '<span class="ua-confirm-item__price' +
+        (item.isPointsExchange ? ' ua-confirm-item__price--points' : '') +
+        '">' +
+        priceHtml +
         '</span>' +
         '<span class="ua-confirm-item__qty">x' +
         item.qty +
         '</span></div></div></div>'
       );
+    }
+
+    function syncAmounts() {
+      var d = currentDeduct();
+      var payable = calcPayable();
+      if (goodsTotalEl) goodsTotalEl.textContent = formatMoney(goodsTotal);
+      if (freightEl) freightEl.textContent = freight > 0 ? formatMoney(freight) : '免运费';
+      if (couponDiscountEl) couponDiscountEl.textContent = '-¥0.00';
+      var exchangeRow = document.getElementById('confirmExchangePointsRow');
+      var exchangePtsEl = document.getElementById('confirmExchangePoints');
+      if (exchangeRow) exchangeRow.hidden = !(pointsExchangePts > 0);
+      if (exchangePtsEl) exchangePtsEl.textContent = pointsExchangePts + '积分';
+      var deductRow = document.getElementById('confirmPointsDeductSummaryRow');
+      var deductAmt = document.getElementById('confirmPointsDeductAmount');
+      if (deductRow) deductRow.hidden = !(d.deductAmount > 0);
+      if (deductAmt) deductAmt.textContent = '-¥' + Number(d.deductAmount || 0).toFixed(2);
+      var deductText = document.getElementById('confirmPointsDeductText');
+      if (deductText) {
+        if (!deductInfo.enabled || !(deductInfo.eligibleAmount > 0)) {
+          deductText.textContent = deductInfo.tip || '不可用';
+          deductText.classList.add('ua-confirm-row__value--muted');
+        } else if (usePointsDeduct && d.deductAmount > 0) {
+          deductText.textContent =
+            pointsExchangePts > 0
+              ? '已抵 ¥' +
+                d.deductAmount.toFixed(2) +
+                '（兑换已占' +
+                pointsExchangePts +
+                '积分）'
+              : '已抵 ' + d.pointsUsed + '积分（-¥' + d.deductAmount.toFixed(2) + '）';
+          deductText.classList.remove('ua-confirm-row__value--muted');
+        } else {
+          deductText.textContent =
+            pointsExchangePts > 0 && deductInfo.tip
+              ? deductInfo.tip
+              : '不使用抵扣';
+          deductText.classList.add('ua-confirm-row__value--muted');
+        }
+      }
+      var sumLabel = '';
+      if (pointsExchangePts > 0 && payable > 0) {
+        sumLabel = pointsExchangePts + '积分 + ' + formatMoney(payable);
+      } else if (pointsExchangePts > 0) {
+        sumLabel = pointsExchangePts + '积分';
+      } else {
+        sumLabel = formatMoney(payable);
+      }
+      if (sumEl) sumEl.textContent = sumLabel;
+      if (payEl) {
+        payEl.innerHTML =
+          pointsExchangePts > 0
+            ? (payable > 0
+                ? pointsExchangePts + '积分 + ' + formatMoney(payable)
+                : pointsExchangePts + '积分')
+            : formatMoney(payable);
+      }
+      if (paySheetAmount) {
+        paySheetAmount.textContent =
+          pointsExchangePts > 0 && payable > 0
+            ? '扣 ' + pointsExchangePts + '积分，付 ' + formatMoney(payable)
+            : payable > 0
+              ? formatMoney(payable)
+              : pointsExchangePts > 0
+                ? '扣除 ' + pointsExchangePts + '积分'
+                : formatMoney(0);
+      }
     }
 
     function renderPkgBody(split) {
@@ -1686,14 +1997,110 @@
       });
     }
 
-    if (goodsTotalEl) goodsTotalEl.textContent = formatMoney(goodsTotal);
-    if (freightEl) freightEl.textContent = freight > 0 ? formatMoney(freight) : '免运费';
-    if (couponDiscountEl) couponDiscountEl.textContent = '-¥0.00';
-    if (sumEl) sumEl.textContent = formatMoney(payable);
-    if (payEl) payEl.textContent = formatMoney(payable);
-    if (paySheetAmount) paySheetAmount.textContent = formatMoney(payable);
+    syncAmounts();
+
+    var pendingOrder = null;
+
+    function clearCheckoutCart() {
+      items.forEach(function (it) {
+        if (it.isPointsExchange && global.UaPointsMallOrder) {
+          global.UaPointsMallOrder.removeFromShopCart(it.pointsCode, it.skuCode);
+        }
+      });
+      var cart = ensureCart();
+      var remainIds = {};
+      items.forEach(function (it) {
+        remainIds[it.id] = true;
+      });
+      cart.items = (cart.items || []).filter(function (it) {
+        return !remainIds[it.id];
+      });
+      writeCart(cart);
+    }
+
+    /** 提交订单（接口动作）：生成待支付订单，成功后由调用方唤起支付 */
+    function createUnpaidOrder() {
+      var d = currentDeduct();
+      var payable = calcPayable();
+      var orderPayload = {
+        orderNo: global.UaOrdersStore ? global.UaOrdersStore.genOrderNo() : String(Date.now()),
+        status: 'unpaid',
+        createdAt: global.UaOrdersStore ? global.UaOrdersStore.nowText() : '',
+        exchangePoints: pointsExchangePts,
+        deductPoints: usePointsDeduct ? d.pointsUsed || 0 : 0,
+        deductAmount: usePointsDeduct ? d.deductAmount || 0 : 0,
+        goodsTotal: goodsTotal,
+        freight: freight,
+        payable: payable,
+        payLabel:
+          pointsExchangePts > 0 && payable > 0
+            ? pointsExchangePts + '积分 + ¥' + payable.toFixed(2)
+            : pointsExchangePts > 0
+              ? pointsExchangePts + '积分'
+              : '¥' + payable.toFixed(2),
+        items: items.map(function (it) {
+          return {
+            id: it.id,
+            name: it.name,
+            spec: it.spec || '',
+            img: it.img || '',
+            qty: it.qty,
+            price: Number(it.price) || 0,
+            points: Number(it.points) || 0,
+            money: Number(it.money) || 0,
+            isPointsExchange: !!it.isPointsExchange,
+            pointsCode: it.pointsCode || '',
+            skuCode: it.skuCode || ''
+          };
+        })
+      };
+      var saved = global.UaOrdersStore
+        ? global.UaOrdersStore.upsert(orderPayload)
+        : orderPayload;
+      try {
+        global.sessionStorage.setItem(
+          'ua_last_order_items_v1',
+          JSON.stringify(
+            saved.items.map(function (it) {
+              return {
+                id: it.id,
+                name: it.name,
+                isPointsExchange: !!it.isPointsExchange,
+                pointsCode: it.pointsCode || '',
+                points: Number(it.points) || 0,
+                money: Number(it.money) || 0,
+                qty: it.qty
+              };
+            })
+          )
+        );
+      } catch (e) { /* ignore */ }
+      clearCheckoutCart();
+      pendingOrder = saved;
+      return saved;
+    }
+
+  function goPaidOrderDetail(order) {
+      var paid = null;
+      if (global.UaOrdersStore && order && order.orderNo) {
+        paid = global.UaOrdersStore.updateStatus(order.orderNo, 'shipping');
+      }
+      if (!paid) {
+        paid = Object.assign({}, order || {}, { status: 'shipping' });
+        if (global.UaOrdersStore && paid.orderNo) {
+          paid = global.UaOrdersStore.upsert(paid);
+        }
+      }
+      var href =
+        global.UaOrdersStore && global.UaOrdersStore.buildDetailHref
+          ? global.UaOrdersStore.buildDetailHref(paid)
+          : 'order-detail.html?status=shipping&orderNo=' +
+            encodeURIComponent((paid && paid.orderNo) || '');
+      window.location.replace(href);
+    }
 
     function openPaySheet() {
+      syncAmounts();
       if (paySheet) paySheet.hidden = false;
     }
 
@@ -1730,6 +2137,17 @@
         showToast('暂无可用优惠券');
       });
 
+    document.getElementById('confirmPointsDeductRow') &&
+      document.getElementById('confirmPointsDeductRow').addEventListener('click', function () {
+        if (!deductInfo.enabled || !(deductInfo.eligibleAmount > 0)) {
+          showToast(deductInfo.tip || '当前订单无可抵扣的普通商品');
+          return;
+        }
+        usePointsDeduct = !usePointsDeduct;
+        syncAmounts();
+        showToast(usePointsDeduct ? '已使用积分抵扣（仅普通商品）' : '已取消积分抵扣');
+      });
+
     document.getElementById('confirmFreightHelp') &&
       document.getElementById('confirmFreightHelp').addEventListener('click', function () {
         showToast(hasExpress ? '快递订单满额包邮（演示）' : '自提订单无需运费');
@@ -1749,11 +2167,35 @@
           showToast('请先同意交易服务协议');
           return;
         }
+        if (pointsExchangePts > availablePts) {
+          showToast('可用积分不足，无法兑换');
+          return;
+        }
+        var dNeed = currentDeduct();
+        if (
+          usePointsDeduct &&
+          dNeed.pointsUsed > 0 &&
+          pointsExchangePts + dNeed.pointsUsed > availablePts
+        ) {
+          showToast('可用积分不足（兑换与抵扣合计超出）');
+          return;
+        }
+        /* 提交订单成功后唤起支付，不跳转待支付页 */
+        if (!pendingOrder) {
+          createUnpaidOrder();
+          showToast('订单已生成，请支付');
+        }
         openPaySheet();
       });
 
     document.querySelectorAll('[data-confirm-close]').forEach(function (el) {
-      el.addEventListener('click', closePaySheet);
+      el.addEventListener('click', function () {
+        closePaySheet();
+        /* 关闭支付后订单仍为待支付，可在订单列表继续付款 */
+        if (pendingOrder) {
+          showToast('可稍后在订单列表完成支付');
+        }
+      });
     });
 
     document.querySelectorAll('[data-pay-method]').forEach(function (btn) {
@@ -1766,10 +2208,12 @@
     document.getElementById('confirmPaySubmit') &&
       document.getElementById('confirmPaySubmit').addEventListener('click', function () {
         closePaySheet();
+        var order = pendingOrder;
+        if (!order && global.UaOrdersStore) order = global.UaOrdersStore.getLatest();
         showToast('支付成功（演示）');
         setTimeout(function () {
-          window.location.href = 'orders.html';
-        }, 800);
+          goPaidOrderDetail(order);
+        }, 500);
       });
   }
 

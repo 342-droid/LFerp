@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>积分商品详情 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-profile.css">
+  <link rel="stylesheet" href="../css/user-app-points-mall.css">
+  <link rel="stylesheet" href="../css/user-app-points-product-detail.css">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-ppd-page">
+    <div class="ua-mp-capsule ua-mp-capsule--light" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-ppd-scroll" id="ppdScroll">
+      <section class="ua-ppd-hero">
+        <a href="points-mall.html" class="ua-ppd-hero__back" id="ppdBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <img class="ua-ppd-hero__img" id="ppdHero" src="" alt="">
+      </section>
+
+      <section class="ua-ppd-info">
+        <div class="ua-ppd-info__price" id="ppdPrice">0积分</div>
+        <div class="ua-ppd-info__line" id="ppdLine" hidden></div>
+        <h1 class="ua-ppd-info__title" id="ppdTitle">—</h1>
+        <p class="ua-ppd-info__meta" id="ppdMeta"></p>
+      </section>
+
+      <section class="ua-ppd-card">
+        <button type="button" class="ua-ppd-row" id="ppdSpecRow">
+          <span class="ua-ppd-row__label">规格</span>
+          <span class="ua-ppd-row__value" id="ppdSpecValue">请选择</span>
+          <svg class="ua-ppd-row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <div class="ua-ppd-row ua-ppd-row--static">
+          <span class="ua-ppd-row__label">履约</span>
+          <span class="ua-ppd-row__value" id="ppdDelivery">平台配送</span>
+        </div>
+      </section>
+
+      <section class="ua-ppd-detail">
+        <div class="ua-ppd-detail__divider"><span>商品详情</span></div>
+        <div class="ua-ppd-detail__body" id="ppdDetail">暂无详情</div>
+      </section>
+    </div>
+
+    <footer class="ua-ppd-footer">
+      <button type="button" class="ua-ppd-footer__cart" id="ppdAddCart">加入购物车</button>
+      <button type="button" class="ua-ppd-footer__buy" id="ppdBuyNow">立即兑换</button>
+    </footer>
+
+    <div class="ua-pm-sku-sheet" id="ppdSkuSheet" hidden>
+      <div class="ua-pm-sku-sheet__mask" data-ppd-sku-close></div>
+      <div class="ua-pm-sku-sheet__panel" role="dialog" aria-modal="true">
+        <button type="button" class="ua-pm-sku-sheet__close" data-ppd-sku-close aria-label="关闭">×</button>
+        <div class="ua-pm-sku-sheet__head">
+          <img class="ua-pm-sku-sheet__thumb" id="ppdSkuThumb" src="" alt="">
+          <div class="ua-pm-sku-sheet__meta">
+            <div class="ua-pm-sku-sheet__price" id="ppdSkuPrice">0积分</div>
+            <div class="ua-pm-sku-sheet__name" id="ppdSkuName"></div>
+            <div class="ua-pm-sku-sheet__picked" id="ppdSkuPicked">已选</div>
+          </div>
+        </div>
+        <div class="ua-pm-sku-sheet__section">
+          <div class="ua-pm-sku-sheet__label">规格</div>
+          <div class="ua-pm-sku-sheet__specs" id="ppdSkuSpecs"></div>
+        </div>
+        <div class="ua-pm-sku-sheet__qty-row">
+          <div class="ua-pm-sku-sheet__label">兑换数量</div>
+          <div class="ua-pm-sku-sheet__stepper">
+            <button type="button" id="ppdSkuQtyMinus" aria-label="减少">−</button>
+            <span id="ppdSkuQty">1</span>
+            <button type="button" id="ppdSkuQtyPlus" aria-label="增加">+</button>
+          </div>
+        </div>
+        <div class="ua-pm-sku-sheet__hint" id="ppdSkuHint"></div>
+        <div class="ua-pm-sku-sheet__actions">
+          <button type="button" class="ua-pm-sku-sheet__cart" id="ppdSkuAddCart">加入购物车</button>
+          <button type="button" class="ua-pm-sku-sheet__buy" id="ppdSkuBuyNow">立即兑换</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="../../js/mdm-marketing-points-mall-store.js"></script>
+  <script src="../js/user-app-nav.js"></script>
+  <script src="../js/user-app-points-mall-order.js"></script>
+  <script src="../js/user-app-points-product-detail.js"></script>
+</body>
+</html>
