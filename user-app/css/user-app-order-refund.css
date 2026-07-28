@@ -1830,6 +1830,11 @@ body.ua-or-sheet-open {
   border-top: 1px solid #f5f5f5;
 }
 
+/* display:flex 会盖过原生 [hidden]，补货数量等按需隐藏的行必须显式处理 */
+.ua-or-detail-info-row[hidden] {
+  display: none !important;
+}
+
 .ua-or-detail-info-row:first-of-type {
   border-top: none;
 }

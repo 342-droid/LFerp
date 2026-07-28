@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>退款详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
-  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260725-delivery-steps">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260728-hide-restock-qty">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-order-refund-detail-page">
@@ -220,10 +220,6 @@
             <span class="ua-or-detail-info-row__label">申请金额</span>
             <span class="ua-or-detail-info-row__value ua-or-detail-info-row__value--amount" id="refundDetailAmount">—</span>
           </div>
-          <div class="ua-or-detail-info-row" id="refundDetailFinishRow" hidden>
-            <span class="ua-or-detail-info-row__label">退款完结</span>
-            <span class="ua-or-detail-info-row__value" id="refundDetailFinishTime">—</span>
-          </div>
           <div class="ua-or-detail-info-row">
             <span class="ua-or-detail-info-row__label">申请时间</span>
             <span class="ua-or-detail-info-row__value" id="refundDetailApplyTime">—</span>
@@ -390,7 +386,7 @@
 
     <div class="ua-or-toast" id="refundDetailToast" hidden></div>
   </div>
-  <script src="../js/user-app-order-refund.js?v=20260727-restock-confirm"></script>
+  <script src="../js/user-app-order-refund.js?v=20260728-drop-finish"></script>
   <script>UAOrderRefund.initDetailPage();</script>
 </body>
 </html>
