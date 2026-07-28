@@ -1,7 +1,107 @@
 {
-  "latestSha": "67577e4d08a8c5b110df2237f5f8ab0a66d2ef54",
-  "total": 207,
+  "latestSha": "893c4ef84d21de6a3e3ba6cd52ed73b178763d79",
+  "total": 208,
   "days": [
+    {
+      "date": "2026-07-28",
+      "items": [
+        {
+          "sha": "893c4ef",
+          "type": "fix",
+          "text": "退款成功详情去掉误展示的补货字段与无效完结行",
+          "author": "sisi",
+          "time": "15:09",
+          "pages": [
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-book.html",
+              "module": "",
+              "title": "地址簿 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-create.html",
+              "module": "",
+              "title": "新建寄件人地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-exchange.html",
+              "module": "",
+              "title": "换货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-only.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-edit.html",
+              "module": "",
+              "title": "修改上门取件信息 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-order.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pre-ship.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-restock.html",
+              "module": "",
+              "title": "补货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-goods.html",
+              "module": "",
+              "title": "退货商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "module": "",
+              "title": "预约寄件 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return.html",
+              "module": "",
+              "title": "退货退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-select.html",
+              "module": "",
+              "title": "选择服务类型 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "text": "修复 hidden 被样式覆盖导致仅退款成功页露出补货数量；删除无用的「退款完结」字段"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-07-27",
       "items": [
