@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-product.css">
     <link rel="stylesheet" href="../css/mdm-member-segment-filter.css">
+    <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
     <style>
         .batch-tag-form-toolbar {
             margin: 0 0 16px;
@@ -28,17 +29,15 @@
             border: 1px solid var(--color-border, #e8e8e8);
             border-radius: var(--radius-md, 6px);
             padding: 20px 24px 8px;
-            max-width: 760px;
+            max-width: none;
+            width: 100%;
+            box-sizing: border-box;
         }
         .batch-tag-form-panel .erp-modal-field__label {
             flex: 0 0 108px;
         }
         .batch-tag-form-footer {
-            margin-top: 16px;
-            display: flex;
-            justify-content: flex-start;
-            gap: 10px;
-            max-width: 760px;
+            /* 底栏由 lf-mdm-edit-page.css 固定悬浮 */
         }
         .member-batch-tip {
             display: inline-flex;
@@ -149,7 +148,7 @@
     <script src="../js/mdm-sidebar.js"></script>
     <div id="header-container"></div>
     <div class="container">
-        <main class="main-content">
+        <main class="main-content mdm-edit-page">
             <div class="content-tabs"><button class="active" id="formTabTitle">批量打标签</button></div>
             <hr class="content-divider">
             <div class="content-title">会员 / 会员360 / 批量打标签 / <span id="formCrumb">新建</span></div>
@@ -195,7 +194,7 @@
                 </div>
             </div>
 
-            <div class="batch-tag-form-footer">
+            <div class="batch-tag-form-footer mdm-edit-page__footer">
                 <button type="button" class="erp-btn" id="btnCancel">取消</button>
                 <button type="button" class="erp-btn erp-btn--primary" id="btnSave">保存</button>
             </div>

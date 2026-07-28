@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 积分商城</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-product.css">
+    <link rel="stylesheet" href="../css/lf-marketing-points-home.css">
+    <link rel="stylesheet" href="../css/lf-marketing-points-mall.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/marketing-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">积分商城</button></div>
+            <hr class="content-divider">
+            <div class="content-title">营销 / 营销活动 / 积分商城</div>
+
+            <!-- 积分商城开关：与会员-积分规则「积分兑换商品」共用；去配置跳转积分规则页 -->
+            <div class="mkt-points-mall-enable-bar">
+                <span class="mkt-points-mall-enable-bar__label">积分商城</span>
+                <div class="mkt-points-mall-enable-bar__main">
+                    <div class="mkt-points-mall-enable-bar__row">
+                        <button type="button" class="mkt-points-switch" id="pointsMallEnableSwitch" aria-pressed="false" aria-label="积分商城开关" disabled title="请前往积分规则页配置"></button>
+                        <span class="mkt-points-mall-enable-bar__status" id="pointsMallEnableStatus">已关闭</span>
+                        <a class="mkt-points-mall-enable-bar__link" id="pointsMallGotoRule" href="mdm_member_points_rule.html">去配置</a>
+                    </div>
+                    <p class="mkt-points-mall-enable-bar__desc" id="pointsMallEnableDesc">关闭后，C 端不展示积分商城入口；开关不可在本页修改，请点「去配置」前往积分规则页设置。</p>
+                </div>
+            </div>
+
+            <section class="search-section">
+                <form class="search-form" id="pointsMallFilterForm" onsubmit="return false;">
+                    <div class="form-group">
+                        <label>商品名称/编码:</label>
+                        <div class="input-wrapper">
+                            <input id="qMallKeyword" placeholder="商品名称或编码" autocomplete="off">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>商品类目:</label>
+                        <select id="qMallCategory">
+                            <option value="">全部</option>
+                            <option value="新鲜蔬菜">新鲜蔬菜</option>
+                            <option value="时令水果">时令水果</option>
+                            <option value="粮油调味">粮油调味</option>
+                            <option value="肉禽蛋品">肉禽蛋品</option>
+                            <option value="酒水饮料">酒水饮料</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>兑换方式:</label>
+                        <select id="qMallExchangeType">
+                            <option value="">全部</option>
+                            <option value="points">纯积分兑换</option>
+                            <option value="points_money">积分加现金</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>履约方式:</label>
+                        <select id="qMallDeliveryMode">
+                            <option value="">全部</option>
+                            <option value="express">快递配送</option>
+                            <option value="platform">平台配送</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>状态:</label>
+                        <select id="qMallStatus">
+                            <option value="">全部</option>
+                            <option value="on_shelf">上架</option>
+                            <option value="off_shelf">下架</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>是否设置定时上下架:</label>
+                        <select id="qMallHasSchedule">
+                            <option value="">全部</option>
+                            <option value="yes">是</option>
+                            <option value="no">否</option>
+                        </select>
+                    </div>
+                    <div class="form-group form-group--points-range">
+                        <label>兑换积分:</label>
+                        <div class="mkt-points-mall-range" role="group" aria-label="兑换积分区间">
+                            <input class="mkt-points-mall-range__input" id="qMallPointsMin" type="number" min="0" step="1" placeholder="最小值" inputmode="numeric">
+                            <span class="mkt-points-mall-range__sep">至</span>
+                            <input class="mkt-points-mall-range__input" id="qMallPointsMax" type="number" min="0" step="1" placeholder="最大值" inputmode="numeric">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="pointsMallFilterReset">重置</button>
+                        <button type="button" class="btn btn-primary" id="pointsMallFilterQuery">查询</button>
+                    </div>
+                </form>
+            </section>
+
+            <div class="member-points-toolbar mkt-points-mall-toolbar">
+                <button type="button" class="erp-btn erp-btn--primary" id="pointsMallAddBtn">添加商品</button>
+                <button type="button" class="erp-btn" id="pointsMallBannerBtn">轮播图配置</button>
+                <button type="button" class="erp-btn" id="pointsMallRuleDescBtn">积分规则说明</button>
+                <span class="mkt-points-mall-toolbar-tip">仅可选选品库中「可售卖渠道含电商直播」且「售卖中」的商品</span>
+            </div>
+
+            <section class="table-section">
+                <div class="table-scroll-container product-table-wrap">
+                    <table class="product-table product-proxy-table mkt-points-mall-table">
+                        <colgroup>
+                            <col class="mkt-points-mall-table__col mkt-points-mall-table__col--seq">
+                            <col class="mkt-points-mall-table__col mkt-points-mall-table__col--name">
+                            <col class="mkt-points-mall-table__col mkt-points-mall-table__col--code">
+                            <col class="mkt-points-mall-table__col mkt-points-mall-table__col--img">
+                            <col class="mkt-points-mall-table__col mkt-points-mall-table__col--category">
+                            <col class="mkt-points-mall-table__col mkt-points-mall-table__col--spec">
+                            <col class="mkt-points-mall-table__col mkt-points-mall-table__col--purchase">
+                            <col class="mkt-points-mall-table__col mkt-points-mall-table__col--line">
+                            <col class="mkt-points-mall-table__col mkt-points-mall-table__col--stock">
+                            <col class="mkt-points-mall-table__col mkt-points-mall-table__col--exchange">
+                            <col class="mkt-points-mall-table__col mkt-points-mall-table__col--qty">
+                            <col class="mkt-points-mall-table__col mkt-points-mall-table__col--delivery">
+                            <col class="mkt-points-mall-table__col mkt-points-mall-table__col--type">
+                            <col class="mkt-points-mall-table__col mkt-points-mall-table__col--status">
+                            <col class="mkt-points-mall-table__col mkt-points-mall-table__col--schedule">
+                            <col class="mkt-points-mall-table__col mkt-points-mall-table__col--action">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>商品名称</th>
+                                <th>商品编码</th>
+                                <th>商品图</th>
+                                <th>商品类目</th>
+                                <th>规格</th>
+                                <th>采购价</th>
+                                <th>划线价</th>
+                                <th>
+                                    <button type="button" class="mkt-points-mall-th-sort" data-sort-key="stock" aria-label="按库存排序">
+                                        库存
+                                        <span class="mkt-points-mall-sort" aria-hidden="true">
+                                            <i class="mkt-points-mall-sort__asc"></i>
+                                            <i class="mkt-points-mall-sort__desc"></i>
+                                        </span>
+                                    </button>
+                                </th>
+                                <th>兑换积分</th>
+                                <th>
+                                    <button type="button" class="mkt-points-mall-th-sort" data-sort-key="exchanged" aria-label="按已兑换排序">
+                                        已兑换
+                                        <i class="mkt-points-mall-th-help" title="C端实际兑换数量；售后不回退库存">?</i>
+                                        <span class="mkt-points-mall-sort" aria-hidden="true">
+                                            <i class="mkt-points-mall-sort__asc"></i>
+                                            <i class="mkt-points-mall-sort__desc"></i>
+                                        </span>
+                                    </button>
+                                </th>
+                                <th>履约方式</th>
+                                <th>兑换方式</th>
+                                <th>状态</th>
+                                <th>定时上下架</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pointsMallTableBody"></tbody>
+                    </table>
+                </div>
+                <div class="product-empty" id="pointsMallEmpty" hidden>暂无符合条件的商品</div>
+                <div class="product-pagination" id="pointsMallPagination">
+                    <span id="pointsMallPaginationTotal">共 0 条</span>
+                    <div class="product-pagination__right">
+                        <select class="product-pagination__size" id="pointsMallPageSize" aria-label="每页条数">
+                            <option value="20" selected>20条/页</option>
+                            <option value="50">50条/页</option>
+                            <option value="100">100条/页</option>
+                        </select>
+                        <div class="product-pagination__pages" id="pointsMallPaginationPages"></div>
+                        <label class="product-pagination__goto">
+                            前往
+                            <input id="pointsMallPageGoto" type="text" value="1" inputmode="numeric">
+                            页
+                        </label>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-member-level-data.js"></script>
+    <script src="../js/mdm-product-catalog-store.js"></script>
+    <script src="../js/mdm-marketing-points-mall-store.js"></script>
+    <script src="../js/mdm-marketing-points-mall-config.js"></script>
+    <script src="../js/mdm-marketing-points-mall-picker.js"></script>
+    <script src="../js/mdm-marketing-points-mall.js"></script>
+</body>
+</html>

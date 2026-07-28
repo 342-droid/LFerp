@@ -1,8 +1,11 @@
 /**
  * 选品库商品目录（演示数据 + sessionStorage 持久化）
+ *
+ * 说明：本 store 是商品原始主数据。营销-积分商城通过商品编码(code/goodsId)
+ * 只读引用本库商品，叠加积分属性后落入独立商品池，不会回写本库。
  */
 (function () {
-  var STORAGE_KEY = 'mdm_product_catalog_v3';
+  var STORAGE_KEY = 'mdm_product_catalog_v5';
 
   var SEED = [
     { code: 'SPU00103', name: 'ss积分加现金', price: 10, channel: '电商直播、代采', saleChannels: ['live', 'proxy'], category: '新鲜蔬菜', status: 'selling', audit: 'passed', img: '../user-app/assets/restock/product-leaf.svg' },
@@ -78,25 +81,47 @@
 
   function buildCatalogSeed() {
     var list = SEED.slice();
+    var used = {};
+    list.forEach(function (item) {
+      if (item && item.code) used[item.code] = true;
+    });
     var i = 0;
+    var seq = 200;
     while (list.length < 198) {
       var seed = SEED[i % SEED.length];
-      var num = 100 - Math.floor(list.length / SEED.length);
       var productState = assignProductState(list.length);
+      var code;
+      do {
+        code = 'SPU' + String(seq).padStart(5, '0');
+        seq += 1;
+      } while (used[code]);
+      used[code] = true;
       list.push({
-        code: 'SPU00' + String(num).padStart(3, '0'),
+        code: code,
         name: NAMES[i % NAMES.length] + (list.length > 20 ? ' ' + (list.length - 9) : ''),
         price: Math.round((seed.price + (i % 5) * 0.5) * 100) / 100,
         channel: '电商直播',
+        saleChannels: ['live'],
         category: CATEGORIES[i % CATEGORIES.length],
         status: productState.status,
         audit: productState.audit,
-        rejectReason: productState.audit === 'rejected' ? defaultRejectReason('SPU00' + String(num).padStart(3, '0')) : undefined,
+        rejectReason: productState.audit === 'rejected' ? defaultRejectReason(code) : undefined,
         img: IMGS[i % IMGS.length]
       });
       i += 1;
     }
     return list;
+  }
+
+  function hasDuplicateCodes(list) {
+    var seen = {};
+    for (var i = 0; i < (list || []).length; i++) {
+      var code = list[i] && list[i].code;
+      if (!code) continue;
+      if (seen[code]) return true;
+      seen[code] = true;
+    }
+    return false;
   }
 
   function channelLabelsFromValues(values) {
@@ -131,14 +156,21 @@
 
   function defaultSpecDetail(item) {
     var img = item.img || '../user-app/assets/restock/product-leaf.svg';
+    var price = Number(item.price) || 9.9;
+    var code = String(item.code || 'SPU');
+    /* 无规格主数据时，按常见包装生成稳定多 SKU，便于积分商城完整展示 */
+    var packs = ['默认', '500g', '1kg'];
     return {
-      specGroups: [{ name: '口味', values: ['牛肉味'] }],
-      specs: [
-        {
-          flavor: '牛肉味',
-          price: '9.9',
-          barcode: '6900000000123',
+      specGroups: [{ name: '包装', values: packs }],
+      specs: packs.map(function (pack, i) {
+        return {
+          packaging: pack,
+          flavor: '',
+          price: String(Math.round((price + i * 0.5) * 100) / 100),
+          skuCode: code + '-' + String(i + 1).padStart(2, '0'),
+          barcode: '690' + String(1000000000 + i).slice(-10),
           skuImg: img,
+          stock: 80 + i * 15,
           length: '',
           width: '',
           height: '',
@@ -146,8 +178,8 @@
           gross: '',
           tare: '',
           net: ''
-        }
-      ]
+        };
+      })
     };
   }
 
@@ -155,34 +187,24 @@
     var saleChannels = normalizeSaleChannels(item);
     var channelLabels = channelLabelsFromValues(saleChannels);
     var fallback = defaultSpecDetail(item);
+    var code = String(item.code || 'SPU');
     var specGroups = item.specGroups || fallback.specGroups;
     var specs = item.specs;
     if (!specs || !specs.length) {
-      if (specGroups.length === 1 && specGroups[0].name === '口味' && specGroups[0].values && specGroups[0].values.length === 1) {
-        specs = fallback.specs;
-      } else {
-        specs = [];
-        specGroups[0].values.forEach(function (pack) {
-          (specGroups[1] ? specGroups[1].values : ['']).forEach(function (flavor) {
-            specs.push({
-              packaging: pack,
-              flavor: flavor,
-              price: String(item.price || 10),
-              skuCode: 'SKU00' + String(Math.floor(Math.random() * 900) + 100),
-              barcode: '690' + String(Math.floor(Math.random() * 1e10)).padStart(10, '0'),
-              skuImg: item.img,
-              length: '',
-              width: '',
-              height: '',
-              volume: '',
-              gross: '',
-              tare: '',
-              net: ''
-            });
-          });
-        });
-      }
+      specs = fallback.specs;
     }
+
+    /* SKU 编码稳定：按序号生成 code-01，避免 enrich 时随机码导致积分商城合并丢规格 */
+    specs = (specs || []).map(function (s, i) {
+      var next = Object.assign({}, s);
+      if (!next.skuCode || /^SKU00\d+$/i.test(String(next.skuCode))) {
+        next.skuCode = code + '-' + String(i + 1).padStart(2, '0');
+      }
+      if (next.stock == null && fallback.specs[i]) {
+        next.stock = fallback.specs[i].stock;
+      }
+      return next;
+    });
 
     return Object.assign({}, item, {
       productType: item.productType || 'physical',
@@ -217,7 +239,7 @@
       var raw = sessionStorage.getItem(STORAGE_KEY);
       if (raw) {
         var parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length) {
+        if (Array.isArray(parsed) && parsed.length && !hasDuplicateCodes(parsed)) {
           catalog = normalizeCatalog(parsed);
           persist();
           return;

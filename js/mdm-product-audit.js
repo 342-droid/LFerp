@@ -21,13 +21,56 @@
     return node;
   }
 
+  var DETAIL_CODE_KEY = 'mdm_product_detail_code';
+  var DETAIL_MODE_KEY = 'mdm_product_detail_mode';
+
+  function parseCodeFromParams(searchOrHash) {
+    var raw = String(searchOrHash || '').replace(/^[?#]/, '');
+    if (!raw) return '';
+    try {
+      var code = (new URLSearchParams(raw).get('code') || '').trim();
+      if (code) return code;
+    } catch (e) {
+      /* ignore */
+    }
+    var m = raw.match(/(?:^|&)code=([^&]*)/);
+    return m ? decodeURIComponent(m[1]).trim() : '';
+  }
+
+  function parseModeFromParams(searchOrHash) {
+    var raw = String(searchOrHash || '').replace(/^[?#]/, '');
+    if (!raw) return '';
+    try {
+      return (new URLSearchParams(raw).get('mode') || '').trim();
+    } catch (e) {
+      return '';
+    }
+  }
+
   function getQueryCode() {
-    var params = new URLSearchParams(window.location.search);
-    return (params.get('code') || '').trim();
+    var code = parseCodeFromParams(window.location.search);
+    if (code) return code;
+    code = parseCodeFromParams(window.location.hash);
+    if (code) return code;
+    try {
+      code = (sessionStorage.getItem(DETAIL_CODE_KEY) || '').trim();
+    } catch (e) {
+      code = '';
+    }
+    return code;
   }
 
   function getQueryMode() {
-    return new URLSearchParams(window.location.search).get('mode') === 'audit' ? 'audit' : 'view';
+    var mode = parseModeFromParams(window.location.search);
+    if (!mode) mode = parseModeFromParams(window.location.hash);
+    if (!mode) {
+      try {
+        mode = sessionStorage.getItem(DETAIL_MODE_KEY) || '';
+      } catch (e) {
+        mode = '';
+      }
+    }
+    return mode === 'audit' ? 'audit' : 'view';
   }
 
   function syncHeaderActions(data) {
@@ -409,16 +452,28 @@
   function renderPage(data) {
     var host = document.getElementById('productAuditBody');
     if (!host) return;
-    host.innerHTML =
-      '<form class="product-add-form product-add-form--readonly" id="productAuditForm">' +
-      basicSection(data) +
-      specSalesSection(data) +
-      detailSection(data) +
-      '</form>';
+    try {
+      host.innerHTML =
+        '<form class="product-add-form product-add-form--readonly" id="productAuditForm">' +
+        basicSection(data) +
+        specSalesSection(data) +
+        detailSection(data) +
+        '</form>';
+    } catch (err) {
+      host.innerHTML =
+        '<div class="product-empty" style="padding:48px;text-align:center;">商品详情渲染失败，请返回选品库重试。<br>' +
+        '<button type="button" class="erp-btn erp-btn--primary" id="productAuditBackBtn" style="margin-top:16px;">返回选品库</button></div>';
+      var backBtn = document.getElementById('productAuditBackBtn');
+      if (backBtn) backBtn.addEventListener('click', goBackList);
+      if (typeof console !== 'undefined' && console.error) console.error(err);
+    }
   }
 
   function goBackList() {
-    window.location.href = wp.page('mdm_product_selection.html');
+    var pathApi = window.wmsPath || wp;
+    window.location.href = pathApi.page
+      ? pathApi.page('mdm_product_selection.html')
+      : 'mdm_product_selection.html';
   }
 
   function auditPass() {
@@ -517,15 +572,27 @@
 
   function init() {
     productCode = getQueryCode();
+    var body = document.getElementById('productAuditBody');
+
     if (!productCode || !window.MdmProductCatalog) {
-      goBackList();
+      if (body) {
+        body.innerHTML = '<div class="product-empty" style="padding:48px;text-align:center;">缺少商品编码，无法打开详情。请从选品库重新进入。</div>';
+      }
+      if (typeof showToast === 'function') showToast('缺少商品编码', 'warning');
       return;
     }
 
     productData = window.MdmProductCatalog.getByCode(productCode);
     if (!productData) {
+      if (body) {
+        body.innerHTML =
+          '<div class="product-empty" style="padding:48px;text-align:center;">未找到商品 ' +
+          escapeHtml(productCode) +
+          '，可能已被删除或数据已重置。<br><button type="button" class="erp-btn erp-btn--primary" id="productAuditBackBtn" style="margin-top:16px;">返回选品库</button></div>';
+        var backBtn = document.getElementById('productAuditBackBtn');
+        if (backBtn) backBtn.addEventListener('click', goBackList);
+      }
       if (typeof showToast === 'function') showToast('未找到商品 ' + productCode, 'warning');
-      goBackList();
       return;
     }
 
