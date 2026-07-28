@@ -61,7 +61,15 @@
       var supplierEl = card.querySelector('.ua-order-supplier');
 
       if (supplierName && supplierEl) {
-        supplierEl.textContent = supplierName;
+        var displayName =
+          window.MdmSupplierArchiveStore &&
+          typeof window.MdmSupplierArchiveStore.getDisplayName === 'function'
+            ? window.MdmSupplierArchiveStore.getDisplayName({
+                id: card.getAttribute('data-supplier-id') || '',
+                name: supplierName
+              })
+            : supplierName;
+        supplierEl.textContent = displayName;
       }
 
       if (storeMerchant) storeMerchant.hidden = true;

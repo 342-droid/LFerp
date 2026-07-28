@@ -14,7 +14,11 @@
   var sideGroups = [
     {
       title: '商城商品',
-      items: [{ href: 'mdm_product_mall.html', text: '商城商品' }]
+      items: [
+        { href: 'mdm_product_mall.html', text: '商品列表' },
+        { href: 'mdm_product_mall_category.html', text: '商城类目' },
+        { href: 'mdm_product_mall_tag.html', text: '商城标签' }
+      ]
     },
     {
       title: '代采商品',

@@ -2107,3 +2107,351 @@ body[data-order-page="retail"] .order-live-table__action:hover {
 .order-proxy-track-phone {
   color: #f56c6c;
 }
+
+/* ========== 发起售后 / 平台退款抽屉 ========== */
+.order-as-drawer-backdrop {
+  z-index: 2100;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.order-as-drawer.store-drawer {
+  z-index: 2110;
+  width: min(1080px, calc(100vw - 220px));
+  max-width: 100%;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+}
+
+.order-as-drawer__header {
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.order-as-drawer__body {
+  flex: 1;
+  overflow: auto;
+  padding: 16px 20px 24px;
+}
+
+.order-as-occur {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.order-as-occur__label {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: #333;
+}
+
+.order-as-occur__value {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 220px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 13px;
+  color: #333;
+}
+
+.order-as-occur__icon {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.order-as-section-title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.order-as-product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.order-as-item {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  padding: 16px;
+  transition: border-color 0.15s ease;
+}
+
+.order-as-item.is-selected {
+  border-color: var(--color-primary, #ff7019);
+}
+
+.order-as-item__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.order-as-check {
+  position: relative;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 28px;
+  cursor: pointer;
+}
+
+.order-as-check input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.order-as-check__box {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border: 1px solid #dcdfe6;
+  border-radius: 3px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.order-as-check input:checked + .order-as-check__box {
+  border-color: var(--color-primary, #ff7019);
+  background: var(--color-primary, #ff7019);
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+.order-as-item__thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 4px;
+  object-fit: cover;
+  background: #fafafa;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.order-as-item__meta {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 20px;
+}
+
+.order-as-kv {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.7;
+  min-width: 0;
+}
+
+.order-as-kv__k {
+  flex-shrink: 0;
+  color: #999;
+}
+
+.order-as-kv__v {
+  color: #333;
+  word-break: break-all;
+}
+
+.order-as-form {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.order-as-form__row {
+  display: grid;
+  gap: 12px 16px;
+  margin-bottom: 12px;
+}
+
+.order-as-form__row--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.order-as-form__row--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.order-as-form__row--desc {
+  grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.8fr);
+  align-items: start;
+}
+
+.order-as-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.order-as-field__label {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.order-as-field__label i {
+  color: #f56c6c;
+  font-style: normal;
+  margin-right: 2px;
+}
+
+.order-as-field__control {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #333;
+  background: #fff;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.order-as-field__control:focus {
+  outline: none;
+  border-color: var(--color-primary, #ff7019);
+}
+
+.order-as-textarea-wrap {
+  position: relative;
+}
+
+.order-as-field__textarea {
+  height: 120px;
+  padding: 10px 12px 28px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.order-as-textarea-count {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  font-size: 12px;
+  color: #999;
+  pointer-events: none;
+}
+
+.order-as-upload__btn {
+  width: 88px;
+  height: 88px;
+  border: 1px dashed #d0d0d0;
+  border-radius: 4px;
+  background: #fafafa;
+  color: #bbb;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.order-as-upload__btn:hover {
+  border-color: var(--color-primary, #ff7019);
+  color: var(--color-primary, #ff7019);
+}
+
+.order-as-upload__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.order-as-upload__thumb {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #eee;
+}
+
+.order-as-upload__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.order-as-upload__remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 12px;
+  line-height: 18px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.order-as-upload__hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.order-as-item__foot {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #666;
+}
+
+.order-as-drawer__footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 20px;
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+}
+
+.order-as-drawer__summary {
+  font-size: 13px;
+  color: #333;
+}
+
+.order-as-drawer__summary em {
+  font-style: normal;
+  color: var(--color-primary, #ff7019);
+  font-weight: 600;
+}
+
+.order-as-drawer__actions {
+  display: flex;
+  gap: 10px;
+}
+
+@media (max-width: 960px) {
+  .order-as-drawer.store-drawer {
+    width: 100vw;
+  }
+  .order-as-item__meta,
+  .order-as-form__row--3,
+  .order-as-form__row--4,
+  .order-as-form__row--desc {
+    grid-template-columns: 1fr;
+  }
+}

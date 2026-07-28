@@ -177,6 +177,199 @@
     return !!status && status !== '已完成' && status !== '已关闭' && status !== '已取消';
   }
 
+  function canCancelRetailOrder(row) {
+    if (window.OrderPlatformAftersale) return window.OrderPlatformAftersale.canCancelOrder(row);
+    var status = getRowOrderStatus(row);
+    var mode = (row.getAttribute('data-delivery-mode') || '') === 'express' ? 'express' : 'pickup';
+    if (mode === 'pickup') {
+      return ['待支付', '已创建', '待发货', '待收货', '待提货'].indexOf(status) >= 0;
+    }
+    return ['待支付', '已创建', '已支付', '待发货'].indexOf(status) >= 0;
+  }
+
+  function canRetailPlatformRefund(row) {
+    if (window.OrderPlatformAftersale) return window.OrderPlatformAftersale.canPlatformRefund(row);
+    var status = getRowOrderStatus(row);
+    var mode = (row.getAttribute('data-delivery-mode') || '') === 'express' ? 'express' : 'pickup';
+    if (mode === 'pickup') return status === '待收货' || status === '待提货';
+    return status === '待收货';
+  }
+
+  function createRetailActionButton(className, orderId, label) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'order-live-table__action ' + className;
+    btn.setAttribute('data-order-id', orderId);
+    btn.textContent = label;
+    return btn;
+  }
+
+  function normalizeRetailActionCell(row) {
+    if (!document.body || document.body.getAttribute('data-order-page') !== 'retail') return;
+    var cell = row.querySelector('.order-live-table__sticky-col');
+    if (!cell || cell.dataset.actionsNormalized === '1') return;
+
+    var orderId = row.getAttribute('data-order-id');
+    var viewLink = cell.querySelector('.js-order-view');
+    var verifyBtn = cell.querySelector('.js-order-verify');
+    var uploadBtn = cell.querySelector('.js-retail-upload-express');
+    var cancelBtn = cell.querySelector('.js-retail-cancel-order');
+    var refundBtn = cell.querySelector('.js-retail-platform-refund');
+    var showCancel = canCancelRetailOrder(row);
+    var showRefund = canRetailPlatformRefund(row);
+    var isExpress = (row.getAttribute('data-delivery-mode') || '') === 'express';
+    var showUpload = isExpress && canUploadRetailExpress(row);
+    var showVerify = !isExpress && getRowOrderStatus(row) === '待提货';
+
+    var actions = document.createElement('div');
+    actions.className = 'order-live-table__actions';
+
+    if (viewLink) actions.appendChild(viewLink);
+    if (showVerify) {
+      if (verifyBtn) {
+        actions.appendChild(verifyBtn);
+      } else {
+        var verifyNew = document.createElement('button');
+        verifyNew.type = 'button';
+        verifyNew.className = 'order-live-table__verify js-order-verify';
+        verifyNew.setAttribute('data-order-id', orderId);
+        verifyNew.textContent = '核销';
+        actions.appendChild(verifyNew);
+      }
+    } else if (verifyBtn) {
+      verifyBtn.remove();
+    }
+    if (showUpload) {
+      if (uploadBtn) actions.appendChild(uploadBtn);
+      else actions.appendChild(createRetailActionButton('js-retail-upload-express', orderId, '上传快递单'));
+    } else if (uploadBtn) {
+      uploadBtn.remove();
+    }
+    if (showCancel) {
+      if (cancelBtn) actions.appendChild(cancelBtn);
+      else actions.appendChild(createRetailActionButton('js-retail-cancel-order', orderId, '取消订单'));
+    } else if (cancelBtn) {
+      cancelBtn.remove();
+    }
+    if (showRefund) {
+      if (refundBtn) actions.appendChild(refundBtn);
+      else actions.appendChild(createRetailActionButton('js-retail-platform-refund', orderId, '平台退款'));
+    } else if (refundBtn) {
+      refundBtn.remove();
+    }
+
+    cell.innerHTML = '';
+    cell.appendChild(actions);
+    cell.dataset.actionsNormalized = '1';
+  }
+
+  function refreshRetailActionRow(row) {
+    var cell = row.querySelector('.order-live-table__sticky-col');
+    if (cell) delete cell.dataset.actionsNormalized;
+    normalizeRetailActionCell(row);
+  }
+
+  function initRetailActionLayout() {
+    if (!document.body || document.body.getAttribute('data-order-page') !== 'retail') return;
+    document.querySelectorAll('.order-live-table tbody tr[data-order-id]').forEach(function (row) {
+      refreshRetailActionRow(row);
+    });
+  }
+
+  function showRetailConfirmDialog(options) {
+    var exist = document.getElementById(options.backdropId);
+    if (exist) exist.remove();
+    var backdrop = document.createElement('div');
+    backdrop.className = 'order-verify-confirm-backdrop';
+    backdrop.id = options.backdropId;
+    backdrop.innerHTML =
+      '<div class="order-verify-confirm" role="dialog">' +
+      '<h3 class="order-verify-confirm__title">' +
+      options.title +
+      '</h3>' +
+      '<p class="order-verify-confirm__message">' +
+      options.message +
+      '</p>' +
+      '<div class="order-verify-confirm__actions">' +
+      '<button type="button" class="order-detail-btn js-retail-dialog-cancel">取消</button>' +
+      '<button type="button" class="order-detail-btn order-detail-btn--primary js-retail-dialog-ok">' +
+      options.okLabel +
+      '</button>' +
+      '</div></div>';
+    document.body.appendChild(backdrop);
+    document.body.style.overflow = 'hidden';
+    function close() {
+      backdrop.remove();
+      if (!document.getElementById('orderDetailBackdrop') && !document.getElementById('orderPlatformAsBackdrop')) {
+        document.body.style.overflow = '';
+      }
+    }
+    backdrop.addEventListener('click', function (e) {
+      if (e.target === backdrop) close();
+    });
+    backdrop.querySelector('.js-retail-dialog-cancel').addEventListener('click', close);
+    backdrop.querySelector('.js-retail-dialog-ok').addEventListener('click', function () {
+      close();
+      options.onConfirm();
+    });
+  }
+
+  function initRetailCancelAndRefund() {
+    if (!document.body || document.body.getAttribute('data-order-page') !== 'retail') return;
+
+    document.addEventListener('click', function (e) {
+      var cancelBtn = e.target.closest('.js-retail-cancel-order');
+      if (cancelBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var orderId = cancelBtn.getAttribute('data-order-id');
+        var row = cancelBtn.closest('tr');
+        if (!orderId || !row) return;
+        if (!canCancelRetailOrder(row)) {
+          if (typeof showToast === 'function') showToast('当前订单状态不可取消', 'error');
+          return;
+        }
+        showRetailConfirmDialog({
+          backdropId: 'orderRetailCancelBackdrop',
+          title: '取消订单',
+          message:
+            '确认取消订单 <strong>' +
+            orderId +
+            '</strong> 吗？<br>取消后订单将关闭，此操作不可撤销。',
+          okLabel: '确认取消',
+          onConfirm: function () {
+            var statusCell = row.querySelector('td:nth-last-child(2) .order-tag');
+            if (statusCell) {
+              statusCell.className = 'order-tag order-tag--closed';
+              statusCell.textContent = '已关闭';
+            }
+            refreshRetailActionRow(row);
+            if (typeof showToast === 'function') showToast('订单已取消', 'success');
+          }
+        });
+        return;
+      }
+
+      var refundBtn = e.target.closest('.js-retail-platform-refund');
+      if (refundBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var refundOrderId = refundBtn.getAttribute('data-order-id');
+        var refundRow = refundBtn.closest('tr');
+        if (!refundOrderId || !refundRow) return;
+        if (!canRetailPlatformRefund(refundRow)) {
+          if (typeof showToast === 'function') showToast('当前订单状态不可申请退款', 'error');
+          return;
+        }
+        if (window.OrderPlatformAftersale && typeof window.OrderPlatformAftersale.open === 'function') {
+          window.OrderPlatformAftersale.open(refundOrderId, refundRow);
+        } else if (typeof showToast === 'function') {
+          showToast('发起售后模块未加载', 'error');
+        }
+      }
+    });
+  }
+
   function initRetailExpressUpload() {
     if (!document.body || document.body.getAttribute('data-order-page') !== 'retail') return;
 
@@ -252,6 +445,8 @@
       initVerifyPickup();
       initRetailExpressUpload();
       initRetailBatchExpressUpload();
+      initRetailActionLayout();
+      initRetailCancelAndRefund();
     });
   } else {
     initFilter();
@@ -259,5 +454,7 @@
     initVerifyPickup();
     initRetailExpressUpload();
     initRetailBatchExpressUpload();
+    initRetailActionLayout();
+    initRetailCancelAndRefund();
   }
 })();

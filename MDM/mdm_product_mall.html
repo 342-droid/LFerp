@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰WMS - 商城商品</title>
+    <title>冷丰WMS - 商品列表</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
@@ -18,13 +18,131 @@
         <main class="main-content">
             <div class="product-page">
                 <div class="product-page-tabs" id="productPageTabs" aria-label="页面页签"></div>
+
                 <div class="product-page-body">
-                    <section class="erp-page__card" style="padding:24px;text-align:center;color:#999;">商城商品模块（开发中）</section>
+                    <section class="erp-page__card product-filter-card">
+                        <form class="product-filter-form" id="mallListFilterForm" onsubmit="return false;">
+                            <div class="product-filter-grid">
+                                <div class="product-filter-field">
+                                    <label class="product-filter-field__label" for="qMallCode">商品编码</label>
+                                    <input class="product-filter-field__input" id="qMallCode" type="text" placeholder="请输入商品编码">
+                                </div>
+                                <div class="product-filter-field">
+                                    <label class="product-filter-field__label" for="qMallName">商品名称</label>
+                                    <input class="product-filter-field__input" id="qMallName" type="text" placeholder="请输入商品名称">
+                                </div>
+                                <div class="product-filter-field">
+                                    <label class="product-filter-field__label" for="qMallCategory">商城类目</label>
+                                    <select class="product-filter-field__select" id="qMallCategory">
+                                        <option value="">请选择商城类目</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="proxy-filter-row2">
+                                <div class="product-filter-field">
+                                    <label class="product-filter-field__label" for="qMallTag">商品标签</label>
+                                    <select class="product-filter-field__select" id="qMallTag">
+                                        <option value="">请选择商品标签</option>
+                                        <option value="冷丰溯源">冷丰溯源</option>
+                                        <option value="牛牛专用">牛牛专用</option>
+                                        <option value="爆款">爆款</option>
+                                        <option value="新品">新品</option>
+                                    </select>
+                                </div>
+                                <div class="product-filter-field">
+                                    <label class="product-filter-field__label" for="qMallStatus">商品状态</label>
+                                    <select class="product-filter-field__select" id="qMallStatus">
+                                        <option value="">请选择商品状态</option>
+                                        <option value="draft">草稿</option>
+                                        <option value="on_shelf">已上架</option>
+                                        <option value="off_shelf">已下架</option>
+                                    </select>
+                                </div>
+                                <div class="product-filter-field"></div>
+                                <div class="proxy-filter-row2__actions">
+                                    <button type="button" class="product-filter-btn product-filter-btn--primary" id="mallFilterQuery">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                                        查询
+                                    </button>
+                                    <button type="button" class="product-filter-btn product-filter-btn--default" id="mallFilterReset">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M5 19a9 9 0 0014-7"/><path d="M19 5a9 9 0 00-14 7"/></svg>
+                                        重置
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="erp-page__card product-table-card">
+                        <div class="product-toolbar product-toolbar--proxy">
+                            <button type="button" class="product-toolbar__add" id="mallAddFromLibrary">从商品库添加</button>
+                        </div>
+                        <div class="product-table-wrap">
+                            <table class="product-table product-proxy-table">
+                                <colgroup>
+                                    <col class="product-proxy-table__col product-proxy-table__col--name">
+                                    <col class="product-proxy-table__col product-proxy-table__col--code">
+                                    <col class="product-proxy-table__col product-proxy-table__col--img">
+                                    <col class="product-proxy-table__col product-proxy-table__col--tag">
+                                    <col class="product-proxy-table__col product-proxy-table__col--category">
+                                    <col class="product-proxy-table__col product-proxy-table__col--spec">
+                                    <col class="product-proxy-table__col product-proxy-table__col--sale">
+                                    <col class="product-proxy-table__col product-proxy-table__col--line">
+                                    <col class="product-proxy-table__col product-proxy-table__col--sales">
+                                    <col class="product-proxy-table__col product-proxy-table__col--status">
+                                    <col class="product-proxy-table__col product-proxy-table__col--action">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th class="product-proxy-table__th product-proxy-table__th--name">商品名称</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--code">商品编码</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--img">商品图片</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--tag">商品标签</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--category">商品类目</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--spec">规格</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--sale">售价</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--line">划线价</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--sales">销量</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--status">状态</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--action">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mallListTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="product-empty" id="mallListEmpty" hidden>暂无符合条件的商品</div>
+                        <div class="product-pagination" id="mallListPagination">
+                            <span id="mallPaginationTotal">共 0 条</span>
+                            <div class="product-pagination__right">
+                                <select class="product-pagination__size" id="mallPageSize" aria-label="每页条数">
+                                    <option value="20" selected>20条/页</option>
+                                    <option value="50">50条/页</option>
+                                    <option value="100">100条/页</option>
+                                </select>
+                                <div class="product-pagination__pages" id="mallPaginationPages"></div>
+                                <label class="product-pagination__goto">
+                                    前往
+                                    <input id="mallPageGoto" type="text" value="1" inputmode="numeric">
+                                    页
+                                </label>
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </div>
         </main>
     </div>
     <script src="../js/common.js"></script>
     <script src="../js/product-page-tabs.js"></script>
+    <script src="../js/mdm-product-catalog-store.js"></script>
+    <script src="../js/mdm-product-mall-library.js"></script>
+    <script src="../js/mdm-product-proxy-category-store.js"></script>
+    <script src="../js/mdm-product-proxy-category-picker.js"></script>
+    <script src="../js/mdm-product-mall-tag-store.js"></script>
+    <script src="../js/mdm-product-proxy-region-picker.js"></script>
+    <script src="../js/mdm-product-proxy-store-picker.js"></script>
+    <script src="../js/mdm-product-proxy-form.js"></script>
+    <script src="../js/mdm-product-proxy-library-drawer.js"></script>
+    <script src="../js/mdm-product-mall-list.js"></script>
 </body>
 </html>

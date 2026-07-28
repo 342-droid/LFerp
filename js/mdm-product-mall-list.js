@@ -1,8 +1,82 @@
 (function () {
   var wp = window.wmsPath || { page: function (f) { return f; } };
-  var STORAGE_KEY = 'mdm_proxy_product_list_v1';
+  var STORAGE_KEY = 'mdm_mall_product_list_v1';
 
   var SEED = [
+    {
+      code: 'SPU00181',
+      name: '芒果-自提-马群',
+      img: '../user-app/assets/restock/product-leaf.svg',
+      tag: '冷丰溯源',
+      category: '',
+      spec: '1个',
+      specCount: 1,
+      priceType: 'money',
+      priceMoney: 0.06,
+      linePrice: 1,
+      sales: 0,
+      status: 'on_shelf',
+      deliveryMode: 'pickup',
+      fulfillmentMode: 'pickup',
+      detailEdited: true,
+      fromLibrary: true
+    },
+    {
+      code: 'SPU00180',
+      name: '石榴-快递-马群',
+      img: '../user-app/assets/restock/product-tomato.svg',
+      tag: '冷丰溯源',
+      category: '',
+      spec: '1个',
+      specCount: 1,
+      priceType: 'money',
+      priceMoney: 0.06,
+      linePrice: 1,
+      sales: 0,
+      status: 'on_shelf',
+      deliveryMode: 'express',
+      fulfillmentMode: 'express',
+      detailEdited: true,
+      fromLibrary: true
+    },
+    {
+      code: 'SPU00179',
+      name: '苏打水-自提',
+      img: '../user-app/assets/restock/product-water.svg',
+      tag: '牛牛专用',
+      category: '牛牛下单专用',
+      category_path: '牛牛下单专用',
+      category_paths: ['牛牛下单专用'],
+      spec: '150g',
+      specCount: 1,
+      priceType: 'money',
+      priceMoney: 0.06,
+      linePrice: 1,
+      sales: 0,
+      status: 'on_shelf',
+      deliveryMode: 'pickup',
+      fulfillmentMode: 'pickup',
+      detailEdited: true,
+      fromLibrary: true
+    },
+    {
+      code: 'SPU00178',
+      name: '香菜-快递',
+      img: '../user-app/assets/restock/category-icon-veg.svg',
+      tag: '',
+      category: '',
+      spec: '有机袋装香菜',
+      specCount: 1,
+      priceType: 'money',
+      priceMoney: 0.06,
+      linePrice: null,
+      sales: 0,
+      status: 'on_shelf',
+      deliveryMode: 'express',
+      fulfillmentMode: 'express',
+      detailEdited: true,
+      fromLibrary: true
+    },
     {
       code: 'SPU00114',
       name: '抹茶',
@@ -207,14 +281,14 @@
 
   var CATEGORIES = ['新鲜蔬菜', '时令水果', '粮油调味', '肉禽蛋品', '酒水饮料'];
   var TAGS = ['冷丰溯源', '牛牛专用', '爆款', '新品', ''];
-  var NAMES = ['精品西红柿', '本地生菜', '鲜鸡蛋托装', '娃哈哈纯净水', '康师傅冰红茶', '黄心土豆', '冷鲜牛腩', '鲜香菇'];
+  var NAMES = ['芒果-自提-马群', '石榴-快递-马群', '苏打水-自提', '香菜-快递', '西红柿-自提', '本地生菜-快递', '鲜鸡蛋-自提', '牛腩-快递'];
 
   var ALL_PRODUCTS = [];
   var state = {
     filtered: [],
     page: 1,
     pageSize: 20,
-    filters: { code: '', name: '', mallCategory: '', tag: '', status: '', deliveryMode: '' }
+    filters: { code: '', name: '', mallCategory: '', tag: '', status: '' }
   };
 
   function formatMoney(num) {
@@ -226,40 +300,43 @@
   }
 
   function normalizeDeliveryMode(mode) {
-    if (mode === 'platform' || mode === '平台配送' || mode === '配送' || mode === 'warehouse' || mode === 'delivery') {
-      return 'platform';
-    }
-    if (mode === 'express' || mode === '快递到店' || mode === '快递' || mode === 'store') {
+    if (mode === 'pickup' || mode === '自提' || mode === '门店自提') return 'pickup';
+    if (
+      mode === 'express' ||
+      mode === '快递到店' ||
+      mode === '快递' ||
+      mode === '快递配送' ||
+      mode === 'store'
+    ) {
       return 'express';
     }
-    return 'platform';
+    return 'express';
   }
 
   function deliveryModeLabel(mode) {
-    return normalizeDeliveryMode(mode) === 'express' ? '快递' : '配送';
+    return normalizeDeliveryMode(mode) === 'pickup' ? '自提' : '快递';
   }
 
   function normalizeProduct(item, idx) {
     if (!item) return item;
     var raw = item.deliveryMode || item.fulfillmentMode;
     if (
-      raw !== 'platform' &&
+      raw !== 'pickup' &&
       raw !== 'express' &&
-      raw !== 'store' &&
-      raw !== 'warehouse' &&
-      raw !== 'delivery' &&
-      raw !== '平台配送' &&
+      raw !== '自提' &&
+      raw !== '门店自提' &&
+      raw !== '快递' &&
+      raw !== '快递配送' &&
       raw !== '快递到店' &&
-      raw !== '配送' &&
-      raw !== '快递'
+      raw !== 'store'
     ) {
-      item.deliveryMode = idx % 2 === 1 ? 'platform' : 'express';
+      item.deliveryMode = idx % 2 === 1 ? 'pickup' : 'express';
     } else {
       item.deliveryMode = normalizeDeliveryMode(raw);
     }
     item.fulfillmentMode = item.deliveryMode;
     if (item.etaCountdown == null) item.etaCountdown = '';
-    if (!item.etaCountdownUnit) item.etaCountdownUnit = '天';
+    if (!item.etaCountdownUnit) item.etaCountdownUnit = '小时';
     return item;
   }
 
@@ -385,7 +462,7 @@
     }).join('');
   }
 
-  function catalogItemToProxyProduct(item) {
+  function catalogItemToMallProduct(item) {
     return {
       code: item.code,
       name: item.name,
@@ -401,10 +478,10 @@
       linePrice: null,
       sales: 0,
       status: 'draft',
-      fulfillmentMode: 'platform',
-      deliveryMode: 'platform',
+      fulfillmentMode: 'express',
+      deliveryMode: 'express',
       etaCountdown: '',
-      etaCountdownUnit: '天',
+      etaCountdownUnit: '小时',
       fromLibrary: true,
       detailEdited: false
     };
@@ -416,7 +493,7 @@
     var count = 0;
     items.forEach(function (item) {
       if (addedCodes[item.code]) return;
-      var product = catalogItemToProxyProduct(item);
+      var product = catalogItemToMallProduct(item);
       ALL_PRODUCTS.unshift(product);
       addedCodes[item.code] = true;
       count += 1;
@@ -489,7 +566,7 @@
   }
 
   function populateCategoryFilter() {
-    var select = document.getElementById('qProxyMallCategory');
+    var select = document.getElementById('qMallCategory');
     var store = getStore();
     if (!select || !store) return;
     var current = select.value;
@@ -507,6 +584,7 @@
       return;
     }
     window.MdmProxyProductForm.open({
+      channel: 'mall',
       mode: product ? 'edit' : 'add',
       product: product || {},
       onSave: function (payload, original) {
@@ -522,7 +600,7 @@
           original.pricePoints = payload.pricePoints || 0;
           original.linePrice = payload.linePrice;
           original.etaCountdown = payload.etaCountdown || '';
-          original.etaCountdownUnit = payload.etaCountdownUnit || '天';
+          original.etaCountdownUnit = payload.etaCountdownUnit || '小时';
           original.deliveryMode = normalizeDeliveryMode(payload.deliveryMode || payload.fulfillmentMode);
           original.fulfillmentMode = original.deliveryMode;
           original.detail = payload.detail;
@@ -552,7 +630,7 @@
           sales: 0,
           status: 'draft',
           etaCountdown: payload.etaCountdown || '',
-          etaCountdownUnit: payload.etaCountdownUnit || '天',
+          etaCountdownUnit: payload.etaCountdownUnit || '小时',
           deliveryMode: normalizeDeliveryMode(payload.deliveryMode || payload.fulfillmentMode),
           fulfillmentMode: normalizeDeliveryMode(payload.deliveryMode || payload.fulfillmentMode),
           detail: payload.detail,
@@ -576,7 +654,7 @@
       return normalizeProduct(copy, idx);
     });
     var i = 0;
-    while (list.length < 87) {
+    while (list.length < 122) {
       var seed = SEED[i % SEED.length];
       var num = 100 - Math.floor(list.length / SEED.length);
       list.push(normalizeProduct({
@@ -593,10 +671,10 @@
         linePrice: i % 6 === 0 ? 15 : i % 8 === 0 ? 5 : null,
         sales: 0,
         status: i % 13 === 0 ? 'draft' : i % 17 === 0 ? 'off_shelf' : 'on_shelf',
-        fulfillmentMode: i % 2 === 0 ? 'express' : 'platform',
-        deliveryMode: i % 2 === 0 ? 'express' : 'platform',
+        fulfillmentMode: i % 2 === 0 ? 'express' : 'pickup',
+        deliveryMode: i % 2 === 0 ? 'express' : 'pickup',
         etaCountdown: String((i % 5) + 1),
-        etaCountdownUnit: '天'
+        etaCountdownUnit: i % 2 === 0 ? '天' : '小时'
       }, list.length));
       i += 1;
     }
@@ -613,9 +691,6 @@
     }
     if (f.tag && item.tag !== f.tag) return false;
     if (f.status && item.status !== f.status) return false;
-    if (f.deliveryMode && normalizeDeliveryMode(item.deliveryMode || item.fulfillmentMode) !== f.deliveryMode) {
-      return false;
-    }
     return true;
   }
 
@@ -709,8 +784,8 @@
   }
 
   function renderTable() {
-    var tbody = document.getElementById('proxyListTableBody');
-    var emptyEl = document.getElementById('proxyListEmpty');
+    var tbody = document.getElementById('mallListTableBody');
+    var emptyEl = document.getElementById('mallListEmpty');
     if (!tbody) return;
 
     var start = (state.page - 1) * state.pageSize;
@@ -740,7 +815,6 @@
             '<td class="product-proxy-table__td product-proxy-table__td--sale">' + renderSalePrice(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--line">' + renderLinePrice(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--sales">' + item.sales + '</td>' +
-            '<td class="product-proxy-table__td product-proxy-table__td--fulfillment">' + renderDeliveryMode(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--status">' + renderStatus(item.status) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--action">' + renderActions(item) + '</td>' +
             '</tr>'
@@ -752,9 +826,9 @@
   }
 
   function renderPagination() {
-    var totalEl = document.getElementById('proxyPaginationTotal');
-    var pagesEl = document.getElementById('proxyPaginationPages');
-    var gotoEl = document.getElementById('proxyPageGoto');
+    var totalEl = document.getElementById('mallPaginationTotal');
+    var pagesEl = document.getElementById('mallPaginationPages');
+    var gotoEl = document.getElementById('mallPageGoto');
     var total = state.filtered.length;
     var totalPages = Math.max(1, Math.ceil(total / state.pageSize));
     var page = state.page;
@@ -793,12 +867,11 @@
   }
 
   function readFiltersFromForm() {
-    state.filters.code = (document.getElementById('qProxyCode') || {}).value.trim();
-    state.filters.name = (document.getElementById('qProxyName') || {}).value.trim();
-    state.filters.mallCategory = (document.getElementById('qProxyMallCategory') || {}).value;
-    state.filters.tag = (document.getElementById('qProxyTag') || {}).value;
-    state.filters.status = (document.getElementById('qProxyStatus') || {}).value;
-    state.filters.deliveryMode = (document.getElementById('qProxyDelivery') || {}).value;
+    state.filters.code = (document.getElementById('qMallCode') || {}).value.trim();
+    state.filters.name = (document.getElementById('qMallName') || {}).value.trim();
+    state.filters.mallCategory = (document.getElementById('qMallCategory') || {}).value;
+    state.filters.tag = (document.getElementById('qMallTag') || {}).value;
+    state.filters.status = (document.getElementById('qMallStatus') || {}).value;
   }
 
   function refresh(resetPage) {
@@ -828,27 +901,27 @@
   }
 
   function bindEvents() {
-    document.getElementById('proxyFilterQuery') &&
-      document.getElementById('proxyFilterQuery').addEventListener('click', function () {
+    document.getElementById('mallFilterQuery') &&
+      document.getElementById('mallFilterQuery').addEventListener('click', function () {
         refresh(true);
         if (typeof showToast === 'function') showToast('查询完成', 'success');
       });
 
-    document.getElementById('proxyFilterReset') &&
-      document.getElementById('proxyFilterReset').addEventListener('click', function () {
-        var form = document.getElementById('proxyListFilterForm');
+    document.getElementById('mallFilterReset') &&
+      document.getElementById('mallFilterReset').addEventListener('click', function () {
+        var form = document.getElementById('mallListFilterForm');
         if (form) form.reset();
         refresh(true);
       });
 
-    document.getElementById('proxyPageSize') &&
-      document.getElementById('proxyPageSize').addEventListener('change', function (e) {
+    document.getElementById('mallPageSize') &&
+      document.getElementById('mallPageSize').addEventListener('change', function (e) {
         state.pageSize = parseInt(e.target.value, 10) || 20;
         refresh(true);
       });
 
-    document.getElementById('proxyPaginationPages') &&
-      document.getElementById('proxyPaginationPages').addEventListener('click', function (e) {
+    document.getElementById('mallPaginationPages') &&
+      document.getElementById('mallPaginationPages').addEventListener('click', function (e) {
         var btn = e.target.closest('[data-page]');
         if (!btn || btn.disabled) return;
         var next = parseInt(btn.getAttribute('data-page'), 10);
@@ -857,8 +930,8 @@
         renderTable();
       });
 
-    document.getElementById('proxyPageGoto') &&
-      document.getElementById('proxyPageGoto').addEventListener('keydown', function (e) {
+    document.getElementById('mallPageGoto') &&
+      document.getElementById('mallPageGoto').addEventListener('keydown', function (e) {
         if (e.key !== 'Enter') return;
         e.preventDefault();
         var totalPages = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
@@ -869,8 +942,8 @@
         renderTable();
       });
 
-    document.getElementById('proxyAddFromLibrary') &&
-      document.getElementById('proxyAddFromLibrary').addEventListener('click', function () {
+    document.getElementById('mallAddFromLibrary') &&
+      document.getElementById('mallAddFromLibrary').addEventListener('click', function () {
         openLibraryDrawer();
       });
 
