@@ -30,6 +30,18 @@
     deliveryText: '预计2-3天送达'
   };
 
+  /** 商品透出供应商名：档案简称优先，无简称则用全称 */
+  function getSupplierDisplayName(supplier) {
+    if (
+      window.MdmSupplierArchiveStore &&
+      typeof window.MdmSupplierArchiveStore.getDisplayName === 'function'
+    ) {
+      return window.MdmSupplierArchiveStore.getDisplayName(supplier);
+    }
+    if (!supplier) return '';
+    return String(supplier.shortName || supplier.name || '').trim();
+  }
+
   var PRODUCTS = {
     'beef-tendon': {
       id: 'beef-tendon',
@@ -211,7 +223,7 @@
       return {
         fulfillType: 'express',
         merchantId: supplier.id,
-        merchantName: supplier.name,
+        merchantName: getSupplierDisplayName(supplier) || supplier.name,
         merchantAvatar: supplier.avatar
       };
     }
@@ -1073,7 +1085,11 @@
               },
               {
                 title: '供应商',
-                desc: (merchant.name || '供应商') + '（' + (merchant.meta || '') + '）负责备货与发货。'
+                desc:
+                  (getSupplierDisplayName(merchant) || merchant.name || '供应商') +
+                  '（' +
+                  (merchant.meta || '') +
+                  '）负责备货与发货。'
               },
               {
                 title: '售后说明',
@@ -1121,7 +1137,12 @@
     function renderMerchant() {
       var avatar = document.getElementById('goodsDetailMerchantAvatar');
       if (avatar) avatar.src = merchant.avatar || STORE.avatar;
-      setText('goodsDetailMerchantName', merchant.name || (fulfillType === 'express' ? '供应商' : '门店'));
+      setText(
+        'goodsDetailMerchantName',
+        fulfillType === 'express'
+          ? getSupplierDisplayName(merchant) || merchant.name || '供应商'
+          : merchant.name || '门店'
+      );
       setText(
         'goodsDetailMerchantMeta',
         merchant.meta ||
