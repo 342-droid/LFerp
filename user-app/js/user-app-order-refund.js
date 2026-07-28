@@ -5550,15 +5550,18 @@
     var applyQtyRow = document.getElementById('refundDetailApplyQtyRow');
     var applyQtyEl = document.getElementById('refundDetailApplyQty');
     var actualQtyRow = document.getElementById('refundDetailActualQtyRow');
+    var actualQtyEl = document.getElementById('refundDetailActualQty');
+    // 仅补货详情展示「申请补货数量」；仅退款/退货退款/换货成功等页一律不展示补货字段
+    // 「实际补货数量」用户端不录入，任何类型均隐藏
+    if (actualQtyRow) actualQtyRow.hidden = true;
+    if (actualQtyEl) actualQtyEl.textContent = '—';
     if (isRestock) {
       var applyQty = getApplyRestockQty(app, item);
       if (applyQtyRow) applyQtyRow.hidden = false;
       if (applyQtyEl) applyQtyEl.textContent = String(applyQty);
-      /* 用户端补货确认不录入实际数量，隐藏该行 */
-      if (actualQtyRow) actualQtyRow.hidden = true;
     } else {
       if (applyQtyRow) applyQtyRow.hidden = true;
-      if (actualQtyRow) actualQtyRow.hidden = true;
+      if (applyQtyEl) applyQtyEl.textContent = '—';
     }
 
     var amountRow = document.getElementById('refundDetailAmount');
@@ -5592,17 +5595,6 @@
           amountRow.className = 'ua-or-detail-info-row__value ua-or-detail-info-row__value--amount';
           amountRow.textContent = '共' + Number(amountNum).toFixed(2) + '元';
         }
-      }
-    }
-
-    var finishRow = document.getElementById('refundDetailFinishRow');
-    var finishTimeEl = document.getElementById('refundDetailFinishTime');
-    if (finishRow && finishTimeEl) {
-      if (cancelClosed && opts.finishTime) {
-        finishRow.hidden = false;
-        finishTimeEl.textContent = formatResultDateTime(opts.finishTime);
-      } else {
-        finishRow.hidden = true;
       }
     }
 
