@@ -1,0 +1,200 @@
+/* 用户 APP — 积分商品详情 */
+.ua-ppd-page,
+.ua-ppd-scroll {
+  background: #f5f5f5;
+}
+
+.ua-ppd-page .ua-mp-capsule--light {
+  border-color: rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.ua-ppd-hero {
+  position: relative;
+  background: #f0f0f0;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+
+.ua-ppd-hero__back {
+  position: absolute;
+  left: 12px;
+  top: 54px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.ua-ppd-hero__back svg {
+  width: 20px;
+  height: 20px;
+}
+
+.ua-ppd-hero__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  background: #f0f0f0;
+}
+
+.ua-ppd-info {
+  margin: 0 0 10px;
+  padding: 14px 16px 16px;
+  background: #fff;
+}
+
+.ua-ppd-info__price {
+  font-size: 24px;
+  font-weight: 800;
+  color: #ff4d3a;
+  line-height: 1.2;
+}
+
+.ua-ppd-info__line {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #bbb;
+  text-decoration: line-through;
+}
+
+.ua-ppd-info__title {
+  margin: 10px 0 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #222;
+  line-height: 1.4;
+}
+
+.ua-ppd-info__meta {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #999;
+}
+
+.ua-ppd-card {
+  margin: 0 0 10px;
+  background: #fff;
+}
+
+.ua-ppd-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border: none;
+  border-bottom: 1px solid #f3f3f3;
+  background: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.ua-ppd-row--static {
+  cursor: default;
+}
+
+.ua-ppd-row:last-child {
+  border-bottom: none;
+}
+
+.ua-ppd-row__label {
+  flex-shrink: 0;
+  width: 40px;
+  font-size: 13px;
+  color: #888;
+}
+
+.ua-ppd-row__value {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ua-ppd-row__chev {
+  width: 14px;
+  height: 14px;
+  color: #ccc;
+  flex-shrink: 0;
+}
+
+.ua-ppd-detail {
+  background: #fff;
+  padding: 8px 0 80px;
+}
+
+.ua-ppd-detail__divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 16px 10px;
+  color: #999;
+  font-size: 13px;
+}
+
+.ua-ppd-detail__divider::before,
+.ua-ppd-detail__divider::after {
+  content: '';
+  width: 40px;
+  height: 1px;
+  background: #eee;
+}
+
+.ua-ppd-detail__body {
+  padding: 8px 16px 20px;
+  font-size: 14px;
+  color: #444;
+  line-height: 1.7;
+}
+
+.ua-ppd-detail__body img {
+  max-width: 100%;
+  display: block;
+  margin: 8px 0;
+  border-radius: 8px;
+}
+
+.ua-ppd-footer {
+  flex-shrink: 0;
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px 14px;
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+}
+
+.ua-ppd-footer__cart,
+.ua-ppd-footer__buy {
+  flex: 1;
+  height: 42px;
+  border: none;
+  border-radius: 21px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ua-ppd-footer__cart {
+  background: #fff1ef;
+  color: #ff4d3a;
+}
+
+.ua-ppd-footer__buy {
+  background: linear-gradient(135deg, #ff6b5c, #ff4d3a);
+  color: #fff;
+}

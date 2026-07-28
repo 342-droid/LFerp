@@ -859,6 +859,30 @@
   line-height: 1.2;
 }
 
+.ua-cart-item__price--points {
+  color: var(--ua-shop-red);
+  font-size: 14px;
+}
+
+.ua-cart-item__tag {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: linear-gradient(135deg, #ff6b5c, var(--ua-shop-red));
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+
+.ua-cart-footer__mix {
+  color: var(--ua-shop-red);
+  font-size: 15px;
+  font-weight: 800;
+}
+
 .ua-cart-stepper {
   display: flex;
   align-items: center;
@@ -1268,6 +1292,11 @@
   font-size: 14px;
   font-weight: 700;
   color: var(--ua-shop-red);
+}
+
+.ua-confirm-item__price--points {
+  color: var(--ua-shop-red);
+  font-size: 13px;
 }
 
 .ua-confirm-item__qty {

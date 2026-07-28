@@ -13,8 +13,8 @@
       ]
     },
     shipping: {
-      title: '买家已付款',
-      sub: '',
+      title: '待发货',
+      sub: '买家已付款，商家正在备货',
       showLogistics: false,
       showPoints: false,
       showPayMethod: true,
@@ -104,7 +104,7 @@
       showStoreDelivery: false
     },
     shipping: {
-      title: '买家已付款',
+      title: '待发货',
       sub: '供应商正在备货，将配送到门店',
       showStoreDelivery: false
     },
@@ -392,6 +392,14 @@
   }
 
   function getStatus() {
+    /* 有演示订单号时，以本地订单存储状态为准，避免列表已支付详情仍显示待付款 */
+    var orderNo = getParams().get('orderNo');
+    if (orderNo && window.UaOrdersStore && window.UaOrdersStore.getByNo) {
+      var order = window.UaOrdersStore.getByNo(orderNo);
+      if (order && order.status && STATUS_CONFIG[order.status]) {
+        return order.status;
+      }
+    }
     var status = (getParams().get('status') || 'unpaid').trim();
     return STATUS_CONFIG[status] ? status : 'unpaid';
   }
@@ -425,6 +433,8 @@
     if (delivery) qs.push('delivery=' + encodeURIComponent(delivery));
     if (p.get('cutoff')) qs.push('cutoff=' + encodeURIComponent(p.get('cutoff')));
     if (p.get('reason')) qs.push('reason=' + encodeURIComponent(p.get('reason')));
+    if (p.get('orderNo')) qs.push('orderNo=' + encodeURIComponent(p.get('orderNo')));
+    if (p.get('pointsItem')) qs.push('pointsItem=' + encodeURIComponent(p.get('pointsItem')));
     qs.push('item=' + encodeURIComponent(String(itemIndex == null ? 0 : itemIndex)));
     return qs.join('&');
   }
@@ -483,8 +493,14 @@
   function confirmCancelOrder() {
     closeCancelModal();
     var p = getParams();
+    var orderNo = p.get('orderNo');
+    if (orderNo && window.UaOrdersStore) {
+      window.UaOrdersStore.updateStatus(orderNo, 'closed', { closedReason: 'cancel' });
+    }
     var href =
       'order-detail.html?status=closed&reason=cancel' +
+      (orderNo ? '&orderNo=' + encodeURIComponent(orderNo) : '') +
+      (p.get('pointsItem') ? '&pointsItem=' + encodeURIComponent(p.get('pointsItem')) : '') +
       (p.get('from') ? '&from=' + encodeURIComponent(p.get('from')) : '') +
       (p.get('supplier') ? '&supplier=' + encodeURIComponent(p.get('supplier')) : '') +
       (p.get('delivery') ? '&delivery=' + encodeURIComponent(p.get('delivery')) : '');
@@ -510,7 +526,146 @@
     if (p.get('supplier')) href += '&supplier=' + encodeURIComponent(p.get('supplier'));
     if (p.get('delivery')) href += '&delivery=' + encodeURIComponent(p.get('delivery'));
     else if (!isFromRestock()) href += '&delivery=store';
+    if (p.get('orderNo')) href += '&orderNo=' + encodeURIComponent(p.get('orderNo'));
+    if (p.get('pointsItem')) href += '&pointsItem=' + encodeURIComponent(p.get('pointsItem'));
     window.location.href = href;
+  }
+
+  function payDemoOrder() {
+    var p = getParams();
+    var orderNo = p.get('orderNo');
+    var order =
+      (orderNo && window.UaOrdersStore && window.UaOrdersStore.getByNo(orderNo)) ||
+      (window.UaOrdersStore && window.UaOrdersStore.getLatest());
+    var paid = null;
+    if (order && window.UaOrdersStore) {
+      paid = window.UaOrdersStore.updateStatus(order.orderNo, 'shipping');
+    }
+    if (!paid && order) {
+      paid = Object.assign({}, order, { status: 'shipping' });
+      if (window.UaOrdersStore) paid = window.UaOrdersStore.upsert(paid);
+    }
+    var href =
+      window.UaOrdersStore && paid
+        ? window.UaOrdersStore.buildDetailHref(paid)
+        : 'order-detail.html?status=shipping' +
+          (orderNo ? '&orderNo=' + encodeURIComponent(orderNo) : '') +
+          (p.get('pointsItem') ? '&pointsItem=' + encodeURIComponent(p.get('pointsItem')) : '');
+    window.alert('支付成功（演示）');
+    window.location.replace(href);
+  }
+
+  function escapeOdText(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function pointsExchangeTagHtml() {
+    return '<span class="ua-cart-item__tag">积分兑换</span>';
+  }
+
+  function applyPointsExchangeNameTags() {
+    document.querySelectorAll('.ua-od-item[data-points-exchange="1"]').forEach(function (el) {
+      var nameEl = el.querySelector('.ua-od-item__name');
+      if (!nameEl) return;
+      if (nameEl.querySelector('.ua-cart-item__tag')) return;
+      nameEl.innerHTML = pointsExchangeTagHtml() + nameEl.innerHTML;
+    });
+  }
+
+  /** 用演示订单快照覆盖详情商品与金额 */
+  function applyDemoOrderSnapshot() {
+    var p = getParams();
+    var orderNo = p.get('orderNo');
+    if (!orderNo || !window.UaOrdersStore) return null;
+    var order = window.UaOrdersStore.getByNo(orderNo);
+    if (!order) return null;
+
+    var noEl = document.getElementById('orderNoText');
+    if (noEl) noEl.textContent = order.orderNo;
+
+    var items = order.items || [];
+    document.querySelectorAll('.ua-od-item').forEach(function (el, idx) {
+      var it = items[idx];
+      if (!it) {
+        el.hidden = true;
+        return;
+      }
+      el.hidden = false;
+      el.setAttribute('data-item-index', String(idx));
+      if (it.isPointsExchange) el.setAttribute('data-points-exchange', '1');
+      else el.removeAttribute('data-points-exchange');
+      var img = el.querySelector('.ua-od-item__img');
+      if (img && it.img) img.setAttribute('src', it.img);
+      var nameEl = el.querySelector('.ua-od-item__name');
+      if (nameEl) {
+        nameEl.innerHTML =
+          (it.isPointsExchange ? pointsExchangeTagHtml() : '') + escapeOdText(it.name || '');
+      }
+      var specEl = el.querySelector('.ua-od-item__spec');
+      if (specEl) specEl.textContent = it.spec ? '规格：' + it.spec : '';
+      var qtyEl = el.querySelector('.ua-od-item__qty');
+      if (qtyEl) qtyEl.textContent = '× ' + (it.qty || 1);
+      var saleEl = el.querySelector('.ua-od-item__sale');
+      if (saleEl) {
+        saleEl.innerHTML = it.isPointsExchange
+          ? '<em>兑换</em>' +
+            (Number(it.points) || 0) +
+            '积分' +
+            (Number(it.money) > 0 ? '+¥' + Number(it.money).toFixed(2) : '')
+          : '<em>售价</em>¥' + Number(it.price || 0).toFixed(2);
+      }
+      var paidEl = el.querySelector('.ua-od-item__paid');
+      if (paidEl) {
+        paidEl.innerHTML = it.isPointsExchange
+          ? '<em>实付</em>' +
+            (Number(it.points) || 0) +
+            '积分' +
+            (Number(it.money) > 0 ? '+¥' + Number(it.money).toFixed(2) : '')
+          : '<em>实付</em>¥' + Number(it.price || 0).toFixed(2);
+      }
+    });
+
+    var goodsTotalEl = document.getElementById('orderGoodsTotal');
+    if (goodsTotalEl) goodsTotalEl.textContent = '¥' + Number(order.goodsTotal || 0).toFixed(2);
+    var freightEl = document.getElementById('orderFreight');
+    if (freightEl) {
+      freightEl.textContent =
+        Number(order.freight || 0) > 0 ? '¥' + Number(order.freight).toFixed(2) : '免运费';
+    }
+    var deductRow = document.getElementById('orderPointsDeductRow');
+    var deductEl = document.getElementById('orderPointsDeduct');
+    if (deductRow && deductEl) {
+      if (Number(order.deductAmount) > 0) {
+        deductRow.hidden = false;
+        deductEl.textContent = '-¥' + Number(order.deductAmount).toFixed(2);
+      } else {
+        deductRow.hidden = true;
+      }
+    }
+    var exchangeRow = document.getElementById('orderExchangePointsRow');
+    var exchangeEl = document.getElementById('orderExchangePoints');
+    if (exchangeRow && exchangeEl) {
+      if (Number(order.exchangePoints) > 0) {
+        exchangeRow.hidden = false;
+        exchangeEl.textContent = Number(order.exchangePoints) + '积分';
+      } else {
+        exchangeRow.hidden = false;
+        exchangeEl.textContent = '0积分';
+        /* 有积分兑换行才强调展示；纯普通单也显示 0 便于验收 */
+        if (!(order.items || []).some(function (it) { return it.isPointsExchange; })) {
+          exchangeRow.hidden = true;
+        }
+      }
+    }
+    var payTotalEl = document.getElementById('orderPayTotal');
+    if (payTotalEl) {
+      payTotalEl.textContent = order.payLabel || '¥' + Number(order.payable || 0).toFixed(2);
+    }
+    return order;
   }
 
   function toast(msg) {
@@ -770,7 +925,33 @@
     window.location.href = api.buildAftersaleDetailHref(rec, detailExtra);
   }
 
+  function isPointsExchangeOrderItem(itemIndex) {
+    var el = document.querySelector(
+      '.ua-od-item[data-item-index="' + String(itemIndex) + '"]'
+    );
+    if (el && el.getAttribute('data-points-exchange') === '1') return true;
+    try {
+      var raw = sessionStorage.getItem('ua_last_order_items_v1');
+      if (!raw) return false;
+      var list = JSON.parse(raw);
+      return !!(Array.isArray(list) && list[itemIndex] && list[itemIndex].isPointsExchange);
+    } catch (e) {
+      return false;
+    }
+  }
+
   function canStartAftersaleForItem(itemIndex, actionMode) {
+    /* 积分兑换商品是否支持售后：读后台积分规则 exchange.refundEnabled */
+    if (isPointsExchangeOrderItem(itemIndex)) {
+      var cfg = window.MdmPointsMallConfig;
+      var allowed =
+        cfg && typeof cfg.isExchangeRefundEnabled === 'function'
+          ? cfg.isExchangeRefundEnabled()
+          : true;
+      if (!allowed) {
+        return { ok: false, msg: '抱歉，积分兑换商品暂不支持售后' };
+      }
+    }
     var api = getAftersaleApi();
     if (!api || !api.hasOpenAftersaleOfGroup) return { ok: true };
     /* 申请退款：同类型（退款/退货）进行中不可再发起 */
@@ -780,6 +961,23 @@
       }
     }
     return { ok: true };
+  }
+
+  /** 把上次结算写入的积分兑换行标记回订单详情商品卡（演示） */
+  function applyLastOrderPointsFlags() {
+    try {
+      var raw = sessionStorage.getItem('ua_last_order_items_v1');
+      if (!raw) return;
+      var list = JSON.parse(raw);
+      if (!Array.isArray(list)) return;
+      list.forEach(function (it, idx) {
+        if (!it || !it.isPointsExchange) return;
+        var el = document.querySelector(
+          '.ua-od-item[data-item-index="' + String(idx) + '"]'
+        );
+        if (el) el.setAttribute('data-points-exchange', '1');
+      });
+    } catch (e) { /* ignore */ }
   }
 
   function renderFooter(actions) {
@@ -987,6 +1185,10 @@
           openConfirmReceiptModal();
           return;
         }
+        if (action === 'pay') {
+          payDemoOrder();
+          return;
+        }
         var map = {
           pay: '立即付款',
           refund: '申请退款',
@@ -1094,11 +1296,38 @@
   }
 
   function init() {
+    var demoOrder = applyDemoOrderSnapshot();
     var status = getStatus();
+    /* URL 与存储不一致时，校正地址栏，避免刷新后又变回待付款 */
+    if (demoOrder && demoOrder.status && demoOrder.status !== (getParams().get('status') || '')) {
+      try {
+        var url = new URL(window.location.href);
+        url.searchParams.set('status', demoOrder.status);
+        if (demoOrder.orderNo) url.searchParams.set('orderNo', demoOrder.orderNo);
+        window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+      } catch (e) { /* ignore */ }
+      status = demoOrder.status;
+    }
     status = applyRetailExpressFulfillment(status);
     if (status == null) return;
 
-    var config = STATUS_CONFIG[status];
+    var config = STATUS_CONFIG[status] || STATUS_CONFIG.unpaid;
+    applyLastOrderPointsFlags();
+    /* URL 演示：?pointsItem=0 或 0,2 将对应行标为积分兑换商品 */
+    var pointsItemParam = getParams().get('pointsItem');
+    if (pointsItemParam) {
+      String(pointsItemParam)
+        .split(',')
+        .forEach(function (raw) {
+          var idx = parseInt(String(raw).trim(), 10);
+          if (isNaN(idx)) return;
+          var el = document.querySelector(
+            '.ua-od-item[data-item-index="' + String(idx) + '"]'
+          );
+          if (el) el.setAttribute('data-points-exchange', '1');
+        });
+    }
+    applyPointsExchangeNameTags();
 
     document.getElementById('orderDetailShell') &&
       document.getElementById('orderDetailShell').setAttribute('data-order-status', status);

@@ -3,7 +3,10 @@
   var wp = window.wmsPath || { page: function (f) { return f; }, asset: function (r) { return r; } };
   var pageHref = function (f) { return wp.page(f); };
   var assetHref = function (r) { return wp.asset(r); };
-  var currentPage = window.location.pathname.split('/').pop() || 'mdm_product_selection.html';
+  var currentPage = (window.location.pathname.split('/').pop() || 'mdm_product_selection.html')
+    .split('?')[0]
+    .split('#')[0];
+  if (currentPage && !/\.html?$/i.test(currentPage)) currentPage += '.html';
 
   var flatItems = [
     { href: 'mdm_product_selection.html', text: '选品库', alsoActive: ['mdm_product_audit.html'] },

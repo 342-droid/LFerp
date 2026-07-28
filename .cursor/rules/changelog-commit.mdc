@@ -5,6 +5,8 @@ alwaysApply: true
 
 # 提交信息规范（更新日志数据源）
 
+> 团队规则权威文档：`docs/team-rules/提交信息与更新日志规范.md`（含规则名称、制定人）
+
 本仓库的更新日志页（changelog.html）直接由 git 提交生成：标题作为整体概述展示，
 body 里的按页面说明会挂到对应页面的更新明细里。每次提交必须按以下格式写 commit message。
 

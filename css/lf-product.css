@@ -395,6 +395,7 @@
   line-height: 1.4;
   color: var(--color-primary, #ff7019);
   cursor: pointer;
+  text-decoration: none;
 }
 
 .product-action__link:hover {

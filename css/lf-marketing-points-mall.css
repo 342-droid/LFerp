@@ -1,0 +1,915 @@
+/* 营销 - 积分商城 */
+
+/* 顶部开关条（对齐消费赠积分） */
+.mkt-points-mall-enable-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+}
+
+.mkt-points-mall-enable-bar__label {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  line-height: 24px;
+}
+
+.mkt-points-mall-enable-bar__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.mkt-points-mall-enable-bar__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  line-height: 24px;
+}
+
+.mkt-points-mall-enable-bar__status {
+  font-size: 14px;
+  color: #999;
+}
+
+.mkt-points-mall-enable-bar__link {
+  font-size: 13px;
+  color: #ff7019;
+  text-decoration: none;
+}
+
+.mkt-points-mall-enable-bar__link:hover {
+  text-decoration: underline;
+}
+
+.mkt-points-mall-enable-bar__desc {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
+/* 筛选：对齐积分明细 search-form */
+#pointsMallFilterForm.search-form {
+  gap: 16px 20px;
+}
+
+#pointsMallFilterForm.search-form > .form-group {
+  flex: 0 0 auto;
+  max-width: none;
+  width: auto;
+}
+
+/* 仅约束普通筛选项，勿波及兑换积分区间内的子 input（否则会多出一套边框/宽度） */
+#pointsMallFilterForm .form-group > input,
+#pointsMallFilterForm .form-group > select,
+#pointsMallFilterForm .form-group > .input-wrapper > input {
+  width: 180px;
+}
+
+#pointsMallFilterForm .form-group--points-range .mkt-points-mall-range {
+  width: auto;
+  min-width: 220px;
+}
+
+.mkt-points-mall-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.mkt-points-mall-range:focus-within {
+  border-color: var(--color-primary, #ff7019);
+}
+
+.mkt-points-mall-range__input {
+  width: 88px !important;
+  min-width: 0;
+  height: 100%;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent;
+  font-size: 13px;
+  color: var(--color-text, #333333);
+  padding: 0 !important;
+}
+
+.mkt-points-mall-range__input:focus {
+  outline: none;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.mkt-points-mall-range__input::placeholder {
+  color: #c0c4cc;
+}
+
+.mkt-points-mall-range__sep {
+  flex-shrink: 0;
+  color: #999;
+  font-size: 12px;
+}
+
+.mkt-points-mall-toolbar {
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mkt-points-mall-toolbar-tip {
+  font-size: 12px;
+  color: #909399;
+}
+
+.mkt-points-mall-table {
+  min-width: 1360px;
+}
+
+.mkt-points-mall-table__col--seq { width: 56px; }
+.mkt-points-mall-table__col--name { width: 12%; }
+.mkt-points-mall-table__col--code { width: 110px; }
+.mkt-points-mall-table__col--img { width: 72px; }
+.mkt-points-mall-table__col--category { width: 8%; }
+.mkt-points-mall-table__col--spec { width: 10%; }
+.mkt-points-mall-table__col--purchase { width: 72px; }
+.mkt-points-mall-table__col--line { width: 72px; }
+.mkt-points-mall-table__col--stock { width: 78px; }
+.mkt-points-mall-table__col--delivery { width: 88px; }
+.mkt-points-mall-table__col--type { width: 96px; }
+.mkt-points-mall-table__col--exchange { width: 120px; }
+.mkt-points-mall-table__col--qty { width: 96px; }
+.mkt-points-mall-table__col--status { width: 72px; }
+.mkt-points-mall-table__col--schedule { width: 148px; }
+.mkt-points-mall-table__col--action { width: 120px; }
+
+.mkt-points-mall-table .product-proxy-code__sub {
+  color: #909399;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* 奇偶商品行区分；同一商品多 SKU 展开行共用背景，中间不加横线 */
+.mkt-points-mall-table .mkt-points-mall-row--sku-open > td {
+  border-bottom-color: transparent;
+}
+
+.mkt-points-mall-schedule-cell {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.mkt-points-mall-th-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.mkt-points-mall-th-sort:hover {
+  color: var(--color-primary, #ff7019);
+}
+
+.mkt-points-mall-sort {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-left: 2px;
+  vertical-align: middle;
+}
+
+.mkt-points-mall-sort__asc,
+.mkt-points-mall-sort__desc {
+  display: block;
+  width: 0;
+  height: 0;
+  border-left: 3.5px solid transparent;
+  border-right: 3.5px solid transparent;
+  opacity: 0.35;
+}
+
+.mkt-points-mall-sort__asc {
+  border-bottom: 4px solid currentColor;
+}
+
+.mkt-points-mall-sort__desc {
+  border-top: 4px solid currentColor;
+}
+
+.mkt-points-mall-th-sort.is-asc .mkt-points-mall-sort__asc,
+.mkt-points-mall-th-sort.is-desc .mkt-points-mall-sort__desc {
+  opacity: 1;
+  color: var(--color-primary, #ff7019);
+}
+
+.mkt-points-mall-price {
+  font-size: 13px;
+  font-weight: 700;
+  color: #333;
+}
+
+.mkt-points-mall-line-price {
+  font-size: 13px;
+  color: #999;
+}
+
+.mkt-points-mall-td--seq {
+  color: #666;
+  text-align: center;
+}
+
+.mkt-points-mall-spec-cell {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.45;
+}
+
+.mkt-points-mall-spec-toggle {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #ff7019;
+  font-size: 12px;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.mkt-points-mall-spec-toggle:hover {
+  text-decoration: underline;
+}
+
+.mkt-points-mall-th-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: #e8e8e8;
+  color: #666;
+  font-size: 11px;
+  font-style: normal;
+  line-height: 1;
+  cursor: help;
+  vertical-align: middle;
+}
+
+.mkt-points-mall-picker-toolbar {
+  flex-wrap: wrap;
+  gap: 10px 12px;
+}
+
+.mkt-points-mall-picker-added {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+  white-space: nowrap;
+}
+
+.mkt-points-mall-picker-added select {
+  height: 32px;
+  min-width: 110px;
+  padding: 0 8px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #333;
+  background: #fff;
+}
+
+.mkt-points-mall-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.mkt-points-mall-form-row__label {
+  font-size: 13px;
+  color: #333;
+}
+
+.mkt-points-mall-form-row__label .req {
+  color: #f56c6c;
+  margin-right: 2px;
+}
+
+.mkt-points-mall-form-row__hint {
+  font-size: 12px;
+  color: #909399;
+}
+
+.mkt-points-mall-form-row__input,
+.mkt-points-mall-form-row__select {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #333;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.mkt-points-mall-form-row__input:focus,
+.mkt-points-mall-form-row__select:focus {
+  outline: none;
+  border-color: var(--color-primary, #ff7019);
+}
+
+.mkt-points-mall-form-product {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mkt-points-mall-form-product__img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #f0f0f0;
+}
+
+.mkt-points-mall-form-product__name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin: 0 0 4px;
+}
+
+.mkt-points-mall-form-product__meta {
+  font-size: 12px;
+  color: #909399;
+  margin: 0;
+}
+
+.mkt-points-mall-spec-table-wrap {
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.mkt-points-mall-spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.mkt-points-mall-spec-table th,
+.mkt-points-mall-spec-table td {
+  padding: 8px 6px;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.mkt-points-mall-spec-table th {
+  background: #fafafa;
+  color: #666;
+  font-weight: 500;
+}
+
+.mkt-points-mall-spec-table tr.is-disabled td {
+  color: #bbb;
+  background: #fcfcfc;
+}
+
+.mkt-points-mall-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #333;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mkt-points-mall-spec-table input[type="number"],
+.mkt-points-mall-spec-table select {
+  width: 88px;
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 12px;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.mkt-points-mall-spec-table select {
+  width: 110px;
+}
+
+.mkt-points-mall-spec-table input:focus,
+.mkt-points-mall-spec-table select:focus {
+  outline: none;
+  border-color: var(--color-primary, #ff7019);
+}
+
+.mkt-points-mall-spec-table input:disabled,
+.mkt-points-mall-spec-table select:disabled {
+  background: #f5f5f5;
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+.erp-modal--points-mall-config {
+  width: 920px;
+  max-width: 96vw;
+}
+
+.erp-modal--points-mall-config .erp-modal__body {
+  max-height: min(72vh, 640px);
+  overflow: auto;
+}
+
+.mkt-points-mall-level-scope {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-bottom: 8px;
+}
+
+.mkt-points-mall-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mkt-points-mall-level-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 8px 10px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  background: #fafafa;
+}
+
+.mkt-points-mall-level-list[hidden] {
+  display: none;
+}
+
+.mkt-points-mall-check--level {
+  font-size: 13px;
+}
+
+.mkt-points-mall-limit-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+
+.mkt-points-mall-limit-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #333;
+}
+
+.mkt-points-mall-limit-item span {
+  white-space: nowrap;
+  color: #666;
+}
+
+.mkt-points-mall-limit-item .mkt-points-mall-form-row__input {
+  width: 88px;
+}
+
+.mkt-points-mall-limit-item em {
+  font-style: normal;
+  color: #909399;
+  font-size: 12px;
+}
+
+.mkt-points-mall-spec-table th[hidden],
+.mkt-points-mall-spec-table td[hidden] {
+  display: none;
+}
+
+.mkt-points-mall-spec-table input[data-field="stock"],
+.mkt-points-mall-spec-table input[data-field="minSaleQty"] {
+  width: 72px;
+}
+
+.mkt-points-mall-picker-tip {
+  font-size: 12px;
+  color: #909399;
+  margin: 0;
+  padding: 0 4px;
+}
+
+/* 编辑积分商品页 — 版式对齐积分规则（卡片 + 左右字段） */
+.mkt-points-mall-form-toolbar {
+  margin: 0 0 12px;
+}
+
+.mkt-points-mall-form-back {
+  color: #2196F3;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.mkt-points-mall-form-back:hover {
+  text-decoration: underline;
+}
+
+.mkt-points-mall-form-intro {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.65;
+}
+
+.mkt-points-mall-card.pts-rule-card,
+.pts-rule-card.mkt-points-mall-card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  max-width: none;
+  width: 100%;
+}
+
+.mkt-points-mall-card .pts-rule-card__title {
+  padding: 12px 16px;
+  background: #fafafa;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.mkt-points-mall-card .pts-rule-card__body {
+  padding: 16px 16px 8px;
+}
+
+.mkt-points-mall-card .pts-rule-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.mkt-points-mall-card .pts-rule-field__label {
+  flex: 0 0 140px;
+  text-align: right;
+  font-size: 13px;
+  color: #333;
+  line-height: 36px;
+}
+
+.mkt-points-mall-card .pts-rule-field__label .erp-req {
+  color: #ff4d4f;
+  margin-right: 2px;
+}
+
+.mkt-points-mall-card .pts-rule-field__control {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+}
+
+.mkt-points-mall-card .pts-rule-field__control--wide {
+  max-width: none;
+}
+
+.mkt-points-mall-card .pts-rule-check-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 20px;
+  align-items: center;
+  min-height: 36px;
+}
+
+.mkt-points-mall-card .pts-rule-check-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  color: #333;
+}
+
+.mkt-points-mall-card .pts-rule-tip {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.45;
+}
+
+.mkt-points-mall-form-actions.pts-rule-actions,
+.pts-rule-actions.mkt-points-mall-form-actions {
+  /* 底栏样式由 lf-mdm-edit-page.css 统一接管 */
+}
+
+.mkt-points-mall-form-product {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0 8px;
+  background: transparent;
+  border-radius: 0;
+  margin-bottom: 0;
+}
+
+.mkt-points-mall-sale-scope__panel {
+  margin-top: 12px;
+  padding-left: 0 !important;
+}
+
+.mkt-points-mall-form-detail {
+  max-width: none;
+}
+
+.mkt-points-mall-card .product-proxy-form__images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.mkt-points-mall-card .product-add-upload__box {
+  width: 88px;
+  height: 88px;
+}
+
+.mkt-points-mall-card .product-add-editor__toolbar button {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #333;
+}
+
+.mkt-points-mall-card .product-add-editor__toolbar button:hover {
+  background: #eee;
+  border-color: #ddd;
+}
+
+.mkt-points-mall-schedule {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.mkt-points-mall-schedule[hidden],
+.mkt-points-mall-limit-value[hidden],
+.mkt-points-mall-sale-scope__panel[hidden],
+.mkt-points-mall-level-list[hidden],
+.product-proxy-sale-scope__store-count[hidden],
+.pts-rule-tip[hidden] {
+  display: none !important;
+}
+
+.mkt-points-mall-schedule__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+.mkt-points-mall-schedule__item .mkt-points-mall-form-row__input,
+.mkt-points-mall-schedule__item .erp-input {
+  width: 200px;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.mkt-points-mall-limit-radios {
+  margin-bottom: 0;
+}
+
+.mkt-points-mall-limit-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.mkt-points-mall-limit-value .mkt-points-mall-form-row__input,
+.mkt-points-mall-limit-value .erp-input {
+  width: 140px;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.mkt-points-mall-limit-value em {
+  font-style: normal;
+  color: #909399;
+  font-size: 12px;
+}
+
+.mkt-points-mall-card .mkt-points-mall-spec-table-wrap {
+  max-height: 320px;
+}
+
+.mkt-points-mall-spec-img {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #2196F3;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.mkt-points-mall-spec-img img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #f5f5f5;
+  border: 1px solid #eee;
+}
+
+.mkt-points-mall-spec-img:hover span {
+  text-decoration: underline;
+}
+
+.mkt-points-mall-card .mkt-points-mall-level-scope {
+  margin-bottom: 0;
+}
+
+.mkt-points-mall-card .mkt-points-mall-level-list {
+  margin-top: 10px;
+}
+
+.product-tag--schedule {
+  background: #fff7e6;
+  color: #d48806;
+  border: 1px solid #ffd591;
+}
+
+/* 轮播图配置弹窗 */
+.erp-modal--points-mall-banner {
+  width: min(720px, 94vw);
+  max-width: min(720px, 94vw);
+}
+
+.mkt-points-mall-banner-tip {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
+.mkt-points-mall-banner-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: min(56vh, 480px);
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.mkt-points-mall-banner-item {
+  border: 1px solid #eee;
+  border-radius: 4px;
+  padding: 12px;
+  background: #fafafa;
+}
+
+.mkt-points-mall-banner-item__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.mkt-points-mall-banner-item__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.mkt-points-mall-banner-item__remove {
+  border: none;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+}
+
+.mkt-points-mall-banner-item__remove:hover {
+  color: #ff4d4f;
+}
+
+.mkt-points-mall-banner-fields {
+  display: grid;
+  gap: 10px;
+}
+
+.mkt-points-mall-banner-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.mkt-points-mall-banner-field > label {
+  flex: 0 0 72px;
+  text-align: right;
+  font-size: 13px;
+  color: #666;
+  line-height: 32px;
+}
+
+.mkt-points-mall-banner-field > label .req {
+  color: #ff4d4f;
+  margin-right: 2px;
+}
+
+.mkt-points-mall-banner-field__ctrl {
+  flex: 1;
+  min-width: 0;
+}
+
+.mkt-points-mall-banner-field__ctrl .erp-input {
+  width: 100%;
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.mkt-points-mall-banner-upload {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mkt-points-mall-banner-preview {
+  width: 96px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #eee;
+  border: 1px solid #e8e8e8;
+}
+
+.mkt-points-mall-banner-preview.is-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #bbb;
+}
+
+.mkt-points-mall-banner-add {
+  margin-top: 12px;
+}

@@ -167,6 +167,22 @@
             cursor: pointer;
             user-select: none;
         }
+        .pts-remain--ok { color: #2e7d32; font-weight: 600; }
+        .pts-remain--zero { color: #999; }
+        .pts-fifo-tip {
+            display: block;
+            margin-top: 2px;
+            font-size: 12px;
+            color: #888;
+            line-height: 1.4;
+            max-width: 280px;
+            white-space: normal;
+        }
+        .pts-status { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 12px; }
+        .pts-status--available { background: #e8f5e9; color: #2e7d32; }
+        .pts-status--frozen { background: #e3f2fd; color: #1565c0; }
+        .pts-status--expired { background: #fff3e0; color: #e65100; }
+        .pts-status--na { background: #f5f5f5; color: #999; }
     </style>
 </head>
 <body>
@@ -181,8 +197,11 @@
             <div class="content-title">会员 / 积分管理 / 积分明细</div>
 
             <div class="flow-box">
-                记录会员积分变动明细。变动类型包含：消费送积分、积分抵现、积分兑换、售后退还、积分过期、手工调整。
-                有效 / 过期按「获取时间 + 积分规则有效期」计算；有效记录不展示过期时间；手工调整会记录操作人。
+                积分按<strong>获取批次</strong>管理：每笔获取积分的过期时间 = 获取时间 + 积分规则有效期；扣减（抵现 / 兑换）采用<strong>先进先出（FIFO）</strong>，优先消耗最早获取、状态为「可用」且仍有剩余的批次（冻结批次不可扣）。
+                消费赠送：<strong>支付成功即赠送</strong>，此时状态为<strong>冻结</strong>；订单<strong>交易成功</strong>后才变为<strong>可用</strong>。状态枚举：过期、可用、冻结。
+                积分兑换售后按<strong>保留原有效期</strong>退回：按兑换扣减逆序退还到原获取批次。
+                「本批剩余」为该笔获取经 FIFO 扣减后仍留存的积分；扣减流水的备注中可查看具体扣减批次。
+                变动类型：消费赠送、会员升级、签到、福袋、观看任务、积分兑换、积分兑换取消、积分抵现、积分兑换售后、积分抵现售后。
             </div>
 
             <div class="member-points-toolbar">
@@ -216,21 +235,25 @@
                         <label>变动类型:</label>
                         <select id="qChangeType">
                             <option value="">全部</option>
-                            <option value="consume">消费送积分</option>
-                            <option value="cash">积分抵现</option>
+                            <option value="consume">消费赠送</option>
+                            <option value="upgrade">会员升级</option>
+                            <option value="checkin">签到</option>
+                            <option value="luckybag">福袋</option>
+                            <option value="watch_task">观看任务</option>
                             <option value="exchange">积分兑换</option>
-                            <option value="refund">售后退还</option>
-                            <option value="expire">积分过期</option>
-                            <option value="manual">手工调整</option>
+                            <option value="exchange_cancel">积分兑换取消</option>
+                            <option value="cash">积分抵现</option>
+                            <option value="exchange_refund">积分兑换售后</option>
+                            <option value="cash_refund">积分抵现售后</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>状态:</label>
                         <select id="qStatus">
                             <option value="">全部</option>
-                            <option value="有效">有效</option>
+                            <option value="可用">可用</option>
+                            <option value="冻结">冻结</option>
                             <option value="过期">过期</option>
-                            <option value="已消耗">已消耗</option>
                         </select>
                     </div>
                     <div class="form-actions">
@@ -252,6 +275,7 @@
                                 <th>手机号</th>
                                 <th>变动类型</th>
                                 <th>变动积分</th>
+                                <th>本批剩余</th>
                                 <th>变动后余额</th>
                                 <th>关联单号</th>
                                 <th>备注</th>

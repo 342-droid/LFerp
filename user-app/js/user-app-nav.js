@@ -22,6 +22,11 @@
     if (doc.querySelector('.ua-pe-page, #peSaveBtn')) return 'profile-edit.html';
     if (doc.getElementById('uaProfileContent') || doc.querySelector('.ua-profile-page')) return 'profile.html';
     if (doc.querySelector('.ua-gd-page') && doc.getElementById('gdTotalValue')) return 'growth-detail.html';
+    if (doc.querySelector('.ua-pd-page') && doc.getElementById('pdCurrent')) return 'points-detail.html';
+    if (doc.querySelector('.ua-pm-page') && doc.getElementById('pmAvailable')) return 'points-mall.html';
+    if (doc.querySelector('.ua-ppd-page') && doc.getElementById('ppdTitle')) return 'points-product-detail.html';
+    if (doc.querySelector('.ua-poc-page') && doc.getElementById('pocSubmit')) return 'points-order-confirm.html';
+    if (doc.querySelector('.ua-gd-page') && doc.getElementById('prContent')) return 'points-rule-desc.html';
     if (doc.querySelector('.ua-gd-page') && doc.getElementById('grContent')) return 'growth-rule-desc.html';
     return fromPath;
   }
@@ -57,10 +62,30 @@
   }
 
   function getBackHref(fallback) {
+    fallback = sanitizeBack(fallback, 'profile.html');
     var params = new URLSearchParams((global.location && global.location.search) || '');
     var fromQuery = params.get('from') || params.get('back') || '';
     var remembered = readRememberedBack();
-    return sanitizeBack(fromQuery || remembered, fallback);
+    var href = sanitizeBack(fromQuery || remembered, fallback);
+    var here = currentPage();
+    /* 避免返回链指向当前页，表现为「点击没反应」 */
+    if (here && pageBase(href) === pageBase(here)) {
+      href = fallback;
+    }
+    if (here && pageBase(href) === pageBase(here)) {
+      href = 'profile.html';
+    }
+    return href;
+  }
+
+  function pageBase(name) {
+    return String(name || '')
+      .split('?')[0]
+      .split('#')[0]
+      .replace(/^\.\//, '')
+      .split('/')
+      .pop()
+      .toLowerCase();
   }
 
   function withFrom(target, fromPage) {
@@ -87,14 +112,33 @@
     var el = typeof elOrSelector === 'string'
       ? document.querySelector(elOrSelector)
       : elOrSelector;
+    fallback = sanitizeBack(fallback, 'profile.html');
     var href = getBackHref(fallback);
+    /* 若记忆指向本页，顺手清掉，避免反复污染 */
+    try {
+      if (pageBase(readRememberedBack()) === pageBase(currentPage())) {
+        global.sessionStorage.removeItem(BACK_STORAGE_KEY);
+      }
+    } catch (e) { /* ignore */ }
     if (el) {
       el.setAttribute('href', href);
-      el.addEventListener('click', function () {
-        /* 返回后清掉记忆，避免污染下一次默认返回 */
+      el.addEventListener('click', function (ev) {
+        ev.preventDefault();
         try {
           global.sessionStorage.removeItem(BACK_STORAGE_KEY);
         } catch (e) { /* ignore */ }
+        var target = sanitizeBack(el.getAttribute('href') || href, fallback);
+        if (pageBase(target) === pageBase(currentPage())) {
+          target = fallback;
+        }
+        if (pageBase(target) === pageBase(currentPage())) {
+          target = 'profile.html';
+        }
+        try {
+          global.location.assign(target);
+        } catch (err) {
+          global.location.href = target;
+        }
       });
     }
     return href;
