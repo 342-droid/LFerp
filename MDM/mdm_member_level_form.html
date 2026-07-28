@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
     <style>
         .member-level-form-toolbar {
             margin: 0 0 16px;
@@ -21,16 +22,72 @@
             font-size: 13px;
         }
         .member-level-form-back:hover { text-decoration: underline; }
-        .member-level-form-panel {
+
+        /* 卡片版式对齐积分规则页 */
+        .pts-rule-card {
             background: #fff;
-            border: 1px solid var(--color-border, #e8e8e8);
-            border-radius: var(--radius-md, 6px);
-            padding: 20px 24px 8px;
-            max-width: 820px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            width: 100%;
+            max-width: none;
+            box-sizing: border-box;
         }
-        .member-level-form-panel .erp-modal-field__label {
-            flex: 0 0 128px;
+        .pts-rule-card__title {
+            padding: 12px 16px;
+            background: #fafafa;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+        .pts-rule-card__body {
+            padding: 16px 16px 8px;
+        }
+        .pts-rule-field {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .pts-rule-field__label {
+            flex: 0 0 168px;
+            text-align: right;
+            font-size: 13px;
+            color: #333;
+            line-height: 36px;
+        }
+        .pts-rule-field__label .erp-req {
+            color: #ff4d4f;
+            margin-right: 2px;
+        }
+        .pts-rule-field__control {
+            flex: 1;
+            min-width: 0;
+            max-width: none;
+        }
+        .pts-rule-field__control .erp-input,
+        .pts-rule-field__control .erp-select,
+        .pts-rule-field__control textarea.erp-input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .pts-rule-field__control .erp-input,
+        .pts-rule-field__control .erp-select {
+            height: 36px;
+        }
+        .pts-rule-field__control textarea.erp-input {
+            height: auto;
+            min-height: 88px;
+            padding: 8px 10px;
+            line-height: 1.5;
+            resize: vertical;
+        }
+
         .member-level-label-tip {
             display: inline-flex;
             align-items: center;
@@ -54,22 +111,7 @@
             color: #ff7019;
         }
         .member-level-form-footer {
-            margin-top: 16px;
-            display: flex;
-            justify-content: flex-start;
-            gap: 10px;
-            max-width: 820px;
-        }
-        .member-level-section-title {
-            margin: 4px 0 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #eee;
-            font-size: 13px;
-            font-weight: 600;
-            color: #333;
-        }
-        .member-level-section-title--benefit {
-            margin-top: 20px;
+            /* 底栏由 lf-mdm-edit-page.css 固定悬浮 */
         }
         .member-level-field-tip {
             margin-top: 6px;
@@ -82,10 +124,14 @@
             align-items: center;
             gap: 8px;
             width: 100%;
+            flex-wrap: wrap;
         }
         .member-level-unit .erp-input {
-            flex: 1;
-            min-width: 0;
+            width: auto;
+            flex: 0 0 140px;
+            max-width: 180px;
+            height: 36px;
+            box-sizing: border-box;
         }
         .member-level-unit__text {
             flex-shrink: 0;
@@ -96,19 +142,15 @@
         .member-level-check-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 16px;
+            gap: 16px 20px;
             align-items: center;
-            min-height: 32px;
+            min-height: 36px;
         }
-        .member-level-form-panel .erp-modal-field[data-benefit] {
+        .pts-rule-field[data-benefit] {
             align-items: flex-start;
         }
-        .member-level-form-panel .erp-modal-field[data-benefit] > .erp-modal-field__label {
-            flex: 0 0 128px;
-            width: 128px;
-            line-height: 32px;
-            padding-top: 0;
-            box-sizing: border-box;
+        .pts-rule-field[data-benefit] > .pts-rule-field__label {
+            line-height: 36px;
         }
         .member-level-check-label {
             display: inline-flex;
@@ -118,8 +160,8 @@
             cursor: pointer;
             user-select: none;
             color: #333;
-            min-height: 32px;
-            line-height: 32px;
+            min-height: 36px;
+            line-height: 36px;
         }
         .member-level-check-label input {
             accent-color: var(--color-primary, #ff7019);
@@ -130,7 +172,7 @@
         }
         .member-level-benefit-head {
             margin-bottom: 10px;
-            min-height: 32px;
+            min-height: 36px;
             display: flex;
             align-items: center;
         }
@@ -505,12 +547,12 @@
             color: #333;
             white-space: nowrap;
         }
-        .member-level-form-panel .erp-input:disabled,
-        .member-level-form-panel .erp-select:disabled,
-        .member-level-form-panel input:disabled,
-        .member-level-form-panel select:disabled,
-        .member-level-form-panel textarea:disabled,
-        .member-level-form-panel button:disabled {
+        #memberLevelForm .erp-input:disabled,
+        #memberLevelForm .erp-select:disabled,
+        #memberLevelForm input:disabled,
+        #memberLevelForm select:disabled,
+        #memberLevelForm textarea:disabled,
+        #memberLevelForm button:disabled {
             background: #f5f5f5 !important;
             color: #bbb !important;
             border-color: #e8e8e8 !important;
@@ -519,12 +561,12 @@
             -webkit-text-fill-color: #bbb;
             box-shadow: none;
         }
-        .member-level-form-panel .member-level-unit:has(.erp-input:disabled) .member-level-unit__text {
+        #memberLevelForm .member-level-unit:has(.erp-input:disabled) .member-level-unit__text {
             color: #bbb;
         }
-        .member-level-form-panel .member-level-coupon-picker__trigger:disabled,
-        .member-level-form-panel .member-level-coupon-add:disabled,
-        .member-level-form-panel .member-level-coupon-remove:disabled {
+        #memberLevelForm .member-level-coupon-picker__trigger:disabled,
+        #memberLevelForm .member-level-coupon-add:disabled,
+        #memberLevelForm .member-level-coupon-remove:disabled {
             background: #f5f5f5 !important;
             color: #bbb !important;
             border-color: #e8e8e8 !important;
@@ -596,7 +638,7 @@
     <script src="../js/mdm-sidebar.js"></script>
     <div id="header-container"></div>
     <div class="container">
-        <main class="main-content">
+        <main class="main-content mdm-edit-page">
             <div class="content-tabs"><button class="active" id="formTabTitle">新增会员等级</button></div>
             <hr class="content-divider">
             <div class="content-title">会员 / 会员体系 / 会员等级 / <span id="formCrumb">新增</span></div>
@@ -605,163 +647,169 @@
                 <a class="member-level-form-back" id="btnBackList" href="mdm_member_level.html">← 返回会员等级</a>
             </div>
 
-            <div class="member-level-form-panel" id="memberLevelForm">
-                <div class="member-level-section-title">基础信息</div>
-
-                <div class="erp-modal-field">
-                    <label class="erp-modal-field__label" for="mlName"><span class="erp-req">*</span>等级名称</label>
-                    <div class="erp-modal-field__control">
-                        <input class="erp-input" id="mlName" type="text" maxlength="20" placeholder="请输入等级名称，20字以内">
-                    </div>
-                </div>
-
-                <div class="erp-modal-field">
-                    <label class="erp-modal-field__label"><span class="erp-req">*</span>等级图标</label>
-                    <div class="erp-modal-field__control">
-                        <div class="member-level-upload">
-                            <div class="member-level-upload__actions">
-                                <button type="button" class="member-level-upload__box" id="mlIconBtn" aria-label="上传等级图标">
-                                    <span class="member-level-upload__plus">+</span>
-                                </button>
-                                <button type="button" class="member-level-upload__clear" id="mlIconClear" hidden>清除</button>
+            <div id="memberLevelForm">
+                <div class="pts-rule-card">
+                    <div class="pts-rule-card__title">基础信息</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label" for="mlName"><span class="erp-req">*</span>等级名称</label>
+                            <div class="pts-rule-field__control">
+                                <input class="erp-input" id="mlName" type="text" maxlength="20" placeholder="请输入等级名称，20字以内">
                             </div>
-                            <input type="file" id="mlIconFile" accept="image/jpeg,image/png,image/webp,image/svg+xml" hidden>
-                            <p class="member-level-upload__hint">支持 JPG/PNG/WEBP/SVG，建议正方形，单张不超过 2MB；将展示给 C 端用户。</p>
                         </div>
-                    </div>
-                </div>
 
-                <div class="erp-modal-field">
-                    <label class="erp-modal-field__label" for="mlGrowth"><span class="erp-req">*</span>成长值</label>
-                    <div class="erp-modal-field__control">
-                        <div class="member-level-unit">
-                            <input class="erp-input" id="mlGrowth" type="number" min="0" step="1" placeholder="达到该成长值可享本等级">
-                            <span class="member-level-unit__text">分</span>
-                        </div>
-                        <div class="member-level-field-tip" id="mlGrowthTip">列表按成长值从低到高排序；达标后立即升级生效，降级于每日统一处理。成长值 0 为默认等级专用，新增不可使用。</div>
-                    </div>
-                </div>
-
-                <div class="member-level-section-title member-level-section-title--benefit">会员权益</div>
-
-                <!-- 赠送积分 -->
-                <div class="erp-modal-field" data-benefit="giftPoints">
-                    <label class="erp-modal-field__label">赠送积分</label>
-                    <div class="erp-modal-field__control">
-                        <div class="member-level-benefit-head">
-                            <label class="member-level-check-label">
-                                <input type="checkbox" id="mlGiftPointsEnable" data-benefit-switch> 开启赠送积分
-                            </label>
-                        </div>
-                        <div class="member-level-benefit-body is-disabled" data-benefit-body>
-                            <div class="member-level-unit">
-                                <input class="erp-input" id="mlGiftPoints" type="number" min="0" step="1" placeholder="升级时赠送积分" disabled>
-                                <span class="member-level-unit__text">分</span>
-                            </div>
-                            <textarea class="erp-input member-level-desc" id="mlGiftPointsDesc" placeholder="说明（选填，支持多行）" disabled></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 赠送券 -->
-                <div class="erp-modal-field" data-benefit="giftCoupon">
-                    <label class="erp-modal-field__label">赠送券</label>
-                    <div class="erp-modal-field__control">
-                        <div class="member-level-benefit-head">
-                            <label class="member-level-check-label">
-                                <input type="checkbox" id="mlGiftCouponEnable" data-benefit-switch> 开启赠送券
-                            </label>
-                        </div>
-                        <div class="member-level-benefit-body is-disabled" data-benefit-body>
-                            <div class="member-level-coupon-block" data-coupon-block="gift">
-                                <div class="member-level-check-row" style="margin-bottom:8px;" data-coupon-modes></div>
-                                <div class="member-level-coupon-list" data-coupon-list></div>
-                                <button type="button" class="member-level-coupon-add" data-coupon-add disabled>+ 添加优惠券</button>
-                            </div>
-                            <textarea class="erp-input member-level-desc" id="mlGiftCouponDesc" placeholder="说明（选填，支持多行）" disabled></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 商品会员折扣 -->
-                <div class="erp-modal-field" data-benefit="memberDiscount">
-                    <label class="erp-modal-field__label">商品会员折扣</label>
-                    <div class="erp-modal-field__control">
-                        <div class="member-level-benefit-head">
-                            <label class="member-level-check-label">
-                                <input type="checkbox" id="mlDiscountEnable" data-benefit-switch> 开启商品会员折扣
-                            </label>
-                        </div>
-                        <div class="member-level-benefit-body is-disabled" data-benefit-body>
-                            <div class="member-level-unit">
-                                <input class="erp-input" id="mlDiscount" type="number" min="1" max="100" step="1" placeholder="如 90 表示 9 折" disabled>
-                                <span class="member-level-unit__text">%（如 90 表示 9 折）</span>
-                            </div>
-                            <div class="member-level-scope-box">
-                                <div class="member-level-field-tip" style="margin:0 0 8px;">适用范围</div>
-                                <div class="member-level-check-row" id="mlScopeTypeRow">
-                                    <label class="member-level-check-label"><input type="radio" name="mlScopeType" value="all" checked disabled> 全部商品</label>
-                                    <label class="member-level-check-label"><input type="radio" name="mlScopeType" value="include_product" disabled> 适用商品</label>
-                                    <label class="member-level-check-label"><input type="radio" name="mlScopeType" value="include_category" disabled> 适用类目</label>
-                                    <label class="member-level-check-label"><input type="radio" name="mlScopeType" value="exclude_product" disabled> 排除商品</label>
-                                    <label class="member-level-check-label"><input type="radio" name="mlScopeType" value="exclude_category" disabled> 排除类目</label>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>等级图标</label>
+                            <div class="pts-rule-field__control">
+                                <div class="member-level-upload">
+                                    <div class="member-level-upload__actions">
+                                        <button type="button" class="member-level-upload__box" id="mlIconBtn" aria-label="上传等级图标">
+                                            <span class="member-level-upload__plus">+</span>
+                                        </button>
+                                        <button type="button" class="member-level-upload__clear" id="mlIconClear" hidden>清除</button>
+                                    </div>
+                                    <input type="file" id="mlIconFile" accept="image/jpeg,image/png,image/webp,image/svg+xml" hidden>
+                                    <p class="member-level-upload__hint">支持 JPG/PNG/WEBP/SVG，建议正方形，单张不超过 2MB；将展示给 C 端用户。</p>
                                 </div>
-                                <div class="member-level-scope-actions" id="mlScopePickWrap" hidden>
-                                    <button type="button" class="erp-btn" id="mlScopePickBtn" disabled>选择范围</button>
-                                    <span class="member-level-field-tip" id="mlScopePickHint" style="margin:0;"></span>
+                            </div>
+                        </div>
+
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label" for="mlGrowth"><span class="erp-req">*</span>成长值</label>
+                            <div class="pts-rule-field__control">
+                                <div class="member-level-unit">
+                                    <input class="erp-input" id="mlGrowth" type="number" min="0" step="1" placeholder="达到该成长值可享本等级">
+                                    <span class="member-level-unit__text">分</span>
                                 </div>
-                                <div class="member-level-scope-chips" id="mlScopeChips"></div>
-                                <div class="member-level-scope-empty" id="mlScopeEmpty" hidden>尚未选择，请点击上方按钮选择</div>
+                                <div class="member-level-field-tip" id="mlGrowthTip">列表按成长值从低到高排序；达标后立即升级生效，降级于每日统一处理。成长值 0 为默认等级专用，新增不可使用。</div>
                             </div>
-                            <textarea class="erp-input member-level-desc" id="mlDiscountDesc" placeholder="说明（选填，支持多行）" disabled></textarea>
                         </div>
                     </div>
                 </div>
 
-                <!-- 积分等级赠送比例 -->
-                <div class="erp-modal-field" data-benefit="pointsRatio">
-                    <label class="erp-modal-field__label">积分等级赠送比例</label>
-                    <div class="erp-modal-field__control">
-                        <div class="member-level-benefit-head">
-                            <label class="member-level-check-label">
-                                <input type="checkbox" id="mlPointsRatioEnable" data-benefit-switch> 开启积分等级赠送比例
-                            </label>
-                        </div>
-                        <div class="member-level-benefit-body is-disabled" data-benefit-body>
-                            <div class="member-level-unit">
-                                <input class="erp-input" id="mlPointsRatio" type="number" min="100" step="10" placeholder="100 表示按基础规则 1 倍赠送" disabled>
-                                <span class="member-level-unit__text">%（≥100，如 150 表示 1.5 倍）</span>
+                <div class="pts-rule-card">
+                    <div class="pts-rule-card__title">会员权益</div>
+                    <div class="pts-rule-card__body">
+                        <!-- 赠送积分 -->
+                        <div class="pts-rule-field" data-benefit="giftPoints">
+                            <label class="pts-rule-field__label">赠送积分</label>
+                            <div class="pts-rule-field__control">
+                                <div class="member-level-benefit-head">
+                                    <label class="member-level-check-label">
+                                        <input type="checkbox" id="mlGiftPointsEnable" data-benefit-switch> 开启赠送积分
+                                    </label>
+                                </div>
+                                <div class="member-level-benefit-body is-disabled" data-benefit-body>
+                                    <div class="member-level-unit">
+                                        <input class="erp-input" id="mlGiftPoints" type="number" min="0" step="1" placeholder="升级时赠送积分" disabled>
+                                        <span class="member-level-unit__text">分</span>
+                                    </div>
+                                    <textarea class="erp-input member-level-desc" id="mlGiftPointsDesc" placeholder="说明（选填，支持多行）" disabled></textarea>
+                                </div>
                             </div>
-                            <textarea class="erp-input member-level-desc" id="mlPointsRatioDesc" placeholder="说明（选填，支持多行）" disabled></textarea>
                         </div>
-                    </div>
-                </div>
 
-                <!-- 生日送券 -->
-                <div class="erp-modal-field" data-benefit="birthday">
-                    <label class="erp-modal-field__label">
-                        生日送券
-                        <span class="member-level-label-tip" title="会员生日月进行赠送，每年只会赠送一次" aria-label="会员生日月进行赠送，每年只会赠送一次">?</span>
-                    </label>
-                    <div class="erp-modal-field__control">
-                        <div class="member-level-benefit-head">
-                            <label class="member-level-check-label">
-                                <input type="checkbox" id="mlBirthdayEnable" data-benefit-switch> 开启生日送券
-                            </label>
-                        </div>
-                        <div class="member-level-benefit-body is-disabled" data-benefit-body>
-                            <div class="member-level-coupon-block" data-coupon-block="birthday">
-                                <div class="member-level-check-row" style="margin-bottom:8px;display:none;" data-coupon-modes hidden></div>
-                                <div class="member-level-coupon-list" data-coupon-list></div>
-                                <button type="button" class="member-level-coupon-add" data-coupon-add disabled>+ 添加优惠券</button>
+                        <!-- 赠送券 -->
+                        <div class="pts-rule-field" data-benefit="giftCoupon">
+                            <label class="pts-rule-field__label">赠送券</label>
+                            <div class="pts-rule-field__control">
+                                <div class="member-level-benefit-head">
+                                    <label class="member-level-check-label">
+                                        <input type="checkbox" id="mlGiftCouponEnable" data-benefit-switch> 开启赠送券
+                                    </label>
+                                </div>
+                                <div class="member-level-benefit-body is-disabled" data-benefit-body>
+                                    <div class="member-level-coupon-block" data-coupon-block="gift">
+                                        <div class="member-level-check-row" style="margin-bottom:8px;" data-coupon-modes></div>
+                                        <div class="member-level-coupon-list" data-coupon-list></div>
+                                        <button type="button" class="member-level-coupon-add" data-coupon-add disabled>+ 添加优惠券</button>
+                                    </div>
+                                    <textarea class="erp-input member-level-desc" id="mlGiftCouponDesc" placeholder="说明（选填，支持多行）" disabled></textarea>
+                                </div>
                             </div>
-                            <textarea class="erp-input member-level-desc" id="mlBirthdayDesc" placeholder="说明（选填，支持多行）" disabled></textarea>
+                        </div>
+
+                        <!-- 商品会员折扣 -->
+                        <div class="pts-rule-field" data-benefit="memberDiscount">
+                            <label class="pts-rule-field__label">商品会员折扣</label>
+                            <div class="pts-rule-field__control">
+                                <div class="member-level-benefit-head">
+                                    <label class="member-level-check-label">
+                                        <input type="checkbox" id="mlDiscountEnable" data-benefit-switch> 开启商品会员折扣
+                                    </label>
+                                </div>
+                                <div class="member-level-benefit-body is-disabled" data-benefit-body>
+                                    <div class="member-level-unit">
+                                        <input class="erp-input" id="mlDiscount" type="number" min="1" max="100" step="1" placeholder="如 90 表示 9 折" disabled>
+                                        <span class="member-level-unit__text">%（如 90 表示 9 折）</span>
+                                    </div>
+                                    <div class="member-level-scope-box">
+                                        <div class="member-level-field-tip" style="margin:0 0 8px;">适用范围</div>
+                                        <div class="member-level-check-row" id="mlScopeTypeRow">
+                                            <label class="member-level-check-label"><input type="radio" name="mlScopeType" value="all" checked disabled> 全部商品</label>
+                                            <label class="member-level-check-label"><input type="radio" name="mlScopeType" value="include_product" disabled> 适用商品</label>
+                                            <label class="member-level-check-label"><input type="radio" name="mlScopeType" value="include_category" disabled> 适用类目</label>
+                                            <label class="member-level-check-label"><input type="radio" name="mlScopeType" value="exclude_product" disabled> 排除商品</label>
+                                            <label class="member-level-check-label"><input type="radio" name="mlScopeType" value="exclude_category" disabled> 排除类目</label>
+                                        </div>
+                                        <div class="member-level-scope-actions" id="mlScopePickWrap" hidden>
+                                            <button type="button" class="erp-btn" id="mlScopePickBtn" disabled>选择范围</button>
+                                            <span class="member-level-field-tip" id="mlScopePickHint" style="margin:0;"></span>
+                                        </div>
+                                        <div class="member-level-scope-chips" id="mlScopeChips"></div>
+                                        <div class="member-level-scope-empty" id="mlScopeEmpty" hidden>尚未选择，请点击上方按钮选择</div>
+                                    </div>
+                                    <textarea class="erp-input member-level-desc" id="mlDiscountDesc" placeholder="说明（选填，支持多行）" disabled></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 积分等级赠送比例 -->
+                        <div class="pts-rule-field" data-benefit="pointsRatio">
+                            <label class="pts-rule-field__label">积分等级赠送比例</label>
+                            <div class="pts-rule-field__control">
+                                <div class="member-level-benefit-head">
+                                    <label class="member-level-check-label">
+                                        <input type="checkbox" id="mlPointsRatioEnable" data-benefit-switch> 开启积分等级赠送比例
+                                    </label>
+                                </div>
+                                <div class="member-level-benefit-body is-disabled" data-benefit-body>
+                                    <div class="member-level-unit">
+                                        <input class="erp-input" id="mlPointsRatio" type="number" min="100" step="10" placeholder="100 表示按基础规则 1 倍赠送" disabled>
+                                        <span class="member-level-unit__text">%（≥100，如 150 表示 1.5 倍）</span>
+                                    </div>
+                                    <textarea class="erp-input member-level-desc" id="mlPointsRatioDesc" placeholder="说明（选填，支持多行）" disabled></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 生日送券 -->
+                        <div class="pts-rule-field" data-benefit="birthday">
+                            <label class="pts-rule-field__label">
+                                生日送券
+                                <span class="member-level-label-tip" title="会员生日月进行赠送，每年只会赠送一次" aria-label="会员生日月进行赠送，每年只会赠送一次">?</span>
+                            </label>
+                            <div class="pts-rule-field__control">
+                                <div class="member-level-benefit-head">
+                                    <label class="member-level-check-label">
+                                        <input type="checkbox" id="mlBirthdayEnable" data-benefit-switch> 开启生日送券
+                                    </label>
+                                </div>
+                                <div class="member-level-benefit-body is-disabled" data-benefit-body>
+                                    <div class="member-level-coupon-block" data-coupon-block="birthday">
+                                        <div class="member-level-check-row" style="margin-bottom:8px;display:none;" data-coupon-modes hidden></div>
+                                        <div class="member-level-coupon-list" data-coupon-list></div>
+                                        <button type="button" class="member-level-coupon-add" data-coupon-add disabled>+ 添加优惠券</button>
+                                    </div>
+                                    <textarea class="erp-input member-level-desc" id="mlBirthdayDesc" placeholder="说明（选填，支持多行）" disabled></textarea>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="member-level-form-footer">
+            <div class="member-level-form-footer mdm-edit-page__footer">
                 <button type="button" class="erp-btn" id="btnCancel">取消</button>
                 <button type="button" class="erp-btn erp-btn--primary" id="btnSave">保存</button>
             </div>
@@ -771,6 +819,6 @@
     <script src="../js/common.js"></script>
     <script src="../js/form-utils.js"></script>
     <script src="../js/mdm-member-level-data.js"></script>
-    <script src="../js/mdm-member-level-form.js"></script>
+    <script src="../js/mdm-member-level-form.js?v=20260725-back"></script>
 </body>
 </html>

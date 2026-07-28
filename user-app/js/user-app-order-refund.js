@@ -4069,9 +4069,68 @@
     return isNaN(idx) || idx < 0 ? 0 : idx;
   }
 
+  function isPointsExchangeByIndex(itemIndex) {
+    var idx = itemIndex == null ? getItemIndex() : Number(itemIndex);
+    try {
+      var raw = sessionStorage.getItem('ua_last_order_items_v1');
+      if (raw) {
+        var list = JSON.parse(raw);
+        if (Array.isArray(list) && list[idx] && list[idx].isPointsExchange) return true;
+      }
+    } catch (e) { /* ignore */ }
+    try {
+      var orderRaw = sessionStorage.getItem('ua_last_order_v1');
+      if (orderRaw) {
+        var order = JSON.parse(orderRaw);
+        if (order && Array.isArray(order.items) && order.items[idx] && order.items[idx].isPointsExchange) {
+          return true;
+        }
+      }
+    } catch (e2) { /* ignore */ }
+    var pointsItem = getParams().get('pointsItem') || '';
+    return String(pointsItem)
+      .split(',')
+      .some(function (raw) {
+        return parseInt(String(raw).trim(), 10) === idx;
+      });
+  }
+
+  function pointsExchangeTagHtml() {
+    return '<span class="ua-cart-item__tag">积分兑换</span>';
+  }
+
+  function formatProductNameHtml(name, itemIndex) {
+    var safe = String(name == null ? '' : name)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+    if (isPointsExchangeByIndex(itemIndex)) return pointsExchangeTagHtml() + safe;
+    return safe;
+  }
+
   function getItem() {
     var idx = getItemIndex();
-    return DEMO_ITEMS[idx] || DEMO_ITEMS[0];
+    var base = DEMO_ITEMS[idx] || DEMO_ITEMS[0];
+    try {
+      var orderRaw = sessionStorage.getItem('ua_last_order_v1');
+      if (orderRaw) {
+        var order = JSON.parse(orderRaw);
+        var it = order && Array.isArray(order.items) ? order.items[idx] : null;
+        if (it) {
+          return Object.assign({}, base, {
+            name: it.name || base.name,
+            spec: it.spec ? '规格：' + it.spec : base.spec,
+            img: it.img || base.img,
+            qty: it.qty || base.qty,
+            isPointsExchange: !!it.isPointsExchange
+          });
+        }
+      }
+    } catch (e) { /* ignore */ }
+    return Object.assign({}, base, {
+      isPointsExchange: isPointsExchangeByIndex(idx)
+    });
   }
 
   function formatPrice(num) {
@@ -4233,7 +4292,7 @@
       '" alt="">' +
       '<div class="ua-or-product__body">' +
       '<div class="ua-or-product__name">' +
-      item.name +
+      formatProductNameHtml(item.name, getItemIndex()) +
       '</div>' +
       '<div class="ua-or-product__spec">' +
       item.spec +
@@ -5511,7 +5570,10 @@
         '" alt="">' +
         '<div class="ua-or-product__body">' +
         '<div class="ua-or-product__name">' +
-        (app.productName || item.name) +
+        formatProductNameHtml(
+          app.productName || item.name,
+          app.itemIndex != null ? app.itemIndex : getItemIndex()
+        ) +
         '</div>' +
         '<div class="ua-or-product__spec">' +
         (app.restockSummary || app.exchangeSummary || app.productSpec || item.spec) +

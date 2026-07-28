@@ -57,12 +57,21 @@
             <span class="ua-confirm-row__value ua-confirm-row__value--muted" id="confirmCouponText">暂无可用优惠券</span>
             <svg class="ua-confirm-row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
           </button>
+          <button type="button" class="ua-confirm-row" id="confirmPointsDeductRow">
+            <span class="ua-confirm-row__label">积分抵扣</span>
+            <span class="ua-confirm-row__value" id="confirmPointsDeductText">未使用</span>
+            <svg class="ua-confirm-row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
         </section>
 
         <section class="ua-confirm-card ua-confirm-summary">
           <div class="ua-confirm-summary__row">
             <span>商品总价</span>
             <span id="confirmGoodsTotal">¥0.00</span>
+          </div>
+          <div class="ua-confirm-summary__row" id="confirmExchangePointsRow" hidden>
+            <span>积分兑换</span>
+            <span id="confirmExchangePoints">0积分</span>
           </div>
           <div class="ua-confirm-summary__row">
             <span class="ua-confirm-summary__label">
@@ -74,6 +83,10 @@
           <div class="ua-confirm-summary__row">
             <span>优惠券</span>
             <span class="ua-confirm-summary__discount" id="confirmCouponDiscount">-¥0.00</span>
+          </div>
+          <div class="ua-confirm-summary__row" id="confirmPointsDeductSummaryRow" hidden>
+            <span>积分抵扣</span>
+            <span class="ua-confirm-summary__discount" id="confirmPointsDeductAmount">-¥0.00</span>
           </div>
           <div class="ua-confirm-summary__row ua-confirm-summary__row--total">
             <span>合计</span>
@@ -118,7 +131,10 @@
 
     <div class="ua-shop-toast" id="uaShopToast" hidden></div>
   </div>
-  <script src="../js/user-app-shop.js?v=20260725-confirm-split"></script>
+  <script src="../../js/mdm-marketing-points-mall-config.js"></script>
+  <script src="../js/user-app-points-mall-order.js"></script>
+  <script src="../js/user-app-orders-store.js?v=20260728-status-sync2"></script>
+  <script src="../js/user-app-shop.js?v=20260728-status-sync2"></script>
   <script>UAShop.initOrderConfirmPage();</script>
 </body>
 </html>

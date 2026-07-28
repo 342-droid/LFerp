@@ -118,10 +118,32 @@
     document.body.appendChild(backdrop);
   }
 
+  var DETAIL_CODE_KEY = 'mdm_product_detail_code';
+  var DETAIL_MODE_KEY = 'mdm_product_detail_mode';
+
+  function detailPageUrl(code, mode) {
+    var pathApi = window.wmsPath || wp;
+    var base = pathApi.page ? pathApi.page('mdm_product_audit.html') : 'mdm_product_audit.html';
+    base = String(base || 'mdm_product_audit.html').split('#')[0].split('?')[0];
+    var q = 'code=' + encodeURIComponent(String(code || '').trim());
+    if (mode === 'audit') q += '&mode=audit';
+    /* query + hash 双写：部分预览/cleanUrl 会丢掉 ?query，hash 仍可保留 */
+    return base + '?' + q + '#' + q;
+  }
+
   function goProductDetail(code, mode) {
-    var url = wp.page('mdm_product_audit.html?code=' + encodeURIComponent(code));
-    if (mode === 'audit') url += '&mode=audit';
-    window.location.href = url;
+    code = String(code || '').trim();
+    if (!code) {
+      if (typeof showToast === 'function') showToast('商品编码无效', 'warning');
+      return;
+    }
+    try {
+      sessionStorage.setItem(DETAIL_CODE_KEY, code);
+      sessionStorage.setItem(DETAIL_MODE_KEY, mode === 'audit' ? 'audit' : 'view');
+    } catch (e) {
+      /* ignore */
+    }
+    window.location.assign(detailPageUrl(code, mode));
   }
 
   function closeWarmConfirmModal() {
@@ -188,19 +210,20 @@
 
   function renderActions(item) {
     var html = '<div class="product-action">';
+    /* 选品库主数据详情：所有状态均可查看/进入 */
+    html +=
+      '<button type="button" class="product-action__link" data-action="edit" data-code="' +
+      String(item.code || '').replace(/"/g, '&quot;') +
+      '">编辑</button>';
 
     if (item.status === 'pending_sale') {
       var moreAction =
         item.audit === 'rejected'
           ? { action: 'shelf', label: '上架', primary: true }
           : { action: 'audit', label: '审核', primary: true };
-      html +=
-        '<button type="button" class="product-action__link" data-action="edit" data-code="' + item.code + '">编辑</button>' +
-        renderMoreMenu(item.code, [moreAction]);
+      html += renderMoreMenu(item.code, [moreAction]);
     } else if (item.status === 'stopped') {
-      html +=
-        '<button type="button" class="product-action__link" data-action="edit" data-code="' + item.code + '">编辑</button>' +
-        renderMoreMenu(item.code, [{ action: 'enable', label: '启用', primary: true }]);
+      html += renderMoreMenu(item.code, [{ action: 'enable', label: '启用', primary: true }]);
     } else if (item.status === 'selling') {
       html += renderMoreMenu(item.code, [{ action: 'stop', label: '停用', primary: true }]);
     }
@@ -224,11 +247,12 @@
       if (emptyEl) emptyEl.hidden = true;
       tbody.innerHTML = pageItems
         .map(function (item) {
+          var codeAttr = String(item.code || '').replace(/"/g, '&quot;');
           return (
-            '<tr data-code="' + item.code + '">' +
+            '<tr data-code="' + codeAttr + '">' +
             '<td class="product-table__td product-table__td--code">' + item.code + '</td>' +
             '<td class="product-table__td product-table__td--img"><img class="product-table__thumb" src="' + item.img + '" alt=""></td>' +
-            '<td class="product-table__td product-table__td--name"><a href="#" class="product-table__name" data-view="' + item.code + '">' + item.name + '</a></td>' +
+            '<td class="product-table__td product-table__td--name"><a href="javascript:void(0)" class="product-table__name" data-view="' + codeAttr + '">' + item.name + '</a></td>' +
             '<td class="product-table__td product-table__td--price">' + formatPrice(item.price) + '</td>' +
             '<td class="product-table__td product-table__td--channel">' + item.channel + '</td>' +
             '<td class="product-table__td product-table__td--category">' + item.category + '</td>' +
@@ -375,12 +399,18 @@
         return;
       }
 
-      var actionBtn = e.target.closest('[data-action]');
+      var actionBtn = e.target.closest('#productSelectionTableBody [data-action]');
       if (actionBtn) {
         e.preventDefault();
+        e.stopPropagation();
         closeAllMoreMenus();
         var action = actionBtn.getAttribute('data-action');
         var code = actionBtn.getAttribute('data-code');
+
+        if (action === 'edit') {
+          goProductDetail(code);
+          return;
+        }
 
         if (action === 'audit') {
           goProductDetail(code, 'audit');
@@ -425,17 +455,13 @@
           }
           return;
         }
-
-        if (action === 'edit') {
-          goProductDetail(code);
-          return;
-        }
         return;
       }
 
-      var viewLink = e.target.closest('[data-view]');
+      var viewLink = e.target.closest('#productSelectionTableBody [data-view]');
       if (viewLink) {
         e.preventDefault();
+        e.stopPropagation();
         goProductDetail(viewLink.getAttribute('data-view'));
       }
     });

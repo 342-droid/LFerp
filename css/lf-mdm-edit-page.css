@@ -1,0 +1,77 @@
+/**
+ * MDM 编辑页通用布局
+ * - 配置内容区宽度随屏幕自适应（不锁死 max-width）
+ * - 底部操作栏固定悬浮在视口底部
+ * 用法：main.main-content 加 mdm-edit-page；底栏加 mdm-edit-page__footer
+ */
+.main-content.mdm-edit-page {
+  padding-bottom: 72px;
+  box-sizing: border-box;
+}
+
+.mdm-edit-page .mdm-edit-page__stretch,
+.mdm-edit-page .member-level-form-panel,
+.mdm-edit-page .batch-tag-form-panel,
+.mdm-edit-page .member-level-desc-card,
+.mdm-edit-page .pts-rule-card,
+.mdm-edit-page .mkt-points-mall-card,
+.mdm-edit-page .mkt-points-mall-card.pts-rule-card {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+.mdm-edit-page .pts-rule-field__control,
+.mdm-edit-page .mkt-points-mall-card .pts-rule-field__control,
+.mdm-edit-page .mkt-points-mall-form-detail,
+.mdm-edit-page .pts-rule-field__control--wide {
+  max-width: none;
+}
+
+.mdm-edit-page__footer,
+.mdm-edit-page .mdm-edit-page__footer,
+.mdm-edit-page .member-level-form-footer,
+.mdm-edit-page .batch-tag-form-footer,
+.mdm-edit-page .member-level-desc-actions,
+.mdm-edit-page .pts-rule-actions,
+.mdm-edit-page .mkt-points-mall-form-actions {
+  position: fixed;
+  left: 200px;
+  right: 0;
+  bottom: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin: 0;
+  min-height: 56px;
+  padding: 12px 24px;
+  background: #fff;
+  border-top: 1px solid #eee;
+  box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+  max-width: none;
+}
+
+#sidebar-container.collapsed ~ .container .mdm-edit-page__footer,
+#sidebar-container.collapsed ~ .container .mdm-edit-page .member-level-form-footer,
+#sidebar-container.collapsed ~ .container .mdm-edit-page .batch-tag-form-footer,
+#sidebar-container.collapsed ~ .container .mdm-edit-page .member-level-desc-actions,
+#sidebar-container.collapsed ~ .container .mdm-edit-page .pts-rule-actions,
+#sidebar-container.collapsed ~ .container .mdm-edit-page .mkt-points-mall-form-actions {
+  left: 50px;
+}
+
+@media (max-width: 768px) {
+  .mdm-edit-page__footer,
+  .mdm-edit-page .mdm-edit-page__footer,
+  .mdm-edit-page .member-level-form-footer,
+  .mdm-edit-page .batch-tag-form-footer,
+  .mdm-edit-page .member-level-desc-actions,
+  .mdm-edit-page .pts-rule-actions,
+  .mdm-edit-page .mkt-points-mall-form-actions {
+    left: 0;
+    padding: 12px 16px;
+  }
+}

@@ -8,15 +8,16 @@
 }
 
 .ua-mc-status {
-  background: #0b5c3b;
+  background: transparent;
   color: #fff;
 }
 
 .ua-mc-page .ua-mp-capsule--light {
-  top: 50px;
+  top: 12px;
   border-color: rgba(255, 255, 255, 0.28);
   background: rgba(255, 255, 255, 0.14);
   box-shadow: none;
+  pointer-events: none;
 }
 
 .ua-mc-page .ua-mp-capsule--light .ua-mp-capsule__dots {
@@ -37,14 +38,61 @@
   background: #fff;
 }
 
-/* —— 顶部 Hero —— */
+/* —— 顶部 Hero：渐变 + 斜线/弧线纹理，避免大块纯色 —— */
 .ua-mc-hero {
   position: relative;
   padding: 0 16px 52px;
+  overflow: hidden;
   background:
-    radial-gradient(ellipse 80% 60% at 90% 20%, rgba(255, 255, 255, 0.08), transparent 55%),
-    linear-gradient(180deg, #0b5c3b 0%, #0a4f33 55%, #09452c 100%);
+    radial-gradient(ellipse 70% 55% at 12% 0%, rgba(255, 255, 255, 0.16), transparent 58%),
+    radial-gradient(ellipse 55% 45% at 92% 88%, rgba(0, 0, 0, 0.12), transparent 60%),
+    linear-gradient(165deg, #ff6b5c 0%, #ff4d3a 42%, #e03d2a 100%);
   color: #fff;
+}
+
+.ua-mc-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.9;
+  background-image:
+    repeating-linear-gradient(
+      -32deg,
+      transparent 0,
+      transparent 10px,
+      rgba(255, 255, 255, 0.07) 10px,
+      rgba(255, 255, 255, 0.07) 11px
+    ),
+    repeating-linear-gradient(
+      58deg,
+      transparent 0,
+      transparent 28px,
+      rgba(255, 255, 255, 0.035) 28px,
+      rgba(255, 255, 255, 0.035) 29px
+    );
+}
+
+.ua-mc-hero::after {
+  content: '';
+  position: absolute;
+  right: -38%;
+  top: -28%;
+  width: 92%;
+  height: 150%;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    inset 0 0 0 18px rgba(255, 255, 255, 0.03),
+    0 0 0 36px rgba(255, 255, 255, 0.04);
+}
+
+.ua-mc-hero > * {
+  position: relative;
+  z-index: 1;
 }
 
 .ua-mc-nav {
@@ -61,13 +109,16 @@
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   text-decoration: none;
+  z-index: 30;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .ua-mc-nav__back svg {
@@ -97,7 +148,7 @@
   overflow: hidden;
   flex-shrink: 0;
   border: 2px solid rgba(255, 255, 255, 0.55);
-  background: #e8f5ef;
+  background: #fff1ef;
 }
 
 .ua-mc-avatar img {
@@ -166,7 +217,7 @@
   overflow: hidden;
   border-radius: 14px;
   background: #fff;
-  box-shadow: 0 6px 20px rgba(11, 92, 59, 0.12);
+  box-shadow: 0 6px 20px rgba(255, 77, 58, 0.12);
   outline: none;
   touch-action: pan-y;
   user-select: none;
@@ -219,8 +270,8 @@
   height: 44px;
   border-radius: 12px;
   overflow: hidden;
-  background: #f3f5f4;
-  border: 1px solid #e6ebe8;
+  background: #f5f5f5;
+  border: 1px solid #f0e6e4;
 }
 
 .ua-mc-slide__icon {
@@ -265,7 +316,7 @@
   gap: 1px;
   border: none;
   background: transparent;
-  color: #0b5c3b;
+  color: #ff4d3a;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -275,7 +326,7 @@
 }
 
 .ua-mc-slide__nav:disabled {
-  color: #b7c7be;
+  color: #d0b8b4;
   cursor: default;
 }
 
@@ -298,32 +349,56 @@
 }
 
 .ua-mc-progress__labels strong {
-  color: #0b5c3b;
+  color: #ff4d3a;
   font-weight: 700;
 }
 
 .ua-mc-progress__bar {
   height: 6px;
   border-radius: 999px;
-  background: #e8efe9;
+  background: #fff1ef;
   overflow: hidden;
 }
 
 .ua-mc-progress__fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #1a8a57, #0b5c3b);
+  background: linear-gradient(90deg, #ff6b5c, #ff4d3a);
   width: 0;
   transition: width 0.25s ease;
 }
 
 .ua-mc-benefits {
+  position: relative;
+  overflow: hidden;
   min-height: 72px;
   height: auto;
   padding: 14px 12px;
   border-radius: 10px;
-  background: linear-gradient(145deg, #0d6a44 0%, #0b5c3b 55%, #094a31 100%);
+  background:
+    linear-gradient(145deg, rgba(255, 107, 92, 0.95) 0%, rgba(255, 77, 58, 0.92) 55%, rgba(224, 61, 42, 0.95) 100%);
   color: #fff;
+}
+
+.ua-mc-benefits::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(
+      115deg,
+      transparent 0,
+      transparent 8px,
+      rgba(255, 255, 255, 0.08) 8px,
+      rgba(255, 255, 255, 0.08) 9px
+    );
+  opacity: 0.85;
+}
+
+.ua-mc-benefits > * {
+  position: relative;
+  z-index: 1;
 }
 
 .ua-mc-benefits--empty {
@@ -559,8 +634,8 @@
   margin-top: 16px;
   padding: 14px 14px 16px;
   border-radius: 10px;
-  background: #fff7f0;
-  border: 1px solid #ffe0c2;
+  background: #fff1ef;
+  border: 1px solid #ffd4ce;
   text-align: center;
 }
 
@@ -568,7 +643,7 @@
   margin: 0 0 12px;
   font-size: 14px;
   line-height: 1.5;
-  color: #c45a12;
+  color: #e03d2a;
   font-weight: 600;
 }
 
@@ -580,7 +655,7 @@
   height: 36px;
   padding: 0 18px;
   border-radius: 18px;
-  background: #ff7019;
+  background: #ff4d3a;
   color: #fff;
   font-size: 14px;
   font-weight: 600;
@@ -608,13 +683,13 @@ body.ua-mc-sheet-open {
   width: 6px;
   height: 6px;
   border-radius: 999px;
-  background: #cfd8d2;
+  background: #e5d5d2;
   transition: width 0.2s ease, background 0.2s ease;
 }
 
 .ua-mc-dot.is-active {
   width: 18px;
-  background: #0b5c3b;
+  background: #ff4d3a;
 }
 
 /* —— 规则 / 等级说明 —— */
@@ -659,7 +734,7 @@ body.ua-mc-sheet-open {
 }
 
 .ua-mc-rule-item--link:active {
-  background: #f8faf9;
+  background: #fafafa;
 }
 
 .ua-mc-rule-item__body {
@@ -719,11 +794,11 @@ body.ua-mc-sheet-open {
   border-radius: 8px;
   object-fit: cover;
   flex-shrink: 0;
-  background: #f3f5f4;
+  background: #f5f5f5;
 }
 
 .ua-mc-level-row.is-current {
-  color: #0b5c3b;
+  color: #ff4d3a;
   font-weight: 600;
 }
 

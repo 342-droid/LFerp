@@ -240,8 +240,8 @@
 
 .ua-gd-month__option.is-active,
 .ua-gd-month__option:hover {
-  background: #f5faf7;
-  color: #0b5c3b;
+  background: #fff1ef;
+  color: #ff4d3a;
   font-weight: 600;
 }
 
@@ -363,8 +363,8 @@
   height: 64px;
   margin: 0 auto 16px;
   border-radius: 50%;
-  background: #e8f5ef;
-  color: #0b5c3b;
+  background: #fff1ef;
+  color: #ff4d3a;
   font-size: 28px;
   font-weight: 700;
   display: flex;
@@ -391,7 +391,7 @@
   height: 44px;
   border: none;
   border-radius: 22px;
-  background: #0b5c3b;
+  background: #ff4d3a;
   color: #fff;
   font-size: 15px;
   font-weight: 600;
@@ -399,7 +399,7 @@
 }
 
 .ua-ck-btn:disabled {
-  background: #a8c4b6;
+  background: #f0b0a8;
   cursor: default;
 }
 

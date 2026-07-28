@@ -69,6 +69,8 @@
     });
 
     document.querySelectorAll('.ua-order-card[data-detail-status]').forEach(function (card) {
+      /* 演示订单链接含 orderNo，禁止被补货模式覆写成无单号链接 */
+      if (card.getAttribute('data-demo-order') === '1') return;
       var detailStatus = card.getAttribute('data-detail-status');
       var supplier = card.getAttribute('data-supplier-name') || '';
       var closedReason = card.getAttribute('data-closed-reason');
@@ -112,7 +114,9 @@
   }
 
   function init() {
+    injectDemoOrders();
     applyRestockOrdersMode();
+    bindDemoOrderLinks();
 
     var backEl = document.querySelector('.ua-orders-back');
     if (backEl && isFromRestock()) {
@@ -153,6 +157,108 @@
     });
 
     applyTab(getActiveTab(), false);
+  }
+
+  function escapeHtml(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /** 点击时按存储最新状态跳转，避免列表「待发货」详情仍是「待付款」 */
+  function bindDemoOrderLinks() {
+    document.querySelectorAll('.ua-order-card[data-demo-order="1"]').forEach(function (card) {
+      var orderNo = card.getAttribute('data-order-no');
+      if (!orderNo) return;
+      card.querySelectorAll('a[href*="order-detail.html"]').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+          if (!window.UaOrdersStore || !window.UaOrdersStore.getByNo) return;
+          var order = window.UaOrdersStore.getByNo(orderNo);
+          if (!order) return;
+          e.preventDefault();
+          window.location.href = window.UaOrdersStore.buildDetailHref(order);
+        });
+      });
+    });
+  }
+
+  function injectDemoOrders() {
+    if (!window.UaOrdersStore || !window.UaOrdersStore.list) return;
+    var list = window.UaOrdersStore.list();
+    var wrap = document.querySelector('.ua-orders-list') || document.querySelector('#ordersList');
+    if (!wrap || !list.length) return;
+    var html = list
+      .slice(0, 8)
+      .map(function (order) {
+        var fresh = window.UaOrdersStore.getByNo(order.orderNo) || order;
+        var href = window.UaOrdersStore.buildDetailHref(fresh);
+        var statusMap = {
+          unpaid: '待付款',
+          shipping: '待发货',
+          receipt: '待收货',
+          completed: '已完成',
+          closed: '已关闭'
+        };
+        var statusText = statusMap[fresh.status] || fresh.status;
+        var imgs = (fresh.items || [])
+          .slice(0, 3)
+          .map(function (it) {
+            return '<img src="' + escapeHtml(it.img || '../assets/order-product-1.svg') + '" alt="">';
+          })
+          .join('');
+        if (!imgs) imgs = '<img src="../assets/order-product-1.svg" alt="">';
+        var qty = (fresh.items || []).reduce(function (s, it) {
+          return s + (Number(it.qty) || 0);
+        }, 0);
+        var hasPoints = (fresh.items || []).some(function (it) {
+          return it.isPointsExchange;
+        });
+        var priceHtml = escapeHtml(fresh.payLabel || ('¥' + Number(fresh.payable || 0).toFixed(2)));
+        var actions =
+          fresh.status === 'unpaid'
+            ? '<a href="' +
+              href +
+              '" class="ua-order-btn ua-order-btn--outline">查看详情</a>' +
+              '<a href="' +
+              href +
+              '" class="ua-order-btn ua-order-btn--primary">去付款</a>'
+            : '<a href="' + href + '" class="ua-order-btn ua-order-btn--outline">查看详情</a>';
+        return (
+          '<article class="ua-order-card" data-status="' +
+          escapeHtml(fresh.status) +
+          '" data-detail-status="' +
+          escapeHtml(fresh.status) +
+          '" data-demo-order="1" data-order-no="' +
+          escapeHtml(fresh.orderNo) +
+          '">' +
+          '<a href="' +
+          href +
+          '" class="ua-order-card--link">' +
+          '<div class="ua-order-card__head">' +
+          '<span class="ua-order-merchant"><span class="ua-order-store">线上商城' +
+          (hasPoints ? ' · 含积分兑换' : '') +
+          '</span></span>' +
+          '<span class="ua-order-status">' +
+          escapeHtml(statusText) +
+          '</span></div>' +
+          '<div class="ua-order-card__body"><div class="ua-order-imgs">' +
+          imgs +
+          '</div><div class="ua-order-sum"><div class="ua-order-price">' +
+          priceHtml +
+          '</div><div class="ua-order-count">共' +
+          qty +
+          '件</div></div></div></a>' +
+          '<div class="ua-order-card__foot"><div class="ua-order-meta"><span class="ua-order-date">' +
+          escapeHtml(fresh.createdAt || '') +
+          '</span></div><div class="ua-order-actions">' +
+          actions +
+          '</div></div></article>'
+        );
+      })
+      .join('');
+    wrap.insertAdjacentHTML('afterbegin', html);
   }
 
   if (document.readyState === 'loading') {

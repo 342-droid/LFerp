@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
     <style>
         .flow-box {
             margin: 0 0 14px;
@@ -24,6 +25,8 @@
             border-radius: 4px;
             margin-bottom: 16px;
             overflow: hidden;
+            width: 100%;
+            max-width: none;
         }
         .pts-rule-card__title {
             padding: 12px 16px;
@@ -59,7 +62,7 @@
         .pts-rule-field__control {
             flex: 1;
             min-width: 0;
-            max-width: 640px;
+            max-width: none;
         }
         .pts-rule-field__control .erp-input,
         .pts-rule-field__control .erp-select,
@@ -192,9 +195,7 @@
             margin-top: 6px;
         }
         .pts-rule-actions {
-            display: flex;
-            gap: 10px;
-            padding: 8px 0 24px;
+            /* 底栏由 lf-mdm-edit-page.css 固定悬浮 */
         }
         .pts-rule-pick-backdrop {
             position: fixed;
@@ -347,7 +348,7 @@
     <script src="../js/mdm-sidebar.js"></script>
     <div id="header-container"></div>
     <div class="container">
-        <main class="main-content">
+        <main class="main-content mdm-edit-page">
             <div class="content-tabs"><button class="active">积分规则</button></div>
             <hr class="content-divider">
             <div class="content-title">会员 / 积分管理 / 积分规则</div>
@@ -478,13 +479,14 @@
                         </div>
                         <div id="exchangeRuleBody">
                             <div class="pts-rule-field">
-                                <label class="pts-rule-field__label">售后是否退还积分</label>
+                                <label class="pts-rule-field__label">是否支持售后</label>
                                 <div class="pts-rule-field__control">
                                     <div class="pts-rule-check-row">
                                         <label class="pts-rule-check-label">
-                                            <input type="checkbox" id="exchangeRefundEnabled" checked> 积分兑换商品售后退还积分
+                                            <input type="checkbox" id="exchangeRefundEnabled" checked> 支持售后
                                         </label>
                                     </div>
+                                    <div class="pts-rule-tip">开启后，积分兑换商品支持售后退还积分。</div>
                                 </div>
                             </div>
                             <div class="pts-rule-field" id="exchangeRefundValidityRow">
@@ -492,10 +494,10 @@
                                 <div class="pts-rule-field__control">
                                     <div class="pts-rule-check-row">
                                         <label class="pts-rule-check-label">
-                                            <input type="radio" name="exchangeRefundValidity" value="recalc" checked> 重新计算有效期
+                                            <input type="radio" name="exchangeRefundValidity" value="keep_original" checked> 保留原有效期
                                         </label>
                                     </div>
-                                    <div class="pts-rule-tip">退还积分将按当前积分有效期规则重新起算。</div>
+                                    <div class="pts-rule-tip">若兑换时使用 100 积分，获取时间分别为 1 月 1 日 20 积分、1 月 2 日 80 积分，若售后需退还 50 积分，则退还积分的获取时间为 1 月 2 日 50 积分（按兑换扣减的逆序退回原批次）。</div>
                                 </div>
                             </div>
                         </div>
@@ -531,7 +533,7 @@
                     </div>
                 </div>
 
-                <div class="pts-rule-actions">
+                <div class="pts-rule-actions mdm-edit-page__footer">
                     <button type="button" class="btn btn-secondary" id="btnPtsRuleReset">重置</button>
                     <button type="button" class="btn btn-primary" id="btnPtsRuleSave">保存配置</button>
                 </div>
