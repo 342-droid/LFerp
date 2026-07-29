@@ -1,10 +1,30 @@
 {
-  "latestSha": "19e625bedadb00a7ae39412d0b932ab443a6f764",
-  "total": 211,
+  "latestSha": "4bf6c039d92df9489c035083517106733695ba95",
+  "total": 212,
   "days": [
     {
       "date": "2026-07-29",
       "items": [
+        {
+          "sha": "4bf6c03",
+          "type": "feat",
+          "text": "补货场景区分采购指令与供应商直连补货",
+          "author": "sisi",
+          "time": "12:56",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "采购补货指令「指令单号」改为「采购单号」；代采快递/配送与零售自提展示采购补货指令，零售快递绕过仓储直连供应商补货且不展示该指令"
+            }
+          ]
+        },
         {
           "sha": "19e625b",
           "type": "fix",

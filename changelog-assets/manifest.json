@@ -521,6 +521,11 @@
     "status": "diff",
     "date": "2026-07-20"
   },
+  "4bf6c03|MDM/mdm_aftersale_ticket_detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-29"
+  },
   "5015ef3|user-app/h5/order-aftersale-list.html": {
     "regions": 0,
     "status": "diff",
