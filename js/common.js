@@ -796,7 +796,7 @@ if (document.readyState === 'loading') {
 }
 
 /**
- * 更新日志全站入口：右下角浮动按钮，changelog.json 有新提交时显示红点。
+ * 更新日志全站入口：固定在桌面端侧边栏底部，changelog.json 有新提交时显示红点。
  * shop-h5 / user-app 手机端原型不加载 common.js，天然不受影响；这里再做一层路径防御。
  */
 (function () {
@@ -863,15 +863,20 @@ if (document.readyState === 'loading') {
         var style = document.createElement('style');
         style.textContent = [
             '#changelog-entry {',
-            '    position: fixed; right: 20px; bottom: 20px; z-index: 1300;',
+            '    position: relative; z-index: 1; flex-shrink: 0;',
             '    display: flex; align-items: center; gap: 6px;',
-            '    background: #2c313c; color: #fff; text-decoration: none;',
-            '    font-size: 12px; padding: 7px 14px; border-radius: 16px;',
-            '    box-shadow: 0 2px 8px rgba(0,0,0,0.25); opacity: 0.85;',
+            '    min-height: 40px; margin: 0 8px 10px; padding: 10px 14px;',
+            '    background: rgba(255,255,255,0.08); color: #fff; text-decoration: none;',
+            '    font-size: 14px; border-radius: 5px;',
+            '    transition: background-color 0.2s ease;',
             '}',
-            '#changelog-entry:hover { opacity: 1; }',
+            '#changelog-entry:hover { background: rgba(255,255,255,0.14); }',
+            '.sidebar.collapsed #changelog-entry {',
+            '    justify-content: center; gap: 0; margin: 0 6px 10px; padding: 10px 0;',
+            '}',
+            '.sidebar.collapsed #changelog-entry .changelog-entry-label { display: none; }',
             '#changelog-entry .changelog-entry-dot {',
-            '    position: absolute; top: -2px; right: 2px;',
+            '    position: absolute; top: 4px; right: 6px;',
             '    width: 8px; height: 8px; border-radius: 50%;',
             '    background: #f5222d; border: 1px solid #fff;',
             '}',
@@ -887,8 +892,24 @@ if (document.readyState === 'loading') {
         link.id = 'changelog-entry';
         link.href = assetHref('changelog.html');
         link.title = '查看最近更新';
-        link.innerHTML = '<span>📋</span><span>更新日志</span><span class="changelog-entry-dot" hidden></span>';
-        document.body.appendChild(link);
+        link.innerHTML = '<span aria-hidden="true">📋</span><span class="changelog-entry-label">更新日志</span><span class="changelog-entry-dot" hidden></span>';
+
+        function mountEntry() {
+            var sidebar = document.querySelector('#sidebar-container .sidebar');
+            if (!sidebar) return false;
+            sidebar.appendChild(link);
+            return true;
+        }
+
+        if (!mountEntry()) {
+            var sidebarContainer = document.getElementById('sidebar-container');
+            if (!sidebarContainer) return;
+            var observer = new MutationObserver(function () {
+                if (mountEntry()) observer.disconnect();
+            });
+            observer.observe(sidebarContainer, { childList: true, subtree: true });
+            setTimeout(function () { observer.disconnect(); }, 10000);
+        }
 
         fetch(assetHref('changelog.json'), { cache: 'no-cache' })
             .then(function (r) { return r.ok ? r.json() : null; })
