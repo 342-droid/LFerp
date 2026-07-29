@@ -1,12 +1,12 @@
 {
-  "latestSha": "271ef1d9cca17d398b771896e664c3857c06ece8",
+  "latestSha": "19e625bedadb00a7ae39412d0b932ab443a6f764",
   "total": 211,
   "days": [
     {
       "date": "2026-07-29",
       "items": [
         {
-          "sha": "271ef1d",
+          "sha": "19e625b",
           "type": "fix",
           "text": "更新日志入口移至左侧菜单底部",
           "author": "weekwood",
@@ -21,7 +21,7 @@
           ]
         },
         {
-          "sha": "a449b88",
+          "sha": "bf36311",
           "type": "feat",
           "text": "完善商城类目标签商品与订单平台售后能力",
           "author": "sisi",
@@ -341,7 +341,7 @@
           "notes": [
             {
               "file": "MDM/mdm_product_mall_category.html",
-              "text": "按原图还原扁平列表与 80×80 圆形图；新增编辑上下架删除；有绑定商品时禁止下架删除"
+              "text": "按原图还原扁平列表与 80×80 圆形图；支持编辑、上下架、删除，有绑定商品时禁止下架删除"
             },
             {
               "file": "MDM/mdm_product_mall_tag.html",
@@ -349,27 +349,63 @@
             },
             {
               "file": "MDM/mdm_product_mall.html",
-              "text": "商城商品: 商品列表按代采交互还原，履约方式为快递/自提"
-            },
-            {
-              "file": "user-app/h5/mall.html",
-              "text": "商城商品: 商品列表按代采交互还原，履约方式为快递/自提"
+              "text": "商城商品列表按代采交互还原，履约方式为快递/自提"
             },
             {
               "file": "MDM/mdm_order_retail.html",
-              "text": "按履约×状态支持取消订单与平台发起售后抽屉（仅退款/退货退款/补货）"
+              "text": "按履约×状态支持取消订单；右侧抽屉支持平台发起售后（仅退款/退货退款/补货，含原因与凭证）"
             },
             {
               "file": "MDM/mdm_order_proxy.html",
-              "text": "同步接入取消订单与平台退款"
+              "text": "同步接入取消订单与平台退款抽屉"
             },
             {
               "file": "MDM/mdm_aftersale_ticket.html",
-              "text": "售后原因按类型对齐用户 APP，并完善详情处理"
+              "text": "筛选「售后原因」随售后类型联动，选项与用户 APP 一致"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "原因字段按类型显示退款/补货/换货原因；补齐自提退货与换货流转；物流单号统一校验"
             },
             {
               "file": "MDM/mdm_archive_supplier.html",
-              "text": "列表与表单支持简称，APP 展示优先用简称"
+              "text": "列表与表单支持简称"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "text": "供应商名优先展示简称"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "text": "商品卡与详情供应商名优先展示简称"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "text": "分组供应商名优先展示简称"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "text": "结算供应商名优先展示简称"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "text": "列表供应商名优先展示简称"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "供应商名优先展示简称"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "text": "供应商名优先展示简称"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "text": "退货物流单号接入统一校验"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "确认物流弹窗的物流单号接入统一校验"
             },
             {
               "file": null,
