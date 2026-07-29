@@ -8,7 +8,9 @@
  * - 退货退款（自提）：审核通过 → 待退货（退回门店）→ 门店确认收货 → 退款中（自动生成退款单）
  * - 退货退款（配送）：审核通过 → 待退货 → 已取货 → 待收货 → 仓库入仓 → 退款中
  * - 换货：退货腿同履约（自提门店 / 配送入仓 / 快递寄回），收货后进入换出
- * - 补货：无退款单；审核通过 → 待收货（采购补货中）→ 已完成
+ * - 补货：无退款单；审核通过 → 待收货 → 已完成
+ *   · 代采（快递/配送）、零售自提：下发「采购补货指令」（字段「采购单号」）
+ *   · 零售快递：绕过仓储，直接与供应商对接补货，无采购补货指令
  */
 (function () {
   var CHECK_SVG =
@@ -654,8 +656,9 @@
     return list;
   }
 
-  function buildProgress(type, status, ticketId, applyTime, applicant) {
-    var deliveryMode = (state.detail && state.detail.deliveryMode) || '';
+  function buildProgress(type, status, ticketId, applyTime, applicant, detailCtx) {
+    var detailRef = detailCtx || state.detail;
+    var deliveryMode = (detailRef && detailRef.deliveryMode) || '';
     var returnDesc = isPickupFulfillment(deliveryMode)
       ? '用户到店退回商品'
       : isDeliveryFulfillment(deliveryMode)
@@ -666,17 +669,20 @@
     if (type === '补货') {
       var noTrackRestock =
         isDeliveryFulfillment(deliveryMode) || isPickupFulfillment(deliveryMode);
+      var withPurchaseOrder = hasPurchaseRestockOrder(detailRef);
       steps = [
         { key: 'submit', title: '用户提交申请', desc: '用户发起了补货申请' },
         { key: 'audit', title: '等待管理员审核', desc: '等待管理员审核补货申请' },
         {
           key: 'purchase',
-          title: '采购补货',
+          title: withPurchaseOrder ? '采购补货' : '供应商补货',
           desc: noTrackRestock
             ? isPickupFulfillment(deliveryMode)
               ? '补货到店后由用户自提核销'
               : '供应商补发至仓库，仓库配送到门店'
-            : '已向采购端下发补货指令，等待物流回传'
+            : withPurchaseOrder
+              ? '已向采购端下发补货指令，等待物流回传'
+              : '零售快递绕过仓储，直接与供应商对接补货，等待物流回传'
         },
         { key: 'done', title: '补货完成', desc: '补货流程完成' }
       ];
@@ -988,7 +994,9 @@
    *   快递 → 供应商收货地址；取消寄件 / 上传物流 → 确认收货
    *
    * 补货：
-   *   不展示收货地址；审核通过后向采购端下发补货指令
+   *   不展示收货地址
+   *   代采（快递/配送）、零售自提：审核通过后下发采购补货指令
+   *   零售快递：绕过仓储，直接与供应商对接补货（无采购补货指令）
    *   快递有物流；平台配送 / 自提无轨迹
    */
   function isProxyExpressToStore(detail) {
@@ -997,6 +1005,16 @@
 
   function isProxyOrder(detail) {
     return detail && detail.orderSource === '代采';
+  }
+
+  /**
+   * 是否下发/展示「采购补货指令」
+   * 代采快递、代采配送、零售自提有；零售快递无（直连供应商补货）
+   */
+  function hasPurchaseRestockOrder(detail) {
+    if (!detail) return false;
+    if (detail.orderSource === '代采') return true;
+    return isPickupFulfillment(detail.deliveryMode);
   }
 
   function isPostAudit(status) {
@@ -1033,8 +1051,11 @@
 
     if (type === '补货') {
       detail.returnAddress = null;
-      if (isPostAudit(status) && !detail.purchaseOrder) {
+      if (isPostAudit(status) && hasPurchaseRestockOrder(detail) && !detail.purchaseOrder) {
         detail.purchaseOrder = makePurchaseOrder(detail);
+      }
+      if (!hasPurchaseRestockOrder(detail)) {
+        detail.purchaseOrder = null;
       }
       /* 平台配送/自提无物流轨迹；仅快递补货完成时补演示物流 */
       if (status === '已完成' && !isNoTrackRestock(detail) && !detail.shipments.restockShip) {
@@ -1306,8 +1327,9 @@
         restockShip: null,
         exchangeOutShip: null
       },
-      progress: buildProgress(type, status, id, applyTime, applicant)
+      progress: null
     };
+    detail.progress = buildProgress(type, status, id, applyTime, applicant, detail);
 
     return seedLogisticsByStatus(seedUserOpsByStatus(detail));
   }
@@ -2369,7 +2391,7 @@
   function renderPurchaseOrderCard(po) {
     if (!po) return '';
     var fields =
-      field('指令单号', po.id) +
+      field('采购单号', po.id) +
       field('下发时间', po.createdAt) +
       field('状态', po.status) +
       field('商品', po.productName) +
@@ -2382,7 +2404,7 @@
   function renderRestockPurchasePanel(detail) {
     if (detail.type !== '补货') return '';
     var status = detail.status;
-    // 补货无退款单：审核通过后为待收货（采购补货中），完成后为已完成
+    // 补货无退款单：审核通过后为待收货，完成后为已完成
     if (status !== '待收货' && status !== '已完成') {
       return '';
     }
@@ -2394,10 +2416,16 @@
     var noTrack = isNoTrackRestock(detail);
     var pickupRestock = isPickupFulfillment(detail.deliveryMode);
     var deliveryRestock = isDeliveryFulfillment(detail.deliveryMode);
-    var po = detail.purchaseOrder || makePurchaseOrder(detail);
-    detail.purchaseOrder = po;
-    if (done && detail.actualRestockQty != null && po.actualQty == null) {
-      po.actualQty = detail.actualRestockQty;
+    var withPo = hasPurchaseRestockOrder(detail);
+    var po = null;
+    if (withPo) {
+      po = detail.purchaseOrder || makePurchaseOrder(detail);
+      detail.purchaseOrder = po;
+      if (done && detail.actualRestockQty != null && po.actualQty == null) {
+        po.actualQty = detail.actualRestockQty;
+      }
+    } else {
+      detail.purchaseOrder = null;
     }
 
     var title = done
@@ -2406,7 +2434,9 @@
         ? '补货处理 · 到店自提'
         : deliveryRestock
           ? '补货处理 · 仓配到店'
-          : '补货处理 · 采购补货中';
+          : withPo
+            ? '补货处理 · 采购补货中'
+            : '补货处理 · 供应商补货中';
     var desc;
     if (done) {
       desc = noTrack
@@ -2419,23 +2449,35 @@
     } else if (deliveryRestock) {
       desc =
         '审核已通过，供应商补发至仓库，仓库配送到门店。请确认收货并录入实际补货数量（也可由门店入库单回写）。';
+    } else if (withPo) {
+      desc =
+        '审核已通过，系统已向采购端下发补货指令并生成采购单；补货无需寄回，等待采购回传物流信息，确认收货时填写实际收到数量。';
     } else {
       desc =
-        '审核已通过，系统已向采购端下发补货指令并生成订货单；补货无需寄回，等待采购回传物流信息，确认收货时填写实际收到数量。';
+        '审核已通过，零售快递补货绕过仓储系统，直接与供应商对接补发；补货无需寄回，等待供应商回传物流信息，确认收货时填写实际收到数量。';
     }
 
     /* 平台配送 / 自提：去掉补货物流板块；仅快递补货展示物流 */
     var shipHtml = '';
     if (!noTrack) {
+      var shipTitle = withPo ? '补货物流（采购回传）' : '补货物流（供应商回传）';
+      var shipWait = withPo ? '等待采购端回传物流信息' : '等待供应商回传物流信息';
+      var shipMock = withPo ? '模拟采购回传物流' : '模拟供应商回传物流';
       if (hasShip || done) {
-        shipHtml = renderShipInfoCard(ship, '补货物流（采购回传）', 'restockShip');
+        shipHtml = renderShipInfoCard(ship, shipTitle, 'restockShip');
       } else {
         shipHtml =
           '<div class="aftersale-return-ship aftersale-return-ship--waiting">' +
-          '<div class="aftersale-return-ship__title">补货物流（采购回传）</div>' +
-          '<div class="aftersale-return-ship__wait">等待采购端回传物流信息</div>' +
+          '<div class="aftersale-return-ship__title">' +
+          escapeHtml(shipTitle) +
+          '</div>' +
+          '<div class="aftersale-return-ship__wait">' +
+          escapeHtml(shipWait) +
+          '</div>' +
           '<div class="aftersale-logistics-block__actions">' +
-          '<button type="button" class="aftersale-btn aftersale-btn--ghost" id="asMockPurchaseShip">模拟采购回传物流</button>' +
+          '<button type="button" class="aftersale-btn aftersale-btn--ghost" id="asMockPurchaseShip">' +
+          escapeHtml(shipMock) +
+          '</button>' +
           '</div></div>';
       }
     }
@@ -2461,7 +2503,7 @@
       '<p class="aftersale-flow-card__desc">' +
       escapeHtml(desc) +
       '</p>' +
-      renderPurchaseOrderCard(po) +
+      (withPo ? renderPurchaseOrderCard(po) : '') +
       shipHtml +
       actions +
       '</section>'
@@ -3174,9 +3216,9 @@
         detail.userPickupActive = true;
       }
     } else if (type === '补货') {
-      // 补货：不下发收货地址；向采购端下发补货指令
+      // 补货：不下发收货地址；代采/零售自提下发采购补货指令，零售快递直连供应商
       detail.returnAddress = null;
-      detail.purchaseOrder = makePurchaseOrder(detail);
+      detail.purchaseOrder = hasPurchaseRestockOrder(detail) ? makePurchaseOrder(detail) : null;
       detail.status = '待收货';
       detail.approval.refundAmount = 0;
       detail.approval.coupon = 0;
@@ -3222,7 +3264,12 @@
           'success'
         );
       } else if (type === '补货') {
-        showToast('审批通过，已向采购端下发补货指令（无退款单）', 'success');
+        showToast(
+          hasPurchaseRestockOrder(detail)
+            ? '审批通过，已向采购端下发补货指令（无退款单）'
+            : '审批通过，已通知供应商直接补发（无退款单）',
+          'success'
+        );
       } else if (type === '换货') {
         showToast(
           isPickupFulfillment(detail.deliveryMode)
