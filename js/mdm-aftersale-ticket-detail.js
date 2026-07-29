@@ -10,7 +10,8 @@
  * - 换货：退货腿同履约（自提门店 / 配送入仓 / 快递寄回），收货后进入换出
  * - 补货：无退款单；审核通过 → 待收货 → 已完成
  *   · 代采（快递/配送）、零售自提：下发「采购补货指令」（字段「采购单号」）
- *   · 零售快递：绕过仓储，直接与供应商对接补货，无采购补货指令
+ *   · 零售快递：绕过仓储，直接与供应商对接补货，无采购补货指令；
+ *     供应商寄回后由后台上传物流，确认收货时填写实际收到数量
  */
 (function () {
   var CHECK_SVG =
@@ -682,7 +683,7 @@
               : '供应商补发至仓库，仓库配送到门店'
             : withPurchaseOrder
               ? '已向采购端下发补货指令，等待物流回传'
-              : '零售快递绕过仓储，直接与供应商对接补货，等待物流回传'
+              : '零售快递绕过仓储，直接与供应商对接补货；供应商寄回后后台上传物流'
         },
         { key: 'done', title: '补货完成', desc: '补货流程完成' }
       ];
@@ -996,7 +997,8 @@
    * 补货：
    *   不展示收货地址
    *   代采（快递/配送）、零售自提：审核通过后下发采购补货指令
-   *   零售快递：绕过仓储，直接与供应商对接补货（无采购补货指令）
+   *   零售快递：绕过仓储，直接与供应商对接补货（无采购补货指令）；
+   *   供应商寄回后由后台上传物流
    *   快递有物流；平台配送 / 自提无轨迹
    */
   function isProxyExpressToStore(detail) {
@@ -2454,30 +2456,45 @@
         '审核已通过，系统已向采购端下发补货指令并生成采购单；补货无需寄回，等待采购回传物流信息，确认收货时填写实际收到数量。';
     } else {
       desc =
-        '审核已通过，零售快递补货绕过仓储系统，直接与供应商对接补发；补货无需寄回，等待供应商回传物流信息，确认收货时填写实际收到数量。';
+        '审核已通过，零售快递补货绕过仓储系统，直接与供应商对接补发；补货由供应商寄回后，在后台操作上传物流信息，确认收货时填写实际收到数量。';
     }
 
     /* 平台配送 / 自提：去掉补货物流板块；仅快递补货展示物流 */
     var shipHtml = '';
     if (!noTrack) {
-      var shipTitle = withPo ? '补货物流（采购回传）' : '补货物流（供应商回传）';
-      var shipWait = withPo ? '等待采购端回传物流信息' : '等待供应商回传物流信息';
-      var shipMock = withPo ? '模拟采购回传物流' : '模拟供应商回传物流';
+      var shipTitle = withPo ? '补货物流（采购回传）' : '补货物流';
+      var showRestockUpload = !withPo && !!detail.showShipUploadForm;
       if (hasShip || done) {
         shipHtml = renderShipInfoCard(ship, shipTitle, 'restockShip');
+      } else if (showRestockUpload) {
+        /* 零售快递：后台上传补货物流 */
+        shipHtml =
+          '<div class="aftersale-return-ship">' +
+          '<div class="aftersale-return-ship__title">上传物流单号</div>' +
+          renderShipFormFields('', '') +
+          '<div class="aftersale-flow-card__actions" style="margin-top:12px">' +
+          '<button type="button" class="aftersale-btn aftersale-btn--ghost" id="asHideShipUpload">取消</button>' +
+          '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asSubmitRestockShip">提交</button>' +
+          '</div></div>';
+      } else if (withPo) {
+        shipHtml =
+          '<div class="aftersale-return-ship aftersale-return-ship--waiting">' +
+          '<div class="aftersale-return-ship__title">' +
+          escapeHtml(shipTitle) +
+          '</div>' +
+          '<div class="aftersale-return-ship__wait">等待采购端回传物流信息</div>' +
+          '<div class="aftersale-logistics-block__actions">' +
+          '<button type="button" class="aftersale-btn aftersale-btn--ghost" id="asMockPurchaseShip">模拟采购回传物流</button>' +
+          '</div></div>';
       } else {
         shipHtml =
           '<div class="aftersale-return-ship aftersale-return-ship--waiting">' +
           '<div class="aftersale-return-ship__title">' +
           escapeHtml(shipTitle) +
           '</div>' +
-          '<div class="aftersale-return-ship__wait">' +
-          escapeHtml(shipWait) +
-          '</div>' +
-          '<div class="aftersale-logistics-block__actions">' +
-          '<button type="button" class="aftersale-btn aftersale-btn--ghost" id="asMockPurchaseShip">' +
-          escapeHtml(shipMock) +
-          '</button>' +
+          '<div class="aftersale-return-ship__wait">供应商寄回后，请上传补货物流信息</div>' +
+          '<div class="aftersale-flow-card__actions" style="margin-top:12px">' +
+          '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asShowRestockShipUpload">上传物流信息</button>' +
           '</div></div>';
       }
     }
@@ -4076,10 +4093,71 @@
         }
         return;
       }
+      if (e.target.closest('#asShowRestockShipUpload')) {
+        if (state.detail.type !== '补货' || isNoTrackRestock(state.detail)) {
+          if (typeof showToast === 'function') {
+            showToast('当前补货场景无需上传物流', 'error');
+          }
+          return;
+        }
+        if ((state.detail.shipments || {}).restockShip) {
+          if (typeof showToast === 'function') {
+            showToast('已有补货物流，不可再上传', 'error');
+          }
+          return;
+        }
+        state.detail.showShipUploadForm = true;
+        renderPage();
+        return;
+      }
+      if (e.target.closest('#asSubmitRestockShip')) {
+        if (state.detail.type !== '补货') return;
+        var restockCompany = String((($('asShipCompany') || {}).value || '')).trim();
+        var restockNo = readValidatedTrackingNo('asShipNo');
+        if (!restockNo) return;
+        if (!restockCompany) {
+          if (typeof showToast === 'function') showToast('请选择物流公司', 'error');
+          return;
+        }
+        if ((state.detail.shipments || {}).restockShip) {
+          if (typeof showToast === 'function') {
+            showToast('已有补货物流，不可再上传', 'error');
+          }
+          return;
+        }
+        state.detail.shipments = state.detail.shipments || {};
+        state.detail.shipments.restockShip = makeShip(restockCompany, restockNo, '运输中');
+        state.detail.showShipUploadForm = false;
+        if (state.detail.status !== '已完成') state.detail.status = '待收货';
+        state.detail.progress = buildProgress(
+          '补货',
+          state.detail.status,
+          state.detail.id,
+          state.detail.applyTime,
+          state.detail.order.receiver
+        );
+        pushOperationLog(state.detail, {
+          type: '上传补货物流',
+          reason: restockCompany + ' ' + restockNo,
+          time: nowText(),
+          source: '售后管理',
+          operator: '超级管理员'
+        });
+        renderPage();
+        if (typeof showToast === 'function') showToast('补货物流已上传', 'success');
+        return;
+      }
       if (e.target.closest('#asMockPurchaseShip')) {
         if (isNoTrackRestock(state.detail)) {
           if (typeof showToast === 'function') {
             showToast('平台配送/自提补货无物流轨迹，无需回传物流', 'error');
+          }
+          return;
+        }
+        /* 仅代采/有采购补货指令场景：模拟采购回传 */
+        if (!hasPurchaseRestockOrder(state.detail)) {
+          if (typeof showToast === 'function') {
+            showToast('零售快递补货请在后台上传物流信息', 'error');
           }
           return;
         }
