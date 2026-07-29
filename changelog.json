@@ -1,10 +1,25 @@
 {
-  "latestSha": "a449b88c6c574e83733e438ea2901ed8faf55758",
-  "total": 210,
+  "latestSha": "271ef1d9cca17d398b771896e664c3857c06ece8",
+  "total": 211,
   "days": [
     {
       "date": "2026-07-29",
       "items": [
+        {
+          "sha": "271ef1d",
+          "type": "fix",
+          "text": "更新日志入口移至左侧菜单底部",
+          "author": "weekwood",
+          "time": "11:01",
+          "pages": [],
+          "global": true,
+          "notes": [
+            {
+              "file": null,
+              "text": "全局页面: 更新日志入口固定在左侧菜单底部，菜单收起时仅显示图标，不再遮挡页面内容"
+            }
+          ]
+        },
         {
           "sha": "a449b88",
           "type": "feat",
