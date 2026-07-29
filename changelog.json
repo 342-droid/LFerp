@@ -1,10 +1,30 @@
 {
-  "latestSha": "4bf6c039d92df9489c035083517106733695ba95",
-  "total": 212,
+  "latestSha": "56f6f89c91f6264f01de29223fac3b33c28401c0",
+  "total": 213,
   "days": [
     {
       "date": "2026-07-29",
       "items": [
+        {
+          "sha": "56f6f89",
+          "type": "feat",
+          "text": "零售快递补货改为后台上传物流",
+          "author": "sisi",
+          "time": "16:46",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "零售快递补货说明改为供应商寄回后由后台上传物流；待收货支持上传物流单号，不再模拟供应商回传"
+            }
+          ]
+        },
         {
           "sha": "4bf6c03",
           "type": "feat",
