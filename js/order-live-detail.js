@@ -206,7 +206,7 @@
       tags: {
         channel: 'MINI_PROGRAM',
         orderScene: '直播',
-        payChannel: '-',
+        payChannel: '微信',
         marketing: '积分兑换',
         livePeriod: '-',
         bd: '1',
@@ -262,7 +262,7 @@
       tags: {
         channel: 'MINI_PROGRAM',
         orderScene: '直播',
-        payChannel: '-',
+        payChannel: '支付宝',
         marketing: '普通售卖',
         livePeriod: '-',
         bd: '1',
@@ -355,7 +355,7 @@
       tags: {
         channel: 'MINI_PROGRAM',
         orderScene: '直播、商城',
-        payChannel: '-',
+        payChannel: '微信',
         marketing: '拉新赠品',
         livePeriod: '-',
         bd: '1',
@@ -412,7 +412,7 @@
       tags: {
         channel: 'MINI_PROGRAM',
         orderScene: '直播',
-        payChannel: '-',
+        payChannel: '支付宝',
         marketing: '福袋奖品',
         livePeriod: '-',
         bd: '1',
@@ -1438,6 +1438,13 @@
       if (sceneEl) {
         detail.tags = detail.tags || {};
         detail.tags.orderScene = sceneEl.textContent.trim();
+      }
+      /* 支付渠道与列表一致：微信 / 支付宝 / - */
+      var cellIdx = getListCellIndices(row);
+      var cells = row.querySelectorAll('td');
+      if (cells[cellIdx.payChannel]) {
+        detail.tags = detail.tags || {};
+        detail.tags.payChannel = cells[cellIdx.payChannel].textContent.trim() || '-';
       }
       var marketingLabel = isProxyOrderPage() ? null : readMarketingFromRow(row);
       if (!isProxyOrderPage()) {
