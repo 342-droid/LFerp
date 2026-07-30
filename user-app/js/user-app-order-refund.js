@@ -4442,6 +4442,8 @@
 
   function bindSheetClose() {
     document.querySelectorAll('[data-or-sheet-close]').forEach(function (el) {
+      if (el.getAttribute('data-sheet-close-bound') === '1') return;
+      el.setAttribute('data-sheet-close-bound', '1');
       el.addEventListener('click', function () {
         closeSheet(el.getAttribute('data-or-sheet-close'));
       });
@@ -5101,6 +5103,8 @@
     var stage = getDetailStage();
     if (isResultStage(stage)) {
       renderResultDetail(refundType, stage);
+      /* success/failed/closed 结果页也会打开「宝贝售后详情」等 sheet，需绑定关闭 */
+      bindSheetClose();
       return;
     }
     renderProgressDetail(refundType, stage);
@@ -5165,6 +5169,14 @@
 
     if (isClosedHeroLayout(refundType, stage)) {
       renderClosedHeroResult(refundType, stage, app, item, delivery, resultTime);
+      bindNegotiateHistoryPanel(app, item, refundType);
+      var closedHistoryBtn = document.getElementById('refundHistoryRefundBtn');
+      if (closedHistoryBtn && !closedHistoryBtn.getAttribute('data-bound')) {
+        closedHistoryBtn.setAttribute('data-bound', '1');
+        closedHistoryBtn.addEventListener('click', function () {
+          openRefundHistorySheet(app, item, refundType);
+        });
+      }
       return;
     }
 
