@@ -30,13 +30,13 @@
           expandBtn.classList.toggle('is-expanded', defaultExpanded);
         }
         if (expandLabel) expandLabel.textContent = defaultExpanded ? '收起' : '展开';
-        applyRetailFilters();
+        applyOrderListFilters();
       });
     }
 
     if (queryBtn) {
       queryBtn.addEventListener('click', function () {
-        applyRetailFilters();
+        applyOrderListFilters();
         if (typeof showToast === 'function') {
           showToast('查询完成（演示）', 'success');
         }
@@ -44,24 +44,40 @@
     }
   }
 
-  function applyRetailFilters() {
-    if (document.body && document.body.getAttribute('data-order-page') === 'proxy') return;
+  /** 零售/代采共用：支付渠道；零售另支持履约方式 */
+  function applyOrderListFilters() {
+    var page = document.body ? document.body.getAttribute('data-order-page') : '';
+    var isProxy = page === 'proxy';
+    var isRetail = page === 'retail';
+    if (!isProxy && !isRetail) return;
+
+    var paySel = document.getElementById('qPayChannel');
+    var payChannel = paySel ? (paySel.value || '').trim() : '';
     var deliverySel = document.getElementById('qDeliveryMode');
-    if (!deliverySel) return;
-    var delivery = (deliverySel.value || '').trim();
+    var delivery = deliverySel ? (deliverySel.value || '').trim() : '';
+
     var tbody = document.querySelector('.order-live-table tbody');
     if (!tbody) return;
     var rows = tbody.querySelectorAll('tr[data-order-id]');
     var visible = 0;
     rows.forEach(function (row) {
-      var mode = row.getAttribute('data-delivery-mode') || 'pickup';
-      var show = !delivery || mode === delivery;
+      var show = true;
+      if (payChannel) {
+        var rowPay = row.getAttribute('data-pay-channel') || '';
+        show = rowPay === payChannel;
+      }
+      if (show && isRetail && delivery) {
+        var mode = row.getAttribute('data-delivery-mode') || 'pickup';
+        show = mode === delivery;
+      }
       row.hidden = !show;
       if (show) visible += 1;
     });
     var totalEl = document.querySelector('.order-pagination__total');
-    if (totalEl && delivery) {
+    if (totalEl && (payChannel || (isRetail && delivery))) {
       totalEl.textContent = '共 ' + visible + ' 条';
+    } else if (totalEl && !payChannel && !(isRetail && delivery)) {
+      totalEl.textContent = '共 ' + rows.length + ' 条';
     }
   }
 

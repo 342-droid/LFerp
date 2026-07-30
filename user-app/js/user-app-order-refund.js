@@ -1778,46 +1778,109 @@
   }
 
   /**
-   * 补货确认收货：二次确认框（不录入实际收到数量）
-   * 对齐订单详情「确认收货」交互
+   * 补货确认收货数量录入（演示）
+   * - warehouse：门店入库单，填写实际入库数量（进货配送）
+   * - express：确认收货弹层（进货快递到店）
+   * - home：零售快递补货到家
+   * 写入 actualRestockQty 并回写售后单
    */
-  function openRestockConfirmModal() {
-    var modal = document.getElementById('refundRestockConfirmModal');
-    if (modal) modal.hidden = false;
-  }
-
-  function closeRestockConfirmModal() {
-    var modal = document.getElementById('refundRestockConfirmModal');
-    if (modal) modal.hidden = true;
-  }
-
-  function completeRestockConfirm(app, refundType) {
-    app = app || loadApplication() || {};
-    refundType = refundType || 'restock';
-    closeRestockConfirmModal();
-    app.resultTime = formatDateTime();
-    app.outShipped = true;
-    if (isPickupRestock(app, refundType)) {
-      ensureRestockArriveStore(app);
-      markRestockPickedUp(app);
+  function openRestockReceiveSheet(app, refundType, item, mode) {
+    item = item || getItem();
+    app = app || {};
+    mode = mode || (isWarehouseRestock(app, refundType) ? 'warehouse' : 'express');
+    var sheet = document.getElementById('refundStoreInboundSheet');
+    if (!sheet) {
+      showToast('确认收货演示不可用');
+      return;
     }
-    saveApplication(app);
-    syncAftersaleRecordFromApp(app, refundType, 'success');
-    window.location.href = buildDetailHref({
-      type: refundType,
-      stage: 'success',
-      shipped: '1'
-    });
+    var titleEl = sheet.querySelector('.ua-or-inbound-panel__title');
+    var tipEl = document.getElementById('refundInboundTip');
+    var nameEl = document.getElementById('refundInboundProductName');
+    var specEl = document.getElementById('refundInboundProductSpec');
+    var applyEl = document.getElementById('refundInboundApplyQty');
+    var qtyLabelEl = document.getElementById('refundInboundQtyLabel');
+    var qtyInput = document.getElementById('refundInboundQtyInput');
+    var confirmBtn = document.getElementById('refundInboundConfirmBtn');
+    var applyQty = getApplyRestockQty(app, item);
+    var defaultQty =
+      getActualRestockQty(app) != null ? getActualRestockQty(app) : applyQty;
+
+    if (titleEl) {
+      titleEl.textContent = mode === 'warehouse' ? '门店入库单' : '确认收货';
+    }
+    if (tipEl) {
+      tipEl.textContent =
+        mode === 'warehouse'
+          ? '补货商品已送达门店，请填写实际入库数量，该数量将回写售后单。'
+          : mode === 'home'
+            ? '供应商补货已送达您的收货地址，请填写实际收到数量。'
+            : '请填写实际收到的补货数量，该数量将记录在售后单中。';
+    }
+    if (nameEl) nameEl.textContent = app.productName || (item && item.name) || '补货商品';
+    if (specEl) specEl.textContent = app.productSpec || (item && item.spec) || '';
+    if (applyEl) applyEl.textContent = '申请补货数量：' + applyQty;
+    if (qtyLabelEl) {
+      qtyLabelEl.textContent = mode === 'warehouse' ? '实际入库数量' : '实际收到数量';
+    }
+    if (qtyInput) {
+      qtyInput.value = String(defaultQty);
+      qtyInput.max = String(Math.max(applyQty, defaultQty));
+    }
+    if (confirmBtn) {
+      confirmBtn.textContent = mode === 'warehouse' ? '确认入库' : '确认收货';
+    }
+    openSheet('refundStoreInboundSheet');
+
+    if (confirmBtn) {
+      confirmBtn.onclick = function () {
+        var raw = qtyInput ? String(qtyInput.value || '').trim() : '';
+        var actual = parseInt(raw, 10);
+        if (isNaN(actual) || actual < 0) {
+          showToast(mode === 'warehouse' ? '请输入有效的入库数量' : '请输入有效的收到数量');
+          return;
+        }
+        if (actual > applyQty) {
+          showToast('实际数量不能超过申请补货数量（最多' + applyQty + '件）');
+          return;
+        }
+        closeSheet('refundStoreInboundSheet');
+        app.applyQty = applyQty;
+        app.qty = applyQty;
+        app.actualRestockQty = actual;
+        app.resultTime = formatDateTime();
+        app.outShipped = true;
+        if (mode === 'warehouse') {
+          app.storeInbound = true;
+          app.storeInboundAt = formatDateTime();
+        } else {
+          app.expressReceived = true;
+          app.expressReceivedAt = formatDateTime();
+        }
+        if (isPickupRestock(app, refundType)) {
+          ensureRestockArriveStore(app);
+          markRestockPickedUp(app);
+        }
+        saveApplication(app);
+        syncAftersaleRecordFromApp(app, refundType, 'success');
+        showToast(
+          mode === 'warehouse'
+            ? '入库成功，实际补货数量 ' + actual
+            : '已确认收货，实际补货数量 ' + actual
+        );
+        window.setTimeout(function () {
+          window.location.href = buildDetailHref({
+            type: refundType,
+            stage: 'success',
+            shipped: '1'
+          });
+        }, 500);
+      };
+    }
   }
 
-  /** @deprecated 补货确认已改回二次确认框，不再录入数量 */
-  function openRestockReceiveSheet(app, refundType) {
-    openRestockConfirmModal();
-  }
-
-  /** @deprecated */
-  function openStoreInboundSheet(app, refundType) {
-    openRestockConfirmModal();
+  /** @deprecated 使用 openRestockReceiveSheet */
+  function openStoreInboundSheet(app, refundType, item) {
+    openRestockReceiveSheet(app, refundType, item, 'warehouse');
   }
 
   function getReturnSectionTip(refundType, delivery) {
@@ -5357,6 +5420,7 @@
     var productSpec = app.productSpec || item.spec || '';
     var qty =
       refundType === 'restock' ? getApplyRestockQty(app, item) : app.qty != null ? app.qty : item.qty;
+    var actualQty = refundType === 'restock' ? getActualRestockQty(app) : null;
     var reason = app.reason || getParams().get('reason') || '七天无理由退换货';
     var receiveAddr = app.receiveAddress || getDemoBuyerReceiveAddress();
     var returnAddr = getReturnAddressText(app, sellerName);
@@ -5368,6 +5432,12 @@
         value: String(qty)
       }
     ];
+    if (refundType === 'restock') {
+      buyerFields.push({
+        label: '实际补货数量',
+        value: actualQty != null ? String(actualQty) : '待确认收货后回写'
+      });
+    }
     if (refundType === 'exchange' || refundType === 'return' || refundType === 'restock') {
       buyerFields.push({ label: '收货地址', value: receiveAddr });
     }
@@ -5613,17 +5683,21 @@
     var applyQtyEl = document.getElementById('refundDetailApplyQty');
     var actualQtyRow = document.getElementById('refundDetailActualQtyRow');
     var actualQtyEl = document.getElementById('refundDetailActualQty');
-    // 仅补货详情展示「申请补货数量」；仅退款/退货退款/换货成功等页一律不展示补货字段
-    // 「实际补货数量」用户端不录入，任何类型均隐藏
-    if (actualQtyRow) actualQtyRow.hidden = true;
-    if (actualQtyEl) actualQtyEl.textContent = '—';
+    // 仅补货详情展示申请/实际补货数量；仅退款/退货退款/换货等页不展示
     if (isRestock) {
       var applyQty = getApplyRestockQty(app, item);
+      var actualQty = getActualRestockQty(app);
       if (applyQtyRow) applyQtyRow.hidden = false;
       if (applyQtyEl) applyQtyEl.textContent = String(applyQty);
+      if (actualQtyRow) actualQtyRow.hidden = false;
+      if (actualQtyEl) {
+        actualQtyEl.textContent = actualQty != null ? String(actualQty) : '—';
+      }
     } else {
       if (applyQtyRow) applyQtyRow.hidden = true;
       if (applyQtyEl) applyQtyEl.textContent = '—';
+      if (actualQtyRow) actualQtyRow.hidden = true;
+      if (actualQtyEl) actualQtyEl.textContent = '—';
     }
 
     var amountRow = document.getElementById('refundDetailAmount');
@@ -6352,9 +6426,23 @@
               return;
             }
             if (next === 'success') {
-              /* 补货：二次确认后完成，不录入实际收到数量 */
-              if (isRestock && isReshipShipped(app)) {
-                openRestockConfirmModal();
+              /* 自提补货：门店按原订单扫会员码完成提货，不单独建补货单 */
+              if (pickupRestock && isReshipShipped(app)) {
+                ensureRestockArriveStore(app);
+                markRestockPickedUp(app);
+                app.resultTime = formatDateTime();
+                saveApplication(app);
+              } else if (isRestock && isReshipShipped(app)) {
+                openRestockReceiveSheet(
+                  app,
+                  refundType,
+                  item,
+                  isWarehouseRestock(app, refundType)
+                    ? 'warehouse'
+                    : retailHomeRestock
+                      ? 'home'
+                      : 'express'
+                );
                 return;
               }
               /* 配送退货不允许从中间节点一次跳到成功；须已完成取货+入库 */
@@ -6727,8 +6815,17 @@
               });
               return;
             }
-            /* 补货：二次确认框，不记录实际收到数量 */
-            openRestockConfirmModal();
+            /* 配送：门店入库单填实际入库数量；快递/到家：确认收货填实际收到数量 */
+            openRestockReceiveSheet(
+              app,
+              refundType,
+              item,
+              isWarehouseRestock(app, refundType)
+                ? 'warehouse'
+                : retailHomeRestock
+                  ? 'home'
+                  : 'express'
+            );
           });
         }
         return;
@@ -6805,14 +6902,6 @@
           stage: 'closed',
           closeReason: 'cancel'
         });
-      });
-
-    document.querySelectorAll('[data-or-restock-confirm-close]').forEach(function (el) {
-      el.addEventListener('click', closeRestockConfirmModal);
-    });
-    document.getElementById('refundRestockConfirmBtn') &&
-      document.getElementById('refundRestockConfirmBtn').addEventListener('click', function () {
-        completeRestockConfirm(app, refundType);
       });
 
     function bindFooterActions() {
