@@ -190,8 +190,10 @@
     var api = getApi();
     var orderNo = getOrderNo();
     var snapshots = collectItemSnapshots();
+    var pickedMap = {};
 
     snapshots.forEach(function (it) {
+      pickedMap[String(it.itemIndex)] = it.pickedQty;
       var card = it.card;
       var remaining =
         api && api.getItemRemainingPickupQty
@@ -215,6 +217,10 @@
           ? Math.min(api.getItemRefundedPickupQty(it.itemIndex, orderNo), it.orderQty)
           : 0;
       var fullyRefunded = refunded >= it.orderQty && it.orderQty > 0;
+      var canAftersale =
+        !api ||
+        typeof api.canShowAftersaleEntry !== 'function' ||
+        api.canShowAftersaleEntry(it.itemIndex, orderNo);
 
       if (remaining <= 0) {
         if (tagEl) {
@@ -236,8 +242,11 @@
           tagEl.textContent = '商品已到提货点请尽快提货';
         }
         if (refundBtn) {
-          refundBtn.hidden = false;
-          refundBtn.setAttribute('href', buildRefundSelectHref(it.itemIndex));
+          /* 可退/可补耗尽时隐藏入口（与数量池规则一致） */
+          refundBtn.hidden = !canAftersale;
+          if (canAftersale) {
+            refundBtn.setAttribute('href', buildRefundSelectHref(it.itemIndex));
+          }
         }
       }
 
@@ -247,6 +256,10 @@
 
       renderItemAftersaleBars(card, it.itemIndex);
     });
+
+    if (api && typeof api.saveItemPickedQtyMap === 'function') {
+      api.saveItemPickedQtyMap(pickedMap);
+    }
 
     var orderStatus =
       api && api.resolveRetailOrderFulfillmentStatus
