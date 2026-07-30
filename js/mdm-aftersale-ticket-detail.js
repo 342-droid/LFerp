@@ -12,6 +12,11 @@
  *   · 代采（快递/配送）、零售自提：下发「采购补货指令」（字段「订货单号」）
  *   · 零售快递：绕过仓储，直接与供应商对接补货，无采购补货指令；
  *     供应商寄回后由后台上传物流，确认收货时填写实际收到数量
+ *   · 关闭补货（实际数量回写售后单）：
+ *     1) 后台「确认收货」；2) 门店/用户端「确认收货」；
+ *     3) 快递：上传物流后满 10 天自动确认（实际补货数=申请数）；
+ *     4) 代采配送：待收货满 10 天自动确认；门店收货入库反写关闭；
+ *     5) 零售自提：待核销满 10 天自动确认；用户将该商品剩余数量全量核销后反写关闭
  */
 (function () {
   var CHECK_SVG =
@@ -420,6 +425,95 @@
     if (detail.purchaseOrder) detail.purchaseOrder.actualQty = actualQty;
   }
 
+  var RESTOCK_AUTO_CONFIRM_DAYS = 10;
+
+  function parseDateTimeLoose(text) {
+    if (!text) return null;
+    var d = new Date(String(text).replace(/-/g, '/'));
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function getApplyRestockQtyFromDetail(detail) {
+    var g = (detail && detail.goods && detail.goods[0]) || {};
+    return Number(g.applyQty != null ? g.applyQty : g.restockQty || g.refundQty) || 0;
+  }
+
+  /** 补货自动确认计时锚点：快递=物流上传时间；配送/自提=进入待收货时间 */
+  function getRestockAutoConfirmAnchor(detail) {
+    if (!detail || detail.type !== '补货') return null;
+    if (isDeliveryFulfillment(detail.deliveryMode) || isPickupFulfillment(detail.deliveryMode)) {
+      return detail.restockAwaitReceiveAt || detail.approvalAt || detail.applyTime || null;
+    }
+    var ship = (detail.shipments || {}).restockShip;
+    return (
+      detail.restockShippedAt ||
+      (ship && ship.uploadedAt) ||
+      detail.approvalAt ||
+      null
+    );
+  }
+
+  function isRestockAutoConfirmDue(detail) {
+    if (queryParam('autoClose') === '1') return true;
+    var anchor = getRestockAutoConfirmAnchor(detail);
+    var t = parseDateTimeLoose(anchor);
+    if (!t) return false;
+    return Date.now() - t.getTime() >= RESTOCK_AUTO_CONFIRM_DAYS * 24 * 60 * 60 * 1000;
+  }
+
+  /**
+   * 关闭补货并回写实际数量
+   * source: manual_admin | auto_express | auto_delivery | auto_pickup | store_inbound | pickup_verify
+   */
+  function completeRestockClose(detail, actualQty, source) {
+    if (!detail || detail.type !== '补货' || detail.status === '已完成') return false;
+    var applyQty = getApplyRestockQtyFromDetail(detail);
+    var actual = actualQty != null ? Number(actualQty) : applyQty;
+    if (isNaN(actual) || actual < 0) actual = applyQty;
+    if (actual > applyQty) actual = applyQty;
+    applyActualRestockQty(detail, actual);
+    detail.status = '已完成';
+    detail.restockCloseSource = source || 'manual_admin';
+    detail.restockClosedAt = nowText();
+    if (detail.purchaseOrder) {
+      detail.purchaseOrder.status = '补货完成';
+      detail.purchaseOrder.actualQty = actual;
+    }
+    detail.progress = buildProgress(
+      '补货',
+      '已完成',
+      detail.id,
+      detail.applyTime,
+      detail.order.receiver
+    );
+    seedLogisticsByStatus(detail);
+    return true;
+  }
+
+  /** 待收货补货：到点自动确认（实际数=申请数）；门店入库/自提核销反写关闭 */
+  function tryAutoCloseRestock(detail) {
+    if (!detail || detail.type !== '补货' || detail.status !== '待收货') return false;
+    var applyQty = getApplyRestockQtyFromDetail(detail);
+    if (detail.storeInboundDone) {
+      return completeRestockClose(detail, applyQty, 'store_inbound');
+    }
+    if (detail.pickupVerifiedDone) {
+      return completeRestockClose(detail, applyQty, 'pickup_verify');
+    }
+    if (!isRestockAutoConfirmDue(detail)) return false;
+    if (isPickupFulfillment(detail.deliveryMode)) {
+      return completeRestockClose(detail, applyQty, 'auto_pickup');
+    }
+    if (isDeliveryFulfillment(detail.deliveryMode)) {
+      return completeRestockClose(detail, applyQty, 'auto_delivery');
+    }
+    var ship = (detail.shipments || {}).restockShip;
+    if (ship && ship.trackingNo) {
+      return completeRestockClose(detail, applyQty, 'auto_express');
+    }
+    return false;
+  }
+
   function isRestockGoods(detail) {
     return goodsTableType(detail) === '补货';
   }
@@ -463,7 +557,16 @@
         }
         return false;
       }
+      /* 演示上限：不超过购买数量（可退/可补池细则以 C 端申请为准） */
+      var buyCap = Number(g.buyQty);
+      if (!isNaN(buyCap) && buyCap >= 0 && qty > buyCap) {
+        if (typeof showToast === 'function') {
+          showToast('数量不能超过购买数量（最多' + buyCap + '件）', 'error');
+        }
+        return false;
+      }
       g.refundQty = qty;
+      g.applyQty = qty;
       if (isRestockGoods(state.detail)) g.restockQty = qty;
     }
     refreshGoodsSummary(state.detail);
@@ -1059,6 +1162,16 @@
       if (!hasPurchaseRestockOrder(detail)) {
         detail.purchaseOrder = null;
       }
+      if (status === '待收货' && !detail.restockAwaitReceiveAt) {
+        detail.restockAwaitReceiveAt = detail.approvalAt || detail.applyTime || nowText();
+      }
+      if (
+        (detail.shipments.restockShip && detail.shipments.restockShip.trackingNo) &&
+        !detail.restockShippedAt
+      ) {
+        detail.restockShippedAt =
+          detail.shipments.restockShip.uploadedAt || detail.restockAwaitReceiveAt || nowText();
+      }
       /* 平台配送/自提无物流轨迹；仅快递补货完成时补演示物流 */
       if (status === '已完成' && !isNoTrackRestock(detail) && !detail.shipments.restockShip) {
         detail.shipments.restockShip = makeShip('申通快递', 'STO' + String(detail.id).slice(-11), '运输中');
@@ -1323,7 +1436,6 @@
         cancelPickup: null,
         closeReturn: null
       },
-      operationLogs: [],
       shipments: {
         returnShip: null,
         restockShip: null,
@@ -1336,18 +1448,6 @@
     return seedLogisticsByStatus(seedUserOpsByStatus(detail));
   }
 
-  function pushOperationLog(detail, entry) {
-    if (!detail) return;
-    detail.operationLogs = detail.operationLogs || [];
-    detail.operationLogs.unshift({
-      type: entry.type,
-      reason: entry.reason,
-      time: entry.time || nowText(),
-      source: entry.source || '用户端',
-      operator: entry.operator || ''
-    });
-  }
-
   function seedUserOpsByStatus(detail) {
     var type = detail.type;
     var status = detail.status;
@@ -1355,7 +1455,6 @@
     var canceledShip = queryParam('canceledShip') === '1' || closeReason === 'cancel_pickup';
 
     detail.userOps = detail.userOps || { cancelPickup: null, closeReturn: null };
-    detail.operationLogs = detail.operationLogs || [];
 
     if ((type === '退货退款' || type === '换货') && status === '待退货') {
       // 自提：退回门店；配送：门店退仓——均不走快递寄件
@@ -1384,13 +1483,6 @@
               source: '用户端',
               operator: detail.order.receiver || '用户'
             };
-            pushOperationLog(detail, {
-              type: '取消寄件',
-              reason: detail.userOps.cancelPickup.reason,
-              time: detail.userOps.cancelPickup.time,
-              source: '用户端',
-              operator: detail.userOps.cancelPickup.operator
-            });
           }
         }
       }
@@ -1408,13 +1500,6 @@
           source: '用户端',
           operator: detail.order.receiver || '用户'
         };
-        pushOperationLog(detail, {
-          type: '关闭退款',
-          reason: detail.userOps.closeReturn.reason,
-          time: detail.userOps.closeReturn.time,
-          source: '用户端',
-          operator: detail.userOps.closeReturn.operator
-        });
       }
       if (status !== '已取消' && status !== '已拒绝' && closeReason === 'close_return') {
         detail.status = '已取消';
@@ -1455,67 +1540,6 @@
 
   function canCancelShip(detail) {
     return !hasTrackableReturnShip(detail) && (hasActivePickup(detail) || !!detail.userPickupActive);
-  }
-
-  function renderUserOpsPanel(detail) {
-    var logs = detail.operationLogs || [];
-    var ops = detail.userOps || {};
-    if (!logs.length) {
-      if (ops.cancelPickup) {
-        logs = logs.concat([
-          {
-            type: '取消寄件',
-            reason: ops.cancelPickup.reason,
-            time: ops.cancelPickup.time,
-            source: ops.cancelPickup.source,
-            operator: ops.cancelPickup.operator
-          }
-        ]);
-      }
-      if (ops.closeReturn) {
-        logs = logs.concat([
-          {
-            type: '关闭退款',
-            reason: ops.closeReturn.reason,
-            time: ops.closeReturn.time,
-            source: ops.closeReturn.source,
-            operator: ops.closeReturn.operator
-          }
-        ]);
-      }
-    }
-    if (!logs.length) return '';
-
-    var cards = logs
-      .map(function (log) {
-        return (
-          '<div class="aftersale-user-ops__card">' +
-          '<div class="aftersale-user-ops__row"><span class="aftersale-user-ops__label">操作类型</span><span class="aftersale-user-ops__value">' +
-          escapeHtml(log.type) +
-          '</span></div>' +
-          '<div class="aftersale-user-ops__row"><span class="aftersale-user-ops__label">操作理由</span><span class="aftersale-user-ops__value">' +
-          escapeHtml(log.reason || '-') +
-          '</span></div>' +
-          '<div class="aftersale-user-ops__row"><span class="aftersale-user-ops__label">操作来源</span><span class="aftersale-user-ops__value">' +
-          escapeHtml(log.source || '-') +
-          '</span></div>' +
-          '<div class="aftersale-user-ops__row"><span class="aftersale-user-ops__label">操作人</span><span class="aftersale-user-ops__value">' +
-          escapeHtml(log.operator || '-') +
-          '</span></div>' +
-          '<div class="aftersale-user-ops__row"><span class="aftersale-user-ops__label">操作时间</span><span class="aftersale-user-ops__value">' +
-          escapeHtml(log.time || '-') +
-          '</span></div></div>'
-        );
-      })
-      .join('');
-
-    return (
-      '<section class="aftersale-detail-card">' +
-      '<h2 class="aftersale-detail-card__title">操作理由</h2>' +
-      '<div class="aftersale-user-ops">' +
-      cards +
-      '</div></section>'
-    );
   }
 
   /** 信息块：上标签下取值；空值统一展示 -- */
@@ -2449,16 +2473,17 @@
           : '门店已确认入库，实际补货数量已回写售后单。'
         : '已确认收货并记录实际补货数量，补货流程完成。';
     } else if (pickupRestock) {
-      desc = '审核已通过，补货将送达门店；到店后用户出示会员码核销。请确认到店并录入实际补货数量。';
+      desc =
+        '审核已通过，补货将送达门店；到店后用户出示会员码核销。也可后台确认到店；待核销满 10 天将自动确认收货（实际补货数=申请数），用户全量核销该商品剩余数量时反写关闭补货。';
     } else if (deliveryRestock) {
       desc =
-        '审核已通过，供应商补发至仓库，仓库配送到门店。请确认收货并录入实际补货数量（也可由门店入库单回写）。';
+        '审核已通过，供应商补发至仓库，仓库配送到门店。请确认收货并录入实际补货数量；门店收货入库将反写关闭补货。待收货满 10 天将自动确认（实际补货数=申请数）。';
     } else if (withPo) {
       desc =
-        '审核已通过，系统已向采购端下发补货指令并生成采购单；补货无需寄回，等待采购回传物流信息，确认收货时填写实际收到数量。';
+        '审核已通过，系统已向采购端下发补货指令并生成采购单；等待采购回传物流后确认收货。上传物流满 10 天未确认将自动确认收货（实际补货数=申请数）。';
     } else {
       desc =
-        '审核已通过，零售快递补货绕过仓储系统，直接与供应商对接补发；补货由供应商寄回后，在后台操作上传物流信息，确认收货时填写实际收到数量。';
+        '审核已通过，零售快递补货绕过仓储系统，直接与供应商对接补发；供应商寄回后后台上传物流并确认收货。上传物流满 10 天未确认将自动确认收货（实际补货数=申请数）。';
     }
 
     /* 平台配送 / 自提：去掉补货物流板块；仅快递补货展示物流 */
@@ -2503,8 +2528,18 @@
 
     var actions = '';
     if (!done && (noTrack || hasShip)) {
+      var extraDemo = '';
+      if (deliveryRestock) {
+        extraDemo =
+          '<button type="button" class="aftersale-btn aftersale-btn--ghost" id="asRestockStoreInboundDemo">模拟门店入库反写</button>';
+      } else if (pickupRestock) {
+        extraDemo =
+          '<button type="button" class="aftersale-btn aftersale-btn--ghost" id="asRestockPickupVerifyDemo">模拟全量核销反写</button>';
+      }
       actions =
         '<div class="aftersale-flow-card__actions">' +
+        '<button type="button" class="aftersale-btn aftersale-btn--ghost" id="asRestockAutoCloseDemo">模拟满10天自动确认</button>' +
+        extraDemo +
         '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asRestockComplete">' +
         (pickupRestock
           ? '确认到店并录入数量'
@@ -2963,7 +2998,7 @@
     /**
      * 物流信息展示：
      * - 代采：审核后展示（与原先一致）
-     * - 零售：进入退款中/已完成等阶段后，流程操作区已收起，仍需保留供应商收货地址与寄回物流（同操作理由，历史信息不消失）
+     * - 零售：进入退款中/已完成等阶段后，流程操作区已收起，仍需保留供应商收货地址与寄回物流（历史信息不消失）
      */
     var persistStatus =
       status === '退款中' ||
@@ -3121,6 +3156,20 @@
     var detail = state.detail;
     var body = $('asDetailBody');
     if (!body || !detail) return;
+    if (tryAutoCloseRestock(detail)) {
+      if (typeof showToast === 'function') {
+        var src = detail.restockCloseSource || '';
+        var tip =
+          src.indexOf('auto_') === 0
+            ? '已满 ' + RESTOCK_AUTO_CONFIRM_DAYS + ' 天，系统自动确认收货并关闭补货（实际数=申请数）'
+            : src === 'store_inbound'
+              ? '门店收货入库已反写，补货已关闭'
+              : src === 'pickup_verify'
+                ? '用户全量核销已反写，补货已关闭'
+                : '补货已关闭';
+        showToast(tip, 'success');
+      }
+    }
     var pending = isPending(detail.status);
     var editable = pending;
     var main =
@@ -3130,7 +3179,6 @@
       renderGoods(detail, editable) +
       (pending ? renderApproveOps(detail) : renderApprovalInfo(detail)) +
       renderFlowPanel(detail) +
-      renderUserOpsPanel(detail) +
       renderRefundTicketCard(detail) +
       renderLogisticsSection(detail) +
       renderReasons(detail, pending) +
@@ -3283,6 +3331,7 @@
           'success'
         );
       } else if (type === '补货') {
+        detail.restockAwaitReceiveAt = detail.restockAwaitReceiveAt || nowText();
         showToast(
           hasPurchaseRestockOrder(detail)
             ? '审批通过，已向采购端下发补货指令（无退款单）'
@@ -3478,8 +3527,7 @@
 
   function confirmRestockQtyAndComplete() {
     if (!state.detail || state.detail.type !== '补货') return;
-    var g = (state.detail.goods && state.detail.goods[0]) || {};
-    var applyQty = Number(g.applyQty != null ? g.applyQty : g.restockQty || g.refundQty) || 0;
+    var applyQty = getApplyRestockQtyFromDetail(state.detail);
     var raw = String((($('asRestockActualQty') || {}).value || '')).trim();
     var actual = parseInt(raw, 10);
     if (isNaN(actual) || actual < 0) {
@@ -3492,20 +3540,7 @@
       }
       return;
     }
-    applyActualRestockQty(state.detail, actual);
-    state.detail.status = '已完成';
-    if (state.detail.purchaseOrder) {
-      state.detail.purchaseOrder.status = '补货完成';
-      state.detail.purchaseOrder.actualQty = actual;
-    }
-    state.detail.progress = buildProgress(
-      '补货',
-      '已完成',
-      state.detail.id,
-      state.detail.applyTime,
-      state.detail.order.receiver
-    );
-    seedLogisticsByStatus(state.detail);
+    completeRestockClose(state.detail, actual, 'manual_admin');
     closeRestockQtyModal();
     renderPage();
     if (typeof showToast === 'function') {
@@ -3550,13 +3585,6 @@
     if (!detail.returnAddress) {
       detail.returnAddress = resolveReturnAddress(detail, null);
     }
-    pushOperationLog(detail, {
-      type: '已取货',
-      reason: '确认物流司机已从门店取货',
-      time: detail.driverPickedAt,
-      source: '售后管理',
-      operator: '超级管理员'
-    });
     detail.progress = buildProgress(
       detail.type,
       detail.status,
@@ -3591,13 +3619,6 @@
 
     if (detail.type === '换货') {
       detail.status = '待收货';
-      pushOperationLog(detail, {
-        type: '仓库入仓',
-        reason: '仓库入仓结果返回，进入换货寄出',
-        time: detail.warehouseInboundAt,
-        source: '仓储系统',
-        operator: '系统'
-      });
       detail.progress = buildProgress(
         '换货',
         '待收货',
@@ -3616,13 +3637,6 @@
     detail.status = '退款中';
     detail.refundTicket = makeRefundTicket('receive', detail);
     detail.refundTicket.status = '待退款';
-    pushOperationLog(detail, {
-      type: '仓库入仓',
-      reason: '仓库入仓结果返回，触发退款',
-      time: detail.warehouseInboundAt,
-      source: '仓储系统',
-      operator: '系统'
-    });
     detail.progress = buildProgress(
       '退货退款',
       '退款中',
@@ -3655,18 +3669,6 @@
     detail.userPickupActive = false;
     detail.shipments = detail.shipments || {};
     detail.shipments.returnShip = null;
-    var t = nowText();
-    pushOperationLog(detail, {
-      type: '门店确认收货',
-      reason:
-        detail.type === '换货'
-          ? '用户到店退货，门店已确认收货，进入换出'
-          : '用户到店退货，门店已确认收货，触发退款',
-      time: t,
-      source: '门店',
-      operator: '门店店员'
-    });
-
     if (detail.type === '换货') {
       detail.status = '待收货';
       detail.progress = buildProgress(
@@ -3767,13 +3769,6 @@
       source: '售后管理',
       operator: '超级管理员'
     };
-    pushOperationLog(detail, {
-      type: '取消寄件',
-      reason: reason,
-      time: detail.userOps.cancelPickup.time,
-      source: '售后管理',
-      operator: '超级管理员'
-    });
     detail.progress = buildProgress(
       detail.type,
       '待退货',
@@ -3992,13 +3987,6 @@
           state.detail.applyTime,
           state.detail.order.receiver
         );
-        pushOperationLog(state.detail, {
-          type: '换货到店',
-          reason: '换货商品已到店，流程完成',
-          time: nowText(),
-          source: '售后管理',
-          operator: '超级管理员'
-        });
         seedLogisticsByStatus(state.detail);
         renderPage();
         if (typeof showToast === 'function') showToast('换货已到店，流程完成', 'success');
@@ -4129,6 +4117,7 @@
         }
         state.detail.shipments = state.detail.shipments || {};
         state.detail.shipments.restockShip = makeShip(restockCompany, restockNo, '运输中');
+        state.detail.restockShippedAt = state.detail.shipments.restockShip.uploadedAt || nowText();
         state.detail.showShipUploadForm = false;
         if (state.detail.status !== '已完成') state.detail.status = '待收货';
         state.detail.progress = buildProgress(
@@ -4138,13 +4127,6 @@
           state.detail.applyTime,
           state.detail.order.receiver
         );
-        pushOperationLog(state.detail, {
-          type: '上传补货物流',
-          reason: restockCompany + ' ' + restockNo,
-          time: nowText(),
-          source: '售后管理',
-          operator: '超级管理员'
-        });
         renderPage();
         if (typeof showToast === 'function') showToast('补货物流已上传', 'success');
         return;
@@ -4169,6 +4151,8 @@
           'STO' + String(Date.now()).slice(-11),
           '运输中'
         );
+        state.detail.restockShippedAt =
+          state.detail.shipments.restockShip.uploadedAt || nowText();
         if (state.detail.purchaseOrder) {
           state.detail.purchaseOrder.status = '采购已回传物流';
         }
@@ -4186,6 +4170,72 @@
       }
       if (e.target.closest('#asRestockComplete')) {
         openRestockQtyModal();
+        return;
+      }
+      if (e.target.closest('#asRestockStoreInboundDemo')) {
+        if (!state.detail || state.detail.type !== '补货') return;
+        state.detail.storeInboundDone = true;
+        if (tryAutoCloseRestock(state.detail)) {
+          renderPage();
+          if (typeof showToast === 'function') {
+            showToast('门店收货入库已反写，补货已关闭（实际补货数=申请数）', 'success');
+          }
+        }
+        return;
+      }
+      if (e.target.closest('#asRestockPickupVerifyDemo')) {
+        if (!state.detail || state.detail.type !== '补货') return;
+        state.detail.pickupVerifiedDone = true;
+        if (tryAutoCloseRestock(state.detail)) {
+          renderPage();
+          if (typeof showToast === 'function') {
+            showToast('用户全量核销已反写，补货已关闭（实际补货数=申请数）', 'success');
+          }
+        }
+        return;
+      }
+      if (e.target.closest('#asRestockAutoCloseDemo')) {
+        if (!state.detail || state.detail.type !== '补货') return;
+        /* 演示：将计时锚点拨到 10 天前，触发自动确认（实际数=申请数） */
+        var demoAnchor = new Date(Date.now() - (RESTOCK_AUTO_CONFIRM_DAYS + 1) * 24 * 60 * 60 * 1000);
+        function pad(n) {
+          return n < 10 ? '0' + n : '' + n;
+        }
+        var demoText =
+          demoAnchor.getFullYear() +
+          '-' +
+          pad(demoAnchor.getMonth() + 1) +
+          '-' +
+          pad(demoAnchor.getDate()) +
+          ' ' +
+          pad(demoAnchor.getHours()) +
+          ':' +
+          pad(demoAnchor.getMinutes()) +
+          ':' +
+          pad(demoAnchor.getSeconds());
+        if (isDeliveryFulfillment(state.detail.deliveryMode) || isPickupFulfillment(state.detail.deliveryMode)) {
+          state.detail.restockAwaitReceiveAt = demoText;
+        } else {
+          state.detail.restockShippedAt = demoText;
+          state.detail.shipments = state.detail.shipments || {};
+          if (!state.detail.shipments.restockShip) {
+            state.detail.shipments.restockShip = makeShip(
+              '申通快递',
+              'STO' + String(Date.now()).slice(-11),
+              '运输中'
+            );
+          }
+          state.detail.shipments.restockShip.uploadedAt = demoText;
+        }
+        if (tryAutoCloseRestock(state.detail)) {
+          renderPage();
+          if (typeof showToast === 'function') {
+            showToast(
+              '已模拟满 ' + RESTOCK_AUTO_CONFIRM_DAYS + ' 天自动确认收货（实际补货数=申请数）',
+              'success'
+            );
+          }
+        }
         return;
       }
       var trackBtn = e.target.closest('.js-as-track');

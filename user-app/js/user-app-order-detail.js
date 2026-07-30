@@ -688,11 +688,22 @@
       );
     }
 
+    var api = getAftersaleApi();
+    var orderNo = typeof getDemoOrderNo === 'function' ? getDemoOrderNo() : '';
     actionWraps.forEach(function (wrap, index) {
       var itemEl = wrap.closest('.ua-od-item');
       var itemIndex = itemEl
         ? parseInt(itemEl.getAttribute('data-item-index') || String(index), 10)
         : index;
+      /* 可退与可补均耗尽：隐藏申请入口 */
+      if (
+        api &&
+        typeof api.canShowAftersaleEntry === 'function' &&
+        !api.canShowAftersaleEntry(itemIndex, orderNo)
+      ) {
+        wrap.innerHTML = '';
+        return;
+      }
       if (mode === 'refund' || mode === 'refund_only') {
         wrap.innerHTML = makeBtn('申请退款', itemIndex, 'refund');
         return;
@@ -953,6 +964,13 @@
       }
     }
     var api = getAftersaleApi();
+    if (
+      api &&
+      typeof api.canShowAftersaleEntry === 'function' &&
+      !api.canShowAftersaleEntry(itemIndex)
+    ) {
+      return { ok: false, msg: '该商品可售后数量已用完，无法再申请售后' };
+    }
     if (!api || !api.hasOpenAftersaleOfGroup) return { ok: true };
     /* 申请退款：同类型（退款/退货）进行中不可再发起 */
     if (actionMode === 'refund') {

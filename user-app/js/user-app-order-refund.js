@@ -339,21 +339,132 @@
       }, 0);
   }
 
+  var PICKED_QTY_KEY = 'ua_item_picked_qty_v1';
+
+  function isRefundPoolType(type) {
+    return type === 'refund_only' || type === 'pre_ship' || type === 'return';
+  }
+
+  function getPurchaseQty(itemIndex) {
+    var item = DEMO_ITEMS[itemIndex] || DEMO_ITEMS[0];
+    return Number((item && item.qty) || 1) || 1;
+  }
+
+  /** 单条售后占用件数；成功单缺省 qty 时回退为购买数（兼容旧演示数据） */
+  function getRecordOccupyQty(rec, purchaseQty) {
+    if (!rec) return 0;
+    var q = Number(rec.qty);
+    if ((isNaN(q) || q <= 0) && rec.type === 'restock') {
+      q = Number(rec.applyQty);
+    }
+    if (isNaN(q) || q <= 0) {
+      if (rec.stage === 'success') return Number(purchaseQty) || 0;
+      return 0;
+    }
+    return q;
+  }
+
+  function saveItemPickedQtyMap(map) {
+    try {
+      sessionStorage.setItem(PICKED_QTY_KEY, JSON.stringify(map || {}));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function getItemPickedQty(itemIndex) {
+    try {
+      var raw = sessionStorage.getItem(PICKED_QTY_KEY);
+      if (!raw) return null;
+      var map = JSON.parse(raw);
+      if (!map || typeof map !== 'object') return null;
+      var v = map[String(itemIndex)];
+      if (v == null || v === '') return null;
+      var n = Number(v);
+      return isNaN(n) ? null : n;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
+   * 售后数量池
+   * 1) 可退池（仅退款/退货退款）：购买数 − 已退成功 − 进行中退款类占用；与补货无关
+   * 2) 补货池：购买数 − 已售后累计(进行中+已完成的退款/退货/补货/换货)；退款会扣补货上限，补货不扣可退
+   */
+  function getRefundSuccessQty(itemIndex, orderNo, excludeId) {
+    var purchaseQty = getPurchaseQty(itemIndex);
+    return getAftersaleRecordsByItem(itemIndex, orderNo).reduce(function (sum, r) {
+      if (excludeId && r.id === excludeId) return sum;
+      if (!isRefundPoolType(r.type) || r.stage !== 'success') return sum;
+      return sum + getRecordOccupyQty(r, purchaseQty);
+    }, 0);
+  }
+
+  function getRefundOpenQty(itemIndex, orderNo, excludeId) {
+    var purchaseQty = getPurchaseQty(itemIndex);
+    return getAftersaleRecordsByItem(itemIndex, orderNo).reduce(function (sum, r) {
+      if (excludeId && r.id === excludeId) return sum;
+      if (!isRefundPoolType(r.type) || isAftersaleFinished(r)) return sum;
+      return sum + getRecordOccupyQty(r, purchaseQty);
+    }, 0);
+  }
+
+  /** 可退上限；退货退款可再卡 ≤ pickedQty（已核销/已提货） */
+  function getRefundableMaxQty(itemIndex, orderNo, opts) {
+    opts = opts || {};
+    var purchaseQty = getPurchaseQty(itemIndex);
+    var max = Math.max(
+      0,
+      purchaseQty -
+        getRefundSuccessQty(itemIndex, orderNo, opts.excludeId) -
+        getRefundOpenQty(itemIndex, orderNo, opts.excludeId)
+    );
+    if (opts.forReturn) {
+      var picked =
+        opts.pickedQty != null ? Number(opts.pickedQty) : getItemPickedQty(itemIndex);
+      if (picked != null && !isNaN(picked)) {
+        max = Math.min(max, Math.max(0, picked));
+      }
+    }
+    return max;
+  }
+
+  /** 已售后累计占用（进行中+已完成；关闭/失败不计）——用于补货上限 */
+  function getAftersaleOccupiedQty(itemIndex, orderNo, excludeId) {
+    var purchaseQty = getPurchaseQty(itemIndex);
+    return getAftersaleRecordsByItem(itemIndex, orderNo).reduce(function (sum, r) {
+      if (excludeId && r.id === excludeId) return sum;
+      if (r.stage === 'closed' || r.stage === 'failed') return sum;
+      var group = getAftersaleTypeGroup(r.type);
+      if (group !== 'refund' && group !== 'restock' && group !== 'exchange') return sum;
+      if (r.stage !== 'success' && isAftersaleFinished(r)) return sum;
+      return sum + getRecordOccupyQty(r, purchaseQty);
+    }, 0);
+  }
+
+  function getRestockMaxQty(itemIndex, orderNo, opts) {
+    opts = opts || {};
+    var purchaseQty = getPurchaseQty(itemIndex);
+    return Math.max(
+      0,
+      purchaseQty - getAftersaleOccupiedQty(itemIndex, orderNo, opts.excludeId)
+    );
+  }
+
+  /** 可退与可补都耗尽时，C 端申请售后入口隐藏 */
+  function canShowAftersaleEntry(itemIndex, orderNo) {
+    return (
+      getRefundableMaxQty(itemIndex, orderNo) > 0 || getRestockMaxQty(itemIndex, orderNo) > 0
+    );
+  }
+
   /**
    * 已成功退款/退货占用数量（不含补货/换货；关闭/失败不计）
    * 用于自提订单：剩余可提数量 = 下单数量 - 已提 - 本函数结果
    */
   function getItemRefundedPickupQty(itemIndex, orderNo) {
-    var item = DEMO_ITEMS[itemIndex] || DEMO_ITEMS[0];
-    var orderQty = Number((item && item.qty) || 1) || 1;
-    return getAftersaleRecordsByItem(itemIndex, orderNo).reduce(function (sum, r) {
-      var type = r.type || '';
-      if (type !== 'refund_only' && type !== 'pre_ship' && type !== 'return') return sum;
-      if (r.stage !== 'success') return sum;
-      var q = Number(r.qty);
-      if (isNaN(q) || q <= 0) q = orderQty;
-      return sum + q;
-    }, 0);
+    return getRefundSuccessQty(itemIndex, orderNo);
   }
 
   /** 自提/待收剩余履约数量 = 下单 - 已提(已收) - 已成功退款/退货 */
@@ -1513,9 +1624,11 @@
       if (isPickupRestock(app)) {
         app.outLogisticsStatus = '补货到店';
         app.outLogisticsText = '补货商品已安排到店，请到店自提核销';
+        ensureRestockArriveStore(app);
       } else {
         app.outLogisticsStatus = '仓库配送到店';
         app.outLogisticsText = '供应商已补发至仓库，仓库配送到门店';
+        app.restockAwaitReceiveAt = app.restockAwaitReceiveAt || app.outShipTime;
       }
     } else {
       app.outCourier = '申通快递';
@@ -1844,11 +1957,6 @@
           return;
         }
         closeSheet('refundStoreInboundSheet');
-        app.applyQty = applyQty;
-        app.qty = applyQty;
-        app.actualRestockQty = actual;
-        app.resultTime = formatDateTime();
-        app.outShipped = true;
         if (mode === 'warehouse') {
           app.storeInbound = true;
           app.storeInboundAt = formatDateTime();
@@ -1856,12 +1964,12 @@
           app.expressReceived = true;
           app.expressReceivedAt = formatDateTime();
         }
-        if (isPickupRestock(app, refundType)) {
-          ensureRestockArriveStore(app);
-          markRestockPickedUp(app);
-        }
-        saveApplication(app);
-        syncAftersaleRecordFromApp(app, refundType, 'success');
+        completeRestockCloseApp(
+          app,
+          refundType,
+          mode === 'warehouse' ? 'store_inbound' : 'manual_client',
+          actual
+        );
         showToast(
           mode === 'warehouse'
             ? '入库成功，实际补货数量 ' + actual
@@ -2644,6 +2752,97 @@
     if (app.restockPickupCode) delete app.restockPickupCode;
     saveApplication(app);
     return app;
+  }
+
+  var RESTOCK_AUTO_CONFIRM_DAYS = 10;
+
+  /**
+   * 补货关闭规则（演示）：
+   * 1) 后台确认收货  2) 门店/用户端确认收货
+   * 3) 快递上传物流满 10 天自动确认（实际数=申请数）
+   * 4) 代采配送：待收货满 10 天自动确认；门店入库反写关闭
+   * 5) 零售自提：待核销满 10 天自动确认；商品剩余数量全量核销反写关闭
+   */
+  function getRestockAutoConfirmAnchor(app) {
+    if (!app) return null;
+    if (isPickupRestock(app)) return app.restockArriveStoreAt || app.outShipTime || null;
+    if (isWarehouseRestock(app)) {
+      return app.restockAwaitReceiveAt || app.outShipTime || app.applyTime || null;
+    }
+    return app.outShipTime || app.expressReceivedAt || null;
+  }
+
+  function isRestockAutoConfirmDue(app) {
+    if (getParams().get('autoClose') === '1') return true;
+    var anchor = getRestockAutoConfirmAnchor(app);
+    var t = parseDateTimeText(anchor);
+    if (!t) return false;
+    return Date.now() - t.getTime() >= RESTOCK_AUTO_CONFIRM_DAYS * 24 * 60 * 60 * 1000;
+  }
+
+  function completeRestockCloseApp(app, refundType, source, actualQty) {
+    app = app || loadApplication() || {};
+    refundType = refundType || 'restock';
+    var applyQty = getApplyRestockQty(app);
+    var actual = actualQty != null ? Number(actualQty) : applyQty;
+    if (isNaN(actual) || actual < 0) actual = applyQty;
+    if (actual > applyQty) actual = applyQty;
+    app.applyQty = applyQty;
+    app.qty = applyQty;
+    app.actualRestockQty = actual;
+    app.resultTime = formatDateTime();
+    app.outShipped = true;
+    app.restockCloseSource = source || 'manual';
+    app.restockClosedAt = formatDateTime();
+    if (source === 'store_inbound' || isWarehouseRestock(app, refundType)) {
+      app.storeInbound = true;
+      app.storeInboundAt = app.storeInboundAt || formatDateTime();
+    }
+    if (source === 'pickup_verify' || isPickupRestock(app, refundType)) {
+      ensureRestockArriveStore(app);
+      markRestockPickedUp(app);
+    }
+    saveApplication(app);
+    syncAftersaleRecordFromApp(app, refundType, 'success');
+    return app;
+  }
+
+  /** 详情页加载时尝试自动/反写关闭补货；返回是否已关闭并需跳转成功页 */
+  function tryAutoCloseRestockOnDetail(app, refundType) {
+    if (refundType !== 'restock') return false;
+    var stage = getDetailStage();
+    if (stage === 'success' || stage === 'failed' || stage === 'closed') return false;
+    app = app || loadApplication() || {};
+    if (!isReshipShipped(app) && !isWarehouseRestock(app, refundType) && !isPickupRestock(app, refundType)) {
+      return false;
+    }
+
+    if (isWarehouseRestock(app, refundType) && app.storeInbound && getActualRestockQty(app) == null) {
+      completeRestockCloseApp(app, refundType, 'store_inbound');
+      return true;
+    }
+    if (isPickupRestock(app, refundType) && app.restockPickedUp && getActualRestockQty(app) == null) {
+      completeRestockCloseApp(app, refundType, 'pickup_verify');
+      return true;
+    }
+    if (isPickupRestock(app, refundType) && !app.restockArriveStoreAt && isReshipShipped(app)) {
+      ensureRestockArriveStore(app);
+    }
+    if (isWarehouseRestock(app, refundType) && !app.restockAwaitReceiveAt && isReshipShipped(app)) {
+      app.restockAwaitReceiveAt = app.outShipTime || formatDateTime();
+      saveApplication(app);
+    }
+    if (!isRestockAutoConfirmDue(app)) return false;
+    if (isPickupRestock(app, refundType)) {
+      completeRestockCloseApp(app, refundType, 'auto_pickup');
+      return true;
+    }
+    if (isWarehouseRestock(app, refundType)) {
+      completeRestockCloseApp(app, refundType, 'auto_delivery');
+      return true;
+    }
+    completeRestockCloseApp(app, refundType, 'auto_express');
+    return true;
   }
 
   function isReturnShipCompleted(app) {
@@ -3772,7 +3971,13 @@
     var item = getItem();
     var orderSpec = getOrderSpec(item);
     var specs = orderSpec ? [orderSpec] : [];
-    var maxOrderQty = Math.max(0, Number(item.qty) || 0);
+    var app = loadApplication();
+    var isEdit = getParams().get('edit') === '1';
+    var excludeId = isEdit && app ? app.aftersaleId || app.refundNo || '' : '';
+    /* 补货上限：购买 − 已售后累计（进行中+已完成）；与可退池独立，但退款会占用本上限 */
+    var maxOrderQty = getRestockMaxQty(getItemIndex(), null, {
+      excludeId: excludeId || undefined
+    });
     var maxQtyMap = {};
     specs.forEach(function (spec) {
       maxQtyMap[spec.id] = maxOrderQty;
@@ -3847,7 +4052,7 @@
           return (state.specQtys[spec.id] || 0) > maxOrderQty;
         });
         if (overLimit) {
-          window.alert('补货数量不能超过下单数量（最多' + maxOrderQty + '件）');
+          window.alert('补货数量不能超过可补上限（最多' + maxOrderQty + '件）');
           return;
         }
         var picked = specs.filter(function (spec) {
@@ -4643,9 +4848,20 @@
     }
 
     var allowed = getAllowedSelectServices(scene);
+    var itemIndex = getItemIndex();
+    var refundMax = getRefundableMaxQty(itemIndex);
+    var returnMax = getRefundableMaxQty(itemIndex, null, {
+      forReturn: true,
+      pickedQty: getItemPickedQty(itemIndex)
+    });
+    var restockMax = getRestockMaxQty(itemIndex);
     document.querySelectorAll('.ua-or-service').forEach(function (row) {
       var service = row.getAttribute('data-service');
-      row.hidden = allowed.indexOf(service) < 0;
+      var show = allowed.indexOf(service) >= 0;
+      if (show && service === 'refund_only' && refundMax <= 0) show = false;
+      if (show && service === 'return_refund' && returnMax <= 0) show = false;
+      if (show && service === 'restock' && restockMax <= 0) show = false;
+      row.hidden = !show;
     });
 
     var state = { service: '' };
@@ -4701,29 +4917,41 @@
 
   function createFormState(formType) {
     var item = getItem();
+    var app = loadApplication();
+    var isEdit = getParams().get('edit') === '1';
+    var excludeId = isEdit && app ? app.aftersaleId || app.refundNo || '' : '';
+    var isReturn = formType === 'return';
+    /* 可退上限：购买−已退−进行中；退货退款再卡 ≤ 已提货/已核销 */
+    var maxQty = getRefundableMaxQty(getItemIndex(), null, {
+      excludeId: excludeId || undefined,
+      forReturn: isReturn,
+      pickedQty: isReturn ? getItemPickedQty(getItemIndex()) : null
+    });
+    if (!(maxQty >= 0)) maxQty = 0;
+    var defaultQty = maxQty > 0 ? Math.min(Number(item.qty) || maxQty, maxQty) : 0;
     var state = {
       formType: formType,
-      goodsStatus: formType === 'return' ? '已收到货' : '',
+      goodsStatus: isReturn ? '已收到货' : '',
       reason: '',
-      qty: item.qty,
-      maxQty: item.qty,
-      amount: item.priceNum * item.qty,
-      maxAmount: item.priceNum * item.qty,
+      qty: defaultQty,
+      maxQty: maxQty,
+      amount: item.priceNum * (defaultQty || 0),
+      maxAmount: item.priceNum * (defaultQty || 0),
       freight: item.freight || 0,
       desc: '',
       images: []
     };
-    var app = loadApplication();
-    var isEdit = getParams().get('edit') === '1';
     if (isEdit && app) {
       if (app.reason) state.reason = app.reason;
-      if (app.qty) state.qty = app.qty;
+      if (app.qty) state.qty = Math.min(Number(app.qty) || 0, state.maxQty);
       if (app.amount != null) state.amount = app.amount;
       if (app.goodsStatus) state.goodsStatus = app.goodsStatus;
       if (app.desc) state.desc = app.desc;
       if (app.images && app.images.length) state.images = app.images.slice();
     }
-    if (formType === 'return') {
+    if (state.qty < 1 && state.maxQty >= 1) state.qty = 1;
+    if (state.qty > state.maxQty) state.qty = state.maxQty;
+    if (isReturn) {
       Object.assign(state, createPickupState(isEdit ? app : null));
     }
     return state;
@@ -4855,8 +5083,8 @@
     if (qtyInput) {
       qtyInput.addEventListener('change', function () {
         var val = parseInt(qtyInput.value, 10);
-        if (isNaN(val) || val < 1) val = 1;
-        if (val > item.qty) val = item.qty;
+        if (isNaN(val) || val < 1) val = state.maxQty > 0 ? 1 : 0;
+        if (val > state.maxQty) val = state.maxQty;
         state.qty = val;
         syncQtyUI();
       });
@@ -4938,7 +5166,16 @@
           return;
         }
         if (state.qty <= 0) {
-          window.alert('请选择退款件数');
+          window.alert(isReturn ? '请填写退货件数' : '请填写申请件数');
+          return;
+        }
+        if (state.qty > state.maxQty) {
+          window.alert(
+            (isReturn ? '退货件数' : '申请件数') +
+              '不能超过可退上限（最多' +
+              state.maxQty +
+              '件）'
+          );
           return;
         }
         if (state.amount <= 0) {
@@ -4966,10 +5203,20 @@
     var item = getItem();
     var app = loadApplication();
     var isEdit = getParams().get('edit') === '1';
+    var excludeId = isEdit && app ? app.aftersaleId || app.refundNo || '' : '';
+    var maxQty = getRefundableMaxQty(getItemIndex(), null, {
+      excludeId: excludeId || undefined
+    });
+    if (!(maxQty >= 0)) maxQty = 0;
+    var qty = maxQty > 0 ? Math.min(Number(item.qty) || maxQty, maxQty) : 0;
     var state = {
       reason: isEdit && app && app.reason ? app.reason : '',
-      qty: item.qty,
-      amount: item.paidAmount != null ? item.paidAmount : item.priceNum * item.qty,
+      qty: qty,
+      maxQty: maxQty,
+      amount:
+        item.paidAmount != null
+          ? Math.round((item.paidAmount * (qty / Math.max(1, item.qty))) * 100) / 100
+          : item.priceNum * qty,
       shippingFee: item.shippingFee != null ? item.shippingFee : item.freight || 0,
       desc: isEdit && app && app.desc ? app.desc : '',
       images: isEdit && app && app.images ? app.images.slice() : []
@@ -4994,7 +5241,7 @@
         reasonValue.classList.toggle('ua-or-field__value--placeholder', !state.reason);
       }
       if (qtyInput) qtyInput.value = String(state.qty);
-      if (qtyHint) qtyHint.textContent = '最多可退' + item.qty + '件';
+      if (qtyHint) qtyHint.textContent = '最多可退' + state.maxQty + '件';
       if (amountDisplay) amountDisplay.textContent = formatPrice(state.amount);
       if (amountHint) {
         amountHint.textContent =
@@ -5106,6 +5353,24 @@
       /* success/failed/closed 结果页也会打开「宝贝售后详情」等 sheet，需绑定关闭 */
       bindSheetClose();
       return;
+    }
+    if (refundType === 'restock') {
+      var app = loadApplication() || {};
+      if (tryAutoCloseRestockOnDetail(app, refundType)) {
+        showToast(
+          (app.restockCloseSource || '').indexOf('auto_') === 0
+            ? '已满 ' + RESTOCK_AUTO_CONFIRM_DAYS + ' 天，系统自动确认收货并关闭补货'
+            : app.restockCloseSource === 'store_inbound'
+              ? '门店收货入库已反写，补货已关闭'
+              : app.restockCloseSource === 'pickup_verify'
+                ? '商品已全量核销，补货已关闭'
+                : '补货已关闭'
+        );
+        window.location.replace(
+          buildDetailHref({ type: 'restock', stage: 'success', shipped: '1' })
+        );
+        return;
+      }
     }
     renderProgressDetail(refundType, stage);
   }
@@ -6438,12 +6703,15 @@
               return;
             }
             if (next === 'success') {
-              /* 自提补货：门店按原订单扫会员码完成提货，不单独建补货单 */
+              /* 自提补货：原单全量核销反写关闭补货（实际数=申请数） */
               if (pickupRestock && isReshipShipped(app)) {
-                ensureRestockArriveStore(app);
-                markRestockPickedUp(app);
-                app.resultTime = formatDateTime();
-                saveApplication(app);
+                completeRestockCloseApp(app, refundType, 'pickup_verify');
+                window.location.href = buildDetailHref({
+                  type: refundType,
+                  stage: 'success',
+                  shipped: '1'
+                });
+                return;
               } else if (isRestock && isReshipShipped(app)) {
                 openRestockReceiveSheet(
                   app,
@@ -6810,8 +7078,48 @@
         footer.hidden = false;
         if (shell) shell.classList.remove('is-footer-hidden');
         footer.className = 'ua-or-detail-footer ua-or-detail-footer--confirm-receipt';
-        footer.innerHTML =
-          '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--primary" id="refundReshipConfirmBtn">确认收货</button>';
+        footer.innerHTML = isRestock
+          ? '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--ghost" id="refundRestockAutoCloseBtn">模拟满10天自动确认</button>' +
+            '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--primary" id="refundReshipConfirmBtn">确认收货</button>'
+          : '<button type="button" class="ua-or-detail-footer__btn ua-or-detail-footer__btn--primary" id="refundReshipConfirmBtn">确认收货</button>';
+        var autoCloseBtn = document.getElementById('refundRestockAutoCloseBtn');
+        if (autoCloseBtn) {
+          autoCloseBtn.addEventListener('click', function () {
+            var past = shiftSeconds(new Date(), -(RESTOCK_AUTO_CONFIRM_DAYS + 1) * 24 * 60 * 60);
+            var pastText = formatDateTime(past);
+            if (isPickupRestock(app, refundType)) {
+              ensureRestockArriveStore(app);
+              app.restockArriveStoreAt = pastText;
+            } else if (isWarehouseRestock(app, refundType)) {
+              app.restockAwaitReceiveAt = pastText;
+              app.outShipTime = pastText;
+              app.outShipped = true;
+            } else {
+              app.outShipTime = pastText;
+              app.outShipped = true;
+            }
+            saveApplication(app);
+            completeRestockCloseApp(
+              app,
+              refundType,
+              isPickupRestock(app, refundType)
+                ? 'auto_pickup'
+                : isWarehouseRestock(app, refundType)
+                  ? 'auto_delivery'
+                  : 'auto_express'
+            );
+            showToast(
+              '已模拟满 ' + RESTOCK_AUTO_CONFIRM_DAYS + ' 天自动确认收货（实际补货数=申请数）'
+            );
+            window.setTimeout(function () {
+              window.location.href = buildDetailHref({
+                type: refundType,
+                stage: 'success',
+                shipped: '1'
+              });
+            }, 400);
+          });
+        }
         var confirmBtn = document.getElementById('refundReshipConfirmBtn');
         if (confirmBtn) {
           confirmBtn.addEventListener('click', function () {
@@ -9692,6 +10000,13 @@
     getMergedRefundAmount: getMergedRefundAmount,
     getItemRefundedPickupQty: getItemRefundedPickupQty,
     getItemRemainingPickupQty: getItemRemainingPickupQty,
+    getRefundableMaxQty: getRefundableMaxQty,
+    getRestockMaxQty: getRestockMaxQty,
+    getRefundSuccessQty: getRefundSuccessQty,
+    getAftersaleOccupiedQty: getAftersaleOccupiedQty,
+    canShowAftersaleEntry: canShowAftersaleEntry,
+    saveItemPickedQtyMap: saveItemPickedQtyMap,
+    getItemPickedQty: getItemPickedQty,
     resolveRetailOrderFulfillmentStatus: resolveRetailOrderFulfillmentStatus,
     DEMO_ORDER_NO: DEMO_ORDER_NO,
     isAftersaleFinished: isAftersaleFinished,
