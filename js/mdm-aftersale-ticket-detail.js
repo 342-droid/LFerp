@@ -9,7 +9,7 @@
  * - 退货退款（配送）：审核通过 → 待退货 → 已取货 → 待收货 → 仓库入仓 → 退款中
  * - 换货：退货腿同履约（自提门店 / 配送入仓 / 快递寄回），收货后进入换出
  * - 补货：无退款单；审核通过 → 待收货 → 已完成
- *   · 代采（快递/配送）、零售自提：下发「采购补货指令」（字段「采购单号」）
+ *   · 代采（快递/配送）、零售自提：下发「采购补货指令」（字段「订货单号」）
  *   · 零售快递：绕过仓储，直接与供应商对接补货，无采购补货指令；
  *     供应商寄回后由后台上传物流，确认收货时填写实际收到数量
  */
@@ -1038,7 +1038,7 @@
     return {
       id: 'PO-RS-' + String((detail && detail.id) || Date.now()).slice(-12),
       createdAt: nowText(),
-      status: '已下发采购',
+      status: '已下发订货',
       productName: goods.name || '-',
       qty: goods.applyQty != null ? goods.applyQty : goods.restockQty || goods.refundQty || 0,
       actualQty: goods.actualRestockQty != null ? goods.actualRestockQty : null,
@@ -2392,10 +2392,12 @@
 
   function renderPurchaseOrderCard(po) {
     if (!po) return '';
+    /* 展示层：采购单号→订货单号；历史「已下发采购」统一显示为「已下发订货」 */
+    var statusText = po.status === '已下发采购' ? '已下发订货' : po.status;
     var fields =
-      field('采购单号', po.id) +
+      field('订货单号', po.id) +
       field('下发时间', po.createdAt) +
-      field('状态', po.status) +
+      field('状态', statusText) +
       field('商品', po.productName) +
       field('申请补货数量', po.qty) +
       (po.actualQty != null ? field('实际补货数量', po.actualQty) : field('实际补货数量', '--')) +
