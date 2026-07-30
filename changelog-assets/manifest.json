@@ -521,6 +521,105 @@
     "status": "diff",
     "date": "2026-07-20"
   },
+  "4534c20|MDM/mdm_order_live.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
+  "4534c20|MDM/mdm_order_proxy.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
+  "4534c20|MDM/mdm_order_retail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
+  "4534c20|user-app/h5/order-aftersale-list.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
+  "4534c20|user-app/h5/order-detail-pickup.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
+  "4534c20|user-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
+  "4534c20|user-app/h5/order-refund-address-book.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
+  "4534c20|user-app/h5/order-refund-address-create.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
+  "4534c20|user-app/h5/order-refund-detail.html": {
+    "before": "changelog-assets/4534c20/user-app__h5__order-refund-detail.html.before.jpg",
+    "after": "changelog-assets/4534c20/user-app__h5__order-refund-detail.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
+  "4534c20|user-app/h5/order-refund-exchange.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
+  "4534c20|user-app/h5/order-refund-only.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
+  "4534c20|user-app/h5/order-refund-pickup-edit.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
+  "4534c20|user-app/h5/order-refund-pickup-order.html": {
+    "before": "changelog-assets/4534c20/user-app__h5__order-refund-pickup-order.html.before.jpg",
+    "after": "changelog-assets/4534c20/user-app__h5__order-refund-pickup-order.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
+  "4534c20|user-app/h5/order-refund-pre-ship.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
+  "4534c20|user-app/h5/order-refund-restock.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
+  "4534c20|user-app/h5/order-refund-return-goods.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
+  "4534c20|user-app/h5/order-refund-return-ship.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
+  "4534c20|user-app/h5/order-refund-return.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
+  "4534c20|user-app/h5/order-refund-select.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-30"
+  },
   "4bf6c03|MDM/mdm_aftersale_ticket_detail.html": {
     "regions": 0,
     "status": "diff",
