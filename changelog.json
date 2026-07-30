@@ -1,10 +1,24 @@
 {
-  "latestSha": "852d44b60a812ed1070edd0fe95610c9acc390b9",
-  "total": 216,
+  "latestSha": "f515fbd5e09f375fb887b75e6a59a7b6851377c8",
+  "total": 217,
   "days": [
     {
       "date": "2026-07-30",
       "items": [
+        {
+          "sha": "f515fbd",
+          "type": "chore",
+          "text": "履约售后 PRD 改为仅本地维护",
+          "author": "sisi",
+          "time": "18:27",
+          "pages": [],
+          "notes": [
+            {
+              "file": null,
+              "text": "从仓库移除零售/代采履约售后 PRD，改为本地文档不纳入版本库"
+            }
+          ]
+        },
         {
           "sha": "852d44b",
           "type": "feat",
