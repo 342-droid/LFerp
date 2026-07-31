@@ -1,24 +1,10 @@
 {
-  "latestSha": "f515fbd5e09f375fb887b75e6a59a7b6851377c8",
-  "total": 217,
+  "latestSha": "852d44b60a812ed1070edd0fe95610c9acc390b9",
+  "total": 212,
   "days": [
     {
       "date": "2026-07-30",
       "items": [
-        {
-          "sha": "f515fbd",
-          "type": "chore",
-          "text": "履约售后 PRD 改为仅本地维护",
-          "author": "sisi",
-          "time": "18:27",
-          "pages": [],
-          "notes": [
-            {
-              "file": null,
-              "text": "从仓库移除零售/代采履约售后 PRD，改为本地文档不纳入版本库"
-            }
-          ]
-        },
         {
           "sha": "852d44b",
           "type": "feat",
@@ -2975,14 +2961,6 @@
               "text": "common.js 复用更新日志入口的 fetch，最近 7 天改过的页面在侧边栏挂「新」角标"
             }
           ]
-        },
-        {
-          "sha": "5e34987",
-          "type": "docs",
-          "text": "更新日志页面级视图+侧边栏角标设计 spec",
-          "author": "weekwood",
-          "time": "23:23",
-          "pages": []
         },
         {
           "sha": "81ee1d4",
@@ -11115,20 +11093,6 @@
           ]
         },
         {
-          "sha": "4375fa0",
-          "type": "feat",
-          "text": "新增合并到main时中文变更说明规则",
-          "author": "342-droid",
-          "time": "11:24",
-          "pages": [],
-          "notes": [
-            {
-              "file": null,
-              "text": "在项目 skill 中补充强制规范，要求分支合并到 main 后必须用中文说明本次合并的修改内容，避免仅反馈已合并状态"
-            }
-          ]
-        },
-        {
           "sha": "78b2ce8",
           "type": "other",
           "text": "fix(mdm-onboarding): 调整进件审核列表与详情文案",
@@ -11961,14 +11925,6 @@
           "global": true
         },
         {
-          "sha": "16f6918",
-          "type": "chore",
-          "text": "整理 skills 目录（合并根 SKILL，移除 prd-skill 与 WMS 子技能）",
-          "author": "342-droid",
-          "time": "16:37",
-          "pages": []
-        },
-        {
           "sha": "5cbe023",
           "type": "other",
           "text": "Ignore docs/ and stop tracking markdown flow docs",
@@ -12108,24 +12064,6 @@
             {
               "file": null,
               "text": "gitignore) from earlier iterations."
-            }
-          ]
-        },
-        {
-          "sha": "1dca2ac",
-          "type": "docs",
-          "text": "增加 Git 提交规范与 prepare-commit-msg 钩子",
-          "author": "342-droid",
-          "time": "11:19",
-          "pages": [],
-          "notes": [
-            {
-              "file": null,
-              "text": ".githooks/prepare-commit-msg：非合并提交时在提交信息末尾追加 git diff --cached --stat"
-            },
-            {
-              "file": null,
-              "text": "合并提交跳过"
             }
           ]
         },

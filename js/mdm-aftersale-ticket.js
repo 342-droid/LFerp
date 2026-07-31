@@ -359,20 +359,26 @@
       .replace(/"/g, '&quot;');
   }
 
+  /** 售后状态：一状态一色，便于列表扫读 */
   function statusTag(status) {
-    var cls = 'aftersale-tag aftersale-tag--info';
-    if (status === '已完成') cls = 'aftersale-tag aftersale-tag--success';
-    else if (status === '已拒绝' || status === '已取消' || status === '退款异常') {
-      cls = 'aftersale-tag aftersale-tag--danger';
-    } else if (
-      status === '待审批' ||
-      status === '退款中' ||
-      status === '待退货' ||
-      status === '待收货'
-    ) {
-      cls = 'aftersale-tag aftersale-tag--warning';
-    }
-    return '<span class="' + cls + '">' + escapeHtml(status) + '</span>';
+    var modMap = {
+      '待审批': 'pending',
+      '退款中': 'refunding',
+      '已拒绝': 'rejected',
+      '待退货': 'return',
+      '待收货': 'receive',
+      '退款异常': 'exception',
+      '已完成': 'done',
+      '已取消': 'cancelled'
+    };
+    var mod = modMap[status] || 'info';
+    return (
+      '<span class="aftersale-tag aftersale-tag--' +
+      mod +
+      '">' +
+      escapeHtml(status) +
+      '</span>'
+    );
   }
 
   function refundExecTag(status) {

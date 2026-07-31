@@ -1,0 +1,22 @@
+---
+description: 禁止强制推送；推送前先拉取，保持线性合入
+alwaysApply: true
+---
+
+# Git 推送安全规范
+
+## 禁止
+
+- **禁止** `git push --force` / `--force-with-lease` / `-f`（含改写已推送历史后再推）
+- **禁止** 用 rebase / filter-branch / commit-tree 改写已推到远端的 commit 后再强推
+- 即使用户要求「改 commit 信息并推上去」，也**不得**对已共享历史强推；改走补录或新提交
+
+## 必须
+
+1. 推送前先 `git fetch`，再 `git pull`（或 `git pull --rebase`，若当前分支策略允许）
+2. 本地与远端有分歧时：先合入/变基解决，再普通 `git push`
+3. 需要修正已推送提交的说明时：优先用 `changelog-notes.json` 补录，或另提修正说明的新 commit；不要改写远端 SHA
+
+## 例外
+
+仅当用户**明确写出**允许对某非 main/master 分支强制推送，且说明原因时，才可对**该具名分支**使用 `--force-with-lease`；对 `main` / `master` 始终禁止强推。

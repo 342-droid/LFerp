@@ -16,7 +16,7 @@
  *     1) 后台「确认收货」；2) 门店/用户端「确认收货」；
  *     3) 快递：上传物流后满 10 天自动确认（实际补货数=申请数）；
  *     4) 代采配送：待收货满 10 天自动确认；门店收货入库反写关闭；
- *     5) 零售自提：待核销满 10 天自动确认；用户将该商品剩余数量全量核销后反写关闭
+ *     5) 零售自提：待核销满 10 天自动确认（原单核销不反写关闭补货）
  */
 (function () {
   var CHECK_SVG =
@@ -463,7 +463,8 @@
 
   /**
    * 关闭补货并回写实际数量
-   * source: manual_admin | auto_express | auto_delivery | auto_pickup | store_inbound | pickup_verify
+   * source: manual_admin | auto_express | auto_delivery | auto_pickup | store_inbound
+   * （零售自提核销不作为关闭来源；代采门店入库 store_inbound 仍有效）
    */
   function completeRestockClose(detail, actualQty, source) {
     if (!detail || detail.type !== '补货' || detail.status === '已完成') return false;
@@ -490,15 +491,13 @@
     return true;
   }
 
-  /** 待收货补货：到点自动确认（实际数=申请数）；门店入库/自提核销反写关闭 */
+  /** 待收货补货：到点自动确认（实际数=申请数）；代采门店入库反写关闭 */
   function tryAutoCloseRestock(detail) {
     if (!detail || detail.type !== '补货' || detail.status !== '待收货') return false;
     var applyQty = getApplyRestockQtyFromDetail(detail);
+    /* 代采配送：门店收货入库反写关闭；零售自提核销不反写 */
     if (detail.storeInboundDone) {
       return completeRestockClose(detail, applyQty, 'store_inbound');
-    }
-    if (detail.pickupVerifiedDone) {
-      return completeRestockClose(detail, applyQty, 'pickup_verify');
     }
     if (!isRestockAutoConfirmDue(detail)) return false;
     if (isPickupFulfillment(detail.deliveryMode)) {
@@ -2469,12 +2468,12 @@
     if (done) {
       desc = noTrack
         ? pickupRestock
-          ? '用户已自提核销，实际补货数量已回写售后单。'
+          ? '已确认到店并回写实际补货数量，补货流程完成。'
           : '门店已确认入库，实际补货数量已回写售后单。'
         : '已确认收货并记录实际补货数量，补货流程完成。';
     } else if (pickupRestock) {
       desc =
-        '审核已通过，补货将送达门店；到店后用户出示会员码核销。也可后台确认到店；待核销满 10 天将自动确认收货（实际补货数=申请数），用户全量核销该商品剩余数量时反写关闭补货。';
+        '审核已通过，补货将送达门店；到店后用户出示会员码随原单核销提货。也可后台确认到店并录入实际数量；待核销满 10 天将自动确认收货（实际补货数=申请数）。原单核销不反写关闭补货。';
     } else if (deliveryRestock) {
       desc =
         '审核已通过，供应商补发至仓库，仓库配送到门店。请确认收货并录入实际补货数量；门店收货入库将反写关闭补货。待收货满 10 天将自动确认（实际补货数=申请数）。';
@@ -2529,12 +2528,10 @@
     var actions = '';
     if (!done && (noTrack || hasShip)) {
       var extraDemo = '';
+      /* 仅代采配送保留「门店入库反写」；零售自提核销反写已取消 */
       if (deliveryRestock) {
         extraDemo =
           '<button type="button" class="aftersale-btn aftersale-btn--ghost" id="asRestockStoreInboundDemo">模拟门店入库反写</button>';
-      } else if (pickupRestock) {
-        extraDemo =
-          '<button type="button" class="aftersale-btn aftersale-btn--ghost" id="asRestockPickupVerifyDemo">模拟全量核销反写</button>';
       }
       actions =
         '<div class="aftersale-flow-card__actions">' +
@@ -3164,9 +3161,7 @@
             ? '已满 ' + RESTOCK_AUTO_CONFIRM_DAYS + ' 天，系统自动确认收货并关闭补货（实际数=申请数）'
             : src === 'store_inbound'
               ? '门店收货入库已反写，补货已关闭'
-              : src === 'pickup_verify'
-                ? '用户全量核销已反写，补货已关闭'
-                : '补货已关闭';
+              : '补货已关闭';
         showToast(tip, 'success');
       }
     }
@@ -4179,17 +4174,6 @@
           renderPage();
           if (typeof showToast === 'function') {
             showToast('门店收货入库已反写，补货已关闭（实际补货数=申请数）', 'success');
-          }
-        }
-        return;
-      }
-      if (e.target.closest('#asRestockPickupVerifyDemo')) {
-        if (!state.detail || state.detail.type !== '补货') return;
-        state.detail.pickupVerifiedDone = true;
-        if (tryAutoCloseRestock(state.detail)) {
-          renderPage();
-          if (typeof showToast === 'function') {
-            showToast('用户全量核销已反写，补货已关闭（实际补货数=申请数）', 'success');
           }
         }
         return;

@@ -2760,8 +2760,8 @@
    * 补货关闭规则（演示）：
    * 1) 后台确认收货  2) 门店/用户端确认收货
    * 3) 快递上传物流满 10 天自动确认（实际数=申请数）
-   * 4) 代采配送：待收货满 10 天自动确认；门店入库反写关闭
-   * 5) 零售自提：待核销满 10 天自动确认；商品剩余数量全量核销反写关闭
+   * 4) 代采配送：待收货满 10 天自动确认；门店入库反写关闭（零售无此路径）
+   * 5) 零售自提：待核销满 10 天自动确认（不再因原单全量核销反写关闭）
    */
   function getRestockAutoConfirmAnchor(app) {
     if (!app) return null;
@@ -2798,9 +2798,8 @@
       app.storeInbound = true;
       app.storeInboundAt = app.storeInboundAt || formatDateTime();
     }
-    if (source === 'pickup_verify' || isPickupRestock(app, refundType)) {
+    if (isPickupRestock(app, refundType)) {
       ensureRestockArriveStore(app);
-      markRestockPickedUp(app);
     }
     saveApplication(app);
     syncAftersaleRecordFromApp(app, refundType, 'success');
@@ -2817,12 +2816,9 @@
       return false;
     }
 
+    /* 代采配送：门店入库反写关闭（零售自提核销不反写关闭补货） */
     if (isWarehouseRestock(app, refundType) && app.storeInbound && getActualRestockQty(app) == null) {
       completeRestockCloseApp(app, refundType, 'store_inbound');
-      return true;
-    }
-    if (isPickupRestock(app, refundType) && app.restockPickedUp && getActualRestockQty(app) == null) {
-      completeRestockCloseApp(app, refundType, 'pickup_verify');
       return true;
     }
     if (isPickupRestock(app, refundType) && !app.restockArriveStoreAt && isReshipShipped(app)) {
@@ -5362,9 +5358,7 @@
             ? '已满 ' + RESTOCK_AUTO_CONFIRM_DAYS + ' 天，系统自动确认收货并关闭补货'
             : app.restockCloseSource === 'store_inbound'
               ? '门店收货入库已反写，补货已关闭'
-              : app.restockCloseSource === 'pickup_verify'
-                ? '商品已全量核销，补货已关闭'
-                : '补货已关闭'
+              : '补货已关闭'
         );
         window.location.replace(
           buildDetailHref({ type: 'restock', stage: 'success', shipped: '1' })
@@ -6547,9 +6541,8 @@
         return 'refund';
       }
       if (current === 'reship') {
-        /* 待寄出 → 已寄出；自提补货已寄出 → 待自提核销；再 → 完成 */
+        /* 待寄出 → 已寄出；已寄出 → 确认收货完成（零售核销不反写关闭补货） */
         if (!isReshipShipped(app)) return 'reship_shipped';
-        if (pickupRestock && isRestockAwaitPickup(app)) return 'restock_pickup';
         return 'success';
       }
       if (current === 'refund') {
@@ -6674,12 +6667,13 @@
               }
             }
             if (next === 'restock_pickup') {
+              /* 仅推进到店待自提；零售核销不再反写关闭补货 */
               ensureRestockArriveStore(app);
-              markRestockPickedUp(app);
-              syncAftersaleRecordFromApp(app, refundType, 'success');
+              syncAftersaleRecordFromApp(app, refundType, 'reship');
               window.location.href = buildDetailHref({
                 type: refundType,
-                stage: 'success'
+                stage: 'reship',
+                shipped: '1'
               });
               return;
             }
@@ -6703,16 +6697,8 @@
               return;
             }
             if (next === 'success') {
-              /* 自提补货：原单全量核销反写关闭补货（实际数=申请数） */
-              if (pickupRestock && isReshipShipped(app)) {
-                completeRestockCloseApp(app, refundType, 'pickup_verify');
-                window.location.href = buildDetailHref({
-                  type: refundType,
-                  stage: 'success',
-                  shipped: '1'
-                });
-                return;
-              } else if (isRestock && isReshipShipped(app)) {
+              /* 补货关闭：确认收货录入 / 代采门店入库反写 / 满 10 天自动；零售核销不反写关闭 */
+              if (isRestock && isReshipShipped(app)) {
                 openRestockReceiveSheet(
                   app,
                   refundType,

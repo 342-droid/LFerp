@@ -1163,6 +1163,185 @@ body[data-order-page="retail"] .order-live-table__action:hover {
   display: none;
 }
 
+/* 单据明细 · 售后明细表（与截图字段/排版对齐） */
+.order-detail-aftersale-panel {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.order-detail-aftersale-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  border: 1px solid #ebeef5;
+}
+
+.order-detail-aftersale-table th,
+.order-detail-aftersale-table td {
+  padding: 12px 12px;
+  border: 1px solid #ebeef5;
+  vertical-align: middle;
+  color: #303133;
+  line-height: 1.4;
+}
+
+.order-detail-aftersale-table th {
+  background: #f5f7fa;
+  color: #606266;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.order-detail-aftersale-table .is-left {
+  text-align: left;
+}
+
+.order-detail-aftersale-table .is-center {
+  text-align: center;
+}
+
+.order-detail-aftersale-table td.is-left {
+  min-width: 180px;
+  color: #303133;
+}
+
+/* 售后状态 / 类型：一状态一色 */
+.order-detail-as-status,
+.order-detail-as-type {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.order-detail-as-status--info,
+.order-detail-as-type--info {
+  color: #909399;
+  background: #f4f4f5;
+  border-color: #e9e9eb;
+}
+
+.order-detail-as-status--pending {
+  color: #e6a23c;
+  background: #fdf6ec;
+  border-color: #faecd8;
+}
+
+.order-detail-as-status--refunding {
+  color: #409eff;
+  background: #ecf5ff;
+  border-color: #b3d8ff;
+}
+
+.order-detail-as-status--rejected {
+  color: #f56c6c;
+  background: #fef0f0;
+  border-color: #fde2e2;
+}
+
+.order-detail-as-status--return {
+  color: #9b59b6;
+  background: #f5eef8;
+  border-color: #e0c8ef;
+}
+
+.order-detail-as-status--receive {
+  color: #13c2c2;
+  background: #e6fffb;
+  border-color: #87e8de;
+}
+
+.order-detail-as-status--exception {
+  color: #c41d7f;
+  background: #fff0f6;
+  border-color: #ffadd2;
+}
+
+.order-detail-as-status--done {
+  color: #67c23a;
+  background: #f0f9eb;
+  border-color: #e1f3d8;
+}
+
+.order-detail-as-status--cancelled {
+  color: #909399;
+  background: #f4f4f5;
+  border-color: #e9e9eb;
+}
+
+.order-detail-as-type--refund-only {
+  color: #409eff;
+  background: #ecf5ff;
+  border-color: #b3d8ff;
+}
+
+.order-detail-as-type--return-refund {
+  color: #e6a23c;
+  background: #fdf6ec;
+  border-color: #faecd8;
+}
+
+.order-detail-as-type--restock {
+  color: #ff7019;
+  background: #fff7e6;
+  border-color: #ffd591;
+}
+
+/* 商品明细 · 售后结果标签（一标签一色，贴商品名） */
+.order-detail-goods-as-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* 退款中 — 橙 */
+.order-detail-goods-as-tag.is-refunding {
+  color: #d48806;
+  background: #fff7e6;
+  border-color: #ffd591;
+}
+
+/* 部分退款 — 蓝 */
+.order-detail-goods-as-tag.is-partial {
+  color: #1677ff;
+  background: #e6f4ff;
+  border-color: #91caff;
+}
+
+/* 全额退款 — 红 */
+.order-detail-goods-as-tag.is-full {
+  color: #cf1322;
+  background: #fff1f0;
+  border-color: #ffa39e;
+}
+
+/* 补发中 — 紫 */
+.order-detail-goods-as-tag.is-restocking {
+  color: #722ed1;
+  background: #f9f0ff;
+  border-color: #d3adf7;
+}
+
+/* 已补发 — 绿 */
+.order-detail-goods-as-tag.is-restocked {
+  color: #389e0d;
+  background: #f6ffed;
+  border-color: #b7eb8f;
+}
+
 .order-detail-goods-table {
   width: 100%;
   border-collapse: collapse;
@@ -1207,6 +1386,10 @@ body[data-order-page="retail"] .order-live-table__action:hover {
 }
 
 .order-detail-goods-product__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
   font-size: 13px;
   color: #303133;
   line-height: 1.4;
