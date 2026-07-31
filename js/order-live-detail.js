@@ -265,7 +265,7 @@
         pickedQty: 2,
         subtotal: '¥54.18',
         marketing: '普通售卖',
-        aftersaleTag: '补发中'
+        aftersaleTag: '退款中'
       }],
       amounts: {
         goods: '¥54.18',
@@ -277,7 +277,18 @@
         refund: '¥0.00'
       },
       paymentCount: 1,
+      /* 含进行中仅退款：列表核销时需二次确认并自动关闭售后 */
       aftersales: [{
+        id: 'AS-9002-2',
+        productName: '赣南脐橙 果大皮薄 5斤装',
+        type: '仅退款',
+        status: '退款中',
+        returnQty: 1,
+        refundAmount: '¥18.06',
+        refundCoupon: '¥0.00',
+        refundPoints: 0,
+        adjustAmount: '¥0.00'
+      }, {
         id: 'AS-9002-1',
         productName: '赣南脐橙 果大皮薄 5斤装',
         type: '补货',
@@ -1793,10 +1804,71 @@
     });
   }
 
-  function verifyWholeOrder(orderId) {
+  /** 仅退款 / 退货退款进行中的业务状态（与售后单一致） */
+  var OPEN_REFUND_STATUSES = ['待审批', '退款中', '待退货', '待收货', '退款异常'];
+
+  function isOpenRefundAftersale(item) {
+    return !!item &&
+      (item.type === '仅退款' || item.type === '退货退款') &&
+      OPEN_REFUND_STATUSES.indexOf(item.status) >= 0;
+  }
+
+  /** 订单是否存在进行中的退款类售后（仅退款 / 退货退款） */
+  function getOpenRefundAftersales(orderId, row) {
+    var detail = DETAILS[orderId] || (row ? fallbackDetail(orderId, row) : null);
+    if (!detail || !Array.isArray(detail.aftersales)) return [];
+    return detail.aftersales.filter(isOpenRefundAftersale);
+  }
+
+  function hasOpenRefundAftersale(orderId, row) {
+    return getOpenRefundAftersales(orderId, row).length > 0;
+  }
+
+  /**
+   * 核销时自动关闭进行中的退款类售后单
+   * 关闭原因：订单核销，自动关闭
+   */
+  function closeOpenRefundAftersalesOnVerify(orderId) {
+    var detail = DETAILS[orderId];
+    if (!detail || !Array.isArray(detail.aftersales)) return [];
+    var closed = [];
+    var now = formatNow();
+    detail.aftersales.forEach(function (a) {
+      if (!isOpenRefundAftersale(a)) return;
+      a.status = '已取消';
+      a.closeReason = '订单核销，自动关闭';
+      a.closedAt = now;
+      closed.push(a);
+    });
+    if (closed.length && detail.goods) {
+      detail.goods = detail.goods.map(function (g) {
+        var next = Object.assign({}, g);
+        if (next.aftersaleTag === '退款中') delete next.aftersaleTag;
+        return next;
+      });
+    }
+    if (closed.length) {
+      detail.logs = detail.logs || [];
+      detail.logs.unshift({
+        time: now,
+        type: 'aftersale_close',
+        title: '售后单自动关闭',
+        desc: '订单核销，自动关闭（共 ' + closed.length + ' 笔退款类售后）'
+      });
+    }
+    return closed;
+  }
+
+  function verifyWholeOrder(orderId, options) {
+    options = options || {};
     var detail = DETAILS[orderId];
     if (!detail || !detail.progress) return false;
     if (!isPickupOrder(detail.progress.status, detail)) return false;
+
+    var closedAftersales = [];
+    if (options.closeOpenRefunds !== false) {
+      closedAftersales = closeOpenRefundAftersalesOnVerify(orderId);
+    }
 
     var goods = detail.goods.map(normalizeGood);
     var pickupItems = [];
@@ -1832,7 +1904,7 @@
     }
 
     syncDrawerAfterWholeVerify(orderId);
-    return true;
+    return { ok: true, closedAftersales: closedAftersales };
   }
 
   function syncDrawerAfterWholeVerify(orderId) {
@@ -1849,7 +1921,10 @@
   }
 
   window.OrderLivePickup = {
-    verifyWholeOrder: verifyWholeOrder
+    verifyWholeOrder: verifyWholeOrder,
+    hasOpenRefundAftersale: hasOpenRefundAftersale,
+    getOpenRefundAftersales: getOpenRefundAftersales,
+    closeOpenRefundAftersalesOnVerify: closeOpenRefundAftersalesOnVerify
   };
 
   function confirmProxyReceipt(orderId) {
