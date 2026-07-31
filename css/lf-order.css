@@ -605,6 +605,50 @@ body[data-order-page="retail"] .order-live-table__action:hover {
   margin-top: 24px;
 }
 
+/* 存在进行中退款售后：核销二次确认（对齐设计稿居中排版） */
+.order-verify-confirm--refund {
+  max-width: 360px;
+  padding: 28px 24px 22px;
+  text-align: center;
+}
+
+.order-verify-confirm--refund .order-verify-confirm__title {
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.order-verify-confirm--refund .order-verify-confirm__message {
+  margin-top: 14px;
+  text-align: center;
+  color: #303133;
+}
+
+.order-verify-confirm--refund .order-verify-confirm__actions {
+  justify-content: center;
+  margin-top: 28px;
+}
+
+.order-verify-confirm--refund .order-detail-btn {
+  min-width: 108px;
+  height: 36px;
+  padding: 0 18px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.order-detail-btn--ghost {
+  border: 1px solid #dcdfe6;
+  background: #f5f7fa;
+  color: #606266;
+}
+
+.order-detail-btn--ghost:hover {
+  border-color: #c0c4cc;
+  background: #eef0f4;
+  color: #303133;
+}
+
 .order-product-cell {
   display: flex;
   align-items: center;

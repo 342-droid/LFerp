@@ -103,17 +103,31 @@
     }
   }
 
-  function showOrderVerifyConfirm(orderId, onConfirm) {
+  /**
+   * 核销确认弹窗
+   * options: { title, message, variant: 'refund'|'' }
+   * 存在进行中退款售后时用 variant=refund，文案对齐设计稿
+   */
+  function showOrderVerifyConfirm(orderId, onConfirm, options) {
+    options = options || {};
     closeOrderVerifyConfirm();
+    var isRefundWarn = options.variant === 'refund';
+    var title = options.title || (isRefundWarn ? '确认核销' : '整单核销确认');
+    var message = options.message || (
+      isRefundWarn
+        ? '当前商品存在退款申请，核销后将关闭退款，是否已与客户确认？'
+        : ('确认核销订单 <strong>' + orderId + '</strong> 吗？<br>核销后订单内全部商品将标记为已提货，此操作不可撤销。')
+    );
     var backdrop = document.createElement('div');
     backdrop.className = 'order-verify-confirm-backdrop';
     backdrop.id = 'orderVerifyConfirmBackdrop';
     backdrop.innerHTML =
-      '<div class="order-verify-confirm" role="dialog" aria-labelledby="orderVerifyConfirmTitle">' +
-        '<h3 id="orderVerifyConfirmTitle" class="order-verify-confirm__title">整单核销确认</h3>' +
-        '<p class="order-verify-confirm__message">确认核销订单 <strong>' + orderId + '</strong> 吗？<br>核销后订单内全部商品将标记为已提货，此操作不可撤销。</p>' +
+      '<div class="order-verify-confirm' + (isRefundWarn ? ' order-verify-confirm--refund' : '') +
+        '" role="dialog" aria-labelledby="orderVerifyConfirmTitle">' +
+        '<h3 id="orderVerifyConfirmTitle" class="order-verify-confirm__title">' + title + '</h3>' +
+        '<p class="order-verify-confirm__message">' + message + '</p>' +
         '<div class="order-verify-confirm__actions">' +
-          '<button type="button" class="order-detail-btn js-order-verify-cancel">取消</button>' +
+          '<button type="button" class="order-detail-btn order-detail-btn--ghost js-order-verify-cancel">取消</button>' +
           '<button type="button" class="order-detail-btn order-detail-btn--primary js-order-verify-ok">确认核销</button>' +
         '</div>' +
       '</div>';
@@ -157,16 +171,28 @@
         return;
       }
 
+      var hasOpenRefund = window.OrderLivePickup &&
+        typeof window.OrderLivePickup.hasOpenRefundAftersale === 'function' &&
+        window.OrderLivePickup.hasOpenRefundAftersale(orderId, row);
+
       showOrderVerifyConfirm(orderId, function () {
-        var verified = false;
+        var result = null;
         if (window.OrderLivePickup && typeof window.OrderLivePickup.verifyWholeOrder === 'function') {
-          verified = window.OrderLivePickup.verifyWholeOrder(orderId);
+          result = window.OrderLivePickup.verifyWholeOrder(orderId, { closeOpenRefunds: true });
         }
+        var verified = !!(result && (result.ok === true || result === true));
+        var closedCount = result && result.closedAftersales ? result.closedAftersales.length : 0;
         updateRowAfterVerify(row);
         if (typeof showToast === 'function') {
-          showToast(verified ? '整单核销成功，订单已完成' : '整单核销成功（演示）', 'success');
+          if (verified && closedCount > 0) {
+            showToast('整单核销成功，已自动关闭 ' + closedCount + ' 笔退款售后（订单核销，自动关闭）', 'success');
+          } else if (verified) {
+            showToast('整单核销成功，订单已完成', 'success');
+          } else {
+            showToast('整单核销成功（演示）', 'success');
+          }
         }
-      });
+      }, hasOpenRefund ? { variant: 'refund' } : null);
     });
   }
 
