@@ -511,6 +511,26 @@
     "status": "diff",
     "date": "2026-07-25"
   },
+  "247f643|MDM/mdm_order_live.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-31"
+  },
+  "247f643|MDM/mdm_order_proxy.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-31"
+  },
+  "247f643|MDM/mdm_order_queue.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-31"
+  },
+  "247f643|MDM/mdm_order_retail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-07-31"
+  },
   "319d8ed|MDM/mdm_product_proxy_list.html": {
     "regions": 0,
     "status": "diff",
