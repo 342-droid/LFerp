@@ -538,28 +538,56 @@
   border: 1px solid transparent;
 }
 
-.aftersale-tag--success {
+.aftersale-tag--success,
+.aftersale-tag--done {
   color: #67c23a;
   background: #f0f9eb;
   border-color: #e1f3d8;
 }
 
-.aftersale-tag--warning {
+.aftersale-tag--warning,
+.aftersale-tag--pending {
   color: #e6a23c;
   background: #fdf6ec;
   border-color: #faecd8;
 }
 
-.aftersale-tag--danger {
+.aftersale-tag--danger,
+.aftersale-tag--rejected {
   color: #f56c6c;
   background: #fef0f0;
   border-color: #fde2e2;
 }
 
-.aftersale-tag--info {
+.aftersale-tag--info,
+.aftersale-tag--cancelled {
   color: #909399;
   background: #f4f4f5;
   border-color: #e9e9eb;
+}
+
+.aftersale-tag--refunding {
+  color: #409eff;
+  background: #ecf5ff;
+  border-color: #b3d8ff;
+}
+
+.aftersale-tag--return {
+  color: #9b59b6;
+  background: #f5eef8;
+  border-color: #e0c8ef;
+}
+
+.aftersale-tag--receive {
+  color: #13c2c2;
+  background: #e6fffb;
+  border-color: #87e8de;
+}
+
+.aftersale-tag--exception {
+  color: #c41d7f;
+  background: #fff0f6;
+  border-color: #ffadd2;
 }
 
 .aftersale-empty {

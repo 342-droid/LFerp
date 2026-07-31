@@ -70,7 +70,8 @@
         price: '¥1.20',
         qty: '1',
         subtotal: '¥1.20',
-        marketing: '普通售卖'
+        marketing: '普通售卖',
+        aftersaleTag: '全额退款'
       }],
       amounts: {
         goods: '¥1.20',
@@ -79,9 +80,21 @@
         payable: '¥0.01',
         paid: '¥0.01',
         merchant: '¥0.00',
-        refund: '¥0.00'
+        refund: '¥0.01'
       },
       paymentCount: 1,
+      /* 售后明细：一条售后单一行；状态与售后单一致 */
+      aftersales: [{
+        id: 'AS-8341-1',
+        productName: '小龙虾',
+        type: '仅退款',
+        status: '已完成',
+        returnQty: 1,
+        refundAmount: '¥0.01',
+        refundCoupon: '¥0.00',
+        refundPoints: 0,
+        adjustAmount: '¥0.00'
+      }],
       customer: { nickname: '宋雨琦', phone: '15236806537', userId: '318605592681791488' },
       delivery: {
         type: 'SELF_PICKUP',
@@ -180,20 +193,32 @@
         barcode: '6901002002002',
         weight: '1.50',
         price: '¥128.18',
-        qty: '1',
-        subtotal: '¥128.18',
-        marketing: '积分兑换'
+        qty: '2',
+        subtotal: '¥256.36',
+        marketing: '积分兑换',
+        aftersaleTag: '部分退款'
       }],
       amounts: {
-        goods: '¥128.18',
+        goods: '¥256.36',
         discount: '-¥10.00',
         shipping: '¥0.00',
-        payable: '¥118.18',
-        paid: '¥118.18',
-        merchant: '¥118.18',
-        refund: '¥0.00'
+        payable: '¥246.36',
+        paid: '¥246.36',
+        merchant: '¥246.36',
+        refund: '¥118.18'
       },
       paymentCount: 1,
+      aftersales: [{
+        id: 'AS-9001-1',
+        productName: '冷丰优选3J智利车厘子 3斤装',
+        type: '仅退款',
+        status: '已完成',
+        returnQty: 1,
+        refundAmount: '¥118.18',
+        refundCoupon: '¥0.00',
+        refundPoints: 50,
+        adjustAmount: '¥0.00'
+      }],
       customer: { nickname: '宁静致远', phone: '155****9061', userId: '318605592681791501' },
       delivery: {
         type: 'EXPRESS',
@@ -239,7 +264,8 @@
         qty: '3',
         pickedQty: 2,
         subtotal: '¥54.18',
-        marketing: '普通售卖'
+        marketing: '普通售卖',
+        aftersaleTag: '补发中'
       }],
       amounts: {
         goods: '¥54.18',
@@ -251,6 +277,14 @@
         refund: '¥0.00'
       },
       paymentCount: 1,
+      aftersales: [{
+        id: 'AS-9002-1',
+        productName: '赣南脐橙 果大皮薄 5斤装',
+        type: '补货',
+        status: '待收货',
+        applyRestockQty: 1,
+        actualRestockQty: '-'
+      }],
       customer: { nickname: '宋雨琦', phone: '15236806537', userId: '318605592681791488' },
       delivery: {
         type: 'SELF_PICKUP',
@@ -317,7 +351,8 @@
         qty: '2',
         pickedQty: 0,
         subtotal: '¥39.18',
-        marketing: '拉新赠品'
+        marketing: '拉新赠品',
+        aftersaleTag: '退款中'
       }, {
         id: 'g2',
         name: '进口香蕉 香甜软糯 3斤装',
@@ -331,7 +366,8 @@
         qty: '1',
         pickedQty: 0,
         subtotal: '¥12.00',
-        marketing: '拉新赠品'
+        marketing: '拉新赠品',
+        aftersaleTag: '退款中'
       }],
       amounts: {
         goods: '¥51.18',
@@ -343,6 +379,35 @@
         refund: '¥0.00'
       },
       paymentCount: 1,
+      /* 含仅退款 / 退货退款 / 补货，列表字段按类型展示 */
+      aftersales: [{
+        id: 'AS-9003-1',
+        productName: '新鲜红颜草莓 香甜多汁 500g装',
+        type: '退货退款',
+        status: '待收货',
+        returnQty: 1,
+        refundAmount: '¥19.59',
+        refundCoupon: '¥2.50',
+        refundPoints: 0,
+        adjustAmount: '¥0.00'
+      }, {
+        id: 'AS-9003-2',
+        productName: '进口香蕉 香甜软糯 3斤装',
+        type: '仅退款',
+        status: '退款中',
+        returnQty: 1,
+        refundAmount: '¥12.00',
+        refundCoupon: '¥0.00',
+        refundPoints: 0,
+        adjustAmount: '-¥1.00'
+      }, {
+        id: 'AS-9003-3',
+        productName: '新鲜红颜草莓 香甜多汁 500g装',
+        type: '补货',
+        status: '待审批',
+        applyRestockQty: 1,
+        actualRestockQty: '-'
+      }],
       customer: { nickname: '赵金芝', phone: '18715449646', userId: '318605592681791502' },
       delivery: {
         type: 'EXPRESS',
@@ -388,7 +453,8 @@
         price: '¥18.00',
         qty: '1',
         subtotal: '¥18.00',
-        marketing: '福袋奖品'
+        marketing: '福袋奖品',
+        aftersaleTag: '已补发'
       }],
       amounts: {
         goods: '¥18.00',
@@ -400,6 +466,14 @@
         refund: '¥0.00'
       },
       paymentCount: 1,
+      aftersales: [{
+        id: 'AS-0682-1',
+        productName: '精品牛腩 500g',
+        type: '补货',
+        status: '已完成',
+        applyRestockQty: 1,
+        actualRestockQty: 1
+      }],
       customer: { nickname: '赵金芝', phone: '13800001234', userId: '318605592681791499' },
       delivery: {
         type: 'EXPRESS',
@@ -807,10 +881,62 @@
     }
   }
 
-  function buildGoodsProductCell(item) {
+  /** 商品售后标签：退款中 / 部分退款 / 全额退款 / 补发中 / 已补发 */
+  var GOODS_AS_TAG_CLASS = {
+    '退款中': 'is-refunding',
+    '部分退款': 'is-partial',
+    '全额退款': 'is-full',
+    '补发中': 'is-restocking',
+    '已补发': 'is-restocked'
+  };
+
+  function goodsAftersaleTagHtml(tag) {
+    if (!tag || !GOODS_AS_TAG_CLASS[tag]) return '';
+    return '<span class="order-detail-goods-as-tag ' + GOODS_AS_TAG_CLASS[tag] + '">' + tag + '</span>';
+  }
+
+  /**
+   * 由售后明细推导商品标签（未显式配置 aftersaleTag 时）。
+   * 仅退款 / 退货退款均扣减商品数量：退款数 < 购买数 → 部分退款，否则全额退款。
+   */
+  function resolveGoodsAftersaleTag(item, aftersales) {
+    if (item && item.aftersaleTag) return item.aftersaleTag;
+    var list = (aftersales || []).filter(function (a) {
+      return a.productName === item.name || a.goodId === item.id;
+    });
+    if (!list.length) return '';
+    var refundOpen = ['待审批', '退款中', '待退货', '待收货', '退款异常'];
+    var restockOpen = ['待审批', '待收货'];
+    var hasRefundOpen = list.some(function (a) {
+      return (a.type === '仅退款' || a.type === '退货退款') && refundOpen.indexOf(a.status) >= 0;
+    });
+    if (hasRefundOpen) return '退款中';
+    var refundDone = list.filter(function (a) {
+      return (a.type === '仅退款' || a.type === '退货退款') && a.status === '已完成';
+    });
+    if (refundDone.length) {
+      var buyQty = parseInt(item.qty, 10) || 0;
+      var returned = refundDone.reduce(function (s, a) {
+        return s + (parseInt(a.returnQty, 10) || 0);
+      }, 0);
+      if (buyQty > 0 && returned > 0 && returned < buyQty) return '部分退款';
+      return '全额退款';
+    }
+    if (list.some(function (a) {
+      return a.type === '补货' && restockOpen.indexOf(a.status) >= 0;
+    })) return '补发中';
+    if (list.some(function (a) { return a.type === '补货' && a.status === '已完成'; })) {
+      return '已补发';
+    }
+    return '';
+  }
+
+  function buildGoodsProductCell(item, aftersales) {
+    var tag = resolveGoodsAftersaleTag(item, aftersales);
     return '<td><div class="order-detail-goods-product">' +
       '<img src="' + item.img + '" alt="">' +
-      '<div><div class="order-detail-goods-product__name">' + item.name + '</div>' +
+      '<div><div class="order-detail-goods-product__name">' + item.name +
+      goodsAftersaleTagHtml(tag) + '</div>' +
       '<div class="order-detail-goods-product__spec">' + item.spec + '</div></div>' +
       '</div></td>';
   }
@@ -826,7 +952,7 @@
       '</div>';
   }
 
-  function buildGoodsTableBody(goods, pickupMode) {
+  function buildGoodsTableBody(goods, pickupMode, aftersales) {
     var tbody = el('tbody');
     goods.forEach(function (item) {
       var remaining = getGoodRemaining(item);
@@ -856,7 +982,7 @@
 
       tr.innerHTML =
         selectCell +
-        buildGoodsProductCell(item) +
+        buildGoodsProductCell(item, aftersales) +
         '<td>' + item.spu + '</td>' +
         '<td>' + (item.barcode || item.sku) + '</td>' +
         '<td>' + item.weight + '</td>' +
@@ -893,19 +1019,134 @@
     return '<tr>' + headCols + '</tr>';
   }
 
-  function buildGoodsPanel(goods, pickupMode) {
+  function buildGoodsPanel(goods, pickupMode, aftersales) {
     var wrap = el('div', 'order-detail-goods-panel');
     if (pickupMode) wrap.appendChild(buildPickupToolbar());
 
     var table = el('table', 'order-detail-goods-table');
     table.innerHTML = '<thead>' + buildGoodsTableHeadRow(pickupMode) + '</thead>';
-    table.appendChild(buildGoodsTableBody(goods, pickupMode));
+    table.appendChild(buildGoodsTableBody(goods, pickupMode, aftersales));
     wrap.appendChild(table);
     return wrap;
   }
 
   function buildGoodsTable(goods) {
     return buildGoodsPanel(goods, false);
+  }
+
+  /** 售后状态：一状态一色（与售后单列表共用语义色） */
+  var AFTERSALE_STATUS_MOD = {
+    '待审批': 'pending',
+    '退款中': 'refunding',
+    '已拒绝': 'rejected',
+    '待退货': 'return',
+    '待收货': 'receive',
+    '退款异常': 'exception',
+    '已完成': 'done',
+    '已取消': 'cancelled'
+  };
+
+  var AFTERSALE_TYPE_MOD = {
+    '仅退款': 'refund-only',
+    '退货退款': 'return-refund',
+    '补货': 'restock'
+  };
+
+  function aftersaleStatusTagHtml(status) {
+    var s = status || '-';
+    var mod = AFTERSALE_STATUS_MOD[s] || 'info';
+    return '<span class="order-detail-as-status order-detail-as-status--' + mod + '">' + s + '</span>';
+  }
+
+  function aftersaleTypeTagHtml(type) {
+    var t = type || '-';
+    var mod = AFTERSALE_TYPE_MOD[t] || 'info';
+    return '<span class="order-detail-as-type order-detail-as-type--' + mod + '">' + t + '</span>';
+  }
+
+  function aftersaleCellText(v) {
+    return v == null || v === '' ? '-' : String(v);
+  }
+
+  /**
+   * 单据明细 · 售后明细：一条售后单一行；展示仅退款/退货退款/补货。
+   * 列随列表内类型动态调整：退款类出退货/退款字段，补货出补货数字段。
+   */
+  function buildAftersalePanel(aftersales) {
+    var list = (Array.isArray(aftersales) ? aftersales : []).filter(function (a) {
+      return a && (a.type === '仅退款' || a.type === '退货退款' || a.type === '补货');
+    });
+    if (!list.length) return buildEmptyState('暂无售后明细');
+
+    var hasRefundType = list.some(function (a) {
+      return a.type === '仅退款' || a.type === '退货退款';
+    });
+    var hasRestock = list.some(function (a) { return a.type === '补货'; });
+
+    var columns = [
+      { key: 'product', label: '商品', align: 'left' },
+      { key: 'type', label: '售后类型', align: 'center' },
+      { key: 'status', label: '售后状态', align: 'center' }
+    ];
+    if (hasRefundType) {
+      columns = columns.concat([
+        { key: 'returnQty', label: '退货数', align: 'center' },
+        { key: 'refundAmount', label: '退款额', align: 'center' },
+        { key: 'refundCoupon', label: '退券', align: 'center' },
+        { key: 'refundPoints', label: '退积分', align: 'center' },
+        { key: 'adjustAmount', label: '多退少补', align: 'center' }
+      ]);
+    }
+    if (hasRestock) {
+      columns = columns.concat([
+        { key: 'applyRestockQty', label: '申请补货数', align: 'center' },
+        { key: 'actualRestockQty', label: '实际补货数', align: 'center' }
+      ]);
+    }
+
+    function cellHtml(item, key) {
+      var isRefund = item.type === '仅退款' || item.type === '退货退款';
+      var isRestock = item.type === '补货';
+      if (key === 'product') return aftersaleCellText(item.productName);
+      if (key === 'type') return aftersaleTypeTagHtml(item.type);
+      if (key === 'status') return aftersaleStatusTagHtml(item.status);
+      if (key === 'returnQty') {
+        /* 仅退款、退货退款均扣减商品数量，都展示退货数 */
+        if (item.type === '仅退款' || item.type === '退货退款') {
+          return aftersaleCellText(item.returnQty);
+        }
+        return '-';
+      }
+      if (key === 'refundAmount' || key === 'refundCoupon' || key === 'refundPoints' || key === 'adjustAmount') {
+        return isRefund ? aftersaleCellText(item[key]) : '-';
+      }
+      if (key === 'applyRestockQty' || key === 'actualRestockQty') {
+        return isRestock ? aftersaleCellText(item[key]) : '-';
+      }
+      return '-';
+    }
+
+    var wrap = el('div', 'order-detail-aftersale-panel');
+    var table = el('table', 'order-detail-aftersale-table');
+    table.innerHTML =
+      '<thead><tr>' +
+      columns.map(function (c) {
+        return '<th class="is-' + c.align + '">' + c.label + '</th>';
+      }).join('') +
+      '</tr></thead>';
+    var tbody = el('tbody');
+    list.forEach(function (item) {
+      var tr = document.createElement('tr');
+      if (item.id) tr.setAttribute('data-aftersale-id', item.id);
+      if (item.type) tr.setAttribute('data-aftersale-type', item.type);
+      tr.innerHTML = columns.map(function (c) {
+        return '<td class="is-' + c.align + '">' + cellHtml(item, c.key) + '</td>';
+      }).join('');
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    return wrap;
   }
 
   function getRowPickupQty(tr) {
@@ -1023,7 +1264,7 @@
     var thead = refs.goodsTable.querySelector('thead');
     if (thead) thead.innerHTML = buildGoodsTableHeadRow(pickupMode);
 
-    var newBody = buildGoodsTableBody(state.goods, pickupMode);
+    var newBody = buildGoodsTableBody(state.goods, pickupMode, refs.aftersales || []);
     refs.goodsTable.querySelector('tbody').replaceWith(newBody);
 
     renderTimeline(refs.timeline, state.logs);
@@ -1175,7 +1416,7 @@
       { id: 'goods', label: '商品明细' },
       { id: 'payment', label: '收款明细 (' + detail.paymentCount + ')' },
       { id: 'discount', label: '折扣明细' },
-      { id: 'refund', label: '退款明细' }
+      { id: 'aftersale', label: '售后明细' }
     ];
     var panels = {};
     tabDefs.forEach(function (tab, index) {
@@ -1187,7 +1428,7 @@
       panel.setAttribute('data-doc-panel', tab.id);
       if (index !== 0) panel.hidden = true;
       if (tab.id === 'goods') {
-        var goodsPanel = buildGoodsPanel(goods, pickupMode);
+        var goodsPanel = buildGoodsPanel(goods, pickupMode, detail.aftersales);
         panel.appendChild(goodsPanel);
         panel.appendChild(buildAmounts(detail.amounts));
         if (drawer && pickupMode) {
@@ -1197,9 +1438,12 @@
           drawer._pickupRefs.pickupToolbar = goodsPanel.querySelector('.order-pickup-toolbar');
           drawer._pickupRefs.statusTag = statusTag;
           drawer._pickupRefs.stepsContainer = stepsEl;
+          drawer._pickupRefs.aftersales = detail.aftersales || [];
         }
       } else if (tab.id === 'payment') {
         panel.appendChild(buildEmptyState('暂无收款明细'));
+      } else if (tab.id === 'aftersale') {
+        panel.appendChild(buildAftersalePanel(detail.aftersales));
       } else {
         panel.appendChild(buildEmptyState('暂无' + tab.label));
       }
@@ -1380,7 +1624,8 @@
         price: cells[cellIdx.goods] ? cells[cellIdx.goods].textContent.trim() : '¥0.00',
         qty: '1',
         subtotal: cells[cellIdx.goods] ? cells[cellIdx.goods].textContent.trim() : '¥0.00',
-        marketing: marketingLabel || '普通售卖'
+        marketing: marketingLabel || '普通售卖',
+        aftersaleTag: progress.outcome === 'failed' ? '全额退款' : ''
       }],
       amounts: {
         goods: cells[cellIdx.goods] ? cells[cellIdx.goods].textContent.trim() : '¥0.00',
@@ -1392,6 +1637,17 @@
         refund: '¥0.00'
       },
       paymentCount: 1,
+      aftersales: progress.outcome === 'failed' ? [{
+        id: 'AS-fallback-1',
+        productName: productName ? productName.textContent.trim() : '商品',
+        type: '仅退款',
+        status: '已完成',
+        returnQty: 1,
+        refundAmount: cells[cellIdx.paid] ? cells[cellIdx.paid].textContent.trim() : '¥0.00',
+        refundCoupon: '¥0.00',
+        refundPoints: 0,
+        adjustAmount: '¥0.00'
+      }] : [],
       customer: {
         nickname: cells[2] ? cells[2].textContent.trim() : '-',
         phone: cells[4] ? cells[4].textContent.trim() : '-',

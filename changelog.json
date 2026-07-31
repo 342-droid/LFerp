@@ -1,12 +1,401 @@
 {
-  "latestSha": "271ef1d9cca17d398b771896e664c3857c06ece8",
-  "total": 211,
+  "latestSha": "852d44b60a812ed1070edd0fe95610c9acc390b9",
+  "total": 212,
   "days": [
+    {
+      "date": "2026-07-30",
+      "items": [
+        {
+          "sha": "852d44b",
+          "type": "feat",
+          "text": "完善补货关闭规则与可售后数量池",
+          "author": "sisi",
+          "time": "18:25",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "module": "冷丰售后",
+              "title": "退款单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-book.html",
+              "module": "",
+              "title": "地址簿 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-create.html",
+              "module": "",
+              "title": "新建寄件人地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-exchange.html",
+              "module": "",
+              "title": "换货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-only.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-edit.html",
+              "module": "",
+              "title": "修改上门取件信息 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-order.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pre-ship.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-restock.html",
+              "module": "",
+              "title": "补货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-goods.html",
+              "module": "",
+              "title": "退货商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "module": "",
+              "title": "预约寄件 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return.html",
+              "module": "",
+              "title": "退货退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-select.html",
+              "module": "",
+              "title": "选择服务类型 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "支持确认收货关闭补货；快递上传物流满10天、配送待收货满10天自动确认；门店入库/自提核销可反写关闭；自动关闭时实际补货数等于申请数"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "text": "确认收货关闭补货，支持满10天自动确认与自提全量核销反写；可退池与补货池分立限制申请"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "可售后数量用尽时隐藏发起入口"
+            },
+            {
+              "file": null,
+              "text": "同步零售/代采履约售后 PRD（补货关闭、数量池、订货单号）；去掉售后详情操作理由模块"
+            }
+          ]
+        },
+        {
+          "sha": "071e451",
+          "type": "fix",
+          "text": "订货单号文案调整并修复售后详情弹窗关闭",
+          "author": "sisi",
+          "time": "16:18",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-book.html",
+              "module": "",
+              "title": "地址簿 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-create.html",
+              "module": "",
+              "title": "新建寄件人地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-exchange.html",
+              "module": "",
+              "title": "换货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-only.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-edit.html",
+              "module": "",
+              "title": "修改上门取件信息 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-order.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pre-ship.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-restock.html",
+              "module": "",
+              "title": "补货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-goods.html",
+              "module": "",
+              "title": "退货商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "module": "",
+              "title": "预约寄件 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return.html",
+              "module": "",
+              "title": "退货退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-select.html",
+              "module": "",
+              "title": "选择服务类型 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "采购补货指令板块「采购单号」改为「订货单号」，状态「已下发采购」改为「已下发订货」"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "text": "结果页「宝贝售后详情」右上角关闭按钮可正常关闭"
+            }
+          ]
+        },
+        {
+          "sha": "4534c20",
+          "type": "feat",
+          "text": "订单支付渠道对齐并恢复补货实补数量弹窗",
+          "author": "sisi",
+          "time": "14:31",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-book.html",
+              "module": "",
+              "title": "地址簿 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-create.html",
+              "module": "",
+              "title": "新建寄件人地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-exchange.html",
+              "module": "",
+              "title": "换货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-only.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-edit.html",
+              "module": "",
+              "title": "修改上门取件信息 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-order.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pre-ship.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-restock.html",
+              "module": "",
+              "title": "补货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-goods.html",
+              "module": "",
+              "title": "退货商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "module": "",
+              "title": "预约寄件 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return.html",
+              "module": "",
+              "title": "退货退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-select.html",
+              "module": "",
+              "title": "选择服务类型 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "支付渠道筛选项与列表改为全部/微信/支付宝，已支付订单展示渠道并可筛选"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "支付渠道筛选项与列表与零售一致为全部/微信/支付宝"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "text": "补货确认收货恢复录入实际数量弹层，去掉二次确认与入库单号"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-07-29",
       "items": [
         {
-          "sha": "271ef1d",
+          "sha": "56f6f89",
+          "type": "feat",
+          "text": "零售快递补货改为后台上传物流",
+          "author": "sisi",
+          "time": "16:46",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "零售快递补货说明改为供应商寄回后由后台上传物流；待收货支持上传物流单号，不再模拟供应商回传"
+            }
+          ]
+        },
+        {
+          "sha": "4bf6c03",
+          "type": "feat",
+          "text": "补货场景区分采购指令与供应商直连补货",
+          "author": "sisi",
+          "time": "12:56",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "采购补货指令「指令单号」改为「采购单号」；代采快递/配送与零售自提展示采购补货指令，零售快递绕过仓储直连供应商补货且不展示该指令"
+            }
+          ]
+        },
+        {
+          "sha": "19e625b",
           "type": "fix",
           "text": "更新日志入口移至左侧菜单底部",
           "author": "weekwood",
@@ -21,7 +410,7 @@
           ]
         },
         {
-          "sha": "a449b88",
+          "sha": "bf36311",
           "type": "feat",
           "text": "完善商城类目标签商品与订单平台售后能力",
           "author": "sisi",
@@ -341,7 +730,7 @@
           "notes": [
             {
               "file": "MDM/mdm_product_mall_category.html",
-              "text": "按原图还原扁平列表与 80×80 圆形图；新增编辑上下架删除；有绑定商品时禁止下架删除"
+              "text": "按原图还原扁平列表与 80×80 圆形图；支持编辑、上下架、删除，有绑定商品时禁止下架删除"
             },
             {
               "file": "MDM/mdm_product_mall_tag.html",
@@ -349,27 +738,63 @@
             },
             {
               "file": "MDM/mdm_product_mall.html",
-              "text": "商城商品: 商品列表按代采交互还原，履约方式为快递/自提"
-            },
-            {
-              "file": "user-app/h5/mall.html",
-              "text": "商城商品: 商品列表按代采交互还原，履约方式为快递/自提"
+              "text": "商城商品列表按代采交互还原，履约方式为快递/自提"
             },
             {
               "file": "MDM/mdm_order_retail.html",
-              "text": "按履约×状态支持取消订单与平台发起售后抽屉（仅退款/退货退款/补货）"
+              "text": "按履约×状态支持取消订单；右侧抽屉支持平台发起售后（仅退款/退货退款/补货，含原因与凭证）"
             },
             {
               "file": "MDM/mdm_order_proxy.html",
-              "text": "同步接入取消订单与平台退款"
+              "text": "同步接入取消订单与平台退款抽屉"
             },
             {
               "file": "MDM/mdm_aftersale_ticket.html",
-              "text": "售后原因按类型对齐用户 APP，并完善详情处理"
+              "text": "筛选「售后原因」随售后类型联动，选项与用户 APP 一致"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "原因字段按类型显示退款/补货/换货原因；补齐自提退货与换货流转；物流单号统一校验"
             },
             {
               "file": "MDM/mdm_archive_supplier.html",
-              "text": "列表与表单支持简称，APP 展示优先用简称"
+              "text": "列表与表单支持简称"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "text": "供应商名优先展示简称"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "text": "商品卡与详情供应商名优先展示简称"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "text": "分组供应商名优先展示简称"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "text": "结算供应商名优先展示简称"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "text": "列表供应商名优先展示简称"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "供应商名优先展示简称"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "text": "供应商名优先展示简称"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "text": "退货物流单号接入统一校验"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "确认物流弹窗的物流单号接入统一校验"
             },
             {
               "file": null,
@@ -2536,14 +2961,6 @@
               "text": "common.js 复用更新日志入口的 fetch，最近 7 天改过的页面在侧边栏挂「新」角标"
             }
           ]
-        },
-        {
-          "sha": "5e34987",
-          "type": "docs",
-          "text": "更新日志页面级视图+侧边栏角标设计 spec",
-          "author": "weekwood",
-          "time": "23:23",
-          "pages": []
         },
         {
           "sha": "81ee1d4",
@@ -10676,20 +11093,6 @@
           ]
         },
         {
-          "sha": "4375fa0",
-          "type": "feat",
-          "text": "新增合并到main时中文变更说明规则",
-          "author": "342-droid",
-          "time": "11:24",
-          "pages": [],
-          "notes": [
-            {
-              "file": null,
-              "text": "在项目 skill 中补充强制规范，要求分支合并到 main 后必须用中文说明本次合并的修改内容，避免仅反馈已合并状态"
-            }
-          ]
-        },
-        {
           "sha": "78b2ce8",
           "type": "other",
           "text": "fix(mdm-onboarding): 调整进件审核列表与详情文案",
@@ -11522,14 +11925,6 @@
           "global": true
         },
         {
-          "sha": "16f6918",
-          "type": "chore",
-          "text": "整理 skills 目录（合并根 SKILL，移除 prd-skill 与 WMS 子技能）",
-          "author": "342-droid",
-          "time": "16:37",
-          "pages": []
-        },
-        {
           "sha": "5cbe023",
           "type": "other",
           "text": "Ignore docs/ and stop tracking markdown flow docs",
@@ -11669,24 +12064,6 @@
             {
               "file": null,
               "text": "gitignore) from earlier iterations."
-            }
-          ]
-        },
-        {
-          "sha": "1dca2ac",
-          "type": "docs",
-          "text": "增加 Git 提交规范与 prepare-commit-msg 钩子",
-          "author": "342-droid",
-          "time": "11:19",
-          "pages": [],
-          "notes": [
-            {
-              "file": null,
-              "text": ".githooks/prepare-commit-msg：非合并提交时在提交信息末尾追加 git diff --cached --stat"
-            },
-            {
-              "file": null,
-              "text": "合并提交跳过"
             }
           ]
         },

@@ -15,7 +15,8 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 const GLOBAL_REF_THRESHOLD = 20;
-const SKIP_DIRS = new Set(['vendor', 'node_modules', '.git', '.github']);
+/** 不扫业务页面：vendor 等依赖；docs 为文档区，不进更新日志主列表 */
+const SKIP_DIRS = new Set(['vendor', 'node_modules', '.git', '.github', 'docs']);
 
 /* ---------- 页面清单、标题、资源反向索引 ---------- */
 
@@ -29,6 +30,18 @@ function walkHtml(dir, prefix, out) {
         else if (name.endsWith('.html')) out.push(rel);
     }
     return out;
+}
+
+/** 纯文档提交：不进更新日志（文档仍进 git，只是列表不展示） */
+function isDocsOnlyCommit(files) {
+    if (!files.length) return false;
+    return files.every((f) =>
+        f === 'docs' ||
+        f.startsWith('docs/') ||
+        f.endsWith('.md') ||
+        f.startsWith('prd-skill/') ||
+        f.startsWith('.cursor/')
+    );
 }
 
 /** 从 <title>模块 - 页面名</title> 拆出显示名；拆不出时回退文件名 */
@@ -191,7 +204,11 @@ const RECORD = '\x1e';
 const BODY_END = '\x02';
 const raw = execFileSync(
     'git',
-    ['log', '--no-merges', '--name-only', `--pretty=format:${RECORD}%H${SEP}%an${SEP}%aI${SEP}%s${SEP}%b${BODY_END}`],
+    [
+        '-c', 'core.quotepath=false',
+        'log', '--no-merges', '--name-only',
+        `--pretty=format:${RECORD}%H${SEP}%an${SEP}%aI${SEP}%s${SEP}%b${BODY_END}`
+    ],
     { cwd: repoRoot, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }
 );
 
@@ -224,11 +241,14 @@ for (const record of raw.split(RECORD)) {
     if (SKIP_AUTHORS.test(author) || SKIP_SUBJECTS.test(subject)) continue;
 
     const files = record.slice(bodyEnd + 1).split('\n').map((l) => l.trim()).filter(Boolean);
+    if (isDocsOnlyCommit(files)) continue; // 文档保留在仓库，但不出现在更新列表
     const m = subject.match(TYPE_RE);
     const type = m ? m[1].toLowerCase() : 'other';
     const text = m ? m[2].trim() : subject.trim();
     const { date, time } = beijingParts(isoDate);
     const { pages, global } = mapFilesToPages(files);
+    // docs 类型且无业务页面：不进列表（文档仍在 git）
+    if (!pages.length && !global && type === 'docs') continue;
 
     if (!latestSha) latestSha = sha;
     if (!dayMap.has(date)) dayMap.set(date, []);
