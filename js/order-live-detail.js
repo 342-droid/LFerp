@@ -1169,6 +1169,90 @@
     return Math.min(val, remaining);
   }
 
+  function closeDetailVerifyConfirm() {
+    var backdrop = document.getElementById('orderVerifyConfirmBackdrop');
+    if (backdrop) backdrop.remove();
+    if (!document.getElementById('orderDetailBackdrop')) {
+      document.body.style.overflow = '';
+    } else {
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  /** 详情内核销：存在进行中退款售后时弹出与列表一致的确认窗 */
+  function showDetailRefundVerifyConfirm(onConfirm) {
+    if (window.OrderVerifyUI && typeof window.OrderVerifyUI.showConfirm === 'function') {
+      window.OrderVerifyUI.showConfirm('', onConfirm, { variant: 'refund' });
+      return;
+    }
+    closeDetailVerifyConfirm();
+    var backdrop = document.createElement('div');
+    backdrop.className = 'order-verify-confirm-backdrop';
+    backdrop.id = 'orderVerifyConfirmBackdrop';
+    backdrop.innerHTML =
+      '<div class="order-verify-confirm order-verify-confirm--refund" role="dialog" aria-labelledby="orderVerifyConfirmTitle">' +
+        '<h3 id="orderVerifyConfirmTitle" class="order-verify-confirm__title">确认核销</h3>' +
+        '<p class="order-verify-confirm__message">当前商品存在退款申请，核销后将关闭退款，是否已与客户确认？</p>' +
+        '<div class="order-verify-confirm__actions">' +
+          '<button type="button" class="order-detail-btn order-detail-btn--ghost js-order-verify-cancel">取消</button>' +
+          '<button type="button" class="order-detail-btn order-detail-btn--primary js-order-verify-ok">确认核销</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(backdrop);
+    document.body.style.overflow = 'hidden';
+    backdrop.addEventListener('click', function (e) {
+      if (e.target === backdrop) closeDetailVerifyConfirm();
+    });
+    backdrop.querySelector('.js-order-verify-cancel').addEventListener('click', closeDetailVerifyConfirm);
+    backdrop.querySelector('.js-order-verify-ok').addEventListener('click', function () {
+      closeDetailVerifyConfirm();
+      onConfirm();
+    });
+  }
+
+  /**
+   * 详情核销 / 批量核销：有进行中仅退款、退货退款时二次确认，确认后关闭售后再核销
+   */
+  function guardPickupVerify(drawer, pickups, options) {
+    options = options || {};
+    if (!drawer || !pickups || !pickups.length) return;
+    var orderId = drawer._orderId;
+    var hasOpen = hasOpenRefundAftersale(orderId, drawer._sourceRow);
+
+    function proceed() {
+      var closed = [];
+      if (hasOpen) {
+        closed = closeOpenRefundAftersalesOnVerify(orderId);
+        if (drawer._pickupRefs && DETAILS[orderId]) {
+          drawer._pickupRefs.aftersales = (DETAILS[orderId].aftersales || []).slice();
+        }
+        if (closed.length && drawer._pickupState && DETAILS[orderId] && DETAILS[orderId].logs) {
+          var closeLog = DETAILS[orderId].logs[0];
+          if (closeLog && closeLog.type === 'aftersale_close') {
+            drawer._pickupState.logs.unshift(Object.assign({}, closeLog));
+          }
+          // 同步商品标签（去掉退款中）
+          if (DETAILS[orderId].goods) {
+            drawer._pickupState.goods.forEach(function (g) {
+              var src = DETAILS[orderId].goods.find(function (x) {
+                return x.id === g.id || x.name === g.name;
+              });
+              if (src && src.aftersaleTag !== '退款中') delete g.aftersaleTag;
+              else if (g.aftersaleTag === '退款中') delete g.aftersaleTag;
+            });
+          }
+        }
+      }
+      performPickup(drawer, pickups, Object.assign({}, options, { closedAftersales: closed }));
+    }
+
+    if (hasOpen) {
+      showDetailRefundVerifyConfirm(proceed);
+    } else {
+      proceed();
+    }
+  }
+
   function performPickup(drawer, pickups, options) {
     options = options || {};
     var state = drawer._pickupState;
@@ -1224,9 +1308,22 @@
       }
     }
 
+    // 同步回 DETAILS，保证再次打开抽屉数据一致
+    if (drawer._orderId && DETAILS[drawer._orderId]) {
+      DETAILS[drawer._orderId].goods = state.goods.map(function (g) {
+        return Object.assign({}, g);
+      });
+      DETAILS[drawer._orderId].logs = state.logs.slice();
+      DETAILS[drawer._orderId].progress = Object.assign({}, state.progress);
+    }
+
     refreshPickupDrawer(drawer);
     if (typeof showToast === 'function') {
+      var closedCount = options.closedAftersales ? options.closedAftersales.length : 0;
       var msg = progress.outcome === 'success' ? '全部商品已核销，订单已完成' : '核销成功';
+      if (closedCount > 0) {
+        msg += '，已自动关闭 ' + closedCount + ' 笔退款售后（订单核销，自动关闭）';
+      }
       showToast(msg, 'success');
     }
   }
@@ -1312,7 +1409,7 @@
       if (lineBtn) {
         var goodId = lineBtn.getAttribute('data-good-id');
         var tr = lineBtn.closest('tr');
-        performPickup(drawer, [{ id: goodId, qty: getRowPickupQty(tr) }]);
+        guardPickupVerify(drawer, [{ id: goodId, qty: getRowPickupQty(tr) }]);
         return;
       }
 
@@ -1329,7 +1426,7 @@
           if (typeof showToast === 'function') showToast('请先选择待核销商品', 'warning');
           return;
         }
-        performPickup(drawer, pickups, { batch: true });
+        guardPickupVerify(drawer, pickups, { batch: true });
         return;
       }
 

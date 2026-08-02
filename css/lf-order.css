@@ -558,10 +558,11 @@ body[data-order-page="retail"] .order-live-table__action:hover {
   text-decoration: underline;
 }
 
+/* 须高于订单详情抽屉（store-drawer 2050/2060），避免详情内核销弹窗被遮住 */
 .order-verify-confirm-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1200;
+  z-index: 2200;
   display: flex;
   align-items: center;
   justify-content: center;

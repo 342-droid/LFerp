@@ -144,6 +144,12 @@
     });
   }
 
+  /** 供订单详情抽屉核销复用同一套确认弹窗 */
+  window.OrderVerifyUI = {
+    showConfirm: showOrderVerifyConfirm,
+    close: closeOrderVerifyConfirm
+  };
+
   function updateRowAfterVerify(row) {
     var statusCell = row.querySelector('td:nth-last-child(2) .order-tag');
     if (statusCell) {
