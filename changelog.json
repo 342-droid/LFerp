@@ -1,7 +1,51 @@
 {
-  "latestSha": "247f643d14db40e30c6b03ae5e3a1e193ca888e6",
-  "total": 214,
+  "latestSha": "91fd4f555df02d009a3b0fab1190da465091512f",
+  "total": 215,
   "days": [
+    {
+      "date": "2026-08-02",
+      "items": [
+        {
+          "sha": "91fd4f5",
+          "type": "feat",
+          "text": "订单详情核销对齐退款二次确认并抬高弹层",
+          "author": "sisi",
+          "time": "23:53",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "module": "冷丰WMS",
+              "title": "排队记录"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "详情行核销与批量核销遇进行中退款时弹出与列表一致的确认框；确认后关闭售后再核销"
+            },
+            {
+              "file": null,
+              "text": "核销确认弹层抬高，避免被订单详情抽屉遮挡；本地订单售后展示 PRD 不入库"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-07-31",
       "items": [
