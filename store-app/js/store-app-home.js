@@ -20,6 +20,10 @@
     window.location.href = '../../user-app/h5/restock.html?from=store-app';
   }
 
+  function goWallet() {
+    window.location.href = '../../user-app/h5/store-wallet.html?from=store-app';
+  }
+
   function goVerify(mode) {
     var qs = [];
     if (mode) qs.push('mode=' + encodeURIComponent(mode));
@@ -32,6 +36,10 @@
         var action = btn.getAttribute('data-sa-action');
         if (action === 'restock') {
           goRestock();
+          return;
+        }
+        if (action === 'wallet') {
+          goWallet();
           return;
         }
         /* 核销入口：仅原订单核销（补货随原订单提货，不单独建补货单） */

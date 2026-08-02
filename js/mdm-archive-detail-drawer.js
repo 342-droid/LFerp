@@ -1548,6 +1548,138 @@
         return root;
     }
 
+    /** 门店档案 · 账户信息 + 台账明细（替换原分佣明细） */
+    function panelStoreAccount(store) {
+        var root = el('div', 'supplier-detail-tab');
+        var snap =
+            window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function'
+                ? window.StoreWalletDemo.snapshot()
+                : null;
+        var money =
+            window.StoreWalletDemo && typeof window.StoreWalletDemo.money === 'function'
+                ? window.StoreWalletDemo.money
+                : function (n) {
+                      return '¥' + Number(n || 0).toFixed(2);
+                  };
+
+        var depositActual = snap ? snap.depositActual : 2000;
+        var depositRequired = snap ? snap.depositRequired : 2000;
+        var depositGap = snap ? snap.depositGap : 0;
+        var available = snap ? snap.available : 0;
+        var goodsQuota = snap ? snap.goodsQuota : 0;
+        var withdrawable = snap ? snap.withdrawable : 0;
+        var pending = snap ? snap.pending : 0;
+        var commissionTotal = snap ? snap.commissionTotal : 0;
+        var merchantNo = snap ? snap.merchantNo : '—';
+        var payStatus = snap ? snap.balancePayStatus : '—';
+        var rule =
+            snap && snap.ruleSnapshot
+                ? 'D=' + snap.ruleSnapshot.D + ' / L=' + snap.ruleSnapshot.L + ' · ' + snap.ruleSnapshot.version
+                : 'D=2000 / L=8000';
+
+        root.appendChild(
+            summaryBar([
+                '余额可用：' + money(available),
+                '保证金：' + money(depositActual) + (depositGap > 0 ? '（缺口 ' + money(depositGap) + '）' : ''),
+                '可提现：' + money(withdrawable),
+                '累计佣金入账：' + money(commissionTotal)
+            ])
+        );
+
+        root.appendChild(sectionTitle('账户信息'));
+        var grid = el('div', 'supplier-detail-grid');
+        [
+            ['门店名称', (store && store.name) || (snap && snap.storeName) || '—'],
+            ['汇付商户号', merchantNo],
+            ['余额支付开通', payStatus],
+            ['资金规则快照', rule],
+            ['保证金应保有', money(depositRequired)],
+            ['保证金实有', money(depositActual)],
+            ['保证金缺口', depositGap > 0 ? money(depositGap) : '无'],
+            ['余额可用（可支付）', money(available)],
+            ['不可提现货款水位', money(goodsQuota)],
+            ['可提现（佣金/充值）', money(withdrawable)],
+            ['处理中金额', money(pending)]
+        ].forEach(function (pair) {
+            grid.appendChild(detailCell(pair[0], pair[1]));
+        });
+        root.appendChild(grid);
+
+        root.appendChild(sectionTitle('台账明细'));
+        var filterBar = el('div', 'erp-toolbar');
+        var typeGrp = el('div', 'modal-form-group');
+        typeGrp.style.marginBottom = '0';
+        typeGrp.appendChild(el('label', '', '类型'));
+        var typeInput = el('input', 'erp-input');
+        typeInput.type = 'text';
+        typeInput.placeholder = '如：佣金入账';
+        typeInput.style.minWidth = '140px';
+        typeGrp.appendChild(typeInput);
+        var bizGrp = el('div', 'modal-form-group');
+        bizGrp.style.marginBottom = '0';
+        bizGrp.appendChild(el('label', '', '业务单号'));
+        var bizInput = el('input', 'erp-input');
+        bizInput.type = 'text';
+        bizInput.placeholder = '业务单号';
+        bizInput.style.minWidth = '160px';
+        bizGrp.appendChild(bizInput);
+        var searchBtn = mkBtn('查询', true);
+        var resetBtn = mkBtn('重置', false);
+        filterBar.appendChild(typeGrp);
+        filterBar.appendChild(bizGrp);
+        filterBar.appendChild(searchBtn);
+        filterBar.appendChild(resetBtn);
+        root.appendChild(filterBar);
+
+        var tableHost = el('div', 'store-wallet-ledger-host');
+        root.appendChild(tableHost);
+        var emptyHost = el('div');
+        root.appendChild(emptyHost);
+
+        function renderLedgerTable() {
+            empty(tableHost);
+            empty(emptyHost);
+            var typeKw = (typeInput.value || '').trim();
+            var bizKw = (bizInput.value || '').trim();
+            var ledgers = snap && snap.ledgers ? snap.ledgers : [];
+            var filtered = ledgers.filter(function (item) {
+                if (typeKw && String(item.type || '').indexOf(typeKw) < 0) return false;
+                if (bizKw && String(item.bizNo || '').indexOf(bizKw) < 0) return false;
+                return true;
+            });
+            var rows = filtered.map(function (item) {
+                var dirLabel = item.dir === 'in' ? '收入' : item.dir === 'out' ? '支出' : '锁定';
+                var sign = item.dir === 'in' ? '+' : item.dir === 'out' ? '-' : '';
+                return [
+                    item.time,
+                    item.type,
+                    dirLabel,
+                    sign + money(item.amount),
+                    item.account,
+                    item.bizNo || '—',
+                    item.channelNo || '—',
+                    item.remark || '—'
+                ];
+            });
+            tableHost.appendChild(
+                dataTable(
+                    ['时间', '类型', '方向', '金额', '账户', '业务单号', '渠道流水', '说明'],
+                    rows
+                )
+            );
+            if (!rows.length) emptyHost.appendChild(emptyNote('暂无台账'));
+        }
+
+        searchBtn.addEventListener('click', renderLedgerTable);
+        resetBtn.addEventListener('click', function () {
+            typeInput.value = '';
+            bizInput.value = '';
+            renderLedgerTable();
+        });
+        renderLedgerTable();
+        return root;
+    }
+
     function panelCommProdPerf(kind) {
         var root = el('div', 'supplier-detail-tab');
         if (kind === 'comm') {
@@ -1790,12 +1922,12 @@
             metaLines: ['门店ID：' + store.storeId + ' · 所属组织：' + store.orgId],
             wideClass: 'store-drawer--store-wide',
             tabIds: ['base', 'onboard', 'cust', 'comm', 'prod', 'perf', 'orderCfg'],
-            tabLabels: ['基础信息', '进件信息', '绑定客户', '分佣明细', '商品统计', '业绩报表', '订单配置'],
+            tabLabels: ['基础信息', '进件信息', '绑定客户', '账户信息', '商品统计', '业绩报表', '订单配置'],
             bodies: {
                 base: panelStoreBase(store),
                 onboard: panelStoreOnboarding(store),
                 cust: panelStoreCustomers(),
-                comm: panelCommProdPerf('comm'),
+                comm: panelStoreAccount(store),
                 prod: panelCommProdPerf('prod'),
                 perf: panelCommProdPerf('perf'),
                 orderCfg: panelStoreOrderConfig(store)

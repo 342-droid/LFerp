@@ -49,6 +49,10 @@
   var state = null;
   var payPwd = '';
   var couponTab = 'available';
+  var payState = {
+    useBalance: true,
+    channel: 'wechat'
+  };
 
   function formatMoney(num) {
     return '¥' + num.toFixed(2);
@@ -421,6 +425,76 @@
     return Math.max(0, goods + freight - coupon - points - activity);
   }
 
+  function getWalletAvailable() {
+    if (window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function') {
+      return window.StoreWalletDemo.snapshot().available || 0;
+    }
+    return 0;
+  }
+
+  /** 混合支付拆腿：余额腿 B + 收单腿 A = 应付 P */
+  function getPayLegs() {
+    var payable = getPayable();
+    var available = getWalletAvailable();
+    var useBalance = !!payState.useBalance;
+    var balanceLeg = useBalance ? Math.min(available, payable) : 0;
+    balanceLeg = Math.round(balanceLeg * 100) / 100;
+    var channelLeg = Math.round((payable - balanceLeg) * 100) / 100;
+    return {
+      payable: payable,
+      available: available,
+      balanceLeg: balanceLeg,
+      channelLeg: channelLeg,
+      channel: payState.channel || 'wechat',
+      needChannel: channelLeg > 0.001,
+      balanceOnly: balanceLeg > 0 && channelLeg <= 0.001
+    };
+  }
+
+  function channelLabel(channel) {
+    return channel === 'alipay' ? '支付宝' : '微信支付';
+  }
+
+  function renderPayWays() {
+    var legs = getPayLegs();
+    var hint = document.getElementById('checkoutWalletHint');
+    if (hint) hint.textContent = '可用 ' + formatMoney(legs.available);
+    var useBalanceEl = document.getElementById('checkoutUseBalance');
+    if (useBalanceEl) useBalanceEl.checked = !!payState.useBalance;
+
+    var split = document.getElementById('checkoutPaySplit');
+    if (split) {
+      var showSplit = payState.useBalance && (legs.balanceLeg > 0 || legs.channelLeg > 0);
+      split.hidden = !showSplit;
+      setText('checkoutBalanceLeg', formatMoney(legs.balanceLeg));
+      setText('checkoutChannelLeg', formatMoney(legs.channelLeg));
+    }
+
+    var channelBlock = document.getElementById('checkoutChannelBlock');
+    if (channelBlock) {
+      /* 余额独力付清时收起渠道；否则展示微信/支付宝补差 */
+      channelBlock.hidden = !!(payState.useBalance && legs.balanceOnly);
+    }
+
+    var tip = document.getElementById('checkoutPayTip');
+    if (tip) {
+      if (!payState.useBalance) {
+        tip.textContent = '将使用' + channelLabel(legs.channel) + '支付全部应付金额';
+      } else if (legs.balanceOnly) {
+        tip.textContent = '余额充足，将全部使用钱包余额支付';
+      } else if (legs.balanceLeg <= 0) {
+        tip.textContent = '余额为 0，将使用' + channelLabel(legs.channel) + '支付';
+      } else {
+        tip.textContent =
+          '余额不足，将用' + channelLabel(legs.channel) + '补足 ' + formatMoney(legs.channelLeg);
+      }
+    }
+
+    document.querySelectorAll('input[name="checkoutChannel"]').forEach(function (radio) {
+      radio.checked = radio.value === payState.channel;
+    });
+  }
+
   function autoSelectCoupon() {
     var goods = getGoodsSubtotal();
     var best = null;
@@ -660,6 +734,7 @@
     if (pointsToggle) pointsToggle.checked = !!state.pointsEnabled;
 
     renderInvoiceText();
+    renderPayWays();
   }
 
   function setText(id, text) {
@@ -911,7 +986,53 @@
   function openPaySheet() {
     payPwd = '';
     updatePayPwdDisplay();
-    setText('checkoutPayAmount', formatMoney(getPayable()));
+    var legs = getPayLegs();
+    setText('checkoutPayAmount', formatMoney(legs.payable));
+
+    var methodText = document.getElementById('checkoutPayMethodText');
+    var methodWrap = document.getElementById('checkoutPayMethod');
+    if (methodText && methodWrap) {
+      if (legs.balanceOnly) {
+        methodText.textContent = '钱包余额支付';
+        methodWrap.querySelector('svg') &&
+          (methodWrap.querySelector('svg').outerHTML =
+            '<svg viewBox="0 0 24 24" fill="#FF7A00"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18" stroke="#fff" stroke-width="1.2"/><circle cx="16.5" cy="14.5" r="1.2" fill="#fff"/></svg>');
+      } else if (legs.balanceLeg > 0) {
+        methodText.textContent = '余额 + ' + channelLabel(legs.channel);
+        methodWrap.querySelector('svg') &&
+          (methodWrap.querySelector('svg').outerHTML =
+            '<svg viewBox="0 0 24 24" fill="#FF7A00"><circle cx="12" cy="12" r="11"/></svg>');
+      } else {
+        methodText.textContent = channelLabel(legs.channel);
+        if (legs.channel === 'alipay') {
+          methodWrap.querySelector('svg') &&
+            (methodWrap.querySelector('svg').outerHTML =
+              '<svg viewBox="0 0 24 24" fill="#1677FF"><circle cx="12" cy="12" r="11"/><text x="12" y="16" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">支</text></svg>');
+        } else {
+          methodWrap.querySelector('svg') &&
+            (methodWrap.querySelector('svg').outerHTML =
+              '<svg viewBox="0 0 24 24" fill="#09BB07"><circle cx="12" cy="12" r="11"/><path d="M8 10c1.5 2 3 3 4 3s2.5-1 4-3" stroke="#fff" stroke-width="1.5" fill="none"/></svg>');
+        }
+      }
+    }
+
+    var sheetSplit = document.getElementById('checkoutPaySheetSplit');
+    if (sheetSplit) {
+      if (legs.balanceLeg > 0 && legs.channelLeg > 0) {
+        sheetSplit.hidden = false;
+        sheetSplit.innerHTML =
+          '<div>余额 ' +
+          formatMoney(legs.balanceLeg) +
+          '</div><div>' +
+          channelLabel(legs.channel) +
+          ' ' +
+          formatMoney(legs.channelLeg) +
+          '</div>';
+      } else {
+        sheetSplit.hidden = true;
+        sheetSplit.innerHTML = '';
+      }
+    }
     openSheet('pay');
   }
 
@@ -934,12 +1055,21 @@
       window.setTimeout(function () {
         closeSheet('pay');
         var success = payPwd !== '000000';
-        showResult(success);
+        var paidLegs = getPayLegs();
+        if (
+          success &&
+          paidLegs.balanceLeg > 0 &&
+          window.StoreWalletDemo &&
+          typeof window.StoreWalletDemo.applyRestockPay === 'function'
+        ) {
+          window.StoreWalletDemo.applyRestockPay(paidLegs.balanceLeg);
+        }
+        showResult(success, paidLegs);
       }, 300);
     }
   }
 
-  function showResult(success) {
+  function showResult(success, paidLegs) {
     var el = document.getElementById('checkoutResult');
     var body = document.getElementById('checkoutResultBody');
     if (!el || !body) return;
@@ -949,12 +1079,27 @@
     el.hidden = false;
 
     if (success) {
+      var legs = paidLegs || getPayLegs();
+      var payDesc =
+        legs.balanceLeg > 0 && legs.channelLeg > 0
+          ? '余额 ' +
+            formatMoney(legs.balanceLeg) +
+            ' + ' +
+            channelLabel(legs.channel) +
+            ' ' +
+            formatMoney(legs.channelLeg)
+          : legs.balanceOnly
+            ? '钱包余额支付'
+            : channelLabel(legs.channel);
       body.innerHTML =
         '<div class="ua-co-result__icon ua-co-result__icon--success">' +
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg></div>' +
         '<div class="ua-co-result__title">支付成功</div>' +
         '<div class="ua-co-result__amount">' +
-        formatMoney(getPayable()) +
+        formatMoney(legs.payable) +
+        '</div>' +
+        '<div class="ua-co-result__sub">' +
+        payDesc +
         '</div>' +
         '<div class="ua-co-result__actions">' +
         '<button type="button" class="ua-co-result__btn" id="checkoutResultOrders">查看订单</button>' +
@@ -1023,6 +1168,16 @@
   }
 
   function validateBeforeSubmit() {
+    var legs = getPayLegs();
+    if (!payState.useBalance && legs.payable > 0) return true;
+    if (payState.useBalance && legs.available <= 0 && legs.payable > 0) {
+      /* 余额为 0 仍可用渠道付全款 */
+      return true;
+    }
+    if (legs.payable > 0 && legs.balanceLeg <= 0 && !legs.needChannel && payState.useBalance) {
+      window.alert('请选择微信或支付宝支付');
+      return false;
+    }
     return true;
   }
 
@@ -1127,6 +1282,21 @@
         if (!validateBeforeSubmit()) return;
         openPaySheet();
       });
+
+    document.getElementById('checkoutUseBalance') &&
+      document.getElementById('checkoutUseBalance').addEventListener('change', function (e) {
+        payState.useBalance = !!e.target.checked;
+        renderPayWays();
+      });
+
+    document.querySelectorAll('input[name="checkoutChannel"]').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        if (radio.checked) {
+          payState.channel = radio.value;
+          renderPayWays();
+        }
+      });
+    });
 
     var params = new URLSearchParams(window.location.search);
     var back = document.getElementById('checkoutBack');
