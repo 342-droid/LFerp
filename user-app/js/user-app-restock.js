@@ -77,7 +77,7 @@
     share: '分享APP',
     coupons: '优惠券',
     balance: '余额',
-    topup: '需补金额',
+    topup: '保证金缺口',
     wallet: '我的钱包'
   };
 
@@ -94,6 +94,11 @@
     return false;
   }
 
+  function goStoreWallet() {
+    var from = fromStoreApp ? 'store-app' : 'restock.html';
+    window.location.href = 'store-wallet.html?from=' + encodeURIComponent(from);
+  }
+
   function handleMeAction(action) {
     var label = ME_ACTION_LABELS[action] || action;
     if (action === 'share') {
@@ -105,6 +110,10 @@
       return;
     }
     if (!requireLoginForMe(label)) return;
+    if (action === 'wallet' || action === 'balance' || action === 'topup' || action === 'bill') {
+      goStoreWallet();
+      return;
+    }
     if (action === 'returns') {
       window.location.href = 'order-aftersale-list.html?from=restock.html';
       return;
@@ -2051,12 +2060,16 @@
       if (nameEl) nameEl.textContent = s.nickname || '会员用户';
       if (phoneEl) phoneEl.textContent = s.phoneMasked || s.phone || '';
       if (couponsEl) couponsEl.textContent = String(s.couponCount != null ? s.couponCount : 0) + '张';
+      var walletSnap =
+        window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function'
+          ? window.StoreWalletDemo.snapshot()
+          : null;
       if (balanceEl) {
-        var bal = s.balance != null ? s.balance : 0;
+        var bal = walletSnap ? walletSnap.available : s.balance != null ? s.balance : 0;
         balanceEl.textContent = (typeof bal === 'number' ? bal.toFixed(2) : bal) + '元';
       }
       if (topupEl) {
-        var top = s.topupAmount != null ? s.topupAmount : 0;
+        var top = walletSnap ? walletSnap.depositGap : s.topupAmount != null ? s.topupAmount : 0;
         topupEl.textContent = (typeof top === 'number' ? top.toFixed(2) : top) + '元';
       }
     } else {

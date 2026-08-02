@@ -61,6 +61,122 @@
   overflow: hidden;
 }
 
+/* 混合支付方式 */
+.ua-co-payways {
+  padding: 12px 12px 10px;
+}
+
+.ua-co-payways__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.ua-co-payway {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f5f5f5;
+  cursor: pointer;
+}
+
+.ua-co-payway--radio {
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.ua-co-payway-channels .ua-co-payway:last-child {
+  border-bottom: none;
+}
+
+.ua-co-payway__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ua-co-payways__sub {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #999;
+}
+
+.ua-co-payway__left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ua-co-payway__icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ua-co-payway__icon--wx {
+  background: #09bb07;
+}
+
+.ua-co-payway__icon--ali {
+  background: #1677ff;
+}
+
+.ua-co-payway__name {
+  font-size: 14px;
+  color: #222;
+  font-weight: 500;
+}
+
+.ua-co-payway__hint {
+  font-size: 12px;
+  color: #999;
+}
+
+.ua-co-payway input {
+  width: 18px;
+  height: 18px;
+  accent-color: #ff7a00;
+}
+
+.ua-co-payway-split {
+  margin: 4px 0 8px;
+  padding: 8px 10px;
+  background: #fff7f0;
+  border-radius: 8px;
+}
+
+.ua-co-payway-split__row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #666;
+  line-height: 1.8;
+}
+
+.ua-co-payway-split__row strong {
+  color: #ff7a00;
+  font-weight: 600;
+}
+
+.ua-co-payways__tip {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.ua-co-pay__split {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin: -8px 0 16px;
+  font-size: 12px;
+  color: #666;
+}
+
 /* 配送门店 */
 .ua-co-store {
   display: flex;
