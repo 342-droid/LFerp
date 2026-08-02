@@ -1,7 +1,80 @@
 {
-  "latestSha": "91fd4f555df02d009a3b0fab1190da465091512f",
-  "total": 215,
+  "latestSha": "96761c9d35b021d8667a39ac788f9016fac9d03e",
+  "total": 216,
   "days": [
+    {
+      "date": "2026-08-03",
+      "items": [
+        {
+          "sha": "96761c9",
+          "type": "feat",
+          "text": "门店钱包双账户与进货混合支付原型",
+          "author": "sisi",
+          "time": "00:23",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "module": "",
+              "title": "门店钱包 · 门店 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "text": "新增保证金/余额账户页与资金台账；store-app与进货「我的」可进入"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "text": "支持余额与微信/支付宝混合结算，余额不足渠道补差"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "「分佣明细」改为账户信息与台账明细，口径与门店端一致"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-02",
       "items": [
