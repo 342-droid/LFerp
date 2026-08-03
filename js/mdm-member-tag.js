@@ -419,9 +419,9 @@
                 '<td>' + escapeHtml(item.createdAt) + '</td>' +
                 '<td><span class="status ' + statusClass + '">' + escapeHtml(item.status) + '</span></td>' +
                 '<td class="action-links">' +
-                '<a href="#" data-action="edit">编辑</a>　' +
-                '<a href="#" data-action="toggle">' + toggleText + '</a>　' +
-                '<a href="#" data-action="delete">删除</a>　' +
+                '<a href="#" data-action="edit">编辑</a>' +
+                '<a href="#" data-action="toggle">' + toggleText + '</a>' +
+                '<a href="#" data-action="delete">删除</a>' +
                 '<a href="#" data-action="users">查看关联用户</a>' +
                 '</td>' +
                 '</tr>'

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C 端订单 UAT 全流程 · 预览</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'neutral',
+    securityLevel: 'loose',
+    flowchart: { htmlLabels: true, curve: 'basis' },
+    sequence: { actorMargin: 24 }
+  });
+</script>
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --card: #fff;
+    --text: #2c2c2a;
+    --muted: #5f5e5a;
+    --line: #e6e4dd;
+    --accent: #185fa5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 22px; font-weight: 600; margin: 0 0 8px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
+  .sub a { color: var(--accent); }
+  nav {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid var(--line);
+  }
+  nav a {
+    font-size: 12px; color: var(--accent); text-decoration: none;
+    padding: 4px 10px; background: #e6f1fb; border-radius: 4px;
+  }
+  section {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px 20px 8px;
+    margin-bottom: 20px;
+  }
+  section h2 {
+    font-size: 16px; font-weight: 600; margin: 0 0 6px;
+  }
+  section p.desc {
+    font-size: 13px; color: var(--muted); margin: 0 0 16px;
+  }
+  .mermaid {
+    display: flex; justify-content: center;
+    overflow-x: auto; padding-bottom: 12px;
+  }
+  table {
+    width: 100%; border-collapse: collapse; font-size: 13px; margin: 0 0 16px;
+  }
+  th, td {
+    border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top;
+  }
+  th { background: #f1efe8; font-weight: 600; }
+  code { font-size: 12px; background: #f1efe8; padding: 1px 5px; border-radius: 3px; }
+  pre.chain {
+    background: #f1efe8; border-radius: 8px; padding: 14px 16px;
+    font-size: 12px; line-height: 1.7; overflow-x: auto; margin: 0 0 8px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>C 端订单 UAT 全流程模拟</h1>
+  <p class="sub">
+    四方流转 · 两级合并 · 出入库 · 售后<br>
+    源文档：<a href="./C端订单履约售后四方流转图.md">docs/C端订单履约售后四方流转图.md</a>
+  </p>
+
+  <nav>
+    <a href="#merge">两级合并</a>
+    <a href="#fork">支付后分叉</a>
+    <a href="#cutoff">截单合并</a>
+    <a href="#po">采购合并</a>
+    <a href="#express">快递旁路</a>
+    <a href="#aftersale">售后</a>
+    <a href="#e2e">端到端总图</a>
+    <a href="#uat">UAT 操作清单</a>
+  </nav>
+
+  <section id="merge">
+    <h2>1. 两级合并（多单 → 采购单）</h2>
+    <p class="desc">零售仓配自提：先按门店截单并成 MDH，再按供应商/门店维度生成 PO。</p>
+    <pre class="chain">多笔消费者订单 CO
+    │  ① 截单：按【门店】合并
+    ▼
+门店订货单 MDH（一张可含多 CO、多 SKU）
+    │  ② 生成采购单：按【供应商+收货地】或【门店+收货地+供应商】
+    ▼
+采购单 PO
+    ├─► WMS 采购入库 IBD
+    └─（截单当时并行）► WMS 仓配出库 OBD（±调拨）</pre>
+    <table>
+      <tr><th>步骤</th><th>时机</th><th>合并维度</th><th>产出</th></tr>
+      <tr><td>① 截单</td><td>门店订货汇总</td><td>按门店</td><td><code>MDH*</code>，回写 CO</td></tr>
+      <tr><td>② 采购</td><td>采购需求汇总</td><td>供应商+收货地 / 门店+收货地+供应商</td><td><code>PO*</code>，回写 MDH.poNo</td></tr>
+    </table>
+  </section>
+
+  <section id="fork">
+    <h2>2. 支付成功后总览分叉</h2>
+    <p class="desc">零售快递到家不进 MDH/PO；自提走完整采购+WMS。</p>
+    <pre class="mermaid">
+flowchart TD
+    A[C端下单拆单] --> B[支付]
+    B -->|失败/超时| Z[订单关闭]
+    B -->|成功·待发货| C{履约}
+
+    C -->|零售·快递到家| E1[供应商备货发货]
+    E1 --> E2[MDM上传快递单]
+    E2 --> E3[消费者确认收货·完成]
+
+    C -->|零售·门店自提=平台配送| M0[进入门店订货汇总池]
+    M0 --> M1[①截单·按门店生成MDH]
+    M1 --> M2[回写CO↔MDH]
+    M2 --> P1[并行A·建仓配OBD]
+    M2 --> P2[并行B·进采购需求汇总]
+    P2 --> P3[②生成PO·合并MDH行]
+    P3 --> P4[PO审核·建IBD入库]
+    P1 --> W1[WMS出库先拣后分]
+    P4 --> W1
+    W1 --> S1[门店收货·待自提]
+    S1 --> S2[门店核销·交易完成]
+
+    C -->|代采·快递/平台配送| D0[同样进MDH截单链]
+    D0 --> D1{履约}
+    D1 -->|快递配送| D2[PO免审核·收货地=门店·无仓配OBD]
+    D1 -->|平台配送| D3[同零售仓配·PO需审核]
+    </pre>
+  </section>
+
+  <section id="cutoff">
+    <h2>3. ① 截单合并：多 CO → MDH</h2>
+    <p class="desc">UAT：采购 → 门店订货汇总 → 截单并生成门店订货单</p>
+    <pre class="mermaid">
+flowchart LR
+    CO1[CO001 店A] --> CUT[截单按门店]
+    CO2[CO002 店A] --> CUT
+    CO3[CO003 店B] --> CUT2[截单按门店]
+    CUT --> MDH1[MDH·店A]
+    CUT2 --> MDH2[MDH·店B]
+    MDH1 --> OBD1[OBD仓配出库]
+    MDH2 --> OBD2[OBD]
+    </pre>
+  </section>
+
+  <section id="po">
+    <h2>4. ② 采购合并：多 MDH 行 → PO</h2>
+    <p class="desc">UAT：采购 → 采购需求汇总 → 生成采购单</p>
+    <pre class="mermaid">
+flowchart TD
+    MDHa[MDH店A·鲜果源·SKU1] --> G{生成维度}
+    MDHb[MDH店A·鲜果源·SKU2] --> G
+    MDHc[MDH店B·鲜果源·SKU1] --> G
+    G -->|按供应商+收货仓| PO1[一张PO·鲜果源→南京仓<br/>含多MDH多SKU]
+    G -->|按门店+收货仓+供应商| PO2a[PO·店A·鲜果源]
+    G -->|按门店…| PO2b[PO·店B·鲜果源]
+    PO1 --> IBD[WMS采购入库IBD]
+    PO2a --> IBD
+    PO2b --> IBD
+    </pre>
+  </section>
+
+  <section id="express">
+    <h2>5. 旁路：零售快递到家</h2>
+    <p class="desc">不进门店订货 / 无 MDH / 无 PO / 无 OBD</p>
+    <pre class="mermaid">
+sequenceDiagram
+    participant C as 消费者
+    participant Plat as 平台MDM
+    participant Sup as 供应商
+
+    C->>Plat: 支付成功·待发货
+    Note over Plat: 不进门店订货汇总
+    Sup->>Sup: 备货发货
+    Plat->>Plat: 零售订单上传快递单
+    Plat-->>C: 待收货·物流轨迹
+    C->>Plat: 确认收货
+    Plat->>Plat: 交易完成
+    </pre>
+  </section>
+
+  <section id="aftersale">
+    <h2>6. 售后退货三落点</h2>
+    <pre class="mermaid">
+sequenceDiagram
+    participant C as 消费者
+    participant Plat as 平台
+    participant Sup as 供应商
+    participant Store as 门店
+    participant WH as 仓库
+
+    C->>Plat: 退货退款申请·审核通过
+    alt 快递到家
+        Plat-->>C: 退货地址=供应商
+        C->>Sup: 寄回
+        Sup->>Plat: 确认收货
+        Plat->>C: 退款
+    else 门店自提
+        Plat-->>C: 退货地址=门店
+        C->>Store: 退回门店
+        Store->>Plat: 确认收货
+        Plat->>C: 退款
+    else 仓配进货
+        Store->>Plat: 确认司机已取货
+        WH->>Plat: 退货入仓
+        Plat->>C: 退款
+    end
+    </pre>
+  </section>
+
+  <section id="e2e">
+    <h2>7. 端到端总图（单据级）</h2>
+    <pre class="mermaid">
+flowchart TB
+    subgraph 消费者
+        U1[下单支付 CO]
+        U2[待自提/待收货]
+        U3[售后申请]
+        U4[交易完成]
+    end
+
+    subgraph 平台采购订单售后
+        P1[订单待发货]
+        P2[门店订货汇总]
+        P3[MDH 截单合并]
+        P4[采购需求汇总]
+        P5[PO 采购合并+审核]
+        P6[售后审核/退款/补货指令]
+    end
+
+    subgraph 供应商
+        S1[快递直发]
+        S2[收退货/补发]
+        S3[供货至仓]
+    end
+
+    subgraph 仓库WMS
+        W1[IBD 采购入库]
+        W2[OBD 仓配/调拨出库]
+        W3[先拣后分发货]
+        W4[退货入库]
+    end
+
+    subgraph 门店
+        T1[收货入仓]
+        T2[核销]
+        T3[自提退货/确认取货]
+    end
+
+    U1 --> P1
+    P1 -->|自提| P2 --> P3
+    P3 --> P4 --> P5
+    P3 --> W2
+    P5 --> W1
+    W1 --> W2 --> W3 --> T1 --> U2 --> T2 --> U4
+    P1 -->|快递| S1 --> U2 --> U4
+    S3 -.-> W1
+    U3 --> P6
+    P6 -->|快递退| S2
+    P6 -->|自提退| T3
+    P6 -->|仓配退| W4
+    P6 -->|补货| P3
+    </pre>
+  </section>
+
+  <section id="uat">
+    <h2>8. UAT 一页操作清单（仓配自提）</h2>
+    <table>
+      <tr><th>#</th><th>角色</th><th>动作</th></tr>
+      <tr><td>1</td><td>消费者</td><td>user-app 下单支付（自提）</td></tr>
+      <tr><td>2</td><td>平台订单</td><td>零售订单 → 待发货</td></tr>
+      <tr><td>3</td><td>采购</td><td>门店订货汇总 → 截单（多 CO → MDH）</td></tr>
+      <tr><td>4</td><td>采购</td><td>门店订货单核对 MDH / relatedOrderNo</td></tr>
+      <tr><td>5</td><td>采购</td><td>采购需求汇总 → 生成采购单</td></tr>
+      <tr><td>6</td><td>采购主管</td><td>采购单审核通过</td></tr>
+      <tr><td>7</td><td>仓库</td><td>入库单采购收货</td></tr>
+      <tr><td>8</td><td>仓库</td><td>出库：集波→拣→分→复核→发货</td></tr>
+      <tr><td>9</td><td>物流（跨仓）</td><td>路由规则 / 调拨出库</td></tr>
+      <tr><td>10</td><td>门店</td><td>收货 → 扫码核销</td></tr>
+      <tr><td>11</td><td>平台售后</td><td>售后单/退款；补货再出「售后补送」MDH</td></tr>
+    </table>
+  </section>
+</div>
+</body>
+</html>

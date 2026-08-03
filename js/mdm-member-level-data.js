@@ -262,30 +262,38 @@
     function formatBenefitSummary(item) {
         item = normalizeLevel(item);
         var parts = [];
-        if (item.giftPointsEnabled && item.giftPoints > 0) parts.push('赠积分 ' + item.giftPoints);
+        if (item.giftPointsEnabled && item.giftPoints > 0) {
+            parts.push('赠送积分：' + item.giftPoints);
+        }
         if (item.giftCouponEnabled) {
             var giftText = formatCouponList(item.giftCouponMode, item.giftCoupons);
-            if (giftText) parts.push('赠券（' + giftText + '）');
+            if (giftText) parts.push('赠送优惠券：' + giftText);
         }
         if (item.memberDiscountEnabled && item.memberDiscount != null && item.memberDiscount < 100) {
-            var disc = '会员折扣 ' + (item.memberDiscount / 10).toFixed(1).replace(/\.0$/, '') + ' 折';
+            var disc = (item.memberDiscount / 10).toFixed(1).replace(/\.0$/, '') + ' 折';
             var scope = item.discountScope || defaultDiscountScope();
             if (scope.type && scope.type !== 'all') {
                 disc += '（' + (SCOPE_LABEL[scope.type] || scope.type) + '）';
             }
-            parts.push(disc);
+            parts.push('会员折扣：' + disc);
         }
         if (item.pointsRatioEnabled) {
-            parts.push('积分倍率 ' + (item.pointsRatio / 100).toFixed(2).replace(/\.?0+$/, '') + ' 倍');
+            parts.push('积分倍率：' + (item.pointsRatio / 100).toFixed(2).replace(/\.?0+$/, '') + ' 倍');
         }
         if (item.birthdayEnabled) {
             var birthText = formatBirthdayCouponList(item.birthdayCoupons);
-            parts.push(birthText ? '生日券（生日月赠送：' + birthText + '）' : '生日券 已开启');
+            parts.push(birthText ? '生日送券：生日月赠送：' + birthText : '生日送券：已开启');
         }
-        if (!parts.length) parts.push('暂无权益');
-        return parts.map(function (p) {
-            return '<span>' + escapeHtml(p) + '</span>';
-        }).join('');
+        if (!parts.length) {
+            return '<span class="member-level-benefit-empty">暂无权益</span>';
+        }
+        return (
+            '<ul class="member-level-benefit-list">' +
+            parts.map(function (p) {
+                return '<li>' + escapeHtml(p) + '</li>';
+            }).join('') +
+            '</ul>'
+        );
     }
 
     var DEMO_CATEGORIES = [

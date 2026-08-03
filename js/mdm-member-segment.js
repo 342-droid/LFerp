@@ -279,8 +279,8 @@
     } else {
       tbody.innerHTML = pageList.map(function (item, idx) {
         var statusHtml = item.status === '启用'
-          ? '<span style="color:#52c41a;">启用</span>'
-          : '<span style="color:#999;">停用</span>';
+          ? '<span class="mdm-status mdm-status--ok">启用</span>'
+          : '<span class="mdm-status mdm-status--muted">停用</span>';
         var switchAct = item.updateMode === 'auto' ? 'to-manual' : 'to-auto';
         var switchText = item.updateMode === 'auto' ? '切为手动' : '切为自动';
         var updateBtn = (item.updateMode === 'manual' && item.status === '启用')

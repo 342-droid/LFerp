@@ -1,0 +1,28 @@
+---
+description: 本地预览服务（localhost:5173）须保持可用
+alwaysApply: true
+---
+
+# 本地预览服务
+
+用户常用 `http://localhost:5173/...` 预览原型。
+
+## 规则
+
+1. 若用户反馈预览打不开 / 连不上 `localhost:5173`，**先检查端口再启动**，不要只让用户手动跑命令。
+2. 启动命令（在 `LFerp` 目录）：
+
+```powershell
+npm run preview
+```
+
+等价于 `node tools/preview-server.mjs`（自研静态服务，无文件监听，避免 `serve` 的 EMFILE 崩溃）。
+
+3. 仅确认是否已在跑：
+
+```powershell
+npm run preview:ensure
+```
+
+4. **不要**再推荐 `npx serve -l 5173` 或 `npm run dev`（本仓库没有 Vite）。
+5. 页面 URL 可带或不带 `.html`：`/MDM/mdm_member_level_rule` 与 `/MDM/mdm_member_level_rule.html` 均可。

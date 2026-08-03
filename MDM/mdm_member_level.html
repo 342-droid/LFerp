@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/mdm-member360-list.css">
     <style>
         .member-level-toolbar {
             margin: 0 0 12px;
@@ -20,16 +21,42 @@
             color: #888;
             margin-left: 4px;
         }
+        /* 会员权益：对齐会员分群「筛选规则」多行圆点列表 */
         .member-level-benefit-summary {
             max-width: 420px;
+            text-align: left;
+            white-space: normal;
+        }
+        .member-level-benefit-list {
+            max-width: 420px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
             font-size: 12px;
             color: #555;
             line-height: 1.55;
             white-space: normal;
+            text-align: left;
         }
-        .member-level-benefit-summary span {
-            display: inline-block;
-            margin-right: 8px;
+        .member-level-benefit-list li {
+            margin: 0 0 2px;
+        }
+        .member-level-benefit-list li::before {
+            content: '· ';
+            color: #ff7019;
+            font-weight: 700;
+        }
+        .member-level-benefit-empty {
+            font-size: 12px;
+            color: #bbb;
+        }
+        .table td.member-level-benefit-cell {
+            white-space: normal;
+            overflow: visible;
+            text-overflow: unset;
+            text-align: left;
+            vertical-align: middle;
+            min-width: 200px;
         }
         .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
         .subject-name-link:hover { text-decoration: underline; color: #1976D2; }

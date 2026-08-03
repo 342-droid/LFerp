@@ -1,0 +1,37 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "LFerp: 本地预览 (5173)",
+      "type": "shell",
+      "command": "node tools/preview-server.mjs",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "LFERP_PREVIEW_PORT": "5173"
+        }
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "lferp-preview",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "LFerp preview ready"
+        }
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    }
+  ]
+}

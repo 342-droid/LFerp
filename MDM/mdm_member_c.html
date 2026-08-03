@@ -7,10 +7,148 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/mdm-member360-list.css">
     <style>
-        .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
-        .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
-        .flow-box { margin: 14px 0; padding: 12px 14px; background: #fafafa; border: 1px solid #eee; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.65; }
+        .member-tab-panel { display: none; }
+        .member-tab-panel.is-active { display: block; }
+        .bl-member-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 4px 0 12px;
+        }
+        .bl-member-card__avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #e8f5ef;
+            color: #0b5c3b;
+            font-weight: 600;
+            font-size: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .bl-member-card__name { font-size: 15px; font-weight: 600; color: #222; }
+        .bl-member-card__sub { font-size: 13px; color: #666; margin-top: 2px; }
+        .bl-func-checks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 18px;
+            padding-top: 6px;
+        }
+        .bl-func-checks label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #333;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .bl-reason-tip {
+            margin-top: 8px;
+            padding: 8px 10px;
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #f57c00;
+            line-height: 1.5;
+        }
+        .bl-upload-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .bl-upload-item {
+            width: 64px;
+            height: 64px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background: #f5f5f5;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .bl-upload-item img,
+        .bl-upload-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .bl-upload-item__remove {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 18px;
+            height: 18px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.55);
+            color: #fff;
+            font-size: 12px;
+            line-height: 18px;
+            text-align: center;
+            cursor: pointer;
+            padding: 0;
+        }
+        .bl-upload-item__remove:hover { background: rgba(0, 0, 0, 0.75); }
+        .bl-upload-item__badge {
+            position: absolute;
+            left: 2px;
+            bottom: 2px;
+            padding: 0 4px;
+            border-radius: 2px;
+            background: rgba(0, 0, 0, 0.55);
+            color: #fff;
+            font-size: 10px;
+            line-height: 16px;
+        }
+        .bl-upload-add {
+            width: 64px;
+            height: 64px;
+            border-radius: 4px;
+            border: 1px dashed #ccc;
+            background: #fafafa;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #888;
+            cursor: pointer;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+        .bl-upload-add:hover { border-color: var(--color-primary, #ff7019); color: var(--color-primary, #ff7019); }
+        .bl-upload-add__plus { font-size: 18px; line-height: 1; }
+        .bl-upload-file {
+            position: absolute;
+            width: 0;
+            height: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .bl-upload-count { font-size: 12px; color: #999; margin-top: 6px; }
+        .erp-modal--bl-restore { max-width: 420px; }
+        .erp-modal--bl-edit { max-width: 560px; }
+        .erp-textarea {
+            width: 100%;
+            min-height: 96px;
+            box-sizing: border-box;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        .erp-textarea:focus { outline: none; border-color: var(--color-primary, #ff7019); }
+        .bl-char-count { text-align: right; font-size: 12px; color: #999; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -20,209 +158,385 @@
     <div id="header-container"></div>
     <div class="container">
         <main class="main-content">
-            <div class="content-tabs"><button class="active">会员管理</button></div>
+            <div class="content-tabs" id="memberMainTabs">
+                <button type="button" class="active" data-member-tab="list">会员列表</button>
+                <button type="button" data-member-tab="blacklist">黑名单</button>
+                <button type="button" data-member-tab="canceled">注销会员</button>
+            </div>
             <hr class="content-divider">
             <div class="content-title">会员 / 会员360 / 会员管理</div>
 
-            <section class="search-section">
-                <form class="search-form" id="memberCSearchForm">
-                    <div class="form-group">
-                        <label>会员ID:</label>
-                        <div class="input-wrapper">
-                            <input id="qMemberId" placeholder="请输入会员ID">
-                            <span class="clear-btn">×</span>
+            <!-- ========== 会员列表（正常） ========== -->
+            <div class="member-tab-panel is-active" id="panelMemberList" data-member-panel="list">
+                <section class="search-section">
+                    <form class="search-form" id="memberCSearchForm">
+                        <div class="form-group">
+                            <label>会员ID:</label>
+                            <div class="input-wrapper">
+                                <input id="qMemberId" placeholder="请输入会员ID">
+                                <span class="clear-btn">×</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label>会员昵称:</label>
-                        <div class="input-wrapper">
-                            <input id="qNickname" placeholder="请输入会员昵称">
-                            <span class="clear-btn">×</span>
+                        <div class="form-group">
+                            <label>会员昵称:</label>
+                            <div class="input-wrapper">
+                                <input id="qNickname" placeholder="请输入会员昵称">
+                                <span class="clear-btn">×</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label>绑定方式:</label>
-                        <select id="qBindWay">
-                            <option value="">全部</option>
-                            <option value="微信">微信</option>
-                            <option value="手机">手机</option>
-                            <option value="隐私">隐私</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>手机号码:</label>
-                        <div class="input-wrapper">
-                            <input id="qPhone" placeholder="请输入手机号">
-                            <span class="clear-btn">×</span>
+                        <div class="form-group">
+                            <label>绑定方式:</label>
+                            <select id="qBindWay">
+                                <option value="">全部</option>
+                                <option value="微信">微信</option>
+                                <option value="手机">手机</option>
+                                <option value="隐私">隐私</option>
+                            </select>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label>会员等级:</label>
-                        <select id="qMemberLevel">
-                            <option value="">全部</option>
-                            <option value="普通会员">普通会员</option>
-                            <option value="银牌会员">银牌会员</option>
-                            <option value="金牌会员">金牌会员</option>
-                            <option value="钻石会员">钻石会员</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>会员标签:</label>
-                        <div class="input-wrapper">
-                            <input id="qMemberTag" placeholder="请输入会员标签">
-                            <span class="clear-btn">×</span>
+                        <div class="form-group">
+                            <label>手机号码:</label>
+                            <div class="input-wrapper">
+                                <input id="qPhone" placeholder="请输入手机号">
+                                <span class="clear-btn">×</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button>
-                        <button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button>
-                    </div>
-                </form>
-            </section>
+                        <div class="form-group">
+                            <label>会员等级:</label>
+                            <select id="qMemberLevel">
+                                <option value="">全部</option>
+                                <option value="普通会员">普通会员</option>
+                                <option value="银牌会员">银牌会员</option>
+                                <option value="金牌会员">金牌会员</option>
+                                <option value="钻石会员">钻石会员</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>会员标签:</label>
+                            <div class="input-wrapper">
+                                <input id="qMemberTag" placeholder="请输入会员标签">
+                                <span class="clear-btn">×</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>状态:</label>
+                            <select id="qMemberStatus">
+                                <option value="">全部</option>
+                                <option value="正常" selected>正常</option>
+                                <option value="黑名单">黑名单</option>
+                                <option value="注销">注销</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button>
+                            <button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button>
+                        </div>
+                    </form>
+                </section>
 
-            <section class="table-section">
-                <div class="table-scroll-container">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>会员ID</th>
-                                <th>会员昵称</th>
-                                <th>会员头像</th>
-                                <th>手机号码</th>
-                                <th>性别</th>
-                                <th>是否会员</th>
-                                <th>会员等级</th>
-                                <th>会员标签</th>
-                                <th>会员来源</th>
-                                <th>绑定方式</th>
-                                <th>绑定渠道数量</th>
-                                <th>会员积分</th>
-                                <th>满意度时长(分)</th>
-                                <th>满意度反馈次数(建议)</th>
-                                <th>会员成长分</th>
-                                <th>成交金额</th>
-                                <th>成交订单数</th>
-                                <th>最近消费时间</th>
-                                <th>状态</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            <tr>
-                                <td>U10001</td>
-                                <td>小程序用户A</td>
-                                <td><span style="display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;background:#e3f2fd;">程</span></td>
-                                <td>138****2211</td>
-                                <td>女</td>
-                                <td>是</td>
-                                <td>银牌会员</td>
-                                <td>高活跃</td>
-                                <td>微信小程序</td>
-                                <td>微信</td>
-                                <td>2</td>
-                                <td>12580</td>
-                                <td>128</td>
-                                <td>3</td>
-                                <td>2860</td>
-                                <td>3688.00</td>
-                                <td>12</td>
-                                <td>2026-04-25 14:20:03</td>
-                                <td><span class="status active">正常</span></td>
-                                <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a>　<a href="#" class="mdm-mem-coupon">优惠券</a>　<a href="#" class="mdm-mem-points">调整积分</a>　<a href="#" class="mdm-mem-growth">调整成长值</a></td>
-                            </tr>
-                            <tr>
-                                <td>U10002</td>
-                                <td>APP会员B</td>
-                                <td><span style="display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;background:#e3f2fd;">B</span></td>
-                                <td>139****9033</td>
-                                <td>男</td>
-                                <td>是</td>
-                                <td>金牌会员</td>
-                                <td>储值</td>
-                                <td>APP</td>
-                                <td>手机</td>
-                                <td>1</td>
-                                <td>5320</td>
-                                <td>45</td>
-                                <td>1</td>
-                                <td>5420</td>
-                                <td>1299.50</td>
-                                <td>5</td>
-                                <td>2026-04-22 09:15:44</td>
-                                <td><span class="status active">正常</span></td>
-                                <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a>　<a href="#" class="mdm-mem-coupon">优惠券</a>　<a href="#" class="mdm-mem-points">调整积分</a>　<a href="#" class="mdm-mem-growth">调整成长值</a></td>
-                            </tr>
-                            <tr>
-                                <td>U10003</td>
-                                <td>访客C</td>
-                                <td><span style="display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;background:#e3f2fd;">访</span></td>
-                                <td>—</td>
-                                <td>未知</td>
-                                <td>否</td>
-                                <td>普通会员</td>
-                                <td>—</td>
-                                <td>微信小程序</td>
-                                <td>隐私</td>
-                                <td>0</td>
-                                <td>0</td>
-                                <td>0</td>
-                                <td>0</td>
-                                <td>10</td>
-                                <td>0.00</td>
-                                <td>0</td>
-                                <td>—</td>
-                                <td><span class="status inactive">冻结</span></td>
-                                <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a>　<a href="#" class="mdm-mem-coupon">优惠券</a>　<a href="#" class="mdm-mem-points">调整积分</a>　<a href="#" class="mdm-mem-growth">调整成长值</a></td>
-                            </tr>
-                            <tr>
-                                <td>U10004</td>
-                                <td>演示会员4</td>
-                                <td><span style="display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;background:#e3f2fd;">4</span></td>
-                                <td>137****1004</td>
-                                <td>男</td>
-                                <td>是</td>
-                                <td>钻石会员</td>
-                                <td>复购</td>
-                                <td>APP</td>
-                                <td>微信</td>
-                                <td>3</td>
-                                <td>3280</td>
-                                <td>44</td>
-                                <td>4</td>
-                                <td>11800</td>
-                                <td>798.00</td>
-                                <td>6</td>
-                                <td>2026-04-20 14:11:03</td>
-                                <td><span class="status active">正常</span></td>
-                                <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a>　<a href="#" class="mdm-mem-coupon">优惠券</a>　<a href="#" class="mdm-mem-points">调整积分</a>　<a href="#" class="mdm-mem-growth">调整成长值</a></td>
-                            </tr>
-                            <tr>
-                                <td>U10005</td>
-                                <td>演示会员5</td>
-                                <td><span style="display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;background:#e3f2fd;">5</span></td>
-                                <td>137****1005</td>
-                                <td>女</td>
-                                <td>否</td>
-                                <td>普通会员</td>
-                                <td>新客</td>
-                                <td>微信小程序</td>
-                                <td>手机</td>
-                                <td>2</td>
-                                <td>820</td>
-                                <td>22</td>
-                                <td>2</td>
-                                <td>320</td>
-                                <td>399.00</td>
-                                <td>4</td>
-                                <td>2026-04-19 09:03:51</td>
-                                <td><span class="status inactive">冻结</span></td>
-                                <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a>　<a href="#" class="mdm-mem-coupon">优惠券</a>　<a href="#" class="mdm-mem-points">调整积分</a>　<a href="#" class="mdm-mem-growth">调整成长值</a></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div id="pagination-container"></div>
-            </section>
+                <section class="table-section">
+                    <div class="table-scroll-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>会员ID</th>
+                                    <th>会员昵称</th>
+                                    <th>会员头像</th>
+                                    <th>手机号码</th>
+                                    <th>性别</th>
+                                    <th>是否会员</th>
+                                    <th>会员等级</th>
+                                    <th>会员标签</th>
+                                    <th>会员来源</th>
+                                    <th>绑定方式</th>
+                                    <th>绑定渠道数量</th>
+                                    <th>会员积分</th>
+                                    <th>满意度时长(分)</th>
+                                    <th>满意度反馈次数(建议)</th>
+                                    <th>会员成长分</th>
+                                    <th>成交金额</th>
+                                    <th>成交订单数</th>
+                                    <th>最近消费时间</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr data-member-status="正常">
+                                    <td>U10001</td>
+                                    <td>小程序用户A</td>
+                                    <td><span class="mdm-list-avatar">程</span></td>
+                                    <td>138****2211</td>
+                                    <td>女</td>
+                                    <td>是</td>
+                                    <td>银牌会员</td>
+                                    <td>高活跃</td>
+                                    <td>微信小程序</td>
+                                    <td>微信</td>
+                                    <td>2</td>
+                                    <td>12580</td>
+                                    <td>128</td>
+                                    <td>3</td>
+                                    <td>2860</td>
+                                    <td>3688.00</td>
+                                    <td>12</td>
+                                    <td>2026-04-25 14:20:03</td>
+                                    <td><span class="status active">正常</span></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-coupon">优惠券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a></td>
+                                </tr>
+                                <tr data-member-status="正常">
+                                    <td>U10002</td>
+                                    <td>APP会员B</td>
+                                    <td><span class="mdm-list-avatar">B</span></td>
+                                    <td>139****9033</td>
+                                    <td>男</td>
+                                    <td>是</td>
+                                    <td>金牌会员</td>
+                                    <td>储值</td>
+                                    <td>APP</td>
+                                    <td>手机</td>
+                                    <td>1</td>
+                                    <td>5320</td>
+                                    <td>45</td>
+                                    <td>1</td>
+                                    <td>5420</td>
+                                    <td>1299.50</td>
+                                    <td>5</td>
+                                    <td>2026-04-22 09:15:44</td>
+                                    <td><span class="status active">正常</span></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-coupon">优惠券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a></td>
+                                </tr>
+                                <tr data-member-status="正常">
+                                    <td>U10004</td>
+                                    <td>演示会员4</td>
+                                    <td><span class="mdm-list-avatar">4</span></td>
+                                    <td>137****1004</td>
+                                    <td>男</td>
+                                    <td>是</td>
+                                    <td>钻石会员</td>
+                                    <td>复购</td>
+                                    <td>APP</td>
+                                    <td>微信</td>
+                                    <td>3</td>
+                                    <td>3280</td>
+                                    <td>44</td>
+                                    <td>4</td>
+                                    <td>11800</td>
+                                    <td>798.00</td>
+                                    <td>6</td>
+                                    <td>2026-04-20 14:11:03</td>
+                                    <td><span class="status active">正常</span></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-coupon">优惠券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a></td>
+                                </tr>
+                                <tr data-member-status="正常">
+                                    <td>U10006</td>
+                                    <td>演示会员6</td>
+                                    <td><span class="mdm-list-avatar">6</span></td>
+                                    <td>136****6606</td>
+                                    <td>女</td>
+                                    <td>是</td>
+                                    <td>普通会员</td>
+                                    <td>新客</td>
+                                    <td>微信小程序</td>
+                                    <td>手机</td>
+                                    <td>1</td>
+                                    <td>620</td>
+                                    <td>12</td>
+                                    <td>1</td>
+                                    <td>180</td>
+                                    <td>128.00</td>
+                                    <td>1</td>
+                                    <td>2026-04-18 11:22:08</td>
+                                    <td><span class="status active">正常</span></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-coupon">优惠券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a></td>
+                                </tr>
+                                <tr data-member-status="黑名单">
+                                    <td>U10008</td>
+                                    <td>黑名单用户E</td>
+                                    <td><span class="mdm-list-avatar">黑</span></td>
+                                    <td>139****5508</td>
+                                    <td>男</td>
+                                    <td>是</td>
+                                    <td>普通会员</td>
+                                    <td>—</td>
+                                    <td>微信小程序</td>
+                                    <td>手机</td>
+                                    <td>1</td>
+                                    <td>0</td>
+                                    <td>0</td>
+                                    <td>0</td>
+                                    <td>80</td>
+                                    <td>0.00</td>
+                                    <td>0</td>
+                                    <td>—</td>
+                                    <td><span class="status blacklist">黑名单</span></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-coupon">优惠券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-restore">恢复</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="pagination-container"></div>
+                </section>
+            </div>
+
+            <!-- ========== 黑名单 ========== -->
+            <div class="member-tab-panel" id="panelBlacklist" data-member-panel="blacklist">
+                <section class="search-section">
+                    <form class="search-form" id="blacklistSearchForm">
+                        <div class="form-group">
+                            <label>用户昵称:</label>
+                            <div class="input-wrapper">
+                                <input id="qBlNickname" placeholder="请输入">
+                                <span class="clear-btn">×</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>手机号:</label>
+                            <div class="input-wrapper">
+                                <input id="qBlPhone" placeholder="请输入">
+                                <span class="clear-btn">×</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>ID:</label>
+                            <div class="input-wrapper">
+                                <input id="qBlId" placeholder="请输入">
+                                <span class="clear-btn">×</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>禁用功能:</label>
+                            <select id="qBlFunc">
+                                <option value="">请选择</option>
+                                <option value="访问页面">访问页面</option>
+                                <option value="下单">下单</option>
+                                <option value="观看直播">观看直播</option>
+                                <option value="禁止直播评论">禁止直播评论</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>拉黑原因:</label>
+                            <div class="input-wrapper">
+                                <input id="qBlReason" placeholder="请输入">
+                                <span class="clear-btn">×</span>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="btnBlReset">重置</button>
+                            <button type="button" class="btn btn-primary" id="btnBlQuery">查询</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="table-section">
+                    <div class="table-scroll-container">
+                        <table class="table" id="blacklistTable">
+                            <thead>
+                                <tr>
+                                    <th>序号</th>
+                                    <th>会员信息</th>
+                                    <th>手机号</th>
+                                    <th>禁用功能</th>
+                                    <th>拉黑原因</th>
+                                    <th>操作人</th>
+                                    <th>操作时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="blacklistBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="blacklist-pagination-container"></div>
+                </section>
+            </div>
+
+            <!-- ========== 注销会员 ========== -->
+            <div class="member-tab-panel" id="panelCanceled" data-member-panel="canceled">
+                <section class="search-section">
+                    <form class="search-form" id="canceledSearchForm">
+                        <div class="form-group">
+                            <label>会员ID:</label>
+                            <div class="input-wrapper">
+                                <input id="qCancelId" placeholder="请输入会员ID">
+                                <span class="clear-btn">×</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>会员昵称:</label>
+                            <div class="input-wrapper">
+                                <input id="qCancelNickname" placeholder="请输入会员昵称">
+                                <span class="clear-btn">×</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>手机号码:</label>
+                            <div class="input-wrapper">
+                                <input id="qCancelPhone" placeholder="请输入手机号">
+                                <span class="clear-btn">×</span>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="btnCancelReset">重置</button>
+                            <button type="button" class="btn btn-primary" id="btnCancelQuery">查询</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="table-section">
+                    <div class="table-scroll-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>会员ID</th>
+                                    <th>会员昵称</th>
+                                    <th>会员头像</th>
+                                    <th>手机号码</th>
+                                    <th>会员等级</th>
+                                    <th>会员来源</th>
+                                    <th>注销时间</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="canceledBody">
+                                <tr>
+                                    <td>U10003</td>
+                                    <td>访客C</td>
+                                    <td><span class="mdm-list-avatar">访</span></td>
+                                    <td>—</td>
+                                    <td>普通会员</td>
+                                    <td>微信小程序</td>
+                                    <td>2026-04-10 16:42:11</td>
+                                    <td><span class="status canceled">注销</span></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a></td>
+                                </tr>
+                                <tr>
+                                    <td>U10005</td>
+                                    <td>演示会员5</td>
+                                    <td><span class="mdm-list-avatar">5</span></td>
+                                    <td>137****1005</td>
+                                    <td>普通会员</td>
+                                    <td>微信小程序</td>
+                                    <td>2026-04-08 09:18:33</td>
+                                    <td><span class="status canceled">注销</span></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a></td>
+                                </tr>
+                                <tr>
+                                    <td>U10007</td>
+                                    <td>已注销用户D</td>
+                                    <td><span class="mdm-list-avatar">D</span></td>
+                                    <td>135****7707</td>
+                                    <td>银牌会员</td>
+                                    <td>APP</td>
+                                    <td>2026-03-28 20:05:47</td>
+                                    <td><span class="status canceled">注销</span></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="canceled-pagination-container"></div>
+                </section>
+            </div>
         </main>
     </div>
     <script src="../js/common.js"></script>
@@ -233,6 +547,7 @@
     <script src="../js/mdm-subject-pagemanager.js"></script>
     <script src="../js/mdm-unified-onboarding-ui.js"></script>
     <script src="../js/mdm-member-c-ui.js"></script>
+    <script src="../js/mdm-member-blacklist.js"></script>
     <script src="../js/mdm-erp-lists.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {

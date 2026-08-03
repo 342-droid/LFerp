@@ -1,0 +1,2583 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"/><title>冷丰ERP 页面与按钮清单</title>
+<style>
+body{font-family:"Microsoft YaHei",sans-serif;margin:24px;color:#222;background:#f7f7f7}
+h1{font-size:20px;margin:0 0 8px}
+.meta{color:#666;font-size:13px;margin-bottom:16px}
+.wrap{background:#fff;padding:12px;overflow:auto}
+table{border-collapse:collapse;width:100%;font-size:13px;background:#fff}
+th,td{border:1px solid #9aa58e;padding:6px 10px;vertical-align:middle}
+th{background:#548235;color:#fff;font-weight:600;text-align:center}
+td{background:#fff}
+.path{font-family:Consolas,"Courier New",monospace;font-size:12px;color:#333}
+.btn{white-space:nowrap}
+.note{margin-top:16px;font-size:12px;color:#666;line-height:1.6}
+.toc a{margin-right:12px;color:#548235}
+</style></head><body>
+<h1>冷丰ERP（UAT）页面与按钮清单</h1>
+<p class="meta">来源：<a href="https://uat.lengfenghl.org.cn">https://uat.lengfenghl.org.cn</a>　｜　页面数：126　｜　展开行数：519　｜　生成时间：2026/7/29 14:11:15</p>
+<p class="toc">模块：<a href="#m-%E4%B8%9A%E5%8A%A1%E4%BC%99%E4%BC%B4">业务伙伴</a><a href="#m-%E5%95%86%E5%93%81">商品</a><a href="#m-%E5%AE%A1%E6%A0%B8%E4%B8%AD%E5%BF%83%20">审核中心 </a><a href="#m-%E8%AE%A2%E5%8D%95">订单</a><a href="#m-%E5%94%AE%E5%90%8E">售后</a><a href="#m-%E7%9B%B4%E6%92%AD">直播</a><a href="#m-%E9%87%87%E8%B4%AD">采购</a><a href="#m-%E5%86%85%E5%AE%B9">内容</a><a href="#m-%E7%89%A9%E6%B5%81">物流</a><a href="#m-%E4%BB%93%E5%82%A8">仓储</a><a href="#m-%E7%BB%93%E7%AE%97">结算</a><a href="#m-%E8%90%A5%E9%94%80">营销</a><a href="#m-%E5%9F%BA%E7%A1%80%E8%AE%BE%E7%BD%AE">基础设置</a><a href="#m-%E5%88%86%E9%94%80%E7%AE%A1%E7%90%86">分销管理</a><a href="#m-%E6%B6%88%E6%81%AF%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83">消息配置中心</a><a href="#m-%E7%94%A8%E6%88%B7%E7%AE%A1%E7%90%86">用户管理</a></p>
+<div class="wrap"><table>
+<thead>
+<tr>
+<th colspan="3">菜单页面</th>
+<th rowspan="2">页面路径</th>
+<th rowspan="2">页面操作按钮</th>
+<th rowspan="2">按钮标识</th>
+</tr>
+<tr><th>一级</th><th>二级</th><th>三级</th></tr>
+</thead><tbody>
+<tr id="m-%E4%B8%9A%E5%8A%A1%E4%BC%99%E4%BC%B4"><td colspan="6" style="background:#e8f0e0;font-weight:700">业务伙伴</td></tr>
+<tr>
+<td>业务伙伴</td><td>商家主体</td><td>所有主体</td>
+<td class="path">/user/businessManagement/list</td>
+<td class="btn">新增门店商家</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增供应商商家</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增仓库商家</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">禁用</td>
+<td></td></tr>
+<tr>
+<td>业务伙伴</td><td>商家列表</td><td>门店档案</td>
+<td class="path">/store/list</td>
+<td class="btn">新增门店</td>
+<td>store:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td>store:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">去进件</td>
+<td>store:apply</td></tr>
+<tr>
+<td>业务伙伴</td><td>商家列表</td><td>供应商档案</td>
+<td class="path">/supplierManager/list</td>
+<td class="btn">编辑</td>
+<td>supplier:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">去进件</td>
+<td>supplier:create</td></tr>
+<tr>
+<td>业务伙伴</td><td>商家列表</td><td>仓库档案</td>
+<td class="path">/user/warehouse/list</td>
+<td class="btn">仓库查询</td>
+<td>warehouse:page</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">仓库新增</td>
+<td>warehouse:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">仓库编辑</td>
+<td>warehouse:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">仓库删除</td>
+<td>warehouse:delete</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">仓库启用/停用</td>
+<td>warehouse:update-status</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">仓库详情</td>
+<td>warehouse:detail</td></tr>
+<tr>
+<td>业务伙伴</td><td>人员中心</td><td>主播</td>
+<td class="path">/user/bd/anchor/list</td>
+<td class="btn">启用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">停用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">更多</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">查看详情</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">添加主播</td>
+<td></td></tr>
+<tr>
+<td>业务伙伴</td><td>人员中心</td><td>采购员</td>
+<td class="path">/user/bd/buyer</td>
+<td class="btn">启用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">停用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">更多</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">查看详情</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">添加采购员</td>
+<td></td></tr>
+<tr>
+<td>业务伙伴</td><td>人员中心</td><td>BD</td>
+<td class="path">/user/bd/list</td>
+<td class="btn">BD列表</td>
+<td>member:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">添加BD</td>
+<td>member:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑BD</td>
+<td>member:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">启用 / 禁用</td>
+<td>member:status</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">结算信息编辑 / 提现手机号修改</td>
+<td>member:settlement</td></tr>
+<tr>
+<td>业务伙伴</td><td>人员中心</td><td>BD推广员详情</td>
+<td class="path">/user/bd/detail/:id</td>
+<td class="btn"></td>
+<td></td></tr>
+<tr>
+<td>业务伙伴</td><td>新增商家</td><td>超管账号</td>
+<td class="path">/userManagement/list</td>
+<td class="btn"></td>
+<td></td></tr>
+<tr>
+<td>业务伙伴</td><td>会员中心</td><td></td>
+<td class="path">/user/consumer</td>
+<td class="btn">消费者查询</td>
+<td>consumer:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">消费者详情</td>
+<td>consumer:detail</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">状态变更</td>
+<td>consumer:changeStatus</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">积分操作</td>
+<td>consumer:operatePoint</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">优惠券赠送</td>
+<td>consumer:sendCoupon</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">积分发放（内部）</td>
+<td>marketingPoints:grant</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">积分扣减（内部）</td>
+<td>marketingPoints:deduct</td></tr>
+<tr id="m-%E5%95%86%E5%93%81"><td colspan="6" style="background:#e8f0e0;font-weight:700">商品</td></tr>
+<tr>
+<td>商品</td><td>选品库</td><td></td>
+<td class="path">/product/list</td>
+<td class="btn">商品查询</td>
+<td>product:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">商品新增</td>
+<td>product:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">商品修改</td>
+<td>product:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">商品删除</td>
+<td>product:delete</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">商品审核</td>
+<td>product:review</td></tr>
+<tr>
+<td>商品</td><td>添加商品</td><td></td>
+<td class="path">/product/add</td>
+<td class="btn">编辑商品</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">添加商品</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">详情内容</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">上传接口未返回预览地址</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">上传接口未返回 objectKey</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">详情图</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">审核通过</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">驳回</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">保存</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">提交审核</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">添加规格</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">添加规格值</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">驳回原因</td>
+<td></td></tr>
+<tr>
+<td>商品</td><td>商品类目</td><td></td>
+<td class="path">/product/category</td>
+<td class="btn">类目查询</td>
+<td>category:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">类目新增</td>
+<td>category:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">类目修改</td>
+<td>category:edit</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">类目删除</td>
+<td>category:delete</td></tr>
+<tr>
+<td>商品</td><td>商品详情</td><td></td>
+<td class="path">/product/detail/:id</td>
+<td class="btn"></td>
+<td></td></tr>
+<tr>
+<td>商品</td><td>商品品牌</td><td></td>
+<td class="path">/product/brand</td>
+<td class="btn">品牌查询</td>
+<td>brand:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">品牌新增</td>
+<td>brand:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">品牌修改</td>
+<td>brand:edit</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">品牌删除</td>
+<td>brand:delete</td></tr>
+<tr>
+<td>商品</td><td>商城商品</td><td>商品详情</td>
+<td class="path">/product/mall/detail:id</td>
+<td class="btn">上传接口未返回预览地址</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">上传接口未返回 objectKey</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">详情图</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">取消默认</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">上架</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">下架</td>
+<td></td></tr>
+<tr>
+<td>商品</td><td>商城商品</td><td>商品列表</td>
+<td class="path">/mall/list</td>
+<td class="btn">商品列表</td>
+<td>mallProduct:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">商品详情</td>
+<td>mallProduct:detail</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑货架信息</td>
+<td>mallProduct:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">规格与价格</td>
+<td>mallProduct:updatePrice</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除商品</td>
+<td>mallProduct:delete</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">上下架</td>
+<td>mallProduct:changeStatus</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">定时上下架</td>
+<td>mallProduct:schedule</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">导入商品</td>
+<td>mallProduct:import</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">选品目录</td>
+<td>channelProduct:catalog</td></tr>
+<tr>
+<td>商品</td><td>商城商品</td><td>商城类目</td>
+<td class="path">/mall/category</td>
+<td class="btn">分类查询</td>
+<td>mallCategory:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">分类新增</td>
+<td>mallCategory:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">分类修改</td>
+<td>mallCategory:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">分类删除</td>
+<td>mallCategory:delete</td></tr>
+<tr>
+<td>商品</td><td>商城商品</td><td>商城标签</td>
+<td class="path">/mall/tag</td>
+<td class="btn">标签查询</td>
+<td>mallTag:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">标签新增</td>
+<td>mallTag:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">标签修改</td>
+<td>mallTag:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">标签删除</td>
+<td>mallTag:delete</td></tr>
+<tr>
+<td>商品</td><td>代采商品</td><td>商品列表</td>
+<td class="path">/product/sourcedProducts/list</td>
+<td class="btn"></td>
+<td></td></tr>
+<tr>
+<td>商品</td><td>代采商品</td><td>类目管理</td>
+<td class="path">/product/sourcedProducts/sourcedCategory</td>
+<td class="btn"></td>
+<td></td></tr>
+<tr>
+<td>商品</td><td>代采商品</td><td>标签管理</td>
+<td class="path">/product/sourcedProducts/sourcedTag</td>
+<td class="btn"></td>
+<td></td></tr>
+<tr id="m-%E5%AE%A1%E6%A0%B8%E4%B8%AD%E5%BF%83"><td colspan="6" style="background:#e8f0e0;font-weight:700">审核中心</td></tr>
+<tr>
+<td>审核中心</td><td>门店注册审核</td><td></td>
+<td class="path">/reviewCenter/storeRegApproval</td>
+<td class="btn">详情</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">审核</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">审核状态</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">更多</td>
+<td></td></tr>
+<tr>
+<td>审核中心</td><td>进件审核</td><td></td>
+<td class="path">/reviewCenter/applicationReview</td>
+<td class="btn">审核中</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">审核状态</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">详情</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">审核</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">重新提交</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">更多</td>
+<td></td></tr>
+<tr id="m-%E8%AE%A2%E5%8D%95"><td colspan="6" style="background:#e8f0e0;font-weight:700">订单</td></tr>
+<tr>
+<td>订单</td><td>订单管理</td><td>直播订单</td>
+<td class="path">/bargain/order_management/live_ordes/list</td>
+<td class="btn"></td>
+<td></td></tr>
+<tr>
+<td>订单</td><td>订单管理</td><td>商城订单</td>
+<td class="path">/bargain/order_management/mall_ordes/list</td>
+<td class="btn"></td>
+<td></td></tr>
+<tr>
+<td>订单</td><td>订单管理</td><td>代采订单</td>
+<td class="path">/bargain/order_management/sourcedProOrder/list</td>
+<td class="btn"></td>
+<td></td></tr>
+<tr>
+<td>订单</td><td>排队记录</td><td></td>
+<td class="path">/bargain/queuedRecord</td>
+<td class="btn">创建时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">开始日期</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">结束日期</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">完成时间</td>
+<td></td></tr>
+<tr id="m-%E5%94%AE%E5%90%8E"><td colspan="6" style="background:#e8f0e0;font-weight:700">售后</td></tr>
+<tr>
+<td>售后</td><td>售后管理</td><td>售后单</td>
+<td class="path">/sales/salesManagement/aferSales</td>
+<td class="btn">导出列表待对接，当前为 mock 提示</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">导出列表</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">查看详情</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">取消售后单</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">更多</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">拒绝</td>
+<td></td></tr>
+<tr>
+<td>售后</td><td>售后管理</td><td>退款单</td>
+<td class="path">/sales/salesManagement/refundOrder</td>
+<td class="btn">创建时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">查看详情</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">上传付款凭证</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">查看付款凭证</td>
+<td></td></tr>
+<tr id="m-%E7%9B%B4%E6%92%AD"><td colspan="6" style="background:#e8f0e0;font-weight:700">直播</td></tr>
+<tr>
+<td>直播</td><td>直播管理</td><td>直播间</td>
+<td class="path">/live/live_room/list</td>
+<td class="btn">创建时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">启用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">禁用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">停用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">更多</td>
+<td></td></tr>
+<tr>
+<td>直播</td><td>直播管理</td><td>直播时段</td>
+<td class="path">/live/live_room/LiveTimeSlot/list</td>
+<td class="btn">搜索时段名称</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td></td></tr>
+<tr>
+<td>直播</td><td>直播管理</td><td>直播场次</td>
+<td class="path">/live/live_room/live_session/list</td>
+<td class="btn">查询</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">重置</td>
+<td></td></tr>
+<tr>
+<td>直播</td><td>直播管理</td><td>直播数据</td>
+<td class="path">/live/live_room/live_data/list</td>
+<td class="btn">发送弹幕的总人数</td>
+<td></td></tr>
+<tr>
+<td>直播</td><td>直播管理</td><td>直播中控</td>
+<td class="path">/live/live_room/live_control/list</td>
+<td class="btn">返回直播场次</td>
+<td></td></tr>
+<tr>
+<td>直播</td><td>直播商品</td><td>直播排品</td>
+<td class="path">/live/live_products/product_scheduling/list</td>
+<td class="btn">上架中</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">下架中</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">添加时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">下架</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">上架</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">添加商品</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td></td></tr>
+<tr>
+<td>直播</td><td>直播商品</td><td>直播类目</td>
+<td class="path">/live/live_products/product_categories/list</td>
+<td class="btn">启用状态</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">启用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">停用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增类目</td>
+<td></td></tr>
+<tr>
+<td>直播</td><td>直播商品</td><td>直播排品编辑</td>
+<td class="path">/live/live_products/product_scheduling/detail/:id</td>
+<td class="btn">上传接口未返回预览地址</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">上传接口未返回 objectKey</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">详情图</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">返回直播排品</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑直播商品</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">重置规格</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">取消全选</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">上架</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">下架</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">保存</td>
+<td></td></tr>
+<tr>
+<td>直播</td><td>店铺商品</td><td></td>
+<td class="path">/live/shopGoods</td>
+<td class="btn">商品查询</td>
+<td>product:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">商品新增</td>
+<td>product:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">商品修改</td>
+<td>product:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">商品删除</td>
+<td>product:delete</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">商品审核</td>
+<td>product:review</td></tr>
+<tr>
+<td>直播</td><td>店铺商品详情</td><td></td>
+<td class="path">/live/shopGoodsDetail</td>
+<td class="btn"></td>
+<td></td></tr>
+<tr>
+<td>直播</td><td>直播间管理</td><td></td>
+<td class="path">/live/liveRoomManagement</td>
+<td class="btn">查询</td>
+<td>liveRoom:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增</td>
+<td>liveRoom:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td>liveRoom:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td>liveRoom:delete</td></tr>
+<tr id="m-%E9%87%87%E8%B4%AD"><td colspan="6" style="background:#e8f0e0;font-weight:700">采购</td></tr>
+<tr>
+<td>采购</td><td>门店订货</td><td>门店订货汇总</td>
+<td class="path">/procurement/shipment-plan/cutoff</td>
+<td class="btn">收货仓库</td>
+<td></td></tr>
+<tr>
+<td>采购</td><td>门店订货</td><td>门店订货单</td>
+<td class="path">/procurement/shipment-plan/list</td>
+<td class="btn">收货仓库</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">开始时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">结束时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">取消时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">取消人</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">创建人</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">取消订货单</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">取消原因不能为空</td>
+<td></td></tr>
+<tr>
+<td>采购</td><td>采购管理</td><td>采购需求汇总</td>
+<td class="path">/procurement/procurManagement/PurDemSum/list</td>
+<td class="btn">收货仓库</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">开始时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">结束时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">发货时间</td>
+<td></td></tr>
+<tr>
+<td>采购</td><td>采购管理</td><td>采购单</td>
+<td class="path">/procurement/procurManagement/purchaseOrder/list</td>
+<td class="btn">收货地名称</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">开始日期</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">结束日期</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">创建人</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增采购单</td>
+<td></td></tr>
+<tr id="m-%E5%86%85%E5%AE%B9"><td colspan="6" style="background:#e8f0e0;font-weight:700">内容</td></tr>
+<tr>
+<td>内容</td><td>直播话术</td><td>直播快捷回复</td>
+<td class="path">/content/live_streaming/quick_replies/list</td>
+<td class="btn">启用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增快捷回复</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td></td></tr>
+<tr>
+<td>内容</td><td>商品评价</td><td>商城商品评价</td>
+<td class="path">/content/product_review/commerce_product/list</td>
+<td class="btn">审核</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">取消展示</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">取消置顶</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td></td></tr>
+<tr id="m-%E7%89%A9%E6%B5%81"><td colspan="6" style="background:#e8f0e0;font-weight:700">物流</td></tr>
+<tr>
+<td>物流</td><td>路由规则</td><td></td>
+<td class="path">/logistics/route_rule/list</td>
+<td class="btn">结束节点</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">启用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">禁用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">创建人</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">停用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">更多</td>
+<td></td></tr>
+<tr id="m-%E4%BB%93%E5%82%A8"><td colspan="6" style="background:#e8f0e0;font-weight:700">仓储</td></tr>
+<tr>
+<td>仓储</td><td>基础数据</td><td>仓库</td>
+<td class="path">/fulfillment/basic/warehouse</td>
+<td class="btn">仓库查询</td>
+<td>warehouse:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">仓库新增</td>
+<td>warehouse:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">仓库修改</td>
+<td>warehouse:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">仓库删除</td>
+<td>warehouse:delete</td></tr>
+<tr>
+<td>仓储</td><td>基础数据</td><td>货主</td>
+<td class="path">/fulfillment/basic/company</td>
+<td class="btn">货主查询</td>
+<td>company:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">货主新增</td>
+<td>company:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">货主修改</td>
+<td>company:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">货主删除</td>
+<td>company:delete</td></tr>
+<tr>
+<td>仓储</td><td>基础数据</td><td>仓间</td>
+<td class="path">/fulfillment/basic/room</td>
+<td class="btn">房间查询</td>
+<td>room:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">房间新增</td>
+<td>room:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">房间修改</td>
+<td>room:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">房间删除</td>
+<td>room:delete</td></tr>
+<tr>
+<td>仓储</td><td>基础数据</td><td>库区</td>
+<td class="path">/fulfillment/basic/zone</td>
+<td class="btn">功能区查询</td>
+<td>zone:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">功能区新增</td>
+<td>zone:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">功能区修改</td>
+<td>zone:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">功能区删除</td>
+<td>zone:delete</td></tr>
+<tr>
+<td>仓储</td><td>基础数据</td><td>作业区域</td>
+<td class="path">/fulfillment/basic/area</td>
+<td class="btn">区域查询</td>
+<td>area:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">区域新增</td>
+<td>area:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">区域修改</td>
+<td>area:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">区域删除</td>
+<td>area:delete</td></tr>
+<tr>
+<td>仓储</td><td>基础数据</td><td>储位</td>
+<td class="path">/fulfillment/basic/location</td>
+<td class="btn">库位查询</td>
+<td>location:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">库位新增</td>
+<td>location:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">库位修改</td>
+<td>location:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">库位删除</td>
+<td>location:delete</td></tr>
+<tr>
+<td>仓储</td><td>基础数据</td><td>容器</td>
+<td class="path">/fulfillment/basic/lpn</td>
+<td class="btn">模型查询</td>
+<td>lpnModel:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">查询</td>
+<td>lpn:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">模型新增</td>
+<td>lpnModel:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增</td>
+<td>lpn:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">模型修改</td>
+<td>lpnModel:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">修改</td>
+<td>lpn:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">模型删除</td>
+<td>lpnModel:delete</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td>lpn:delete</td></tr>
+<tr>
+<td>仓储</td><td>基础数据</td><td>商品</td>
+<td class="path">/fulfillment/basic/sku</td>
+<td class="btn">SKU查询</td>
+<td>sku:list</td></tr>
+<tr>
+<td>仓储</td><td>基础数据</td><td>承运商</td>
+<td class="path">/fulfillment/basic/carrier</td>
+<td class="btn">承运商查询</td>
+<td>carrier:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">承运商新增</td>
+<td>carrier:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">承运商修改</td>
+<td>carrier:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">承运商删除</td>
+<td>carrier:delete</td></tr>
+<tr>
+<td>仓储</td><td>基础数据</td><td>站点</td>
+<td class="path">/fulfillment/basic/delivery-hub</td>
+<td class="btn">集货地查询</td>
+<td>deliveryHub:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">集货地新增</td>
+<td>deliveryHub:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">集货地修改</td>
+<td>deliveryHub:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">集货地删除</td>
+<td>deliveryHub:delete</td></tr>
+<tr>
+<td>仓储</td><td>基础数据</td><td>线路管理</td>
+<td class="path">/logistics/route_management/list</td>
+<td class="btn">启用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">停用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td></td></tr>
+<tr>
+<td>仓储</td><td>权限管理</td><td>作业档案</td>
+<td class="path">/fulfillment/permission/profile</td>
+<td class="btn">档案查询</td>
+<td>profile:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">档案新增</td>
+<td>profile:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">档案修改</td>
+<td>profile:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">档案删除</td>
+<td>profile:delete</td></tr>
+<tr>
+<td>仓储</td><td>权限管理</td><td>用户-作业档案绑定</td>
+<td class="path">/fulfillment/permission/user-profile</td>
+<td class="btn">绑定查询（档案）</td>
+<td>userProfile:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">绑定新增（档案）</td>
+<td>userProfile:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">绑定修改（档案）</td>
+<td>userProfile:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">绑定删除（档案）</td>
+<td>userProfile:delete</td></tr>
+<tr>
+<td>仓储</td><td>权限管理</td><td>用户-货主绑定</td>
+<td class="path">/fulfillment/permission/user-company</td>
+<td class="btn">绑定查询（货主）</td>
+<td>userCompany:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">绑定新增（货主）</td>
+<td>userCompany:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">绑定修改（货主）</td>
+<td>userCompany:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">绑定删除（货主）</td>
+<td>userCompany:delete</td></tr>
+<tr>
+<td>仓储</td><td>策略管理</td><td>仓库-货主</td>
+<td class="path">/fulfillment/policy/warehouse-company</td>
+<td class="btn">查询</td>
+<td>warehouseCompany:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增</td>
+<td>warehouseCompany:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td>warehouseCompany:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td>warehouseCompany:delete</td></tr>
+<tr>
+<td>仓储</td><td>策略管理</td><td>入库策略</td>
+<td class="path">/fulfillment/policy/ibd-strategy</td>
+<td class="btn">查询</td>
+<td>ibdStrategy:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增</td>
+<td>ibdStrategy:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td>ibdStrategy:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td>ibdStrategy:delete</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">储位规则校验</td>
+<td>locationValidation:invoke</td></tr>
+<tr>
+<td>仓储</td><td>策略管理</td><td>波次流程</td>
+<td class="path">/fulfillment/policy/wave-process</td>
+<td class="btn">查询</td>
+<td>waveProcess:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增</td>
+<td>waveProcess:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td>waveProcess:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td>waveProcess:delete</td></tr>
+<tr>
+<td>仓储</td><td>策略管理</td><td>波次模板</td>
+<td class="path">/fulfillment/policy/wave-template</td>
+<td class="btn">查询</td>
+<td>waveTemplate:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增</td>
+<td>waveTemplate:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td>waveTemplate:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td>waveTemplate:delete</td></tr>
+<tr>
+<td>仓储</td><td>策略管理</td><td>分配策略</td>
+<td class="path">/fulfillment/policy/allocation-strategy</td>
+<td class="btn">查询</td>
+<td>allocationStrategy:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增</td>
+<td>allocationStrategy:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td>allocationStrategy:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td>allocationStrategy:delete</td></tr>
+<tr>
+<td>仓储</td><td>策略管理</td><td>周转策略</td>
+<td class="path">/fulfillment/policy/replenishment-strategy</td>
+<td class="btn">启用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">停用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">查看</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td></td></tr>
+<tr>
+<td>仓储</td><td>策略管理</td><td>任务引擎</td>
+<td class="path">/fulfillment/policy/task-engine</td>
+<td class="btn">查询</td>
+<td>taskEngine:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增</td>
+<td>taskEngine:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td>taskEngine:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td>taskEngine:delete</td></tr>
+<tr>
+<td>仓储</td><td>策略管理</td><td>库存规则</td>
+<td class="path">/fulfillment/policy/inventory-rules</td>
+<td class="btn">启用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">禁用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td></td></tr>
+<tr>
+<td>仓储</td><td>任务管理</td><td>任务组</td>
+<td class="path">/fulfillment/task/group</td>
+<td class="btn">开始时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">完成时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">创建人</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">结束时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">取消指派</td>
+<td></td></tr>
+<tr>
+<td>仓储</td><td>任务管理</td><td>任务</td>
+<td class="path">/fulfillment/task/order</td>
+<td class="btn">完成数量</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">开始时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">结束时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">创建人</td>
+<td></td></tr>
+<tr>
+<td>仓储</td><td>入库管理</td><td>入库单</td>
+<td class="path">/fulfillment/order/inbound</td>
+<td class="btn">创建时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">开始时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">结束时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">取消时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">取消人</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">创建人</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">收货记录</td>
+<td></td></tr>
+<tr>
+<td>仓储</td><td>出库管理</td><td></td>
+<td class="path">/fulfillment/outbound</td>
+<td class="btn"></td>
+<td></td></tr>
+<tr>
+<td>仓储</td><td>出库管理</td><td>出库单</td>
+<td class="path">/fulfillment/outbound/order</td>
+<td class="btn">出库单创建</td>
+<td>outbound:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">出库单拣货</td>
+<td>outbound:pick</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">出库单分拣</td>
+<td>outbound:sort</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">出库单复核</td>
+<td>outbound:check</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">出库单打包</td>
+<td>outbound:pack</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">出库单取消</td>
+<td>outbound:cancel</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">出库单查看</td>
+<td>outbound:view</td></tr>
+<tr>
+<td>仓储</td><td>出库管理</td><td>波次管理</td>
+<td class="path">/fulfillment/outbound/wave</td>
+<td class="btn">创建时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">开始时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">结束时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">创建人</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">分配记录</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">分配库存</td>
+<td></td></tr>
+<tr>
+<td>仓储</td><td>出库管理</td><td>分拣单</td>
+<td class="path">/fulfillment/outbound/sort</td>
+<td class="btn">创建时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">开始时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">结束时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">创建人</td>
+<td></td></tr>
+<tr>
+<td>仓储</td><td>出库管理</td><td>包裹管理</td>
+<td class="path">/fulfillment-core/outbound/carton</td>
+<td class="btn">发货单号</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">发货时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">创建人</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">开始时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">结束时间</td>
+<td></td></tr>
+<tr>
+<td>仓储</td><td>出库管理</td><td>发货管理</td>
+<td class="path">/fulfillment-core/outbound/distribution</td>
+<td class="btn">发货单号</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">发货单状态</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">开始时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">结束时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">发货时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">发货单打印次数</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">创建人</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">发货单打印错误:</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">打印</td>
+<td></td></tr>
+<tr>
+<td>仓储</td><td>库存管理</td><td>库存查询</td>
+<td class="path">/fulfillment/inventory/stock</td>
+<td class="btn">库存查询</td>
+<td>inventory:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">库存冻结</td>
+<td>inventory:freeze</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">库存解冻</td>
+<td>inventory:unfreeze</td></tr>
+<tr>
+<td>仓储</td><td>库存管理</td><td>库存日志</td>
+<td class="path">/fulfillment/inventory/log</td>
+<td class="btn">库存日志查询</td>
+<td>inventoryLog:list</td></tr>
+<tr>
+<td>仓储</td><td>库内管理</td><td>库存调整单</td>
+<td class="path">/fulfillment/inwarehouseManagement/inventoryOrder</td>
+<td class="btn">调整单号</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">调整类型</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">开始时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">结束时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">创建人</td>
+<td></td></tr>
+<tr>
+<td>仓储</td><td>异常管理</td><td>出库异常</td>
+<td class="path">/fulfillment/exceptionManagement/outboundException</td>
+<td class="btn">创建时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">创建人</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">查看</td>
+<td></td></tr>
+<tr>
+<td>仓储</td><td>异常管理</td><td>负库存</td>
+<td class="path">/fulfillment/exceptionManagement/negativeInventory</td>
+<td class="btn">导出接口暂未对接，当前无法导出</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">导出</td>
+<td></td></tr>
+<tr>
+<td>仓储</td><td>运维工具</td><td>一键初始化</td>
+<td class="path">/fulfillment/operationsTools/oneclickInitialization</td>
+<td class="btn">创建时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">创建人</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">查询</td>
+<td></td></tr>
+<tr id="m-%E7%BB%93%E7%AE%97"><td colspan="6" style="background:#e8f0e0;font-weight:700">结算</td></tr>
+<tr>
+<td>结算</td><td>策略管理</td><td></td>
+<td class="path">/settlement/settlement_policy/list</td>
+<td class="btn">创建时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">创建策略</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">启用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">停用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">更多</td>
+<td></td></tr>
+<tr>
+<td>结算</td><td>策略查询</td><td></td>
+<td class="path">/settlement/policy_query/list</td>
+<td class="btn">查看策略详情</td>
+<td></td></tr>
+<tr>
+<td>结算</td><td>资金账户</td><td></td>
+<td class="path">/settlement/platform_account/list</td>
+<td class="btn">启用状态</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">启用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">停用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">查看详情</td>
+<td></td></tr>
+<tr>
+<td>结算</td><td>异常订单</td><td></td>
+<td class="path">/settlement/commission_details/list</td>
+<td class="btn">查看详情</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">导出列表待对接</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">导出列表</td>
+<td></td></tr>
+<tr>
+<td>结算</td><td>供应商结算</td><td></td>
+<td class="path">/settlement/supplier_settlement/list</td>
+<td class="btn">查看详情</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">批量加入结款单</td>
+<td></td></tr>
+<tr>
+<td>结算</td><td>清分汇总</td><td></td>
+<td class="path">/settlement/commission_summary/list</td>
+<td class="btn">开始日期</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">结束日期</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">导出列表</td>
+<td></td></tr>
+<tr>
+<td>结算</td><td>佣金清算</td><td></td>
+<td class="path">/settlement/commission_clearing/list</td>
+<td class="btn">创建时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">查看详情</td>
+<td></td></tr>
+<tr>
+<td>结算</td><td>对账结算</td><td></td>
+<td class="path">/settlement/reconciliation_settlement/list</td>
+<td class="btn">导出列表待对接</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑备注待对接</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">导出列表</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">批量确认结算</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑备注</td>
+<td></td></tr>
+<tr>
+<td>结算</td><td>分佣账户</td><td></td>
+<td class="path">/settlement/commission_account/list</td>
+<td class="btn">创建时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">导出列表待对接</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">导出列表</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">禁用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">启用</td>
+<td></td></tr>
+<tr>
+<td>结算</td><td>补偿结款</td><td></td>
+<td class="path">/settlement/compensation_settlement/list</td>
+<td class="btn">创建时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">导出列表待对接</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">导出列表</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">查看详情</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">上传凭证</td>
+<td></td></tr>
+<tr id="m-%E8%90%A5%E9%94%80"><td colspan="6" style="background:#e8f0e0;font-weight:700">营销</td></tr>
+<tr>
+<td>营销</td><td>营销记录</td><td>直播营销记录</td>
+<td class="path">/campaign/live-marketing/campaign-records/list</td>
+<td class="btn">完成时间</td>
+<td></td></tr>
+<tr>
+<td>营销</td><td>营销记录</td><td>直播营销配置</td>
+<td class="path">/campaign/live-marketing/marketing-settings/list</td>
+<td class="btn">创建时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">启用状态</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增活动</td>
+<td></td></tr>
+<tr>
+<td>营销</td><td>营销记录</td><td>商城营销记录</td>
+<td class="path">/campaign/live-marketing/marketingRecords/list</td>
+<td class="btn"></td>
+<td></td></tr>
+<tr>
+<td>营销</td><td>商城营销</td><td>商城优惠券记录</td>
+<td class="path">/campaign/commerce-marketing/coupon-records/list</td>
+<td class="btn">查看详情</td>
+<td></td></tr>
+<tr>
+<td>营销</td><td>商城营销</td><td>商城优惠券</td>
+<td class="path">/campaign/commerce-marketing/mall-coupons/list</td>
+<td class="btn">配置数量</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">创建优惠券</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">上架</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">下架</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td></td></tr>
+<tr>
+<td>营销</td><td>营销模版</td><td>模版配置</td>
+<td class="path">/campaign/marketing-template/template-setting/list</td>
+<td class="btn">创建时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">启用状态</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增模板</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">启用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">禁用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td></td></tr>
+<tr id="m-%E5%9F%BA%E7%A1%80%E8%AE%BE%E7%BD%AE"><td colspan="6" style="background:#e8f0e0;font-weight:700">基础设置</td></tr>
+<tr>
+<td>基础设置</td><td>协议配置</td><td>小程序协议</td>
+<td class="path">/config/protocol-config/miniapp</td>
+<td class="btn">协议查询</td>
+<td>protocol:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">保存协议</td>
+<td>protocol:save</td></tr>
+<tr>
+<td>基础设置</td><td>订单配置</td><td></td>
+<td class="path">/config/orderConfig</td>
+<td class="btn">开启</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">保存</td>
+<td></td></tr>
+<tr>
+<td>基础设置</td><td>推荐位配置</td><td>小程序推荐位</td>
+<td class="path">/config/recommendation-position/miniapp</td>
+<td class="btn">推荐位查询</td>
+<td>recommendationPosition:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">推荐位详情</td>
+<td>recommendationPosition:detail</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">推荐位新增</td>
+<td>recommendationPosition:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">推荐位修改</td>
+<td>recommendationPosition:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">推荐位删除</td>
+<td>recommendationPosition:delete</td></tr>
+<tr>
+<td>基础设置</td><td>会员配置</td><td>会员等级</td>
+<td class="path">/config/membership_config/membership_level/list</td>
+<td class="btn">启用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">停用</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增等级</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td></td></tr>
+<tr>
+<td>基础设置</td><td>素材管理</td><td>素材类型</td>
+<td class="path">/config/material/materialType</td>
+<td class="btn">类型查询</td>
+<td>mallMaterialType:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">类型新增</td>
+<td>mallMaterialType:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">类型编辑</td>
+<td>mallMaterialType:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">类型删除</td>
+<td>mallMaterialType:delete</td></tr>
+<tr>
+<td>基础设置</td><td>素材管理</td><td>素材列表</td>
+<td class="path">/config/material/list</td>
+<td class="btn">状态变更</td>
+<td>mallMaterialAsset:changeStatus</td></tr>
+<tr>
+<td>基础设置</td><td>系统管理</td><td>菜单管理</td>
+<td class="path">/setting/menuManagement</td>
+<td class="btn">菜单新增</td>
+<td>menu:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">菜单修改</td>
+<td>menu:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">菜单删除</td>
+<td>menu:delete</td></tr>
+<tr>
+<td>基础设置</td><td>系统管理</td><td>Outbox 监控</td>
+<td class="path">/setting/outboxMonitor</td>
+<td class="btn">创建时间</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">查询</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">重置</td>
+<td></td></tr>
+<tr>
+<td>基础设置</td><td>系统管理</td><td>组织用户</td>
+<td class="path">/system/org</td>
+<td class="btn">组织新增</td>
+<td>org:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">组织修改</td>
+<td>org:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">组织删除</td>
+<td>org:delete</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">用户新建</td>
+<td>user:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">用户编辑</td>
+<td>user:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">用户列表</td>
+<td>user:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">用户删除</td>
+<td>user:delete</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">用户重置密码</td>
+<td>user:resetPassword</td></tr>
+<tr>
+<td>基础设置</td><td>系统管理</td><td>角色管理</td>
+<td class="path">/system/role</td>
+<td class="btn">角色查询</td>
+<td>role:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">角色新增</td>
+<td>role:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">角色修改</td>
+<td>role:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">角色删除</td>
+<td>role:delete</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">角色状态修改</td>
+<td>role:changeStatus</td></tr>
+<tr>
+<td>基础设置</td><td>系统管理</td><td>字典管理</td>
+<td class="path">/system/dict</td>
+<td class="btn">字典查询</td>
+<td>dictType:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">字典新增</td>
+<td>dictType:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">字典修改</td>
+<td>dictType:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">字典删除</td>
+<td>dictType:delete</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">字典条目查询</td>
+<td>dict:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">字典条目新增</td>
+<td>dict:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">字典条目修改</td>
+<td>dict:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">字典条目删除</td>
+<td>dict:delete</td></tr>
+<tr>
+<td>基础设置</td><td>系统管理 / Flow 可视化</td><td>Flow 节点目录</td>
+<td class="path">/setting/flow/nodes</td>
+<td class="btn">刷新</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">详情</td>
+<td></td></tr>
+<tr>
+<td>基础设置</td><td>系统管理 / Flow 可视化</td><td>Flow 链路浏览器</td>
+<td class="path">/setting/flow/chains</td>
+<td class="btn">搜索 chain</td>
+<td></td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">查看 EL</td>
+<td></td></tr>
+<tr>
+<td>基础设置</td><td>系统管理</td><td>审批流监控</td>
+<td class="path">/system/flw-monitor</td>
+<td class="btn"></td>
+<td></td></tr>
+<tr>
+<td>基础设置</td><td>合作管理</td><td>合同模板</td>
+<td class="path">/cooperation/template</td>
+<td class="btn">模板查询</td>
+<td>agreementTemplate:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">模板新增</td>
+<td>agreementTemplate:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">模板修改</td>
+<td>agreementTemplate:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">模板删除</td>
+<td>agreementTemplate:delete</td></tr>
+<tr>
+<td>基础设置</td><td>合作管理</td><td>电子合同</td>
+<td class="path">/cooperation/agreement</td>
+<td class="btn">协议查询</td>
+<td>cooperationAgreement:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">协议新增</td>
+<td>cooperationAgreement:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">协议修改</td>
+<td>cooperationAgreement:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">协议删除</td>
+<td>cooperationAgreement:delete</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">提交审核</td>
+<td>cooperationAgreement:submit</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">审核操作</td>
+<td>cooperationAgreement:review</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">终止协议</td>
+<td>cooperationAgreement:terminate</td></tr>
+<tr>
+<td>基础设置</td><td>合作管理</td><td>进件商户</td>
+<td class="path">/cooperation/merchant</td>
+<td class="btn">商户查询</td>
+<td>paymentMerchant:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">商户详情</td>
+<td>paymentMerchant:detail</td></tr>
+<tr id="m-%E5%88%86%E9%94%80%E7%AE%A1%E7%90%86"><td colspan="6" style="background:#e8f0e0;font-weight:700">分销管理</td></tr>
+<tr>
+<td>分销管理</td><td>我的团队</td><td></td>
+<td class="path">/distribution/team</td>
+<td class="btn"></td>
+<td></td></tr>
+<tr>
+<td>分销管理</td><td>门店进件</td><td></td>
+<td class="path">/distribution/onboard</td>
+<td class="btn"></td>
+<td></td></tr>
+<tr>
+<td>分销管理</td><td>佣金看板</td><td></td>
+<td class="path">/distribution/commission</td>
+<td class="btn"></td>
+<td></td></tr>
+<tr>
+<td>分销管理</td><td>分享链接</td><td></td>
+<td class="path">/distribution/share</td>
+<td class="btn"></td>
+<td></td></tr>
+<tr id="m-%E6%B6%88%E6%81%AF%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83"><td colspan="6" style="background:#e8f0e0;font-weight:700">消息配置中心</td></tr>
+<tr>
+<td>消息配置中心</td><td>消息类型管理</td><td></td>
+<td class="path">/message-config/types</td>
+<td class="btn">查看</td>
+<td>messageType:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增</td>
+<td>messageType:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td>messageType:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">启停</td>
+<td>messageType:status</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td>messageType:delete</td></tr>
+<tr>
+<td>消息配置中心</td><td>消息模板管理</td><td></td>
+<td class="path">/message-config/templates</td>
+<td class="btn">查看</td>
+<td>messageTemplate:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增</td>
+<td>messageTemplate:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td>messageTemplate:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">启停</td>
+<td>messageTemplate:status</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td>messageTemplate:delete</td></tr>
+<tr>
+<td>消息配置中心</td><td>触发机制管理</td><td></td>
+<td class="path">/message-config/triggers</td>
+<td class="btn">查看</td>
+<td>messageTrigger:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">新增</td>
+<td>messageTrigger:create</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">编辑</td>
+<td>messageTrigger:update</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">启停</td>
+<td>messageTrigger:status</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">删除</td>
+<td>messageTrigger:delete</td></tr>
+<tr id="m-%E7%94%A8%E6%88%B7%E7%AE%A1%E7%90%86"><td colspan="6" style="background:#e8f0e0;font-weight:700">用户管理</td></tr>
+<tr>
+<td>用户管理</td><td>商家管理</td><td></td>
+<td class="path">/user/userManagement/list</td>
+<td class="btn">商家查询</td>
+<td>cooperationMerchant:list</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">添加门店商家</td>
+<td>cooperationMerchant:createStore</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">添加供应商商家</td>
+<td>cooperationMerchant:createSupplier</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">添加仓库商家</td>
+<td>cooperationMerchant:createWarehouse</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">商家启停</td>
+<td>cooperationMerchant:updateStatus</td></tr>
+<tr>
+<td></td><td></td><td></td>
+<td class="path"></td>
+<td class="btn">查看商家详情</td>
+<td>cooperationMerchant:detail</td></tr>
+</tbody></table></div>
+<p class="note">
+说明：<br/>
+1. 一级/二级/三级菜单、页面路径来自 UAT 登录后菜单配置（/system-core/v1/auth/me）。<br/>
+2. 「业务伙伴」下「所有主体 / 门店档案 / 供应商档案」按钮文案已按页面实际展示对齐示例表；按钮标识尽量填权限码。<br/>
+3. 其余已配置按钮权限的页面：操作按钮=权限点名称，按钮标识=permission。<br/>
+4. 未配置按钮权限的页面：按钮从页面前端代码启发式提取，标识列为空，建议业务侧抽查复核。
+</p>
+</body></html>

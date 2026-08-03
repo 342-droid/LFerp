@@ -132,8 +132,33 @@
     function rowToMember(tr) {
         if (!tr) return null;
         var c = tr.querySelectorAll('td');
-        if (c.length < 19) return null;
-        var av = c[2].querySelector('span');
+        if (c.length < 4) return null;
+        var av = c[2] ? c[2].querySelector('span') : null;
+        /* 注销会员精简表：ID / 昵称 / 头像 / 手机 / 等级 / 来源 / 注销时间 / 状态 / 操作 */
+        if (c.length < 19) {
+            var stCell = c[7] || c[c.length - 2];
+            return {
+                id: c[0].textContent.trim(),
+                nickname: c[1].textContent.trim(),
+                avatarText: av ? av.textContent.trim() : '',
+                phone: c[3].textContent.trim(),
+                gender: '—',
+                isMember: '—',
+                level: (c[4] && c[4].textContent.trim()) || '—',
+                tags: '—',
+                source: (c[5] && c[5].textContent.trim()) || '—',
+                bindMethod: '—',
+                channelCount: '—',
+                points: '—',
+                satisMinutes: '—',
+                satisFeedback: '—',
+                growthScore: '—',
+                amount: '—',
+                orderCount: '—',
+                lastConsume: '—',
+                status: ((stCell && (stCell.querySelector('.status') || stCell)).textContent || '注销').trim()
+            };
+        }
         var base = {
             id: c[0].textContent.trim(),
             nickname: c[1].textContent.trim(),

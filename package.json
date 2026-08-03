@@ -4,8 +4,9 @@
   "description": "冷丰ERP 原型站工具依赖（changelog 生成与页面变更对比图）",
   "type": "module",
   "scripts": {
-    "preview": "npx --yes serve -l 5173 .",
-    "preview:5173": "npx --yes serve -l 5173 ."
+    "preview": "node tools/preview-server.mjs",
+    "preview:5173": "node tools/preview-server.mjs",
+    "preview:ensure": "node tools/preview-server.mjs --ensure"
   },
   "devDependencies": {
     "jpeg-js": "^0.4.4",

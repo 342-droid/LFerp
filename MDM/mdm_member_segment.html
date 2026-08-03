@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-product.css">
     <link rel="stylesheet" href="../css/mdm-member-segment-filter.css">
+    <link rel="stylesheet" href="../css/mdm-member360-list.css">
     <style>
         .member-segment-toolbar {
             margin: 0 0 12px;
@@ -23,13 +24,11 @@
         }
         .member-segment-rule-cell {
             max-width: 360px;
-            font-size: 12px;
-            color: #555;
-            line-height: 1.55;
             white-space: normal;
             margin: 0;
             padding: 0;
             list-style: none;
+            text-align: left;
         }
         .member-segment-rule-cell li { margin: 0 0 2px; }
         .member-segment-rule-cell li::before {
@@ -37,14 +36,6 @@
             color: #ff7019;
             font-weight: 700;
         }
-        .member-segment-rule-empty { color: #bbb; }
-        .member-segment-count-link {
-            color: #2196F3;
-            text-decoration: none;
-            font-weight: 600;
-            font-variant-numeric: tabular-nums;
-        }
-        .member-segment-count-link:hover { text-decoration: underline; color: #1976D2; }
         .member-segment-logic {
             display: inline-block;
             min-width: 28px;
@@ -52,8 +43,6 @@
             border-radius: 3px;
             background: rgba(255, 112, 25, 0.1);
             color: #ff7019;
-            font-size: 12px;
-            font-weight: 600;
             text-align: center;
         }
         .member-segment-mode {
@@ -79,8 +68,6 @@
         .th-with-tip {
             white-space: nowrap;
         }
-        .member-segment-ops a { margin-right: 8px; }
-        .member-segment-ops a:last-child { margin-right: 0; }
         .btn.btn-outline {
             background: #fff;
             color: #ff7019;

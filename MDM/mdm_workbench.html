@@ -67,13 +67,14 @@
             '└── 人员中心：BD、采购员、司机、主播',
             '',
             '会员（顶栏独立入口）',
-            '├── 会员360：会员管理、会员标签、批量打标签、会员分群',
+            '├── 会员360：会员管理（会员列表 / 黑名单 / 注销会员）、会员标签、批量打标签、会员分群',
             '└── 会员体系：会员等级、成长值规则、成长值明细、规则说明'
         ];
         var specItems = [
             '顶栏「业务伙伴」进入 MDM 侧栏；「会员」为独立顶栏入口，侧栏为会员360 / 会员体系。',
-            '列表页样式：css/pages/erp-records.css；通用控件：js/utils/erp-ui.js。',
-            '本地开发：npm run dev（Vite），勿用 file:// 打开。'
+            '会员管理状态类型：正常、黑名单、注销；页内 Tab 切换会员列表 / 黑名单 / 注销会员。',
+            '本地预览：在 LFerp 目录执行 npm run preview（端口 5173；打开工程时 VS Code/Cursor 任务会尝试自动拉起）。',
+            '勿用 file:// 打开；勿再依赖已废弃的 Vite / npx serve。'
         ];
         document.addEventListener('DOMContentLoaded', function () {
             var pre = document.getElementById('mdmWelcomeTree');

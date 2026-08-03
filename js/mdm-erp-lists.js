@@ -2847,6 +2847,7 @@
             if (m.birthday) tr.setAttribute('data-birthday', m.birthday);
             if (m.district) tr.setAttribute('data-district', m.district);
             if (m.phone) tr.setAttribute('data-phone-full', m.phone);
+            tr.setAttribute('data-member-status', m.status || '正常');
 
             var phoneShow = m.phoneMasked || maskPhone(m.phone) || m.phone || '—';
             var avatarText = m.avatarText || String(m.nickname || '会').charAt(0);
@@ -2876,22 +2877,32 @@
                 var td = document.createElement('td');
                 if (idx === 2) {
                     var span = document.createElement('span');
-                    span.style.cssText =
-                        'display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;background:#e8f5ef;color:#0b5c3b;font-weight:600;';
+                    span.className = 'mdm-list-avatar';
                     span.textContent = avatarText;
                     td.appendChild(span);
                 } else if (idx === 18) {
                     var st = document.createElement('span');
-                    st.className = 'status active';
-                    st.textContent = m.status || '正常';
+                    var stTxt = m.status || '正常';
+                    if (stTxt === '黑名单') st.className = 'status blacklist';
+                    else if (stTxt === '注销') st.className = 'status canceled';
+                    else st.className = 'status active';
+                    st.textContent = stTxt;
                     td.appendChild(st);
                 } else if (idx === 19) {
                     td.className = 'action-links';
-                    td.innerHTML =
-                        '<a href="#" class="mdm-mem-detail">查看详情</a>　' +
-                        '<a href="#" class="mdm-mem-coupon">优惠券</a>　' +
-                        '<a href="#" class="mdm-mem-points">调整积分</a>　' +
-                        '<a href="#" class="mdm-mem-growth">调整成长值</a>';
+                    if (window.MdmMemberBlacklist && window.MdmMemberBlacklist.buildMemberListActions) {
+                        td.innerHTML = window.MdmMemberBlacklist.buildMemberListActions(m.status || '正常');
+                    } else {
+                        var stNow = m.status || '正常';
+                        var actions =
+                            '<a href="#" class="mdm-mem-detail">查看详情</a>' +
+                            '<a href="#" class="mdm-mem-coupon">优惠券</a>' +
+                            '<a href="#" class="mdm-mem-points">调整积分</a>' +
+                            '<a href="#" class="mdm-mem-growth">调整成长值</a>';
+                        if (stNow === '正常') actions += '<a href="#" class="mdm-mem-blacklist">拉黑</a>';
+                        else if (stNow === '黑名单') actions += '<a href="#" class="mdm-mem-restore">恢复</a>';
+                        td.innerHTML = actions;
+                    }
                 } else {
                     td.textContent = val;
                 }
@@ -2966,14 +2977,35 @@
                             window.MdmMemberCUi.openGrowthFromRow(el.closest('tr'));
                         }
                     }
+                },
+                {
+                    selector: '.mdm-mem-blacklist',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (window.MdmMemberBlacklist) {
+                            window.MdmMemberBlacklist.openBlacklistFromMember(el.closest('tr'));
+                        }
+                    }
+                },
+                {
+                    selector: '.mdm-mem-restore',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (window.MdmMemberBlacklist) {
+                            window.MdmMemberBlacklist.openRestoreFromMember(el.closest('tr'));
+                        }
+                    }
                 }
             ]
         });
         // 将 C 端已保存会员资料同步进列表（localStorage）
         syncCMemberRowsToTable();
         pm.init();
+        if (window.MdmMemberBlacklist) {
+            window.MdmMemberBlacklist.init();
+        }
         bindSimpleFilter(pm, {
-            resetFields: ['qMemberId', 'qNickname', 'qBindWay', 'qPhone', 'qMemberLevel', 'qMemberTag'],
+            resetFields: ['qMemberId', 'qNickname', 'qBindWay', 'qPhone', 'qMemberLevel', 'qMemberTag', 'qMemberStatus'],
             filterFn: function (p) {
                 var tbody = document.getElementById(p.config.tableBodyId);
                 if (!tbody) return;
@@ -2983,6 +3015,7 @@
                 var qP = ((document.getElementById('qPhone') || {}).value || '').replace(/\D/g, '');
                 var qLevel = (document.getElementById('qMemberLevel') || {}).value.trim();
                 var qTag = (document.getElementById('qMemberTag') || {}).value.trim();
+                var qSt = (document.getElementById('qMemberStatus') || {}).value.trim();
                 tbody.querySelectorAll('tr').forEach(function (tr) {
                     var c = tr.querySelectorAll('td');
                     if (c.length < 18) return;
@@ -2993,11 +3026,24 @@
                     if (qP && c[3].textContent.replace(/\D/g, '').indexOf(qP) === -1) ok = false;
                     if (qLevel && c[6].textContent.trim() !== qLevel) ok = false;
                     if (qTag && c[7].textContent.trim().indexOf(qTag) === -1) ok = false;
+                    if (qSt) {
+                        var stEl = c[18].querySelector('.status');
+                        var stTxt = stEl ? stEl.textContent.trim() : (tr.getAttribute('data-member-status') || '');
+                        if (stTxt !== qSt) ok = false;
+                    }
                     tr.style.display = ok ? '' : 'none';
                 });
                 p.refreshPagination();
             }
         });
+        /* 默认按「正常」状态筛选一次 */
+        try {
+            var stEl0 = document.getElementById('qMemberStatus');
+            if (stEl0 && stEl0.value === '正常') {
+                var qBtn0 = document.getElementById('btnFilterQuery');
+                if (qBtn0) qBtn0.click();
+            }
+        } catch (eSt0) { /* ignore */ }
         // 会员等级下拉：优先读取后台已配置等级
         try {
             var levelElInit = document.getElementById('qMemberLevel');

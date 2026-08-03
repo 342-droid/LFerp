@@ -1,0 +1,315 @@
+/**
+ * 会员360 列表视觉统一（以「会员分群」为基准）
+ * 覆盖：会员管理 / 黑名单 / 注销会员 / 会员分群 等 .table 列表
+ */
+:root {
+  --mdm360-text: #333;
+  --mdm360-text-secondary: #555;
+  --mdm360-text-muted: #888;
+  --mdm360-text-disabled: #999;
+  --mdm360-link: #2196f3;
+  --mdm360-link-hover: #1976d2;
+  --mdm360-ok: #52c41a;
+  --mdm360-warn: #fa8c16;
+  --mdm360-danger: #ff4d4f;
+  --mdm360-font-size: 13px;
+  --mdm360-font-secondary: 12px;
+  --mdm360-line: 1.55;
+}
+
+/* —— 表头 / 单元格基础 —— */
+.main-content .table {
+  font-size: var(--mdm360-font-size);
+  color: var(--mdm360-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+}
+
+.main-content .table th {
+  font-size: var(--mdm360-font-size);
+  font-weight: 600;
+  color: var(--mdm360-text);
+  line-height: var(--mdm360-line);
+}
+
+.main-content .table td {
+  font-size: var(--mdm360-font-size);
+  font-weight: 400;
+  color: var(--mdm360-text);
+  line-height: var(--mdm360-line);
+  vertical-align: middle;
+}
+
+/* —— 操作列 ——
+ * 注意：.action-links / .member-segment-ops 常直接加在 <td> 上，
+ * 不可改 display（否则破坏 table-cell，出现独立线框感）。
+ */
+.main-content .table td.action-links,
+.main-content .table td.member-segment-ops,
+.main-content .table td.member-batch-ops,
+.main-content .table td.mdm-list-ops,
+.main-content .table td:has(> a[data-action]),
+.main-content .table td:has(> a[data-act]),
+.main-content .table td:has(> a.mdm-mem-detail),
+.main-content .table td:has(> a.mdm-bl-restore) {
+  display: table-cell !important; /* 覆盖 components.css 里 .action-links{display:flex}，避免 td 变独立线框 */
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  font-size: var(--mdm360-font-size);
+  line-height: var(--mdm360-line);
+  letter-spacing: 0;
+}
+
+.main-content .table td.action-links a,
+.main-content .table td.member-segment-ops a,
+.main-content .table td.member-batch-ops a,
+.main-content .table td.mdm-list-ops a,
+.main-content .table td:last-child > a,
+.main-content .table .action-links a,
+.main-content .table .member-segment-ops a,
+.main-content .table .member-batch-ops a,
+.main-content .table .mdm-list-ops a {
+  display: inline;
+  margin-right: 8px;
+  color: var(--mdm360-link) !important;
+  font-size: var(--mdm360-font-size);
+  font-weight: 400;
+  text-decoration: none !important;
+  line-height: inherit;
+  border: none;
+  background: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.main-content .table td.action-links a:last-child,
+.main-content .table td.member-segment-ops a:last-child,
+.main-content .table td.member-batch-ops a:last-child,
+.main-content .table td.mdm-list-ops a:last-child,
+.main-content .table td:last-child > a:last-child,
+.main-content .table .action-links a:last-child,
+.main-content .table .member-segment-ops a:last-child,
+.main-content .table .member-batch-ops a:last-child,
+.main-content .table .mdm-list-ops a:last-child {
+  margin-right: 0;
+}
+
+.main-content .table td.action-links a:hover,
+.main-content .table td.member-segment-ops a:hover,
+.main-content .table td.member-batch-ops a:hover,
+.main-content .table td.mdm-list-ops a:hover,
+.main-content .table td:last-child > a:hover,
+.main-content .table .action-links a:hover,
+.main-content .table .member-segment-ops a:hover,
+.main-content .table .member-batch-ops a:hover,
+.main-content .table .mdm-list-ops a:hover {
+  color: var(--mdm360-link-hover) !important;
+  text-decoration: none !important;
+}
+
+.main-content .table .action-link-disabled {
+  display: inline;
+  margin-right: 8px;
+  color: var(--mdm360-text-disabled);
+  font-size: var(--mdm360-font-size);
+  font-weight: 400;
+  cursor: not-allowed;
+}
+
+.main-content .table .action-link-disabled:last-child {
+  margin-right: 0;
+}
+
+/* 会员列表操作列：取消冻结，去掉左侧阴影造成的「独立线框/卡片」感 */
+.main-content .table th:last-child,
+.main-content .table td:last-child {
+  position: static !important;
+  right: auto !important;
+  z-index: auto !important;
+  box-shadow: none !important;
+  background-color: #fff;
+}
+
+.main-content .table thead th:last-child {
+  position: sticky !important; /* 仅保留表头纵向吸顶，横向不冻结 */
+  top: 0;
+  z-index: 5;
+  background-color: #f5f5f5;
+  box-shadow: none !important;
+}
+
+/* 若行很高（多行权益/规则），操作文字上下居中 */
+.main-content .table tbody td {
+  vertical-align: middle;
+}
+
+/* —— 状态：分群式纯文字，不用胶囊底 —— */
+.main-content .table .status,
+.main-content .table .mdm-status {
+  display: inline;
+  padding: 0;
+  border-radius: 0;
+  background: transparent !important;
+  font-size: var(--mdm360-font-size);
+  font-weight: 400;
+  line-height: inherit;
+}
+
+.main-content .table .status.active,
+.main-content .table .mdm-status--ok {
+  color: var(--mdm360-ok);
+}
+
+.main-content .table .status.blacklist,
+.main-content .table .mdm-status--warn {
+  color: var(--mdm360-warn);
+}
+
+.main-content .table .status.canceled,
+.main-content .table .status.inactive,
+.main-content .table .mdm-status--muted {
+  color: var(--mdm360-text-disabled);
+}
+
+/* —— 详情 / 人数等链接 —— */
+.main-content .table .subject-name-link,
+.main-content .table .table-detail-link,
+.main-content .table .member-segment-count-link {
+  color: var(--mdm360-link);
+  font-size: var(--mdm360-font-size);
+  font-weight: 600;
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.main-content .table .subject-name-link:hover,
+.main-content .table .table-detail-link:hover,
+.main-content .table .member-segment-count-link:hover {
+  color: var(--mdm360-link-hover);
+  text-decoration: none;
+}
+
+/* —— 次级说明文字（规则、原因、ID 等） —— */
+.main-content .table .mdm-cell-secondary,
+.main-content .table .mem-info-cell__id,
+.main-content .table .bl-reason-cell__text,
+.main-content .table .member-segment-rule-cell {
+  font-size: var(--mdm360-font-secondary);
+  color: var(--mdm360-text-secondary);
+  font-weight: 400;
+  line-height: var(--mdm360-line);
+}
+
+.main-content .table .member-segment-rule-empty {
+  font-size: var(--mdm360-font-secondary);
+  color: #bbb;
+}
+
+.main-content .table td:has(.bl-funcs),
+.main-content .table td:has(.bl-reason-cell),
+.main-content .table td:has(.mem-info-cell),
+.main-content .table td:has(.member-segment-rule-cell) {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  text-align: left;
+  vertical-align: middle;
+}
+
+/* —— 会员信息组合列（黑名单） —— */
+.main-content .table .mem-info-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  max-width: 220px;
+  white-space: normal;
+  vertical-align: middle;
+}
+
+.main-content .table .mem-info-cell__avatar {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #eef1f6;
+  color: var(--mdm360-text-secondary);
+  font-weight: 600;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.main-content .table .mem-info-cell__meta {
+  min-width: 0;
+  line-height: var(--mdm360-line);
+}
+
+.main-content .table .mem-info-cell__name {
+  font-size: var(--mdm360-font-size);
+  font-weight: 400;
+  color: var(--mdm360-text);
+}
+
+.main-content .table .mem-info-cell__id {
+  margin-top: 1px;
+}
+
+/* —— 禁用功能 / 原因列 —— */
+.main-content .table .bl-funcs {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  align-items: flex-start;
+  text-align: left;
+  white-space: normal;
+  font-size: var(--mdm360-font-size);
+  color: var(--mdm360-text);
+  font-weight: 400;
+  line-height: var(--mdm360-line);
+}
+
+.main-content .table .bl-reason-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  max-width: 240px;
+  text-align: left;
+  white-space: normal;
+}
+
+.main-content .table .bl-reason-cell__thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 3px;
+  background: #eef1f6;
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+}
+
+/* —— 分群条件关系标签：字号靠齐 —— */
+.main-content .table .member-segment-logic {
+  font-size: var(--mdm360-font-secondary);
+  font-weight: 600;
+  line-height: var(--mdm360-line);
+}
+
+/* 列表内头像统一 */
+.main-content .table .mdm-list-avatar,
+.main-content .table td > span[style*='border-radius:50%'],
+.main-content .table td > span[style*='border-radius: 50%'] {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 28px !important;
+  height: 28px !important;
+  line-height: 28px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  border-radius: 50% !important;
+  background: #eef1f6 !important;
+  color: var(--mdm360-text-secondary) !important;
+}

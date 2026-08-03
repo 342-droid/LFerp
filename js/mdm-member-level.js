@@ -140,13 +140,13 @@
                 '<td>' + renderLevelIconCell(item) + '</td>' +
                 '<td>' + Data.escapeHtml(item.name) + '</td>' +
                 '<td>' + growthLabel + '</td>' +
-                '<td><div class="member-level-benefit-summary">' + Data.formatBenefitSummary(item) + '</div></td>' +
+                '<td class="member-level-benefit-cell"><div class="member-level-benefit-summary">' + Data.formatBenefitSummary(item) + '</div></td>' +
                 '<td><a href="mdm_member_c.html?level=' + encodeURIComponent(item.name) + '" class="subject-name-link" data-action="members">' + item.memberCount + '</a></td>' +
                 '<td>' + Data.escapeHtml(item.updatedAt) + '</td>' +
                 '<td><span class="status ' + statusClass + '">' + Data.escapeHtml(item.status) + '</span></td>' +
                 '<td class="action-links">' +
-                '<a href="#" data-action="edit">编辑</a>　' +
-                toggleLink + '　' +
+                '<a href="#" data-action="edit">编辑</a>' +
+                toggleLink +
                 deleteLink +
                 '</td>' +
                 '</tr>'
