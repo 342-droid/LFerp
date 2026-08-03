@@ -49454,6 +49454,23 @@ function deriveRolePreview(input, roleIdOrName) {
   const effectiveKeys = new Set(atoms.map((item) => item.code || item.id));
   const grantedAtomMappings = model.atoms.filter((item) => effectiveKeys.has(item.code || item.id));
   const availableAtoms = uniqueBy(model.atoms, (item) => item.code || item.id);
+  const defaultKeys = new Set(defaultAtoms.map((item) => item.code || item.id));
+  const additionalKeys = new Set(additionalAtoms.map((item) => item.code || item.id));
+  const atomSelections = uniqueBy([...defaultAtoms, ...additionalAtoms], (item) => item.code || item.id).map((atom) => {
+    const key = atom.code || atom.id;
+    const inherited = defaultKeys.has(key);
+    const additional = !inherited && additionalKeys.has(key);
+    const excluded = isExcluded(atom);
+    return {
+      atom,
+      key,
+      inherited,
+      additional,
+      excluded,
+      checked: !excluded,
+      state: excluded ? "已排除" : additional ? "岗位增加" : "随能力",
+    };
+  });
   const productCheckedAtoms = uniqueBy(
     model.atoms.filter((item) => ["checked", "inherited"].includes(item.roleChecks?.[role.name])),
     (item) => item.code || item.id,
@@ -49496,6 +49513,7 @@ function deriveRolePreview(input, roleIdOrName) {
     additionalAtoms,
     excludedAtoms,
     availableAtoms,
+    atomSelections,
     atomMappings: grantedAtomMappings,
     productCheckedAtoms,
     productMissingAtoms,
@@ -50305,7 +50323,7 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
     capabilities: ["岗位职责词汇", "标准能力", "能力边界稳定、编码受红线治理；能力详情直接维护菜单、原子技术权限和后端接口证据。"],
     atoms: ["技术执行契约", "原子技术权限", "稳定按钮与业务命令归入父能力，一个原子动作可以对应多个后端接口。"],
     functions: ["功能唯一归属", "菜单与按钮", "482 个菜单、页面和按钮各有一个父标准能力；需要岗位差异的动作再叠加原子权限。"],
-    roles: ["组织岗位职责", "岗位职责", "岗位选择标准能力后默认继承其原子权限；岗位只维护额外增加和明确排除的差异项。"],
+    roles: ["组织岗位职责", "岗位职责", "岗位在同一原子权限集合中查看能力默认项，并按需增加或排除；底层只保存差异。"],
     diagnostics: ["上线治理", "整改检查", "业务确认与技术落地分开检查；本页结论不代表代码、数据库或运行时已经生效。"],
   };
 
@@ -50715,27 +50733,22 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
       (groups[item.domain] ||= []).push(item);
       return groups;
     }, {});
-    const atomsByParent = preview.defaultAtoms.reduce((groups, atom) => {
-      const parentCode = atom.parentCapabilityCodes[0];
-      (groups[parentCode] ||= []).push(atom);
+    const atomsByParent = preview.atomSelections.reduce((groups, selection) => {
+      const parentCode = selection.atom.parentCapabilityCodes[0];
+      (groups[parentCode] ||= []).push(selection);
       return groups;
     }, {});
-    const atomSections = Object.entries(atomsByParent).map(([parentCode, atoms]) => {
+    const atomSections = Object.entries(atomsByParent).map(([parentCode, selections]) => {
       const capability = state.model.capabilities.find((item) => item.code === parentCode);
-      return `<p class="eyebrow" style="margin-top:13px">${escapeHtml(capability?.name || parentCode)}</p><div class="capability-check-grid">${atoms.map((atom) => {
-        const atomKey = atom.code || atom.id;
-        const excluded = atom.code ? role.excludedAtomicPermissionCodes.includes(atom.code) : role.excludedPendingAtomicPermissionIds.includes(atom.id);
-        return `<label class="role-atom-checkbox ${excluded ? "is-excluded" : "is-default"}"><input type="checkbox" data-role-atom-checkbox="${role.id}" data-atom-source="default" data-atom-kind="${atom.code ? "code" : "pending"}" value="${escapeAttribute(atomKey)}"${checked(!excluded)}><span><b>${escapeHtml(atom.operation || atom.sourceAction || atomKey)}</b><small>${escapeHtml(atom.code || `${atom.id} · 待补编码`)}</small><em class="atom-delta-label">${excluded ? "已排除" : "随能力"}</em></span></label>`;
+      return `<p class="eyebrow" style="margin-top:13px">${escapeHtml(capability?.name || parentCode)}</p><div class="capability-check-grid">${selections.map((selection) => {
+        const { atom } = selection;
+        const stateClass = selection.excluded ? "is-excluded" : selection.additional ? "is-additional" : "is-default";
+        return `<label class="role-atom-checkbox ${stateClass}"><input type="checkbox" data-role-atom-checkbox="${role.id}" data-atom-inherited="${selection.inherited}" data-atom-kind="${atom.code ? "code" : "pending"}" value="${escapeAttribute(selection.key)}"${checked(selection.checked)}><span><b>${escapeHtml(atom.operation || atom.sourceAction || selection.key)}</b><small>${escapeHtml(atom.code || `${atom.id} · 待补编码`)}</small><em class="atom-delta-label">${selection.state}</em></span></label>`;
       }).join("")}</div>`;
     }).join("");
-    const defaultKeys = new Set(preview.defaultAtoms.map((atom) => atom.code || atom.id));
-    const additionalKeys = new Set(preview.additionalAtoms.map((atom) => atom.code || atom.id));
-    const extraCandidates = preview.availableAtoms.filter((atom) => !defaultKeys.has(atom.code || atom.id) && !additionalKeys.has(atom.code || atom.id));
-    const additionalSection = preview.additionalAtoms.map((atom) => {
-      const atomKey = atom.code || atom.id;
-      return `<label class="role-atom-checkbox is-additional"><input type="checkbox" data-role-atom-checkbox="${role.id}" data-atom-source="additional" data-atom-kind="${atom.code ? "code" : "pending"}" value="${escapeAttribute(atomKey)}" checked><span><b>${escapeHtml(atom.operation || atom.sourceAction || atomKey)}</b><small>${escapeHtml(atom.code || `${atom.id} · 待补编码`)}</small><em class="atom-delta-label">额外增加</em></span></label>`;
-    }).join("");
-    return `<aside class="panel detail-panel"><div class="detail-hero"><span class="eyebrow">${escapeHtml(role.category)} · 产品岗位</span><h3>${escapeHtml(role.name)}</h3>${confirmationBadge(role.confirmationStatus)}<p>${escapeHtml(role.responsibility)}</p></div><div class="key-value-grid" style="margin-top:14px"><div class="key-value"><span>能力默认原子</span><strong>${preview.defaultAtoms.length}</strong></div><div class="key-value"><span>额外增加</span><strong>${preview.additionalAtoms.length}</strong></div><div class="key-value"><span>明确排除</span><strong>${preview.excludedAtoms.length}</strong></div><div class="key-value"><span>最终有效原子</span><strong>${preview.atoms.length}</strong></div></div><div class="notice" style="margin-top:14px">最终原子权限 = 所选标准能力默认原子权限 ∪ 岗位额外增加 − 岗位明确排除；岗位只保存差异项。</div><div class="detail-section"><div class="detail-section__title"><span>岗位职责与数据范围</span><button class="button button--ghost button--small" type="button" data-edit-role="${role.id}">编辑说明</button></div><div class="notice">${escapeHtml(role.dataScope)}</div></div><div class="detail-section"><div class="detail-section__title"><span>组织能力前置</span></div><div class="capability-check-grid">${state.model.orgCapabilities.map((item) => `<label class="org-capability-checkbox"><input type="checkbox" data-role-org-checkbox="${role.id}" value="${item.code}"${checked(role.orgCapabilityCodes.includes(item.code))}><span><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.code)}</small></span></label>`).join("")}</div></div><div class="detail-section"><div class="detail-section__title"><span>标准能力（默认带入原子权限）</span><b>${role.capabilityCodes.length}</b></div>${Object.entries(byDomain).map(([domain, capabilities]) => `<p class="eyebrow" style="margin-top:13px">${escapeHtml(domain)}</p><div class="capability-check-grid">${capabilities.map((item) => `<label class="role-capability-checkbox"><input type="checkbox" data-role-capability-checkbox="${role.id}" value="${item.code}"${checked(role.capabilityCodes.includes(item.code))}><span><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.code)} · ${escapeHtml(item.orgCapabilityCodes.join("、"))}</small></span></label>`).join("")}</div>`).join("")}</div><div class="detail-section"><div class="detail-section__title"><span>能力默认原子与排除项</span><b>${preview.defaultAtoms.length}</b></div>${atomSections || `<div class="empty-state">选择标准能力后，这里会默认勾选该能力包含的原子权限。</div>`}</div><div class="detail-section"><div class="detail-section__title"><span>岗位额外增加</span><b>${preview.additionalAtoms.length}</b></div><label class="form-field atom-add-field"><span>从全部原子权限中增加</span><select data-role-extra-atom-select="${role.id}"${extraCandidates.length ? "" : " disabled"}><option value="">${extraCandidates.length ? "请选择额外原子权限" : "没有可增加的原子权限"}</option>${extraCandidates.map((atom) => `<option value="${escapeAttribute(atom.code || atom.id)}" data-atom-kind="${atom.code ? "code" : "pending"}">${escapeHtml(atom.operation || atom.sourceAction || atom.code || atom.id)} · ${escapeHtml(atom.code || atom.id)}</option>`).join("")}</select></label><div class="capability-check-grid" style="margin-top:8px">${additionalSection || `<div class="notice">当前没有岗位额外增加项。</div>`}</div></div><div class="detail-section"><div class="detail-section__title"><span>产品勾选吻合检查</span></div>${preview.productMissingFunctions.length ? `<div class="notice notice--danger">有 ${preview.productMissingFunctions.length} 个产品已勾选功能没有被当前能力组合覆盖。</div>` : `<div class="notice">产品已勾选功能均被当前能力组合覆盖。</div>`}${preview.productMissingAtoms.length ? `<div class="notice notice--danger" style="margin-top:8px">有 ${preview.productMissingAtoms.length} 个产品已勾选原子动作没有进入最终有效权限。</div>` : `<div class="notice" style="margin-top:8px">产品已勾选原子动作均已进入最终有效权限。</div>`}</div></aside>`;
+    const managedKeys = new Set(preview.atomSelections.map((selection) => selection.key));
+    const extraCandidates = preview.availableAtoms.filter((atom) => !managedKeys.has(atom.code || atom.id));
+    return `<aside class="panel detail-panel"><div class="detail-hero"><span class="eyebrow">${escapeHtml(role.category)} · 产品岗位</span><h3>${escapeHtml(role.name)}</h3>${confirmationBadge(role.confirmationStatus)}<p>${escapeHtml(role.responsibility)}</p></div><div class="key-value-grid" style="margin-top:14px"><div class="key-value"><span>能力默认原子</span><strong>${preview.defaultAtoms.length}</strong></div><div class="key-value"><span>岗位增加</span><strong>${preview.additionalAtoms.length}</strong></div><div class="key-value"><span>岗位排除</span><strong>${preview.excludedAtoms.length}</strong></div><div class="key-value"><span>最终有效原子</span><strong>${preview.atoms.length}</strong></div></div><div class="notice" style="margin-top:14px">最终原子权限 = 所选标准能力默认原子权限 ∪ 岗位额外增加 − 岗位明确排除；岗位只保存差异项。</div><div class="detail-section"><div class="detail-section__title"><span>岗位职责与数据范围</span><button class="button button--ghost button--small" type="button" data-edit-role="${role.id}">编辑说明</button></div><div class="notice">${escapeHtml(role.dataScope)}</div></div><div class="detail-section"><div class="detail-section__title"><span>组织能力前置</span></div><div class="capability-check-grid">${state.model.orgCapabilities.map((item) => `<label class="org-capability-checkbox"><input type="checkbox" data-role-org-checkbox="${role.id}" value="${item.code}"${checked(role.orgCapabilityCodes.includes(item.code))}><span><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.code)}</small></span></label>`).join("")}</div></div><div class="detail-section"><div class="detail-section__title"><span>标准能力（默认带入原子权限）</span><b>${role.capabilityCodes.length}</b></div>${Object.entries(byDomain).map(([domain, capabilities]) => `<p class="eyebrow" style="margin-top:13px">${escapeHtml(domain)}</p><div class="capability-check-grid">${capabilities.map((item) => `<label class="role-capability-checkbox"><input type="checkbox" data-role-capability-checkbox="${role.id}" value="${item.code}"${checked(role.capabilityCodes.includes(item.code))}><span><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.code)} · ${escapeHtml(item.orgCapabilityCodes.join("、"))}</small></span></label>`).join("")}</div>`).join("")}</div><div class="detail-section"><div class="detail-section__title"><span>岗位原子权限（统一勾选）</span><b>${preview.atoms.length}</b></div><div class="notice">能力包含的原子权限自动勾选；取消勾选即记为岗位排除。从全部原子权限中补充后，也在本列表中统一勾选和移除。</div><label class="form-field atom-add-field"><span>补充能力外的原子权限</span><select data-role-extra-atom-select="${role.id}"${extraCandidates.length ? "" : " disabled"}><option value="">${extraCandidates.length ? "请选择要补充的原子权限" : "没有可补充的原子权限"}</option>${extraCandidates.map((atom) => `<option value="${escapeAttribute(atom.code || atom.id)}" data-atom-kind="${atom.code ? "code" : "pending"}">${escapeHtml(atom.operation || atom.sourceAction || atom.code || atom.id)} · ${escapeHtml(atom.code || atom.id)}</option>`).join("")}</select></label>${atomSections || `<div class="empty-state">选择标准能力或补充原子权限后，这里会显示岗位的统一原子权限集合。</div>`}</div><div class="detail-section"><div class="detail-section__title"><span>产品勾选吻合检查</span></div>${preview.productMissingFunctions.length ? `<div class="notice notice--danger">有 ${preview.productMissingFunctions.length} 个产品已勾选功能没有被当前能力组合覆盖。</div>` : `<div class="notice">产品已勾选功能均被当前能力组合覆盖。</div>`}${preview.productMissingAtoms.length ? `<div class="notice notice--danger" style="margin-top:8px">有 ${preview.productMissingAtoms.length} 个产品已勾选原子动作没有进入最终有效权限。</div>` : `<div class="notice" style="margin-top:8px">产品已勾选原子动作均已进入最终有效权限。</div>`}</div></aside>`;
   }
 
   function renderDiagnostics() {
@@ -51025,7 +51038,7 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
       const role = state.model.roles.find((item) => item.id === atomBox.dataset.roleAtomCheckbox);
       const addField = atomBox.dataset.atomKind === "code" ? "additionalAtomicPermissionCodes" : "additionalPendingAtomicPermissionIds";
       const excludeField = atomBox.dataset.atomKind === "code" ? "excludedAtomicPermissionCodes" : "excludedPendingAtomicPermissionIds";
-      if (atomBox.dataset.atomSource === "default") {
+      if (atomBox.dataset.atomInherited === "true") {
         role[excludeField] = atomBox.checked
           ? role[excludeField].filter((value) => value !== atomBox.value)
           : [...new Set([...role[excludeField], atomBox.value])];
