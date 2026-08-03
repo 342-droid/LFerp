@@ -176,6 +176,14 @@
         if (typeof showToast === 'function') showToast('快递订单无需核销', 'warning');
         return;
       }
+      if (
+        window.OrderLivePickup &&
+        typeof window.OrderLivePickup.hasApprovedRefundAftersale === 'function' &&
+        window.OrderLivePickup.hasApprovedRefundAftersale(orderId, row)
+      ) {
+        if (typeof showToast === 'function') showToast('订单售后已通过审核，无法核销', 'warning');
+        return;
+      }
 
       var hasOpenRefund = window.OrderLivePickup &&
         typeof window.OrderLivePickup.hasOpenRefundAftersale === 'function' &&
@@ -185,6 +193,10 @@
         var result = null;
         if (window.OrderLivePickup && typeof window.OrderLivePickup.verifyWholeOrder === 'function') {
           result = window.OrderLivePickup.verifyWholeOrder(orderId, { closeOpenRefunds: true });
+        }
+        if (result && result.blocked) {
+          if (typeof showToast === 'function') showToast('订单售后已通过审核，无法核销', 'warning');
+          return;
         }
         var verified = !!(result && (result.ok === true || result === true));
         var closedCount = result && result.closedAftersales ? result.closedAftersales.length : 0;
@@ -268,22 +280,34 @@
     var isExpress = (row.getAttribute('data-delivery-mode') || '') === 'express';
     var showUpload = isExpress && canUploadRetailExpress(row);
     var showVerify = !isExpress && getRowOrderStatus(row) === '待提货';
+    var verifyBlocked = showVerify &&
+      window.OrderLivePickup &&
+      typeof window.OrderLivePickup.hasApprovedRefundAftersale === 'function' &&
+      window.OrderLivePickup.hasApprovedRefundAftersale(orderId, row);
 
     var actions = document.createElement('div');
     actions.className = 'order-live-table__actions';
 
     if (viewLink) actions.appendChild(viewLink);
     if (showVerify) {
-      if (verifyBtn) {
-        actions.appendChild(verifyBtn);
-      } else {
-        var verifyNew = document.createElement('button');
-        verifyNew.type = 'button';
-        verifyNew.className = 'order-live-table__verify js-order-verify';
-        verifyNew.setAttribute('data-order-id', orderId);
-        verifyNew.textContent = '核销';
-        actions.appendChild(verifyNew);
+      var verifyEl = verifyBtn;
+      if (!verifyEl) {
+        verifyEl = document.createElement('button');
+        verifyEl.type = 'button';
+        verifyEl.className = 'order-live-table__verify js-order-verify';
+        verifyEl.setAttribute('data-order-id', orderId);
+        verifyEl.textContent = '核销';
       }
+      if (verifyBlocked) {
+        verifyEl.disabled = true;
+        verifyEl.title = '订单售后已通过审核，无法核销';
+        verifyEl.classList.add('is-disabled');
+      } else {
+        verifyEl.disabled = false;
+        verifyEl.removeAttribute('title');
+        verifyEl.classList.remove('is-disabled');
+      }
+      actions.appendChild(verifyEl);
     } else if (verifyBtn) {
       verifyBtn.remove();
     }
