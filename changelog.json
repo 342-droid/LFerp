@@ -1,10 +1,253 @@
 {
-  "latestSha": "96761c9d35b021d8667a39ac788f9016fac9d03e",
-  "total": 216,
+  "latestSha": "88fd659e5f7fed12922f4c13a84eaba37d98338c",
+  "total": 218,
   "days": [
     {
       "date": "2026-08-03",
       "items": [
+        {
+          "sha": "88fd659",
+          "type": "feat",
+          "text": "新增采购退货单列表与详情查询",
+          "author": "342-droid",
+          "time": "11:10",
+          "pages": [
+            {
+              "file": "SCM/purchase_demand_summary.html",
+              "module": "冷丰采购",
+              "title": "采购需求汇总"
+            },
+            {
+              "file": "SCM/purchase_index.html",
+              "module": "冷丰采购",
+              "title": "首页"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "module": "冷丰采购",
+              "title": "采购单"
+            },
+            {
+              "file": "SCM/purchase_return_order.html",
+              "module": "冷丰WMS",
+              "title": "退货单"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "module": "冷丰采购",
+              "title": "门店订货汇总"
+            },
+            {
+              "file": "SCM/purchase_store_order_sheet.html",
+              "module": "冷丰采购",
+              "title": "门店订货单"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/purchase_return_order.html",
+              "text": "采购退货单: 新增退货单列表、筛选（含退出地/退入地类型）与详情弹窗"
+            },
+            {
+              "file": null,
+              "text": "侧栏增加退货管理入口"
+            },
+            {
+              "file": null,
+              "text": "补充退出地/退入地类型与门店退供等公共枚举；忽略本地 Agent 配置目录"
+            }
+          ]
+        },
+        {
+          "sha": "3dd6616",
+          "type": "feat",
+          "text": "会员管理支持黑名单注销分栏并完善本地预览",
+          "author": "zhangzheng",
+          "time": "11:08",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "门店注册审核"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall.html",
+              "module": "冷丰WMS",
+              "title": "积分商城"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall_form.html",
+              "module": "冷丰WMS",
+              "title": "编辑积分商品"
+            },
+            {
+              "file": "MDM/mdm_member_batch_tag.html",
+              "module": "冷丰WMS",
+              "title": "批量打标签"
+            },
+            {
+              "file": "MDM/mdm_member_batch_tag_members.html",
+              "module": "冷丰WMS",
+              "title": "人群列表"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_member_level.html",
+              "module": "冷丰WMS",
+              "title": "会员等级"
+            },
+            {
+              "file": "MDM/mdm_member_level_form.html",
+              "module": "冷丰WMS",
+              "title": "会员等级配置"
+            },
+            {
+              "file": "MDM/mdm_member_level_growth.html",
+              "module": "冷丰WMS",
+              "title": "成长值明细"
+            },
+            {
+              "file": "MDM/mdm_member_level_rule.html",
+              "module": "冷丰WMS",
+              "title": "成长值规则"
+            },
+            {
+              "file": "MDM/mdm_member_points_detail.html",
+              "module": "冷丰WMS",
+              "title": "积分明细"
+            },
+            {
+              "file": "MDM/mdm_member_points_rule.html",
+              "module": "冷丰WMS",
+              "title": "积分规则"
+            },
+            {
+              "file": "MDM/mdm_member_segment.html",
+              "module": "冷丰WMS",
+              "title": "会员分群"
+            },
+            {
+              "file": "MDM/mdm_member_segment_members.html",
+              "module": "冷丰WMS",
+              "title": "人群列表"
+            },
+            {
+              "file": "MDM/mdm_member_tag.html",
+              "module": "冷丰WMS",
+              "title": "会员标签"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            },
+            {
+              "file": "MDM/mdm_workbench.html",
+              "module": "冷丰WMS",
+              "title": "工作台"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_member_c.html",
+              "text": "增加会员列表/黑名单/注销会员 Tab；支持拉黑、恢复与按状态展示操作"
+            },
+            {
+              "file": "MDM/mdm_member_level.html",
+              "text": "权益列改为多行圆点列表，样式与分群筛选规则对齐"
+            },
+            {
+              "file": "MDM/mdm_member_segment.html",
+              "text": "列表样式接入会员360统一列表样式"
+            },
+            {
+              "file": "MDM/mdm_member_tag.html",
+              "text": "列表样式接入会员360统一列表样式"
+            },
+            {
+              "file": "MDM/mdm_member_batch_tag.html",
+              "text": "列表样式接入会员360统一列表样式"
+            },
+            {
+              "file": "MDM/mdm_member_batch_tag_members.html",
+              "text": "列表样式接入会员360统一列表样式"
+            },
+            {
+              "file": "MDM/mdm_member_points_rule.html",
+              "text": "列表样式接入会员360统一列表样式"
+            },
+            {
+              "file": "MDM/mdm_member_points_detail.html",
+              "text": "列表样式接入会员360统一列表样式"
+            },
+            {
+              "file": "MDM/mdm_member_level_rule.html",
+              "text": "列表样式接入会员360统一列表样式"
+            },
+            {
+              "file": "MDM/mdm_member_level_growth.html",
+              "text": "列表样式接入会员360统一列表样式"
+            },
+            {
+              "file": "MDM/mdm_workbench.html",
+              "text": "补充会员状态类型说明，并改为推荐 npm run preview"
+            },
+            {
+              "file": null,
+              "text": "本地预览改用自研静态服务；补充菜单清单与 C 端履约售后流程图"
+            }
+          ]
+        },
         {
           "sha": "96761c9",
           "type": "feat",
@@ -12733,6 +12976,11 @@
               "file": "SCM/purchase_order.html",
               "module": "冷丰采购",
               "title": "采购单"
+            },
+            {
+              "file": "SCM/purchase_return_order.html",
+              "module": "冷丰WMS",
+              "title": "退货单"
             },
             {
               "file": "SCM/purchase_store_demand_summary.html",
