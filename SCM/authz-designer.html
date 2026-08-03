@@ -1229,6 +1229,14 @@ code {
   accent-color: var(--teal);
 }
 
+.org-capability-checkbox--readonly {
+  cursor: default;
+}
+
+.org-capability-checkbox--readonly input {
+  opacity: 1;
+}
+
 .role-capability-checkbox b,
 .role-atom-checkbox b,
 .org-capability-checkbox b {
@@ -48990,6 +48998,15 @@ function atomKeysForCapabilities(model, capabilityCodes) {
   return { codes, pendingIds };
 }
 
+function deriveOrgCapabilityCodes(model, capabilityCodes) {
+  const selected = new Set(capabilityCodes || []);
+  return [...new Set(
+    (model.capabilities || [])
+      .filter((capability) => selected.has(capability.code))
+      .flatMap((capability) => capability.orgCapabilityCodes || []),
+  )];
+}
+
 function readPath(record, path) {
   return path.split(".").reduce((value, key) => value?.[key], record);
 }
@@ -49119,7 +49136,7 @@ function normalizeModel(input) {
     delete item.keyAtomicCodes;
     delete item.excludedAtomicPermissionCodes;
     delete item.excludedPendingAtomicPermissionIds;
-    item.orgCapabilityCodes = [...new Set(item.orgCapabilityCodes || [])];
+    item.orgCapabilityCodes = deriveOrgCapabilityCodes(model, item.capabilityCodes);
     if (!CONFIRMATION_STATUSES.has(item.confirmationStatus)) item.confirmationStatus = "待确认";
   }
   return model;
@@ -49223,10 +49240,7 @@ function deriveRolePreview(input, roleIdOrName) {
     const state = item.roleChecks?.[role.name];
     return !["checked", "pending", "inherited"].includes(state);
   });
-  const orgCapabilityCodes = [...new Set([
-    ...role.orgCapabilityCodes,
-    ...capabilities.flatMap((item) => item.orgCapabilityCodes || []),
-  ])];
+  const orgCapabilityCodes = [...role.orgCapabilityCodes];
 
   return {
     role,
@@ -50104,6 +50118,7 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
     selectedFunction: "F-0001:system.partner.manage",
     selectedRole: "ROLE-01",
     selectedOrg: "PLATFORM_ONLY",
+    openFunctionTreeKeys: new Set(),
     dirty: false,
     revision: 0,
     editContext: null,
@@ -50467,13 +50482,13 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
   }
 
   function renderFunctionTreeNode(node, depth = 0) {
-    const shouldOpen = depth < 2 || Boolean(state.query);
+    const shouldOpen = depth < 2 || Boolean(state.query) || state.openFunctionTreeKeys.has(node.key);
     const records = node.records.map((item) => {
       const atomPermission = item.atomicPermissionCodes[0] || item.pendingAtomicPermissionIds[0] || "随能力";
       return `<button type="button" class="function-tree__item ${item.relationId === state.selectedFunction ? "is-selected" : ""}" data-select-function="${escapeAttribute(item.relationId)}"><span class="function-tree__kind">${escapeHtml(item.rowType)}</span><span class="function-tree__item-copy"><b>${escapeHtml(item.operation || item.buttonIdentity || item.hierarchy || item.path)}</b><small>${escapeHtml(item.functionId)} · ${escapeHtml(item.capabilityCode)} · ${escapeHtml(atomPermission)}</small></span><span class="function-tree__interfaces">${item.backend.interfaceCount} 接口</span></button>`;
     }).join("");
     const children = node.children.map((child) => renderFunctionTreeNode(child, depth + 1)).join("");
-    return `<details class="function-tree__branch function-tree__branch--depth-${depth}"${shouldOpen ? " open" : ""}><summary><span>${escapeHtml(node.label)}</span><b>${node.count}</b></summary><div class="function-tree__children">${records}${children}</div></details>`;
+    return `<details class="function-tree__branch function-tree__branch--depth-${depth}" data-function-tree-key="${escapeAttribute(node.key)}"${shouldOpen ? " open" : ""}><summary><span>${escapeHtml(node.label)}</span><b>${node.count}</b></summary><div class="function-tree__children">${records}${children}</div></details>`;
   }
 
   function renderFunctions() {
@@ -50527,7 +50542,7 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
     }).join("");
     const managedKeys = new Set(preview.atomSelections.map((selection) => selection.key));
     const extraCandidates = preview.availableAtoms.filter((atom) => !managedKeys.has(atom.code || atom.id));
-    return `<aside class="panel detail-panel role-detail-panel"><div class="detail-hero"><span class="eyebrow">${escapeHtml(role.category)} · 产品岗位</span><h3>${escapeHtml(role.name)}</h3>${confirmationBadge(role.confirmationStatus)}<p>${escapeHtml(role.responsibility)}</p></div><div class="key-value-grid" style="margin-top:14px"><div class="key-value"><span>能力默认原子权限</span><strong>${preview.defaultAtoms.length}</strong></div><div class="key-value"><span>岗位额外增加</span><strong>${preview.additionalAtoms.length}</strong></div><div class="key-value"><span>最终有效原子</span><strong>${preview.atoms.length}</strong></div></div><div class="notice" style="margin-top:14px">最终原子权限 = 所选标准能力的明确默认原子权限 ∪ 岗位额外增加。原子权限归属某能力不等于默认授予；经常重复的增加项，后续可沉淀为更小的标准能力。</div><div class="detail-section"><div class="detail-section__title"><span>岗位职责与数据范围</span><button class="button button--ghost button--small" type="button" data-edit-role="${role.id}">编辑说明</button></div><div class="notice">${escapeHtml(role.dataScope)}</div></div><div class="detail-section"><div class="detail-section__title"><span>组织能力前置</span></div><div class="capability-check-grid">${state.model.orgCapabilities.map((item) => `<label class="org-capability-checkbox"><input type="checkbox" data-role-org-checkbox="${role.id}" value="${item.code}"${checked(role.orgCapabilityCodes.includes(item.code))}><span><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.code)}</small></span></label>`).join("")}</div></div><div class="detail-section"><div class="detail-section__title"><span>标准能力（只带入明确默认原子权限）</span><b>${role.capabilityCodes.length}</b></div>${Object.entries(byDomain).map(([domain, capabilities]) => `<p class="eyebrow" style="margin-top:13px">${escapeHtml(domain)}</p><div class="capability-check-grid">${capabilities.map((item) => `<label class="role-capability-checkbox"><input type="checkbox" data-role-capability-checkbox="${role.id}" value="${item.code}"${checked(role.capabilityCodes.includes(item.code))}><span><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.code)} · 默认原子 ${(item.defaultAtomicPermissionCodes.length + item.defaultPendingAtomicPermissionIds.length)} 项</small></span></label>`).join("")}</div>`).join("")}</div><div class="detail-section"><div class="detail-section__title"><span>岗位原子权限（统一勾选）</span><b>${preview.atoms.length}</b></div><div class="notice">能力默认项以锁定勾选展示，需要修改时回到标准能力定义统一调整；岗位增加项可在这里补充或移除。</div><label class="form-field atom-add-field"><span>岗位额外增加原子权限</span><select data-role-extra-atom-select="${role.id}"${extraCandidates.length ? "" : " disabled"}><option value="">${extraCandidates.length ? "请选择要增加的原子权限" : "没有可增加的原子权限"}</option>${extraCandidates.map((atom) => `<option value="${escapeAttribute(atom.code || atom.id)}" data-atom-kind="${atom.code ? "code" : "pending"}">${escapeHtml(atom.operation || atom.sourceAction || atom.code || atom.id)} · ${escapeHtml(atom.code || atom.id)}</option>`).join("")}</select></label>${atomSections || `<div class="empty-state">选择标准能力或增加原子权限后，这里会显示岗位的最终原子权限。</div>`}</div><div class="detail-section"><div class="detail-section__title"><span>产品勾选吻合检查</span></div>${preview.productMissingFunctions.length ? `<div class="notice notice--danger">有 ${preview.productMissingFunctions.length} 个产品已勾选功能没有被当前能力组合覆盖。</div>` : `<div class="notice">产品已勾选功能均被当前能力组合覆盖。</div>`}${preview.productMissingAtoms.length ? `<div class="notice notice--danger" style="margin-top:8px">有 ${preview.productMissingAtoms.length} 个产品已勾选原子动作没有进入最终有效权限。</div>` : `<div class="notice" style="margin-top:8px">产品已勾选原子动作均已进入最终有效权限。</div>`}</div></aside>`;
+    return `<aside class="panel detail-panel role-detail-panel"><div class="detail-hero"><span class="eyebrow">${escapeHtml(role.category)} · 产品岗位</span><h3>${escapeHtml(role.name)}</h3>${confirmationBadge(role.confirmationStatus)}<p>${escapeHtml(role.responsibility)}</p></div><div class="key-value-grid" style="margin-top:14px"><div class="key-value"><span>能力默认原子权限</span><strong>${preview.defaultAtoms.length}</strong></div><div class="key-value"><span>岗位额外增加</span><strong>${preview.additionalAtoms.length}</strong></div><div class="key-value"><span>最终有效原子</span><strong>${preview.atoms.length}</strong></div></div><div class="notice" style="margin-top:14px">最终原子权限 = 所选标准能力的明确默认原子权限 ∪ 岗位额外增加。原子权限归属某能力不等于默认授予；经常重复的增加项，后续可沉淀为更小的标准能力。</div><div class="detail-section"><div class="detail-section__title"><span>岗位职责与数据范围</span><button class="button button--ghost button--small" type="button" data-edit-role="${role.id}">编辑说明</button></div><div class="notice">${escapeHtml(role.dataScope)}</div></div><div class="detail-section"><div class="detail-section__title"><span>组织能力前置（由所选标准能力自动推导）</span></div><div class="capability-check-grid">${state.model.orgCapabilities.map((item) => `<label class="org-capability-checkbox org-capability-checkbox--readonly"><input type="checkbox" data-role-derived-org="${role.id}" value="${item.code}"${checked(preview.orgCapabilityCodes.includes(item.code))} disabled><span><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.code)}</small></span></label>`).join("")}</div></div><div class="detail-section"><div class="detail-section__title"><span>标准能力（只带入明确默认原子权限）</span><b>${role.capabilityCodes.length}</b></div>${Object.entries(byDomain).map(([domain, capabilities]) => `<p class="eyebrow" style="margin-top:13px">${escapeHtml(domain)}</p><div class="capability-check-grid">${capabilities.map((item) => `<label class="role-capability-checkbox"><input type="checkbox" data-role-capability-checkbox="${role.id}" value="${item.code}"${checked(role.capabilityCodes.includes(item.code))}><span><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.code)} · 默认原子 ${(item.defaultAtomicPermissionCodes.length + item.defaultPendingAtomicPermissionIds.length)} 项</small></span></label>`).join("")}</div>`).join("")}</div><div class="detail-section"><div class="detail-section__title"><span>岗位原子权限（统一勾选）</span><b>${preview.atoms.length}</b></div><div class="notice">能力默认项以锁定勾选展示，需要修改时回到标准能力定义统一调整；岗位增加项可在这里补充或移除。</div><label class="form-field atom-add-field"><span>岗位额外增加原子权限</span><select data-role-extra-atom-select="${role.id}"${extraCandidates.length ? "" : " disabled"}><option value="">${extraCandidates.length ? "请选择要增加的原子权限" : "没有可增加的原子权限"}</option>${extraCandidates.map((atom) => `<option value="${escapeAttribute(atom.code || atom.id)}" data-atom-kind="${atom.code ? "code" : "pending"}">${escapeHtml(atom.operation || atom.sourceAction || atom.code || atom.id)} · ${escapeHtml(atom.code || atom.id)}</option>`).join("")}</select></label>${atomSections || `<div class="empty-state">选择标准能力或增加原子权限后，这里会显示岗位的最终原子权限。</div>`}</div><div class="detail-section"><div class="detail-section__title"><span>产品勾选吻合检查</span></div>${preview.productMissingFunctions.length ? `<div class="notice notice--danger">有 ${preview.productMissingFunctions.length} 个产品已勾选功能没有被当前能力组合覆盖。</div>` : `<div class="notice">产品已勾选功能均被当前能力组合覆盖。</div>`}${preview.productMissingAtoms.length ? `<div class="notice notice--danger" style="margin-top:8px">有 ${preview.productMissingAtoms.length} 个产品已勾选原子动作没有进入最终有效权限。</div>` : `<div class="notice" style="margin-top:8px">产品已勾选原子动作均已进入最终有效权限。</div>`}</div></aside>`;
   }
 
   function renderDiagnostics() {
@@ -50783,6 +50798,7 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
       role.capabilityCodes = capBox.checked
         ? [...new Set([...role.capabilityCodes, capBox.value])]
         : role.capabilityCodes.filter((codeValue) => codeValue !== capBox.value);
+      role.orgCapabilityCodes = deriveOrgCapabilityCodes(state.model, role.capabilityCodes);
       if (capBox.checked) {
         const capability = state.model.capabilities.find((item) => item.code === capBox.value);
         const defaultCodes = new Set(capability.defaultAtomicPermissionCodes);
@@ -50817,16 +50833,14 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
       render();
       return;
     }
-    const orgBox = event.target.closest("[data-role-org-checkbox]");
-    if (orgBox) {
-      const role = state.model.roles.find((item) => item.id === orgBox.dataset.roleOrgCheckbox);
-      role.orgCapabilityCodes = orgBox.checked
-        ? [...new Set([...role.orgCapabilityCodes, orgBox.value])]
-        : role.orgCapabilityCodes.filter((codeValue) => codeValue !== orgBox.value);
-      markChanged(`调整${role.name}组织前置`);
-      render();
-    }
   });
+
+  document.addEventListener("toggle", (event) => {
+    const branch = event.target.closest?.("[data-function-tree-key]");
+    if (!branch) return;
+    if (branch.open) state.openFunctionTreeKeys.add(branch.dataset.functionTreeKey);
+    else state.openFunctionTreeKeys.delete(branch.dataset.functionTreeKey);
+  }, true);
 
   document.addEventListener("click", (event) => {
     const target = event.target.closest("[data-select-org],[data-select-capability],[data-select-atom],[data-select-function],[data-select-role],[data-edit-org],[data-edit-capability],[data-edit-atom],[data-edit-role],[data-edit-function],[data-add-atom],[data-open-atom],[data-run-checks]");
