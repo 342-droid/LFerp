@@ -91,6 +91,7 @@ function loadHeader() {
         const isTmsPage = pageFile.startsWith('tms_') || path.includes('TMS_index.html') || href.includes('TMS_index.html');
         const isPurchasePage = pageFile === 'purchase_index.html' || pageFile.startsWith('purchase_');
         const isBasicSettingsPage = pageFile === 'basic_settings_index.html' || pageFile.startsWith('basic_settings_');
+        const isAuthzDesignerPage = pageFile === 'authz-designer.html';
         const isMobilePage = pageFile === 'mobile_index.html' || pageFile === 'app_login.html';
         const isMdmPage = /\/MDM\//i.test(path) || /\/MDM$/i.test(path) || pageFile.startsWith('mdm_');
         const isMdmAuditPage = pageFile.startsWith('mdm_audit_');
@@ -133,11 +134,12 @@ function loadHeader() {
                     <a href="${wp.page('mdm_order_retail.html')}" class="${isMdmOrderPage ? 'active' : ''}">订单</a>
                     <a href="${wp.page('mdm_aftersale_ticket.html')}" class="${isMdmAftersalePage ? 'active' : ''}">售后</a>
                     <a href="${wp.page('mdm_marketing_points_home.html')}" class="${isMdmMarketingPage ? 'active' : ''}">营销</a>
-                    <a href="${wp.page('index.html')}" class="${!isTmsPage && !isPurchasePage && !isBasicSettingsPage && !isMdmPage && !isMobilePage ? 'active' : ''}">仓储</a>
+                    <a href="${wp.page('index.html')}" class="${!isTmsPage && !isPurchasePage && !isBasicSettingsPage && !isAuthzDesignerPage && !isMdmPage && !isMobilePage ? 'active' : ''}">仓储</a>
                     <a href="${wp.page('TMS_index.html')}" class="${isTmsPage ? 'active' : ''}">物流</a>
                     <a href="${wp.page('purchase_index.html')}" class="${isPurchasePage ? 'active' : ''}">采购</a>
                     <a href="${wp.page('mdm_settle_index.html')}" class="${isMdmSettlePage ? 'active' : ''}">结算</a>
                     <a href="${wp.page('basic_settings_miniprogram_agreement.html')}" class="${isBasicSettingsPage ? 'active' : ''}">基础设置</a>
+                    <a href="${wp.page('authz-designer.html')}" class="${isAuthzDesignerPage ? 'active' : ''}">权限设计</a>
                 </nav>
                 
                 <div class="header-right">

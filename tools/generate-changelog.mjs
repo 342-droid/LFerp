@@ -6,6 +6,7 @@
  *
  * 每条提交附带受影响页面 pages：HTML 改动即页面本身；js/css 改动反查引用它的页面；
  * 被超过 GLOBAL_REF_THRESHOLD 个页面引用的共享文件记为全局改动（global: true）。
+ * 独立工具页可加入 CHANGELOG_EXCLUDED_FILES；提交正文含 [不进更新日志] 时整条跳过。
  */
 import { execFileSync } from 'node:child_process';
 import { writeFileSync, readFileSync, readdirSync, statSync } from 'node:fs';
@@ -17,6 +18,12 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const GLOBAL_REF_THRESHOLD = 20;
 /** 不扫业务页面：vendor 等依赖；docs 为文档区，不进更新日志主列表 */
 const SKIP_DIRS = new Set(['vendor', 'node_modules', '.git', '.github', 'docs']);
+const CHANGELOG_EXCLUDED_FILES = new Set([
+    'changelog.html',
+    'compare.html',
+    'SCM/authz-designer.html'
+]);
+const SKIP_CHANGELOG_MARKER = /\[(?:不进更新日志|skip changelog)\]/i;
 
 /* ---------- 页面清单、标题、资源反向索引 ---------- */
 
@@ -27,7 +34,7 @@ function walkHtml(dir, prefix, out) {
         const rel = prefix ? prefix + '/' + name : name;
         const st = statSync(abs);
         if (st.isDirectory()) walkHtml(abs, rel, out);
-        else if (name.endsWith('.html')) out.push(rel);
+        else if (name.endsWith('.html') && !CHANGELOG_EXCLUDED_FILES.has(rel)) out.push(rel);
     }
     return out;
 }
@@ -100,7 +107,7 @@ function mapFilesToPages(files) {
     const pages = new Set();
     let global = false;
     for (const f of files) {
-        if (f === 'changelog.html' || f === 'compare.html') continue; // 日志/对比页自身不算业务页面更新
+        if (CHANGELOG_EXCLUDED_FILES.has(f)) continue; // 工具页自身不算业务页面更新
         if (htmlSet.has(f)) {
             pages.add(f);
             continue;
@@ -239,8 +246,10 @@ for (const record of raw.split(RECORD)) {
     const [sha, author, isoDate, subject, body] = fields;
     if (!sha || !subject) continue;
     if (SKIP_AUTHORS.test(author) || SKIP_SUBJECTS.test(subject)) continue;
+    if (SKIP_CHANGELOG_MARKER.test(body || '')) continue;
 
     const files = record.slice(bodyEnd + 1).split('\n').map((l) => l.trim()).filter(Boolean);
+    if (files.length && files.every((file) => CHANGELOG_EXCLUDED_FILES.has(file))) continue;
     if (isDocsOnlyCommit(files)) continue; // 文档保留在仓库，但不出现在更新列表
     const m = subject.match(TYPE_RE);
     const type = m ? m[1].toLowerCase() : 'other';
