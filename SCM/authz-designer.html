@@ -68,10 +68,16 @@ label[for] {
   -webkit-tap-highlight-color: transparent;
 }
 
+button {
+  touch-action: manipulation;
+}
+
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
+[open] > summary:focus-visible,
+summary:focus-visible,
 [tabindex]:focus-visible {
   outline: 3px solid rgba(11, 118, 110, 0.23);
   outline-offset: 2px;
@@ -535,13 +541,29 @@ textarea:focus-visible,
   align-items: start;
 }
 
+.workspace-grid > *,
+.metric-grid > *,
+.entity-grid > *,
+.architecture-path > * {
+  min-width: 0;
+}
+
 .workspace-grid--equal {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workspace-grid--roles {
+  grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
+}
+
+.workspace-grid--functions {
+  grid-template-columns: minmax(330px, 0.72fr) minmax(0, 1.28fr);
 }
 
 .panel {
   min-width: 0;
   padding: 20px;
+  overflow-wrap: anywhere;
 }
 
 .panel--flush {
@@ -602,6 +624,7 @@ textarea:focus-visible,
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 13px;
   background: rgba(255, 255, 255, 0.05);
+  overflow-wrap: anywhere;
 }
 
 .path-step:not(:last-child)::after {
@@ -699,6 +722,181 @@ textarea:focus-visible,
   gap: 12px;
 }
 
+.role-list-panel,
+.function-tree-panel {
+  min-width: 0;
+}
+
+.role-list {
+  display: flex;
+  max-height: calc(100vh - 214px);
+  overflow-y: auto;
+  flex-direction: column;
+  gap: 9px;
+  padding: 2px;
+  overscroll-behavior: contain;
+}
+
+.role-card {
+  width: 100%;
+  padding: 14px;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.role-card:hover {
+  border-color: rgba(11, 118, 110, 0.35);
+  box-shadow: var(--shadow);
+}
+
+.role-card__name,
+.role-card__copy {
+  display: block;
+  min-width: 0;
+}
+
+.role-card__name {
+  font-size: 15px;
+}
+
+.role-card__copy {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.role-detail-panel {
+  min-width: 0;
+}
+
+.function-tree {
+  display: grid;
+  gap: 7px;
+}
+
+.function-tree__branch,
+.function-tree__item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 44px;
+}
+
+.function-tree__branch {
+  min-width: 0;
+}
+
+.function-tree__branch > summary {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: #344457;
+  background: var(--surface-soft);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 750;
+  list-style: none;
+}
+
+.function-tree__branch > summary::-webkit-details-marker {
+  display: none;
+}
+
+.function-tree__branch > summary::before {
+  color: var(--teal);
+  content: "›";
+  transform: rotate(0deg);
+  transition: transform 140ms ease;
+}
+
+.function-tree__branch[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.function-tree__branch > summary span {
+  min-width: 0;
+  margin-right: auto;
+  overflow-wrap: anywhere;
+}
+
+.function-tree__branch > summary b {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.function-tree__children {
+  display: grid;
+  gap: 6px;
+  margin: 6px 0 2px 12px;
+  padding-left: 9px;
+  border-left: 1px solid #d6dfdf;
+}
+
+.function-tree__item {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--ink);
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.function-tree__item:hover,
+.function-tree__item.is-selected {
+  border-color: #99d1c9;
+  background: var(--teal-soft);
+}
+
+.function-tree__kind {
+  padding: 3px 6px;
+  border-radius: 999px;
+  color: var(--blue);
+  background: var(--blue-soft);
+  font-size: 9px;
+}
+
+.function-tree__item-copy,
+.function-tree__item-copy b,
+.function-tree__item-copy small {
+  display: block;
+  min-width: 0;
+}
+
+.function-tree__item-copy b {
+  overflow-wrap: anywhere;
+  font-size: 10px;
+}
+
+.function-tree__item-copy small {
+  overflow-wrap: anywhere;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.function-tree__interfaces {
+  color: var(--muted);
+  font-size: 9px;
+  white-space: nowrap;
+}
+
 .org-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -708,7 +906,9 @@ textarea:focus-visible,
 .org-card,
 .gap-card {
   position: relative;
+  min-width: 0;
   padding: 17px;
+  overflow-wrap: anywhere;
   transition: transform 140ms ease, border 140ms ease, box-shadow 140ms ease;
 }
 
@@ -1046,11 +1246,6 @@ code {
   line-height: 1.4;
 }
 
-.role-atom-checkbox.is-excluded {
-  border-color: #e2c58b;
-  background: var(--amber-soft);
-}
-
 .role-atom-checkbox.is-additional {
   border-color: #b9afe5;
   background: var(--violet-soft);
@@ -1066,10 +1261,6 @@ code {
   font-size: 8px;
   font-style: normal;
   font-weight: 750;
-}
-
-.is-excluded .atom-delta-label {
-  color: var(--amber);
 }
 
 .is-additional .atom-delta-label {
@@ -1305,6 +1496,17 @@ code {
     display: none;
   }
 
+  .workspace-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .workspace-tools {
+    width: 100%;
+    min-width: 0;
+    justify-items: stretch;
+  }
+
   .metric-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1351,6 +1553,10 @@ code {
   .workspace-grid,
   .workspace-grid--equal {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .role-list {
+    max-height: 360px;
   }
 
   .detail-panel {
@@ -1464,6 +1670,24 @@ code {
     order: -1;
   }
 
+  .workspace-grid--roles > .detail-panel,
+  .workspace-grid--functions > .detail-panel {
+    order: initial;
+  }
+
+  .function-tree__children {
+    margin-left: 7px;
+    padding-left: 6px;
+  }
+
+  .function-tree__item {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .function-tree__interfaces {
+    display: none;
+  }
+
   .capability-check-grid,
   .form-grid,
   .key-value-grid {
@@ -1482,6 +1706,17 @@ code {
   .dialog-body,
   .dialog-actions {
     padding: 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -1613,9 +1848,9 @@ code {
 
   <script id="authz-seed" type="application/json">{
   "meta": {
-    "schemaVersion": "1.2.0",
+    "schemaVersion": "1.3.0",
     "title": "Octopus 权限能力岗位职责设计器",
-    "generatedAt": "2026-08-03T13:52:41.774Z",
+    "generatedAt": "2026-08-03T14:37:17.736Z",
     "sourceWorkbook": "/Users/diwu/.codex/visualizations/2026/07/28/019fa7e6-c827-7011-a797-12737e76a085/outputs/019fa7e6-c827-7011-a797-12737e76a085/Octopus-能力功能角色与原子权限映射.xlsx",
     "sourceSheet": {
       "url": "https://lcnohxg915u5.feishu.cn/wiki/SDTrwOkPRiYNoxkULFFczbavnag?sheet=0TObNS",
@@ -1648,7 +1883,7 @@ code {
         "门店采购": 50,
         "商品管理权限": 20
       },
-      "note": "飞书显式勾选单元格作为岗位职责证据；岗位选择标准能力后默认继承其原子权限，产品勾选转换为岗位增加和排除差异项，最终有效权限保持不变。"
+      "note": "飞书显式勾选单元格作为岗位职责证据；标准能力只默认包含所有选用岗位共同需要的原子权限，其余产品勾选转换为岗位正向增加，最终有效权限保持不变。"
     },
     "modelPath": [
       "平台能力",
@@ -1661,10 +1896,12 @@ code {
     "principles": [
       "平台能力决定 SaaS 模式可提供的业务域。",
       "OrgCapability 决定组织是否开通该类业务，不替代员工权限。",
-      "岗位角色选择标准能力后默认继承该能力包含的原子权限，不增加中间组合层。",
+      "原子权限归属某项标准能力，不等于该能力默认包含它；能力默认项必须是选用该能力的岗位共同职责。",
+      "岗位角色选择标准能力后继承该能力明确列出的默认原子权限，不增加中间组合层。",
       "每个菜单、页面和按钮唯一归属一个标准能力；同一功能可以被多个岗位复用。",
       "需要独立控制的按钮和稳定业务命令叠加一个原子权限；原子权限唯一归属一个父标准能力，并可对应多个界面位置和后端接口。",
-      "岗位只保存额外增加和明确排除的原子权限差异项；最终原子权限等于能力默认并集加增加项再减排除项。",
+      "岗位只保存额外增加的原子权限；最终原子权限等于能力默认原子权限与岗位增加项的并集，不使用高优先级排除。",
+      "反复出现的岗位增加项应沉淀为更小的标准能力，并保持全局标准能力约 37 至 40 项。",
       "产品核对岗位勾选、是否需要独立原子化、最终原子码和原子权限岗位；菜单按钮唯一父能力由架构侧维护。",
       "前端隐藏不是安全边界，后端能力、原子动作和资源数据范围必须共同校验。",
       "产品勾选是职责基线，旧菜单配置和代码注解只作技术整改证据。"
@@ -1739,6 +1976,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 7,
         "menus": 4,
@@ -1761,6 +2000,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "待整改",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 4,
         "menus": 3,
@@ -1783,6 +2024,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "待整改",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 21,
         "menus": 7,
@@ -1805,6 +2048,15 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [
+        "category:edit",
+        "category:delete",
+        "category:create",
+        "product:update",
+        "product:delete",
+        "product:create"
+      ],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 24,
         "menus": 6,
@@ -1827,6 +2079,10 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "待整改",
+      "defaultAtomicPermissionCodes": [
+        "consignmentProduct:updatePrice"
+      ],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 4,
         "menus": 4,
@@ -1849,6 +2105,10 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "待整改",
+      "defaultAtomicPermissionCodes": [
+        "product:review"
+      ],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 15,
         "menus": 7,
@@ -1871,6 +2131,10 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [
+        "store.member-qrcode.generate"
+      ],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 2,
         "menus": 0,
@@ -1893,6 +2157,8 @@ code {
       "active": false,
       "mappingStatus": "保留未启用",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 0,
         "menus": 0,
@@ -1915,6 +2181,10 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [
+        "liveProduct:updatePrice"
+      ],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 10,
         "menus": 9,
@@ -1937,6 +2207,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 20,
         "menus": 0,
@@ -1959,6 +2231,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 5,
         "menus": 5,
@@ -1981,6 +2255,10 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "待整改",
+      "defaultAtomicPermissionCodes": [
+        "consumer:sendCoupon"
+      ],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 8,
         "menus": 4,
@@ -2003,6 +2281,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 6,
         "menus": 4,
@@ -2025,6 +2305,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 1,
         "menus": 0,
@@ -2047,6 +2329,23 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [
+        "inbound:shelve",
+        "ibdReceipt:close",
+        "inbound:create",
+        "inbound:cancel",
+        "inbound:complete",
+        "ibdReceipt:create",
+        "inbound:receive",
+        "ibdReceipt:receive",
+        "inbound:inspect"
+      ],
+      "defaultPendingAtomicPermissionIds": [
+        "A-0271",
+        "A-0286",
+        "A-0287",
+        "A-0288"
+      ],
       "counts": {
         "functions": 18,
         "menus": 2,
@@ -2069,6 +2368,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 39,
         "menus": 8,
@@ -2091,6 +2392,12 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "待整改",
+      "defaultAtomicPermissionCodes": [
+        "area:update",
+        "area:delete",
+        "area:create"
+      ],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 7,
         "menus": 3,
@@ -2113,6 +2420,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 14,
         "menus": 4,
@@ -2135,6 +2444,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 87,
         "menus": 28,
@@ -2157,6 +2468,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "待整改",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 2,
         "menus": 2,
@@ -2179,6 +2492,11 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [
+        "inventoryLog:list",
+        "inventory:list"
+      ],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 40,
         "menus": 0,
@@ -2201,6 +2519,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "待整改",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 2,
         "menus": 2,
@@ -2223,6 +2543,8 @@ code {
       "active": true,
       "mappingStatus": "待核对",
       "implementationStatus": "待整改",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 0,
         "menus": 0,
@@ -2245,6 +2567,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 3,
         "menus": 3,
@@ -2267,6 +2591,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "待整改",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 3,
         "menus": 3,
@@ -2289,6 +2615,10 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [
+        "settlement.withdraw.apply"
+      ],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 3,
         "menus": 0,
@@ -2311,6 +2641,11 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [
+        "user:create",
+        "user:create"
+      ],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 21,
         "menus": 3,
@@ -2333,6 +2668,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "待整改",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 4,
         "menus": 0,
@@ -2355,6 +2692,12 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [
+        "brand:edit",
+        "brand:delete",
+        "brand:create"
+      ],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 11,
         "menus": 2,
@@ -2377,6 +2720,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 30,
         "menus": 9,
@@ -2399,6 +2744,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "待整改",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 6,
         "menus": 1,
@@ -2421,6 +2768,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "待整改",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 12,
         "menus": 1,
@@ -2443,6 +2792,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 2,
         "menus": 1,
@@ -2465,6 +2816,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "待整改",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 6,
         "menus": 5,
@@ -2487,6 +2840,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 21,
         "menus": 8,
@@ -2509,6 +2864,8 @@ code {
       "active": true,
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
+      "defaultAtomicPermissionCodes": [],
+      "defaultPendingAtomicPermissionIds": [],
       "counts": {
         "functions": 24,
         "menus": 1,
@@ -47541,161 +47898,17 @@ code {
         "system.view": "checked",
         "fulfillment.wms.view": "checked"
       },
-      "orgCapabilityCodes": [
-        "PLATFORM_ONLY",
-        "CONSIGNMENT",
-        "WAREHOUSE_MGMT",
-        "STORE_MGMT"
-      ],
-      "dataScope": "授权组织 + 绑定 Warehouse ResourceMember；范围原则已明确，具体绑定待配置。",
-      "productEvidence": "管理后台与运营应用本次读取值",
-      "confirmationStatus": "待确认",
-      "pendingReason": "请产品确认岗位职责、标准能力清单和默认数据范围。",
-      "additionalAtomicPermissionCodes": [],
-      "excludedAtomicPermissionCodes": [
-        "member:status",
-        "member:create",
-        "member:settlement",
-        "member:update",
-        "warehouse:delete",
-        "warehouse:update-status",
-        "warehouse:create",
-        "warehouse:page",
-        "warehouse:detail",
-        "supplier:create",
-        "supplier:update",
-        "store:update",
-        "store:create",
-        "store:list",
-        "store:apply",
-        "company:update",
-        "company:delete",
-        "company:create",
-        "company:list",
-        "warehouseCompany:delete",
-        "warehouseCompany:create",
-        "warehouseCompany:list",
-        "warehouseCompany:update",
-        "taskEngine:delete",
-        "taskEngine:create",
-        "waveProcess:delete",
-        "waveProcess:create",
-        "waveProcess:list",
-        "waveProcess:update",
-        "replenishmentStrategy:delete",
-        "brand:list",
-        "cooperationMerchant:updateStatus",
-        "cooperationMerchant:list",
-        "agreementTemplate:update",
-        "agreementTemplate:delete",
-        "agreementTemplate:create",
-        "agreementTemplate:list",
-        "cooperationAgreement:update",
-        "cooperationAgreement:delete",
-        "cooperationAgreement:create",
-        "cooperationAgreement:list",
-        "cooperationAgreement:review",
-        "cooperationAgreement:submit",
-        "cooperationAgreement:terminate",
-        "paymentMerchant:list",
-        "paymentMerchant:detail",
-        "dict:list",
-        "dictType:list",
-        "user:list",
-        "role:list",
-        "protocol:list",
-        "inventoryRule:update",
-        "inventoryRule:delete",
-        "inventoryRule:create",
-        "inventoryRule:list",
-        "replenishmentStrategy:create",
-        "cooperationMerchant:detail",
-        "orgWarehouse:list",
-        "orgWarehouse:detail",
-        "replenishmentStrategy:list",
-        "messageTemplate:list",
-        "messageType:list",
-        "messageTrigger:list",
-        "consumer:list",
-        "consumer:detail",
-        "cooperation-merchant:create-warehouse",
-        "cooperationMerchant:createWarehouse",
-        "cooperation-merchant:create-supplier",
-        "cooperationMerchant:createSupplier",
-        "cooperation-merchant:create-store",
-        "cooperationMerchant:createStore",
-        "replenishmentStrategy:update",
-        "order:create",
-        "transfer:create",
-        "transfer:cancel",
-        "transfer:transit",
-        "transfer:complete",
-        "transfer:approve",
-        "transfer:receive",
-        "transfer:view",
-        "delivery:create",
-        "delivery:deliver",
-        "delivery:cancel",
-        "delivery:view",
-        "delivery:dispatch",
-        "store.onboarding.create",
-        "store.onboarding.review",
-        "store.onboarding.update"
-      ],
-      "additionalPendingAtomicPermissionIds": [],
-      "excludedPendingAtomicPermissionIds": [
-        "A-0270",
-        "A-0273",
-        "A-0274",
-        "A-0275",
-        "A-0276",
-        "A-0277",
-        "A-0278",
-        "A-0279",
-        "A-0280",
-        "A-0281",
-        "A-0282",
-        "A-0283",
-        "A-0284",
-        "A-0285"
-      ],
-      "atomOverrideMode": "能力默认+岗位差异"
-    },
-    {
-      "id": "ROLE-02",
-      "order": 2,
-      "name": "仓库作业员",
-      "category": "仓储履约",
-      "responsibility": "执行授权仓库的入库、出库、拣货、复核、盘点等现场作业，不承担组织和仓库主配置管理。",
-      "capabilityCodes": [
-        "fulfillment.wms.inbound.execute",
-        "fulfillment.wms.outbound.execute",
-        "fulfillment.wms.warehouse.config",
-        "fulfillment.wms.inventory.manage",
-        "fulfillment.wms.view"
-      ],
-      "capabilityEvidence": {
-        "fulfillment.wms.inbound.execute": "checked",
-        "fulfillment.wms.outbound.execute": "checked",
-        "fulfillment.wms.warehouse.config": "checked",
-        "fulfillment.wms.inventory.manage": "checked",
-        "fulfillment.wms.view": "checked"
-      },
-      "orgCapabilityCodes": [
-        "WAREHOUSE_MGMT"
-      ],
-      "dataScope": "授权组织 + 绑定 Warehouse ResourceMember；范围原则已明确，具体绑定待配置。",
-      "productEvidence": "管理后台与运营应用本次读取值",
-      "confirmationStatus": "待确认",
-      "pendingReason": "请产品确认岗位职责、标准能力清单和默认数据范围。",
-      "additionalAtomicPermissionCodes": [],
-      "excludedAtomicPermissionCodes": [
-        "warehouse:delete",
-        "warehouse:update-status",
-        "warehouse:create",
-        "warehouse:page",
+      "additionalAtomicPermissionCodes": [
+        "member:list",
         "warehouse:update",
-        "warehouse:detail",
+        "outbound:sort",
+        "outbound:create",
+        "outbound:cancel",
+        "outbound:check",
+        "outbound:pack",
+        "outbound:pick",
+        "outbound:view",
+        "warehouse:update",
         "warehouse:list",
         "room:update",
         "room:delete",
@@ -47723,10 +47936,8 @@ code {
         "deliveryHub:delete",
         "deliveryHub:create",
         "deliveryHub:list",
-        "company:update",
-        "company:delete",
-        "company:create",
-        "company:list",
+        "inventory:freeze",
+        "inventory:unfreeze",
         "profile:update",
         "profile:delete",
         "profile:create",
@@ -47739,12 +47950,6 @@ code {
         "userCompany:delete",
         "userCompany:create",
         "userCompany:list",
-        "warehouseCompany:delete",
-        "warehouseCompany:create",
-        "warehouseCompany:list",
-        "warehouseCompany:update",
-        "taskEngine:delete",
-        "taskEngine:create",
         "taskEngine:list",
         "taskEngine:update",
         "locationValidation:invoke",
@@ -47760,34 +47965,84 @@ code {
         "waveTemplate:create",
         "waveTemplate:list",
         "waveTemplate:update",
-        "waveProcess:delete",
-        "waveProcess:create",
-        "waveProcess:list",
-        "waveProcess:update",
-        "replenishmentStrategy:delete",
-        "inventoryRule:update",
-        "inventoryRule:delete",
-        "inventoryRule:create",
-        "inventoryRule:list",
-        "replenishmentStrategy:create",
-        "replenishmentStrategy:list",
-        "replenishmentStrategy:update",
-        "transfer:create",
-        "transfer:cancel",
-        "transfer:transit",
-        "transfer:complete",
-        "transfer:approve",
-        "transfer:receive",
-        "transfer:view",
-        "delivery:create",
-        "delivery:deliver",
-        "delivery:cancel",
-        "delivery:view",
-        "delivery:dispatch"
+        "inbound:view",
+        "ibdReceipt:list",
+        "ibdReceipt:detail"
       ],
-      "additionalPendingAtomicPermissionIds": [],
-      "excludedPendingAtomicPermissionIds": [],
-      "atomOverrideMode": "能力默认+岗位差异"
+      "additionalPendingAtomicPermissionIds": [
+        "A-0261",
+        "A-0262",
+        "A-0263",
+        "A-0264",
+        "A-0272",
+        "A-0289",
+        "A-0290",
+        "A-0291"
+      ],
+      "orgCapabilityCodes": [
+        "PLATFORM_ONLY",
+        "CONSIGNMENT",
+        "WAREHOUSE_MGMT",
+        "STORE_MGMT"
+      ],
+      "dataScope": "授权组织 + 绑定 Warehouse ResourceMember；范围原则已明确，具体绑定待配置。",
+      "productEvidence": "管理后台与运营应用本次读取值",
+      "confirmationStatus": "待确认",
+      "pendingReason": "请产品确认岗位职责、标准能力清单和默认数据范围。",
+      "atomOverrideMode": "能力默认+岗位增加"
+    },
+    {
+      "id": "ROLE-02",
+      "order": 2,
+      "name": "仓库作业员",
+      "category": "仓储履约",
+      "responsibility": "执行授权仓库的入库、出库、拣货、复核、盘点等现场作业，不承担组织和仓库主配置管理。",
+      "capabilityCodes": [
+        "fulfillment.wms.inbound.execute",
+        "fulfillment.wms.outbound.execute",
+        "fulfillment.wms.warehouse.config",
+        "fulfillment.wms.inventory.manage",
+        "fulfillment.wms.view"
+      ],
+      "capabilityEvidence": {
+        "fulfillment.wms.inbound.execute": "checked",
+        "fulfillment.wms.outbound.execute": "checked",
+        "fulfillment.wms.warehouse.config": "checked",
+        "fulfillment.wms.inventory.manage": "checked",
+        "fulfillment.wms.view": "checked"
+      },
+      "additionalAtomicPermissionCodes": [
+        "outbound:sort",
+        "outbound:create",
+        "outbound:cancel",
+        "outbound:check",
+        "outbound:pack",
+        "outbound:pick",
+        "outbound:view",
+        "inventory:freeze",
+        "inventory:unfreeze",
+        "inbound:view",
+        "ibdReceipt:list",
+        "ibdReceipt:detail"
+      ],
+      "additionalPendingAtomicPermissionIds": [
+        "A-0261",
+        "A-0262",
+        "A-0263",
+        "A-0264",
+        "A-0272",
+        "A-0289",
+        "A-0290",
+        "A-0291"
+      ],
+      "orgCapabilityCodes": [
+        "WAREHOUSE_MGMT"
+      ],
+      "dataScope": "授权组织 + 绑定 Warehouse ResourceMember；范围原则已明确，具体绑定待配置。",
+      "productEvidence": "管理后台与运营应用本次读取值",
+      "confirmationStatus": "待确认",
+      "pendingReason": "请产品确认岗位职责、标准能力清单和默认数据范围。",
+      "atomOverrideMode": "能力默认+岗位增加"
     },
     {
       "id": "ROLE-03",
@@ -47827,6 +48082,57 @@ code {
         "commerce.store.manage": "checked",
         "commerce.order.manage": "checked"
       },
+      "additionalAtomicPermissionCodes": [
+        "outbound:sort",
+        "outbound:create",
+        "outbound:cancel",
+        "outbound:check",
+        "outbound:pack",
+        "outbound:pick",
+        "outbound:view",
+        "room:update",
+        "room:delete",
+        "room:create",
+        "room:list",
+        "area:list",
+        "location:update",
+        "location:delete",
+        "location:create",
+        "location:list",
+        "sku:list",
+        "zone:update",
+        "zone:delete",
+        "zone:create",
+        "zone:list",
+        "deliveryHub:update",
+        "deliveryHub:delete",
+        "deliveryHub:create",
+        "deliveryHub:list",
+        "inventory:freeze",
+        "inventory:unfreeze",
+        "inbound:view",
+        "ibdReceipt:list",
+        "ibdReceipt:detail"
+      ],
+      "additionalPendingAtomicPermissionIds": [
+        "A-0259",
+        "A-0261",
+        "A-0273",
+        "A-0274",
+        "A-0275",
+        "A-0276",
+        "A-0277",
+        "A-0278",
+        "A-0279",
+        "A-0280",
+        "A-0281",
+        "A-0282",
+        "A-0283",
+        "A-0284",
+        "A-0285",
+        "A-0293",
+        "A-0294"
+      ],
       "orgCapabilityCodes": [
         "STORE_MGMT",
         "WAREHOUSE_MGMT",
@@ -47837,128 +48143,7 @@ code {
       "productEvidence": "管理后台与运营应用本次读取值",
       "confirmationStatus": "待确认",
       "pendingReason": "请产品确认岗位职责、标准能力清单和默认数据范围。",
-      "additionalAtomicPermissionCodes": [],
-      "excludedAtomicPermissionCodes": [
-        "warehouse:delete",
-        "warehouse:update-status",
-        "warehouse:create",
-        "warehouse:page",
-        "warehouse:update",
-        "warehouse:detail",
-        "store:update",
-        "store:create",
-        "store:apply",
-        "warehouse:list",
-        "lpn:update",
-        "lpn:delete",
-        "lpn:create",
-        "lpn:list",
-        "lpnModel:update",
-        "lpnModel:delete",
-        "lpnModel:create",
-        "lpnModel:list",
-        "company:update",
-        "company:delete",
-        "company:create",
-        "company:list",
-        "profile:update",
-        "profile:delete",
-        "profile:create",
-        "profile:list",
-        "userProfile:update",
-        "userProfile:delete",
-        "userProfile:create",
-        "userProfile:list",
-        "userCompany:update",
-        "userCompany:delete",
-        "userCompany:create",
-        "userCompany:list",
-        "warehouseCompany:delete",
-        "warehouseCompany:create",
-        "warehouseCompany:list",
-        "warehouseCompany:update",
-        "taskEngine:delete",
-        "taskEngine:create",
-        "taskEngine:list",
-        "taskEngine:update",
-        "locationValidation:invoke",
-        "ibdStrategy:delete",
-        "ibdStrategy:create",
-        "ibdStrategy:list",
-        "ibdStrategy:update",
-        "allocationStrategy:delete",
-        "allocationStrategy:create",
-        "allocationStrategy:list",
-        "allocationStrategy:update",
-        "waveTemplate:delete",
-        "waveTemplate:create",
-        "waveTemplate:list",
-        "waveTemplate:update",
-        "waveProcess:delete",
-        "waveProcess:create",
-        "waveProcess:list",
-        "waveProcess:update",
-        "mallCategory:list",
-        "replenishmentStrategy:delete",
-        "category:list",
-        "product:list",
-        "mallProduct:list",
-        "mallProduct:detail",
-        "user:delete",
-        "user:update",
-        "user:resetPassword",
-        "org:update",
-        "org:delete",
-        "org:create",
-        "menu:update",
-        "menu:delete",
-        "menu:create",
-        "role:update",
-        "role:delete",
-        "role:create",
-        "role:changeStatus",
-        "inventoryRule:update",
-        "inventoryRule:delete",
-        "inventoryRule:create",
-        "inventoryRule:list",
-        "recommendationPosition:list",
-        "recommendationPosition:detail",
-        "replenishmentStrategy:create",
-        "replenishmentStrategy:list",
-        "mallTag:list",
-        "cooperation-merchant:create-store",
-        "cooperationMerchant:createStore",
-        "mallMaterialType:list",
-        "replenishmentStrategy:update",
-        "order:create",
-        "transfer:create",
-        "transfer:cancel",
-        "transfer:transit",
-        "transfer:complete",
-        "transfer:approve",
-        "transfer:receive",
-        "transfer:view",
-        "delivery:create",
-        "delivery:deliver",
-        "delivery:cancel",
-        "delivery:view",
-        "delivery:dispatch",
-        "store.onboarding.create",
-        "store.onboarding.review",
-        "store.onboarding.update"
-      ],
-      "additionalPendingAtomicPermissionIds": [],
-      "excludedPendingAtomicPermissionIds": [
-        "A-0262",
-        "A-0263",
-        "A-0264",
-        "A-0272",
-        "A-0289",
-        "A-0290",
-        "A-0291",
-        "A-0295"
-      ],
-      "atomOverrideMode": "能力默认+岗位差异"
+      "atomOverrideMode": "能力默认+岗位增加"
     },
     {
       "id": "ROLE-04",
@@ -47994,6 +48179,39 @@ code {
         "commerce.store.manage": "checked",
         "commerce.order.manage": "checked"
       },
+      "additionalAtomicPermissionCodes": [
+        "outbound:sort",
+        "outbound:create",
+        "outbound:cancel",
+        "outbound:check",
+        "outbound:pack",
+        "outbound:pick",
+        "outbound:view",
+        "inventory:freeze",
+        "inventory:unfreeze",
+        "inbound:view",
+        "ibdReceipt:list",
+        "ibdReceipt:detail"
+      ],
+      "additionalPendingAtomicPermissionIds": [
+        "A-0259",
+        "A-0261",
+        "A-0273",
+        "A-0274",
+        "A-0275",
+        "A-0276",
+        "A-0277",
+        "A-0278",
+        "A-0279",
+        "A-0280",
+        "A-0281",
+        "A-0282",
+        "A-0283",
+        "A-0284",
+        "A-0285",
+        "A-0293",
+        "A-0294"
+      ],
       "orgCapabilityCodes": [
         "WAREHOUSE_MGMT",
         "STORE_MGMT",
@@ -48004,132 +48222,7 @@ code {
       "productEvidence": "管理后台与运营应用本次读取值",
       "confirmationStatus": "待确认",
       "pendingReason": "请产品确认岗位职责、标准能力清单和默认数据范围。",
-      "additionalAtomicPermissionCodes": [],
-      "excludedAtomicPermissionCodes": [
-        "warehouse:delete",
-        "warehouse:update-status",
-        "warehouse:create",
-        "warehouse:page",
-        "warehouse:update",
-        "warehouse:detail",
-        "store:update",
-        "store:create",
-        "store:apply",
-        "warehouse:list",
-        "room:update",
-        "room:delete",
-        "room:create",
-        "room:list",
-        "area:list",
-        "location:update",
-        "location:delete",
-        "location:create",
-        "location:list",
-        "sku:list",
-        "lpn:update",
-        "lpn:delete",
-        "lpn:create",
-        "lpn:list",
-        "lpnModel:update",
-        "lpnModel:delete",
-        "lpnModel:create",
-        "lpnModel:list",
-        "zone:update",
-        "zone:delete",
-        "zone:create",
-        "zone:list",
-        "deliveryHub:update",
-        "deliveryHub:delete",
-        "deliveryHub:create",
-        "deliveryHub:list",
-        "company:update",
-        "company:delete",
-        "company:create",
-        "company:list",
-        "profile:update",
-        "profile:delete",
-        "profile:create",
-        "profile:list",
-        "userProfile:update",
-        "userProfile:delete",
-        "userProfile:create",
-        "userProfile:list",
-        "userCompany:update",
-        "userCompany:delete",
-        "userCompany:create",
-        "userCompany:list",
-        "warehouseCompany:delete",
-        "warehouseCompany:create",
-        "warehouseCompany:list",
-        "warehouseCompany:update",
-        "taskEngine:delete",
-        "taskEngine:create",
-        "taskEngine:list",
-        "taskEngine:update",
-        "locationValidation:invoke",
-        "ibdStrategy:delete",
-        "ibdStrategy:create",
-        "ibdStrategy:list",
-        "ibdStrategy:update",
-        "allocationStrategy:delete",
-        "allocationStrategy:create",
-        "allocationStrategy:list",
-        "allocationStrategy:update",
-        "waveTemplate:delete",
-        "waveTemplate:create",
-        "waveTemplate:list",
-        "waveTemplate:update",
-        "waveProcess:delete",
-        "waveProcess:create",
-        "waveProcess:list",
-        "waveProcess:update",
-        "mallCategory:list",
-        "replenishmentStrategy:delete",
-        "category:list",
-        "product:list",
-        "mallProduct:list",
-        "mallProduct:detail",
-        "inventoryRule:update",
-        "inventoryRule:delete",
-        "inventoryRule:create",
-        "inventoryRule:list",
-        "recommendationPosition:list",
-        "recommendationPosition:detail",
-        "replenishmentStrategy:create",
-        "replenishmentStrategy:list",
-        "mallTag:list",
-        "cooperation-merchant:create-store",
-        "cooperationMerchant:createStore",
-        "mallMaterialType:list",
-        "replenishmentStrategy:update",
-        "transfer:create",
-        "transfer:cancel",
-        "transfer:transit",
-        "transfer:complete",
-        "transfer:approve",
-        "transfer:receive",
-        "transfer:view",
-        "delivery:create",
-        "delivery:deliver",
-        "delivery:cancel",
-        "delivery:view",
-        "delivery:dispatch",
-        "store.onboarding.create",
-        "store.onboarding.review",
-        "store.onboarding.update"
-      ],
-      "additionalPendingAtomicPermissionIds": [],
-      "excludedPendingAtomicPermissionIds": [
-        "A-0262",
-        "A-0263",
-        "A-0264",
-        "A-0272",
-        "A-0289",
-        "A-0290",
-        "A-0291",
-        "A-0295"
-      ],
-      "atomOverrideMode": "能力默认+岗位差异"
+      "atomOverrideMode": "能力默认+岗位增加"
     },
     {
       "id": "ROLE-05",
@@ -48147,6 +48240,8 @@ code {
         "fulfillment.wms.inventory.manage": "checked",
         "fulfillment.wms.view": "checked"
       },
+      "additionalAtomicPermissionCodes": [],
+      "additionalPendingAtomicPermissionIds": [],
       "orgCapabilityCodes": [
         "CONSIGNMENT",
         "WAREHOUSE_MGMT"
@@ -48155,64 +48250,7 @@ code {
       "productEvidence": "管理后台与运营应用本次读取值",
       "confirmationStatus": "待确认",
       "pendingReason": "请产品确认岗位职责、标准能力清单和默认数据范围。",
-      "additionalAtomicPermissionCodes": [],
-      "excludedAtomicPermissionCodes": [
-        "warehouse:page",
-        "warehouse:detail",
-        "outbound:view",
-        "warehouse:list",
-        "room:list",
-        "area:list",
-        "location:list",
-        "sku:list",
-        "lpn:list",
-        "lpnModel:list",
-        "zone:list",
-        "deliveryHub:list",
-        "company:list",
-        "inventory:freeze",
-        "inventory:unfreeze",
-        "profile:list",
-        "userProfile:list",
-        "userCompany:list",
-        "warehouseCompany:list",
-        "taskEngine:list",
-        "ibdStrategy:list",
-        "allocationStrategy:list",
-        "waveTemplate:list",
-        "waveProcess:list",
-        "inbound:view",
-        "ibdReceipt:list",
-        "ibdReceipt:detail",
-        "inventoryRule:list",
-        "replenishmentStrategy:list",
-        "transfer:create",
-        "transfer:cancel",
-        "transfer:transit",
-        "transfer:complete",
-        "transfer:approve",
-        "transfer:receive",
-        "transfer:view",
-        "delivery:view"
-      ],
-      "additionalPendingAtomicPermissionIds": [],
-      "excludedPendingAtomicPermissionIds": [
-        "A-0261",
-        "A-0273",
-        "A-0274",
-        "A-0275",
-        "A-0276",
-        "A-0277",
-        "A-0278",
-        "A-0279",
-        "A-0280",
-        "A-0281",
-        "A-0282",
-        "A-0283",
-        "A-0284",
-        "A-0285"
-      ],
-      "atomOverrideMode": "能力默认+岗位差异"
+      "atomOverrideMode": "能力默认+岗位增加"
     },
     {
       "id": "ROLE-06",
@@ -48234,6 +48272,14 @@ code {
         "fulfillment.wms.inventory.manage": "checked",
         "fulfillment.wms.view": "checked"
       },
+      "additionalAtomicPermissionCodes": [],
+      "additionalPendingAtomicPermissionIds": [
+        "A-0262",
+        "A-0263",
+        "A-0264",
+        "A-0289",
+        "A-0290"
+      ],
       "orgCapabilityCodes": [
         "WAREHOUSE_MGMT"
       ],
@@ -48241,122 +48287,7 @@ code {
       "productEvidence": "管理后台与运营应用本次读取值",
       "confirmationStatus": "待确认",
       "pendingReason": "请产品确认岗位职责、标准能力清单和默认数据范围。",
-      "additionalAtomicPermissionCodes": [],
-      "excludedAtomicPermissionCodes": [
-        "warehouse:delete",
-        "warehouse:update-status",
-        "warehouse:create",
-        "warehouse:page",
-        "warehouse:update",
-        "warehouse:detail",
-        "outbound:sort",
-        "outbound:create",
-        "outbound:cancel",
-        "outbound:check",
-        "outbound:pack",
-        "outbound:pick",
-        "outbound:view",
-        "warehouse:list",
-        "room:update",
-        "room:delete",
-        "room:create",
-        "room:list",
-        "area:list",
-        "location:update",
-        "location:delete",
-        "location:create",
-        "location:list",
-        "sku:list",
-        "lpn:update",
-        "lpn:delete",
-        "lpn:create",
-        "lpn:list",
-        "lpnModel:update",
-        "lpnModel:delete",
-        "lpnModel:create",
-        "lpnModel:list",
-        "zone:update",
-        "zone:delete",
-        "zone:create",
-        "zone:list",
-        "deliveryHub:update",
-        "deliveryHub:delete",
-        "deliveryHub:create",
-        "deliveryHub:list",
-        "company:update",
-        "company:delete",
-        "company:create",
-        "company:list",
-        "inventory:freeze",
-        "inventory:unfreeze",
-        "profile:update",
-        "profile:delete",
-        "profile:create",
-        "profile:list",
-        "userProfile:update",
-        "userProfile:delete",
-        "userProfile:create",
-        "userProfile:list",
-        "userCompany:update",
-        "userCompany:delete",
-        "userCompany:create",
-        "userCompany:list",
-        "warehouseCompany:delete",
-        "warehouseCompany:create",
-        "warehouseCompany:list",
-        "warehouseCompany:update",
-        "taskEngine:delete",
-        "taskEngine:create",
-        "taskEngine:list",
-        "taskEngine:update",
-        "locationValidation:invoke",
-        "ibdStrategy:delete",
-        "ibdStrategy:create",
-        "ibdStrategy:list",
-        "ibdStrategy:update",
-        "allocationStrategy:delete",
-        "allocationStrategy:create",
-        "allocationStrategy:list",
-        "allocationStrategy:update",
-        "waveTemplate:delete",
-        "waveTemplate:create",
-        "waveTemplate:list",
-        "waveTemplate:update",
-        "waveProcess:delete",
-        "waveProcess:create",
-        "waveProcess:list",
-        "waveProcess:update",
-        "inbound:view",
-        "ibdReceipt:list",
-        "ibdReceipt:detail",
-        "replenishmentStrategy:delete",
-        "inventoryRule:update",
-        "inventoryRule:delete",
-        "inventoryRule:create",
-        "inventoryRule:list",
-        "replenishmentStrategy:create",
-        "replenishmentStrategy:list",
-        "replenishmentStrategy:update",
-        "transfer:create",
-        "transfer:cancel",
-        "transfer:transit",
-        "transfer:complete",
-        "transfer:approve",
-        "transfer:receive",
-        "transfer:view",
-        "delivery:create",
-        "delivery:deliver",
-        "delivery:cancel",
-        "delivery:view",
-        "delivery:dispatch"
-      ],
-      "additionalPendingAtomicPermissionIds": [],
-      "excludedPendingAtomicPermissionIds": [
-        "A-0261",
-        "A-0272",
-        "A-0291"
-      ],
-      "atomOverrideMode": "能力默认+岗位差异"
+      "atomOverrideMode": "能力默认+岗位增加"
     },
     {
       "id": "ROLE-07",
@@ -48382,6 +48313,24 @@ code {
         "commerce.marketing.distribution.manage": "checked",
         "settlement.view": "checked"
       },
+      "additionalAtomicPermissionCodes": [
+        "member:list",
+        "member:status",
+        "member:create",
+        "member:settlement",
+        "member:update",
+        "store:create",
+        "store:list",
+        "store:apply",
+        "store.onboarding.create",
+        "store.onboarding.review",
+        "store.onboarding.review",
+        "approval.agreement.advance"
+      ],
+      "additionalPendingAtomicPermissionIds": [
+        "A-0270",
+        "A-0295"
+      ],
       "orgCapabilityCodes": [
         "PLATFORM_ONLY",
         "STORE_MGMT",
@@ -48391,48 +48340,7 @@ code {
       "productEvidence": "管理后台与运营应用本次读取值",
       "confirmationStatus": "待确认",
       "pendingReason": "请产品确认岗位职责、标准能力清单和默认数据范围。",
-      "additionalAtomicPermissionCodes": [],
-      "excludedAtomicPermissionCodes": [
-        "store:update",
-        "brand:list",
-        "cooperationMerchant:updateStatus",
-        "cooperationMerchant:list",
-        "agreementTemplate:update",
-        "agreementTemplate:delete",
-        "agreementTemplate:create",
-        "agreementTemplate:list",
-        "cooperationAgreement:update",
-        "cooperationAgreement:delete",
-        "cooperationAgreement:create",
-        "cooperationAgreement:list",
-        "cooperationAgreement:review",
-        "cooperationAgreement:submit",
-        "cooperationAgreement:terminate",
-        "paymentMerchant:list",
-        "paymentMerchant:detail",
-        "dict:list",
-        "dictType:list",
-        "user:list",
-        "role:list",
-        "protocol:list",
-        "cooperationMerchant:detail",
-        "orgWarehouse:list",
-        "orgWarehouse:detail",
-        "messageTemplate:list",
-        "messageType:list",
-        "messageTrigger:list",
-        "consumer:list",
-        "consumer:detail",
-        "cooperation-merchant:create-warehouse",
-        "cooperationMerchant:createWarehouse",
-        "cooperation-merchant:create-store",
-        "cooperationMerchant:createStore",
-        "settlement.bank-card.maintain",
-        "store.onboarding.update"
-      ],
-      "additionalPendingAtomicPermissionIds": [],
-      "excludedPendingAtomicPermissionIds": [],
-      "atomOverrideMode": "能力默认+岗位差异"
+      "atomOverrideMode": "能力默认+岗位增加"
     },
     {
       "id": "ROLE-08",
@@ -48456,6 +48364,20 @@ code {
         "commerce.marketing.view": "checked",
         "settlement.view": "checked"
       },
+      "additionalAtomicPermissionCodes": [
+        "store:update",
+        "store:create",
+        "store:list",
+        "store:apply",
+        "store.onboarding.create",
+        "store.onboarding.review",
+        "store.onboarding.update",
+        "store.onboarding.review",
+        "approval.agreement.advance"
+      ],
+      "additionalPendingAtomicPermissionIds": [
+        "A-0270"
+      ],
       "orgCapabilityCodes": [
         "PLATFORM_ONLY",
         "STORE_MGMT",
@@ -48465,51 +48387,7 @@ code {
       "productEvidence": "管理后台与运营应用本次读取值",
       "confirmationStatus": "待确认",
       "pendingReason": "请产品确认岗位职责、标准能力清单和默认数据范围。",
-      "additionalAtomicPermissionCodes": [],
-      "excludedAtomicPermissionCodes": [
-        "member:list",
-        "member:status",
-        "member:create",
-        "member:settlement",
-        "member:update",
-        "brand:list",
-        "cooperationMerchant:updateStatus",
-        "cooperationMerchant:list",
-        "agreementTemplate:update",
-        "agreementTemplate:delete",
-        "agreementTemplate:create",
-        "agreementTemplate:list",
-        "cooperationAgreement:update",
-        "cooperationAgreement:delete",
-        "cooperationAgreement:create",
-        "cooperationAgreement:list",
-        "cooperationAgreement:review",
-        "cooperationAgreement:submit",
-        "cooperationAgreement:terminate",
-        "paymentMerchant:list",
-        "paymentMerchant:detail",
-        "dict:list",
-        "dictType:list",
-        "user:list",
-        "role:list",
-        "protocol:list",
-        "cooperationMerchant:detail",
-        "orgWarehouse:list",
-        "orgWarehouse:detail",
-        "messageTemplate:list",
-        "messageType:list",
-        "messageTrigger:list",
-        "consumer:list",
-        "consumer:detail",
-        "cooperation-merchant:create-warehouse",
-        "cooperationMerchant:createWarehouse",
-        "cooperation-merchant:create-store",
-        "cooperationMerchant:createStore",
-        "settlement.bank-card.maintain"
-      ],
-      "additionalPendingAtomicPermissionIds": [],
-      "excludedPendingAtomicPermissionIds": [],
-      "atomOverrideMode": "能力默认+岗位差异"
+      "atomOverrideMode": "能力默认+岗位增加"
     },
     {
       "id": "ROLE-09",
@@ -48531,6 +48409,10 @@ code {
         "settlement.clearing.operate": "checked",
         "settlement.fee.configure": "checked"
       },
+      "additionalAtomicPermissionCodes": [
+        "store:apply"
+      ],
+      "additionalPendingAtomicPermissionIds": [],
       "orgCapabilityCodes": [
         "STORE_MGMT",
         "PLATFORM_ONLY",
@@ -48540,20 +48422,7 @@ code {
       "productEvidence": "管理后台与运营应用本次读取值",
       "confirmationStatus": "待确认",
       "pendingReason": "请产品确认岗位职责、标准能力清单和默认数据范围。",
-      "additionalAtomicPermissionCodes": [],
-      "excludedAtomicPermissionCodes": [
-        "store:update",
-        "store:create",
-        "cooperation-merchant:create-store",
-        "cooperationMerchant:createStore",
-        "store.onboarding.create",
-        "store.onboarding.review",
-        "store.onboarding.update",
-        "approval.agreement.advance"
-      ],
-      "additionalPendingAtomicPermissionIds": [],
-      "excludedPendingAtomicPermissionIds": [],
-      "atomOverrideMode": "能力默认+岗位差异"
+      "atomOverrideMode": "能力默认+岗位增加"
     },
     {
       "id": "ROLE-10",
@@ -48583,6 +48452,25 @@ code {
         "commerce.order.manage": "checked",
         "settlement.view": "checked"
       },
+      "additionalAtomicPermissionCodes": [],
+      "additionalPendingAtomicPermissionIds": [
+        "A-0259",
+        "A-0273",
+        "A-0274",
+        "A-0275",
+        "A-0276",
+        "A-0277",
+        "A-0278",
+        "A-0279",
+        "A-0280",
+        "A-0281",
+        "A-0282",
+        "A-0283",
+        "A-0284",
+        "A-0285",
+        "A-0293",
+        "A-0294"
+      ],
       "orgCapabilityCodes": [
         "STORE_MGMT",
         "PLATFORM_ONLY",
@@ -48593,45 +48481,7 @@ code {
       "productEvidence": "管理后台与运营应用本次读取值",
       "confirmationStatus": "待确认",
       "pendingReason": "请产品确认岗位职责、标准能力清单和默认数据范围。",
-      "additionalAtomicPermissionCodes": [],
-      "excludedAtomicPermissionCodes": [
-        "store:update",
-        "store:create",
-        "store:apply",
-        "mallCategory:list",
-        "category:list",
-        "product:list",
-        "mallProduct:list",
-        "mallProduct:detail",
-        "user:delete",
-        "user:update",
-        "user:resetPassword",
-        "org:update",
-        "org:delete",
-        "org:create",
-        "menu:update",
-        "menu:delete",
-        "menu:create",
-        "role:update",
-        "role:delete",
-        "role:create",
-        "role:changeStatus",
-        "recommendationPosition:list",
-        "recommendationPosition:detail",
-        "mallTag:list",
-        "cooperation-merchant:create-store",
-        "cooperationMerchant:createStore",
-        "mallMaterialType:list",
-        "settlement.bank-card.maintain",
-        "store.onboarding.create",
-        "store.onboarding.review",
-        "store.onboarding.update"
-      ],
-      "additionalPendingAtomicPermissionIds": [],
-      "excludedPendingAtomicPermissionIds": [
-        "A-0295"
-      ],
-      "atomOverrideMode": "能力默认+岗位差异"
+      "atomOverrideMode": "能力默认+岗位增加"
     },
     {
       "id": "ROLE-11",
@@ -48657,6 +48507,25 @@ code {
         "commerce.store.manage": "checked",
         "commerce.order.manage": "checked"
       },
+      "additionalAtomicPermissionCodes": [],
+      "additionalPendingAtomicPermissionIds": [
+        "A-0259",
+        "A-0273",
+        "A-0274",
+        "A-0275",
+        "A-0276",
+        "A-0277",
+        "A-0278",
+        "A-0279",
+        "A-0280",
+        "A-0281",
+        "A-0282",
+        "A-0283",
+        "A-0284",
+        "A-0285",
+        "A-0293",
+        "A-0294"
+      ],
       "orgCapabilityCodes": [
         "STORE_MGMT",
         "CONSIGNMENT",
@@ -48666,31 +48535,7 @@ code {
       "productEvidence": "管理后台与运营应用本次读取值",
       "confirmationStatus": "待确认",
       "pendingReason": "请产品确认岗位职责、标准能力清单和默认数据范围。",
-      "additionalAtomicPermissionCodes": [],
-      "excludedAtomicPermissionCodes": [
-        "store:update",
-        "store:create",
-        "store:apply",
-        "mallCategory:list",
-        "category:list",
-        "product:list",
-        "mallProduct:list",
-        "mallProduct:detail",
-        "recommendationPosition:list",
-        "recommendationPosition:detail",
-        "mallTag:list",
-        "cooperation-merchant:create-store",
-        "cooperationMerchant:createStore",
-        "mallMaterialType:list",
-        "store.onboarding.create",
-        "store.onboarding.review",
-        "store.onboarding.update"
-      ],
-      "additionalPendingAtomicPermissionIds": [],
-      "excludedPendingAtomicPermissionIds": [
-        "A-0295"
-      ],
-      "atomOverrideMode": "能力默认+岗位差异"
+      "atomOverrideMode": "能力默认+岗位增加"
     },
     {
       "id": "ROLE-12",
@@ -48706,6 +48551,8 @@ code {
         "commerce.live.manage": "checked",
         "commerce.marketing.operate": "checked"
       },
+      "additionalAtomicPermissionCodes": [],
+      "additionalPendingAtomicPermissionIds": [],
       "orgCapabilityCodes": [
         "LIVEROOM_MGMT",
         "PLATFORM_ONLY"
@@ -48714,13 +48561,7 @@ code {
       "productEvidence": "管理后台本次读取值；运营应用未勾选/待产品补充",
       "confirmationStatus": "待确认",
       "pendingReason": "请产品确认岗位职责、标准能力清单和默认数据范围，并补充运营应用勾选。",
-      "additionalAtomicPermissionCodes": [],
-      "excludedAtomicPermissionCodes": [
-        "channelProduct:catalog"
-      ],
-      "additionalPendingAtomicPermissionIds": [],
-      "excludedPendingAtomicPermissionIds": [],
-      "atomOverrideMode": "能力默认+岗位差异"
+      "atomOverrideMode": "能力默认+岗位增加"
     },
     {
       "id": "ROLE-13",
@@ -48740,6 +48581,8 @@ code {
         "commerce.order.manage": "checked",
         "commerce.marketing.membership.manage": "checked"
       },
+      "additionalAtomicPermissionCodes": [],
+      "additionalPendingAtomicPermissionIds": [],
       "orgCapabilityCodes": [
         "PLATFORM_ONLY",
         "STORE_MGMT"
@@ -48748,20 +48591,7 @@ code {
       "productEvidence": "管理后台本次读取值；运营应用未勾选/待产品补充",
       "confirmationStatus": "待确认",
       "pendingReason": "请产品确认岗位职责、标准能力清单和默认数据范围，并补充运营应用勾选。",
-      "additionalAtomicPermissionCodes": [],
-      "excludedAtomicPermissionCodes": [
-        "consumer:changeStatus",
-        "marketingPoints:grant",
-        "marketingPoints:deduct",
-        "consumer:operatePoint"
-      ],
-      "additionalPendingAtomicPermissionIds": [],
-      "excludedPendingAtomicPermissionIds": [
-        "A-0259",
-        "A-0293",
-        "A-0294"
-      ],
-      "atomOverrideMode": "能力默认+岗位差异"
+      "atomOverrideMode": "能力默认+岗位增加"
     },
     {
       "id": "ROLE-14",
@@ -48791,6 +48621,32 @@ code {
         "system.view": "checked",
         "commerce.content.manage": "checked"
       },
+      "additionalAtomicPermissionCodes": [
+        "supplier:create",
+        "supplier:create",
+        "supplier:update",
+        "mallCategory:update",
+        "mallCategory:delete",
+        "mallCategory:create",
+        "mallCategory:list",
+        "brand:list",
+        "category:list",
+        "product:list",
+        "agreementTemplate:update",
+        "agreementTemplate:delete",
+        "agreementTemplate:create",
+        "agreementTemplate:list",
+        "cooperationAgreement:update",
+        "cooperationAgreement:delete",
+        "cooperationAgreement:create",
+        "cooperationAgreement:list",
+        "cooperationAgreement:review",
+        "cooperationAgreement:submit",
+        "cooperationAgreement:terminate",
+        "paymentMerchant:list",
+        "paymentMerchant:detail"
+      ],
+      "additionalPendingAtomicPermissionIds": [],
       "orgCapabilityCodes": [
         "CONSIGNMENT",
         "PLATFORM_ONLY",
@@ -48800,82 +48656,7 @@ code {
       "productEvidence": "管理后台本次读取值；运营应用未勾选/待产品补充",
       "confirmationStatus": "待确认",
       "pendingReason": "请产品确认岗位职责、标准能力清单和默认数据范围，并补充运营应用勾选。",
-      "additionalAtomicPermissionCodes": [],
-      "excludedAtomicPermissionCodes": [
-        "mallProduct:changeStatus",
-        "member:list",
-        "member:status",
-        "member:create",
-        "member:settlement",
-        "member:update",
-        "store:list",
-        "mallProduct:delete",
-        "mallProduct:list",
-        "mallProduct:detail",
-        "cooperationMerchant:updateStatus",
-        "cooperationMerchant:list",
-        "dictType:update",
-        "dictType:delete",
-        "dictType:create",
-        "dict:update",
-        "dict:delete",
-        "dict:create",
-        "dict:list",
-        "dictType:list",
-        "user:list",
-        "role:list",
-        "mallProduct:schedule",
-        "mallProduct:import",
-        "protocol:list",
-        "recommendationPosition:update",
-        "recommendationPosition:delete",
-        "recommendationPosition:create",
-        "recommendationPosition:list",
-        "recommendationPosition:detail",
-        "cooperationMerchant:detail",
-        "orgWarehouse:list",
-        "orgWarehouse:detail",
-        "mallTag:update",
-        "mallTag:delete",
-        "mallTag:create",
-        "mallTag:list",
-        "messageTemplate:list",
-        "messageType:list",
-        "messageTrigger:list",
-        "consumer:list",
-        "consumer:detail",
-        "cooperation-merchant:create-warehouse",
-        "cooperationMerchant:createWarehouse",
-        "cooperation-merchant:create-supplier",
-        "cooperationMerchant:createSupplier",
-        "mallMaterialAsset:changeStatus",
-        "mallMaterialType:delete",
-        "mallMaterialType:create",
-        "mallMaterialType:list",
-        "mallMaterialType:update",
-        "mallProduct:update",
-        "mallProduct:updatePrice"
-      ],
-      "additionalPendingAtomicPermissionIds": [],
-      "excludedPendingAtomicPermissionIds": [
-        "A-0270",
-        "A-0273",
-        "A-0274",
-        "A-0275",
-        "A-0276",
-        "A-0277",
-        "A-0278",
-        "A-0279",
-        "A-0280",
-        "A-0281",
-        "A-0282",
-        "A-0283",
-        "A-0284",
-        "A-0285",
-        "A-0293",
-        "A-0294"
-      ],
-      "atomOverrideMode": "能力默认+岗位差异"
+      "atomOverrideMode": "能力默认+岗位增加"
     },
     {
       "id": "ROLE-15",
@@ -48907,6 +48688,28 @@ code {
         "commerce.view": "checked",
         "commerce.content.manage": "checked"
       },
+      "additionalAtomicPermissionCodes": [
+        "supplier:create",
+        "supplier:create",
+        "supplier:update",
+        "brand:list",
+        "category:list",
+        "product:list",
+        "agreementTemplate:update",
+        "agreementTemplate:delete",
+        "agreementTemplate:create",
+        "agreementTemplate:list",
+        "cooperationAgreement:update",
+        "cooperationAgreement:delete",
+        "cooperationAgreement:create",
+        "cooperationAgreement:list",
+        "cooperationAgreement:review",
+        "cooperationAgreement:submit",
+        "cooperationAgreement:terminate",
+        "paymentMerchant:list",
+        "paymentMerchant:detail"
+      ],
+      "additionalPendingAtomicPermissionIds": [],
       "orgCapabilityCodes": [
         "CONSIGNMENT",
         "PLATFORM_ONLY",
@@ -48916,86 +48719,7 @@ code {
       "productEvidence": "管理后台本次读取值；运营应用未勾选/待产品补充",
       "confirmationStatus": "待确认",
       "pendingReason": "请产品确认岗位职责、标准能力清单和默认数据范围，并补充运营应用勾选。",
-      "additionalAtomicPermissionCodes": [],
-      "excludedAtomicPermissionCodes": [
-        "mallProduct:changeStatus",
-        "member:list",
-        "member:status",
-        "member:create",
-        "member:settlement",
-        "member:update",
-        "store:list",
-        "mallCategory:update",
-        "mallCategory:delete",
-        "mallCategory:create",
-        "mallCategory:list",
-        "mallProduct:delete",
-        "mallProduct:list",
-        "mallProduct:detail",
-        "cooperationMerchant:updateStatus",
-        "cooperationMerchant:list",
-        "dictType:update",
-        "dictType:delete",
-        "dictType:create",
-        "dict:update",
-        "dict:delete",
-        "dict:create",
-        "dict:list",
-        "dictType:list",
-        "user:list",
-        "role:list",
-        "mallProduct:schedule",
-        "mallProduct:import",
-        "protocol:list",
-        "recommendationPosition:update",
-        "recommendationPosition:delete",
-        "recommendationPosition:create",
-        "recommendationPosition:list",
-        "recommendationPosition:detail",
-        "cooperationMerchant:detail",
-        "orgWarehouse:list",
-        "orgWarehouse:detail",
-        "mallTag:update",
-        "mallTag:delete",
-        "mallTag:create",
-        "mallTag:list",
-        "messageTemplate:list",
-        "messageType:list",
-        "messageTrigger:list",
-        "consumer:list",
-        "consumer:detail",
-        "cooperation-merchant:create-warehouse",
-        "cooperationMerchant:createWarehouse",
-        "cooperation-merchant:create-supplier",
-        "cooperationMerchant:createSupplier",
-        "mallMaterialAsset:changeStatus",
-        "mallMaterialType:delete",
-        "mallMaterialType:create",
-        "mallMaterialType:list",
-        "mallMaterialType:update",
-        "mallProduct:update",
-        "mallProduct:updatePrice"
-      ],
-      "additionalPendingAtomicPermissionIds": [],
-      "excludedPendingAtomicPermissionIds": [
-        "A-0270",
-        "A-0273",
-        "A-0274",
-        "A-0275",
-        "A-0276",
-        "A-0277",
-        "A-0278",
-        "A-0279",
-        "A-0280",
-        "A-0281",
-        "A-0282",
-        "A-0283",
-        "A-0284",
-        "A-0285",
-        "A-0293",
-        "A-0294"
-      ],
-      "atomOverrideMode": "能力默认+岗位差异"
+      "atomOverrideMode": "能力默认+岗位增加"
     },
     {
       "id": "ROLE-16",
@@ -49019,6 +48743,12 @@ code {
         "commerce.view": "checked",
         "commerce.content.manage": "checked"
       },
+      "additionalAtomicPermissionCodes": [
+        "brand:list",
+        "category:list",
+        "product:list"
+      ],
+      "additionalPendingAtomicPermissionIds": [],
       "orgCapabilityCodes": [
         "CONSIGNMENT",
         "PLATFORM_ONLY",
@@ -49028,64 +48758,7 @@ code {
       "productEvidence": "管理后台本次读取值；运营应用未勾选/待产品补充",
       "confirmationStatus": "待确认",
       "pendingReason": "请产品确认岗位职责、标准能力清单和默认数据范围，并补充运营应用勾选。",
-      "additionalAtomicPermissionCodes": [],
-      "excludedAtomicPermissionCodes": [
-        "mallProduct:changeStatus",
-        "member:list",
-        "store:list",
-        "mallCategory:update",
-        "mallCategory:delete",
-        "mallCategory:create",
-        "mallCategory:list",
-        "mallProduct:delete",
-        "mallProduct:list",
-        "mallProduct:detail",
-        "cooperationMerchant:list",
-        "agreementTemplate:list",
-        "cooperationAgreement:list",
-        "paymentMerchant:list",
-        "paymentMerchant:detail",
-        "dictType:update",
-        "dictType:delete",
-        "dictType:create",
-        "dict:update",
-        "dict:delete",
-        "dict:create",
-        "dict:list",
-        "dictType:list",
-        "user:list",
-        "role:list",
-        "mallProduct:schedule",
-        "mallProduct:import",
-        "protocol:list",
-        "recommendationPosition:update",
-        "recommendationPosition:delete",
-        "recommendationPosition:create",
-        "recommendationPosition:list",
-        "recommendationPosition:detail",
-        "cooperationMerchant:detail",
-        "orgWarehouse:list",
-        "orgWarehouse:detail",
-        "mallTag:update",
-        "mallTag:delete",
-        "mallTag:create",
-        "mallTag:list",
-        "messageTemplate:list",
-        "messageType:list",
-        "messageTrigger:list",
-        "consumer:list",
-        "consumer:detail",
-        "mallMaterialAsset:changeStatus",
-        "mallMaterialType:delete",
-        "mallMaterialType:create",
-        "mallMaterialType:list",
-        "mallMaterialType:update",
-        "mallProduct:update",
-        "mallProduct:updatePrice"
-      ],
-      "additionalPendingAtomicPermissionIds": [],
-      "excludedPendingAtomicPermissionIds": [],
-      "atomOverrideMode": "能力默认+岗位差异"
+      "atomOverrideMode": "能力默认+岗位增加"
     }
   ],
   "implementationNotes": [
@@ -49304,6 +48977,19 @@ function uniqueBy(items, keyFn) {
   });
 }
 
+const atomKey = (item) => item.code || item.id;
+
+function atomKeysForCapabilities(model, capabilityCodes) {
+  const selected = new Set(capabilityCodes);
+  const codes = new Set();
+  const pendingIds = new Set();
+  for (const capability of model.capabilities.filter((item) => selected.has(item.code))) {
+    for (const code of capability.defaultAtomicPermissionCodes || []) codes.add(code);
+    for (const id of capability.defaultPendingAtomicPermissionIds || []) pendingIds.add(id);
+  }
+  return { codes, pendingIds };
+}
+
 function readPath(record, path) {
   return path.split(".").reduce((value, key) => value?.[key], record);
 }
@@ -49322,12 +49008,17 @@ function normalizeModel(input) {
   model.atoms ||= [];
   model.roles ||= [];
   model.implementationNotes ||= [];
+  const hasCompleteCapabilityDefaults = model.capabilities.every(
+    (item) => Array.isArray(item.defaultAtomicPermissionCodes) && Array.isArray(item.defaultPendingAtomicPermissionIds),
+  );
 
   for (const item of model.orgCapabilities) {
     if (!CONFIRMATION_STATUSES.has(item.confirmationStatus)) item.confirmationStatus = "待确认";
   }
   for (const item of model.capabilities) {
     item.orgCapabilityCodes = [...new Set(item.orgCapabilityCodes || [])];
+    item.defaultAtomicPermissionCodes = [...new Set(item.defaultAtomicPermissionCodes || [])];
+    item.defaultPendingAtomicPermissionIds = [...new Set(item.defaultPendingAtomicPermissionIds || [])];
     if (!CONFIRMATION_STATUSES.has(item.confirmationStatus)) item.confirmationStatus = "待确认";
     if (!IMPLEMENTATION_STATUSES.has(item.implementationStatus)) item.implementationStatus = "待整改";
   }
@@ -49351,39 +49042,83 @@ function normalizeModel(input) {
     if (!IMPLEMENTATION_STATUSES.has(item.backendAuthorizationStatus)) item.backendAuthorizationStatus = "待整改";
     item.roleChecks = normalizeRoleChecks(item.roleChecks);
   }
+
+  const legacyEffectiveByRole = new Map();
+  if (!hasCompleteCapabilityDefaults) {
+    for (const role of model.roles) {
+      const roleCapabilityCodes = new Set(role.capabilityCodes || []);
+      const ownedAtoms = model.atoms.filter((atom) =>
+        atom.parentCapabilityCodes.some((code) => roleCapabilityCodes.has(code)),
+      );
+      const additionalCodes = new Set(role.additionalAtomicPermissionCodes || []);
+      const additionalPendingIds = new Set(role.additionalPendingAtomicPermissionIds || []);
+      const excludedCodes = new Set(role.excludedAtomicPermissionCodes || []);
+      const excludedPendingIds = new Set(role.excludedPendingAtomicPermissionIds || []);
+      const hasLegacyDelta = [
+        "additionalAtomicPermissionCodes",
+        "additionalPendingAtomicPermissionIds",
+        "excludedAtomicPermissionCodes",
+        "excludedPendingAtomicPermissionIds",
+      ].some((key) => Array.isArray(role[key]));
+      let effectiveKeys;
+      if (hasLegacyDelta) {
+        effectiveKeys = new Set([
+          ...ownedAtoms.map(atomKey),
+          ...additionalCodes,
+          ...additionalPendingIds,
+        ]);
+        for (const code of excludedCodes) effectiveKeys.delete(code);
+        for (const id of excludedPendingIds) effectiveKeys.delete(id);
+      } else {
+        const flatKeys = [
+          ...(role.atomicPermissionCodes || role.keyAtomicCodes || []),
+          ...(role.pendingAtomicPermissionIds || []),
+        ];
+        effectiveKeys = flatKeys.length
+          ? new Set(flatKeys)
+          : new Set(model.atoms
+            .filter((atom) => ["checked", "inherited"].includes(atom.roleChecks?.[role.name]))
+            .map(atomKey));
+      }
+      legacyEffectiveByRole.set(role.id || role.name, effectiveKeys);
+    }
+
+    for (const capability of model.capabilities) {
+      const assignedRoles = model.roles.filter((role) => (role.capabilityCodes || []).includes(capability.code));
+      const ownedAtoms = model.atoms.filter((atom) => atom.parentCapabilityCodes.includes(capability.code));
+      const defaultAtoms = assignedRoles.length
+        ? ownedAtoms.filter((atom) => assignedRoles.every((role) =>
+          legacyEffectiveByRole.get(role.id || role.name)?.has(atomKey(atom)),
+        ))
+        : [];
+      capability.defaultAtomicPermissionCodes = defaultAtoms.map((atom) => atom.code).filter(Boolean);
+      capability.defaultPendingAtomicPermissionIds = defaultAtoms.filter((atom) => !atom.code).map((atom) => atom.id);
+    }
+  }
+
   for (const item of model.roles) {
     item.capabilityCodes = [...new Set(item.capabilityCodes || [])];
-    const legacyAtomicPermissionCodes = [...new Set(item.atomicPermissionCodes || item.keyAtomicCodes || [])];
-    const legacyPendingAtomicPermissionIds = [...new Set(item.pendingAtomicPermissionIds || [])];
-    const defaultAtoms = model.atoms.filter((atom) =>
-      atom.parentCapabilityCodes.some((code) => item.capabilityCodes.includes(code)),
-    );
-    const defaultAtomicPermissionCodes = new Set(defaultAtoms.map((atom) => atom.code).filter(Boolean));
-    const defaultPendingAtomicPermissionIds = new Set(defaultAtoms.filter((atom) => !atom.code).map((atom) => atom.id));
-    const hasDeltaFields = [
-      "additionalAtomicPermissionCodes",
-      "excludedAtomicPermissionCodes",
-      "additionalPendingAtomicPermissionIds",
-      "excludedPendingAtomicPermissionIds",
-    ].some((key) => Array.isArray(item[key]));
-
-    if (hasDeltaFields) {
-      item.additionalAtomicPermissionCodes = [...new Set(item.additionalAtomicPermissionCodes || [])];
-      item.excludedAtomicPermissionCodes = [...new Set(item.excludedAtomicPermissionCodes || [])];
-      item.additionalPendingAtomicPermissionIds = [...new Set(item.additionalPendingAtomicPermissionIds || [])];
-      item.excludedPendingAtomicPermissionIds = [...new Set(item.excludedPendingAtomicPermissionIds || [])];
+    const defaultKeys = atomKeysForCapabilities(model, item.capabilityCodes);
+    const legacyEffective = legacyEffectiveByRole.get(item.id || item.name);
+    if (legacyEffective) {
+      item.additionalAtomicPermissionCodes = model.atoms
+        .filter((atom) => atom.code && legacyEffective.has(atom.code) && !defaultKeys.codes.has(atom.code))
+        .map((atom) => atom.code);
+      item.additionalPendingAtomicPermissionIds = model.atoms
+        .filter((atom) => !atom.code && legacyEffective.has(atom.id) && !defaultKeys.pendingIds.has(atom.id))
+        .map((atom) => atom.id);
     } else {
-      const legacyCodes = new Set(legacyAtomicPermissionCodes);
-      const legacyPendingIds = new Set(legacyPendingAtomicPermissionIds);
-      item.additionalAtomicPermissionCodes = legacyAtomicPermissionCodes.filter((code) => !defaultAtomicPermissionCodes.has(code));
-      item.excludedAtomicPermissionCodes = [...defaultAtomicPermissionCodes].filter((code) => !legacyCodes.has(code));
-      item.additionalPendingAtomicPermissionIds = legacyPendingAtomicPermissionIds.filter((id) => !defaultPendingAtomicPermissionIds.has(id));
-      item.excludedPendingAtomicPermissionIds = [...defaultPendingAtomicPermissionIds].filter((id) => !legacyPendingIds.has(id));
+      item.additionalAtomicPermissionCodes = [...new Set(item.additionalAtomicPermissionCodes || [])]
+        .filter((code) => !defaultKeys.codes.has(code));
+      item.additionalPendingAtomicPermissionIds = [...new Set(item.additionalPendingAtomicPermissionIds || [])]
+        .filter((id) => !defaultKeys.pendingIds.has(id));
     }
-    item.atomOverrideMode = "能力默认+岗位差异";
+    item.atomOverrideMode = "能力默认+岗位增加";
     delete item.atomicPermissionCodes;
     delete item.pendingAtomicPermissionIds;
     delete item.keyAtomicCodes;
+    delete item.excludedAtomicPermissionCodes;
+    delete item.excludedPendingAtomicPermissionIds;
     item.orgCapabilityCodes = [...new Set(item.orgCapabilityCodes || [])];
     if (!CONFIRMATION_STATUSES.has(item.confirmationStatus)) item.confirmationStatus = "待确认";
   }
@@ -49427,48 +49162,41 @@ function deriveRolePreview(input, roleIdOrName) {
 
   const roleCapabilityCodes = new Set(role.capabilityCodes);
   const additionalAtomicPermissionCodes = new Set(role.additionalAtomicPermissionCodes);
-  const excludedAtomicPermissionCodes = new Set(role.excludedAtomicPermissionCodes);
   const additionalPendingAtomicPermissionIds = new Set(role.additionalPendingAtomicPermissionIds);
-  const excludedPendingAtomicPermissionIds = new Set(role.excludedPendingAtomicPermissionIds);
   const capabilities = role.capabilityCodes
     .map((code) => model.capabilities.find((item) => item.code === code))
     .filter(Boolean);
   const grantedRelations = model.functions.filter((item) => roleCapabilityCodes.has(item.capabilityCode));
   const functions = uniqueBy(grantedRelations, (item) => item.functionId);
+  const defaultKeys = atomKeysForCapabilities(model, role.capabilityCodes);
   const defaultAtomMappings = model.atoms.filter((item) =>
-    item.parentCapabilityCodes.some((code) => roleCapabilityCodes.has(code)),
+    (item.code && defaultKeys.codes.has(item.code)) || (!item.code && defaultKeys.pendingIds.has(item.id)),
   );
   const defaultAtoms = uniqueBy(defaultAtomMappings, (item) => item.code || item.id);
+  const defaultAtomKeys = new Set(defaultAtoms.map(atomKey));
   const additionalAtomMappings = model.atoms.filter((item) =>
-    (item.code && additionalAtomicPermissionCodes.has(item.code)) || additionalPendingAtomicPermissionIds.has(item.id),
+    !defaultAtomKeys.has(atomKey(item)) && (
+      (item.code && additionalAtomicPermissionCodes.has(item.code)) ||
+      (!item.code && additionalPendingAtomicPermissionIds.has(item.id))
+    ),
   );
   const additionalAtoms = uniqueBy(additionalAtomMappings, (item) => item.code || item.id);
-  const excludedAtomMappings = model.atoms.filter((item) =>
-    (item.code && excludedAtomicPermissionCodes.has(item.code)) || excludedPendingAtomicPermissionIds.has(item.id),
-  );
-  const excludedAtoms = uniqueBy(excludedAtomMappings, (item) => item.code || item.id);
-  const isExcluded = (item) => item.code
-    ? excludedAtomicPermissionCodes.has(item.code)
-    : excludedPendingAtomicPermissionIds.has(item.id);
-  const atoms = uniqueBy([...defaultAtoms, ...additionalAtoms], (item) => item.code || item.id).filter((item) => !isExcluded(item));
+  const atoms = uniqueBy([...defaultAtoms, ...additionalAtoms], (item) => item.code || item.id);
   const effectiveKeys = new Set(atoms.map((item) => item.code || item.id));
   const grantedAtomMappings = model.atoms.filter((item) => effectiveKeys.has(item.code || item.id));
   const availableAtoms = uniqueBy(model.atoms, (item) => item.code || item.id);
-  const defaultKeys = new Set(defaultAtoms.map((item) => item.code || item.id));
   const additionalKeys = new Set(additionalAtoms.map((item) => item.code || item.id));
   const atomSelections = uniqueBy([...defaultAtoms, ...additionalAtoms], (item) => item.code || item.id).map((atom) => {
     const key = atom.code || atom.id;
-    const inherited = defaultKeys.has(key);
+    const inherited = defaultAtomKeys.has(key);
     const additional = !inherited && additionalKeys.has(key);
-    const excluded = isExcluded(atom);
     return {
       atom,
       key,
       inherited,
       additional,
-      excluded,
-      checked: !excluded,
-      state: excluded ? "已排除" : additional ? "岗位增加" : "随能力",
+      checked: true,
+      state: additional ? "岗位增加" : "随能力",
     };
   });
   const productCheckedAtoms = uniqueBy(
@@ -49511,7 +49239,6 @@ function deriveRolePreview(input, roleIdOrName) {
     atoms,
     defaultAtoms,
     additionalAtoms,
-    excludedAtoms,
     availableAtoms,
     atomSelections,
     atomMappings: grantedAtomMappings,
@@ -49667,10 +49394,8 @@ function validateModel(input) {
       }
     }
     const additionalCodes = new Set(role.additionalAtomicPermissionCodes);
-    const excludedCodes = new Set(role.excludedAtomicPermissionCodes);
     const additionalPendingIds = new Set(role.additionalPendingAtomicPermissionIds);
-    const excludedPendingIds = new Set(role.excludedPendingAtomicPermissionIds);
-    for (const atomCode of [...additionalCodes, ...excludedCodes]) {
+    for (const atomCode of additionalCodes) {
       const mappings = atomMappingsByCode.get(atomCode) || [];
       if (!mappings.length) {
         diagnostics.push(
@@ -49685,7 +49410,7 @@ function validateModel(input) {
         );
       }
     }
-    for (const atomId of [...additionalPendingIds, ...excludedPendingIds]) {
+    for (const atomId of additionalPendingIds) {
       if (!atomMappingsById.has(atomId)) {
         diagnostics.push(
           diagnostic(
@@ -49698,22 +49423,6 @@ function validateModel(input) {
           ),
         );
       }
-    }
-    const conflicts = [
-      ...[...additionalCodes].filter((code) => excludedCodes.has(code)),
-      ...[...additionalPendingIds].filter((id) => excludedPendingIds.has(id)),
-    ];
-    if (conflicts.length) {
-      diagnostics.push(
-        diagnostic(
-          "error",
-          "ROLE_ATOM_OVERRIDE_CONFLICT",
-          "岗位原子权限差异项冲突",
-          `${role.name} 同时增加和排除了 ${conflicts.join("、")}。`,
-          "role",
-          role.id,
-        ),
-      );
     }
     const requiredOrgCaps = new Set(
       model.capabilities
@@ -49856,6 +49565,61 @@ function validateModel(input) {
   return diagnostics;
 }
 
+function buildFunctionTree(functions) {
+  const surfaces = new Map();
+  for (const item of functions || []) {
+    const surfaceLabel = item.surface || "未标记使用端";
+    if (!surfaces.has(surfaceLabel)) {
+      surfaces.set(surfaceLabel, {
+        key: `surface:${surfaceLabel}`,
+        label: surfaceLabel,
+        records: [],
+        childMap: new Map(),
+      });
+    }
+
+    const parts = String(item.hierarchy || item.operation || item.path || item.functionId || "未命名功能")
+      .split(/\s*\/\s*/)
+      .map((part) => part.trim())
+      .filter(Boolean);
+    if (parts[0] === surfaceLabel) parts.shift();
+    if (!parts.length) parts.push(item.operation || item.path || item.functionId || "未命名功能");
+
+    let node = surfaces.get(surfaceLabel);
+    let path = surfaceLabel;
+    for (const label of parts) {
+      path += `/${label}`;
+      if (!node.childMap.has(label)) {
+        node.childMap.set(label, {
+          key: path,
+          label,
+          records: [],
+          childMap: new Map(),
+        });
+      }
+      node = node.childMap.get(label);
+    }
+    node.records.push(item);
+  }
+
+  const rowOrder = new Map([["菜单", 0], ["页面", 1], ["按钮", 2]]);
+  const finalize = (node) => {
+    const children = [...node.childMap.values()].map(finalize);
+    const records = [...node.records].sort(
+      (left, right) => (rowOrder.get(left.rowType) ?? 9) - (rowOrder.get(right.rowType) ?? 9),
+    );
+    return {
+      key: node.key,
+      label: node.label,
+      records,
+      children,
+      count: records.length + children.reduce((sum, child) => sum + child.count, 0),
+    };
+  };
+
+  return [...surfaces.values()].map(finalize);
+}
+
 function filterRecords(records, query, fields) {
   const keyword = String(query || "").trim().toLocaleLowerCase("zh-CN");
   if (!keyword) return [...records];
@@ -49946,13 +49710,14 @@ function buildSheetRows(model) {
   const capabilityNames = new Map(model.capabilities.map((item) => [item.code, item.name]));
 
   const overview = [
-    ["能力编码", "中文名称", "业务域", "OrgCapability", "业务边界", "确认状态", "技术状态", "是否启用", "功能关系", "菜单", "按钮", "运营应用页面", "接口映射行", "原子候选", "待产品确认"],
+    ["能力编码", "中文名称", "业务域", "OrgCapability", "业务边界", "能力默认原子权限", "确认状态", "技术状态", "是否启用", "功能关系", "菜单", "按钮", "运营应用页面", "接口映射行", "原子候选", "待产品确认"],
     ...model.capabilities.map((item) => [
       item.code,
       item.name,
       item.domain,
       item.orgCapabilityCodes,
       item.boundary,
+      [...item.defaultAtomicPermissionCodes, ...item.defaultPendingAtomicPermissionIds],
       item.confirmationStatus,
       item.implementationStatus,
       item.active ? "启用" : "保留未启用",
@@ -50021,7 +49786,7 @@ function buildSheetRows(model) {
   ];
 
   const jobs = [
-    ["岗位序号", "岗位编号", "岗位名称", "岗位类别", "岗位职责", "标准能力清单", "能力默认原子权限", "岗位额外增加", "岗位明确排除", "最终有效原子权限", "组织能力前置", "默认数据范围", "产品表勾选依据", "确认状态", "待确认说明"],
+    ["岗位序号", "岗位编号", "岗位名称", "岗位类别", "岗位职责", "标准能力清单", "能力默认原子权限", "岗位额外增加", "最终有效原子权限", "组织能力前置", "默认数据范围", "产品表勾选依据", "确认状态", "待确认说明"],
     ...model.roles.map((role) => {
       const preview = deriveRolePreview(model, role.id);
       return [
@@ -50033,7 +49798,6 @@ function buildSheetRows(model) {
         role.capabilityCodes.map((code) => `${capabilityNames.get(code) || code}（${code}）`),
         preview.defaultAtoms.map((item) => item.code || `${item.id}（待补编码）`),
         preview.additionalAtoms.map((item) => item.code || `${item.id}（待补编码）`),
-        preview.excludedAtoms.map((item) => item.code || `${item.id}（待补编码）`),
         preview.atoms.map((item) => item.code || `${item.id}（待补编码）`),
         role.orgCapabilityCodes,
         role.dataScope,
@@ -50218,13 +49982,13 @@ function buildMarkdown(input) {
     "",
     "## 四、标准能力",
     "",
-    "| 能力编码 | 名称 | 业务域 | OrgCapability | 业务边界 | 业务确认 | 技术状态 |",
-    "|---|---|---|---|---|---|---|",
-    ...model.capabilities.map((item) => `| ${markdownCell(item.code)} | ${markdownCell(item.name)} | ${markdownCell(item.domain)} | ${markdownCell(item.orgCapabilityCodes)} | ${markdownCell(item.boundary)} | ${markdownCell(item.confirmationStatus)} | ${markdownCell(item.implementationStatus)} |`),
+    "| 能力编码 | 名称 | 业务域 | OrgCapability | 业务边界 | 默认原子权限 | 业务确认 | 技术状态 |",
+    "|---|---|---|---|---|---|---|---|",
+    ...model.capabilities.map((item) => `| ${markdownCell(item.code)} | ${markdownCell(item.name)} | ${markdownCell(item.domain)} | ${markdownCell(item.orgCapabilityCodes)} | ${markdownCell(item.boundary)} | ${markdownCell([...item.defaultAtomicPermissionCodes, ...item.defaultPendingAtomicPermissionIds]) || "无"} | ${markdownCell(item.confirmationStatus)} | ${markdownCell(item.implementationStatus)} |`),
     "",
     "## 五、岗位职责",
     "",
-    "最终原子权限 = 能力默认原子权限 ∪ 岗位额外增加 − 岗位明确排除。岗位只保存增加和排除的差异项。",
+    "最终原子权限 = 能力默认原子权限 ∪ 岗位额外增加。原子权限归属能力不代表默认授予；重复出现的岗位增加项可沉淀为更小的标准能力。",
     "",
     ...model.roles.flatMap((role) => {
       const preview = deriveRolePreview(model, role.id);
@@ -50236,7 +50000,6 @@ function buildMarkdown(input) {
         `- 标准能力：${role.capabilityCodes.join("、") || "无"}`,
         `- 能力默认原子权限：${atomCodes(preview.defaultAtoms)}`,
         `- 岗位额外增加：${atomCodes(preview.additionalAtoms)}`,
-        `- 岗位明确排除：${atomCodes(preview.excludedAtoms)}`,
         `- 最终有效原子权限：${atomCodes(preview.atoms)}`,
         `- 组织能力前置：${role.orgCapabilityCodes.join("、") || "无"}`,
         `- 数据范围：${role.dataScope}`,
@@ -50255,7 +50018,7 @@ function buildMarkdown(input) {
     `1. 能力注册表：当前 ${baseline.currentCapabilityRegistry.count} 项，目标 ${summary.capabilities} 项；${baseline.currentCapabilityRegistry.targetMissingCodes.length} 项待新增，${baseline.currentCapabilityRegistry.currentOnlyCodes.length} 项待退出。`,
     `2. 后端接口：统一使用 ${baseline.backend.annotation}；${baseline.backend.atomicGap}`,
     `3. 前端权限：${baseline.frontend.currentEvidence} ${baseline.frontend.menuGap}`,
-    "4. 岗位授权结构：最终原子权限 = 能力默认原子权限 ∪ 岗位额外增加 − 岗位明确排除；岗位只保存差异项，再叠加数据范围。",
+    "4. 岗位授权结构：最终原子权限 = 能力默认原子权限 ∪ 岗位额外增加；不采用高优先级排除，再叠加 ResourceMember 与数据范围。",
     `5. 运行时：${baseline.runtime.sessionGap}`,
     `6. 角色保存：${baseline.runtime.createUpdateGap}`,
     "7. 所有查询和写入必须叠加组织关系、ResourceMember、业务主体与单据归属；前端隐藏不构成安全边界。",
@@ -50316,14 +50079,14 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
   <script>(() => {
   "use strict";
 
-  const STORAGE_KEY = "octopus.authz.designer.v2";
+  const STORAGE_KEY = "octopus.authz.designer.v3";
   const VIEW_COPY = {
     overview: ["架构总览", "从组织开通到岗位可操作数据", "产品勾选定义岗位职责；代码、按钮和接口映射用于识别技术整改差距。"],
     org: ["组织业务闸门", "组织能力 OrgCapability", "组织先开通业务类型，岗位才可使用对应标准能力；具体资源仍由 ResourceMember 限定。"],
     capabilities: ["岗位职责词汇", "标准能力", "能力边界稳定、编码受红线治理；能力详情直接维护菜单、原子技术权限和后端接口证据。"],
     atoms: ["技术执行契约", "原子技术权限", "稳定按钮与业务命令归入父能力，一个原子动作可以对应多个后端接口。"],
-    functions: ["功能唯一归属", "菜单与按钮", "482 个菜单、页面和按钮各有一个父标准能力；需要岗位差异的动作再叠加原子权限。"],
-    roles: ["组织岗位职责", "岗位职责", "岗位在同一原子权限集合中查看能力默认项，并按需增加或排除；底层只保存差异。"],
+    functions: ["功能唯一归属", "菜单与按钮", "按使用端、菜单层级和页面展开；按钮收在所属菜单或页面下，便于逐层核对唯一父能力与接口。"],
+    roles: ["组织岗位职责", "岗位职责", "岗位获得所选能力的明确默认原子权限，并可正向增加原子权限；不使用高优先级排除。"],
     diagnostics: ["上线治理", "整改检查", "业务确认与技术落地分开检查；本页结论不代表代码、数据库或运行时已经生效。"],
   };
 
@@ -50672,8 +50435,13 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
     const functions = state.model.functions.filter((relation) => relation.capabilityCode === item.code);
     const atoms = state.model.atoms.filter((atom) => atom.parentCapabilityCodes.includes(item.code));
     const uniqueAtoms = [...new Map(atoms.map((atom) => [atom.code || atom.id, atom])).values()];
+    const defaultKeys = new Set([
+      ...item.defaultAtomicPermissionCodes,
+      ...item.defaultPendingAtomicPermissionIds,
+    ]);
+    const defaultAtoms = uniqueAtoms.filter((atom) => defaultKeys.has(atom.code || atom.id));
     const roles = state.model.roles.filter((role) => role.capabilityCodes.includes(item.code));
-    return `<aside class="panel detail-panel"><div class="detail-hero"><span class="eyebrow">${escapeHtml(item.domain)} · 标准能力</span><h3>${escapeHtml(item.name)}</h3>${code(item.code)}<p>${escapeHtml(item.boundary)}</p></div><div class="key-value-grid" style="margin-top:14px"><div class="key-value"><span>业务确认</span><strong>${confirmationBadge(item.confirmationStatus)}</strong></div><div class="key-value"><span>代码注册</span><strong>${implementationBadge(item.implementationStatus)}</strong></div><div class="key-value"><span>OrgCapability</span><strong>${escapeHtml(item.orgCapabilityCodes.join("、"))}</strong></div><div class="key-value"><span>映射状态</span><strong>${escapeHtml(item.mappingStatus)}</strong></div></div><div class="detail-section"><div class="detail-section__title"><span>岗位职责使用</span><b>${roles.length}</b></div>${chips(roles.map((role) => role.name))}</div><div class="detail-section"><div class="detail-section__title"><span>唯一功能归属</span><b>${functions.length}</b></div><ul class="detail-list">${functions.slice(0, 5).map((relation) => `<li><strong>${escapeHtml(relation.hierarchy || relation.operation || relation.path)}</strong>${escapeHtml(relation.rowType)} · ${escapeHtml(relation.surface)} · 唯一归属</li>`).join("") || `<li>暂无有效功能映射。</li>`}</ul></div><div class="detail-section"><div class="detail-section__title"><span>可独立授予的原子权限</span><b>${uniqueAtoms.length}</b></div><ul class="detail-list">${uniqueAtoms.slice(0, 6).map((atom) => `<li data-open-atom="${atom.id}" tabindex="0"><strong>${escapeHtml(atom.operation || atom.code)}</strong>${code(atom.code || atom.id)} · ${escapeHtml(atom.backend.mappingStatus)}</li>`).join("") || `<li>暂无原子技术权限。</li>`}</ul></div><div class="inline-actions" style="margin-top:18px"><button class="button button--primary" type="button" data-edit-capability="${item.code}">编辑能力边界</button><button class="button button--ghost" type="button" data-add-atom="${item.code}">补充原子权限</button></div></aside>`;
+    return `<aside class="panel detail-panel"><div class="detail-hero"><span class="eyebrow">${escapeHtml(item.domain)} · 标准能力</span><h3>${escapeHtml(item.name)}</h3>${code(item.code)}<p>${escapeHtml(item.boundary)}</p></div><div class="key-value-grid" style="margin-top:14px"><div class="key-value"><span>业务确认</span><strong>${confirmationBadge(item.confirmationStatus)}</strong></div><div class="key-value"><span>代码注册</span><strong>${implementationBadge(item.implementationStatus)}</strong></div><div class="key-value"><span>OrgCapability</span><strong>${escapeHtml(item.orgCapabilityCodes.join("、"))}</strong></div><div class="key-value"><span>映射状态</span><strong>${escapeHtml(item.mappingStatus)}</strong></div></div><div class="notice" style="margin-top:14px">原子权限归属该能力，只表示技术动作由它治理，不代表岗位选择能力后全部获得。只有下列“能力默认原子权限”会自动授予岗位。</div><div class="detail-section"><div class="detail-section__title"><span>能力默认原子权限</span><b>${defaultAtoms.length}</b></div><ul class="detail-list">${defaultAtoms.map((atom) => `<li><strong>${escapeHtml(atom.operation || atom.code || atom.id)}</strong>${code(atom.code || atom.id)}</li>`).join("") || `<li>当前能力不默认授予原子权限，岗位可按职责正向增加。</li>`}</ul></div><div class="detail-section"><div class="detail-section__title"><span>岗位职责使用</span><b>${roles.length}</b></div>${chips(roles.map((role) => role.name))}</div><div class="detail-section"><div class="detail-section__title"><span>唯一功能归属</span><b>${functions.length}</b></div><ul class="detail-list">${functions.slice(0, 5).map((relation) => `<li><strong>${escapeHtml(relation.hierarchy || relation.operation || relation.path)}</strong>${escapeHtml(relation.rowType)} · ${escapeHtml(relation.surface)} · 唯一归属</li>`).join("") || `<li>暂无有效功能映射。</li>`}</ul></div><div class="detail-section"><div class="detail-section__title"><span>能力归属原子权限</span><b>${uniqueAtoms.length}</b></div><ul class="detail-list">${uniqueAtoms.slice(0, 6).map((atom) => `<li data-open-atom="${atom.id}" tabindex="0"><strong>${escapeHtml(atom.operation || atom.code)}</strong>${code(atom.code || atom.id)} · ${defaultKeys.has(atom.code || atom.id) ? "能力默认" : "按岗位增加"} · ${escapeHtml(atom.backend.mappingStatus)}</li>`).join("") || `<li>暂无原子技术权限。</li>`}</ul></div><div class="inline-actions" style="margin-top:18px"><button class="button button--primary" type="button" data-edit-capability="${item.code}">编辑能力边界</button><button class="button button--ghost" type="button" data-add-atom="${item.code}">补充原子权限</button></div></aside>`;
   }
 
   function renderAtoms() {
@@ -50698,14 +50466,25 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
     return `<aside class="panel detail-panel"><div class="detail-hero"><span class="eyebrow">${escapeHtml(item.atomType)}</span><h3>${escapeHtml(item.operation || item.sourceAction || "未命名动作")}</h3>${code(item.code || "待补充编码")}<p>${escapeHtml(item.hierarchy)} ${escapeHtml(item.path)}</p></div><div class="key-value-grid" style="margin-top:14px"><div class="key-value"><span>父标准能力</span><strong>${escapeHtml(item.parentCapabilityCodes.join("、") || "待补充")}</strong></div><div class="key-value"><span>产品确认</span><strong>${confirmationBadge(item.confirmationStatus)}</strong></div><div class="key-value"><span>前端权限</span><strong>${implementationBadge(item.frontendStatus)}</strong></div><div class="key-value"><span>后端校验</span><strong>${implementationBadge(item.backendAuthorizationStatus)}</strong></div><div class="key-value"><span>注册表</span><strong>${implementationBadge(item.registryStatus)}</strong></div><div class="key-value"><span>安全级别</span><strong>${escapeHtml(item.backend.securityLevel)}</strong></div></div><div class="detail-section"><div class="detail-section__title"><span>后端接口</span><b>${item.backend.interfaceCount}</b></div><ul class="detail-list"><li><strong>${escapeHtml(item.backend.service || "待定位服务")} · ${escapeHtml(item.backend.method || "-")}</strong>${code(item.backend.api || "待研发核验")}<br>${escapeHtml(item.backend.summary)}</li></ul></div><div class="detail-section"><div class="detail-section__title"><span>资源与数据范围</span></div><div class="notice">${escapeHtml(item.resourceIsolation || "待补充资源隔离规则")}</div></div><div class="detail-section"><div class="detail-section__title"><span>产品勾选岗位</span><b>${checkedRoles.length}</b></div>${chips(checkedRoles)}</div><div class="detail-section"><div class="detail-section__title"><span>研发核验</span></div><p class="muted">${escapeHtml(item.engineeringVerification || "尚未填写研发核验结论。")}</p></div><div class="inline-actions" style="margin-top:18px"><button class="button button--primary" type="button" data-edit-atom="${item.id}">编辑原子权限</button></div></aside>`;
   }
 
+  function renderFunctionTreeNode(node, depth = 0) {
+    const shouldOpen = depth < 2 || Boolean(state.query);
+    const records = node.records.map((item) => {
+      const atomPermission = item.atomicPermissionCodes[0] || item.pendingAtomicPermissionIds[0] || "随能力";
+      return `<button type="button" class="function-tree__item ${item.relationId === state.selectedFunction ? "is-selected" : ""}" data-select-function="${escapeAttribute(item.relationId)}"><span class="function-tree__kind">${escapeHtml(item.rowType)}</span><span class="function-tree__item-copy"><b>${escapeHtml(item.operation || item.buttonIdentity || item.hierarchy || item.path)}</b><small>${escapeHtml(item.functionId)} · ${escapeHtml(item.capabilityCode)} · ${escapeHtml(atomPermission)}</small></span><span class="function-tree__interfaces">${item.backend.interfaceCount} 接口</span></button>`;
+    }).join("");
+    const children = node.children.map((child) => renderFunctionTreeNode(child, depth + 1)).join("");
+    return `<details class="function-tree__branch function-tree__branch--depth-${depth}"${shouldOpen ? " open" : ""}><summary><span>${escapeHtml(node.label)}</span><b>${node.count}</b></summary><div class="function-tree__children">${records}${children}</div></details>`;
+  }
+
   function renderFunctions() {
     let items = filtered(state.model.functions, ["relationId", "functionId", "capabilityCode", "capabilityName", "hierarchy", "path", "operation", "buttonIdentity", "backend.api", "backend.summary"]);
     if (state.filters.surface) items = items.filter((item) => item.surface === state.filters.surface);
     if (state.filters.rowType) items = items.filter((item) => item.rowType === state.filters.rowType);
     if (!items.some((item) => item.relationId === state.selectedFunction)) state.selectedFunction = items[0]?.relationId || "";
     const current = state.model.functions.find((item) => item.relationId === state.selectedFunction);
+    const tree = buildFunctionTree(items);
 
-    refs.root.innerHTML = `<div class="workspace-grid"><section class="panel panel--flush"><div class="table-wrap"><table class="data-table"><thead><tr><th>功能</th><th>层级/操作</th><th>使用端</th><th>行类型</th><th>唯一父能力</th><th>原子权限</th><th>接口</th></tr></thead><tbody>${items.map((item) => `<tr class="${item.relationId === state.selectedFunction ? "is-selected" : ""}" data-select-function="${escapeAttribute(item.relationId)}"><td>${code(item.functionId)}<br><span class="muted">已唯一归属</span></td><td><strong>${escapeHtml(item.hierarchy || item.operation || item.path)}</strong><br>${code(item.buttonIdentity || item.path)}</td><td>${escapeHtml(item.surface)}</td><td>${escapeHtml(item.rowType)}</td><td>${code(item.capabilityCode)}</td><td>${code(item.atomicPermissionCodes[0] || item.pendingAtomicPermissionIds[0] || "随能力")}</td><td>${item.backend.interfaceCount}</td></tr>`).join("")}</tbody></table></div></section>${current ? renderFunctionDetail(current) : `<aside class="panel empty-state">没有匹配的菜单或按钮关系。</aside>`}</div>`;
+    refs.root.innerHTML = `<div class="workspace-grid workspace-grid--functions"><section class="panel function-tree-panel"><div class="panel-head"><div><h3>菜单与按钮层级</h3><p>按钮归入所属菜单或页面；点击节点核对唯一父能力、原子权限和接口。</p></div><span class="badge badge--info">${items.length} 项</span></div><div class="function-tree">${tree.map((node) => renderFunctionTreeNode(node)).join("") || `<div class="empty-state">没有匹配的菜单、页面或按钮。</div>`}</div></section>${current ? renderFunctionDetail(current) : `<aside class="panel empty-state">没有匹配的菜单或按钮关系。</aside>`}</div>`;
   }
 
   function renderFunctionDetail(item) {
@@ -50715,16 +50494,16 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
   }
 
   function renderRoles() {
-    let items = filtered(state.model.roles, ["name", "category", "responsibility", "capabilityCodes", "additionalAtomicPermissionCodes", "excludedAtomicPermissionCodes", "dataScope"]);
+    let items = filtered(state.model.roles, ["name", "category", "responsibility", "capabilityCodes", "additionalAtomicPermissionCodes", "dataScope"]);
     if (state.filters.category) items = items.filter((item) => item.category === state.filters.category);
     if (state.filters.confirmation) items = items.filter((item) => item.confirmationStatus === state.filters.confirmation);
     if (!items.some((item) => item.id === state.selectedRole)) state.selectedRole = items[0]?.id || "";
     const current = state.model.roles.find((item) => item.id === state.selectedRole);
 
-    refs.root.innerHTML = `<div class="workspace-grid"><section><div class="role-grid">${items.map((item) => {
+    refs.root.innerHTML = `<div class="workspace-grid workspace-grid--roles"><section class="panel role-list-panel"><div class="panel-head"><div><h3>岗位清单</h3><p>纵向选择岗位，在右侧完整核对职责、能力和技术权限。</p></div><span class="badge badge--info">${items.length} 个</span></div><div class="role-list">${items.map((item) => {
       const preview = deriveRolePreview(state.model, item.id);
-      return `<article class="role-card ${item.id === state.selectedRole ? "is-selected" : ""}" data-clickable="true" data-select-role="${item.id}"><div class="card-topline"><span class="badge badge--info">${escapeHtml(item.category)}</span>${confirmationBadge(item.confirmationStatus)}</div><h3>${escapeHtml(item.name)}</h3><p class="truncate">${escapeHtml(item.responsibility)}</p><div class="card-statline"><div class="mini-stat"><b>${item.capabilityCodes.length}</b><span>标准能力</span></div><div class="mini-stat"><b>${preview.atoms.length}</b><span>有效原子</span></div><div class="mini-stat"><b>${preview.additionalAtoms.length + preview.excludedAtoms.length}</b><span>岗位差异</span></div></div></article>`;
-    }).join("") || `<div class="empty-state">没有匹配的岗位。</div>`}</div></section>${current ? renderRoleDetail(current) : `<aside class="panel empty-state">请选择岗位。</aside>`}</div>`;
+      return `<button type="button" class="role-card ${item.id === state.selectedRole ? "is-selected" : ""}" data-select-role="${item.id}"><span class="card-topline"><span class="badge badge--info">${escapeHtml(item.category)}</span>${confirmationBadge(item.confirmationStatus)}</span><strong class="role-card__name">${escapeHtml(item.name)}</strong><span class="role-card__copy">${escapeHtml(item.responsibility)}</span><span class="card-statline"><span class="mini-stat"><b>${item.capabilityCodes.length}</b><span>标准能力</span></span><span class="mini-stat"><b>${preview.atoms.length}</b><span>有效原子</span></span><span class="mini-stat"><b>${preview.additionalAtoms.length}</b><span>岗位增加</span></span></span></button>`;
+    }).join("") || `<div class="empty-state">没有匹配的岗位。</div>`}</div></section>${current ? renderRoleDetail(current) : `<aside class="panel empty-state role-detail-panel">请选择岗位。</aside>`}</div>`;
   }
 
   function renderRoleDetail(role) {
@@ -50742,13 +50521,13 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
       const capability = state.model.capabilities.find((item) => item.code === parentCode);
       return `<p class="eyebrow" style="margin-top:13px">${escapeHtml(capability?.name || parentCode)}</p><div class="capability-check-grid">${selections.map((selection) => {
         const { atom } = selection;
-        const stateClass = selection.excluded ? "is-excluded" : selection.additional ? "is-additional" : "is-default";
-        return `<label class="role-atom-checkbox ${stateClass}"><input type="checkbox" data-role-atom-checkbox="${role.id}" data-atom-inherited="${selection.inherited}" data-atom-kind="${atom.code ? "code" : "pending"}" value="${escapeAttribute(selection.key)}"${checked(selection.checked)}><span><b>${escapeHtml(atom.operation || atom.sourceAction || selection.key)}</b><small>${escapeHtml(atom.code || `${atom.id} · 待补编码`)}</small><em class="atom-delta-label">${selection.state}</em></span></label>`;
+        const stateClass = selection.additional ? "is-additional" : "is-default";
+        return `<label class="role-atom-checkbox ${stateClass}"><input type="checkbox" data-role-atom-checkbox="${role.id}" data-atom-inherited="${selection.inherited}" data-atom-kind="${atom.code ? "code" : "pending"}" value="${escapeAttribute(selection.key)}"${checked(selection.checked)}${selection.inherited ? " disabled" : ""}><span><b>${escapeHtml(atom.operation || atom.sourceAction || selection.key)}</b><small>${escapeHtml(atom.code || `${atom.id} · 待补编码`)}</small><em class="atom-delta-label">${selection.state}</em></span></label>`;
       }).join("")}</div>`;
     }).join("");
     const managedKeys = new Set(preview.atomSelections.map((selection) => selection.key));
     const extraCandidates = preview.availableAtoms.filter((atom) => !managedKeys.has(atom.code || atom.id));
-    return `<aside class="panel detail-panel"><div class="detail-hero"><span class="eyebrow">${escapeHtml(role.category)} · 产品岗位</span><h3>${escapeHtml(role.name)}</h3>${confirmationBadge(role.confirmationStatus)}<p>${escapeHtml(role.responsibility)}</p></div><div class="key-value-grid" style="margin-top:14px"><div class="key-value"><span>能力默认原子</span><strong>${preview.defaultAtoms.length}</strong></div><div class="key-value"><span>岗位增加</span><strong>${preview.additionalAtoms.length}</strong></div><div class="key-value"><span>岗位排除</span><strong>${preview.excludedAtoms.length}</strong></div><div class="key-value"><span>最终有效原子</span><strong>${preview.atoms.length}</strong></div></div><div class="notice" style="margin-top:14px">最终原子权限 = 所选标准能力默认原子权限 ∪ 岗位额外增加 − 岗位明确排除；岗位只保存差异项。</div><div class="detail-section"><div class="detail-section__title"><span>岗位职责与数据范围</span><button class="button button--ghost button--small" type="button" data-edit-role="${role.id}">编辑说明</button></div><div class="notice">${escapeHtml(role.dataScope)}</div></div><div class="detail-section"><div class="detail-section__title"><span>组织能力前置</span></div><div class="capability-check-grid">${state.model.orgCapabilities.map((item) => `<label class="org-capability-checkbox"><input type="checkbox" data-role-org-checkbox="${role.id}" value="${item.code}"${checked(role.orgCapabilityCodes.includes(item.code))}><span><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.code)}</small></span></label>`).join("")}</div></div><div class="detail-section"><div class="detail-section__title"><span>标准能力（默认带入原子权限）</span><b>${role.capabilityCodes.length}</b></div>${Object.entries(byDomain).map(([domain, capabilities]) => `<p class="eyebrow" style="margin-top:13px">${escapeHtml(domain)}</p><div class="capability-check-grid">${capabilities.map((item) => `<label class="role-capability-checkbox"><input type="checkbox" data-role-capability-checkbox="${role.id}" value="${item.code}"${checked(role.capabilityCodes.includes(item.code))}><span><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.code)} · ${escapeHtml(item.orgCapabilityCodes.join("、"))}</small></span></label>`).join("")}</div>`).join("")}</div><div class="detail-section"><div class="detail-section__title"><span>岗位原子权限（统一勾选）</span><b>${preview.atoms.length}</b></div><div class="notice">能力包含的原子权限自动勾选；取消勾选即记为岗位排除。从全部原子权限中补充后，也在本列表中统一勾选和移除。</div><label class="form-field atom-add-field"><span>补充能力外的原子权限</span><select data-role-extra-atom-select="${role.id}"${extraCandidates.length ? "" : " disabled"}><option value="">${extraCandidates.length ? "请选择要补充的原子权限" : "没有可补充的原子权限"}</option>${extraCandidates.map((atom) => `<option value="${escapeAttribute(atom.code || atom.id)}" data-atom-kind="${atom.code ? "code" : "pending"}">${escapeHtml(atom.operation || atom.sourceAction || atom.code || atom.id)} · ${escapeHtml(atom.code || atom.id)}</option>`).join("")}</select></label>${atomSections || `<div class="empty-state">选择标准能力或补充原子权限后，这里会显示岗位的统一原子权限集合。</div>`}</div><div class="detail-section"><div class="detail-section__title"><span>产品勾选吻合检查</span></div>${preview.productMissingFunctions.length ? `<div class="notice notice--danger">有 ${preview.productMissingFunctions.length} 个产品已勾选功能没有被当前能力组合覆盖。</div>` : `<div class="notice">产品已勾选功能均被当前能力组合覆盖。</div>`}${preview.productMissingAtoms.length ? `<div class="notice notice--danger" style="margin-top:8px">有 ${preview.productMissingAtoms.length} 个产品已勾选原子动作没有进入最终有效权限。</div>` : `<div class="notice" style="margin-top:8px">产品已勾选原子动作均已进入最终有效权限。</div>`}</div></aside>`;
+    return `<aside class="panel detail-panel role-detail-panel"><div class="detail-hero"><span class="eyebrow">${escapeHtml(role.category)} · 产品岗位</span><h3>${escapeHtml(role.name)}</h3>${confirmationBadge(role.confirmationStatus)}<p>${escapeHtml(role.responsibility)}</p></div><div class="key-value-grid" style="margin-top:14px"><div class="key-value"><span>能力默认原子权限</span><strong>${preview.defaultAtoms.length}</strong></div><div class="key-value"><span>岗位额外增加</span><strong>${preview.additionalAtoms.length}</strong></div><div class="key-value"><span>最终有效原子</span><strong>${preview.atoms.length}</strong></div></div><div class="notice" style="margin-top:14px">最终原子权限 = 所选标准能力的明确默认原子权限 ∪ 岗位额外增加。原子权限归属某能力不等于默认授予；经常重复的增加项，后续可沉淀为更小的标准能力。</div><div class="detail-section"><div class="detail-section__title"><span>岗位职责与数据范围</span><button class="button button--ghost button--small" type="button" data-edit-role="${role.id}">编辑说明</button></div><div class="notice">${escapeHtml(role.dataScope)}</div></div><div class="detail-section"><div class="detail-section__title"><span>组织能力前置</span></div><div class="capability-check-grid">${state.model.orgCapabilities.map((item) => `<label class="org-capability-checkbox"><input type="checkbox" data-role-org-checkbox="${role.id}" value="${item.code}"${checked(role.orgCapabilityCodes.includes(item.code))}><span><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.code)}</small></span></label>`).join("")}</div></div><div class="detail-section"><div class="detail-section__title"><span>标准能力（只带入明确默认原子权限）</span><b>${role.capabilityCodes.length}</b></div>${Object.entries(byDomain).map(([domain, capabilities]) => `<p class="eyebrow" style="margin-top:13px">${escapeHtml(domain)}</p><div class="capability-check-grid">${capabilities.map((item) => `<label class="role-capability-checkbox"><input type="checkbox" data-role-capability-checkbox="${role.id}" value="${item.code}"${checked(role.capabilityCodes.includes(item.code))}><span><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.code)} · 默认原子 ${(item.defaultAtomicPermissionCodes.length + item.defaultPendingAtomicPermissionIds.length)} 项</small></span></label>`).join("")}</div>`).join("")}</div><div class="detail-section"><div class="detail-section__title"><span>岗位原子权限（统一勾选）</span><b>${preview.atoms.length}</b></div><div class="notice">能力默认项以锁定勾选展示，需要修改时回到标准能力定义统一调整；岗位增加项可在这里补充或移除。</div><label class="form-field atom-add-field"><span>岗位额外增加原子权限</span><select data-role-extra-atom-select="${role.id}"${extraCandidates.length ? "" : " disabled"}><option value="">${extraCandidates.length ? "请选择要增加的原子权限" : "没有可增加的原子权限"}</option>${extraCandidates.map((atom) => `<option value="${escapeAttribute(atom.code || atom.id)}" data-atom-kind="${atom.code ? "code" : "pending"}">${escapeHtml(atom.operation || atom.sourceAction || atom.code || atom.id)} · ${escapeHtml(atom.code || atom.id)}</option>`).join("")}</select></label>${atomSections || `<div class="empty-state">选择标准能力或增加原子权限后，这里会显示岗位的最终原子权限。</div>`}</div><div class="detail-section"><div class="detail-section__title"><span>产品勾选吻合检查</span></div>${preview.productMissingFunctions.length ? `<div class="notice notice--danger">有 ${preview.productMissingFunctions.length} 个产品已勾选功能没有被当前能力组合覆盖。</div>` : `<div class="notice">产品已勾选功能均被当前能力组合覆盖。</div>`}${preview.productMissingAtoms.length ? `<div class="notice notice--danger" style="margin-top:8px">有 ${preview.productMissingAtoms.length} 个产品已勾选原子动作没有进入最终有效权限。</div>` : `<div class="notice" style="margin-top:8px">产品已勾选原子动作均已进入最终有效权限。</div>`}</div></aside>`;
   }
 
   function renderDiagnostics() {
@@ -51001,20 +50780,15 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
     const capBox = event.target.closest("[data-role-capability-checkbox]");
     if (capBox) {
       const role = state.model.roles.find((item) => item.id === capBox.dataset.roleCapabilityCheckbox);
-      const previousCapabilityCodes = new Set(role.capabilityCodes);
       role.capabilityCodes = capBox.checked
         ? [...new Set([...role.capabilityCodes, capBox.value])]
         : role.capabilityCodes.filter((codeValue) => codeValue !== capBox.value);
-      const currentCapabilityCodes = new Set(role.capabilityCodes);
-      for (const atom of state.model.atoms.filter((item) => item.parentCapabilityCodes.includes(capBox.value))) {
-        const wasDefault = atom.parentCapabilityCodes.some((code) => previousCapabilityCodes.has(code));
-        const isDefault = atom.parentCapabilityCodes.some((code) => currentCapabilityCodes.has(code));
-        if (wasDefault === isDefault) continue;
-        const addField = atom.code ? "additionalAtomicPermissionCodes" : "additionalPendingAtomicPermissionIds";
-        const excludeField = atom.code ? "excludedAtomicPermissionCodes" : "excludedPendingAtomicPermissionIds";
-        const atomKey = atom.code || atom.id;
-        role[excludeField] = role[excludeField].filter((value) => value !== atomKey);
-        if (isDefault) role[addField] = role[addField].filter((value) => value !== atomKey);
+      if (capBox.checked) {
+        const capability = state.model.capabilities.find((item) => item.code === capBox.value);
+        const defaultCodes = new Set(capability.defaultAtomicPermissionCodes);
+        const defaultPendingIds = new Set(capability.defaultPendingAtomicPermissionIds);
+        role.additionalAtomicPermissionCodes = role.additionalAtomicPermissionCodes.filter((value) => !defaultCodes.has(value));
+        role.additionalPendingAtomicPermissionIds = role.additionalPendingAtomicPermissionIds.filter((value) => !defaultPendingIds.has(value));
       }
       markChanged(`调整${role.name}标准能力`);
       render();
@@ -51025,10 +50799,8 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
       const role = state.model.roles.find((item) => item.id === extraAtomSelect.dataset.roleExtraAtomSelect);
       const atom = state.model.atoms.find((item) => (item.code || item.id) === extraAtomSelect.value);
       const addField = atom.code ? "additionalAtomicPermissionCodes" : "additionalPendingAtomicPermissionIds";
-      const excludeField = atom.code ? "excludedAtomicPermissionCodes" : "excludedPendingAtomicPermissionIds";
       const atomKey = atom.code || atom.id;
       role[addField] = [...new Set([...role[addField], atomKey])];
-      role[excludeField] = role[excludeField].filter((value) => value !== atomKey);
       markChanged(`为${role.name}额外增加原子权限`);
       render();
       return;
@@ -51037,20 +50809,11 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
     if (atomBox) {
       const role = state.model.roles.find((item) => item.id === atomBox.dataset.roleAtomCheckbox);
       const addField = atomBox.dataset.atomKind === "code" ? "additionalAtomicPermissionCodes" : "additionalPendingAtomicPermissionIds";
-      const excludeField = atomBox.dataset.atomKind === "code" ? "excludedAtomicPermissionCodes" : "excludedPendingAtomicPermissionIds";
-      if (atomBox.dataset.atomInherited === "true") {
-        role[excludeField] = atomBox.checked
-          ? role[excludeField].filter((value) => value !== atomBox.value)
-          : [...new Set([...role[excludeField], atomBox.value])];
-        role[addField] = role[addField].filter((value) => value !== atomBox.value);
-        markChanged(`${atomBox.checked ? "恢复" : "排除"}${role.name}能力默认原子权限`);
-      } else {
-        role[addField] = atomBox.checked
-          ? [...new Set([...role[addField], atomBox.value])]
-          : role[addField].filter((value) => value !== atomBox.value);
-        role[excludeField] = role[excludeField].filter((value) => value !== atomBox.value);
-        markChanged(`${atomBox.checked ? "增加" : "移除"}${role.name}额外原子权限`);
-      }
+      if (atomBox.dataset.atomInherited === "true") return;
+      role[addField] = atomBox.checked
+        ? [...new Set([...role[addField], atomBox.value])]
+        : role[addField].filter((value) => value !== atomBox.value);
+      markChanged(`${atomBox.checked ? "增加" : "移除"}${role.name}额外原子权限`);
       render();
       return;
     }
