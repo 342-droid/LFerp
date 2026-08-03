@@ -1328,6 +1328,26 @@
     "status": "diff",
     "date": "2026-07-27"
   },
+  "6c2378f|MDM/mdm_order_live.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-03"
+  },
+  "6c2378f|MDM/mdm_order_proxy.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-03"
+  },
+  "6c2378f|MDM/mdm_order_queue.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-03"
+  },
+  "6c2378f|MDM/mdm_order_retail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-03"
+  },
   "6e8afc5|MDM/mdm_archive_carrier.html": {
     "before": "changelog-assets/6e8afc5/MDM__mdm_archive_carrier.html.before.jpg",
     "after": "changelog-assets/6e8afc5/MDM__mdm_archive_carrier.html.after.jpg",
