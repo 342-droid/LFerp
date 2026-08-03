@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 退货单</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .order-no-link {
+            color: #2196F3;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.2s;
+        }
+
+        .order-no-link:hover {
+            color: #1976D2;
+            text-decoration: underline;
+        }
+
+        .aggregate-summary {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .status.doc-pending-review,
+        .status.doc-pending-shipment {
+            background-color: #fff8e1;
+            color: #f57f17;
+        }
+
+        .status.doc-rejected,
+        .status.doc-cancelled {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .status.doc-partial-shipment,
+        .status.doc-partial-receipt {
+            background-color: #fff3e0;
+            color: #e65100;
+        }
+
+        .status.doc-shipment-complete {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status.doc-done {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .detail-modal .modal-content {
+            width: 95%;
+            max-width: 1100px;
+            max-height: 88vh;
+            height: auto;
+            overflow: auto;
+        }
+
+        .detail-modal .table-scroll-container {
+            max-height: min(360px, calc(88vh - 280px));
+        }
+
+        .detail-modal .modal-footer {
+            margin-top: 16px;
+            padding-top: 12px;
+        }
+
+        .detail-section {
+            margin-bottom: 16px;
+        }
+
+        .detail-section-title {
+            margin: 0 0 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .detail-info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(220px, 1fr));
+            gap: 8px 16px;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .detail-info-item {
+            display: flex;
+            align-items: center;
+            min-height: 24px;
+        }
+
+        .detail-info-item .label {
+            color: #666;
+            margin-right: 6px;
+            white-space: nowrap;
+        }
+
+        .detail-table-wrap .table {
+            min-width: 1380px;
+        }
+
+        .table-section .table {
+            min-width: 1900px;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/purchase-sidebar.js"></script>
+
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button type="button" class="active">退货单</button>
+            </div>
+
+            <hr class="content-divider">
+
+            <div class="content-title">采购 / 退货管理 / 退货单</div>
+
+            <section class="search-section">
+                <form class="search-form">
+                    <div class="form-group">
+                        <label style="width: 90px;">退货单号:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchRoNo" placeholder="如 RO2026073012000001">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 80px;">来源单号:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchSourceNo" placeholder="请输入来源单号">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 90px;">单据状态:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchDocStatus" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchDocStatusDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="待审核">待审核</div>
+                                <div class="select-option" data-value="已驳回">已驳回</div>
+                                <div class="select-option" data-value="待发货">待发货</div>
+                                <div class="select-option" data-value="部分发货">部分发货</div>
+                                <div class="select-option" data-value="发货完成">发货完成</div>
+                                <div class="select-option" data-value="部分收货">部分收货</div>
+                                <div class="select-option" data-value="已完成">已完成</div>
+                                <div class="select-option" data-value="已取消">已取消</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 80px;">退出地:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchExitStore" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchExitStoreDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="S001 南京新街口店">S001 南京新街口店</div>
+                                <div class="select-option" data-value="S002 嘉兴南湖店">S002 嘉兴南湖店</div>
+                                <div class="select-option" data-value="S003 上海徐汇店">S003 上海徐汇店</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 90px;">退出地类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchExitPlaceType" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchExitPlaceTypeDropdown"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 80px;">退入地:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchEntryPlace" placeholder="仓库或供应商名称">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 90px;">退入地类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchEntryPlaceType" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchEntryPlaceTypeDropdown"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>关联出库单:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchOutboundNo" placeholder="如 OBD...">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 90px;">关联入库单:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="searchInboundNo" placeholder="如 IBD...">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex: 0 0 100%; max-width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
+                        <label>创建时间:</label>
+                        <div class="date-range">
+                            <div class="date-picker">
+                                <input type="date" id="searchCreatedAtStart" data-type="start" title="创建开始时间">
+                            </div>
+                            <span class="date-range-separator">至</span>
+                            <div class="date-picker">
+                                <input type="date" id="searchCreatedAtEnd" data-type="end" title="创建结束时间">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="btnSearch">查询</button>
+                        <button type="button" class="btn btn-secondary" id="btnReset">重置</button>
+                    </div>
+                </form>
+            </section>
+
+            <div class="aggregate-summary">共 <strong id="roListCount">0</strong> 条退货单</div>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>退货单号</th>
+                                <th>来源单号</th>
+                                <th>退出地</th>
+                                <th>退出地类型</th>
+                                <th>退入地</th>
+                                <th>退入地类型</th>
+                                <th>单据状态</th>
+                                <th>关联出库单</th>
+                                <th>关联入库单</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="roListTbody"></tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="roDetailModal" class="modal detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">退货单详情</div>
+                <span class="close" id="roDetailCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="detail-section">
+                    <div class="detail-section-title">退货单信息</div>
+                    <div class="detail-info-grid" id="roDetailInfo"></div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-section-title">商品明细列表</div>
+                    <div class="table-scroll-container detail-table-wrap">
+                        <table class="table no-last-column-freeze">
+                            <thead>
+                                <tr>
+                                    <th>商品编码</th>
+                                    <th>商品名称</th>
+                                    <th>商品规格</th>
+                                    <th>采购员</th>
+                                    <th>商品分类</th>
+                                    <th>申请退货量</th>
+                                    <th>实际退货量</th>
+                                    <th>采购单价</th>
+                                    <th>销售单价</th>
+                                    <th>采购金额</th>
+                                    <th>销售金额</th>
+                                </tr>
+                            </thead>
+                            <tbody id="roDetailLinesTbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="roDetailCloseFooterBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+(function() {
+    var pageSize = 10;
+    var currentPage = 1;
+    var filteredRows = [];
+
+    var allRows = [
+        {
+            roNo: 'RO2026073012000001',
+            sourceNo: 'PO2026072809000001',
+            exitStore: 'S001 南京新街口店',
+            exitPlaceType: '门店',
+            entryPlace: 'W001 南京仓',
+            entryPlaceType: '仓库',
+            status: '已完成',
+            outboundNo: 'OBD2026073014000001',
+            inboundNo: 'IBD2026073016000001',
+            createdAt: '2026-07-30 12:00:00',
+            createdBy: '张三',
+            updatedAt: '2026-07-31 10:20:00',
+            updatedBy: '王五',
+            lines: [
+                { skuCode: 'SKU10001', skuName: '红富士苹果', specification: '80# / 10kg', buyer: '陈采购', category: '水果', requestedQty: 20, actualQty: 20, purchasePrice: 68, salePrice: 88, purchaseAmount: 1360, saleAmount: 1760 },
+                { skuCode: 'SKU10008', skuName: '阳光玫瑰葡萄', specification: '5kg/箱', buyer: '陈采购', category: '水果', requestedQty: 8, actualQty: 8, purchasePrice: 120, salePrice: 158, purchaseAmount: 960, saleAmount: 1264 }
+            ]
+        },
+        {
+            roNo: 'RO2026073012000002',
+            sourceNo: 'PO2026072709300002',
+            exitStore: 'S002 嘉兴南湖店',
+            exitPlaceType: '门店',
+            entryPlace: '浙北农产品合作社',
+            entryPlaceType: '供应商',
+            status: '已驳回',
+            outboundNo: '',
+            inboundNo: '',
+            createdAt: '2026-07-30 12:30:00',
+            createdBy: '李四',
+            updatedAt: '2026-07-30 13:10:00',
+            updatedBy: '赵六',
+            lines: [
+                { skuCode: 'SKU20003', skuName: '有机生菜', specification: '500g/袋', buyer: '周采购', category: '蔬菜', requestedQty: 15, actualQty: 0, purchasePrice: 8.5, salePrice: 12.8, purchaseAmount: 127.5, saleAmount: 192 }
+            ]
+        },
+        {
+            roNo: 'RO2026072911000003',
+            sourceNo: 'PO2026072608000003',
+            exitStore: 'S003 上海徐汇店',
+            exitPlaceType: '门店',
+            entryPlace: 'W003 上海仓',
+            entryPlaceType: '仓库',
+            status: '部分收货',
+            outboundNo: 'OBD2026072913000003',
+            inboundNo: 'IBD2026072914000003',
+            createdAt: '2026-07-29 11:00:00',
+            createdBy: '王五',
+            updatedAt: '2026-07-30 09:45:00',
+            updatedBy: '孙七',
+            lines: [
+                { skuCode: 'SKU10012', skuName: '脐橙', specification: '65# / 12kg', buyer: '陈采购', category: '水果', requestedQty: 30, actualQty: 18, purchasePrice: 72, salePrice: 96, purchaseAmount: 2160, saleAmount: 2880 }
+            ]
+        },
+        {
+            roNo: 'RO2026072810000004',
+            sourceNo: 'PO2026072508300004',
+            exitStore: 'S001 南京新街口店',
+            exitPlaceType: '门店',
+            entryPlace: '华东果蔬有限公司',
+            entryPlaceType: '供应商',
+            status: '待发货',
+            outboundNo: 'OBD2026072812000004',
+            inboundNo: '',
+            createdAt: '2026-07-28 10:00:00',
+            createdBy: '赵六',
+            updatedAt: '2026-07-28 10:00:00',
+            updatedBy: '赵六',
+            lines: [
+                { skuCode: 'SKU30001', skuName: '香蕉', specification: '13kg/箱', buyer: '吴采购', category: '水果', requestedQty: 12, actualQty: 0, purchasePrice: 85, salePrice: 110, purchaseAmount: 1020, saleAmount: 1320 }
+            ]
+        },
+        {
+            roNo: 'RO2026072715000005',
+            sourceNo: 'PO2026072409000005',
+            exitStore: 'S002 嘉兴南湖店',
+            exitPlaceType: '门店',
+            entryPlace: 'W002 嘉兴仓',
+            entryPlaceType: '仓库',
+            status: '发货完成',
+            outboundNo: 'OBD2026072716000005',
+            inboundNo: 'IBD2026072718000005',
+            createdAt: '2026-07-27 15:00:00',
+            createdBy: '张三',
+            updatedAt: '2026-07-27 17:35:00',
+            updatedBy: '李四',
+            lines: [
+                { skuCode: 'SKU10021', skuName: '麒麟西瓜', specification: '约4kg/个', buyer: '陈采购', category: '水果', requestedQty: 6, actualQty: 6, purchasePrice: 32, salePrice: 45, purchaseAmount: 192, saleAmount: 270 }
+            ]
+        }
+    ];
+
+    function statusClass(status) {
+        var map = {
+            '待审核': 'doc-pending-review',
+            '已驳回': 'doc-rejected',
+            '待发货': 'doc-pending-shipment',
+            '部分发货': 'doc-partial-shipment',
+            '发货完成': 'doc-shipment-complete',
+            '部分收货': 'doc-partial-receipt',
+            '已完成': 'doc-done',
+            '已取消': 'doc-cancelled'
+        };
+        return map[status] || 'doc-pending-review';
+    }
+
+    function escapeHtml(str) {
+        return String(str == null ? '' : str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function getFilterValues() {
+        return {
+            roNo: (document.getElementById('searchRoNo').value || '').trim(),
+            sourceNo: (document.getElementById('searchSourceNo').value || '').trim(),
+            status: (document.getElementById('searchDocStatus').value || '').trim(),
+            exitStore: (document.getElementById('searchExitStore').value || '').trim(),
+            exitPlaceType: (document.getElementById('searchExitPlaceType').value || '').trim(),
+            entryPlace: (document.getElementById('searchEntryPlace').value || '').trim(),
+            entryPlaceType: (document.getElementById('searchEntryPlaceType').value || '').trim(),
+            outboundNo: (document.getElementById('searchOutboundNo').value || '').trim(),
+            inboundNo: (document.getElementById('searchInboundNo').value || '').trim(),
+            createdAtStart: document.getElementById('searchCreatedAtStart').value || '',
+            createdAtEnd: document.getElementById('searchCreatedAtEnd').value || ''
+        };
+    }
+
+    function matchDateRange(createdAt, start, end) {
+        if (!start && !end) return true;
+        var day = (createdAt || '').slice(0, 10);
+        if (start && day < start) return false;
+        if (end && day > end) return false;
+        return true;
+    }
+
+    function applyFilter() {
+        var f = getFilterValues();
+        filteredRows = allRows.filter(function(row) {
+            if (f.roNo && row.roNo.indexOf(f.roNo) === -1) return false;
+            if (f.sourceNo && row.sourceNo.indexOf(f.sourceNo) === -1) return false;
+            if (f.status && row.status !== f.status) return false;
+            if (f.exitStore && row.exitStore !== f.exitStore) return false;
+            if (f.exitPlaceType && row.exitPlaceType !== f.exitPlaceType) return false;
+            if (f.entryPlace && row.entryPlace.indexOf(f.entryPlace) === -1) return false;
+            if (f.entryPlaceType && row.entryPlaceType !== f.entryPlaceType) return false;
+            if (f.outboundNo && (row.outboundNo || '').indexOf(f.outboundNo) === -1) return false;
+            if (f.inboundNo && (row.inboundNo || '').indexOf(f.inboundNo) === -1) return false;
+            if (!matchDateRange(row.createdAt, f.createdAtStart, f.createdAtEnd)) return false;
+            return true;
+        });
+        currentPage = 1;
+        renderTable();
+    }
+
+    function resetFilter() {
+        ['searchRoNo', 'searchSourceNo', 'searchDocStatus', 'searchExitStore', 'searchExitPlaceType', 'searchEntryPlace', 'searchEntryPlaceType', 'searchOutboundNo', 'searchInboundNo', 'searchCreatedAtStart', 'searchCreatedAtEnd'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        applyFilter();
+    }
+
+    function renderTable() {
+        var tbody = document.getElementById('roListTbody');
+        var countEl = document.getElementById('roListCount');
+        if (!tbody) return;
+
+        if (countEl) countEl.textContent = String(filteredRows.length);
+
+        var total = filteredRows.length;
+        var start = (currentPage - 1) * pageSize;
+        var pageRows = filteredRows.slice(start, start + pageSize);
+
+        if (!pageRows.length) {
+            tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;color:#999;">暂无数据</td></tr>';
+        } else {
+            tbody.innerHTML = pageRows.map(function(row) {
+                return '<tr>' +
+                    '<td><a href="javascript:void(0)" class="order-no-link" data-ro-no="' + escapeHtml(row.roNo) + '">' + escapeHtml(row.roNo) + '</a></td>' +
+                    '<td>' + escapeHtml(row.sourceNo) + '</td>' +
+                    '<td>' + escapeHtml(row.exitStore) + '</td>' +
+                    '<td>' + escapeHtml(row.exitPlaceType) + '</td>' +
+                    '<td>' + escapeHtml(row.entryPlace) + '</td>' +
+                    '<td>' + escapeHtml(row.entryPlaceType) + '</td>' +
+                    '<td><span class="status ' + statusClass(row.status) + '">' + escapeHtml(row.status) + '</span></td>' +
+                    '<td>' + escapeHtml(row.outboundNo || '—') + '</td>' +
+                    '<td>' + escapeHtml(row.inboundNo || '—') + '</td>' +
+                    '<td>' + escapeHtml(row.createdAt) + '</td>' +
+                    '<td>' + escapeHtml(row.createdBy) + '</td>' +
+                    '<td>' + escapeHtml(row.updatedAt) + '</td>' +
+                    '<td>' + escapeHtml(row.updatedBy) + '</td>' +
+                    '<td><a href="javascript:void(0)" class="order-no-link" data-ro-no="' + escapeHtml(row.roNo) + '">详情</a></td>' +
+                    '</tr>';
+            }).join('');
+        }
+
+        if (typeof createPagination === 'function') {
+            createPagination({
+                containerId: 'pagination-container',
+                totalItems: total,
+                currentPage: currentPage,
+                pageSize: pageSize,
+                onPageChange: function(page) {
+                    currentPage = page;
+                    renderTable();
+                },
+                onPageSizeChange: function(newSize) {
+                    pageSize = newSize;
+                    currentPage = 1;
+                    renderTable();
+                }
+            });
+        }
+    }
+
+    function findRow(roNo) {
+        for (var i = 0; i < allRows.length; i++) {
+            if (allRows[i].roNo === roNo) return allRows[i];
+        }
+        return null;
+    }
+
+    function infoItem(label, value) {
+        return '<div class="detail-info-item"><span class="label">' + escapeHtml(label) + ':</span><span>' + escapeHtml(value == null || value === '' ? '—' : value) + '</span></div>';
+    }
+
+    function formatMoney(value) {
+        var amount = Number(value);
+        return isNaN(amount) ? '—' : '¥' + amount.toFixed(2);
+    }
+
+    function openDetail(roNo) {
+        var row = findRow(roNo);
+        if (!row) return;
+
+        document.getElementById('roDetailInfo').innerHTML =
+            infoItem('退货单号', row.roNo) +
+            infoItem('来源单号', row.sourceNo) +
+            infoItem('退出地', row.exitStore) +
+            infoItem('退出地类型', row.exitPlaceType) +
+            infoItem('退入地', row.entryPlace) +
+            infoItem('退入地类型', row.entryPlaceType) +
+            infoItem('单据状态', row.status) +
+            infoItem('创建时间', row.createdAt) +
+            infoItem('创建人', row.createdBy) +
+            infoItem('更新时间', row.updatedAt) +
+            infoItem('更新人', row.updatedBy);
+
+        var linesTbody = document.getElementById('roDetailLinesTbody');
+        linesTbody.innerHTML = (row.lines || []).map(function(line) {
+            return '<tr>' +
+                '<td>' + escapeHtml(line.skuCode) + '</td>' +
+                '<td>' + escapeHtml(line.skuName) + '</td>' +
+                '<td>' + escapeHtml(line.specification) + '</td>' +
+                '<td>' + escapeHtml(line.buyer) + '</td>' +
+                '<td>' + escapeHtml(line.category) + '</td>' +
+                '<td>' + escapeHtml(line.requestedQty) + '</td>' +
+                '<td>' + escapeHtml(line.actualQty) + '</td>' +
+                '<td>' + escapeHtml(formatMoney(line.purchasePrice)) + '</td>' +
+                '<td>' + escapeHtml(formatMoney(line.salePrice)) + '</td>' +
+                '<td>' + escapeHtml(formatMoney(line.purchaseAmount)) + '</td>' +
+                '<td>' + escapeHtml(formatMoney(line.saleAmount)) + '</td>' +
+                '</tr>';
+        }).join('') || '<tr><td colspan="11" style="text-align:center;color:#999;">暂无明细</td></tr>';
+
+        document.getElementById('roDetailModal').style.display = 'block';
+    }
+
+    function closeDetail() {
+        document.getElementById('roDetailModal').style.display = 'none';
+    }
+
+    document.getElementById('btnSearch').addEventListener('click', applyFilter);
+    document.getElementById('btnReset').addEventListener('click', resetFilter);
+
+    document.getElementById('roListTbody').addEventListener('click', function(e) {
+        var link = e.target.closest('[data-ro-no]');
+        if (!link) return;
+        e.preventDefault();
+        openDetail(link.getAttribute('data-ro-no'));
+    });
+
+    document.getElementById('roDetailCloseBtn').addEventListener('click', closeDetail);
+    document.getElementById('roDetailCloseFooterBtn').addEventListener('click', closeDetail);
+    document.getElementById('roDetailModal').addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'roDetailModal') closeDetail();
+    });
+
+    if (typeof renderSelectOptions === 'function' && typeof CommonOptions !== 'undefined') {
+        var placeTypeOptions = [{ value: '', text: '全部' }].concat(CommonOptions.bizPlaceType || []);
+        renderSelectOptions('searchExitPlaceTypeDropdown', placeTypeOptions);
+        renderSelectOptions('searchEntryPlaceTypeDropdown', placeTypeOptions);
+    }
+
+    if (typeof initCustomSelect === 'function') {
+        initCustomSelect('searchDocStatus', 'searchDocStatusDropdown');
+        initCustomSelect('searchExitStore', 'searchExitStoreDropdown');
+        initCustomSelect('searchExitPlaceType', 'searchExitPlaceTypeDropdown');
+        initCustomSelect('searchEntryPlaceType', 'searchEntryPlaceTypeDropdown');
+    }
+
+    filteredRows = allRows.slice();
+    renderTable();
+})();
+    </script>
+</body>
+</html>

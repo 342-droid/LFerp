@@ -16,6 +16,8 @@
     const isPurchaseDemandSummaryPage = currentPage === 'purchase_demand_summary.html';
     const isPurchaseOrderPage = currentPage === 'purchase_order.html';
     const isPurchaseManagementSection = isPurchaseDemandSummaryPage || isPurchaseOrderPage;
+    const isReturnOrderPage = currentPage === 'purchase_return_order.html' || currentPage === 'purchase_return_order_detail.html';
+    const isReturnManagementSection = isReturnOrderPage;
 
     const storeOrderSubmenuHtml =
         '<li><a href="' + pageHref('purchase_store_demand_summary.html') + '"' + (isSummaryPage ? ' class="active"' : '') + '>门店订货汇总</a></li>' +
@@ -45,6 +47,16 @@
         '<ul class="submenu' + (isPurchaseManagementSection ? ' expanded' : '') + '">' +
         '<li><a href="' + pageHref('purchase_demand_summary.html') + '"' + (isPurchaseDemandSummaryPage ? ' class="active"' : '') + '>采购需求汇总</a></li>' +
         '<li><a href="' + pageHref('purchase_order.html') + '"' + (isPurchaseOrderPage ? ' class="active"' : '') + '>采购单</a></li>' +
+        '</ul>' +
+        '</li>' +
+        '<li class="menu-item">' +
+        '<a href="#" class="menu-link" onclick="toggleSubmenu(this)">' +
+        '<img src="' + assetHref('image/基础信息.svg') + '" alt="退货管理" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
+        '<span>退货管理</span>' +
+        '<button class="menu-toggle" type="button">' + (isReturnManagementSection ? '▼' : '▶') + '</button>' +
+        '</a>' +
+        '<ul class="submenu' + (isReturnManagementSection ? ' expanded' : '') + '">' +
+        '<li><a href="' + pageHref('purchase_return_order.html') + '"' + (isReturnOrderPage ? ' class="active"' : '') + '>退货单</a></li>' +
         '</ul>' +
         '</li>' +
         '</ul>' +

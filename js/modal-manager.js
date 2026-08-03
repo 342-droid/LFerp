@@ -185,6 +185,12 @@ const CommonOptions = {
         { value: 'store', text: '门店' },
         { value: 'carrier', text: '承运商' }
     ],
+    // 退出地/退入地类型（采购退货等）
+    bizPlaceType: [
+        { value: '门店', text: '门店' },
+        { value: '仓库', text: '仓库' },
+        { value: '供应商', text: '供应商' }
+    ],
     temperatureLayer: [
         { value: 'normal', text: '常温' },
         { value: 'cold', text: '冷藏' },
@@ -309,7 +315,8 @@ const CommonOptions = {
         { value: 'liveReturn', text: '直播退货' },
         { value: 'liveOrder', text: '直播订单' },
         { value: 'distributionOutbound', text: '配送出库' },
-        { value: 'warehouseSupplierReturn', text: '仓库退供' }
+        { value: 'warehouseSupplierReturn', text: '仓库退供' },
+        { value: 'storeSupplierReturn', text: '门店退供' }
     ],
     // 入库类型选项
     inboundType: [
@@ -364,6 +371,7 @@ const CommonOptions = {
         { value: '配送出库', text: '配送出库' },
         { value: '门店退货', text: '门店退货' },
         { value: '仓库退供', text: '仓库退供' },
+        { value: '门店退供', text: '门店退供' },
         { value: '仓库调拨', text: '仓库调拨' }
     ],
     // 出库状态选项
