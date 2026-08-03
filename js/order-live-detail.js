@@ -277,7 +277,7 @@
         refund: '¥0.00'
       },
       paymentCount: 1,
-      /* 含进行中仅退款：列表核销时需二次确认并自动关闭售后 */
+      /* 仅退款已通过审核（退款中）：自提单不可核销；补货待收货不拦截核销规则 */
       aftersales: [{
         id: 'AS-9002-2',
         productName: '赣南脐橙 果大皮薄 5斤装',
@@ -965,6 +965,7 @@
 
   function buildGoodsTableBody(goods, pickupMode, aftersales) {
     var tbody = el('tbody');
+    var verifyBlocked = pickupMode && aftersalesHaveApprovedRefund(aftersales);
     goods.forEach(function (item) {
       var remaining = getGoodRemaining(item);
       var tr = document.createElement('tr');
@@ -974,16 +975,27 @@
       var selectCell = '';
       var pickupCells = '';
       if (pickupMode) {
-        var canPick = remaining > 0;
+        var canPick = remaining > 0 && !verifyBlocked;
         var checkbox = canPick
           ? '<input type="checkbox" class="js-pickup-row-check" data-good-id="' + item.id + '">'
           : '';
         var qtyCtrl = canPick
           ? buildPickupQtyControl(item.id, remaining)
           : '—';
-        var action = canPick
-          ? '<button type="button" class="order-pickup-line-btn js-pickup-line-confirm" data-good-id="' + item.id + '">核销</button>'
-          : '<span style="color:#c0c4cc">—</span>';
+        var action;
+        if (remaining <= 0) {
+          action = '<span style="color:#c0c4cc">—</span>';
+        } else if (verifyBlocked) {
+          action =
+            '<button type="button" class="order-pickup-line-btn js-pickup-line-confirm" data-good-id="' +
+            item.id +
+            '" disabled title="订单售后已通过审核，无法核销">核销</button>';
+        } else {
+          action =
+            '<button type="button" class="order-pickup-line-btn js-pickup-line-confirm" data-good-id="' +
+            item.id +
+            '">核销</button>';
+        }
         selectCell = '<td class="order-pickup-check-cell">' + checkbox + '</td>';
         pickupCells =
           '<td>' + item.pickedQty + '</td>' +
@@ -1007,16 +1019,26 @@
     return tbody;
   }
 
-  function buildPickupToolbar() {
+  function buildPickupToolbar(aftersales) {
     var toolbar = el('div', 'order-pickup-toolbar');
+    var verifyBlocked = aftersalesHaveApprovedRefund(aftersales);
     toolbar.innerHTML =
       '<label class="order-pickup-toolbar__select">' +
-        '<input type="checkbox" class="js-pickup-select-all"> 全选待提商品' +
+        '<input type="checkbox" class="js-pickup-select-all"' +
+        (verifyBlocked ? ' disabled' : '') +
+        '> 全选待提商品' +
       '</label>' +
       '<span class="order-pickup-toolbar__summary">已选 <em class="js-pickup-selected-count">0</em> 种商品</span>' +
       '<div class="order-pickup-toolbar__actions">' +
-        '<button type="button" class="order-detail-btn order-detail-btn--primary js-pickup-batch">批量核销</button>' +
+        '<button type="button" class="order-detail-btn order-detail-btn--primary js-pickup-batch"' +
+        (verifyBlocked ? ' disabled title="订单售后已通过审核，无法核销"' : '') +
+        '>批量核销</button>' +
       '</div>';
+    if (verifyBlocked) {
+      var tip = el('p', 'order-pickup-toolbar__block-tip');
+      tip.textContent = '订单售后已通过审核，无法核销';
+      toolbar.appendChild(tip);
+    }
     return toolbar;
   }
 
@@ -1032,7 +1054,7 @@
 
   function buildGoodsPanel(goods, pickupMode, aftersales) {
     var wrap = el('div', 'order-detail-goods-panel');
-    if (pickupMode) wrap.appendChild(buildPickupToolbar());
+    if (pickupMode) wrap.appendChild(buildPickupToolbar(aftersales));
 
     var table = el('table', 'order-detail-goods-table');
     table.innerHTML = '<thead>' + buildGoodsTableHeadRow(pickupMode) + '</thead>';
@@ -1211,12 +1233,18 @@
   }
 
   /**
-   * 详情核销 / 批量核销：有进行中仅退款、退货退款时二次确认，确认后关闭售后再核销
+   * 详情核销 / 批量核销：
+   * - 仅退款/退货退款已通过审核 → 禁止核销
+   * - 仅有待审批退款售后 → 二次确认后关闭售后再核销
    */
   function guardPickupVerify(drawer, pickups, options) {
     options = options || {};
     if (!drawer || !pickups || !pickups.length) return;
     var orderId = drawer._orderId;
+    if (hasApprovedRefundAftersale(orderId, drawer._sourceRow)) {
+      if (typeof showToast === 'function') showToast('订单售后已通过审核，无法核销', 'warning');
+      return;
+    }
     var hasOpen = hasOpenRefundAftersale(orderId, drawer._sourceRow);
 
     function proceed() {
@@ -1901,16 +1929,32 @@
     });
   }
 
-  /** 仅退款 / 退货退款进行中的业务状态（与售后单一致） */
-  var OPEN_REFUND_STATUSES = ['待审批', '退款中', '待退货', '待收货', '退款异常'];
+  /**
+   * 待审批的退款类售后：核销时可二次确认并自动关闭。
+   * 已通过审核的状态见 APPROVED_REFUND_STATUSES，禁止核销。
+   */
+  var OPEN_REFUND_STATUSES = ['待审批'];
 
-  function isOpenRefundAftersale(item) {
-    return !!item &&
-      (item.type === '仅退款' || item.type === '退货退款') &&
-      OPEN_REFUND_STATUSES.indexOf(item.status) >= 0;
+  /** 仅退款 / 退货退款已通过审核、仍在履约中的状态（禁止核销） */
+  var APPROVED_REFUND_STATUSES = ['退款中', '待退货', '待收货', '退款异常'];
+
+  function isRefundAftersaleType(item) {
+    return !!item && (item.type === '仅退款' || item.type === '退货退款');
   }
 
-  /** 订单是否存在进行中的退款类售后（仅退款 / 退货退款） */
+  function isOpenRefundAftersale(item) {
+    return isRefundAftersaleType(item) && OPEN_REFUND_STATUSES.indexOf(item.status) >= 0;
+  }
+
+  function isApprovedRefundAftersale(item) {
+    return isRefundAftersaleType(item) && APPROVED_REFUND_STATUSES.indexOf(item.status) >= 0;
+  }
+
+  function aftersalesHaveApprovedRefund(aftersales) {
+    return (Array.isArray(aftersales) ? aftersales : []).some(isApprovedRefundAftersale);
+  }
+
+  /** 订单是否存在待审批的退款类售后（仅退款 / 退货退款） */
   function getOpenRefundAftersales(orderId, row) {
     var detail = DETAILS[orderId] || (row ? fallbackDetail(orderId, row) : null);
     if (!detail || !Array.isArray(detail.aftersales)) return [];
@@ -1919,6 +1963,16 @@
 
   function hasOpenRefundAftersale(orderId, row) {
     return getOpenRefundAftersales(orderId, row).length > 0;
+  }
+
+  function getApprovedRefundAftersales(orderId, row) {
+    var detail = DETAILS[orderId] || (row ? fallbackDetail(orderId, row) : null);
+    if (!detail || !Array.isArray(detail.aftersales)) return [];
+    return detail.aftersales.filter(isApprovedRefundAftersale);
+  }
+
+  function hasApprovedRefundAftersale(orderId, row) {
+    return getApprovedRefundAftersales(orderId, row).length > 0;
   }
 
   /**
@@ -1961,6 +2015,9 @@
     var detail = DETAILS[orderId];
     if (!detail || !detail.progress) return false;
     if (!isPickupOrder(detail.progress.status, detail)) return false;
+    if (hasApprovedRefundAftersale(orderId)) {
+      return { ok: false, blocked: true, reason: 'approved_refund' };
+    }
 
     var closedAftersales = [];
     if (options.closeOpenRefunds !== false) {
@@ -2021,6 +2078,8 @@
     verifyWholeOrder: verifyWholeOrder,
     hasOpenRefundAftersale: hasOpenRefundAftersale,
     getOpenRefundAftersales: getOpenRefundAftersales,
+    hasApprovedRefundAftersale: hasApprovedRefundAftersale,
+    getApprovedRefundAftersales: getApprovedRefundAftersales,
     closeOpenRefundAftersalesOnVerify: closeOpenRefundAftersalesOnVerify
   };
 
