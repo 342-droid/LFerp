@@ -1556,6 +1556,13 @@
     "status": "diff",
     "date": "2026-07-27"
   },
+  "79d9973|SCM/purchase_return_order.html": {
+    "before": "changelog-assets/79d9973/SCM__purchase_return_order.html.before.jpg",
+    "after": "changelog-assets/79d9973/SCM__purchase_return_order.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-08-04"
+  },
   "7f1346c|MDM/mdm_archive_carrier.html": {
     "regions": 0,
     "status": "diff",
@@ -3313,6 +3320,13 @@
     "regions": 3,
     "status": "diff",
     "date": "2026-07-25"
+  },
+  "f092c9d|SCM/purchase_return_order.html": {
+    "before": "changelog-assets/f092c9d/SCM__purchase_return_order.html.before.jpg",
+    "after": "changelog-assets/f092c9d/SCM__purchase_return_order.html.after.jpg",
+    "regions": 7,
+    "status": "diff",
+    "date": "2026-08-03"
   },
   "f678bbd|user-app/h5/order-detail.html": {
     "regions": 0,

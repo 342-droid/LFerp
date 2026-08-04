@@ -1,6 +1,6 @@
 {
   "latestSha": "10d79148e72e48ec4aad481e62705e2df2887666",
-  "total": 220,
+  "total": 222,
   "days": [
     {
       "date": "2026-08-04",
@@ -80,12 +80,56 @@
               "text": "补充多状态自提核销演示单（售后过审禁核销等场景）"
             }
           ]
+        },
+        {
+          "sha": "79d9973",
+          "type": "feat",
+          "text": "完善仓退供来源采购单与门店退供拦截",
+          "author": "342-droid",
+          "time": "11:00",
+          "pages": [
+            {
+              "file": "SCM/purchase_return_order.html",
+              "module": "冷丰WMS",
+              "title": "退货单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/purchase_return_order.html",
+              "text": "仓退供必填来源采购单并按单号带出商品；门店退供拦截并提示走 APP 售后；演示单号可点选填入"
+            }
+          ]
         }
       ]
     },
     {
       "date": "2026-08-03",
       "items": [
+        {
+          "sha": "f092c9d",
+          "type": "feat",
+          "text": "完善退货单新增审核与状态流转",
+          "author": "342-droid",
+          "time": "19:10",
+          "pages": [
+            {
+              "file": "SCM/purchase_return_order.html",
+              "module": "冷丰WMS",
+              "title": "退货单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/purchase_return_order.html",
+              "text": "新增弹窗改为手动加商品并按退仓/退供限制退出地退入地；筛选列表详情增加退货类型与单据来源；待审核支持审核驳回，已驳回支持编辑重提与作废"
+            },
+            {
+              "file": null,
+              "text": "新增退货单状态机流转图，代采免审核直达待发货"
+            }
+          ]
+        },
         {
           "sha": "6c2378f",
           "type": "feat",
