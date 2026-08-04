@@ -1,7 +1,88 @@
 {
-  "latestSha": "6c2378f24538a4f4c81a63f0dfc17098a6b857c2",
-  "total": 219,
+  "latestSha": "10d79148e72e48ec4aad481e62705e2df2887666",
+  "total": 220,
   "days": [
+    {
+      "date": "2026-08-04",
+      "items": [
+        {
+          "sha": "10d7914",
+          "type": "feat",
+          "text": "新增经营中心并优化门店钱包与零售核销演示",
+          "author": "sisi",
+          "time": "11:57",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "module": "",
+              "title": "经营中心 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "module": "",
+              "title": "我的钱包 · 门店 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/home.html",
+              "text": "门店APP工作台: 门店钱包旁新增经营中心入口"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "text": "按推客中心视觉还原佣金与订单列表；订单Tab改为全部/待发货/待自提·待收货/已完成；履约方式为自提/快递；搜索支持会员码"
+            },
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "text": "账户总计卡片与白底账户明细排版；字段含支付流水；收入含平台佣金、支出含佣金回退；首次入金拆保证金与余额两笔；去掉流水详情浮层"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "text": "进货·我的: 保证金缺口改为保证金账户，元/张单位弱化"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "补充多状态自提核销演示单（售后过审禁核销等场景）"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-03",
       "items": [
@@ -316,6 +397,11 @@
               "title": "仓库档案"
             },
             {
+              "file": "store-app/h5/biz-center.html",
+              "module": "",
+              "title": "经营中心 · 门店APP"
+            },
+            {
               "file": "store-app/h5/home.html",
               "module": "",
               "title": "门店APP · 工作台"
@@ -333,13 +419,17 @@
             {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
-              "title": "门店钱包 · 门店 APP"
+              "title": "我的钱包 · 门店 APP"
             }
           ],
           "notes": [
             {
-              "file": "user-app/h5/store-wallet.html",
-              "text": "新增保证金/余额账户页与资金台账；store-app与进货「我的」可进入"
+              "file": null,
+              "text": "门店钱包: 新增保证金/余额账户页与资金台账"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "text": "store-app与进货「我的」可进入"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -2537,6 +2627,11 @@
           "time": "10:55",
           "pages": [
             {
+              "file": "store-app/h5/biz-center.html",
+              "module": "",
+              "title": "经营中心 · 门店APP"
+            },
+            {
               "file": "store-app/h5/home.html",
               "module": "",
               "title": "门店APP · 工作台"
@@ -3625,6 +3720,11 @@
               "file": "SCM/mobile_index.html",
               "module": "冷丰WMS",
               "title": "移动端"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "module": "",
+              "title": "经营中心 · 门店APP"
             },
             {
               "file": "store-app/h5/home.html",

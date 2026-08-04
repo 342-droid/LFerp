@@ -259,6 +259,55 @@
     "status": "diff",
     "date": "2026-07-30"
   },
+  "10d7914|MDM/mdm_archive_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-04"
+  },
+  "10d7914|MDM/mdm_order_live.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-04"
+  },
+  "10d7914|MDM/mdm_order_proxy.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-04"
+  },
+  "10d7914|MDM/mdm_order_retail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-04"
+  },
+  "10d7914|store-app/h5/biz-center.html": {
+    "after": "changelog-assets/10d7914/store-app__h5__biz-center.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-04"
+  },
+  "10d7914|store-app/h5/home.html": {
+    "before": "changelog-assets/10d7914/store-app__h5__home.html.before.jpg",
+    "after": "changelog-assets/10d7914/store-app__h5__home.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-08-04"
+  },
+  "10d7914|user-app/h5/checkout.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-04"
+  },
+  "10d7914|user-app/h5/restock.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-04"
+  },
+  "10d7914|user-app/h5/store-wallet.html": {
+    "before": "changelog-assets/10d7914/user-app__h5__store-wallet.html.before.jpg",
+    "after": "changelog-assets/10d7914/user-app__h5__store-wallet.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-08-04"
+  },
   "1113d6d|MDM/mdm_member_level.html": {
     "before": "changelog-assets/1113d6d/MDM__mdm_member_level.html.before.jpg",
     "after": "changelog-assets/1113d6d/MDM__mdm_member_level.html.after.jpg",
