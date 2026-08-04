@@ -77,9 +77,26 @@
     share: '分享APP',
     coupons: '优惠券',
     balance: '余额',
-    topup: '保证金缺口',
+    topup: '保证金账户',
     wallet: '我的钱包'
   };
+
+  function setWalletNum(el, value, unit) {
+    if (!el) return;
+    var valEl = el.querySelector('.ua-restock-me-wallet__val');
+    var unitEl = el.querySelector('.ua-restock-me-wallet__unit');
+    if (valEl && unitEl) {
+      valEl.textContent = String(value);
+      unitEl.textContent = unit;
+      return;
+    }
+    el.innerHTML =
+      '<span class="ua-restock-me-wallet__val">' +
+      String(value) +
+      '</span><span class="ua-restock-me-wallet__unit">' +
+      unit +
+      '</span>';
+  }
 
   function goLogin(nextTab) {
     var next = restockPageHref(nextTab ? 'tab=' + encodeURIComponent(nextTab) : '');
@@ -2059,23 +2076,28 @@
     if (loggedIn) {
       if (nameEl) nameEl.textContent = s.nickname || '会员用户';
       if (phoneEl) phoneEl.textContent = s.phoneMasked || s.phone || '';
-      if (couponsEl) couponsEl.textContent = String(s.couponCount != null ? s.couponCount : 0) + '张';
+      setWalletNum(couponsEl, s.couponCount != null ? s.couponCount : 0, '张');
       var walletSnap =
         window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function'
           ? window.StoreWalletDemo.snapshot()
           : null;
       if (balanceEl) {
         var bal = walletSnap ? walletSnap.available : s.balance != null ? s.balance : 0;
-        balanceEl.textContent = (typeof bal === 'number' ? bal.toFixed(2) : bal) + '元';
+        setWalletNum(balanceEl, typeof bal === 'number' ? bal.toFixed(2) : bal, '元');
       }
       if (topupEl) {
-        var top = walletSnap ? walletSnap.depositGap : s.topupAmount != null ? s.topupAmount : 0;
-        topupEl.textContent = (typeof top === 'number' ? top.toFixed(2) : top) + '元';
+        var deposit =
+          walletSnap && walletSnap.depositActual != null
+            ? walletSnap.depositActual
+            : s.topupAmount != null
+              ? s.topupAmount
+              : 0;
+        setWalletNum(topupEl, typeof deposit === 'number' ? deposit.toFixed(2) : deposit, '元');
       }
     } else {
-      if (couponsEl) couponsEl.textContent = '0张';
-      if (balanceEl) balanceEl.textContent = '0.00元';
-      if (topupEl) topupEl.textContent = '0.00元';
+      setWalletNum(couponsEl, '0', '张');
+      setWalletNum(balanceEl, '0.00', '元');
+      setWalletNum(topupEl, '0.00', '元');
     }
   }
 

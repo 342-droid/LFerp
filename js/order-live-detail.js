@@ -513,6 +513,270 @@
     }
   };
 
+  /**
+   * 自提核销 × 售后状态演示单（列表见 mdm_order_retail.html）
+   * 用于对照：待审批可确认关闭后核销；已过审禁核销；补货/终态不拦截
+   */
+  function buildPickupVerifyDemo(cfg) {
+    var qty = cfg.qty != null ? cfg.qty : 2;
+    var unitPrice = cfg.unitPrice || '¥29.90';
+    var subtotal = cfg.subtotal || '¥59.80';
+    var good = {
+      id: 'g1',
+      name: cfg.product,
+      spec: cfg.spec || '规格：见包装',
+      img: cfg.img || '../user-app/assets/order-product-1.svg',
+      spu: cfg.spu || 'SPU-DEMO…',
+      sku: cfg.sku || 'SKU-DEMO…',
+      barcode: cfg.barcode || '6901999000001',
+      weight: cfg.weight || '1.00',
+      price: unitPrice,
+      qty: String(qty),
+      pickedQty: cfg.pickedQty != null ? cfg.pickedQty : 0,
+      subtotal: subtotal,
+      marketing: cfg.marketing || '普通售卖'
+    };
+    if (cfg.aftersaleTag) good.aftersaleTag = cfg.aftersaleTag;
+    return {
+      displayId: cfg.id,
+      progress: {
+        completedSteps: 3,
+        outcome: null,
+        status: '待提货',
+        submitTime: cfg.submitTime
+      },
+      goods: [good],
+      amounts: {
+        goods: subtotal,
+        discount: '¥0.00',
+        shipping: '¥0.00',
+        payable: subtotal,
+        paid: subtotal,
+        merchant: subtotal,
+        refund: cfg.refundAmount || '¥0.00'
+      },
+      paymentCount: 1,
+      aftersales: cfg.aftersales || [],
+      customer: {
+        nickname: cfg.nickname || '演示用户',
+        phone: cfg.phone || '13800000000',
+        userId: cfg.userId || '318605592681799000'
+      },
+      delivery: {
+        type: 'SELF_PICKUP',
+        name: cfg.nickname || '演示用户',
+        phone: cfg.phone || '13800000000',
+        address: cfg.address || '浙江省杭州市西湖区文三路 90 号',
+        store: cfg.store || '华强北'
+      },
+      tags: {
+        channel: 'MINI_PROGRAM',
+        orderScene: cfg.scene || '商城',
+        payChannel: cfg.payChannel || '微信',
+        marketing: cfg.marketing || '普通售卖',
+        livePeriod: '-',
+        bd: '1',
+        settleStatus: '-',
+        commissionStatus: '-'
+      },
+      logs: [
+        {
+          time: cfg.submitTime,
+          type: 'create',
+          title: '订单已创建',
+          desc: '订单创建，金额 ' + subtotal + (cfg.demoNote ? '（' + cfg.demoNote + '）' : '')
+        },
+        {
+          time: cfg.arriveTime || cfg.submitTime,
+          type: 'arrival',
+          title: '商品已到提货点',
+          desc: '请尽快前往门店提货'
+        }
+      ],
+      clearingEmpty: true
+    };
+  }
+
+  var PICKUP_VERIFY_DEMOS = [
+    {
+      id: 'ORD-3212689201599101',
+      demoNote: '售后待审批·可核销并关闭售后',
+      product: '阳光番茄 500g',
+      img: '../user-app/assets/order-product-1.svg',
+      submitTime: '2026-06-06 09:10',
+      arriveTime: '2026-06-06 14:00',
+      nickname: '林小满',
+      phone: '13700001101',
+      payChannel: '微信',
+      aftersaleTag: '退款中',
+      aftersales: [{
+        id: 'AS-9101-1',
+        productName: '阳光番茄 500g',
+        type: '仅退款',
+        status: '待审批',
+        returnQty: 1,
+        refundAmount: '¥29.90',
+        refundCoupon: '¥0.00',
+        refundPoints: 0,
+        adjustAmount: '¥0.00'
+      }]
+    },
+    {
+      id: 'ORD-3212689201599102',
+      demoNote: '退货退款待退货·已过审禁核销',
+      product: '高山娃娃菜 400g',
+      img: '../user-app/assets/order-product-2.svg',
+      submitTime: '2026-06-06 09:22',
+      arriveTime: '2026-06-06 14:10',
+      nickname: '周可欣',
+      phone: '13700001102',
+      payChannel: '支付宝',
+      aftersaleTag: '退款中',
+      aftersales: [{
+        id: 'AS-9102-1',
+        productName: '高山娃娃菜 400g',
+        type: '退货退款',
+        status: '待退货',
+        returnQty: 1,
+        refundAmount: '¥29.90',
+        refundCoupon: '¥0.00',
+        refundPoints: 0,
+        adjustAmount: '¥0.00'
+      }]
+    },
+    {
+      id: 'ORD-3212689201599103',
+      demoNote: '退货退款待收货·已过审禁核销',
+      product: '紫薯 1kg',
+      img: '../user-app/assets/order-product-3.svg',
+      submitTime: '2026-06-06 09:35',
+      arriveTime: '2026-06-06 14:20',
+      nickname: '韩冬梅',
+      phone: '13700001103',
+      payChannel: '微信',
+      aftersaleTag: '退款中',
+      aftersales: [{
+        id: 'AS-9103-1',
+        productName: '紫薯 1kg',
+        type: '退货退款',
+        status: '待收货',
+        returnQty: 1,
+        refundAmount: '¥29.90',
+        refundCoupon: '¥0.00',
+        refundPoints: 0,
+        adjustAmount: '¥0.00'
+      }]
+    },
+    {
+      id: 'ORD-3212689201599104',
+      demoNote: '仅退款退款异常·已过审禁核销',
+      product: '西兰花 600g',
+      img: '../user-app/assets/order-detail-orange.svg',
+      submitTime: '2026-06-06 09:48',
+      arriveTime: '2026-06-06 14:30',
+      nickname: '陈晓东',
+      phone: '13700001104',
+      payChannel: '支付宝',
+      aftersaleTag: '退款中',
+      aftersales: [{
+        id: 'AS-9104-1',
+        productName: '西兰花 600g',
+        type: '仅退款',
+        status: '退款异常',
+        returnQty: 1,
+        refundAmount: '¥29.90',
+        refundCoupon: '¥0.00',
+        refundPoints: 0,
+        adjustAmount: '¥0.00'
+      }]
+    },
+    {
+      id: 'ORD-3212689201599105',
+      demoNote: '仅补货待收货·不拦截核销',
+      product: '奶油生菜 300g',
+      img: '../user-app/assets/order-product-1.svg',
+      submitTime: '2026-06-06 10:05',
+      arriveTime: '2026-06-06 15:00',
+      nickname: '顾清清',
+      phone: '13700001105',
+      payChannel: '微信',
+      aftersaleTag: '补发中',
+      aftersales: [{
+        id: 'AS-9105-1',
+        productName: '奶油生菜 300g',
+        type: '补货',
+        status: '待收货',
+        applyRestockQty: 1,
+        actualRestockQty: '-'
+      }]
+    },
+    {
+      id: 'ORD-3212689201599106',
+      demoNote: '无售后·正常核销',
+      product: '黄瓜 500g',
+      img: '../user-app/assets/order-product-2.svg',
+      submitTime: '2026-06-06 10:18',
+      arriveTime: '2026-06-06 15:10',
+      nickname: '马文博',
+      phone: '13700001106',
+      payChannel: '支付宝',
+      aftersales: []
+    },
+    {
+      id: 'ORD-3212689201599107',
+      demoNote: '退款已完成部分·不拦截核销',
+      product: '红颜草莓 250g',
+      img: '../user-app/assets/order-product-1.svg',
+      qty: 3,
+      unitPrice: '¥19.90',
+      subtotal: '¥59.70',
+      submitTime: '2026-06-06 10:30',
+      arriveTime: '2026-06-06 15:20',
+      nickname: '许念慈',
+      phone: '13700001107',
+      payChannel: '微信',
+      aftersaleTag: '部分退款',
+      refundAmount: '¥19.90',
+      aftersales: [{
+        id: 'AS-9107-1',
+        productName: '红颜草莓 250g',
+        type: '仅退款',
+        status: '已完成',
+        returnQty: 1,
+        refundAmount: '¥19.90',
+        refundCoupon: '¥0.00',
+        refundPoints: 0,
+        adjustAmount: '¥0.00'
+      }]
+    },
+    {
+      id: 'ORD-3212689201599108',
+      demoNote: '售后已拒绝·不拦截核销',
+      product: '甜玉米 2根',
+      img: '../user-app/assets/order-product-3.svg',
+      submitTime: '2026-06-06 10:42',
+      arriveTime: '2026-06-06 15:30',
+      nickname: '沈若兰',
+      phone: '13700001108',
+      payChannel: '支付宝',
+      aftersales: [{
+        id: 'AS-9108-1',
+        productName: '甜玉米 2根',
+        type: '仅退款',
+        status: '已拒绝',
+        returnQty: 1,
+        refundAmount: '¥29.90',
+        refundCoupon: '¥0.00',
+        refundPoints: 0,
+        adjustAmount: '¥0.00'
+      }]
+    }
+  ];
+
+  PICKUP_VERIFY_DEMOS.forEach(function (cfg) {
+    DETAILS[cfg.id] = buildPickupVerifyDemo(cfg);
+  });
+
   var MID_STEPS = ['提交订单', '运输中', '待收货', '待提货'];
   var PROXY_MID_STEPS = ['提交订单', '运输中', '待收货'];
 

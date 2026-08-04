@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>门店钱包 · 门店 APP</title>
+  <title>我的钱包 · 门店 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-store-wallet.css">
 </head>
@@ -28,35 +28,45 @@
         <a href="restock.html?from=store-app&tab=me" class="ua-sw-nav__back" id="swBack" aria-label="返回">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
         </a>
-        <h1 class="ua-sw-nav__title">门店钱包</h1>
+        <h1 class="ua-sw-nav__title">我的钱包</h1>
       </header>
 
       <div class="ua-sw-body">
-        <section class="ua-sw-card">
-          <div class="ua-sw-deposit">
-            <div>
-              <div class="ua-sw-deposit__label">保证金账户</div>
-              <div class="ua-sw-deposit__value" id="swDepositActual">¥0.00</div>
-              <div class="ua-sw-deposit__meta" id="swDepositMeta">应保有 ¥2,000 · 不可提现</div>
-            </div>
-            <span class="ua-sw-gap" id="swDepositGap">无缺口</span>
-          </div>
-        </section>
-
-        <section class="ua-sw-card ua-sw-card--balance">
-          <div class="ua-sw-balance__title">余额账户 · 可支付</div>
-          <div class="ua-sw-balance__main"><small>¥</small><span id="swAvailable">0.00</span></div>
-          <p class="ua-sw-balance__tip">进货可用此余额；入驻货款不可提现，佣金与后续充值可提现</p>
-          <div class="ua-sw-balance__grid">
-            <div class="ua-sw-balance__item">
-              <div class="ua-sw-balance__item-label">不可提现货款</div>
-              <div class="ua-sw-balance__item-value" id="swGoodsQuota">¥0.00</div>
-            </div>
-            <div class="ua-sw-balance__item">
-              <div class="ua-sw-balance__item-label">可提现</div>
-              <div class="ua-sw-balance__item-value" id="swWithdrawable">¥0.00</div>
+        <section class="ua-sw-overview" aria-label="账户总计">
+          <div class="ua-sw-overview__top">
+            <span class="ua-sw-overview__badge">账户总计</span>
+            <div class="ua-sw-overview__cols">
+              <div class="ua-sw-overview__col">
+                <div class="ua-sw-overview__big"><span id="swTotalAmount">0.00</span><small>元</small></div>
+                <div class="ua-sw-overview__sub">总金额</div>
+              </div>
+              <div class="ua-sw-overview__col">
+                <div class="ua-sw-overview__big"><span id="swTotalWithdrawable">0.00</span><small>元</small></div>
+                <div class="ua-sw-overview__sub">可提现金额</div>
+              </div>
             </div>
           </div>
+          <div class="ua-sw-overview__bottom">
+            <div class="ua-sw-overview__acct">
+              <div class="ua-sw-overview__acct-name">
+                保证金账户
+                <button type="button" class="ua-sw-overview__help" data-sw-help="deposit" aria-label="保证金账户说明">?</button>
+              </div>
+              <div class="ua-sw-overview__line">余额：¥<span id="swDepositActual">0.00</span></div>
+              <div class="ua-sw-overview__line">可提款：¥<span id="swDepositWithdrawable">0.00</span></div>
+              <div class="ua-sw-overview__line ua-sw-overview__line--muted" id="swDepositMeta">应保有 ¥2,000</div>
+            </div>
+            <div class="ua-sw-overview__acct">
+              <div class="ua-sw-overview__acct-name">
+                余额账户
+                <button type="button" class="ua-sw-overview__help" data-sw-help="balance" aria-label="余额账户说明">?</button>
+              </div>
+              <div class="ua-sw-overview__line">余额：¥<span id="swAvailable">0.00</span></div>
+              <div class="ua-sw-overview__line">可提款：¥<span id="swWithdrawable">0.00</span></div>
+              <div class="ua-sw-overview__line ua-sw-overview__line--muted">不可提现货款 ¥<span id="swGoodsQuota">0.00</span></div>
+            </div>
+          </div>
+          <span id="swDepositGap" hidden></span>
         </section>
 
         <div class="ua-sw-actions">
@@ -65,27 +75,19 @@
         </div>
 
         <div class="ua-sw-ledger-head">
-          <h2 class="ua-sw-ledger-head__title">资金台账</h2>
+          <h2 class="ua-sw-ledger-head__title">账户明细</h2>
           <button type="button" class="ua-sw-ledger-head__reset" id="swResetDemo" hidden>重置演示数据</button>
         </div>
         <div class="ua-sw-tabs" role="tablist">
           <button type="button" class="is-active" data-sw-tab="all">全部</button>
-          <button type="button" data-sw-tab="in">收入</button>
-          <button type="button" data-sw-tab="out">支出</button>
+          <button type="button" data-sw-tab="in" title="含平台佣金等入账">收入</button>
+          <button type="button" data-sw-tab="out" title="含佣金回退等支出">支出</button>
           <button type="button" data-sw-tab="lock">锁定/补齐</button>
         </div>
         <section class="ua-sw-list-card" id="swLedgerList"></section>
       </div>
     </div>
 
-    <div class="ua-sw-sheet" id="swDetailSheet" hidden>
-      <div class="ua-sw-sheet__mask" data-sw-close></div>
-      <div class="ua-sw-sheet__panel">
-        <h3 class="ua-sw-sheet__title" id="swDetailTitle">流水详情</h3>
-        <div id="swDetailBody"></div>
-        <button type="button" class="ua-sw-sheet__close" data-sw-close>关闭</button>
-      </div>
-    </div>
   </div>
   <script src="../../js/store-wallet-demo.js"></script>
   <script src="../js/user-app-store-wallet.js"></script>

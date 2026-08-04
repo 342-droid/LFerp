@@ -11,26 +11,23 @@
 
   function renderSummary() {
     snap = api.snapshot();
-    var depEl = document.getElementById('swDepositActual');
-    var metaEl = document.getElementById('swDepositMeta');
-    var gapEl = document.getElementById('swDepositGap');
-    if (depEl) depEl.textContent = api.money(snap.depositActual);
-    if (metaEl) {
-      metaEl.textContent =
-        '应保有 ' + api.money(snap.depositRequired) + ' · 不可提现 · 售后问责/佣金回退';
-    }
-    if (gapEl) {
-      if (snap.depositGap > 0) {
-        gapEl.textContent = '缺口 ' + api.money(snap.depositGap);
-        gapEl.classList.add('is-warn');
-      } else {
-        gapEl.textContent = '无缺口';
-        gapEl.classList.remove('is-warn');
-      }
-    }
+    var total = Number(snap.depositActual || 0) + Number(snap.available || 0);
+    var totalWithdraw = Number(snap.withdrawable || 0);
+    setText('swTotalAmount', moneyPlain(total));
+    setText('swTotalWithdrawable', moneyPlain(totalWithdraw));
+    setText('swDepositActual', moneyPlain(snap.depositActual));
+    setText('swDepositWithdrawable', '0.00');
     setText('swAvailable', moneyPlain(snap.available));
-    setText('swGoodsQuota', api.money(snap.goodsQuota));
-    setText('swWithdrawable', api.money(snap.withdrawable));
+    setText('swWithdrawable', moneyPlain(snap.withdrawable));
+    setText('swGoodsQuota', moneyPlain(snap.goodsQuota));
+    var metaEl = document.getElementById('swDepositMeta');
+    if (metaEl) {
+      var gap = Number(snap.depositGap || 0);
+      metaEl.textContent =
+        '应保有 ¥' +
+        moneyPlain(snap.depositRequired) +
+        (gap > 0 ? ' · 缺口 ¥' + moneyPlain(gap) : '');
+    }
   }
 
   function setText(id, text) {
@@ -38,10 +35,19 @@
     if (el) el.textContent = text;
   }
 
+  /** 收入含平台佣金；支出含佣金回退 */
+  var INCOME_TYPES = ['平台佣金', '佣金入账', '首次入金', '充值', '支付退回'];
+  var EXPENSE_TYPES = ['佣金回退', '余额支付', '售后问责', '提现申请'];
+
   function matchTab(item) {
     if (tab === 'all') return true;
-    if (tab === 'in') return item.dir === 'in';
-    if (tab === 'out') return item.dir === 'out';
+    var type = String(item.type || '');
+    if (tab === 'in') {
+      return item.dir === 'in' || INCOME_TYPES.indexOf(type) >= 0;
+    }
+    if (tab === 'out') {
+      return item.dir === 'out' || EXPENSE_TYPES.indexOf(type) >= 0;
+    }
     if (tab === 'lock') return item.dir === 'lock';
     return true;
   }
@@ -58,6 +64,51 @@
     return '';
   }
 
+  function accountLabel(account) {
+    var a = String(account || '');
+    if (a.indexOf('保证金') >= 0 && a.indexOf('余额') >= 0) return '保证金账户/余额账户';
+    if (a.indexOf('保证金') >= 0) return '保证金账户';
+    if (a.indexOf('余额') >= 0) return '余额账户';
+    return a || '—';
+  }
+
+  function ledgerStatus(item) {
+    if (item.type === '提现申请') {
+      return { text: '处理中', cls: 'is-pending', action: '' };
+    }
+    if (item.dir === 'lock') {
+      return { text: '已锁定', cls: 'is-lock', action: '' };
+    }
+    if (item.type === '余额支付') {
+      return { text: '支付成功', cls: 'is-ok', action: '' };
+    }
+    if (item.type === '平台佣金' || item.type === '佣金入账') {
+      return { text: '入账成功', cls: 'is-ok', action: '' };
+    }
+    if (item.type === '佣金回退') {
+      return { text: '已回退', cls: '', action: '' };
+    }
+    if (item.dir === 'in') {
+      return { text: '入账成功', cls: 'is-ok', action: '' };
+    }
+    return { text: '已完成', cls: '', action: '' };
+  }
+
+  function formatShortTime(t) {
+    var s = String(t || '');
+    var m = s.match(/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}:\d{2})/);
+    if (m) return m[2] + '.' + m[3] + ' ' + m[4];
+    return s;
+  }
+
+  function escHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
   function renderList() {
     var host = document.getElementById('swLedgerList');
     if (!host) return;
@@ -68,67 +119,57 @@
     }
     host.innerHTML = list
       .map(function (item) {
+        var st = ledgerStatus(item);
+        var biz = item.bizNo || item.id;
         return (
-          '<button type="button" class="ua-sw-ledger" data-ledger-id="' +
-          item.id +
+          '<article class="ua-sw-ledger" data-ledger-id="' +
+          escHtml(item.id) +
           '">' +
-          '<div>' +
-          '<div class="ua-sw-ledger__title">' +
-          item.type +
-          ' · ' +
-          item.account +
+          '<div class="ua-sw-ledger__head">' +
+          '<div class="ua-sw-ledger__id"><em>业务单号:</em>' +
+          escHtml(biz) +
           '</div>' +
-          '<div class="ua-sw-ledger__sub">' +
-          item.time +
-          '<br>' +
-          (item.remark || item.bizNo || '') +
+          '<button type="button" class="ua-sw-ledger__copy" data-sw-copy="' +
+          escHtml(biz) +
+          '" aria-label="复制业务单号">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">' +
+          '<rect x="8" y="8" width="11" height="11" rx="2"/>' +
+          '<path d="M6 16H5a2 2 0 01-2-2V5a2 2 0 012-2h9a2 2 0 012 2v1"/>' +
+          '</svg></button>' +
           '</div>' +
-          '</div>' +
-          '<div class="ua-sw-ledger__amt ' +
+          '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">金额</span>' +
+          '<span class="ua-sw-ledger__v ' +
           amtClass(item.dir) +
           '">' +
           amtPrefix(item.dir) +
           api.money(item.amount) +
+          '</span></div>' +
+          '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">业务类型</span>' +
+          '<span class="ua-sw-ledger__v">' +
+          escHtml(item.type) +
+          '</span></div>' +
+          '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">账户</span>' +
+          '<span class="ua-sw-ledger__v">' +
+          escHtml(accountLabel(item.account)) +
+          '</span></div>' +
+          '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">支付流水</span>' +
+          '<span class="ua-sw-ledger__v">' +
+          escHtml(item.channelNo || '—') +
+          '</span></div>' +
+          '<div class="ua-sw-ledger__foot">' +
+          '<span class="ua-sw-ledger__time">' +
+          escHtml(formatShortTime(item.time)) +
+          '</span>' +
+          '<span class="ua-sw-ledger__status ' +
+          st.cls +
+          '">' +
+          escHtml(st.text) +
+          '</span>' +
           '</div>' +
-          '</button>'
+          '</article>'
         );
       })
       .join('');
-  }
-
-  function openDetail(id) {
-    var item = (snap.ledgers || []).find(function (x) {
-      return x.id === id;
-    });
-    if (!item) return;
-    var sheet = document.getElementById('swDetailSheet');
-    var title = document.getElementById('swDetailTitle');
-    var body = document.getElementById('swDetailBody');
-    if (!sheet || !body) return;
-    if (title) title.textContent = item.type;
-    var rows =
-      row('时间', item.time) +
-      row('账户', item.account) +
-      row('金额', amtPrefix(item.dir) + api.money(item.amount)) +
-      row('业务单号', item.bizNo || '—') +
-      row('渠道流水', item.channelNo || '—') +
-      row('说明', item.remark || '—');
-    if (item.detailEvents && item.detailEvents.length) {
-      rows +=
-        '<div class="ua-sw-sheet__events"><h4>资金事件</h4>' +
-        item.detailEvents
-          .map(function (ev) {
-            return '<div class="ua-sw-sheet__row"><span>' + ev.name + '</span><span>' + api.money(ev.amount) + '</span></div>';
-          })
-          .join('') +
-        '</div>';
-    }
-    body.innerHTML = rows;
-    sheet.hidden = false;
-  }
-
-  function row(k, v) {
-    return '<div class="ua-sw-sheet__row"><span>' + k + '</span><span>' + v + '</span></div>';
   }
 
   function bind() {
@@ -138,10 +179,25 @@
     if (back) {
       if (from === 'store-app') {
         back.setAttribute('href', '../../store-app/h5/home.html');
+      } else if (from.indexOf('biz-center') >= 0) {
+        back.setAttribute('href', '../../store-app/h5/biz-center.html');
       } else if (from.indexOf('restock') >= 0) {
         back.setAttribute('href', 'restock.html?from=store-app&tab=me');
       }
     }
+
+    document.querySelectorAll('[data-sw-help]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var kind = btn.getAttribute('data-sw-help');
+        if (kind === 'deposit') {
+          window.alert('保证金账户：入驻锁定资金，不可提现；售后问责/佣金回退可能占用；有缺口时入账优先补齐。');
+          return;
+        }
+        if (kind === 'balance') {
+          window.alert('余额账户：进货可支付；不可提现货款 + 可提现余额；佣金与后续充值计入可提现。');
+        }
+      });
+    });
 
     document.querySelectorAll('[data-sw-tab]').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -155,17 +211,24 @@
 
     document.getElementById('swLedgerList') &&
       document.getElementById('swLedgerList').addEventListener('click', function (e) {
-        var btn = e.target.closest('[data-ledger-id]');
-        if (!btn) return;
-        openDetail(btn.getAttribute('data-ledger-id'));
+        var copyBtn = e.target.closest('[data-sw-copy]');
+        if (!copyBtn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        var text = copyBtn.getAttribute('data-sw-copy') || '';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(
+            function () {
+              window.alert('已复制业务单号');
+            },
+            function () {
+              window.alert(text);
+            }
+          );
+        } else {
+          window.alert('已复制：' + text);
+        }
       });
-
-    document.querySelectorAll('[data-sw-close]').forEach(function (el) {
-      el.addEventListener('click', function () {
-        var sheet = document.getElementById('swDetailSheet');
-        if (sheet) sheet.hidden = true;
-      });
-    });
 
     document.getElementById('swRechargeBtn') &&
       document.getElementById('swRechargeBtn').addEventListener('click', function () {
