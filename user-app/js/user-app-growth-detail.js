@@ -1,5 +1,5 @@
 /**
- * 用户 APP — 我的成长值（明细 + 按月筛选）
+ * 用户 APP — 我的成长值（明细 + 年/月二级筛选，最大支持按年）
  */
 (function () {
   var RULE_STORAGE_KEY = 'mdm_member_level_growth_rule_v1';
@@ -14,9 +14,12 @@
     manual: '手工调整'
   };
 
-  var SUB_LABEL = {
-    order_complete: '订单完成',
+  /* 与 js/mdm-member-growth-acquire.js 保持一致：支付完成 / 交易完成 / 售后完成 */
+  var SUB_LABEL = (window.MdmMemberGrowthAcquire && window.MdmMemberGrowthAcquire.SUB_LABEL) || {
+    payment_complete: '支付完成',
+    trade_complete: '交易完成',
     aftersale_complete: '售后完成',
+    order_complete: '交易完成',
     signin: '每日签到',
     browse: '浏览商品',
     share: '分享邀请',
@@ -27,20 +30,22 @@
 
   /** 当前用户成长值明细（原型演示） */
   var DETAIL_LIST = [
-    { id: '1', title: '站内活跃', sub: 'signin', type: 'activity', change: 10, date: '2026-07-21' },
-    { id: '2', title: '购物消费', sub: 'order_complete', type: 'consume', change: 86, date: '2026-07-18' },
-    { id: '3', title: '站内活跃', sub: 'browse', type: 'activity', change: 1, date: '2026-07-16' },
-    { id: '4', title: '站内活跃', sub: 'review', type: 'activity', change: 10, date: '2026-07-12' },
-    { id: '5', title: '购物消费', sub: 'order_complete', type: 'consume', change: 129, date: '2026-06-28' },
-    { id: '6', title: '站内活跃', sub: 'signin', type: 'activity', change: 5, date: '2026-06-20' },
-    { id: '7', title: '购物消费', sub: 'aftersale_complete', type: 'consume', change: -30, date: '2026-06-15' },
-    { id: '8', title: '站内活跃', sub: 'signin', type: 'activity', change: 5, date: '2026-05-08' }
+    { id: '1', title: '站内活跃', sub: 'signin', type: 'activity', change: 10, date: '2026-07-21', status: '有效' },
+    { id: '2', title: '购物消费', sub: 'payment_complete', type: 'consume', change: 86, date: '2026-07-18', status: '有效' },
+    { id: '3', title: '站内活跃', sub: 'browse', type: 'activity', change: 1, date: '2026-07-16', status: '有效' },
+    { id: '4', title: '站内活跃', sub: 'review', type: 'activity', change: 10, date: '2026-07-12', status: '有效' },
+    { id: '5', title: '购物消费', sub: 'trade_complete', type: 'consume', change: 129, date: '2026-06-28', status: '有效' },
+    { id: '6', title: '站内活跃', sub: 'signin', type: 'activity', change: 5, date: '2026-06-20', status: '有效' },
+    { id: '7', title: '购物消费', sub: 'aftersale_complete', type: 'consume', change: -30, date: '2026-06-15', status: '有效' },
+    { id: '8', title: '站内活跃', sub: 'signin', type: 'activity', change: 5, date: '2026-05-08', status: '有效' },
+    { id: '9', title: '购物消费', sub: 'payment_complete', type: 'consume', change: 58, date: '2025-12-18', status: '过期' },
+    { id: '10', title: '站内活跃', sub: 'signin', type: 'activity', change: 5, date: '2025-11-02', status: '过期' },
+    { id: '11', title: '站内活跃', sub: 'share', type: 'activity', change: 20, date: '2025-08-20', status: '过期' }
   ];
 
   var state = {
     year: 2026,
-    month: 7,
-    panelOpen: false
+    month: 0 /* 0 = 全年，最大按年筛选 */
   };
 
   function pad(n) {
@@ -89,64 +94,100 @@
     return year + '-' + pad(month);
   }
 
-  function parseMonthKey(key) {
-    var p = String(key).split('-');
-    return { year: Number(p[0]), month: Number(p[1]) };
-  }
-
-  function collectMonths() {
+  /** 年 -> 可用月份列表（二级联动） */
+  function buildYearMonthMap() {
     var map = {};
     DETAIL_LIST.forEach(function (it) {
-      var key = String(it.date).slice(0, 7);
-      map[key] = true;
+      var y = String(it.date).slice(0, 4);
+      var m = Number(String(it.date).slice(5, 7));
+      if (!map[y]) map[y] = {};
+      map[y][m] = true;
     });
-    var nowKey = monthKey(state.year, state.month);
-    map[nowKey] = true;
-    return Object.keys(map).sort().reverse();
+    var cy = String(state.year);
+    if (!map[cy]) map[cy] = {};
+    if (state.month > 0) map[cy][state.month] = true;
+    Object.keys(map).forEach(function (y) {
+      map[y] = Object.keys(map[y])
+        .map(Number)
+        .sort(function (a, b) {
+          return b - a;
+        });
+    });
+    return map;
   }
 
-  function filterByMonth(year, month) {
-    var prefix = monthKey(year, month);
+  function getFiltered() {
     return DETAIL_LIST.filter(function (it) {
-      return String(it.date).slice(0, 7) === prefix;
+      var date = String(it.date);
+      if (date.slice(0, 4) !== String(state.year)) return false;
+      if (state.month > 0 && date.slice(0, 7) !== monthKey(state.year, state.month)) return false;
+      return true;
     }).sort(function (a, b) {
       return String(b.date).localeCompare(String(a.date));
     });
   }
 
-  function renderMonthLabel() {
-    var el = document.getElementById('gdMonthLabel');
-    if (el) el.textContent = state.year + '年' + state.month + '月';
+  function fillSelect(sel, options, selected) {
+    if (!sel) return;
+    sel.innerHTML = options
+      .map(function (opt) {
+        var selectedAttr = String(opt.value) === String(selected) ? ' selected' : '';
+        return (
+          '<option value="' +
+          opt.value +
+          '"' +
+          selectedAttr +
+          '>' +
+          opt.label +
+          '</option>'
+        );
+      })
+      .join('');
   }
 
-  function renderMonthPanel() {
-    var panel = document.getElementById('gdMonthPanel');
-    if (!panel) return;
-    var months = collectMonths();
-    var active = monthKey(state.year, state.month);
-    panel.innerHTML = months.map(function (key) {
-      var m = parseMonthKey(key);
-      var label = m.year + '年' + m.month + '月';
-      var cls = key === active ? 'ua-gd-month__option is-active' : 'ua-gd-month__option';
-      return '<button type="button" class="' + cls + '" data-month="' + key + '">' + label + '</button>';
-    }).join('');
+  function renderYearSelect(yearMonthMap) {
+    var years = Object.keys(yearMonthMap).sort().reverse();
+    if (years.indexOf(String(state.year)) < 0) {
+      state.year = Number(years[0]) || state.year;
+    }
+    fillSelect(
+      document.getElementById('gdYearSelect'),
+      years.map(function (y) {
+        return { value: y, label: y + '年' };
+      }),
+      state.year
+    );
   }
 
-  function setPanelOpen(open) {
-    state.panelOpen = !!open;
-    var panel = document.getElementById('gdMonthPanel');
-    var trigger = document.getElementById('gdMonthTrigger');
-    if (panel) panel.hidden = !state.panelOpen;
-    if (trigger) trigger.setAttribute('aria-expanded', state.panelOpen ? 'true' : 'false');
+  function renderMonthSelect(yearMonthMap) {
+    var months = yearMonthMap[String(state.year)] || [];
+    var options = [{ value: 0, label: '全年' }].concat(
+      months.map(function (m) {
+        return { value: m, label: m + '月' };
+      })
+    );
+    if (state.month > 0 && months.indexOf(state.month) < 0) {
+      state.month = 0;
+    }
+    fillSelect(document.getElementById('gdMonthSelect'), options, state.month);
+  }
+
+  function statusClass(status) {
+    if (status === '有效') return 'ua-gd-item__status ua-gd-item__status--valid';
+    if (status === '过期') return 'ua-gd-item__status ua-gd-item__status--expired';
+    return 'ua-gd-item__status';
   }
 
   function renderList() {
     var list = document.getElementById('gdList');
     var end = document.getElementById('gdEnd');
     if (!list) return;
-    var rows = filterByMonth(state.year, state.month);
+    var rows = getFiltered();
     if (!rows.length) {
-      list.innerHTML = '<div class="ua-gd-empty">本月暂无成长值明细</div>';
+      list.innerHTML =
+        '<div class="ua-gd-empty">' +
+        (state.month > 0 ? '本月' : '本年') +
+        '暂无成长值明细</div>';
       if (end) end.hidden = true;
       return;
     }
@@ -154,18 +195,38 @@
       var change = Number(it.change) || 0;
       var changeText = (change > 0 ? '+' : '') + change;
       var changeCls = change < 0 ? 'ua-gd-item__change is-minus' : 'ua-gd-item__change';
-      var subHint = SUB_LABEL[it.sub] ? ' · ' + SUB_LABEL[it.sub] : '';
+      var subHint = '';
+      if (window.MdmMemberGrowthAcquire && typeof window.MdmMemberGrowthAcquire.labelOf === 'function') {
+        var subText = window.MdmMemberGrowthAcquire.labelOf(it.sub);
+        if (subText && subText !== '—') subHint = ' · ' + subText;
+      } else if (SUB_LABEL[it.sub]) {
+        subHint = ' · ' + SUB_LABEL[it.sub];
+      }
+      var statusText = it.status || '有效';
       return (
         '<article class="ua-gd-item">' +
         '  <div class="ua-gd-item__meta">' +
         '    <div class="ua-gd-item__title">' + itemTitle(it) + subHint + '</div>' +
         '    <div class="ua-gd-item__date">' + formatDotDate(it.date) + '</div>' +
         '  </div>' +
-        '  <div class="' + changeCls + '">' + changeText + '</div>' +
+        '  <div class="ua-gd-item__right">' +
+        '    <div class="' + changeCls + '">' + changeText + '</div>' +
+        '    <span class="' + statusClass(statusText) + '">' + statusText + '</span>' +
+        '  </div>' +
         '</article>'
       );
     }).join('');
     if (end) end.hidden = false;
+  }
+
+  function refreshFiltersAndList(keepMonth) {
+    var yearMonthMap = buildYearMonthMap();
+    renderYearSelect(yearMonthMap);
+    if (!keepMonth) {
+      state.month = 0;
+    }
+    renderMonthSelect(yearMonthMap);
+    renderList();
   }
 
   function init() {
@@ -185,57 +246,20 @@
     if (totalEl) totalEl.textContent = String(CURRENT_USER.growthValue);
     if (rangeEl) rangeEl.textContent = computeValidRange(rule);
 
-    renderMonthLabel();
-    renderMonthPanel();
-    renderList();
+    refreshFiltersAndList(true);
 
-    var trigger = document.getElementById('gdMonthTrigger');
-    var panel = document.getElementById('gdMonthPanel');
-    var wrap = document.getElementById('gdMonthWrap');
-
-    if (trigger) {
-      trigger.addEventListener('click', function (e) {
-        e.stopPropagation();
-        setPanelOpen(!state.panelOpen);
+    var yearSel = document.getElementById('gdYearSelect');
+    var monthSel = document.getElementById('gdMonthSelect');
+    if (yearSel) {
+      yearSel.addEventListener('change', function () {
+        state.year = Number(yearSel.value) || state.year;
+        refreshFiltersAndList(false);
       });
     }
-    if (panel) {
-      panel.addEventListener('click', function (e) {
-        var btn = e.target.closest('[data-month]');
-        if (!btn) return;
-        var m = parseMonthKey(btn.getAttribute('data-month'));
-        state.year = m.year;
-        state.month = m.month;
-        renderMonthLabel();
-        renderMonthPanel();
+    if (monthSel) {
+      monthSel.addEventListener('change', function () {
+        state.month = Number(monthSel.value) || 0;
         renderList();
-        setPanelOpen(false);
-      });
-    }
-    document.addEventListener('click', function (e) {
-      if (!state.panelOpen) return;
-      if (wrap && wrap.contains(e.target)) return;
-      setPanelOpen(false);
-    });
-
-    var infoBtn = document.getElementById('gdInfoBtn');
-    var tipEl = document.getElementById('gdInfoTip');
-    var titleWrap = document.getElementById('gdDetailTitle');
-    if (tipEl) {
-      if (rule.validityType === 'permanent') {
-        tipEl.textContent = '成长值永久有效，失效的成长值将不再明细中展示。';
-      } else {
-        tipEl.textContent =
-          '成长值有效期为获取后' + (rule.validityDays || 365) + '天，失效的成长值将不再明细中展示。';
-      }
-    }
-    if (infoBtn && titleWrap) {
-      infoBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        titleWrap.classList.toggle('is-tip-open');
-      });
-      document.addEventListener('click', function (e) {
-        if (!titleWrap.contains(e.target)) titleWrap.classList.remove('is-tip-open');
       });
     }
   }

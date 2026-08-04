@@ -8,19 +8,20 @@
         validityDays: 365
     };
 
-    var ACTIVITY_SUBS = [
+    var ACTIVITY_SUBS = (window.MdmMemberGrowthAcquire && window.MdmMemberGrowthAcquire.ACTIVITY_SUBS) || [
         { value: 'signin', label: '每日签到' },
         { value: 'browse', label: '浏览商品' },
         { value: 'share', label: '分享邀请' },
         { value: 'review', label: '评价订单' }
     ];
 
-    var CONSUME_SUBS = [
-        { value: 'order_complete', label: '订单完成' },
+    var CONSUME_SUBS = (window.MdmMemberGrowthAcquire && window.MdmMemberGrowthAcquire.CONSUME_SUBS) || [
+        { value: 'payment_complete', label: '支付完成' },
+        { value: 'trade_complete', label: '交易完成' },
         { value: 'aftersale_complete', label: '售后完成' }
     ];
 
-    var MANUAL_SUBS = [
+    var MANUAL_SUBS = (window.MdmMemberGrowthAcquire && window.MdmMemberGrowthAcquire.MANUAL_SUBS) || [
         { value: 'manual_add', label: '手工增加' },
         { value: 'manual_sub', label: '手工减少' }
     ];
@@ -31,9 +32,11 @@
         manual: '手工调整'
     };
 
-    var SUB_LABEL = {
-        order_complete: '订单完成',
+    var SUB_LABEL = (window.MdmMemberGrowthAcquire && window.MdmMemberGrowthAcquire.SUB_LABEL) || {
+        payment_complete: '支付完成',
+        trade_complete: '交易完成',
         aftersale_complete: '售后完成',
+        order_complete: '交易完成',
         signin: '每日签到',
         browse: '浏览商品',
         share: '分享邀请',
@@ -63,7 +66,7 @@
                 nickname: '小程序用户A',
                 phone: '138****2211',
                 acquireType: 'consume',
-                acquireSub: 'order_complete',
+                acquireSub: 'payment_complete',
                 change: 86,
                 afterValue: 2860,
                 refNo: 'ORD-3212689201598341',
@@ -91,7 +94,7 @@
                 nickname: 'APP会员B',
                 phone: '139****9033',
                 acquireType: 'consume',
-                acquireSub: 'order_complete',
+                acquireSub: 'trade_complete',
                 change: 129,
                 afterValue: 5420,
                 refNo: 'ORD-3212689201588561',
@@ -217,7 +220,7 @@
                 nickname: 'APP会员B',
                 phone: '139****9033',
                 acquireType: 'consume',
-                acquireSub: 'order_complete',
+                acquireSub: 'trade_complete',
                 change: 55,
                 afterValue: 3290,
                 refNo: 'ORD-3212689201588561-B',
@@ -392,13 +395,6 @@
         return '超级管理员 / admin';
     }
 
-    function findById(id) {
-        for (var i = 0; i < state.list.length; i++) {
-            if (state.list[i].id === id) return state.list[i];
-        }
-        return null;
-    }
-
     function getLatestAfterValue(memberId) {
         var rows = state.list.filter(function (it) { return it.memberId === memberId; })
             .sort(function (a, b) {
@@ -481,7 +477,7 @@
         var href = '';
         if (item.acquireSub === 'aftersale_complete') {
             href = pageHref('mdm_aftersale_ticket_detail.html') + '?id=' + encodeURIComponent(item.refNo);
-        } else if (item.acquireSub === 'order_complete') {
+        } else if (item.acquireSub === 'payment_complete' || item.acquireSub === 'trade_complete' || item.acquireSub === 'order_complete') {
             href = pageHref('mdm_order_retail.html') + '?orderId=' + encodeURIComponent(item.refNo);
         } else {
             return escapeHtml(item.refNo);
@@ -788,7 +784,6 @@
                 '<td>' + escapeHtml(formatExpireDisplay(item)) + '</td>' +
                 '<td><span class="status ' + statusClass + '">' + escapeHtml(item.status) + '</span></td>' +
                 '<td>' + escapeHtml(operatorText) + '</td>' +
-                '<td class="action-links"><a href="#" data-action="adjust">调整</a></td>' +
                 '</tr>'
             );
         }).join('');
@@ -922,19 +917,6 @@
             });
         }
 
-        var tbody = document.getElementById('tableBody');
-        if (tbody) {
-            tbody.addEventListener('click', function (ev) {
-                var link = ev.target.closest('a[data-action="adjust"]');
-                if (!link) return;
-                ev.preventDefault();
-                var row = link.closest('tr[data-id]');
-                if (!row) return;
-                var item = findById(row.getAttribute('data-id'));
-                if (!item) return;
-                openAdjustModal(item);
-            });
-        }
     }
 
     document.addEventListener('DOMContentLoaded', function () {

@@ -20,6 +20,13 @@
         exclude_category: '排除类目'
     };
 
+    /** 进入直播间特效样式 */
+    var LIVE_ENTRY_EFFECT_LABEL = {
+        banner: '欢迎横幅',
+        vehicle: '进场座驾',
+        fullscreen: '全屏特效'
+    };
+
     function levelIconSvg(bg, fg, label) {
         var svg =
             '<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72">' +
@@ -54,15 +61,20 @@
             item.memberDiscountEnabled = item.memberDiscount != null && Number(item.memberDiscount) < 100;
         }
         if (item.pointsRatioEnabled == null) {
-            item.pointsRatioEnabled = item.pointsRatio != null && Number(item.pointsRatio) !== 100;
+            item.pointsRatioEnabled = item.pointsRatio != null && Number(item.pointsRatio) > 100;
         }
         if (item.birthdayEnabled == null) item.birthdayEnabled = false;
+        if (item.liveEntryEffectEnabled == null) item.liveEntryEffectEnabled = false;
+        if (!item.liveEntryEffectType || !LIVE_ENTRY_EFFECT_LABEL[item.liveEntryEffectType]) {
+            item.liveEntryEffectType = 'banner';
+        }
 
         item.giftPointsDesc = item.giftPointsDesc || '';
         item.giftCouponDesc = item.giftCouponDesc || '';
         item.memberDiscountDesc = item.memberDiscountDesc || '';
         item.pointsRatioDesc = item.pointsRatioDesc || '';
         item.birthdayDesc = item.birthdayDesc || '';
+        item.liveEntryEffectDesc = item.liveEntryEffectDesc || '';
         item.discountScope = normalizeDiscountScope(item.discountScope);
         if (!item.giftCouponMode) item.giftCouponMode = 'total';
         /* 生日送券仅生日月每年一次，统一为 total，不再使用每月/每日 */
@@ -97,6 +109,9 @@
                 birthdayCouponMode: 'total',
                 birthdayCoupons: [],
                 birthdayDesc: '',
+                liveEntryEffectEnabled: false,
+                liveEntryEffectType: 'banner',
+                liveEntryEffectDesc: '',
                 memberCount: 5620,
                 updatedAt: '2026-04-15 09:12:08',
                 status: '启用'
@@ -130,6 +145,9 @@
                     { coupon: '免运费券', qty: 1 }
                 ],
                 birthdayDesc: '生日当月可领取',
+                liveEntryEffectEnabled: true,
+                liveEntryEffectType: 'banner',
+                liveEntryEffectDesc: '进场展示银色欢迎横幅',
                 memberCount: 1280,
                 updatedAt: '2026-04-18 15:30:44',
                 status: '启用'
@@ -164,6 +182,9 @@
                 birthdayCouponMode: 'total',
                 birthdayCoupons: [{ coupon: '生日专属券', qty: 2 }],
                 birthdayDesc: '',
+                liveEntryEffectEnabled: true,
+                liveEntryEffectType: 'vehicle',
+                liveEntryEffectDesc: '进场展示金牌座驾特效',
                 memberCount: 312,
                 updatedAt: '2026-04-20 10:22:11',
                 status: '启用'
@@ -205,6 +226,9 @@
                     { coupon: '满200减30券', qty: 1 }
                 ],
                 birthdayDesc: '',
+                liveEntryEffectEnabled: true,
+                liveEntryEffectType: 'fullscreen',
+                liveEntryEffectDesc: '进场展示钻石全屏特效',
                 memberCount: 86,
                 updatedAt: '2026-04-20 10:22:11',
                 status: '启用'
@@ -278,11 +302,15 @@
             parts.push('会员折扣：' + disc);
         }
         if (item.pointsRatioEnabled) {
-            parts.push('积分倍率：' + (item.pointsRatio / 100).toFixed(2).replace(/\.?0+$/, '') + ' 倍');
+            parts.push('消费积分等级赠送比例：' + (item.pointsRatio / 100).toFixed(2).replace(/\.?0+$/, '') + ' 倍');
         }
         if (item.birthdayEnabled) {
             var birthText = formatBirthdayCouponList(item.birthdayCoupons);
             parts.push(birthText ? '生日送券：生日月赠送：' + birthText : '生日送券：已开启');
+        }
+        if (item.liveEntryEffectEnabled) {
+            var effectName = LIVE_ENTRY_EFFECT_LABEL[item.liveEntryEffectType] || '欢迎横幅';
+            parts.push('进入直播间特效：' + effectName);
         }
         if (!parts.length) {
             return '<span class="member-level-benefit-empty">暂无权益</span>';
@@ -382,6 +410,7 @@
         NAME_MAX: NAME_MAX,
         MODE_LABEL: MODE_LABEL,
         SCOPE_LABEL: SCOPE_LABEL,
+        LIVE_ENTRY_EFFECT_LABEL: LIVE_ENTRY_EFFECT_LABEL,
         DEMO_PRODUCTS: DEMO_PRODUCTS,
         DEMO_CATEGORIES: DEMO_CATEGORIES,
         levelIconSvg: levelIconSvg,

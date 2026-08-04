@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
+    <link rel="stylesheet" href="../user-app/css/user-app-live-entry-fx.css">
     <style>
         .member-level-form-toolbar {
             margin: 0 0 16px;
@@ -764,19 +765,19 @@
                             </div>
                         </div>
 
-                        <!-- 积分等级赠送比例 -->
+                        <!-- 消费积分等级赠送比例 -->
                         <div class="pts-rule-field" data-benefit="pointsRatio">
-                            <label class="pts-rule-field__label">积分等级赠送比例</label>
+                            <label class="pts-rule-field__label">消费积分等级赠送比例</label>
                             <div class="pts-rule-field__control">
                                 <div class="member-level-benefit-head">
                                     <label class="member-level-check-label">
-                                        <input type="checkbox" id="mlPointsRatioEnable" data-benefit-switch> 开启积分等级赠送比例
+                                        <input type="checkbox" id="mlPointsRatioEnable" data-benefit-switch> 开启消费积分等级赠送比例
                                     </label>
                                 </div>
                                 <div class="member-level-benefit-body is-disabled" data-benefit-body>
                                     <div class="member-level-unit">
-                                        <input class="erp-input" id="mlPointsRatio" type="number" min="100" step="10" placeholder="100 表示按基础规则 1 倍赠送" disabled>
-                                        <span class="member-level-unit__text">%（≥100，如 150 表示 1.5 倍）</span>
+                                        <input class="erp-input" id="mlPointsRatio" type="number" min="101" step="1" placeholder="须大于 100，如 150 表示 1.5 倍" disabled>
+                                        <span class="member-level-unit__text">%（须大于 100，如 150 表示消费积分 1.5 倍）</span>
                                     </div>
                                     <textarea class="erp-input member-level-desc" id="mlPointsRatioDesc" placeholder="说明（选填，支持多行）" disabled></textarea>
                                 </div>
@@ -805,6 +806,36 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- 进入直播间特效 -->
+                        <div class="pts-rule-field" data-benefit="liveEntryEffect">
+                            <label class="pts-rule-field__label">
+                                进入直播间特效
+                                <span class="member-level-label-tip" title="该等级会员进入直播间时展示专属进场特效" aria-label="该等级会员进入直播间时展示专属进场特效">?</span>
+                            </label>
+                            <div class="pts-rule-field__control">
+                                <div class="member-level-benefit-head">
+                                    <label class="member-level-check-label">
+                                        <input type="checkbox" id="mlLiveEntryEffectEnable" data-benefit-switch> 开启进入直播间特效
+                                    </label>
+                                </div>
+                                <div class="member-level-benefit-body is-disabled" data-benefit-body>
+                                    <div class="member-level-unit">
+                                        <span class="member-level-unit__text">特效样式</span>
+                                        <select class="erp-select" id="mlLiveEntryEffectType" disabled>
+                                            <option value="banner">欢迎横幅</option>
+                                            <option value="vehicle">进场座驾</option>
+                                            <option value="fullscreen">全屏特效</option>
+                                        </select>
+                                    </div>
+                                    <div class="lf-live-fx-preview" id="mlLiveEntryFxPreview" aria-label="进场特效预览">
+                                        <div class="ua-live-fx-host" id="mlLiveEntryFxHost"></div>
+                                    </div>
+                                    <div class="lf-live-fx-preview-tip">预览示意：进入直播间时观众侧看到的特效样式</div>
+                                    <textarea class="erp-input member-level-desc" id="mlLiveEntryEffectDesc" placeholder="说明（选填，如：进场展示金色欢迎横幅）" disabled></textarea>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -819,6 +850,7 @@
     <script src="../js/common.js"></script>
     <script src="../js/form-utils.js"></script>
     <script src="../js/mdm-member-level-data.js"></script>
+    <script src="../user-app/js/user-app-live-entry-fx.js"></script>
     <script src="../js/mdm-member-level-form.js?v=20260725-back"></script>
 </body>
 </html>

@@ -51,6 +51,15 @@
             <input type="text" id="peNickname" class="ua-pe-input" maxlength="20" placeholder="请输入昵称">
           </label>
 
+          <button type="button" class="ua-pe-row ua-pe-row--action" id="peGenderBtn">
+            <span class="ua-pe-label">性别</span>
+            <span class="ua-pe-value" id="peGenderText">保密</span>
+            <span class="ua-pe-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+            </span>
+          </button>
+          <input type="hidden" id="peGender" value="保密">
+
           <div class="ua-pe-row ua-pe-row--readonly">
             <span class="ua-pe-label">手机号</span>
             <span class="ua-pe-value" id="pePhoneText">—</span>
@@ -122,6 +131,19 @@
             <div class="ua-pe-region-wheel" id="peDistWheel"></div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div class="ua-pe-sheet ua-pe-sheet--actions" id="peGenderSheet" hidden>
+      <div class="ua-pe-sheet__mask" data-pe-gender-close></div>
+      <div class="ua-pe-sheet__panel ua-pe-sheet__panel--actions" role="dialog" aria-modal="true" aria-labelledby="peGenderTitle">
+        <div class="ua-pe-actions" id="peGenderOptions" role="listbox" aria-labelledby="peGenderTitle">
+          <div class="ua-pe-actions__title" id="peGenderTitle">选择性别</div>
+          <button type="button" class="ua-pe-actions__item" data-gender="保密" role="option">保密</button>
+          <button type="button" class="ua-pe-actions__item" data-gender="男" role="option">男</button>
+          <button type="button" class="ua-pe-actions__item" data-gender="女" role="option">女</button>
+        </div>
+        <button type="button" class="ua-pe-actions__cancel" data-pe-gender-close>取消</button>
       </div>
     </div>
 

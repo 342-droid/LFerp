@@ -198,6 +198,44 @@ input[type="number"] {
     display: block;
 }
 
+/* 时间筛选：选中时间后悬停/聚焦显示清空 */
+.lf-datetime-wrap {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+}
+.lf-datetime-wrap input[type="datetime-local"] {
+    padding-right: 28px;
+    box-sizing: border-box;
+}
+.lf-datetime-clear {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    border: none;
+    border-radius: 50%;
+    background: #ddd;
+    color: #666;
+    font-size: 12px;
+    line-height: 18px;
+    text-align: center;
+    cursor: pointer;
+    padding: 0;
+    display: none;
+    z-index: 2;
+}
+.lf-datetime-wrap.has-value:hover .lf-datetime-clear,
+.lf-datetime-wrap.has-value:focus-within .lf-datetime-clear {
+    display: block;
+}
+.lf-datetime-clear:hover {
+    background: #ccc;
+    color: #333;
+}
+
 .input-wrapper input:disabled + .clear-btn {
     display: none !important;
 }

@@ -172,6 +172,10 @@
   color: var(--mdm360-text-disabled);
 }
 
+.main-content .table .status.cancel-pending {
+  color: var(--mdm360-warn);
+}
+
 /* —— 详情 / 人数等链接 —— */
 .main-content .table .subject-name-link,
 .main-content .table .table-detail-link,

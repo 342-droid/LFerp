@@ -239,6 +239,23 @@
                                 <div class="member-level-rule-tip">常用配置：365 天（自然年）、180 天等。</div>
                             </div>
                         </div>
+                        <div class="member-level-rule-field" id="downgradeScheduleRow">
+                            <label class="member-level-rule-field__label"><span class="erp-req">*</span>降级更新时效</label>
+                            <div class="member-level-rule-field__control">
+                                <div class="member-level-rule-radio-row">
+                                    <label class="member-level-rule-radio-label">
+                                        <input type="radio" name="downgradeSchedule" value="daily" id="downgradeDaily" checked> 每天凌晨
+                                    </label>
+                                    <label class="member-level-rule-radio-label">
+                                        <input type="radio" name="downgradeSchedule" value="monthly" id="downgradeMonthly"> 每月1号
+                                    </label>
+                                    <label class="member-level-rule-radio-label">
+                                        <input type="radio" name="downgradeSchedule" value="quarterly" id="downgradeQuarterly"> 每季度1号
+                                    </label>
+                                </div>
+                                <div class="member-level-rule-tip">按所选时效批量复核会员成长值是否满足当前等级，不满足则降级。</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -266,6 +283,37 @@
                                     <span class="member-level-rule-unit__text">成长值</span>
                                 </div>
                                 <div class="member-level-rule-tip">以订单实付金额计算；订单售后成功时，按获取时的比例扣除对应成长值。</div>
+                            </div>
+                        </div>
+                        <div class="member-level-rule-field" id="consumeLessThanOneRow">
+                            <label class="member-level-rule-field__label"><span class="erp-req">*</span>成长值不足1时</label>
+                            <div class="member-level-rule-field__control">
+                                <div class="member-level-rule-radio-row">
+                                    <label class="member-level-rule-radio-label">
+                                        <input type="radio" name="consumeLessThanOne" value="count_one" id="consumeLtoCountOne" checked> 计1分
+                                    </label>
+                                    <label class="member-level-rule-radio-label">
+                                        <input type="radio" name="consumeLessThanOne" value="ignore" id="consumeLtoIgnore"> 不计分
+                                    </label>
+                                    <label class="member-level-rule-radio-label">
+                                        <input type="radio" name="consumeLessThanOne" value="round" id="consumeLtoRound"> 四舍五入
+                                    </label>
+                                </div>
+                                <div class="member-level-rule-tip">单笔订单按规则计算出的成长值小于 1 时的处理方式。</div>
+                            </div>
+                        </div>
+                        <div class="member-level-rule-field" id="consumeGrantTimingRow">
+                            <label class="member-level-rule-field__label"><span class="erp-req">*</span>成长值发放时间</label>
+                            <div class="member-level-rule-field__control">
+                                <div class="member-level-rule-radio-row">
+                                    <label class="member-level-rule-radio-label">
+                                        <input type="radio" name="consumeGrantTiming" value="payment" id="consumeGrantPayment" checked> 支付完成
+                                    </label>
+                                    <label class="member-level-rule-radio-label">
+                                        <input type="radio" name="consumeGrantTiming" value="trade" id="consumeGrantTrade"> 交易完成
+                                    </label>
+                                </div>
+                                <div class="member-level-rule-tip">支付完成：付款成功即发放；交易完成：订单完成（确认收货/自提完成）后发放。</div>
                             </div>
                         </div>
                     </div>

@@ -243,18 +243,89 @@
     }
   }
 
+  function readCancelStatus() {
+    try {
+      var raw = localStorage.getItem('ua_account_cancel_v1');
+      if (!raw) return 'none';
+      var data = JSON.parse(raw);
+      return String((data && data.status) || 'none').toLowerCase();
+    } catch (e) {
+      return 'none';
+    }
+  }
+
+  /** 仅「注销审核中」拦截登录；已注销手机号可再次注册登录 */
+  function blockLoginIfCancelPending() {
+    var st = readCancelStatus();
+    if (st !== 'pending') return false;
+    authNavigating = false;
+    if (window.UaAccountCancel && typeof window.UaAccountCancel.showPendingLoginModal === 'function') {
+      window.UaAccountCancel.showPendingLoginModal(function () {
+        showToast('请联系客服处理注销申请');
+      });
+      return true;
+    }
+    var old = document.getElementById('uaCancelPendingModal');
+    if (old) old.remove();
+    var wrap = document.createElement('div');
+    wrap.id = 'uaCancelPendingModal';
+    wrap.style.cssText =
+      'position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;';
+    wrap.innerHTML =
+      '<div style="position:absolute;inset:0;background:rgba(0,0,0,.45)"></div>' +
+      '<div style="position:relative;width:100%;max-width:300px;background:#fff;border-radius:12px;overflow:hidden">' +
+      '<p style="margin:0;padding:28px 20px 20px;font-size:15px;color:#333;line-height:1.6;text-align:center">' +
+      '账号注销审核中，暂无法登录使用。如有疑问请联系客服。' +
+      '</p>' +
+      '<div style="display:flex;border-top:1px solid #eee">' +
+      '<button type="button" data-act="close" style="flex:1;height:48px;border:none;background:#fff;font-size:15px;color:#666">我知道了</button>' +
+      '<button type="button" data-act="cs" style="flex:1;height:48px;border:none;border-left:1px solid #eee;background:#fff;font-size:15px;color:#0b5c3b;font-weight:600">联系客服</button>' +
+      '</div></div>';
+    document.body.appendChild(wrap);
+    wrap.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-act]');
+      if (!btn) return;
+      if (btn.getAttribute('data-act') === 'cs') {
+        showToast('请联系客服处理注销申请');
+      }
+      wrap.remove();
+    });
+    return true;
+  }
+
+  /**
+   * 已注销手机号再次登录 → 注册为新用户（不复用已注销会员档案）
+   * 仅在注销成功后的「待再注册」状态触发一次，避免每次登录都新建会员
+   */
+  function maybeReregisterAfterCancel(phone, nickname) {
+    if (!window.UaAccountCancel) return nickname || '冷丰用户';
+    var st = readCancelStatus();
+    var data = window.UaAccountCancel.read ? window.UaAccountCancel.read() : {};
+    var shouldReregister = st === 'canceled' || !!(data && data.phoneReleased);
+    if (!shouldReregister) return nickname || '冷丰用户';
+    if (typeof window.UaAccountCancel.reRegisterWithPhone === 'function') {
+      var result = window.UaAccountCancel.reRegisterWithPhone(phone, nickname || '冷丰用户');
+      showToast('欢迎回来，已使用该手机号重新注册');
+      return (result && result.profile && result.profile.nickname) || nickname || '冷丰用户';
+    }
+    return nickname || '冷丰用户';
+  }
+
   function completeLogin(phone, nickname) {
+    if (blockLoginIfCancelPending()) return;
+    var nick = maybeReregisterAfterCancel(phone, nickname || '冷丰用户');
     var session = {
       loggedIn: true,
       phone: phone,
       phoneMasked: maskPhone(phone),
-      nickname: nickname || '冷丰用户'
+      nickname: nick
     };
     writeSession(session);
     redirectAfterAuth(session);
   }
 
   function completeWechatLogin() {
+    if (blockLoginIfCancelPending()) return;
     var session = {
       loggedIn: true,
       loginMethod: 'wechat',
@@ -458,6 +529,18 @@
 
     if (/[?&]force=1(?:&|$)/.test(location.search)) {
       clearSession();
+    }
+
+    /* 注销成功后自动退出并落到登录页 */
+    if (/[?&]cancelSuccess=1(?:&|$)/.test(location.search)) {
+      clearSession();
+      showToast('账号已注销成功，已退出登录。该手机号可重新注册');
+      try {
+        var params = new URLSearchParams(location.search);
+        params.delete('cancelSuccess');
+        var qs = params.toString();
+        history.replaceState(null, '', 'login.html' + (qs ? '?' + qs : ''));
+      } catch (e2) {}
     }
 
     normalizeLegacySession(readSession());

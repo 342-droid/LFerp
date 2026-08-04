@@ -252,7 +252,8 @@
   display: none;
 }
 
-.crm-af__datetime-wrap.has-value .crm-af__datetime-clear {
+.crm-af__datetime-wrap.has-value:hover .crm-af__datetime-clear,
+.crm-af__datetime-wrap.has-value:focus-within .crm-af__datetime-clear {
   display: block;
 }
 

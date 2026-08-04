@@ -2884,9 +2884,10 @@
                     var st = document.createElement('span');
                     var stTxt = m.status || '正常';
                     if (stTxt === '黑名单') st.className = 'status blacklist';
-                    else if (stTxt === '注销') st.className = 'status canceled';
+                    else if (stTxt === '注销' || stTxt === '已注销') st.className = 'status canceled';
+                    else if (stTxt === '注销中' || stTxt === '审核中') st.className = 'status cancel-pending';
                     else st.className = 'status active';
-                    st.textContent = stTxt;
+                    st.textContent = stTxt === '已注销' ? '注销' : stTxt;
                     td.appendChild(st);
                 } else if (idx === 19) {
                     td.className = 'action-links';
@@ -2894,14 +2895,18 @@
                         td.innerHTML = window.MdmMemberBlacklist.buildMemberListActions(m.status || '正常');
                     } else {
                         var stNow = m.status || '正常';
-                        var actions =
-                            '<a href="#" class="mdm-mem-detail">查看详情</a>' +
-                            '<a href="#" class="mdm-mem-coupon">优惠券</a>' +
-                            '<a href="#" class="mdm-mem-points">调整积分</a>' +
-                            '<a href="#" class="mdm-mem-growth">调整成长值</a>';
-                        if (stNow === '正常') actions += '<a href="#" class="mdm-mem-blacklist">拉黑</a>';
-                        else if (stNow === '黑名单') actions += '<a href="#" class="mdm-mem-restore">恢复</a>';
-                        td.innerHTML = actions;
+                        if (stNow === '注销' || stNow === '已注销' || stNow === '注销中' || stNow === '审核中') {
+                            td.innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a>';
+                        } else {
+                            var actions =
+                                '<a href="#" class="mdm-mem-detail">查看详情</a>' +
+                                '<a href="#" class="mdm-mem-coupon">优惠券</a>' +
+                                '<a href="#" class="mdm-mem-points">调整积分</a>' +
+                                '<a href="#" class="mdm-mem-growth">调整成长值</a>';
+                            if (stNow === '正常') actions += '<a href="#" class="mdm-mem-blacklist">拉黑</a>';
+                            else if (stNow === '黑名单') actions += '<a href="#" class="mdm-mem-restore">恢复</a>';
+                            td.innerHTML = actions;
+                        }
                     }
                 } else {
                     td.textContent = val;
@@ -2925,6 +2930,146 @@
                 if (!m || !m.id) return;
                 tbody.insertBefore(buildRow(m), tbody.firstChild);
             });
+    }
+
+    /** 将注销申请/已注销会员同步进会员列表，并校正操作列（注销仅查看详情） */
+    function ensureCanceledMembersInList() {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+
+        function normalizeCancelStatus(st) {
+            st = String(st || '').trim();
+            if (st === '已注销' || st === '注销') return '注销';
+            if (st === '审核中' || st === '注销中') return '注销中';
+            if (st === '已驳回') return '';
+            return st;
+        }
+
+        function findRowById(id) {
+            var found = null;
+            tbody.querySelectorAll('tr').forEach(function (tr) {
+                var cell = tr.querySelector('td');
+                if (cell && cell.textContent.trim() === String(id)) found = tr;
+            });
+            return found;
+        }
+
+        function applyActions(tr, status) {
+            var cells = tr.querySelectorAll('td');
+            if (cells.length < 20) return;
+            cells[19].className = 'action-links';
+            if (window.MdmMemberBlacklist && window.MdmMemberBlacklist.buildMemberListActions) {
+                cells[19].innerHTML = window.MdmMemberBlacklist.buildMemberListActions(status);
+            } else if (status === '注销' || status === '注销中') {
+                cells[19].innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a>';
+            }
+        }
+
+        /* 校正现有行：注销 / 注销中仅保留查看详情 */
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+            var cells = tr.querySelectorAll('td');
+            if (cells.length < 20) return;
+            var stEl = cells[18].querySelector('.status');
+            var stTxt = stEl
+                ? stEl.textContent.trim()
+                : (tr.getAttribute('data-member-status') || '');
+            if (stTxt === '注销' || stTxt === '已注销' || stTxt === '注销中' || stTxt === '审核中') {
+                var norm = normalizeCancelStatus(stTxt) || stTxt;
+                tr.setAttribute('data-member-status', norm);
+                if (stEl) {
+                    stEl.className = norm === '注销中' ? 'status cancel-pending' : 'status canceled';
+                    stEl.textContent = norm;
+                }
+                applyActions(tr, norm);
+            }
+        });
+
+        var cancelList = [];
+        try {
+            if (window.MdmMemberCancel && typeof window.MdmMemberCancel.loadList === 'function') {
+                cancelList = window.MdmMemberCancel.loadList() || [];
+            } else {
+                var raw = localStorage.getItem('mdm_member_cancel_list_v1');
+                cancelList = raw ? JSON.parse(raw) : [];
+            }
+        } catch (e) {
+            cancelList = [];
+        }
+        if (!Array.isArray(cancelList)) return;
+
+        cancelList.forEach(function (item) {
+            if (!item || !item.id) return;
+            var status = normalizeCancelStatus(item.status);
+            if (!status) return;
+            var existing = findRowById(item.id);
+            if (existing) {
+                existing.setAttribute('data-member-status', status);
+                var cells = existing.querySelectorAll('td');
+                if (cells.length >= 20) {
+                    var st = cells[18].querySelector('.status') || document.createElement('span');
+                    st.className = status === '注销中' ? 'status cancel-pending' : 'status canceled';
+                    st.textContent = status;
+                    if (!st.parentNode) {
+                        cells[18].innerHTML = '';
+                        cells[18].appendChild(st);
+                    }
+                    applyActions(existing, status);
+                }
+                return;
+            }
+            var m = {
+                id: item.id,
+                nickname: item.nickname || '—',
+                avatarText: String(item.nickname || '会').charAt(0),
+                phone: item.phone || '—',
+                phoneMasked: item.phone || '—',
+                gender: '未知',
+                isMember: '是',
+                level: '普通会员',
+                tags: '—',
+                source: item.channel || '—',
+                bindMethod: '—',
+                channelCount: '1',
+                points: '0',
+                satisMinutes: '0',
+                satisFeedback: '0',
+                growthScore: '0',
+                amount: '0.00',
+                orderCount: '0',
+                lastConsume: '—',
+                status: status
+            };
+            var tr = document.createElement('tr');
+            tr.setAttribute('data-member-status', status);
+            tr.setAttribute('data-cancel-synced', '1');
+            var phoneShow = m.phoneMasked || m.phone || '—';
+            var avatarText = m.avatarText;
+            [
+                m.id, m.nickname, null, phoneShow, m.gender, m.isMember, m.level, m.tags,
+                m.source, m.bindMethod, m.channelCount, m.points, m.satisMinutes, m.satisFeedback,
+                m.growthScore, m.amount, m.orderCount, m.lastConsume, null, null
+            ].forEach(function (val, idx) {
+                var td = document.createElement('td');
+                if (idx === 2) {
+                    var span = document.createElement('span');
+                    span.className = 'mdm-list-avatar';
+                    span.textContent = avatarText;
+                    td.appendChild(span);
+                } else if (idx === 18) {
+                    var st2 = document.createElement('span');
+                    st2.className = status === '注销中' ? 'status cancel-pending' : 'status canceled';
+                    st2.textContent = status;
+                    td.appendChild(st2);
+                } else if (idx === 19) {
+                    td.className = 'action-links';
+                    td.innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a>';
+                } else {
+                    td.textContent = val;
+                }
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
     }
 
     function initMemberC() {
@@ -3036,13 +3181,11 @@
                 p.refreshPagination();
             }
         });
-        /* 默认按「正常」状态筛选一次 */
+        /* 会员列表默认展示全部状态（含黑名单 / 注销中 / 注销） */
         try {
-            var stEl0 = document.getElementById('qMemberStatus');
-            if (stEl0 && stEl0.value === '正常') {
-                var qBtn0 = document.getElementById('btnFilterQuery');
-                if (qBtn0) qBtn0.click();
-            }
+            ensureCanceledMembersInList();
+            var qBtn0 = document.getElementById('btnFilterQuery');
+            if (qBtn0) qBtn0.click();
         } catch (eSt0) { /* ignore */ }
         // 会员等级下拉：优先读取后台已配置等级
         try {

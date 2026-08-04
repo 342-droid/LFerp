@@ -1082,7 +1082,10 @@
             birthdayEnabled: false,
             birthdayCouponMode: 'total',
             birthdayCoupons: [{ coupon: '生日专属券', qty: 1 }],
-            birthdayDesc: ''
+            birthdayDesc: '',
+            liveEntryEffectEnabled: false,
+            liveEntryEffectType: 'banner',
+            liveEntryEffectDesc: ''
         });
 
         function setVal(id, value) {
@@ -1139,6 +1142,21 @@
                 ? item.birthdayCoupons
                 : [{ coupon: '生日专属券', qty: 1 }]
         );
+
+        setChecked('mlLiveEntryEffectEnable', item.liveEntryEffectEnabled);
+        setVal('mlLiveEntryEffectType', item.liveEntryEffectType || 'banner');
+        setVal('mlLiveEntryEffectDesc', item.liveEntryEffectDesc || '');
+        syncLiveEntryFxPreview();
+    }
+
+    function syncLiveEntryFxPreview() {
+        var host = document.getElementById('mlLiveEntryFxHost');
+        var preview = document.getElementById('mlLiveEntryFxPreview');
+        if (!host || !window.UaLiveEntryFx) return;
+        var enabled = !!(document.getElementById('mlLiveEntryEffectEnable') || {}).checked;
+        var type = (document.getElementById('mlLiveEntryEffectType') || {}).value || 'banner';
+        if (preview) preview.style.opacity = enabled ? '1' : '0.45';
+        window.UaLiveEntryFx.renderPreview(host, type);
     }
 
     function save() {
@@ -1245,8 +1263,8 @@
         if (pointsRatioEnabled) {
             var ratioRaw = (document.getElementById('mlPointsRatio').value || '').trim();
             ratioNum = ratioRaw === '' ? NaN : Number(ratioRaw);
-            if (isNaN(ratioNum) || ratioNum < 100 || !/^\d+$/.test(ratioRaw)) {
-                toast('积分等级赠送比例须为不小于 100 的整数', 'warning');
+            if (isNaN(ratioNum) || ratioNum <= 100 || !/^\d+$/.test(ratioRaw)) {
+                toast('消费积分等级赠送比例须为大于 100 的整数', 'warning');
                 return;
             }
         }
@@ -1264,6 +1282,17 @@
                 return;
             }
             birthdayCoupons = birthdayResult.items;
+        }
+
+        var liveEntryEffectEnabled = document.getElementById('mlLiveEntryEffectEnable').checked;
+        var liveEntryEffectType = (document.getElementById('mlLiveEntryEffectType') || {}).value || 'banner';
+        var liveEntryEffectDesc = (document.getElementById('mlLiveEntryEffectDesc') || {}).value || '';
+        if (liveEntryEffectEnabled) {
+            var effectLabels = Data.LIVE_ENTRY_EFFECT_LABEL || {};
+            if (!effectLabels[liveEntryEffectType]) {
+                toast('请选择进入直播间特效样式', 'warning');
+                return;
+            }
         }
 
         var payload = Data.normalizeLevel({
@@ -1288,6 +1317,9 @@
             birthdayCouponMode: birthdayMode,
             birthdayCoupons: birthdayCoupons,
             birthdayDesc: birthdayDesc,
+            liveEntryEffectEnabled: liveEntryEffectEnabled,
+            liveEntryEffectType: liveEntryEffectEnabled ? liveEntryEffectType : 'banner',
+            liveEntryEffectDesc: liveEntryEffectDesc,
             updatedAt: nowStr()
         });
 
@@ -1357,6 +1389,12 @@
         bindScopeUi();
         syncScopeUi();
         bindBenefitSwitches();
+
+        var liveFxType = document.getElementById('mlLiveEntryEffectType');
+        var liveFxEnable = document.getElementById('mlLiveEntryEffectEnable');
+        if (liveFxType) liveFxType.addEventListener('change', syncLiveEntryFxPreview);
+        if (liveFxEnable) liveFxEnable.addEventListener('change', syncLiveEntryFxPreview);
+        syncLiveEntryFxPreview();
     }
 
     if (document.readyState === 'loading') {
