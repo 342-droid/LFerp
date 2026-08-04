@@ -352,6 +352,20 @@
                                     </div>
                                 </div>
 
+                                <div class="ro-create-field ro-create-field--wide" id="roCreateSourcePoField" style="display: none;">
+                                    <label for="roCreateSourcePo"><span class="ro-required">*</span>来源采购单</label>
+                                    <div class="ro-create-field__control">
+                                        <input type="text" id="roCreateSourcePo" maxlength="40" placeholder="请输入来源采购单号" disabled>
+                                        <p class="ro-source-po-demo-tip" id="roCreateSourcePoDemoTip">
+                                            演示可用：
+                                            <button type="button" class="ro-source-po-demo-link" data-po-no="PO2026072509000004">PO2026072509000004</button>
+                                            （W001 南京仓 → V002 华东果蔬有限公司）；
+                                            <button type="button" class="ro-source-po-demo-link" data-po-no="PO2026072408000005">PO2026072408000005</button>
+                                            （W002 嘉兴仓 → V001 浙北农产品合作社）
+                                        </p>
+                                    </div>
+                                </div>
+
                                 <div class="ro-create-field">
                                     <label for="roCreateReason"><span class="ro-required">*</span>退货原因</label>
                                     <div class="custom-select">
@@ -615,8 +629,9 @@
             returnType: '退供',
             docSource: '手动新增',
             sourceNo: '',
-            exitStore: 'S002 嘉兴南湖店',
-            exitPlaceType: '门店',
+            sourcePoNo: 'PO2026072408000005',
+            exitStore: 'W002 嘉兴仓',
+            exitPlaceType: '仓库',
             entryPlace: 'V001 浙北农产品合作社',
             entryPlaceType: '供应商',
             status: '已驳回',
@@ -630,7 +645,7 @@
             remark: '审核驳回，待修改后重提',
             auditReason: '退货原因说明不足',
             lines: [
-                { skuCode: 'SKU20003', skuName: '有机生菜', specification: '500g/袋', buyer: '周采购', category: '蔬菜', requestedQty: 15, actualQty: 0, purchasePrice: 8.5, salePrice: 12.8, purchaseAmount: 127.5, saleAmount: 192 }
+                { skuCode: 'SKU20003', skuName: '有机生菜', specification: '500g/袋', buyer: '周采购', category: '蔬菜', requestedQty: 15, actualQty: 0, purchasePrice: 8.5, salePrice: 12.8, purchaseAmount: 127.5, saleAmount: 192, sourceNo: 'PO2026072408000005' }
             ]
         },
         {
@@ -962,11 +977,64 @@
         });
     }
 
+    function isWarehouseToSupplierMode() {
+        return getReturnType() === '退供'
+            && getExitPlaceType(getSelectValue('roCreateExitStore')) === '仓库'
+            && !!getSelectValue('roCreateEntryPlace');
+    }
+
+    function isStoreToSupplierMode() {
+        return getReturnType() === '退供'
+            && getExitPlaceType(getSelectValue('roCreateExitStore')) === '门店'
+            && !!getSelectValue('roCreateEntryPlace');
+    }
+
+    function blockStoreToSupplierIfNeeded() {
+        if (!isStoreToSupplierMode()) return false;
+        showToast('门店退供场景，请引导门店在APP上进行售后处理');
+        setSelectValue('roCreateEntryPlace', '', '');
+        var entryInput = document.getElementById('roCreateEntryPlace');
+        if (entryInput) entryInput.value = '';
+        createLineState = [];
+        syncSourcePoField(false);
+        renderCreateLines();
+        return true;
+    }
+
+    function findSourceOrder(poNo) {
+        for (var i = 0; i < createSourceOrders.length; i++) {
+            if (createSourceOrders[i].poNo === poNo) return createSourceOrders[i];
+        }
+        return null;
+    }
+
+    function getSourcePoNo() {
+        var input = document.getElementById('roCreateSourcePo');
+        return input ? String(input.value || '').trim() : '';
+    }
+
+    function setSourcePoNo(value) {
+        var input = document.getElementById('roCreateSourcePo');
+        if (input) input.value = value || '';
+    }
+
+    function resolveSourceOrderByInput() {
+        var poNo = getSourcePoNo();
+        if (!poNo) return null;
+        var order = findSourceOrder(poNo);
+        if (!order) return null;
+        if (order.exitStore !== getSelectValue('roCreateExitStore')) return null;
+        if (order.supplier !== getSelectValue('roCreateEntryPlace')) return null;
+        return order;
+    }
+
     function getAvailableProducts() {
         var products = [];
         var supplier = getReturnType() === '退供' ? getSelectValue('roCreateEntryPlace') : '';
+        var sourcePoNo = isWarehouseToSupplierMode() ? getSourcePoNo() : '';
         getExitStoreOrders().forEach(function(order) {
             if (supplier && order.supplier !== supplier) return;
+            if (sourcePoNo && order.poNo !== sourcePoNo) return;
             order.lines.forEach(function(line) {
                 var availableQty = Math.max(0, Number(line.receivedQty) - Number(line.returnedQty));
                 if (availableQty <= 0) return;
@@ -986,6 +1054,69 @@
             });
         });
         return products;
+    }
+
+    function mapOrderLinesToCreateLines(order) {
+        if (!order) return [];
+        return order.lines.map(function(line) {
+            var availableQty = Math.max(0, Number(line.receivedQty) - Number(line.returnedQty));
+            if (availableQty <= 0) return null;
+            return {
+                sourceNo: order.poNo,
+                supplier: order.supplier,
+                skuCode: line.skuCode,
+                skuName: line.skuName,
+                specification: line.specification,
+                unit: line.unit,
+                buyer: line.buyer,
+                category: line.category,
+                purchasePrice: line.purchasePrice,
+                salePrice: line.salePrice,
+                availableQty: availableQty,
+                returnQty: 1
+            };
+        }).filter(Boolean);
+    }
+
+    function loadLinesFromSourcePo(showMissingTip) {
+        var poNo = getSourcePoNo();
+        if (!poNo) {
+            createLineState = [];
+            renderCreateLines();
+            return;
+        }
+        var order = resolveSourceOrderByInput();
+        createLineState = mapOrderLinesToCreateLines(order);
+        renderCreateLines();
+        if (showMissingTip && !createLineState.length) {
+            showToast('未找到该采购单下可退商品，请确认单号、退出地与供应商是否匹配', 'error');
+        }
+    }
+
+    function syncSourcePoField(keepValue) {
+        var field = document.getElementById('roCreateSourcePoField');
+        var addBtn = document.getElementById('roCreateAddLineBtn');
+        var sourceInput = document.getElementById('roCreateSourcePo');
+        var currentValue = keepValue ? getSourcePoNo() : '';
+
+        if (!isWarehouseToSupplierMode()) {
+            if (field) field.style.display = 'none';
+            setSourcePoNo('');
+            if (sourceInput) {
+                sourceInput.disabled = true;
+                sourceInput.placeholder = '请输入来源采购单号';
+            }
+            if (addBtn) addBtn.style.display = '';
+            return;
+        }
+
+        if (field) field.style.display = '';
+        if (addBtn) addBtn.style.display = 'none';
+        setSourcePoNo(currentValue);
+        if (sourceInput) {
+            sourceInput.disabled = false;
+            sourceInput.placeholder = '请输入来源采购单号';
+        }
     }
 
     function setSelectDisabled(inputId, disabled, placeholder) {
@@ -1069,13 +1200,61 @@
         createLineState = [];
         syncExitPlaceOptions(false);
         syncEntryPlaceOptions(false);
+        syncSourcePoField(false);
         renderCreateLines();
     }
 
     function handleExitStoreChange() {
         createLineState = [];
-        syncEntryPlaceOptions(false);
+        // 先选供应商再选门店时，此时退入地仍有值，需在联动清空前拦截
+        if (getReturnType() === '退供'
+            && getExitPlaceType(getSelectValue('roCreateExitStore')) === '门店'
+            && getSelectValue('roCreateEntryPlace')) {
+            showToast('门店退供场景，请引导门店在APP上进行售后处理');
+            setSelectValue('roCreateEntryPlace', '', '');
+            var entryInput = document.getElementById('roCreateEntryPlace');
+            if (entryInput) entryInput.value = '';
+            syncEntryPlaceOptions(false);
+            syncSourcePoField(false);
+            renderCreateLines();
+            return;
+        }
+        syncEntryPlaceOptions(true);
+        syncSourcePoField(false);
         renderCreateLines();
+    }
+
+    function handleEntryPlaceChange() {
+        if (blockStoreToSupplierIfNeeded()) return;
+        createLineState = [];
+        syncSourcePoField(false);
+        renderCreateLines();
+    }
+
+    function handleSourcePoChange() {
+        if (isWarehouseToSupplierMode()) {
+            loadLinesFromSourcePo(true);
+            return;
+        }
+        createLineState = [];
+        renderCreateLines();
+    }
+
+    function fillDemoSourcePo(poNo) {
+        var order = findSourceOrder(poNo);
+        if (!order) {
+            showToast('演示采购单不存在', 'error');
+            return;
+        }
+        setSelectValue('roCreateReturnType', '退供', '退供');
+        syncExitPlaceOptions(true);
+        setSelectValue('roCreateExitStore', order.exitStore, order.exitStore);
+        syncEntryPlaceOptions(true);
+        setSelectValue('roCreateEntryPlace', order.supplier, order.supplier);
+        syncSourcePoField(true);
+        setSourcePoNo(order.poNo);
+        loadLinesFromSourcePo(false);
+        showToast('已填入演示采购单 ' + order.poNo, 'success');
     }
 
     function newCreateLine() {
@@ -1176,6 +1355,14 @@
             showToast('请先选择退入地供应商');
             return false;
         }
+        if (isStoreToSupplierMode()) {
+            showToast('门店退供场景，请引导门店在APP上进行售后处理');
+            return false;
+        }
+        if (isWarehouseToSupplierMode()) {
+            showToast('仓库退供请选择来源采购单，系统将自动带出商品');
+            return false;
+        }
         return true;
     }
 
@@ -1191,16 +1378,21 @@
         renderProductNameDatalist();
 
         if (!createLineState.length) {
-            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#999;">暂无明细，请新增明细行</td></tr>';
+            var emptyTip = isWarehouseToSupplierMode()
+                ? (getSourcePoNo() ? '未找到该采购单下可退商品' : '请填写来源采购单后自动带出商品')
+                : '暂无明细，请新增明细行';
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#999;">' + emptyTip + '</td></tr>';
             return;
         }
 
+        var fromSourcePo = isWarehouseToSupplierMode();
         tbody.innerHTML = createLineState.map(function(line, index) {
             var purchaseAmount = Number(line.returnQty || 0) * Number(line.purchasePrice || 0);
             var saleAmount = Number(line.returnQty || 0) * Number(line.salePrice || 0);
+            var skuReadonly = fromSourcePo ? ' readonly' : '';
             return '<tr data-line-index="' + index + '">' +
-                '<td><input type="text" class="add-po-line-input" data-field="skuCode" value="' + escapeHtml(line.skuCode) + '" placeholder="请输入商品编码"></td>' +
-                '<td><input type="text" class="add-po-line-input" data-field="skuName" list="roProductNameList" value="' + escapeHtml(line.skuName) + '" placeholder="可模糊查询商品名称"></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="skuCode" value="' + escapeHtml(line.skuCode) + '" placeholder="请输入商品编码"' + skuReadonly + '></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="skuName" list="roProductNameList" value="' + escapeHtml(line.skuName) + '" placeholder="可模糊查询商品名称"' + skuReadonly + '></td>' +
                 '<td><input type="text" class="add-po-line-input" data-field="specification" value="' + escapeHtml(line.specification) + '" readonly></td>' +
                 '<td><input type="text" class="add-po-line-input" data-field="unit" value="' + escapeHtml(line.unit) + '" readonly></td>' +
                 '<td><input type="text" class="add-po-line-input" data-field="buyer" value="' + escapeHtml(line.buyer) + '" readonly></td>' +
@@ -1257,9 +1449,23 @@
             { id: 'roCreateEntryPlace', label: '退入地' },
             { id: 'roCreateReason', label: '退货原因' }
         ];
+        if (isStoreToSupplierMode()) {
+            showToast('门店退供场景，请引导门店在APP上进行售后处理');
+            return false;
+        }
         for (var i = 0; i < required.length; i++) {
             if (!getSelectValue(required[i].id)) {
                 showToast('请选择' + required[i].label);
+                return false;
+            }
+        }
+        if (isWarehouseToSupplierMode()) {
+            if (!getSourcePoNo()) {
+                showToast('请填写来源采购单');
+                return false;
+            }
+            if (!resolveSourceOrderByInput()) {
+                showToast('未找到该采购单下可退商品，请确认单号、退出地与供应商是否匹配', 'error');
                 return false;
             }
         }
@@ -1275,7 +1481,9 @@
     function validateCreateLines() {
         var filledLines = getFilledCreateLines();
         if (!filledLines.length) {
-            showToast('请至少新增一条商品明细');
+            showToast(isWarehouseToSupplierMode()
+                ? (getSourcePoNo() ? '未找到该采购单下可退商品' : '请填写来源采购单')
+                : '请至少新增一条商品明细');
             return false;
         }
         for (var i = 0; i < filledLines.length; i++) {
@@ -1307,9 +1515,11 @@
         ['roCreateReturnType', 'roCreateExitStore', 'roCreateEntryPlace', 'roCreateReason'].forEach(function(id) {
             setSelectValue(id, '', '');
         });
+        setSourcePoNo('');
         createLineState = [];
         syncExitPlaceOptions(false);
         syncEntryPlaceOptions(false);
+        syncSourcePoField(false);
         renderCreateLines();
     }
 
@@ -1348,10 +1558,23 @@
         setSelectValue('roCreateExitStore', row.exitStore || '', row.exitStore || '');
         syncEntryPlaceOptions(true);
         setSelectValue('roCreateEntryPlace', row.entryPlace || '', row.entryPlace || '');
+        syncSourcePoField(true);
+        if (isWarehouseToSupplierMode()) {
+            var sourcePoNo = row.sourcePoNo || '';
+            if (!sourcePoNo && row.lines && row.lines.length) {
+                sourcePoNo = row.lines[0].sourceNo || '';
+            }
+            setSourcePoNo(sourcePoNo);
+            createLineState = mapRowLinesToCreateLines(row);
+            if (!createLineState.length && sourcePoNo) {
+                createLineState = mapOrderLinesToCreateLines(resolveSourceOrderByInput() || findSourceOrder(sourcePoNo));
+            }
+        } else {
+            createLineState = mapRowLinesToCreateLines(row);
+            if (!createLineState.length) createLineState = [newCreateLine()];
+        }
         setSelectValue('roCreateReason', row.returnReason || '', row.returnReason || '');
         document.getElementById('roCreateRemark').value = row.remark || '';
-        createLineState = mapRowLinesToCreateLines(row);
-        if (!createLineState.length) createLineState = [newCreateLine()];
         renderCreateLines();
     }
 
@@ -1449,6 +1672,14 @@
         var remark = document.getElementById('roCreateRemark').value.trim();
         var lines = buildCreateLinesPayload(selectedLines);
 
+        var sourcePoNo = isWarehouseToSupplierMode() ? getSourcePoNo() : '';
+        var linesWithSource = lines.map(function(line, index) {
+            var copy = Object.assign({}, line);
+            if (sourcePoNo) copy.sourceNo = sourcePoNo;
+            else if (selectedLines[index] && selectedLines[index].sourceNo) copy.sourceNo = selectedLines[index].sourceNo;
+            return copy;
+        });
+
         if (createMode === 'edit' && editingRoNo) {
             var row = findRow(editingRoNo);
             if (!row) {
@@ -1464,9 +1695,10 @@
             row.exitPlaceType = getExitPlaceType(exitPlace) || (returnType === '退仓' ? '门店' : '');
             row.entryPlace = entryPlace;
             row.entryPlaceType = returnType === '退供' ? '供应商' : '仓库';
+            row.sourcePoNo = sourcePoNo;
             row.returnReason = returnReason;
             row.remark = remark;
-            row.lines = lines;
+            row.lines = linesWithSource;
             row.status = '待审核';
             row.auditBy = '';
             row.auditAt = '';
@@ -1486,6 +1718,7 @@
             returnType: returnType,
             docSource: '手动新增',
             sourceNo: '',
+            sourcePoNo: sourcePoNo,
             exitStore: exitPlace,
             exitPlaceType: getExitPlaceType(exitPlace) || (returnType === '退仓' ? '门店' : ''),
             entryPlace: entryPlace,
@@ -1499,7 +1732,7 @@
             updatedBy: '当前用户',
             returnReason: returnReason,
             remark: remark,
-            lines: lines
+            lines: linesWithSource
         });
 
         resetFilter();
@@ -1782,13 +2015,18 @@
     });
 
     document.getElementById('roCreateExitStore').addEventListener('change', handleExitStoreChange);
-    document.getElementById('roCreateEntryPlace').addEventListener('change', function() {
-        if (getReturnType() === '退供') {
-            createLineState = [];
-            renderCreateLines();
-        }
-    });
+    document.getElementById('roCreateEntryPlace').addEventListener('change', handleEntryPlaceChange);
+    document.getElementById('roCreateSourcePo').addEventListener('change', handleSourcePoChange);
     document.getElementById('roCreateReturnType').addEventListener('change', handleReturnTypeChange);
+
+    var sourcePoDemoTip = document.getElementById('roCreateSourcePoDemoTip');
+    if (sourcePoDemoTip) {
+        sourcePoDemoTip.addEventListener('click', function(e) {
+            var link = e.target.closest('.ro-source-po-demo-link');
+            if (!link) return;
+            fillDemoSourcePo(link.getAttribute('data-po-no') || '');
+        });
+    }
 
     document.getElementById('roCreateAddLineBtn').addEventListener('click', addCreateLine);
 
@@ -1866,6 +2104,7 @@
     renderTable();
     syncExitPlaceOptions(false);
     syncEntryPlaceOptions(false);
+    syncSourcePoField(false);
 })();
     </script>
 </body>
