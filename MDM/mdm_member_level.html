@@ -21,6 +21,17 @@
             color: #888;
             margin-left: 4px;
         }
+        .content-tabs {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .member-level-count {
+            font-size: 13px;
+            color: #888;
+            font-weight: 500;
+            line-height: 1;
+        }
         /* 会员权益：对齐会员分群「筛选规则」多行圆点列表 */
         .member-level-benefit-summary {
             max-width: 420px;
@@ -448,24 +459,11 @@
     <div id="header-container"></div>
     <div class="container">
         <main class="main-content">
-            <div class="content-tabs"><button class="active">会员等级</button></div>
+            <div class="content-tabs">
+                <button class="active">会员等级</button>
+                <span class="member-level-count" id="levelCountHint">(0/15)</span>
+            </div>
             <hr class="content-divider">
-            <div class="content-title">会员 / 会员体系 / 会员等级</div>
-
-            <div class="flow-box">
-                最多可设置 <strong>15</strong> 个会员等级；列表按成长值从低到高排列。
-                成长值为 <strong>0</strong> 的等级为默认等级，不支持删除、禁用，且成长值不可修改。
-                当前等级下存在会员时，不允许禁用或普通删除（弹窗提示）；可使用「强制删除等级」，系统将按成长值重新分配该等级下会员。
-                升降级策略：当前成长值满足某等级门槛即可升级（达标后立即生效）；不满足则降级（按成长值规则中的降级更新时效处理）。
-                成长值可通过消费、活跃获取，有效期与获取规则请在「成长值规则」中配置。
-                点击会员人数可跳转 C 端会员并按当前等级筛选。
-            </div>
-
-            <div class="member-level-toolbar">
-                <button type="button" class="erp-btn" id="btnGotoRule">成长值规则</button>
-                <button type="button" class="erp-btn" id="btnGotoGrowth">成长值明细</button>
-                <span class="member-level-toolbar__hint" id="levelCountHint">已设置 0 / 15 个等级</span>
-            </div>
 
             <section class="search-section">
                 <form class="search-form" id="memberLevelSearchForm">
