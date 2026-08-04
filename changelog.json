@@ -1,10 +1,95 @@
 {
-  "latestSha": "2ce2fe9510d7490df9f6937008f75cfe48c0a001",
-  "total": 223,
+  "latestSha": "d695157d2f7fe86cb59e933dc63f13f50e44776b",
+  "total": 225,
   "days": [
     {
       "date": "2026-08-04",
       "items": [
+        {
+          "sha": "d695157",
+          "type": "feat",
+          "text": "会员等级页展示已创建数量上限提示",
+          "author": "zhangzheng",
+          "time": "18:17",
+          "pages": [
+            {
+              "file": "MDM/mdm_member_level.html",
+              "module": "冷丰WMS",
+              "title": "会员等级"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_member_level.html",
+              "text": "页签旁展示当前等级数，格式为（x/15）"
+            }
+          ]
+        },
+        {
+          "sha": "c7b72ac",
+          "type": "style",
+          "text": "精简会员等级与积分相关页顶部说明区",
+          "author": "zhangzheng",
+          "time": "18:05",
+          "pages": [
+            {
+              "file": "MDM/mdm_member_level.html",
+              "module": "冷丰WMS",
+              "title": "会员等级"
+            },
+            {
+              "file": "MDM/mdm_member_level_desc.html",
+              "module": "冷丰WMS",
+              "title": "会员等级规则说明"
+            },
+            {
+              "file": "MDM/mdm_member_level_growth.html",
+              "module": "冷丰WMS",
+              "title": "成长值明细"
+            },
+            {
+              "file": "MDM/mdm_member_level_rule.html",
+              "module": "冷丰WMS",
+              "title": "成长值规则"
+            },
+            {
+              "file": "MDM/mdm_member_points_detail.html",
+              "module": "冷丰WMS",
+              "title": "积分明细"
+            },
+            {
+              "file": "MDM/mdm_member_points_rule.html",
+              "module": "冷丰WMS",
+              "title": "积分规则"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_member_level.html",
+              "text": "去掉面包屑、说明文案与顶部跳转栏"
+            },
+            {
+              "file": "MDM/mdm_member_level_rule.html",
+              "text": "去掉面包屑、说明文案与返回栏"
+            },
+            {
+              "file": "MDM/mdm_member_level_growth.html",
+              "text": "去掉面包屑、说明文案与顶部跳转栏"
+            },
+            {
+              "file": null,
+              "text": "规则说明: 去掉面包屑、说明文案与返回栏"
+            },
+            {
+              "file": "MDM/mdm_member_points_rule.html",
+              "text": "去掉面包屑与顶部说明文案"
+            },
+            {
+              "file": "MDM/mdm_member_points_detail.html",
+              "text": "去掉面包屑、说明文案与顶部跳转栏"
+            }
+          ]
+        },
         {
           "sha": "2ce2fe9",
           "type": "feat",
