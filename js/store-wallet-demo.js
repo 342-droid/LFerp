@@ -3,7 +3,7 @@
  * 口径：保证金账户 D + 余额账户（不可提现货款水位 Q + 可提现）
  */
 (function (global) {
-  var STORAGE_KEY = 'lf_store_wallet_demo_v2';
+  var STORAGE_KEY = 'lf_store_wallet_demo_v3';
 
   var DEFAULT = {
     storeName: '悠悠生鲜超市',
@@ -23,23 +23,29 @@
   }
 
   function defaultLedgers() {
-    /* 首次入金：列表 1 条，详情拆 3 事件；锁定不再单独占列表行 */
+    /* 首次入金：拆成保证金账户、余额账户两笔展示 */
     return [
       {
-        id: 'L001',
+        id: 'L001-D',
         time: '2026-07-28 10:12:03',
         type: '首次入金',
         dir: 'in',
-        amount: 10000,
-        account: '余额/保证金',
+        amount: 2000,
+        account: '保证金',
         bizNo: 'FI-20260728-001',
         channelNo: 'HF-IN-8899001',
-        remark: '公司线下充值到账后锁定保证金 2000 + 货款额度 8000',
-        detailEvents: [
-          { name: '到账确认', amount: 10000 },
-          { name: '保证金锁定', amount: 2000 },
-          { name: '首次货款锁定', amount: 8000 }
-        ]
+        remark: '公司线下充值到账·锁定保证金 2000（不可提现）'
+      },
+      {
+        id: 'L001-B',
+        time: '2026-07-28 10:12:03',
+        type: '首次入金',
+        dir: 'in',
+        amount: 8000,
+        account: '余额',
+        bizNo: 'FI-20260728-001',
+        channelNo: 'HF-IN-8899001',
+        remark: '公司线下充值到账·首次货款额度 8000（不可提现货款）'
       },
       {
         id: 'L004',
@@ -66,13 +72,13 @@
       {
         id: 'L006',
         time: '2026-08-01 09:18:44',
-        type: '佣金入账',
+        type: '平台佣金',
         dir: 'in',
         amount: 860.5,
         account: '余额',
         bizNo: 'CM-20260801-1102',
         channelNo: 'SPLIT-1102',
-        remark: '零售订单分佣（可提现）'
+        remark: '零售订单平台佣金入账（可提现）'
       },
       {
         id: 'L007',
@@ -121,13 +127,13 @@
       {
         id: 'L011',
         time: '2026-08-02 18:40:00',
-        type: '佣金入账',
+        type: '平台佣金',
         dir: 'in',
         amount: 400,
         account: '余额',
         bizNo: 'CM-20260802-2201',
         channelNo: 'SPLIT-2201',
-        remark: '入账时优先补齐保证金缺口 300，剩余进可提现'
+        remark: '平台佣金入账优先补齐保证金缺口 300，剩余进可提现'
       },
       {
         id: 'L012',
@@ -138,7 +144,7 @@
         account: '保证金',
         bizNo: 'CM-20260802-2201',
         channelNo: 'FILL-300',
-        remark: '佣金入账自动补齐保证金缺口'
+        remark: '平台佣金入账自动补齐保证金缺口'
       },
       {
         id: 'L013',

@@ -24,6 +24,10 @@
     window.location.href = '../../user-app/h5/store-wallet.html?from=store-app';
   }
 
+  function goBizCenter() {
+    window.location.href = 'biz-center.html';
+  }
+
   function goVerify(mode) {
     var qs = [];
     if (mode) qs.push('mode=' + encodeURIComponent(mode));
@@ -40,6 +44,10 @@
         }
         if (action === 'wallet') {
           goWallet();
+          return;
+        }
+        if (action === 'bizCenter') {
+          goBizCenter();
           return;
         }
         /* 核销入口：仅原订单核销（补货随原订单提货，不单独建补货单） */
