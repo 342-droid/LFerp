@@ -192,6 +192,19 @@
     return null;
   }
 
+  function setGenderDisplay(gender) {
+    var value = window.UAProfile && window.UAProfile.normalizeGender
+      ? window.UAProfile.normalizeGender(gender)
+      : (gender || '保密');
+    var hidden = document.getElementById('peGender');
+    var text = document.getElementById('peGenderText');
+    if (hidden) hidden.value = value;
+    if (text) {
+      text.textContent = value;
+      text.classList.remove('ua-pe-value--placeholder');
+    }
+  }
+
   function fillForm(profile) {
     var nick = document.getElementById('peNickname');
     var phoneHidden = document.getElementById('pePhone');
@@ -205,6 +218,8 @@
     if (phoneHidden) phoneHidden.value = phone;
     if (phoneText) phoneText.textContent = phone || '—';
     if (avatar && profile.avatar) avatar.src = profile.avatar;
+
+    setGenderDisplay(profile.gender || '保密');
 
     setBirthdayDisplay(profile.birthday || '');
     var birthParsed = parseBirthday(profile.birthday || '');
@@ -238,6 +253,7 @@
     return {
       nickname: ((document.getElementById('peNickname') || {}).value || '').trim(),
       displayPhone: ((document.getElementById('pePhone') || {}).value || '').trim(),
+      gender: ((document.getElementById('peGender') || {}).value || '').trim() || '保密',
       birthday: ((document.getElementById('peBirthday') || {}).value || '').trim(),
       district: ((document.getElementById('peDistrict') || {}).value || '').trim(),
       avatar: (document.getElementById('peAvatarImg') || {}).src || ''
@@ -454,6 +470,38 @@
     closeBirthdaySheet();
   }
 
+  function openGenderSheet() {
+    var sheet = document.getElementById('peGenderSheet');
+    if (!sheet) return;
+    var current = ((document.getElementById('peGender') || {}).value || '保密').trim();
+    sheet.querySelectorAll('[data-gender]').forEach(function (btn) {
+      btn.classList.toggle('is-active', btn.getAttribute('data-gender') === current);
+    });
+    sheet.hidden = false;
+  }
+
+  function closeGenderSheet() {
+    var sheet = document.getElementById('peGenderSheet');
+    if (sheet) sheet.hidden = true;
+  }
+
+  function bindGender() {
+    var btn = document.getElementById('peGenderBtn');
+    var sheet = document.getElementById('peGenderSheet');
+    if (btn) btn.addEventListener('click', openGenderSheet);
+    if (!sheet) return;
+    sheet.addEventListener('click', function (ev) {
+      if (ev.target.closest('[data-pe-gender-close]')) {
+        closeGenderSheet();
+        return;
+      }
+      var opt = ev.target.closest('[data-gender]');
+      if (!opt) return;
+      setGenderDisplay(opt.getAttribute('data-gender'));
+      closeGenderSheet();
+    });
+  }
+
   function bindBirthday() {
     var btn = document.getElementById('peBirthdayBtn');
     var sheet = document.getElementById('peBirthdaySheet');
@@ -577,6 +625,7 @@
     var profile = window.UAProfile.load();
     fillForm(profile);
     bindAvatar();
+    bindGender();
     bindBirthday();
     bindRegion();
 

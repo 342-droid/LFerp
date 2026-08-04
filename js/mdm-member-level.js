@@ -131,6 +131,9 @@
             var deleteLink = preset
                 ? '<span class="action-link-disabled" title="默认等级，不支持删除">删除</span>'
                 : '<a href="#" data-action="delete">删除</a>';
+            var forceDeleteLink = preset
+                ? ''
+                : '<a href="#" data-action="force-delete" class="action-link-danger">强制删除等级</a>';
             var toggleLink = preset
                 ? '<span class="action-link-disabled" title="默认等级，不支持禁用">禁用</span>'
                 : '<a href="#" data-action="toggle">' + toggleText + '</a>';
@@ -148,6 +151,7 @@
                 '<a href="#" data-action="edit">编辑</a>' +
                 toggleLink +
                 deleteLink +
+                forceDeleteLink +
                 '</td>' +
                 '</tr>'
             );
@@ -281,6 +285,11 @@
                     return;
                 }
                 var next = item.status === '启用' ? '禁用' : '启用';
+                /* 当前等级下有会员时不允许禁用 */
+                if (next === '禁用' && Number(item.memberCount || 0) > 0) {
+                    openWarmConfirm('当前等级下存在会员不允许禁用/删除', function () {});
+                    return;
+                }
                 openWarmConfirm('确认将等级「' + item.name + '」' + next + '？', function () {
                     item.status = next;
                     item.updatedAt = nowStr();
@@ -295,8 +304,9 @@
                     toast('默认等级（成长值为 0）不支持删除', 'warning');
                     return;
                 }
-                if (item.memberCount > 0) {
-                    toast('该等级仍有关联会员，无法删除', 'warning');
+                /* 当前等级下有会员时不允许普通删除 */
+                if (Number(item.memberCount || 0) > 0) {
+                    openWarmConfirm('当前等级下存在会员不允许禁用/删除', function () {});
                     return;
                 }
                 openWarmConfirm('确认删除等级「' + item.name + '」？', function () {
@@ -304,8 +314,52 @@
                     toast('已删除', 'success');
                     render(false);
                 });
+                return;
+            }
+
+            if (action === 'force-delete') {
+                if (Data.isSystemPreset(item)) {
+                    toast('默认等级不支持删除', 'warning');
+                    return;
+                }
+                openWarmConfirm(
+                    '确定要删除此等级，并将该等级下的会员根据成长值重新分配？',
+                    function () {
+                        forceDeleteLevel(item);
+                    }
+                );
             }
         });
+    }
+
+    /** 强制删除：按剩余等级成长值阈值，将会员数归入匹配等级（原型按人数演示） */
+    function forceDeleteLevel(item) {
+        var count = Number(item.memberCount || 0);
+        var remain = state.list.filter(function (it) { return it.id !== item.id; });
+        if (count > 0) {
+            var targets = remain
+                .filter(function (it) { return it.status !== '禁用'; })
+                .slice()
+                .sort(function (a, b) {
+                    return Number(a.growthValue || 0) - Number(b.growthValue || 0);
+                });
+            /* 按被删等级成长值，归入「仍满足的最高等级」；找不到则归默认（成长值最低） */
+            var threshold = Number(item.growthValue || 0);
+            var dest = null;
+            for (var i = 0; i < targets.length; i++) {
+                if (Number(targets[i].growthValue || 0) <= threshold) {
+                    dest = targets[i];
+                }
+            }
+            if (!dest && targets.length) dest = targets[0];
+            if (dest) {
+                dest.memberCount = Number(dest.memberCount || 0) + count;
+                dest.updatedAt = nowStr();
+            }
+        }
+        state.list = remain;
+        toast(count > 0 ? '已强制删除，会员已按成长值重新分配' : '已强制删除', 'success');
+        render(false);
     }
 
     document.addEventListener('DOMContentLoaded', function () {

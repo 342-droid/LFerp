@@ -21,6 +21,17 @@
     if (doc.querySelector('.ua-mc-page, #mcCarousel, .ua-mc-carousel')) return 'member-center.html';
     if (doc.querySelector('.ua-pe-page, #peSaveBtn')) return 'profile-edit.html';
     if (doc.getElementById('uaProfileContent') || doc.querySelector('.ua-profile-page')) return 'profile.html';
+    if (doc.getElementById('acPanelNotice') || doc.querySelector('[data-ac-panel]')) return 'account-cancel.html';
+    if (doc.getElementById('pwdSubmit')) return 'change-password.html';
+    if (doc.getElementById('setClearCache')) return 'settings.html';
+    if (doc.getElementById('moreAccountCancel')) return 'settings-more.html';
+    if (doc.querySelector('.ua-set-page') && doc.querySelector('.ua-pe-nav__title')) {
+      var t = (doc.querySelector('.ua-pe-nav__title').textContent || '').trim();
+      if (t === '更多') return 'settings-more.html';
+      if (t === '设置') return 'settings.html';
+      if (t === '修改密码') return 'change-password.html';
+      if (t.indexOf('注销') >= 0) return 'account-cancel.html';
+    }
     if (doc.querySelector('.ua-gd-page') && doc.getElementById('gdTotalValue')) return 'growth-detail.html';
     if (doc.querySelector('.ua-pd-page') && doc.getElementById('pdCurrent')) return 'points-detail.html';
     if (doc.querySelector('.ua-pm-page') && doc.getElementById('pmAvailable')) return 'points-mall.html';

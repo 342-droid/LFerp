@@ -134,19 +134,20 @@
         var c = tr.querySelectorAll('td');
         if (c.length < 4) return null;
         var av = c[2] ? c[2].querySelector('span') : null;
-        /* 注销会员精简表：ID / 昵称 / 头像 / 手机 / 等级 / 来源 / 注销时间 / 状态 / 操作 */
+        /* 注销会员表：ID / 昵称 / 手机 / 注册时间 / 渠道 / 平台 / 状态 / 备注 / 操作 */
         if (c.length < 19) {
-            var stCell = c[7] || c[c.length - 2];
+            var stCell = c[6] || c[7] || c[c.length - 2];
+            var nick = c[1].textContent.trim();
             return {
                 id: c[0].textContent.trim(),
-                nickname: c[1].textContent.trim(),
-                avatarText: av ? av.textContent.trim() : '',
-                phone: c[3].textContent.trim(),
+                nickname: nick,
+                avatarText: av ? av.textContent.trim() : String(nick || '会').charAt(0),
+                phone: (c[2] && c[2].textContent.trim()) || '—',
                 gender: '—',
                 isMember: '—',
-                level: (c[4] && c[4].textContent.trim()) || '—',
+                level: '普通会员',
                 tags: '—',
-                source: (c[5] && c[5].textContent.trim()) || '—',
+                source: (c[4] && c[4].textContent.trim()) || '—',
                 bindMethod: '—',
                 channelCount: '—',
                 points: '—',
@@ -356,66 +357,129 @@
     function mockGrowthRows(rec) {
         return [
             {
+                id: 'GV202607200001',
                 occurAt: '2026-07-20 14:20:03',
                 acquireType: '购物消费',
-                acquireSub: '订单完成',
+                acquireSub: '支付完成',
                 change: '+86',
                 afterValue: String(rec.growthScore || '1485'),
                 status: '有效',
+                expireAt: '2027-07-20 14:20:03',
                 refNo: 'ORD-3212689201598341',
-                remark: '订单实付 ¥86.00'
+                remark: '订单实付 ¥86.00',
+                operator: '—'
             },
             {
+                id: 'GV202607180001',
                 occurAt: '2026-07-18 08:01:12',
                 acquireType: '用户活跃',
                 acquireSub: '每日签到',
                 change: '+5',
                 afterValue: '1399',
                 status: '有效',
+                expireAt: '2027-07-18 08:01:12',
                 refNo: '—',
-                remark: '每日签到'
+                remark: '每日签到',
+                operator: '—'
             },
             {
+                id: 'GV202606120001',
                 occurAt: '2026-06-12 19:33:41',
                 acquireType: '购物消费',
-                acquireSub: '订单完成',
+                acquireSub: '交易完成',
                 change: '+129',
                 afterValue: '1394',
                 status: '有效',
+                expireAt: '2027-06-12 19:33:41',
                 refNo: 'ORD-3212689201588561',
-                remark: '订单实付 ¥129.50'
+                remark: '订单实付 ¥129.50',
+                operator: '—'
             },
             {
+                id: 'GV202605240001',
                 occurAt: '2026-05-24 21:15:08',
                 acquireType: '购物消费',
                 acquireSub: '售后完成',
                 change: '-30',
                 afterValue: '1265',
                 status: '有效',
+                expireAt: '—',
                 refNo: 'AS202605240018',
-                remark: '售后退款扣减成长值'
+                remark: '售后退款扣减成长值',
+                operator: '—'
             },
             {
+                id: 'GV202512010001',
                 occurAt: '2025-12-01 10:00:00',
                 acquireType: '手工调整',
                 acquireSub: '手工增加',
                 change: '+200',
                 afterValue: '980',
                 status: '过期',
+                expireAt: '2026-06-01 10:00:00',
                 refNo: '—',
-                remark: '活动补偿'
+                remark: '活动补偿',
+                operator: '运营 / ops01'
             },
             {
+                id: 'GV202508080001',
                 occurAt: '2025-08-08 16:45:09',
                 acquireType: '用户活跃',
                 acquireSub: '评价订单',
                 change: '+10',
                 afterValue: '780',
                 status: '过期',
+                expireAt: '2026-02-08 16:45:09',
                 refNo: 'ORD-3212689201584693',
-                remark: '评价订单'
+                remark: '评价订单',
+                operator: '—'
             }
         ];
+    }
+
+    /** 与成长值明细页一致：有效记录不展示过期时间 */
+    function formatGrowthExpireDisplay(row) {
+        if (!row || row.status === '有效') return '—';
+        return row.expireAt || '—';
+    }
+
+    function genGrowthSerialId() {
+        var d = new Date();
+        function pad(n) { return n < 10 ? '0' + n : String(n); }
+        return 'GV' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) +
+            pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
+    }
+
+    /**
+     * 时间筛选：有值后悬停（或聚焦）显示清空按钮
+     * @returns {{ wrap: HTMLElement, input: HTMLInputElement, sync: Function }}
+     */
+    function mkDatetimeClearable(title) {
+        var wrap = el('span', 'lf-datetime-wrap');
+        wrap.setAttribute('data-datetime-wrap', '1');
+        var input = mkInput('', 'datetime-local');
+        input.step = '1';
+        if (title) input.title = title;
+        var clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.className = 'lf-datetime-clear';
+        clearBtn.setAttribute('aria-label', '清空');
+        clearBtn.textContent = '×';
+        function sync() {
+            wrap.classList.toggle('has-value', !!input.value);
+        }
+        clearBtn.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            input.value = '';
+            sync();
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        input.addEventListener('input', sync);
+        input.addEventListener('change', sync);
+        wrap.appendChild(input);
+        wrap.appendChild(clearBtn);
+        sync();
+        return { wrap: wrap, input: input, sync: sync };
     }
 
     function panelMemberGrowth(rec) {
@@ -440,18 +504,21 @@
         });
         root.appendChild(summary);
 
+        /* 购物消费子项与 MdmMemberGrowthAcquire 保持一致：支付完成 / 交易完成 / 售后完成 */
+        var Acquire = window.MdmMemberGrowthAcquire;
         var SUB_OPTIONS = {
-            购物消费: [
-                { value: '订单完成', label: '订单完成' },
+            购物消费: (Acquire && Acquire.CONSUME_SUBS_ZH) || [
+                { value: '支付完成', label: '支付完成' },
+                { value: '交易完成', label: '交易完成' },
                 { value: '售后完成', label: '售后完成' }
             ],
-            用户活跃: [
+            用户活跃: (Acquire && Acquire.ACTIVITY_SUBS_ZH) || [
                 { value: '每日签到', label: '每日签到' },
                 { value: '浏览商品', label: '浏览商品' },
                 { value: '分享邀请', label: '分享邀请' },
                 { value: '评价订单', label: '评价订单' }
             ],
-            手工调整: [
+            手工调整: (Acquire && Acquire.MANUAL_SUBS_ZH) || [
                 { value: '手工增加', label: '手工增加' },
                 { value: '手工减少', label: '手工减少' }
             ]
@@ -466,14 +533,14 @@
         var state = { timeStart: '', timeEnd: '', acquireType: '', acquireSub: '', status: '' };
 
         var toolbar = el('div', 'erp-toolbar member-drawer-filter-toolbar');
-        var timeStart = mkInput('', 'datetime-local');
-        timeStart.step = '1';
-        var timeEnd = mkInput('', 'datetime-local');
-        timeEnd.step = '1';
+        var timeStartCtl = mkDatetimeClearable('开始时间');
+        var timeEndCtl = mkDatetimeClearable('结束时间');
+        var timeStart = timeStartCtl.input;
+        var timeEnd = timeEndCtl.input;
         var timeWrap = el('div', 'member-growth-time-range');
-        timeWrap.appendChild(timeStart);
+        timeWrap.appendChild(timeStartCtl.wrap);
         timeWrap.appendChild(el('span', 'member-growth-time-range__sep', '至'));
-        timeWrap.appendChild(timeEnd);
+        timeWrap.appendChild(timeEndCtl.wrap);
         toolbar.appendChild(mkField('获取时间', timeWrap));
 
         var typeSel = mkSelect([
@@ -536,14 +603,17 @@
                         rec.growthTotal = String((Number(rec.growthTotal) || 0) + result.change);
                     }
                     allRows.unshift({
+                        id: genGrowthSerialId(),
                         occurAt: result.occurAt || nowStr(),
                         acquireType: '手工调整',
                         acquireSub: result.change < 0 ? '手工减少' : '手工增加',
                         change: (result.change > 0 ? '+' : '') + result.change,
                         afterValue: String(result.afterValue),
                         status: '有效',
+                        expireAt: '—',
                         refNo: '—',
-                        remark: result.remark || '手工调整'
+                        remark: result.remark || '手工调整',
+                        operator: result.operator || '—'
                     });
                     refreshSummary();
                     renderList();
@@ -594,21 +664,38 @@
             var filtered = getFiltered();
             empty(tableHost);
             empty(pageHost);
-            var headers = ['获取时间', '获取方式', '明细类型', '变动值', '变动后成长值', '状态', '关联单号', '备注'];
+            /* 顺序对齐成长值明细页（本页已在会员详情内，省略会员ID/昵称/手机号） */
+            var headers = [
+                '流水号',
+                '获取方式',
+                '明细类型',
+                '变动成长值',
+                '关联单号',
+                '备注',
+                '获取时间',
+                '过期时间',
+                '状态',
+                '操作人'
+            ];
             var rows = filtered.map(function (row) {
+                var operatorText = row.acquireType === '手工调整'
+                    ? (row.operator || '—')
+                    : '—';
                 return [
-                    row.occurAt,
+                    row.id || '—',
                     row.acquireType,
                     row.acquireSub,
                     row.change,
-                    row.afterValue,
-                    row.status,
                     row.refNo,
-                    row.remark
+                    row.remark,
+                    row.occurAt,
+                    formatGrowthExpireDisplay(row),
+                    row.status,
+                    operatorText
                 ];
             });
             if (!rows.length) {
-                rows = [['—', '—', '—', '—', '—', '—', '—', '暂无匹配明细']];
+                rows = [['—', '—', '—', '—', '—', '暂无匹配明细', '—', '—', '—', '—']];
             }
             tableHost.appendChild(wrapTable(headers, rows, 'member-drawer-table--wide'));
             var bar = el('div', 'erp-pagination');
@@ -640,6 +727,8 @@
         btnReset.addEventListener('click', function () {
             timeStart.value = '';
             timeEnd.value = '';
+            timeStartCtl.sync();
+            timeEndCtl.sync();
             typeSel.value = '';
             statusSel.value = '';
             syncSubSelect();
@@ -924,14 +1013,14 @@
         var state = { timeStart: '', timeEnd: '', changeType: '', status: '' };
 
         var toolbar = el('div', 'erp-toolbar member-drawer-filter-toolbar');
-        var timeStart = mkInput('', 'datetime-local');
-        timeStart.step = '1';
-        var timeEnd = mkInput('', 'datetime-local');
-        timeEnd.step = '1';
+        var timeStartCtl = mkDatetimeClearable('开始时间');
+        var timeEndCtl = mkDatetimeClearable('结束时间');
+        var timeStart = timeStartCtl.input;
+        var timeEnd = timeEndCtl.input;
         var timeWrap = el('div', 'member-growth-time-range');
-        timeWrap.appendChild(timeStart);
+        timeWrap.appendChild(timeStartCtl.wrap);
         timeWrap.appendChild(el('span', 'member-growth-time-range__sep', '至'));
-        timeWrap.appendChild(timeEnd);
+        timeWrap.appendChild(timeEndCtl.wrap);
         toolbar.appendChild(mkField('变动时间', timeWrap));
 
         var typeSel = mkSelect([
@@ -1064,6 +1153,8 @@
         btnReset.addEventListener('click', function () {
             timeStart.value = '';
             timeEnd.value = '';
+            timeStartCtl.sync();
+            timeEndCtl.sync();
             typeSel.value = '';
             statusSel.value = '';
             state = { timeStart: '', timeEnd: '', changeType: '', status: '' };

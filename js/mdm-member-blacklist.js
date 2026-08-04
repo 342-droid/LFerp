@@ -73,7 +73,8 @@
 
     function statusClass(status) {
         if (status === '黑名单') return 'status blacklist';
-        if (status === '注销') return 'status canceled';
+        if (status === '注销' || status === '已注销') return 'status canceled';
+        if (status === '注销中' || status === '审核中') return 'status cancel-pending';
         return 'status active';
     }
 
@@ -85,6 +86,9 @@
         document.querySelectorAll('.member-tab-panel').forEach(function (panel) {
             panel.classList.toggle('is-active', panel.getAttribute('data-member-panel') === tabKey);
         });
+        if (tabKey === 'canceled' && window.MdmMemberCancel && typeof window.MdmMemberCancel.refresh === 'function') {
+            window.MdmMemberCancel.refresh();
+        }
         try {
             var url = new URL(window.location.href);
             if (tabKey === 'list') url.searchParams.delete('tab');
@@ -222,6 +226,10 @@
 
     function buildMemberListActions(status) {
         var st = String(status || '正常').trim();
+        /* 注销 / 注销中：仅查看详情，无发券、调积分、拉黑等 */
+        if (st === '注销' || st === '已注销' || st === '注销中' || st === '审核中') {
+            return '<a href="#" class="mdm-mem-detail">查看详情</a>';
+        }
         var html =
             '<a href="#" class="mdm-mem-detail">查看详情</a>' +
             '<a href="#" class="mdm-mem-coupon">优惠券</a>' +
@@ -235,23 +243,27 @@
     function syncMemberListRowStatus(memberId, status) {
         var tbody = document.getElementById('tableBody');
         if (!tbody || !memberId) return;
+        var displayStatus = status === '已注销' ? '注销'
+            : status === '审核中' ? '注销中'
+              : status;
         tbody.querySelectorAll('tr').forEach(function (tr) {
             var idCell = tr.querySelector('td');
             if (!idCell || idCell.textContent.trim() !== String(memberId)) return;
-            tr.setAttribute('data-member-status', status);
+            tr.setAttribute('data-member-status', displayStatus);
             var cells = tr.querySelectorAll('td');
             if (cells.length < 20) return;
             var st = cells[18].querySelector('.status') || document.createElement('span');
-            if (status === '黑名单') st.className = 'status blacklist';
-            else if (status === '注销') st.className = 'status canceled';
+            if (displayStatus === '黑名单') st.className = 'status blacklist';
+            else if (displayStatus === '注销') st.className = 'status canceled';
+            else if (displayStatus === '注销中') st.className = 'status cancel-pending';
             else st.className = 'status active';
-            st.textContent = status;
+            st.textContent = displayStatus;
             if (!st.parentNode) {
                 cells[18].innerHTML = '';
                 cells[18].appendChild(st);
             }
             cells[19].className = 'action-links';
-            cells[19].innerHTML = buildMemberListActions(status);
+            cells[19].innerHTML = buildMemberListActions(displayStatus);
         });
     }
 
@@ -675,17 +687,7 @@
                 apply();
             });
         }
-        var canceledBody = document.getElementById('canceledBody');
-        if (canceledBody) {
-            canceledBody.addEventListener('click', function (e) {
-                var a = e.target.closest('a.mdm-mem-detail');
-                if (!a) return;
-                e.preventDefault();
-                if (window.MdmMemberCUi) {
-                    window.MdmMemberCUi.openDetailFromRow(a.closest('tr'));
-                }
-            });
-        }
+        /* 注销表点击由 mdm-member-cancel.js 接管 */
     }
 
     /** 从会员列表拉黑 */

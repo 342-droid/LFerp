@@ -2650,6 +2650,35 @@
         if (input) input.value = '';
         showToast('发送成功');
       });
+
+    /* 进场特效：进入直播间自动播放；右侧可切换演示三种样式 */
+    (function bindLiveEntryFx() {
+      var host = document.getElementById('liveEntryFxHost');
+      var demo = document.getElementById('liveFxDemo');
+      if (!host || !window.UaLiveEntryFx) return;
+
+      function playType(type) {
+        if (demo) {
+          demo.querySelectorAll('[data-fx]').forEach(function (btn) {
+            btn.classList.toggle('is-active', btn.getAttribute('data-fx') === type);
+          });
+        }
+        window.UaLiveEntryFx.play(host, type);
+      }
+
+      var initial = window.UaLiveEntryFx.resolveEffectType();
+      window.setTimeout(function () {
+        playType(initial);
+      }, 350);
+
+      if (demo) {
+        demo.addEventListener('click', function (ev) {
+          var btn = ev.target.closest('[data-fx]');
+          if (!btn) return;
+          playType(btn.getAttribute('data-fx'));
+        });
+      }
+    })();
   }
 
   global.UAShop = {

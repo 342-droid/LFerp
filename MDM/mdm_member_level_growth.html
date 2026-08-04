@@ -70,7 +70,8 @@
             padding: 0;
             display: none;
         }
-        .growth-datetime-wrap.has-value .growth-datetime-clear { display: block; }
+        .growth-datetime-wrap.has-value:hover .growth-datetime-clear,
+        .growth-datetime-wrap.has-value:focus-within .growth-datetime-clear { display: block; }
         .growth-datetime-clear:hover { background: #ccc; color: #333; }
         .growth-datetime-row .sep { color: #999; font-size: 12px; }
         /* 筛选项按内容宽度紧凑排列，放不下再换行 */
@@ -191,7 +192,7 @@
 
             <div class="flow-box">
                 记录会员成长值变动明细。获取方式包含：购物消费、用户活跃（与成长值规则中的活跃行为一致）、手工调整（手工增加 / 手工减少）。
-                购物消费明细类型：订单完成、售后完成（关联售后单号）。
+                购物消费明细类型：支付完成、交易完成、售后完成（关联售后单号）。
                 有效 / 过期按「获取时间 + 成长值规则有效期」计算；有效记录不展示过期时间；手工调整会记录操作人。
                 会员ID、关联订单/售后单号可跳转至对应详情。
             </div>
@@ -271,7 +272,6 @@
                                 <th>过期时间</th>
                                 <th>状态</th>
                                 <th>操作人</th>
-                                <th>操作</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody"></tbody>
@@ -284,6 +284,7 @@
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
+    <script src="../js/mdm-member-growth-acquire.js"></script>
     <script src="../js/mdm-member-level-growth.js"></script>
 </body>
 </html>

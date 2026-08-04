@@ -2519,8 +2519,14 @@
   flex-wrap: wrap;
 }
 
-.member-growth-time-range .erp-input {
+.member-growth-time-range .erp-input,
+.member-growth-time-range .lf-datetime-wrap input[type="datetime-local"] {
   width: 190px;
+  height: 32px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0 28px 0 8px;
+  box-sizing: border-box;
 }
 
 .member-growth-time-range__sep {

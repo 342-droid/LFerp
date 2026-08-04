@@ -46,19 +46,12 @@
 
         <section class="ua-gd-detail">
           <div class="ua-gd-detail__head">
-            <div class="ua-gd-detail__title" id="gdDetailTitle">
+            <div class="ua-gd-detail__title">
               <span>成长值明细</span>
-              <button type="button" class="ua-gd-detail__info" id="gdInfoBtn" aria-label="说明" aria-describedby="gdInfoTip">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="8" r="1" fill="currentColor" stroke="none"/></svg>
-              </button>
-              <div class="ua-gd-detail__tip" id="gdInfoTip" role="tooltip">成长值有效期为获取后365天，失效的成长值将不再明细中展示。</div>
             </div>
-            <div class="ua-gd-month" id="gdMonthWrap">
-              <button type="button" class="ua-gd-month__trigger" id="gdMonthTrigger" aria-expanded="false">
-                <span id="gdMonthLabel">2026年7月</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-              </button>
-              <div class="ua-gd-month__panel" id="gdMonthPanel" hidden></div>
+            <div class="ua-gd-date-filters" aria-label="日期筛选">
+              <select class="ua-gd-select" id="gdYearSelect" aria-label="年份"></select>
+              <select class="ua-gd-select" id="gdMonthSelect" aria-label="月份"></select>
             </div>
           </div>
           <div class="ua-gd-list" id="gdList"></div>
@@ -68,6 +61,7 @@
     </div>
   </div>
   <script src="../js/user-app-nav.js"></script>
+  <script src="../../js/mdm-member-growth-acquire.js"></script>
   <script src="../js/user-app-growth-detail.js"></script>
 </body>
 </html>
