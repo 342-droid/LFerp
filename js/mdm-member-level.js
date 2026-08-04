@@ -53,7 +53,7 @@
 
     function updateCountHint() {
         var el = document.getElementById('levelCountHint');
-        if (el) el.textContent = '已设置 ' + state.list.length + ' / ' + Data.LEVEL_MAX + ' 个等级';
+        if (el) el.textContent = '(' + state.list.length + '/' + Data.LEVEL_MAX + ')';
     }
 
     function closeWarmConfirm() {

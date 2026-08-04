@@ -21,6 +21,17 @@
             color: #888;
             margin-left: 4px;
         }
+        .content-tabs {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .member-level-count {
+            font-size: 13px;
+            color: #888;
+            font-weight: 500;
+            line-height: 1;
+        }
         /* 会员权益：对齐会员分群「筛选规则」多行圆点列表 */
         .member-level-benefit-summary {
             max-width: 420px;
@@ -448,7 +459,10 @@
     <div id="header-container"></div>
     <div class="container">
         <main class="main-content">
-            <div class="content-tabs"><button class="active">会员等级</button></div>
+            <div class="content-tabs">
+                <button class="active">会员等级</button>
+                <span class="member-level-count" id="levelCountHint">(0/15)</span>
+            </div>
             <hr class="content-divider">
 
             <section class="search-section">
