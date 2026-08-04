@@ -6,6 +6,7 @@
     <title>冷丰WMS - 退货单</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/purchase-return-order.css">
     <style>
         .order-no-link {
             color: #2196F3;
@@ -119,6 +120,7 @@
 
     <div class="container">
         <main class="main-content">
+            <div id="roListView">
             <div class="content-tabs">
                 <button type="button" class="active">退货单</button>
             </div>
@@ -136,11 +138,37 @@
                             <span class="clear-btn">×</span>
                         </div>
                     </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 90px;">退货类型:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchReturnType" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchReturnTypeDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="退仓">退仓</div>
+                                <div class="select-option" data-value="退供">退供</div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label style="width: 80px;">来源单号:</label>
                         <div class="input-wrapper">
-                            <input type="text" id="searchSourceNo" placeholder="请输入来源单号">
+                            <input type="text" id="searchSourceNo" placeholder="采购单号/售后单号">
                             <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label style="width: 90px;">单据来源:</label>
+                        <div class="custom-select">
+                            <input type="text" id="searchDocSource" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchDocSourceDropdown">
+                                <div class="select-option" data-value="">全部</div>
+                                <div class="select-option" data-value="代采-退货退款">代采-退货退款</div>
+                                <div class="select-option" data-value="手动新增">手动新增</div>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -163,7 +191,7 @@
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
-                        <label style="width: 80px;">退出地:</label>
+                        <label style="width: 90px;">退出地:</label>
                         <div class="custom-select">
                             <input type="text" id="searchExitStore" placeholder="请选择" readonly>
                             <span class="select-arrow">▼</span>
@@ -173,6 +201,9 @@
                                 <div class="select-option" data-value="S001 南京新街口店">S001 南京新街口店</div>
                                 <div class="select-option" data-value="S002 嘉兴南湖店">S002 嘉兴南湖店</div>
                                 <div class="select-option" data-value="S003 上海徐汇店">S003 上海徐汇店</div>
+                                <div class="select-option" data-value="W001 南京仓">W001 南京仓</div>
+                                <div class="select-option" data-value="W002 嘉兴仓">W002 嘉兴仓</div>
+                                <div class="select-option" data-value="W003 上海仓">W003 上海仓</div>
                             </div>
                         </div>
                     </div>
@@ -185,11 +216,13 @@
                             <div class="select-dropdown" id="searchExitPlaceTypeDropdown"></div>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group custom-select-wrapper">
                         <label style="width: 80px;">退入地:</label>
-                        <div class="input-wrapper">
-                            <input type="text" id="searchEntryPlace" placeholder="仓库或供应商名称">
+                        <div class="custom-select">
+                            <input type="text" id="searchEntryPlace" placeholder="请选择" readonly>
+                            <span class="select-arrow">▼</span>
                             <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="searchEntryPlaceDropdown"></div>
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
@@ -202,7 +235,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>关联出库单:</label>
+                        <label style="width: 90px;">关联出库单:</label>
                         <div class="input-wrapper">
                             <input type="text" id="searchOutboundNo" placeholder="如 OBD...">
                             <span class="clear-btn">×</span>
@@ -230,18 +263,26 @@
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary" id="btnSearch">查询</button>
                         <button type="button" class="btn btn-secondary" id="btnReset">重置</button>
+                        <button type="button" class="btn btn-secondary" id="btnAddReturnOrder">新增退货单</button>
+                        <button type="button" class="btn btn-secondary" id="btnAudit">审核</button>
+                        <button type="button" class="btn btn-secondary" id="btnReject">驳回</button>
                     </div>
                 </form>
             </section>
 
-            <div class="aggregate-summary">共 <strong id="roListCount">0</strong> 条退货单</div>
+            <div class="ro-list-toolbar">
+                <div class="aggregate-summary">共 <strong id="roListCount">0</strong> 条退货单</div>
+            </div>
 
             <section class="table-section">
                 <div class="table-scroll-container">
                     <table class="table">
                         <thead>
                             <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all" id="roListCheckAll" aria-label="全选"></th>
                                 <th>退货单号</th>
+                                <th>退货类型</th>
+                                <th>单据来源</th>
                                 <th>来源单号</th>
                                 <th>退出地</th>
                                 <th>退出地类型</th>
@@ -262,7 +303,151 @@
                 </div>
                 <div id="pagination-container"></div>
             </section>
+            </div>
         </main>
+    </div>
+
+    <div id="roCreateModal" class="modal detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="roCreateModalTitle">退货单新增</div>
+                <span class="close" id="roCreateCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="roCreateForm" novalidate>
+                    <div class="ro-create-card">
+                        <div class="ro-create-card__title">退货单信息</div>
+                        <div class="ro-create-card__body">
+                            <div class="ro-create-form-grid">
+                                <div class="ro-create-field">
+                                    <label for="roCreateReturnType"><span class="ro-required">*</span>退货类型</label>
+                                    <div class="custom-select">
+                                        <input type="text" id="roCreateReturnType" placeholder="请选择退货类型" readonly>
+                                        <span class="select-arrow">▼</span>
+                                        <span class="clear-btn">×</span>
+                                        <div class="select-dropdown" id="roCreateReturnTypeDropdown">
+                                            <div class="select-option" data-value="退仓">退仓</div>
+                                            <div class="select-option" data-value="退供">退供</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="ro-create-field">
+                                    <label for="roCreateExitStore"><span class="ro-required">*</span>退出地</label>
+                                    <div class="custom-select">
+                                        <input type="text" id="roCreateExitStore" placeholder="请先选择退货类型" readonly disabled>
+                                        <span class="select-arrow">▼</span>
+                                        <span class="clear-btn">×</span>
+                                        <div class="select-dropdown" id="roCreateExitStoreDropdown"></div>
+                                    </div>
+                                </div>
+
+                                <div class="ro-create-field">
+                                    <label for="roCreateEntryPlace"><span class="ro-required">*</span>退入地</label>
+                                    <div class="custom-select">
+                                        <input type="text" id="roCreateEntryPlace" placeholder="请先选择退货类型" readonly disabled>
+                                        <span class="select-arrow">▼</span>
+                                        <span class="clear-btn">×</span>
+                                        <div class="select-dropdown" id="roCreateEntryPlaceDropdown"></div>
+                                    </div>
+                                </div>
+
+                                <div class="ro-create-field ro-create-field--wide" id="roCreateSourcePoField" style="display: none;">
+                                    <label for="roCreateSourcePo"><span class="ro-required">*</span>来源采购单</label>
+                                    <div class="ro-create-field__control">
+                                        <input type="text" id="roCreateSourcePo" maxlength="40" placeholder="请输入来源采购单号" disabled>
+                                        <p class="ro-source-po-demo-tip" id="roCreateSourcePoDemoTip">
+                                            演示可用：
+                                            <button type="button" class="ro-source-po-demo-link" data-po-no="PO2026072509000004">PO2026072509000004</button>
+                                            （W001 南京仓 → V002 华东果蔬有限公司）；
+                                            <button type="button" class="ro-source-po-demo-link" data-po-no="PO2026072408000005">PO2026072408000005</button>
+                                            （W002 嘉兴仓 → V001 浙北农产品合作社）
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="ro-create-field">
+                                    <label for="roCreateReason"><span class="ro-required">*</span>退货原因</label>
+                                    <div class="custom-select">
+                                        <input type="text" id="roCreateReason" placeholder="请选择退货原因" readonly>
+                                        <span class="select-arrow">▼</span>
+                                        <span class="clear-btn">×</span>
+                                        <div class="select-dropdown" id="roCreateReasonDropdown">
+                                            <div class="select-option" data-value="质量异常">质量异常</div>
+                                            <div class="select-option" data-value="临期或过期">临期或过期</div>
+                                            <div class="select-option" data-value="错发商品">错发商品</div>
+                                            <div class="select-option" data-value="包装破损">包装破损</div>
+                                            <div class="select-option" data-value="门店滞销">门店滞销</div>
+                                            <div class="select-option" data-value="其他">其他</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="ro-create-field ro-create-field--wide">
+                                    <label for="roCreateRemark">备注</label>
+                                    <input type="text" id="roCreateRemark" maxlength="200" placeholder="请输入备注，最多 200 字">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ro-create-card">
+                        <div class="ro-create-card__title">商品明细列表</div>
+                        <div class="ro-create-card__body">
+                            <div class="add-po-actions">
+                                <button type="button" class="btn btn-secondary" id="roCreateAddLineBtn">新增明细行</button>
+                            </div>
+                            <div class="detail-table-wrap table-scroll-container ro-create-lines">
+                                <table class="table no-last-column-freeze">
+                                    <thead>
+                                        <tr>
+                                            <th>商品编码</th>
+                                            <th>商品名称</th>
+                                            <th>商品规格</th>
+                                            <th>单位</th>
+                                            <th>采购员</th>
+                                            <th>商品分类</th>
+                                            <th>申请退货量</th>
+                                            <th>采购单价</th>
+                                            <th>销售单价</th>
+                                            <th>采购金额</th>
+                                            <th>销售金额</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="roCreateLinesTbody"></tbody>
+                                </table>
+                            </div>
+                            <datalist id="roProductNameList"></datalist>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" id="roCreateFooter">
+                <button type="button" class="btn btn-primary" id="roCreateSaveBtn">保存</button>
+                <button type="button" class="btn btn-secondary" id="roCreateCancelBtn">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="roAuditModal" class="modal detail-modal ro-audit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="roAuditModalTitle">审核</div>
+                <span class="close" id="roAuditCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p class="ro-audit-hint" id="roAuditHint"></p>
+                <div class="ro-audit-form-item">
+                    <span class="label"><span class="required">*</span>审批原因:</span>
+                    <textarea id="roAuditReason" placeholder="请填写审批原因" maxlength="200"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="roAuditConfirmBtn">确认</button>
+                <button type="button" class="btn btn-secondary" id="roAuditCancelBtn">取消</button>
+            </div>
+        </div>
     </div>
 
     <div id="roDetailModal" class="modal detail-modal">
@@ -316,11 +501,113 @@
     var pageSize = 10;
     var currentPage = 1;
     var filteredRows = [];
+    var createLineState = [];
+    var createMode = 'add';
+    var editingRoNo = '';
+    var pendingAuditAction = null;
+    var pendingAuditRows = [];
+
+    var createSourceOrders = [
+        {
+            poNo: 'PO2026072809000001',
+            exitStore: 'S001 南京新街口店',
+            supplier: 'V002 华东果蔬有限公司',
+            receivedAt: '2026-07-29 16:20:00',
+            lines: [
+                { skuCode: 'SKU10001', skuName: '红富士苹果', specification: '80# / 10kg', unit: '箱', buyer: '陈采购', category: '水果', receivedQty: 50, returnedQty: 20, purchasePrice: 68, salePrice: 88 },
+                { skuCode: 'SKU10008', skuName: '阳光玫瑰葡萄', specification: '5kg/箱', unit: '箱', buyer: '陈采购', category: '水果', receivedQty: 20, returnedQty: 8, purchasePrice: 120, salePrice: 158 },
+                { skuCode: 'SKU10015', skuName: '赣南脐橙', specification: '70# / 10kg', unit: '箱', buyer: '陈采购', category: '水果', receivedQty: 30, returnedQty: 0, purchasePrice: 76, salePrice: 98 }
+            ]
+        },
+        {
+            poNo: 'PO2026072709300002',
+            exitStore: 'S002 嘉兴南湖店',
+            supplier: 'V001 浙北农产品合作社',
+            receivedAt: '2026-07-28 15:40:00',
+            lines: [
+                { skuCode: 'SKU20003', skuName: '有机生菜', specification: '500g/袋', unit: '袋', buyer: '周采购', category: '蔬菜', receivedQty: 40, returnedQty: 15, purchasePrice: 8.5, salePrice: 12.8 },
+                { skuCode: 'SKU20011', skuName: '奶油小白菜', specification: '400g/袋', unit: '袋', buyer: '周采购', category: '蔬菜', receivedQty: 36, returnedQty: 0, purchasePrice: 7.2, salePrice: 10.8 }
+            ]
+        },
+        {
+            poNo: 'PO2026072608000003',
+            exitStore: 'S003 上海徐汇店',
+            supplier: 'V003 上海鲜达供应链',
+            receivedAt: '2026-07-27 14:15:00',
+            lines: [
+                { skuCode: 'SKU10012', skuName: '脐橙', specification: '65# / 12kg', unit: '箱', buyer: '陈采购', category: '水果', receivedQty: 60, returnedQty: 30, purchasePrice: 72, salePrice: 96 },
+                { skuCode: 'SKU30009', skuName: '海南香蕉', specification: '13kg/箱', unit: '箱', buyer: '吴采购', category: '水果', receivedQty: 24, returnedQty: 0, purchasePrice: 85, salePrice: 110 }
+            ]
+        },
+        {
+            poNo: 'PO2026072509000004',
+            exitStore: 'W001 南京仓',
+            supplier: 'V002 华东果蔬有限公司',
+            receivedAt: '2026-07-26 11:30:00',
+            lines: [
+                { skuCode: 'SKU10001', skuName: '红富士苹果', specification: '80# / 10kg', unit: '箱', buyer: '陈采购', category: '水果', receivedQty: 80, returnedQty: 10, purchasePrice: 68, salePrice: 88 },
+                { skuCode: 'SKU10015', skuName: '赣南脐橙', specification: '70# / 10kg', unit: '箱', buyer: '陈采购', category: '水果', receivedQty: 40, returnedQty: 0, purchasePrice: 76, salePrice: 98 }
+            ]
+        },
+        {
+            poNo: 'PO2026072408000005',
+            exitStore: 'W002 嘉兴仓',
+            supplier: 'V001 浙北农产品合作社',
+            receivedAt: '2026-07-25 10:10:00',
+            lines: [
+                { skuCode: 'SKU20003', skuName: '有机生菜', specification: '500g/袋', unit: '袋', buyer: '周采购', category: '蔬菜', receivedQty: 50, returnedQty: 5, purchasePrice: 8.5, salePrice: 12.8 }
+            ]
+        }
+    ];
+
+    var exitStoreOptions = [
+        { value: 'S001 南京新街口店', text: 'S001 南京新街口店', placeType: '门店' },
+        { value: 'S002 嘉兴南湖店', text: 'S002 嘉兴南湖店', placeType: '门店' },
+        { value: 'S003 上海徐汇店', text: 'S003 上海徐汇店', placeType: '门店' }
+    ];
+
+    var exitWarehouseOptions = [
+        { value: 'W001 南京仓', text: 'W001 南京仓', placeType: '仓库' },
+        { value: 'W002 嘉兴仓', text: 'W002 嘉兴仓', placeType: '仓库' },
+        { value: 'W003 上海仓', text: 'W003 上海仓', placeType: '仓库' }
+    ];
+
+    var returnWarehouses = exitWarehouseOptions.map(function(item) {
+        return { value: item.value, text: item.text };
+    });
+
+    var returnSuppliers = [
+        { value: 'V001 浙北农产品合作社', text: 'V001 浙北农产品合作社' },
+        { value: 'V002 华东果蔬有限公司', text: 'V002 华东果蔬有限公司' },
+        { value: 'V003 上海鲜达供应链', text: 'V003 上海鲜达供应链' }
+    ];
 
     var allRows = [
         {
+            roNo: 'RO2026080310000001',
+            returnType: '退仓',
+            docSource: '手动新增',
+            sourceNo: '',
+            exitStore: 'S001 南京新街口店',
+            exitPlaceType: '门店',
+            entryPlace: 'W001 南京仓',
+            entryPlaceType: '仓库',
+            status: '待审核',
+            outboundNo: '',
+            inboundNo: '',
+            createdAt: '2026-08-03 10:00:00',
+            createdBy: '当前用户',
+            updatedAt: '2026-08-03 10:00:00',
+            updatedBy: '当前用户',
+            lines: [
+                { skuCode: 'SKU10015', skuName: '赣南脐橙', specification: '70# / 10kg', buyer: '陈采购', category: '水果', requestedQty: 10, actualQty: 0, purchasePrice: 76, salePrice: 98, purchaseAmount: 760, saleAmount: 980 }
+            ]
+        },
+        {
             roNo: 'RO2026073012000001',
-            sourceNo: 'PO2026072809000001',
+            returnType: '退仓',
+            docSource: '手动新增',
+            sourceNo: '',
             exitStore: 'S001 南京新街口店',
             exitPlaceType: '门店',
             entryPlace: 'W001 南京仓',
@@ -339,10 +626,13 @@
         },
         {
             roNo: 'RO2026073012000002',
-            sourceNo: 'PO2026072709300002',
-            exitStore: 'S002 嘉兴南湖店',
-            exitPlaceType: '门店',
-            entryPlace: '浙北农产品合作社',
+            returnType: '退供',
+            docSource: '手动新增',
+            sourceNo: '',
+            sourcePoNo: 'PO2026072408000005',
+            exitStore: 'W002 嘉兴仓',
+            exitPlaceType: '仓库',
+            entryPlace: 'V001 浙北农产品合作社',
             entryPlaceType: '供应商',
             status: '已驳回',
             outboundNo: '',
@@ -351,13 +641,18 @@
             createdBy: '李四',
             updatedAt: '2026-07-30 13:10:00',
             updatedBy: '赵六',
+            returnReason: '质量异常',
+            remark: '审核驳回，待修改后重提',
+            auditReason: '退货原因说明不足',
             lines: [
-                { skuCode: 'SKU20003', skuName: '有机生菜', specification: '500g/袋', buyer: '周采购', category: '蔬菜', requestedQty: 15, actualQty: 0, purchasePrice: 8.5, salePrice: 12.8, purchaseAmount: 127.5, saleAmount: 192 }
+                { skuCode: 'SKU20003', skuName: '有机生菜', specification: '500g/袋', buyer: '周采购', category: '蔬菜', requestedQty: 15, actualQty: 0, purchasePrice: 8.5, salePrice: 12.8, purchaseAmount: 127.5, saleAmount: 192, sourceNo: 'PO2026072408000005' }
             ]
         },
         {
             roNo: 'RO2026072911000003',
-            sourceNo: 'PO2026072608000003',
+            returnType: '退仓',
+            docSource: '代采-退货退款',
+            sourceNo: 'AS2026072910000003',
             exitStore: 'S003 上海徐汇店',
             exitPlaceType: '门店',
             entryPlace: 'W003 上海仓',
@@ -375,10 +670,12 @@
         },
         {
             roNo: 'RO2026072810000004',
-            sourceNo: 'PO2026072508300004',
+            returnType: '退供',
+            docSource: '代采-退货退款',
+            sourceNo: 'AS2026072810000004',
             exitStore: 'S001 南京新街口店',
             exitPlaceType: '门店',
-            entryPlace: '华东果蔬有限公司',
+            entryPlace: 'V002 华东果蔬有限公司',
             entryPlaceType: '供应商',
             status: '待发货',
             outboundNo: 'OBD2026072812000004',
@@ -393,7 +690,9 @@
         },
         {
             roNo: 'RO2026072715000005',
-            sourceNo: 'PO2026072409000005',
+            returnType: '退仓',
+            docSource: '手动新增',
+            sourceNo: '',
             exitStore: 'S002 嘉兴南湖店',
             exitPlaceType: '门店',
             entryPlace: 'W002 嘉兴仓',
@@ -433,15 +732,29 @@
             .replace(/"/g, '&quot;');
     }
 
+    function formatReturnType(returnType) {
+        return returnType || '—';
+    }
+
+    function formatDocSource(docSource) {
+        return docSource || '—';
+    }
+
+    function formatSourceNoLabel(docSource) {
+        return docSource === '代采-退货退款' ? '来源单号（售后单号）' : '来源单号';
+    }
+
     function getFilterValues() {
         return {
             roNo: (document.getElementById('searchRoNo').value || '').trim(),
+            returnType: getSelectValue('searchReturnType'),
             sourceNo: (document.getElementById('searchSourceNo').value || '').trim(),
+            docSource: getSelectValue('searchDocSource'),
             status: (document.getElementById('searchDocStatus').value || '').trim(),
             exitStore: (document.getElementById('searchExitStore').value || '').trim(),
             exitPlaceType: (document.getElementById('searchExitPlaceType').value || '').trim(),
-            entryPlace: (document.getElementById('searchEntryPlace').value || '').trim(),
-            entryPlaceType: (document.getElementById('searchEntryPlaceType').value || '').trim(),
+            entryPlace: getSelectValue('searchEntryPlace'),
+            entryPlaceType: getSelectValue('searchEntryPlaceType'),
             outboundNo: (document.getElementById('searchOutboundNo').value || '').trim(),
             inboundNo: (document.getElementById('searchInboundNo').value || '').trim(),
             createdAtStart: document.getElementById('searchCreatedAtStart').value || '',
@@ -461,11 +774,13 @@
         var f = getFilterValues();
         filteredRows = allRows.filter(function(row) {
             if (f.roNo && row.roNo.indexOf(f.roNo) === -1) return false;
-            if (f.sourceNo && row.sourceNo.indexOf(f.sourceNo) === -1) return false;
+            if (f.returnType && row.returnType !== f.returnType) return false;
+            if (f.sourceNo && String(row.sourceNo || '').indexOf(f.sourceNo) === -1) return false;
+            if (f.docSource && row.docSource !== f.docSource) return false;
             if (f.status && row.status !== f.status) return false;
             if (f.exitStore && row.exitStore !== f.exitStore) return false;
             if (f.exitPlaceType && row.exitPlaceType !== f.exitPlaceType) return false;
-            if (f.entryPlace && row.entryPlace.indexOf(f.entryPlace) === -1) return false;
+            if (f.entryPlace && row.entryPlace !== f.entryPlace) return false;
             if (f.entryPlaceType && row.entryPlaceType !== f.entryPlaceType) return false;
             if (f.outboundNo && (row.outboundNo || '').indexOf(f.outboundNo) === -1) return false;
             if (f.inboundNo && (row.inboundNo || '').indexOf(f.inboundNo) === -1) return false;
@@ -477,9 +792,12 @@
     }
 
     function resetFilter() {
-        ['searchRoNo', 'searchSourceNo', 'searchDocStatus', 'searchExitStore', 'searchExitPlaceType', 'searchEntryPlace', 'searchEntryPlaceType', 'searchOutboundNo', 'searchInboundNo', 'searchCreatedAtStart', 'searchCreatedAtEnd'].forEach(function(id) {
+        ['searchRoNo', 'searchReturnType', 'searchSourceNo', 'searchDocSource', 'searchDocStatus', 'searchExitStore', 'searchExitPlaceType', 'searchEntryPlace', 'searchEntryPlaceType', 'searchOutboundNo', 'searchInboundNo', 'searchCreatedAtStart', 'searchCreatedAtEnd'].forEach(function(id) {
             var el = document.getElementById(id);
-            if (el) el.value = '';
+            if (el) {
+                el.value = '';
+                if (el.dataset) el.dataset.value = '';
+            }
         });
         applyFilter();
     }
@@ -495,13 +813,19 @@
         var start = (currentPage - 1) * pageSize;
         var pageRows = filteredRows.slice(start, start + pageSize);
 
+        var checkAll = document.getElementById('roListCheckAll');
+        if (checkAll) checkAll.checked = false;
+
         if (!pageRows.length) {
-            tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;color:#999;">暂无数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="17" style="text-align:center;color:#999;">暂无数据</td></tr>';
         } else {
             tbody.innerHTML = pageRows.map(function(row) {
-                return '<tr>' +
-                    '<td><a href="javascript:void(0)" class="order-no-link" data-ro-no="' + escapeHtml(row.roNo) + '">' + escapeHtml(row.roNo) + '</a></td>' +
-                    '<td>' + escapeHtml(row.sourceNo) + '</td>' +
+                return '<tr data-ro-no="' + escapeHtml(row.roNo) + '">' +
+                    '<td><input type="checkbox" class="table-checkbox checkbox-row" aria-label="选择退货单 ' + escapeHtml(row.roNo) + '"></td>' +
+                    '<td><a href="#" class="order-no-link js-open-ro-detail" data-ro-no="' + escapeHtml(row.roNo) + '">' + escapeHtml(row.roNo) + '</a></td>' +
+                    '<td>' + escapeHtml(formatReturnType(row.returnType)) + '</td>' +
+                    '<td>' + escapeHtml(formatDocSource(row.docSource)) + '</td>' +
+                    '<td>' + escapeHtml(row.sourceNo || '—') + '</td>' +
                     '<td>' + escapeHtml(row.exitStore) + '</td>' +
                     '<td>' + escapeHtml(row.exitPlaceType) + '</td>' +
                     '<td>' + escapeHtml(row.entryPlace) + '</td>' +
@@ -513,7 +837,10 @@
                     '<td>' + escapeHtml(row.createdBy) + '</td>' +
                     '<td>' + escapeHtml(row.updatedAt) + '</td>' +
                     '<td>' + escapeHtml(row.updatedBy) + '</td>' +
-                    '<td><a href="javascript:void(0)" class="order-no-link" data-ro-no="' + escapeHtml(row.roNo) + '">详情</a></td>' +
+                    '<td class="action-links action-links-cell">' +
+                    '<a href="#" class="ro-detail-btn">详情</a>' +
+                    renderRowMoreActionsHtml(row) +
+                    '</td>' +
                     '</tr>';
             }).join('');
         }
@@ -544,6 +871,64 @@
         return null;
     }
 
+    function renderRowMoreActionsHtml(row) {
+        var items = [];
+        if (row.status === '待审核') {
+            items.push('<a href="#" class="row-audit-btn">审核</a>');
+            items.push('<a href="#" class="row-reject-btn">驳回</a>');
+        }
+        if (row.status === '已驳回') {
+            items.push('<a href="#" class="edit-btn">编辑</a>');
+            items.push('<a href="#" class="delete-btn">作废</a>');
+        }
+        if (!items.length) return '';
+        return (
+            '<span class="po-action-more">' +
+            '<a href="#" class="po-action-more-toggle">更多<svg class="po-action-more-caret" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1.5L6 6.5L11 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>' +
+            '<span class="po-action-more-menu">' + items.join('') + '</span></span>'
+        );
+    }
+
+    function closeAllRoMoreMenus() {
+        document.querySelectorAll('.po-action-more.is-open').forEach(function(wrap) {
+            wrap.classList.remove('is-open');
+            var td = wrap.closest('.action-links-cell');
+            if (td) td.classList.remove('is-more-open');
+            var menu = wrap.querySelector('.po-action-more-menu');
+            if (menu) {
+                menu.style.top = '';
+                menu.style.left = '';
+            }
+        });
+    }
+
+    function positionRoMoreMenu(wrap) {
+        var toggle = wrap.querySelector('.po-action-more-toggle');
+        var menu = wrap.querySelector('.po-action-more-menu');
+        if (!toggle || !menu) return;
+        var rect = toggle.getBoundingClientRect();
+        var menuWidth = Math.max(88, menu.offsetWidth || 88);
+        var left = rect.right - menuWidth;
+        var top = rect.bottom + 6;
+        if (left < 8) left = 8;
+        if (left + menuWidth > window.innerWidth - 8) {
+            left = window.innerWidth - menuWidth - 8;
+        }
+        if (top + menu.offsetHeight > window.innerHeight - 8) {
+            top = Math.max(8, rect.top - menu.offsetHeight - 6);
+        }
+        menu.style.top = top + 'px';
+        menu.style.left = left + 'px';
+    }
+
+    function openRoMoreMenu(wrap) {
+        closeAllRoMoreMenus();
+        wrap.classList.add('is-open');
+        var td = wrap.closest('.action-links-cell');
+        if (td) td.classList.add('is-more-open');
+        positionRoMoreMenu(wrap);
+    }
+
     function infoItem(label, value) {
         return '<div class="detail-info-item"><span class="label">' + escapeHtml(label) + ':</span><span>' + escapeHtml(value == null || value === '' ? '—' : value) + '</span></div>';
     }
@@ -553,13 +938,817 @@
         return isNaN(amount) ? '—' : '¥' + amount.toFixed(2);
     }
 
+    function setSelectValue(id, value, textValue) {
+        var input = document.getElementById(id);
+        if (!input) return;
+        input.value = textValue == null ? value : textValue;
+        input.dataset.value = value || '';
+    }
+
+    function getSelectValue(id) {
+        var input = document.getElementById(id);
+        if (!input) return '';
+        return (input.dataset.value || input.value || '').trim();
+    }
+
+    function getReturnType() {
+        return getSelectValue('roCreateReturnType');
+    }
+
+    function getExitPlaceOptionsByReturnType(returnType) {
+        if (returnType === '退仓') return exitStoreOptions.slice();
+        if (returnType === '退供') return exitStoreOptions.concat(exitWarehouseOptions);
+        return [];
+    }
+
+    function getExitPlaceType(exitPlace) {
+        var allOptions = exitStoreOptions.concat(exitWarehouseOptions);
+        for (var i = 0; i < allOptions.length; i++) {
+            if (allOptions[i].value === exitPlace) return allOptions[i].placeType;
+        }
+        return '';
+    }
+
+    function getExitStoreOrders() {
+        var exitStore = getSelectValue('roCreateExitStore');
+        if (!exitStore) return [];
+        return createSourceOrders.filter(function(order) {
+            return order.exitStore === exitStore;
+        });
+    }
+
+    function isWarehouseToSupplierMode() {
+        return getReturnType() === '退供'
+            && getExitPlaceType(getSelectValue('roCreateExitStore')) === '仓库'
+            && !!getSelectValue('roCreateEntryPlace');
+    }
+
+    function isStoreToSupplierMode() {
+        return getReturnType() === '退供'
+            && getExitPlaceType(getSelectValue('roCreateExitStore')) === '门店'
+            && !!getSelectValue('roCreateEntryPlace');
+    }
+
+    function blockStoreToSupplierIfNeeded() {
+        if (!isStoreToSupplierMode()) return false;
+        showToast('门店退供场景，请引导门店在APP上进行售后处理');
+        setSelectValue('roCreateEntryPlace', '', '');
+        var entryInput = document.getElementById('roCreateEntryPlace');
+        if (entryInput) entryInput.value = '';
+        createLineState = [];
+        syncSourcePoField(false);
+        renderCreateLines();
+        return true;
+    }
+
+    function findSourceOrder(poNo) {
+        for (var i = 0; i < createSourceOrders.length; i++) {
+            if (createSourceOrders[i].poNo === poNo) return createSourceOrders[i];
+        }
+        return null;
+    }
+
+    function getSourcePoNo() {
+        var input = document.getElementById('roCreateSourcePo');
+        return input ? String(input.value || '').trim() : '';
+    }
+
+    function setSourcePoNo(value) {
+        var input = document.getElementById('roCreateSourcePo');
+        if (input) input.value = value || '';
+    }
+
+    function resolveSourceOrderByInput() {
+        var poNo = getSourcePoNo();
+        if (!poNo) return null;
+        var order = findSourceOrder(poNo);
+        if (!order) return null;
+        if (order.exitStore !== getSelectValue('roCreateExitStore')) return null;
+        if (order.supplier !== getSelectValue('roCreateEntryPlace')) return null;
+        return order;
+    }
+
+    function getAvailableProducts() {
+        var products = [];
+        var supplier = getReturnType() === '退供' ? getSelectValue('roCreateEntryPlace') : '';
+        var sourcePoNo = isWarehouseToSupplierMode() ? getSourcePoNo() : '';
+        getExitStoreOrders().forEach(function(order) {
+            if (supplier && order.supplier !== supplier) return;
+            if (sourcePoNo && order.poNo !== sourcePoNo) return;
+            order.lines.forEach(function(line) {
+                var availableQty = Math.max(0, Number(line.receivedQty) - Number(line.returnedQty));
+                if (availableQty <= 0) return;
+                products.push({
+                    sourceNo: order.poNo,
+                    supplier: order.supplier,
+                    skuCode: line.skuCode,
+                    skuName: line.skuName,
+                    specification: line.specification,
+                    unit: line.unit,
+                    buyer: line.buyer,
+                    category: line.category,
+                    purchasePrice: line.purchasePrice,
+                    salePrice: line.salePrice,
+                    availableQty: availableQty
+                });
+            });
+        });
+        return products;
+    }
+
+    function mapOrderLinesToCreateLines(order) {
+        if (!order) return [];
+        return order.lines.map(function(line) {
+            var availableQty = Math.max(0, Number(line.receivedQty) - Number(line.returnedQty));
+            if (availableQty <= 0) return null;
+            return {
+                sourceNo: order.poNo,
+                supplier: order.supplier,
+                skuCode: line.skuCode,
+                skuName: line.skuName,
+                specification: line.specification,
+                unit: line.unit,
+                buyer: line.buyer,
+                category: line.category,
+                purchasePrice: line.purchasePrice,
+                salePrice: line.salePrice,
+                availableQty: availableQty,
+                returnQty: 1
+            };
+        }).filter(Boolean);
+    }
+
+    function loadLinesFromSourcePo(showMissingTip) {
+        var poNo = getSourcePoNo();
+        if (!poNo) {
+            createLineState = [];
+            renderCreateLines();
+            return;
+        }
+        var order = resolveSourceOrderByInput();
+        createLineState = mapOrderLinesToCreateLines(order);
+        renderCreateLines();
+        if (showMissingTip && !createLineState.length) {
+            showToast('未找到该采购单下可退商品，请确认单号、退出地与供应商是否匹配', 'error');
+        }
+    }
+
+    function syncSourcePoField(keepValue) {
+        var field = document.getElementById('roCreateSourcePoField');
+        var addBtn = document.getElementById('roCreateAddLineBtn');
+        var sourceInput = document.getElementById('roCreateSourcePo');
+        var currentValue = keepValue ? getSourcePoNo() : '';
+
+        if (!isWarehouseToSupplierMode()) {
+            if (field) field.style.display = 'none';
+            setSourcePoNo('');
+            if (sourceInput) {
+                sourceInput.disabled = true;
+                sourceInput.placeholder = '请输入来源采购单号';
+            }
+            if (addBtn) addBtn.style.display = '';
+            return;
+        }
+
+        if (field) field.style.display = '';
+        if (addBtn) addBtn.style.display = 'none';
+        setSourcePoNo(currentValue);
+        if (sourceInput) {
+            sourceInput.disabled = false;
+            sourceInput.placeholder = '请输入来源采购单号';
+        }
+    }
+
+    function setSelectDisabled(inputId, disabled, placeholder) {
+        var input = document.getElementById(inputId);
+        if (!input) return;
+        input.disabled = !!disabled;
+        if (placeholder != null) input.placeholder = placeholder;
+        var clearBtn = input.parentElement.querySelector('.clear-btn');
+        if (clearBtn) clearBtn.style.display = disabled ? 'none' : '';
+    }
+
+    function syncExitPlaceOptions(keepValue) {
+        var returnType = getReturnType();
+        var exitInput = document.getElementById('roCreateExitStore');
+        var currentValue = keepValue ? getSelectValue('roCreateExitStore') : '';
+        var options = getExitPlaceOptionsByReturnType(returnType).map(function(item) {
+            return { value: item.value, text: item.text };
+        });
+
+        if (!returnType) {
+            renderSelectOptions('roCreateExitStoreDropdown', []);
+            setSelectValue('roCreateExitStore', '', '');
+            setSelectDisabled('roCreateExitStore', true, '请先选择退货类型');
+            return;
+        }
+
+        renderSelectOptions('roCreateExitStoreDropdown', options);
+        var matched = options.some(function(item) { return item.value === currentValue; }) ? currentValue : '';
+        setSelectValue('roCreateExitStore', matched, matched);
+        setSelectDisabled(
+            'roCreateExitStore',
+            false,
+            returnType === '退仓' ? '请选择退出门店' : '请选择退出门店或仓库'
+        );
+        if (exitInput && !matched) exitInput.value = '';
+    }
+
+    function syncEntryPlaceOptions(keepValue) {
+        var returnType = getReturnType();
+        var currentValue = keepValue ? getSelectValue('roCreateEntryPlace') : '';
+
+        if (!returnType) {
+            renderSelectOptions('roCreateEntryPlaceDropdown', []);
+            setSelectValue('roCreateEntryPlace', '', '');
+            setSelectDisabled('roCreateEntryPlace', true, '请先选择退货类型');
+            return;
+        }
+
+        if (returnType === '退供') {
+            var supplierOptions = returnSuppliers.slice();
+            var exitPlace = getSelectValue('roCreateExitStore');
+            if (exitPlace) {
+                var supplierMap = {};
+                getExitStoreOrders().forEach(function(order) {
+                    supplierMap[order.supplier] = true;
+                });
+                supplierOptions = returnSuppliers.filter(function(item) {
+                    return supplierMap[item.value];
+                });
+            }
+            renderSelectOptions('roCreateEntryPlaceDropdown', supplierOptions);
+            var keepSupplier = supplierOptions.some(function(item) { return item.value === currentValue; }) ? currentValue : '';
+            setSelectValue('roCreateEntryPlace', keepSupplier, keepSupplier);
+            setSelectDisabled(
+                'roCreateEntryPlace',
+                false,
+                exitPlace
+                    ? (supplierOptions.length ? '请选择供应商' : '该退出地暂无可退供应商')
+                    : '请选择供应商'
+            );
+            return;
+        }
+
+        renderSelectOptions('roCreateEntryPlaceDropdown', returnWarehouses);
+        var keepWarehouse = returnWarehouses.some(function(item) { return item.value === currentValue; }) ? currentValue : '';
+        setSelectValue('roCreateEntryPlace', keepWarehouse, keepWarehouse);
+        setSelectDisabled('roCreateEntryPlace', false, '请选择退入仓库');
+    }
+
+    function handleReturnTypeChange() {
+        createLineState = [];
+        syncExitPlaceOptions(false);
+        syncEntryPlaceOptions(false);
+        syncSourcePoField(false);
+        renderCreateLines();
+    }
+
+    function handleExitStoreChange() {
+        createLineState = [];
+        // 先选供应商再选门店时，此时退入地仍有值，需在联动清空前拦截
+        if (getReturnType() === '退供'
+            && getExitPlaceType(getSelectValue('roCreateExitStore')) === '门店'
+            && getSelectValue('roCreateEntryPlace')) {
+            showToast('门店退供场景，请引导门店在APP上进行售后处理');
+            setSelectValue('roCreateEntryPlace', '', '');
+            var entryInput = document.getElementById('roCreateEntryPlace');
+            if (entryInput) entryInput.value = '';
+            syncEntryPlaceOptions(false);
+            syncSourcePoField(false);
+            renderCreateLines();
+            return;
+        }
+        syncEntryPlaceOptions(true);
+        syncSourcePoField(false);
+        renderCreateLines();
+    }
+
+    function handleEntryPlaceChange() {
+        if (blockStoreToSupplierIfNeeded()) return;
+        createLineState = [];
+        syncSourcePoField(false);
+        renderCreateLines();
+    }
+
+    function handleSourcePoChange() {
+        if (isWarehouseToSupplierMode()) {
+            loadLinesFromSourcePo(true);
+            return;
+        }
+        createLineState = [];
+        renderCreateLines();
+    }
+
+    function fillDemoSourcePo(poNo) {
+        var order = findSourceOrder(poNo);
+        if (!order) {
+            showToast('演示采购单不存在', 'error');
+            return;
+        }
+        setSelectValue('roCreateReturnType', '退供', '退供');
+        syncExitPlaceOptions(true);
+        setSelectValue('roCreateExitStore', order.exitStore, order.exitStore);
+        syncEntryPlaceOptions(true);
+        setSelectValue('roCreateEntryPlace', order.supplier, order.supplier);
+        syncSourcePoField(true);
+        setSourcePoNo(order.poNo);
+        loadLinesFromSourcePo(false);
+        showToast('已填入演示采购单 ' + order.poNo, 'success');
+    }
+
+    function newCreateLine() {
+        return {
+            sourceNo: '',
+            supplier: '',
+            skuCode: '',
+            skuName: '',
+            specification: '',
+            unit: '',
+            buyer: '',
+            category: '',
+            purchasePrice: 0,
+            salePrice: 0,
+            availableQty: 0,
+            returnQty: ''
+        };
+    }
+
+    function formatAmountNumber(value) {
+        var amount = Number(value);
+        return isNaN(amount) ? '0.00' : amount.toFixed(2);
+    }
+
+    function findAvailableProductByCode(skuCode) {
+        var code = String(skuCode || '').trim();
+        if (!code) return null;
+        var products = getAvailableProducts();
+        for (var i = 0; i < products.length; i++) {
+            if (products[i].skuCode === code) return products[i];
+        }
+        return null;
+    }
+
+    function findAvailableProductByName(skuName) {
+        var name = String(skuName || '').trim();
+        if (!name) return null;
+        var products = getAvailableProducts();
+        for (var i = 0; i < products.length; i++) {
+            if (products[i].skuName === name) return products[i];
+        }
+        return null;
+    }
+
+    function renderProductNameDatalist() {
+        var box = document.getElementById('roProductNameList');
+        if (!box) return;
+        var names = {};
+        getAvailableProducts().forEach(function(product) {
+            names[product.skuName] = true;
+        });
+        box.innerHTML = Object.keys(names).map(function(name) {
+            return '<option value="' + escapeHtml(name) + '"></option>';
+        }).join('');
+    }
+
+    function applyProductToLine(index, product) {
+        var line = createLineState[index];
+        if (!line || !product) return;
+        line.sourceNo = product.sourceNo;
+        line.supplier = product.supplier;
+        line.skuCode = product.skuCode;
+        line.skuName = product.skuName;
+        line.specification = product.specification;
+        line.unit = product.unit;
+        line.buyer = product.buyer;
+        line.category = product.category;
+        line.purchasePrice = product.purchasePrice;
+        line.salePrice = product.salePrice;
+        line.availableQty = product.availableQty;
+        if (!(Number(line.returnQty) > 0)) line.returnQty = 1;
+    }
+
+    function clearProductOnLine(index) {
+        var line = createLineState[index];
+        if (!line) return;
+        line.sourceNo = '';
+        line.supplier = '';
+        line.specification = '';
+        line.unit = '';
+        line.buyer = '';
+        line.category = '';
+        line.purchasePrice = 0;
+        line.salePrice = 0;
+        line.availableQty = 0;
+    }
+
+    function canAddCreateLine() {
+        if (!getReturnType()) {
+            showToast('请先选择退货类型');
+            return false;
+        }
+        if (!getSelectValue('roCreateExitStore')) {
+            showToast('请先选择退出地');
+            return false;
+        }
+        if (getReturnType() === '退供' && !getSelectValue('roCreateEntryPlace')) {
+            showToast('请先选择退入地供应商');
+            return false;
+        }
+        if (isStoreToSupplierMode()) {
+            showToast('门店退供场景，请引导门店在APP上进行售后处理');
+            return false;
+        }
+        if (isWarehouseToSupplierMode()) {
+            showToast('仓库退供请选择来源采购单，系统将自动带出商品');
+            return false;
+        }
+        return true;
+    }
+
+    function addCreateLine() {
+        if (!canAddCreateLine()) return;
+        createLineState.push(newCreateLine());
+        renderCreateLines();
+    }
+
+    function renderCreateLines() {
+        var tbody = document.getElementById('roCreateLinesTbody');
+        if (!tbody) return;
+        renderProductNameDatalist();
+
+        if (!createLineState.length) {
+            var emptyTip = isWarehouseToSupplierMode()
+                ? (getSourcePoNo() ? '未找到该采购单下可退商品' : '请填写来源采购单后自动带出商品')
+                : '暂无明细，请新增明细行';
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#999;">' + emptyTip + '</td></tr>';
+            return;
+        }
+
+        var fromSourcePo = isWarehouseToSupplierMode();
+        tbody.innerHTML = createLineState.map(function(line, index) {
+            var purchaseAmount = Number(line.returnQty || 0) * Number(line.purchasePrice || 0);
+            var saleAmount = Number(line.returnQty || 0) * Number(line.salePrice || 0);
+            var skuReadonly = fromSourcePo ? ' readonly' : '';
+            return '<tr data-line-index="' + index + '">' +
+                '<td><input type="text" class="add-po-line-input" data-field="skuCode" value="' + escapeHtml(line.skuCode) + '" placeholder="请输入商品编码"' + skuReadonly + '></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="skuName" list="roProductNameList" value="' + escapeHtml(line.skuName) + '" placeholder="可模糊查询商品名称"' + skuReadonly + '></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="specification" value="' + escapeHtml(line.specification) + '" readonly></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="unit" value="' + escapeHtml(line.unit) + '" readonly></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="buyer" value="' + escapeHtml(line.buyer) + '" readonly></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="category" value="' + escapeHtml(line.category) + '" readonly></td>' +
+                '<td><input type="number" class="add-po-line-input" data-field="returnQty" min="0.01" max="' + escapeHtml(line.availableQty || '') + '" step="0.01" value="' + escapeHtml(line.returnQty === 0 ? '0' : (line.returnQty || '')) + '"></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="purchasePrice" value="' + escapeHtml(formatAmountNumber(line.purchasePrice)) + '" readonly></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="salePrice" value="' + escapeHtml(formatAmountNumber(line.salePrice)) + '" readonly></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="purchaseAmount" value="' + escapeHtml(formatAmountNumber(purchaseAmount)) + '" readonly></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="saleAmount" value="' + escapeHtml(formatAmountNumber(saleAmount)) + '" readonly></td>' +
+                '<td class="add-po-line-actions"><a href="#" class="line-delete-btn" data-action="delete-line">删除</a></td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    function handleCreateLineFieldChange(index, field, value) {
+        var line = createLineState[index];
+        if (!line) return;
+
+        if (field === 'returnQty') {
+            line.returnQty = value;
+            return;
+        }
+
+        if (field === 'skuCode') {
+            line.skuCode = value;
+            var productByCode = findAvailableProductByCode(value);
+            if (productByCode) {
+                applyProductToLine(index, productByCode);
+            } else {
+                clearProductOnLine(index);
+                if (String(value || '').trim()) showToast('商品编码不存在或不在可退范围内，请重新输入', 'error');
+            }
+            renderCreateLines();
+            return;
+        }
+
+        if (field === 'skuName') {
+            line.skuName = value;
+            var productByName = findAvailableProductByName(value);
+            if (productByName) {
+                applyProductToLine(index, productByName);
+            } else {
+                clearProductOnLine(index);
+                if (String(value || '').trim()) showToast('商品名称不存在或不在可退范围内，请从下拉建议中选择', 'error');
+            }
+            renderCreateLines();
+        }
+    }
+
+    function validateCreateInfo() {
+        var required = [
+            { id: 'roCreateReturnType', label: '退货类型' },
+            { id: 'roCreateExitStore', label: '退出地' },
+            { id: 'roCreateEntryPlace', label: '退入地' },
+            { id: 'roCreateReason', label: '退货原因' }
+        ];
+        if (isStoreToSupplierMode()) {
+            showToast('门店退供场景，请引导门店在APP上进行售后处理');
+            return false;
+        }
+        for (var i = 0; i < required.length; i++) {
+            if (!getSelectValue(required[i].id)) {
+                showToast('请选择' + required[i].label);
+                return false;
+            }
+        }
+        if (isWarehouseToSupplierMode()) {
+            if (!getSourcePoNo()) {
+                showToast('请填写来源采购单');
+                return false;
+            }
+            if (!resolveSourceOrderByInput()) {
+                showToast('未找到该采购单下可退商品，请确认单号、退出地与供应商是否匹配', 'error');
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function getFilledCreateLines() {
+        return createLineState.filter(function(line) {
+            return String(line.skuCode || '').trim() || String(line.skuName || '').trim() || Number(line.returnQty) > 0;
+        });
+    }
+
+    function validateCreateLines() {
+        var filledLines = getFilledCreateLines();
+        if (!filledLines.length) {
+            showToast(isWarehouseToSupplierMode()
+                ? (getSourcePoNo() ? '未找到该采购单下可退商品' : '请填写来源采购单')
+                : '请至少新增一条商品明细');
+            return false;
+        }
+        for (var i = 0; i < filledLines.length; i++) {
+            var line = filledLines[i];
+            if (!line.skuCode || !line.skuName) {
+                showToast('请完整填写商品编码和商品名称', 'error');
+                return false;
+            }
+            var qty = Number(line.returnQty);
+            if (!qty || qty <= 0) {
+                showToast('请填写“' + line.skuName + '”的申请退货量');
+                return false;
+            }
+            if (qty > Number(line.availableQty)) {
+                showToast('“' + line.skuName + '”的申请退货量超出可退上限');
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function setCreateHeaderTitle() {
+        var titleEl = document.getElementById('roCreateModalTitle');
+        if (titleEl) titleEl.textContent = createMode === 'edit' ? '退货单编辑' : '退货单新增';
+    }
+
+    function resetCreateForm() {
+        document.getElementById('roCreateForm').reset();
+        ['roCreateReturnType', 'roCreateExitStore', 'roCreateEntryPlace', 'roCreateReason'].forEach(function(id) {
+            setSelectValue(id, '', '');
+        });
+        setSourcePoNo('');
+        createLineState = [];
+        syncExitPlaceOptions(false);
+        syncEntryPlaceOptions(false);
+        syncSourcePoField(false);
+        renderCreateLines();
+    }
+
+    function mapRowLinesToCreateLines(row) {
+        return (row.lines || []).map(function(line) {
+            var matched = null;
+            var products = getAvailableProducts();
+            for (var i = 0; i < products.length; i++) {
+                if (products[i].skuCode === line.skuCode) {
+                    matched = products[i];
+                    break;
+                }
+            }
+            return {
+                sourceNo: matched ? matched.sourceNo : '',
+                supplier: matched ? matched.supplier : (row.entryPlaceType === '供应商' ? row.entryPlace : ''),
+                skuCode: line.skuCode || '',
+                skuName: line.skuName || '',
+                specification: line.specification || '',
+                unit: matched ? matched.unit : '',
+                buyer: line.buyer || '',
+                category: line.category || '',
+                purchasePrice: line.purchasePrice,
+                salePrice: line.salePrice,
+                availableQty: matched
+                    ? Math.max(Number(matched.availableQty) || 0, Number(line.requestedQty) || 0)
+                    : (Number(line.requestedQty) || 0),
+                returnQty: line.requestedQty
+            };
+        });
+    }
+
+    function fillCreateFormFromRow(row) {
+        setSelectValue('roCreateReturnType', row.returnType || '', row.returnType || '');
+        syncExitPlaceOptions(true);
+        setSelectValue('roCreateExitStore', row.exitStore || '', row.exitStore || '');
+        syncEntryPlaceOptions(true);
+        setSelectValue('roCreateEntryPlace', row.entryPlace || '', row.entryPlace || '');
+        syncSourcePoField(true);
+        if (isWarehouseToSupplierMode()) {
+            var sourcePoNo = row.sourcePoNo || '';
+            if (!sourcePoNo && row.lines && row.lines.length) {
+                sourcePoNo = row.lines[0].sourceNo || '';
+            }
+            setSourcePoNo(sourcePoNo);
+            createLineState = mapRowLinesToCreateLines(row);
+            if (!createLineState.length && sourcePoNo) {
+                createLineState = mapOrderLinesToCreateLines(resolveSourceOrderByInput() || findSourceOrder(sourcePoNo));
+            }
+        } else {
+            createLineState = mapRowLinesToCreateLines(row);
+            if (!createLineState.length) createLineState = [newCreateLine()];
+        }
+        setSelectValue('roCreateReason', row.returnReason || '', row.returnReason || '');
+        document.getElementById('roCreateRemark').value = row.remark || '';
+        renderCreateLines();
+    }
+
+    function openCreateModal() {
+        createMode = 'add';
+        editingRoNo = '';
+        setCreateHeaderTitle();
+        resetCreateForm();
+        document.getElementById('roCreateModal').style.display = 'block';
+    }
+
+    function openEditReturnOrder(roNo) {
+        var row = findRow(roNo);
+        if (!row) {
+            showToast('编辑失败，未找到退货单', 'error');
+            return;
+        }
+        if (row.status !== '已驳回') {
+            showToast('仅已驳回状态退货单可编辑', 'error');
+            return;
+        }
+        createMode = 'edit';
+        editingRoNo = row.roNo;
+        setCreateHeaderTitle();
+        resetCreateForm();
+        fillCreateFormFromRow(row);
+        document.getElementById('roCreateModal').style.display = 'block';
+    }
+
+    function closeCreateModal() {
+        document.getElementById('roCreateModal').style.display = 'none';
+        createMode = 'add';
+        editingRoNo = '';
+        setCreateHeaderTitle();
+    }
+
+    function cancelReturnOrder(roNo) {
+        var row = findRow(roNo);
+        if (!row) {
+            showToast('作废失败，未找到退货单', 'error');
+            return;
+        }
+        if (row.status !== '已驳回') {
+            showToast('仅已驳回状态退货单可作废', 'error');
+            return;
+        }
+        var now = formatDateTime(new Date());
+        row.status = '已取消';
+        row.updatedAt = now;
+        row.updatedBy = getCurrentAuditOperator();
+        applyFilter();
+        showToast('退货单已作废，单号 ' + roNo, 'success');
+    }
+
+    function formatDateTime(date) {
+        function pad(value) { return String(value).padStart(2, '0'); }
+        return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + ' ' + pad(date.getHours()) + ':' + pad(date.getMinutes()) + ':' + pad(date.getSeconds());
+    }
+
+    function generateReturnOrderNo() {
+        var now = new Date();
+        function pad(value) { return String(value).padStart(2, '0'); }
+        return 'RO' + now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
+    }
+
+    function buildCreateLinesPayload(selectedLines) {
+        return selectedLines.map(function(line) {
+            var qty = Number(line.returnQty);
+            return {
+                skuCode: line.skuCode,
+                skuName: line.skuName,
+                specification: line.specification,
+                buyer: line.buyer,
+                category: line.category,
+                requestedQty: qty,
+                actualQty: 0,
+                purchasePrice: line.purchasePrice,
+                salePrice: line.salePrice,
+                purchaseAmount: qty * Number(line.purchasePrice),
+                saleAmount: qty * Number(line.salePrice)
+            };
+        });
+    }
+
+    function submitCreateReturnOrder() {
+        if (!validateCreateInfo() || !validateCreateLines()) return;
+
+        var now = new Date();
+        var nowText = formatDateTime(now);
+        var selectedLines = getFilledCreateLines();
+        var returnType = getReturnType();
+        var exitPlace = getSelectValue('roCreateExitStore');
+        var entryPlace = getSelectValue('roCreateEntryPlace');
+        var returnReason = getSelectValue('roCreateReason');
+        var remark = document.getElementById('roCreateRemark').value.trim();
+        var lines = buildCreateLinesPayload(selectedLines);
+
+        var sourcePoNo = isWarehouseToSupplierMode() ? getSourcePoNo() : '';
+        var linesWithSource = lines.map(function(line, index) {
+            var copy = Object.assign({}, line);
+            if (sourcePoNo) copy.sourceNo = sourcePoNo;
+            else if (selectedLines[index] && selectedLines[index].sourceNo) copy.sourceNo = selectedLines[index].sourceNo;
+            return copy;
+        });
+
+        if (createMode === 'edit' && editingRoNo) {
+            var row = findRow(editingRoNo);
+            if (!row) {
+                showToast('编辑失败，未找到退货单', 'error');
+                return;
+            }
+            if (row.status !== '已驳回') {
+                showToast('仅已驳回状态退货单可编辑', 'error');
+                return;
+            }
+            row.returnType = returnType;
+            row.exitStore = exitPlace;
+            row.exitPlaceType = getExitPlaceType(exitPlace) || (returnType === '退仓' ? '门店' : '');
+            row.entryPlace = entryPlace;
+            row.entryPlaceType = returnType === '退供' ? '供应商' : '仓库';
+            row.sourcePoNo = sourcePoNo;
+            row.returnReason = returnReason;
+            row.remark = remark;
+            row.lines = linesWithSource;
+            row.status = '待审核';
+            row.auditBy = '';
+            row.auditAt = '';
+            row.auditReason = '';
+            row.updatedAt = nowText;
+            row.updatedBy = getCurrentAuditOperator();
+            var savedRoNo = editingRoNo;
+            applyFilter();
+            closeCreateModal();
+            showToast('退货单已编辑并重新提交审核，单号 ' + savedRoNo, 'success');
+            return;
+        }
+
+        var roNo = generateReturnOrderNo();
+        allRows.unshift({
+            roNo: roNo,
+            returnType: returnType,
+            docSource: '手动新增',
+            sourceNo: '',
+            sourcePoNo: sourcePoNo,
+            exitStore: exitPlace,
+            exitPlaceType: getExitPlaceType(exitPlace) || (returnType === '退仓' ? '门店' : ''),
+            entryPlace: entryPlace,
+            entryPlaceType: returnType === '退供' ? '供应商' : '仓库',
+            status: '待审核',
+            outboundNo: '',
+            inboundNo: '',
+            createdAt: nowText,
+            createdBy: '当前用户',
+            updatedAt: nowText,
+            updatedBy: '当前用户',
+            returnReason: returnReason,
+            remark: remark,
+            lines: linesWithSource
+        });
+
+        resetFilter();
+        closeCreateModal();
+        showToast('退货单已新增，单号 ' + roNo, 'success');
+    }
+
     function openDetail(roNo) {
         var row = findRow(roNo);
         if (!row) return;
 
         document.getElementById('roDetailInfo').innerHTML =
             infoItem('退货单号', row.roNo) +
-            infoItem('来源单号', row.sourceNo) +
+            infoItem('退货类型', formatReturnType(row.returnType)) +
+            infoItem('单据来源', formatDocSource(row.docSource)) +
+            infoItem(formatSourceNoLabel(row.docSource), row.sourceNo) +
             infoItem('退出地', row.exitStore) +
             infoItem('退出地类型', row.exitPlaceType) +
             infoItem('退入地', row.entryPlace) +
@@ -594,14 +1783,222 @@
         document.getElementById('roDetailModal').style.display = 'none';
     }
 
+    function getCheckedReturnOrders() {
+        var checked = Array.prototype.slice.call(document.querySelectorAll('#roListTbody .checkbox-row:checked'));
+        return checked.map(function(cb) {
+            var rowEl = cb.closest('tr[data-ro-no]');
+            return rowEl ? findRow(rowEl.getAttribute('data-ro-no')) : null;
+        }).filter(Boolean);
+    }
+
+    function hasCheckedReturnOrders() {
+        return !!document.querySelector('#roListTbody .checkbox-row:checked');
+    }
+
+    function getPendingAuditCheckedRows() {
+        if (!hasCheckedReturnOrders()) {
+            showToast('请先勾选待审核的退货单', 'error');
+            return null;
+        }
+        var checkedRows = getCheckedReturnOrders();
+        var invalid = checkedRows.filter(function(row) {
+            return row.status !== '待审核';
+        });
+        if (invalid.length) {
+            showToast('仅待审核状态退货单可操作，请重新勾选', 'error');
+            return null;
+        }
+        return checkedRows;
+    }
+
+    function openRoAuditModal(action, rows) {
+        if (!rows) rows = getPendingAuditCheckedRows();
+        if (!rows || !rows.length) return;
+
+        pendingAuditAction = action;
+        pendingAuditRows = rows;
+        var isReject = action === 'reject';
+        document.getElementById('roAuditModalTitle').textContent = isReject ? '驳回' : '审核';
+        document.getElementById('roAuditHint').textContent = rows.length === 1
+            ? '退货单 ' + (rows[0].roNo || '') + '，请填写审批原因后确认。'
+            : '已勾选 ' + rows.length + ' 张待审核退货单，请填写审批原因后确认。';
+        document.getElementById('roAuditReason').value = '';
+        document.getElementById('roAuditConfirmBtn').textContent = isReject ? '确认驳回' : '确认通过';
+        document.getElementById('roAuditModal').style.display = 'block';
+        document.getElementById('roAuditReason').focus();
+    }
+
+    function openRowAuditModal(roNo, action) {
+        var row = findRow(roNo);
+        if (!row) {
+            showToast('未找到退货单', 'error');
+            return;
+        }
+        if (row.status !== '待审核') {
+            showToast('仅待审核状态退货单可' + (action === 'reject' ? '驳回' : '审核'), 'error');
+            return;
+        }
+        openRoAuditModal(action, [row]);
+    }
+
+    function closeRoAuditModal() {
+        pendingAuditAction = null;
+        pendingAuditRows = [];
+        document.getElementById('roAuditReason').value = '';
+        document.getElementById('roAuditModal').style.display = 'none';
+    }
+
+    function getCurrentAuditOperator() {
+        if (typeof getCurrentUser === 'function') {
+            var user = getCurrentUser();
+            if (user && (user.name || user.username)) {
+                return user.name || user.username;
+            }
+        }
+        return '当前用户';
+    }
+
+    function confirmRoAudit() {
+        if (!pendingAuditAction || !pendingAuditRows.length) {
+            closeRoAuditModal();
+            return;
+        }
+        var reasonEl = document.getElementById('roAuditReason');
+        var reason = (reasonEl.value || '').trim();
+        if (!reason) {
+            showToast('请填写审批原因', 'error');
+            reasonEl.focus();
+            return;
+        }
+
+        var nextStatus = pendingAuditAction === 'reject' ? '已驳回' : '待发货';
+        var successMsg = pendingAuditAction === 'reject'
+            ? '已驳回 ' + pendingAuditRows.length + ' 张退货单'
+            : '已审核通过 ' + pendingAuditRows.length + ' 张退货单';
+        var now = formatDateTime(new Date());
+        var auditor = getCurrentAuditOperator();
+        pendingAuditRows.forEach(function(row) {
+            row.status = nextStatus;
+            row.auditBy = auditor;
+            row.auditAt = now;
+            row.auditReason = reason;
+            row.updatedAt = now;
+            row.updatedBy = auditor;
+        });
+        closeRoAuditModal();
+        applyFilter();
+        showToast(successMsg, 'success');
+    }
+
     document.getElementById('btnSearch').addEventListener('click', applyFilter);
     document.getElementById('btnReset').addEventListener('click', resetFilter);
+    document.getElementById('btnAddReturnOrder').addEventListener('click', openCreateModal);
+    document.getElementById('btnAudit').addEventListener('click', function() {
+        openRoAuditModal('audit');
+    });
+    document.getElementById('btnReject').addEventListener('click', function() {
+        openRoAuditModal('reject');
+    });
+
+    document.getElementById('roListCheckAll').addEventListener('change', function(e) {
+        var checked = e.target.checked;
+        document.querySelectorAll('#roListTbody .checkbox-row').forEach(function(cb) {
+            cb.checked = checked;
+        });
+    });
+
+    document.getElementById('roListTbody').addEventListener('change', function(e) {
+        if (!e.target.classList.contains('checkbox-row')) return;
+        var checks = document.querySelectorAll('#roListTbody .checkbox-row');
+        var checkedCount = document.querySelectorAll('#roListTbody .checkbox-row:checked').length;
+        document.getElementById('roListCheckAll').checked = checks.length > 0 && checkedCount === checks.length;
+    });
 
     document.getElementById('roListTbody').addEventListener('click', function(e) {
-        var link = e.target.closest('[data-ro-no]');
-        if (!link) return;
-        e.preventDefault();
-        openDetail(link.getAttribute('data-ro-no'));
+        var moreToggle = e.target.closest('.po-action-more-toggle');
+        if (moreToggle) {
+            e.preventDefault();
+            e.stopPropagation();
+            var moreWrap = moreToggle.closest('.po-action-more');
+            if (!moreWrap) return;
+            if (moreWrap.classList.contains('is-open')) {
+                closeAllRoMoreMenus();
+            } else {
+                openRoMoreMenu(moreWrap);
+            }
+            return;
+        }
+
+        var detailBtn = e.target.closest('.ro-detail-btn');
+        if (detailBtn) {
+            e.preventDefault();
+            closeAllRoMoreMenus();
+            var detailTr = detailBtn.closest('tr[data-ro-no]');
+            var detailRoNo = detailTr ? detailTr.getAttribute('data-ro-no') : '';
+            if (detailRoNo) openDetail(detailRoNo);
+            return;
+        }
+
+        var link = e.target.closest('.js-open-ro-detail');
+        if (link) {
+            e.preventDefault();
+            closeAllRoMoreMenus();
+            var no = link.getAttribute('data-ro-no');
+            if (no) openDetail(no);
+            return;
+        }
+
+        var rowAuditBtn = e.target.closest('.row-audit-btn');
+        if (rowAuditBtn) {
+            e.preventDefault();
+            var auditTr = rowAuditBtn.closest('tr[data-ro-no]');
+            var auditRoNo = auditTr ? auditTr.getAttribute('data-ro-no') : '';
+            closeAllRoMoreMenus();
+            if (auditRoNo) openRowAuditModal(auditRoNo, 'audit');
+            return;
+        }
+
+        var rowRejectBtn = e.target.closest('.row-reject-btn');
+        if (rowRejectBtn) {
+            e.preventDefault();
+            var rejectTr = rowRejectBtn.closest('tr[data-ro-no]');
+            var rejectRoNo = rejectTr ? rejectTr.getAttribute('data-ro-no') : '';
+            closeAllRoMoreMenus();
+            if (rejectRoNo) openRowAuditModal(rejectRoNo, 'reject');
+            return;
+        }
+
+        var editBtn = e.target.closest('.edit-btn');
+        if (editBtn) {
+            e.preventDefault();
+            var editTr = editBtn.closest('tr[data-ro-no]');
+            var editRoNo = editTr ? editTr.getAttribute('data-ro-no') : '';
+            closeAllRoMoreMenus();
+            if (editRoNo) openEditReturnOrder(editRoNo);
+            return;
+        }
+
+        var cancelBtn = e.target.closest('.delete-btn');
+        if (cancelBtn) {
+            e.preventDefault();
+            var cancelTr = cancelBtn.closest('tr[data-ro-no]');
+            var cancelRoNo = cancelTr ? cancelTr.getAttribute('data-ro-no') : '';
+            closeAllRoMoreMenus();
+            if (cancelRoNo) cancelReturnOrder(cancelRoNo);
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.po-action-more')) {
+            closeAllRoMoreMenus();
+        }
+    });
+
+    document.getElementById('roAuditCloseBtn').addEventListener('click', closeRoAuditModal);
+    document.getElementById('roAuditCancelBtn').addEventListener('click', closeRoAuditModal);
+    document.getElementById('roAuditConfirmBtn').addEventListener('click', confirmRoAudit);
+    document.getElementById('roAuditModal').addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'roAuditModal') closeRoAuditModal();
     });
 
     document.getElementById('roDetailCloseBtn').addEventListener('click', closeDetail);
@@ -610,21 +2007,104 @@
         if (e.target && e.target.id === 'roDetailModal') closeDetail();
     });
 
-    if (typeof renderSelectOptions === 'function' && typeof CommonOptions !== 'undefined') {
-        var placeTypeOptions = [{ value: '', text: '全部' }].concat(CommonOptions.bizPlaceType || []);
-        renderSelectOptions('searchExitPlaceTypeDropdown', placeTypeOptions);
-        renderSelectOptions('searchEntryPlaceTypeDropdown', placeTypeOptions);
+    document.getElementById('roCreateCloseBtn').addEventListener('click', closeCreateModal);
+    document.getElementById('roCreateCancelBtn').addEventListener('click', closeCreateModal);
+    document.getElementById('roCreateSaveBtn').addEventListener('click', submitCreateReturnOrder);
+    document.getElementById('roCreateModal').addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'roCreateModal') closeCreateModal();
+    });
+
+    document.getElementById('roCreateExitStore').addEventListener('change', handleExitStoreChange);
+    document.getElementById('roCreateEntryPlace').addEventListener('change', handleEntryPlaceChange);
+    document.getElementById('roCreateSourcePo').addEventListener('change', handleSourcePoChange);
+    document.getElementById('roCreateReturnType').addEventListener('change', handleReturnTypeChange);
+
+    var sourcePoDemoTip = document.getElementById('roCreateSourcePoDemoTip');
+    if (sourcePoDemoTip) {
+        sourcePoDemoTip.addEventListener('click', function(e) {
+            var link = e.target.closest('.ro-source-po-demo-link');
+            if (!link) return;
+            fillDemoSourcePo(link.getAttribute('data-po-no') || '');
+        });
+    }
+
+    document.getElementById('roCreateAddLineBtn').addEventListener('click', addCreateLine);
+
+    document.getElementById('roCreateLinesTbody').addEventListener('click', function(e) {
+        var removeLink = e.target.closest('[data-action="delete-line"]');
+        if (!removeLink) return;
+        e.preventDefault();
+        var row = removeLink.closest('tr[data-line-index]');
+        if (!row) return;
+        var index = Number(row.getAttribute('data-line-index'));
+        if (isNaN(index) || index < 0 || index >= createLineState.length) return;
+        createLineState.splice(index, 1);
+        renderCreateLines();
+    });
+
+    document.getElementById('roCreateLinesTbody').addEventListener('change', function(e) {
+        if (!e.target.classList.contains('add-po-line-input')) return;
+        var row = e.target.closest('tr[data-line-index]');
+        if (!row) return;
+        var index = Number(row.getAttribute('data-line-index'));
+        var field = e.target.getAttribute('data-field');
+        if (isNaN(index) || !field) return;
+        handleCreateLineFieldChange(index, field, e.target.value);
+    });
+
+    document.getElementById('roCreateLinesTbody').addEventListener('input', function(e) {
+        if (!e.target.classList.contains('add-po-line-input')) return;
+        if (e.target.getAttribute('data-field') !== 'returnQty') return;
+        var row = e.target.closest('tr[data-line-index]');
+        if (!row) return;
+        var index = Number(row.getAttribute('data-line-index'));
+        var line = createLineState[index];
+        if (!line) return;
+        line.returnQty = e.target.value;
+        var purchaseAmountInput = row.querySelector('[data-field="purchaseAmount"]');
+        var saleAmountInput = row.querySelector('[data-field="saleAmount"]');
+        if (purchaseAmountInput) purchaseAmountInput.value = formatAmountNumber(Number(line.returnQty || 0) * Number(line.purchasePrice || 0));
+        if (saleAmountInput) saleAmountInput.value = formatAmountNumber(Number(line.returnQty || 0) * Number(line.salePrice || 0));
+    });
+
+    if (typeof renderSelectOptions === 'function') {
+        var exitPlaceTypeOptions = [
+            { value: '', text: '全部' },
+            { value: '门店', text: '门店' },
+            { value: '仓库', text: '仓库' }
+        ];
+        var entryPlaceTypeOptions = [
+            { value: '', text: '全部' },
+            { value: '仓库', text: '仓库' },
+            { value: '供应商', text: '供应商' }
+        ];
+        var entryPlaceOptions = [{ value: '', text: '全部' }]
+            .concat(returnWarehouses)
+            .concat(returnSuppliers);
+        renderSelectOptions('searchExitPlaceTypeDropdown', exitPlaceTypeOptions);
+        renderSelectOptions('searchEntryPlaceDropdown', entryPlaceOptions);
+        renderSelectOptions('searchEntryPlaceTypeDropdown', entryPlaceTypeOptions);
     }
 
     if (typeof initCustomSelect === 'function') {
+        initCustomSelect('searchReturnType', 'searchReturnTypeDropdown');
+        initCustomSelect('searchDocSource', 'searchDocSourceDropdown');
         initCustomSelect('searchDocStatus', 'searchDocStatusDropdown');
         initCustomSelect('searchExitStore', 'searchExitStoreDropdown');
         initCustomSelect('searchExitPlaceType', 'searchExitPlaceTypeDropdown');
+        initCustomSelect('searchEntryPlace', 'searchEntryPlaceDropdown');
         initCustomSelect('searchEntryPlaceType', 'searchEntryPlaceTypeDropdown');
+        initCustomSelect('roCreateReturnType', 'roCreateReturnTypeDropdown');
+        initCustomSelect('roCreateExitStore', 'roCreateExitStoreDropdown');
+        initCustomSelect('roCreateEntryPlace', 'roCreateEntryPlaceDropdown');
+        initCustomSelect('roCreateReason', 'roCreateReasonDropdown');
     }
 
     filteredRows = allRows.slice();
     renderTable();
+    syncExitPlaceOptions(false);
+    syncEntryPlaceOptions(false);
+    syncSourcePoField(false);
 })();
     </script>
 </body>

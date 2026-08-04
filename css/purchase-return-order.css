@@ -1,0 +1,349 @@
+.ro-list-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 10px;
+}
+
+.ro-list-toolbar .aggregate-summary {
+    margin-bottom: 0;
+}
+
+#roCreateModal .modal-content {
+    width: 98%;
+    max-width: 1420px;
+    max-height: 88vh;
+    overflow: auto;
+}
+
+#roCreateForm {
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-sizing: border-box;
+}
+
+.ro-create-card {
+    width: 100%;
+    margin-bottom: 16px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.ro-create-card__title {
+    margin: 0 0 10px;
+    padding: 0;
+    border: 0;
+    color: #333;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.ro-create-card__body {
+    padding: 0;
+}
+
+.ro-create-form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+    gap: 10px 16px;
+}
+
+.ro-create-field {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    min-height: 32px;
+}
+
+.ro-create-field--wide {
+    grid-column: span 2;
+}
+
+.ro-create-field > label,
+.ro-create-field__label {
+    display: block;
+    width: 90px;
+    margin: 0;
+    color: #666;
+    font-size: 13px;
+    line-height: 32px;
+    flex-shrink: 0;
+}
+
+.ro-create-field input[type="text"],
+.ro-create-field input[type="date"] {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    background: #fff;
+    font-size: 13px;
+    box-sizing: border-box;
+}
+
+.ro-create-field .custom-select,
+.ro-create-field__control {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+}
+
+.ro-create-field__control > input[type="text"] {
+    width: 100%;
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    background: #fff;
+    font-size: 13px;
+    box-sizing: border-box;
+}
+
+.ro-create-field__control > input[type="text"]:disabled {
+    background: #f7f7f7;
+    color: #666;
+    cursor: not-allowed;
+}
+
+#roCreateSourcePoField {
+    align-items: flex-start;
+}
+
+#roCreateSourcePoField > label {
+    line-height: 32px;
+}
+
+.ro-source-po-demo-tip {
+    margin: 6px 0 0;
+    color: #888;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.ro-source-po-demo-link {
+    padding: 0;
+    border: none;
+    background: none;
+    color: #1677ff;
+    font-size: 12px;
+    line-height: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.ro-source-po-demo-link:hover {
+    color: #0958d9;
+}
+
+.ro-create-field > input[readonly],
+.ro-create-field > input:disabled {
+    background: #f7f7f7;
+    color: #666;
+}
+
+.ro-create-field > input:disabled {
+    cursor: not-allowed;
+}
+
+.ro-create-field .custom-select input,
+.ro-create-field .custom-select input[readonly] {
+    height: 32px;
+    padding: 0 8px;
+    border-radius: 3px;
+    background: #fff;
+    color: #333;
+    font-size: 13px;
+}
+
+.ro-create-field .custom-select input:disabled,
+.ro-create-field .custom-select input[readonly]:disabled {
+    border-color: #e0e0e0;
+    background: #f5f5f5;
+    color: #999;
+    cursor: not-allowed;
+}
+
+.ro-required {
+    margin-right: 3px;
+    color: #e53935;
+}
+
+.add-po-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 0;
+    position: relative;
+    top: -10px;
+}
+
+.ro-create-lines .table {
+    min-width: 1320px;
+}
+
+.ro-create-lines .table th,
+.ro-create-lines .table td {
+    padding: 6px 8px;
+    white-space: nowrap;
+}
+
+.add-po-line-input {
+    width: 100%;
+    min-width: 56px;
+    height: 30px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 0 8px;
+    box-sizing: border-box;
+    font-size: 13px;
+}
+
+.add-po-line-input[readonly] {
+    background: #f7f7f7;
+    color: #666;
+}
+
+.add-po-line-actions {
+    width: 70px;
+    text-align: center;
+}
+
+.line-delete-btn {
+    color: #d32f2f;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.action-links {
+    align-items: center;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+
+.po-action-more {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.po-action-more-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    color: #2196F3;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.po-action-more-toggle:hover {
+    text-decoration: underline;
+}
+
+.po-action-more-caret {
+    width: 10px;
+    height: 7px;
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+}
+
+.po-action-more.is-open .po-action-more-caret {
+    transform: rotate(180deg);
+}
+
+.po-action-more-menu {
+    display: none;
+    position: fixed;
+    z-index: 1200;
+    min-width: 88px;
+    padding: 4px 0;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    text-align: left;
+}
+
+.po-action-more.is-open .po-action-more-menu {
+    display: block;
+}
+
+.po-action-more-menu a {
+    display: block;
+    padding: 8px 14px;
+    color: #2196F3;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.po-action-more-menu a:hover {
+    background: #f5f5f5;
+    text-decoration: none;
+}
+
+.table td.action-links-cell.is-more-open {
+    z-index: 30;
+}
+
+.ro-audit-modal .modal-content {
+    max-width: 520px;
+}
+
+.ro-audit-form-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.ro-audit-form-item .label {
+    width: 78px;
+    color: #666;
+    font-size: 13px;
+    flex-shrink: 0;
+    line-height: 32px;
+}
+
+.ro-audit-form-item .label .required {
+    color: #c62828;
+    margin-right: 2px;
+}
+
+.ro-audit-form-item textarea {
+    flex: 1;
+    min-height: 96px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 8px;
+    font-size: 13px;
+    box-sizing: border-box;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.ro-audit-hint {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: #888;
+}
+
+@media (max-width: 768px) {
+    .ro-create-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ro-create-field--wide {
+        grid-column: auto;
+    }
+
+    .ro-create-field {
+        align-items: flex-start;
+    }
+}
