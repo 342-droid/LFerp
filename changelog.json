@@ -1,10 +1,106 @@
 {
-  "latestSha": "4d200d8bd4f52b5269d7490db5af28b854426885",
-  "total": 228,
+  "latestSha": "74dd1677c5d7bfe70130dbdcc699b1541fa06647",
+  "total": 229,
   "days": [
     {
       "date": "2026-08-05",
       "items": [
+        {
+          "sha": "74dd167",
+          "type": "feat",
+          "text": "门店新增银行卡管理与商户进件",
+          "author": "sisi",
+          "time": "14:37",
+          "pages": [
+            {
+              "file": "store-app/h5/bank-cards.html",
+              "module": "",
+              "title": "银行卡 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "module": "",
+              "title": "经营中心 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/biz-order-goods.html",
+              "module": "",
+              "title": "订单商品明细 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/more.html",
+              "module": "",
+              "title": "更多 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "module": "",
+              "title": "商户进件 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/password-edit.html",
+              "module": "",
+              "title": "密码管理 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/password.html",
+              "module": "",
+              "title": "密码管理 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/verify.html",
+              "module": "",
+              "title": "门店核销 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/store-bind-card-confirm.html",
+              "module": "",
+              "title": "确定卡号 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-bind-card-scan.html",
+              "module": "",
+              "title": "扫描银行卡 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-bind-card.html",
+              "module": "",
+              "title": "绑定银行卡 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "module": "",
+              "title": "充值 · 门店 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/more.html",
+              "text": "新增银行卡入口，进入银行卡列表"
+            },
+            {
+              "file": "store-app/h5/bank-cards.html",
+              "text": "区分默认提现对公户与快捷支付卡；白底彩色卡面；添加无需支付密码，解绑需验证；充值仅可选快捷支付卡"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "text": "工作台: 商户进件跳转真实流程页，红点随进件状态联动"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "text": "四步填写对齐 BD APP；提交后经 BD、总监、财务、汇付审核，与 PC 门店进件一致"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "text": "绑卡完成可按 return 参数回到银行卡列表"
+            }
+          ]
+        },
         {
           "sha": "4d200d8",
           "type": "feat",
@@ -12,6 +108,11 @@
           "author": "sisi",
           "time": "12:14",
           "pages": [
+            {
+              "file": "store-app/h5/bank-cards.html",
+              "module": "",
+              "title": "银行卡 · 门店APP"
+            },
             {
               "file": "user-app/h5/store-bind-card-confirm.html",
               "module": "",
@@ -147,6 +248,11 @@
               "file": "MDM/mdm_archive_warehouse.html",
               "module": "冷丰WMS",
               "title": "仓库档案"
+            },
+            {
+              "file": "store-app/h5/bank-cards.html",
+              "module": "",
+              "title": "银行卡 · 门店APP"
             },
             {
               "file": "store-app/h5/biz-center.html",
@@ -3411,6 +3517,11 @@
           "time": "10:55",
           "pages": [
             {
+              "file": "store-app/h5/bank-cards.html",
+              "module": "",
+              "title": "银行卡 · 门店APP"
+            },
+            {
               "file": "store-app/h5/biz-center.html",
               "module": "",
               "title": "经营中心 · 门店APP"
@@ -3429,6 +3540,11 @@
               "file": "store-app/h5/more.html",
               "module": "",
               "title": "更多 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "module": "",
+              "title": "商户进件 · 门店APP"
             },
             {
               "file": "store-app/h5/password-edit.html",
@@ -4546,6 +4662,11 @@
               "title": "移动端"
             },
             {
+              "file": "store-app/h5/bank-cards.html",
+              "module": "",
+              "title": "银行卡 · 门店APP"
+            },
+            {
               "file": "store-app/h5/biz-center.html",
               "module": "",
               "title": "经营中心 · 门店APP"
@@ -4564,6 +4685,11 @@
               "file": "store-app/h5/more.html",
               "module": "",
               "title": "更多 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "module": "",
+              "title": "商户进件 · 门店APP"
             },
             {
               "file": "store-app/h5/password-edit.html",
@@ -12936,6 +13062,11 @@
               "file": "MDM/mdm_bd_workbench.html",
               "module": "",
               "title": "冷丰 MDM · BD 工作台"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "module": "",
+              "title": "商户进件 · 门店APP"
             }
           ]
         },
@@ -13310,6 +13441,11 @@
               "file": "MDM/mdm_super_admin_accounts.html",
               "module": "冷丰WMS",
               "title": "商户主体建档"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "module": "",
+              "title": "商户进件 · 门店APP"
             }
           ],
           "global": true
@@ -14080,6 +14216,11 @@
               "file": "index.html",
               "module": "冷丰WMS",
               "title": "首页"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "module": "",
+              "title": "商户进件 · 门店APP"
             }
           ],
           "global": true
