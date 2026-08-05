@@ -479,6 +479,26 @@
   font-weight: 500;
 }
 
+/* 佣金结算状态：待结算 | 结算中 | 已结算 | 结算失败 | 已取消 */
+.sa-biz-settle {
+  font-weight: 500;
+}
+.sa-biz-settle.is-settle-wait {
+  color: #e6a23c;
+}
+.sa-biz-settle.is-settling {
+  color: #409eff;
+}
+.sa-biz-settle.is-settled {
+  color: #67c23a;
+}
+.sa-biz-settle.is-settle-fail {
+  color: #e53935;
+}
+.sa-biz-settle.is-settle-cancel {
+  color: #999;
+}
+
 .sa-biz-goods-link {
   color: #333;
   text-decoration: none;

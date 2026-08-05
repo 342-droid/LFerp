@@ -242,7 +242,21 @@
         { time: '2026-06-04 14:20', title: '订单已创建', desc: '订单创建，金额 ¥118.18' },
         { time: '2026-06-05 09:30', title: '商家已发货', desc: '快递已发出，配送至用户收货地址' }
       ],
-      clearingEmpty: true
+      /* 支付成功且结算已配置门店佣金比例 → 生成清分（门店明细） */
+      storeCommissionRate: 0.1,
+      clearingEmpty: false,
+      clearing: {
+        storeRows: [
+          {
+            party: '门店',
+            name: '悠悠生鲜超市',
+            rate: '10%',
+            amount: '¥12.82',
+            status: '已生成',
+            remark: '支付成功即时清分'
+          }
+        ]
+      }
     },
     'ORD-3212689201599002': {
       displayId: 'ORD-3212689201599002',
@@ -339,7 +353,20 @@
           desc: '订单尚有商品待提：赣南脐橙 果大皮薄 5斤装（剩 1 件）'
         }
       ],
-      clearingEmpty: true
+      storeCommissionRate: 0.15,
+      clearingEmpty: false,
+      clearing: {
+        storeRows: [
+          {
+            party: '门店',
+            name: '华强北',
+            rate: '15%',
+            amount: '¥8.13',
+            status: '已生成',
+            remark: '支付成功即时清分'
+          }
+        ]
+      }
     },
     'ORD-3212689201599003': {
       displayId: 'ORD-3212689201599003',
@@ -442,7 +469,10 @@
         { time: '2026-06-03 16:48', title: '订单已创建', desc: '订单创建，金额 ¥46.18' },
         { time: '2026-06-04 10:00', title: '商家已发货', desc: '快递已发出，配送至用户收货地址' }
       ],
-      clearingEmpty: true
+      /* 已支付，但结算未配置门店佣金比例 → 不生成门店清分明细 */
+      storeCommissionRate: null,
+      clearingEmpty: true,
+      clearingEmptyReason: '结算未配置门店佣金比例，用户支付后不会生成门店清分明细'
     },
     'ORD-3212689201560682': {
       displayId: 'ORD-3212689201560682',
@@ -509,7 +539,20 @@
         { time: '2026-06-03 09:00', type: 'ship', title: '商家已发货', desc: '快递已发出，配送至用户收货地址' },
         { time: '2026-06-03 11:20', type: 'success', title: '交易成功', desc: '用户已签收，订单已完成' }
       ],
-      clearingEmpty: true
+      storeCommissionRate: 0.12,
+      clearingEmpty: false,
+      clearing: {
+        storeRows: [
+          {
+            party: '门店',
+            name: '悠悠生鲜超市',
+            rate: '12%',
+            amount: '¥1.80',
+            status: '已生成',
+            remark: '支付成功即时清分'
+          }
+        ]
+      }
     }
   };
 
@@ -1770,6 +1813,59 @@
     return el('div', 'order-detail-empty', '<div class="order-detail-empty__icon" aria-hidden="true"></div>' + text);
   }
 
+  /**
+   * 结算规则：用户支付后即生成清分数据（含门店明细/分佣信息）；
+   * 结算未配置门店佣金比例时，门店无佣金，不生成门店清分明细。
+   */
+  function buildClearingBody(detail) {
+    var storeRows =
+      (detail.clearing && detail.clearing.storeRows) ||
+      detail.clearingStoreRows ||
+      [];
+    var rateConfigured =
+      detail.storeCommissionRate != null && detail.storeCommissionRate !== '';
+    var hasStoreClearing = !detail.clearingEmpty && storeRows.length > 0 && rateConfigured;
+
+    if (!hasStoreClearing) {
+      var emptyText =
+        detail.clearingEmptyReason ||
+        (!rateConfigured && detail.paymentCount > 0
+          ? '结算未配置门店佣金比例，用户支付后不会生成门店清分明细'
+          : '暂无清分明细');
+      return buildEmptyState(emptyText);
+    }
+
+    var wrap = el('div', 'order-detail-clearing');
+    wrap.appendChild(el('div', 'order-detail-clearing__subtitle', '门店明细'));
+    var table = el('table', 'order-detail-goods-table order-detail-clearing-table');
+    table.innerHTML =
+      '<thead><tr>' +
+      '<th>分账方</th><th>名称</th><th>佣金比例</th><th>清分金额</th><th>状态</th><th>说明</th>' +
+      '</tr></thead>';
+    var tbody = document.createElement('tbody');
+    storeRows.forEach(function (row) {
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' +
+        (row.party || '门店') +
+        '</td><td>' +
+        (row.name || '—') +
+        '</td><td>' +
+        (row.rate || '—') +
+        '</td><td>' +
+        (row.amount || '—') +
+        '</td><td>' +
+        (row.status || '已生成') +
+        '</td><td>' +
+        (row.remark || '—') +
+        '</td>';
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    return wrap;
+  }
+
   function buildKv(rows) {
     var dl = el('dl', 'order-detail-kv');
     Object.keys(rows).forEach(function (label) {
@@ -1874,7 +1970,7 @@
     });
     clearingHead.appendChild(recalcBtn);
     clearingCard.appendChild(clearingHead);
-    clearingCard.appendChild(buildEmptyState('暂无清分明细'));
+    clearingCard.appendChild(buildClearingBody(detail));
     main.appendChild(clearingCard);
 
     var logCard = el('div', 'order-detail-card');

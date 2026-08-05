@@ -1,5 +1,11 @@
 /**
  * 经营中心订单演示数据（列表 / 商品明细共用）
+ *
+ * 结算规则（清分 / 门店分佣）：
+ * - 用户支付成功后即生成清分数据，对应门店端分佣信息（门店明细）
+ * - 若结算未配置门店佣金比例，则门店无佣金，不生成清分数据（门店明细）
+ * - hasStoreClearing / storeCommissionRate 用于演示上述口径
+ * - settleStatus 佣金结算状态：待结算 | 结算中 | 已结算 | 结算失败 | 已取消
  */
 (function (global) {
   var IMG = {
@@ -8,6 +14,9 @@
     p3: '../../user-app/assets/order-product-3.svg',
     p4: '../../user-app/assets/order-product-4.svg'
   };
+
+  /** 结算状态枚举（展示名与枚举一致） */
+  var SETTLE_STATUSES = ['待结算', '结算中', '已结算', '结算失败', '已取消'];
 
   var ORDERS = [
     {
@@ -21,7 +30,13 @@
       goods: '[益力多]乳酸菌乳饮品（原味）【100ml*5支*2排】 * 1 共1件商品',
       paid: 21.4,
       refund: 21.4,
+      /* 支付时已按比例生成清分；全额退款后佣金冲回为 0，门店明细仍保留 */
+      storeCommissionRate: 0.05,
+      hasStoreClearing: true,
       commission: 0,
+      /* 佣金因退款失效 */
+      settleStatus: '已取消',
+      settleTime: '2021-12-25 10:22:08',
       goodsCount: 1,
       payTime: '2021-12-23 15:15:19',
       deliveryTime: '2021-12-24 16:00-17:00',
@@ -61,7 +76,12 @@
       goods: '赣南脐橙 5斤装 * 2 共2件商品',
       paid: 56.0,
       refund: 0,
+      storeCommissionRate: 0.15,
+      hasStoreClearing: true,
       commission: 8.4,
+      /* 订单未完成，佣金未达结算条件 */
+      settleStatus: '待结算',
+      settleTime: '-',
       goodsCount: 2,
       payTime: '2026-08-03 09:12:08',
       deliveryTime: '-',
@@ -92,7 +112,12 @@
       goods: '阳光番茄 500g * 2 共2件商品',
       paid: 59.8,
       refund: 0,
+      storeCommissionRate: 0.1,
+      hasStoreClearing: true,
       commission: 6.0,
+      /* 已触发结算，处理中 */
+      settleStatus: '结算中',
+      settleTime: '-',
       goodsCount: 2,
       payTime: '2026-08-03 10:20:33',
       deliveryTime: '到店自提',
@@ -123,7 +148,12 @@
       goods: '紫薯 1kg * 1 共1件商品',
       paid: 29.9,
       refund: 0,
+      storeCommissionRate: 0.15,
+      hasStoreClearing: true,
       commission: 4.5,
+      /* 佣金结算异常 */
+      settleStatus: '结算失败',
+      settleTime: '2026-08-03 02:10:05',
       goodsCount: 1,
       payTime: '2026-08-02 16:08:11',
       deliveryTime: '2026-08-03 10:00-12:00',
@@ -154,7 +184,12 @@
       goods: '黄瓜 500g * 2 共2件商品',
       paid: 59.8,
       refund: 0,
+      storeCommissionRate: 0.1834,
+      hasStoreClearing: true,
       commission: 10.97,
+      /* 已结算入门店余额账户 */
+      settleStatus: '已结算',
+      settleTime: '2026-08-02 18:30:00',
       goodsCount: 2,
       payTime: '2026-08-01 11:45:02',
       deliveryTime: '到店自提',
@@ -173,17 +208,72 @@
         }
       ],
       refundItems: []
+    },
+    {
+      /* 已支付，但结算未配置门店佣金比例 → 无佣金、不生成清分（门店明细） */
+      id: '612965464905',
+      date: '2026-08-03',
+      nick: '阿哲',
+      contact: '李哲',
+      phone: '13600002208',
+      verifyCode: 'HX9005',
+      shipMode: '快递',
+      goods: '香蕉 1kg * 1 共1件商品',
+      paid: 12.8,
+      refund: 0,
+      storeCommissionRate: null,
+      hasStoreClearing: false,
+      commission: 0,
+      settleStatus: '',
+      settleTime: '-',
+      goodsCount: 1,
+      payTime: '2026-08-03 14:05:40',
+      deliveryTime: '-',
+      finishTime: '-',
+      remark: '结算未配置门店佣金比例',
+      status: 'pending_ship',
+      statusText: '待发货',
+      dayKey: '2026-08-03',
+      goodsItems: [
+        {
+          name: '香蕉 1kg / 份',
+          img: IMG.p2,
+          qty: 1,
+          paid: 12.8,
+          commission: 0
+        }
+      ],
+      refundItems: []
     }
   ];
 
+  /** 结算已配置门店佣金比例且支付后生成了清分（门店明细） */
+  function hasStoreClearing(order) {
+    if (!order) return false;
+    if (order.hasStoreClearing === true) return true;
+    if (order.hasStoreClearing === false) return false;
+    var rate = order.storeCommissionRate;
+    if (rate == null || rate === '') return false;
+    return Number(rate) > 0 && !!order.payTime;
+  }
+
+  function listStoreClearing() {
+    return ORDERS.filter(hasStoreClearing);
+  }
+
   function getById(id) {
-    return ORDERS.find(function (o) {
-      return o.id === String(id || '');
-    }) || null;
+    return (
+      ORDERS.find(function (o) {
+        return o.id === String(id || '');
+      }) || null
+    );
   }
 
   global.StoreAppBizOrders = {
     list: ORDERS,
-    getById: getById
+    listStoreClearing: listStoreClearing,
+    hasStoreClearing: hasStoreClearing,
+    getById: getById,
+    SETTLE_STATUSES: SETTLE_STATUSES
   };
 })(window);

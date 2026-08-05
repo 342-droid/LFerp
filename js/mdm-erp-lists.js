@@ -480,8 +480,40 @@
         if (summary.auditStatus === '审核失败') return '进件失败';
         if (summary.status === 'submitted' || summary.auditStatus) return '进件中';
         var fb = String(fallback || '').trim();
-        if (fb === '已进件') return '进件成功';
-        return fb || '未进件';
+        if (fb === '已进件' || fb === '进件成功') return '进件成功';
+        if (fb === '进件失败') return '进件失败';
+        if (fb === '进件中' || fb === '审核中') return '进件中';
+        if (!fb || fb === '—' || fb === '-' || fb === '--') return '未进件';
+        return fb;
+    }
+
+    var STORE_COL = {
+        onboard: 14
+    };
+
+    function storeRecordKey(id) {
+        return 'archive::store::' + String(id || '').trim();
+    }
+
+    function syncStoreArchiveRow(tr, payload) {
+        if (!tr) return;
+        var cells = tr.querySelectorAll('td');
+        if (cells.length < STORE_COL.onboard + 1) return;
+        var storeId = cells[0].textContent.trim();
+        var recordKey = storeRecordKey(storeId);
+        var onboardFallback = cells[STORE_COL.onboard].textContent.trim();
+        var onboardDisplay = resolveSupplierOnboardingDisplay(recordKey, onboardFallback);
+        if (payload && payload.status === 'submitted') onboardDisplay = '进件中';
+        if (payload === null) onboardDisplay = '未进件';
+        cells[STORE_COL.onboard].textContent = onboardDisplay;
+    }
+
+    function syncAllStoreArchiveRows() {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+            syncStoreArchiveRow(tr);
+        });
     }
 
     function resolveSupplierBalancePayment(supplierId, onboardingDisplay) {
@@ -623,6 +655,10 @@
             modalOpts.onRecordChange = function (payload) {
                 syncSupplierArchiveRow(tr, payload);
             };
+        } else if (kind === 'store' && tr) {
+            modalOpts.onRecordChange = function (payload) {
+                syncStoreArchiveRow(tr, payload);
+            };
         }
         window.MdmUnifiedOnboardingUi.openModal(modalOpts);
     }
@@ -695,6 +731,7 @@
         var qSub = (document.getElementById('qSubjectName') || {}).value.trim();
         var qStore = (document.getElementById('qStoreName') || {}).value.trim();
         var qOp = (document.getElementById('qStoreOpStatus') || {}).value.trim();
+        var qOnboard = (document.getElementById('qStoreOnboardStatus') || {}).value.trim();
         var qSplit = (document.getElementById('qStoreSplit') || {}).value.trim();
         var qSt = (document.getElementById('qStoreStatus') || {}).value.trim();
         var opMap = { '1': '营业中', '2': '筹备', '3': '停业' };
@@ -705,6 +742,7 @@
             /* 门店名称列可能含链接，取纯文本 */
             var sn = cells[2].textContent.trim();
             var opTxt = cells[13].textContent.trim();
+            var onboardTxt = cells[STORE_COL.onboard].textContent.trim();
             var splitTxt = cells[17].textContent.trim();
             var stSpan = cells[18].querySelector('.status');
             var stTxt = stSpan ? stSpan.textContent.trim() : '';
@@ -712,6 +750,7 @@
             if (qSub && sub.indexOf(qSub) === -1) ok = false;
             if (qStore && sn.indexOf(qStore) === -1) ok = false;
             if (qOp && opTxt !== opMap[qOp]) ok = false;
+            if (qOnboard && onboardTxt !== qOnboard) ok = false;
             if (qSplit === 'on' && splitTxt !== '开启') ok = false;
             if (qSplit === 'off' && splitTxt !== '关闭' && splitTxt !== '未开通') ok = false;
             if (qSt === 'normal' && stTxt !== '正常') ok = false;
@@ -917,11 +956,18 @@
             }
         });
         pm.init();
+        syncAllStoreArchiveRows();
+        window.addEventListener('storage', function (e) {
+            if (e.key === 'mdm_unified_onboarding_records_v1') {
+                syncAllStoreArchiveRows();
+            }
+        });
         bindSimpleFilter(pm, {
             resetFields: [
                 'qSubjectName',
                 'qStoreName',
                 'qStoreOpStatus',
+                'qStoreOnboardStatus',
                 'qStoreSplit',
                 'qStoreStatus'
             ],
@@ -940,6 +986,7 @@
             });
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
+            syncAllStoreArchiveRows();
             cacheFirstResourceRows('store', {
                 subjectCol: 1,
                 resourceNameCol: 2,

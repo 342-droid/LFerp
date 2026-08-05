@@ -469,10 +469,30 @@
         return el('div', 'store-empty', text);
     }
 
+    /** 汇总条：支持「标签：值」或 [label, value]，排版为上标签下数值（图一样式） */
     function summaryBar(spans) {
-        var bar = el('div', 'store-summary-bar');
-        spans.forEach(function (t) {
-            bar.appendChild(el('span', '', t));
+        var bar = el('div', 'store-summary-bar store-summary-bar--stats');
+        (spans || []).forEach(function (t) {
+            var item = el('div', 'store-summary-bar__item');
+            var label = '';
+            var value = '';
+            if (Array.isArray(t)) {
+                label = String(t[0] == null ? '' : t[0]);
+                value = String(t[1] == null ? '—' : t[1]);
+            } else {
+                var s = String(t == null ? '' : t);
+                var idx = s.indexOf('：');
+                if (idx < 0) idx = s.indexOf(':');
+                if (idx > 0) {
+                    label = s.slice(0, idx).trim();
+                    value = s.slice(idx + 1).trim() || '—';
+                } else {
+                    value = s || '—';
+                }
+            }
+            if (label) item.appendChild(el('div', 'store-summary-bar__label', label));
+            item.appendChild(el('div', 'store-summary-bar__value', value));
+            bar.appendChild(item);
         });
         return bar;
     }
@@ -500,8 +520,86 @@
     }
 
     function fakePagination() {
-        var bar = el('div', 'erp-pagination');
-        bar.appendChild(el('span', 'erp-pagination__total', '演示分页'));
+        return buildPaginationBar({ total: 0, page: 1, pageSize: 20 });
+    }
+
+    /** 底部分页：共 N 条 / 条每页 / 页码 / 前往（对齐列表页底栏） */
+    function buildPaginationBar(opts) {
+        opts = opts || {};
+        var total = Number(opts.total) || 0;
+        var page = Math.max(1, Number(opts.page) || 1);
+        var pageSize = Number(opts.pageSize) || 20;
+        var onPage = typeof opts.onPage === 'function' ? opts.onPage : null;
+        var onPageSize = typeof opts.onPageSize === 'function' ? opts.onPageSize : null;
+        var maxPage = Math.max(1, Math.ceil(total / pageSize) || 1);
+        if (page > maxPage) page = maxPage;
+
+        var bar = el('div', 'erp-pagination store-ledger-pagination');
+        bar.appendChild(el('span', 'erp-pagination__total', '共 ' + total + ' 条'));
+
+        var mid = el('div', 'erp-pagination__mid');
+        var sizeSel = document.createElement('select');
+        sizeSel.className = 'erp-pagination__size';
+        [10, 20, 50].forEach(function (n) {
+            var o = document.createElement('option');
+            o.value = String(n);
+            o.textContent = n + '条/页';
+            if (n === pageSize) o.selected = true;
+            sizeSel.appendChild(o);
+        });
+        if (onPageSize) {
+            sizeSel.addEventListener('change', function () {
+                onPageSize(Number(sizeSel.value) || 20);
+            });
+        } else {
+            sizeSel.disabled = true;
+        }
+        mid.appendChild(sizeSel);
+
+        var pages = el('div', 'erp-pagination__pages');
+        var prev = el('button', 'erp-page-btn', '‹');
+        prev.type = 'button';
+        prev.disabled = page <= 1;
+        if (onPage) {
+            prev.addEventListener('click', function () {
+                if (page > 1) onPage(page - 1);
+            });
+        }
+        pages.appendChild(prev);
+        var num = el('button', 'erp-page-btn is-active', String(page));
+        num.type = 'button';
+        pages.appendChild(num);
+        var next = el('button', 'erp-page-btn', '›');
+        next.type = 'button';
+        next.disabled = page >= maxPage;
+        if (onPage) {
+            next.addEventListener('click', function () {
+                if (page < maxPage) onPage(page + 1);
+            });
+        }
+        pages.appendChild(next);
+        mid.appendChild(pages);
+        bar.appendChild(mid);
+
+        var right = el('div', 'erp-pagination__right');
+        right.appendChild(el('span', 'erp-pagination__goto-label', '前往'));
+        var inp = document.createElement('input');
+        inp.className = 'erp-pagination__goto-input';
+        inp.type = 'number';
+        inp.min = '1';
+        inp.max = String(maxPage);
+        inp.value = String(page);
+        if (onPage) {
+            inp.addEventListener('change', function () {
+                var v = Math.min(maxPage, Math.max(1, Number(inp.value) || 1));
+                onPage(v);
+            });
+        } else {
+            inp.disabled = true;
+        }
+        right.appendChild(inp);
+        right.appendChild(el('span', 'erp-pagination__goto-label', '页'));
+        bar.appendChild(right);
         return bar;
     }
 
@@ -532,6 +630,29 @@
         if (st === 'submitted') return '待BD审核';
         if (st === 'draft') return '未提交';
         return '未发起';
+    }
+
+    /* 档案列表/详情「进件状态」：与供应商档案四态一致 */
+    function archiveOnboardEnum(summary, fallback) {
+        var s = summary || {};
+        if (
+            window.MdmSupplierArchiveUi &&
+            typeof window.MdmSupplierArchiveUi.resolveOnboardingDisplay === 'function'
+        ) {
+            return window.MdmSupplierArchiveUi.resolveOnboardingDisplay(
+                s.recordKey || '',
+                fallback
+            );
+        }
+        if (s.auditStatus === '审核成功') return '进件成功';
+        if (s.auditStatus === '审核失败') return '进件失败';
+        if (s.status === 'submitted' || s.auditStatus) return '进件中';
+        var fb = String(fallback || '').trim();
+        if (fb === '已进件' || fb === '进件成功') return '进件成功';
+        if (fb === '进件失败') return '进件失败';
+        if (fb === '进件中' || fb === '审核中') return '进件中';
+        if (!fb || fb === '—' || fb === '-' || fb === '--') return '未进件';
+        return fb;
     }
 
     function onboardRecordKey(kind, id) {
@@ -1076,13 +1197,29 @@
         ];
     }
 
-    function onboardingDetailCells(fields, kind) {
+    /**
+     * 进件信息字段（门店 / 供应商档案对齐）
+     * 顺序：商户简称 → 汇付商户号 → 余额支付开通 → 进件状态 → 其余共用字段 → 签订协议
+     * @param {object} fields
+     * @param {string} [kind] store | supplier
+     * @param {object} [meta] { shortName, merchantNo, payStatus, onboardStatus }
+     */
+    function onboardingDetailCells(fields, kind, meta) {
         var f = fields || {};
+        var m = meta || {};
         var card = f.card_info || {};
         var lic = f.license_info || {};
         var legal = f.legal_info || {};
+        var shortName = f.short_name || m.shortName || '—';
+        var merchantNo = m.merchantNo != null && m.merchantNo !== '' ? m.merchantNo : '—';
+        var payStatus = m.payStatus != null && m.payStatus !== '' ? m.payStatus : '—';
+        var onboardStatus =
+            m.onboardStatus != null && m.onboardStatus !== '' ? m.onboardStatus : '未进件';
         var cells = [
-            detailCell('商户简称', f.short_name || '—'),
+            detailCell('商户简称', shortName),
+            detailCell('汇付商户号', merchantNo),
+            detailCell('余额支付开通', payStatus),
+            detailCell('进件状态', onboardStatus),
             detailCell('小票名称', f.receipt_name || '—'),
             detailCell('实际经营地址', f.detail_addr || '—'),
             detailCell('法人手机号', f.legal_mobile_no || '—'),
@@ -1106,7 +1243,8 @@
             detailCell('内景/工作区域照(F24)', f.store_indoor_pic ? '已上传' : '待上传'),
             detailCell('收银台/前台照(F105)', f.store_cashier_desk_pic ? '已上传' : '待上传')
         ];
-        if (kind === 'supplier') {
+        /* 门店 / 供应商进件信息统一展示签订协议 */
+        if (kind === 'store' || kind === 'supplier') {
             cells = cells.concat(paymentAgreementDetailCells(f));
         }
         return cells;
@@ -1187,7 +1325,7 @@
 
         grid.appendChild(detailCell('经纬度', store.latlng));
         grid.appendChild(detailCell('运营状态', store.opStatus));
-        grid.appendChild(detailCell('进件状态', store.onboardStatus));
+        grid.appendChild(detailCell('进件状态', archiveOnboardEnum({}, store.onboardStatus)));
         grid.appendChild(detailCell('结算类型', store.settleType));
 
         grid.appendChild(detailCell('结算周期', store.settleCycle));
@@ -1450,17 +1588,38 @@
         render();
     }
 
+    function storeHuifuAccountMeta(store) {
+        var snap =
+            window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function'
+                ? window.StoreWalletDemo.snapshot()
+                : null;
+        return {
+            merchantNo:
+                (snap && snap.merchantNo) ||
+                (store && store.storeId ? 'HF-' + String(store.storeId).replace(/\s+/g, '') : '—') ||
+                '—',
+            payStatus: (snap && snap.balancePayStatus) || '—'
+        };
+    }
+
     function panelStoreOnboarding(store) {
         var p = el('div', 'supplier-detail-tab');
         var recordKey = onboardRecordKey('store', store.storeId);
         var onboardingDefaults = storeOnboardingDefaults(store);
+        var huifuMeta = storeHuifuAccountMeta(store);
 
         p.appendChild(sectionTitle('进件信息'));
         var onboardingGrid = el('div', 'supplier-detail-grid');
         function renderOnboardingInfo() {
             onboardingGrid.innerHTML = '';
             var onboardingSummary = getOnboardingSummary(recordKey, onboardingDefaults);
-            onboardingDetailCells(onboardingSummary.fields).forEach(function (cell) {
+            onboardingSummary.recordKey = recordKey;
+            onboardingDetailCells(onboardingSummary.fields, 'store', {
+                shortName: store.shortName && store.shortName !== '—' ? store.shortName : store.name,
+                merchantNo: huifuMeta.merchantNo,
+                payStatus: huifuMeta.payStatus,
+                onboardStatus: archiveOnboardEnum(onboardingSummary, store.onboardStatus)
+            }).forEach(function (cell) {
                 onboardingGrid.appendChild(cell);
             });
         }
@@ -1490,7 +1649,7 @@
                                 subjectType: '门店',
                                 groupName: store.subjectName,
                                 onboardStatus: onboardingSummary.auditStatus || onboardingSummary.status,
-                                huifuMerchantNo: 'HF-' + String(store.storeId || '').replace(/\s+/g, ''),
+                                huifuMerchantNo: huifuMeta.merchantNo,
                                 settlementSubject: store.settleType,
                                 contactMobile: store.phone,
                                 submitTime: formatTs(onboardingSummary.submittedAt),
@@ -1548,7 +1707,346 @@
         return root;
     }
 
-    /** 门店档案 · 账户信息 + 台账明细（替换原分佣明细） */
+    /**
+     * 门店档案 · 佣金明细（经营中心清分/分佣数据转 PC 档案展示）
+     * 结算规则：用户支付后即生成清分（门店明细）；结算未配置门店佣金比例则不生成
+     * 数据源：StoreAppBizOrders.listStoreClearing + 钱包可提现余额
+     */
+    function panelStoreCommission(store) {
+        var root = el('div', 'supplier-detail-tab');
+        var biz = window.StoreAppBizOrders;
+        var orders =
+            biz && typeof biz.listStoreClearing === 'function'
+                ? biz.listStoreClearing()
+                : ((biz && biz.list) || []).filter(function (o) {
+                      return biz && typeof biz.hasStoreClearing === 'function'
+                          ? biz.hasStoreClearing(o)
+                          : Number(o.commission) > 0;
+                  });
+        var money =
+            window.StoreWalletDemo && typeof window.StoreWalletDemo.money === 'function'
+                ? window.StoreWalletDemo.money
+                : function (n) {
+                      return '¥' + Number(n || 0).toFixed(2);
+                  };
+        var moneyPlain = function (n) {
+            return Number(n || 0).toFixed(2);
+        };
+        var snap =
+            window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function'
+                ? window.StoreWalletDemo.snapshot()
+                : null;
+        var withdrawable = snap ? snap.withdrawable : 0;
+
+        /* 与经营中心演示汇总对齐；时段金额按订单 dayKey 推算 */
+        var DEMO_TODAY = '2026-08-03';
+        function parseDay(str) {
+            var p = String(str || '').split('-');
+            if (p.length < 3) return null;
+            return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+        }
+        function dayKeyOf(o) {
+            return o.dayKey || o.date || '';
+        }
+        function sumCommission(list) {
+            var amt = 0;
+            var cnt = 0;
+            (list || []).forEach(function (o) {
+                amt += Number(o.commission) || 0;
+                cnt += 1;
+            });
+            return { amt: amt, cnt: cnt };
+        }
+        var totalSum = sumCommission(orders);
+        var todayD = parseDay(DEMO_TODAY);
+        var yestD = todayD ? new Date(todayD.getTime() - 86400000) : null;
+        var weekStart = todayD ? new Date(todayD.getTime() - 6 * 86400000) : null;
+        var monthStart = todayD
+            ? new Date(todayD.getFullYear(), todayD.getMonth(), 1)
+            : null;
+        function inDemoDay(o, d) {
+            var od = parseDay(dayKeyOf(o));
+            return od && d && od.getTime() === d.getTime();
+        }
+        function inDemoFrom(o, start) {
+            var od = parseDay(dayKeyOf(o));
+            return od && start && od.getTime() >= start.getTime();
+        }
+        var todaySum = sumCommission(
+            orders.filter(function (o) {
+                return inDemoDay(o, todayD);
+            })
+        );
+        var yestSum = sumCommission(
+            orders.filter(function (o) {
+                return inDemoDay(o, yestD);
+            })
+        );
+        var weekSum = sumCommission(
+            orders.filter(function (o) {
+                return inDemoFrom(o, weekStart);
+            })
+        );
+        var monthSum = sumCommission(
+            orders.filter(function (o) {
+                return inDemoFrom(o, monthStart);
+            })
+        );
+
+        root.appendChild(
+            summaryBar([
+                ['可提现账户余额', money(withdrawable)],
+                ['累计总佣金', money(totalSum.amt)],
+                ['累计清分单', String(totalSum.cnt) + ' 单']
+            ])
+        );
+        root.appendChild(
+            summaryBar([
+                ['今日佣金', money(todaySum.amt) + ' / ' + todaySum.cnt + '单'],
+                ['昨日佣金', money(yestSum.amt) + ' / ' + yestSum.cnt + '单'],
+                ['本周佣金', money(weekSum.amt) + ' / ' + weekSum.cnt + '单'],
+                ['本月佣金', money(monthSum.amt) + ' / ' + monthSum.cnt + '单']
+            ])
+        );
+        root.appendChild(
+            el(
+                'p',
+                'erp-page__note mdm-detail-note',
+                '清分口径：用户支付成功后生成门店清分明细（分佣信息）；结算未配置门店佣金比例时不生成清分，本列表不展示。'
+            )
+        );
+
+        /* 结算状态：待结算 | 结算中 | 已结算 | 结算失败 | 已取消 */
+        var COMM_HEADERS = [
+            '订单编号',
+            '下单日期',
+            '联系人',
+            '手机号',
+            '会员码',
+            '履约方式',
+            '购买商品',
+            '实付金额',
+            '退款金额',
+            '所得佣金',
+            '订单状态',
+            '结算状态',
+            '支付时间',
+            '配送时间',
+            '完成时间',
+            '结算时间',
+            '备注'
+        ];
+
+        var state = { range: '30d', status: 'all', keyword: '', page: 1, pageSize: 20 };
+
+        function ledgerFilterField(labelText, control) {
+            var grp = el('div', 'store-ledger-filter__field');
+            grp.appendChild(el('label', 'store-ledger-filter__label', labelText));
+            grp.appendChild(control);
+            return grp;
+        }
+        function ledgerSelect(options, minWidth) {
+            var sel = document.createElement('select');
+            sel.className = 'store-ledger-filter__control';
+            if (minWidth) sel.style.minWidth = minWidth;
+            (options || []).forEach(function (opt) {
+                var o = document.createElement('option');
+                o.value = opt[0];
+                o.textContent = opt[1];
+                sel.appendChild(o);
+            });
+            return sel;
+        }
+        function ledgerIconBtn(label, primary, svgPath) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className =
+                'store-ledger-filter__btn' + (primary ? ' store-ledger-filter__btn--primary' : '');
+            btn.innerHTML =
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
+                svgPath +
+                '</svg><span>' +
+                label +
+                '</span>';
+            return btn;
+        }
+
+        var filterPanel = el('div', 'store-ledger-filter');
+        var filterRow = el('div', 'store-ledger-filter__row');
+        var rangeSelect = ledgerSelect(
+            [
+                ['today', '今天'],
+                ['yesterday', '昨天'],
+                ['7d', '近7天'],
+                ['30d', '近1个月']
+            ],
+            '120px'
+        );
+        rangeSelect.value = state.range;
+        filterRow.appendChild(ledgerFilterField('时间范围', rangeSelect));
+
+        var statusSelect = ledgerSelect(
+            [
+                ['all', '全部订单'],
+                ['pending_ship', '待发货'],
+                ['pending_pickup', '待自提/待收货'],
+                ['done', '已完成']
+            ],
+            '140px'
+        );
+        filterRow.appendChild(ledgerFilterField('订单状态', statusSelect));
+
+        var kwInput = document.createElement('input');
+        kwInput.type = 'text';
+        kwInput.className = 'store-ledger-filter__control';
+        kwInput.placeholder = '手机号/订单号/会员码/昵称/商品';
+        kwInput.style.minWidth = '220px';
+        filterRow.appendChild(ledgerFilterField('关键词', kwInput));
+
+        var actions = el('div', 'store-ledger-filter__actions');
+        var searchBtn = ledgerIconBtn(
+            '查询',
+            true,
+            '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5" stroke-linecap="round"/>'
+        );
+        var resetBtn = ledgerIconBtn(
+            '重置',
+            false,
+            '<path d="M4 4v6h6" stroke-linecap="round" stroke-linejoin="round"/>' +
+                '<path d="M20 20v-6h-6" stroke-linecap="round" stroke-linejoin="round"/>' +
+                '<path d="M5 19A9 9 0 0019 6.3" stroke-linecap="round"/>' +
+                '<path d="M19 5A9 9 0 005 17.7" stroke-linecap="round"/>'
+        );
+        actions.appendChild(searchBtn);
+        actions.appendChild(resetBtn);
+        filterPanel.appendChild(filterRow);
+        filterPanel.appendChild(actions);
+        root.appendChild(filterPanel);
+
+        var tableHost = el('div', 'store-wallet-ledger-host');
+        root.appendChild(tableHost);
+        var emptyHost = el('div');
+        root.appendChild(emptyHost);
+        var pageHost = el('div', 'store-ledger-page-host');
+        root.appendChild(pageHost);
+
+        function inRange(order) {
+            var d = parseDay(dayKeyOf(order));
+            if (!d || !todayD) return true;
+            if (state.range === 'today') return d.getTime() === todayD.getTime();
+            if (state.range === 'yesterday') return yestD && d.getTime() === yestD.getTime();
+            if (state.range === '7d') return weekStart && d.getTime() >= weekStart.getTime();
+            /* 近1个月：与经营中心演示一致，放宽为全部 */
+            return true;
+        }
+        function matchStatus(order) {
+            if (state.status === 'all') return true;
+            if (state.status === 'pending_ship') return order.status === 'pending_ship';
+            if (state.status === 'pending_pickup') {
+                return order.status === 'pending_pickup' || order.status === 'pending_receipt';
+            }
+            if (state.status === 'done') return order.status === 'done';
+            return true;
+        }
+        function matchKeyword(order) {
+            var kw = String(state.keyword || '').trim().toLowerCase();
+            if (!kw) return true;
+            var hay = [
+                order.phone,
+                order.id,
+                order.verifyCode,
+                order.nick,
+                order.contact,
+                order.goods
+            ].join(' ');
+            return hay.toLowerCase().indexOf(kw) >= 0;
+        }
+        function filteredOrders() {
+            return orders.filter(function (o) {
+                return inRange(o) && matchStatus(o) && matchKeyword(o);
+            });
+        }
+
+        function render() {
+            empty(tableHost);
+            empty(emptyHost);
+            empty(pageHost);
+            var list = filteredOrders();
+            var total = list.length;
+            var maxPage = Math.max(1, Math.ceil(total / state.pageSize) || 1);
+            if (state.page > maxPage) state.page = maxPage;
+            var startIdx = (state.page - 1) * state.pageSize;
+            var pageList = list.slice(startIdx, startIdx + state.pageSize);
+            var rows = pageList.map(function (o) {
+                return [
+                    o.id,
+                    o.date || dayKeyOf(o) || '—',
+                    o.contact || '—',
+                    o.phone || '—',
+                    o.verifyCode || '—',
+                    o.shipMode || '—',
+                    o.goods || '—',
+                    moneyPlain(o.paid),
+                    moneyPlain(o.refund),
+                    moneyPlain(o.commission),
+                    o.statusText || '—',
+                    o.settleStatus || '—',
+                    o.payTime || '—',
+                    o.deliveryTime || '—',
+                    o.finishTime || '—',
+                    o.settleTime || '—',
+                    o.remark || '—'
+                ];
+            });
+            tableHost.appendChild(dataTable(COMM_HEADERS, rows));
+            if (!total) {
+                var box = el('div', 'store-empty store-empty--illus');
+                box.innerHTML =
+                    '<div class="store-empty__icon" aria-hidden="true"></div>' +
+                    '<div class="store-empty__text">暂无清分数据</div>' +
+                    '<div class="store-empty__hint">结算未配置门店佣金比例时，支付后不会生成门店明细</div>';
+                emptyHost.appendChild(box);
+            }
+            pageHost.appendChild(
+                buildPaginationBar({
+                    total: total,
+                    page: state.page,
+                    pageSize: state.pageSize,
+                    onPage: function (p) {
+                        state.page = p;
+                        render();
+                    },
+                    onPageSize: function (size) {
+                        state.pageSize = size;
+                        state.page = 1;
+                        render();
+                    }
+                })
+            );
+        }
+
+        searchBtn.addEventListener('click', function () {
+            state.range = rangeSelect.value || '30d';
+            state.status = statusSelect.value || 'all';
+            state.keyword = kwInput.value || '';
+            state.page = 1;
+            render();
+        });
+        resetBtn.addEventListener('click', function () {
+            state.range = '30d';
+            state.status = 'all';
+            state.keyword = '';
+            state.page = 1;
+            rangeSelect.value = '30d';
+            statusSelect.value = 'all';
+            kwInput.value = '';
+            render();
+        });
+        render();
+        return root;
+    }
+
+    /** 门店档案 · 账户信息（口径对齐门店 APP「我的钱包」） */
     function panelStoreAccount(store) {
         var root = el('div', 'supplier-detail-tab');
         var snap =
@@ -1569,114 +2067,521 @@
         var goodsQuota = snap ? snap.goodsQuota : 0;
         var withdrawable = snap ? snap.withdrawable : 0;
         var pending = snap ? snap.pending : 0;
-        var commissionTotal = snap ? snap.commissionTotal : 0;
-        var merchantNo = snap ? snap.merchantNo : '—';
-        var payStatus = snap ? snap.balancePayStatus : '—';
-        var rule =
-            snap && snap.ruleSnapshot
-                ? 'D=' + snap.ruleSnapshot.D + ' / L=' + snap.ruleSnapshot.L + ' · ' + snap.ruleSnapshot.version
-                : 'D=2000 / L=8000';
+        /* 与门店 APP 钱包一致：总金额 = 保证金余额 + 余额账户余额；保证金可提款固定 0 */
+        var totalAmount = Number(depositActual || 0) + Number(available || 0);
+        var depositWithdrawable = 0;
 
+        /* 排版对齐业绩报表汇总条（上标签 / 下数值 / 竖线分隔） */
+        root.appendChild(sectionTitle('账户总计'));
         root.appendChild(
             summaryBar([
-                '余额可用：' + money(available),
-                '保证金：' + money(depositActual) + (depositGap > 0 ? '（缺口 ' + money(depositGap) + '）' : ''),
-                '可提现：' + money(withdrawable),
-                '累计佣金入账：' + money(commissionTotal)
+                ['总金额', money(totalAmount)],
+                ['可提现金额', money(withdrawable)]
             ])
         );
 
-        root.appendChild(sectionTitle('账户信息'));
-        var grid = el('div', 'supplier-detail-grid');
-        [
-            ['门店名称', (store && store.name) || (snap && snap.storeName) || '—'],
-            ['汇付商户号', merchantNo],
-            ['余额支付开通', payStatus],
-            ['资金规则快照', rule],
-            ['保证金应保有', money(depositRequired)],
-            ['保证金实有', money(depositActual)],
-            ['保证金缺口', depositGap > 0 ? money(depositGap) : '无'],
-            ['余额可用（可支付）', money(available)],
-            ['不可提现货款水位', money(goodsQuota)],
-            ['可提现（佣金/充值）', money(withdrawable)],
-            ['待解冻（未满T+1）', money(pending)]
-        ].forEach(function (pair) {
-            grid.appendChild(detailCell(pair[0], pair[1]));
-        });
-        root.appendChild(grid);
+        root.appendChild(sectionTitle('保证金账户'));
+        root.appendChild(
+            summaryBar([
+                ['余额', money(depositActual)],
+                ['可提款', money(depositWithdrawable)],
+                ['应保有', money(depositRequired)],
+                ['需补金额', money(depositGap)]
+            ])
+        );
 
-        root.appendChild(sectionTitle('台账明细'));
-        var filterBar = el('div', 'erp-toolbar');
-        var typeGrp = el('div', 'modal-form-group');
-        typeGrp.style.marginBottom = '0';
-        typeGrp.appendChild(el('label', '', '类型'));
-        var typeInput = el('input', 'erp-input');
-        typeInput.type = 'text';
-        typeInput.placeholder = '如：佣金入账';
-        typeInput.style.minWidth = '140px';
-        typeGrp.appendChild(typeInput);
-        var bizGrp = el('div', 'modal-form-group');
-        bizGrp.style.marginBottom = '0';
-        bizGrp.appendChild(el('label', '', '业务单号'));
-        var bizInput = el('input', 'erp-input');
+        root.appendChild(sectionTitle('余额账户'));
+        root.appendChild(
+            summaryBar([
+                ['余额', money(available)],
+                ['货款', money(goodsQuota)],
+                ['可提款', money(withdrawable)],
+                ['待解冻', money(pending)]
+            ])
+        );
+
+        return root;
+    }
+
+    /* 门店 APP 流水 → MDM 账变记录展示（命名可不与 C 端强行统一） */
+    function mapStoreLedgerAccountType(account) {
+        var a = String(account || '');
+        if (a.indexOf('保证金') >= 0) return '保证金账户';
+        if (a.indexOf('余额') >= 0) return '余额账户';
+        return a || '—';
+    }
+
+    function mapStoreLedgerBizType(rawType) {
+        var t = String(rawType || '');
+        var map = {
+            保证金划拨出账: '保证金出账',
+            保证金划拨入账: '保证金入账',
+            保证金补齐: '保证金补缴',
+            平台佣金: '订单佣金',
+            佣金入账: '订单佣金',
+            提现申请: '提现',
+            售后问责: '售后赔付'
+        };
+        return map[t] || t || '—';
+    }
+
+    function mapStoreLedgerDirection(item) {
+        var biz = mapStoreLedgerBizType(item && item.type);
+        if (biz === '保证金补缴' || (item && item.dir === 'lock')) return '划拨';
+        if (item && item.dir === 'in') return '收入';
+        if (item && item.dir === 'out') return '支出';
+        return '—';
+    }
+
+    function mapStoreLedgerOperator(item) {
+        var biz = mapStoreLedgerBizType(item && item.type);
+        var dir = mapStoreLedgerDirection(item);
+        if (dir === '划拨') return '系统';
+        if (
+            biz === '保证金出账' ||
+            biz === '保证金入账' ||
+            biz === '订单佣金' ||
+            biz === '提现回退'
+        ) {
+            return '系统';
+        }
+        return '门店管理员';
+    }
+
+    /**
+     * 账变状态：成功 / 处理中 / 失败 / 已撤销
+     * 成功：余额已更新；处理中：结果待确认；失败：未生效；已撤销：原账变取消
+     */
+    function mapStoreLedgerStatus(item) {
+        var raw = item && (item.ledgerStatus || item.status);
+        if (raw === '成功' || raw === '处理中' || raw === '失败' || raw === '已撤销') return raw;
+        var ws = item && item.withdrawStatus;
+        if (ws === 'pending' || ws === 'processing') return '处理中';
+        if (ws === 'failed' || ws === 'fail') return '失败';
+        if (ws === 'cancelled' || ws === 'canceled' || ws === 'revoked') return '已撤销';
+        if (ws === 'success' || ws === 'done') return '成功';
+        var biz = mapStoreLedgerBizType(item && item.type);
+        var remark = String((item && item.remark) || '');
+        if (biz === '提现' || (item && item.type === '提现申请')) {
+            if (/失败/.test(remark)) return '失败';
+            if (/撤销|取消/.test(remark)) return '已撤销';
+            if (/已完成|成功到账/.test(remark)) return '成功';
+            return '处理中';
+        }
+        if (item && item.type === '余额支付' && item.payStatus === 'pending') return '处理中';
+        if (/充值失败|提现失败/.test(remark)) return '失败';
+        return '成功';
+    }
+
+    function storeLedgerAffectsBalance(status) {
+        return status === '成功' || status === '处理中';
+    }
+
+    function formatStoreLedgerAmount(dir, amount, moneyFn) {
+        var n = Number(amount) || 0;
+        var body = moneyFn(n);
+        if (dir === '支出') return '-' + body;
+        if (dir === '收入' || dir === '划拨') return '+' + body;
+        return body;
+    }
+
+    /** 按时间正序推算各账户变前 / 变后余额 */
+    function enrichStoreLedgerRows(ledgers, moneyFn) {
+        var list = (ledgers || []).slice().sort(function (a, b) {
+            return String(a.time || '').localeCompare(String(b.time || ''));
+        });
+        var bal = { 余额账户: 0, 保证金账户: 0 };
+        return list.map(function (item) {
+            var accountType = mapStoreLedgerAccountType(item.account);
+            var bizType = mapStoreLedgerBizType(item.type);
+            var dir = mapStoreLedgerDirection(item);
+            var status = mapStoreLedgerStatus(item);
+            var amt = Number(item.amount) || 0;
+            var before = bal[accountType] || 0;
+            var after = before;
+            if (storeLedgerAffectsBalance(status)) {
+                after = dir === '支出' ? before - amt : before + amt;
+                bal[accountType] = after;
+            }
+            return {
+                accountType: accountType,
+                time: item.time || '—',
+                bizType: bizType,
+                direction: dir,
+                beforeText: moneyFn(before),
+                amountText: formatStoreLedgerAmount(dir, amt, moneyFn),
+                afterText: moneyFn(after),
+                status: status,
+                bizNo: item.bizNo || '—',
+                channelNo: item.channelNo || '—',
+                operator: mapStoreLedgerOperator(item),
+                remark: item.remark || '—'
+            };
+        });
+    }
+
+    /** 门店档案 · 账变记录（一级 Tab，位于账户信息右侧） */
+    function panelStoreLedger() {
+        var root = el('div', 'supplier-detail-tab');
+        var snap =
+            window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function'
+                ? window.StoreWalletDemo.snapshot()
+                : null;
+        var money =
+            window.StoreWalletDemo && typeof window.StoreWalletDemo.money === 'function'
+                ? window.StoreWalletDemo.money
+                : function (n) {
+                      return '¥' + Number(n || 0).toFixed(2);
+                  };
+
+        var enriched = enrichStoreLedgerRows(snap && snap.ledgers ? snap.ledgers : [], money);
+        /* 列表默认新在前 */
+        enriched.sort(function (a, b) {
+            return String(b.time || '').localeCompare(String(a.time || ''));
+        });
+
+        var LEDGER_HEADERS = [
+            '账户类型',
+            '资金方向',
+            '账变类型',
+            '变前金额',
+            '变动金额',
+            '变后余额',
+            '发生时间',
+            '状态',
+            '业务单号',
+            '支付流水',
+            '操作人',
+            '说明'
+        ];
+
+        /* 资金方向 → 账变类型枚举（与后台口径一致） */
+        var LEDGER_BIZ_TYPES_BY_DIR = {
+            收入: ['首次充值', '保证金入账', '订单佣金', '充值', '提现回退'],
+            支出: ['提现', '售后赔付', '保证金出账'],
+            划拨: ['保证金补缴']
+        };
+        var LEDGER_BIZ_TYPES_ALL = [].concat(
+            LEDGER_BIZ_TYPES_BY_DIR['收入'],
+            LEDGER_BIZ_TYPES_BY_DIR['支出'],
+            LEDGER_BIZ_TYPES_BY_DIR['划拨']
+        );
+
+        /* 筛选排版对齐参考图：标签+控件横排，日期区间带日历图标，查询/重置右下角带图标 */
+        function ledgerFilterField(labelText, control) {
+            var grp = el('div', 'store-ledger-filter__field');
+            grp.appendChild(el('label', 'store-ledger-filter__label', labelText));
+            grp.appendChild(control);
+            return grp;
+        }
+        function ledgerSelect(options, minWidth) {
+            var sel = document.createElement('select');
+            sel.className = 'store-ledger-filter__control';
+            if (minWidth) sel.style.minWidth = minWidth;
+            (options || []).forEach(function (opt) {
+                var o = document.createElement('option');
+                o.value = opt[0];
+                o.textContent = opt[1];
+                sel.appendChild(o);
+            });
+            return sel;
+        }
+        function ledgerIconBtn(label, primary, svgPath) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className =
+                'store-ledger-filter__btn' + (primary ? ' store-ledger-filter__btn--primary' : '');
+            btn.innerHTML =
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
+                svgPath +
+                '</svg><span>' +
+                label +
+                '</span>';
+            return btn;
+        }
+
+        var filterPanel = el('div', 'store-ledger-filter');
+        var filterRow = el('div', 'store-ledger-filter__row');
+
+        var acctSelect = ledgerSelect(
+            [
+                ['', '全部'],
+                ['余额账户', '余额账户'],
+                ['保证金账户', '保证金账户']
+            ],
+            '120px'
+        );
+        filterRow.appendChild(ledgerFilterField('账户类型', acctSelect));
+
+        var dateRange = el('div', 'store-ledger-daterange');
+        dateRange.innerHTML =
+            '<svg class="store-ledger-daterange__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">' +
+            '<rect x="3" y="5" width="18" height="16" rx="2"/>' +
+            '<path d="M3 10h18M8 3v4M16 3v4"/>' +
+            '</svg>';
+        var dateStart = document.createElement('input');
+        dateStart.type = 'date';
+        dateStart.className = 'store-ledger-daterange__input';
+        dateStart.setAttribute('aria-label', '开始日期');
+        var dateSep = el('span', 'store-ledger-daterange__sep', '—');
+        var dateEnd = document.createElement('input');
+        dateEnd.type = 'date';
+        dateEnd.className = 'store-ledger-daterange__input';
+        dateEnd.setAttribute('aria-label', '结束日期');
+        dateRange.appendChild(dateStart);
+        dateRange.appendChild(dateSep);
+        dateRange.appendChild(dateEnd);
+        filterRow.appendChild(ledgerFilterField('选择日期', dateRange));
+
+        var dirSelect = ledgerSelect(
+            [
+                ['', '全部'],
+                ['收入', '收入'],
+                ['支出', '支出'],
+                ['划拨', '划拨']
+            ],
+            '100px'
+        );
+        filterRow.appendChild(ledgerFilterField('资金方向', dirSelect));
+
+        var typeSelect = ledgerSelect([], '140px');
+        filterRow.appendChild(ledgerFilterField('账变类型', typeSelect));
+
+        function fillBizTypeOptions(dir, keepValue) {
+            var prev = keepValue ? String(typeSelect.value || '') : '';
+            var list = dir && LEDGER_BIZ_TYPES_BY_DIR[dir] ? LEDGER_BIZ_TYPES_BY_DIR[dir] : LEDGER_BIZ_TYPES_ALL;
+            typeSelect.innerHTML = '';
+            var allOpt = document.createElement('option');
+            allOpt.value = '';
+            allOpt.textContent = '全部';
+            typeSelect.appendChild(allOpt);
+            list.forEach(function (name) {
+                var o = document.createElement('option');
+                o.value = name;
+                o.textContent = name;
+                typeSelect.appendChild(o);
+            });
+            if (prev && list.indexOf(prev) >= 0) typeSelect.value = prev;
+            else typeSelect.value = '';
+        }
+        fillBizTypeOptions('', false);
+        dirSelect.addEventListener('change', function () {
+            fillBizTypeOptions(dirSelect.value, false);
+        });
+
+        var statusSelect = ledgerSelect(
+            [
+                ['', '全部'],
+                ['成功', '成功'],
+                ['处理中', '处理中'],
+                ['失败', '失败'],
+                ['已撤销', '已撤销']
+            ],
+            '100px'
+        );
+        filterRow.appendChild(ledgerFilterField('状态', statusSelect));
+
+        var bizInput = document.createElement('input');
         bizInput.type = 'text';
-        bizInput.placeholder = '业务单号';
-        bizInput.style.minWidth = '160px';
-        bizGrp.appendChild(bizInput);
-        var searchBtn = mkBtn('查询', true);
-        var resetBtn = mkBtn('重置', false);
-        filterBar.appendChild(typeGrp);
-        filterBar.appendChild(bizGrp);
-        filterBar.appendChild(searchBtn);
-        filterBar.appendChild(resetBtn);
-        root.appendChild(filterBar);
+        bizInput.className = 'store-ledger-filter__control';
+        bizInput.placeholder = '请输入';
+        bizInput.style.minWidth = '140px';
+        filterRow.appendChild(ledgerFilterField('业务单号', bizInput));
+
+        var actions = el('div', 'store-ledger-filter__actions');
+        var searchBtn = ledgerIconBtn(
+            '查询',
+            true,
+            '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5" stroke-linecap="round"/>'
+        );
+        var resetBtn = ledgerIconBtn(
+            '重置',
+            false,
+            '<path d="M4 4v6h6" stroke-linecap="round" stroke-linejoin="round"/>' +
+                '<path d="M20 20v-6h-6" stroke-linecap="round" stroke-linejoin="round"/>' +
+                '<path d="M5 19A9 9 0 0019 6.3" stroke-linecap="round"/>' +
+                '<path d="M19 5A9 9 0 005 17.7" stroke-linecap="round"/>'
+        );
+        actions.appendChild(searchBtn);
+        actions.appendChild(resetBtn);
+
+        filterPanel.appendChild(filterRow);
+        filterPanel.appendChild(actions);
+        root.appendChild(filterPanel);
 
         var tableHost = el('div', 'store-wallet-ledger-host');
         root.appendChild(tableHost);
         var emptyHost = el('div');
         root.appendChild(emptyHost);
+        var pageHost = el('div', 'store-ledger-page-host');
+        root.appendChild(pageHost);
+
+        var pageState = { page: 1, pageSize: 20 };
+
+        function rowDate(timeStr) {
+            var m = String(timeStr || '').match(/^(\d{4}-\d{2}-\d{2})/);
+            return m ? m[1] : '';
+        }
+
+        function renderLedgerEmpty() {
+            var box = el('div', 'store-empty store-empty--illus');
+            box.innerHTML =
+                '<div class="store-empty__icon" aria-hidden="true"></div>' +
+                '<div class="store-empty__text">暂无数据</div>';
+            return box;
+        }
+
+        function filteredLedgerRows() {
+            var start = (dateStart.value || '').trim();
+            var end = (dateEnd.value || '').trim();
+            var acctKw = (acctSelect.value || '').trim();
+            var typeKw = (typeSelect.value || '').trim();
+            var dirKw = (dirSelect.value || '').trim();
+            var statusKw = (statusSelect.value || '').trim();
+            var bizKw = (bizInput.value || '').trim();
+            return enriched.filter(function (row) {
+                var d = rowDate(row.time);
+                if (acctKw && row.accountType !== acctKw) return false;
+                if (start && d && d < start) return false;
+                if (end && d && d > end) return false;
+                if (dirKw && row.direction !== dirKw) return false;
+                if (typeKw && row.bizType !== typeKw) return false;
+                if (statusKw && row.status !== statusKw) return false;
+                if (bizKw && String(row.bizNo || '').indexOf(bizKw) < 0) return false;
+                return true;
+            });
+        }
 
         function renderLedgerTable() {
             empty(tableHost);
             empty(emptyHost);
-            var typeKw = (typeInput.value || '').trim();
-            var bizKw = (bizInput.value || '').trim();
-            var ledgers = snap && snap.ledgers ? snap.ledgers : [];
-            var filtered = ledgers.filter(function (item) {
-                if (typeKw && String(item.type || '').indexOf(typeKw) < 0) return false;
-                if (bizKw && String(item.bizNo || '').indexOf(bizKw) < 0) return false;
-                return true;
-            });
-            var rows = filtered.map(function (item) {
-                var dirLabel = item.dir === 'in' ? '收入' : item.dir === 'out' ? '支出' : '锁定';
-                var sign = item.dir === 'in' ? '+' : item.dir === 'out' ? '-' : '';
+            empty(pageHost);
+            var filtered = filteredLedgerRows();
+            var total = filtered.length;
+            var maxPage = Math.max(1, Math.ceil(total / pageState.pageSize) || 1);
+            if (pageState.page > maxPage) pageState.page = maxPage;
+            var startIdx = (pageState.page - 1) * pageState.pageSize;
+            var pageRows = filtered.slice(startIdx, startIdx + pageState.pageSize);
+            var rows = pageRows.map(function (row) {
                 return [
-                    item.time,
-                    item.type,
-                    dirLabel,
-                    sign + money(item.amount),
-                    item.account,
-                    item.bizNo || '—',
-                    item.channelNo || '—',
-                    item.remark || '—'
+                    row.accountType,
+                    row.direction,
+                    row.bizType,
+                    row.beforeText,
+                    row.amountText,
+                    row.afterText,
+                    row.time,
+                    row.status,
+                    row.bizNo,
+                    row.channelNo,
+                    row.operator,
+                    row.remark
                 ];
             });
-            tableHost.appendChild(
-                dataTable(
-                    ['时间', '类型', '方向', '金额', '账户', '业务单号', '渠道流水', '说明'],
-                    rows
-                )
+            tableHost.appendChild(dataTable(LEDGER_HEADERS, rows));
+            if (!total) emptyHost.appendChild(renderLedgerEmpty());
+            pageHost.appendChild(
+                buildPaginationBar({
+                    total: total,
+                    page: pageState.page,
+                    pageSize: pageState.pageSize,
+                    onPage: function (p) {
+                        pageState.page = p;
+                        renderLedgerTable();
+                    },
+                    onPageSize: function (size) {
+                        pageState.pageSize = size;
+                        pageState.page = 1;
+                        renderLedgerTable();
+                    }
+                })
             );
-            if (!rows.length) emptyHost.appendChild(emptyNote('暂无台账'));
         }
 
-        searchBtn.addEventListener('click', renderLedgerTable);
+        searchBtn.addEventListener('click', function () {
+            pageState.page = 1;
+            renderLedgerTable();
+        });
         resetBtn.addEventListener('click', function () {
-            typeInput.value = '';
+            acctSelect.value = '';
+            dateStart.value = '';
+            dateEnd.value = '';
+            dirSelect.value = '';
+            fillBizTypeOptions('', false);
+            statusSelect.value = '';
             bizInput.value = '';
+            pageState.page = 1;
             renderLedgerTable();
         });
         renderLedgerTable();
+        return root;
+    }
+
+    /**
+     * 门店档案 · 银行卡（同步门店 APP 银行卡数据，仅查看不可修改）
+     * 数据源：StoreBindCardDemo.listCards（与 store-app/h5/bank-cards.html 同源）
+     */
+    function panelStoreBankCards() {
+        var root = el('div', 'supplier-detail-tab');
+        var api = window.StoreBindCardDemo;
+        var cards =
+            api && typeof api.listCards === 'function' ? api.listCards() : [];
+
+        function purposeTag(card) {
+            if (api && typeof api.purposeLabel === 'function') return api.purposeLabel(card);
+            return card && card.purpose === 'withdraw' ? '默认提现' : '快捷支付';
+        }
+        function moneyLimit(n) {
+            var v = Number(n) || 0;
+            if (v <= 0) return '—';
+            return '¥' + v.toLocaleString('zh-CN');
+        }
+        function maskPhone(phone) {
+            var s = String(phone || '').replace(/\s/g, '');
+            if (s.length < 7) return s || '—';
+            return s.slice(0, 3) + '****' + s.slice(-4);
+        }
+
+        if (!cards.length) {
+            var empty = el('div', 'store-empty store-empty--illus');
+            empty.innerHTML =
+                '<div class="store-empty__icon" aria-hidden="true"></div>' +
+                '<div class="store-empty__text">暂无绑定的银行卡</div>';
+            root.appendChild(empty);
+            return root;
+        }
+
+        var rows = cards.map(function (c) {
+            var isWithdraw =
+                api && typeof api.isWithdrawCard === 'function'
+                    ? api.isWithdrawCard(c)
+                    : c.purpose === 'withdraw';
+            return [
+                purposeTag(c),
+                c.bankName || '—',
+                c.cardType || (isWithdraw ? '企业账户' : '储蓄卡'),
+                api && typeof api.maskedCardNo === 'function'
+                    ? api.maskedCardNo(c)
+                    : '****' + (c.cardTail || '----'),
+                maskPhone(c.phone),
+                moneyLimit(c.single),
+                moneyLimit(c.daily)
+            ];
+        });
+        root.appendChild(
+            dataTable(
+                [
+                    '用途',
+                    '开户银行',
+                    '卡类型',
+                    '卡号',
+                    '预留手机',
+                    '单笔限额',
+                    '日累计限额'
+                ],
+                rows
+            )
+        );
         return root;
     }
 
@@ -1921,13 +2826,39 @@
             heroTags: store.detailTags,
             metaLines: ['门店ID：' + store.storeId + ' · 所属组织：' + store.orgId],
             wideClass: 'store-drawer--store-wide',
-            tabIds: ['base', 'onboard', 'cust', 'comm', 'prod', 'perf', 'orderCfg'],
-            tabLabels: ['基础信息', '进件信息', '绑定客户', '账户信息', '商品统计', '业绩报表', '订单配置'],
+            withFooter: false,
+            tabIds: [
+                'base',
+                'onboard',
+                'cust',
+                'commission',
+                'comm',
+                'ledger',
+                'bankCards',
+                'prod',
+                'perf',
+                'orderCfg'
+            ],
+            tabLabels: [
+                '基础信息',
+                '进件信息',
+                '绑定客户',
+                '佣金明细',
+                '账户信息',
+                '账变记录',
+                '银行卡',
+                '商品统计',
+                '业绩报表',
+                '订单配置'
+            ],
             bodies: {
                 base: panelStoreBase(store),
                 onboard: panelStoreOnboarding(store),
                 cust: panelStoreCustomers(),
+                commission: panelStoreCommission(store),
                 comm: panelStoreAccount(store),
+                ledger: panelStoreLedger(),
+                bankCards: panelStoreBankCards(),
                 prod: panelCommProdPerf('prod'),
                 perf: panelCommProdPerf('perf'),
                 orderCfg: panelStoreOrderConfig(store)
@@ -1997,7 +2928,7 @@
         grid.appendChild(detailCell('结算信息', r.settleInfo));
         grid.appendChild(detailCell('可提现手机号', r.withdrawPhone));
         grid.appendChild(detailCell('配送方式', r.deliveryMode));
-        grid.appendChild(detailCell('进件状态', r.onboard));
+        grid.appendChild(detailCell('进件状态', archiveOnboardEnum({}, r.onboard)));
         grid.appendChild(detailCell('余额支付', r.balancePay));
         grid.appendChild(detailCellTagged('供应商状态', r.status, true));
         p.appendChild(grid);
@@ -2005,9 +2936,24 @@
         return p;
     }
 
+    function supplierHuifuAccountMeta(r) {
+        var id = r && r.id ? String(r.id).replace(/\s+/g, '') : '';
+        var pay = r && r.balancePay != null ? String(r.balancePay).trim() : '';
+        if (!pay || pay === '—' || pay === '-') pay = '未开通';
+        return {
+            merchantNo: id ? 'HF-' + id : '—',
+            payStatus: pay
+        };
+    }
+
     function panelSupplierOnboarding(r) {
         var recordKey = onboardRecordKey('supplier', r.id);
-        var onboardingDefaults = resourceOnboardingDefaults(r.name, r.detailAddress, r.phone);
+        var onboardingDefaults = resourceOnboardingDefaults(
+            r.shortName || r.name,
+            r.detailAddress,
+            r.phone
+        );
+        var huifuMeta = supplierHuifuAccountMeta(r);
         var p = el('div', 'supplier-detail-tab');
 
         p.appendChild(sectionTitle('进件信息'));
@@ -2015,7 +2961,13 @@
         function renderOnboardingInfo() {
             onboardingGrid.innerHTML = '';
             var onboardingSummary = getOnboardingSummary(recordKey, onboardingDefaults);
-            onboardingDetailCells(onboardingSummary.fields, 'supplier').forEach(function (cell) {
+            onboardingSummary.recordKey = recordKey;
+            onboardingDetailCells(onboardingSummary.fields, 'supplier', {
+                shortName: r.shortName || r.name,
+                merchantNo: huifuMeta.merchantNo,
+                payStatus: huifuMeta.payStatus,
+                onboardStatus: archiveOnboardEnum(onboardingSummary, r.onboard)
+            }).forEach(function (cell) {
                 onboardingGrid.appendChild(cell);
             });
         }
@@ -2047,7 +2999,7 @@
                                 subjectType: '供应商',
                                 groupName: r.subjectName,
                                 onboardStatus: onboardingSummary.auditStatus || onboardingSummary.status,
-                                huifuMerchantNo: 'HF-' + String(r.id || '').replace(/\s+/g, ''),
+                                huifuMerchantNo: huifuMeta.merchantNo,
                                 settlementSubject: r.settleInfo,
                                 contactMobile: r.phone,
                                 submitTime: formatTs(onboardingSummary.submittedAt),
