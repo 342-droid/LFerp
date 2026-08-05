@@ -241,7 +241,8 @@
       }
       toast('提交成功！');
       setTimeout(function () {
-        window.location.href = 'store-wallet.html' + walletQuery({ tab: 'in', bizType: '充值' });
+        var bizType = rRes.firstRecharge ? '首次充值' : '充值';
+        window.location.href = 'store-wallet.html' + walletQuery({ tab: 'in', bizType: bizType });
       }, 900);
       return;
     }
