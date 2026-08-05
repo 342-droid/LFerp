@@ -1,0 +1,466 @@
+/* 银行卡管理 — 白底 + 彩色银行卡卡片 */
+
+.sa-bcards-shell {
+  background: #fff;
+}
+
+.sa-bcards {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.sa-bcards-nav {
+  flex-shrink: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 48px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.sa-bcards-nav__back {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #222;
+  text-decoration: none;
+}
+
+.sa-bcards-nav__back svg {
+  width: 22px;
+  height: 22px;
+}
+
+.sa-bcards-nav__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #111;
+}
+
+.sa-bcards-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 16px 28px;
+}
+
+.sa-bcards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 彩色银行卡：宽约满屏，高约 104px（对齐参考图比例） */
+.sa-bcards-card {
+  position: relative;
+  height: 104px;
+  border-radius: 12px;
+  padding: 16px 16px 18px;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: #fff;
+  background: #4a5568;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sa-bcards-card.is-abc {
+  background: linear-gradient(135deg, #0a9b7a 0%, #007a5e 100%);
+}
+
+.sa-bcards-card.is-cmb {
+  background: linear-gradient(135deg, #c43b3b 0%, #9e2228 100%);
+}
+
+.sa-bcards-card.is-boc {
+  background: linear-gradient(135deg, #b83045 0%, #8c1c2e 100%);
+}
+
+.sa-bcards-card.is-ccb {
+  background: linear-gradient(135deg, #1a5fad 0%, #0d3f7a 100%);
+}
+
+.sa-bcards-card.is-icbc {
+  background: linear-gradient(135deg, #d4222a 0%, #a30f16 100%);
+}
+
+.sa-bcards-card.is-citic {
+  background: linear-gradient(135deg, #c43b3b 0%, #8f2028 100%);
+}
+
+.sa-bcards-card.is-ceb {
+  background: linear-gradient(135deg, #5b3d8c 0%, #3d2866 100%);
+}
+
+.sa-bcards-card.is-comm {
+  background: linear-gradient(135deg, #1f6fb5 0%, #0f4d82 100%);
+}
+
+.sa-bcards-card.is-default {
+  background: linear-gradient(135deg, #5a6570 0%, #3d454d 100%);
+}
+
+/* 右侧水印 */
+.sa-bcards-card__wm {
+  position: absolute;
+  right: -6px;
+  top: 50%;
+  transform: translateY(-46%);
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.14);
+  pointer-events: none;
+  letter-spacing: -2px;
+}
+
+.sa-bcards-card__wm::after {
+  content: '';
+  position: absolute;
+  inset: 18px;
+  border-radius: 50%;
+  border: 10px solid rgba(255, 255, 255, 0.06);
+}
+
+.sa-bcards-card__top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sa-bcards-card__logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  color: #333;
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.sa-bcards-card.is-abc .sa-bcards-card__logo {
+  color: #007a5e;
+}
+
+.sa-bcards-card.is-cmb .sa-bcards-card__logo,
+.sa-bcards-card.is-icbc .sa-bcards-card__logo,
+.sa-bcards-card.is-citic .sa-bcards-card__logo,
+.sa-bcards-card.is-boc .sa-bcards-card__logo {
+  color: #b01e28;
+}
+
+.sa-bcards-card.is-ccb .sa-bcards-card__logo,
+.sa-bcards-card.is-comm .sa-bcards-card__logo {
+  color: #0d3f7a;
+}
+
+.sa-bcards-card__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sa-bcards-card__tag {
+  flex-shrink: 0;
+  font-size: 11px;
+  line-height: 1.3;
+  padding: 2px 7px;
+  border-radius: 10px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.sa-bcards-card__del {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  margin-left: 2px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.18);
+  color: rgba(255, 255, 255, 0.9);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.sa-bcards-card__del svg {
+  width: 15px;
+  height: 15px;
+}
+
+.sa-bcards-card__del:active {
+  background: rgba(0, 0, 0, 0.32);
+}
+
+.sa-bcards-card__no {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 2px 36px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  font-family: 'SF Mono', 'Menlo', 'Consolas', 'Courier New', monospace;
+}
+
+/* 添加银行卡条：浅灰底，与卡同宽同圆角 */
+.sa-bcards-add {
+  height: 72px;
+  border: 0;
+  border-radius: 12px;
+  background: #f5f5f5;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 0 18px;
+  width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.sa-bcards-add__plus {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid #999;
+  color: #666;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 400;
+}
+
+.sa-bcards-add:active {
+  background: #ebebeb;
+}
+
+.sa-bcards-empty {
+  padding: 80px 0 24px;
+  text-align: center;
+  font-size: 15px;
+  color: #999;
+}
+
+.sa-bcards-empty p {
+  margin: 0 0 28px;
+}
+
+.sa-bcards-empty .sa-bcards-add {
+  text-align: left;
+}
+
+.sa-bcards-fail {
+  width: 100%;
+  min-height: 280px;
+  border: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 48px 16px;
+}
+
+.sa-bcards-fail span {
+  font-size: 15px;
+  color: #666;
+}
+
+.sa-bcards-fail em {
+  font-style: normal;
+  font-size: 13px;
+  color: #ff6a00;
+}
+
+.sa-bcards-list[hidden],
+.sa-bcards-empty[hidden],
+.sa-bcards-fail[hidden] {
+  display: none !important;
+}
+
+/* 支付密码半屏（保持浅色面板） */
+.sa-bcards-pwd {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.sa-bcards-pwd[hidden] {
+  display: none !important;
+}
+
+.sa-bcards-pwd__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.sa-bcards-pwd__panel {
+  position: relative;
+  z-index: 1;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  padding: 8px 0 0;
+  overflow: hidden;
+}
+
+.sa-bcards-pwd__x {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: none;
+  font-size: 22px;
+  color: #999;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.sa-bcards-pwd__title {
+  margin: 16px 0 8px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #111;
+  text-align: center;
+}
+
+.sa-bcards-pwd__lead {
+  margin: 0 0 20px;
+  font-size: 13px;
+  color: #999;
+  text-align: center;
+}
+
+.sa-bcards-pwd__slots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 0 20px;
+}
+
+.sa-bcards-pwd__slots span {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fafafa;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.sa-bcards-pwd__slots span.filled::after {
+  content: '●';
+  font-size: 16px;
+  color: #222;
+}
+
+.sa-bcards-pwd__keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: #d8dbe0;
+  border-top: 1px solid #cfd3d9;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.sa-bcards-pwd__keypad button {
+  min-height: 52px;
+  border: 0;
+  background: #fff;
+  font-size: 22px;
+  color: #111;
+  cursor: pointer;
+}
+
+.sa-bcards-pwd__keypad button:active {
+  background: #d8dbe0;
+}
+
+.sa-bcards-pwd__empty {
+  background: #eceef1 !important;
+  cursor: default;
+}
+
+.sa-bcards-pwd__del {
+  background: #eceef1 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sa-bcards-toast {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  z-index: 120;
+  max-width: 78%;
+  padding: 12px 18px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+}
+
+.sa-bcards-toast[hidden] {
+  display: none !important;
+}

@@ -231,6 +231,10 @@
   background: #ff3b30;
 }
 
+.sa-tool__dot[hidden] {
+  display: none !important;
+}
+
 .sa-tabbar {
   flex-shrink: 0;
   display: flex;

@@ -18,7 +18,38 @@
 
   function keepFrom() {
     var from = qs().get('from') || '';
-    return from ? '?from=' + encodeURIComponent(from) : '';
+    var ret = qs().get('return') || '';
+    var q = new URLSearchParams();
+    if (from) q.set('from', from);
+    if (ret) q.set('return', ret);
+    var s = q.toString();
+    return s ? '?' + s : '';
+  }
+
+  function backHref() {
+    var ret = qs().get('return') || '';
+    if (ret) {
+      try {
+        return decodeURIComponent(ret);
+      } catch (e) {
+        return ret;
+      }
+    }
+    return 'store-recharge.html' + keepFrom();
+  }
+
+  function successHref(cardId) {
+    var ret = qs().get('return') || '';
+    if (ret) {
+      try {
+        return decodeURIComponent(ret);
+      } catch (e2) {
+        return ret;
+      }
+    }
+    var q = keepFrom();
+    var join = q ? '&' : '?';
+    return 'store-recharge.html' + q + join + 'cardId=' + encodeURIComponent(cardId || '');
   }
 
   function toast(msg, ms) {
@@ -159,7 +190,7 @@
     if (holder) holder.textContent = api.HOLDER;
 
     var back = $('bcBack');
-    if (back) back.setAttribute('href', 'store-recharge.html' + keepFrom());
+    if (back) back.setAttribute('href', backHref());
 
     restoreDraft();
 
@@ -277,10 +308,7 @@
         }
         toast('绑定成功', 3000);
         setTimeout(function () {
-          var q = keepFrom();
-          var join = q ? '&' : '?';
-          window.location.href =
-            'store-recharge.html' + q + join + 'cardId=' + encodeURIComponent(res.card.id);
+          window.location.href = successHref(res.card && res.card.id);
         }, 1200);
       });
     }

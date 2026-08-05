@@ -7,8 +7,14 @@
   }
 
   function keepFrom() {
-    var from = new URLSearchParams(window.location.search).get('from') || '';
-    return from ? '?from=' + encodeURIComponent(from) : '';
+    var qs = new URLSearchParams(window.location.search);
+    var from = qs.get('from') || '';
+    var ret = qs.get('return') || '';
+    var q = new URLSearchParams();
+    if (from) q.set('from', from);
+    if (ret) q.set('return', ret);
+    var s = q.toString();
+    return s ? '?' + s : '';
   }
 
   function onlyDigits(s, max) {

@@ -24,7 +24,8 @@
     sheet: '多维表格',
     assistant: '工作助手',
     discover: '发现',
-    password: '密码管理'
+    password: '密码管理',
+    bankcard: '银行卡'
   };
 
   var editBtn = document.getElementById('moreEditBtn');
@@ -49,6 +50,10 @@
       var key = item.getAttribute('data-more');
       if (key === 'password') {
         window.location.href = 'password.html';
+        return;
+      }
+      if (key === 'bankcard') {
+        window.location.href = 'bank-cards.html';
         return;
       }
       toast((LABELS[key] || '功能') + '（演示）');

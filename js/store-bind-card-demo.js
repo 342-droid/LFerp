@@ -1,10 +1,13 @@
 /**
- * 门店快捷支付绑卡演示（充值选卡共用）
+ * 门店银行卡演示（银行卡管理 / 充值选卡共用）
+ * - withdraw：汇付开户绑定的默认提现对公账户（不可删、不可充值）
+ * - quickpay：快捷支付银行卡（可新增/删除，用于钱包充值）
  * 客服品牌文案：丰银宝
  */
 (function (global) {
-  var KEY_CARDS = 'sa_demo_bind_cards_v2';
+  var KEY_CARDS = 'sa_demo_bind_cards_v5';
   var KEY_DRAFT = 'sa_demo_bind_card_draft';
+  var KEY_REALNAME = 'sa_demo_realname_done';
   var HOLDER = '王小二';
   var SMS_CODE = '123456';
   var SERVICE_BRAND = '丰银宝';
@@ -21,19 +24,37 @@
     { id: 'comm', name: '交通银行', short: '交', single: 20000, daily: 50000 }
   ];
 
-  /* 演示：假装已绑定一张借记卡 */
-  var SEED_CARD = {
-    id: 'BC-DEMO-001',
-    cardNo: '6228481235489632156',
-    bankId: 'abc',
-    bankName: '农业银行',
-    bankShort: '农',
-    cardTail: '2156',
-    phone: '13812348001',
-    single: 700,
-    daily: 10000,
-    boundAt: 0
-  };
+  /* 演示：汇付默认提现对公户 + 一张快捷支付储蓄卡 */
+  var SEED_CARDS = [
+    {
+      id: 'BC-WITHDRAW-HF',
+      purpose: 'withdraw',
+      cardNo: '7559401234568888',
+      bankId: 'cmb',
+      bankName: '招商银行',
+      bankShort: '招',
+      cardTail: '8888',
+      cardType: '企业账户',
+      phone: '',
+      single: 0,
+      daily: 0,
+      boundAt: 1
+    },
+    {
+      id: 'BC-QUICK-001',
+      purpose: 'quickpay',
+      cardNo: '6225881234566666',
+      bankId: 'cmb',
+      bankName: '招商银行',
+      bankShort: '招',
+      cardTail: '6666',
+      cardType: '储蓄卡',
+      phone: '13812348001',
+      single: 50000,
+      daily: 50000,
+      boundAt: 2
+    }
+  ];
 
   /* BIN 前缀 → 银行，用于演示自动识别 */
   var BIN_MAP = {
@@ -65,17 +86,101 @@
     }
   }
 
+  function normalizeCard(c) {
+    var card = Object.assign({}, c);
+    if (!card.purpose) {
+      /* 旧数据兜底：无 purpose 视为快捷支付 */
+      card.purpose = 'quickpay';
+    }
+    return card;
+  }
+
   function listCards() {
     var list = readJson(KEY_CARDS);
-    if (!Array.isArray(list) || !list.length) {
-      list = [Object.assign({}, SEED_CARD, { boundAt: Date.now() })];
+    if (!Array.isArray(list)) {
+      list = SEED_CARDS.map(function (c) {
+        return Object.assign({}, c);
+      });
       saveCards(list);
     }
-    return list;
+    return list.map(normalizeCard);
+  }
+
+  /** 仅快捷支付卡（充值选卡用；不含汇付默认提现对公户） */
+  function listQuickPayCards() {
+    return listCards().filter(function (c) {
+      return c.purpose === 'quickpay';
+    });
   }
 
   function saveCards(list) {
     writeJson(KEY_CARDS, list || []);
+  }
+
+  function isRealNameDone() {
+    var v = readJson(KEY_REALNAME);
+    if (v === null || v === undefined) return true; /* 演示默认已实名 */
+    return !!v;
+  }
+
+  function setRealNameDone(done) {
+    writeJson(KEY_REALNAME, !!done);
+  }
+
+  function isWithdrawCard(card) {
+    return !!(card && card.purpose === 'withdraw');
+  }
+
+  function canDeleteCard(card) {
+    return !!(card && card.purpose === 'quickpay');
+  }
+
+  function canRechargeCard(card) {
+    return !!(card && card.purpose === 'quickpay');
+  }
+
+  function purposeLabel(card) {
+    if (isWithdrawCard(card)) return '默认提现';
+    return '快捷支付';
+  }
+
+  /**
+   * 解绑银行卡：仅快捷支付可删
+   * 卡号尾号 9999 → 演示删除失败
+   */
+  function removeCard(cardId) {
+    var list = listCards();
+    var idx = -1;
+    var card = null;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === cardId) {
+        idx = i;
+        card = list[i];
+        break;
+      }
+    }
+    if (!card) {
+      return { ok: false, message: '银行卡删除失败，请稍后重试' };
+    }
+    if (!canDeleteCard(card)) {
+      return {
+        ok: false,
+        code: 'withdraw_fixed',
+        message: '默认提现账户不支持删除'
+      };
+    }
+    if (String(card.cardTail || '') === '9999') {
+      return { ok: false, message: '银行卡删除失败，请稍后重试' };
+    }
+    list.splice(idx, 1);
+    saveCards(list);
+    return { ok: true };
+  }
+
+  /** 列表展示：****8888 */
+  function maskedCardNo(card) {
+    var tail = (card && card.cardTail) || cardTail(card && card.cardNo);
+    return '****' + tail;
   }
 
   function getBank(id) {
@@ -181,11 +286,13 @@
 
     var card = {
       id: 'BC' + Date.now(),
+      purpose: 'quickpay',
       cardNo: cardNo,
       bankId: bank.id,
       bankName: bank.name,
       bankShort: bank.short,
       cardTail: cardTail(cardNo),
+      cardType: '储蓄卡',
       phone: phone,
       single: bank.single,
       daily: bank.daily,
@@ -204,7 +311,16 @@
     SERVICE_PHONE: SERVICE_PHONE,
     BANKS: BANKS,
     listCards: listCards,
+    listQuickPayCards: listQuickPayCards,
     saveCards: saveCards,
+    removeCard: removeCard,
+    maskedCardNo: maskedCardNo,
+    isWithdrawCard: isWithdrawCard,
+    canDeleteCard: canDeleteCard,
+    canRechargeCard: canRechargeCard,
+    purposeLabel: purposeLabel,
+    isRealNameDone: isRealNameDone,
+    setRealNameDone: setRealNameDone,
     getBank: getBank,
     detectBankByCardNo: detectBankByCardNo,
     cardTail: cardTail,
