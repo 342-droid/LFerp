@@ -703,6 +703,15 @@
 
     document.getElementById('swWithdrawBtn') &&
       document.getElementById('swWithdrawBtn').addEventListener('click', function () {
+        var gate = window.StoreOnboardingGate;
+        if (gate && !gate.canWithdraw()) {
+          var wMsg = gate.withdrawBlockMessage() || '商户进件未完成，暂无法提现';
+          gate.blockAndGoOnboarding(wMsg, {
+            from: 'store-app',
+            returnUrl: 'store-wallet.html' + (window.location.search || '?from=store-app')
+          });
+          return;
+        }
         snap = api.snapshot();
         if (snap.depositGap > 0) {
           window.alert('保证金存在缺口 ' + api.money(snap.depositGap) + '，请先补齐后再提现。');

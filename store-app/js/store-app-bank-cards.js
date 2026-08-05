@@ -230,6 +230,23 @@
   }
 
   function tryAdd() {
+    var gate = window.StoreOnboardingGate;
+    if (gate && !gate.canAddBankCardForRecharge()) {
+      var msg =
+        gate.rechargeAddCardBlockMessage() || '商户进件未完成，请先完成进件后充值';
+      gate.blockAndGoOnboarding(msg, { href: 'onboarding.html' });
+      return;
+    }
+    if (gate) {
+      var idCheck = gate.checkIdentityForBindCard();
+      if (!idCheck.ok) {
+        gate.blockAndGoOnboarding(
+          idCheck.message || '身份信息校验失败，请完成商户进件后再充值。',
+          { href: 'onboarding.html' }
+        );
+        return;
+      }
+    }
     if (typeof cardApi.isRealNameDone === 'function' && !cardApi.isRealNameDone()) {
       toast('请先完成实名认证');
       return;

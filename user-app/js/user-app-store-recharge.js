@@ -381,6 +381,17 @@
       list.addEventListener('click', function (e) {
         var add = e.target.closest('#rcAddCardBtn');
         if (add) {
+          var gate = window.StoreOnboardingGate;
+          if (gate && !gate.canAddBankCardForRecharge()) {
+            var msg =
+              gate.rechargeAddCardBlockMessage() ||
+              '商户进件未完成，请先完成进件后充值';
+            gate.blockAndGoOnboarding(msg, {
+              from: 'store-app',
+              returnUrl: 'store-recharge.html' + walletQuery()
+            });
+            return;
+          }
           window.location.href = 'store-bind-card.html' + walletQuery();
           return;
         }

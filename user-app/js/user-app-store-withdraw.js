@@ -155,6 +155,16 @@
   }
 
   function bind() {
+    var gate = window.StoreOnboardingGate;
+    if (gate && !gate.canWithdraw()) {
+      var wMsg = gate.withdrawBlockMessage() || '商户进件未完成，暂无法提现';
+      gate.blockAndGoOnboarding(wMsg, {
+        from: 'store-app',
+        returnUrl: 'store-wallet.html?from=store-app'
+      });
+      return;
+    }
+
     setupLinks();
 
     var snap = api.snapshot();
