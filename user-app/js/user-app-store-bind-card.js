@@ -186,6 +186,22 @@
   }
 
   function bind() {
+    var gate = window.StoreOnboardingGate;
+    if (gate) {
+      var idCheck = gate.checkIdentityForBindCard();
+      if (!idCheck.ok) {
+        if (idCheck.goOnboarding && typeof gate.blockAndGoOnboarding === 'function') {
+          gate.blockAndGoOnboarding(idCheck.message, {
+            from: 'store-app',
+            returnUrl: 'store-bind-card.html' + keepFrom()
+          });
+        } else {
+          gate.toast(idCheck.message || '身份信息校验失败，请完成商户进件后再充值。');
+        }
+        return;
+      }
+    }
+
     var holder = $('bcHolderName');
     if (holder) holder.textContent = api.HOLDER;
 
@@ -292,6 +308,21 @@
     if (submit) {
       submit.addEventListener('click', function () {
         if (submit.disabled) return;
+        var gate2 = window.StoreOnboardingGate;
+        if (gate2) {
+          var idCheck2 = gate2.checkIdentityForBindCard();
+          if (!idCheck2.ok) {
+            if (idCheck2.goOnboarding && typeof gate2.blockAndGoOnboarding === 'function') {
+              gate2.blockAndGoOnboarding(idCheck2.message, {
+                from: 'store-app',
+                returnUrl: 'store-bind-card.html' + keepFrom()
+              });
+            } else {
+              gate2.toast(idCheck2.message || '身份信息校验失败，请完成商户进件后再充值。');
+            }
+            return;
+          }
+        }
         var res = api.bindCard({
           cardNo: onlyDigits(($('bcCardNo') || {}).value, 19),
           bankId: state.bankId,
