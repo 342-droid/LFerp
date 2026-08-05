@@ -50,8 +50,8 @@
   }
 
   /** 收入含平台佣金；支出含佣金回退 */
-  var INCOME_TYPES = ['平台佣金', '佣金入账', '首次入金', '充值', '支付退回'];
-  var EXPENSE_TYPES = ['佣金回退', '余额支付', '售后问责', '提现申请'];
+  var INCOME_TYPES = ['平台佣金', '佣金入账', '首次充值', '首次入金', '充值', '支付退回', '保证金划拨入账'];
+  var EXPENSE_TYPES = ['佣金回退', '余额支付', '售后问责', '提现申请', '保证金划拨出账'];
 
   function matchTab(item) {
     var type = String(item.type || '');
@@ -303,6 +303,51 @@
     return a || '—';
   }
 
+  /** 对公展示为「银行名称(卡号后四位)」；支付方式仅：银行卡 / 支付宝 / 微信 */
+  function corpBankLabel(item) {
+    var bank = String((item && (item.bankName || item.settleBankName)) || '').trim();
+    var tail = String((item && (item.bankTail || item.cardTail || item.settleCardTail)) || '').trim();
+    if (!bank || !tail) {
+      var settle = (snap && snap.settleAccount) || {};
+      if (!bank) bank = String(settle.bankName || '').trim();
+      if (!tail) tail = String(settle.cardTail || '').trim();
+    }
+    if (bank && tail) return bank + '(' + tail + ')';
+    if (bank) return bank;
+    return '';
+  }
+
+  function payMethodLabel(item) {
+    var type = String((item && item.type) || '');
+    /* 保证金划拨 / 补齐：支付方式为余额账户 */
+    if (
+      type === '保证金补齐' ||
+      type === '保证金划拨出账' ||
+      type === '保证金划拨入账' ||
+      String((item && item.payMethod) || '') === '余额账户'
+    ) {
+      return '余额账户';
+    }
+    var m = String((item && (item.payMethod || item.channel)) || '').trim();
+    var no = String((item && item.channelNo) || '');
+    if (m === '支付宝' || m === '微信') return m;
+    if (/^WX/i.test(no) || m.indexOf('微信') >= 0) return '微信';
+    if (/^ALI|ZFB/i.test(no) || m.indexOf('支付宝') >= 0) return '支付宝';
+    /* 对公账户 / 银行名 → 统一成 银行(后四位) */
+    if (
+      !m ||
+      m === '对公账户' ||
+      m === '对公' ||
+      m.indexOf('银行') >= 0 ||
+      (item && item.bankName)
+    ) {
+      var corp = corpBankLabel(item);
+      if (corp) return corp;
+    }
+    if (m && m !== '对公账户' && m !== '对公') return m;
+    return '—';
+  }
+
   function ledgerStatus(item) {
     if (item.type === '提现申请') {
       return { text: '处理中', cls: 'is-pending', action: '' };
@@ -312,6 +357,15 @@
     }
     if (item.type === '余额支付') {
       return { text: '支付成功', cls: 'is-ok', action: '' };
+    }
+    if (item.type === '保证金划拨出账') {
+      return { text: '划拨成功', cls: '', action: '' };
+    }
+    if (item.type === '保证金划拨入账') {
+      return { text: '入账成功', cls: 'is-ok', action: '' };
+    }
+    if (item.type === '首次充值') {
+      return { text: '入账成功', cls: 'is-ok', action: '' };
     }
     if (item.thawStatus === 'pending') {
       return { text: '待解冻·T+1', cls: 'is-pending', action: '' };
@@ -389,6 +443,10 @@
           '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">账户</span>' +
           '<span class="ua-sw-ledger__v">' +
           escHtml(accountLabel(item.account)) +
+          '</span></div>' +
+          '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">支付方式</span>' +
+          '<span class="ua-sw-ledger__v">' +
+          escHtml(payMethodLabel(item)) +
           '</span></div>' +
           '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">支付流水</span>' +
           '<span class="ua-sw-ledger__v">' +
@@ -472,7 +530,7 @@
         title: '货款说明',
         lead: '货款不可提现，用于保障进货周转。',
         points: [
-          '首次入金等划入的货款额度，不支持提现',
+          '首次充值划入的货款额度，不支持提现',
           '进货支付时优先扣减货款；相关退款可恢复货款水位',
           '可提现部分请查看上方「可提款」金额'
         ]

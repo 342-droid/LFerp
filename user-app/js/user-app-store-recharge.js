@@ -245,14 +245,24 @@
       return;
     }
     var msg = '充值成功\n金额：¥' + moneyPlain(amt) + '\n方式：' + methodTitle(method);
-    if (result.filledGap > 0) {
-      msg += '\n其中补齐保证金 ¥' + moneyPlain(result.filledGap);
-    }
-    if (result.toPending > 0) {
-      msg += '\n计入待解冻 ¥' + moneyPlain(result.toPending) + '（T+1 后可提现）';
+    if (result.firstRecharge) {
+      if (result.filledGap > 0) {
+        msg += '\n已自动划拨保证金 ¥' + moneyPlain(result.filledGap);
+      }
+      if (result.toGoodsQuota > 0) {
+        msg += '\n计入货款 ¥' + moneyPlain(result.toGoodsQuota);
+      }
+    } else {
+      if (result.filledGap > 0) {
+        msg += '\n其中补齐保证金 ¥' + moneyPlain(result.filledGap);
+      }
+      if (result.toPending > 0) {
+        msg += '\n计入待解冻 ¥' + moneyPlain(result.toPending) + '（T+1 后可提现）';
+      }
     }
     window.alert(msg);
-    window.location.href = 'store-wallet.html' + walletQuery({ tab: 'in', bizType: '充值' });
+    var bizType = result.firstRecharge ? '首次充值' : '充值';
+    window.location.href = 'store-wallet.html' + walletQuery({ tab: 'in', bizType: bizType });
   }
 
   function doSubmit() {
