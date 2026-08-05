@@ -1,10 +1,76 @@
 {
-  "latestSha": "74dd1677c5d7bfe70130dbdcc699b1541fa06647",
-  "total": 229,
+  "latestSha": "07ee283c7f12ac41dffbb3159fe73624672d947f",
+  "total": 230,
   "days": [
     {
       "date": "2026-08-05",
       "items": [
+        {
+          "sha": "07ee283",
+          "type": "feat",
+          "text": "进件完成后展示商户详情并拦截未进件充值提现",
+          "author": "sisi",
+          "time": "15:49",
+          "pages": [
+            {
+              "file": "store-app/h5/bank-cards.html",
+              "module": "",
+              "title": "银行卡 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "module": "",
+              "title": "经营中心 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "module": "",
+              "title": "商户进件 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/store-bind-card.html",
+              "module": "",
+              "title": "绑定银行卡 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "module": "",
+              "title": "充值 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "module": "",
+              "title": "我的钱包 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw.html",
+              "module": "",
+              "title": "提现 · 门店 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/onboarding.html",
+              "text": "审核成功进入商户详情；提交后进入审核中；提示改为消息条"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "text": "去掉右上角小程序胶囊图标"
+            },
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "text": "提现按进件状态拦截并提示后跳转进件页"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "text": "添加银行卡充值前校验进件；身份校验失败给出提示"
+            },
+            {
+              "file": "user-app/h5/store-withdraw.html",
+              "text": "进件成功才可进入；审核中/失败/未进件分别提示"
+            }
+          ]
+        },
         {
           "sha": "74dd167",
           "type": "feat",
