@@ -1912,6 +1912,22 @@
   flex: 0 0 auto;
 }
 
+/* 佣金明细：日期字段 + 时段 + 区间 紧凑组合 */
+.store-comm-date-combo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.store-comm-date-combo .store-ledger-filter__control {
+  min-width: 0;
+}
+
+.store-comm-date-combo__range {
+  min-width: 280px;
+}
+
 .store-ledger-filter__label {
   color: #666;
   font-size: 13px;

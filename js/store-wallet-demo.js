@@ -1,9 +1,10 @@
 /**
  * 门店钱包演示数据（H5 钱包 / 进货收银台 / PC 门店档案共用）
  * 口径：保证金账户 D + 余额账户（货款 Q + 可提现 + 待解冻 T+1）
+ * 售后赔付：仅从余额账户或保证金账户出账（二者择一账户扣减，不走外部支付通道）
  */
 (function (global) {
-  var STORAGE_KEY = 'lf_store_wallet_demo_v8';
+  var STORAGE_KEY = 'lf_store_wallet_demo_v11';
 
   var DEFAULT = {
     storeName: '悠悠生鲜超市',
@@ -109,16 +110,18 @@
         remark: '进货核销货款水位（不可提现层优先）'
       },
       {
+        /* 支付失败：整笔流水状态失败，未入账（收入无「支付退回」） */
         id: 'L005',
         time: '2026-07-31 11:08:20',
-        type: '支付退回',
+        type: '充值',
         dir: 'in',
         amount: 500,
         account: '余额',
-        bizNo: 'RF-20260731-12',
-        channelNo: 'BAL-REF-12',
+        bizNo: 'CZ-20260731-12',
+        channelNo: 'HF-FAIL-12',
         payMethod: '微信',
-        remark: '进货部分退款·余额腿原路退回，货款水位恢复'
+        ledgerStatus: '失败',
+        remark: '充值失败·通道未到账，资金未入账'
       },
       {
         id: 'L006',
@@ -160,32 +163,28 @@
         remark: '当日佣金入账·未满 T+1，计入待解冻'
       },
       {
+        /* 售后赔付：从余额账户出 */
         id: 'L008',
         time: '2026-08-02 11:30:18',
-        type: '售后问责',
+        type: '售后赔付',
         dir: 'out',
         amount: 200,
         account: '余额',
         bizNo: 'AS-20260802-09',
         channelNo: 'ADJ-09',
-        payMethod: '中国建设银行(0992)',
-        bankName: '中国建设银行',
-        bankTail: '0992',
-        remark: '定责赔付：优先扣余额'
+        remark: '售后赔付：从余额账户出账'
       },
       {
+        /* 售后赔付：从保证金账户出（演示另单；可形成保证金缺口） */
         id: 'L009',
-        time: '2026-08-02 11:30:19',
-        type: '售后问责',
+        time: '2026-08-02 14:05:00',
+        type: '售后赔付',
         dir: 'out',
         amount: 300,
         account: '保证金',
-        bizNo: 'AS-20260802-09',
-        channelNo: 'ADJ-09',
-        payMethod: '中国建设银行(0992)',
-        bankName: '中国建设银行',
-        bankTail: '0992',
-        remark: '余额不足部分扣保证金，形成缺口 300（演示后已补齐）'
+        bizNo: 'AS-20260802-12',
+        channelNo: 'ADJ-12',
+        remark: '售后赔付：从保证金账户出账，形成缺口 300（演示后已补齐）'
       },
       {
         id: 'L010',
@@ -256,6 +255,7 @@
         remark: '提现失败·银行退回，资金未生效'
       },
       {
+        /* 提现一经发起不可撤销；状态仅：成功 / 处理中 / 失败 */
         id: 'L015',
         time: '2026-08-03 11:40:18',
         type: '提现申请',
@@ -263,13 +263,13 @@
         amount: 80,
         account: '余额',
         bizNo: 'WD-20260803-03',
-        channelNo: 'WD-CXL-03',
+        channelNo: 'WD-OK-03',
         payMethod: '中国建设银行(0992)',
         bankName: '中国建设银行',
         bankTail: '0992',
-        ledgerStatus: '已撤销',
-        withdrawStatus: 'cancelled',
-        remark: '提现取消·人工撤销'
+        ledgerStatus: '成功',
+        withdrawStatus: 'success',
+        remark: '提现成功·已到账汇付对公账户'
       }
     ];
   }

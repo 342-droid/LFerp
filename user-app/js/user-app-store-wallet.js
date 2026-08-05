@@ -51,17 +51,19 @@
 
   /**
    * 账变类型 / 状态：与 MDM 门店档案·账变记录枚举对齐
-   * 收入：首次充值、保证金入账、订单佣金、充值、提现回退
+   * 收入：首次充值、保证金入账、佣金结算、充值、提现回退
    * 支出：提现、售后赔付、保证金出账
+   * 售后赔付：仅从余额账户或保证金账户出账
    * 划拨（C 端 Tab「锁定/补齐」）：保证金补缴
-   * 状态：成功、处理中、失败、已撤销
+   * 状态：成功、处理中、失败（提现一经发起不可撤销，无已撤销）
    */
   var BIZ_TYPE_MAP = {
     保证金划拨出账: '保证金出账',
     保证金划拨入账: '保证金入账',
     保证金补齐: '保证金补缴',
-    平台佣金: '订单佣金',
-    佣金入账: '订单佣金',
+    平台佣金: '佣金结算',
+    佣金入账: '佣金结算',
+    订单佣金: '佣金结算',
     提现申请: '提现',
     售后问责: '售后赔付'
   };
@@ -70,12 +72,12 @@
     '首次入金',
     '保证金入账',
     '保证金划拨入账',
+    '佣金结算',
     '订单佣金',
     '平台佣金',
     '佣金入账',
     '充值',
-    '提现回退',
-    '支付退回'
+    '提现回退'
   ];
   var EXPENSE_TYPES = [
     '提现',
@@ -368,6 +370,20 @@
     return '';
   }
 
+  function isWithdrawLedger(item) {
+    var biz = mapLedgerBizType(item && item.type);
+    return biz === '提现' || biz === '提现回退';
+  }
+
+  /** 提现流水：展示提现银行（银行名+卡号后四位） */
+  function withdrawBankLabel(item) {
+    var corp = corpBankLabel(item);
+    if (corp) return corp;
+    var m = String((item && (item.payMethod || item.channel)) || '').trim();
+    if (m && m !== '对公账户' && m !== '对公') return m;
+    return '—';
+  }
+
   function payMethodLabel(item) {
     var type = String((item && item.type) || '');
     /* 保证金划拨 / 补齐：支付方式为余额账户 */
@@ -399,13 +415,16 @@
     return '—';
   }
 
-  /** 状态枚举与 MDM 一致：成功 / 处理中 / 失败 / 已撤销 */
+  /** 状态枚举与 MDM 一致：成功 / 处理中 / 失败；提现不可撤销 */
   function ledgerStatus(item) {
     var raw = item && (item.ledgerStatus || item.status);
-    if (raw === '成功' || raw === '处理中' || raw === '失败' || raw === '已撤销') {
+    if (raw === '已撤销') {
+      return { text: '失败', cls: 'is-fail', action: '' };
+    }
+    if (raw === '成功' || raw === '处理中' || raw === '失败') {
       return {
         text: raw,
-        cls: raw === '成功' ? 'is-ok' : raw === '处理中' ? 'is-pending' : raw === '失败' ? 'is-fail' : 'is-lock',
+        cls: raw === '成功' ? 'is-ok' : raw === '处理中' ? 'is-pending' : 'is-fail',
         action: ''
       };
     }
@@ -416,9 +435,6 @@
     if (ws === 'failed' || ws === 'fail') {
       return { text: '失败', cls: 'is-fail', action: '' };
     }
-    if (ws === 'cancelled' || ws === 'canceled' || ws === 'revoked') {
-      return { text: '已撤销', cls: 'is-lock', action: '' };
-    }
     if (ws === 'success' || ws === 'done') {
       return { text: '成功', cls: 'is-ok', action: '' };
     }
@@ -426,7 +442,6 @@
     var remark = String((item && item.remark) || '');
     if (biz === '提现' || (item && item.type === '提现申请')) {
       if (/失败/.test(remark)) return { text: '失败', cls: 'is-fail', action: '' };
-      if (/撤销|取消/.test(remark)) return { text: '已撤销', cls: 'is-lock', action: '' };
       if (/已完成|成功到账/.test(remark)) return { text: '成功', cls: 'is-ok', action: '' };
       return { text: '处理中', cls: 'is-pending', action: '' };
     }
@@ -500,9 +515,11 @@
           '<span class="ua-sw-ledger__v">' +
           escHtml(accountLabel(item.account)) +
           '</span></div>' +
-          '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">支付方式</span>' +
+          '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">' +
+          (isWithdrawLedger(item) ? '提现银行' : '支付方式') +
+          '</span>' +
           '<span class="ua-sw-ledger__v">' +
-          escHtml(payMethodLabel(item)) +
+          escHtml(isWithdrawLedger(item) ? withdrawBankLabel(item) : payMethodLabel(item)) +
           '</span></div>' +
           '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">支付流水</span>' +
           '<span class="ua-sw-ledger__v">' +
@@ -573,7 +590,7 @@
         lead: '入驻锁定资金，保障履约与售后责任，不可提现。',
         points: [
           '入驻时锁定，不支持提现',
-          '售后问责等可能占用保证金，形成缺口',
+          '售后赔付可从保证金账户出账，可能形成缺口',
           '存在缺口时，后续入账优先补齐保证金'
         ]
       },
