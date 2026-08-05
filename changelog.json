@@ -1,10 +1,95 @@
 {
-  "latestSha": "610c7141a0acc3be134a02f3174e8c2a7e068844",
-  "total": 231,
+  "latestSha": "6311496ae002911481297d9c551195a4b365aa52",
+  "total": 232,
   "days": [
     {
       "date": "2026-08-06",
       "items": [
+        {
+          "sha": "6311496",
+          "type": "feat",
+          "text": "优化佣金明细时间组合筛与账变类型口径",
+          "author": "sisi",
+          "time": "01:03",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "module": "",
+              "title": "经营中心 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/store-pay-password.html",
+              "module": "",
+              "title": "设置支付密码 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "module": "",
+              "title": "充值 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "module": "",
+              "title": "我的钱包 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw-records.html",
+              "module": "",
+              "title": "提现明细 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw.html",
+              "module": "",
+              "title": "提现 · 门店 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "佣金明细日期字段与时段、区间紧凑联动；自定义时间范围清空区间待手选；账变类型订单佣金改为佣金结算；去掉已撤销；收入无支付退回"
+            },
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "text": "提现流水展示提现银行；去掉已撤销；账变类型佣金结算；收入无支付退回；支付失败整笔失败不入账"
+            }
+          ]
+        },
         {
           "sha": "610c714",
           "type": "feat",

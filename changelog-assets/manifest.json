@@ -1449,6 +1449,71 @@
     "status": "diff",
     "date": "2026-08-06"
   },
+  "6311496|MDM/mdm_archive_carrier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
+  "6311496|MDM/mdm_archive_live_room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
+  "6311496|MDM/mdm_archive_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
+  "6311496|MDM/mdm_archive_supplier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
+  "6311496|MDM/mdm_archive_warehouse.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
+  "6311496|store-app/h5/biz-center.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
+  "6311496|user-app/h5/checkout.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
+  "6311496|user-app/h5/restock.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
+  "6311496|user-app/h5/store-pay-password.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
+  "6311496|user-app/h5/store-recharge.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
+  "6311496|user-app/h5/store-wallet.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
+  "6311496|user-app/h5/store-withdraw-records.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
+  "6311496|user-app/h5/store-withdraw.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
   "67577e4|MDM/mdm_aftersale_refund.html": {
     "before": "changelog-assets/67577e4/MDM__mdm_aftersale_refund.html.before.jpg",
     "after": "changelog-assets/67577e4/MDM__mdm_aftersale_refund.html.after.jpg",
