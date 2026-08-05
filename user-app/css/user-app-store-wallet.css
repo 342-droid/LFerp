@@ -692,6 +692,10 @@
   color: #ff8a1a;
 }
 
+.ua-sw-ledger__status.is-fail {
+  color: #e53935;
+}
+
 .ua-sw-ledger__status.is-lock {
   color: #e6a23c;
 }

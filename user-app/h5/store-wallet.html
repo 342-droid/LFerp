@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>我的钱包 · 门店 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
-  <link rel="stylesheet" href="../css/user-app-store-wallet.css?v=20260804-custom2">
+  <link rel="stylesheet" href="../css/user-app-store-wallet.css?v=20260805-ledger-enum">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-sw-page">
@@ -87,12 +87,12 @@
         </div>
         <div class="ua-sw-tabs" role="tablist">
           <button type="button" class="is-active" data-sw-tab="all">全部</button>
-          <button type="button" data-sw-tab="in" title="含平台佣金等入账">收入</button>
-          <button type="button" data-sw-tab="out" title="含佣金回退等支出">支出</button>
-          <button type="button" data-sw-tab="lock">锁定/补齐</button>
+          <button type="button" data-sw-tab="in" title="含首次充值、订单佣金、充值等">收入</button>
+          <button type="button" data-sw-tab="out" title="含提现、售后赔付、保证金出账等">支出</button>
+          <button type="button" data-sw-tab="lock" title="保证金补缴（锁定/补齐）">锁定/补齐</button>
         </div>
         <div class="ua-sw-biz-filter" id="swBizFilter" hidden>
-          <span id="swBizFilterLabel">业务类型：提现申请</span>
+          <span id="swBizFilterLabel">账变类型：提现</span>
           <button type="button" id="swBizFilterClear">清除</button>
         </div>
         <section class="ua-sw-list-card" id="swLedgerList"></section>
@@ -144,7 +144,7 @@
     </div>
   </div>
   <script src="../../js/store-wallet-demo.js?v=20260805-first-cz"></script>
-  <script src="../../js/store-onboarding-gate.js?v=20260805-toast"></script>
-  <script src="../js/user-app-store-wallet.js?v=20260805-obgate"></script>
+  <script src="../../js/store-onboarding-gate.js?v=20260805-wd-unlock"></script>
+  <script src="../js/user-app-store-wallet.js?v=20260805-ledger-enum"></script>
 </body>
 </html>

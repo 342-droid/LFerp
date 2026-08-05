@@ -3,7 +3,7 @@
  * 口径：保证金账户 D + 余额账户（货款 Q + 可提现 + 待解冻 T+1）
  */
 (function (global) {
-  var STORAGE_KEY = 'lf_store_wallet_demo_v7';
+  var STORAGE_KEY = 'lf_store_wallet_demo_v8';
 
   var DEFAULT = {
     storeName: '悠悠生鲜超市',
@@ -235,7 +235,41 @@
         payMethod: '中国建设银行(0992)',
         bankName: '中国建设银行',
         bankTail: '0992',
-        remark: '可提现部分出款（演示·处理中已完成）'
+        ledgerStatus: '处理中',
+        withdrawStatus: 'pending',
+        remark: '可提现部分出款，待渠道确认'
+      },
+      {
+        id: 'L014',
+        time: '2026-08-03 09:12:00',
+        type: '提现申请',
+        dir: 'out',
+        amount: 150,
+        account: '余额',
+        bizNo: 'WD-20260803-02',
+        channelNo: 'WD-FAIL-02',
+        payMethod: '中国建设银行(0992)',
+        bankName: '中国建设银行',
+        bankTail: '0992',
+        ledgerStatus: '失败',
+        withdrawStatus: 'failed',
+        remark: '提现失败·银行退回，资金未生效'
+      },
+      {
+        id: 'L015',
+        time: '2026-08-03 11:40:18',
+        type: '提现申请',
+        dir: 'out',
+        amount: 80,
+        account: '余额',
+        bizNo: 'WD-20260803-03',
+        channelNo: 'WD-CXL-03',
+        payMethod: '中国建设银行(0992)',
+        bankName: '中国建设银行',
+        bankTail: '0992',
+        ledgerStatus: '已撤销',
+        withdrawStatus: 'cancelled',
+        remark: '提现取消·人工撤销'
       }
     ];
   }

@@ -1729,6 +1729,17 @@ body[data-order-page="retail"] .order-live-table__action:hover {
   font-weight: 500;
 }
 
+.order-detail-clearing__subtitle {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.order-detail-clearing-table {
+  width: 100%;
+}
+
 .order-detail-kv {
   display: grid;
   grid-template-columns: 88px 1fr;

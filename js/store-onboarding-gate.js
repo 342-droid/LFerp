@@ -21,6 +21,56 @@
     return readAll()[RECORD_KEY] || null;
   }
 
+  function writeRecord(rec) {
+    var all = readAll();
+    all[RECORD_KEY] = rec;
+    try {
+      localStorage.setItem(KEY, JSON.stringify(all));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  /**
+   * 演示：写入门店进件「审核成功」，便于进入提现/对公账户流程。
+   * @param {boolean} [force] 为 true 时覆盖已有非成功状态（默认 true）
+   */
+  function ensureDemoApproved(force) {
+    if (force === undefined) force = true;
+    var phase = getPhase();
+    if (phase === 'success') return getRecord();
+    if (!force) return getRecord();
+    var now = Date.now();
+    var prev = getRecord() || {};
+    var rec = Object.assign({}, prev, {
+      key: RECORD_KEY,
+      status: 'approved',
+      title: '商户进件',
+      variant: 'store',
+      merchantShortName: '鲜丰水果文一店',
+      subjectName: '杭州鲜丰水果有限公司',
+      channel: '门店 APP',
+      createdBy: '门店负责人',
+      submittedAt: now - 86400000,
+      updatedAt: now,
+      auditStatus: '审核成功',
+      nextAuditNode: '审核完成',
+      onboardingCompletedAt: now - 80000000,
+      remarks: '演示·进件已通过（可提现）',
+      fields: Object.assign(
+        {
+          legal_cert_front_pic: true,
+          legal_cert_back_pic: true,
+          license_pic: true,
+          open_license_pic: true
+        },
+        prev.fields || {}
+      )
+    });
+    writeRecord(rec);
+    return rec;
+  }
+
   /**
    * none | draft | pending | success | fail
    */
@@ -187,6 +237,7 @@
     TOAST_MS: TOAST_MS,
     getRecord: getRecord,
     getPhase: getPhase,
+    ensureDemoApproved: ensureDemoApproved,
     hasSubmittedIdentity: hasSubmittedIdentity,
     canAddBankCardForRecharge: canAddBankCardForRecharge,
     rechargeAddCardBlockMessage: rechargeAddCardBlockMessage,

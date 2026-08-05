@@ -156,6 +156,9 @@
 
   function bind() {
     var gate = window.StoreOnboardingGate;
+    if (gate && typeof gate.ensureDemoApproved === 'function') {
+      gate.ensureDemoApproved(true);
+    }
     if (gate && !gate.canWithdraw()) {
       var wMsg = gate.withdrawBlockMessage() || '商户进件未完成，暂无法提现';
       gate.blockAndGoOnboarding(wMsg, {

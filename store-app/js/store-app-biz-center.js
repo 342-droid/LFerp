@@ -33,9 +33,14 @@
     monthCnt: 0
   };
 
-  /** status: pending_ship | pending_pickup | pending_receipt | done — 数据见 store-app-biz-orders.js */
+  /**
+   * 经营中心展示门店分佣信息 = 清分门店明细
+   * 结算未配置门店佣金比例的已支付单不生成清分，不进入本列表
+   */
   var ORDERS =
-    (window.StoreAppBizOrders && window.StoreAppBizOrders.list) || [];
+    window.StoreAppBizOrders && typeof window.StoreAppBizOrders.listStoreClearing === 'function'
+      ? window.StoreAppBizOrders.listStoreClearing()
+      : (window.StoreAppBizOrders && window.StoreAppBizOrders.list) || [];
 
   function $(id) {
     return document.getElementById(id);
@@ -178,11 +183,24 @@
     return Array.isArray(o.refundItems) && o.refundItems.length > 0;
   }
 
+  /** 结算状态：待结算 | 结算中 | 已结算 | 结算失败 | 已取消 */
+  function settleStatusClass(status) {
+    var s = String(status || '');
+    if (s === '已结算') return 'is-settled';
+    if (s === '结算中') return 'is-settling';
+    if (s === '待结算') return 'is-settle-wait';
+    if (s === '结算失败') return 'is-settle-fail';
+    if (s === '已取消') return 'is-settle-cancel';
+    return '';
+  }
+
   function renderOrder(o) {
     var shipCls = o.shipMode === '快递' || o.shipMode === '自提' ? ' sa-biz-kv__v--ship' : '';
     var refundTimeRow = hasRefund(o)
       ? kvRow('退款时间', esc(o.refundTime || '-'))
       : '';
+    var settleStatus = o.settleStatus || '待结算';
+    var settleCls = settleStatusClass(settleStatus);
     return (
       '<article class="sa-biz-order" data-order-id="' +
       esc(o.id) +
@@ -228,10 +246,19 @@
       kvRow('实付金额', esc(money(o.paid)) + '元') +
       kvRow('退款金额', esc(money(o.refund)) + '元') +
       kvRow('所得佣金', esc(money(o.commission)) + '元') +
+      kvRow(
+        '结算状态',
+        '<span class="sa-biz-settle ' +
+          settleCls +
+          '">' +
+          esc(settleStatus) +
+          '</span>'
+      ) +
       kvRow('支付时间', esc(o.payTime || '-')) +
       kvRow('配送时间', esc(o.deliveryTime || '-')) +
       refundTimeRow +
       kvRow('完成时间', esc(o.finishTime || '-')) +
+      kvRow('结算时间', esc(o.settleTime || '-')) +
       kvRow('备注', esc(o.remark || '')) +
       '</div></article>'
     );

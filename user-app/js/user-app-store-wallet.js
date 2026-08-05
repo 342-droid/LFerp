@@ -49,21 +49,72 @@
     if (el) el.textContent = text;
   }
 
-  /** 收入含平台佣金；支出含佣金回退 */
-  var INCOME_TYPES = ['平台佣金', '佣金入账', '首次充值', '首次入金', '充值', '支付退回', '保证金划拨入账'];
-  var EXPENSE_TYPES = ['佣金回退', '余额支付', '售后问责', '提现申请', '保证金划拨出账'];
+  /**
+   * 账变类型 / 状态：与 MDM 门店档案·账变记录枚举对齐
+   * 收入：首次充值、保证金入账、订单佣金、充值、提现回退
+   * 支出：提现、售后赔付、保证金出账
+   * 划拨（C 端 Tab「锁定/补齐」）：保证金补缴
+   * 状态：成功、处理中、失败、已撤销
+   */
+  var BIZ_TYPE_MAP = {
+    保证金划拨出账: '保证金出账',
+    保证金划拨入账: '保证金入账',
+    保证金补齐: '保证金补缴',
+    平台佣金: '订单佣金',
+    佣金入账: '订单佣金',
+    提现申请: '提现',
+    售后问责: '售后赔付'
+  };
+  var INCOME_TYPES = [
+    '首次充值',
+    '首次入金',
+    '保证金入账',
+    '保证金划拨入账',
+    '订单佣金',
+    '平台佣金',
+    '佣金入账',
+    '充值',
+    '提现回退',
+    '支付退回'
+  ];
+  var EXPENSE_TYPES = [
+    '提现',
+    '提现申请',
+    '售后赔付',
+    '售后问责',
+    '保证金出账',
+    '保证金划拨出账',
+    '佣金回退',
+    '余额支付'
+  ];
+  var LOCK_TYPES = ['保证金补缴', '保证金补齐'];
+
+  function mapLedgerBizType(rawType) {
+    var t = String(rawType || '');
+    return BIZ_TYPE_MAP[t] || t || '—';
+  }
+
+  function matchBizTypeFilter(item) {
+    if (!bizTypeFilter) return true;
+    var raw = String(item.type || '');
+    var mapped = mapLedgerBizType(raw);
+    return raw === bizTypeFilter || mapped === bizTypeFilter;
+  }
 
   function matchTab(item) {
     var type = String(item.type || '');
-    if (bizTypeFilter && type !== bizTypeFilter) return false;
+    var mapped = mapLedgerBizType(type);
+    if (!matchBizTypeFilter(item)) return false;
     if (tab === 'all') return true;
     if (tab === 'in') {
-      return item.dir === 'in' || INCOME_TYPES.indexOf(type) >= 0;
+      return item.dir === 'in' || INCOME_TYPES.indexOf(type) >= 0 || INCOME_TYPES.indexOf(mapped) >= 0;
     }
     if (tab === 'out') {
-      return item.dir === 'out' || EXPENSE_TYPES.indexOf(type) >= 0;
+      return item.dir === 'out' || EXPENSE_TYPES.indexOf(type) >= 0 || EXPENSE_TYPES.indexOf(mapped) >= 0;
     }
-    if (tab === 'lock') return item.dir === 'lock';
+    if (tab === 'lock') {
+      return item.dir === 'lock' || LOCK_TYPES.indexOf(type) >= 0 || LOCK_TYPES.indexOf(mapped) >= 0;
+    }
     return true;
   }
 
@@ -277,7 +328,7 @@
     if (!bar) return;
     if (bizTypeFilter) {
       bar.hidden = false;
-      if (label) label.textContent = '业务类型：' + bizTypeFilter;
+      if (label) label.textContent = '账变类型：' + mapLedgerBizType(bizTypeFilter);
     } else {
       bar.hidden = true;
     }
@@ -348,39 +399,44 @@
     return '—';
   }
 
+  /** 状态枚举与 MDM 一致：成功 / 处理中 / 失败 / 已撤销 */
   function ledgerStatus(item) {
-    if (item.type === '提现申请') {
+    var raw = item && (item.ledgerStatus || item.status);
+    if (raw === '成功' || raw === '处理中' || raw === '失败' || raw === '已撤销') {
+      return {
+        text: raw,
+        cls: raw === '成功' ? 'is-ok' : raw === '处理中' ? 'is-pending' : raw === '失败' ? 'is-fail' : 'is-lock',
+        action: ''
+      };
+    }
+    var ws = item && item.withdrawStatus;
+    if (ws === 'pending' || ws === 'processing') {
       return { text: '处理中', cls: 'is-pending', action: '' };
     }
-    if (item.dir === 'lock') {
-      return { text: '已锁定', cls: 'is-lock', action: '' };
+    if (ws === 'failed' || ws === 'fail') {
+      return { text: '失败', cls: 'is-fail', action: '' };
     }
-    if (item.type === '余额支付') {
-      return { text: '支付成功', cls: 'is-ok', action: '' };
+    if (ws === 'cancelled' || ws === 'canceled' || ws === 'revoked') {
+      return { text: '已撤销', cls: 'is-lock', action: '' };
     }
-    if (item.type === '保证金划拨出账') {
-      return { text: '划拨成功', cls: '', action: '' };
+    if (ws === 'success' || ws === 'done') {
+      return { text: '成功', cls: 'is-ok', action: '' };
     }
-    if (item.type === '保证金划拨入账') {
-      return { text: '入账成功', cls: 'is-ok', action: '' };
+    var biz = mapLedgerBizType(item && item.type);
+    var remark = String((item && item.remark) || '');
+    if (biz === '提现' || (item && item.type === '提现申请')) {
+      if (/失败/.test(remark)) return { text: '失败', cls: 'is-fail', action: '' };
+      if (/撤销|取消/.test(remark)) return { text: '已撤销', cls: 'is-lock', action: '' };
+      if (/已完成|成功到账/.test(remark)) return { text: '成功', cls: 'is-ok', action: '' };
+      return { text: '处理中', cls: 'is-pending', action: '' };
     }
-    if (item.type === '首次充值') {
-      return { text: '入账成功', cls: 'is-ok', action: '' };
+    if (item && item.type === '余额支付' && item.payStatus === 'pending') {
+      return { text: '处理中', cls: 'is-pending', action: '' };
     }
-    if (item.thawStatus === 'pending') {
-      return { text: '待解冻·T+1', cls: 'is-pending', action: '' };
+    if (/充值失败|提现失败/.test(remark)) {
+      return { text: '失败', cls: 'is-fail', action: '' };
     }
-    if (item.type === '平台佣金' || item.type === '佣金入账') {
-      return { text: item.thawStatus === 'ready' ? '可提现' : '入账成功', cls: 'is-ok', action: '' };
-    }
-    if (item.type === '佣金回退') {
-      return { text: '已回退', cls: '', action: '' };
-    }
-    if (item.dir === 'in') {
-      if (item.thawStatus === 'ready') return { text: '可提现', cls: 'is-ok', action: '' };
-      return { text: '入账成功', cls: 'is-ok', action: '' };
-    }
-    return { text: '已完成', cls: '', action: '' };
+    return { text: '成功', cls: 'is-ok', action: '' };
   }
 
   function formatShortTime(t) {
@@ -436,9 +492,9 @@
           amtPrefix(item.dir) +
           api.money(item.amount) +
           '</span></div>' +
-          '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">业务类型</span>' +
+          '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">账变类型</span>' +
           '<span class="ua-sw-ledger__v">' +
-          escHtml(item.type) +
+          escHtml(mapLedgerBizType(item.type)) +
           '</span></div>' +
           '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">账户</span>' +
           '<span class="ua-sw-ledger__v">' +
@@ -469,6 +525,10 @@
   }
 
   function bind() {
+    /* 演示：确保进件已通过，避免提现被门禁拦住 */
+    if (window.StoreOnboardingGate && typeof window.StoreOnboardingGate.ensureDemoApproved === 'function') {
+      window.StoreOnboardingGate.ensureDemoApproved(true);
+    }
     var params = new URLSearchParams(window.location.search);
     var from = params.get('from') || '';
     var tabParam = params.get('tab') || '';
