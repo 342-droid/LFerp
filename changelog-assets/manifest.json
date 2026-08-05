@@ -1204,6 +1204,28 @@
     "status": "diff",
     "date": "2026-07-29"
   },
+  "4d200d8|user-app/h5/store-bind-card-confirm.html": {
+    "after": "changelog-assets/4d200d8/user-app__h5__store-bind-card-confirm.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-05"
+  },
+  "4d200d8|user-app/h5/store-bind-card-scan.html": {
+    "after": "changelog-assets/4d200d8/user-app__h5__store-bind-card-scan.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-05"
+  },
+  "4d200d8|user-app/h5/store-bind-card.html": {
+    "after": "changelog-assets/4d200d8/user-app__h5__store-bind-card.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-05"
+  },
+  "4d200d8|user-app/h5/store-recharge.html": {
+    "before": "changelog-assets/4d200d8/user-app__h5__store-recharge.html.before.jpg",
+    "after": "changelog-assets/4d200d8/user-app__h5__store-recharge.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-08-05"
+  },
   "51f3022|user-app/h5/cart.html": {
     "after": "changelog-assets/51f3022/user-app__h5__cart.html.after.jpg",
     "status": "added",

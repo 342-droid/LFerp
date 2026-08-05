@@ -1,10 +1,53 @@
 {
-  "latestSha": "f7fad699fe98184173e2ab03f30aa049c2ce5f8c",
-  "total": 227,
+  "latestSha": "4d200d8bd4f52b5269d7490db5af28b854426885",
+  "total": 228,
   "days": [
     {
       "date": "2026-08-05",
       "items": [
+        {
+          "sha": "4d200d8",
+          "type": "feat",
+          "text": "充值支持快捷支付绑卡并预置演示银行卡",
+          "author": "sisi",
+          "time": "12:14",
+          "pages": [
+            {
+              "file": "user-app/h5/store-bind-card-confirm.html",
+              "module": "",
+              "title": "确定卡号 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-bind-card-scan.html",
+              "module": "",
+              "title": "扫描银行卡 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-bind-card.html",
+              "module": "",
+              "title": "绑定银行卡 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "module": "",
+              "title": "充值 · 门店 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "text": "取消对公默认；支付宝微信去掉限额文案；支持已绑卡充值与添加银行卡充值入口"
+            },
+            {
+              "file": "user-app/h5/store-bind-card.html",
+              "text": "新增绑卡、扫卡、确认卡号与开户行选择；持卡人/手机号说明文案用丰银宝"
+            },
+            {
+              "file": "user-app/h5/store-bind-card.html",
+              "text": "预置农业银行演示卡，支付方式列表可直接选用"
+            }
+          ]
+        },
         {
           "sha": "f7fad69",
           "type": "feat",
@@ -144,6 +187,11 @@
               "file": "user-app/h5/restock.html",
               "module": "",
               "title": "进货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/store-bind-card.html",
+              "module": "",
+              "title": "绑定银行卡 · 门店 APP"
             },
             {
               "file": "user-app/h5/store-pay-password.html",
