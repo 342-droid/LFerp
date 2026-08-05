@@ -1741,9 +1741,9 @@
         /* 与经营中心演示汇总对齐；时段金额按订单 dayKey 推算 */
         var DEMO_TODAY = '2026-08-03';
         function parseDay(str) {
-            var p = String(str || '').split('-');
-            if (p.length < 3) return null;
-            return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+            var m = String(str || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (!m) return null;
+            return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
         }
         function dayKeyOf(o) {
             return o.dayKey || o.date || '';
@@ -1837,11 +1837,23 @@
             '备注'
         ];
 
-        var state = { range: '30d', status: 'all', keyword: '', page: 1, pageSize: 20 };
+        /* dateField：按下单/支付/配送/完成/结算日期做时段筛选；custom 用自定义起止日 */
+        var state = {
+            dateField: 'order',
+            range: '30d',
+            dateStart: '',
+            dateEnd: '',
+            status: 'all',
+            keyword: '',
+            page: 1,
+            pageSize: 20
+        };
 
         function ledgerFilterField(labelText, control) {
             var grp = el('div', 'store-ledger-filter__field');
-            grp.appendChild(el('label', 'store-ledger-filter__label', labelText));
+            if (labelText) {
+                grp.appendChild(el('label', 'store-ledger-filter__label', labelText));
+            }
             grp.appendChild(control);
             return grp;
         }
@@ -1873,17 +1885,59 @@
 
         var filterPanel = el('div', 'store-ledger-filter');
         var filterRow = el('div', 'store-ledger-filter__row');
+        /* 组合筛：日期字段 + 时段枚举 + 日期区间（区间随枚举联动） */
+        var dateCombo = el('div', 'store-comm-date-combo');
+        var dateFieldSelect = ledgerSelect(
+            [
+                ['order', '下单日期'],
+                ['pay', '支付日期'],
+                ['delivery', '配送日期'],
+                ['finish', '完成日期'],
+                ['settle', '结算日期']
+            ],
+            '110px'
+        );
+        dateFieldSelect.value = state.dateField;
+        dateFieldSelect.setAttribute('aria-label', '日期字段');
+        dateCombo.appendChild(dateFieldSelect);
+
         var rangeSelect = ledgerSelect(
             [
+                ['all', '全部'],
                 ['today', '今天'],
                 ['yesterday', '昨天'],
                 ['7d', '近7天'],
-                ['30d', '近1个月']
+                ['30d', '近1个月'],
+                ['6m', '6个月'],
+                ['1y', '近一年'],
+                ['custom', '自定义时间范围']
             ],
-            '120px'
+            '130px'
         );
         rangeSelect.value = state.range;
-        filterRow.appendChild(ledgerFilterField('时间范围', rangeSelect));
+        rangeSelect.setAttribute('aria-label', '时段');
+        dateCombo.appendChild(rangeSelect);
+
+        var dateRange = el('div', 'store-ledger-daterange store-comm-date-combo__range');
+        dateRange.innerHTML =
+            '<svg class="store-ledger-daterange__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">' +
+            '<rect x="3" y="5" width="18" height="16" rx="2"/>' +
+            '<path d="M3 10h18M8 3v4M16 3v4"/>' +
+            '</svg>';
+        var dateStart = document.createElement('input');
+        dateStart.type = 'date';
+        dateStart.className = 'store-ledger-daterange__input';
+        dateStart.setAttribute('aria-label', '开始日期');
+        var dateSep = el('span', 'store-ledger-daterange__sep', '—');
+        var dateEnd = document.createElement('input');
+        dateEnd.type = 'date';
+        dateEnd.className = 'store-ledger-daterange__input';
+        dateEnd.setAttribute('aria-label', '结束日期');
+        dateRange.appendChild(dateStart);
+        dateRange.appendChild(dateSep);
+        dateRange.appendChild(dateEnd);
+        dateCombo.appendChild(dateRange);
+        filterRow.appendChild(dateCombo);
 
         var statusSelect = ledgerSelect(
             [
@@ -1930,13 +1984,90 @@
         var pageHost = el('div', 'store-ledger-page-host');
         root.appendChild(pageHost);
 
+        function daysAgo(n) {
+            if (!todayD) return null;
+            return new Date(todayD.getTime() - n * 86400000);
+        }
+        function monthsAgo(n) {
+            if (!todayD) return null;
+            return new Date(todayD.getFullYear(), todayD.getMonth() - n, todayD.getDate());
+        }
+        function orderDateByField(order) {
+            if (state.dateField === 'pay') return parseDay(order.payTime);
+            if (state.dateField === 'delivery') return parseDay(order.deliveryTime);
+            if (state.dateField === 'finish') return parseDay(order.finishTime);
+            if (state.dateField === 'settle') return parseDay(order.settleTime);
+            return parseDay(order.date || order.dayKey);
+        }
+        function dayKeyStr(d) {
+            if (!d) return '';
+            var y = d.getFullYear();
+            var m = String(d.getMonth() + 1);
+            var day = String(d.getDate());
+            if (m.length < 2) m = '0' + m;
+            if (day.length < 2) day = '0' + day;
+            return y + '-' + m + '-' + day;
+        }
+        /** 时段枚举 → 起止日期（演示基准日 DEMO_TODAY） */
+        function boundsForRange(rangeKey) {
+            if (!todayD) return { start: '', end: '' };
+            var end = todayD;
+            var start = todayD;
+            if (rangeKey === 'all') return { start: '', end: '' };
+            if (rangeKey === 'today') {
+                start = todayD;
+                end = todayD;
+            } else if (rangeKey === 'yesterday') {
+                start = yestD || todayD;
+                end = yestD || todayD;
+            } else if (rangeKey === '7d') {
+                start = weekStart || daysAgo(6);
+                end = todayD;
+            } else if (rangeKey === '30d') {
+                start = daysAgo(29);
+                end = todayD;
+            } else if (rangeKey === '6m') {
+                start = monthsAgo(6);
+                end = todayD;
+            } else if (rangeKey === '1y') {
+                start = monthsAgo(12);
+                end = todayD;
+            } else if (rangeKey === 'custom') {
+                /* 自定义：清空区间，由用户手动选择 */
+                return { start: '', end: '' };
+            }
+            return { start: dayKeyStr(start), end: dayKeyStr(end) };
+        }
+        function applyRangePreset() {
+            var b = boundsForRange(rangeSelect.value);
+            if (!b) return;
+            dateStart.value = b.start;
+            dateEnd.value = b.end;
+            state.dateStart = b.start;
+            state.dateEnd = b.end;
+        }
+        rangeSelect.addEventListener('change', function () {
+            applyRangePreset();
+        });
+        function onManualDateEdit() {
+            if (rangeSelect.value !== 'custom') {
+                rangeSelect.value = 'custom';
+                state.range = 'custom';
+            }
+        }
+        dateStart.addEventListener('change', onManualDateEdit);
+        dateEnd.addEventListener('change', onManualDateEdit);
+        applyRangePreset();
+
         function inRange(order) {
-            var d = parseDay(dayKeyOf(order));
-            if (!d || !todayD) return true;
-            if (state.range === 'today') return d.getTime() === todayD.getTime();
-            if (state.range === 'yesterday') return yestD && d.getTime() === yestD.getTime();
-            if (state.range === '7d') return weekStart && d.getTime() >= weekStart.getTime();
-            /* 近1个月：与经营中心演示一致，放宽为全部 */
+            var start = String(state.dateStart || '').trim();
+            var end = String(state.dateEnd || '').trim();
+            if (!start && !end) return true;
+            var d = orderDateByField(order);
+            if (!d) return false;
+            var key = dayKeyStr(d);
+            if (start && key < start) return false;
+            if (end && key > end) return false;
             return true;
         }
         function matchStatus(order) {
@@ -2026,18 +2157,24 @@
         }
 
         searchBtn.addEventListener('click', function () {
+            state.dateField = dateFieldSelect.value || 'order';
             state.range = rangeSelect.value || '30d';
+            state.dateStart = dateStart.value || '';
+            state.dateEnd = dateEnd.value || '';
             state.status = statusSelect.value || 'all';
             state.keyword = kwInput.value || '';
             state.page = 1;
             render();
         });
         resetBtn.addEventListener('click', function () {
+            state.dateField = 'order';
             state.range = '30d';
             state.status = 'all';
             state.keyword = '';
             state.page = 1;
+            dateFieldSelect.value = 'order';
             rangeSelect.value = '30d';
+            applyRangePreset();
             statusSelect.value = 'all';
             kwInput.value = '';
             render();
@@ -2117,9 +2254,11 @@
             保证金划拨出账: '保证金出账',
             保证金划拨入账: '保证金入账',
             保证金补齐: '保证金补缴',
-            平台佣金: '订单佣金',
-            佣金入账: '订单佣金',
+            平台佣金: '佣金结算',
+            佣金入账: '佣金结算',
+            订单佣金: '佣金结算',
             提现申请: '提现',
+            /* 售后赔付：仅余额账户或保证金账户出账 */
             售后问责: '售后赔付'
         };
         return map[t] || t || '—';
@@ -2140,7 +2279,7 @@
         if (
             biz === '保证金出账' ||
             biz === '保证金入账' ||
-            biz === '订单佣金' ||
+            biz === '佣金结算' ||
             biz === '提现回退'
         ) {
             return '系统';
@@ -2149,22 +2288,21 @@
     }
 
     /**
-     * 账变状态：成功 / 处理中 / 失败 / 已撤销
-     * 成功：余额已更新；处理中：结果待确认；失败：未生效；已撤销：原账变取消
+     * 账变状态：成功 / 处理中 / 失败
+     * 提现一经发起不可撤销，无「已撤销」态
      */
     function mapStoreLedgerStatus(item) {
         var raw = item && (item.ledgerStatus || item.status);
-        if (raw === '成功' || raw === '处理中' || raw === '失败' || raw === '已撤销') return raw;
+        if (raw === '已撤销') return '失败';
+        if (raw === '成功' || raw === '处理中' || raw === '失败') return raw;
         var ws = item && item.withdrawStatus;
         if (ws === 'pending' || ws === 'processing') return '处理中';
         if (ws === 'failed' || ws === 'fail') return '失败';
-        if (ws === 'cancelled' || ws === 'canceled' || ws === 'revoked') return '已撤销';
         if (ws === 'success' || ws === 'done') return '成功';
         var biz = mapStoreLedgerBizType(item && item.type);
         var remark = String((item && item.remark) || '');
         if (biz === '提现' || (item && item.type === '提现申请')) {
             if (/失败/.test(remark)) return '失败';
-            if (/撤销|取消/.test(remark)) return '已撤销';
             if (/已完成|成功到账/.test(remark)) return '成功';
             return '处理中';
         }
@@ -2255,9 +2393,11 @@
             '说明'
         ];
 
-        /* 资金方向 → 账变类型枚举（与后台口径一致） */
+        /* 资金方向 → 账变类型枚举（与后台口径一致）
+         * 售后赔付：账户类型仅为余额账户或保证金账户 */
         var LEDGER_BIZ_TYPES_BY_DIR = {
-            收入: ['首次充值', '保证金入账', '订单佣金', '充值', '提现回退'],
+            /* 收入无「支付退回」：支付失败整笔状态为失败，未入账则无回退 */
+            收入: ['首次充值', '保证金入账', '佣金结算', '充值', '提现回退'],
             支出: ['提现', '售后赔付', '保证金出账'],
             划拨: ['保证金补缴']
         };
@@ -2374,8 +2514,7 @@
                 ['', '全部'],
                 ['成功', '成功'],
                 ['处理中', '处理中'],
-                ['失败', '失败'],
-                ['已撤销', '已撤销']
+                ['失败', '失败']
             ],
             '100px'
         );
