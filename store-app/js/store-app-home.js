@@ -59,6 +59,10 @@
           goVerify();
           return;
         }
+        if (action === 'more') {
+          window.location.href = 'more.html';
+          return;
+        }
         var labels = {
           aftersaleQuick: '售后',
           memberCode: '门店会员码',
@@ -68,8 +72,7 @@
           aftersale: '售后',
           onboarding: '商户进件',
           settings: '设置',
-          ai: 'AI',
-          more: '更多'
+          ai: 'AI'
         };
         toast((labels[action] || '功能') + '（演示）');
       });

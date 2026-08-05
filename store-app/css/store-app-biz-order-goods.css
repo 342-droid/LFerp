@@ -1,0 +1,161 @@
+/* 订单商品明细 — 对齐参考图（无小程序胶囊、无阶梯差价回退） */
+
+.sa-og-shell {
+  background: #fff;
+}
+
+.sa-og {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.sa-og-nav {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 46px;
+  padding: 0 12px;
+  background: #fff;
+}
+
+.sa-og-nav__back {
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  text-decoration: none;
+}
+
+.sa-og-nav__back svg {
+  width: 22px;
+  height: 22px;
+}
+
+.sa-og-nav__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #222;
+}
+
+.sa-og-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #fff;
+}
+
+.sa-og-summary {
+  padding: 14px 16px 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.sa-og-summary__comm {
+  font-size: 15px;
+  color: #666;
+  line-height: 1.45;
+}
+
+.sa-og-summary__comm em {
+  font-style: normal;
+  color: #ff6a00;
+  font-weight: 500;
+}
+
+.sa-og-summary__paid {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #999;
+  line-height: 1.4;
+}
+
+/* 购买商品区：无独立标题，顶部分割线来自 summary */
+.sa-og-block {
+  padding: 14px 16px 16px;
+  background: #fff;
+}
+
+.sa-og-block--refund {
+  border-top: 10px solid #f5f5f5;
+}
+
+.sa-og-block__title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+}
+
+.sa-og-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.sa-og-item + .sa-og-item {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #f5f5f5;
+}
+
+.sa-og-item__img {
+  width: 54px;
+  height: 54px;
+  border-radius: 4px;
+  object-fit: cover;
+  background: #f7f7f7;
+  flex-shrink: 0;
+}
+
+.sa-og-item__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.sa-og-item__top {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.sa-og-item__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  color: #222;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.sa-og-item__qty {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: #999;
+  padding-top: 1px;
+}
+
+.sa-og-item__meta {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.sa-og-empty {
+  padding: 48px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: #bbb;
+}

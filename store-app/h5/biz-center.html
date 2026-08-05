@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>经营中心 · 门店APP</title>
   <link rel="stylesheet" href="../css/store-app.css?v=20260803-biz">
-  <link rel="stylesheet" href="../css/store-app-biz-center.css?v=20260803">
+  <link rel="stylesheet" href="../css/store-app-biz-center.css?v=20260804">
 </head>
 <body class="store-app-body">
   <div class="sa-shell sa-biz-shell">
@@ -27,13 +27,10 @@
             <div class="sa-biz-summary__balance">
               <div class="sa-biz-summary__label">
                 可提现账户余额 (元)
-                <button type="button" class="sa-biz-eye" id="bizEyeBtn" aria-label="显示/隐藏余额" aria-pressed="false">
-                  <svg class="sa-biz-eye__on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <button type="button" class="sa-biz-eye" id="bizEyeBtn" aria-label="显示/隐藏余额" aria-pressed="false" title="显示/隐藏余额">
+                  <svg id="bizEyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
                     <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/>
                     <circle cx="12" cy="12" r="2.5"/>
-                  </svg>
-                  <svg class="sa-biz-eye__off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" hidden>
-                    <path d="M3 3l18 18M10.5 10.7A2.5 2.5 0 0012 14.5c.5 0 1-.1 1.4-.4M9.2 5.5C10.1 5.2 11 5 12 5c6.5 0 10 7 10 7a18 18 0 01-4.2 4.6M6.1 6.2A17 17 0 002 12s3.5 7 10 7c1.3 0 2.5-.3 3.6-.7"/>
                   </svg>
                 </button>
               </div>
@@ -119,6 +116,7 @@
   </div>
 
   <script src="../../js/store-wallet-demo.js"></script>
-  <script src="../js/store-app-biz-center.js?v=20260803"></script>
+  <script src="../js/store-app-biz-orders.js?v=20260804-2"></script>
+  <script src="../js/store-app-biz-center.js?v=20260804-2"></script>
 </body>
 </html>

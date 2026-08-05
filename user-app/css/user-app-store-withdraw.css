@@ -1,0 +1,626 @@
+/* 提现页 — 平台橙主色、汇付对公到账、自定义数字键盘 */
+
+.ua-wd-page {
+  background: #f5f5f5;
+}
+
+.ua-wd-scroll {
+  background: #f5f5f5;
+  padding-bottom: 0;
+}
+
+.ua-wd-nav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  padding: 8px 8px 12px;
+  background: #fff;
+}
+
+.ua-wd-nav__back {
+  width: 40px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #111;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.ua-wd-nav__back svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ua-wd-nav__title {
+  flex: 1;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #111;
+  text-align: center;
+}
+
+.ua-wd-nav__link {
+  width: 40px;
+  flex-shrink: 0;
+  text-align: right;
+  padding-right: 8px;
+  font-size: 15px;
+  color: #333;
+  text-decoration: none;
+}
+
+.ua-wd-body {
+  padding: 10px 0 0;
+}
+
+.ua-wd-card {
+  background: #fff;
+  padding: 0 16px 24px;
+}
+
+/* 到账账户（汇付对公，不可切换） */
+.ua-wd-bank {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 0 16px;
+  border: 0;
+  border-bottom: 1px solid #eee;
+  background: #fff;
+  text-align: left;
+}
+
+.ua-wd-bank__label {
+  flex-shrink: 0;
+  font-size: 15px;
+  color: #333;
+  line-height: 36px;
+}
+
+.ua-wd-bank__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 0;
+}
+
+.ua-wd-bank__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #003b8f;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ua-wd-bank__icon.is-corp {
+  background: #003b8f;
+}
+
+.ua-wd-bank__info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.ua-wd-bank__name {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #222;
+  line-height: 1.35;
+}
+
+.ua-wd-bank__tag {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 3px;
+  background: rgba(255, 122, 0, 0.12);
+  color: #ff7a00;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.ua-wd-bank__tip {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.3;
+}
+
+.ua-wd-bank__sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.3;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 提现金额 */
+.ua-wd-amount {
+  padding: 18px 0 8px;
+}
+
+.ua-wd-amount__label {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 14px;
+}
+
+.ua-wd-amount__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e5e5e5;
+  min-height: 48px;
+  cursor: text;
+}
+
+.ua-wd-amount__row.is-focus {
+  border-bottom-color: #ff7a00;
+}
+
+.ua-wd-amount__yen {
+  font-size: 32px;
+  font-weight: 700;
+  color: #111;
+  line-height: 1;
+  padding-bottom: 2px;
+}
+
+.ua-wd-amount__field {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-end;
+  min-height: 40px;
+}
+
+.ua-wd-amount__value {
+  font-size: 36px;
+  font-weight: 500;
+  color: #111;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+  word-break: break-all;
+}
+
+.ua-wd-amount__caret {
+  width: 2px;
+  height: 32px;
+  margin-left: 1px;
+  background: #ff7a00;
+  animation: ua-wd-blink 1s step-end infinite;
+}
+
+.ua-wd-amount__caret[hidden] {
+  display: none !important;
+}
+
+@keyframes ua-wd-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.ua-wd-amount__meta {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.ua-wd-amount__all {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 13px;
+  color: #ff7a00;
+  cursor: pointer;
+}
+
+.ua-wd-amount__pending {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.ua-wd-amount__pending[hidden] {
+  display: none !important;
+}
+
+.ua-wd-amount__err {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #e54d42;
+}
+
+.ua-wd-submit {
+  display: block;
+  width: 100%;
+  margin-top: 36px;
+  height: 46px;
+  border: 0;
+  border-radius: 6px;
+  background: #ff7a00;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.ua-wd-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ua-wd-submit:not(:disabled):active {
+  background: #e86e00;
+}
+
+/* 数字键盘 */
+.ua-wd-keypad {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: #d2d5db;
+  border-top: 1px solid #c8ccd2;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.ua-wd-keypad[hidden] {
+  display: none !important;
+}
+
+.ua-wd-keypad button {
+  height: 54px;
+  border: 0;
+  background: #fff;
+  font-size: 24px;
+  color: #111;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ua-wd-keypad button:active {
+  background: #d1d5db;
+}
+
+.ua-wd-keypad__del {
+  background: #e8eaed !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+}
+
+.ua-wd-keypad__del:active {
+  background: #d1d5db !important;
+}
+
+/* 选卡半屏 */
+.ua-wd-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.ua-wd-sheet[hidden] {
+  display: none !important;
+}
+
+.ua-wd-sheet__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.ua-wd-sheet__panel {
+  position: relative;
+  z-index: 1;
+  background: #fff;
+  border-radius: 14px 14px 0 0;
+  max-height: 70%;
+  display: flex;
+  flex-direction: column;
+}
+
+.ua-wd-sheet__head {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 40px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ua-wd-sheet__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #222;
+}
+
+.ua-wd-sheet__x {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: none;
+  font-size: 22px;
+  color: #999;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.ua-wd-sheet__list {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 0 calc(12px + env(safe-area-inset-bottom, 0px));
+}
+
+.ua-wd-bank-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 0;
+  border-bottom: 1px solid #f5f5f5;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ua-wd-bank-option.is-active {
+  background: #fff7ef;
+}
+
+.ua-wd-bank-option__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ua-wd-bank-option__name {
+  font-size: 15px;
+  color: #222;
+}
+
+.ua-wd-bank-option__tip {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #999;
+}
+
+.ua-wd-bank-option__check {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #ddd;
+  flex-shrink: 0;
+}
+
+.ua-wd-bank-option.is-active .ua-wd-bank-option__check {
+  border-color: #ff7a00;
+  background: #ff7a00;
+  box-shadow: inset 0 0 0 3px #fff;
+}
+
+/* 明细页 */
+.ua-wd-records {
+  padding: 12px;
+}
+
+.ua-wd-record {
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px 14px 12px;
+  margin-bottom: 10px;
+}
+
+.ua-wd-record__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.ua-wd-record__title {
+  font-size: 15px;
+  color: #222;
+  font-weight: 500;
+}
+
+.ua-wd-record__amt {
+  font-size: 16px;
+  font-weight: 600;
+  color: #222;
+  font-variant-numeric: tabular-nums;
+}
+
+.ua-wd-record__meta {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
+.ua-wd-record__status {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #ff7a00;
+}
+
+.ua-wd-record__status.is-done {
+  color: #999;
+}
+
+.ua-wd-record__status.is-fail {
+  color: #e54d42;
+}
+
+.ua-wd-empty {
+  padding: 48px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: #bbb;
+}
+
+/* 支付密码半遮罩弹框 */
+.ua-wd-pay-sheet {
+  z-index: 80;
+}
+
+.ua-wd-pay-sheet__panel {
+  max-height: none;
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+}
+
+.ua-wd-pay-sheet__body {
+  padding: 8px 20px 12px;
+  text-align: center;
+}
+
+.ua-wd-pay-sheet__amount {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111;
+  margin: 4px 0 18px;
+  letter-spacing: 0.5px;
+}
+
+.ua-wd-pay-sheet__pwd {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.ua-wd-pay-sheet__pwd span {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fafafa;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #222;
+  box-sizing: border-box;
+}
+
+.ua-wd-pay-sheet__pwd span.filled::after {
+  content: '●';
+  font-size: 16px;
+  line-height: 1;
+}
+
+.ua-wd-pay-sheet__forgot {
+  display: inline-block;
+  border: 0;
+  background: none;
+  color: #ff6a00;
+  font-size: 13px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.ua-wd-pay-sheet__keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: #d8dbe0;
+  border-top: 1px solid #cfd3d9;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.ua-wd-pay-sheet__keypad button {
+  min-height: 52px;
+  border: 0;
+  background: #fff;
+  font-size: 22px;
+  color: #111;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ua-wd-pay-sheet__keypad button:active {
+  background: #d8dbe0;
+}
+
+.ua-wd-pay-sheet__empty {
+  background: #eceef1 !important;
+  cursor: default;
+}
+
+.ua-wd-pay-sheet__del {
+  background: #eceef1 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+}
+
+.ua-wd-pay-sheet__del:active {
+  background: #d8dbe0 !important;
+}
+
+.ua-wd-pay-toast {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  max-width: 78%;
+  padding: 12px 18px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+}
+
+.ua-wd-pay-toast[hidden] {
+  display: none !important;
+}

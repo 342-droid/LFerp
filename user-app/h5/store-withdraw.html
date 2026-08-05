@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
+  <title>提现 · 门店 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-store-withdraw.css?v=20260804-pay-sheet">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-wd-page">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-wd-scroll">
+      <header class="ua-wd-nav">
+        <a href="store-wallet.html" class="ua-wd-nav__back" id="wdBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="ua-wd-nav__title">提现</h1>
+        <a href="store-wallet.html?tab=out&bizType=%E6%8F%90%E7%8E%B0%E7%94%B3%E8%AF%B7" class="ua-wd-nav__link" id="wdRecordsLink">明细</a>
+      </header>
+
+      <div class="ua-wd-body">
+        <section class="ua-wd-card">
+          <div class="ua-wd-bank" id="wdSettleRow">
+            <span class="ua-wd-bank__label">到账账户</span>
+            <span class="ua-wd-bank__main">
+              <span class="ua-wd-bank__icon is-corp" id="wdBankIcon" aria-hidden="true">建</span>
+              <span class="ua-wd-bank__info">
+                <span class="ua-wd-bank__name" id="wdBankName">中国建设银行(0992)</span>
+              </span>
+            </span>
+          </div>
+
+          <div class="ua-wd-amount">
+            <div class="ua-wd-amount__label">提现金额</div>
+            <div class="ua-wd-amount__row" id="wdAmountFocus">
+              <span class="ua-wd-amount__yen">¥</span>
+              <div class="ua-wd-amount__field">
+                <span class="ua-wd-amount__value" id="wdAmountValue"></span>
+                <span class="ua-wd-amount__caret" id="wdCaret" hidden></span>
+              </div>
+            </div>
+            <div class="ua-wd-amount__meta">
+              <span>可提现金额¥<span id="wdBalance">0.00</span>，</span>
+              <button type="button" class="ua-wd-amount__all" id="wdAllBtn">全部提现</button>
+            </div>
+            <p class="ua-wd-amount__pending" id="wdPendingTip" hidden></p>
+            <p class="ua-wd-amount__err" id="wdErr" hidden></p>
+          </div>
+
+          <button type="button" class="ua-wd-submit" id="wdSubmit" disabled>提现</button>
+        </section>
+      </div>
+    </div>
+
+    <div class="ua-wd-keypad" id="wdKeypad" hidden>
+      <button type="button" data-key="1">1</button>
+      <button type="button" data-key="2">2</button>
+      <button type="button" data-key="3">3</button>
+      <button type="button" data-key="4">4</button>
+      <button type="button" data-key="5">5</button>
+      <button type="button" data-key="6">6</button>
+      <button type="button" data-key="7">7</button>
+      <button type="button" data-key="8">8</button>
+      <button type="button" data-key="9">9</button>
+      <button type="button" data-key=".">.</button>
+      <button type="button" data-key="0">0</button>
+      <button type="button" class="ua-wd-keypad__del" data-key="del" aria-label="删除">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M9 6h11a1 1 0 011 1v10a1 1 0 01-1 1H9l-5-6 5-6z"/>
+          <path d="M12 10l4 4m0-4l-4 4"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- 支付密码半遮罩弹框 -->
+    <div class="ua-wd-sheet ua-wd-pay-sheet" id="wdPaySheet" hidden>
+      <div class="ua-wd-sheet__mask" data-wd-pay-close></div>
+      <div class="ua-wd-sheet__panel ua-wd-pay-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="wdPayTitle">
+        <div class="ua-wd-sheet__head">
+          <h3 class="ua-wd-sheet__title" id="wdPayTitle">请输入支付密码</h3>
+          <button type="button" class="ua-wd-sheet__x" data-wd-pay-close aria-label="关闭">×</button>
+        </div>
+        <div class="ua-wd-pay-sheet__body">
+          <div class="ua-wd-pay-sheet__amount" id="wdPayAmountHint">¥0.00</div>
+          <div class="ua-wd-pay-sheet__pwd" id="wdPayPwd" aria-label="支付密码">
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <button type="button" class="ua-wd-pay-sheet__forgot" id="wdPayForgot">忘记密码？</button>
+        </div>
+        <div class="ua-wd-pay-sheet__keypad" id="wdPayKeypad" aria-label="数字键盘">
+          <button type="button" data-pay-key="1">1</button>
+          <button type="button" data-pay-key="2">2</button>
+          <button type="button" data-pay-key="3">3</button>
+          <button type="button" data-pay-key="4">4</button>
+          <button type="button" data-pay-key="5">5</button>
+          <button type="button" data-pay-key="6">6</button>
+          <button type="button" data-pay-key="7">7</button>
+          <button type="button" data-pay-key="8">8</button>
+          <button type="button" data-pay-key="9">9</button>
+          <button type="button" class="ua-wd-pay-sheet__empty" disabled aria-hidden="true"></button>
+          <button type="button" data-pay-key="0">0</button>
+          <button type="button" class="ua-wd-pay-sheet__del" data-pay-key="del" aria-label="删除">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M9 6h11a1 1 0 011 1v10a1 1 0 01-1 1H9l-5-6 5-6z"/>
+              <path d="M12 10l4 4m0-4l-4 4"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/store-wallet-demo.js"></script>
+  <script src="../../js/store-pay-password.js?v=20260804"></script>
+  <script src="../js/user-app-store-pay-guard.js?v=20260804-inline"></script>
+  <script src="../js/user-app-store-withdraw.js?v=20260804-pay-sheet"></script>
+</body>
+</html>
