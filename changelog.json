@@ -1,7 +1,209 @@
 {
-  "latestSha": "d695157d2f7fe86cb59e933dc63f13f50e44776b",
-  "total": 225,
+  "latestSha": "f7fad699fe98184173e2ab03f30aa049c2ce5f8c",
+  "total": 227,
   "days": [
+    {
+      "date": "2026-08-05",
+      "items": [
+        {
+          "sha": "f7fad69",
+          "type": "feat",
+          "text": "账户明细补充支付方式并调整首次充值划拨口径",
+          "author": "sisi",
+          "time": "09:42",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "module": "",
+              "title": "经营中心 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/store-pay-password.html",
+              "module": "",
+              "title": "设置支付密码 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "module": "",
+              "title": "充值 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "module": "",
+              "title": "我的钱包 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw-records.html",
+              "module": "",
+              "title": "提现明细 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw.html",
+              "module": "",
+              "title": "提现 · 门店 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "text": "账户明细在支付流水上方展示支付方式；对公显示银行名与卡号后四位，或支付宝/微信；保证金补齐与划拨为余额账户"
+            },
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "text": "首次充值记全额入账，并自动生成保证金划拨出账与划拨入账"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "text": "首次充值成功提示划拨保证金与货款，明细跳转按业务类型筛选"
+            }
+          ]
+        },
+        {
+          "sha": "4645ad9",
+          "type": "feat",
+          "text": "完善门店钱包充值提现并新增支付密码与更多页",
+          "author": "sisi",
+          "time": "09:13",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "module": "",
+              "title": "经营中心 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/biz-order-goods.html",
+              "module": "",
+              "title": "订单商品明细 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/more.html",
+              "module": "",
+              "title": "更多 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/password-edit.html",
+              "module": "",
+              "title": "密码管理 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/password.html",
+              "module": "",
+              "title": "密码管理 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/store-pay-password.html",
+              "module": "",
+              "title": "设置支付密码 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "module": "",
+              "title": "充值 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "module": "",
+              "title": "我的钱包 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw-records.html",
+              "module": "",
+              "title": "提现明细 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw.html",
+              "module": "",
+              "title": "提现 · 门店 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "text": "账户明细支持时间筛选含自定义起止日期；货款说明与问号半屏优化"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "text": "新增对公/支付宝/微信充值页，对公需支付密码，文案为单笔最高与单日最高"
+            },
+            {
+              "file": "user-app/h5/store-withdraw.html",
+              "text": "新增提现页与半遮罩支付密码校验，忘记密码走短信重置后回提现页"
+            },
+            {
+              "file": "user-app/h5/store-pay-password.html",
+              "text": "支持首次设置、短信验证与重置，演示验证码提示"
+            },
+            {
+              "file": "store-app/h5/more.html",
+              "text": "新增更多页与密码管理（登录密码/支付密码）"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "text": "购买商品进入订单商品明细；佣金与提现入口调整"
+            },
+            {
+              "file": "store-app/h5/more.html",
+              "text": "工作台: 底栏更多跳转更多页"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-04",
       "items": [
@@ -483,9 +685,29 @@
               "title": "进货 · 用户 APP"
             },
             {
+              "file": "user-app/h5/store-pay-password.html",
+              "module": "",
+              "title": "设置支付密码 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "module": "",
+              "title": "充值 · 门店 APP"
+            },
+            {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
               "title": "我的钱包 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw-records.html",
+              "module": "",
+              "title": "提现明细 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw.html",
+              "module": "",
+              "title": "提现 · 门店 APP"
             }
           ],
           "notes": [
@@ -891,9 +1113,29 @@
               "title": "进货 · 用户 APP"
             },
             {
+              "file": "user-app/h5/store-pay-password.html",
+              "module": "",
+              "title": "设置支付密码 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "module": "",
+              "title": "充值 · 门店 APP"
+            },
+            {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
               "title": "我的钱包 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw-records.html",
+              "module": "",
+              "title": "提现明细 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw.html",
+              "module": "",
+              "title": "提现 · 门店 APP"
             }
           ],
           "notes": [
@@ -3126,9 +3368,29 @@
               "title": "经营中心 · 门店APP"
             },
             {
+              "file": "store-app/h5/biz-order-goods.html",
+              "module": "",
+              "title": "订单商品明细 · 门店APP"
+            },
+            {
               "file": "store-app/h5/home.html",
               "module": "",
               "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/more.html",
+              "module": "",
+              "title": "更多 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/password-edit.html",
+              "module": "",
+              "title": "密码管理 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/password.html",
+              "module": "",
+              "title": "密码管理 · 门店APP"
             },
             {
               "file": "store-app/h5/verify.html",
@@ -4241,9 +4503,29 @@
               "title": "经营中心 · 门店APP"
             },
             {
+              "file": "store-app/h5/biz-order-goods.html",
+              "module": "",
+              "title": "订单商品明细 · 门店APP"
+            },
+            {
               "file": "store-app/h5/home.html",
               "module": "",
               "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/more.html",
+              "module": "",
+              "title": "更多 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/password-edit.html",
+              "module": "",
+              "title": "密码管理 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/password.html",
+              "module": "",
+              "title": "密码管理 · 门店APP"
             },
             {
               "file": "store-app/h5/verify.html",
