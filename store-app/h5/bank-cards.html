@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>银行卡 · 门店APP</title>
+  <link rel="stylesheet" href="../css/store-app.css?v=20260805-bank">
+  <link rel="stylesheet" href="../css/store-app-bank-cards.css?v=20260805-white">
+</head>
+<body class="store-app-body">
+  <div class="sa-shell sa-bcards-shell">
+    <div class="sa-bcards">
+      <header class="sa-bcards-nav">
+        <a href="more.html" class="sa-bcards-nav__back" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="sa-bcards-nav__title">银行卡</h1>
+      </header>
+
+      <div class="sa-bcards-body" id="bcardsBody">
+        <div class="sa-bcards-list" id="bcardsList" hidden></div>
+        <div class="sa-bcards-empty" id="bcardsEmpty" hidden>
+          <p>暂无绑定的银行卡</p>
+          <button type="button" class="sa-bcards-add" id="bcardsAddBtnEmpty">
+            <span class="sa-bcards-add__plus" aria-hidden="true">+</span>
+            <span>添加银行卡</span>
+          </button>
+        </div>
+        <button type="button" class="sa-bcards-fail" id="bcardsFail" hidden>
+          <span>银行卡加载失败</span>
+          <em>点击页面重试</em>
+        </button>
+      </div>
+    </div>
+
+    <!-- 添加 / 解绑：验证支付密码 -->
+    <div class="sa-bcards-pwd" id="bcardsPwdSheet" hidden>
+      <div class="sa-bcards-pwd__mask" data-bcards-pwd-close></div>
+      <div class="sa-bcards-pwd__panel" role="dialog" aria-modal="true" aria-labelledby="bcardsPwdTitle">
+        <button type="button" class="sa-bcards-pwd__x" data-bcards-pwd-close aria-label="关闭">×</button>
+        <h2 class="sa-bcards-pwd__title" id="bcardsPwdTitle">添加银行卡</h2>
+        <p class="sa-bcards-pwd__lead">请输入支付密码，以验证身份</p>
+        <div class="sa-bcards-pwd__slots" id="bcardsPwdSlots" aria-label="支付密码">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="sa-bcards-pwd__keypad" id="bcardsPwdKeypad" aria-label="数字键盘">
+          <button type="button" data-pwd-key="1">1</button>
+          <button type="button" data-pwd-key="2">2</button>
+          <button type="button" data-pwd-key="3">3</button>
+          <button type="button" data-pwd-key="4">4</button>
+          <button type="button" data-pwd-key="5">5</button>
+          <button type="button" data-pwd-key="6">6</button>
+          <button type="button" data-pwd-key="7">7</button>
+          <button type="button" data-pwd-key="8">8</button>
+          <button type="button" data-pwd-key="9">9</button>
+          <button type="button" class="sa-bcards-pwd__empty" disabled aria-hidden="true"></button>
+          <button type="button" data-pwd-key="0">0</button>
+          <button type="button" class="sa-bcards-pwd__del" data-pwd-key="del" aria-label="删除">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M9 6h11a1 1 0 011 1v10a1 1 0 01-1 1H9l-5-6 5-6z"/>
+              <path d="M12 10l4 4m0-4l-4 4"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/store-bind-card-demo.js?v=20260805-bank5"></script>
+  <script src="../../js/store-pay-password.js?v=20260805-sms"></script>
+  <script src="../js/store-app-bank-cards.js?v=20260805-wx"></script>
+</body>
+</html>

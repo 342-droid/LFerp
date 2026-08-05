@@ -63,6 +63,10 @@
           window.location.href = 'more.html';
           return;
         }
+        if (action === 'onboarding') {
+          window.location.href = 'onboarding.html';
+          return;
+        }
         var labels = {
           aftersaleQuick: '售后',
           memberCode: '门店会员码',
@@ -70,7 +74,6 @@
           receive: '收货',
           inventory: '库存查询',
           aftersale: '售后',
-          onboarding: '商户进件',
           settings: '设置',
           ai: 'AI'
         };
@@ -79,5 +82,40 @@
     });
   }
 
+  /** 未进件 / 草稿 / 驳回时显示红点；进件中或成功则隐藏 */
+  function syncOnboardingDot() {
+    var btn = document.querySelector('[data-sa-action="onboarding"]');
+    if (!btn) return;
+    var dot = btn.querySelector('.sa-tool__dot');
+    var show = true;
+    try {
+      var all = JSON.parse(localStorage.getItem('mdm_unified_onboarding_records_v1') || '{}') || {};
+      var rec = all['storeapp::store::MU20260315001'];
+      if (rec) {
+        if (rec.auditStatus === '审核成功' || rec.status === 'approved') show = false;
+        else if (
+          rec.status === 'submitted' &&
+          rec.auditStatus &&
+          rec.auditStatus !== '审核失败'
+        ) {
+          show = false;
+        }
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    if (dot) dot.hidden = !show;
+    else if (show) {
+      var label = btn.querySelector('.sa-tool__label');
+      if (label && !label.querySelector('.sa-tool__dot')) {
+        var span = document.createElement('span');
+        span.className = 'sa-tool__dot';
+        span.setAttribute('aria-hidden', 'true');
+        label.appendChild(span);
+      }
+    }
+  }
+
   bindActions();
+  syncOnboardingDot();
 })();

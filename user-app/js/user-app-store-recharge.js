@@ -48,7 +48,15 @@
   }
 
   function buildMethods() {
-    var cards = cardApi && typeof cardApi.listCards === 'function' ? cardApi.listCards() : [];
+    /* 仅快捷支付卡可充值；汇付默认提现对公户不出现在充值方式 */
+    var cards =
+      cardApi && typeof cardApi.listQuickPayCards === 'function'
+        ? cardApi.listQuickPayCards()
+        : cardApi && typeof cardApi.listCards === 'function'
+          ? cardApi.listCards().filter(function (c) {
+              return c.purpose !== 'withdraw';
+            })
+          : [];
     var cardMethods = cards.map(function (c) {
       return {
         id: 'card:' + c.id,
