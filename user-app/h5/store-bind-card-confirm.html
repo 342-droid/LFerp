@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
+  <title>确定卡号 · 门店 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-store-bind-card.css?v=20260805">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-bc-page">
+    <div class="ua-scroll ua-bc-scroll">
+      <header class="ua-bc-nav">
+        <a href="store-bind-card-scan.html" class="ua-bc-nav__back" id="bccBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="ua-bc-nav__title">确定卡号</h1>
+        <span class="ua-bc-nav__side" aria-hidden="true"></span>
+      </header>
+
+      <p class="ua-bc-confirm-lead">请核对卡号信息，确认无误</p>
+      <div class="ua-bc-confirm-preview" id="bccPreview">622848 1235489632156</div>
+      <div class="ua-bc-confirm-inputs">
+        <input type="tel" id="bccPart1" inputmode="numeric" maxlength="6" value="622848" />
+        <input type="tel" id="bccPart2" inputmode="numeric" maxlength="19" value="1235489632156" />
+      </div>
+      <div class="ua-bc-foot">
+        <button type="button" class="ua-bc-submit" id="bccOk">确定</button>
+      </div>
+    </div>
+
+    <div class="ua-bc-modal" id="bccErrModal" hidden>
+      <div class="ua-bc-modal__mask" data-bcc-close></div>
+      <div class="ua-bc-modal__panel">
+        <h3 class="ua-bc-modal__title">提示</h3>
+        <div class="ua-bc-modal__body"><p id="bccErrText"></p></div>
+        <button type="button" class="ua-bc-modal__ok" data-bcc-close>确定</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/store-bind-card-demo.js?v=20260805"></script>
+  <script src="../js/user-app-store-bind-card-confirm.js?v=20260805"></script>
+</body>
+</html>

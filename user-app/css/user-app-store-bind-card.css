@@ -1,0 +1,481 @@
+/* 快捷支付绑卡 — 白底 + 门店橙 */
+
+.ua-bc-page {
+  background: #f5f5f5;
+}
+
+.ua-bc-scroll {
+  background: #f5f5f5;
+}
+
+.ua-bc-nav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  padding: 8px 8px 12px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ua-bc-nav__back {
+  width: 40px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #111;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.ua-bc-nav__back svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ua-bc-nav__title {
+  flex: 1;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #111;
+  text-align: center;
+}
+
+.ua-bc-nav__side {
+  width: 40px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.ua-bc-nav__side svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ua-bc-holder {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #fff7ef;
+  color: #666;
+  font-size: 13px;
+}
+
+.ua-bc-holder__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #333;
+  font-weight: 500;
+}
+
+.ua-bc-holder__link {
+  border: 0;
+  background: none;
+  color: #ff6a00;
+  font-size: 12px;
+  padding: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ua-bc-holder__info {
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 50%;
+  background: #ffd0a8;
+  color: #ff6a00;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.ua-bc-card {
+  margin: 12px 0 0;
+  background: #fff;
+  padding: 0 16px;
+}
+
+.ua-bc-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ua-bc-field:last-child {
+  border-bottom: 0;
+}
+
+.ua-bc-field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font-size: 15px;
+  color: #222;
+  font-family: inherit;
+  outline: none;
+  padding: 14px 0;
+}
+
+.ua-bc-field input::placeholder {
+  color: #bbb;
+}
+
+.ua-bc-field__cam,
+.ua-bc-field__chev {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: none;
+  color: #999;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.ua-bc-field__cam svg,
+.ua-bc-field__chev svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ua-bc-field__bank {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  font-size: 15px;
+  color: #222;
+  padding: 14px 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.ua-bc-field__bank.is-placeholder {
+  color: #bbb;
+}
+
+.ua-bc-field__sms {
+  flex-shrink: 0;
+  border: 0;
+  background: none;
+  color: #ff6a00;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 0 6px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ua-bc-field__sms:disabled {
+  color: #bbb;
+  cursor: default;
+}
+
+.ua-bc-foot {
+  padding: 28px 16px 20px;
+}
+
+.ua-bc-submit {
+  display: block;
+  width: 100%;
+  height: 46px;
+  border: 0;
+  border-radius: 23px;
+  background: linear-gradient(90deg, #ff8a1a 0%, #ff6a00 55%, #f04d00 100%);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ua-bc-submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 扫卡 */
+.ua-bc-scan-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 24px 24px;
+  background: #fff;
+}
+
+.ua-bc-scan-frame {
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 1.6 / 1;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #f0f2f5, #e6e8ec);
+  border: 2px dashed #c8ccd2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ua-bc-scan-frame__demo {
+  position: absolute;
+  inset: 12px;
+  border-radius: 8px;
+  background: linear-gradient(120deg, #1a5fb4 0%, #3584e4 55%, #62a0ea 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px;
+  font-size: 16px;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.ua-bc-scan-tip {
+  margin: 20px 0 0;
+  font-size: 13px;
+  color: #999;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.ua-bc-scan-actions {
+  margin-top: auto;
+  width: 100%;
+  padding-top: 24px;
+}
+
+/* 确认卡号 */
+.ua-bc-confirm-lead {
+  margin: 0;
+  padding: 16px 16px 8px;
+  font-size: 13px;
+  color: #999;
+}
+
+.ua-bc-confirm-preview {
+  margin: 8px 16px 16px;
+  height: 120px;
+  border-radius: 10px;
+  background: linear-gradient(120deg, #1a5fb4 0%, #3584e4 55%, #62a0ea 100%);
+  color: #fff;
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.ua-bc-confirm-inputs {
+  display: flex;
+  gap: 10px;
+  padding: 0 16px;
+}
+
+.ua-bc-confirm-inputs input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #222;
+  font-family: inherit;
+}
+
+.ua-bc-confirm-inputs input:focus {
+  outline: none;
+  border-color: #ff6a00;
+}
+
+/* 银行列表半屏 */
+.ua-bc-bank-sheet .ua-wd-sheet__panel {
+  max-height: 72%;
+}
+
+.ua-bc-bank-opt {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 0;
+  border-bottom: 1px solid #f5f5f5;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ua-bc-bank-opt:active {
+  background: #fafafa;
+}
+
+.ua-bc-bank-opt__name {
+  font-size: 15px;
+  color: #222;
+  font-weight: 500;
+}
+
+.ua-bc-bank-opt__tip {
+  margin-top: 3px;
+  font-size: 12px;
+  color: #999;
+}
+
+/* 说明 / 错误弹窗 */
+.ua-bc-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.ua-bc-modal[hidden] {
+  display: none !important;
+}
+
+.ua-bc-modal__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.ua-bc-modal__panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 300px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 22px 20px 8px;
+  text-align: center;
+}
+
+.ua-bc-modal__title {
+  margin: 0 0 12px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #111;
+}
+
+.ua-bc-modal__body {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.ua-bc-modal__body p {
+  margin: 0 0 10px;
+}
+
+.ua-bc-modal__illus {
+  width: 100%;
+  height: 100px;
+  margin: 0 0 12px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.ua-bc-modal__ok {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-top: 1px solid #f0f0f0;
+  background: none;
+  color: #ff6a00;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 14px 0;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.ua-bc-toast {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  z-index: 120;
+  max-width: 78%;
+  padding: 12px 18px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+}
+
+.ua-bc-toast[hidden] {
+  display: none !important;
+}
+
+/* 充值方式列表：添加银行卡 */
+.ua-rc-add-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px;
+  border: 0;
+  border-top: 1px solid #f0f0f0;
+  background: #fff;
+  color: #ff6a00;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.ua-rc-add-card:active {
+  background: #fff7ef;
+}
+
+.ua-wd-bank__icon.is-card {
+  background: #ff6a00;
+}
