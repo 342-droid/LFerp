@@ -1599,7 +1599,7 @@
             ['余额可用（可支付）', money(available)],
             ['不可提现货款水位', money(goodsQuota)],
             ['可提现（佣金/充值）', money(withdrawable)],
-            ['处理中金额', money(pending)]
+            ['待解冻（未满T+1）', money(pending)]
         ].forEach(function (pair) {
             grid.appendChild(detailCell(pair[0], pair[1]));
         });

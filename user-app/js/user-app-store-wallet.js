@@ -3,7 +3,20 @@
   if (!api) return;
 
   var tab = 'all';
+  var bizTypeFilter = '';
+  var timeRange = '30d';
+  var customStart = '';
+  var customEnd = '';
   var snap = api.snapshot();
+
+  var TIME_OPTIONS = [
+    { id: 'all', name: '全部时间', desc: '不限起止日期' },
+    { id: '7d', name: '近7天', desc: '最近一周流水' },
+    { id: '30d', name: '近30天', desc: '最近一个月流水' },
+    { id: '90d', name: '近3个月', desc: '最近一季度流水' },
+    { id: '180d', name: '近半年', desc: '最近六个月流水' },
+    { id: 'custom', name: '自定义', desc: '自选起止日期' }
+  ];
 
   function moneyPlain(n) {
     return Number(n).toFixed(2);
@@ -27,6 +40,7 @@
         '应保有 ¥' +
         moneyPlain(snap.depositRequired) +
         (gap > 0 ? ' · 缺口 ¥' + moneyPlain(gap) : '');
+      metaEl.classList.toggle('is-warn', gap > 0);
     }
   }
 
@@ -40,8 +54,9 @@
   var EXPENSE_TYPES = ['佣金回退', '余额支付', '售后问责', '提现申请'];
 
   function matchTab(item) {
-    if (tab === 'all') return true;
     var type = String(item.type || '');
+    if (bizTypeFilter && type !== bizTypeFilter) return false;
+    if (tab === 'all') return true;
     if (tab === 'in') {
       return item.dir === 'in' || INCOME_TYPES.indexOf(type) >= 0;
     }
@@ -50,6 +65,222 @@
     }
     if (tab === 'lock') return item.dir === 'lock';
     return true;
+  }
+
+  function parseItemDay(item) {
+    var s = String((item && item.time) || '');
+    var m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return null;
+    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  }
+
+  function pad2(n) {
+    return n < 10 ? '0' + n : String(n);
+  }
+
+  function formatYmd(d) {
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+
+  function formatMdLabel(ymd) {
+    var m = String(ymd || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return '';
+    return m[2] + '.' + m[3];
+  }
+
+  function parseYmd(ymd) {
+    var m = String(ymd || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return null;
+    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  }
+
+  function todayYmd() {
+    return formatYmd(new Date());
+  }
+
+  function defaultCustomRange() {
+    var end = new Date();
+    var start = new Date();
+    start.setDate(start.getDate() - 29);
+    return { start: formatYmd(start), end: formatYmd(end) };
+  }
+
+  function matchTime(item) {
+    var d = parseItemDay(item);
+    if (!d) return true;
+    if (timeRange === 'all') return true;
+    if (timeRange === 'custom') {
+      var s = parseYmd(customStart);
+      var e = parseYmd(customEnd);
+      if (!s || !e) return true;
+      var endExclusive = e.getTime() + 86400000 - 1;
+      return d.getTime() >= s.getTime() && d.getTime() <= endExclusive;
+    }
+    var daysMap = { '7d': 7, '30d': 30, '90d': 90, '180d': 180 };
+    var days = daysMap[timeRange];
+    if (!days) return true;
+    var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var start = new Date(today.getTime() - (days - 1) * 86400000);
+    return d.getTime() >= start.getTime() && d.getTime() <= today.getTime() + 86400000 - 1;
+  }
+
+  function currentTimeOption() {
+    return (
+      TIME_OPTIONS.find(function (o) {
+        return o.id === timeRange;
+      }) || TIME_OPTIONS[2]
+    );
+  }
+
+  function syncTimeFilterUi() {
+    var opt = currentTimeOption();
+    var label = document.getElementById('swTimeLabel');
+    var btn = document.getElementById('swTimeBtn');
+    var text = opt.name;
+    if (timeRange === 'custom' && customStart && customEnd) {
+      text = formatMdLabel(customStart) + '-' + formatMdLabel(customEnd);
+    }
+    if (label) label.textContent = text;
+    if (btn) btn.classList.toggle('is-active', timeRange !== 'all');
+  }
+
+  function showTimePresetView() {
+    var sheet = document.getElementById('swTimeSheet');
+    var custom = document.getElementById('swTimeCustom');
+    var back = document.getElementById('swTimeBack');
+    var title = document.getElementById('swTimeSheetTitle');
+    if (sheet) sheet.classList.remove('is-custom');
+    if (custom) custom.hidden = true;
+    if (back) back.hidden = true;
+    if (title) title.textContent = '选择时间';
+  }
+
+  function showTimeCustomView() {
+    var sheet = document.getElementById('swTimeSheet');
+    var custom = document.getElementById('swTimeCustom');
+    var back = document.getElementById('swTimeBack');
+    var title = document.getElementById('swTimeSheetTitle');
+    var startInput = document.getElementById('swTimeStart');
+    var endInput = document.getElementById('swTimeEnd');
+    var err = document.getElementById('swTimeCustomErr');
+    var def = defaultCustomRange();
+    if (startInput) {
+      startInput.value = customStart || def.start;
+      startInput.max = todayYmd();
+    }
+    if (endInput) {
+      endInput.value = customEnd || def.end;
+      endInput.max = todayYmd();
+    }
+    if (err) {
+      err.hidden = true;
+      err.textContent = '';
+    }
+    if (sheet) sheet.classList.add('is-custom');
+    if (custom) custom.hidden = false;
+    if (back) back.hidden = false;
+    if (title) title.textContent = '自定义时间';
+  }
+
+  function renderTimeOptions() {
+    var host = document.getElementById('swTimeOptions');
+    if (!host) return;
+    host.innerHTML = TIME_OPTIONS.map(function (o) {
+      var active = o.id === timeRange ? ' is-active' : '';
+      var desc = o.desc;
+      if (o.id === 'custom' && customStart && customEnd && timeRange === 'custom') {
+        desc = formatMdLabel(customStart) + ' 至 ' + formatMdLabel(customEnd);
+      }
+      return (
+        '<button type="button" class="ua-sw-time-opt' +
+        active +
+        '" role="option" aria-selected="' +
+        (o.id === timeRange ? 'true' : 'false') +
+        '" data-time-range="' +
+        o.id +
+        '">' +
+        '<span class="ua-sw-time-opt__text">' +
+        '<span class="ua-sw-time-opt__name">' +
+        o.name +
+        '</span>' +
+        '<span class="ua-sw-time-opt__desc">' +
+        desc +
+        '</span>' +
+        '</span>' +
+        '<span class="ua-sw-time-opt__check" aria-hidden="true"></span>' +
+        '</button>'
+      );
+    }).join('');
+  }
+
+  function openTimeSheet() {
+    var sheet = document.getElementById('swTimeSheet');
+    var btn = document.getElementById('swTimeBtn');
+    showTimePresetView();
+    renderTimeOptions();
+    if (sheet) sheet.hidden = false;
+    if (btn) btn.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeTimeSheet() {
+    var sheet = document.getElementById('swTimeSheet');
+    var btn = document.getElementById('swTimeBtn');
+    showTimePresetView();
+    if (sheet) sheet.hidden = true;
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+
+  function applyCustomRange() {
+    var startInput = document.getElementById('swTimeStart');
+    var endInput = document.getElementById('swTimeEnd');
+    var err = document.getElementById('swTimeCustomErr');
+    var start = startInput ? startInput.value : '';
+    var end = endInput ? endInput.value : '';
+    var s = parseYmd(start);
+    var e = parseYmd(end);
+    if (!s || !e) {
+      if (err) {
+        err.hidden = false;
+        err.textContent = '请选择完整的起止日期';
+      }
+      return false;
+    }
+    if (s.getTime() > e.getTime()) {
+      if (err) {
+        err.hidden = false;
+        err.textContent = '开始日期不能晚于结束日期';
+      }
+      return false;
+    }
+    customStart = start;
+    customEnd = end;
+    timeRange = 'custom';
+    syncTimeFilterUi();
+    closeTimeSheet();
+    renderList();
+    try {
+      var url = new URL(window.location.href);
+      url.searchParams.set('time', 'custom');
+      url.searchParams.set('start', customStart);
+      url.searchParams.set('end', customEnd);
+      window.history.replaceState({}, '', url.pathname + url.search);
+    } catch (e2) {
+      /* ignore */
+    }
+    return true;
+  }
+
+  function syncBizTypeFilterUi() {
+    var bar = document.getElementById('swBizFilter');
+    var label = document.getElementById('swBizFilterLabel');
+    if (!bar) return;
+    if (bizTypeFilter) {
+      bar.hidden = false;
+      if (label) label.textContent = '业务类型：' + bizTypeFilter;
+    } else {
+      bar.hidden = true;
+    }
   }
 
   function amtClass(dir) {
@@ -82,13 +313,17 @@
     if (item.type === '余额支付') {
       return { text: '支付成功', cls: 'is-ok', action: '' };
     }
+    if (item.thawStatus === 'pending') {
+      return { text: '待解冻·T+1', cls: 'is-pending', action: '' };
+    }
     if (item.type === '平台佣金' || item.type === '佣金入账') {
-      return { text: '入账成功', cls: 'is-ok', action: '' };
+      return { text: item.thawStatus === 'ready' ? '可提现' : '入账成功', cls: 'is-ok', action: '' };
     }
     if (item.type === '佣金回退') {
       return { text: '已回退', cls: '', action: '' };
     }
     if (item.dir === 'in') {
+      if (item.thawStatus === 'ready') return { text: '可提现', cls: 'is-ok', action: '' };
       return { text: '入账成功', cls: 'is-ok', action: '' };
     }
     return { text: '已完成', cls: '', action: '' };
@@ -112,9 +347,12 @@
   function renderList() {
     var host = document.getElementById('swLedgerList');
     if (!host) return;
-    var list = (snap.ledgers || []).filter(matchTab);
+    snap = api.snapshot();
+    var list = (snap.ledgers || []).filter(function (item) {
+      return matchTab(item) && matchTime(item);
+    });
     if (!list.length) {
-      host.innerHTML = '<div class="ua-sw-empty">暂无流水</div>';
+      host.innerHTML = '<div class="ua-sw-empty">该时间范围内暂无流水</div>';
       return;
     }
     host.innerHTML = list
@@ -175,6 +413,31 @@
   function bind() {
     var params = new URLSearchParams(window.location.search);
     var from = params.get('from') || '';
+    var tabParam = params.get('tab') || '';
+    var bizParam = params.get('bizType') || params.get('type') || '';
+    if (tabParam === 'in' || tabParam === 'out' || tabParam === 'lock' || tabParam === 'all') {
+      tab = tabParam;
+    }
+    if (bizParam) bizTypeFilter = bizParam;
+    var timeParam = params.get('time') || '';
+    if (TIME_OPTIONS.some(function (o) { return o.id === timeParam; })) {
+      timeRange = timeParam;
+    }
+    if (timeRange === 'custom') {
+      customStart = params.get('start') || '';
+      customEnd = params.get('end') || '';
+      if (!customStart || !customEnd) {
+        var def = defaultCustomRange();
+        customStart = def.start;
+        customEnd = def.end;
+      }
+    }
+    syncBizTypeFilterUi();
+    syncTimeFilterUi();
+    document.querySelectorAll('[data-sw-tab]').forEach(function (b) {
+      b.classList.toggle('is-active', b.getAttribute('data-sw-tab') === tab);
+    });
+
     var back = document.getElementById('swBack');
     if (back) {
       if (from === 'store-app') {
@@ -186,17 +449,69 @@
       }
     }
 
+    var HELP = {
+      deposit: {
+        title: '保证金账户说明',
+        lead: '入驻锁定资金，保障履约与售后责任，不可提现。',
+        points: [
+          '入驻时锁定，不支持提现',
+          '售后问责等可能占用保证金，形成缺口',
+          '存在缺口时，后续入账优先补齐保证金'
+        ]
+      },
+      balance: {
+        title: '余额账户说明',
+        lead: '用于进货支付；提现仅限已满 T+1 的可提款。',
+        points: [
+          '可提款：已满 T+1，可提现至汇付对公账户',
+          '入账未满 T+1 的金额不可提现（可支付进货）',
+          '货款：不可提现，进货时优先扣减'
+        ]
+      },
+      goods: {
+        title: '货款说明',
+        lead: '货款不可提现，用于保障进货周转。',
+        points: [
+          '首次入金等划入的货款额度，不支持提现',
+          '进货支付时优先扣减货款；相关退款可恢复货款水位',
+          '可提现部分请查看上方「可提款」金额'
+        ]
+      }
+    };
+
+    function closeHelpSheet() {
+      var sheet = document.getElementById('swHelpSheet');
+      if (sheet) sheet.hidden = true;
+    }
+
+    function openHelpSheet(kind) {
+      var conf = HELP[kind];
+      var sheet = document.getElementById('swHelpSheet');
+      var titleEl = document.getElementById('swHelpTitle');
+      var bodyEl = document.getElementById('swHelpBody');
+      if (!conf || !sheet || !titleEl || !bodyEl) return;
+      titleEl.textContent = conf.title;
+      bodyEl.innerHTML =
+        '<p class="ua-sw-sheet__lead">' +
+        conf.lead +
+        '</p><ul class="ua-sw-sheet__list">' +
+        conf.points
+          .map(function (p) {
+            return '<li>' + p + '</li>';
+          })
+          .join('') +
+        '</ul>';
+      sheet.hidden = false;
+    }
+
     document.querySelectorAll('[data-sw-help]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var kind = btn.getAttribute('data-sw-help');
-        if (kind === 'deposit') {
-          window.alert('保证金账户：入驻锁定资金，不可提现；售后问责/佣金回退可能占用；有缺口时入账优先补齐。');
-          return;
-        }
-        if (kind === 'balance') {
-          window.alert('余额账户：进货可支付；不可提现货款 + 可提现余额；佣金与后续充值计入可提现。');
-        }
+        openHelpSheet(btn.getAttribute('data-sw-help'));
       });
+    });
+
+    document.querySelectorAll('[data-sw-help-close]').forEach(function (el) {
+      el.addEventListener('click', closeHelpSheet);
     });
 
     document.querySelectorAll('[data-sw-tab]').forEach(function (btn) {
@@ -208,6 +523,96 @@
         renderList();
       });
     });
+
+    var clearBiz = document.getElementById('swBizFilterClear');
+    if (clearBiz) {
+      clearBiz.addEventListener('click', function () {
+        bizTypeFilter = '';
+        syncBizTypeFilterUi();
+        renderList();
+        try {
+          var url = new URL(window.location.href);
+          url.searchParams.delete('bizType');
+          url.searchParams.delete('type');
+          window.history.replaceState({}, '', url.pathname + url.search);
+        } catch (e) {
+          /* ignore */
+        }
+      });
+    }
+
+    var timeBtn = document.getElementById('swTimeBtn');
+    if (timeBtn) {
+      timeBtn.addEventListener('click', openTimeSheet);
+    }
+    document.querySelectorAll('[data-sw-time-close]').forEach(function (el) {
+      el.addEventListener('click', closeTimeSheet);
+    });
+    var timeList = document.getElementById('swTimeOptions');
+    if (timeList) {
+      timeList.addEventListener('click', function (e) {
+        var opt = e.target.closest('[data-time-range]');
+        if (!opt) return;
+        var next = opt.getAttribute('data-time-range') || '30d';
+        if (next === 'custom') {
+          /* 进入自定义配置时先高亮「自定义」，避免列表未及时隐藏时仍显示「近30天」勾选 */
+          timeList.querySelectorAll('[data-time-range]').forEach(function (el) {
+            var on = el.getAttribute('data-time-range') === 'custom';
+            el.classList.toggle('is-active', on);
+            el.setAttribute('aria-selected', on ? 'true' : 'false');
+          });
+          showTimeCustomView();
+          return;
+        }
+        timeRange = next;
+        syncTimeFilterUi();
+        closeTimeSheet();
+        renderList();
+        try {
+          var url = new URL(window.location.href);
+          url.searchParams.delete('start');
+          url.searchParams.delete('end');
+          if (timeRange === '30d') url.searchParams.delete('time');
+          else url.searchParams.set('time', timeRange);
+          window.history.replaceState({}, '', url.pathname + url.search);
+        } catch (err) {
+          /* ignore */
+        }
+      });
+    }
+
+    var timeBack = document.getElementById('swTimeBack');
+    if (timeBack) {
+      timeBack.addEventListener('click', function () {
+        showTimePresetView();
+        renderTimeOptions();
+      });
+    }
+
+    var customOk = document.getElementById('swTimeCustomOk');
+    if (customOk) {
+      customOk.addEventListener('click', applyCustomRange);
+    }
+
+    ['swTimeStart', 'swTimeEnd'].forEach(function (id) {
+      var input = document.getElementById(id);
+      if (!input) return;
+      input.addEventListener('change', function () {
+        var err = document.getElementById('swTimeCustomErr');
+        if (err) {
+          err.hidden = true;
+          err.textContent = '';
+        }
+        var startInput = document.getElementById('swTimeStart');
+        var endInput = document.getElementById('swTimeEnd');
+        if (startInput && endInput && startInput.value) {
+          endInput.min = startInput.value;
+        }
+      });
+    });
+
+    /* 初始化时若带 tab/bizType/time，列表需按条件渲染 */
+    renderList();
 
     document.getElementById('swLedgerList') &&
       document.getElementById('swLedgerList').addEventListener('click', function (e) {
@@ -232,7 +637,10 @@
 
     document.getElementById('swRechargeBtn') &&
       document.getElementById('swRechargeBtn').addEventListener('click', function () {
-        window.alert('充值（演示）：后续入金默认可提现；若有保证金缺口将优先补齐。');
+        var params = new URLSearchParams(window.location.search);
+        var from = params.get('from') || '';
+        var q = from ? '?from=' + encodeURIComponent(from) : '';
+        window.location.href = 'store-recharge.html' + q;
       });
 
     document.getElementById('swWithdrawBtn') &&
@@ -242,11 +650,10 @@
           window.alert('保证金存在缺口 ' + api.money(snap.depositGap) + '，请先补齐后再提现。');
           return;
         }
-        window.alert(
-          '提现（演示·P3）：可提现 ' +
-            api.money(snap.withdrawable) +
-            '。保证金与不可提现货款不可提现。'
-        );
+        var params = new URLSearchParams(window.location.search);
+        var from = params.get('from') || '';
+        var q = from ? '?from=' + encodeURIComponent(from) : '';
+        window.location.href = 'store-withdraw.html' + q;
       });
 
     var resetBtn = document.getElementById('swResetDemo');
