@@ -6,7 +6,8 @@
   <title>充值 · 门店 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-store-withdraw.css?v=20260804-unify">
-  <link rel="stylesheet" href="../css/user-app-store-recharge.css?v=20260804-unify">
+  <link rel="stylesheet" href="../css/user-app-store-recharge.css?v=20260805-card">
+  <link rel="stylesheet" href="../css/user-app-store-bind-card.css?v=20260805">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-wd-page">
@@ -29,10 +30,10 @@
           <button type="button" class="ua-wd-bank ua-rc-method-row" id="rcMethodBtn" aria-label="选择充值方式">
             <span class="ua-wd-bank__label">充值方式</span>
             <span class="ua-wd-bank__main">
-              <span class="ua-wd-bank__icon is-corp" id="rcBankIcon" aria-hidden="true">公</span>
+              <span class="ua-wd-bank__icon is-alipay" id="rcBankIcon" aria-hidden="true">支</span>
               <span class="ua-wd-bank__info">
-                <span class="ua-wd-bank__name" id="rcBankName">中国建设银行(0992)</span>
-                <span class="ua-wd-bank__tip" id="rcBankTip">单笔最高¥5000，单日最高¥50000</span>
+                <span class="ua-wd-bank__name" id="rcBankName">支付宝</span>
+                <span class="ua-wd-bank__tip" id="rcBankTip" hidden></span>
               </span>
               <svg class="ua-wd-bank__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
             </span>
@@ -88,8 +89,9 @@
   </div>
 
   <script src="../../js/store-wallet-demo.js?v=20260805-first-cz"></script>
+  <script src="../../js/store-bind-card-demo.js?v=20260805-seed"></script>
   <script src="../../js/store-pay-password.js?v=20260804"></script>
   <script src="../js/user-app-store-pay-guard.js?v=20260804"></script>
-  <script src="../js/user-app-store-recharge.js?v=20260805-first-cz"></script>
+  <script src="../js/user-app-store-recharge.js?v=20260805-bind"></script>
 </body>
 </html>

@@ -35,3 +35,12 @@
 .ua-wd-bank-option .ua-wd-bank__icon.is-wechat {
   background: #07c160;
 }
+
+.ua-wd-bank-option .ua-wd-bank__icon.is-card,
+.ua-wd-bank__icon.is-card {
+  background: #ff6a00;
+}
+
+.ua-wd-bank__tip[hidden] {
+  display: none !important;
+}

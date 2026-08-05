@@ -1,39 +1,36 @@
 (function () {
   var api = window.StoreWalletDemo;
+  var cardApi = window.StoreBindCardDemo;
   if (!api) return;
 
   var SINGLE_LIMIT = 5000;
   var DAILY_LIMIT = 50000;
 
-  var METHODS = [
-    {
-      id: 'corp',
-      name: '对公账户',
-      short: '公',
-      tone: 'is-corp',
-      channel: '对公账户'
-    },
+  var BASE_METHODS = [
     {
       id: 'alipay',
       name: '支付宝',
       short: '支',
       tone: 'is-alipay',
-      channel: '支付宝'
+      channel: '支付宝',
+      showTip: false
     },
     {
       id: 'wechat',
       name: '微信',
       short: '微',
       tone: 'is-wechat',
-      channel: '微信'
+      channel: '微信',
+      showTip: false
     }
   ];
 
   var state = {
     amount: '',
-    methodId: 'corp',
+    methodId: '',
     keypadOpen: true,
-    dailyRemain: DAILY_LIMIT
+    dailyRemain: DAILY_LIMIT,
+    methods: []
   };
 
   function $(id) {
@@ -50,27 +47,45 @@
     return num.toFixed(2);
   }
 
+  function buildMethods() {
+    var cards = cardApi && typeof cardApi.listCards === 'function' ? cardApi.listCards() : [];
+    var cardMethods = cards.map(function (c) {
+      return {
+        id: 'card:' + c.id,
+        name: c.bankName + '(' + c.cardTail + ')',
+        short: c.bankShort || '卡',
+        tone: 'is-card',
+        channel: c.bankName,
+        showTip: true,
+        tip:
+          '单笔最高¥' +
+          moneyInt(c.single || SINGLE_LIMIT) +
+          '，单日最高¥' +
+          moneyInt(c.daily || DAILY_LIMIT),
+        card: c,
+        single: c.single || SINGLE_LIMIT,
+        daily: c.daily || DAILY_LIMIT
+      };
+    });
+    return cardMethods.concat(BASE_METHODS);
+  }
+
   function currentMethod() {
     return (
-      METHODS.find(function (m) {
+      state.methods.find(function (m) {
         return m.id === state.methodId;
-      }) || METHODS[0]
+      }) ||
+      state.methods[0] ||
+      null
     );
   }
 
-  function methodTitle(m) {
-    if (m.id !== 'corp') return m.name;
-    var snap = api.snapshot();
-    var settle = (snap && snap.settleAccount) || {};
-    var bank = settle.bankName || '';
-    var tail = settle.cardTail || '';
-    if (bank && tail) return bank + '(' + tail + ')';
-    if (bank) return bank;
-    return m.name;
-  }
-
-  function methodTip() {
-    return '单笔最高¥' + moneyInt(SINGLE_LIMIT) + '，单日最高¥' + moneyInt(DAILY_LIMIT);
+  function methodLimit(m) {
+    if (!m) return { single: SINGLE_LIMIT, daily: DAILY_LIMIT };
+    return {
+      single: Number(m.single || SINGLE_LIMIT),
+      daily: Number(m.daily || DAILY_LIMIT)
+    };
   }
 
   function parseAmount(str) {
@@ -87,27 +102,33 @@
     }
   }
 
-  function corpIconShort() {
-    var snap = api.snapshot();
-    var bank = ((snap && snap.settleAccount) || {}).bankName || '';
-    if (bank.indexOf('建设') >= 0) return '建';
-    if (bank.indexOf('工商') >= 0) return '工';
-    if (bank.indexOf('农业') >= 0) return '农';
-    if (bank.indexOf('中国银行') >= 0) return '中';
-    return '公';
-  }
-
   function syncMethodUi() {
     var m = currentMethod();
     var icon = $('rcBankIcon');
     var name = $('rcBankName');
     var tip = $('rcBankTip');
+    if (!m) {
+      if (name) name.textContent = '请选择充值方式';
+      if (tip) {
+        tip.hidden = true;
+        tip.textContent = '';
+      }
+      return;
+    }
     if (icon) {
-      icon.textContent = m.id === 'corp' ? corpIconShort() : m.short;
+      icon.textContent = m.short;
       icon.className = 'ua-wd-bank__icon ' + (m.tone || '');
     }
-    if (name) name.textContent = methodTitle(m);
-    if (tip) tip.textContent = methodTip();
+    if (name) name.textContent = m.name;
+    if (tip) {
+      if (m.showTip && m.tip) {
+        tip.hidden = false;
+        tip.textContent = m.tip;
+      } else {
+        tip.hidden = true;
+        tip.textContent = '';
+      }
+    }
   }
 
   function syncAmountUi() {
@@ -120,22 +141,20 @@
     if (caret) caret.hidden = !state.keypadOpen;
     if (focusRow) focusRow.classList.toggle('is-focus', state.keypadOpen);
 
+    var m = currentMethod();
+    var lim = methodLimit(m);
     var amt = parseAmount(state.amount);
     var msg = '';
-    if (state.amount && amt <= 0) msg = '请输入正确的充值金额';
-    else if (amt > SINGLE_LIMIT + 0.001) msg = '单笔最高可充值¥' + moneyInt(SINGLE_LIMIT);
+    if (!m) msg = '请先选择充值方式或添加银行卡';
+    else if (state.amount && amt <= 0) msg = '请输入正确的充值金额';
+    else if (amt > lim.single + 0.001) msg = '单笔最高可充值¥' + moneyInt(lim.single);
     else if (amt > state.dailyRemain + 0.001) msg = '超过单日剩余额度¥' + moneyInt(state.dailyRemain);
     if (err) {
       err.hidden = !msg;
       err.textContent = msg;
     }
     if (submit) {
-      submit.disabled = !(
-        amt > 0 &&
-        amt <= SINGLE_LIMIT + 0.001 &&
-        amt <= state.dailyRemain + 0.001 &&
-        !msg
-      );
+      submit.disabled = !(m && amt > 0 && amt <= lim.single + 0.001 && amt <= state.dailyRemain + 0.001 && !msg);
     }
   }
 
@@ -176,33 +195,38 @@
     var sheet = $('rcBankSheet');
     var list = $('rcBankList');
     if (!sheet || !list) return;
-    var tip = methodTip();
-    list.innerHTML = METHODS.map(function (m) {
-      var active = m.id === state.methodId ? ' is-active' : '';
-      var short = m.id === 'corp' ? corpIconShort() : m.short;
-      return (
-        '<button type="button" class="ua-wd-bank-option' +
-        active +
-        '" data-method-id="' +
-        m.id +
-        '">' +
-        '<span class="ua-wd-bank__icon ' +
-        (m.tone || '') +
-        '">' +
-        short +
-        '</span>' +
-        '<span class="ua-wd-bank-option__info">' +
-        '<div class="ua-wd-bank-option__name">' +
-        methodTitle(m) +
-        '</div>' +
-        '<div class="ua-wd-bank-option__tip">' +
-        tip +
-        '</div>' +
-        '</span>' +
-        '<span class="ua-wd-bank-option__check" aria-hidden="true"></span>' +
-        '</button>'
-      );
-    }).join('');
+    state.methods = buildMethods();
+    var html = state.methods
+      .map(function (m) {
+        var active = m.id === state.methodId ? ' is-active' : '';
+        var tipHtml = m.showTip && m.tip ? '<div class="ua-wd-bank-option__tip">' + m.tip + '</div>' : '';
+        return (
+          '<button type="button" class="ua-wd-bank-option' +
+          active +
+          '" data-method-id="' +
+          m.id +
+          '">' +
+          '<span class="ua-wd-bank__icon ' +
+          (m.tone || '') +
+          '">' +
+          m.short +
+          '</span>' +
+          '<span class="ua-wd-bank-option__info">' +
+          '<div class="ua-wd-bank-option__name">' +
+          m.name +
+          '</div>' +
+          tipHtml +
+          '</span>' +
+          '<span class="ua-wd-bank-option__check" aria-hidden="true"></span>' +
+          '</button>'
+        );
+      })
+      .join('');
+    html +=
+      '<button type="button" class="ua-rc-add-card" id="rcAddCardBtn">' +
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>' +
+      '添加银行卡充值</button>';
+    list.innerHTML = html;
     sheet.hidden = false;
   }
 
@@ -231,11 +255,13 @@
   }
 
   function doSubmitDirect(amt, method) {
+    var channel = method.channel;
+    if (method.card) channel = method.card.bankName;
     var result = api.applyRecharge(amt, {
-      channel: method.channel,
+      channel: channel,
       methodId: method.id,
-      bankName: method.channel,
-      bankTail: ''
+      bankName: method.card ? method.card.bankName : channel,
+      bankTail: method.card ? method.card.cardTail : ''
     });
     if (!result || result.ok === false) {
       window.alert((result && result.message) || '充值失败，请稍后重试');
@@ -244,7 +270,7 @@
       syncAmountUi();
       return;
     }
-    var msg = '充值成功\n金额：¥' + moneyPlain(amt) + '\n方式：' + methodTitle(method);
+    var msg = '充值成功\n金额：¥' + moneyPlain(amt) + '\n方式：' + method.name;
     if (result.firstRecharge) {
       if (result.filledGap > 0) {
         msg += '\n已自动划拨保证金 ¥' + moneyPlain(result.filledGap);
@@ -269,7 +295,12 @@
     var amt = parseAmount(state.amount);
     var method = currentMethod();
     refreshDailyRemain();
-    if (!(amt > 0) || amt > SINGLE_LIMIT + 0.001 || amt > state.dailyRemain + 0.001) {
+    if (!method) {
+      openMethodSheet();
+      return;
+    }
+    var lim = methodLimit(method);
+    if (!(amt > 0) || amt > lim.single + 0.001 || amt > state.dailyRemain + 0.001) {
       syncAmountUi();
       return;
     }
@@ -277,37 +308,32 @@
       window.alert('充值功能暂不可用');
       return;
     }
-    /* 支付宝 / 微信充值无需支付密码；对公账户充值需要 */
-    if (method.id !== 'corp') {
-      doSubmitDirect(amt, method);
-      return;
-    }
+    /* 快捷支付：支付宝 / 微信 / 已绑银行卡，无需对公默认账户 */
+    doSubmitDirect(amt, method);
+  }
+
+  function pickDefaultMethod() {
     var params = new URLSearchParams(window.location.search);
-    var appFrom = params.get('from') || '';
-    var returnUrl = 'store-recharge.html' + walletQuery();
-    var guard = window.StorePayPasswordGuard;
-    if (!guard) {
-      window.alert('支付密码模块未加载');
-      return;
-    }
-    guard.gatePayPassword(
-      { from: 'recharge', returnUrl: returnUrl, appFrom: appFrom },
-      {
-        action: 'recharge',
-        amount: amt,
-        meta: {
-          channel: method.channel,
-          methodId: method.id,
-          bankName: method.channel,
-          bankTail: ''
-        }
+    var cardId = params.get('cardId') || '';
+    state.methods = buildMethods();
+    if (cardId) {
+      var hit = state.methods.find(function (m) {
+        return m.id === 'card:' + cardId;
+      });
+      if (hit) {
+        state.methodId = hit.id;
+        return;
       }
-    );
+    }
+    if (state.methods.length) {
+      state.methodId = state.methods[0].id;
+    }
   }
 
   function bind() {
     setupBack();
     refreshDailyRemain();
+    pickDefaultMethod();
     syncMethodUi();
     syncAmountUi();
     setKeypad(true);
@@ -345,6 +371,11 @@
     var list = $('rcBankList');
     if (list) {
       list.addEventListener('click', function (e) {
+        var add = e.target.closest('#rcAddCardBtn');
+        if (add) {
+          window.location.href = 'store-bind-card.html' + walletQuery();
+          return;
+        }
         var opt = e.target.closest('[data-method-id]');
         if (!opt) return;
         state.methodId = opt.getAttribute('data-method-id');
