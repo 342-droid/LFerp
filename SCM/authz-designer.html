@@ -1768,7 +1768,7 @@ code {
         </div>
       </div>
       <div class="source-badges" aria-label="数据来源状态">
-        <span class="source-badge source-badge--live">产品表 rev 876</span>
+        <span class="source-badge source-badge--live" id="source-revision-badge">产品表版本加载中</span>
         <span class="source-badge">本地离线文件</span>
         <span class="save-state" id="save-state" data-state="clean">基线已加载</span>
       </div>
@@ -1864,7 +1864,7 @@ code {
       "url": "https://lcnohxg915u5.feishu.cn/wiki/SDTrwOkPRiYNoxkULFFczbavnag?sheet=0TObNS",
       "title": "Octopus-菜单按钮接口与内置角色矩阵0730 / 权限配置矩阵",
       "sheetId": "0TObNS",
-      "revision": 877,
+      "revision": 878,
       "readAt": "2026-08-03",
       "explicitRoleChecks": {
         "中控": 14,
@@ -1891,7 +1891,7 @@ code {
         "门店采购": 50,
         "商品管理权限": 20
       },
-      "note": "飞书显式勾选单元格作为岗位职责证据；标准能力只默认包含所有选用岗位共同需要的原子权限，其余产品勾选转换为岗位正向增加。2026-08-06 补充端访问边界：门店岗位暂不开放管理后台，只在运营应用展开最终权限。同日补录 8 个产品原子权限 Key：门店新增员工、供货价查看延期，其余六项按现有前后端链路标记待整改。"
+      "note": "飞书显式勾选作为岗位职责证据；标准能力只默认包含选用岗位共同需要的原子权限。2026-08-06 将 PLATFORM_ONLY 收窄为平台治理，新建商城、营销组织能力与门店员工管理标准能力，并把系统只读功能分回真实业务父能力；门店岗位不再继承平台总部治理。"
     },
     "modelPath": [
       "平台能力",
@@ -1916,8 +1916,8 @@ code {
       "产品勾选是职责基线，旧菜单配置和代码注解只作技术整改证据。"
     ],
     "counts": {
-      "orgCapabilities": 6,
-      "capabilities": 36,
+      "orgCapabilities": 8,
+      "capabilities": 37,
       "activeCapabilities": 35,
       "functionRelations": 490,
       "distinctFunctions": 490,
@@ -1931,16 +1931,16 @@ code {
   "orgCapabilities": [
     {
       "code": "PLATFORM_ONLY",
-      "name": "平台总部业务",
-      "description": "根组织的平台治理、主数据、伙伴、商城、营销及公共配置能力开关。",
-      "resourceRule": "仍需叠加授权组织、业务主体和高风险操作校验。",
+      "name": "平台总部治理",
+      "description": "根组织的身份权限、组织治理和公共配置开关；不再兜底承载商城、营销、伙伴或门店业务。",
+      "resourceRule": "仅平台治理岗位可用，仍需叠加授权组织、高风险操作校验和审计。",
       "confirmationStatus": "已确认"
     },
     {
       "code": "STORE_MGMT",
-      "name": "门店业务",
-      "description": "门店主体、门店经营、订单及售后等业务开关。",
-      "resourceRule": "叠加门店 ResourceMember、授权组织及单据归属。",
+      "name": "门店与伙伴业务",
+      "description": "门店主体、合作伙伴、消费者、业务审批、门店经营、订单及售后等业务开关。",
+      "resourceRule": "叠加门店 ResourceMember、伙伴关系、授权组织及单据归属。",
       "confirmationStatus": "已确认"
     },
     {
@@ -1970,6 +1970,20 @@ code {
       "description": "清分、账单、佣金、费用及自助资金入口业务开关。",
       "resourceRule": "叠加结算主体、账户归属、额度、令牌存活和审计。",
       "confirmationStatus": "已确认"
+    },
+    {
+      "code": "MALL_MGMT",
+      "name": "商城业务",
+      "description": "商城货架、商品主数据、内容和审核治理等业务开关。",
+      "resourceRule": "叠加商城主体、商品归属、渠道范围和高风险操作校验。",
+      "confirmationStatus": "已确认"
+    },
+    {
+      "code": "MARKETING_MGMT",
+      "name": "营销业务",
+      "description": "营销活动、会员资产、分销和营销查询等业务开关。",
+      "resourceRule": "叠加活动、会员、分销关系、授权组织和数据范围。",
+      "confirmationStatus": "已确认"
     }
   ],
   "capabilities": [
@@ -1992,7 +2006,7 @@ code {
         "menus": 4,
         "buttons": 5,
         "operationsAppPages": 3,
-        "interfaceRows": 8,
+        "interfaceRows": 17,
         "atomCandidates": 8,
         "pendingProduct": 2
       }
@@ -2016,7 +2030,7 @@ code {
         "menus": 3,
         "buttons": 1,
         "operationsAppPages": 1,
-        "interfaceRows": 2,
+        "interfaceRows": 8,
         "atomCandidates": 2,
         "pendingProduct": 1
       }
@@ -2040,7 +2054,7 @@ code {
         "menus": 7,
         "buttons": 0,
         "operationsAppPages": 14,
-        "interfaceRows": 13,
+        "interfaceRows": 56,
         "atomCandidates": 13,
         "pendingProduct": 13
       }
@@ -2050,7 +2064,7 @@ code {
       "name": "商城上架管理",
       "domain": "电商",
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "boundary": "商城货架、商城类目、标签、商品上下架及规格价格维护",
       "confirmationStatus": "已确认",
@@ -2107,7 +2121,7 @@ code {
       "name": "内容运营",
       "domain": "电商",
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "boundary": "素材、推荐内容、直播话术、快捷回复和评价内容治理",
       "confirmationStatus": "已确认",
@@ -2145,11 +2159,11 @@ code {
       ],
       "defaultPendingAtomicPermissionIds": [],
       "counts": {
-        "functions": 2,
+        "functions": 4,
         "menus": 0,
         "buttons": 0,
-        "operationsAppPages": 2,
-        "interfaceRows": 1,
+        "operationsAppPages": 4,
+        "interfaceRows": 3,
         "atomCandidates": 1,
         "pendingProduct": 0
       }
@@ -2159,7 +2173,7 @@ code {
       "name": "审核治理",
       "domain": "电商",
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "boundary": "审核规则、审核词库、评价治理和审核策略",
       "confirmationStatus": "已确认",
@@ -2223,7 +2237,7 @@ code {
         "menus": 0,
         "buttons": 9,
         "operationsAppPages": 11,
-        "interfaceRows": 15,
+        "interfaceRows": 16,
         "atomCandidates": 9,
         "pendingProduct": 0
       }
@@ -2233,7 +2247,7 @@ code {
       "name": "营销运营",
       "domain": "营销",
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "boundary": "活动、签到、任务、福袋及常规营销配置",
       "confirmationStatus": "已确认",
@@ -2257,7 +2271,7 @@ code {
       "name": "会员资产管理",
       "domain": "营销",
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "boundary": "会员等级、积分、优惠券和会员资产调整",
       "confirmationStatus": "已确认",
@@ -2283,7 +2297,7 @@ code {
       "name": "分销管理",
       "domain": "营销",
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "boundary": "分销关系、团队、归因、代理注册和分享",
       "confirmationStatus": "已确认",
@@ -2293,11 +2307,11 @@ code {
       "defaultAtomicPermissionCodes": [],
       "defaultPendingAtomicPermissionIds": [],
       "counts": {
-        "functions": 6,
+        "functions": 5,
         "menus": 4,
         "buttons": 0,
-        "operationsAppPages": 2,
-        "interfaceRows": 1,
+        "operationsAppPages": 1,
+        "interfaceRows": 2,
         "atomCandidates": 1,
         "pendingProduct": 1
       }
@@ -2307,7 +2321,7 @@ code {
       "name": "营销只读",
       "domain": "营销",
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "boundary": "营销、会员、分销及个人业绩统计只读",
       "confirmationStatus": "已确认",
@@ -2321,7 +2335,7 @@ code {
         "menus": 0,
         "buttons": 0,
         "operationsAppPages": 1,
-        "interfaceRows": 1,
+        "interfaceRows": 4,
         "atomCandidates": 0,
         "pendingProduct": 0
       }
@@ -2360,7 +2374,7 @@ code {
         "menus": 2,
         "buttons": 9,
         "operationsAppPages": 7,
-        "interfaceRows": 4,
+        "interfaceRows": 16,
         "atomCandidates": 13,
         "pendingProduct": 4
       }
@@ -2384,7 +2398,7 @@ code {
         "menus": 8,
         "buttons": 13,
         "operationsAppPages": 18,
-        "interfaceRows": 19,
+        "interfaceRows": 28,
         "atomCandidates": 20,
         "pendingProduct": 7
       }
@@ -2436,7 +2450,7 @@ code {
         "menus": 4,
         "buttons": 8,
         "operationsAppPages": 2,
-        "interfaceRows": 9,
+        "interfaceRows": 11,
         "atomCandidates": 9,
         "pendingProduct": 1
       }
@@ -2456,12 +2470,12 @@ code {
       "defaultAtomicPermissionCodes": [],
       "defaultPendingAtomicPermissionIds": [],
       "counts": {
-        "functions": 87,
+        "functions": 90,
         "menus": 28,
-        "buttons": 59,
+        "buttons": 62,
         "operationsAppPages": 0,
-        "interfaceRows": 42,
-        "atomCandidates": 59,
+        "interfaceRows": 45,
+        "atomCandidates": 62,
         "pendingProduct": 0
       }
     },
@@ -2511,7 +2525,7 @@ code {
         "menus": 0,
         "buttons": 31,
         "operationsAppPages": 9,
-        "interfaceRows": 23,
+        "interfaceRows": 25,
         "atomCandidates": 31,
         "pendingProduct": 0
       }
@@ -2651,17 +2665,42 @@ code {
       "mappingStatus": "已建立功能映射",
       "implementationStatus": "已存在",
       "defaultAtomicPermissionCodes": [
-        "user:create",
         "user:create"
       ],
       "defaultPendingAtomicPermissionIds": [],
       "counts": {
-        "functions": 22,
+        "functions": 24,
         "menus": 3,
-        "buttons": 19,
+        "buttons": 21,
         "operationsAppPages": 0,
         "interfaceRows": 18,
-        "atomCandidates": 19,
+        "atomCandidates": 21,
+        "pendingProduct": 0
+      }
+    },
+    {
+      "code": "system.store.employee.manage",
+      "name": "门店员工管理",
+      "domain": "系统",
+      "orgCapabilityCodes": [
+        "STORE_MGMT"
+      ],
+      "boundary": "门店员工新增与门店内员工管理；不包含平台用户、角色和权限治理",
+      "confirmationStatus": "已确认",
+      "active": true,
+      "mappingStatus": "已建立功能映射",
+      "implementationStatus": "待补充",
+      "defaultAtomicPermissionCodes": [
+        "storeEmployee:create"
+      ],
+      "defaultPendingAtomicPermissionIds": [],
+      "counts": {
+        "functions": 1,
+        "menus": 0,
+        "buttons": 1,
+        "operationsAppPages": 1,
+        "interfaceRows": 0,
+        "atomCandidates": 1,
         "pendingProduct": 0
       }
     },
@@ -2694,7 +2733,7 @@ code {
       "name": "主数据管理",
       "domain": "系统",
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "boundary": "基础商品、品牌、后台类目、规格、字典和行政区划",
       "confirmationStatus": "已确认",
@@ -2708,12 +2747,12 @@ code {
       ],
       "defaultPendingAtomicPermissionIds": [],
       "counts": {
-        "functions": 11,
+        "functions": 12,
         "menus": 2,
-        "buttons": 9,
+        "buttons": 10,
         "operationsAppPages": 0,
         "interfaceRows": 6,
-        "atomCandidates": 9,
+        "atomCandidates": 10,
         "pendingProduct": 0
       }
     },
@@ -2722,7 +2761,7 @@ code {
       "name": "合作伙伴管理",
       "domain": "系统",
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "boundary": "BD、通用商家主体、合作协议和合作关系",
       "confirmationStatus": "已确认",
@@ -2732,12 +2771,12 @@ code {
       "defaultAtomicPermissionCodes": [],
       "defaultPendingAtomicPermissionIds": [],
       "counts": {
-        "functions": 30,
+        "functions": 37,
         "menus": 9,
-        "buttons": 16,
+        "buttons": 23,
         "operationsAppPages": 5,
-        "interfaceRows": 8,
-        "atomCandidates": 17,
+        "interfaceRows": 26,
+        "atomCandidates": 24,
         "pendingProduct": 1
       }
     },
@@ -2782,10 +2821,10 @@ code {
       "counts": {
         "functions": 12,
         "menus": 1,
-        "buttons": 5,
-        "operationsAppPages": 6,
-        "interfaceRows": 6,
-        "atomCandidates": 9,
+        "buttons": 6,
+        "operationsAppPages": 5,
+        "interfaceRows": 23,
+        "atomCandidates": 10,
         "pendingProduct": 0
       }
     },
@@ -2794,7 +2833,7 @@ code {
       "name": "消费者档案管理",
       "domain": "系统",
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "boundary": "消费者档案、实名信息、黑名单和客服资料",
       "confirmationStatus": "已确认",
@@ -2804,12 +2843,12 @@ code {
       "defaultAtomicPermissionCodes": [],
       "defaultPendingAtomicPermissionIds": [],
       "counts": {
-        "functions": 2,
+        "functions": 4,
         "menus": 1,
-        "buttons": 1,
+        "buttons": 3,
         "operationsAppPages": 0,
-        "interfaceRows": 0,
-        "atomCandidates": 1,
+        "interfaceRows": 1,
+        "atomCandidates": 3,
         "pendingProduct": 0
       }
     },
@@ -2818,7 +2857,7 @@ code {
       "name": "审批管理",
       "domain": "系统",
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "boundary": "审批模板、流程定义、审批待办和业务审批推进",
       "confirmationStatus": "已确认",
@@ -2832,7 +2871,7 @@ code {
         "menus": 5,
         "buttons": 0,
         "operationsAppPages": 1,
-        "interfaceRows": 1,
+        "interfaceRows": 2,
         "atomCandidates": 1,
         "pendingProduct": 0
       }
@@ -2852,12 +2891,12 @@ code {
       "defaultAtomicPermissionCodes": [],
       "defaultPendingAtomicPermissionIds": [],
       "counts": {
-        "functions": 21,
-        "menus": 8,
-        "buttons": 13,
+        "functions": 28,
+        "menus": 9,
+        "buttons": 19,
         "operationsAppPages": 0,
         "interfaceRows": 0,
-        "atomCandidates": 13,
+        "atomCandidates": 19,
         "pendingProduct": 0
       }
     },
@@ -2868,20 +2907,20 @@ code {
       "orgCapabilityCodes": [
         "PLATFORM_ONLY"
       ],
-      "boundary": "身份、组织、主数据、伙伴、消费者、审批和配置只读",
+      "boundary": "兼容保留项；只读功能已分回真实业务父能力，不再授予岗位",
       "confirmationStatus": "已确认",
-      "active": true,
-      "mappingStatus": "已建立功能映射",
-      "implementationStatus": "已存在",
+      "active": false,
+      "mappingStatus": "待退出",
+      "implementationStatus": "待整改",
       "defaultAtomicPermissionCodes": [],
       "defaultPendingAtomicPermissionIds": [],
       "counts": {
-        "functions": 24,
-        "menus": 1,
-        "buttons": 23,
+        "functions": 0,
+        "menus": 0,
+        "buttons": 0,
         "operationsAppPages": 0,
-        "interfaceRows": 6,
-        "atomCandidates": 23,
+        "interfaceRows": 0,
+        "atomCandidates": 0,
         "pendingProduct": 0
       }
     }
@@ -2917,7 +2956,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 system.partner.manage；只读入口同时允许 system.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -3082,7 +3121,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 system.consumer.manage；只读入口同时允许 system.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -3137,7 +3176,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 system.partner.manage；只读入口同时允许 system.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -3192,7 +3231,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 system.partner.manage；只读入口同时允许 system.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -3412,7 +3451,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 system.partner.manage；只读入口同时允许 system.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -5887,7 +5926,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 commerce.content.manage；只读入口同时允许 commerce.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -5942,7 +5981,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 commerce.content.manage；只读入口同时允许 commerce.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -5997,7 +6036,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 commerce.content.manage；只读入口同时允许 commerce.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -6052,7 +6091,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -6107,7 +6146,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 commerce.marketing.distribution.manage；只读入口同时允许 commerce.marketing.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -6162,7 +6201,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 commerce.marketing.distribution.manage；只读入口同时允许 commerce.marketing.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -6217,7 +6256,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 commerce.marketing.distribution.manage；只读入口同时允许 commerce.marketing.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -6272,7 +6311,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 commerce.marketing.distribution.manage；只读入口同时允许 commerce.marketing.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -6712,7 +6751,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 system.mdm.manage；只读入口同时允许 system.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -6767,7 +6806,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "商城商品或商城类目运营归商城上架能力；与代采、直播中控分别授权。",
@@ -6822,7 +6861,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "商城商品或商城类目运营归商城上架能力；与代采、直播中控分别授权。",
@@ -6877,7 +6916,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -6932,7 +6971,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -6987,7 +7026,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -7097,7 +7136,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 commerce.marketing.membership.manage；只读入口同时允许 commerce.marketing.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -7152,7 +7191,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 commerce.marketing.membership.manage；只读入口同时允许 commerce.marketing.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -7207,7 +7246,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 system.partner.manage；只读入口同时允许 system.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -7262,7 +7301,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 system.partner.manage；只读入口同时允许 system.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -7317,7 +7356,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 system.partner.manage；只读入口同时允许 system.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -7372,7 +7411,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 system.partner.manage；只读入口同时允许 system.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -7537,7 +7576,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -7592,7 +7631,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -7618,10 +7657,10 @@ code {
       }
     },
     {
-      "relationId": "F-0087:system.view",
+      "relationId": "F-0087:system.config",
       "functionId": "F-0087",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.config",
+      "capabilityName": "平台配置",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -7702,7 +7741,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 system.mdm.manage；只读入口同时允许 system.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -7757,7 +7796,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 system.approval.manage；只读入口同时允许 system.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -7977,7 +8016,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 commerce.content.manage；只读入口同时允许 commerce.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -8087,7 +8126,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -8142,7 +8181,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -8197,7 +8236,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -8967,7 +9006,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -9022,7 +9061,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -9517,7 +9556,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 commerce.marketing.membership.manage；只读入口同时允许 commerce.marketing.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -9572,7 +9611,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 commerce.marketing.membership.manage；只读入口同时允许 commerce.marketing.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -9627,7 +9666,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 commerce.marketing.operate；只读入口同时允许 commerce.marketing.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -9682,7 +9721,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 commerce.marketing.operate；只读入口同时允许 commerce.marketing.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -9737,7 +9776,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 commerce.marketing.operate；只读入口同时允许 commerce.marketing.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -9792,7 +9831,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 commerce.marketing.operate；只读入口同时允许 commerce.marketing.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -9847,7 +9886,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除历史映射；按稳定菜单业务键绑定 commerce.marketing.operate；只读入口同时允许 commerce.marketing.view；管理后台路由只读取标准能力列表，按钮标识不再写入菜单能力表。",
@@ -10177,7 +10216,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -10564,7 +10603,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -10590,10 +10629,10 @@ code {
       }
     },
     {
-      "relationId": "F-0141:system.view",
+      "relationId": "F-0141:system.partner.manage",
       "functionId": "F-0141",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.partner.manage",
+      "capabilityName": "合作伙伴管理",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -10621,7 +10660,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 member:list 作为前端按钮或入口证据；默认不直接升格为原子动作。若读取敏感数据且需要独立授权，归并到共享的业务只读原子动作。建议能力：system.view。",
@@ -10678,7 +10717,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 member:status 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.partner.manage。",
@@ -10735,7 +10774,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 member:create 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.partner.manage。",
@@ -10792,7 +10831,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 member:settlement 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.partner.manage。",
@@ -10849,7 +10888,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 member:update 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.partner.manage。",
@@ -11502,10 +11541,10 @@ code {
       }
     },
     {
-      "relationId": "F-0157:system.view",
+      "relationId": "F-0157:system.store.manage",
       "functionId": "F-0157",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.store.manage",
+      "capabilityName": "门店主体管理",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -11533,7 +11572,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 store:list 作为前端按钮或入口证据；默认不直接升格为原子动作。若读取敏感数据且需要独立授权，归并到共享的业务只读原子动作。建议能力：system.view。",
@@ -16492,7 +16531,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -17233,7 +17272,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -17290,7 +17329,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -17347,7 +17386,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -17518,7 +17557,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -17575,7 +17614,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 brand:edit 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.mdm.manage。",
@@ -17632,7 +17671,7 @@ code {
         "securityLevel": "高"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 brand:delete 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.mdm.manage。",
@@ -17689,7 +17728,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 brand:create 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.mdm.manage。",
@@ -17715,10 +17754,10 @@ code {
       }
     },
     {
-      "relationId": "F-0266:system.view",
+      "relationId": "F-0266:system.mdm.manage",
       "functionId": "F-0266",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.mdm.manage",
+      "capabilityName": "主数据管理",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -17746,7 +17785,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 brand:list 作为前端按钮或入口证据；默认不直接升格为原子动作。若读取敏感数据且需要独立授权，归并到共享的业务只读原子动作。建议能力：system.view。",
@@ -17803,7 +17842,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "商城商品或商城类目运营归商城上架能力；与代采、直播中控分别授权。",
@@ -17860,7 +17899,7 @@ code {
         "securityLevel": "高"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "商城商品或商城类目运营归商城上架能力；与代采、直播中控分别授权。",
@@ -17917,7 +17956,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "商城商品或商城类目运营归商城上架能力；与代采、直播中控分别授权。",
@@ -18031,7 +18070,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "商城商品或商城类目运营归商城上架能力；与代采、直播中控分别授权。",
@@ -18088,7 +18127,7 @@ code {
         "securityLevel": "高"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "商城商品或商城类目运营归商城上架能力；与代采、直播中控分别授权。",
@@ -18145,7 +18184,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "商品审核内容动作归内容运营；commerce.review.manage 当前只保留审核治理边界，不分配活动菜单。",
@@ -18202,7 +18241,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "商城商品或商城类目运营归商城上架能力；与代采、直播中控分别授权。",
@@ -18430,7 +18469,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -18456,10 +18495,10 @@ code {
       }
     },
     {
-      "relationId": "F-0279:system.view",
+      "relationId": "F-0279:system.partner.manage",
       "functionId": "F-0279",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.partner.manage",
+      "capabilityName": "合作伙伴管理",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -18487,7 +18526,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -18544,7 +18583,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 agreementTemplate:update 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.partner.manage。",
@@ -18601,7 +18640,7 @@ code {
         "securityLevel": "高"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 agreementTemplate:delete 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.partner.manage。",
@@ -18658,7 +18697,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 agreementTemplate:create 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.partner.manage。",
@@ -18684,10 +18723,10 @@ code {
       }
     },
     {
-      "relationId": "F-0283:system.view",
+      "relationId": "F-0283:system.partner.manage",
       "functionId": "F-0283",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.partner.manage",
+      "capabilityName": "合作伙伴管理",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -18715,7 +18754,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 agreementTemplate:list 作为前端按钮或入口证据；默认不直接升格为原子动作。若读取敏感数据且需要独立授权，归并到共享的业务只读原子动作。建议能力：system.view。",
@@ -18772,7 +18811,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 cooperationAgreement:update 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.partner.manage。",
@@ -18829,7 +18868,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 cooperationAgreement:delete 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.partner.manage。",
@@ -18886,7 +18925,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 cooperationAgreement:create 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.partner.manage。",
@@ -18912,10 +18951,10 @@ code {
       }
     },
     {
-      "relationId": "F-0287:system.view",
+      "relationId": "F-0287:system.partner.manage",
       "functionId": "F-0287",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.partner.manage",
+      "capabilityName": "合作伙伴管理",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -18943,7 +18982,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 cooperationAgreement:list 作为前端按钮或入口证据；默认不直接升格为原子动作。若读取敏感数据且需要独立授权，归并到共享的业务只读原子动作。建议能力：system.view。",
@@ -19000,7 +19039,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 cooperationAgreement:review 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.partner.manage。",
@@ -19057,7 +19096,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 cooperationAgreement:submit 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.partner.manage。",
@@ -19114,7 +19153,7 @@ code {
         "securityLevel": "高"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 cooperationAgreement:terminate 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.partner.manage。",
@@ -19140,10 +19179,10 @@ code {
       }
     },
     {
-      "relationId": "F-0291:system.view",
+      "relationId": "F-0291:system.partner.manage",
       "functionId": "F-0291",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.partner.manage",
+      "capabilityName": "合作伙伴管理",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -19171,7 +19210,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 paymentMerchant:list 作为前端按钮或入口证据；默认不直接升格为原子动作。若读取敏感数据且需要独立授权，归并到共享的业务只读原子动作。建议能力：system.view。",
@@ -19197,10 +19236,10 @@ code {
       }
     },
     {
-      "relationId": "F-0292:system.view",
+      "relationId": "F-0292:system.partner.manage",
       "functionId": "F-0292",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.partner.manage",
+      "capabilityName": "合作伙伴管理",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -19228,7 +19267,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 paymentMerchant:detail 作为前端按钮或入口证据；默认不直接升格为原子动作。若读取敏感数据且需要独立授权，归并到共享的业务只读原子动作。建议能力：system.view。",
@@ -19285,7 +19324,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 dictType:update 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.mdm.manage。",
@@ -19342,7 +19381,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 dictType:delete 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.mdm.manage。",
@@ -19399,7 +19438,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 dictType:create 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.mdm.manage。",
@@ -19456,7 +19495,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 dict:update 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.mdm.manage。",
@@ -19513,7 +19552,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 dict:delete 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.mdm.manage。",
@@ -19570,7 +19609,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "保留 dict:create 作为前端按钮证据；先判断该动作是否需要被岗位独立授权。需要时映射到规范化业务原子动作，并允许多个按钮、多个接口复用同一动作编码；不需要时仅校验标准能力。建议能力：system.mdm.manage。",
@@ -19596,10 +19635,10 @@ code {
       }
     },
     {
-      "relationId": "F-0299:system.view",
+      "relationId": "F-0299:system.config",
       "functionId": "F-0299",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.config",
+      "capabilityName": "平台配置",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -19653,10 +19692,10 @@ code {
       }
     },
     {
-      "relationId": "F-0300:system.view",
+      "relationId": "F-0300:system.config",
       "functionId": "F-0300",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.config",
+      "capabilityName": "平台配置",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -19710,10 +19749,10 @@ code {
       }
     },
     {
-      "relationId": "F-0301:system.view",
+      "relationId": "F-0301:system.iam.manage",
       "functionId": "F-0301",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.iam.manage",
+      "capabilityName": "身份与权限管理",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -20508,10 +20547,10 @@ code {
       }
     },
     {
-      "relationId": "F-0315:system.view",
+      "relationId": "F-0315:system.iam.manage",
       "functionId": "F-0315",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.iam.manage",
+      "capabilityName": "身份与权限管理",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -20653,7 +20692,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -20710,7 +20749,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -20793,10 +20832,10 @@ code {
       }
     },
     {
-      "relationId": "F-0320:system.view",
+      "relationId": "F-0320:system.config",
       "functionId": "F-0320",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.config",
+      "capabilityName": "平台配置",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -21109,7 +21148,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -21166,7 +21205,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -21223,7 +21262,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -21420,10 +21459,10 @@ code {
       }
     },
     {
-      "relationId": "F-0331:system.view",
+      "relationId": "F-0331:system.partner.manage",
       "functionId": "F-0331",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.partner.manage",
+      "capabilityName": "合作伙伴管理",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -21451,7 +21490,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -21534,11 +21573,11 @@ code {
       }
     },
     {
-      "relationId": "F-0333:system.view",
+      "relationId": "F-0333:fulfillment.wms.warehouse.config",
       "functionId": "F-0333",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
-      "domain": "系统",
+      "capabilityCode": "fulfillment.wms.warehouse.config",
+      "capabilityName": "仓库配置",
+      "domain": "履约",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
       "surface": "管理后台",
@@ -21565,7 +21604,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "WAREHOUSE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -21648,11 +21687,11 @@ code {
       }
     },
     {
-      "relationId": "F-0335:system.view",
+      "relationId": "F-0335:fulfillment.wms.warehouse.config",
       "functionId": "F-0335",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
-      "domain": "系统",
+      "capabilityCode": "fulfillment.wms.warehouse.config",
+      "capabilityName": "仓库配置",
+      "domain": "履约",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
       "surface": "管理后台",
@@ -21679,7 +21718,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "WAREHOUSE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -21819,11 +21858,11 @@ code {
       }
     },
     {
-      "relationId": "F-0338:system.view",
+      "relationId": "F-0338:fulfillment.wms.warehouse.config",
       "functionId": "F-0338",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
-      "domain": "系统",
+      "capabilityCode": "fulfillment.wms.warehouse.config",
+      "capabilityName": "仓库配置",
+      "domain": "履约",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
       "surface": "管理后台",
@@ -21850,7 +21889,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "WAREHOUSE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -21964,7 +22003,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -22021,7 +22060,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -22078,7 +22117,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -22332,10 +22371,10 @@ code {
       }
     },
     {
-      "relationId": "F-0347:system.view",
+      "relationId": "F-0347:system.config",
       "functionId": "F-0347",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.config",
+      "capabilityName": "平台配置",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -22617,10 +22656,10 @@ code {
       }
     },
     {
-      "relationId": "F-0352:system.view",
+      "relationId": "F-0352:system.config",
       "functionId": "F-0352",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.config",
+      "capabilityName": "平台配置",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -22902,10 +22941,10 @@ code {
       }
     },
     {
-      "relationId": "F-0357:system.view",
+      "relationId": "F-0357:system.config",
       "functionId": "F-0357",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.config",
+      "capabilityName": "平台配置",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -23016,10 +23055,10 @@ code {
       }
     },
     {
-      "relationId": "F-0359:system.view",
+      "relationId": "F-0359:system.consumer.manage",
       "functionId": "F-0359",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.consumer.manage",
+      "capabilityName": "消费者档案管理",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -23047,7 +23086,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -23073,10 +23112,10 @@ code {
       }
     },
     {
-      "relationId": "F-0360:system.view",
+      "relationId": "F-0360:system.consumer.manage",
       "functionId": "F-0360",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.consumer.manage",
+      "capabilityName": "消费者档案管理",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -23104,7 +23143,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -23161,7 +23200,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -23218,7 +23257,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -23503,7 +23542,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -23560,7 +23599,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -23757,10 +23796,10 @@ code {
       }
     },
     {
-      "relationId": "F-0372:system.view",
+      "relationId": "F-0372:system.iam.manage",
       "functionId": "F-0372",
-      "capabilityCode": "system.view",
-      "capabilityName": "系统只读",
+      "capabilityCode": "system.iam.manage",
+      "capabilityName": "身份与权限管理",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -23845,7 +23884,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -23902,7 +23941,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -23959,7 +23998,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -24016,7 +24055,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -24073,7 +24112,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -24187,7 +24226,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -24301,7 +24340,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -24358,7 +24397,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "清除 system.config 或空能力兜底，按页面真实业务域和界面动作重新归类；后端接口复用同一标准能力及必要原子动作。",
@@ -25380,7 +25419,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除该路由全部历史入口映射；将页面路由 → system.partner.manage 写入生成式页面能力注册表；没有后端动作的本地交互不虚构原子动作。",
@@ -25492,7 +25531,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "BD 个人收益与业绩是分销只读数据，不为此打开完整结算域；按本人或负责组织过滤。",
@@ -26050,7 +26089,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除该路由全部历史入口映射；将页面路由 → system.partner.manage 写入生成式页面能力注册表；没有后端动作的本地交互不虚构原子动作。",
@@ -26390,7 +26429,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "该功能唯一归属 system.approval.manage；system.partner.manage 不再作为并列入口。需要岗位差异的按钮由原子权限控制，查询与写入仍叠加资源数据范围。",
@@ -26445,7 +26484,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "该功能唯一归属 system.partner.manage；system.view 不再作为并列入口。需要岗位差异的按钮由原子权限控制，查询与写入仍叠加资源数据范围。",
@@ -26500,7 +26539,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除该路由全部历史入口映射；将页面路由 → system.partner.manage 写入生成式页面能力注册表；没有后端动作的本地交互不虚构原子动作。",
@@ -26557,7 +26596,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除该路由全部历史入口映射；页面可见性改用 system.partner.manage；把页面动作归并为稳定业务命令，只有需要独立授权的命令绑定规范化原子动作，禁止按处理器或接口函数一一造码。",
@@ -28373,11 +28412,11 @@ code {
       }
     },
     {
-      "relationId": "F-0454:commerce.marketing.distribution.manage",
+      "relationId": "F-0454:commerce.store.manage",
       "functionId": "F-0454",
-      "capabilityCode": "commerce.marketing.distribution.manage",
-      "capabilityName": "分销管理",
-      "domain": "营销",
+      "capabilityCode": "commerce.store.manage",
+      "capabilityName": "门店经营管理",
+      "domain": "电商",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
       "surface": "运营应用",
@@ -28402,7 +28441,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除该路由全部历史入口映射；先将页面路由 → commerce.marketing.distribution.manage 纳入页面注册表并标记“功能未开放”；正式接入接口时必须重新确认消费者接口注解（@ConsumerApi）与员工端边界，未接后端前不得把提交按钮视为已授权。",
@@ -28428,11 +28467,11 @@ code {
       }
     },
     {
-      "relationId": "F-0455:system.store.manage",
+      "relationId": "F-0455:commerce.store.manage",
       "functionId": "F-0455",
-      "capabilityCode": "system.store.manage",
-      "capabilityName": "门店主体管理",
-      "domain": "系统",
+      "capabilityCode": "commerce.store.manage",
+      "capabilityName": "门店经营管理",
+      "domain": "电商",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
       "surface": "运营应用",
@@ -29852,7 +29891,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "recommendation": "删除该路由全部历史入口映射；页面可见性改用 commerce.marketing.distribution.manage；把页面动作归并为稳定业务命令，只有需要独立授权的命令绑定规范化原子动作，禁止按处理器或接口函数一一造码。",
@@ -29990,10 +30029,10 @@ code {
       }
     },
     {
-      "relationId": "F-0483:system.iam.manage",
+      "relationId": "F-0483:system.store.employee.manage",
       "functionId": "F-0483",
-      "capabilityCode": "system.iam.manage",
-      "capabilityName": "身份与权限管理",
+      "capabilityCode": "system.store.employee.manage",
+      "capabilityName": "门店员工管理",
       "domain": "系统",
       "relationMode": "唯一归属",
       "confirmationStatus": "已确认",
@@ -30021,7 +30060,6 @@ code {
         "securityLevel": "高"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY",
         "STORE_MGMT"
       ],
       "resourceIsolation": "授权组织 + 绑定门店 ResourceMember；被创建用户角色必须限制为门店员工",
@@ -30483,7 +30521,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -30521,7 +30559,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.partner.manage"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -30543,7 +30581,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -30603,7 +30641,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -30663,7 +30701,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -30723,7 +30761,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -30783,7 +30821,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -31481,7 +31519,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.store.manage"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -31503,7 +31541,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -36723,7 +36761,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -37503,7 +37541,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -37563,7 +37601,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -37623,7 +37661,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -37803,7 +37841,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -37863,7 +37901,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -37923,7 +37961,7 @@ code {
         "securityLevel": "高"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -37983,7 +38021,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -38021,7 +38059,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.mdm.manage"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -38043,7 +38081,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -38103,7 +38141,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -38163,7 +38201,7 @@ code {
         "securityLevel": "高"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -38223,7 +38261,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -38343,7 +38381,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -38403,7 +38441,7 @@ code {
         "securityLevel": "高"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -38463,7 +38501,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -38523,7 +38561,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -38763,7 +38801,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -38801,7 +38839,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.partner.manage"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -38823,7 +38861,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -38883,7 +38921,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -38943,7 +38981,7 @@ code {
         "securityLevel": "高"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -39003,7 +39041,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -39041,7 +39079,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.partner.manage"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -39063,7 +39101,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -39123,7 +39161,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -39183,7 +39221,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -39243,7 +39281,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -39281,7 +39319,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.partner.manage"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -39303,7 +39341,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -39363,7 +39401,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -39423,7 +39461,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -39483,7 +39521,7 @@ code {
         "securityLevel": "高"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -39521,7 +39559,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.partner.manage"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -39543,7 +39581,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -39581,7 +39619,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.partner.manage"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -39603,7 +39641,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -39663,7 +39701,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -39723,7 +39761,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -39783,7 +39821,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -39843,7 +39881,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -39903,7 +39941,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -39963,7 +40001,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -40001,7 +40039,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.config"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -40061,7 +40099,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.config"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -40121,7 +40159,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.iam.manage"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -40961,7 +40999,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.iam.manage"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -41103,7 +41141,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -41163,7 +41201,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -41261,7 +41299,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.config"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -41583,7 +41621,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -41643,7 +41681,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -41703,7 +41741,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -41921,7 +41959,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.partner.manage"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -41943,7 +41981,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -42041,7 +42079,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "fulfillment.wms.warehouse.config"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -42063,7 +42101,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "WAREHOUSE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 2,
@@ -42161,7 +42199,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "fulfillment.wms.warehouse.config"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -42183,7 +42221,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "WAREHOUSE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 2,
@@ -42341,7 +42379,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "fulfillment.wms.warehouse.config"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -42363,7 +42401,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "WAREHOUSE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -42483,7 +42521,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -42543,7 +42581,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -42603,7 +42641,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -42881,7 +42919,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.config"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -43181,7 +43219,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.config"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -43481,7 +43519,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.config"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -43601,7 +43639,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.consumer.manage"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -43623,7 +43661,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -43661,7 +43699,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.consumer.manage"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -43683,7 +43721,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -43743,7 +43781,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -43803,7 +43841,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -44103,7 +44141,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -44163,7 +44201,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -44381,7 +44419,7 @@ code {
       "frontendStatus": "已存在",
       "backendAuthorizationStatus": "待整改",
       "parentCapabilityCodes": [
-        "system.view"
+        "system.iam.manage"
       ],
       "relationMode": "唯一归属",
       "surface": "管理后台",
@@ -44463,7 +44501,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -44523,7 +44561,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -44583,7 +44621,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -44643,7 +44681,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -44703,7 +44741,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -44823,7 +44861,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -44943,7 +44981,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -45003,7 +45041,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MALL_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -46563,7 +46601,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 1,
@@ -46623,7 +46661,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "STORE_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 0,
@@ -48123,7 +48161,7 @@ code {
         "securityLevel": "普通"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "resourceIsolation": "租户与授权组织",
       "reuseCount": 0,
@@ -48341,7 +48379,7 @@ code {
       "frontendStatus": "待补充",
       "backendAuthorizationStatus": "待补充",
       "parentCapabilityCodes": [
-        "system.iam.manage"
+        "system.store.employee.manage"
       ],
       "relationMode": "唯一归属",
       "surface": "运营应用",
@@ -48363,7 +48401,6 @@ code {
         "securityLevel": "高"
       },
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY",
         "STORE_MGMT"
       ],
       "resourceIsolation": "授权组织 + 绑定门店 ResourceMember；被创建用户角色必须限制为门店员工",
@@ -48828,7 +48865,6 @@ code {
         "fulfillment.wms.outbound.execute",
         "fulfillment.logistics.configure",
         "fulfillment.wms.inventory.manage",
-        "system.view",
         "fulfillment.wms.view"
       ],
       "capabilityEvidence": {
@@ -48842,7 +48878,6 @@ code {
         "fulfillment.wms.outbound.execute": "checked",
         "fulfillment.logistics.configure": "checked",
         "fulfillment.wms.inventory.manage": "checked",
-        "system.view": "checked",
         "fulfillment.wms.view": "checked"
       },
       "additionalAtomicPermissionCodes": [
@@ -48926,10 +48961,9 @@ code {
         "A-0291"
       ],
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY",
+        "STORE_MGMT",
         "CONSIGNMENT",
-        "WAREHOUSE_MGMT",
-        "STORE_MGMT"
+        "WAREHOUSE_MGMT"
       ],
       "dataScope": "授权组织 + 绑定 Warehouse ResourceMember；范围原则已明确，具体绑定待配置。",
       "productEvidence": "管理后台与运营应用本次读取值",
@@ -49000,34 +49034,28 @@ code {
       ],
       "responsibility": "同时负责绑定门店的经营管理与绑定仓库的库存、入出库和任务协同。",
       "capabilityCodes": [
-        "system.store.manage",
         "fulfillment.wms.task.execute",
         "fulfillment.wms.inbound.execute",
         "fulfillment.wms.outbound.execute",
         "fulfillment.wms.warehouse.config",
         "fulfillment.wms.inventory.manage",
-        "system.iam.manage",
         "fulfillment.wms.view",
         "commerce.aftersale.manage",
         "commerce.view",
         "commerce.procurement.manage",
-        "commerce.marketing.distribution.manage",
         "commerce.store.manage",
         "commerce.order.manage"
       ],
       "capabilityEvidence": {
-        "system.store.manage": "checked",
         "fulfillment.wms.task.execute": "checked",
         "fulfillment.wms.inbound.execute": "checked",
         "fulfillment.wms.outbound.execute": "checked",
         "fulfillment.wms.warehouse.config": "checked",
         "fulfillment.wms.inventory.manage": "checked",
-        "system.iam.manage": "checked",
         "fulfillment.wms.view": "checked",
         "commerce.aftersale.manage": "checked",
         "commerce.view": "checked",
         "commerce.procurement.manage": "checked",
-        "commerce.marketing.distribution.manage": "checked",
         "commerce.store.manage": "checked",
         "commerce.order.manage": "checked"
       },
@@ -49083,9 +49111,8 @@ code {
         "A-0294"
       ],
       "orgCapabilityCodes": [
-        "STORE_MGMT",
         "WAREHOUSE_MGMT",
-        "PLATFORM_ONLY",
+        "STORE_MGMT",
         "CONSIGNMENT"
       ],
       "dataScope": "授权组织 + 绑定门店，仓作再叠加绑定仓库；范围原则已明确，具体绑定待配置。",
@@ -49112,8 +49139,6 @@ code {
         "commerce.aftersale.manage",
         "commerce.view",
         "commerce.procurement.manage",
-        "commerce.marketing.distribution.manage",
-        "system.store.manage",
         "commerce.store.manage",
         "commerce.order.manage"
       ],
@@ -49126,8 +49151,6 @@ code {
         "commerce.aftersale.manage": "checked",
         "commerce.view": "checked",
         "commerce.procurement.manage": "checked",
-        "commerce.marketing.distribution.manage": "checked",
-        "system.store.manage": "checked",
         "commerce.store.manage": "checked",
         "commerce.order.manage": "checked"
       },
@@ -49167,8 +49190,7 @@ code {
       "orgCapabilityCodes": [
         "WAREHOUSE_MGMT",
         "STORE_MGMT",
-        "CONSIGNMENT",
-        "PLATFORM_ONLY"
+        "CONSIGNMENT"
       ],
       "dataScope": "授权组织 + 绑定门店，仓作再叠加绑定仓库；范围原则已明确，具体绑定待配置。",
       "productEvidence": "管理后台与运营应用本次读取值",
@@ -49256,7 +49278,6 @@ code {
         "system.partner.manage",
         "system.store.manage",
         "system.approval.manage",
-        "system.view",
         "commerce.marketing.view",
         "commerce.marketing.distribution.manage",
         "settlement.view"
@@ -49265,7 +49286,6 @@ code {
         "system.partner.manage": "checked",
         "system.store.manage": "checked",
         "system.approval.manage": "checked",
-        "system.view": "checked",
         "commerce.marketing.view": "checked",
         "commerce.marketing.distribution.manage": "checked",
         "settlement.view": "checked"
@@ -49288,8 +49308,8 @@ code {
         "A-0295"
       ],
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY",
         "STORE_MGMT",
+        "MARKETING_MGMT",
         "SETTLE"
       ],
       "dataScope": "授权组织及下级 + 本人负责合作主体/门店；范围原则已明确，具体绑定待配置。",
@@ -49308,7 +49328,6 @@ code {
         "system.partner.manage",
         "system.store.manage",
         "system.approval.manage",
-        "system.view",
         "commerce.marketing.view",
         "settlement.view"
       ],
@@ -49316,7 +49335,6 @@ code {
         "system.partner.manage": "checked",
         "system.store.manage": "checked",
         "system.approval.manage": "checked",
-        "system.view": "checked",
         "commerce.marketing.view": "checked",
         "settlement.view": "checked"
       },
@@ -49334,8 +49352,8 @@ code {
         "A-0270"
       ],
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY",
         "STORE_MGMT",
+        "MARKETING_MGMT",
         "SETTLE"
       ],
       "dataScope": "授权组织及下级 + 本人负责合作主体/门店；范围原则已明确，具体绑定待配置。",
@@ -49370,7 +49388,6 @@ code {
       "additionalPendingAtomicPermissionIds": [],
       "orgCapabilityCodes": [
         "STORE_MGMT",
-        "PLATFORM_ONLY",
         "SETTLE"
       ],
       "dataScope": "授权组织/结算主体 + 本人审批待办；范围原则已明确，具体绑定待配置。",
@@ -49389,26 +49406,22 @@ code {
       ],
       "responsibility": "负责绑定门店的订单、售后、采购、会员和日常经营管理，涉及仓作时叠加绑定仓库。",
       "capabilityCodes": [
-        "system.store.manage",
-        "system.iam.manage",
         "commerce.aftersale.manage",
         "commerce.view",
         "commerce.procurement.manage",
-        "commerce.marketing.distribution.manage",
         "commerce.store.manage",
         "commerce.order.manage",
-        "settlement.view"
+        "settlement.view",
+        "system.store.employee.manage"
       ],
       "capabilityEvidence": {
-        "system.store.manage": "checked",
-        "system.iam.manage": "checked",
         "commerce.aftersale.manage": "checked",
         "commerce.view": "checked",
         "commerce.procurement.manage": "checked",
-        "commerce.marketing.distribution.manage": "checked",
         "commerce.store.manage": "checked",
         "commerce.order.manage": "checked",
-        "settlement.view": "checked"
+        "settlement.view": "checked",
+        "system.store.employee.manage": "架构收窄"
       },
       "additionalAtomicPermissionCodes": [
         "storeEmployee:create"
@@ -49433,7 +49446,6 @@ code {
       ],
       "orgCapabilityCodes": [
         "STORE_MGMT",
-        "PLATFORM_ONLY",
         "CONSIGNMENT",
         "SETTLE"
       ],
@@ -49456,8 +49468,6 @@ code {
         "commerce.aftersale.manage",
         "commerce.view",
         "commerce.procurement.manage",
-        "commerce.marketing.distribution.manage",
-        "system.store.manage",
         "commerce.store.manage",
         "commerce.order.manage"
       ],
@@ -49465,8 +49475,6 @@ code {
         "commerce.aftersale.manage": "checked",
         "commerce.view": "checked",
         "commerce.procurement.manage": "checked",
-        "commerce.marketing.distribution.manage": "checked",
-        "system.store.manage": "checked",
         "commerce.store.manage": "checked",
         "commerce.order.manage": "checked"
       },
@@ -49491,8 +49499,7 @@ code {
       ],
       "orgCapabilityCodes": [
         "STORE_MGMT",
-        "CONSIGNMENT",
-        "PLATFORM_ONLY"
+        "CONSIGNMENT"
       ],
       "dataScope": "授权组织 + 绑定门店，仓作再叠加绑定仓库；范围原则已明确，具体绑定待配置。",
       "productEvidence": "管理后台与运营应用本次读取值",
@@ -49520,7 +49527,7 @@ code {
       "additionalPendingAtomicPermissionIds": [],
       "orgCapabilityCodes": [
         "LIVEROOM_MGMT",
-        "PLATFORM_ONLY"
+        "MARKETING_MGMT"
       ],
       "dataScope": "授权组织 + 绑定直播间；范围原则已明确，具体绑定待配置。",
       "productEvidence": "管理后台本次读取值；运营应用未勾选/待产品补充",
@@ -49553,8 +49560,8 @@ code {
       ],
       "additionalPendingAtomicPermissionIds": [],
       "orgCapabilityCodes": [
-        "PLATFORM_ONLY",
-        "STORE_MGMT"
+        "STORE_MGMT",
+        "MARKETING_MGMT"
       ],
       "dataScope": "授权组织 + 关联门店/订单/售后单，采购价字段脱敏；范围原则已明确，具体绑定待配置。",
       "productEvidence": "管理后台本次读取值；运营应用未勾选/待产品补充",
@@ -49576,7 +49583,6 @@ code {
         "commerce.mall.manage",
         "commerce.order.manage",
         "commerce.view",
-        "system.view",
         "commerce.content.manage"
       ],
       "capabilityEvidence": {
@@ -49587,7 +49593,6 @@ code {
         "commerce.mall.manage": "checked",
         "commerce.order.manage": "checked",
         "commerce.view": "checked",
-        "system.view": "checked",
         "commerce.content.manage": "checked"
       },
       "additionalAtomicPermissionCodes": [
@@ -49617,8 +49622,8 @@ code {
       "additionalPendingAtomicPermissionIds": [],
       "orgCapabilityCodes": [
         "CONSIGNMENT",
-        "PLATFORM_ONLY",
-        "STORE_MGMT"
+        "STORE_MGMT",
+        "MALL_MGMT"
       ],
       "dataScope": "授权组织 + 供应商关系 + 采购/订单/仓库交集；范围原则已明确，具体绑定待配置。",
       "productEvidence": "管理后台本次读取值；运营应用未勾选/待产品补充",
@@ -49637,52 +49642,27 @@ code {
       "responsibility": "录入供应商、商品上下架、签合同、采购单、订单；业务边界待确认。",
       "capabilityCodes": [
         "commerce.procurement.manage",
-        "system.partner.manage",
         "system.supplier.manage",
         "commerce.consignment.manage",
-        "system.mdm.manage",
-        "commerce.mall.manage",
         "commerce.order.manage",
-        "system.view",
-        "commerce.view",
-        "commerce.content.manage"
+        "commerce.view"
       ],
       "capabilityEvidence": {
         "commerce.procurement.manage": "checked",
-        "system.partner.manage": "checked",
         "system.supplier.manage": "checked",
         "commerce.consignment.manage": "checked",
-        "system.mdm.manage": "checked",
-        "commerce.mall.manage": "checked",
         "commerce.order.manage": "checked",
-        "system.view": "checked",
-        "commerce.view": "checked",
-        "commerce.content.manage": "checked"
+        "commerce.view": "checked"
       },
       "additionalAtomicPermissionCodes": [
         "supplier:create",
         "supplier:update",
-        "brand:list",
         "category:list",
-        "product:list",
-        "agreementTemplate:update",
-        "agreementTemplate:delete",
-        "agreementTemplate:create",
-        "agreementTemplate:list",
-        "cooperationAgreement:update",
-        "cooperationAgreement:delete",
-        "cooperationAgreement:create",
-        "cooperationAgreement:list",
-        "cooperationAgreement:review",
-        "cooperationAgreement:submit",
-        "cooperationAgreement:terminate",
-        "paymentMerchant:list",
-        "paymentMerchant:detail"
+        "product:list"
       ],
       "additionalPendingAtomicPermissionIds": [],
       "orgCapabilityCodes": [
         "CONSIGNMENT",
-        "PLATFORM_ONLY",
         "STORE_MGMT"
       ],
       "dataScope": "授权组织 + 绑定门店，涉及仓作再叠加绑定仓库；范围原则已明确，具体绑定待配置。",
@@ -49701,7 +49681,6 @@ code {
         "commerce.consignment.manage",
         "system.mdm.manage",
         "commerce.mall.manage",
-        "system.view",
         "commerce.view",
         "commerce.content.manage"
       ],
@@ -49709,7 +49688,6 @@ code {
         "commerce.consignment.manage": "checked",
         "system.mdm.manage": "checked",
         "commerce.mall.manage": "checked",
-        "system.view": "checked",
         "commerce.view": "checked",
         "commerce.content.manage": "checked"
       },
@@ -49721,7 +49699,7 @@ code {
       "additionalPendingAtomicPermissionIds": [],
       "orgCapabilityCodes": [
         "CONSIGNMENT",
-        "PLATFORM_ONLY",
+        "MALL_MGMT",
         "STORE_MGMT"
       ],
       "dataScope": "授权组织 + 商品/渠道归属；范围原则已明确，具体绑定待配置。",
@@ -49823,10 +49801,10 @@ code {
     {
       "id": "R12",
       "topic": "来源",
-      "rule": "源确认版含 37 项能力；本轮移除独立价格标准能力，商城源行归 commerce.mall.manage，并按现有代码补录代采、直播改价原子，因此本工作簿落 36 项（35 活跃 + 1 保留）。",
-      "currentPosition": "产品菜单/按钮勾选来自确认版矩阵 A6:AR519；代采、直播两条改价行明确标为代码补录，不代表产品另行勾选。",
-      "pendingProduct": "如源文件、代码或产品决策更新需重新构建。",
-      "action": "已记录"
+      "rule": "源确认版 37 项能力边界保持不超过 40 项；本轮新增门店员工管理，并将系统只读功能分回真实业务父能力，形成 37 项（35 活跃 + 2 项保留未启用）。",
+      "currentPosition": "PLATFORM_ONLY 仅保留平台治理；商城、营销、门店与伙伴业务分别由 MALL_MGMT、MARKETING_MGMT、STORE_MGMT 承载。",
+      "pendingProduct": "岗位职责仍以产品最终勾选为基线；架构侧持续维护唯一父能力和组织能力前置。",
+      "action": "已收窄并分散"
     }
   ],
   "technicalBaseline": {
@@ -49870,6 +49848,7 @@ code {
         "settlement.clearing.operate",
         "settlement.statement.operate",
         "settlement.fee.configure",
+        "system.store.employee.manage",
         "system.org.manage",
         "system.supplier.manage",
         "system.store.manage",
@@ -49877,7 +49856,9 @@ code {
       ],
       "currentOnlyCodes": [
         "commerce.pricing.manage",
-        "settlement.operate"
+        "commerce.review.manage",
+        "settlement.operate",
+        "system.view"
       ],
       "redline": 30,
       "targetRedline": 40
@@ -49889,14 +49870,16 @@ code {
         "WAREHOUSE_MGMT",
         "LIVEROOM_MGMT",
         "CONSIGNMENT",
-        "SETTLE"
+        "SETTLE",
+        "MALL_MGMT",
+        "MARKETING_MGMT"
       ],
-      "gap": "common Capability.OrgCap 尚缺 CONSIGNMENT，system-core OrgCapabilityEnum 已包含。"
+      "gap": "需在组织能力注册表新增 MALL_MGMT、MARKETING_MGMT，并核验各服务对 8 项组织能力的统一识别。"
     },
     "backend": {
       "annotation": "@RequiresCapability",
       "deprecatedAnnotation": "@RequiresPermission",
-      "currentEvidence": "当前源码约 668 个活动能力注解；接口能力迁移已大量落地，但目标 36 项尚未注册。",
+      "currentEvidence": "当前源码约 668 个活动能力注解；接口能力迁移已大量落地，但目标 37 项尚未全部注册。",
       "atomicGap": "当前未发现 AtomicPermission 注册表或 @RequiresCapability.atomic 双通道实现。"
     },
     "frontend": {
@@ -49949,6 +49932,12 @@ function uniqueBy(items, keyFn) {
 }
 
 const atomKey = (item) => item.code || item.id;
+
+function sameSet(left, right) {
+  const leftSet = new Set(left || []);
+  const rightSet = new Set(right || []);
+  return leftSet.size === rightSet.size && [...leftSet].every((item) => rightSet.has(item));
+}
 
 function surfaceAllowed(role, item) {
   return !item.surface || role.allowedSurfaces.includes(item.surface);
@@ -50315,6 +50304,7 @@ function validateModel(input) {
       }
     }
   }
+  const capabilitiesByCode = new Map(model.capabilities.map((item) => [item.code, item]));
 
   if (model.capabilities.length > CAPABILITY_REDLINE) {
     diagnostics.push(
@@ -50335,6 +50325,20 @@ function validateModel(input) {
           "FUNCTION_CAPABILITY_MISSING",
           "功能归属能力不存在",
           `${relation.functionId} 引用了 ${relation.capabilityCode}。`,
+          "function",
+          relation.relationId,
+        ),
+      );
+      continue;
+    }
+    const expectedOrgCodes = capabilitiesByCode.get(relation.capabilityCode).orgCapabilityCodes || [];
+    if (!sameSet(relation.orgCapabilityCodes, expectedOrgCodes)) {
+      diagnostics.push(
+        diagnostic(
+          "error",
+          "FUNCTION_ORG_CAPABILITY_MISMATCH",
+          "功能组织能力与父能力不一致",
+          `${relation.functionId} 应继承 ${expectedOrgCodes.join("、") || "无"}，当前为 ${(relation.orgCapabilityCodes || []).join("、") || "无"}。`,
           "function",
           relation.relationId,
         ),
@@ -50471,6 +50475,18 @@ function validateModel(input) {
         .flatMap((item) => item.orgCapabilityCodes || []),
     );
     const roleOrgCaps = new Set(role.orgCapabilityCodes || []);
+    if (role.name.includes("门店") && requiredOrgCaps.has("PLATFORM_ONLY")) {
+      diagnostics.push(
+        diagnostic(
+          "error",
+          "STORE_ROLE_PLATFORM_ONLY",
+          "门店岗位继承了平台总部治理",
+          `${role.name} 选择的标准能力仍要求 PLATFORM_ONLY，必须把业务能力分回对应组织能力或移除无关能力。`,
+          "role",
+          role.id,
+        ),
+      );
+    }
     for (const orgCode of requiredOrgCaps) {
       if (!roleOrgCaps.has(orgCode)) {
         diagnostics.push(
@@ -50511,6 +50527,21 @@ function validateModel(input) {
           atom.id,
         ),
       );
+    } else {
+      const parent = capabilitiesByCode.get(atom.parentCapabilityCodes[0]);
+      const expectedOrgCodes = parent?.orgCapabilityCodes || [];
+      if (!sameSet(atom.orgCapabilityCodes, expectedOrgCodes)) {
+        diagnostics.push(
+          diagnostic(
+            "error",
+            "ATOM_ORG_CAPABILITY_MISMATCH",
+            "原子权限组织能力与父能力不一致",
+            `${atom.id} 应继承 ${expectedOrgCodes.join("、") || "无"}，当前为 ${(atom.orgCapabilityCodes || []).join("、") || "无"}。`,
+            "atom",
+            atom.id,
+          ),
+        );
+      }
     }
     for (const orgCode of atom.orgCapabilityCodes || []) {
       if (!orgCapabilityCodes.has(orgCode)) {
@@ -50902,7 +50933,7 @@ function buildSheetRows(model) {
   const notes = [
     ["编号", "主题", "规则", "当前口径", "产品待确认", "处理要求"],
     ...model.implementationNotes.map((item) => [item.id, item.topic, item.rule, item.currentPosition, item.pendingProduct, item.action]),
-    ["T01", "目标能力注册", "标准能力先进入统一代码注册表，再用于岗位和后端接口。", `${baseline.currentCapabilityRegistry.count} 项现有，${model.capabilities.length} 项目标。`, "目标 36 项边界", `${baseline.currentCapabilityRegistry.targetMissingCodes.length} 项待新增，${baseline.currentCapabilityRegistry.currentOnlyCodes.length} 项待退出。`],
+    ["T01", "目标能力注册", "标准能力先进入统一代码注册表，再用于岗位和后端接口。", `${baseline.currentCapabilityRegistry.count} 项现有，${model.capabilities.length} 项目标。`, `目标 ${model.capabilities.length} 项边界`, `${baseline.currentCapabilityRegistry.targetMissingCodes.length} 项待新增，${baseline.currentCapabilityRegistry.currentOnlyCodes.length} 项待退出。`],
     ["T02", "原子技术权限", "按钮和稳定业务命令归属标准能力；后端接口复用同一原子动作。", baseline.backend.atomicGap, `${pendingAtomCount} 条原子化待确认，其中 ${missingAtomCodeCount} 条待补编码`, "补注册表、前端控制、后端校验及启动检查。"],
     ["T03", "资源隔离", "能力允许做什么，ResourceMember、组织关系和单据归属决定可以操作哪些实例。", baseline.proofBoundary, "岗位数据范围", "查询过滤和写入重校验必须同时落地。"],
   ];
@@ -51190,6 +51221,7 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
     kicker: document.getElementById("view-kicker"),
     title: document.getElementById("view-title"),
     description: document.getElementById("view-description"),
+    sourceRevisionBadge: document.getElementById("source-revision-badge"),
     saveState: document.getElementById("save-state"),
     dialog: document.getElementById("editor-dialog"),
     dialogForm: document.getElementById("editor-form"),
@@ -51623,10 +51655,11 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
     if (state.filters.level) items = items.filter((item) => item.level === state.filters.level);
     const counts = Object.fromEntries(["error", "warning", "info"].map((level) => [level, state.diagnostics.filter((item) => item.level === level).length]));
 
-    refs.root.innerHTML = `<div class="metric-grid">${renderMetric("阻断项", counts.error, "保存和上线前必须处理", "var(--red)")}${renderMetric("整改提醒", counts.warning, "业务确认或研发核验未闭环", "var(--amber)")}${renderMetric("说明项", counts.info, "证据边界与治理说明", "var(--blue)")}${renderMetric("技术待新增能力", baseline.currentCapabilityRegistry.targetMissingCodes.length, "目标 36 项与当前代码差异", "var(--violet)")}</div><div class="workspace-grid"><section class="panel"><div class="panel-head"><div><h3>自动检查结果</h3><p>按编码唯一性、引用完整性、组织前置、渠道改价和接口映射执行。</p></div><button class="button button--primary button--small" type="button" data-run-checks>重新检查</button></div><div class="diagnostic-list">${items.map((item) => `<article class="diagnostic-item" data-level="${item.level}"><span class="diagnostic-dot"></span><div><h4>${escapeHtml(item.title)}</h4><p>${escapeHtml(item.detail)}</p></div>${code(item.code)}</article>`).join("") || `<div class="empty-state">当前筛选下没有问题。</div>`}</div></section><aside class="panel detail-panel"><div class="panel-head"><div><h3>上线整改主线</h3><p>先锁业务词汇，再逐层改代码和运行时。</p></div></div><ol class="decision-list">${state.model.implementationNotes.map((item) => `<li><strong>${escapeHtml(item.id)} · ${escapeHtml(item.topic)}</strong>${escapeHtml(item.rule)}<br><span class="muted">处理：${escapeHtml(item.action)}</span></li>`).join("")}</ol></aside></div>`;
+    refs.root.innerHTML = `<div class="metric-grid">${renderMetric("阻断项", counts.error, "保存和上线前必须处理", "var(--red)")}${renderMetric("整改提醒", counts.warning, "业务确认或研发核验未闭环", "var(--amber)")}${renderMetric("说明项", counts.info, "证据边界与治理说明", "var(--blue)")}${renderMetric("技术待新增能力", baseline.currentCapabilityRegistry.targetMissingCodes.length, `目标 ${state.model.capabilities.length} 项与当前代码差异`, "var(--violet)")}</div><div class="workspace-grid"><section class="panel"><div class="panel-head"><div><h3>自动检查结果</h3><p>按编码唯一性、引用完整性、组织前置、渠道改价和接口映射执行。</p></div><button class="button button--primary button--small" type="button" data-run-checks>重新检查</button></div><div class="diagnostic-list">${items.map((item) => `<article class="diagnostic-item" data-level="${item.level}"><span class="diagnostic-dot"></span><div><h4>${escapeHtml(item.title)}</h4><p>${escapeHtml(item.detail)}</p></div>${code(item.code)}</article>`).join("") || `<div class="empty-state">当前筛选下没有问题。</div>`}</div></section><aside class="panel detail-panel"><div class="panel-head"><div><h3>上线整改主线</h3><p>先锁业务词汇，再逐层改代码和运行时。</p></div></div><ol class="decision-list">${state.model.implementationNotes.map((item) => `<li><strong>${escapeHtml(item.id)} · ${escapeHtml(item.topic)}</strong>${escapeHtml(item.rule)}<br><span class="muted">处理：${escapeHtml(item.action)}</span></li>`).join("")}</ol></aside></div>`;
   }
 
   function render() {
+    refs.sourceRevisionBadge.textContent = `产品表 rev ${state.model.meta.sourceSheet.revision}`;
     setViewCopy();
     renderFilters();
     const renderers = {
@@ -51769,6 +51802,9 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
         "ATOM_PARENT_NOT_UNIQUE",
         "ATOM_CODE_PARENT_NOT_UNIQUE",
         "ORG_CAPABILITY_MISSING",
+        "STORE_ROLE_PLATFORM_ONLY",
+        "FUNCTION_ORG_CAPABILITY_MISMATCH",
+        "ATOM_ORG_CAPABILITY_MISMATCH",
         "CHANNEL_PRICE_ATOM_MISSING",
         "CHANNEL_PRICE_PARENT_MISMATCH",
       ]);
