@@ -1446,7 +1446,15 @@
   font-size: 28px;
   font-weight: 700;
   color: #ff4d30;
-  margin-bottom: 32px;
+  margin-bottom: 8px;
+}
+
+.ua-co-result__pay-legs {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 28px;
+  text-align: center;
+  line-height: 1.5;
 }
 
 .ua-co-result__actions {

@@ -665,7 +665,41 @@
     if (payTotalEl) {
       payTotalEl.textContent = order.payLabel || '¥' + Number(order.payable || 0).toFixed(2);
     }
+    applyOrderPayDisplay(order);
     return order;
+  }
+
+  /** 混合支付：支付方式透出名称；实付下方小字标注各渠道金额 */
+  function applyOrderPayDisplay(order) {
+    var legs = (order && Array.isArray(order.payLegs) ? order.payLegs : []).filter(function (leg) {
+      return leg && leg.name && Number(leg.amount) > 0;
+    });
+    var methodEl = document.getElementById('orderPayMethodValue');
+    var legsEl = document.getElementById('orderPayLegs');
+    var methodNames =
+      (order && order.payMethod) ||
+      legs
+        .map(function (leg) {
+          return leg.name;
+        })
+        .join('、');
+
+    if (methodEl) {
+      if (methodNames) methodEl.textContent = methodNames;
+    }
+
+    if (!legsEl) return;
+    if (legs.length >= 2) {
+      legsEl.hidden = false;
+      legsEl.textContent = legs
+        .map(function (leg) {
+          return leg.name + ' ¥' + Number(leg.amount).toFixed(2);
+        })
+        .join(' · ');
+    } else {
+      legsEl.hidden = true;
+      legsEl.textContent = '';
+    }
   }
 
   function toast(msg) {

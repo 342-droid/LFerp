@@ -463,6 +463,50 @@
     return '微信支付';
   }
 
+  /** 订单/成功页透出用短名：微信、支付宝、钱包余额、银行卡 */
+  function payChannelShortName(channel) {
+    if (channel === 'balance') return '钱包余额';
+    if (channel === 'alipay') return '支付宝';
+    if (channel === 'card') return payState.methodName || '快捷银行卡';
+    if (channel === 'wechat') return '微信';
+    if (payState.methodName && channel === payState.channel) return payState.methodName;
+    return '微信';
+  }
+
+  function buildPayLegParts(legs) {
+    var L = legs || getPayLegs();
+    var parts = [];
+    if (L.balanceLeg > 0.001) {
+      parts.push({ name: '钱包余额', amount: L.balanceLeg });
+    }
+    if (L.channelLeg > 0.001) {
+      parts.push({ name: payChannelShortName(L.channel), amount: L.channelLeg });
+    }
+    if (!parts.length) {
+      parts.push({
+        name: payChannelShortName(L.channel || 'balance'),
+        amount: L.payable || 0
+      });
+    }
+    return parts;
+  }
+
+  function formatPayLegsLine(parts) {
+    return (parts || [])
+      .map(function (p) {
+        return p.name + ' ' + formatMoney(Number(p.amount) || 0);
+      })
+      .join(' · ');
+  }
+
+  function formatPayMethodNames(parts) {
+    return (parts || [])
+      .map(function (p) {
+        return p.name;
+      })
+      .join('、');
+  }
+
   /** 底部「应付」= 合计 − 钱包可用余额（未开余额时为合计全额） */
   function getFooterPayable(legs) {
     var L = legs || getPayLegs();
@@ -490,7 +534,6 @@
         name: c.bankName + '(' + c.cardTail + ')',
         short: c.bankShort || '卡',
         tone: 'is-card',
-        tip: '快捷支付',
         card: c
       };
     });
@@ -500,16 +543,14 @@
         type: 'alipay',
         name: '支付宝',
         short: '支',
-        tone: 'is-alipay',
-        tip: '跳转支付宝付款'
+        tone: 'is-alipay'
       },
       {
         id: 'wechat',
         type: 'wechat',
         name: '微信支付',
         short: '微',
-        tone: 'is-wechat',
-        tip: '跳转微信支付'
+        tone: 'is-wechat'
       }
     ]);
   }
@@ -1046,6 +1087,55 @@
     else payState.channel = 'wechat';
   }
 
+  function collectCheckoutOrderItems() {
+    var items = [];
+    (state.suppliers || []).forEach(function (sup) {
+      (sup.packages || []).forEach(function (pkg) {
+        (pkg.items || []).forEach(function (item) {
+          items.push({
+            id: item.id,
+            name: item.title || item.name || '',
+            spec: item.spec || '',
+            img: item.img || '',
+            qty: item.qty || 1,
+            price: Number(item.priceNum != null ? item.priceNum : item.price) || 0
+          });
+        });
+      });
+    });
+    return items;
+  }
+
+  /** 支付成功写入演示订单，供订单详情透出混合支付 */
+  function persistPaidCheckoutOrder(legs) {
+    var parts = buildPayLegParts(legs);
+    var payload = {
+      orderNo: window.UaOrdersStore ? window.UaOrdersStore.genOrderNo() : String(Date.now()),
+      status: 'shipping',
+      createdAt: window.UaOrdersStore ? window.UaOrdersStore.nowText() : '',
+      paidAt: window.UaOrdersStore ? window.UaOrdersStore.nowText() : '',
+      goodsTotal: getGoodsSubtotal(),
+      freight: calcFreight(),
+      payable: legs.payable,
+      payLabel: formatMoney(legs.payable),
+      payMethod: formatPayMethodNames(parts),
+      payLegs: parts,
+      from: 'restock.html',
+      items: collectCheckoutOrderItems()
+    };
+    if (window.UaOrdersStore && typeof window.UaOrdersStore.upsert === 'function') {
+      return window.UaOrdersStore.upsert(payload);
+    }
+    try {
+      sessionStorage.setItem('ua_last_order_v1', JSON.stringify(payload));
+    } catch (e) {
+      /* ignore */
+    }
+    return payload;
+  }
+
+  var lastPaidOrder = null;
+
   function finishPaySuccess(paidLegs) {
     var legs = paidLegs || getPayLegs();
     if (
@@ -1055,6 +1145,7 @@
     ) {
       window.StoreWalletDemo.applyRestockPay(legs.balanceLeg);
     }
+    lastPaidOrder = persistPaidCheckoutOrder(legs);
     showResult(true, legs);
   }
 
@@ -1177,17 +1268,8 @@
 
     if (success) {
       var legs = paidLegs || getPayLegs();
-      var payDesc =
-        legs.balanceLeg > 0 && legs.channelLeg > 0
-          ? '余额 ' +
-            formatMoney(legs.balanceLeg) +
-            ' + ' +
-            channelLabel(legs.channel) +
-            ' ' +
-            formatMoney(legs.channelLeg)
-          : legs.balanceOnly
-            ? '钱包余额支付'
-            : channelLabel(legs.channel);
+      var parts = buildPayLegParts(legs);
+      var legsLine = formatPayLegsLine(parts);
       body.innerHTML =
         '<div class="ua-co-result__icon ua-co-result__icon--success">' +
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg></div>' +
@@ -1195,9 +1277,9 @@
         '<div class="ua-co-result__amount">' +
         formatMoney(legs.payable) +
         '</div>' +
-        '<div class="ua-co-result__sub">' +
-        payDesc +
-        '</div>' +
+        (legsLine
+          ? '<div class="ua-co-result__pay-legs">' + legsLine + '</div>'
+          : '') +
         '<div class="ua-co-result__actions">' +
         '<button type="button" class="ua-co-result__btn" id="checkoutResultOrders">查看订单</button>' +
         '<button type="button" class="ua-co-result__btn ua-co-result__btn--primary" id="checkoutResultHome">返回首页</button>' +
@@ -1209,7 +1291,20 @@
         '<div class="ua-co-result__product"><img src="../assets/restock/product-leaf.svg" alt=""><div class="ua-co-result__product-name">油麦菜【菜鲜】</div><div class="ua-co-result__product-price">¥3.20</div></div>' +
         '</div></div>';
       document.getElementById('checkoutResultOrders').addEventListener('click', function () {
-        window.location.href = 'orders.html?from=restock.html&tab=unpaid';
+        var order = lastPaidOrder;
+        if (order && window.UaOrdersStore && window.UaOrdersStore.buildDetailHref) {
+          window.location.href =
+            window.UaOrdersStore.buildDetailHref(order) + '&from=restock.html';
+          return;
+        }
+        if (order && order.orderNo) {
+          window.location.href =
+            'order-detail.html?status=shipping&orderNo=' +
+            encodeURIComponent(order.orderNo) +
+            '&from=restock.html';
+          return;
+        }
+        window.location.href = 'orders.html?from=restock.html&tab=shipping';
       });
       document.getElementById('checkoutResultHome').addEventListener('click', function () {
         window.location.href = 'restock.html';
