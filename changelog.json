@@ -1,10 +1,30 @@
 {
-  "latestSha": "6311496ae002911481297d9c551195a4b365aa52",
-  "total": 232,
+  "latestSha": "183dce7224ded93d398312ece45a6954b0c8cadc",
+  "total": 233,
   "days": [
     {
       "date": "2026-08-06",
       "items": [
+        {
+          "sha": "183dce7",
+          "type": "feat",
+          "text": "确认订单按余额充足与否分流支付",
+          "author": "sisi",
+          "time": "12:47",
+          "pages": [
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/checkout.html",
+              "text": "应付改为合计，钱包余额改为开关；余额充足提交直接输支付密码；余额不足弹出支付方式选择，快捷银行卡再输密码，微信/支付宝演示跳转三方"
+            }
+          ]
+        },
         {
           "sha": "6311496",
           "type": "feat",
@@ -386,6 +406,11 @@
               "title": "门店核销 · 门店APP"
             },
             {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/store-bind-card-confirm.html",
               "module": "",
               "title": "确定卡号 · 门店 APP"
@@ -445,6 +470,11 @@
               "file": "store-app/h5/bank-cards.html",
               "module": "",
               "title": "银行卡 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/store-bind-card-confirm.html",
