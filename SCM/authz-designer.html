@@ -1856,9 +1856,9 @@ code {
 
   <script id="authz-seed" type="application/json">{
   "meta": {
-    "schemaVersion": "1.3.0",
+    "schemaVersion": "1.4.0",
     "title": "Octopus 权限能力岗位职责设计器",
-    "generatedAt": "2026-08-03T14:37:17.736Z",
+    "generatedAt": "2026-08-06T00:00:00.000+08:00",
     "sourceWorkbook": "/Users/diwu/.codex/visualizations/2026/07/28/019fa7e6-c827-7011-a797-12737e76a085/outputs/019fa7e6-c827-7011-a797-12737e76a085/Octopus-能力功能角色与原子权限映射.xlsx",
     "sourceSheet": {
       "url": "https://lcnohxg915u5.feishu.cn/wiki/SDTrwOkPRiYNoxkULFFczbavnag?sheet=0TObNS",
@@ -1891,7 +1891,7 @@ code {
         "门店采购": 50,
         "商品管理权限": 20
       },
-      "note": "飞书显式勾选单元格作为岗位职责证据；标准能力只默认包含所有选用岗位共同需要的原子权限，其余产品勾选转换为岗位正向增加，最终有效权限保持不变。"
+      "note": "飞书显式勾选单元格作为岗位职责证据；标准能力只默认包含所有选用岗位共同需要的原子权限，其余产品勾选转换为岗位正向增加。2026-08-06 补充端访问边界：门店岗位暂不开放管理后台，只在运营应用展开最终权限。"
     },
     "modelPath": [
       "平台能力",
@@ -1912,6 +1912,7 @@ code {
       "反复出现的岗位增加项应沉淀为更小的标准能力，并保持全局标准能力约 37 至 40 项。",
       "产品核对岗位勾选、是否需要独立原子化、最终原子码和原子权限岗位；菜单按钮唯一父能力由架构侧维护。",
       "前端隐藏不是安全边界，后端能力、原子动作和资源数据范围必须共同校验。",
+      "使用端登录资格先于岗位授权；门店岗位暂不开放管理后台，管理后台菜单、按钮和原子权限不授予。",
       "产品勾选是职责基线，旧菜单配置和代码注解只作技术整改证据。"
     ],
     "counts": {
@@ -48057,6 +48058,9 @@ code {
       "order": 3,
       "name": "门店店长+仓管理员",
       "category": "仓储履约",
+      "allowedSurfaces": [
+        "运营应用"
+      ],
       "responsibility": "同时负责绑定门店的经营管理与绑定仓库的库存、入出库和任务协同。",
       "capabilityCodes": [
         "system.store.manage",
@@ -48158,6 +48162,9 @@ code {
       "order": 4,
       "name": "门店作业员",
       "category": "门店经营",
+      "allowedSurfaces": [
+        "运营应用"
+      ],
       "responsibility": "执行绑定门店的订单、售后、采购及关联仓储作业，不管理门店主体和平台配置。",
       "capabilityCodes": [
         "fulfillment.wms.inbound.execute",
@@ -48437,6 +48444,9 @@ code {
       "order": 10,
       "name": "门店店长",
       "category": "门店经营",
+      "allowedSurfaces": [
+        "运营应用"
+      ],
       "responsibility": "负责绑定门店的订单、售后、采购、会员和日常经营管理，涉及仓作时叠加绑定仓库。",
       "capabilityCodes": [
         "system.store.manage",
@@ -48496,6 +48506,9 @@ code {
       "order": 11,
       "name": "门店员工",
       "category": "门店经营",
+      "allowedSurfaces": [
+        "运营应用"
+      ],
       "responsibility": "执行绑定门店的订单、售后、采购和会员服务等日常操作，不承担门店主体及系统配置。",
       "capabilityCodes": [
         "commerce.aftersale.manage",
@@ -48671,6 +48684,9 @@ code {
       "order": 15,
       "name": "门店采购",
       "category": "采购协同",
+      "allowedSurfaces": [
+        "运营应用"
+      ],
       "responsibility": "录入供应商、商品上下架、签合同、采购单、订单；业务边界待确认。",
       "capabilityCodes": [
         "commerce.procurement.manage",
@@ -48967,6 +48983,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   <script>const CONFIRMATION_STATUSES = new Set(["已确认", "待确认"]);
 const IMPLEMENTATION_STATUSES = new Set(["已存在", "待整改", "待补充"]);
 const CAPABILITY_REDLINE = 40;
+const DEFAULT_SURFACES = ["管理后台", "运营应用"];
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const nonEmpty = (value) => value != null && String(value).trim() !== "";
@@ -48986,6 +49003,10 @@ function uniqueBy(items, keyFn) {
 }
 
 const atomKey = (item) => item.code || item.id;
+
+function surfaceAllowed(role, item) {
+  return !item.surface || role.allowedSurfaces.includes(item.surface);
+}
 
 function atomKeysForCapabilities(model, capabilityCodes) {
   const selected = new Set(capabilityCodes);
@@ -49114,6 +49135,9 @@ function normalizeModel(input) {
   }
 
   for (const item of model.roles) {
+    item.allowedSurfaces = [...new Set(
+      Array.isArray(item.allowedSurfaces) ? item.allowedSurfaces : DEFAULT_SURFACES,
+    )];
     item.capabilityCodes = [...new Set(item.capabilityCodes || [])];
     const defaultKeys = atomKeysForCapabilities(model, item.capabilityCodes);
     const legacyEffective = legacyEffectiveByRole.get(item.id || item.name);
@@ -49138,6 +49162,16 @@ function normalizeModel(input) {
     delete item.excludedPendingAtomicPermissionIds;
     item.orgCapabilityCodes = deriveOrgCapabilityCodes(model, item.capabilityCodes);
     if (!CONFIRMATION_STATUSES.has(item.confirmationStatus)) item.confirmationStatus = "待确认";
+  }
+
+  const rolesByName = new Map(model.roles.map((role) => [role.name, role]));
+  for (const item of [...model.functions, ...model.atoms]) {
+    for (const [roleName, state] of Object.entries(item.roleChecks || {})) {
+      const role = rolesByName.get(roleName);
+      if (role && !surfaceAllowed(role, item) && state !== "unchecked") {
+        item.roleChecks[roleName] = "unchecked";
+      }
+    }
   }
   return model;
 }
@@ -49183,16 +49217,23 @@ function deriveRolePreview(input, roleIdOrName) {
   const capabilities = role.capabilityCodes
     .map((code) => model.capabilities.find((item) => item.code === code))
     .filter(Boolean);
-  const grantedRelations = model.functions.filter((item) => roleCapabilityCodes.has(item.capabilityCode));
+  const capabilityRelations = model.functions.filter((item) => roleCapabilityCodes.has(item.capabilityCode));
+  const grantedRelations = capabilityRelations.filter((item) => surfaceAllowed(role, item));
+  const surfaceBlockedFunctions = uniqueBy(
+    capabilityRelations.filter((item) => !surfaceAllowed(role, item)),
+    (item) => item.functionId,
+  );
   const functions = uniqueBy(grantedRelations, (item) => item.functionId);
   const defaultKeys = atomKeysForCapabilities(model, role.capabilityCodes);
   const defaultAtomMappings = model.atoms.filter((item) =>
-    (item.code && defaultKeys.codes.has(item.code)) || (!item.code && defaultKeys.pendingIds.has(item.id)),
+    surfaceAllowed(role, item) && (
+      (item.code && defaultKeys.codes.has(item.code)) || (!item.code && defaultKeys.pendingIds.has(item.id))
+    ),
   );
   const defaultAtoms = uniqueBy(defaultAtomMappings, (item) => item.code || item.id);
   const defaultAtomKeys = new Set(defaultAtoms.map(atomKey));
   const additionalAtomMappings = model.atoms.filter((item) =>
-    !defaultAtomKeys.has(atomKey(item)) && (
+    surfaceAllowed(role, item) && !defaultAtomKeys.has(atomKey(item)) && (
       (item.code && additionalAtomicPermissionCodes.has(item.code)) ||
       (!item.code && additionalPendingAtomicPermissionIds.has(item.id))
     ),
@@ -49200,8 +49241,32 @@ function deriveRolePreview(input, roleIdOrName) {
   const additionalAtoms = uniqueBy(additionalAtomMappings, (item) => item.code || item.id);
   const atoms = uniqueBy([...defaultAtoms, ...additionalAtoms], (item) => item.code || item.id);
   const effectiveKeys = new Set(atoms.map((item) => item.code || item.id));
-  const grantedAtomMappings = model.atoms.filter((item) => effectiveKeys.has(item.code || item.id));
-  const availableAtoms = uniqueBy(model.atoms, (item) => item.code || item.id);
+  const grantedAtomMappings = model.atoms.filter((item) =>
+    surfaceAllowed(role, item) && effectiveKeys.has(item.code || item.id),
+  );
+  const availableAtoms = uniqueBy(
+    model.atoms.filter((item) => surfaceAllowed(role, item)),
+    (item) => item.code || item.id,
+  );
+  const selectedKeysBeforeSurfaceGate = new Set([
+    ...defaultKeys.codes,
+    ...defaultKeys.pendingIds,
+    ...additionalAtomicPermissionCodes,
+    ...additionalPendingAtomicPermissionIds,
+  ]);
+  const allowedSelectedKeys = new Set(
+    model.atoms
+      .filter((item) => surfaceAllowed(role, item) && selectedKeysBeforeSurfaceGate.has(atomKey(item)))
+      .map(atomKey),
+  );
+  const surfaceBlockedAtoms = uniqueBy(
+    model.atoms.filter((item) =>
+      !surfaceAllowed(role, item) &&
+      selectedKeysBeforeSurfaceGate.has(atomKey(item)) &&
+      !allowedSelectedKeys.has(atomKey(item)),
+    ),
+    atomKey,
+  );
   const additionalKeys = new Set(additionalAtoms.map((item) => item.code || item.id));
   const atomSelections = uniqueBy([...defaultAtoms, ...additionalAtoms], (item) => item.code || item.id).map((atom) => {
     const key = atom.code || atom.id;
@@ -49262,6 +49327,8 @@ function deriveRolePreview(input, roleIdOrName) {
     productPendingFunctions,
     productMissingFunctions,
     productUncheckedGrantedFunctions,
+    surfaceBlockedFunctions,
+    surfaceBlockedAtoms,
     interfaceCount: grantedAtomMappings.reduce((sum, item) => sum + Number(item.backend?.interfaceCount || 0), 0),
     dataScope: role.dataScope,
   };
@@ -49393,6 +49460,20 @@ function validateModel(input) {
   }
 
   for (const role of model.roles) {
+    for (const surface of role.allowedSurfaces) {
+      if (!DEFAULT_SURFACES.includes(surface)) {
+        diagnostics.push(
+          diagnostic(
+            "error",
+            "ROLE_SURFACE_UNKNOWN",
+            "岗位引用了未知使用端",
+            `${role.name} 引用了 ${surface}，当前只支持 ${DEFAULT_SURFACES.join("、")}。`,
+            "role",
+            role.id,
+          ),
+        );
+      }
+    }
     for (const code of role.capabilityCodes) {
       if (!capabilityCodes.has(code)) {
         diagnostics.push(
@@ -49719,6 +49800,12 @@ function formatRoleCheck(state) {
   }[state] || "☐";
 }
 
+function roleSurfaceRule(role) {
+  return role.allowedSurfaces.includes("管理后台")
+    ? "按可登录端展开菜单、按钮和原子权限"
+    : "管理后台暂未开放；管理后台菜单、按钮和原子权限均不授权";
+}
+
 function buildSheetRows(model) {
   const roleNames = model.roles.map((item) => item.name);
   const capabilityNames = new Map(model.capabilities.map((item) => [item.code, item.name]));
@@ -49800,7 +49887,7 @@ function buildSheetRows(model) {
   ];
 
   const jobs = [
-    ["岗位序号", "岗位编号", "岗位名称", "岗位类别", "岗位职责", "标准能力清单", "能力默认原子权限", "岗位额外增加", "最终有效原子权限", "组织能力前置", "默认数据范围", "产品表勾选依据", "确认状态", "待确认说明"],
+    ["岗位序号", "岗位编号", "岗位名称", "岗位类别", "可登录端", "端访问说明", "岗位职责", "标准能力清单", "能力默认原子权限", "岗位额外增加", "最终有效原子权限", "组织能力前置", "默认数据范围", "产品表勾选依据", "确认状态", "待确认说明"],
     ...model.roles.map((role) => {
       const preview = deriveRolePreview(model, role.id);
       return [
@@ -49808,6 +49895,8 @@ function buildSheetRows(model) {
         role.id,
         role.name,
         role.category,
+        role.allowedSurfaces,
+        roleSurfaceRule(role),
         role.responsibility,
         role.capabilityCodes.map((code) => `${capabilityNames.get(code) || code}（${code}）`),
         preview.defaultAtoms.map((item) => item.code || `${item.id}（待补编码）`),
@@ -50004,6 +50093,8 @@ function buildMarkdown(input) {
     "",
     "最终原子权限 = 能力默认原子权限 ∪ 岗位额外增加。原子权限归属能力不代表默认授予；重复出现的岗位增加项可沉淀为更小的标准能力。",
     "",
+    "门店岗位暂不开放管理后台：即使岗位具备跨端复用的标准能力，管理后台菜单、按钮和原子权限也不会进入该岗位的最终授权。",
+    "",
     ...model.roles.flatMap((role) => {
       const preview = deriveRolePreview(model, role.id);
       const atomCodes = (items) => items.map((item) => item.code || `${item.id}（待补编码）`).join("、") || "无";
@@ -50011,6 +50102,8 @@ function buildMarkdown(input) {
         `### ${role.name}`,
         "",
         `- 岗位职责：${role.responsibility}`,
+        `- 可登录端：${role.allowedSurfaces.join("、") || "无"}`,
+        `- 端访问说明：${roleSurfaceRule(role)}`,
         `- 标准能力：${role.capabilityCodes.join("、") || "无"}`,
         `- 能力默认原子权限：${atomCodes(preview.defaultAtoms)}`,
         `- 岗位额外增加：${atomCodes(preview.additionalAtoms)}`,
@@ -50093,14 +50186,14 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
   <script>(() => {
   "use strict";
 
-  const STORAGE_KEY = "octopus.authz.designer.v3";
+  const STORAGE_KEY = "octopus.authz.designer.v4";
   const VIEW_COPY = {
     overview: ["架构总览", "从组织开通到岗位可操作数据", "产品勾选定义岗位职责；代码、按钮和接口映射用于识别技术整改差距。"],
     org: ["组织业务闸门", "组织能力 OrgCapability", "组织先开通业务类型，岗位才可使用对应标准能力；具体资源仍由 ResourceMember 限定。"],
     capabilities: ["岗位职责词汇", "标准能力", "能力边界稳定、编码受红线治理；能力详情直接维护菜单、原子技术权限和后端接口证据。"],
     atoms: ["技术执行契约", "原子技术权限", "稳定按钮与业务命令归入父能力，一个原子动作可以对应多个后端接口。"],
     functions: ["功能唯一归属", "菜单与按钮", "按使用端、菜单层级和页面展开；按钮收在所属菜单或页面下，便于逐层核对唯一父能力与接口。"],
-    roles: ["组织岗位职责", "岗位职责", "岗位获得所选能力的明确默认原子权限，并可正向增加原子权限；不使用高优先级排除。"],
+    roles: ["组织岗位职责", "岗位职责", "先按可登录端阻断无权进入的界面，再展开岗位能力的默认原子权限和正向增加项。"],
     diagnostics: ["上线治理", "整改检查", "业务确认与技术落地分开检查；本页结论不代表代码、数据库或运行时已经生效。"],
   };
 
@@ -50517,7 +50610,7 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
 
     refs.root.innerHTML = `<div class="workspace-grid workspace-grid--roles"><section class="panel role-list-panel"><div class="panel-head"><div><h3>岗位清单</h3><p>纵向选择岗位，在右侧完整核对职责、能力和技术权限。</p></div><span class="badge badge--info">${items.length} 个</span></div><div class="role-list">${items.map((item) => {
       const preview = deriveRolePreview(state.model, item.id);
-      return `<button type="button" class="role-card ${item.id === state.selectedRole ? "is-selected" : ""}" data-select-role="${item.id}"><span class="card-topline"><span class="badge badge--info">${escapeHtml(item.category)}</span>${confirmationBadge(item.confirmationStatus)}</span><strong class="role-card__name">${escapeHtml(item.name)}</strong><span class="role-card__copy">${escapeHtml(item.responsibility)}</span><span class="card-statline"><span class="mini-stat"><b>${item.capabilityCodes.length}</b><span>标准能力</span></span><span class="mini-stat"><b>${preview.atoms.length}</b><span>有效原子</span></span><span class="mini-stat"><b>${preview.additionalAtoms.length}</b><span>岗位增加</span></span></span></button>`;
+      return `<button type="button" class="role-card ${item.id === state.selectedRole ? "is-selected" : ""}" data-select-role="${item.id}"><span class="card-topline"><span class="badge badge--info">${escapeHtml(item.category)}</span>${confirmationBadge(item.confirmationStatus)}</span><strong class="role-card__name">${escapeHtml(item.name)}</strong><span class="role-card__copy">${escapeHtml(item.responsibility)}</span><span class="role-card__surfaces">可登录端：${escapeHtml(item.allowedSurfaces.join("、") || "无")}</span><span class="card-statline"><span class="mini-stat"><b>${item.capabilityCodes.length}</b><span>标准能力</span></span><span class="mini-stat"><b>${preview.atoms.length}</b><span>有效原子</span></span><span class="mini-stat"><b>${preview.additionalAtoms.length}</b><span>岗位增加</span></span></span></button>`;
     }).join("") || `<div class="empty-state">没有匹配的岗位。</div>`}</div></section>${current ? renderRoleDetail(current) : `<aside class="panel empty-state role-detail-panel">请选择岗位。</aside>`}</div>`;
   }
 
@@ -50542,7 +50635,11 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
     }).join("");
     const managedKeys = new Set(preview.atomSelections.map((selection) => selection.key));
     const extraCandidates = preview.availableAtoms.filter((atom) => !managedKeys.has(atom.code || atom.id));
-    return `<aside class="panel detail-panel role-detail-panel"><div class="detail-hero"><span class="eyebrow">${escapeHtml(role.category)} · 产品岗位</span><h3>${escapeHtml(role.name)}</h3>${confirmationBadge(role.confirmationStatus)}<p>${escapeHtml(role.responsibility)}</p></div><div class="key-value-grid" style="margin-top:14px"><div class="key-value"><span>能力默认原子权限</span><strong>${preview.defaultAtoms.length}</strong></div><div class="key-value"><span>岗位额外增加</span><strong>${preview.additionalAtoms.length}</strong></div><div class="key-value"><span>最终有效原子</span><strong>${preview.atoms.length}</strong></div></div><div class="notice" style="margin-top:14px">最终原子权限 = 所选标准能力的明确默认原子权限 ∪ 岗位额外增加。原子权限归属某能力不等于默认授予；经常重复的增加项，后续可沉淀为更小的标准能力。</div><div class="detail-section"><div class="detail-section__title"><span>岗位职责与数据范围</span><button class="button button--ghost button--small" type="button" data-edit-role="${role.id}">编辑说明</button></div><div class="notice">${escapeHtml(role.dataScope)}</div></div><div class="detail-section"><div class="detail-section__title"><span>组织能力前置（由所选标准能力自动推导）</span></div><div class="capability-check-grid">${state.model.orgCapabilities.map((item) => `<label class="org-capability-checkbox org-capability-checkbox--readonly"><input type="checkbox" data-role-derived-org="${role.id}" value="${item.code}"${checked(preview.orgCapabilityCodes.includes(item.code))} disabled><span><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.code)}</small></span></label>`).join("")}</div></div><div class="detail-section"><div class="detail-section__title"><span>标准能力（只带入明确默认原子权限）</span><b>${role.capabilityCodes.length}</b></div>${Object.entries(byDomain).map(([domain, capabilities]) => `<p class="eyebrow" style="margin-top:13px">${escapeHtml(domain)}</p><div class="capability-check-grid">${capabilities.map((item) => `<label class="role-capability-checkbox"><input type="checkbox" data-role-capability-checkbox="${role.id}" value="${item.code}"${checked(role.capabilityCodes.includes(item.code))}><span><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.code)} · 默认原子 ${(item.defaultAtomicPermissionCodes.length + item.defaultPendingAtomicPermissionIds.length)} 项</small></span></label>`).join("")}</div>`).join("")}</div><div class="detail-section"><div class="detail-section__title"><span>岗位原子权限（统一勾选）</span><b>${preview.atoms.length}</b></div><div class="notice">能力默认项以锁定勾选展示，需要修改时回到标准能力定义统一调整；岗位增加项可在这里补充或移除。</div><label class="form-field atom-add-field"><span>岗位额外增加原子权限</span><select data-role-extra-atom-select="${role.id}"${extraCandidates.length ? "" : " disabled"}><option value="">${extraCandidates.length ? "请选择要增加的原子权限" : "没有可增加的原子权限"}</option>${extraCandidates.map((atom) => `<option value="${escapeAttribute(atom.code || atom.id)}" data-atom-kind="${atom.code ? "code" : "pending"}">${escapeHtml(atom.operation || atom.sourceAction || atom.code || atom.id)} · ${escapeHtml(atom.code || atom.id)}</option>`).join("")}</select></label>${atomSections || `<div class="empty-state">选择标准能力或增加原子权限后，这里会显示岗位的最终原子权限。</div>`}</div><div class="detail-section"><div class="detail-section__title"><span>产品勾选吻合检查</span></div>${preview.productMissingFunctions.length ? `<div class="notice notice--danger">有 ${preview.productMissingFunctions.length} 个产品已勾选功能没有被当前能力组合覆盖。</div>` : `<div class="notice">产品已勾选功能均被当前能力组合覆盖。</div>`}${preview.productMissingAtoms.length ? `<div class="notice notice--danger" style="margin-top:8px">有 ${preview.productMissingAtoms.length} 个产品已勾选原子动作没有进入最终有效权限。</div>` : `<div class="notice" style="margin-top:8px">产品已勾选原子动作均已进入最终有效权限。</div>`}</div></aside>`;
+    const adminBlocked = !role.allowedSurfaces.includes("管理后台");
+    const surfaceNotice = adminBlocked
+      ? `<div class="notice notice--warning" style="margin-top:14px"><strong>管理后台暂未开放。</strong>该岗位不授予任何 Admin 菜单、页面、按钮和原子权限；当前已按端边界阻断 ${preview.surfaceBlockedFunctions.length} 个功能、${preview.surfaceBlockedAtoms.length} 个原子权限。</div>`
+      : `<div class="notice" style="margin-top:14px">岗位权限只在下列可登录端展开，未开放端不产生菜单、按钮和原子授权。</div>`;
+    return `<aside class="panel detail-panel role-detail-panel"><div class="detail-hero"><span class="eyebrow">${escapeHtml(role.category)} · 产品岗位</span><h3>${escapeHtml(role.name)}</h3>${confirmationBadge(role.confirmationStatus)}<p>${escapeHtml(role.responsibility)}</p></div><div class="detail-section"><div class="detail-section__title"><span>可登录端（授权前置）</span></div><div class="chip-row">${role.allowedSurfaces.map((surface) => `<span class="chip" data-role-allowed-surface="${role.id}" data-surface="${escapeAttribute(surface)}">${escapeHtml(surface)}</span>`).join("") || `<span class="muted">未开放任何使用端</span>`}</div>${surfaceNotice}</div><div class="key-value-grid" style="margin-top:14px"><div class="key-value"><span>能力默认原子权限</span><strong>${preview.defaultAtoms.length}</strong></div><div class="key-value"><span>岗位额外增加</span><strong>${preview.additionalAtoms.length}</strong></div><div class="key-value"><span>最终有效原子</span><strong>${preview.atoms.length}</strong></div></div><div class="notice" style="margin-top:14px">最终原子权限 = 可登录端内所选标准能力的明确默认原子权限 ∪ 岗位额外增加。原子权限归属某能力不等于默认授予。</div><div class="detail-section"><div class="detail-section__title"><span>岗位职责与数据范围</span><button class="button button--ghost button--small" type="button" data-edit-role="${role.id}">编辑说明</button></div><div class="notice">${escapeHtml(role.dataScope)}</div></div><div class="detail-section"><div class="detail-section__title"><span>组织能力前置（由所选标准能力自动推导）</span></div><div class="capability-check-grid">${state.model.orgCapabilities.map((item) => `<label class="org-capability-checkbox org-capability-checkbox--readonly"><input type="checkbox" data-role-derived-org="${role.id}" value="${item.code}"${checked(preview.orgCapabilityCodes.includes(item.code))} disabled><span><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.code)}</small></span></label>`).join("")}</div></div><div class="detail-section"><div class="detail-section__title"><span>标准能力（只带入可登录端内的默认原子权限）</span><b>${role.capabilityCodes.length}</b></div>${Object.entries(byDomain).map(([domain, capabilities]) => `<p class="eyebrow" style="margin-top:13px">${escapeHtml(domain)}</p><div class="capability-check-grid">${capabilities.map((item) => `<label class="role-capability-checkbox"><input type="checkbox" data-role-capability-checkbox="${role.id}" value="${item.code}"${checked(role.capabilityCodes.includes(item.code))}><span><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.code)} · 默认原子 ${(item.defaultAtomicPermissionCodes.length + item.defaultPendingAtomicPermissionIds.length)} 项</small></span></label>`).join("")}</div>`).join("")}</div><div class="detail-section"><div class="detail-section__title"><span>岗位原子权限（统一勾选）</span><b>${preview.atoms.length}</b></div><div class="notice">能力默认项以锁定勾选展示，需要修改时回到标准能力定义统一调整；岗位增加项只能从可登录端的原子权限中选择。</div><label class="form-field atom-add-field"><span>岗位额外增加原子权限</span><select data-role-extra-atom-select="${role.id}"${extraCandidates.length ? "" : " disabled"}><option value="">${extraCandidates.length ? "请选择要增加的原子权限" : "没有可增加的原子权限"}</option>${extraCandidates.map((atom) => `<option value="${escapeAttribute(atom.code || atom.id)}" data-atom-kind="${atom.code ? "code" : "pending"}" data-atom-surface="${escapeAttribute(atom.surface || "通用")}">${escapeHtml(atom.operation || atom.sourceAction || atom.code || atom.id)} · ${escapeHtml(atom.code || atom.id)}</option>`).join("")}</select></label>${atomSections || `<div class="empty-state">选择标准能力或增加原子权限后，这里会显示岗位的最终原子权限。</div>`}</div><div class="detail-section"><div class="detail-section__title"><span>产品勾选吻合检查</span></div>${preview.productMissingFunctions.length ? `<div class="notice notice--danger">有 ${preview.productMissingFunctions.length} 个产品已勾选功能没有被当前能力组合覆盖。</div>` : `<div class="notice">可登录端内的产品已勾选功能均被当前能力组合覆盖。</div>`}${preview.productMissingAtoms.length ? `<div class="notice notice--danger" style="margin-top:8px">有 ${preview.productMissingAtoms.length} 个产品已勾选原子动作没有进入最终有效权限。</div>` : `<div class="notice" style="margin-top:8px">可登录端内的产品已勾选原子动作均已进入最终有效权限。</div>`}</div></aside>`;
   }
 
   function renderDiagnostics() {
@@ -50624,7 +50721,8 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
 
   function buildRoleEditor(id) {
     const item = state.model.roles.find((entry) => entry.id === id);
-    return { kicker: "编辑岗位职责", title: item.name, body: `<div class="notice" style="margin-bottom:16px">岗位名称来自产品最终角色列。标准能力在岗位详情直接勾选，本窗口只维护职责、确认状态和数据范围。</div><div class="form-grid"><label class="form-field"><span>岗位编号</span><input name="id" value="${escapeAttribute(item.id)}" readonly></label><label class="form-field"><span>确认状态</span><select name="confirmationStatus"><option${selected(item.confirmationStatus === "已确认")}>已确认</option><option${selected(item.confirmationStatus === "待确认")}>待确认</option></select></label><label class="form-field form-field--full"><span>岗位职责</span><textarea name="responsibility" required>${escapeHtml(item.responsibility)}</textarea></label><label class="form-field form-field--full"><span>默认数据范围</span><textarea name="dataScope" required>${escapeHtml(item.dataScope)}</textarea></label><label class="form-field form-field--full"><span>待确认说明</span><textarea name="pendingReason">${escapeHtml(item.pendingReason)}</textarea></label></div>` };
+    const surfaces = ["管理后台", "运营应用"].map((surface) => ({ code: surface, name: surface }));
+    return { kicker: "编辑岗位职责", title: item.name, body: `<div class="notice" style="margin-bottom:16px">使用端登录资格先于标准能力和原子权限。未开放的使用端不会为该岗位生成菜单、按钮和原子授权。</div><div class="form-grid"><label class="form-field"><span>岗位编号</span><input name="id" value="${escapeAttribute(item.id)}" readonly></label><label class="form-field"><span>确认状态</span><select name="confirmationStatus"><option${selected(item.confirmationStatus === "已确认")}>已确认</option><option${selected(item.confirmationStatus === "待确认")}>待确认</option></select></label><div class="form-field form-field--full"><span>可登录端</span>${checkboxGroup("allowedSurfaces", surfaces, item.allowedSurfaces)}</div><label class="form-field form-field--full"><span>岗位职责</span><textarea name="responsibility" required>${escapeHtml(item.responsibility)}</textarea></label><label class="form-field form-field--full"><span>默认数据范围</span><textarea name="dataScope" required>${escapeHtml(item.dataScope)}</textarea></label><label class="form-field form-field--full"><span>待确认说明</span><textarea name="pendingReason">${escapeHtml(item.pendingReason)}</textarea></label></div>` };
   }
 
   function buildFunctionEditor(id) {
@@ -50635,6 +50733,7 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
   function formValues(form) {
     const values = Object.fromEntries(new FormData(form).entries());
     values.orgCapabilityCodes = [...form.querySelectorAll('[name="orgCapabilityCodes"]:checked')].map((item) => item.value);
+    values.allowedSurfaces = [...form.querySelectorAll('[name="allowedSurfaces"]:checked')].map((item) => item.value);
     values.parentCapabilityCodes = values.parentCapabilityCode ? [values.parentCapabilityCode] : [];
     return values;
   }
@@ -50651,8 +50750,9 @@ async function parseDesignerXlsx(input, ZipCtor = globalThis.JSZip) {
       Object.assign(item, { name: values.name.trim(), domain: values.domain.trim(), boundary: values.boundary.trim(), confirmationStatus: values.confirmationStatus, implementationStatus: values.implementationStatus, active: values.active === "true", orgCapabilityCodes: values.orgCapabilityCodes });
     }
     if (type === "role") {
+      if (!values.allowedSurfaces.length) throw new Error("岗位至少需要开放一个使用端。");
       const item = state.model.roles.find((entry) => entry.id === id);
-      Object.assign(item, { responsibility: values.responsibility.trim(), dataScope: values.dataScope.trim(), pendingReason: values.pendingReason.trim(), confirmationStatus: values.confirmationStatus });
+      Object.assign(item, { allowedSurfaces: values.allowedSurfaces, responsibility: values.responsibility.trim(), dataScope: values.dataScope.trim(), pendingReason: values.pendingReason.trim(), confirmationStatus: values.confirmationStatus });
     }
     if (type === "function") {
       const item = state.model.functions.find((entry) => entry.relationId === id);
