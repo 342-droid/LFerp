@@ -1,10 +1,59 @@
 {
-  "latestSha": "183dce7224ded93d398312ece45a6954b0c8cadc",
-  "total": 233,
+  "latestSha": "f35cce006812be953ea37ed928800a89e77aeedf",
+  "total": 234,
   "days": [
     {
       "date": "2026-08-06",
       "items": [
+        {
+          "sha": "f35cce0",
+          "type": "feat",
+          "text": "进货混合支付在成功页与订单详情透出明细",
+          "author": "sisi",
+          "time": "13:56",
+          "pages": [
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-order-confirm.html",
+              "module": "",
+              "title": "确认兑换 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/checkout.html",
+              "text": "支付成功页总额下小字展示各支付方式及金额；支付方式选择去掉副文案提示"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "混合支付时支付方式显示钱包余额/微信等名称，实付金额下标注对应金额"
+            }
+          ]
+        },
         {
           "sha": "183dce7",
           "type": "feat",
@@ -2914,6 +2963,11 @@
               "title": "每日签到 · 用户 APP"
             },
             {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/goods-detail.html",
               "module": "",
               "title": "商品详情 · 用户 APP"
@@ -3139,7 +3193,7 @@
               "text": "支持按供应商分组，积分商品与普通商品可合并结算并展示积分兑换标签"
             },
             {
-              "file": "user-app/h5/order-confirm.html",
+              "file": "user-app/h5/checkout.html",
               "text": "提交后生成待支付订单并唤起支付，支付成功进入待发货"
             },
             {

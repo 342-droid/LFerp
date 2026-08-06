@@ -3515,6 +3515,36 @@
     "status": "diff",
     "date": "2026-08-03"
   },
+  "f35cce0|user-app/h5/checkout.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
+  "f35cce0|user-app/h5/order-confirm.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
+  "f35cce0|user-app/h5/order-detail-pickup.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
+  "f35cce0|user-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
+  "f35cce0|user-app/h5/orders.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
+  "f35cce0|user-app/h5/points-order-confirm.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-06"
+  },
   "f678bbd|user-app/h5/order-detail.html": {
     "regions": 0,
     "status": "diff",
