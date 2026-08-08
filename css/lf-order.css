@@ -1812,13 +1812,28 @@ body[data-order-page="retail"] .order-live-table__action:hover {
   color: #303133;
 }
 
+.order-clearing-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .order-clearing-table {
   width: 100%;
+  min-width: 1080px;
   border-collapse: collapse;
   table-layout: fixed;
   font-size: 12px;
   color: #303133;
 }
+
+.order-clearing-table__col--payee { width: 200px; }
+.order-clearing-table__col--account { width: 110px; }
+.order-clearing-table__col--method { width: 100px; }
+.order-clearing-table__col--strategy { width: 190px; }
+.order-clearing-table__col--amount { width: 84px; }
+.order-clearing-table__col--status { width: 150px; }
+.order-clearing-table__col--book { width: 100px; }
 
 .order-clearing-table th,
 .order-clearing-table td {
@@ -1826,7 +1841,7 @@ body[data-order-page="retail"] .order-live-table__action:hover {
   border-bottom: 1px solid #ebeef5;
   text-align: left;
   vertical-align: middle;
-  word-break: break-all;
+  overflow: hidden;
 }
 
 .order-clearing-table thead th {
@@ -1841,18 +1856,11 @@ body[data-order-page="retail"] .order-live-table__action:hover {
   border-bottom: 1px solid #ebeef5;
 }
 
-.order-clearing-table__th--payee {
-  width: 22%;
-}
-
-.order-clearing-table__th--account {
-  width: 12%;
-}
-
 .order-clearing-payee__name {
   font-weight: 500;
   color: #303133;
   line-height: 1.4;
+  word-break: break-all;
 }
 
 .order-clearing-payee__meta {
@@ -1879,20 +1887,36 @@ body[data-order-page="retail"] .order-live-table__action:hover {
   color: #909399;
 }
 
-.order-clearing-table__td--strategy,
-.order-clearing-table__td--status {
+.order-clearing-table__td--account,
+.order-clearing-table__td--method,
+.order-clearing-table__td--amount {
   white-space: nowrap;
 }
 
-.order-clearing-table__td--strategy .order-clearing-tag,
+.order-clearing-table__td--amount {
+  font-variant-numeric: tabular-nums;
+}
+
+.order-clearing-strategy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+}
+
+.order-clearing-table__td--status {
+  white-space: normal;
+}
+
 .order-clearing-table__td--status .order-clearing-tag {
-  margin-right: 4px;
-  margin-bottom: 2px;
+  margin: 0 4px 2px 0;
 }
 
 .order-clearing-tag {
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
   height: 20px;
   padding: 0 6px;
   border-radius: 3px;
@@ -1900,6 +1924,7 @@ body[data-order-page="retail"] .order-live-table__action:hover {
   line-height: 1;
   box-sizing: border-box;
   vertical-align: middle;
+  white-space: nowrap;
 }
 
 .order-clearing-tag--success {

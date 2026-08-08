@@ -52,8 +52,8 @@
   /**
    * 账变类型 / 状态：与 MDM 门店档案·账变记录枚举对齐
    * 收入：首次充值、保证金入账、佣金结算、充值、提现回退
-   * 支出：提现、售后赔付、保证金出账
-   * 售后赔付：仅从余额账户或保证金账户出账
+   * 支出：提现、售后赔付、保证金出账、佣金回退
+   * 零售售后赔付 / 佣金回退 / 保证金出账：不扣货款，可扣=总额−货款（可提款+待解冻）
    * 划拨（C 端 Tab「锁定/补齐」）：保证金补缴
    * 状态：成功、处理中、失败（提现一经发起不可撤销，无已撤销）
    */
@@ -348,11 +348,18 @@
     return '';
   }
 
-  function accountLabel(account) {
+  function accountLabel(account, subAccount) {
     var a = String(account || '');
+    var sub = String(subAccount || '');
     if (a.indexOf('保证金') >= 0 && a.indexOf('余额') >= 0) return '保证金账户/余额账户';
     if (a.indexOf('保证金') >= 0) return '保证金账户';
-    if (a.indexOf('余额') >= 0) return '余额账户';
+    if (a.indexOf('余额') >= 0) {
+      if (sub.indexOf('货款') >= 0) return '余额账户-货款';
+      if (sub.indexOf('可提现') >= 0 || sub.indexOf('待解冻') >= 0) {
+        return '余额账户（不含货款）';
+      }
+      return '余额账户';
+    }
     return a || '—';
   }
 
@@ -513,7 +520,7 @@
           '</span></div>' +
           '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">账户</span>' +
           '<span class="ua-sw-ledger__v">' +
-          escHtml(accountLabel(item.account)) +
+          escHtml(accountLabel(item.account, item.subAccount)) +
           '</span></div>' +
           '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">' +
           (isWithdrawLedger(item) ? '提现银行' : '支付方式') +
@@ -590,26 +597,27 @@
         lead: '入驻锁定资金，保障履约与售后责任，不可提现。',
         points: [
           '入驻时锁定，不支持提现',
-          '售后赔付可从保证金账户出账，可能形成缺口',
-          '存在缺口时，后续入账优先补齐保证金'
+          '存在缺口时，后续入账优先补齐保证金',
+          '「保证金出账」从余额账户（不含货款）扣减，余额账户不足情况下扣保证金本金'
         ]
       },
       balance: {
         title: '余额账户说明',
-        lead: '用于进货支付；提现仅限已满 T+1 的可提款。',
+        lead: '',
         points: [
-          '可提款：已满 T+1，可提现至汇付对公账户',
-          '入账未满 T+1 的金额不可提现（可支付进货）',
-          '货款：不可提现，进货时优先扣减'
+          '货款：不可提现，仅用于门店进货支付。',
+          '可提款：余额账户中已满足 T+1 解冻规则的资金，可提现至汇付对公账户（不包含货款）。',
+          '待解冻：入账未满 T+1 的资金，不可提现，可用于门店进货支付。',
+          '售后赔付 / 佣金回退 / 保证金出账等：不扣货款，可扣 = 余额账户中余额 − 货款（可提款 + 待解冻）'
         ]
       },
       goods: {
         title: '货款说明',
-        lead: '货款不可提现，用于保障进货周转。',
+        lead: '货款：不可提现，仅用于门店进货支付。',
         points: [
-          '首次充值划入的货款额度，不支持提现',
-          '进货支付时优先扣减货款；相关退款可恢复货款水位',
-          '可提现部分请查看上方「可提款」金额'
+          '不支持提现，仅用于门店进货支付',
+          '售后赔付、佣金回退、保证金出账等扣款场景不扣减货款',
+          '可提现部分请查看上方「可提款金额」'
         ]
       }
     };
@@ -627,9 +635,10 @@
       if (!conf || !sheet || !titleEl || !bodyEl) return;
       titleEl.textContent = conf.title;
       bodyEl.innerHTML =
-        '<p class="ua-sw-sheet__lead">' +
-        conf.lead +
-        '</p><ul class="ua-sw-sheet__list">' +
+        (conf.lead
+          ? '<p class="ua-sw-sheet__lead">' + conf.lead + '</p>'
+          : '') +
+        '<ul class="ua-sw-sheet__list">' +
         conf.points
           .map(function (p) {
             return '<li>' + p + '</li>';

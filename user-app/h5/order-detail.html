@@ -6,7 +6,7 @@
   <title>订单详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
-  <link rel="stylesheet" href="../css/user-app-order-detail.css?v=20260806-paylegs">
+  <link rel="stylesheet" href="../css/user-app-order-detail.css?v=20260808-pay-legs-toggle">
   <link rel="stylesheet" href="../css/user-app-order-refund.css">
 </head>
 <body class="user-app-body">
@@ -217,8 +217,13 @@
           <div class="ua-od-price__row ua-od-price__row--total">
             <span>实付金额</span>
             <span class="ua-od-price__total-wrap">
-              <span id="orderPayTotal">36元</span>
-              <span class="ua-od-price__pay-legs" id="orderPayLegs" hidden></span>
+              <span class="ua-od-price__total-line">
+                <span id="orderPayTotal">36元</span>
+                <button type="button" class="ua-od-pay-legs-toggle" id="orderPayLegsToggle" hidden aria-expanded="false" aria-label="展开支付明细">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+              </span>
+              <div class="ua-od-price__pay-legs" id="orderPayLegs" hidden></div>
             </span>
           </div>
         </section>
@@ -275,8 +280,8 @@
   <script src="../../js/mdm-supplier-archive-store.js"></script>
   <script src="../../js/mdm-marketing-points-mall-config.js"></script>
   <script src="../js/user-app-orders-store.js?v=20260806-paylegs"></script>
-  <script src="../js/user-app-order-refund.js?v=20260730-qty-pool"></script>
-  <script src="../js/user-app-order-detail.js?v=20260806-paylegs"></script>
+  <script src="../js/user-app-order-refund.js?v=20260808-keep-orderno"></script>
+  <script src="../js/user-app-order-detail.js?v=20260808-keep-orderno"></script>
   <script src="../js/user-app-auth.js"></script>
 </body>
 </html>
