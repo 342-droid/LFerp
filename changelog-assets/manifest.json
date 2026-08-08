@@ -3057,6 +3057,301 @@
     "status": "diff",
     "date": "2026-07-27"
   },
+  "e888993|MDM/mdm_marketing_cash_redpack.html": {
+    "after": "changelog-assets/e888993/MDM__mdm_marketing_cash_redpack.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_marketing_consume_points.html": {
+    "before": "changelog-assets/e888993/MDM__mdm_marketing_consume_points.html.before.jpg",
+    "after": "changelog-assets/e888993/MDM__mdm_marketing_consume_points.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_marketing_newcomer_zone.html": {
+    "after": "changelog-assets/e888993/MDM__mdm_marketing_newcomer_zone.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_marketing_newcomer_zone_form.html": {
+    "after": "changelog-assets/e888993/MDM__mdm_marketing_newcomer_zone_form.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_marketing_points.html": {
+    "before": "changelog-assets/e888993/MDM__mdm_marketing_points.html.before.jpg",
+    "after": "changelog-assets/e888993/MDM__mdm_marketing_points.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_marketing_points_home.html": {
+    "before": "changelog-assets/e888993/MDM__mdm_marketing_points_home.html.before.jpg",
+    "after": "changelog-assets/e888993/MDM__mdm_marketing_points_home.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_marketing_points_mall.html": {
+    "before": "changelog-assets/e888993/MDM__mdm_marketing_points_mall.html.before.jpg",
+    "after": "changelog-assets/e888993/MDM__mdm_marketing_points_mall.html.after.jpg",
+    "regions": 6,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_marketing_points_mall_form.html": {
+    "before": "changelog-assets/e888993/MDM__mdm_marketing_points_mall_form.html.before.jpg",
+    "after": "changelog-assets/e888993/MDM__mdm_marketing_points_mall_form.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_marketing_points_rule_desc.html": {
+    "before": "changelog-assets/e888993/MDM__mdm_marketing_points_rule_desc.html.before.jpg",
+    "after": "changelog-assets/e888993/MDM__mdm_marketing_points_rule_desc.html.after.jpg",
+    "regions": 5,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_marketing_register_gift.html": {
+    "after": "changelog-assets/e888993/MDM__mdm_marketing_register_gift.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_marketing_register_gift_form.html": {
+    "after": "changelog-assets/e888993/MDM__mdm_marketing_register_gift_form.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_member_batch_tag.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_member_batch_tag_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_member_batch_tag_members.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_member_c.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_member_level.html": {
+    "before": "changelog-assets/e888993/MDM__mdm_member_level.html.before.jpg",
+    "after": "changelog-assets/e888993/MDM__mdm_member_level.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_member_level_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_member_level_growth.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_member_level_rule.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_member_points_detail.html": {
+    "before": "changelog-assets/e888993/MDM__mdm_member_points_detail.html.before.jpg",
+    "after": "changelog-assets/e888993/MDM__mdm_member_points_detail.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_member_points_rule.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_member_segment.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_member_segment_members.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|MDM/mdm_member_tag.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/account-cancel.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/cart.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/category.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/change-password.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/goods-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/growth-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/growth-rule-desc.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/home.html": {
+    "before": "changelog-assets/e888993/user-app__h5__home.html.before.jpg",
+    "after": "changelog-assets/e888993/user-app__h5__home.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/live-room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/login-phone.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/login-wechat.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/login.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/mall.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/member-center.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/newcomer-zone.html": {
+    "after": "changelog-assets/e888993/user-app__h5__newcomer-zone.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/order-confirm.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/order-detail-pickup.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/order-logistics.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/orders.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/points-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/points-mall.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/points-order-confirm.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/points-product-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/points-rule-desc.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/profile-edit.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/profile.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/redpack-claim.html": {
+    "after": "changelog-assets/e888993/user-app__h5__redpack-claim.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/redpack-records.html": {
+    "after": "changelog-assets/e888993/user-app__h5__redpack-records.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/settings-more.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "e888993|user-app/h5/settings.html": {
+    "before": "changelog-assets/e888993/user-app__h5__settings.html.before.jpg",
+    "after": "changelog-assets/e888993/user-app__h5__settings.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
   "f092c9d|SCM/purchase_return_order.html": {
     "before": "changelog-assets/f092c9d/SCM__purchase_return_order.html.before.jpg",
     "after": "changelog-assets/f092c9d/SCM__purchase_return_order.html.after.jpg",
