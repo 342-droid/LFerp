@@ -416,7 +416,7 @@
       '          </colgroup>' +
       '          <thead><tr>' + specThs +
       '            <th class="product-add-spec-table__th product-add-spec-table__th--sku"><span class="product-add-field__req">*</span>SKU图片</th>' +
-      '            <th class="product-add-spec-table__th product-add-spec-table__th--price"><span class="product-add-field__req">*</span>商品标准采购价</th>' +
+      '            <th class="product-add-spec-table__th product-add-spec-table__th--price"><span class="product-add-field__req">*</span>采购价/基础单位</th>' +
       '            <th class="product-add-spec-table__th product-add-spec-table__th--barcode"><span class="product-add-field__req">*</span>商品条形码</th>' +
       '            <th class="product-add-spec-table__th product-add-spec-table__th--dim">长(cm)</th>' +
       '            <th class="product-add-spec-table__th product-add-spec-table__th--dim">宽(cm)</th>' +
