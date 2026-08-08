@@ -1,0 +1,32 @@
+/**
+ * B 端业务提示框（页面级 / 区块级说明）
+ * 对齐成长值规则「升降级策略」提示样式。
+ * 用法：引入本文件后使用 class="mdm-biz-tip"
+ * 强调文案用 <strong>…</strong>
+ */
+
+.mdm-biz-tip {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  background: #fff7f0;
+  border: 1px solid #ffe0c2;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.7;
+  box-sizing: border-box;
+}
+
+.mdm-biz-tip > * + * {
+  margin-top: 0;
+}
+
+.mdm-biz-tip strong {
+  color: #ff7019;
+  font-weight: 600;
+}
+
+/* 放在卡片标题正下方时，可去掉默认底边距，由卡片自身控制间距 */
+.mdm-biz-tip--flush {
+  margin-bottom: 0;
+}

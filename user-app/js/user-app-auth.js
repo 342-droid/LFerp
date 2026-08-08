@@ -6,6 +6,7 @@
   var SMS_COOLDOWN = 60;
   var APP_PAGES = [
     'profile.html',
+    'home.html',
     'orders.html',
     'order-detail-shipping.html',
     'order-detail-pickup.html',
@@ -193,6 +194,11 @@
 
   function redirectAfterAuth(session) {
     var next = resolveNextPage();
+    var params = new URLSearchParams(window.location.search);
+    /* 注册有礼：登录成功后带回发放标记 */
+    if (params.get('rg') === '1' && String(next).indexOf('rg=') < 0) {
+      next += (next.indexOf('?') >= 0 ? '&' : '?') + 'rg=1';
+    }
     var data = session || readSession();
     if (data) {
       var sep = next.indexOf('?') >= 0 ? '&' : '?';

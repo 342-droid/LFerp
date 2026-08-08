@@ -1,20 +1,19 @@
 /**
- * 营销-积分商城商品池（独立于选品库）
+ * 营销-新人专区商品池（独立于选品库）
  *
  * 关系约定：
  * - 选品库（MdmProductCatalog）= 商品原始主数据，只读引用
- * - 积分商城本 store = 从选品库挑选后，叠加积分兑换属性后的商品池
+ * - 新人专区本 store = 从选品库挑选后，叠加活动价等属性后的商品池
  * - 唯一键：商品编码 code（即 goodsId），与选品库一一对应，禁止重复添加
  * - 本模块只读选品库，绝不回写/改写选品库主数据
  */
 (function () {
-  var STORAGE_KEY = 'mdm_marketing_points_mall_v12';
+  var STORAGE_KEY = 'mdm_marketing_newcomer_zone_v1';
 
-  function makeSpecs(code, basePrice, points, money, count, enabledCount, img) {
+  function makeSpecs(code, basePrice, salePrice, count, enabledCount, img) {
     var names = ['默认', '500g', '1kg', '2.5kg'];
     var n = Math.max(1, count || 1);
     var enableN = enabledCount == null ? n : Math.max(1, Math.min(n, enabledCount));
-    var exchangeType = money > 0 ? 'points_money' : 'points';
     var fallbackImg = img || '../user-app/assets/restock/product-leaf.svg';
     var list = [];
     for (var i = 0; i < n; i++) {
@@ -26,13 +25,10 @@
         purchasePrice: Math.round((basePrice + i * 0.5) * 100) / 100,
         linePrice: Math.round((basePrice + i * 0.5 + 2) * 100) / 100,
         stock: 80 + i * 15,
-        /* 起售量：每 SKU 独立，默认 1，演示数据略作区分 */
         minSaleQty: i === 0 ? 1 : Math.min(3, i + 1),
-        exchangeEnabled: enabled,
-        exchangeType: exchangeType,
-        points: enabled ? points + i * 10 : 0,
-        money: enabled && money > 0 ? Math.round((money + i * 0.5) * 100) / 100 : 0,
-        exchangedQty: enabled ? Math.max(0, 12 - i * 2) : 0
+        saleEnabled: enabled,
+        salePrice: enabled ? Math.round((salePrice + i * 0.5) * 100) / 100 : 0,
+        soldQty: enabled ? Math.max(0, 12 - i * 2) : 0
       });
     }
     return list;
@@ -48,12 +44,11 @@
   var SEED = [
     {
       code: 'SPU00103',
-      name: 'ss积分加现金',
+      name: '新人尝鲜菜心',
       img: '../user-app/assets/restock/product-leaf.svg',
       category: '新鲜蔬菜',
       status: 'on_shelf',
       deliveryMode: 'express',
-      exchangeType: 'points_money',
       supplierId: '冷丰优选供应链',
       supplierName: '冷丰优选供应链',
       memberLevelIds: [],
@@ -61,7 +56,7 @@
       limitPerOrder: 2,
       limitPerDay: null,
       limitTotal: null,
-      specs: makeSpecs('SPU00103', 10, 100, 1, 2, 2, '../user-app/assets/restock/product-leaf.svg')
+      specs: makeSpecs('SPU00103', 10, 1.99, 2, 2, '../user-app/assets/restock/product-leaf.svg')
     },
     {
       code: 'SPU00090',
@@ -72,9 +67,6 @@
       scheduleOnAt: '2026-07-20T08:00',
       scheduleOffAt: '2026-08-31T23:59',
       deliveryMode: 'platform',
-      exchangeType: 'points',
-      saleScope: 'region',
-      saleRegionSummary: ['广东省', '浙江省'],
       supplierId: '斯斯供应商商家',
       supplierName: '斯斯供应商商家',
       memberLevelIds: [],
@@ -82,7 +74,7 @@
       limitPerOrder: 1,
       limitPerDay: null,
       limitTotal: null,
-      specs: makeSpecs('SPU00090', 32, 500, 0, 1, 1, '../user-app/assets/restock/category-icon-grain.svg')
+      specs: makeSpecs('SPU00090', 32, 19.9, 1, 1, '../user-app/assets/restock/category-icon-grain.svg')
     },
     {
       code: 'SPU00085',
@@ -91,15 +83,12 @@
       category: '新鲜蔬菜',
       status: 'off_shelf',
       deliveryMode: 'platform',
-      exchangeType: 'points',
-      saleScope: 'store',
-      saleStores: { ST10001: 1, ST10002: 1, ST10003: 1 },
-      memberLevelIds: ['ML10002', 'ML10001'],
+      memberLevelIds: [],
       limitType: 'day',
       limitPerOrder: null,
       limitPerDay: 3,
       limitTotal: null,
-      specs: makeSpecs('SPU00085', 3.5, 80, 0, 3, 2, '../user-app/assets/restock/product-eggplant-round.svg')
+      specs: makeSpecs('SPU00085', 3.5, 0.99, 3, 2, '../user-app/assets/restock/product-eggplant-round.svg')
     },
     {
       code: 'SPU00078',
@@ -108,8 +97,6 @@
       category: '新鲜蔬菜',
       status: 'on_shelf',
       deliveryMode: 'express',
-      exchangeType: 'points_money',
-      saleScope: 'all',
       supplierId: '斯斯供应商商家',
       supplierName: '斯斯供应商商家',
       memberLevelIds: [],
@@ -117,49 +104,42 @@
       limitPerOrder: null,
       limitPerDay: null,
       limitTotal: 50,
-      specs: makeSpecs('SPU00078', 4.2, 50, 2.5, 2, 2, '../user-app/assets/restock/product-eggplant-long.svg')
+      specs: makeSpecs('SPU00078', 4.2, 1.49, 2, 2, '../user-app/assets/restock/product-eggplant-long.svg')
     }
   ];
 
   var list = [];
   var loaded = false;
 
-  function normalizeSpec(spec, index, productCode, productExchangeType) {
+  function normalizeSpec(spec, index, productCode) {
     var s = Object.assign({}, spec || {});
-    var type = productExchangeType === 'points_money' || s.exchangeType === 'points_money'
-      ? 'points_money'
-      : 'points';
-    if (productExchangeType === 'points' || productExchangeType === 'points_money') {
-      type = productExchangeType;
+    /* 兼容从积分商城字段迁过来的旧键 */
+    if (s.saleEnabled == null && s.exchangeEnabled != null) s.saleEnabled = s.exchangeEnabled;
+    if (s.salePrice == null && s.points != null) s.salePrice = s.points;
+    if (s.soldQty == null && (s.exchangedQty != null || s.exchangeQty != null)) {
+      s.soldQty = s.exchangedQty != null ? s.exchangedQty : s.exchangeQty;
     }
     s.skuCode = s.skuCode || (productCode + '-' + String((index || 0) + 1).padStart(2, '0'));
     s.specName = s.specName || '默认';
     s.skuImg = s.skuImg || s.specImg || '';
     s.purchasePrice = Math.round((Number(s.purchasePrice) || 0) * 100) / 100;
     s.stock = Math.max(0, Math.round(Number(s.stock) || 0));
-    /* 起售量：每 SKU 独立配置，至少 1 */
     s.minSaleQty = Math.max(1, Math.round(Number(s.minSaleQty) || 1));
-    s.exchangeEnabled = !!s.exchangeEnabled;
-    s.exchangeType = type;
-    if (s.exchangeEnabled) {
-      s.points = Math.max(0, Math.round(Number(s.points) || 0));
-      s.money = type === 'points_money'
-        ? Math.round((Number(s.money) || 0) * 100) / 100
-        : 0;
-    } else {
-      s.points = Math.max(0, Math.round(Number(s.points) || 0));
-      s.money = type === 'points_money'
-        ? Math.round((Number(s.money) || 0) * 100) / 100
-        : 0;
-    }
-    s.exchangedQty = Math.max(0, Math.round(Number(s.exchangedQty != null ? s.exchangedQty : s.exchangeQty) || 0));
-    delete s.exchangeQty;
+    s.saleEnabled = !!s.saleEnabled;
+    s.salePrice = Math.round((Number(s.salePrice) || 0) * 100) / 100;
+    s.soldQty = Math.max(0, Math.round(Number(s.soldQty) || 0));
     if (s.linePrice === '' || s.linePrice == null) {
       s.linePrice = null;
     } else {
       var lp = Number(s.linePrice);
       s.linePrice = isNaN(lp) || lp < 0 ? null : Math.round(lp * 100) / 100;
     }
+    delete s.exchangeEnabled;
+    delete s.exchangeType;
+    delete s.points;
+    delete s.money;
+    delete s.exchangedQty;
+    delete s.exchangeQty;
     return s;
   }
 
@@ -208,7 +188,6 @@
     copy.category = copy.category || '';
     copy.name = copy.name || '';
     copy.code = String(copy.code || copy.goodsId || '').trim();
-    /* goodsId 与商品编码等同，作为与选品库的唯一关联键 */
     copy.goodsId = copy.code;
     copy.img = copy.img || '../user-app/assets/restock/product-leaf.svg';
     copy.deliveryMode = normalizeDeliveryMode(copy.deliveryMode);
@@ -221,11 +200,9 @@
     copy.images = normalizeImages(copy.images, copy.img);
     if (copy.images[0]) copy.img = copy.images[0];
     copy.detailHtml = copy.detailHtml != null ? String(copy.detailHtml) : '';
-    copy.memberLevelIds = Array.isArray(copy.memberLevelIds)
-      ? copy.memberLevelIds.map(function (id) { return String(id || '').trim(); }).filter(Boolean)
-      : [];
+    /* 新人专区不按会员等级限制，统一清空 */
+    copy.memberLevelIds = [];
 
-    /* 限购三选一：order / day / total / none */
     var limitType = copy.limitType;
     if (limitType !== 'order' && limitType !== 'day' && limitType !== 'total' && limitType !== 'none') {
       if (copy.limitPerOrder != null) limitType = 'order';
@@ -245,48 +222,31 @@
           specName: '默认',
           purchasePrice: Number(copy.purchasePrice) || 0,
           stock: Number(copy.stock) || 0,
-          exchangeEnabled: true,
-          exchangeType: copy.exchangeType || 'points',
-          points: Number(copy.points) || 100,
-          money: Number(copy.money) || 0,
-          exchangedQty: Number(copy.exchangedQty || copy.exchangeQty) || 0
+          saleEnabled: true,
+          salePrice: Number(copy.salePrice) || 0,
+          soldQty: Number(copy.soldQty) || 0
         }];
 
-    /* 兼容旧数据：若无 exchangeEnabled，视为全部开启 */
-    var hasEnabledFlag = specs.some(function (s) { return Object.prototype.hasOwnProperty.call(s || {}, 'exchangeEnabled'); });
-    var productType = copy.exchangeType === 'points_money' || copy.exchangeType === 'points'
-      ? copy.exchangeType
-      : null;
-    if (!productType) {
-      var firstTyped = null;
-      for (var ti = 0; ti < specs.length; ti++) {
-        if (specs[ti] && specs[ti].exchangeType) {
-          firstTyped = specs[ti];
-          break;
-        }
-      }
-      productType = firstTyped && firstTyped.exchangeType === 'points_money' ? 'points_money' : 'points';
-    }
+    var hasEnabledFlag = specs.some(function (s) {
+      return Object.prototype.hasOwnProperty.call(s || {}, 'saleEnabled') ||
+        Object.prototype.hasOwnProperty.call(s || {}, 'exchangeEnabled');
+    });
 
     copy.specs = specs.map(function (s, i) {
       var next = Object.assign({}, s);
-      if (!hasEnabledFlag) next.exchangeEnabled = true;
-      return normalizeSpec(next, i, copy.code, productType);
+      if (!hasEnabledFlag) next.saleEnabled = true;
+      return normalizeSpec(next, i, copy.code);
     });
 
-    var enabled = copy.specs.filter(function (s) { return s.exchangeEnabled; });
+    var enabled = copy.specs.filter(function (s) { return s.saleEnabled; });
     var first = enabled[0] || copy.specs[0];
-    /* 兑换方式在商品维度统一，多规格保持一致 */
-    copy.exchangeType = productType;
-    copy.points = first ? first.points : 0;
-    copy.money = productType === 'points_money' && first ? first.money : 0;
+    copy.salePrice = first ? first.salePrice : 0;
     copy.purchasePrice = first ? first.purchasePrice : 0;
     copy.stock = copy.specs.reduce(function (sum, s) { return sum + s.stock; }, 0);
-    copy.exchangedQty = enabled.reduce(function (sum, s) { return sum + s.exchangedQty; }, 0);
+    copy.soldQty = enabled.reduce(function (sum, s) { return sum + s.soldQty; }, 0);
     copy.specCount = copy.specs.length;
     copy.enabledSpecCount = enabled.length;
 
-    /* 供应商：优先已存字段，否则回落选品库 */
     var catalogSupplier = '';
     if (window.MdmProductCatalog && copy.code && typeof window.MdmProductCatalog.getByCode === 'function') {
       var cat = window.MdmProductCatalog.getByCode(copy.code);
@@ -294,10 +254,14 @@
     }
     copy.supplierId = String(copy.supplierId || catalogSupplier || '斯斯供应商商家').trim();
     copy.supplierName = String(copy.supplierName || copy.supplierId).trim();
+
+    delete copy.exchangeType;
+    delete copy.points;
+    delete copy.money;
+    delete copy.exchangedQty;
     return copy;
   }
 
-  /** C/B 端列表展示态：定时上下架按当前时间推算是否在架 */
   function isOnShelfDisplay(item) {
     if (!item) return false;
     if (item.status === 'on_shelf') return true;
@@ -315,9 +279,7 @@
   function persist() {
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-    } catch (e) {
-      /* ignore */
-    }
+    } catch (e) { /* ignore */ }
   }
 
   function load() {
@@ -331,9 +293,7 @@
           return;
         }
       }
-    } catch (e) {
-      /* ignore */
-    }
+    } catch (e) { /* ignore */ }
     list = SEED.map(normalizeItem);
     loaded = true;
     persist();
@@ -449,9 +409,7 @@
     }];
   }
 
-  /** 从选品库商品构建积分商城条目（只读选品库，默认仅开启第一个规格）
-   *  以勾选快照的 code/name/img/category/price 为准；code=goodsId 作为唯一关联
-   */
+  /** 从选品库商品构建新人专区条目（默认仅开启第一个规格） */
   function buildFromCatalogProduct(product, defaults) {
     defaults = defaults || {};
     var picked = Object.assign({}, product || {});
@@ -460,7 +418,6 @@
     var code = String(picked.code || picked.goodsId || '').trim();
     if (!code) return null;
 
-    /* 只读取规格详情，不写回选品库；名称等展示字段以勾选快照为准 */
     var detail = null;
     if (window.MdmProductCatalog && typeof window.MdmProductCatalog.getByCode === 'function') {
       detail = window.MdmProductCatalog.getByCode(code);
@@ -481,7 +438,9 @@
     });
 
     var baseSpecs = catalogSpecsFromProduct(src);
-    var exchangeType = defaults.exchangeType === 'points_money' ? 'points_money' : 'points';
+    var defaultPrice = defaults.salePrice != null
+      ? Number(defaults.salePrice)
+      : (Number(src.price) || 9.9);
 
     var specs = baseSpecs.map(function (s, i) {
       var enabled = i === 0;
@@ -492,11 +451,9 @@
         purchasePrice: s.purchasePrice,
         stock: s.stock,
         minSaleQty: 1,
-        exchangeEnabled: enabled,
-        exchangeType: exchangeType,
-        points: enabled ? (Number(defaults.points) || 100) : 0,
-        money: enabled && exchangeType === 'points_money' ? (Number(defaults.money) || 0) : 0,
-        exchangedQty: 0
+        saleEnabled: enabled,
+        salePrice: enabled ? defaultPrice : 0,
+        soldQty: 0
       };
     });
 
@@ -520,8 +477,7 @@
       salePorts: normalizeSalePorts(defaults.salePorts, defaults.salePortScope || 'all'),
       images: normalizeImages(defaults.images, src.img),
       detailHtml: defaults.detailHtml != null ? String(defaults.detailHtml) : '',
-      exchangeType: exchangeType,
-      memberLevelIds: Array.isArray(defaults.memberLevelIds) ? defaults.memberLevelIds.slice() : [],
+      memberLevelIds: [],
       limitType: defaults.limitType || 'none',
       limitPerOrder: parseOptionalLimit(defaults.limitPerOrder),
       limitPerDay: parseOptionalLimit(defaults.limitPerDay),
@@ -530,7 +486,7 @@
     };
   }
 
-  /** 编辑时合并选品库全部规格 + 已保存兑换配置（规格总数以选品库为准） */
+  /** 编辑时合并选品库全部规格 + 已保存活动价配置 */
   function mergeWithCatalogSpecs(mallItem) {
     var item = mallItem || {};
     var detail = window.MdmProductCatalog && item.code
@@ -542,7 +498,6 @@
     savedList.forEach(function (s) {
       if (s && s.skuCode) savedMap[s.skuCode] = s;
     });
-    var productType = item.exchangeType === 'points_money' ? 'points_money' : 'points';
 
     var specs = catalogSpecs.map(function (cs, i) {
       var saved = savedMap[cs.skuCode] || savedList[i] || null;
@@ -552,9 +507,8 @@
           specName: cs.specName,
           purchasePrice: cs.purchasePrice,
           skuImg: saved.skuImg || cs.skuImg || '',
-          /* 库存以积分商城已保存值为准（可编辑），无则回落选品库 */
           stock: saved.stock != null ? saved.stock : cs.stock
-        }), i, item.code, productType);
+        }), i, item.code);
       }
       return normalizeSpec({
         skuCode: cs.skuCode,
@@ -563,21 +517,16 @@
         purchasePrice: cs.purchasePrice,
         stock: cs.stock,
         minSaleQty: 1,
-        exchangeEnabled: false,
-        exchangeType: productType,
-        points: 100,
-        money: 0,
-        exchangedQty: 0
-      }, i, item.code, productType);
+        saleEnabled: false,
+        salePrice: 0,
+        soldQty: 0
+      }, i, item.code);
     });
 
-    return Object.assign({}, item, {
-      exchangeType: productType,
-      specs: specs
-    });
+    return Object.assign({}, item, { specs: specs });
   }
 
-  window.MdmPointsMallStore = {
+  window.MdmNewcomerZoneStore = {
     getAll: getAll,
     getByCode: getByCode,
     getAddedCodesMap: getAddedCodesMap,

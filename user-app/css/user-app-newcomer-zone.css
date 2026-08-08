@@ -1,0 +1,358 @@
+/* C 端 — 新人专区 */
+
+.ua-nz-page,
+.ua-nz-scroll {
+  background: #f5f5f5;
+}
+
+.ua-nz-hero {
+  position: relative;
+  padding: 0 16px 12px;
+  overflow: hidden;
+  background: linear-gradient(155deg, #ff8a4c 0%, #ff6a2b 50%, #f04d1a 100%);
+}
+
+.ua-nz-status {
+  position: relative;
+  z-index: 2;
+  background: transparent;
+  color: #fff;
+}
+
+.ua-nz-nav {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding-right: 88px;
+}
+
+.ua-nz-nav__back {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  text-decoration: none;
+}
+
+.ua-nz-nav__back svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ua-nz-nav__title {
+  margin: 0;
+  flex: 1;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.ua-nz-sheet {
+  margin-top: -8px;
+  padding: 12px 12px 24px;
+  border-radius: 16px 16px 0 0;
+  background: #f5f5f5;
+  position: relative;
+  z-index: 1;
+}
+
+.ua-nz-banner {
+  margin-bottom: 12px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.ua-nz-banner img {
+  display: block;
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+}
+
+.ua-nz-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.ua-nz-card {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  border: none;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.ua-nz-card__img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: #f0f0f0;
+}
+
+.ua-nz-card__body {
+  padding: 8px 10px 12px;
+}
+
+.ua-nz-card__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.35;
+  height: 2.7em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.ua-nz-card__price {
+  margin-top: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ff5a1f;
+  font-variant-numeric: tabular-nums;
+}
+
+.ua-nz-card__price em {
+  font-style: normal;
+  font-size: 12px;
+  margin-right: 1px;
+}
+
+.ua-nz-card__line {
+  margin-left: 4px;
+  font-size: 11px;
+  color: #bbb;
+  font-weight: 400;
+  text-decoration: line-through;
+}
+
+.ua-nz-card__tag {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: #fff1e8;
+  color: #ff6a2b;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.ua-nz-card__btn {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  height: 30px;
+  border: none;
+  border-radius: 15px;
+  background: linear-gradient(90deg, #ff8a4c, #ff5a1f);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ua-nz-card__btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.ua-nz-empty {
+  grid-column: 1 / -1;
+  padding: 48px 16px;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+}
+
+.ua-nz-end {
+  margin: 16px 0 8px;
+  text-align: center;
+  font-size: 12px;
+  color: #ccc;
+}
+
+/* SKU 半屏：仅立即购买，数量固定 1 */
+.ua-nz-sku-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 2400;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.ua-nz-sku-sheet[hidden] {
+  display: none;
+}
+
+.ua-nz-sku-sheet__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.ua-nz-sku-sheet__panel {
+  position: relative;
+  width: 100%;
+  max-width: 430px;
+  max-height: 78vh;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  overflow: auto;
+  box-sizing: border-box;
+  animation: ua-nz-sheet-up 0.22s ease;
+}
+
+@keyframes ua-nz-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.ua-nz-sku-sheet__close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  color: #999;
+  cursor: pointer;
+}
+
+.ua-nz-sku-sheet__head {
+  display: flex;
+  gap: 12px;
+  padding-right: 28px;
+}
+
+.ua-nz-sku-sheet__thumb {
+  width: 88px;
+  height: 88px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #f5f5f5;
+}
+
+.ua-nz-sku-sheet__price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ff5a1f;
+}
+
+.ua-nz-sku-sheet__line {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #bbb;
+  text-decoration: line-through;
+  font-variant-numeric: tabular-nums;
+}
+
+.ua-nz-sku-sheet__line[hidden] {
+  display: none;
+}
+
+.ua-nz-sku-sheet__name {
+  margin-top: 4px;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.35;
+}
+
+.ua-nz-sku-sheet__picked {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #999;
+}
+
+.ua-nz-sku-sheet__section {
+  margin-top: 16px;
+}
+
+.ua-nz-sku-sheet__label {
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.ua-nz-sku-sheet__specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ua-nz-sku-sheet__spec {
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid #e8e8e8;
+  border-radius: 16px;
+  background: #fafafa;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+}
+
+.ua-nz-sku-sheet__spec.is-active {
+  border-color: #ff6a2b;
+  background: #fff1e8;
+  color: #ff6a2b;
+  font-weight: 600;
+}
+
+.ua-nz-sku-sheet__qty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.ua-nz-sku-sheet__qty-fixed {
+  font-size: 13px;
+  color: #666;
+}
+
+.ua-nz-sku-sheet__hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.ua-nz-sku-sheet__buy {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  height: 44px;
+  border: none;
+  border-radius: 22px;
+  background: linear-gradient(90deg, #ff8a4c, #ff5a1f);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ua-nz-sku-sheet__buy:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

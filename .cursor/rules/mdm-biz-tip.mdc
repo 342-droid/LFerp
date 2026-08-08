@@ -1,0 +1,34 @@
+---
+description: B 端页面/区块业务提示文案统一用浅橙提示框（mdm-biz-tip）
+alwaysApply: true
+---
+
+# B 端业务提示文案样式规范
+
+> 团队规则权威文档：`docs/team-rules/B端业务提示文案样式规范.md`（含规则名称、制定人）
+
+后续新增或改造 **页面级 / 区块级业务提示**（活动规则说明、策略说明、列表顶部说明等），除非用户另有说明，一律遵循：
+
+## 必须
+
+1. 引入 `css/lf-mdm-biz-tip.css`
+2. 容器使用 `class="mdm-biz-tip"`（可加 `role="note"`）
+3. 需要强调的标签或关键词用 `<strong>…</strong>`（样式会显示为橙色）
+4. 卡片内紧贴标题时可加 `mdm-biz-tip--flush`
+
+## 示例
+
+```html
+<link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+<div class="mdm-biz-tip" role="note">若同一时段内有多个满足的活动，取最新创建的活动。</div>
+```
+
+## 例外
+
+- 字段下方灰色辅助说明（`pts-rule-tip` / `mkt-rg-tip` 等）不套用本样式
+- 错误 / 校验 / 危险警告走既有错误组件
+
+## 参考
+
+- `MDM/mdm_member_level_rule.html`（升降级策略）
+- `MDM/mdm_marketing_register_gift.html`

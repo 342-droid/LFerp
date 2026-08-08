@@ -15,7 +15,8 @@
 .mdm-edit-page .member-level-desc-card,
 .mdm-edit-page .pts-rule-card,
 .mdm-edit-page .mkt-points-mall-card,
-.mdm-edit-page .mkt-points-mall-card.pts-rule-card {
+.mdm-edit-page .mkt-points-mall-card.pts-rule-card,
+.mdm-edit-page .mkt-rg-reward-card {
   width: 100%;
   max-width: none;
   box-sizing: border-box;
