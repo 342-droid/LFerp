@@ -2186,6 +2186,105 @@
     "status": "diff",
     "date": "2026-07-30"
   },
+  "88bfbd5|MDM/mdm_marketing_points_mall.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "88bfbd5|MDM/mdm_marketing_points_mall_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "88bfbd5|MDM/mdm_member_batch_tag.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "88bfbd5|MDM/mdm_member_batch_tag_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "88bfbd5|MDM/mdm_member_segment.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "88bfbd5|MDM/mdm_order_live.html": {
+    "before": "changelog-assets/88bfbd5/MDM__mdm_order_live.html.before.jpg",
+    "after": "changelog-assets/88bfbd5/MDM__mdm_order_live.html.after.jpg",
+    "regions": 16,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "88bfbd5|MDM/mdm_order_proxy.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "88bfbd5|MDM/mdm_order_queue.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "88bfbd5|MDM/mdm_order_retail.html": {
+    "before": "changelog-assets/88bfbd5/MDM__mdm_order_retail.html.before.jpg",
+    "after": "changelog-assets/88bfbd5/MDM__mdm_order_retail.html.after.jpg",
+    "regions": 16,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "88bfbd5|MDM/mdm_product_audit.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "88bfbd5|MDM/mdm_product_brand.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "88bfbd5|MDM/mdm_product_category.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "88bfbd5|MDM/mdm_product_mall.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "88bfbd5|MDM/mdm_product_mall_category.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "88bfbd5|MDM/mdm_product_mall_tag.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "88bfbd5|MDM/mdm_product_proxy_category.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "88bfbd5|MDM/mdm_product_proxy_list.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "88bfbd5|MDM/mdm_product_proxy_tag.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
+  "88bfbd5|MDM/mdm_product_selection.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-08"
+  },
   "88fd659|SCM/purchase_demand_summary.html": {
     "before": "changelog-assets/88fd659/SCM__purchase_demand_summary.html.before.jpg",
     "after": "changelog-assets/88fd659/SCM__purchase_demand_summary.html.after.jpg",

@@ -1,7 +1,138 @@
 {
-  "latestSha": "f35cce006812be953ea37ed928800a89e77aeedf",
-  "total": 234,
+  "latestSha": "88bfbd5db99b642e889d18218237f7f97f945291",
+  "total": 235,
   "days": [
+    {
+      "date": "2026-08-08",
+      "items": [
+        {
+          "sha": "88bfbd5",
+          "type": "feat",
+          "text": "订单清分明细对齐SKU分佣并澄清采购价口径",
+          "author": "sisi",
+          "time": "11:38",
+          "pages": [
+            {
+              "file": "MDM/mdm_marketing_points_mall.html",
+              "module": "冷丰WMS",
+              "title": "积分商城"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall_form.html",
+              "module": "冷丰WMS",
+              "title": "编辑积分商品"
+            },
+            {
+              "file": "MDM/mdm_member_batch_tag.html",
+              "module": "冷丰WMS",
+              "title": "批量打标签"
+            },
+            {
+              "file": "MDM/mdm_member_batch_tag_form.html",
+              "module": "冷丰WMS",
+              "title": "批量打标签"
+            },
+            {
+              "file": "MDM/mdm_member_segment.html",
+              "module": "冷丰WMS",
+              "title": "会员分群"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "module": "冷丰WMS",
+              "title": "排队记录"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "MDM/mdm_product_audit.html",
+              "module": "冷丰WMS",
+              "title": "商品详情"
+            },
+            {
+              "file": "MDM/mdm_product_brand.html",
+              "module": "冷丰WMS",
+              "title": "商品品牌"
+            },
+            {
+              "file": "MDM/mdm_product_category.html",
+              "module": "冷丰WMS",
+              "title": "商品类目"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_mall_category.html",
+              "module": "冷丰WMS",
+              "title": "商城类目"
+            },
+            {
+              "file": "MDM/mdm_product_mall_tag.html",
+              "module": "冷丰WMS",
+              "title": "商城标签"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_category.html",
+              "module": "冷丰WMS",
+              "title": "类目管理"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_tag.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "详情清分明细按SKU展示分佣与供应商采购成本，并新增哈密瓜演示单"
+            },
+            {
+              "file": "MDM/mdm_product_audit.html",
+              "text": "规格表「商品标准采购价」改为「采购价/基础单位」"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "text": "新增/编辑规格表采购价字段同步改为「采购价/基础单位」"
+            },
+            {
+              "file": null,
+              "text": "商城商品: 售卖规格采购价/售价/划线价改名，选择SKU行右侧补充1份SKU采购价说明"
+            },
+            {
+              "file": null,
+              "text": "代采商品: 售卖规格采购价/售价/划线价改名，选择SKU行右侧补充1份SKU采购价说明"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-06",
       "items": [
