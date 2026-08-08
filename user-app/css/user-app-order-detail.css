@@ -905,8 +905,14 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 4px;
+  gap: 6px;
   min-width: 0;
+}
+
+.ua-od-price__total-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .ua-od-price__total-wrap #orderPayTotal {
@@ -915,16 +921,64 @@
   color: #333333;
 }
 
+.ua-od-pay-legs-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ua-od-pay-legs-toggle[hidden] {
+  display: none !important;
+}
+
+.ua-od-pay-legs-toggle svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s ease;
+}
+
+.ua-od-pay-legs-toggle.is-expanded svg {
+  transform: rotate(180deg);
+}
+
 .ua-od-price__pay-legs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
   font-size: 12px;
   font-weight: 400;
-  color: #999;
   line-height: 1.4;
   text-align: right;
 }
 
 .ua-od-price__pay-legs[hidden] {
   display: none !important;
+}
+
+.ua-od-price__pay-leg-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ua-od-price__pay-leg-name {
+  color: #999;
+}
+
+.ua-od-price__pay-leg-amount {
+  color: #ff4d4f;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 /* 发票备注 */

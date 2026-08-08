@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>退款详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
-  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260728-hide-restock-qty">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260808-refund-paylegs">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-order-refund-detail-page">
@@ -48,12 +48,23 @@
       </section>
 
       <section class="ua-or-card ua-or-result-breakdown" id="refundResultBreakdown" hidden>
-        <div class="ua-or-result-breakdown__total">
-          <span class="ua-or-result-breakdown__icon" aria-hidden="true">¥</span>
-          <span class="ua-or-result-breakdown__label">退款总金额</span>
+        <div class="ua-or-result-breakdown__amount-line">
           <span class="ua-or-result-breakdown__amount" id="refundResultTotalAmount">¥0.00</span>
+          <button
+            type="button"
+            class="ua-or-result-breakdown__toggle"
+            id="refundResultLegsToggle"
+            hidden
+            aria-expanded="false"
+            aria-label="展开退款明细"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </button>
         </div>
-        <ul class="ua-or-result-breakdown__list" id="refundResultBreakdownList"></ul>
+        <div class="ua-or-result-breakdown__legs" id="refundResultBreakdownList" hidden></div>
+        <p class="ua-or-result-breakdown__hint">原路退回</p>
       </section>
 
       <section class="ua-or-card ua-or-result-message" id="refundResultMessage" hidden>
@@ -370,7 +381,8 @@
 
     <div class="ua-or-toast" id="refundDetailToast" hidden></div>
   </div>
-  <script src="../js/user-app-order-refund.js?v=20260730-restock-close"></script>
+  <script src="../js/user-app-orders-store.js?v=20260808-item-paylegs"></script>
+  <script src="../js/user-app-order-refund.js?v=20260808-keep-orderno"></script>
   <script>UAOrderRefund.initDetailPage();</script>
 </body>
 </html>

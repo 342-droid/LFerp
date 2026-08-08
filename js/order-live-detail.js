@@ -469,10 +469,98 @@
         { time: '2026-06-03 16:48', title: '订单已创建', desc: '订单创建，金额 ¥46.18' },
         { time: '2026-06-04 10:00', title: '商家已发货', desc: '快递已发出，配送至用户收货地址' }
       ],
-      /* 已支付，但结算未配置门店佣金比例 → 不生成门店清分明细 */
+      /*
+       * 已支付，但结算未配置门店佣金比例：
+       * 仍生成供应商结算 + 平台分佣；不生成门店/商户清分项
+       */
       storeCommissionRate: null,
-      clearingEmpty: true,
-      clearingEmptyReason: '结算未配置门店佣金比例，用户支付后不会生成门店清分明细'
+      clearingEmpty: false,
+      clearing: {
+        summary: { skuCount: 2, itemCount: 4, pending: 0, cleared: 4, abnormal: 0 },
+        orderReceivable: '¥23.46',
+        orderClearedText: '4/4 已清分',
+        orderAbnormal: 0,
+        skus: [
+          {
+            name: '新鲜红颜草莓 香甜多汁 500g装',
+            paid: '¥34.18',
+            roleCommission: '¥0.34',
+            supplierCost: '¥18.00',
+            marginRate: '47.34%',
+            receivable: '¥18.34',
+            clearedCount: 2,
+            totalCount: 2,
+            abnormalCount: 0,
+            rows: [
+              {
+                payee: '上海冷丰科技有限公司',
+                role: '平台',
+                account: '6666****6395',
+                method: '按比例 1%',
+                strategyDefault: true,
+                strategyName: '商城结算策略',
+                receivable: '¥0.34',
+                received: '¥0.00',
+                clearStatus: '已清分',
+                settleStatus: '待结算',
+                bookStatus: '待入账'
+              },
+              {
+                payee: '上海恒业智汇贸易有限公司',
+                role: '供应商',
+                account: '-',
+                method: '采购成本',
+                strategyDefault: true,
+                strategyName: '商城结算策略',
+                receivable: '¥18.00',
+                received: '¥0.00',
+                clearStatus: '已清分',
+                settleStatus: '待结算',
+                bookStatus: '待入账'
+              }
+            ]
+          },
+          {
+            name: '进口香蕉 香甜软糯 3斤装',
+            paid: '¥12.00',
+            roleCommission: '¥0.12',
+            supplierCost: '¥5.00',
+            marginRate: '58.33%',
+            receivable: '¥5.12',
+            clearedCount: 2,
+            totalCount: 2,
+            abnormalCount: 0,
+            rows: [
+              {
+                payee: '上海冷丰科技有限公司',
+                role: '平台',
+                account: '6666****6395',
+                method: '按比例 1%',
+                strategyDefault: true,
+                strategyName: '商城结算策略',
+                receivable: '¥0.12',
+                received: '¥0.00',
+                clearStatus: '已清分',
+                settleStatus: '待结算',
+                bookStatus: '待入账'
+              },
+              {
+                payee: '上海恒业智汇贸易有限公司',
+                role: '供应商',
+                account: '-',
+                method: '采购成本',
+                strategyDefault: true,
+                strategyName: '商城结算策略',
+                receivable: '¥5.00',
+                received: '¥0.00',
+                clearStatus: '已清分',
+                settleStatus: '待结算',
+                bookStatus: '待入账'
+              }
+            ]
+          }
+        ]
+      }
     },
     'ORD-3212689201560682': {
       displayId: 'ORD-3212689201560682',
@@ -2005,12 +2093,23 @@
         '</div>';
       block.appendChild(head);
 
+      var tableWrap = el('div', 'order-clearing-table-wrap');
       var table = el('table', 'order-clearing-table');
       table.innerHTML =
+        '<colgroup>' +
+        '<col class="order-clearing-table__col order-clearing-table__col--payee">' +
+        '<col class="order-clearing-table__col order-clearing-table__col--account">' +
+        '<col class="order-clearing-table__col order-clearing-table__col--method">' +
+        '<col class="order-clearing-table__col order-clearing-table__col--strategy">' +
+        '<col class="order-clearing-table__col order-clearing-table__col--amount">' +
+        '<col class="order-clearing-table__col order-clearing-table__col--amount">' +
+        '<col class="order-clearing-table__col order-clearing-table__col--status">' +
+        '<col class="order-clearing-table__col order-clearing-table__col--book">' +
+        '</colgroup>' +
         '<thead>' +
         '<tr>' +
-        '<th rowspan="2" class="order-clearing-table__th--payee">收款方</th>' +
-        '<th rowspan="2" class="order-clearing-table__th--account">账户</th>' +
+        '<th rowspan="2">收款方</th>' +
+        '<th rowspan="2">账户</th>' +
         '<th colspan="2" class="order-clearing-table__group">分佣规则</th>' +
         '<th colspan="2" class="order-clearing-table__group">金额（元）</th>' +
         '<th colspan="2" class="order-clearing-table__group">流转状态</th>' +
@@ -2031,12 +2130,14 @@
           ? '<span class="order-clearing-payee__sub">' + row.subRole + '</span>'
           : '';
         var strategyHtml =
+          '<div class="order-clearing-strategy">' +
           (row.strategyDefault
             ? clearingTag('默认策略', 'warning-outline')
             : '') +
           (row.strategyName
             ? clearingTag(row.strategyName, 'muted-outline')
-            : '');
+            : '') +
+          '</div>';
         tr.innerHTML =
           '<td class="order-clearing-table__td--payee">' +
           '<div class="order-clearing-payee">' +
@@ -2049,19 +2150,19 @@
           '</div>' +
           '</div>' +
           '</td>' +
-          '<td>' +
+          '<td class="order-clearing-table__td--account">' +
           (row.account || '—') +
           '</td>' +
-          '<td>' +
+          '<td class="order-clearing-table__td--method">' +
           (row.method || '—') +
           '</td>' +
           '<td class="order-clearing-table__td--strategy">' +
           strategyHtml +
           '</td>' +
-          '<td>' +
+          '<td class="order-clearing-table__td--amount">' +
           (row.receivable || '¥0.00') +
           '</td>' +
-          '<td>' +
+          '<td class="order-clearing-table__td--amount">' +
           (row.received || '¥0.00') +
           '</td>' +
           '<td class="order-clearing-table__td--status">' +
@@ -2074,7 +2175,8 @@
         tbody.appendChild(tr);
       });
       table.appendChild(tbody);
-      block.appendChild(table);
+      tableWrap.appendChild(table);
+      block.appendChild(tableWrap);
 
       var foot = el('div', 'order-clearing-sku__foot');
       foot.innerHTML =
@@ -2109,8 +2211,9 @@
   }
 
   /**
-   * 结算规则：用户支付后即生成清分数据（含门店明细/分佣信息）；
-   * 结算未配置门店佣金比例时，门店无佣金，不生成门店清分明细。
+   * 结算规则：用户支付后即生成清分明细。
+   * - 未配置门店佣金比例：仍有供应商结算 + 平台分佣，不生成门店/商户清分项
+   * - 已配置门店佣金比例：含门店（及策略内其他角色）清分项
    * 优先渲染 SKU 维度清分（clearing.skus），否则回退门店明细表。
    */
   function buildClearingBody(detail) {
@@ -2125,12 +2228,7 @@
     var hasStoreClearing = !detail.clearingEmpty && storeRows.length > 0 && rateConfigured;
 
     if (!hasStoreClearing) {
-      var emptyText =
-        detail.clearingEmptyReason ||
-        (!rateConfigured && detail.paymentCount > 0
-          ? '结算未配置门店佣金比例，用户支付后不会生成门店清分明细'
-          : '暂无清分明细');
-      return buildEmptyState(emptyText);
+      return buildEmptyState(detail.clearingEmptyReason || '暂无清分明细');
     }
 
     var wrap = el('div', 'order-detail-clearing');
