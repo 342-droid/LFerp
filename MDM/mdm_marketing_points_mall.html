@@ -79,6 +79,19 @@
                             <option value="store">门店</option>
                         </select>
                     </div>
+                    <div class="form-group pts-sale-filter-extra" id="qMallSaleRegionGroup" hidden style="display:none">
+                        <label>具体省市区:</label>
+                        <div id="qMallSaleRegionMount"></div>
+                    </div>
+                    <div class="form-group custom-select-wrapper pts-sale-filter-extra" id="qMallSaleStoreGroup" hidden style="display:none">
+                        <label>具体门店:</label>
+                        <div class="custom-select">
+                            <input type="text" id="qMallStore" placeholder="请选择/搜索门店" autocomplete="off">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="qMallStoreDropdown"></div>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>状态:</label>
                         <select id="qMallStatus">
@@ -201,8 +214,12 @@
         </main>
     </div>
     <script src="../js/common.js"></script>
+    <script src="../js/region-cascader.js"></script>
     <script src="../js/mdm-member-level-data.js"></script>
     <script src="../js/mdm-product-catalog-store.js"></script>
+    <script src="../js/mdm-product-proxy-region-picker.js"></script>
+    <script src="../js/mdm-product-proxy-store-picker.js"></script>
+    <script src="../js/mdm-member-points-rule-list-filter.js"></script>
     <script src="../js/mdm-marketing-points-mall-store.js"></script>
     <script src="../js/mdm-marketing-points-mall-config.js"></script>
     <script src="../js/mdm-marketing-points-mall-picker.js"></script>

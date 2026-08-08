@@ -35,6 +35,13 @@
             (currentPage === 'mdm_member_batch_tag_form' || currentPage === 'mdm_member_batch_tag_members')) {
             samePath = true;
         }
+        // 消费送积分 / 积分抵现编辑页归属对应列表高亮
+        if (!samePath && hrefBase === 'mdm_member_points_consume' && currentPage === 'mdm_member_points_consume_form') {
+            samePath = true;
+        }
+        if (!samePath && hrefBase === 'mdm_member_points_cash' && currentPage === 'mdm_member_points_cash_form') {
+            samePath = true;
+        }
         if (!samePath) return false;
         var curHash = String(window.location.hash || '').replace(/^#/, '');
         if (!hash) {
@@ -86,6 +93,8 @@
     /** 会员 · 积分管理 */
     const memberPointsItems = [
         { href: 'mdm_member_points_rule.html', text: '积分规则' },
+        { href: 'mdm_member_points_consume.html', text: '消费送积分' },
+        { href: 'mdm_member_points_cash.html', text: '积分抵现' },
         { href: 'mdm_member_points_detail.html', text: '积分明细' }
     ];
 

@@ -1380,6 +1380,15 @@ input[type="number"] {
     border-radius: 3px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     width: max-content;
+    max-width: calc(100vw - 16px);
+}
+
+/* 列表筛选内：抬高层级，避免被表格/搜索区遮挡 */
+.search-form .region-cascader-wrapper.is-open {
+    z-index: 5200;
+}
+.search-form .region-cascader-panel {
+    z-index: 5201;
 }
 
 .region-cascader-col {

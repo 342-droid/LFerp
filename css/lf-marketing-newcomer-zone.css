@@ -1040,3 +1040,14 @@
     font-size: 12px;
   }
 }
+
+/* 适用范围二级联动筛选：默认隐藏，避免被 .form-group{display:flex} 顶开 */
+.mkt-newcomer-zone-page .search-form > .form-group[hidden],
+.mkt-newcomer-zone-page .search-form > .form-group.pts-sale-filter-extra[hidden] {
+  display: none !important;
+}
+.mkt-newcomer-zone-page .search-section,
+.mkt-newcomer-zone-page .search-form,
+.mkt-newcomer-zone-page .search-form > .form-group.pts-sale-filter-extra {
+  overflow: visible;
+}

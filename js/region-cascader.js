@@ -71,6 +71,8 @@ const RegionCascader = {
         const placeholder = options.placeholder || '请选择';
         const regionTree = options.regionTree || RegionCascader.REGION_TREE;
         const inline = !!options.inline;
+        const requireDistrict = !!options.requireDistrict;
+        const onChange = typeof options.onChange === 'function' ? options.onChange : null;
 
         const cascaderHtml = `
                 <div class="region-cascader" id="${id}Cascader" style="width: ${width};">
@@ -124,6 +126,10 @@ const RegionCascader = {
                 valueEl.classList.add('is-placeholder');
                 cascader.classList.remove('has-value');
             }
+        }
+
+        function emitChange() {
+            if (onChange) onChange(selected, getParts());
         }
 
         function removeDistrictColumn() {
@@ -184,11 +190,15 @@ const RegionCascader = {
                     e.stopPropagation();
                     prov = p;
                     city = '';
-                    selected = p;
-                    syncTrigger();
+                    if (!requireDistrict) {
+                        selected = p;
+                        syncTrigger();
+                        emitChange();
+                    }
                     fillProvinces();
                     removeDistrictColumn();
                     fillCities();
+                    positionPanel();
                 });
                 colProvince.appendChild(item);
             });
@@ -206,10 +216,14 @@ const RegionCascader = {
                 item.addEventListener('click', (e) => {
                     e.stopPropagation();
                     city = c;
-                    selected = `${prov}${RegionCascader.SEPARATOR}${c}`;
-                    syncTrigger();
+                    if (!requireDistrict) {
+                        selected = `${prov}${RegionCascader.SEPARATOR}${c}`;
+                        syncTrigger();
+                        emitChange();
+                    }
                     fillCities();
                     fillDistricts();
+                    positionPanel();
                 });
                 cityCol.appendChild(item);
             });
@@ -222,21 +236,40 @@ const RegionCascader = {
             }
             const districtCol = ensureDistrictColumn();
             districtCol.innerHTML = '';
+            const parts = selected.split(RegionCascader.SEPARATOR).map(s => s.trim()).filter(Boolean);
+            const activeDistrict = parts[2] || '';
             regionTree[prov][city].forEach(d => {
-                const item = createItem(d, false, false);
+                const item = createItem(d, d === activeDistrict, false);
                 item.addEventListener('click', (e) => {
                     e.stopPropagation();
                     selected = `${prov}${RegionCascader.SEPARATOR}${city}${RegionCascader.SEPARATOR}${d}`;
                     syncTrigger();
+                    emitChange();
                     closePanel();
                 });
                 districtCol.appendChild(item);
             });
         }
 
-        function openPanel() {
-            panel.style.display = 'flex';
-            wrapper.classList.add('is-open');
+        function positionPanel() {
+            if (panel.style.display === 'none') return;
+            panel.style.left = '0';
+            panel.style.right = 'auto';
+            const margin = 8;
+            const rect = panel.getBoundingClientRect();
+            if (rect.right > window.innerWidth - margin) {
+                panel.style.left = 'auto';
+                panel.style.right = '0';
+            }
+            const next = panel.getBoundingClientRect();
+            if (next.left < margin) {
+                const triggerRect = cascader.getBoundingClientRect();
+                panel.style.right = 'auto';
+                panel.style.left = `${margin - triggerRect.left}px`;
+            }
+        }
+
+        function refreshPanelContent() {
             parseSelected();
             fillProvinces();
             if (prov) {
@@ -249,11 +282,20 @@ const RegionCascader = {
             } else {
                 removeDistrictColumn();
             }
+            positionPanel();
+        }
+
+        function openPanel() {
+            panel.style.display = 'flex';
+            wrapper.classList.add('is-open');
+            refreshPanelContent();
         }
 
         function closePanel() {
             panel.style.display = 'none';
             wrapper.classList.remove('is-open');
+            panel.style.left = '';
+            panel.style.right = '';
         }
 
         function setDisabled(value) {
@@ -304,6 +346,7 @@ const RegionCascader = {
             e.stopPropagation();
             if (disabled) return;
             reset();
+            emitChange();
         });
 
         const onDocumentClick = (e) => {

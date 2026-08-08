@@ -67,6 +67,28 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label>适用范围:</label>
+                        <select id="qNcSaleScope">
+                            <option value="">全部</option>
+                            <option value="all">全部范围</option>
+                            <option value="region">省市区</option>
+                            <option value="store">门店</option>
+                        </select>
+                    </div>
+                    <div class="form-group pts-sale-filter-extra" id="qNcSaleRegionGroup" hidden style="display:none">
+                        <label>具体省市区:</label>
+                        <div id="qNcSaleRegionMount"></div>
+                    </div>
+                    <div class="form-group custom-select-wrapper pts-sale-filter-extra" id="qNcSaleStoreGroup" hidden style="display:none">
+                        <label>具体门店:</label>
+                        <div class="custom-select">
+                            <input type="text" id="qNcStore" placeholder="请选择/搜索门店" autocomplete="off">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="qNcStoreDropdown"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label>状态:</label>
                         <select id="qNcStatus">
                             <option value="">全部</option>
@@ -183,7 +205,11 @@
         </main>
     </div>
     <script src="../js/common.js"></script>
+    <script src="../js/region-cascader.js"></script>
     <script src="../js/mdm-product-catalog-store.js"></script>
+    <script src="../js/mdm-product-proxy-region-picker.js"></script>
+    <script src="../js/mdm-product-proxy-store-picker.js"></script>
+    <script src="../js/mdm-member-points-rule-list-filter.js"></script>
     <script src="../js/mdm-marketing-newcomer-zone-store.js"></script>
     <script src="../js/mdm-marketing-newcomer-zone-config.js"></script>
     <script src="../js/mdm-marketing-newcomer-zone-picker.js"></script>

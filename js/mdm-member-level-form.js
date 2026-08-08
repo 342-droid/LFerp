@@ -728,15 +728,15 @@
         if (pickWrap) pickWrap.hidden = !needPick;
         if (chipsEl) chipsEl.hidden = !needPick;
         if (emptyEl && !needPick) emptyEl.hidden = true;
-        if (pickBtn) {
-            if (isProductScope(type)) pickBtn.textContent = '选择商品';
-            else if (isCategoryScope(type)) pickBtn.textContent = '选择类目';
-        }
-        if (hint) {
-            hint.textContent = isProductScope(type)
-                ? '可多选商品'
-                : (isCategoryScope(type) ? '可多选类目' : '');
-        }
+            if (pickBtn) {
+                if (isProductScope(type)) pickBtn.textContent = '选择商品';
+                else if (isCategoryScope(type)) pickBtn.textContent = '选择类目';
+            }
+            if (hint) {
+                hint.textContent = isProductScope(type)
+                    ? '可多选商品（数据来自选品库）'
+                    : (isCategoryScope(type) ? '可多选类目（选品库关联类目）' : '');
+            }
         if (needPick) renderScopeChips();
         else if (chipsEl) chipsEl.innerHTML = '';
     }
@@ -764,10 +764,11 @@
     }
 
     function getCategoryName(categoryId) {
-        for (var i = 0; i < Data.DEMO_CATEGORIES.length; i++) {
-            if (Data.DEMO_CATEGORIES[i].id === categoryId) return Data.DEMO_CATEGORIES[i].name;
+        var cats = Data.getDemoCategories ? Data.getDemoCategories() : (Data.DEMO_CATEGORIES || []);
+        for (var i = 0; i < cats.length; i++) {
+            if (cats[i].id === categoryId) return cats[i].name;
         }
-        return '';
+        return String(categoryId || '');
     }
 
     function openScopePicker() {
@@ -787,7 +788,7 @@
     }
 
     function openCategoryScopePicker(selectedMap) {
-        var catalog = Data.DEMO_CATEGORIES;
+        var catalog = Data.getDemoCategories ? Data.getDemoCategories() : (Data.DEMO_CATEGORIES || []);
         var backdrop = document.createElement('div');
         backdrop.className = 'member-level-pick-backdrop';
         backdrop.innerHTML =
@@ -869,161 +870,20 @@
     }
 
     function openProductScopePicker(selectedMap) {
-        var catalog = Data.DEMO_PRODUCTS;
-        var filterState = {
-            categoryId: '',
-            name: '',
-            sku: ''
-        };
-
-        var catOptions = Data.DEMO_CATEGORIES.map(function (c) {
-            return '<option value="' + escapeHtml(c.id) + '">' + escapeHtml(c.name) + '</option>';
-        }).join('');
-
-        var backdrop = document.createElement('div');
-        backdrop.className = 'member-level-pick-backdrop';
-        backdrop.innerHTML =
-            '<div class="member-level-pick-modal member-level-pick-modal--product" role="dialog" aria-modal="true">' +
-            '  <div class="member-level-pick-modal__header">' +
-            '    <h3 class="member-level-pick-modal__title">选择商品</h3>' +
-            '    <button type="button" class="member-level-pick-modal__close" data-pick-close aria-label="关闭">&times;</button>' +
-            '  </div>' +
-            '  <div class="member-level-pick-modal__body">' +
-            '    <div class="member-level-product-filter">' +
-            '      <select class="erp-select member-level-product-filter__cat" data-pick-cat>' +
-            '        <option value="">全部类目</option>' + catOptions +
-            '      </select>' +
-            '      <input class="erp-input" type="text" placeholder="商品名称" data-pick-name>' +
-            '      <input class="erp-input" type="text" placeholder="SKU 编码" data-pick-sku>' +
-            '      <button type="button" class="erp-btn" data-pick-search>搜索</button>' +
-            '    </div>' +
-            '    <div class="erp-table-scroll member-level-product-table-wrap">' +
-            '      <table class="erp-table member-level-product-table">' +
-            '        <thead><tr>' +
-            '          <th style="width:40px;"></th>' +
-            '          <th style="width:64px;">图片</th>' +
-            '          <th>商品名称</th>' +
-            '          <th>SKU 编码</th>' +
-            '          <th style="width:120px;">价格</th>' +
-            '        </tr></thead>' +
-            '        <tbody data-pick-list></tbody>' +
-            '      </table>' +
-            '    </div>' +
-            '  </div>' +
-            '  <div class="member-level-pick-modal__footer">' +
-            '    <span class="member-level-field-tip" data-pick-count style="margin:0;margin-right:auto;"></span>' +
-            '    <button type="button" class="erp-btn" data-pick-close>取消</button>' +
-            '    <button type="button" class="erp-btn erp-btn--primary" data-pick-ok>确定</button>' +
-            '  </div>' +
-            '</div>';
-
-        var listEl = backdrop.querySelector('[data-pick-list]');
-        var catEl = backdrop.querySelector('[data-pick-cat]');
-        var nameEl = backdrop.querySelector('[data-pick-name]');
-        var skuEl = backdrop.querySelector('[data-pick-sku]');
-        var countEl = backdrop.querySelector('[data-pick-count]');
-
-        function syncCount() {
-            var n = Object.keys(selectedMap).length;
-            if (countEl) countEl.textContent = n ? ('已选 ' + n + ' 件商品') : '';
-        }
-
-        function matchProduct(it) {
-            if (filterState.categoryId && it.categoryId !== filterState.categoryId) return false;
-            var nameKw = filterState.name.trim().toLowerCase();
-            if (nameKw && String(it.name).toLowerCase().indexOf(nameKw) === -1) return false;
-            var skuKw = filterState.sku.trim().toLowerCase();
-            if (skuKw) {
-                var skus = it.skus || [];
-                var hit = skus.some(function (s) {
-                    return String(s.code).toLowerCase().indexOf(skuKw) !== -1;
-                });
-                if (!hit) return false;
-            }
-            return true;
-        }
-
-        function renderList() {
-            var filtered = catalog.filter(matchProduct);
-            if (!filtered.length) {
-                listEl.innerHTML =
-                    '<tr><td colspan="5" class="member-level-coupon-picker__empty" style="text-align:center;">无匹配商品</td></tr>';
-                return;
-            }
-            listEl.innerHTML = filtered.map(function (it) {
-                var img = it.image
-                    ? '<img class="member-level-product-thumb" src="' + escapeHtml(it.image) + '" alt="">'
-                    : '<span class="member-level-product-thumb member-level-product-thumb--empty">无图</span>';
-                return (
-                    '<tr class="member-level-product-row' + (selectedMap[it.id] ? ' is-checked' : '') + '">' +
-                    '  <td><input type="checkbox" value="' + escapeHtml(it.id) + '"' +
-                    (selectedMap[it.id] ? ' checked' : '') + '></td>' +
-                    '  <td>' + img + '</td>' +
-                    '  <td>' +
-                    '    <div class="member-level-product-name">' + escapeHtml(it.name) + '</div>' +
-                    '    <div class="member-level-product-cat">' + escapeHtml(getCategoryName(it.categoryId) || '—') + '</div>' +
-                    '  </td>' +
-                    '  <td class="member-level-product-sku">' + escapeHtml(formatProductSkuCodes(it)) + '</td>' +
-                    '  <td class="member-level-product-price">' + escapeHtml(formatProductPrice(it)) + '</td>' +
-                    '</tr>'
-                );
-            }).join('');
-        }
-
-        function applyFilter() {
-            filterState.categoryId = catEl ? catEl.value : '';
-            filterState.name = nameEl ? nameEl.value : '';
-            filterState.sku = skuEl ? skuEl.value : '';
-            renderList();
-        }
-
-        renderList();
-        syncCount();
-
-        backdrop.querySelector('[data-pick-search]').addEventListener('click', applyFilter);
-        [nameEl, skuEl].forEach(function (el) {
-            if (!el) return;
-            el.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter') applyFilter();
+        if (window.MdmMemberProductPicker && typeof window.MdmMemberProductPicker.open === 'function') {
+            window.MdmMemberProductPicker.open({
+                selected: selectedMap,
+                onConfirm: function (picked) {
+                    scopeState.products = (picked || []).slice();
+                    scopeState.categories = [];
+                    renderScopeChips();
+                }
             });
-        });
-        if (catEl) {
-            catEl.addEventListener('change', applyFilter);
+            return;
         }
-
-        listEl.addEventListener('change', function (ev) {
-            var input = ev.target;
-            if (!input || input.type !== 'checkbox') return;
-            if (input.checked) selectedMap[input.value] = true;
-            else delete selectedMap[input.value];
-            var row = input.closest('tr');
-            if (row) row.classList.toggle('is-checked', input.checked);
-            syncCount();
-        });
-
-        function close() {
-            backdrop.remove();
+        if (typeof showToast === 'function') {
+            showToast('商品选择组件未加载', 'warning');
         }
-
-        backdrop.addEventListener('click', function (ev) {
-            if (ev.target === backdrop) close();
-        });
-        backdrop.querySelectorAll('[data-pick-close]').forEach(function (btn) {
-            btn.addEventListener('click', close);
-        });
-        backdrop.querySelector('[data-pick-ok]').addEventListener('click', function () {
-            scopeState.products = catalog.filter(function (it) {
-                return !!selectedMap[it.id];
-            }).map(function (it) {
-                return { id: it.id, name: it.name };
-            });
-            scopeState.categories = [];
-            renderScopeChips();
-            close();
-        });
-
-        document.body.appendChild(backdrop);
-        if (nameEl) nameEl.focus();
     }
 
     function bindScopeUi() {

@@ -3,6 +3,7 @@
  */
 (function () {
   var ALL_PRODUCTS = [];
+  var saleFilterCtrl = null;
   var state = {
     filtered: [],
     page: 1,
@@ -15,6 +16,9 @@
       exchangeType: '',
       deliveryMode: '',
       saleScope: '',
+      saleStoreId: '',
+      saleRegionId: '',
+      saleRegionParts: { province: '', city: '', district: '' },
       status: '',
       hasSchedule: '',
       pointsMin: '',
@@ -115,7 +119,16 @@
     if (f.hasSchedule === 'yes' && !hasScheduleConfigured(item)) return false;
     if (f.hasSchedule === 'no' && hasScheduleConfigured(item)) return false;
     if (f.deliveryMode && normalizeDeliveryMode(item.deliveryMode) !== f.deliveryMode) return false;
-    if (f.saleScope && normalizeSaleScope(item.saleScope) !== f.saleScope) return false;
+    if (window.MdmMemberPointsRuleListFilter && window.MdmMemberPointsRuleListFilter.matchSaleScopeFilter) {
+      if (!window.MdmMemberPointsRuleListFilter.matchSaleScopeFilter(item, {
+        type: f.saleScope,
+        storeId: f.saleStoreId,
+        regionId: f.saleRegionId,
+        regionParts: f.saleRegionParts
+      })) return false;
+    } else if (f.saleScope && normalizeSaleScope(item.saleScope) !== f.saleScope) {
+      return false;
+    }
 
     var enabled = getEnabledSpecs(item);
     if (!enabled.length) return false;
@@ -411,22 +424,30 @@
     state.filters.category = (document.getElementById('qMallCategory') || {}).value || '';
     state.filters.exchangeType = (document.getElementById('qMallExchangeType') || {}).value || '';
     state.filters.deliveryMode = (document.getElementById('qMallDeliveryMode') || {}).value || '';
-    state.filters.saleScope = (document.getElementById('qMallSaleScope') || {}).value || '';
     state.filters.status = (document.getElementById('qMallStatus') || {}).value || '';
     state.filters.hasSchedule = (document.getElementById('qMallHasSchedule') || {}).value || '';
     state.filters.pointsMin = (document.getElementById('qMallPointsMin') || {}).value;
     state.filters.pointsMax = (document.getElementById('qMallPointsMax') || {}).value;
+    var sale = saleFilterCtrl ? saleFilterCtrl.getState() : {};
+    state.filters.saleScope = sale.type || (document.getElementById('qMallSaleScope') || {}).value || '';
+    state.filters.saleStoreId = sale.storeId || '';
+    state.filters.saleRegionId = sale.regionId || '';
+    state.filters.saleRegionParts = sale.regionParts || { province: '', city: '', district: '' };
   }
 
   function resetFiltersForm() {
     var form = document.getElementById('pointsMallFilterForm');
     if (form) form.reset();
+    if (saleFilterCtrl) saleFilterCtrl.reset();
     state.filters = {
       keyword: '',
       category: '',
       exchangeType: '',
       deliveryMode: '',
       saleScope: '',
+      saleStoreId: '',
+      saleRegionId: '',
+      saleRegionParts: { province: '', city: '', district: '' },
       status: '',
       hasSchedule: '',
       pointsMin: '',
@@ -772,6 +793,18 @@
     bindClearButtons();
     bindEnableBar();
     syncEnableBar();
+
+    if (window.MdmMemberPointsRuleListFilter && window.MdmMemberPointsRuleListFilter.bindSaleScopeFilter) {
+      saleFilterCtrl = window.MdmMemberPointsRuleListFilter.bindSaleScopeFilter({
+        typeSelect: document.getElementById('qMallSaleScope'),
+        regionGroup: document.getElementById('qMallSaleRegionGroup'),
+        regionMount: document.getElementById('qMallSaleRegionMount'),
+        regionCascaderId: 'mallSaleRegionFilter',
+        storeGroup: document.getElementById('qMallSaleStoreGroup'),
+        storeInput: document.getElementById('qMallStore'),
+        storeDropdown: document.getElementById('qMallStoreDropdown')
+      });
+    }
 
     document.getElementById('pointsMallBannerBtn') &&
       document.getElementById('pointsMallBannerBtn').addEventListener('click', openBannerModal);

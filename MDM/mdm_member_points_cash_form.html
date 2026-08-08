@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 积分抵现</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-product.css">
+    <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content mdm-edit-page">
+            <div class="content-tabs"><button class="active" id="cashFormTabTitle">新增积分抵现</button></div>
+            <hr class="content-divider">
+
+            <a class="pts-rule-form-back" href="mdm_member_points_cash.html">← 返回积分抵现</a>
+            <div class="mdm-biz-tip" role="note">若同一时段内有多个满足的规则，取<strong>最新创建</strong>的规则；<strong>未命中任何规则时不支持积分抵现</strong>。</div>
+
+            <form id="cashRuleForm">
+                <div class="pts-rule-card">
+                    <div class="pts-rule-card__title">基础信息</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label" for="cashName"><span class="erp-req">*</span>规则名称</label>
+                            <div class="pts-rule-field__control">
+                                <input class="erp-input pts-rule-field__input--name" id="cashName" type="text" maxlength="40" placeholder="请输入规则名称" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">状态</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-check-row">
+                                    <label class="pts-rule-check-label">
+                                        <input type="checkbox" id="cashEnabled" checked> 启用
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label" for="cashPerPoint"><span class="erp-req">*</span>抵扣比例</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-unit">
+                                    <span class="pts-rule-unit__text">每 1 积分可抵扣</span>
+                                    <input class="erp-input" id="cashPerPoint" type="number" min="0.01" step="0.01" value="0.01">
+                                    <span class="pts-rule-unit__text">元</span>
+                                </div>
+                                <div class="pts-rule-tip">金额保留 2 位小数。</div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label" for="cashMaxRatio"><span class="erp-req">*</span>每笔订单最大可抵扣比例</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-unit">
+                                    <input class="erp-input" id="cashMaxRatio" type="number" min="1" max="100" step="1" value="50">
+                                    <span class="pts-rule-unit__text">%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label" for="cashMaxAmount"><span class="erp-req">*</span>最大可抵扣金额</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-unit">
+                                    <input class="erp-input" id="cashMaxAmount" type="number" min="0.01" step="0.01" value="100.00">
+                                    <span class="pts-rule-unit__text">元</span>
+                                </div>
+                                <div class="pts-rule-tip">单笔订单积分抵扣金额上限，保留 2 位小数。</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-card">
+                    <div class="pts-rule-card__title">适用范围</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">适用端口</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-check-row" id="cashPortScopeRow">
+                                    <label class="pts-rule-check-label"><input type="radio" name="cashPortScope" value="all" checked> 不限</label>
+                                    <label class="pts-rule-check-label"><input type="radio" name="cashPortScope" value="custom"> 指定端口</label>
+                                </div>
+                                <div class="pts-rule-port-list" id="cashPortList" hidden>
+                                    <label class="pts-rule-check-label"><input type="checkbox" data-port="mini"> 小程序</label>
+                                    <label class="pts-rule-check-label"><input type="checkbox" data-port="app"> APP</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">售卖范围</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-check-row" id="cashSaleScopeRow">
+                                    <label class="pts-rule-check-label"><input type="radio" name="cashSaleScope" value="all" checked> 全部</label>
+                                    <label class="pts-rule-check-label"><input type="radio" name="cashSaleScope" value="region"> 省市区</label>
+                                    <label class="pts-rule-check-label"><input type="radio" name="cashSaleScope" value="store"> 门店</label>
+                                </div>
+                                <div class="product-proxy-sale-scope__region" id="cashSaleScopeRegion" hidden>
+                                    <div class="product-proxy-sale-scope__alert">
+                                        <span class="product-proxy-sale-scope__alert-icon">i</span>
+                                        <span class="product-proxy-sale-scope__alert-text">支持按省 / 市 / 区配置售卖范围，可勾选整省、整市或具体区县</span>
+                                    </div>
+                                    <button type="button" class="product-proxy-sale-scope__pick" id="cashSaleScopePickBtn">+ 选择区域</button>
+                                    <div class="product-proxy-sale-scope__tags" id="cashSaleScopeTags"></div>
+                                </div>
+                                <div class="product-proxy-sale-scope__store" id="cashSaleScopeStore" hidden>
+                                    <button type="button" class="product-proxy-sale-scope__pick" id="cashSaleScopeStorePickBtn">+ 选择门店</button>
+                                    <p class="product-proxy-sale-scope__store-count" id="cashSaleScopeStoreCount" hidden>已选择 0 个门店</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">适用商品</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-scope-box">
+                                    <div class="pts-rule-check-row">
+                                        <label class="pts-rule-check-label"><input type="radio" name="cashProductScope" value="all" checked> 全部商品</label>
+                                        <label class="pts-rule-check-label"><input type="radio" name="cashProductScope" value="include_product"> 适用商品</label>
+                                        <label class="pts-rule-check-label"><input type="radio" name="cashProductScope" value="include_category"> 适用类目</label>
+                                        <label class="pts-rule-check-label"><input type="radio" name="cashProductScope" value="exclude_product"> 排除商品</label>
+                                        <label class="pts-rule-check-label"><input type="radio" name="cashProductScope" value="exclude_category"> 排除类目</label>
+                                    </div>
+                                    <div class="pts-rule-scope-actions" id="cashScopePickWrap" hidden>
+                                        <button type="button" class="erp-btn" id="cashScopePickBtn">选择范围</button>
+                                        <span class="pts-rule-tip" id="cashScopePickHint" style="margin:0;"></span>
+                                    </div>
+                                    <div class="pts-rule-scope-chips" id="cashScopeChips"></div>
+                                    <div class="pts-rule-scope-empty" id="cashScopeEmpty" hidden>尚未选择，请点击上方按钮选择</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-actions mdm-edit-page__footer">
+                    <button type="button" class="btn btn-secondary" id="btnCashCancel">取消</button>
+                    <button type="button" class="btn btn-primary" id="btnCashSave">保存</button>
+                </div>
+            </form>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-product-catalog-store.js"></script>
+    <script src="../js/mdm-member-level-data.js"></script>
+    <script src="../js/mdm-member-product-picker.js"></script>
+    <script src="../js/mdm-member-points-scope.js"></script>
+    <script src="../js/mdm-product-proxy-region-picker.js"></script>
+    <script src="../js/mdm-product-proxy-store-picker.js"></script>
+    <script src="../js/mdm-member-points-cash-store.js"></script>
+    <script src="../js/mdm-member-points-cash-form.js"></script>
+</body>
+</html>
