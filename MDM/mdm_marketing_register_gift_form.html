@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 注册有礼</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-marketing-register-gift.css">
+    <style>
+        .pts-rule-card {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            width: 100%;
+            max-width: none;
+        }
+        .pts-rule-card__title {
+            padding: 12px 16px;
+            background: #fafafa;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+        .pts-rule-card__body { padding: 16px 16px 8px; }
+        .pts-rule-field {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .pts-rule-field__label {
+            flex: 0 0 120px;
+            text-align: right;
+            font-size: 13px;
+            color: #333;
+            line-height: 36px;
+        }
+        .pts-rule-field__label .erp-req {
+            color: #ff4d4f;
+            margin-right: 2px;
+        }
+        .pts-rule-field__control {
+            flex: 1;
+            min-width: 0;
+            max-width: none;
+        }
+        /* 仅基础信息卡内单行输入限制宽度；奖励区沿用会员权益控件样式 */
+        #rgFormPanel > .pts-rule-card .pts-rule-field__control > .erp-input {
+            width: 100%;
+            max-width: 480px;
+            height: 36px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/marketing-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content mdm-edit-page">
+            <div class="content-tabs"><button class="active" id="rgFormTabTitle">新增注册有礼</button></div>
+            <hr class="content-divider">
+
+            <div class="mkt-rg-form-toolbar">
+                <a class="mkt-rg-form-back" href="mdm_marketing_register_gift.html">← 返回注册有礼</a>
+            </div>
+
+            <div class="mdm-biz-tip" role="note">若同一时段内有多个满足的活动，取最新创建的活动。</div>
+
+            <div id="rgFormPanel">
+                <div class="pts-rule-card">
+                    <div class="pts-rule-card__title">基础信息</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>活动名称</label>
+                            <div class="pts-rule-field__control">
+                                <input class="erp-input" id="rgName" type="text" placeholder="请输入活动名称" maxlength="40" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>活动时间</label>
+                            <div class="pts-rule-field__control">
+                                <div class="mkt-rg-datetime-row">
+                                    <div class="mkt-rg-datetime-wrap" id="rgStartWrap">
+                                        <input class="erp-input" id="rgStartAt" type="datetime-local" step="60" title="开始时间">
+                                        <button type="button" class="mkt-rg-datetime-clear" data-clear-for="rgStartAt" aria-label="清空开始时间">×</button>
+                                    </div>
+                                    <span class="sep">至</span>
+                                    <div class="mkt-rg-datetime-wrap" id="rgEndWrap">
+                                        <input class="erp-input" id="rgEndAt" type="datetime-local" step="60" title="结束时间">
+                                        <button type="button" class="mkt-rg-datetime-clear" data-clear-for="rgEndAt" aria-label="清空结束时间">×</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>应用端口</label>
+                            <div class="pts-rule-field__control">
+                                <div class="mkt-rg-check-row" id="rgPortRow">
+                                    <label class="mkt-rg-check-label">
+                                        <input type="radio" name="rgPort" value="mini" checked> 小程序
+                                    </label>
+                                    <label class="mkt-rg-check-label">
+                                        <input type="radio" name="rgPort" value="app"> APP
+                                    </label>
+                                </div>
+                                <div class="mkt-rg-tip">切换端口将重置场景勾选与奖励配置</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-card">
+                    <div class="pts-rule-card__title">参与场景</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>场景</label>
+                            <div class="pts-rule-field__control">
+                                <div class="mkt-rg-check-row" id="rgSceneRow"></div>
+                                <div class="mkt-rg-tip" id="rgSceneTip">小程序仅支持「新用户注册」</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="rgRewardHost"></div>
+            </div>
+
+            <div class="mdm-edit-page__footer">
+                <button type="button" class="btn btn-secondary" id="rgFormCancel">取消</button>
+                <button type="button" class="btn btn-primary" id="rgFormSave">保存</button>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-marketing-cash-redpack-store.js"></script>
+    <script src="../js/mdm-marketing-register-gift-store.js"></script>
+    <script src="../js/mdm-marketing-register-gift-form.js"></script>
+</body>
+</html>

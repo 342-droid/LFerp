@@ -614,6 +614,11 @@
   }
 
   function getCheckoutItems() {
+    /* 新人专区：立即购买草稿优先（不走购物车） */
+    if (global.UaNewcomerZoneOrder && typeof global.UaNewcomerZoneOrder.getCheckoutItems === 'function') {
+      var newcomerItems = global.UaNewcomerZoneOrder.getCheckoutItems();
+      if (newcomerItems && newcomerItems.length) return newcomerItems;
+    }
     var cart = ensureCart();
     return (cart.items || [])
       .filter(function (item) {
@@ -1697,7 +1702,11 @@
     var paySheet = document.getElementById('confirmPaySheet');
     var payMethod = 'wechat';
     var remarks = {};
-    var usePointsDeduct = true;
+    var isNewcomerCheckout = items.some(function (it) {
+      return !!it.isNewcomerExclusive;
+    });
+    /* 新人专区商品不支持积分抵扣 */
+    var usePointsDeduct = !isNewcomerCheckout;
 
     if (!items.length) {
       window.location.href = 'cart.html';
@@ -1734,12 +1743,13 @@
       (cfg && cfg.AVAILABLE_POINTS_DEMO) || 161;
     /* 兑换与抵现共用可用积分：先预留兑换所需，剩余才可抵普通商品现金 */
     var ptsLeftForDeduct = Math.max(0, availablePts - pointsExchangePts);
-    /* 抵扣仅作用普通商品；积分兑换商品不参与可抵基数 */
-    var deductInfo =
-      cfg && cfg.calcCashDeduction
+    /* 抵扣仅作用普通商品；积分兑换 / 新人专区商品不参与可抵基数 */
+    var deductInfo = isNewcomerCheckout
+      ? { enabled: false, deductAmount: 0, pointsUsed: 0, tip: '新人专区商品不支持积分抵扣' }
+      : cfg && cfg.calcCashDeduction
         ? cfg.calcCashDeduction(
             items.filter(function (it) {
-              return !it.isPointsExchange;
+              return !it.isPointsExchange && !it.isNewcomerExclusive;
             }),
             ptsLeftForDeduct
           )
@@ -1789,15 +1799,18 @@
     }
 
     function renderItemRow(item) {
-      var nameHtml = item.isPointsExchange
-        ? '<span class="ua-cart-item__tag">积分兑换</span>' + item.name
-        : item.name;
+      var nameHtml = item.isNewcomerExclusive
+        ? '<span class="ua-cart-item__tag">新人专享</span>' + item.name
+        : item.isPointsExchange
+          ? '<span class="ua-cart-item__tag">积分兑换</span>' + item.name
+          : item.name;
       var priceHtml = item.isPointsExchange
         ? formatPointsPrice(item)
         : formatMoney(item.price);
       return (
         '<div class="ua-confirm-item' +
         (item.isPointsExchange ? ' ua-confirm-item--points' : '') +
+        (item.isNewcomerExclusive ? ' ua-confirm-item--newcomer' : '') +
         '">' +
         '<div class="ua-confirm-item__thumb">' +
         '<img src="' +
@@ -2028,6 +2041,12 @@
           global.UaPointsMallOrder.removeFromShopCart(it.pointsCode, it.skuCode);
         }
       });
+      if (global.UaNewcomerZoneOrder && typeof global.UaNewcomerZoneOrder.clearCheckout === 'function') {
+        var hasNewcomer = items.some(function (it) {
+          return !!it.isNewcomerExclusive;
+        });
+        if (hasNewcomer) global.UaNewcomerZoneOrder.clearCheckout();
+      }
       var cart = ensureCart();
       var remainIds = {};
       items.forEach(function (it) {
@@ -2039,8 +2058,44 @@
       writeCart(cart);
     }
 
+    function validateNewcomerCheckout() {
+      var newcomerLines = items.filter(function (it) {
+        return !!it.isNewcomerExclusive;
+      });
+      if (!newcomerLines.length) return { ok: true };
+      if (!global.UaNewcomerZoneOrder) {
+        return { ok: false, message: '新人专区校验组件未加载' };
+      }
+      /* 支付前只卡「是否仍是新人 / 是否已买过」；待支付同商品由下单入口拦截 */
+      var gate = global.UaNewcomerZoneOrder.assertNewcomerForCheckout();
+      if (!gate.ok) return gate;
+      for (var i = 0; i < newcomerLines.length; i++) {
+        var line = newcomerLines[i];
+        var code = line.newcomerCode || '';
+        if (Number(line.qty) !== 1) {
+          return { ok: false, message: '新人专区商品每人限购 1 件' };
+        }
+        if (
+          (global.UaNewcomerZoneOrder.hasPaidNewcomerOrder &&
+            global.UaNewcomerZoneOrder.hasPaidNewcomerOrder()) ||
+          (code && global.UaNewcomerZoneOrder.hasBoughtNewcomerProduct(code))
+        ) {
+          return {
+            ok: false,
+            message: '新人专区限购一单，您已购买过'
+          };
+        }
+      }
+      return { ok: true };
+    }
+
     /** 提交订单（接口动作）：生成待支付订单，成功后由调用方唤起支付 */
     function createUnpaidOrder() {
+      var newcomerCheck = validateNewcomerCheckout();
+      if (!newcomerCheck.ok) {
+        showToast(newcomerCheck.message || '暂无法购买新人专区商品');
+        return null;
+      }
       var d = currentDeduct();
       var payable = calcPayable();
       var orderPayload = {
@@ -2065,11 +2120,13 @@
             name: it.name,
             spec: it.spec || '',
             img: it.img || '',
-            qty: it.qty,
+            qty: it.isNewcomerExclusive ? 1 : it.qty,
             price: Number(it.price) || 0,
             points: Number(it.points) || 0,
             money: Number(it.money) || 0,
             isPointsExchange: !!it.isPointsExchange,
+            isNewcomerExclusive: !!it.isNewcomerExclusive,
+            newcomerCode: it.newcomerCode || '',
             pointsCode: it.pointsCode || '',
             skuCode: it.skuCode || ''
           };
@@ -2155,11 +2212,19 @@
 
     document.getElementById('confirmCouponRow') &&
       document.getElementById('confirmCouponRow').addEventListener('click', function () {
+        if (isNewcomerCheckout) {
+          showToast('新人专区商品不支持用券');
+          return;
+        }
         showToast('暂无可用优惠券');
       });
 
     document.getElementById('confirmPointsDeductRow') &&
       document.getElementById('confirmPointsDeductRow').addEventListener('click', function () {
+        if (isNewcomerCheckout) {
+          showToast('新人专区商品不支持积分抵扣');
+          return;
+        }
         if (!deductInfo.enabled || !(deductInfo.eligibleAmount > 0)) {
           showToast(deductInfo.tip || '当前订单无可抵扣的普通商品');
           return;
@@ -2201,9 +2266,16 @@
           showToast('可用积分不足（兑换与抵扣合计超出）');
           return;
         }
+        /* 新人专区：提交前再次校验是否已有支付成功订单 */
+        var ncCheck = validateNewcomerCheckout();
+        if (!ncCheck.ok) {
+          showToast(ncCheck.message || '暂无法购买新人专区商品');
+          return;
+        }
         /* 提交订单成功后唤起支付，不跳转待支付页 */
         if (!pendingOrder) {
-          createUnpaidOrder();
+          var created = createUnpaidOrder();
+          if (!created) return;
           showToast('订单已生成，请支付');
         }
         openPaySheet();
@@ -2228,6 +2300,13 @@
 
     document.getElementById('confirmPaySubmit') &&
       document.getElementById('confirmPaySubmit').addEventListener('click', function () {
+        /* 支付瞬间再校验：避免多笔待支付订单先后支付薅羊毛 */
+        var payNcCheck = validateNewcomerCheckout();
+        if (!payNcCheck.ok) {
+          showToast(payNcCheck.message || '您已有支付成功的订单，无法继续支付新人专区订单');
+          closePaySheet();
+          return;
+        }
         closePaySheet();
         var order = pendingOrder;
         if (!order && global.UaOrdersStore) order = global.UaOrdersStore.getLatest();

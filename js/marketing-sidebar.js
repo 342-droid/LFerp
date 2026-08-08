@@ -26,9 +26,29 @@
         {
             href: 'mdm_marketing_points_mall.html',
             text: '积分商城',
-            alsoActive: ['mdm_marketing_points_mall_form.html']
+            alsoActive: [
+                'mdm_marketing_points_mall_form.html',
+                'mdm_marketing_points_rule_desc.html'
+            ]
         },
-        { href: 'mdm_marketing_points_rule_desc.html', text: '积分规则说明' }
+        {
+            href: 'mdm_marketing_newcomer_zone.html',
+            text: '新人专区',
+            alsoActive: [
+                'mdm_marketing_newcomer_zone_form.html'
+            ]
+        },
+        {
+            href: 'mdm_marketing_register_gift.html',
+            text: '注册有礼',
+            alsoActive: [
+                'mdm_marketing_register_gift_form.html'
+            ]
+        },
+        {
+            href: 'mdm_marketing_cash_redpack.html',
+            text: '现金红包'
+        }
     ];
 
     function pageMatches(href) {

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 现金红包</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/mdm-member360-list.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-marketing-points-home.css">
+    <link rel="stylesheet" href="../css/lf-marketing-register-gift.css">
+    <link rel="stylesheet" href="../css/lf-marketing-cash-redpack.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/marketing-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="mkt-points-home mkt-cr-home" id="cashRedpackRoot">
+                <nav class="mkt-points-tabs" role="tablist">
+                    <button type="button" class="mkt-points-tabs__item mkt-points-tabs__item--active" data-tab="home" role="tab" aria-selected="true">现金红包</button>
+                    <button type="button" class="mkt-points-tabs__item" data-tab="detail" role="tab" aria-selected="false">发放明细</button>
+                </nav>
+
+                <div id="crHomeWrap">
+                    <div class="mdm-biz-tip" role="note">
+                        <div><strong>使用现金红包功能：</strong></div>
+                        <ol>
+                            <li>先前往微信商户后台-产品中心-商家转账 开通商家转账功能，转账场景选择-现金营销。</li>
+                            <li>在微信商户后台-交易中心-充值/转账 进行账户充值。</li>
+                            <li>在微信商户后台-产品中心-运营工具-商家转账-前往功能-转账额度 设置单日转账额度、单笔额度等限制。</li>
+                            <li>红包活动中发放红包，受前 3 步影响，请确保已配置完毕，若账号内没有余额则直接发放失败。</li>
+                        </ol>
+                    </div>
+
+                    <div class="mkt-points-system-bar">
+                        <span class="mkt-points-system-bar__label">现金红包</span>
+                        <div class="mkt-points-system-bar__main">
+                            <div class="mkt-points-system-bar__row">
+                                <button type="button" class="mkt-points-switch" id="crSystemSwitch" aria-pressed="false" aria-label="现金红包开关"></button>
+                                <span class="mkt-points-system-bar__status" id="crSystemStatus">已关闭</span>
+                            </div>
+                            <p class="mkt-points-system-bar__desc" id="crSystemDesc">现金红包已关闭，所有能发现金红包的活动中该项均为禁用，无法勾选和编辑修改。</p>
+                            <div class="mkt-cr-expire">
+                                <span>红包设置超过</span>
+                                <input class="mkt-cr-expire__input" id="crExpireHours" type="number" min="1" max="100" step="1" value="24" aria-label="未领取自动撤销小时数">
+                                <span>小时（1-100，默认 24）未领取自动撤销。</span>
+                                <button type="button" class="btn btn-primary" id="crExpireSaveBtn">保存</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="crHomePanel">
+                        <section class="mkt-points-section">
+                            <h2 class="mkt-points-section__title">红包发放数据</h2>
+                            <div class="mkt-cr-stats-row">
+                                <div class="mkt-cr-stats-block">
+                                    <div class="mkt-cr-stats-block__label">今日</div>
+                                    <div class="mkt-points-stats">
+                                        <div class="mkt-points-stat">
+                                            <div class="mkt-points-stat__label">发放总额（元）</div>
+                                            <div class="mkt-points-stat__value" id="crStatTodayAmount">0</div>
+                                        </div>
+                                        <div class="mkt-points-stat">
+                                            <div class="mkt-points-stat__label">发放用户数</div>
+                                            <div class="mkt-points-stat__value" id="crStatTodayUsers">0</div>
+                                        </div>
+                                        <div class="mkt-points-stat">
+                                            <div class="mkt-points-stat__label">触发活动数</div>
+                                            <div class="mkt-points-stat__value" id="crStatTodayActs">0</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mkt-cr-stats-block">
+                                    <div class="mkt-cr-stats-block__label">累计</div>
+                                    <div class="mkt-points-stats">
+                                        <div class="mkt-points-stat">
+                                            <div class="mkt-points-stat__label">发放总额（元）</div>
+                                            <div class="mkt-points-stat__value" id="crStatTotalAmount">0</div>
+                                        </div>
+                                        <div class="mkt-points-stat">
+                                            <div class="mkt-points-stat__label">发放用户数</div>
+                                            <div class="mkt-points-stat__value" id="crStatTotalUsers">0</div>
+                                        </div>
+                                        <div class="mkt-points-stat">
+                                            <div class="mkt-points-stat__label">触发活动数</div>
+                                            <div class="mkt-points-stat__value" id="crStatTotalActs">0</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="mkt-points-section">
+                            <h2 class="mkt-points-section__title">红包发放活动</h2>
+                            <div class="mkt-points-grid" id="crActivityGrid"></div>
+                        </section>
+                    </div>
+                </div>
+
+                <div id="crDetailWrap" hidden>
+                    <div class="mkt-cr-detail-wrap">
+                        <section class="search-section">
+                            <form class="search-form" id="crFilterForm" onsubmit="return false;">
+                                <div class="form-group">
+                                    <label>用户:</label>
+                                    <div class="input-wrapper">
+                                        <input id="qCrUser" placeholder="ID / 昵称 / 手机号" autocomplete="off">
+                                        <span class="clear-btn">×</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>发放活动:</label>
+                                    <select id="qCrActivityType">
+                                        <option value="">全部</option>
+                                        <option value="register_gift">注册有礼</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>活动ID:</label>
+                                    <div class="input-wrapper">
+                                        <input id="qCrActivityId" placeholder="活动ID" autocomplete="off">
+                                        <span class="clear-btn">×</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>场景:</label>
+                                    <select id="qCrScene">
+                                        <option value="">全部</option>
+                                    </select>
+                                </div>
+                                <div class="form-group form-group--rg-time form-group--datetime">
+                                    <label>发放时间:</label>
+                                    <div class="mkt-rg-filter-range" role="group" aria-label="发放时间筛选区间">
+                                        <span class="mkt-rg-datetime-wrap" id="qCrTimeStartWrap">
+                                            <input id="qCrTimeStart" type="datetime-local" step="60" title="筛选开始时间">
+                                            <button type="button" class="mkt-rg-datetime-clear" data-clear-for="qCrTimeStart" aria-label="清空开始时间">×</button>
+                                        </span>
+                                        <span class="sep">至</span>
+                                        <span class="mkt-rg-datetime-wrap" id="qCrTimeEndWrap">
+                                            <input id="qCrTimeEnd" type="datetime-local" step="60" title="筛选结束时间">
+                                            <button type="button" class="mkt-rg-datetime-clear" data-clear-for="qCrTimeEnd" aria-label="清空结束时间">×</button>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>发放金额:</label>
+                                    <div class="mkt-cr-amount-range" role="group" aria-label="发放金额区间">
+                                        <input id="qCrAmountMin" type="number" min="0" step="0.01" placeholder="最低" title="最低金额">
+                                        <span class="sep">至</span>
+                                        <input id="qCrAmountMax" type="number" min="0" step="0.01" placeholder="最高" title="最高金额">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>领取端口:</label>
+                                    <select id="qCrPort">
+                                        <option value="">全部</option>
+                                        <option value="mini">小程序</option>
+                                        <option value="app">APP</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>流水号:</label>
+                                    <div class="input-wrapper">
+                                        <input id="qCrOutBillNo" placeholder="商户单号" autocomplete="off">
+                                        <span class="clear-btn">×</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>微信回执单号:</label>
+                                    <div class="input-wrapper">
+                                        <input id="qCrTransferBillNo" placeholder="微信转账单号" autocomplete="off">
+                                        <span class="clear-btn">×</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>状态:</label>
+                                    <select id="qCrStatus">
+                                        <option value="">全部</option>
+                                        <option value="claimed">领取成功</option>
+                                        <option value="pending">待领取</option>
+                                        <option value="failed">发放失败</option>
+                                        <option value="expired">已过期</option>
+                                        <option value="revoked">已撤销</option>
+                                    </select>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-secondary" id="crFilterReset">重置</button>
+                                    <button type="button" class="btn btn-primary" id="crFilterQuery">查询</button>
+                                </div>
+                            </form>
+                        </section>
+
+                        <div class="mkt-cr-filter-stats" id="crFilterStats" aria-live="polite">
+                            <span class="mkt-cr-filter-stats__item">发放总额<strong id="crFilterStatAmount">0</strong> 元</span>
+                            <span class="mkt-cr-filter-stats__item">发放用户数<strong id="crFilterStatUsers">0</strong></span>
+                            <span class="mkt-cr-filter-stats__item">触发活动数<strong id="crFilterStatActs">0</strong></span>
+                        </div>
+
+                        <section class="table-section" style="margin:0;padding:0;border:none;background:transparent;">
+                            <div class="table-scroll-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>流水号</th>
+                                            <th>发放时间</th>
+                                            <th>发放用户</th>
+                                            <th>发放金额</th>
+                                            <th>关联活动</th>
+                                            <th>场景</th>
+                                            <th>领取端口</th>
+                                            <th>状态</th>
+                                            <th>领取时间</th>
+                                            <th>微信回执单号</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="crTableBody"></tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-marketing-cash-redpack-store.js"></script>
+    <script src="../js/mdm-marketing-cash-redpack.js"></script>
+</body>
+</html>

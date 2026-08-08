@@ -35,6 +35,7 @@
     if (doc.querySelector('.ua-gd-page') && doc.getElementById('gdTotalValue')) return 'growth-detail.html';
     if (doc.querySelector('.ua-pd-page') && doc.getElementById('pdCurrent')) return 'points-detail.html';
     if (doc.querySelector('.ua-pm-page') && doc.getElementById('pmAvailable')) return 'points-mall.html';
+    if (doc.querySelector('.ua-nz-page') && doc.getElementById('nzList')) return 'newcomer-zone.html';
     if (doc.querySelector('.ua-ppd-page') && doc.getElementById('ppdTitle')) return 'points-product-detail.html';
     if (doc.querySelector('.ua-poc-page') && doc.getElementById('pocSubmit')) return 'points-order-confirm.html';
     if (doc.querySelector('.ua-gd-page') && doc.getElementById('prContent')) return 'points-rule-desc.html';

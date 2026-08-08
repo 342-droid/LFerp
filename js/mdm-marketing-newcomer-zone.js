@@ -1,5 +1,5 @@
 /**
- * 营销 - 积分商城列表
+ * 营销 - 新人专区列表
  */
 (function () {
   var ALL_PRODUCTS = [];
@@ -12,13 +12,11 @@
     filters: {
       keyword: '',
       category: '',
-      exchangeType: '',
       deliveryMode: '',
-      saleScope: '',
       status: '',
       hasSchedule: '',
-      pointsMin: '',
-      pointsMax: ''
+      priceMin: '',
+      priceMax: ''
     }
   };
 
@@ -37,7 +35,7 @@
   }
 
   function loadList() {
-    ALL_PRODUCTS = window.MdmPointsMallStore ? window.MdmPointsMallStore.getAll() : [];
+    ALL_PRODUCTS = window.MdmNewcomerZoneStore ? window.MdmNewcomerZoneStore.getAll() : [];
   }
 
   function parseOptionalNumber(val) {
@@ -50,9 +48,9 @@
     return Array.isArray(item.specs) && item.specs.length ? item.specs : [];
   }
 
-  /** 列表仅展示已开启积分兑换的规格 */
+  /** 列表仅展示已开启售卖的规格 */
   function getEnabledSpecs(item) {
-    return getAllSpecs(item).filter(function (s) { return !!s.exchangeEnabled; });
+    return getAllSpecs(item).filter(function (s) { return !!s.saleEnabled; });
   }
 
   function sumEnabledField(item, field) {
@@ -75,35 +73,6 @@
     return normalizeDeliveryMode(mode) === 'express' ? '快递配送' : '平台配送';
   }
 
-  function normalizeSaleScope(scope) {
-    if (scope === 'region' || scope === 'store' || scope === 'all') return scope;
-    return 'all';
-  }
-
-  function saleScopeLabel(item) {
-    var scope = normalizeSaleScope(item && item.saleScope);
-    if (scope === 'region') {
-      var regions = Array.isArray(item.saleRegionSummary) ? item.saleRegionSummary : [];
-      if (regions.length) {
-        var names = regions
-          .map(function (r) {
-            return typeof r === 'string' ? r : r && (r.name || r.label || r.text);
-          })
-          .filter(Boolean);
-        if (names.length) {
-          return names.length > 2 ? '省市区（' + names.slice(0, 2).join('、') + '等）' : '省市区（' + names.join('、') + '）';
-        }
-      }
-      return '省市区';
-    }
-    if (scope === 'store') {
-      var stores = item.saleStores && typeof item.saleStores === 'object' ? Object.keys(item.saleStores) : [];
-      if (stores.length) return '门店（' + stores.length + '）';
-      return '门店';
-    }
-    return '全部';
-  }
-
   function matchFilters(item) {
     var f = state.filters;
     if (f.keyword) {
@@ -115,23 +84,17 @@
     if (f.hasSchedule === 'yes' && !hasScheduleConfigured(item)) return false;
     if (f.hasSchedule === 'no' && hasScheduleConfigured(item)) return false;
     if (f.deliveryMode && normalizeDeliveryMode(item.deliveryMode) !== f.deliveryMode) return false;
-    if (f.saleScope && normalizeSaleScope(item.saleScope) !== f.saleScope) return false;
 
     var enabled = getEnabledSpecs(item);
     if (!enabled.length) return false;
 
-    if (f.exchangeType) {
-      var itemType = item.exchangeType === 'points_money' ? 'points_money' : 'points';
-      if (itemType !== f.exchangeType) return false;
-    }
-
-    var min = parseOptionalNumber(f.pointsMin);
-    var max = parseOptionalNumber(f.pointsMax);
+    var min = parseOptionalNumber(f.priceMin);
+    var max = parseOptionalNumber(f.priceMax);
     if (min != null || max != null) {
       var hit = enabled.some(function (s) {
-        var points = Number(s.points) || 0;
-        if (min != null && points < min) return false;
-        if (max != null && points > max) return false;
+        var price = Number(s.salePrice) || 0;
+        if (min != null && price < min) return false;
+        if (max != null && price > max) return false;
         return true;
       });
       if (!hit) return false;
@@ -141,7 +104,7 @@
 
   function applySort(list) {
     if (!state.sort.key || !state.sort.dir) return list;
-    var field = state.sort.key === 'exchanged' ? 'exchangedQty' : 'stock';
+    var field = state.sort.key === 'sold' ? 'soldQty' : 'stock';
     var dir = state.sort.dir === 'asc' ? 1 : -1;
     return list.slice().sort(function (a, b) {
       var av = sumEnabledField(a, field);
@@ -158,26 +121,15 @@
     if (state.page < 1) state.page = 1;
   }
 
-  function exchangeTypeLabel(type) {
-    return type === 'points_money' ? '积分加现金' : '纯积分兑换';
-  }
-
-  function renderExchangePoints(spec) {
-    if (spec.exchangeType === 'points_money') {
-      return (
-        '<span class="mkt-points-mall-price">' +
-        escapeHtml(String(spec.points)) + '积分 + ' + formatMoney(spec.money) +
-        '</span>'
-      );
-    }
-    return '<span class="mkt-points-mall-price">' + escapeHtml(String(spec.points)) + '积分</span>';
+  function renderSalePrice(spec) {
+    return '<span class="mkt-newcomer-zone-price">' + formatMoney(spec.salePrice) + '</span>';
   }
 
   function renderLinePrice(spec) {
     if (spec.linePrice == null || spec.linePrice === '') {
-      return '<span class="mkt-points-mall-line-price">-</span>';
+      return '<span class="mkt-newcomer-zone-line-price">-</span>';
     }
-    return '<span class="mkt-points-mall-line-price">' + formatMoney(spec.linePrice) + '</span>';
+    return '<span class="mkt-newcomer-zone-line-price">' + formatMoney(spec.linePrice) + '</span>';
   }
 
   function hasScheduleConfigured(item) {
@@ -216,7 +168,7 @@
     var lines = [];
     if (item.scheduleOnAt) lines.push('上架 ' + formatScheduleTime(item.scheduleOnAt));
     if (item.scheduleOffAt) lines.push('下架 ' + formatScheduleTime(item.scheduleOffAt));
-    return '<div class="mkt-points-mall-schedule-cell">' + escapeHtml(lines.join('\n')).replace(/\n/g, '<br>') + '</div>';
+    return '<div class="mkt-newcomer-zone-schedule-cell">' + escapeHtml(lines.join('\n')).replace(/\n/g, '<br>') + '</div>';
   }
 
   function renderActions(item) {
@@ -239,23 +191,23 @@
     code = String(code || '').trim();
     if (!code) return;
     try {
-      sessionStorage.setItem('mdm_points_mall_edit_code', code);
+      sessionStorage.setItem('mdm_newcomer_zone_edit_code', code);
     } catch (e) { /* ignore */ }
     /* 不带 .html：避免 serve cleanUrls 301 时丢掉 ?code= */
-    window.location.href = 'mdm_marketing_points_mall_form?code=' + encodeURIComponent(code);
+    window.location.href = 'mdm_marketing_newcomer_zone_form?code=' + encodeURIComponent(code);
   }
 
   function renderSpecCell(spec, item, visibleCount, totalEnabled, expanded) {
-    var html = '<div class="mkt-points-mall-spec-cell">' + escapeHtml(spec.specName || '-') + '</div>';
+    var html = '<div class="mkt-newcomer-zone-spec-cell">' + escapeHtml(spec.specName || '-') + '</div>';
     if (totalEnabled > 1) {
       if (!expanded) {
         html +=
-          '<button type="button" class="mkt-points-mall-spec-toggle" data-expand-code="' + escapeHtml(item.code) + '">' +
+          '<button type="button" class="mkt-newcomer-zone-spec-toggle" data-expand-code="' + escapeHtml(item.code) + '">' +
           '展开(' + (totalEnabled - 1) + ')' +
           '</button>';
       } else {
         html +=
-          '<button type="button" class="mkt-points-mall-spec-toggle" data-collapse-code="' + escapeHtml(item.code) + '">收起</button>';
+          '<button type="button" class="mkt-newcomer-zone-spec-toggle" data-collapse-code="' + escapeHtml(item.code) + '">收起</button>';
       }
     }
     return html;
@@ -274,15 +226,15 @@
 
     visible.forEach(function (spec, si) {
       var isFirst = si === 0;
-      var rowCls = 'product-proxy-table__row mkt-points-mall-row' +
+      var rowCls = 'product-proxy-table__row mkt-newcomer-zone-row' +
         (alt ? ' product-proxy-table__row--alt' : '') +
-        (si < visible.length - 1 ? ' mkt-points-mall-row--sku-open' : '') +
-        (si > 0 ? ' mkt-points-mall-row--sku-cont' : '');
+        (si < visible.length - 1 ? ' mkt-newcomer-zone-row--sku-open' : '') +
+        (si > 0 ? ' mkt-newcomer-zone-row--sku-cont' : '');
       var html = '<tr class="' + rowCls + '" data-code="' + escapeHtml(item.code) + '">';
 
       if (isFirst) {
         html +=
-          '<td class="product-proxy-table__td mkt-points-mall-td--seq" rowspan="' + rowSpan + '">' +
+          '<td class="product-proxy-table__td mkt-newcomer-zone-td--seq" rowspan="' + rowSpan + '">' +
           escapeHtml(String(serialNo)) +
           '</td>' +
           '<td class="product-proxy-table__td" rowspan="' + rowSpan + '">' + escapeHtml(item.name) + '</td>' +
@@ -300,27 +252,20 @@
         '<td class="product-proxy-table__td">' +
         (isFirst
           ? renderSpecCell(spec, item, visible.length, totalEnabled, expanded)
-          : '<div class="mkt-points-mall-spec-cell">' + escapeHtml(spec.specName || '-') + '</div>') +
+          : '<div class="mkt-newcomer-zone-spec-cell">' + escapeHtml(spec.specName || '-') + '</div>') +
         '</td>' +
         '<td class="product-proxy-table__td">' + formatMoney(spec.purchasePrice) + '</td>' +
         '<td class="product-proxy-table__td">' + renderLinePrice(spec) + '</td>' +
         '<td class="product-proxy-table__td">' + escapeHtml(String(spec.stock != null ? spec.stock : 0)) + '</td>' +
-        '<td class="product-proxy-table__td">' + renderExchangePoints(Object.assign({}, spec, {
-          exchangeType: item.exchangeType || spec.exchangeType
-        })) + '</td>' +
-        '<td class="product-proxy-table__td">' + escapeHtml(String(spec.exchangedQty != null ? spec.exchangedQty : 0)) + '</td>';
+        '<td class="product-proxy-table__td">' + renderSalePrice(spec) + '</td>' +
+        '<td class="product-proxy-table__td">' + escapeHtml(String(spec.soldQty != null ? spec.soldQty : 0)) + '</td>';
 
       if (isFirst) {
         html +=
           '<td class="product-proxy-table__td" rowspan="' + rowSpan + '">' +
           escapeHtml(deliveryModeLabel(item.deliveryMode)) +
           '</td>' +
-          '<td class="product-proxy-table__td" rowspan="' + rowSpan + '">' +
-          escapeHtml(exchangeTypeLabel(item.exchangeType || spec.exchangeType)) +
-          '</td>' +
-          '<td class="product-proxy-table__td" rowspan="' + rowSpan + '">' +
-          escapeHtml(saleScopeLabel(item)) +
-          '</td>' +
+          
           '<td class="product-proxy-table__td" rowspan="' + rowSpan + '">' + renderStatus(item) + '</td>' +
           '<td class="product-proxy-table__td" rowspan="' + rowSpan + '">' + renderScheduleCell(item) + '</td>' +
           '<td class="product-proxy-table__td" rowspan="' + rowSpan + '">' + renderActions(item) + '</td>';
@@ -334,7 +279,7 @@
   }
 
   function syncSortHeaderUi() {
-    document.querySelectorAll('.mkt-points-mall-th-sort[data-sort-key]').forEach(function (btn) {
+    document.querySelectorAll('.mkt-newcomer-zone-th-sort[data-sort-key]').forEach(function (btn) {
       var key = btn.getAttribute('data-sort-key');
       btn.classList.toggle('is-asc', state.sort.key === key && state.sort.dir === 'asc');
       btn.classList.toggle('is-desc', state.sort.key === key && state.sort.dir === 'desc');
@@ -356,9 +301,9 @@
   function renderTable() {
     applyFilters();
     syncSortHeaderUi();
-    var tbody = document.getElementById('pointsMallTableBody');
-    var empty = document.getElementById('pointsMallEmpty');
-    var totalEl = document.getElementById('pointsMallPaginationTotal');
+    var tbody = document.getElementById('newcomerZoneTableBody');
+    var empty = document.getElementById('newcomerZoneEmpty');
+    var totalEl = document.getElementById('newcomerZonePaginationTotal');
     if (!tbody) return;
 
     var start = (state.page - 1) * state.pageSize;
@@ -384,8 +329,8 @@
   }
 
   function renderPagination() {
-    var pagesEl = document.getElementById('pointsMallPaginationPages');
-    var gotoEl = document.getElementById('pointsMallPageGoto');
+    var pagesEl = document.getElementById('newcomerZonePaginationPages');
+    var gotoEl = document.getElementById('newcomerZonePageGoto');
     if (!pagesEl) return;
 
     var totalPages = Math.max(1, Math.ceil(state.filtered.length / state.pageSize) || 1);
@@ -407,30 +352,26 @@
   }
 
   function readFiltersFromForm() {
-    state.filters.keyword = (document.getElementById('qMallKeyword') || {}).value.trim() || '';
-    state.filters.category = (document.getElementById('qMallCategory') || {}).value || '';
-    state.filters.exchangeType = (document.getElementById('qMallExchangeType') || {}).value || '';
-    state.filters.deliveryMode = (document.getElementById('qMallDeliveryMode') || {}).value || '';
-    state.filters.saleScope = (document.getElementById('qMallSaleScope') || {}).value || '';
-    state.filters.status = (document.getElementById('qMallStatus') || {}).value || '';
-    state.filters.hasSchedule = (document.getElementById('qMallHasSchedule') || {}).value || '';
-    state.filters.pointsMin = (document.getElementById('qMallPointsMin') || {}).value;
-    state.filters.pointsMax = (document.getElementById('qMallPointsMax') || {}).value;
+    state.filters.keyword = (document.getElementById('qNcKeyword') || {}).value.trim() || '';
+    state.filters.category = (document.getElementById('qNcCategory') || {}).value || '';
+        state.filters.deliveryMode = (document.getElementById('qNcDeliveryMode') || {}).value || '';
+    state.filters.status = (document.getElementById('qNcStatus') || {}).value || '';
+    state.filters.hasSchedule = (document.getElementById('qNcHasSchedule') || {}).value || '';
+    state.filters.priceMin = (document.getElementById('qNcPriceMin') || {}).value;
+    state.filters.priceMax = (document.getElementById('qNcPriceMax') || {}).value;
   }
 
   function resetFiltersForm() {
-    var form = document.getElementById('pointsMallFilterForm');
+    var form = document.getElementById('newcomerZoneFilterForm');
     if (form) form.reset();
     state.filters = {
       keyword: '',
       category: '',
-      exchangeType: '',
       deliveryMode: '',
-      saleScope: '',
       status: '',
       hasSchedule: '',
-      pointsMin: '',
-      pointsMax: ''
+      priceMin: '',
+      priceMax: ''
     };
     state.sort = { key: '', dir: '' };
     state.page = 1;
@@ -443,12 +384,12 @@
   }
 
   function openWarmConfirm(message, onConfirm) {
-    var existing = document.querySelector('[data-points-mall-warm]');
+    var existing = document.querySelector('[data-newcomer-zone-warm]');
     if (existing) existing.remove();
 
     var backdrop = document.createElement('div');
     backdrop.className = 'erp-modal-backdrop';
-    backdrop.setAttribute('data-points-mall-warm', '1');
+    backdrop.setAttribute('data-newcomer-zone-warm', '1');
     backdrop.innerHTML =
       '<div class="erp-modal erp-modal--confirm">' +
       '  <div class="erp-modal__header">' +
@@ -484,13 +425,11 @@
   }
 
   function handlePickedProducts(picked) {
-    if (!picked || !picked.length || !window.MdmPointsMallStore) return;
+    if (!picked || !picked.length || !window.MdmNewcomerZoneStore) return;
 
     if (picked.length === 1) {
-      var built = window.MdmPointsMallStore.buildFromCatalogProduct(picked[0], {
-        exchangeType: 'points',
-        points: 100,
-        money: 0,
+      var built = window.MdmNewcomerZoneStore.buildFromCatalogProduct(picked[0], {
+        salePrice: 9.9,
         status: 'off_shelf',
         limitType: 'none'
       });
@@ -498,28 +437,26 @@
         if (typeof showToast === 'function') showToast('选品数据无效，请重新勾选', 'warning');
         return;
       }
-      if (window.MdmPointsMallStore.getByCode(built.code)) {
-        if (typeof showToast === 'function') showToast('该商品已在积分商城中（编码 ' + built.code + '）', 'warning');
+      if (window.MdmNewcomerZoneStore.getByCode(built.code)) {
+        if (typeof showToast === 'function') showToast('该商品已在新人专区中（编码 ' + built.code + '）', 'warning');
         return;
       }
-      /* 先写入草稿，再进入编辑积分商品页完善配置 */
-      window.MdmPointsMallStore.upsert(built);
+      /* 先写入草稿，再进入编辑新人专区商品页完善配置 */
+      window.MdmNewcomerZoneStore.upsert(built);
       goEditForm(built.code);
       return;
     }
 
     var items = [];
     picked.forEach(function (p) {
-      var row = window.MdmPointsMallStore.buildFromCatalogProduct(p, {
-        exchangeType: 'points',
-        points: 100,
-        money: 0,
+      var row = window.MdmNewcomerZoneStore.buildFromCatalogProduct(p, {
+        salePrice: 9.9,
         status: 'off_shelf',
         limitType: 'none'
       });
       if (row && row.code) items.push(row);
     });
-    var count = window.MdmPointsMallStore.addMany(items);
+    var count = window.MdmNewcomerZoneStore.addMany(items);
     refresh(true);
     if (typeof showToast === 'function') {
       showToast(count ? ('已添加 ' + count + ' 件商品（默认开启首个规格，请编辑完善后上架）') : '未添加新商品（可能均已存在）', count ? 'success' : 'info');
@@ -527,7 +464,7 @@
   }
 
   function bindClearButtons() {
-    document.querySelectorAll('#pointsMallFilterForm .input-wrapper').forEach(function (wrap) {
+    document.querySelectorAll('#newcomerZoneFilterForm .input-wrapper').forEach(function (wrap) {
       var input = wrap.querySelector('input');
       var clearBtn = wrap.querySelector('.clear-btn');
       if (!input || !clearBtn) return;
@@ -544,53 +481,48 @@
     });
   }
 
-  /* —— 积分商城开关（同步积分规则 exchange.enabled） —— */
+  /* —— 新人专区开关（本页可直接开关） —— */
   function syncEnableBar() {
-    var cfg = window.MdmPointsMallConfig;
-    var on = cfg ? cfg.isExchangeEnabled() : true;
-    var switchBtn = document.getElementById('pointsMallEnableSwitch');
-    var statusEl = document.getElementById('pointsMallEnableStatus');
-    var descEl = document.getElementById('pointsMallEnableDesc');
+    var cfg = window.MdmNewcomerZoneConfig;
+    var on = cfg ? cfg.isEnabled() : true;
+    var switchBtn = document.getElementById('newcomerZoneEnableSwitch');
+    var statusEl = document.getElementById('newcomerZoneEnableStatus');
+    var descEl = document.getElementById('newcomerZoneEnableDesc');
     if (switchBtn) {
       switchBtn.classList.toggle('mkt-points-switch--on', on);
       switchBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      switchBtn.disabled = false;
+      switchBtn.removeAttribute('aria-disabled');
+      switchBtn.title = on ? '点击关闭新人专区' : '点击开启新人专区';
     }
     if (statusEl) statusEl.textContent = on ? '已开启' : '已关闭';
     if (descEl) {
       descEl.textContent = on
-        ? '积分商城已开启，C 端可展示入口；开关不可在本页修改，请点「去配置」；商品清单在本页维护。'
-        : '积分商城已关闭，C 端不展示入口；开关不可在本页修改，请点「去配置」前往积分规则页设置。';
+        ? '新人专区已开启，C 端可展示入口；商品清单在本页维护。'
+        : '新人专区已关闭，C 端不展示入口；开启后用户端可见新人专区。';
     }
   }
 
   function bindEnableBar() {
-    /* 积分商城开关仅展示状态，禁止本页操作；开关在积分规则页配置 */
-    var switchBtn = document.getElementById('pointsMallEnableSwitch');
-    if (switchBtn) {
-      switchBtn.disabled = true;
-      switchBtn.setAttribute('aria-disabled', 'true');
-      switchBtn.title = '请前往积分规则页配置';
-    }
-    var gotoRule = document.getElementById('pointsMallGotoRule');
-    if (gotoRule) {
-      gotoRule.addEventListener('click', function (e) {
-        e.preventDefault();
-        window.location.href = 'mdm_member_points_rule.html#exchangeRuleCard';
-      });
-    }
-    var ruleDescBtn = document.getElementById('pointsMallRuleDescBtn');
-    if (ruleDescBtn) {
-      ruleDescBtn.addEventListener('click', function () {
-        window.location.href = 'mdm_marketing_points_rule_desc.html';
-      });
-    }
+    var switchBtn = document.getElementById('newcomerZoneEnableSwitch');
+    if (!switchBtn) return;
+    switchBtn.addEventListener('click', function () {
+      var cfg = window.MdmNewcomerZoneConfig;
+      if (!cfg) return;
+      var next = !cfg.isEnabled();
+      cfg.setEnabled(next);
+      syncEnableBar();
+      if (typeof showToast === 'function') {
+        showToast(next ? '已开启新人专区' : '已关闭新人专区', 'success');
+      }
+    });
   }
 
   /* —— 轮播图配置 —— */
   var bannerDraft = [];
 
   function closeBannerModal() {
-    var existing = document.querySelector('[data-points-mall-banner-modal]');
+    var existing = document.querySelector('[data-newcomer-zone-banner-modal]');
     if (existing) existing.remove();
   }
 
@@ -603,34 +535,34 @@
     listEl.innerHTML = bannerDraft
       .map(function (item, index) {
         var preview = item.image
-          ? '<img class="mkt-points-mall-banner-preview" src="' + escapeHtml(item.image) + '" alt="">'
-          : '<div class="mkt-points-mall-banner-preview is-empty">暂无图片</div>';
+          ? '<img class="mkt-newcomer-zone-banner-preview" src="' + escapeHtml(item.image) + '" alt="">'
+          : '<div class="mkt-newcomer-zone-banner-preview is-empty">暂无图片</div>';
         return (
-          '<div class="mkt-points-mall-banner-item" data-banner-index="' + index + '">' +
-          '  <div class="mkt-points-mall-banner-item__head">' +
-          '    <span class="mkt-points-mall-banner-item__title">轮播 ' + (index + 1) + '</span>' +
-          '    <button type="button" class="mkt-points-mall-banner-item__remove" data-banner-remove="' + index + '">删除</button>' +
+          '<div class="mkt-newcomer-zone-banner-item" data-banner-index="' + index + '">' +
+          '  <div class="mkt-newcomer-zone-banner-item__head">' +
+          '    <span class="mkt-newcomer-zone-banner-item__title">轮播 ' + (index + 1) + '</span>' +
+          '    <button type="button" class="mkt-newcomer-zone-banner-item__remove" data-banner-remove="' + index + '">删除</button>' +
           '  </div>' +
-          '  <div class="mkt-points-mall-banner-fields">' +
-          '    <div class="mkt-points-mall-banner-field">' +
+          '  <div class="mkt-newcomer-zone-banner-fields">' +
+          '    <div class="mkt-newcomer-zone-banner-field">' +
           '      <label><span class="req">*</span>标题</label>' +
-          '      <div class="mkt-points-mall-banner-field__ctrl">' +
+          '      <div class="mkt-newcomer-zone-banner-field__ctrl">' +
           '        <input class="erp-input" data-banner-field="title" data-banner-index="' + index + '" maxlength="40" placeholder="请输入标题" value="' + escapeHtml(item.title) + '">' +
           '      </div>' +
           '    </div>' +
-          '    <div class="mkt-points-mall-banner-field">' +
+          '    <div class="mkt-newcomer-zone-banner-field">' +
           '      <label><span class="req">*</span>图片</label>' +
-          '      <div class="mkt-points-mall-banner-field__ctrl">' +
-          '        <div class="mkt-points-mall-banner-upload">' +
+          '      <div class="mkt-newcomer-zone-banner-field__ctrl">' +
+          '        <div class="mkt-newcomer-zone-banner-upload">' +
           preview +
           '          <button type="button" class="erp-btn" data-banner-upload="' + index + '">上传图片</button>' +
           '          <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" data-banner-file="' + index + '" hidden>' +
           '        </div>' +
           '      </div>' +
           '    </div>' +
-          '    <div class="mkt-points-mall-banner-field">' +
+          '    <div class="mkt-newcomer-zone-banner-field">' +
           '      <label>跳转链接</label>' +
-          '      <div class="mkt-points-mall-banner-field__ctrl">' +
+          '      <div class="mkt-newcomer-zone-banner-field__ctrl">' +
           '        <input class="erp-input" data-banner-field="link" data-banner-index="' + index + '" placeholder="选填，如页面路径或外链" value="' + escapeHtml(item.link) + '">' +
           '      </div>' +
           '    </div>' +
@@ -643,16 +575,16 @@
 
   function openBannerModal() {
     closeBannerModal();
-    var cfg = window.MdmPointsMallConfig;
+    var cfg = window.MdmNewcomerZoneConfig;
     bannerDraft = cfg ? cfg.loadBanners().map(function (b) {
       return { id: b.id, title: b.title, image: b.image, link: b.link };
     }) : [];
 
     var backdrop = document.createElement('div');
     backdrop.className = 'erp-modal-backdrop';
-    backdrop.setAttribute('data-points-mall-banner-modal', '1');
+    backdrop.setAttribute('data-newcomer-zone-banner-modal', '1');
     backdrop.innerHTML =
-      '<div class="erp-modal erp-modal--points-mall-banner">' +
+      '<div class="erp-modal erp-modal--newcomer-zone-banner">' +
       '  <div class="erp-modal__header">' +
       '    <h3 class="erp-modal__title">轮播图配置</h3>' +
       '    <div class="erp-modal__header-actions">' +
@@ -660,22 +592,22 @@
       '    </div>' +
       '  </div>' +
       '  <div class="erp-modal__body">' +
-      '    <p class="mkt-points-mall-banner-tip">最多可配置 10 个轮播；标题、图片必填，跳转链接选填。将展示在 C 端积分商城顶部。</p>' +
-      '    <div class="mkt-points-mall-banner-list" id="pointsMallBannerList"></div>' +
-      '    <button type="button" class="erp-btn mkt-points-mall-banner-add" id="pointsMallBannerAdd">添加轮播</button>' +
+      '    <p class="mkt-newcomer-zone-banner-tip">最多可配置 10 个轮播；标题、图片必填，跳转链接选填。将展示在 C 端新人专区顶部。</p>' +
+      '    <div class="mkt-newcomer-zone-banner-list" id="newcomerZoneBannerList"></div>' +
+      '    <button type="button" class="erp-btn mkt-newcomer-zone-banner-add" id="newcomerZoneBannerAdd">添加轮播</button>' +
       '  </div>' +
       '  <div class="erp-modal__footer">' +
       '    <button type="button" class="erp-btn" data-banner-close>取消</button>' +
-      '    <button type="button" class="erp-btn erp-btn--primary" id="pointsMallBannerSave">保存</button>' +
+      '    <button type="button" class="erp-btn erp-btn--primary" id="newcomerZoneBannerSave">保存</button>' +
       '  </div>' +
       '</div>';
     document.body.appendChild(backdrop);
 
-    var listEl = document.getElementById('pointsMallBannerList');
+    var listEl = document.getElementById('newcomerZoneBannerList');
     renderBannerList(listEl);
 
     function refreshAddBtn() {
-      var addBtn = document.getElementById('pointsMallBannerAdd');
+      var addBtn = document.getElementById('newcomerZoneBannerAdd');
       if (!addBtn || !cfg) return;
       addBtn.disabled = bannerDraft.length >= cfg.MAX_BANNERS;
       addBtn.textContent = bannerDraft.length >= cfg.MAX_BANNERS
@@ -740,7 +672,7 @@
       bannerDraft[index][key] = field.value;
     });
 
-    document.getElementById('pointsMallBannerAdd').addEventListener('click', function () {
+    document.getElementById('newcomerZoneBannerAdd').addEventListener('click', function () {
       if (!cfg || bannerDraft.length >= cfg.MAX_BANNERS) {
         if (typeof showToast === 'function') showToast('最多添加 10 个轮播', 'warning');
         return;
@@ -750,7 +682,7 @@
       refreshAddBtn();
     });
 
-    document.getElementById('pointsMallBannerSave').addEventListener('click', function () {
+    document.getElementById('newcomerZoneBannerSave').addEventListener('click', function () {
       for (var i = 0; i < bannerDraft.length; i++) {
         var row = bannerDraft[i];
         if (!String(row.title || '').trim()) {
@@ -773,52 +705,52 @@
     bindEnableBar();
     syncEnableBar();
 
-    document.getElementById('pointsMallBannerBtn') &&
-      document.getElementById('pointsMallBannerBtn').addEventListener('click', openBannerModal);
+    document.getElementById('newcomerZoneBannerBtn') &&
+      document.getElementById('newcomerZoneBannerBtn').addEventListener('click', openBannerModal);
 
-    document.getElementById('pointsMallFilterQuery') &&
-      document.getElementById('pointsMallFilterQuery').addEventListener('click', function () {
+    document.getElementById('newcomerZoneFilterQuery') &&
+      document.getElementById('newcomerZoneFilterQuery').addEventListener('click', function () {
         readFiltersFromForm();
         state.page = 1;
         renderTable();
       });
 
-    document.getElementById('pointsMallFilterReset') &&
-      document.getElementById('pointsMallFilterReset').addEventListener('click', function () {
+    document.getElementById('newcomerZoneFilterReset') &&
+      document.getElementById('newcomerZoneFilterReset').addEventListener('click', function () {
         resetFiltersForm();
         bindClearButtons();
         renderTable();
       });
 
-    document.getElementById('pointsMallAddBtn') &&
-      document.getElementById('pointsMallAddBtn').addEventListener('click', function () {
-        if (!window.MdmPointsMallPicker) {
+    document.getElementById('newcomerZoneAddBtn') &&
+      document.getElementById('newcomerZoneAddBtn').addEventListener('click', function () {
+        if (!window.MdmNewcomerZonePicker) {
           if (typeof showToast === 'function') showToast('选品组件未加载', 'warning');
           return;
         }
-        window.MdmPointsMallPicker.open({
-          addedCodes: window.MdmPointsMallStore ? window.MdmPointsMallStore.getAddedCodesMap() : {},
+        window.MdmNewcomerZonePicker.open({
+          addedCodes: window.MdmNewcomerZoneStore ? window.MdmNewcomerZoneStore.getAddedCodesMap() : {},
           onConfirm: handlePickedProducts
         });
       });
 
-    document.getElementById('pointsMallPageSize') &&
-      document.getElementById('pointsMallPageSize').addEventListener('change', function () {
+    document.getElementById('newcomerZonePageSize') &&
+      document.getElementById('newcomerZonePageSize').addEventListener('change', function () {
         state.pageSize = Number(this.value) || 20;
         state.page = 1;
         renderTable();
       });
 
-    document.getElementById('pointsMallPaginationPages') &&
-      document.getElementById('pointsMallPaginationPages').addEventListener('click', function (e) {
+    document.getElementById('newcomerZonePaginationPages') &&
+      document.getElementById('newcomerZonePaginationPages').addEventListener('click', function (e) {
         var btn = e.target.closest('[data-page]');
         if (!btn || btn.disabled) return;
         state.page = Number(btn.getAttribute('data-page')) || 1;
         renderTable();
       });
 
-    document.getElementById('pointsMallPageGoto') &&
-      document.getElementById('pointsMallPageGoto').addEventListener('keydown', function (e) {
+    document.getElementById('newcomerZonePageGoto') &&
+      document.getElementById('newcomerZonePageGoto').addEventListener('keydown', function (e) {
         if (e.key !== 'Enter') return;
         var totalPages = Math.max(1, Math.ceil(state.filtered.length / state.pageSize) || 1);
         var val = Number(this.value);
@@ -829,8 +761,8 @@
       });
 
     document.addEventListener('click', function (e) {
-      var sortBtn = e.target.closest('.mkt-points-mall-th-sort[data-sort-key]');
-      if (sortBtn && !e.target.closest('.mkt-points-mall-th-help')) {
+      var sortBtn = e.target.closest('.mkt-newcomer-zone-th-sort[data-sort-key]');
+      if (sortBtn && !e.target.closest('.mkt-newcomer-zone-th-help')) {
         e.preventDefault();
         toggleSort(sortBtn.getAttribute('data-sort-key'));
         return;
@@ -852,12 +784,12 @@
         return;
       }
 
-      var actionBtn = e.target.closest('#pointsMallTableBody [data-action]');
+      var actionBtn = e.target.closest('#newcomerZoneTableBody [data-action]');
       if (!actionBtn) return;
       e.preventDefault();
       var action = actionBtn.getAttribute('data-action');
       var code = actionBtn.getAttribute('data-code');
-      var product = window.MdmPointsMallStore ? window.MdmPointsMallStore.getByCode(code) : null;
+      var product = window.MdmNewcomerZoneStore ? window.MdmNewcomerZoneStore.getByCode(code) : null;
       if (!product) return;
 
       if (action === 'edit') {
@@ -866,22 +798,22 @@
       }
 
       if (action === 'on-shelf') {
-        window.MdmPointsMallStore.update(code, { status: 'on_shelf', scheduleOnAt: '', scheduleOffAt: '' });
+        window.MdmNewcomerZoneStore.update(code, { status: 'on_shelf', scheduleOnAt: '', scheduleOffAt: '' });
         refresh(false);
         if (typeof showToast === 'function') showToast('已上架', 'success');
         return;
       }
 
       if (action === 'off-shelf') {
-        window.MdmPointsMallStore.update(code, { status: 'off_shelf', scheduleOnAt: '', scheduleOffAt: '' });
+        window.MdmNewcomerZoneStore.update(code, { status: 'off_shelf', scheduleOnAt: '', scheduleOffAt: '' });
         refresh(false);
         if (typeof showToast === 'function') showToast('已下架', 'success');
         return;
       }
 
       if (action === 'delete') {
-        openWarmConfirm('确定删除该积分兑换商品吗？', function () {
-          window.MdmPointsMallStore.remove(code);
+        openWarmConfirm('确定删除该新人专区商品吗？', function () {
+          window.MdmNewcomerZoneStore.remove(code);
           refresh(false);
           if (typeof showToast === 'function') showToast('已删除', 'success');
         });

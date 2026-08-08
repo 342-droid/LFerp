@@ -167,6 +167,23 @@
         <section class="ua-card ua-service-card">
           <h2 class="ua-service-title">功能服务</h2>
           <nav class="ua-service-list">
+            <a href="newcomer-zone.html" class="ua-service-item" id="uaProfileNewcomerLink">
+              <svg class="ua-service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 3l2.2 4.5L19 8.2l-3.5 3.4.8 4.9L12 14.2 7.7 16.5l.8-4.9L5 8.2l4.8-.7L12 3z"/>
+              </svg>
+              <span class="ua-service-text">新人专区</span>
+              <span class="ua-service-arrow">&gt;</span>
+            </a>
+            <a href="redpack-records.html" class="ua-service-item">
+              <svg class="ua-service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="5" y="7" width="14" height="12" rx="2"/>
+                <path d="M9 7V6a3 3 0 016 0v1"/>
+                <path d="M12 11v4"/>
+                <path d="M10 13h4"/>
+              </svg>
+              <span class="ua-service-text">红包领取记录</span>
+              <span class="ua-service-arrow">&gt;</span>
+            </a>
             <a href="#" class="ua-service-item">
               <svg class="ua-service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M3 10l9-6 9 6v10a1 1 0 01-1 1H4a1 1 0 01-1-1V10z"/>
@@ -249,8 +266,12 @@
   <script src="../js/user-app-nav.js"></script>
   <script src="../js/user-app-auth.js"></script>
   <script src="../../js/mdm-supplier-archive-store.js"></script>
+  <script src="../../js/mdm-marketing-register-gift-store.js"></script>
+  <script src="../../js/mdm-marketing-cash-redpack-store.js"></script>
+  <script src="../../js/mdm-marketing-newcomer-zone-config.js"></script>
   <script src="../js/user-app-shop.js?v=20260723-shop"></script>
   <script src="../js/user-app-profile.js"></script>
+  <script src="../js/user-app-register-gift.js"></script>
   <script>
     UAShop.ensureCart();
     UAShop.syncBadges();
@@ -259,6 +280,19 @@
       if (link && window.UaNav && window.UaNav.withFrom) {
         link.href = window.UaNav.withFrom('settings.html', 'profile.html');
       }
+      var nzLink = document.getElementById('uaProfileNewcomerLink');
+      if (nzLink) {
+        var enabled =
+          !window.MdmNewcomerZoneConfig ||
+          typeof window.MdmNewcomerZoneConfig.isEnabled !== 'function' ||
+          window.MdmNewcomerZoneConfig.isEnabled();
+        nzLink.hidden = !enabled;
+        if (enabled && window.UaNav && window.UaNav.withFrom) {
+          nzLink.href = window.UaNav.withFrom('newcomer-zone.html', 'profile.html');
+        }
+      }
+      /* 登录回流带 rg=1 时，在「我的」页也触发发放弹窗 */
+      if (window.UaRegisterGift) UaRegisterGift.bootPage();
     })();
   </script>
 </body>

@@ -108,6 +108,18 @@
   text-decoration: none !important;
 }
 
+.main-content .table td.action-links a.action-link-danger,
+.main-content .table .action-links a.action-link-danger,
+.main-content .table td:last-child > a.action-link-danger {
+  color: var(--mdm360-danger) !important;
+}
+
+.main-content .table td.action-links a.action-link-danger:hover,
+.main-content .table .action-links a.action-link-danger:hover,
+.main-content .table td:last-child > a.action-link-danger:hover {
+  color: #cf1322 !important;
+}
+
 .main-content .table .action-link-disabled {
   display: inline;
   margin-right: 8px;

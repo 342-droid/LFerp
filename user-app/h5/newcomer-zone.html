@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>新人专区 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-profile.css">
+  <link rel="stylesheet" href="../css/user-app-newcomer-zone.css">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-nz-page">
+    <div class="ua-mp-capsule ua-mp-capsule--light" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-nz-scroll">
+      <div class="ua-nz-hero">
+        <div class="ua-status-bar ua-nz-status">
+          <span>9:41</span>
+          <span class="ua-status-bar__icons">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="#fff"><path d="M1 7h2v4H1V7zm4-2h2v6H5V5zm4-3h2v9H9V2zm4 5h2v4h-2V7z"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="#fff"><path d="M8 2.4C10.8 2.4 13.2 3.6 15 5.6 15.2 5.8 15.5 5.8 15.7 5.6 15.9 5.4 15.9 5.1 15.7 4.9 13.6 2.6 10.9 1.2 8 1.2S2.4 2.6.3 4.9C.1 5.1.1 5.4.3 5.6.5 5.8.8 5.8 1 5.6 2.8 3.6 5.2 2.4 8 2.4zm0 3.6c1.8 0 3.4.8 4.5 2.1.2.2.5.2.7 0 .2-.2.2-.5 0-.7C11.9 5.4 10.1 4.4 8 4.4S4.1 5.4 2.8 6.9c-.2.2-.2.5 0 .7.2.2.5.2.7 0C4.6 6.8 6.2 6 8 6zm0 3c1 0 1.8.5 2.4 1.2.2.2.5.2.7 0 .2-.2.2-.5 0-.7C10.3 9.2 9.2 8.6 8 8.6S5.7 9.2 4.9 10.5c-.2.2-.2.5 0 .7.2.2.5.2.7 0 .6-.7 1.4-1.2 2.4-1.2z"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="20" height="11" rx="2.5" stroke="#fff" opacity=".45"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#fff"/><path d="M22 4.5v3a1.5 1.5 0 000-3z" fill="#fff" opacity=".55"/></svg>
+          </span>
+        </div>
+
+        <header class="ua-nz-nav">
+          <a href="profile.html" class="ua-nz-nav__back" id="nzBack" aria-label="返回">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+          </a>
+          <h1 class="ua-nz-nav__title">新人专区</h1>
+        </header>
+      </div>
+
+      <div class="ua-nz-sheet">
+        <section class="ua-nz-banner" id="nzBanner" aria-label="轮播图" hidden></section>
+        <section class="ua-nz-list" id="nzList" aria-label="新人专区商品"></section>
+        <div class="ua-nz-end" id="nzEnd" hidden>— 没有更多了 —</div>
+      </div>
+    </div>
+
+    <div class="ua-nz-sku-sheet" id="nzSkuSheet" hidden>
+      <div class="ua-nz-sku-sheet__mask" data-nz-sku-close></div>
+      <div class="ua-nz-sku-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="nzSkuName">
+        <button type="button" class="ua-nz-sku-sheet__close" data-nz-sku-close aria-label="关闭">×</button>
+        <div class="ua-nz-sku-sheet__head">
+          <img class="ua-nz-sku-sheet__thumb" id="nzSkuThumb" src="" alt="">
+          <div>
+            <div class="ua-nz-sku-sheet__price" id="nzSkuPrice">¥0</div>
+            <div class="ua-nz-sku-sheet__line" id="nzSkuLine" hidden></div>
+            <div class="ua-nz-sku-sheet__name" id="nzSkuName"></div>
+            <div class="ua-nz-sku-sheet__picked" id="nzSkuPicked">已选</div>
+          </div>
+        </div>
+        <div class="ua-nz-sku-sheet__section">
+          <div class="ua-nz-sku-sheet__label">规格</div>
+          <div class="ua-nz-sku-sheet__specs" id="nzSkuSpecs"></div>
+        </div>
+        <div class="ua-nz-sku-sheet__qty-row">
+          <div class="ua-nz-sku-sheet__label">购买数量</div>
+          <div class="ua-nz-sku-sheet__qty-fixed">1 件（新人专区限购）</div>
+        </div>
+        <div class="ua-nz-sku-sheet__hint" id="nzSkuHint">不支持加入购物车，请直接购买</div>
+        <button type="button" class="ua-nz-sku-sheet__buy" id="nzSkuBuyNow">立即购买</button>
+      </div>
+    </div>
+  </div>
+  <script src="../../js/mdm-marketing-newcomer-zone-store.js"></script>
+  <script src="../../js/mdm-marketing-newcomer-zone-config.js"></script>
+  <script src="../js/user-app-nav.js"></script>
+  <script src="../js/user-app-orders-store.js"></script>
+  <script src="../js/user-app-newcomer-zone-order.js"></script>
+  <script src="../js/user-app-newcomer-zone.js"></script>
+</body>
+</html>

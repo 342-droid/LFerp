@@ -46,6 +46,21 @@
         toast('用户协议内容由基础设置维护（演示）');
       });
     }
+
+    var downloadBtn = document.getElementById('setDownloadApp');
+    if (downloadBtn) {
+      downloadBtn.addEventListener('click', function () {
+        var installed = false;
+        try {
+          var raw = localStorage.getItem('ua_register_gift_demo_v1');
+          if (raw) {
+            var demo = JSON.parse(raw);
+            installed = !!(demo && demo.appInstalled);
+          }
+        } catch (e) {}
+        toast(installed ? '检测到已安装，演示唤起 APP' : '跳转应用商店下载冷丰 APP（演示）');
+      });
+    }
   }
 
   if (document.readyState === 'loading') {
