@@ -351,9 +351,9 @@
     var html = '';
     // 现金 / 积分+现金：展示售价；纯积分不展示售价
     if (mode === 'cash' || mode === 'points_cash') {
-      html += renderMoneyField('售价', 'salePrice', sku.salePrice);
+      html += renderMoneyField('售价/sku', 'salePrice', sku.salePrice);
     }
-    html += renderMoneyField('划线价', 'linePrice', sku.linePrice);
+    html += renderMoneyField('划线价/sku', 'linePrice', sku.linePrice);
     return html;
   }
 
@@ -408,7 +408,7 @@
       renderSpecField('商品条形码', 'internalCode', barcode) +
       renderSpecField('规格值', 'specValue', sku.specValue) +
       renderSpecField('基础单位', 'baseUnit', sku.baseUnit) +
-      renderMoneyField('采购价', 'purchasePrice', sku.purchasePrice) +
+      renderMoneyField('采购价/基础单位', 'purchasePrice', sku.purchasePrice) +
       renderSpecField('售卖系数', 'saleRatio', sku.saleRatio || '1.000') +
       '      <div class="product-proxy-spec__field">' +
       '        <label class="product-proxy-spec__label">售卖单位</label>' +
@@ -594,6 +594,7 @@
       '          <button type="button" class="product-proxy-form__sku-trigger" id="proxyFormSkuTrigger">' + renderSkuSelectorLabel(state) + ' <span class="product-proxy-form__sku-caret">▼</span></button>' +
       '          <div class="product-proxy-form__sku-dropdown" id="proxyFormSkuDropdown" hidden>' + skuDropdown + '</div>' +
       '        </div>' +
+      '        <p class="product-proxy-form__sku-tip">1份SKU采购价：采购价/基础单位 × 售卖系数</p>' +
       '      </div>' +
       '      <div class="product-proxy-form__spec-list" id="proxyFormSpecList">' + renderSkuPanels(state) + '</div>' +
       '    </section>' +

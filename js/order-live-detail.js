@@ -553,6 +553,139 @@
           }
         ]
       }
+    },
+    /* 清分明细演示：SKU 维度分佣 + 供应商采购成本（采购价×售卖系数×下单数量） */
+    'ORD-3212689201599201': {
+      displayId: 'ORD-3212689201599201',
+      progress: {
+        completedSteps: 2,
+        outcome: null,
+        status: '待提货',
+        submitTime: '2026-08-07 15:20'
+      },
+      goods: [{
+        id: 'g1',
+        name: '哈密瓜-自提',
+        spec: '规格：自提',
+        img: '../user-app/assets/order-product-1.svg',
+        spu: 'SPU-9201…',
+        sku: 'SKU-9201…',
+        barcode: '6901009201001',
+        weight: '1.00',
+        price: '¥0.40',
+        qty: '1',
+        subtotal: '¥0.40',
+        marketing: '普通售卖'
+      }],
+      amounts: {
+        goods: '¥0.40',
+        discount: '¥0.00',
+        shipping: '¥0.00',
+        payable: '¥0.40',
+        paid: '¥0.40',
+        merchant: '¥0.40',
+        refund: '¥0.00'
+      },
+      paymentCount: 1,
+      customer: { nickname: '赵金芝', phone: '13800009201', userId: '318605592681792201' },
+      delivery: {
+        type: 'SELF_PICKUP',
+        deliveryMode: '自提',
+        name: '赵金芝',
+        phone: '13800009201',
+        address: '浙江省湖州市德清县乾元镇天恩路1号',
+        store: '德清乾元天恩冷丰店'
+      },
+      tags: {
+        channel: 'MINI_PROGRAM',
+        orderScene: '商城',
+        payChannel: '微信',
+        marketing: '普通售卖',
+        livePeriod: '-',
+        bd: '1',
+        settleStatus: '待结算',
+        commissionStatus: '已清分'
+      },
+      logs: [
+        { time: '2026-08-07 15:20', title: '订单已创建', desc: '订单创建，金额 ¥0.40' },
+        { time: '2026-08-07 15:21', title: '支付成功', desc: '已生成清分明细' },
+        { time: '2026-08-07 16:00', title: '商品已到提货点', desc: '请尽快前往门店提货' }
+      ],
+      storeCommissionRate: 0.01,
+      clearingEmpty: false,
+      clearing: {
+        summary: { skuCount: 1, itemCount: 4, pending: 0, cleared: 4, abnormal: 0 },
+        orderReceivable: '¥0.02',
+        orderClearedText: '4/4 已清分',
+        orderAbnormal: 0,
+        skus: [{
+          name: '哈密瓜-自提',
+          paid: '¥0.40',
+          roleCommission: '¥0.00',
+          /* 供应商采购成本 = 采购价 × 售卖系数 × 下单数量 */
+          supplierCost: '¥0.02',
+          marginRate: '95.00%',
+          receivable: '¥0.02',
+          clearedCount: 4,
+          totalCount: 4,
+          abnormalCount: 0,
+          rows: [
+            {
+              payee: '上海冷丰科技有限公司',
+              role: '平台',
+              subRole: 'BD扶商',
+              account: '6666****6395',
+              method: '按比例 1%',
+              strategyDefault: true,
+              strategyName: '商城结算策略',
+              receivable: '¥0.00',
+              received: '¥0.00',
+              clearStatus: '已清分',
+              settleStatus: '待结算',
+              bookStatus: '待入账'
+            },
+            {
+              payee: '上海沁香商品供应链管理有限公司',
+              role: '商户',
+              account: '6666****7448',
+              method: '按比例 5%',
+              strategyDefault: true,
+              strategyName: '商城结算策略',
+              receivable: '¥0.00',
+              received: '¥0.00',
+              clearStatus: '已清分',
+              settleStatus: '待结算',
+              bookStatus: '待入账'
+            },
+            {
+              payee: '德清乾元天恩冷丰店',
+              role: '门店',
+              account: '6666****7448',
+              method: '按比例 1%',
+              strategyDefault: true,
+              strategyName: '商城结算策略',
+              receivable: '¥0.00',
+              received: '¥0.00',
+              clearStatus: '已清分',
+              settleStatus: '待结算',
+              bookStatus: '待入账'
+            },
+            {
+              payee: '上海恒业智汇贸易有限公司',
+              role: '供应商',
+              account: '-',
+              method: '采购成本',
+              strategyDefault: true,
+              strategyName: '商城结算策略',
+              receivable: '¥0.02',
+              received: '¥0.00',
+              clearStatus: '已清分',
+              settleStatus: '待结算',
+              bookStatus: '待入账'
+            }
+          ]
+        }]
+      }
     }
   };
 
@@ -1813,15 +1946,180 @@
     return el('div', 'order-detail-empty', '<div class="order-detail-empty__icon" aria-hidden="true"></div>' + text);
   }
 
+  function clearingTag(text, tone) {
+    return (
+      '<span class="order-clearing-tag order-clearing-tag--' +
+      (tone || 'muted') +
+      '">' +
+      text +
+      '</span>'
+    );
+  }
+
+  function clearingSummaryText(summary) {
+    var s = summary || {};
+    return (
+      '共 ' +
+      (s.skuCount != null ? s.skuCount : 0) +
+      ' SKU · ' +
+      (s.itemCount != null ? s.itemCount : 0) +
+      ' 个清分项 · 待清分 ' +
+      (s.pending != null ? s.pending : 0) +
+      ' · 已清分 ' +
+      (s.cleared != null ? s.cleared : 0) +
+      ' · 异常 ' +
+      (s.abnormal != null ? s.abnormal : 0)
+    );
+  }
+
+  /**
+   * SKU 维度清分明细（对齐订单详情截图：收款方/账户/分佣规则/金额/清分结算/入账）
+   * 供应商采购成本 = 采购价 × 售卖系数 × 用户单品下单数量
+   */
+  function buildSkuClearingBody(clearing) {
+    var wrap = el('div', 'order-detail-clearing order-detail-clearing--sku');
+    var skus = clearing.skus || [];
+    skus.forEach(function (sku) {
+      var block = el('div', 'order-clearing-sku');
+      var head = el('div', 'order-clearing-sku__head');
+      head.innerHTML =
+        '<div class="order-clearing-sku__title">' +
+        '<span class="order-clearing-sku__badge">SKU</span>' +
+        '<span class="order-clearing-sku__name">' +
+        (sku.name || '—') +
+        '</span>' +
+        '</div>' +
+        '<div class="order-clearing-sku__metrics">' +
+        '<span>实付 <em>' +
+        (sku.paid || '¥0.00') +
+        '</em></span>' +
+        '<span>角色分佣 <em>' +
+        (sku.roleCommission || '¥0.00') +
+        '</em></span>' +
+        '<span>供应商采购成本 <em>' +
+        (sku.supplierCost || '¥0.00') +
+        '</em></span>' +
+        '<span>毛利率 ' +
+        clearingTag(sku.marginRate || '0.00%', 'success-soft') +
+        '</span>' +
+        '</div>';
+      block.appendChild(head);
+
+      var table = el('table', 'order-clearing-table');
+      table.innerHTML =
+        '<thead>' +
+        '<tr>' +
+        '<th rowspan="2" class="order-clearing-table__th--payee">收款方</th>' +
+        '<th rowspan="2" class="order-clearing-table__th--account">账户</th>' +
+        '<th colspan="2" class="order-clearing-table__group">分佣规则</th>' +
+        '<th colspan="2" class="order-clearing-table__group">金额（元）</th>' +
+        '<th colspan="2" class="order-clearing-table__group">流转状态</th>' +
+        '</tr>' +
+        '<tr>' +
+        '<th>分佣方式</th><th>命中策略</th>' +
+        '<th>应收</th><th>实收</th>' +
+        '<th>清分 / 结算</th><th>入账 / 异常</th>' +
+        '</tr>' +
+        '</thead>';
+      var tbody = document.createElement('tbody');
+      (sku.rows || []).forEach(function (row) {
+        var tr = document.createElement('tr');
+        var roleHtml = row.role
+          ? '<span class="order-clearing-payee__role">' + row.role + '</span>'
+          : '';
+        var subRoleHtml = row.subRole
+          ? '<span class="order-clearing-payee__sub">' + row.subRole + '</span>'
+          : '';
+        var strategyHtml =
+          (row.strategyDefault
+            ? clearingTag('默认策略', 'warning-outline')
+            : '') +
+          (row.strategyName
+            ? clearingTag(row.strategyName, 'muted-outline')
+            : '');
+        tr.innerHTML =
+          '<td class="order-clearing-table__td--payee">' +
+          '<div class="order-clearing-payee">' +
+          '<div class="order-clearing-payee__name">' +
+          (row.payee || '—') +
+          '</div>' +
+          '<div class="order-clearing-payee__meta">' +
+          roleHtml +
+          subRoleHtml +
+          '</div>' +
+          '</div>' +
+          '</td>' +
+          '<td>' +
+          (row.account || '—') +
+          '</td>' +
+          '<td>' +
+          (row.method || '—') +
+          '</td>' +
+          '<td class="order-clearing-table__td--strategy">' +
+          strategyHtml +
+          '</td>' +
+          '<td>' +
+          (row.receivable || '¥0.00') +
+          '</td>' +
+          '<td>' +
+          (row.received || '¥0.00') +
+          '</td>' +
+          '<td class="order-clearing-table__td--status">' +
+          clearingTag(row.clearStatus || '待清分', row.clearStatus === '已清分' ? 'success' : 'muted') +
+          clearingTag(row.settleStatus || '待结算', 'muted') +
+          '</td>' +
+          '<td class="order-clearing-table__td--status">' +
+          clearingTag(row.bookStatus || '待入账', 'muted') +
+          '</td>';
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      block.appendChild(table);
+
+      var foot = el('div', 'order-clearing-sku__foot');
+      foot.innerHTML =
+        '<span class="order-clearing-sku__foot-label">SKU 小计</span>' +
+        '<span>应收 <em>' +
+        (sku.receivable || '¥0.00') +
+        '</em></span>' +
+        '<span>' +
+        (sku.clearedCount != null ? sku.clearedCount : 0) +
+        '/' +
+        (sku.totalCount != null ? sku.totalCount : 0) +
+        ' 已清分 · ' +
+        (sku.abnormalCount != null ? sku.abnormalCount : 0) +
+        ' 异常</span>';
+      block.appendChild(foot);
+      wrap.appendChild(block);
+    });
+
+    var orderFoot = el('div', 'order-clearing-order-total');
+    orderFoot.innerHTML =
+      '<span class="order-clearing-order-total__label">订单清分合计</span>' +
+      '<span>应收 <em>' +
+      (clearing.orderReceivable || '¥0.00') +
+      '</em></span>' +
+      '<span>' +
+      (clearing.orderClearedText || '0/0 已清分') +
+      ' · ' +
+      (clearing.orderAbnormal != null ? clearing.orderAbnormal : 0) +
+      ' 异常</span>';
+    wrap.appendChild(orderFoot);
+    return wrap;
+  }
+
   /**
    * 结算规则：用户支付后即生成清分数据（含门店明细/分佣信息）；
    * 结算未配置门店佣金比例时，门店无佣金，不生成门店清分明细。
+   * 优先渲染 SKU 维度清分（clearing.skus），否则回退门店明细表。
    */
   function buildClearingBody(detail) {
-    var storeRows =
-      (detail.clearing && detail.clearing.storeRows) ||
-      detail.clearingStoreRows ||
-      [];
+    var clearing = detail.clearing || {};
+    if (!detail.clearingEmpty && clearing.skus && clearing.skus.length) {
+      return buildSkuClearingBody(clearing);
+    }
+
+    var storeRows = clearing.storeRows || detail.clearingStoreRows || [];
     var rateConfigured =
       detail.storeCommissionRate != null && detail.storeCommissionRate !== '';
     var hasStoreClearing = !detail.clearingEmpty && storeRows.length > 0 && rateConfigured;
@@ -1963,12 +2261,23 @@
     var clearingCard = el('div', 'order-detail-card');
     var clearingHead = el('div', 'order-detail-card__head');
     clearingHead.appendChild(el('h3', 'order-detail-card__title', '清分明细'));
-    var recalcBtn = el('button', 'order-detail-btn order-detail-btn--primary', '重算分佣');
-    recalcBtn.type = 'button';
-    recalcBtn.addEventListener('click', function () {
-      if (typeof showToast === 'function') showToast('重算分佣已提交（演示）', 'success');
-    });
-    clearingHead.appendChild(recalcBtn);
+    var hasSkuClearing =
+      !detail.clearingEmpty &&
+      detail.clearing &&
+      detail.clearing.skus &&
+      detail.clearing.skus.length;
+    if (hasSkuClearing) {
+      clearingHead.appendChild(
+        el('div', 'order-clearing-summary', clearingSummaryText(detail.clearing.summary))
+      );
+    } else {
+      var recalcBtn = el('button', 'order-detail-btn order-detail-btn--primary', '重算分佣');
+      recalcBtn.type = 'button';
+      recalcBtn.addEventListener('click', function () {
+        if (typeof showToast === 'function') showToast('重算分佣已提交（演示）', 'success');
+      });
+      clearingHead.appendChild(recalcBtn);
+    }
     clearingCard.appendChild(clearingHead);
     clearingCard.appendChild(buildClearingBody(detail));
     main.appendChild(clearingCard);
