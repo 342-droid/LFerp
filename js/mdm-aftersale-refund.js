@@ -8,7 +8,7 @@
   var SOURCES = ['售后退款', '履约调整退款', '订单取消退款'];
   var STATUSES = ['未发起退款', '待退款', '退款执行中', '退款成功', '退款失败'];
   var METHODS = ['原路退回', '线下付款'];
-  var CHANNELS = ['微信', '支付宝', '银行转账'];
+  var CHANNELS = ['微信', '支付宝', '钱包', '银行转账'];
   var TOTAL_DEMO = 742;
 
   var state = {
