@@ -2289,6 +2289,33 @@
     ) / 100;
   }
 
+  /** 进货售后成功：仅将退回钱包金额记入门店钱包收入明细（防重复记账） */
+  function maybePostWalletRefundLedger(app, parts) {
+    if (!app || app.walletRefundPosted) return;
+    if (!isFromRestock()) return;
+    if (
+      !global.StoreWalletDemo ||
+      typeof global.StoreWalletDemo.applyWalletRefund !== 'function'
+    ) {
+      return;
+    }
+    var walletAmt = 0;
+    (parts || []).forEach(function (part) {
+      if (part && part.key === 'wallet') walletAmt += Number(part.amount) || 0;
+    });
+    walletAmt = Math.round(walletAmt * 100) / 100;
+    if (!(walletAmt > 0.001)) return;
+    var res = global.StoreWalletDemo.applyWalletRefund(walletAmt, {
+      bizNo: app.id || app.applyNo || '',
+      channelNo: 'RF-WALLET-' + String(app.id || Date.now()).slice(-6),
+      remark: '进货订单退款·由平台退回钱包（仅钱包变动金额）'
+    });
+    if (res && res.ok) {
+      app.walletRefundPosted = true;
+      saveApplication(app);
+    }
+  }
+
   /**
    * 原路退回拆分：
    * - 申请金额（现金）= 退回钱包 + 退回支付宝/微信，分毫不差
@@ -5849,6 +5876,8 @@
         app.amount = total;
         saveApplication(app);
       }
+      /* 进货售后：退回钱包金额同步记入钱包收入明细（仅钱包腿） */
+      maybePostWalletRefundLedger(app, parts);
       var titleInCard = document.getElementById('refundResultBreakdownTitle');
       if (titleInCard) titleInCard.textContent = getResultTitle(refundType, stage);
       var totalEl = document.getElementById('refundResultTotalAmount');
