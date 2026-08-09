@@ -646,21 +646,6 @@
         deductRow.hidden = true;
       }
     }
-    var exchangeRow = document.getElementById('orderExchangePointsRow');
-    var exchangeEl = document.getElementById('orderExchangePoints');
-    if (exchangeRow && exchangeEl) {
-      if (Number(order.exchangePoints) > 0) {
-        exchangeRow.hidden = false;
-        exchangeEl.textContent = Number(order.exchangePoints) + '积分';
-      } else {
-        exchangeRow.hidden = false;
-        exchangeEl.textContent = '0积分';
-        /* 有积分兑换行才强调展示；纯普通单也显示 0 便于验收 */
-        if (!(order.items || []).some(function (it) { return it.isPointsExchange; })) {
-          exchangeRow.hidden = true;
-        }
-      }
-    }
     var payTotalEl = document.getElementById('orderPayTotal');
     if (payTotalEl) {
       payTotalEl.textContent = order.payLabel || '¥' + Number(order.payable || 0).toFixed(2);

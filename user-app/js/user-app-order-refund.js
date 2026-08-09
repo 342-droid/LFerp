@@ -236,15 +236,29 @@
     return list;
   }
 
+  /** 售后数量池/商品读取统一订单号：入参 > URL/申请单；避免 null 串单 */
+  function resolveOrderNo(orderNo) {
+    if (orderNo != null && String(orderNo).trim() !== '') return String(orderNo).trim();
+    try {
+      if (typeof getCurrentOrderNo === 'function') {
+        var cur = getCurrentOrderNo();
+        if (cur) return cur;
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return '';
+  }
+
   function getAftersaleRecordsByItem(itemIndex, orderNo) {
     var list = loadAftersaleRecords();
     var idx = Number(itemIndex);
-    var no = orderNo != null && orderNo !== '' ? String(orderNo) : '';
+    var no = resolveOrderNo(orderNo);
     return list.filter(function (r) {
       if (Number(r.itemIndex) !== idx) return false;
-      /* 传入订单号时严格按订单隔离，避免演示单售后占用串到新订单 */
+      /* 有订单号时严格隔离；无订单号时仅看演示单，禁止串到其它进货单 */
       if (no) return String(r.orderNo || '') === no;
-      return true;
+      return !r.orderNo || String(r.orderNo) === DEMO_ORDER_NO;
     });
   }
 
@@ -354,9 +368,10 @@
 
   function getPurchaseQty(itemIndex, orderNo) {
     var idx = Number(itemIndex) || 0;
+    var no = resolveOrderNo(orderNo);
     try {
-      if (orderNo && global.UaOrdersStore && typeof global.UaOrdersStore.getByNo === 'function') {
-        var order = global.UaOrdersStore.getByNo(orderNo);
+      if (no && global.UaOrdersStore && typeof global.UaOrdersStore.getByNo === 'function') {
+        var order = global.UaOrdersStore.getByNo(no);
         var it = order && Array.isArray(order.items) ? order.items[idx] : null;
         var q = it != null ? Number(it.qty) : NaN;
         if (!isNaN(q) && q > 0) return q;
@@ -368,7 +383,7 @@
       var raw = sessionStorage.getItem('ua_last_order_v1');
       if (raw) {
         var last = JSON.parse(raw);
-        if (!orderNo || String(last.orderNo || '') === String(orderNo)) {
+        if (!no || String(last.orderNo || '') === String(no)) {
           var lastIt = last && Array.isArray(last.items) ? last.items[idx] : null;
           var lq = lastIt != null ? Number(lastIt.qty) : NaN;
           if (!isNaN(lq) && lq > 0) return lq;
@@ -379,6 +394,37 @@
     }
     var item = DEMO_ITEMS[idx] || DEMO_ITEMS[0];
     return Number((item && item.qty) || 1) || 1;
+  }
+
+  /** 按件数折算可退金额：优先实付单价，避免 price 缺失导致金额为 0 */
+  function getItemUnitPaid(item) {
+    item = item || {};
+    var qty = Number(item.qty);
+    if (!(qty > 0)) qty = 1;
+    var paid = Number(item.paidAmount);
+    if (paid > 0) return Math.round((paid / qty) * 100) / 100;
+    var price = Number(item.priceNum != null ? item.priceNum : item.price);
+    return price > 0 ? Math.round(price * 100) / 100 : 0;
+  }
+
+  function getItemRefundAmount(item, qty) {
+    item = item || getItem();
+    var q = qty != null ? Number(qty) : Number(item.qty) || 1;
+    if (!(q > 0)) return 0;
+    return Math.round(getItemUnitPaid(item) * q * 100) / 100;
+  }
+
+  /** 详情/成功页展示金额：申请单金额为 0 时回退到商品实付 */
+  function resolveRefundDisplayAmount(app, item) {
+    var fromApp = app && app.amount != null ? Number(app.amount) : NaN;
+    if (fromApp > 0) return Math.round(fromApp * 100) / 100;
+    var q =
+      app && app.qty != null && Number(app.qty) > 0
+        ? Number(app.qty)
+        : Number(item && item.qty) || 1;
+    var computed = getItemRefundAmount(item, q);
+    if (computed > 0) return computed;
+    return fromApp > 0 ? Math.round(fromApp * 100) / 100 : 0;
   }
 
   /** 单条售后占用件数；成功单缺省 qty 时回退为购买数（兼容旧演示数据） */
@@ -2193,9 +2239,60 @@
     return { order: order, item: item, itemLegs: itemLegs, orderLegs: orderLegs };
   }
 
+  /** 支付方式归一：支付宝 / 微信 / 钱包 / 积分 */
+  function normalizeRefundChannel(name) {
+    var n = String(name || '');
+    if (/积分/.test(n)) return { key: 'points', label: '退回积分', kind: 'points' };
+    if (/支付宝|亲密|alipay/i.test(n)) return { key: 'alipay', label: '退回支付宝', kind: 'alipay' };
+    if (/微信|wechat/i.test(n)) return { key: 'wechat', label: '退回微信', kind: 'wechat' };
+    if (/钱包|余额|balance/i.test(n)) return { key: 'wallet', label: '退回钱包', kind: 'wallet' };
+    return { key: 'wallet', label: '退回钱包', kind: 'wallet' };
+  }
+
+  var REFUND_CHANNEL_ORDER = { alipay: 1, wechat: 2, wallet: 3, points: 4 };
+
+  function refundChannelIconHtml(kind) {
+    if (kind === 'alipay') {
+      return '<span class="ua-or-result-breakdown__icon ua-or-result-breakdown__icon--alipay" aria-hidden="true">支</span>';
+    }
+    if (kind === 'wechat') {
+      return (
+        '<span class="ua-or-result-breakdown__icon ua-or-result-breakdown__icon--wechat" aria-hidden="true">' +
+        '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 4C5.9 4 3 6.5 3 9.6c0 1.8.9 3.4 2.4 4.5L4.8 16l2.3-1.2c.7.2 1.5.3 2.4.3.2 0 .5 0 .7-.1-.2-.5-.3-1.1-.3-1.7 0-3.1 2.9-5.6 6.5-5.6.2 0 .5 0 .7.1C16.3 5.5 13.2 4 9.5 4zm-2.2 3.2c-.5 0-.9.4-.9.9s.4.9.9.9.9-.4.9-.9-.4-.9-.9-.9zm4.4 0c-.5 0-.9.4-.9.9s.4.9.9.9.9-.4.9-.9-.4-.9-.9-.9zM15.6 9c-2.9 0-5.2 2-5.2 4.5S12.7 18 15.6 18c.7 0 1.4-.1 2-.4l1.8.9-.5-1.7c1.2-.9 1.9-2.1 1.9-3.5C20.8 11 18.5 9 15.6 9zm-1.5 2.5c.4 0 .7.3.7.7s-.3.7-.7.7-.7-.3-.7-.7.3-.7.7-.7zm3 0c.4 0 .7.3.7.7s-.3.7-.7.7-.7-.3-.7-.7.3-.7.7-.7z"/></svg>' +
+        '</span>'
+      );
+    }
+    if (kind === 'points') {
+      return (
+        '<span class="ua-or-result-breakdown__icon ua-or-result-breakdown__icon--points" aria-hidden="true">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 7v10M9 10.5h6M9 13.5h6"/></svg>' +
+        '</span>'
+      );
+    }
+    return (
+      '<span class="ua-or-result-breakdown__icon ua-or-result-breakdown__icon--wallet" aria-hidden="true">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14h2"/></svg>' +
+      '</span>'
+    );
+  }
+
+  function isPointsPayLeg(name) {
+    return /积分/.test(String(name || ''));
+  }
+
+  function sumCashRefundParts(parts) {
+    return Math.round(
+      (parts || []).reduce(function (s, part) {
+        if (!part || part.key === 'points') return s;
+        return s + (Number(part.amount) || 0);
+      }, 0) * 100
+    ) / 100;
+  }
+
   /**
-   * 原路退回：按商品支付分摊（无则按订单 payLegs）比例拆退款总金额
-   * 展示：退回钱包余额 / 退回微信 / 退回积分抵扣 …
+   * 原路退回拆分：
+   * - 申请金额（现金）= 退回钱包 + 退回支付宝/微信，分毫不差
+   * - 积分另列展示，不计入申请金额
    */
   function computeRefundBreakdown(total, item) {
     var refundTotal = Math.round(Number(total) * 100) / 100;
@@ -2203,34 +2300,128 @@
     var ctx = getOrderPayLegsContext();
     var source =
       item && Array.isArray(item.payLegs) && item.payLegs.length
-        ? item.payLegs
+        ? item.payLegs.slice()
         : ctx.itemLegs.length
-          ? ctx.itemLegs
-          : ctx.orderLegs;
+          ? ctx.itemLegs.slice()
+          : ctx.orderLegs.slice();
     source = (source || []).filter(function (leg) {
       return leg && leg.name && Number(leg.amount) > 0.001;
     });
-    if (!source.length) {
-      return [{ label: '退回微信', amount: refundTotal }];
+
+    var cashLegs = [];
+    var pointsFromLegs = 0;
+    source.forEach(function (leg) {
+      if (isPointsPayLeg(leg.name)) {
+        pointsFromLegs = Math.round((pointsFromLegs + Number(leg.amount)) * 100) / 100;
+      } else {
+        cashLegs.push(leg);
+      }
+    });
+
+    if (!cashLegs.length) {
+      cashLegs = [{ name: '微信', amount: refundTotal }];
     }
-    var legsSum = source.reduce(function (s, leg) {
+
+    var cashBase = cashLegs.reduce(function (s, leg) {
       return s + (Number(leg.amount) || 0);
     }, 0);
-    legsSum = Math.round(legsSum * 100) / 100;
-    if (legsSum <= 0) return [{ label: '退回微信', amount: refundTotal }];
+    cashBase = Math.round(cashBase * 100) / 100;
+    if (!(cashBase > 0)) {
+      cashLegs = [{ name: '微信', amount: refundTotal }];
+      cashBase = refundTotal;
+    }
 
+    var merged = {};
     var remain = refundTotal;
-    return source.map(function (leg, idx) {
+    cashLegs.forEach(function (leg, idx) {
       var share =
-        idx === source.length - 1
+        idx === cashLegs.length - 1
           ? remain
-          : Math.round(((Number(leg.amount) / legsSum) * refundTotal) * 100) / 100;
+          : Math.round(((Number(leg.amount) / cashBase) * refundTotal) * 100) / 100;
       if (share < 0) share = 0;
-      if (idx < source.length - 1) remain = Math.round((remain - share) * 100) / 100;
-      var name = String(leg.name || '');
-      var label = name.indexOf('退回') === 0 ? name : '退回' + name;
-      return { label: label, amount: share };
+      if (idx < cashLegs.length - 1) remain = Math.round((remain - share) * 100) / 100;
+      if (!(share > 0.001)) return;
+      var ch = normalizeRefundChannel(leg.name);
+      if (ch.key === 'points') return;
+      if (!merged[ch.key]) {
+        merged[ch.key] = {
+          key: ch.key,
+          label: ch.label,
+          kind: ch.kind,
+          amount: 0
+        };
+      }
+      merged[ch.key].amount = Math.round((merged[ch.key].amount + share) * 100) / 100;
     });
+
+    var parts = Object.keys(merged)
+      .map(function (k) {
+        return merged[k];
+      })
+      .filter(function (part) {
+        return part && Number(part.amount) > 0.001;
+      });
+
+    /* 尾差抹到金额最大的现金渠道，保证与申请金额一致 */
+    var cashSum = sumCashRefundParts(parts);
+    var drift = Math.round((refundTotal - cashSum) * 100) / 100;
+    if (Math.abs(drift) >= 0.01 && parts.length) {
+      parts.sort(function (a, b) {
+        return Number(b.amount) - Number(a.amount);
+      });
+      parts[0].amount = Math.round((Number(parts[0].amount) + drift) * 100) / 100;
+    }
+
+    /* 积分：按申请金额占商品现金实付比例折算，单独展示 */
+    var order = ctx.order || {};
+    var pointsAmt = pointsFromLegs;
+    if (!(pointsAmt > 0.001)) pointsAmt = Number(order.deductAmount) || 0;
+    if (pointsAmt > 0.001) {
+      var itemCash = Number(item && item.paidAmount);
+      if (!(itemCash > 0)) {
+        itemCash = Math.round(
+          (Number(item && item.priceNum) || 0) * (Number(item && item.qty) || 1) * 100
+        ) / 100;
+      }
+      var scale = itemCash > 0 ? refundTotal / itemCash : 1;
+      if (scale > 1) scale = 1;
+      if (scale < 0) scale = 0;
+      var pointsRefund = Math.round(pointsAmt * scale * 100) / 100;
+      if (pointsRefund > 0.001) {
+        parts.push({
+          key: 'points',
+          label: '退回积分',
+          kind: 'points',
+          amount: pointsRefund
+        });
+      }
+    }
+
+    return parts.sort(function (a, b) {
+      return (REFUND_CHANNEL_ORDER[a.key] || 99) - (REFUND_CHANNEL_ORDER[b.key] || 99);
+    });
+  }
+
+  function formatRefundAmountText(amount) {
+    return '¥ ' + Number(amount || 0).toFixed(2);
+  }
+
+  function renderRefundBreakdownRows(parts) {
+    return (parts || [])
+      .map(function (part) {
+        return (
+          '<li class="ua-or-result-breakdown__item">' +
+          refundChannelIconHtml(part.kind) +
+          '<span class="ua-or-result-breakdown__name">' +
+          escapeHtml(part.label) +
+          '</span>' +
+          '<span class="ua-or-result-breakdown__amount">' +
+          formatRefundAmountText(part.amount) +
+          '</span>' +
+          '</li>'
+        );
+      })
+      .join('');
   }
 
   function buildReapplyHref(app) {
@@ -4090,7 +4281,7 @@
     var isEdit = getParams().get('edit') === '1';
     var excludeId = isEdit && app ? app.aftersaleId || app.refundNo || '' : '';
     /* 补货上限：购买 − 已售后累计（进行中+已完成）；与可退池独立，但退款会占用本上限 */
-    var maxOrderQty = getRestockMaxQty(getItemIndex(), null, {
+    var maxOrderQty = getRestockMaxQty(getItemIndex(), getCurrentOrderNo(), {
       excludeId: excludeId || undefined
     });
     var maxQtyMap = {};
@@ -4499,12 +4690,20 @@
       var order = getOrderByCurrentNo();
       var it = order && Array.isArray(order.items) ? order.items[idx] : null;
       if (it) {
-        var price = Number(it.price != null ? it.price : base.priceNum) || base.priceNum;
-        var qty = Number(it.qty) || base.qty;
-        var line = Math.round(price * qty * 100) / 100;
+        var qty = Number(it.qty);
+        if (!(qty > 0)) qty = Number(base.qty) || 1;
+        var price = Number(it.price);
+        if (!(price > 0)) price = Number(it.priceNum);
+        if (!(price > 0)) price = Number(base.priceNum) || 0;
+        var line = Number(it.paidAmount);
+        if (!(line > 0)) line = Math.round(price * qty * 100) / 100;
+        /* 用实付反推单价，保证 40*6=240 */
+        if (line > 0 && (!(price > 0) || Math.abs(price * qty - line) > 0.05)) {
+          price = Math.round((line / qty) * 100) / 100;
+        }
         return Object.assign({}, base, {
           name: it.name || base.name,
-          spec: it.spec ? '规格：' + it.spec : base.spec,
+          spec: it.spec ? (String(it.spec).indexOf('规格') === 0 ? it.spec : '规格：' + it.spec) : base.spec,
           img: it.img || base.img,
           qty: qty,
           priceNum: price,
@@ -4516,7 +4715,11 @@
     } catch (e) { /* ignore */ }
     return Object.assign({}, base, {
       isPointsExchange: isPointsExchangeByIndex(idx),
-      payLegs: Array.isArray(base.payLegs) ? base.payLegs : []
+      payLegs: Array.isArray(base.payLegs) ? base.payLegs : [],
+      paidAmount:
+        base.paidAmount != null
+          ? base.paidAmount
+          : Math.round((Number(base.priceNum) || 0) * (Number(base.qty) || 1) * 100) / 100
     });
   }
 
@@ -4978,12 +5181,13 @@
 
     var allowed = getAllowedSelectServices(scene);
     var itemIndex = getItemIndex();
-    var refundMax = getRefundableMaxQty(itemIndex);
-    var returnMax = getRefundableMaxQty(itemIndex, null, {
+    var selectOrderNo = getCurrentOrderNo();
+    var refundMax = getRefundableMaxQty(itemIndex, selectOrderNo);
+    var returnMax = getRefundableMaxQty(itemIndex, selectOrderNo, {
       forReturn: true,
       pickedQty: getItemPickedQty(itemIndex)
     });
-    var restockMax = getRestockMaxQty(itemIndex);
+    var restockMax = getRestockMaxQty(itemIndex, selectOrderNo);
     document.querySelectorAll('.ua-or-service').forEach(function (row) {
       var service = row.getAttribute('data-service');
       var show = allowed.indexOf(service) >= 0;
@@ -5051,21 +5255,22 @@
     var excludeId = isEdit && app ? app.aftersaleId || app.refundNo || '' : '';
     var isReturn = formType === 'return';
     /* 可退上限：购买−已退−进行中；退货退款再卡 ≤ 已提货/已核销 */
-    var maxQty = getRefundableMaxQty(getItemIndex(), null, {
+    var maxQty = getRefundableMaxQty(getItemIndex(), getCurrentOrderNo(), {
       excludeId: excludeId || undefined,
       forReturn: isReturn,
       pickedQty: isReturn ? getItemPickedQty(getItemIndex()) : null
     });
     if (!(maxQty >= 0)) maxQty = 0;
     var defaultQty = maxQty > 0 ? Math.min(Number(item.qty) || maxQty, maxQty) : 0;
+    var defaultAmount = getItemRefundAmount(item, defaultQty);
     var state = {
       formType: formType,
       goodsStatus: isReturn ? '已收到货' : '',
       reason: '',
       qty: defaultQty,
       maxQty: maxQty,
-      amount: item.priceNum * (defaultQty || 0),
-      maxAmount: item.priceNum * (defaultQty || 0),
+      amount: defaultAmount,
+      maxAmount: defaultAmount,
       freight: item.freight || 0,
       desc: '',
       images: []
@@ -5073,10 +5278,14 @@
     if (isEdit && app) {
       if (app.reason) state.reason = app.reason;
       if (app.qty) state.qty = Math.min(Number(app.qty) || 0, state.maxQty);
-      if (app.amount != null) state.amount = app.amount;
+      if (Number(app.amount) > 0) state.amount = Number(app.amount);
       if (app.goodsStatus) state.goodsStatus = app.goodsStatus;
       if (app.desc) state.desc = app.desc;
       if (app.images && app.images.length) state.images = app.images.slice();
+    }
+    if (!(state.amount > 0) && state.qty > 0) {
+      state.amount = getItemRefundAmount(item, state.qty);
+      state.maxAmount = state.amount;
     }
     if (state.qty < 1 && state.maxQty >= 1) state.qty = 1;
     if (state.qty > state.maxQty) state.qty = state.maxQty;
@@ -5117,7 +5326,7 @@
     if (receivedTag) receivedTag.hidden = !(isReturn || state.goodsStatus === '已收到货');
 
     function unitPrice() {
-      return item.priceNum;
+      return getItemUnitPaid(item);
     }
 
     function syncAmountByQty() {
@@ -5333,7 +5542,8 @@
     var app = loadApplication();
     var isEdit = getParams().get('edit') === '1';
     var excludeId = isEdit && app ? app.aftersaleId || app.refundNo || '' : '';
-    var maxQty = getRefundableMaxQty(getItemIndex(), null, {
+    var orderNo = getCurrentOrderNo();
+    var maxQty = getRefundableMaxQty(getItemIndex(), orderNo, {
       excludeId: excludeId || undefined
     });
     if (!(maxQty >= 0)) maxQty = 0;
@@ -5342,14 +5552,12 @@
       reason: isEdit && app && app.reason ? app.reason : '',
       qty: qty,
       maxQty: maxQty,
-      amount:
-        item.paidAmount != null
-          ? Math.round((item.paidAmount * (qty / Math.max(1, item.qty))) * 100) / 100
-          : item.priceNum * qty,
+      amount: getItemRefundAmount(item, qty),
       shippingFee: item.shippingFee != null ? item.shippingFee : item.freight || 0,
       desc: isEdit && app && app.desc ? app.desc : '',
       images: isEdit && app && app.images ? app.images.slice() : []
     };
+    if (isEdit && app && Number(app.amount) > 0) state.amount = Number(app.amount);
 
     initNav('仅退款', buildDetailBackHref());
     renderProductCard('refundProductCard');
@@ -5461,10 +5669,22 @@
           window.alert('请选择退款原因');
           return;
         }
+        if (!(state.qty > 0) || !(state.maxQty > 0)) {
+          window.alert('该商品可售后数量已用完，无法再申请售后');
+          return;
+        }
+        if (!(state.amount > 0)) {
+          state.amount = getItemRefundAmount(item, state.qty);
+        }
+        if (!(state.amount > 0)) {
+          window.alert('退款金额异常，请返回订单详情重试');
+          return;
+        }
         persistAndGoDetail('pre_ship', {
           reason: state.reason,
           qty: state.qty,
           amount: state.amount,
+          orderNo: orderNo || getCurrentOrderNo() || '',
           desc: state.desc,
           images: state.images
         });
@@ -5613,50 +5833,30 @@
             : '换货已完成，请注意查收商品。';
         }
       } else {
+      /* 退款/退货退款成功：标题 + 原路退回渠道明细（仅展示实际支付过的方式） */
+      if (resultHead) resultHead.hidden = true;
       if (breakdown) breakdown.hidden = false;
       if (messageCard) messageCard.hidden = true;
-      var total = app.amount != null ? app.amount : item.priceNum * item.qty;
-      var parts = computeRefundBreakdown(total, item).filter(function (part) {
-        return part && Number(part.amount) > 0.001;
-      });
-      var isMixed = parts.length >= 2;
+      var total = resolveRefundDisplayAmount(app, item);
+      if (!(total > 0)) {
+        total = getItemRefundAmount(item, app.qty != null ? app.qty : item.qty);
+      }
+      var parts = computeRefundBreakdown(total, item);
+      /* 申请金额 = 退回钱包 + 支付宝/微信（现金原路合计） */
+      var cashTotal = sumCashRefundParts(parts);
+      if (cashTotal > 0) total = cashTotal;
+      if (Number(app.amount) !== total) {
+        app.amount = total;
+        saveApplication(app);
+      }
+      var titleInCard = document.getElementById('refundResultBreakdownTitle');
+      if (titleInCard) titleInCard.textContent = getResultTitle(refundType, stage);
       var totalEl = document.getElementById('refundResultTotalAmount');
       if (totalEl) totalEl.textContent = formatPrice(total);
-      var toggleEl = document.getElementById('refundResultLegsToggle');
       var listEl = document.getElementById('refundResultBreakdownList');
-      if (toggleEl) {
-        toggleEl.hidden = !isMixed;
-        toggleEl.setAttribute('aria-expanded', 'false');
-        toggleEl.classList.remove('is-expanded');
-        if (isMixed && !toggleEl._boundRefundLegs) {
-          toggleEl._boundRefundLegs = true;
-          toggleEl.addEventListener('click', function () {
-            var expanded = toggleEl.getAttribute('aria-expanded') === 'true';
-            var next = !expanded;
-            toggleEl.setAttribute('aria-expanded', next ? 'true' : 'false');
-            toggleEl.setAttribute('aria-label', next ? '收起退款明细' : '展开退款明细');
-            toggleEl.classList.toggle('is-expanded', next);
-            if (listEl) listEl.hidden = !next;
-          });
-        }
-      }
       if (listEl) {
-        listEl.innerHTML = parts
-          .map(function (part) {
-            return (
-              '<div class="ua-or-result-breakdown__leg">' +
-              '<span class="ua-or-result-breakdown__leg-name">' +
-              escapeHtml(part.label) +
-              '</span>' +
-              '<span class="ua-or-result-breakdown__leg-amount">-' +
-              formatPrice(part.amount) +
-              '</span>' +
-              '</div>'
-            );
-          })
-          .join('');
-        /* 混合支付：默认收起明细（对齐支付成功页）；单渠道不展示明细行 */
-        listEl.hidden = true;
+        listEl.hidden = false;
+        listEl.innerHTML = renderRefundBreakdownRows(parts);
       }
       }
     } else {
@@ -6141,12 +6341,21 @@
         if (amountRowWrap) amountRowWrap.hidden = true;
       } else {
         if (amountRowWrap) amountRowWrap.hidden = false;
-        var amountNum =
-          app.amount != null
-            ? app.amount
-            : item.paidAmount != null
-              ? item.paidAmount
-              : item.priceNum * item.qty;
+        /* 申请金额 = 现金原路退回合计（钱包+支付宝/微信） */
+        var amountNum = resolveRefundDisplayAmount(app, item);
+        if (!(amountNum > 0)) {
+          amountNum = getItemRefundAmount(
+            item,
+            app.qty != null ? app.qty : item.qty
+          );
+        }
+        var cashParts = computeRefundBreakdown(amountNum, item);
+        var cashTotal = sumCashRefundParts(cashParts);
+        if (cashTotal > 0) amountNum = cashTotal;
+        if (app && Number(app.amount) !== amountNum && amountNum > 0) {
+          app.amount = amountNum;
+          saveApplication(app);
+        }
         if (cancelClosed) {
           amountRow.className =
             'ua-or-detail-info-row__value ua-or-detail-info-row__value--amount ua-or-detail-info-row__value--amount-block';
