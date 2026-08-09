@@ -416,7 +416,12 @@
         merchant: '¥46.18',
         refund: '¥0.00'
       },
-      paymentCount: 1,
+      /* 混合支付演示：买家实付旁可展开；收款明细按腿拆行 */
+      payLegs: [
+        { name: '微信', amount: 30 },
+        { name: '钱包余额', amount: 16.18 }
+      ],
+      paymentCount: 2,
       /* 含仅退款 / 退货退款 / 补货，列表字段按类型展示 */
       aftersales: [{
         id: 'AS-9003-1',
@@ -425,6 +430,9 @@
         status: '待收货',
         returnQty: 1,
         refundAmount: '¥19.59',
+        refundAlipay: '¥0.00',
+        refundWechat: '¥12.00',
+        refundWallet: '¥7.59',
         refundCoupon: '¥2.50',
         refundPoints: 0,
         adjustAmount: '¥0.00'
@@ -435,6 +443,9 @@
         status: '退款中',
         returnQty: 1,
         refundAmount: '¥12.00',
+        refundAlipay: '¥0.00',
+        refundWechat: '¥8.00',
+        refundWallet: '¥4.00',
         refundCoupon: '¥0.00',
         refundPoints: 0,
         adjustAmount: '-¥1.00'
@@ -1629,9 +1640,43 @@
     return v == null || v === '' ? '-' : String(v);
   }
 
+  function formatAftersaleMoney(v) {
+    if (v == null || v === '') return '¥0.00';
+    if (typeof v === 'number') return '¥' + Number(v).toFixed(2);
+    var s = String(v).trim();
+    if (!s || s === '-') return '¥0.00';
+    if (s.indexOf('¥') >= 0) return s;
+    var n = Number(s);
+    if (!isNaN(n)) return '¥' + n.toFixed(2);
+    return s;
+  }
+
+  /** 退款额二级：小计 / 支付宝 / 微信 / 钱包（缺省时小计归微信，其余为 0） */
+  function resolveAftersaleRefundBreakdown(item) {
+    var subtotal =
+      item && (item.refundSubtotal != null ? item.refundSubtotal : item.refundAmount);
+    var hasParts =
+      item &&
+      (item.refundAlipay != null || item.refundWechat != null || item.refundWallet != null);
+    if (!hasParts) {
+      return {
+        subtotal: formatAftersaleMoney(subtotal),
+        alipay: '¥0.00',
+        wechat: formatAftersaleMoney(subtotal),
+        wallet: '¥0.00'
+      };
+    }
+    return {
+      subtotal: formatAftersaleMoney(subtotal),
+      alipay: formatAftersaleMoney(item.refundAlipay),
+      wechat: formatAftersaleMoney(item.refundWechat),
+      wallet: formatAftersaleMoney(item.refundWallet)
+    };
+  }
+
   /**
    * 单据明细 · 售后明细：一条售后单一行；展示仅退款/退货退款/补货。
-   * 列随列表内类型动态调整：退款类出退货/退款字段，补货出补货数字段。
+   * 退款额为一级字段，下挂二级：小计、支付宝、微信、钱包。
    */
   function buildAftersalePanel(aftersales) {
     var list = (Array.isArray(aftersales) ? aftersales : []).filter(function (a) {
@@ -1642,28 +1687,55 @@
     var hasRefundType = list.some(function (a) {
       return a.type === '仅退款' || a.type === '退货退款';
     });
-    var hasRestock = list.some(function (a) { return a.type === '补货'; });
+    var hasRestock = list.some(function (a) {
+      return a.type === '补货';
+    });
 
-    var columns = [
-      { key: 'product', label: '商品', align: 'left' },
-      { key: 'type', label: '售后类型', align: 'center' },
-      { key: 'status', label: '售后状态', align: 'center' }
+    /* 有退款类时两级表头；退款额一级下挂：小计 / 支付宝 / 微信 / 钱包 */
+    var headRows = hasRefundType ? 2 : 1;
+    var topCols = [
+      { key: 'product', label: '商品', align: 'left', rowspan: headRows },
+      { key: 'type', label: '售后类型', align: 'center', rowspan: headRows },
+      { key: 'status', label: '售后状态', align: 'center', rowspan: headRows }
     ];
+    var bodyKeys = ['product', 'type', 'status'];
     if (hasRefundType) {
-      columns = columns.concat([
-        { key: 'returnQty', label: '退货数', align: 'center' },
-        { key: 'refundAmount', label: '退款额', align: 'center' },
-        { key: 'refundCoupon', label: '退券', align: 'center' },
-        { key: 'refundPoints', label: '退积分', align: 'center' },
-        { key: 'adjustAmount', label: '多退少补', align: 'center' }
+      topCols.push({ key: 'returnQty', label: '退货数', align: 'center', rowspan: headRows });
+      topCols.push({
+        key: 'refundAmount',
+        label: '退款额',
+        align: 'center',
+        colspan: 4,
+        group: true
+      });
+      bodyKeys = bodyKeys.concat([
+        'returnQty',
+        'refundSubtotal',
+        'refundAlipay',
+        'refundWechat',
+        'refundWallet'
       ]);
+      topCols = topCols.concat([
+        { key: 'refundCoupon', label: '退券', align: 'center', rowspan: headRows },
+        { key: 'refundPoints', label: '退积分', align: 'center', rowspan: headRows },
+        { key: 'adjustAmount', label: '多退少补', align: 'center', rowspan: headRows }
+      ]);
+      bodyKeys = bodyKeys.concat(['refundCoupon', 'refundPoints', 'adjustAmount']);
     }
     if (hasRestock) {
-      columns = columns.concat([
-        { key: 'applyRestockQty', label: '申请补货数', align: 'center' },
-        { key: 'actualRestockQty', label: '实际补货数', align: 'center' }
+      topCols = topCols.concat([
+        { key: 'applyRestockQty', label: '申请补货数', align: 'center', rowspan: headRows },
+        { key: 'actualRestockQty', label: '实际补货数', align: 'center', rowspan: headRows }
       ]);
+      bodyKeys = bodyKeys.concat(['applyRestockQty', 'actualRestockQty']);
     }
+
+    var refundSubHeads = [
+      { key: 'refundSubtotal', label: '小计' },
+      { key: 'refundAlipay', label: '支付宝' },
+      { key: 'refundWechat', label: '微信' },
+      { key: 'refundWallet', label: '钱包' }
+    ];
 
     function cellHtml(item, key) {
       var isRefund = item.type === '仅退款' || item.type === '退货退款';
@@ -1672,13 +1744,25 @@
       if (key === 'type') return aftersaleTypeTagHtml(item.type);
       if (key === 'status') return aftersaleStatusTagHtml(item.status);
       if (key === 'returnQty') {
-        /* 仅退款、退货退款均扣减商品数量，都展示退货数 */
         if (item.type === '仅退款' || item.type === '退货退款') {
           return aftersaleCellText(item.returnQty);
         }
         return '-';
       }
-      if (key === 'refundAmount' || key === 'refundCoupon' || key === 'refundPoints' || key === 'adjustAmount') {
+      if (
+        key === 'refundSubtotal' ||
+        key === 'refundAlipay' ||
+        key === 'refundWechat' ||
+        key === 'refundWallet'
+      ) {
+        if (!isRefund) return '-';
+        var br = resolveAftersaleRefundBreakdown(item);
+        if (key === 'refundSubtotal') return aftersaleCellText(br.subtotal);
+        if (key === 'refundAlipay') return aftersaleCellText(br.alipay);
+        if (key === 'refundWechat') return aftersaleCellText(br.wechat);
+        return aftersaleCellText(br.wallet);
+      }
+      if (key === 'refundCoupon' || key === 'refundPoints' || key === 'adjustAmount') {
         return isRefund ? aftersaleCellText(item[key]) : '-';
       }
       if (key === 'applyRestockQty' || key === 'actualRestockQty') {
@@ -1689,20 +1773,55 @@
 
     var wrap = el('div', 'order-detail-aftersale-panel');
     var table = el('table', 'order-detail-aftersale-table');
-    table.innerHTML =
-      '<thead><tr>' +
-      columns.map(function (c) {
-        return '<th class="is-' + c.align + '">' + c.label + '</th>';
-      }).join('') +
-      '</tr></thead>';
+    var head1 =
+      '<tr>' +
+      topCols
+        .map(function (c) {
+          if (c.group) {
+            return (
+              '<th class="is-center is-group" colspan="' +
+              c.colspan +
+              '">' +
+              c.label +
+              '</th>'
+            );
+          }
+          return (
+            '<th class="is-' +
+            c.align +
+            '" rowspan="' +
+            (c.rowspan || 1) +
+            '">' +
+            c.label +
+            '</th>'
+          );
+        })
+        .join('') +
+      '</tr>';
+    var head2 = '';
+    if (hasRefundType) {
+      head2 =
+        '<tr>' +
+        refundSubHeads
+          .map(function (c) {
+            return '<th class="is-center is-sub">' + c.label + '</th>';
+          })
+          .join('') +
+        '</tr>';
+    }
+    table.innerHTML = '<thead>' + head1 + head2 + '</thead>';
     var tbody = el('tbody');
     list.forEach(function (item) {
       var tr = document.createElement('tr');
       if (item.id) tr.setAttribute('data-aftersale-id', item.id);
       if (item.type) tr.setAttribute('data-aftersale-type', item.type);
-      tr.innerHTML = columns.map(function (c) {
-        return '<td class="is-' + c.align + '">' + cellHtml(item, c.key) + '</td>';
-      }).join('');
+      tr.innerHTML = bodyKeys
+        .map(function (key) {
+          var align =
+            key === 'product' ? 'left' : 'center';
+          return '<td class="is-' + align + '">' + cellHtml(item, key) + '</td>';
+        })
+        .join('');
       tbody.appendChild(tr);
     });
     table.appendChild(tbody);
@@ -2018,15 +2137,226 @@
     });
   }
 
-  function buildAmounts(amounts) {
+  /** 收款明细·支付方式枚举：支付宝 / 微信 / 钱包余额 */
+  function normalizeRetailPayMethod(name) {
+    var n = String(name || '');
+    if (/支付宝|alipay/i.test(n)) return '支付宝';
+    if (/微信|wechat/i.test(n)) return '微信';
+    if (/钱包|余额|balance/i.test(n)) return '钱包余额';
+    return '';
+  }
+
+  function shortFlowId(s, keep) {
+    var str = String(s || '');
+    var n = keep || 16;
+    if (str.length <= n) return str;
+    return str.slice(0, n) + '…';
+  }
+
+  function formatMoneyYuan(n) {
+    return '¥' + (Number(n) || 0).toFixed(2);
+  }
+
+  function cashPayLegsOf(detail) {
+    var legs = [];
+    if (detail && Array.isArray(detail.payLegs)) legs = detail.payLegs;
+    else if (detail && detail.amounts && Array.isArray(detail.amounts.payLegs)) {
+      legs = detail.amounts.payLegs;
+    }
+    return legs.filter(function (leg) {
+      if (!leg || !leg.name || !(Number(leg.amount) > 0)) return false;
+      return !!normalizeRetailPayMethod(leg.name);
+    });
+  }
+
+  /** 生成收款明细行：通道固定「汇付」；支付方式为支付宝/微信/钱包余额 */
+  function ensureDetailPayments(detail) {
+    if (!detail) return [];
+    if (Array.isArray(detail.payments) && detail.payments.length) {
+      return detail.payments.map(function (p) {
+        return {
+          flowNo: p.flowNo || p.id || '—',
+          direction: p.direction || '收款',
+          channel: '汇付',
+          payMethod: normalizeRetailPayMethod(p.payMethod || p.method) || p.payMethod || '微信',
+          status: p.status || '成功',
+          amount: p.amount || formatMoneyYuan(p.amountNum),
+          channelNo: p.channelNo || p.channelFlowNo || '—',
+          payTime: p.payTime || p.time || '—'
+        };
+      });
+    }
+    var legs = cashPayLegsOf(detail);
+    var payTime =
+      (detail.progress && (detail.progress.payTime || detail.progress.submitTime)) || '—';
+    var seed = String(detail.displayId || detail.id || 'PAY').replace(/\D/g, '').slice(-10);
+    if (legs.length) {
+      return legs.map(function (leg, idx) {
+        var method = normalizeRetailPayMethod(leg.name) || '微信';
+        return {
+          flowNo: 'PAY-' + seed + ('0' + (idx + 1)).slice(-2) + '926528',
+          direction: '收款',
+          channel: '汇付',
+          payMethod: method,
+          status: '成功',
+          amount: formatMoneyYuan(leg.amount),
+          channelNo: '5620' + seed + String(idx + 3) + '230',
+          payTime: payTime
+        };
+      });
+    }
+    var tagPay = detail.tags && detail.tags.payChannel;
+    var method =
+      normalizeRetailPayMethod(tagPay) ||
+      (tagPay && tagPay !== '-' ? normalizeRetailPayMethod(tagPay) : '') ||
+      '微信';
+    if (!normalizeRetailPayMethod(method)) method = '微信';
+    return [
+      {
+        flowNo: 'PAY-' + seed + '344719926528',
+        direction: '收款',
+        channel: '汇付',
+        payMethod: method,
+        status: '成功',
+        amount: (detail.amounts && detail.amounts.paid) || '¥0.00',
+        channelNo: '5620' + seed + '9230',
+        payTime: payTime
+      }
+    ];
+  }
+
+  function buildPaymentPanel(payments) {
+    var list = payments || [];
+    if (!list.length) return buildEmptyState('暂无收款明细');
+    var wrap = el('div', 'order-detail-payment');
+    var table = el('table', 'order-detail-payment-table');
+    table.innerHTML =
+      '<thead><tr>' +
+      '<th>流水号</th>' +
+      '<th>方向</th>' +
+      '<th>通道</th>' +
+      '<th>支付方式</th>' +
+      '<th>状态</th>' +
+      '<th>金额</th>' +
+      '<th>通道流水</th>' +
+      '<th>支付时间</th>' +
+      '</tr></thead>';
+    var tbody = document.createElement('tbody');
+    list.forEach(function (p) {
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td title="' +
+        String(p.flowNo || '') +
+        '">' +
+        shortFlowId(p.flowNo, 18) +
+        '</td>' +
+        '<td><span class="order-detail-pay-tag">' +
+        (p.direction || '收款') +
+        '</span></td>' +
+        '<td>' +
+        (p.channel || '汇付') +
+        '</td>' +
+        '<td>' +
+        (p.payMethod || '—') +
+        '</td>' +
+        '<td><span class="order-detail-pay-tag">' +
+        (p.status || '成功') +
+        '</span></td>' +
+        '<td>' +
+        (p.amount || '—') +
+        '</td>' +
+        '<td title="' +
+        String(p.channelNo || '') +
+        '">' +
+        shortFlowId(p.channelNo, 16) +
+        '</td>' +
+        '<td>' +
+        (p.payTime || '—') +
+        '</td>';
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    return wrap;
+  }
+
+  function buildAmounts(amounts, payLegs) {
     var box = el('div', 'order-detail-amount-box');
+    var legs = (payLegs || []).filter(function (leg) {
+      return leg && leg.name && Number(leg.amount) > 0 && normalizeRetailPayMethod(leg.name);
+    });
+    var paidHtml;
+    if (legs.length >= 2) {
+      var legsRows = legs
+        .map(function (leg) {
+          return (
+            '<div class="order-detail-pay-leg-row">' +
+            '<span class="order-detail-pay-leg-name">' +
+            normalizeRetailPayMethod(leg.name) +
+            '</span>' +
+            '<span class="order-detail-pay-leg-amount">-¥' +
+            Number(leg.amount).toFixed(2) +
+            '</span>' +
+            '</div>'
+          );
+        })
+        .join('');
+      paidHtml =
+        '<div class="order-detail-amount-row order-detail-amount-row--paid order-detail-amount-row--paid-mixed">' +
+        '<span>买家实付</span>' +
+        '<span class="order-detail-paid-wrap">' +
+        '<span class="order-detail-paid-line">' +
+        '<span class="order-detail-paid-amount">' +
+        amounts.paid +
+        '</span>' +
+        '<button type="button" class="order-detail-pay-legs-toggle" aria-expanded="false" aria-label="展开支付明细">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
+        '<path d="M6 9l6 6 6-6"/></svg>' +
+        '</button>' +
+        '</span>' +
+        '<div class="order-detail-pay-legs" hidden>' +
+        legsRows +
+        '</div>' +
+        '</span>' +
+        '</div>';
+    } else {
+      paidHtml =
+        '<div class="order-detail-amount-row order-detail-amount-row--paid"><span>买家实付</span><span>' +
+        amounts.paid +
+        '</span></div>';
+    }
     box.innerHTML =
-      '<div class="order-detail-amount-row"><span>商品金额</span><span>' + amounts.goods + '</span></div>' +
-      '<div class="order-detail-amount-row"><span>优惠（促销+券+积分抵扣）</span><span>' + amounts.discount + '</span></div>' +
-      '<div class="order-detail-amount-row"><span>+ 运费</span><span>' + amounts.shipping + '</span></div>' +
-      '<div class="order-detail-amount-row order-detail-amount-row--due"><span>应付金额</span><span>' + amounts.payable + '</span></div>' +
-      '<div class="order-detail-amount-row order-detail-amount-row--paid"><span>买家实付</span><span>' + amounts.paid + '</span></div>' +
-      '<div class="order-detail-amount-foot"><span>商家实收 ' + amounts.merchant + '</span><span>退款 ' + amounts.refund + '</span></div>';
+      '<div class="order-detail-amount-row"><span>商品金额</span><span>' +
+      amounts.goods +
+      '</span></div>' +
+      '<div class="order-detail-amount-row"><span>优惠（促销+券+积分抵扣）</span><span>' +
+      amounts.discount +
+      '</span></div>' +
+      '<div class="order-detail-amount-row"><span>+ 运费</span><span>' +
+      amounts.shipping +
+      '</span></div>' +
+      '<div class="order-detail-amount-row order-detail-amount-row--due"><span>应付金额</span><span>' +
+      amounts.payable +
+      '</span></div>' +
+      paidHtml +
+      '<div class="order-detail-amount-foot"><span>商家实收 ' +
+      amounts.merchant +
+      '</span><span>退款 ' +
+      amounts.refund +
+      '</span></div>';
+
+    var toggle = box.querySelector('.order-detail-pay-legs-toggle');
+    var legsEl = box.querySelector('.order-detail-pay-legs');
+    if (toggle && legsEl) {
+      toggle.addEventListener('click', function () {
+        var expanded = toggle.getAttribute('aria-expanded') === 'true';
+        var next = !expanded;
+        toggle.setAttribute('aria-expanded', next ? 'true' : 'false');
+        toggle.setAttribute('aria-label', next ? '收起支付明细' : '展开支付明细');
+        toggle.classList.toggle('is-expanded', next);
+        legsEl.hidden = !next;
+      });
+    }
     return box;
   }
 
@@ -2301,12 +2631,15 @@
     progressCard.appendChild(stepsEl);
     main.appendChild(progressCard);
 
+    var payments = ensureDetailPayments(detail);
+    var payLegs = cashPayLegsOf(detail);
+    var paymentCount = payments.length || Number(detail.paymentCount) || 0;
     var docCard = el('div', 'order-detail-card');
     docCard.appendChild(el('h3', 'order-detail-card__title', '单据明细'));
     var tabs = el('div', 'order-detail-doc-tabs');
     var tabDefs = [
       { id: 'goods', label: '商品明细' },
-      { id: 'payment', label: '收款明细 (' + detail.paymentCount + ')' },
+      { id: 'payment', label: '收款明细 (' + paymentCount + ')' },
       { id: 'discount', label: '折扣明细' },
       { id: 'aftersale', label: '售后明细' }
     ];
@@ -2322,7 +2655,7 @@
       if (tab.id === 'goods') {
         var goodsPanel = buildGoodsPanel(goods, pickupMode, detail.aftersales);
         panel.appendChild(goodsPanel);
-        panel.appendChild(buildAmounts(detail.amounts));
+        panel.appendChild(buildAmounts(detail.amounts || {}, payLegs));
         if (drawer && pickupMode) {
           drawer._pickupRefs = drawer._pickupRefs || {};
           drawer._pickupRefs.goodsPanel = goodsPanel;
@@ -2333,7 +2666,7 @@
           drawer._pickupRefs.aftersales = detail.aftersales || [];
         }
       } else if (tab.id === 'payment') {
-        panel.appendChild(buildEmptyState('暂无收款明细'));
+        panel.appendChild(buildPaymentPanel(payments));
       } else if (tab.id === 'aftersale') {
         panel.appendChild(buildAftersalePanel(detail.aftersales));
       } else {

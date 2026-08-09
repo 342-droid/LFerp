@@ -2240,26 +2240,42 @@
         return root;
     }
 
-    /* 门店 APP 流水 → MDM 账变记录展示（命名可不与 C 端强行统一） */
-    function mapStoreLedgerAccountType(account) {
-        var a = String(account || '');
-        if (a.indexOf('保证金') >= 0) return '保证金账户';
-        if (a.indexOf('余额') >= 0) return '余额账户';
-        return a || '—';
+    /**
+     * 门店 APP 钱包·账户明细 → MDM 账变记录
+     * 账户类型 = C 端「账户」字段；支付/付款方式与 C 端同口径
+     */
+    function mapStoreLedgerCorpBank(item) {
+        var bank = String((item && (item.bankName || item.settleBankName)) || '').trim();
+        var tail = String((item && (item.bankTail || item.cardTail || item.settleCardTail)) || '').trim();
+        if (!bank || !tail) {
+            var snap =
+                window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function'
+                    ? window.StoreWalletDemo.snapshot()
+                    : null;
+            var settle = (snap && snap.settleAccount) || {};
+            if (!bank) bank = String(settle.bankName || '').trim();
+            if (!tail) tail = String(settle.cardTail || '').trim();
+        }
+        if (bank && tail) return bank + '(' + tail + ')';
+        if (bank) return bank;
+        return '';
     }
 
     function mapStoreLedgerBizType(rawType) {
         var t = String(rawType || '');
         var map = {
-            保证金划拨出账: '保证金出账',
             保证金划拨入账: '保证金入账',
             保证金补齐: '保证金补缴',
             平台佣金: '佣金结算',
             佣金入账: '佣金结算',
             订单佣金: '佣金结算',
             提现申请: '提现',
-            /* 售后赔付：仅余额账户或保证金账户出账 */
-            售后问责: '售后赔付'
+            售后问责: '售后/责任类扣款',
+            售后赔付: '售后/责任类扣款',
+            保证金出账: '售后/责任类扣款',
+            保证金划拨出账: '售后/责任类扣款',
+            余额支付: '进货支付',
+            进货退款: '退款'
         };
         return map[t] || t || '—';
     }
@@ -2272,15 +2288,87 @@
         return '—';
     }
 
+    /** 与门店 APP「账户」字段一致 */
+    function mapStoreLedgerAccountType(item) {
+        var biz = mapStoreLedgerBizType(item && item.type);
+        var a = String((item && item.account) || '').trim();
+        var sub = String((item && item.subAccount) || '');
+        if (biz === '提现') {
+            if (a && a.indexOf('资金到账') < 0 && a.indexOf('余额') < 0 && a.indexOf('保证金') < 0) {
+                return a;
+            }
+            var bank = mapStoreLedgerCorpBank(item);
+            if (bank) return bank;
+            if (a.indexOf('银行') >= 0) return a;
+            return a || '—';
+        }
+        if (a === '平台') return '平台';
+        if (a.indexOf('资金到账') >= 0) return '资金到账账户';
+        if (a.indexOf('保证金') >= 0 && a.indexOf('余额') >= 0) return '保证金账户/余额账户';
+        if (a.indexOf('保证金') >= 0) return '保证金账户';
+        if (a.indexOf('余额') >= 0) {
+            if (sub.indexOf('货款') >= 0) return '余额账户-货款';
+            return '余额账户';
+        }
+        return a || '—';
+    }
+
+    /** 与门店 APP 支付方式 / 付款方式取值一致 */
+    function mapStoreLedgerPayWay(item) {
+        var m = String((item && (item.payMethod || item.channel)) || '').trim();
+        if (
+            m === '平台' ||
+            m === '余额账户' ||
+            m === '保证金账户' ||
+            m === '余额账户/保证金账户'
+        ) {
+            return m;
+        }
+        var type = String((item && item.type) || '');
+        var biz = mapStoreLedgerBizType(type);
+        if (biz === '提现' || type === '提现申请') {
+            if (m === '保证金账户' || m === '余额账户/保证金账户') return m;
+            return '余额账户';
+        }
+        if (m) return m;
+        if (type === '保证金出账') return '保证金账户';
+        if (
+            biz === '进货支付' ||
+            biz === '售后/责任类扣款' ||
+            type === '余额支付' ||
+            type === '佣金回退' ||
+            type === '保证金补齐' ||
+            type === '保证金划拨出账' ||
+            type === '保证金划拨入账'
+        ) {
+            return '余额账户';
+        }
+        var no = String((item && item.channelNo) || '');
+        if (/^WX/i.test(no)) return '微信';
+        if (/^ALI|ZFB/i.test(no)) return '支付宝';
+        var corp = mapStoreLedgerCorpBank(item);
+        if (corp) return corp;
+        return '—';
+    }
+
+    /** 变前/变后推算用：实际变动的钱包桶（余额账户 / 保证金账户） */
+    function mapStoreLedgerWalletBucket(accountShown, payWay) {
+        if (accountShown === '余额账户' || accountShown === '保证金账户') return accountShown;
+        if (payWay === '余额账户' || payWay === '保证金账户') return payWay;
+        if (payWay === '余额账户/保证金账户') return '余额账户';
+        return '';
+    }
+
     function mapStoreLedgerOperator(item) {
         var biz = mapStoreLedgerBizType(item && item.type);
         var dir = mapStoreLedgerDirection(item);
         if (dir === '划拨') return '系统';
         if (
-            biz === '保证金出账' ||
+            biz === '售后/责任类扣款' ||
             biz === '保证金入账' ||
             biz === '佣金结算' ||
-            biz === '提现回退'
+            biz === '提现回退' ||
+            biz === '退款'
         ) {
             return '系统';
         }
@@ -2323,32 +2411,35 @@
         return body;
     }
 
-    /** 按时间正序推算各账户变前 / 变后余额 */
+    /** 按时间正序推算各钱包账户变前 / 变后余额 */
     function enrichStoreLedgerRows(ledgers, moneyFn) {
         var list = (ledgers || []).slice().sort(function (a, b) {
             return String(a.time || '').localeCompare(String(b.time || ''));
         });
         var bal = { 余额账户: 0, 保证金账户: 0 };
         return list.map(function (item) {
-            var accountType = mapStoreLedgerAccountType(item.account);
+            var accountType = mapStoreLedgerAccountType(item);
+            var payWay = mapStoreLedgerPayWay(item);
+            var walletBucket = mapStoreLedgerWalletBucket(accountType, payWay);
             var bizType = mapStoreLedgerBizType(item.type);
             var dir = mapStoreLedgerDirection(item);
             var status = mapStoreLedgerStatus(item);
             var amt = Number(item.amount) || 0;
-            var before = bal[accountType] || 0;
+            var before = walletBucket ? bal[walletBucket] || 0 : 0;
             var after = before;
-            if (storeLedgerAffectsBalance(status)) {
+            if (walletBucket && storeLedgerAffectsBalance(status)) {
                 after = dir === '支出' ? before - amt : before + amt;
-                bal[accountType] = after;
+                bal[walletBucket] = after;
             }
             return {
                 accountType: accountType,
+                payWay: payWay,
                 time: item.time || '—',
                 bizType: bizType,
                 direction: dir,
-                beforeText: moneyFn(before),
+                beforeText: walletBucket ? moneyFn(before) : '—',
                 amountText: formatStoreLedgerAmount(dir, amt, moneyFn),
-                afterText: moneyFn(after),
+                afterText: walletBucket ? moneyFn(after) : '—',
                 status: status,
                 bizNo: item.bizNo || '—',
                 channelNo: item.channelNo || '—',
@@ -2381,6 +2472,7 @@
         var LEDGER_HEADERS = [
             '账户类型',
             '资金方向',
+            '支付/付款方式',
             '账变类型',
             '变前金额',
             '变动金额',
@@ -2388,17 +2480,16 @@
             '发生时间',
             '状态',
             '业务单号',
-            '支付流水',
+            '交易流水',
             '操作人',
             '说明'
         ];
 
-        /* 资金方向 → 账变类型枚举（与后台口径一致）
-         * 售后赔付：账户类型仅为余额账户或保证金账户 */
+        /* 资金方向 → 账变类型枚举（与门店 APP 钱包账户明细对齐） */
         var LEDGER_BIZ_TYPES_BY_DIR = {
             /* 收入无「支付退回」：支付失败整笔状态为失败，未入账则无回退 */
-            收入: ['首次充值', '保证金入账', '佣金结算', '充值', '提现回退'],
-            支出: ['提现', '售后赔付', '保证金出账'],
+            收入: ['首次充值', '保证金入账', '佣金结算', '充值', '提现回退', '退款'],
+            支出: ['提现', '进货支付', '售后/责任类扣款', '佣金回退'],
             划拨: ['保证金补缴']
         };
         var LEDGER_BIZ_TYPES_ALL = [].concat(
@@ -2443,14 +2534,19 @@
         var filterPanel = el('div', 'store-ledger-filter');
         var filterRow = el('div', 'store-ledger-filter__row');
 
-        var acctSelect = ledgerSelect(
-            [
-                ['', '全部'],
-                ['余额账户', '余额账户'],
-                ['保证金账户', '保证金账户']
-            ],
-            '120px'
-        );
+        var acctOpts = [['', '全部']];
+        var acctSeen = {};
+        ['余额账户', '保证金账户', '平台'].forEach(function (name) {
+            acctSeen[name] = true;
+            acctOpts.push([name, name]);
+        });
+        enriched.forEach(function (row) {
+            var name = String(row.accountType || '').trim();
+            if (!name || name === '—' || acctSeen[name]) return;
+            acctSeen[name] = true;
+            acctOpts.push([name, name]);
+        });
+        var acctSelect = ledgerSelect(acctOpts, '160px');
         filterRow.appendChild(ledgerFilterField('账户类型', acctSelect));
 
         var dateRange = el('div', 'store-ledger-daterange');
@@ -2484,7 +2580,22 @@
         );
         filterRow.appendChild(ledgerFilterField('资金方向', dirSelect));
 
-        var typeSelect = ledgerSelect([], '140px');
+        var payWayOpts = [['', '全部']];
+        var payWaySeen = {};
+        ['余额账户', '保证金账户', '平台', '支付宝', '微信'].forEach(function (name) {
+            payWaySeen[name] = true;
+            payWayOpts.push([name, name]);
+        });
+        enriched.forEach(function (row) {
+            var name = String(row.payWay || '').trim();
+            if (!name || name === '—' || payWaySeen[name]) return;
+            payWaySeen[name] = true;
+            payWayOpts.push([name, name]);
+        });
+        var payWaySelect = ledgerSelect(payWayOpts, '140px');
+        filterRow.appendChild(ledgerFilterField('支付/付款方式', payWaySelect));
+
+        var typeSelect = ledgerSelect([], '160px');
         filterRow.appendChild(ledgerFilterField('账变类型', typeSelect));
 
         function fillBizTypeOptions(dir, keepValue) {
@@ -2574,6 +2685,7 @@
             var start = (dateStart.value || '').trim();
             var end = (dateEnd.value || '').trim();
             var acctKw = (acctSelect.value || '').trim();
+            var payWayKw = (payWaySelect.value || '').trim();
             var typeKw = (typeSelect.value || '').trim();
             var dirKw = (dirSelect.value || '').trim();
             var statusKw = (statusSelect.value || '').trim();
@@ -2581,6 +2693,7 @@
             return enriched.filter(function (row) {
                 var d = rowDate(row.time);
                 if (acctKw && row.accountType !== acctKw) return false;
+                if (payWayKw && row.payWay !== payWayKw) return false;
                 if (start && d && d < start) return false;
                 if (end && d && d > end) return false;
                 if (dirKw && row.direction !== dirKw) return false;
@@ -2605,6 +2718,7 @@
                 return [
                     row.accountType,
                     row.direction,
+                    row.payWay,
                     row.bizType,
                     row.beforeText,
                     row.amountText,
@@ -2646,6 +2760,7 @@
             dateStart.value = '';
             dateEnd.value = '';
             dirSelect.value = '';
+            payWaySelect.value = '';
             fillBizTypeOptions('', false);
             statusSelect.value = '';
             bizInput.value = '';
