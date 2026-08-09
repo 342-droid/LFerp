@@ -1,10 +1,44 @@
 {
-  "latestSha": "b319829beb2061e0caa45d31fd424b25b085a5e0",
-  "total": 240,
+  "latestSha": "3dd362915c9864ba988b5b002f77ae4b88826ab1",
+  "total": 241,
   "days": [
     {
       "date": "2026-08-10",
       "items": [
+        {
+          "sha": "3dd3629",
+          "type": "feat",
+          "text": "混合支付售后支持展开退款组成并新增钱包退款渠道",
+          "author": "sisi",
+          "time": "00:53",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "module": "冷丰售后",
+              "title": "退款单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "混合支付时申请退款金额、用户申请金额、实付金额、总计退款金额可展开退款组成（微信或支付宝二选一+钱包余额，无减号）"
+            },
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "text": "退款渠道新增「钱包」"
+            }
+          ]
+        },
         {
           "sha": "b319829",
           "type": "feat",
