@@ -2520,6 +2520,88 @@
     "status": "added",
     "date": "2026-08-03"
   },
+  "be3af46|user-app/h5/order-aftersale-list.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-09"
+  },
+  "be3af46|user-app/h5/order-detail-pickup.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-09"
+  },
+  "be3af46|user-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-09"
+  },
+  "be3af46|user-app/h5/order-refund-address-book.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-09"
+  },
+  "be3af46|user-app/h5/order-refund-address-create.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-09"
+  },
+  "be3af46|user-app/h5/order-refund-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-09"
+  },
+  "be3af46|user-app/h5/order-refund-exchange.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-09"
+  },
+  "be3af46|user-app/h5/order-refund-only.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-09"
+  },
+  "be3af46|user-app/h5/order-refund-pickup-edit.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-09"
+  },
+  "be3af46|user-app/h5/order-refund-pickup-order.html": {
+    "before": "changelog-assets/be3af46/user-app__h5__order-refund-pickup-order.html.before.jpg",
+    "after": "changelog-assets/be3af46/user-app__h5__order-refund-pickup-order.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-08-09"
+  },
+  "be3af46|user-app/h5/order-refund-pre-ship.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-09"
+  },
+  "be3af46|user-app/h5/order-refund-restock.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-09"
+  },
+  "be3af46|user-app/h5/order-refund-return-goods.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-09"
+  },
+  "be3af46|user-app/h5/order-refund-return-ship.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-09"
+  },
+  "be3af46|user-app/h5/order-refund-return.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-09"
+  },
+  "be3af46|user-app/h5/order-refund-select.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-09"
+  },
   "bf36311|MDM/mdm_aftersale_ticket.html": {
     "regions": 0,
     "status": "diff",
