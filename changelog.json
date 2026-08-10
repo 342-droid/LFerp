@@ -1,10 +1,55 @@
 {
-  "latestSha": "2971da0b56eebcf9ee059e14979648ddf5b29356",
-  "total": 245,
+  "latestSha": "198192ffdfd35150935eae65af5e0a6a6b99c9bb",
+  "total": 246,
   "days": [
     {
       "date": "2026-08-10",
       "items": [
+        {
+          "sha": "198192f",
+          "type": "feat",
+          "text": "完善供应商与门店多汇付商户号及进件列表体验",
+          "author": "sisi",
+          "time": "18:14",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "text": "支持多商户号绑定与设为默认；列表可查看进件信息、照片放大；操作栏左对齐；提交时间改为操作时间"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "支持多商户号绑定与设为默认；列表可查看进件信息、照片放大；操作栏左对齐；提交时间改为操作时间"
+            }
+          ]
+        },
         {
           "sha": "2971da0",
           "type": "feat",
