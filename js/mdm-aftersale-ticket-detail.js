@@ -292,7 +292,13 @@
     ];
   }
 
+  /** 混合支付退款组成：仅代采售后生效，零售售后不拆腿 */
+  function isProxyAftersale(detail) {
+    return !!(detail && detail.orderSource === '代采');
+  }
+
   function detailPayLegs(detail) {
+    if (!isProxyAftersale(detail)) return [];
     return normalizePayLegs(detail && detail.payLegs);
   }
 
@@ -745,6 +751,7 @@
       'method=' + encodeURIComponent(ticket.method || '线下付款'),
       'status=' + encodeURIComponent(ticket.status || '待退款'),
       'source=' + encodeURIComponent('售后退款'),
+      'orderSource=' + encodeURIComponent(detail.orderSource || '零售'),
       'createdAt=' + encodeURIComponent(ticket.createdAt || '')
     ];
     return base + '?' + qs.join('&');
@@ -1555,8 +1562,13 @@
     };
     detail.progress = buildProgress(type, status, id, applyTime, applicant, detail);
 
-    /* 混合支付演示：仅退款/退货退款默认拆「微信+钱包余额」（支付宝/微信二选一）；mixedPay=0 关闭 */
-    if (createsRefundDoc(type) && amount > 0 && queryParam('mixedPay') !== '0') {
+    /* 混合支付演示：仅代采售后；仅退款/退货退款默认拆「微信+钱包余额」；mixedPay=0 关闭 */
+    if (
+      orderSource === '代采' &&
+      createsRefundDoc(type) &&
+      amount > 0 &&
+      queryParam('mixedPay') !== '0'
+    ) {
       detail.payLegs = seedMixedPayLegs(amount);
     }
 
@@ -1728,7 +1740,7 @@
       '<div class="aftersale-status-banner__item"><span>' +
       (createsRefundDoc(detail.type) ? '申请退款金额' : '申请金额') +
       '</span>' +
-      (createsRefundDoc(detail.type)
+      (createsRefundDoc(detail.type) && isProxyAftersale(detail)
         ? renderMoneyWithPayLegs(detail.applyAmount, detailPayLegs(detail), { tag: 'b' })
         : '<b class="is-money">' + money(detail.applyAmount) + '</b>') +
       '</div>';
@@ -1914,7 +1926,10 @@
 
   function renderGoods(detail, editable) {
     var isRestock = goodsTableType(detail) === '补货';
-    var payLegs = createsRefundDoc(goodsTableType(detail)) ? detailPayLegs(detail) : [];
+    var payLegs =
+      isProxyAftersale(detail) && createsRefundDoc(goodsTableType(detail))
+        ? detailPayLegs(detail)
+        : [];
     var hasAnyActual =
       isRestock &&
       detail.goods.some(function (g) {

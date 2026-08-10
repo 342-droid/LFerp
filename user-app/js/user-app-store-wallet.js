@@ -96,7 +96,7 @@
     '余额支付',
     '进货支付'
   ];
-  var LOCK_TYPES = ['保证金补缴', '保证金补齐'];
+  var LOCK_TYPES = ['保证金补缴', '保证金补齐', '保证金解冻'];
 
   function mapLedgerBizType(rawType) {
     var t = String(rawType || '');
@@ -122,7 +122,12 @@
       return item.dir === 'out' || EXPENSE_TYPES.indexOf(type) >= 0 || EXPENSE_TYPES.indexOf(mapped) >= 0;
     }
     if (tab === 'lock') {
-      return item.dir === 'lock' || LOCK_TYPES.indexOf(type) >= 0 || LOCK_TYPES.indexOf(mapped) >= 0;
+      return (
+        item.dir === 'lock' ||
+        item.dir === 'unlock' ||
+        LOCK_TYPES.indexOf(type) >= 0 ||
+        LOCK_TYPES.indexOf(mapped) >= 0
+      );
     }
     return true;
   }
@@ -345,12 +350,12 @@
 
   function amtClass(dir) {
     if (dir === 'in') return 'is-in';
-    if (dir === 'lock') return 'is-lock';
+    if (dir === 'lock' || dir === 'unlock') return 'is-lock';
     return 'is-out';
   }
 
   function amtPrefix(dir) {
-    if (dir === 'in') return '+';
+    if (dir === 'in' || dir === 'unlock') return '+';
     if (dir === 'out') return '-';
     return '';
   }
@@ -846,7 +851,7 @@
           return;
         }
         snap = api.snapshot();
-        if (snap.depositGap > 0) {
+        if (snap.depositGap > 0 && !snap.depositGapFillSuppressed) {
           window.alert('保证金存在缺口 ' + api.money(snap.depositGap) + '，请先补齐后再提现。');
           return;
         }

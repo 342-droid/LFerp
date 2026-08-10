@@ -6,7 +6,7 @@
     <title>冷丰WMS - 门店档案</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
-    <link rel="stylesheet" href="../css/lf-mdm-from-master.css?v=20260806-date-combo">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css?v=20260810-account-cfg2">
     <style>
         .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
         .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
@@ -72,7 +72,7 @@
                         <select id="qStoreStatus" style="height:36px;min-width:120px;border:1px solid #ddd;border-radius:3px;padding:0 8px;">
                             <option value="">全部</option>
                             <option value="normal">正常</option>
-                            <option value="stopped">停用</option>
+                            <option value="stopped">已禁用</option>
                         </select>
                     </div>
                     <div class="form-actions">
@@ -199,7 +199,7 @@
                                 <td>—</td>
                                 <td>—</td>
                                 <td>关闭</td>
-                                <td><span class="status inactive">停用</span></td>
+                                <td><span class="status inactive">已禁用</span></td>
                                 <td>2026-04-18 09:33:02</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
                             </tr>
@@ -220,10 +220,11 @@
     <script src="../js/mdm-resource-archive-forms.js"></script>
     <script src="../js/order-config-ui.js"></script>
     <script src="../js/mdm-store-region-cascader.js"></script>
-    <script src="../js/store-wallet-demo.js?v=20260810-wallet-v24"></script>
+    <script src="../js/store-account-config.js?v=20260810-sac1"></script>
+    <script src="../js/store-wallet-demo.js?v=20260810-account-cfg"></script>
     <script src="../js/store-bind-card-demo.js?v=20260806-bank"></script>
     <script src="../store-app/js/store-app-biz-orders.js?v=20260806-settle"></script>
-    <script src="../js/mdm-archive-detail-drawer.js?v=20260810-ledger-payway"></script>
+    <script src="../js/mdm-archive-detail-drawer.js?v=20260810-account-cfg2"></script>
     <script src="../js/mdm-erp-lists.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {

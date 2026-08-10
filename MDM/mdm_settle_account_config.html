@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰结算 - 账户配置</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
+    <link rel="stylesheet" href="../css/lf-settle-account-config.css?v=20260810-sac-tip2">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/settle-sidebar.js"></script>
+
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content mdm-edit-page">
+            <div class="content-header">
+                <div class="content-title">费用配置 / 账户配置</div>
+            </div>
+
+            <div class="sac-page mdm-edit-page__stretch">
+                <section class="sac-section" id="sacStoreSection">
+                    <div class="sac-section__head" id="sacStoreSectionToggle" role="button" tabindex="0">
+                        <span class="sac-section__arrow">▼</span>
+                        <span class="sac-section__title">门店账户设置</span>
+                    </div>
+                    <div class="sac-section__body">
+                        <div class="sac-field">
+                            <label class="sac-field__label" for="sacDepositRequired">
+                                <span class="erp-req">*</span>保证金账户金额
+                            </label>
+                            <div class="sac-field__control">
+                                <div class="sac-unit">
+                                    <input class="erp-input" id="sacDepositRequired" type="number" min="0" step="0.01" placeholder="请输入">
+                                    <span class="sac-unit__text">元</span>
+                                </div>
+                                <div class="sac-tip">全平台门店默认应保有金额；门店个性化配置优先于本项。</div>
+                            </div>
+                        </div>
+
+                        <div class="sac-field">
+                            <label class="sac-field__label" for="sacGoodsQuotaRequired">
+                                <span class="erp-req">*</span>货款金额
+                            </label>
+                            <div class="sac-field__control">
+                                <div class="sac-unit">
+                                    <input class="erp-input" id="sacGoodsQuotaRequired" type="number" min="0" step="0.01" placeholder="请输入">
+                                    <span class="sac-unit__text">元</span>
+                                </div>
+                                <div class="sac-tip">全平台门店默认货款应缴金额（首次货款额度）；门店个性化配置优先于本项。</div>
+                            </div>
+                        </div>
+
+                        <div class="sac-field">
+                            <div class="sac-field__label">
+                                <span class="sac-field__label-row">
+                                    <span><span class="erp-req">*</span>历史数据影响</span>
+                                    <span class="sac-help" tabindex="0" aria-label="历史数据影响说明">
+                                        <span class="sac-help-btn" aria-hidden="true">?</span>
+                                        <span class="sac-help-tip" role="tooltip">
+                                            <span class="sac-help-tip__item"><strong>是：</strong>修改配置后，已产生的历史数据会按照新配置规则同步调整或重新计算</span>
+                                            <span class="sac-help-tip__item"><strong>否：</strong>修改配置后，仅影响新增数据，历史数据保持原配置结果不变</span>
+                                        </span>
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="sac-field__control">
+                                <div class="sac-radio-row">
+                                    <label><input type="radio" name="sacAffectHistory" value="yes"> 是</label>
+                                    <label><input type="radio" name="sacAffectHistory" value="no" checked> 否</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="mdm-edit-page__footer">
+                <button type="button" class="btn btn-secondary" id="sacResetBtn">重置</button>
+                <button type="button" class="btn btn-primary" id="sacSaveBtn">保存</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/store-account-config.js?v=20260810-sac1"></script>
+    <script src="../js/store-wallet-demo.js?v=20260810-deposit-unfreeze6"></script>
+    <script src="../js/mdm-settle-account-config.js?v=20260810-sac-tip"></script>
+</body>
+</html>

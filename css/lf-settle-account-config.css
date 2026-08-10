@@ -1,0 +1,216 @@
+/* 结算 · 账户配置 */
+.sac-page {
+  width: 100%;
+}
+
+.sac-section {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.sac-section__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #fafafa;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sac-section__arrow {
+  font-size: 12px;
+  color: #999;
+  transition: transform 0.15s ease;
+}
+
+.sac-section.is-collapsed .sac-section__arrow {
+  transform: rotate(-90deg);
+}
+
+.sac-section__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.sac-section__body {
+  padding: 20px 16px 8px;
+}
+
+.sac-section.is-collapsed .sac-section__body {
+  display: none;
+}
+
+.sac-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.sac-field__label {
+  flex: 0 0 168px;
+  text-align: right;
+  font-size: 13px;
+  color: #333;
+  line-height: 36px;
+}
+
+.sac-field__label .erp-req {
+  color: #ff4d4f;
+  margin-right: 2px;
+}
+
+.sac-field__label-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.sac-help {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  outline: none;
+}
+
+.sac-help-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #c5c5c5;
+  border-radius: 50%;
+  background: #fff;
+  color: #888;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: help;
+  box-sizing: border-box;
+}
+
+.sac-help:hover .sac-help-btn,
+.sac-help:focus-within .sac-help-btn {
+  border-color: #999;
+  color: #666;
+}
+
+.sac-help-tip {
+  display: none;
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  z-index: 20;
+  width: max-content;
+  max-width: 360px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.85);
+  border: none;
+  border-radius: 4px;
+  box-shadow: none;
+  text-align: left;
+  white-space: normal;
+  pointer-events: none;
+}
+
+.sac-help-tip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.85);
+}
+
+.sac-help:hover .sac-help-tip,
+.sac-help:focus-within .sac-help-tip {
+  display: block;
+}
+
+.sac-help-tip__item {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  color: #fff;
+  line-height: 1.6;
+}
+
+.sac-help-tip__item + .sac-help-tip__item {
+  margin-top: 6px;
+}
+
+.sac-help-tip__item strong {
+  color: #fff;
+}
+
+.sac-field__control {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+.sac-field__control .erp-input {
+  width: 100%;
+  max-width: 320px;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.sac-unit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 360px;
+}
+
+.sac-unit .erp-input {
+  flex: 1;
+  max-width: none;
+}
+
+.sac-unit__text {
+  font-size: 13px;
+  color: #666;
+  white-space: nowrap;
+}
+
+.sac-radio-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 36px;
+}
+
+.sac-radio-row label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+}
+
+.sac-radio-row input[type='radio'] {
+  margin: 0;
+}
+
+.sac-tip {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}

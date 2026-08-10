@@ -297,7 +297,7 @@
         var amt = parseAmount(state.amount);
         if (!(amt > 0)) return;
         snap = api.snapshot();
-        if (Number(snap.depositGap || 0) > 0) {
+        if (Number(snap.depositGap || 0) > 0 && !snap.depositGapFillSuppressed) {
           window.alert('保证金存在缺口 ' + api.money(snap.depositGap) + '，请先补齐后再提现。');
           return;
         }

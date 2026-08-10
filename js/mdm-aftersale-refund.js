@@ -8,7 +8,10 @@
   var SOURCES = ['售后退款', '履约调整退款', '订单取消退款'];
   var STATUSES = ['未发起退款', '待退款', '退款执行中', '退款成功', '退款失败'];
   var METHODS = ['原路退回', '线下付款'];
-  var CHANNELS = ['微信', '支付宝', '钱包', '银行转账'];
+  /** 钱包渠道仅代采售后线下付款可用；零售不含钱包 */
+  var CHANNELS_RETAIL = ['微信', '支付宝', '银行转账'];
+  var CHANNELS_PROXY = ['微信', '支付宝', '钱包', '银行转账'];
+  var CHANNELS = CHANNELS_PROXY;
   var TOTAL_DEMO = 742;
 
   var state = {
@@ -86,6 +89,8 @@
         status = pool[i % pool.length];
       }
       var cash = amounts[i % amounts.length];
+      /* 演示：多数代采（钱包渠道可用），少量零售（无钱包） */
+      var orderSource = i % 5 === 1 ? '零售' : '代采';
       var day = pad((i % 28) + 1);
       var hour = pad(10 + (i % 12));
       var minute = pad((i * 3) % 60);
@@ -102,6 +107,7 @@
       var voucherUploaded = false;
       var aftersaleId =
         source === '售后退款' ? 'AS-' + String(340048455512625152 + i * 131) : '';
+      var channelPool = orderSource === '代采' ? CHANNELS_PROXY : CHANNELS_RETAIL;
 
       if (status === '退款成功') {
         completedAt = '2026-07-' + day + ' ' + hour + ':' + minute + ':' + pad(Math.min(59, parseInt(second, 10) + 3));
@@ -111,7 +117,7 @@
           refundTxn = '0150default' + day + hour + minute + second + 'P' + pad(i % 10000, 4) + 'ac139d1200000';
         } else {
           voucherUploaded = true;
-          channel = CHANNELS[i % CHANNELS.length];
+          channel = channelPool[i % channelPool.length];
           remark = '线下已打款';
           proofUrl = 'uploaded';
           refundTxn = '';
@@ -126,6 +132,7 @@
         id: 'RF-' + String(340048510537699328 + i * 173),
         orderNo: 'ORD-2607' + pad(2500000 + (i % 999999), 7) + (i % 4 === 0 ? '-2' : ''),
         aftersaleId: aftersaleId,
+        orderSource: orderSource,
         method: method,
         source: source,
         status: status,
@@ -189,6 +196,8 @@
         id: refundNo,
         orderNo: orderNo || 'ORD-' + String(Date.now()).slice(-10),
         aftersaleId: aftersaleId || '',
+        /* 售后详情跳转默认视为代采（钱包渠道可用）；零售跳转可带 orderSource=零售 */
+        orderSource: queryParam('orderSource') === '零售' ? '零售' : '代采',
         method: method,
         source: source,
         status: status,
@@ -210,6 +219,7 @@
       if (orderNo) found.orderNo = orderNo;
       if (method) found.method = method;
       if (status) found.status = status;
+      found.orderSource = queryParam('orderSource') === '零售' ? '零售' : found.orderSource || '代采';
       if (!isNaN(cash) && cashRaw !== '') found.cashAmount = cash;
       if (source) found.source = source;
     }
@@ -462,9 +472,15 @@
     if (inputEl) inputEl.value = '';
     resetProofPreview();
 
+    var allowWallet = row.orderSource === '代采';
     var radios = document.querySelectorAll('input[name="asUploadChannel"]');
     radios.forEach(function (r) {
-      r.checked = r.value === '银行转账';
+      var label = r.closest('label');
+      if (r.value === '钱包') {
+        if (label) label.hidden = !allowWallet;
+        if (!allowWallet) r.checked = false;
+      }
+      if (r.value === '银行转账') r.checked = true;
     });
 
     showModal('asRefundUploadModal');
@@ -518,6 +534,12 @@
     }
     if (!channel) {
       if (typeof showToast === 'function') showToast('请选择退款方式', 'error');
+      return;
+    }
+    if (channel === '钱包' && row.orderSource !== '代采') {
+      if (typeof showToast === 'function') {
+        showToast('钱包退款渠道仅适用于代采售后', 'error');
+      }
       return;
     }
     if (!remark) {
