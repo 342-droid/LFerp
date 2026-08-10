@@ -1589,6 +1589,98 @@
   gap: 12px;
 }
 
+/* 进件信息 · 已上传照片缩略图 / 放大查看 */
+.mdm-onboard-photo {
+  display: block;
+  width: 100%;
+  max-width: 180px;
+  height: 112px;
+  padding: 0;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f8fafc;
+  cursor: zoom-in;
+  position: relative;
+}
+
+.mdm-onboard-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mdm-onboard-photo:hover {
+  border-color: var(--color-primary, #2f6bff);
+  box-shadow: 0 0 0 2px rgba(47, 107, 255, 0.12);
+}
+
+.mdm-onboard-photo--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  color: #666;
+  font-size: 13px;
+}
+
+.mdm-onboard-photo--fallback:hover {
+  border-color: var(--color-border, #e5e7eb);
+  box-shadow: none;
+}
+
+.mdm-photo-lightbox {
+  z-index: 3200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.mdm-photo-lightbox__box {
+  position: relative;
+  max-width: min(920px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  background: #111;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.mdm-photo-lightbox__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+
+.mdm-photo-lightbox__title {
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mdm-photo-lightbox__head .erp-modal__header-btn {
+  color: #fff;
+  border-color: transparent;
+}
+
+.mdm-photo-lightbox__img {
+  display: block;
+  max-width: min(920px, calc(100vw - 48px));
+  max-height: calc(100vh - 96px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  background: #000;
+}
+
 /* 门店/供应商进件 · 绑定汇付商户号 */
 .mdm-huifu-bind-actions {
   display: inline-flex;
@@ -1682,6 +1774,18 @@
 
 .supplier-detail-table-ops {
   white-space: nowrap;
+}
+
+/* 进件列表操作栏：按钮左对齐（覆盖全局 .action-links 居中） */
+.supplier-detail-tab .erp-table td:last-child,
+.store-onboard-section .erp-table td:last-child {
+  text-align: left;
+}
+
+.supplier-detail-tab .erp-table .action-links,
+.store-onboard-section .erp-table .action-links {
+  justify-content: flex-start;
+  text-align: left;
 }
 
 /* 门店详情：门头照 / 冷柜缩略图 / 门店仓库强调 */
