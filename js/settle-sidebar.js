@@ -1,4 +1,4 @@
-/* 结算专用侧栏：结算中心 / 费用配置（运费配置） */
+/* 结算专用侧栏：结算中心 / 费用配置（运费配置、账户配置） */
 (function () {
     var wp = window.wmsPath || {
         page: function (f) {
@@ -22,7 +22,10 @@
         return;
     }
 
-    var feeConfigItems = [{ href: 'mdm_settle_freight_config.html', text: '运费配置' }];
+    var feeConfigItems = [
+        { href: 'mdm_settle_freight_config.html', text: '运费配置' },
+        { href: 'mdm_settle_account_config.html', text: '账户配置' }
+    ];
 
     function pageMatches(href) {
         return currentPage === String(href || '');

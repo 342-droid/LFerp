@@ -15,6 +15,11 @@
     return document.body && document.body.getAttribute('data-order-page') === 'proxy';
   }
 
+  /** 门店钱包/混合支付相关单据字段：仅代采订单页生效，零售订单保持原样 */
+  function isProxyWalletPayFeature() {
+    return isProxyOrderPage();
+  }
+
   function getListCellIndices(row) {
     var sceneEl = row ? row.querySelector('.order-scene') : null;
     var hasDeliveryCol = !!(row && (row.getAttribute('data-delivery-mode') || row.querySelector('.order-delivery-mode')));
@@ -416,13 +421,13 @@
         merchant: '¥46.18',
         refund: '¥0.00'
       },
-      /* 混合支付演示：买家实付旁可展开；收款明细按腿拆行 */
+      /* 混合支付演示仅代采订单页消费；零售打开同单号不展示钱包拆分 */
       payLegs: [
         { name: '微信', amount: 30 },
         { name: '钱包余额', amount: 16.18 }
       ],
       paymentCount: 2,
-      /* 含仅退款 / 退货退款 / 补货，列表字段按类型展示 */
+      /* 含仅退款 / 退货退款 / 补货；退款额拆分字段仅代采售后明细使用 */
       aftersales: [{
         id: 'AS-9003-1',
         productName: '新鲜红颜草莓 香甜多汁 500g装',
@@ -1676,7 +1681,7 @@
 
   /**
    * 单据明细 · 售后明细：一条售后单一行；展示仅退款/退货退款/补货。
-   * 退款额为一级字段，下挂二级：小计、支付宝、微信、钱包。
+   * 代采：退款额一级下挂二级小计/支付宝/微信/钱包；零售：退款额单列，不受钱包字段影响。
    */
   function buildAftersalePanel(aftersales) {
     var list = (Array.isArray(aftersales) ? aftersales : []).filter(function (a) {
@@ -1690,9 +1695,10 @@
     var hasRestock = list.some(function (a) {
       return a.type === '补货';
     });
+    var walletSplit = isProxyWalletPayFeature();
 
-    /* 有退款类时两级表头；退款额一级下挂：小计 / 支付宝 / 微信 / 钱包 */
-    var headRows = hasRefundType ? 2 : 1;
+    /* 代采有退款类时两级表头；零售保持退款额单列 */
+    var headRows = walletSplit && hasRefundType ? 2 : 1;
     var topCols = [
       { key: 'product', label: '商品', align: 'left', rowspan: headRows },
       { key: 'type', label: '售后类型', align: 'center', rowspan: headRows },
@@ -1701,20 +1707,25 @@
     var bodyKeys = ['product', 'type', 'status'];
     if (hasRefundType) {
       topCols.push({ key: 'returnQty', label: '退货数', align: 'center', rowspan: headRows });
-      topCols.push({
-        key: 'refundAmount',
-        label: '退款额',
-        align: 'center',
-        colspan: 4,
-        group: true
-      });
-      bodyKeys = bodyKeys.concat([
-        'returnQty',
-        'refundSubtotal',
-        'refundAlipay',
-        'refundWechat',
-        'refundWallet'
-      ]);
+      if (walletSplit) {
+        topCols.push({
+          key: 'refundAmount',
+          label: '退款额',
+          align: 'center',
+          colspan: 4,
+          group: true
+        });
+        bodyKeys = bodyKeys.concat([
+          'returnQty',
+          'refundSubtotal',
+          'refundAlipay',
+          'refundWechat',
+          'refundWallet'
+        ]);
+      } else {
+        topCols.push({ key: 'refundAmount', label: '退款额', align: 'center', rowspan: headRows });
+        bodyKeys = bodyKeys.concat(['returnQty', 'refundAmount']);
+      }
       topCols = topCols.concat([
         { key: 'refundCoupon', label: '退券', align: 'center', rowspan: headRows },
         { key: 'refundPoints', label: '退积分', align: 'center', rowspan: headRows },
@@ -1730,12 +1741,14 @@
       bodyKeys = bodyKeys.concat(['applyRestockQty', 'actualRestockQty']);
     }
 
-    var refundSubHeads = [
-      { key: 'refundSubtotal', label: '小计' },
-      { key: 'refundAlipay', label: '支付宝' },
-      { key: 'refundWechat', label: '微信' },
-      { key: 'refundWallet', label: '钱包' }
-    ];
+    var refundSubHeads = walletSplit
+      ? [
+          { key: 'refundSubtotal', label: '小计' },
+          { key: 'refundAlipay', label: '支付宝' },
+          { key: 'refundWechat', label: '微信' },
+          { key: 'refundWallet', label: '钱包' }
+        ]
+      : [];
 
     function cellHtml(item, key) {
       var isRefund = item.type === '仅退款' || item.type === '退货退款';
@@ -1748,6 +1761,9 @@
           return aftersaleCellText(item.returnQty);
         }
         return '-';
+      }
+      if (key === 'refundAmount') {
+        return isRefund ? aftersaleCellText(item.refundAmount) : '-';
       }
       if (
         key === 'refundSubtotal' ||
@@ -1799,7 +1815,7 @@
         .join('') +
       '</tr>';
     var head2 = '';
-    if (hasRefundType) {
+    if (walletSplit && hasRefundType) {
       head2 =
         '<tr>' +
         refundSubHeads
@@ -2158,6 +2174,8 @@
   }
 
   function cashPayLegsOf(detail) {
+    /* 零售订单不消费混合支付腿，避免串改买家实付/收款明细 */
+    if (!isProxyWalletPayFeature()) return [];
     var legs = [];
     if (detail && Array.isArray(detail.payLegs)) legs = detail.payLegs;
     else if (detail && detail.amounts && Array.isArray(detail.amounts.payLegs)) {
@@ -2169,9 +2187,13 @@
     });
   }
 
-  /** 生成收款明细行：通道固定「汇付」；支付方式为支付宝/微信/钱包余额 */
+  /**
+   * 代采：生成收款明细（通道汇付 + 支付方式含钱包余额）
+   * 零售：不生成钱包/混合支付明细，保持空态
+   */
   function ensureDetailPayments(detail) {
     if (!detail) return [];
+    if (!isProxyWalletPayFeature()) return [];
     if (Array.isArray(detail.payments) && detail.payments.length) {
       return detail.payments.map(function (p) {
         return {
@@ -2633,7 +2655,9 @@
 
     var payments = ensureDetailPayments(detail);
     var payLegs = cashPayLegsOf(detail);
-    var paymentCount = payments.length || Number(detail.paymentCount) || 0;
+    var paymentCount = isProxyWalletPayFeature()
+      ? payments.length || Number(detail.paymentCount) || 0
+      : payments.length;
     var docCard = el('div', 'order-detail-card');
     docCard.appendChild(el('h3', 'order-detail-card__title', '单据明细'));
     var tabs = el('div', 'order-detail-doc-tabs');

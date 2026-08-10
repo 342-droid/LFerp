@@ -28,6 +28,73 @@
         while (host && host.firstChild) host.removeChild(host.firstChild);
     }
 
+    /** 温馨提示确认弹框（对齐档案/商品列表二次确认） */
+    function closeWarmConfirmModal() {
+        document.querySelectorAll('[data-archive-warm-confirm="1"]').forEach(function (n) {
+            n.remove();
+        });
+    }
+
+    function openWarmConfirmModal(message, onConfirm, opts) {
+        opts = opts || {};
+        closeWarmConfirmModal();
+        /* 须高于门店详情抽屉（store-drawer 2050/2060），否则弹框会被抽屉遮住 */
+        var backdrop = el(
+            'div',
+            'erp-modal-backdrop erp-modal-backdrop--over-drawer mdm-people-warm-confirm-backdrop'
+        );
+        backdrop.setAttribute('data-archive-warm-confirm', '1');
+
+        var modal = el('div', 'erp-modal erp-modal--confirm');
+        var header = el('div', 'erp-modal__header');
+        header.appendChild(el('h2', 'erp-modal__title', opts.title || '温馨提示'));
+        var acts = el('div', 'erp-modal__header-actions');
+        var closeBtn = el('button', 'erp-modal__header-btn');
+        closeBtn.type = 'button';
+        closeBtn.setAttribute('aria-label', '关闭');
+        closeBtn.innerHTML = '&times;';
+        acts.appendChild(closeBtn);
+        header.appendChild(acts);
+
+        var body = el('div', 'erp-modal__body');
+        var row = el('div', 'erp-modal-confirm__row');
+        row.appendChild(el('div', 'erp-modal-confirm__icon', '!'));
+        var msg = el('div', 'erp-modal-confirm__msg');
+        String(message || '')
+            .split(/\n/)
+            .forEach(function (line, i) {
+                if (i > 0) msg.appendChild(document.createElement('br'));
+                msg.appendChild(document.createTextNode(line));
+            });
+        row.appendChild(msg);
+        body.appendChild(row);
+
+        var footer = el('div', 'erp-modal__footer');
+        var cancelBtn = mkBtn(opts.cancelText || '取消', false);
+        var okBtn = mkBtn(opts.okText || '确定', true);
+        footer.appendChild(cancelBtn);
+        footer.appendChild(okBtn);
+
+        modal.appendChild(header);
+        modal.appendChild(body);
+        modal.appendChild(footer);
+        backdrop.appendChild(modal);
+
+        function shut() {
+            closeWarmConfirmModal();
+        }
+        backdrop.addEventListener('click', function (ev) {
+            if (ev.target === backdrop) shut();
+        });
+        closeBtn.addEventListener('click', shut);
+        cancelBtn.addEventListener('click', shut);
+        okBtn.addEventListener('click', function () {
+            shut();
+            if (typeof onConfirm === 'function') onConfirm();
+        });
+        document.body.appendChild(backdrop);
+    }
+
     function nz(v) {
         if (v == null || v === '') return '—';
         return String(v);
@@ -469,16 +536,18 @@
         return el('div', 'store-empty', text);
     }
 
-    /** 汇总条：支持「标签：值」或 [label, value]，排版为上标签下数值（图一样式） */
+    /** 汇总条：支持「标签：值」或 [label, value, actionEl?]，排版为上标签下数值（图一样式） */
     function summaryBar(spans) {
         var bar = el('div', 'store-summary-bar store-summary-bar--stats');
         (spans || []).forEach(function (t) {
             var item = el('div', 'store-summary-bar__item');
             var label = '';
             var value = '';
+            var actionEl = null;
             if (Array.isArray(t)) {
                 label = String(t[0] == null ? '' : t[0]);
                 value = String(t[1] == null ? '—' : t[1]);
+                if (t[2] && t[2].nodeType === 1) actionEl = t[2];
             } else {
                 var s = String(t == null ? '' : t);
                 var idx = s.indexOf('：');
@@ -491,7 +560,15 @@
                 }
             }
             if (label) item.appendChild(el('div', 'store-summary-bar__label', label));
-            item.appendChild(el('div', 'store-summary-bar__value', value));
+            var valueWrap = el('div', 'store-summary-bar__value');
+            if (actionEl) {
+                valueWrap.classList.add('store-summary-bar__value--with-action');
+                valueWrap.appendChild(el('span', 'store-summary-bar__value-text', value));
+                valueWrap.appendChild(actionEl);
+            } else {
+                valueWrap.textContent = value;
+            }
+            item.appendChild(valueWrap);
             bar.appendChild(item);
         });
         return bar;
@@ -1293,7 +1370,7 @@
         var tags = [];
         var st = store.storeStatus;
         if (st === '正常') tags.push({ kind: 'orange', label: '门店正常' });
-        else if (st === '停用') tags.push({ kind: 'gray', label: '停用' });
+        else if (st === '已禁用' || st === '停用') tags.push({ kind: 'gray', label: '已禁用' });
         else if (st === '冻结') tags.push({ kind: 'gray', label: '冻结' });
         if (store.opStatus && store.opStatus !== '—') {
             tags.push({ kind: 'gray', label: store.opStatus });
@@ -2186,10 +2263,6 @@
     /** 门店档案 · 账户信息（口径对齐门店 APP「我的钱包」） */
     function panelStoreAccount(store) {
         var root = el('div', 'supplier-detail-tab');
-        var snap =
-            window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function'
-                ? window.StoreWalletDemo.snapshot()
-                : null;
         var money =
             window.StoreWalletDemo && typeof window.StoreWalletDemo.money === 'function'
                 ? window.StoreWalletDemo.money
@@ -2197,47 +2270,314 @@
                       return '¥' + Number(n || 0).toFixed(2);
                   };
 
-        var depositActual = snap ? snap.depositActual : 2000;
-        var depositRequired = snap ? snap.depositRequired : 2000;
-        var depositGap = snap ? snap.depositGap : 0;
-        var available = snap ? snap.available : 0;
-        var goodsQuota = snap ? snap.goodsQuota : 0;
-        var withdrawable = snap ? snap.withdrawable : 0;
-        var pending = snap ? snap.pending : 0;
-        /* 与门店 APP 钱包一致：总金额 = 保证金余额 + 余额账户余额；保证金可提款固定 0 */
-        var totalAmount = Number(depositActual || 0) + Number(available || 0);
-        var depositWithdrawable = 0;
+        function resolveRule() {
+            if (
+                window.StoreAccountConfig &&
+                typeof window.StoreAccountConfig.resolve === 'function'
+            ) {
+                return window.StoreAccountConfig.resolve(store && store.storeId);
+            }
+            return null;
+        }
 
-        /* 排版对齐业绩报表汇总条（上标签 / 下数值 / 竖线分隔） */
-        root.appendChild(sectionTitle('账户总计'));
-        root.appendChild(
-            summaryBar([
-                ['总金额', money(totalAmount)],
-                ['可提现金额', money(withdrawable)]
-            ])
-        );
+        function render() {
+            empty(root);
+            var snap =
+                window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function'
+                    ? window.StoreWalletDemo.snapshot()
+                    : null;
+            var rule = resolveRule();
 
-        root.appendChild(sectionTitle('保证金账户'));
-        root.appendChild(
-            summaryBar([
-                ['余额', money(depositActual)],
-                ['可提款', money(depositWithdrawable)],
-                ['应保有', money(depositRequired)],
-                ['需补金额', money(depositGap)]
-            ])
-        );
+            var depositActual = snap ? snap.depositActual : 2000;
+            var depositRequired = snap ? snap.depositRequired : 2000;
+            var depositGap = snap ? snap.depositGap : 0;
+            var available = snap ? snap.available : 0;
+            var goodsQuota = snap ? snap.goodsQuota : 0;
+            var goodsPaid = snap ? snap.goodsQuotaPaid : goodsQuota;
+            var goodsRequired =
+                snap && snap.goodsQuotaRequired != null
+                    ? snap.goodsQuotaRequired
+                    : rule
+                      ? rule.goodsQuotaRequired
+                      : 8000;
+            var goodsNeedFill =
+                snap && snap.goodsNeedFill != null
+                    ? snap.goodsNeedFill
+                    : Math.max(0, Number(goodsRequired) - Number(goodsPaid));
+            var withdrawable = snap ? snap.withdrawable : 0;
+            var pending = snap ? snap.pending : 0;
+            /* 与门店 APP 钱包一致：总金额 = 保证金余额 + 余额账户余额；保证金可提款固定 0 */
+            var totalAmount = Number(depositActual || 0) + Number(available || 0);
+            var depositWithdrawable = 0;
 
-        root.appendChild(sectionTitle('余额账户'));
-        root.appendChild(
-            summaryBar([
-                ['余额', money(available)],
-                ['货款', money(goodsQuota)],
-                ['可提款', money(withdrawable)],
-                ['待解冻', money(pending)]
-            ])
-        );
+            var storeDisabled =
+                store &&
+                (store.storeStatus === '已禁用' || store.storeStatus === '停用');
+            var unfreezeBtn = el('button', 'store-summary-bar__action-btn', '解冻');
+            unfreezeBtn.type = 'button';
+            if (!storeDisabled) {
+                unfreezeBtn.disabled = true;
+                unfreezeBtn.title = '仅门店状态为「已禁用」时可解冻保证金';
+            } else if (!(Number(depositActual) > 0)) {
+                unfreezeBtn.disabled = true;
+                unfreezeBtn.title = '暂无保证金余额可解冻';
+            }
+            unfreezeBtn.addEventListener('click', function () {
+                if (!storeDisabled) {
+                    if (typeof showToast === 'function') {
+                        showToast('仅已禁用门店可解冻保证金', 'error');
+                    }
+                    return;
+                }
+                if (!(Number(depositActual) > 0)) return;
+                var tip = '确认将保证金余额 ' + money(depositActual) + ' 解冻为可提现？';
+                openWarmConfirmModal(tip, function () {
+                    if (
+                        !window.StoreWalletDemo ||
+                        typeof window.StoreWalletDemo.unfreezeDeposit !== 'function'
+                    ) {
+                        if (typeof showToast === 'function') showToast('解冻能力未就绪', 'error');
+                        return;
+                    }
+                    var result = window.StoreWalletDemo.unfreezeDeposit(depositActual, {
+                        remark: '门店档案·已禁用门店解冻保证金至可提现'
+                    });
+                    if (!result || !result.ok) {
+                        if (typeof showToast === 'function') {
+                            showToast((result && result.message) || '解冻失败', 'error');
+                        }
+                        return;
+                    }
+                    if (typeof showToast === 'function') {
+                        showToast(
+                            '已解冻 ' + money(result.amount) + ' 至可提现',
+                            'success'
+                        );
+                    }
+                    render();
+                }, { okText: '确认解冻' });
+            });
 
+            var cfgEntryBtn = el('button', 'store-account-cfg-entry', '账户配置');
+            cfgEntryBtn.type = 'button';
+            cfgEntryBtn.addEventListener('click', function () {
+                openStoreAccountConfigModal(store, money, function () {
+                    render();
+                });
+            });
+            root.appendChild(sectionTitleWithAction('账户总计', cfgEntryBtn));
+            root.appendChild(
+                summaryBar([
+                    ['总金额', money(totalAmount)],
+                    ['可提现金额', money(withdrawable)]
+                ])
+            );
+
+            root.appendChild(sectionTitle('保证金账户'));
+            root.appendChild(
+                summaryBar([
+                    ['余额', money(depositActual), unfreezeBtn],
+                    ['可提款', money(depositWithdrawable)],
+                    ['应保有', money(depositRequired)],
+                    ['需补金额', money(depositGap)]
+                ])
+            );
+
+            root.appendChild(sectionTitle('余额账户'));
+            root.appendChild(
+                summaryBar([
+                    ['余额', money(available)],
+                    ['货款', money(goodsQuota)],
+                    ['可提款', money(withdrawable)],
+                    ['待解冻', money(pending)]
+                ])
+            );
+            root.appendChild(
+                summaryBar([
+                    ['货款应缴', money(goodsRequired)],
+                    ['货款已缴', money(goodsPaid)],
+                    ['货款需补', money(goodsNeedFill)]
+                ])
+            );
+        }
+
+        render();
         return root;
+    }
+
+    function closeStoreAccountConfigModal() {
+        document.querySelectorAll('[data-archive-account-cfg="1"]').forEach(function (n) {
+            n.remove();
+        });
+    }
+
+    /** 门店个性化账户配置弹框（优先于平台通用配置） */
+    function openStoreAccountConfigModal(store, moneyFn, onDone) {
+        closeStoreAccountConfigModal();
+        var money =
+            typeof moneyFn === 'function'
+                ? moneyFn
+                : function (n) {
+                      return '¥' + Number(n || 0).toFixed(2);
+                  };
+        var snap =
+            window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function'
+                ? window.StoreWalletDemo.snapshot()
+                : null;
+        var rule =
+            window.StoreAccountConfig && typeof window.StoreAccountConfig.resolve === 'function'
+                ? window.StoreAccountConfig.resolve(store && store.storeId)
+                : null;
+        var depositRequired = snap ? snap.depositRequired : 2000;
+        var goodsRequired =
+            snap && snap.goodsQuotaRequired != null
+                ? snap.goodsQuotaRequired
+                : rule
+                  ? rule.goodsQuotaRequired
+                  : 8000;
+        var goodsPaid = snap ? snap.goodsQuotaPaid : 0;
+        var depSource = rule && rule.depositSource === 'store' ? '本店个性化' : '平台通用';
+        var goodsSource = rule && rule.goodsSource === 'store' ? '本店个性化' : '平台通用';
+
+        var backdrop = el(
+            'div',
+            'erp-modal-backdrop erp-modal-backdrop--over-drawer'
+        );
+        backdrop.setAttribute('data-archive-account-cfg', '1');
+
+        var modal = el('div', 'erp-modal erp-modal--account-cfg');
+        var header = el('div', 'erp-modal__header');
+        header.appendChild(el('h2', 'erp-modal__title', '账户配置'));
+        var acts = el('div', 'erp-modal__header-actions');
+        var closeBtn = el('button', 'erp-modal__header-btn');
+        closeBtn.type = 'button';
+        closeBtn.setAttribute('aria-label', '关闭');
+        closeBtn.innerHTML = '&times;';
+        acts.appendChild(closeBtn);
+        header.appendChild(acts);
+
+        var body = el('div', 'erp-modal__body');
+        body.appendChild(
+            el('div', 'store-account-cfg__banner', '个性化账户配置（优先于平台通用配置）')
+        );
+
+        var depRow = el('div', 'store-account-cfg__row');
+        depRow.appendChild(el('div', 'store-account-cfg__label', '保证金应保有'));
+        var depCtrl = el('div', 'store-account-cfg__control');
+        var depInput = el('input', 'erp-input');
+        depInput.type = 'number';
+        depInput.min = '0';
+        depInput.step = '0.01';
+        depInput.value = String(depositRequired);
+        depCtrl.appendChild(depInput);
+        depCtrl.appendChild(el('span', 'store-account-cfg__unit', '元'));
+        depCtrl.appendChild(el('span', 'store-account-cfg__meta', '当前来源：' + depSource));
+        depRow.appendChild(depCtrl);
+        body.appendChild(depRow);
+
+        var goodsRow = el('div', 'store-account-cfg__row');
+        goodsRow.appendChild(el('div', 'store-account-cfg__label', '货款应缴'));
+        var goodsCtrl = el('div', 'store-account-cfg__control');
+        var goodsInput = el('input', 'erp-input');
+        goodsInput.type = 'number';
+        goodsInput.min = '0';
+        goodsInput.step = '0.01';
+        goodsInput.value = String(goodsRequired);
+        goodsCtrl.appendChild(goodsInput);
+        goodsCtrl.appendChild(el('span', 'store-account-cfg__unit', '元'));
+        goodsCtrl.appendChild(
+            el(
+                'span',
+                'store-account-cfg__meta',
+                '当前来源：' + goodsSource + '；已缴 ' + money(goodsPaid)
+            )
+        );
+        goodsRow.appendChild(goodsCtrl);
+        body.appendChild(goodsRow);
+
+        body.appendChild(
+            el(
+                'div',
+                'store-account-cfg__tip',
+                '重置应保有后，按新应保有补足保证金（需补=应保有−余额）。重置货款后，需补足=货款应缴−已缴。'
+            )
+        );
+
+        var footer = el('div', 'erp-modal__footer');
+        var cancelBtn = mkBtn('取消', false);
+        var okBtn = mkBtn('确认重置', true);
+        footer.appendChild(cancelBtn);
+        footer.appendChild(okBtn);
+
+        modal.appendChild(header);
+        modal.appendChild(body);
+        modal.appendChild(footer);
+        backdrop.appendChild(modal);
+
+        function shut() {
+            closeStoreAccountConfigModal();
+        }
+        backdrop.addEventListener('click', function (ev) {
+            if (ev.target === backdrop) shut();
+        });
+        closeBtn.addEventListener('click', shut);
+        cancelBtn.addEventListener('click', shut);
+        okBtn.addEventListener('click', function () {
+            var depV = Number(depInput.value);
+            var goodsV = Number(goodsInput.value);
+            if (!(depV >= 0) || Number.isNaN(depV)) {
+                if (typeof showToast === 'function') showToast('请输入有效应保有金额', 'error');
+                return;
+            }
+            if (!(goodsV >= 0) || Number.isNaN(goodsV)) {
+                if (typeof showToast === 'function') showToast('请输入有效货款应缴金额', 'error');
+                return;
+            }
+            if (
+                window.StoreAccountConfig &&
+                typeof window.StoreAccountConfig.saveStoreOverride === 'function'
+            ) {
+                window.StoreAccountConfig.saveStoreOverride(store.storeId, {
+                    depositRequired: depV,
+                    goodsQuotaRequired: goodsV
+                });
+            }
+            var depResult =
+                window.StoreWalletDemo &&
+                typeof window.StoreWalletDemo.applyStoreDepositRequired === 'function'
+                    ? window.StoreWalletDemo.applyStoreDepositRequired(depV)
+                    : { ok: false, message: '钱包能力未就绪' };
+            if (!depResult.ok) {
+                if (typeof showToast === 'function') {
+                    showToast(depResult.message || '应保有重置失败', 'error');
+                }
+                return;
+            }
+            var goodsResult =
+                window.StoreWalletDemo &&
+                typeof window.StoreWalletDemo.applyStoreGoodsQuotaRequired === 'function'
+                    ? window.StoreWalletDemo.applyStoreGoodsQuotaRequired(goodsV)
+                    : { ok: false, message: '钱包能力未就绪' };
+            if (!goodsResult.ok) {
+                if (typeof showToast === 'function') {
+                    showToast(goodsResult.message || '货款重置失败', 'error');
+                }
+                return;
+            }
+            shut();
+            if (typeof showToast === 'function') {
+                showToast(
+                    '已重置：保证金需补 ' +
+                        money(depResult.needFill) +
+                        '，货款需补足 ' +
+                        money(goodsResult.needFill),
+                    'success'
+                );
+            }
+            if (typeof onDone === 'function') onDone();
+        });
+
+        document.body.appendChild(backdrop);
     }
 
     /**
@@ -2282,7 +2622,14 @@
 
     function mapStoreLedgerDirection(item) {
         var biz = mapStoreLedgerBizType(item && item.type);
-        if (biz === '保证金补缴' || (item && item.dir === 'lock')) return '划拨';
+        if (
+            biz === '保证金补缴' ||
+            biz === '保证金解冻' ||
+            (item && item.dir === 'lock') ||
+            (item && item.dir === 'unlock')
+        ) {
+            return '划拨';
+        }
         if (item && item.dir === 'in') return '收入';
         if (item && item.dir === 'out') return '支出';
         return '—';
@@ -2490,7 +2837,7 @@
             /* 收入无「支付退回」：支付失败整笔状态为失败，未入账则无回退 */
             收入: ['首次充值', '保证金入账', '佣金结算', '充值', '提现回退', '退款'],
             支出: ['提现', '进货支付', '售后/责任类扣款', '佣金回退'],
-            划拨: ['保证金补缴']
+            划拨: ['保证金补缴', '保证金解冻']
         };
         var LEDGER_BIZ_TYPES_ALL = [].concat(
             LEDGER_BIZ_TYPES_BY_DIR['收入'],

@@ -30,6 +30,9 @@
     depositActual: 2000,
     /* 可用余额 = 货款 + 可提现 + 待解冻 = 10000；货款不可提现 */
     goodsQuota: 6000,
+    /* 货款已缴（累计入货款层，消费不减少）；需补 = 应缴 - 已缴 */
+    goodsQuotaPaid: 8000,
+    goodsQuotaRequired: 8000,
     withdrawable: 3000,
     /* 已入账未满 T+1，不可提现，可进货支付 */
     pending: 1000,
@@ -41,6 +44,8 @@
     commissionTotal: 3260.5,
     /* 已完成首次充值（含保证金划拨） */
     firstRechargeDone: true,
+    /* 已禁用门店完成保证金解冻后：缺口补齐 / 缺口禁提 均无效 */
+    depositGapFillSuppressed: false,
     /* 充值额度：单笔 5000 / 单日 5 万 */
     rechargeSingleLimit: 5000,
     rechargeDailyLimit: 50000,
@@ -395,7 +400,19 @@
       depositRequired: d.depositRequired,
       depositActual: d.depositActual,
       depositGap: gap,
+      depositGapFillSuppressed: !!d.depositGapFillSuppressed,
       goodsQuota: goodsQuota,
+      goodsQuotaPaid: round2(d.goodsQuotaPaid != null ? d.goodsQuotaPaid : goodsQuota),
+      goodsQuotaRequired: round2(
+        d.goodsQuotaRequired != null ? d.goodsQuotaRequired : d.ruleSnapshot && d.ruleSnapshot.L
+      ),
+      goodsNeedFill: round2(
+        Math.max(
+          0,
+          Number(d.goodsQuotaRequired != null ? d.goodsQuotaRequired : 0) -
+            Number(d.goodsQuotaPaid != null ? d.goodsQuotaPaid : goodsQuota)
+        )
+      ),
       withdrawable: withdrawable,
       available: available,
       pending: pendingAvail,
@@ -491,7 +508,10 @@
     var channel = (meta && (meta.channel || meta.bankName)) || '对公账户';
     var settle = Object.assign({}, DEFAULT.settleAccount, d.settleAccount || {});
     var payMethod = formatPayMethod(channel, settle, meta);
-    var gap = round2(Math.max(0, d.depositRequired - d.depositActual));
+    var gapSuppressed = !!d.depositGapFillSuppressed;
+    var gap = gapSuppressed
+      ? 0
+      : round2(Math.max(0, d.depositRequired - d.depositActual));
     var fill = Math.min(gap, amt);
     var rest = round2(amt - fill);
     var bizNo = 'CZ-' + Date.now().toString().slice(-8);
@@ -544,7 +564,11 @@
         payMethod: payMethod,
         remark: '首次充值 ' + amt + ' 至余额账户'
       });
-      if (rest > 0) d.goodsQuota = round2((d.goodsQuota || 0) + rest);
+      if (rest > 0) {
+        d.goodsQuota = round2((d.goodsQuota || 0) + rest);
+        d.goodsQuotaPaid = round2(Number(d.goodsQuotaPaid || 0) + rest);
+        if (d.goodsQuotaRequired == null) d.goodsQuotaRequired = rest;
+      }
       save(d);
       return {
         ok: true,
@@ -556,7 +580,7 @@
       };
     }
 
-    /* 后续充值：有缺口先补齐，剩余进待解冻 */
+    /* 后续充值：正常门店有缺口先补齐；已禁用已解冻则不补缺口，全额待解冻 */
     if (fill > 0) {
       d.depositActual = round2(d.depositActual + fill);
       d.ledgers.unshift({
@@ -589,7 +613,9 @@
         channel: channel,
         payMethod: payMethod,
         thawStatus: 'pending',
-        remark: payMethod + '充值·未满 T+1，计入待解冻'
+        remark: gapSuppressed
+          ? payMethod + '充值·已禁用已解冻不补保证金·未满 T+1，计入待解冻'
+          : payMethod + '充值·未满 T+1，计入待解冻'
       });
     }
     save(d);
@@ -609,7 +635,7 @@
       return { ok: false, message: '请输入正确的提现金额', snapshot: snapshot(d) };
     }
     var gap = round2(Math.max(0, d.depositRequired - d.depositActual));
-    if (gap > 0) {
+    if (gap > 0 && !d.depositGapFillSuppressed) {
       return { ok: false, message: '保证金存在缺口，请先补齐后再提现', snapshot: snapshot(d) };
     }
     var canWithdraw = round2(
@@ -834,6 +860,112 @@
     return { ok: true, snapshot: snapshot(d) };
   }
 
+  /** 平台账户配置影响历史：同步演示钱包应保有 / 货款应缴 */
+  function applyPlatformAccountRule(rule) {
+    var d = load();
+    var dep = round2(rule && rule.depositRequired);
+    var goodsReq = round2(rule && rule.goodsQuotaRequired);
+    if (dep >= 0) {
+      d.depositRequired = dep;
+      if (d.ruleSnapshot) d.ruleSnapshot = Object.assign({}, d.ruleSnapshot, { D: dep });
+    }
+    if (goodsReq >= 0) {
+      d.goodsQuotaRequired = goodsReq;
+      if (d.ruleSnapshot) d.ruleSnapshot = Object.assign({}, d.ruleSnapshot, { L: goodsReq });
+    }
+    save(d);
+    return { ok: true, snapshot: snapshot(d) };
+  }
+
+  /**
+   * 门店个性化重置保证金应保有：按重置金额计算需补，缺口 = 应保有 - 实有
+   */
+  function applyStoreDepositRequired(amount) {
+    var d = load();
+    var dep = round2(amount);
+    if (!(dep >= 0) || Number.isNaN(dep)) {
+      return { ok: false, message: '请输入有效的应保有金额', snapshot: snapshot(d) };
+    }
+    d.depositRequired = dep;
+    if (d.ruleSnapshot) d.ruleSnapshot = Object.assign({}, d.ruleSnapshot, { D: dep });
+    /* 解冻抑制时仅改应保有展示；否则恢复需补齐逻辑由 gap 自然体现 */
+    save(d);
+    var snap = snapshot(d);
+    return {
+      ok: true,
+      snapshot: snap,
+      needFill: snap.depositGap
+    };
+  }
+
+  /**
+   * 门店个性化重置货款应缴：需补足 = 应缴 - 已缴
+   */
+  function applyStoreGoodsQuotaRequired(amount) {
+    var d = load();
+    var req = round2(amount);
+    if (!(req >= 0) || Number.isNaN(req)) {
+      return { ok: false, message: '请输入有效的货款应缴金额', snapshot: snapshot(d) };
+    }
+    d.goodsQuotaRequired = req;
+    if (d.ruleSnapshot) d.ruleSnapshot = Object.assign({}, d.ruleSnapshot, { L: req });
+    if (d.goodsQuotaPaid == null) {
+      d.goodsQuotaPaid = round2(Number(d.goodsQuota || 0));
+    }
+    save(d);
+    var snap = snapshot(d);
+    return {
+      ok: true,
+      snapshot: snap,
+      needFill: snap.goodsNeedFill,
+      paid: snap.goodsQuotaPaid,
+      required: snap.goodsQuotaRequired
+    };
+  }
+
+  /**
+   * 已禁用门店：解冻保证金 → 余额账户可提现
+   * - 应保有不变，需补金额展示随缺口增加
+   * - 解冻后 depositGapFillSuppressed=true：缺口补齐 / 缺口禁提 均无效
+   */
+  function unfreezeDeposit(amount, meta) {
+    var d = load();
+    var depositAvail = round2(Math.max(0, Number(d.depositActual || 0)));
+    var amt =
+      amount == null || amount === ''
+        ? depositAvail
+        : round2(amount);
+    if (!(amt > 0)) {
+      return { ok: false, message: '暂无保证金余额可解冻', snapshot: snapshot(d) };
+    }
+    if (amt > depositAvail + 0.001) {
+      return {
+        ok: false,
+        message: '解冻金额不能超过保证金余额（当前¥' + depositAvail.toFixed(2) + '）',
+        snapshot: snapshot(d)
+      };
+    }
+    d.depositActual = round2(depositAvail - amt);
+    d.withdrawable = round2(Number(d.withdrawable || 0) + amt);
+    d.depositGapFillSuppressed = true;
+    d.ledgers.unshift({
+      id: 'U' + Date.now(),
+      time: formatNow(),
+      type: '保证金解冻',
+      dir: 'unlock',
+      amount: amt,
+      account: '余额账户',
+      bizNo: (meta && meta.bizNo) || 'DP-UF-' + Date.now().toString().slice(-8),
+      channelNo: (meta && meta.channelNo) || '',
+      payMethod: '保证金账户',
+      remark:
+        (meta && meta.remark) ||
+        '已禁用门店解冻保证金¥' + amt.toFixed(2) + '至可提现（缺口补齐逻辑已关闭）'
+    });
+    save(d);
+    return { ok: true, amount: amt, snapshot: snapshot(d) };
+  }
+
   /**
    * 售后/责任类扣款：账户=平台，付款方式=保证金账户；保证金不足则失败
    */
@@ -975,6 +1107,10 @@
     releaseRestockPayFreeze: releaseRestockPayFreeze,
     applyWalletRefund: applyWalletRefund,
     applyDepositExpense: applyDepositExpense,
+    unfreezeDeposit: unfreezeDeposit,
+    applyPlatformAccountRule: applyPlatformAccountRule,
+    applyStoreDepositRequired: applyStoreDepositRequired,
+    applyStoreGoodsQuotaRequired: applyStoreGoodsQuotaRequired,
     applyNonGoodsBalanceExpense: applyNonGoodsBalanceExpense,
     applyGoodsQuotaExpense: applyGoodsQuotaExpense,
     NON_GOODS_BALANCE_EXPENSE: NON_GOODS_BALANCE_EXPENSE,
