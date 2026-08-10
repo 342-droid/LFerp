@@ -1583,6 +1583,97 @@
 
 .supplier-detail-onboard-actions {
   margin-bottom: var(--space-md);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 门店/供应商进件 · 绑定汇付商户号 */
+.mdm-huifu-bind-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.erp-modal--huifu-bind {
+  width: min(640px, calc(100vw - 32px));
+  max-width: 640px;
+}
+
+.mdm-huifu-bind__info-title + .mdm-huifu-bind__info-grid + .mdm-huifu-bind__info-title {
+  margin-top: 14px;
+}
+
+.mdm-huifu-bind__row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mdm-huifu-bind__label {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.mdm-huifu-bind__control {
+  width: 100%;
+  min-width: 0;
+}
+
+.mdm-huifu-bind__control .erp-input {
+  width: 100%;
+  height: 32px;
+}
+
+.mdm-huifu-bind__err {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #cf1322;
+  line-height: 1.5;
+}
+
+.mdm-huifu-bind__info {
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid var(--color-border, #e5e5e5);
+  border-radius: 4px;
+  background: #fff;
+}
+
+.mdm-huifu-bind__info-title {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.mdm-huifu-bind__info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+}
+
+.mdm-huifu-bind__info-k {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 2px;
+}
+
+.mdm-huifu-bind__info-v {
+  font-size: 13px;
+  color: #333;
+  word-break: break-all;
+}
+
+@media (max-width: 560px) {
+  .mdm-huifu-bind__info-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .supplier-detail-tab .erp-table-scroll {
