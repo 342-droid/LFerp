@@ -1,10 +1,55 @@
 {
-  "latestSha": "6312bfc1521fcb9cf83c857f4a19007423c675fb",
-  "total": 244,
+  "latestSha": "2971da0b56eebcf9ee059e14979648ddf5b29356",
+  "total": 245,
   "days": [
     {
       "date": "2026-08-10",
       "items": [
+        {
+          "sha": "2971da0",
+          "type": "feat",
+          "text": "供应商与门店进件支持绑定汇付商户号",
+          "author": "sisi",
+          "time": "16:03",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "text": "详情进件区可绑定汇付商户号并回显商户/结算信息；列表新增商户号来源，已有商户号操作仅解绑"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "详情进件区可绑定汇付商户号并回显商户/结算信息；列表新增商户号来源，已有商户号操作仅解绑"
+            }
+          ]
+        },
         {
           "sha": "6312bfc",
           "type": "fix",
