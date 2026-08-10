@@ -4,9 +4,62 @@
 (function () {
     var SUPPLIER_INBOUND_WAREHOUSE_BIND_KEY = 'mdm_supplier_inbound_warehouse_bindings_v1';
     var SUPPLIER_RECEIVE_ADDR_KEY = 'mdm_supplier_receive_addr_v1';
+    /** 门店/供应商绑定汇付商户号（一商户号可绑多个实体） */
+    var HUIFU_MERCHANT_BIND_KEY = 'mdm_huifu_merchant_bind_v1';
     var SUPPLIER_PAYMENT_AGREEMENT = {
         name: '斗拱平台综合支付服务协议',
         url: 'https://cloudpnrcdn.oss-cn-shanghai.aliyuncs.com/opps/api/prod/download_file/PaymentServiceAgreement.htm'
+    };
+    /** 演示用汇付商户目录（输入商户号后回显：商户信息 + 结算/开户许可信息） */
+    var HUIFU_MERCHANT_DEMO_DIR = {
+        HF8886202608001: {
+            merchantNo: 'HF8886202608001',
+            merchantName: '冷丰演示商户（总部）',
+            shortName: '冷丰演示',
+            legalName: '张演示',
+            licenseCode: '91310000MA1FLDEMO',
+            contactMobile: '138****8001',
+            status: '进件成功',
+            channel: '汇付天下',
+            openLicenseNo: 'J310000ABCDEF001',
+            openLicensePic: true,
+            accountName: '冷丰演示商户（总部）',
+            cardNo: '6222021001123456789',
+            bankName: '中国工商银行',
+            bankBranch: '中国工商银行上海张江支行'
+        },
+        HF20260424001: {
+            merchantNo: 'HF20260424001',
+            merchantName: '小牛供应链支付主体',
+            shortName: '小牛支付',
+            legalName: '牛强',
+            licenseCode: '91320594MA1KXN001X',
+            contactMobile: '159****7788',
+            status: '进件成功',
+            channel: '汇付天下',
+            openLicenseNo: 'J320594ABCDEF002',
+            openLicensePic: true,
+            accountName: '小牛供应链有限公司',
+            cardNo: '6225880210001234567',
+            bankName: '招商银行',
+            bankBranch: '招商银行苏州工业园支行'
+        },
+        HF20260423002: {
+            merchantNo: 'HF20260423002',
+            merchantName: '五角场体验店主体',
+            shortName: '五角场店',
+            legalName: '孙丽',
+            licenseCode: '91310110MA1STORE02',
+            contactMobile: '188****7765',
+            status: '进件成功',
+            channel: '汇付天下',
+            openLicenseNo: 'J310110ABCDEF003',
+            openLicensePic: true,
+            accountName: '五角场体验店',
+            cardNo: '6217001210009876543',
+            bankName: '中国建设银行',
+            bankBranch: '中国建设银行上海五角场支行'
+        }
     };
     function el(tag, cls, text) {
         var n = document.createElement(tag);
@@ -93,6 +146,348 @@
             if (typeof onConfirm === 'function') onConfirm();
         });
         document.body.appendChild(backdrop);
+    }
+
+    function huifuBindEntityKey(kind, entityId) {
+        return String(kind || '') + ':' + String(entityId || '').trim();
+    }
+
+    function writeHuifuMerchantBindMap(map) {
+        try {
+            localStorage.setItem(HUIFU_MERCHANT_BIND_KEY, JSON.stringify(map || {}));
+        } catch (e) {}
+    }
+
+    function getHuifuMerchantBind(kind, entityId) {
+        var key = huifuBindEntityKey(kind, entityId);
+        if (!key || key.slice(-1) === ':') return null;
+        var map = readJsonStore(HUIFU_MERCHANT_BIND_KEY);
+        var row = map[key];
+        if (!row || typeof row !== 'object') return null;
+        var no = String(row.merchantNo || '').trim();
+        return no ? row : null;
+    }
+
+    function saveHuifuMerchantBind(kind, entityId, merchant, entityName) {
+        var key = huifuBindEntityKey(kind, entityId);
+        if (!key || key.slice(-1) === ':') return false;
+        var map = readJsonStore(HUIFU_MERCHANT_BIND_KEY);
+        var m = merchant || {};
+        map[key] = {
+            kind: kind,
+            entityId: String(entityId || ''),
+            entityName: String(entityName || ''),
+            merchantNo: String(m.merchantNo || '').trim(),
+            merchantName: m.merchantName || '',
+            shortName: m.shortName || '',
+            legalName: m.legalName || '',
+            licenseCode: m.licenseCode || '',
+            contactMobile: m.contactMobile || '',
+            status: m.status || '',
+            channel: m.channel || '汇付天下',
+            boundAt: Date.now()
+        };
+        writeHuifuMerchantBindMap(map);
+        return true;
+    }
+
+    function removeHuifuMerchantBind(kind, entityId) {
+        var key = huifuBindEntityKey(kind, entityId);
+        if (!key || key.slice(-1) === ':') return;
+        var map = readJsonStore(HUIFU_MERCHANT_BIND_KEY);
+        if (!Object.prototype.hasOwnProperty.call(map, key)) return;
+        delete map[key];
+        writeHuifuMerchantBindMap(map);
+    }
+
+    /** 按汇付商户号查询（演示：目录命中或合法号合成） */
+    function lookupHuifuMerchantByNo(merchantNo) {
+        var no = String(merchantNo || '')
+            .trim()
+            .toUpperCase()
+            .replace(/\s+/g, '');
+        if (!no) return null;
+        if (HUIFU_MERCHANT_DEMO_DIR[no]) {
+            return Object.assign({}, HUIFU_MERCHANT_DEMO_DIR[no]);
+        }
+        var keys = Object.keys(HUIFU_MERCHANT_DEMO_DIR);
+        var i;
+        for (i = 0; i < keys.length; i++) {
+            if (keys[i].toUpperCase() === no) {
+                return Object.assign({}, HUIFU_MERCHANT_DEMO_DIR[keys[i]]);
+            }
+        }
+        if (!/^HF[A-Z0-9_-]{4,}$/i.test(no)) return null;
+        var tail = no.slice(-4);
+        var seed = Math.abs(hashStr(no));
+        return {
+            merchantNo: no,
+            merchantName: '汇付商户·' + tail,
+            shortName: '商户' + tail,
+            legalName: '法人' + tail,
+            licenseCode: '91' + String(seed % 1e13).padStart(13, '0'),
+            contactMobile:
+                '1' +
+                String(Math.abs(hashStr(no + 'm')) % 1e10)
+                    .padStart(10, '0')
+                    .replace(/^(\d{3})\d{4}/, '$1****'),
+            status: '进件成功',
+            channel: '汇付天下',
+            openLicenseNo: 'J' + String(seed % 1e12).padStart(12, '0'),
+            openLicensePic: true,
+            accountName: '汇付商户·' + tail,
+            cardNo: '6222' + String(seed % 1e15).padStart(15, '0'),
+            bankName: '中国建设银行',
+            bankBranch: '中国建设银行股份有限公司演示支行'
+        };
+    }
+
+    function isArchiveOnboardSuccess(status) {
+        var s = String(status || '').trim();
+        return s === '进件成功' || s === '已进件' || s === '审核成功';
+    }
+
+    function maskHuifuCardNo(no) {
+        var s = String(no || '').replace(/\s+/g, '');
+        if (!s || s === '—') return '—';
+        if (s.length <= 8) return s;
+        return s.slice(0, 4) + ' **** **** ' + s.slice(-4);
+    }
+
+    function appendHuifuBindInfoGrid(host, title, pairs) {
+        host.appendChild(el('div', 'mdm-huifu-bind__info-title', title));
+        var grid = el('div', 'mdm-huifu-bind__info-grid');
+        (pairs || []).forEach(function (pair) {
+            var cell = el('div', 'mdm-huifu-bind__info-cell');
+            cell.appendChild(el('div', 'mdm-huifu-bind__info-k', pair[0]));
+            cell.appendChild(el('div', 'mdm-huifu-bind__info-v', pair[1] != null && pair[1] !== '' ? pair[1] : '—'));
+            grid.appendChild(cell);
+        });
+        host.appendChild(grid);
+    }
+
+    function hashStr(s) {
+        var h = 0;
+        var str = String(s || '');
+        var i;
+        for (i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
+        return h;
+    }
+
+    function closeHuifuBindModal() {
+        document.querySelectorAll('[data-archive-huifu-bind="1"]').forEach(function (n) {
+            n.remove();
+        });
+    }
+
+    /**
+     * 绑定汇付商户号弹框
+     * @param {{ kind:string, entityId:string, entityName:string, onBound:Function }} opts
+     */
+    function openHuifuMerchantBindModal(opts) {
+        opts = opts || {};
+        closeHuifuBindModal();
+        var backdrop = el(
+            'div',
+            'erp-modal-backdrop erp-modal-backdrop--over-drawer'
+        );
+        backdrop.setAttribute('data-archive-huifu-bind', '1');
+
+        var modal = el('div', 'erp-modal erp-modal--huifu-bind');
+        var header = el('div', 'erp-modal__header');
+        header.appendChild(el('h2', 'erp-modal__title', '绑定商户号'));
+        var acts = el('div', 'erp-modal__header-actions');
+        var closeBtn = el('button', 'erp-modal__header-btn');
+        closeBtn.type = 'button';
+        closeBtn.setAttribute('aria-label', '关闭');
+        closeBtn.innerHTML = '&times;';
+        acts.appendChild(closeBtn);
+        header.appendChild(acts);
+
+        var body = el('div', 'erp-modal__body');
+
+        var row = el('div', 'mdm-huifu-bind__row');
+        row.appendChild(el('div', 'mdm-huifu-bind__label', '汇付商户号'));
+        var ctrl = el('div', 'mdm-huifu-bind__control');
+        var input = el('input', 'erp-input');
+        input.type = 'text';
+        input.placeholder = '请输入汇付商户号';
+        input.autocomplete = 'off';
+        ctrl.appendChild(input);
+        row.appendChild(ctrl);
+        body.appendChild(row);
+
+        var infoHost = el('div', 'mdm-huifu-bind__info');
+        infoHost.hidden = true;
+        body.appendChild(infoHost);
+
+        var errEl = el('div', 'mdm-huifu-bind__err');
+        errEl.hidden = true;
+        body.appendChild(errEl);
+
+        var footer = el('div', 'erp-modal__footer');
+        var cancelBtn = mkBtn('取消', false);
+        var okBtn = mkBtn('确认关联', true);
+        okBtn.disabled = true;
+        footer.appendChild(cancelBtn);
+        footer.appendChild(okBtn);
+
+        modal.appendChild(header);
+        modal.appendChild(body);
+        modal.appendChild(footer);
+        backdrop.appendChild(modal);
+
+        var currentMerchant = null;
+        var lookupTimer = null;
+
+        function shut() {
+            closeHuifuBindModal();
+        }
+
+        function setErr(msg) {
+            if (!msg) {
+                errEl.hidden = true;
+                errEl.textContent = '';
+                return;
+            }
+            errEl.hidden = false;
+            errEl.textContent = msg;
+        }
+
+        function renderMerchantInfo(m) {
+            empty(infoHost);
+            if (!m) {
+                infoHost.hidden = true;
+                return;
+            }
+            infoHost.hidden = false;
+            appendHuifuBindInfoGrid(infoHost, '商户信息', [
+                ['汇付商户号', m.merchantNo],
+                ['商户名称', m.merchantName],
+                ['商户简称', m.shortName],
+                ['法人姓名', m.legalName],
+                ['营业执照号', m.licenseCode],
+                ['联系人手机', m.contactMobile],
+                ['进件状态', m.status],
+                ['支付渠道', m.channel || '汇付天下']
+            ]);
+            /* 结算信息 = 开户许可相关信息（与统一进件「结算信息」对齐） */
+            appendHuifuBindInfoGrid(infoHost, '结算信息', [
+                ['开户许可证', m.openLicensePic ? '已上传' : '未上传'],
+                ['开户许可证核准号', m.openLicenseNo],
+                ['开户名', m.accountName],
+                ['银行卡号', maskHuifuCardNo(m.cardNo)],
+                ['开户银行', m.bankName],
+                ['开户支行', m.bankBranch]
+            ]);
+        }
+
+        function runLookup() {
+            var no = String(input.value || '').trim();
+            currentMerchant = null;
+            okBtn.disabled = true;
+            if (!no) {
+                renderMerchantInfo(null);
+                setErr('');
+                return;
+            }
+            var found = lookupHuifuMerchantByNo(no);
+            if (!found) {
+                renderMerchantInfo(null);
+                setErr('未查询到该汇付商户号，请核对后重试');
+                return;
+            }
+            setErr('');
+            currentMerchant = found;
+            renderMerchantInfo(found);
+            okBtn.disabled = false;
+        }
+
+        function scheduleLookup() {
+            if (lookupTimer) clearTimeout(lookupTimer);
+            lookupTimer = setTimeout(runLookup, 280);
+        }
+
+        backdrop.addEventListener('click', function (ev) {
+            if (ev.target === backdrop) shut();
+        });
+        closeBtn.addEventListener('click', shut);
+        cancelBtn.addEventListener('click', shut);
+        input.addEventListener('input', scheduleLookup);
+        input.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Enter') {
+                ev.preventDefault();
+                runLookup();
+            }
+        });
+        okBtn.addEventListener('click', function () {
+            if (!currentMerchant) {
+                runLookup();
+                if (!currentMerchant) {
+                    if (typeof showToast === 'function') showToast('请先输入有效的汇付商户号', 'error');
+                    return;
+                }
+            }
+            var ok = saveHuifuMerchantBind(
+                opts.kind,
+                opts.entityId,
+                currentMerchant,
+                opts.entityName
+            );
+            if (!ok) {
+                if (typeof showToast === 'function') showToast('绑定失败，请重试', 'error');
+                return;
+            }
+            shut();
+            if (typeof showToast === 'function') {
+                showToast('已关联汇付商户号 ' + currentMerchant.merchantNo, 'success');
+            }
+            if (typeof opts.onBound === 'function') opts.onBound(currentMerchant);
+        });
+
+        document.body.appendChild(backdrop);
+        setTimeout(function () {
+            input.focus();
+        }, 0);
+    }
+
+    /**
+     * 进件区操作栏：去进件旁「绑定商户号」
+     * - 已进件成功 / 已绑定：隐藏（解绑仅在数据列表操作栏）
+     * - 未绑定：按钮「绑定商户号」→ 弹框
+     */
+    function mountHuifuBindActions(bar, opts) {
+        opts = opts || {};
+        var wrap = el('div', 'mdm-huifu-bind-actions');
+        bar.appendChild(wrap);
+
+        function refreshField() {
+            empty(wrap);
+            var status =
+                typeof opts.getOnboardStatus === 'function'
+                    ? opts.getOnboardStatus()
+                    : opts.onboardStatus;
+            /* 已进件成功无需再绑商户号 */
+            if (isArchiveOnboardSuccess(status)) return;
+            /* 已绑定：不在去进件旁展示解绑，解绑只在列表操作栏 */
+            if (getHuifuMerchantBind(opts.kind, opts.entityId)) return;
+
+            var bindBtn = mkBtn('绑定商户号', false, true);
+            bindBtn.addEventListener('click', function () {
+                openHuifuMerchantBindModal({
+                    kind: opts.kind,
+                    entityId: opts.entityId,
+                    entityName: opts.entityName,
+                    onBound: function (merchant) {
+                        refreshField();
+                        if (typeof opts.onChange === 'function') opts.onChange(merchant);
+                    }
+                });
+            });
+            wrap.appendChild(bindBtn);
+        }
+        refreshField();
+        return { refresh: refreshField };
     }
 
     function nz(v) {
@@ -1032,9 +1427,16 @@
         '汇付商户号',
         '结算主体',
         '联系人手机号',
+        '商户号来源',
         '提交时间',
         '操作'
     ];
+
+    /** 商户号来源：已有商户号（绑定） / 自主进件 */
+    function resolveMerchantNoSource(kind, entityId) {
+        if (kind && entityId && getHuifuMerchantBind(kind, entityId)) return '已有商户号';
+        return '自主进件';
+    }
 
     function storeOnboardingDefaults(store) {
         return {
@@ -1198,15 +1600,6 @@
     function makeOnboardActionCell(meta, refresh) {
         var m = meta || {};
         var wrap = el('div', 'action-links');
-        var status = m.onboardStatus;
-        var editable =
-            status !== 'submitted' &&
-            status !== '待BD审核' &&
-            status !== '待总监审核' &&
-            status !== '待财务审核' &&
-            status !== '待汇付审核' &&
-            status !== '审核成功';
-        var submitLabel = status === '审核失败' || status === 'rejected' ? '重新提交' : '提交进件';
         function opBtn(label, onClick) {
             var btn = el('button', 'erp-link-like-btn', label);
             btn.type = 'button';
@@ -1223,6 +1616,37 @@
             });
             return btn;
         }
+
+        /* 已有商户号（绑定）：操作栏仅「解绑」 */
+        if (m.merchantNoSource === '已有商户号') {
+            wrap.appendChild(
+                opBtn('解绑', function () {
+                    var merchantNo = m.huifuMerchantNo || '';
+                    openWarmConfirmModal(
+                        '确认解绑商户号「' + (merchantNo || '—') + '」？',
+                        function () {
+                            if (m.bindKind && m.bindEntityId) {
+                                removeHuifuMerchantBind(m.bindKind, m.bindEntityId);
+                            }
+                            if (typeof showToast === 'function') showToast('已解绑商户号', 'success');
+                            if (typeof refresh === 'function') refresh();
+                        },
+                        { title: '解绑商户号', okText: '确认解绑' }
+                    );
+                })
+            );
+            return { node: wrap };
+        }
+
+        var status = m.onboardStatus;
+        var editable =
+            status !== 'submitted' &&
+            status !== '待BD审核' &&
+            status !== '待总监审核' &&
+            status !== '待财务审核' &&
+            status !== '待汇付审核' &&
+            status !== '审核成功';
+        var submitLabel = status === '审核失败' || status === 'rejected' ? '重新提交' : '提交进件';
         wrap.appendChild(
             opBtn('查看', function () {
                 openOnboardingDetailModal(m);
@@ -1261,6 +1685,7 @@
 
     function buildOnboardListRow(meta, refresh) {
         var m = meta || {};
+        var source = m.merchantNoSource || '自主进件';
         return [
             nz(m.merchantName),
             nz(m.subjectType),
@@ -1269,6 +1694,7 @@
             nz(m.huifuMerchantNo),
             nz(m.settlementSubject),
             nz(m.contactMobile),
+            nz(source),
             nz(m.submitTime),
             makeOnboardActionCell(m, refresh)
         ];
@@ -1666,6 +2092,14 @@
     }
 
     function storeHuifuAccountMeta(store) {
+        var bind = getHuifuMerchantBind('store', store && store.storeId);
+        if (bind && bind.merchantNo) {
+            return {
+                merchantNo: bind.merchantNo,
+                payStatus: bind.status === '进件成功' ? '已开通' : '—',
+                bound: true
+            };
+        }
         var snap =
             window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function'
                 ? window.StoreWalletDemo.snapshot()
@@ -1675,7 +2109,8 @@
                 (snap && snap.merchantNo) ||
                 (store && store.storeId ? 'HF-' + String(store.storeId).replace(/\s+/g, '') : '—') ||
                 '—',
-            payStatus: (snap && snap.balancePayStatus) || '—'
+            payStatus: (snap && snap.balancePayStatus) || '—',
+            bound: false
         };
     }
 
@@ -1683,11 +2118,11 @@
         var p = el('div', 'supplier-detail-tab');
         var recordKey = onboardRecordKey('store', store.storeId);
         var onboardingDefaults = storeOnboardingDefaults(store);
-        var huifuMeta = storeHuifuAccountMeta(store);
 
         p.appendChild(sectionTitle('进件信息'));
         var onboardingGrid = el('div', 'supplier-detail-grid');
         function renderOnboardingInfo() {
+            var huifuMeta = storeHuifuAccountMeta(store);
             onboardingGrid.innerHTML = '';
             var onboardingSummary = getOnboardingSummary(recordKey, onboardingDefaults);
             onboardingSummary.recordKey = recordKey;
@@ -1708,12 +2143,32 @@
         var bar = el('div', 'erp-actions-row supplier-detail-onboard-actions');
         var go = mkBtn('去进件', true);
         go.addEventListener('click', function () {
+            if (getHuifuMerchantBind('store', store.storeId)) {
+                if (typeof showToast === 'function') showToast('请先解绑商户号', 'info');
+                return;
+            }
             openOnboardStore(store.name, onboardingDefaults, recordKey);
         });
         bar.appendChild(go);
+        var bindActions = mountHuifuBindActions(bar, {
+            kind: 'store',
+            entityId: store.storeId,
+            entityName: store.name,
+            getOnboardStatus: function () {
+                var summary = getOnboardingSummary(recordKey, onboardingDefaults);
+                summary.recordKey = recordKey;
+                return archiveOnboardEnum(summary, store.onboardStatus);
+            },
+            onChange: function () {
+                renderOnboardingInfo();
+                renderOnboardingTable();
+                if (bindActions && typeof bindActions.refresh === 'function') bindActions.refresh();
+            }
+        });
         onboardBlock.appendChild(bar);
         var tableWrap = el('div');
         function renderOnboardingTable() {
+            var huifuMeta = storeHuifuAccountMeta(store);
             var onboardingSummary = getOnboardingSummary(recordKey, onboardingDefaults);
             tableWrap.innerHTML = '';
             tableWrap.appendChild(
@@ -1729,6 +2184,9 @@
                                 huifuMerchantNo: huifuMeta.merchantNo,
                                 settlementSubject: store.settleType,
                                 contactMobile: store.phone,
+                                merchantNoSource: resolveMerchantNoSource('store', store.storeId),
+                                bindKind: 'store',
+                                bindEntityId: store.storeId,
                                 submitTime: formatTs(onboardingSummary.submittedAt),
                                 recordKey: recordKey,
                                 defaults: onboardingDefaults,
@@ -1743,6 +2201,9 @@
                             function () {
                                 renderOnboardingInfo();
                                 renderOnboardingTable();
+                                if (bindActions && typeof bindActions.refresh === 'function') {
+                                    bindActions.refresh();
+                                }
                             }
                         )
                     ]
@@ -3538,12 +3999,21 @@
     }
 
     function supplierHuifuAccountMeta(r) {
+        var bind = getHuifuMerchantBind('supplier', r && r.id);
+        if (bind && bind.merchantNo) {
+            return {
+                merchantNo: bind.merchantNo,
+                payStatus: bind.status === '进件成功' ? '已开通' : r && r.balancePay ? r.balancePay : '—',
+                bound: true
+            };
+        }
         var id = r && r.id ? String(r.id).replace(/\s+/g, '') : '';
         var pay = r && r.balancePay != null ? String(r.balancePay).trim() : '';
         if (!pay || pay === '—' || pay === '-') pay = '未开通';
         return {
             merchantNo: id ? 'HF-' + id : '—',
-            payStatus: pay
+            payStatus: pay,
+            bound: false
         };
     }
 
@@ -3554,12 +4024,12 @@
             r.detailAddress,
             r.phone
         );
-        var huifuMeta = supplierHuifuAccountMeta(r);
         var p = el('div', 'supplier-detail-tab');
 
         p.appendChild(sectionTitle('进件信息'));
         var onboardingGrid = el('div', 'supplier-detail-grid');
         function renderOnboardingInfo() {
+            var huifuMeta = supplierHuifuAccountMeta(r);
             onboardingGrid.innerHTML = '';
             var onboardingSummary = getOnboardingSummary(recordKey, onboardingDefaults);
             onboardingSummary.recordKey = recordKey;
@@ -3580,14 +4050,34 @@
         var bar = el('div', 'erp-actions-row supplier-detail-onboard-actions');
         var go = mkBtn('去进件', true);
         go.addEventListener('click', function () {
+            if (getHuifuMerchantBind('supplier', r.id)) {
+                if (typeof showToast === 'function') showToast('请先解绑商户号', 'info');
+                return;
+            }
             openOnboardResource('供应商进件', r.shortName || r.name, onboardingDefaults, recordKey, {
                 supplierId: r.id
             });
         });
         bar.appendChild(go);
+        var bindActions = mountHuifuBindActions(bar, {
+            kind: 'supplier',
+            entityId: r.id,
+            entityName: r.shortName || r.name,
+            getOnboardStatus: function () {
+                var summary = getOnboardingSummary(recordKey, onboardingDefaults);
+                summary.recordKey = recordKey;
+                return archiveOnboardEnum(summary, r.onboard);
+            },
+            onChange: function () {
+                renderOnboardingInfo();
+                renderOnboardingTable();
+                if (bindActions && typeof bindActions.refresh === 'function') bindActions.refresh();
+            }
+        });
         onboard.appendChild(bar);
         var tableWrap = el('div');
         function renderOnboardingTable() {
+            var huifuMeta = supplierHuifuAccountMeta(r);
             var onboardingSummary = getOnboardingSummary(recordKey, onboardingDefaults);
             tableWrap.innerHTML = '';
             tableWrap.appendChild(
@@ -3603,6 +4093,9 @@
                                 huifuMerchantNo: huifuMeta.merchantNo,
                                 settlementSubject: r.settleInfo,
                                 contactMobile: r.phone,
+                                merchantNoSource: resolveMerchantNoSource('supplier', r.id),
+                                bindKind: 'supplier',
+                                bindEntityId: r.id,
                                 submitTime: formatTs(onboardingSummary.submittedAt),
                                 recordKey: recordKey,
                                 defaults: onboardingDefaults,
@@ -3615,14 +4108,18 @@
                                         onboardingDefaults,
                                         recordKey,
                                         {
-                                        forceView: !!forceView,
-                                        supplierId: r.id
-                                    });
+                                            forceView: !!forceView,
+                                            supplierId: r.id
+                                        }
+                                    );
                                 }
                             },
                             function () {
                                 renderOnboardingInfo();
                                 renderOnboardingTable();
+                                if (bindActions && typeof bindActions.refresh === 'function') {
+                                    bindActions.refresh();
+                                }
                             }
                         )
                     ]
