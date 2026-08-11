@@ -154,7 +154,7 @@
         return !!(v || v === true);
     }
 
-    function firstMissingOnboardingField(fields) {
+    function firstMissingOnboardingField(fields, kind) {
         var f = fields || {};
         var lic = f.license_info || {};
         var legal = f.legal_info || {};
@@ -177,11 +177,12 @@
             { key: 'legal_info.id_no', label: '身份证号', bucket: legal },
             { key: 'legal_info.id_start_date', label: '身份证起始日期', bucket: legal },
             { key: 'legal_info.id_valid_date', label: '身份证有效期', bucket: legal },
-            { key: 'open_license_pic', label: '开户许可证' },
-            { key: 'store_header_pic', label: '门头/场地照(F22)' },
-            { key: 'store_indoor_pic', label: '内景/工作区域照(F24)' },
-            { key: 'store_cashier_desk_pic', label: '收银台/前台照(F105)' }
+            { key: 'open_license_pic', label: '开户许可证' }
+            /* 内景/收银台为选填；门头/场地照仅门店必填 */
         ];
+        if (kind === 'store') {
+            checks.push({ key: 'store_header_pic', label: '门头/场地照(F22)' });
+        }
         var i;
         for (i = 0; i < checks.length; i++) {
             var check = checks[i];
@@ -302,6 +303,28 @@
         }
         if (!defaults.short_name) defaults.short_name = shortName;
         if (!defaults.receipt_name) defaults.receipt_name = defaults.short_name;
+        if (
+            (kind === 'store' || kind === 'supplier') &&
+            window.MdmResourceArchiveForms &&
+            typeof window.MdmResourceArchiveForms.readVenuePhotos === 'function'
+        ) {
+            var venue =
+                window.MdmResourceArchiveForms.readVenuePhotos(kind, meta.row.id || meta.row.storeId) ||
+                {};
+            if (!venue.store_header_pic && shortName) {
+                venue =
+                    window.MdmResourceArchiveForms.readVenuePhotos(kind, 'name:' + shortName) || venue;
+            }
+            if (!defaults.store_header_pic && venue.store_header_pic) {
+                defaults.store_header_pic = venue.store_header_pic;
+            }
+            if (!defaults.store_indoor_pic && venue.store_indoor_pic) {
+                defaults.store_indoor_pic = venue.store_indoor_pic;
+            }
+            if (!defaults.store_cashier_desk_pic && venue.store_cashier_desk_pic) {
+                defaults.store_cashier_desk_pic = venue.store_cashier_desk_pic;
+            }
+        }
         var existing = readSubjectRecord(meta);
         if (existing && existing.fields) {
             var f = existing.fields;
@@ -328,17 +351,35 @@
                     isTruthyValue(f.store_cashier_desk_pic) || isTruthyValue(defaults.store_cashier_desk_pic)
             };
         }
+        var userOnChange =
+            extraOpts && typeof extraOpts.onRecordChange === 'function' ?
+                extraOpts.onRecordChange :
+                null;
         window.MdmUnifiedOnboardingUi.openModal({
             title: meta.title,
             merchantShortNameDefault: shortName,
             fieldDefaults: defaults,
             recordKey: meta.recordKey,
-            variant: 'resource',
+            variant: kind === 'store' ? 'store' : 'resource',
+            onboardingKind: kind,
             forceView: !!(extraOpts && extraOpts.forceView),
-            onRecordChange:
-                extraOpts && typeof extraOpts.onRecordChange === 'function' ?
-                    extraOpts.onRecordChange :
-                    null
+            onRecordChange: function (payload) {
+                if (
+                    payload &&
+                    payload.fields &&
+                    payload.auditStatus !== '审核成功' &&
+                    (kind === 'store' || kind === 'supplier') &&
+                    window.MdmResourceArchiveForms &&
+                    typeof window.MdmResourceArchiveForms.syncVenuePhotosFromOnboarding === 'function'
+                ) {
+                    window.MdmResourceArchiveForms.syncVenuePhotosFromOnboarding(
+                        kind,
+                        meta.row.id || meta.row.storeId,
+                        payload.fields
+                    );
+                }
+                if (userOnChange) userOnChange(payload);
+            }
         });
     }
 
@@ -354,7 +395,7 @@
             showToast('请先完善进件信息后再提交', 'error');
             return false;
         }
-        var missing = firstMissingOnboardingField(current.fields || {});
+        var missing = firstMissingOnboardingField(current.fields || {}, meta.kind);
         if (missing) {
             showToast('请先完善：' + missing, 'error');
             return false;

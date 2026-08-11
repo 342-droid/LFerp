@@ -199,7 +199,7 @@
             return false;
         }
         if (!hasFacadePhoto(merged)) {
-            if (typeof showToast === 'function') showToast('请上传门店门头照', 'error');
+            if (typeof showToast === 'function') showToast('请上传门头/场地照', 'error');
             return false;
         }
         if (isFranchiseOrPartnerRow(merged)) {
@@ -367,7 +367,7 @@
         body.appendChild(detailRow('省市区', row.region, 'region', row));
         body.appendChild(detailRow('详细地址', row.address, 'address', row));
         body.appendChild(detailRow('经纬度', row.latlng));
-        body.appendChild(detailRow('门店门头照', mediaGrid(row.facadePhoto), 'facadePhoto', row));
+        body.appendChild(detailRow('门头/场地照', mediaGrid(row.facadePhoto), 'facadePhoto', row));
         body.appendChild(detailRow('有无冷藏柜', row.hasRefrigeratedCabinet));
         body.appendChild(detailRow('冷藏柜照片', mediaGrid(row.refrigeratedPhotos)));
         body.appendChild(detailRow('有无冷冻柜', row.hasFreezerCabinet));
@@ -482,7 +482,7 @@
         body.appendChild(editRow('省市区', textInput('请输入省市区', row.region), 'region', row));
         body.appendChild(editRow('详细地址', textInput('请输入详细地址', row.address), 'address', row));
         body.appendChild(editRow('经纬度', textInput('例如 120.09,30.28', row.latlng), 'latlng', row));
-        body.appendChild(detailRow('门店门头照', mediaGrid(row.facadePhoto), 'facadePhoto', row));
+        body.appendChild(detailRow('门头/场地照', mediaGrid(row.facadePhoto), 'facadePhoto', row));
         body.appendChild(
             editRow(
                 '有无冷藏柜',
@@ -617,7 +617,7 @@
             region: '浙江省 / 杭州市 / 西湖区',
             address: '文一西路 558 号 1 层临街',
             latlng: '120.0912,30.2866',
-            facadePhoto: [{ type: 'image', name: '门店门头照-文一西路.jpg' }],
+            facadePhoto: [{ type: 'image', name: '门头场地照-文一西路.jpg' }],
             hasRefrigeratedCabinet: '有',
             refrigeratedPhotos: [
                 { type: 'image', name: '冷藏柜-1.jpg' },

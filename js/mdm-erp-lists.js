@@ -96,6 +96,16 @@
             var resourceName = (c[options.resourceNameCol] || {}).textContent || '';
             var detailAddr = (c[options.detailAddrCol] || {}).textContent || '';
             var contactMobile = (c[options.contactMobileCol] || {}).textContent || '';
+            var entityId = (c[0] || {}).textContent || '';
+            entityId = String(entityId).trim();
+            var venuePics = { store_header_pic: '', store_indoor_pic: '', store_cashier_desk_pic: '' };
+            if (
+                window.MdmResourceArchiveForms &&
+                typeof window.MdmResourceArchiveForms.readVenuePhotos === 'function'
+            ) {
+                venuePics =
+                    window.MdmResourceArchiveForms.readVenuePhotos(kind, entityId) || venuePics;
+            }
             var one = {
                 subject_name: subjectName,
                 short_name: resourceName.trim(),
@@ -107,7 +117,9 @@
                 open_license_pic: '',
                 license_info: {},
                 legal_info: {},
-                store_header_pic: options.storeHeaderPic || '',
+                store_header_pic: venuePics.store_header_pic || options.storeHeaderPic || '',
+                store_indoor_pic: venuePics.store_indoor_pic || '',
+                store_cashier_desk_pic: venuePics.store_cashier_desk_pic || '',
                 card_info: {}
             };
             firstRows.push(one);
@@ -695,6 +707,25 @@
         else if (kind === 'supplier') title = '供应商进件';
         else if (kind === 'liveRoom') title = '直播间进件';
         else if (kind === 'carrier') title = '承运商进件';
+        var venue = { store_header_pic: '', store_indoor_pic: '', store_cashier_desk_pic: '' };
+        if (
+            (kind === 'store' || kind === 'supplier') &&
+            window.MdmResourceArchiveForms &&
+            typeof window.MdmResourceArchiveForms.readVenuePhotos === 'function'
+        ) {
+            venue = window.MdmResourceArchiveForms.readVenuePhotos(kind, recordId) || venue;
+            if (!venue.store_header_pic && shortName) {
+                var byName =
+                    window.MdmResourceArchiveForms.readVenuePhotos(kind, 'name:' + shortName) || {};
+                venue = {
+                    store_header_pic: venue.store_header_pic || byName.store_header_pic || '',
+                    store_indoor_pic: venue.store_indoor_pic || byName.store_indoor_pic || '',
+                    store_cashier_desk_pic:
+                        venue.store_cashier_desk_pic || byName.store_cashier_desk_pic || ''
+                };
+            }
+        }
+        var recordKey = 'archive::' + kind + '::' + recordId;
         var modalOpts = {
             title: title,
             merchantShortNameDefault: shortName,
@@ -704,20 +735,31 @@
                 receipt_name: shortName,
                 detail_addr: detailAddr,
                 contact_mobile_no: contactMobile,
-                store_header_pic: kind === 'store' ? '档案门头照' : ''
+                store_header_pic: venue.store_header_pic || '',
+                store_indoor_pic: venue.store_indoor_pic || '',
+                store_cashier_desk_pic: venue.store_cashier_desk_pic || ''
             },
-            recordKey: 'archive::' + kind + '::' + recordId,
-            variant: 'resource'
+            recordKey: recordKey,
+            variant: kind === 'store' ? 'store' : 'resource'
         };
-        if (kind === 'supplier' && tr) {
-            modalOpts.onRecordChange = function (payload) {
-                syncSupplierArchiveRow(tr, payload);
-            };
-        } else if (kind === 'store' && tr) {
-            modalOpts.onRecordChange = function (payload) {
-                syncStoreArchiveRow(tr, payload);
-            };
-        }
+        modalOpts.onRecordChange = function (payload) {
+            if (
+                payload &&
+                payload.fields &&
+                payload.auditStatus !== '审核成功' &&
+                (kind === 'store' || kind === 'supplier') &&
+                window.MdmResourceArchiveForms &&
+                typeof window.MdmResourceArchiveForms.syncVenuePhotosFromOnboarding === 'function'
+            ) {
+                window.MdmResourceArchiveForms.syncVenuePhotosFromOnboarding(
+                    kind,
+                    recordId,
+                    payload.fields
+                );
+            }
+            if (kind === 'supplier' && tr) syncSupplierArchiveRow(tr, payload);
+            else if (kind === 'store' && tr) syncStoreArchiveRow(tr, payload);
+        };
         window.MdmUnifiedOnboardingUi.openModal(modalOpts);
     }
 
@@ -1055,8 +1097,7 @@
                 subjectCol: 1,
                 resourceNameCol: 2,
                 detailAddrCol: 10,
-                contactMobileCol: 7,
-                storeHeaderPic: '档案门头照'
+                contactMobileCol: 7
             });
         }, 0);
     }

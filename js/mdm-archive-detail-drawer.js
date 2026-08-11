@@ -1490,6 +1490,112 @@
         return c;
     }
 
+    /**
+     * 档案基础信息场地照：待上传可点上传；已上传可预览并重新上传（不回写进件成功后的进件照）
+     * @param {{ kind: string, entityId: string, entityName?: string, fieldKey: string }} opts
+     */
+    function detailCellArchiveVenuePhoto(label, src, opts) {
+        opts = opts || {};
+        var kind = opts.kind || '';
+        var entityId = opts.entityId || '';
+        var entityName = opts.entityName || '';
+        var fieldKey = opts.fieldKey || '';
+        var c = el('div', 'supplier-detail-cell');
+        c.appendChild(el('div', 'supplier-detail-cell__label', label));
+        var b = el('div', 'supplier-detail-cell__body');
+        var currentSrc = src;
+
+        function persist(nextVal) {
+            if (
+                !window.MdmResourceArchiveForms ||
+                typeof window.MdmResourceArchiveForms.writeVenuePhotos !== 'function'
+            ) {
+                return;
+            }
+            var patch = {};
+            patch[fieldKey] = nextVal;
+            if (entityId) {
+                window.MdmResourceArchiveForms.writeVenuePhotos(kind, entityId, patch);
+            }
+            if (entityName) {
+                window.MdmResourceArchiveForms.writeVenuePhotos(kind, 'name:' + entityName, patch);
+            }
+        }
+
+        function render() {
+            b.innerHTML = '';
+            var url = resolvePhotoSrc(currentSrc, label);
+            if (!url) {
+                var pending = el('div', 'mdm-archive-venue-upload');
+                pending.appendChild(el('span', 'mdm-archive-venue-upload__status', '待上传'));
+                var upBtn = mkBtn('上传', true);
+                upBtn.addEventListener('click', function () {
+                    currentSrc = '已上传';
+                    persist(currentSrc);
+                    if (typeof showToast === 'function') {
+                        showToast('已上传' + label + '（演示）', 'success');
+                    }
+                    render();
+                });
+                pending.appendChild(upBtn);
+                b.appendChild(pending);
+                return;
+            }
+            var row = el('div', 'mdm-archive-venue-upload mdm-archive-venue-upload--done');
+            var tile = el('button', 'mdm-onboard-photo');
+            tile.type = 'button';
+            tile.title = '点击放大查看';
+            var img = document.createElement('img');
+            img.src = url;
+            img.alt = label;
+            img.onerror = function () {
+                tile.classList.add('mdm-onboard-photo--fallback');
+                tile.textContent = '已上传';
+                tile.removeAttribute('title');
+                tile.onclick = null;
+            };
+            tile.appendChild(img);
+            tile.addEventListener('click', function () {
+                openPhotoLightbox(url, label);
+            });
+            row.appendChild(tile);
+            var reBtn = mkBtn('重新上传', false);
+            reBtn.addEventListener('click', function () {
+                currentSrc = '已上传';
+                persist(currentSrc);
+                if (typeof showToast === 'function') {
+                    showToast('已重新上传' + label + '（演示）', 'success');
+                }
+                render();
+            });
+            row.appendChild(reBtn);
+            b.appendChild(row);
+        }
+
+        render();
+        c.appendChild(b);
+        return c;
+    }
+
+    function appendArchiveVenuePhotoCells(grid, kind, entityId, entityName) {
+        var venue = readArchiveVenuePhotos(kind, entityId, entityName);
+        var specs = [
+            { key: 'store_header_pic', label: '门头/场地照' },
+            { key: 'store_indoor_pic', label: '内景/工作区域照' },
+            { key: 'store_cashier_desk_pic', label: '收银台/前台照' }
+        ];
+        specs.forEach(function (spec) {
+            grid.appendChild(
+                detailCellArchiveVenuePhoto(spec.label, venue[spec.key], {
+                    kind: kind,
+                    entityId: entityId,
+                    entityName: entityName,
+                    fieldKey: spec.key
+                })
+            );
+        });
+    }
+
     function openOnboardingDetailModal(meta) {
         var m = meta || {};
         var summary = getOnboardingSummary(m.recordKey, m.defaults || {});
@@ -1644,6 +1750,7 @@
             forceView: !!extraOpts.forceView
         };
         modalOpts.onRecordChange = function (payload) {
+            syncVenuePhotosIfOnboardingOpen(recordKey, payload);
             if (kind === 'supplier' && extraOpts.supplierId) {
                 if (
                     window.MdmSupplierArchiveUi &&
@@ -1694,6 +1801,7 @@
                 variant: 'store',
                 forceView: !!extraOpts.forceView,
                 onRecordChange: function (payload) {
+                    syncVenuePhotosIfOnboardingOpen(recordKey, payload);
                     if (payload && payload.status === 'submitted') {
                         var parsed = parseArchiveOnboardKey(recordKey);
                         if (parsed) {
@@ -1734,7 +1842,63 @@
         '操作'
     ];
 
+    /** 档案基础信息场地照（进件成功前可与进件互相同步） */
+    function readArchiveVenuePhotos(kind, entityId, entityName) {
+        var empty = {
+            store_header_pic: '',
+            store_indoor_pic: '',
+            store_cashier_desk_pic: ''
+        };
+        if (
+            !window.MdmResourceArchiveForms ||
+            typeof window.MdmResourceArchiveForms.readVenuePhotos !== 'function'
+        ) {
+            return empty;
+        }
+        var byId = window.MdmResourceArchiveForms.readVenuePhotos(kind, entityId) || empty;
+        if (
+            (byId.store_header_pic || byId.store_indoor_pic || byId.store_cashier_desk_pic) &&
+            entityId
+        ) {
+            return byId;
+        }
+        if (!entityName) return byId;
+        var byName =
+            window.MdmResourceArchiveForms.readVenuePhotos(kind, 'name:' + entityName) || empty;
+        return {
+            store_header_pic: byId.store_header_pic || byName.store_header_pic || '',
+            store_indoor_pic: byId.store_indoor_pic || byName.store_indoor_pic || '',
+            store_cashier_desk_pic:
+                byId.store_cashier_desk_pic || byName.store_cashier_desk_pic || ''
+        };
+    }
+
+    function isOnboardingAuditSuccess(summary, fallbackStatus) {
+        if (summary && summary.auditStatus === '审核成功') return true;
+        var st = archiveOnboardEnum(summary || {}, fallbackStatus || '');
+        return st === '进件成功';
+    }
+
+    /** 进件成功前：场地照回写档案基础信息；成功后隔离，不再回传 */
+    function syncVenuePhotosIfOnboardingOpen(recordKey, payload) {
+        if (!payload || !payload.fields) return;
+        if (payload.auditStatus === '审核成功') return;
+        var parsed = parseArchiveOnboardKey(recordKey);
+        if (!parsed) return;
+        if (
+            window.MdmResourceArchiveForms &&
+            typeof window.MdmResourceArchiveForms.syncVenuePhotosFromOnboarding === 'function'
+        ) {
+            window.MdmResourceArchiveForms.syncVenuePhotosFromOnboarding(
+                parsed.kind,
+                parsed.entityId,
+                payload.fields
+            );
+        }
+    }
+
     function storeOnboardingDefaults(store) {
+        var venue = readArchiveVenuePhotos('store', store && store.storeId, store && store.name);
         return {
             short_name: nz(store.name) === '—' ? '' : store.name,
             receipt_name: nz(store.name) === '—' ? '' : store.name,
@@ -1754,13 +1918,17 @@
             legal_cert_front_pic: '',
             legal_cert_back_pic: '',
             open_license_pic: '',
-            store_header_pic: '档案门头照',
-            store_indoor_pic: '档案内景照',
-            store_cashier_desk_pic: '档案收银台照'
+            store_header_pic: venue.store_header_pic || '',
+            store_indoor_pic: venue.store_indoor_pic || '',
+            store_cashier_desk_pic: venue.store_cashier_desk_pic || ''
         };
     }
 
-    function resourceOnboardingDefaults(name, detailAddr, phone) {
+    function resourceOnboardingDefaults(name, detailAddr, phone, entityId, kind) {
+        var venue = { store_header_pic: '', store_indoor_pic: '', store_cashier_desk_pic: '' };
+        if (kind === 'store' || kind === 'supplier') {
+            venue = readArchiveVenuePhotos(kind, entityId, name);
+        }
         return {
             short_name: nz(name) === '—' ? '' : name,
             receipt_name: nz(name) === '—' ? '' : name,
@@ -1780,9 +1948,9 @@
             legal_cert_front_pic: '',
             legal_cert_back_pic: '',
             open_license_pic: '',
-            store_header_pic: '',
-            store_indoor_pic: '',
-            store_cashier_desk_pic: ''
+            store_header_pic: venue.store_header_pic || '',
+            store_indoor_pic: venue.store_indoor_pic || '',
+            store_cashier_desk_pic: venue.store_cashier_desk_pic || ''
         };
     }
 
@@ -1809,7 +1977,7 @@
         }
     }
 
-    function firstMissingOnboardingField(fields) {
+    function firstMissingOnboardingField(fields, kind) {
         var f = fields || {};
         var lic = f.license_info || {};
         var legal = f.legal_info || {};
@@ -1832,11 +2000,12 @@
             { key: 'id_no', label: '身份证号', bucket: legal },
             { key: 'id_start_date', label: '身份证起始日期', bucket: legal },
             { key: 'id_valid_date', label: '身份证有效期', bucket: legal },
-            { key: 'open_license_pic', label: '开户许可证' },
-            { key: 'store_header_pic', label: '门头/场地照(F22)' },
-            { key: 'store_indoor_pic', label: '内景/工作区域照(F24)' },
-            { key: 'store_cashier_desk_pic', label: '收银台/前台照(F105)' }
+            { key: 'open_license_pic', label: '开户许可证' }
+            /* 内景/收银台为选填；门头/场地照仅门店进件必填 */
         ];
+        if (kind === 'store') {
+            checks.push({ key: 'store_header_pic', label: '门头/场地照(F22)' });
+        }
         var i;
         for (i = 0; i < checks.length; i++) {
             var check = checks[i];
@@ -1892,7 +2061,11 @@
         var fallbackDefaults = cloneObj(meta.defaults || {});
         var summary = getOnboardingSummary(recordKey, fallbackDefaults);
         var fields = summary.fields || fallbackDefaults;
-        var missing = firstMissingOnboardingField(fields);
+        var missingKind =
+            meta.title === '门店进件' ? 'store'
+            : meta.title === '供应商进件' ? 'supplier'
+            : meta.kind || '';
+        var missing = firstMissingOnboardingField(fields, missingKind);
         if (missing) {
             if (typeof showToast === 'function') showToast('请先完善：' + missing, 'error');
             return false;
@@ -2341,11 +2514,16 @@
             detailCell('身份证号', legal.id_no || '—'),
             detailCell('身份证起始日期', legal.id_start_date || '—'),
             detailCell('身份证有效期', legal.id_valid_date || '—'),
-            detailCellPhoto('开户许可证', f.open_license_pic),
-            detailCellPhoto('门头/场地照(F22)', f.store_header_pic),
-            detailCellPhoto('内景/工作区域照(F24)', f.store_indoor_pic),
-            detailCellPhoto('收银台/前台照(F105)', f.store_cashier_desk_pic)
+            detailCellPhoto('开户许可证', f.open_license_pic)
         ];
+        /* 进件成功后进件信息板块不再展示场地照（与基础信息隔离） */
+        if (!m.hideVenuePhotos) {
+            cells = cells.concat([
+                detailCellPhoto('门头/场地照(F22)', f.store_header_pic),
+                detailCellPhoto('内景/工作区域照(F24)', f.store_indoor_pic),
+                detailCellPhoto('收银台/前台照(F105)', f.store_cashier_desk_pic)
+            ]);
+        }
         /* 门店 / 供应商进件信息统一展示签订协议 */
         if (kind === 'store' || kind === 'supplier') {
             cells = cells.concat(paymentAgreementDetailCells(f));
@@ -2439,12 +2617,7 @@
         grid.appendChild(detailCellTagged('门店状态', store.storeStatus, true));
         grid.appendChild(detailCell('可提现手机号', store.withdrawPhone));
 
-        var thumbRow = el('div', 'supplier-detail-cell');
-        thumbRow.appendChild(el('div', 'supplier-detail-cell__label', '门店门头照'));
-        var tw = el('div', 'store-detail-thumb-row');
-        tw.appendChild(el('div', 'store-detail-thumb store-detail-thumb--lg'));
-        thumbRow.appendChild(tw);
-        grid.appendChild(thumbRow);
+        appendArchiveVenuePhotoCells(grid, 'store', store.storeId, store.name);
 
         grid.appendChild(detailCellWarehouse('门店仓库', store.fulfillWarehouse));
 
@@ -2739,7 +2912,11 @@
                 shortName: store.shortName && store.shortName !== '—' ? store.shortName : store.name,
                 merchantNo: huifuMeta.merchantNo,
                 payStatus: huifuMeta.payStatus,
-                onboardStatus: archiveOnboardEnum(onboardingSummary, store.onboardStatus)
+                onboardStatus: archiveOnboardEnum(onboardingSummary, store.onboardStatus),
+                hideVenuePhotos: isOnboardingAuditSuccess(
+                    onboardingSummary,
+                    store.onboardStatus
+                )
             }).forEach(function (cell) {
                 onboardingGrid.appendChild(cell);
             });
@@ -2758,9 +2935,14 @@
         }
         var go = mkBtn('去进件', true);
         go.addEventListener('click', function () {
-            openOnboardStore(store.name, onboardingDefaults, recordKey, {
-                onChange: refreshList
-            });
+            openOnboardStore(
+                store.name,
+                storeOnboardingDefaults(store),
+                recordKey,
+                {
+                    onChange: refreshList
+                }
+            );
         });
         bar.appendChild(go);
         bindActions = mountHuifuBindActions(bar, {
@@ -2795,7 +2977,7 @@
                             title: '门店进件',
                             shortName: store.name,
                             openModal: function (forceView) {
-                                openOnboardStore(store.name, onboardingDefaults, recordKey, {
+                                openOnboardStore(store.name, storeOnboardingDefaults(store), recordKey, {
                                     forceView: !!forceView,
                                     onChange: refreshList
                                 });
@@ -4593,6 +4775,7 @@
         grid.appendChild(detailCell('进件状态', archiveOnboardEnum({}, r.onboard)));
         grid.appendChild(detailCell('余额支付', r.balancePay));
         grid.appendChild(detailCellTagged('供应商状态', r.status, true));
+        appendArchiveVenuePhotoCells(grid, 'supplier', r.id, r.name);
         p.appendChild(grid);
         appendSupplierReceiveSection(p, r);
         return p;
@@ -4619,11 +4802,16 @@
 
     function panelSupplierOnboarding(r) {
         var recordKey = onboardRecordKey('supplier', r.id);
-        var onboardingDefaults = resourceOnboardingDefaults(
-            r.shortName || r.name,
-            r.detailAddress,
-            r.phone
-        );
+        function freshSupplierDefaults() {
+            return resourceOnboardingDefaults(
+                r.shortName || r.name,
+                r.detailAddress,
+                r.phone,
+                r.id,
+                'supplier'
+            );
+        }
+        var onboardingDefaults = freshSupplierDefaults();
         var p = el('div', 'supplier-detail-tab');
 
         p.appendChild(sectionTitle('进件信息'));
@@ -4637,7 +4825,8 @@
                 shortName: r.shortName || r.name,
                 merchantNo: huifuMeta.merchantNo,
                 payStatus: huifuMeta.payStatus,
-                onboardStatus: archiveOnboardEnum(onboardingSummary, r.onboard)
+                onboardStatus: archiveOnboardEnum(onboardingSummary, r.onboard),
+                hideVenuePhotos: isOnboardingAuditSuccess(onboardingSummary, r.onboard)
             }).forEach(function (cell) {
                 onboardingGrid.appendChild(cell);
             });
@@ -4656,10 +4845,16 @@
         }
         var go = mkBtn('去进件', true);
         go.addEventListener('click', function () {
-            openOnboardResource('供应商进件', r.shortName || r.name, onboardingDefaults, recordKey, {
-                supplierId: r.id,
-                onChange: refreshList
-            });
+            openOnboardResource(
+                '供应商进件',
+                r.shortName || r.name,
+                freshSupplierDefaults(),
+                recordKey,
+                {
+                    supplierId: r.id,
+                    onChange: refreshList
+                }
+            );
         });
         bar.appendChild(go);
         bindActions = mountHuifuBindActions(bar, {
@@ -4697,7 +4892,7 @@
                                 openOnboardResource(
                                     '供应商进件',
                                     r.shortName || r.name,
-                                    onboardingDefaults,
+                                    freshSupplierDefaults(),
                                     recordKey,
                                     {
                                         forceView: !!forceView,
