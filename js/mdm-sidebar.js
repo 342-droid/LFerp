@@ -51,20 +51,14 @@
     }
 
     const partyItems = [
-        { href: 'mdm_party_store.html', text: '门店' },
-        { href: 'mdm_party_supplier.html', text: '供应商' },
-        { href: 'mdm_party_warehouse.html', text: '仓库' },
-        { href: 'mdm_party_live_room.html', text: '直播间' },
-        { href: 'mdm_party_carrier.html', text: '承运商' }
+        { href: 'mdm_party_all.html', text: '所有主体' }
     ];
 
+    /** 商家列表：对齐运营后台，仅门店/供应商/仓库档案 */
     const archiveItems = [
         { href: 'mdm_archive_store.html', text: '门店档案' },
         { href: 'mdm_archive_supplier.html', text: '供应商档案' },
-        { href: 'mdm_archive_warehouse.html', text: '仓库档案' },
-        { href: 'mdm_archive_live_room.html', text: '直播间档案' },
-        { href: 'mdm_archive_carrier.html', text: '承运商档案' },
-        { href: 'mdm_supplier_product.html', text: '供货关系' }
+        { href: 'mdm_archive_warehouse.html', text: '仓库档案' }
     ];
 
     const peopleItems = [
@@ -99,7 +93,7 @@
     ];
 
     const auditItems = [
-        { href: 'mdm_audit_store_registration.html', text: '门店注册审核' },
+        { href: 'mdm_audit_store_registration.html', text: '入驻审核' },
         { href: 'mdm_audit_store_registration.html#onboarding-review', text: '进件审核' }
     ];
 
@@ -162,7 +156,7 @@
     } else {
         itemsHtml =
             renderCollapsibleGroup('商家主体', '基础信息', partyItems, isPartyPage) +
-            renderCollapsibleGroup('资源中心', '策略管理', archiveItems, isArchivePage) +
+            renderCollapsibleGroup('商家列表', '策略管理', archiveItems, isArchivePage) +
             renderCollapsibleGroup('人员中心', '权限管理', peopleItems, isPeoplePage);
     }
 

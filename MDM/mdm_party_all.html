@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 所有主体</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/mdm-party-all.css">
+</head>
+<body class="mdm-party-all-page">
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <section class="search-section">
+                <form class="search-form" onsubmit="return false;">
+                    <div class="form-group">
+                        <label>商家名称</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="qSubjectName" placeholder="请输入商家名称">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>商家状态</label>
+                        <select id="qStatus">
+                            <option value="">全部</option>
+                            <option value="open">开启</option>
+                            <option value="frozen">冻结</option>
+                            <option value="disabled">禁用</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="pa-btn pa-btn--primary" id="btnFilterQuery">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                            查询
+                        </button>
+                        <button type="button" class="pa-btn pa-btn--ghost" id="btnFilterReset">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6M20 12a8 8 0 0 1-13.7 5.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M18 4v4h-4M6 20v-4h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            重置
+                        </button>
+                    </div>
+                </form>
+            </section>
+            <div class="mdm-party-add-bar">
+                <button type="button" class="pa-btn pa-btn--primary" id="mdmAddStoreMerchantBtn">+ 新增门店商家</button>
+                <button type="button" class="pa-btn pa-btn--primary" id="mdmAddSupMerchantBtn">+ 新增供应商商家</button>
+                <button type="button" class="pa-btn pa-btn--primary" id="mdmAddWhMerchantBtn">+ 新增仓库商家</button>
+            </div>
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>商家ID</th>
+                                <th>商家名称</th>
+                                <th>绑定BD名称</th>
+                                <th>商家类型</th>
+                                <th>商家联系人</th>
+                                <th>商家手机号码</th>
+                                <th>商家登录账号</th>
+                                <th>创建时间</th>
+                                <th>最后操作人</th>
+                                <th>商家状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr><td>STORE-SUB-001</td><td>冷丰演示门店</td><td>张三</td><td>门店</td><td>赵小九</td><td>138****2211</td><td>store_demo_01</td><td>2026-04-24 10:22:11</td><td>系统</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
+                            <tr><td>STORE-SUB-002</td><td>五角场体验店</td><td>李四</td><td>门店</td><td>孙丽</td><td>188****7765</td><td>store_wjc_01</td><td>2026-04-23 15:01:44</td><td>李四</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
+                            <tr><td>STORE-SUB-003</td><td>张江快闪店</td><td>—</td><td>门店</td><td>陈晨</td><td>186****9001</td><td>store_zj_01</td><td>2026-04-22 09:33:02</td><td>系统</td><td><span class="status inactive">禁用</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">开启</a></td></tr>
+                            <tr><td>SUP-SUB-001</td><td>小牛供应链</td><td>公司11号</td><td>供应商</td><td>牛强</td><td>159****7788</td><td>sup_xn_01</td><td>2026-04-24 08:20:01</td><td>张三</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
+                            <tr><td>SUP-SUB-002</td><td>珠宝集采中心</td><td>公司11号</td><td>供应商</td><td>钱多多</td><td>177****9271</td><td>sup_jewel_01</td><td>2026-04-23 12:11:09</td><td>王五</td><td><span class="status inactive">冻结</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
+                            <tr><td>SUP-SUB-003</td><td>华东辅料仓配</td><td>李四</td><td>供应商</td><td>刘洋</td><td>176****0317</td><td>sup_hd_01</td><td>2026-04-22 09:45:33</td><td>李四</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
+                            <tr><td>WH-SUB-001</td><td>沪南一号仓</td><td>李四</td><td>仓库</td><td>周仓</td><td>137****0098</td><td>wh_hn_01</td><td>2026-04-24 18:20:01</td><td>李四</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
+                            <tr><td>WH-SUB-002</td><td>合作仓-苏州</td><td>张三</td><td>仓库</td><td>孙杰</td><td>133****0000</td><td>wh_sz_01</td><td>2026-04-23 11:00:55</td><td>系统</td><td><span class="status active">开启</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">禁用</a></td></tr>
+                            <tr><td>WH-SUB-003</td><td>自建仓-杭州</td><td>—</td><td>仓库</td><td>王敏</td><td>138****2210</td><td>wh_hz_01</td><td>2026-04-22 07:45:12</td><td>王五</td><td><span class="status inactive">禁用</span></td><td class="action-links"><a href="#" class="mdm-disable-toggle">开启</a></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script src="../js/mdm-unified-onboarding-ui.js"></script>
+    <script src="../js/mdm-subject-pagemanager.js?v=20260811-store-no-sms"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        MdmSubjectLf.initUnified();
+    });
+    </script>
+</body>
+</html>

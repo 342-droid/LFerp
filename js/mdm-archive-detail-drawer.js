@@ -2355,11 +2355,12 @@
 
     function rowToStore(tr) {
         var c = tr.querySelectorAll('td');
-        if (c.length < 20) return null;
+        if (c.length < 21) return null;
         var name = cellPlain(c[2]);
         var partner = cellPlain(c[3]);
         var isFP = partner === '加盟店' || partner === '合作店';
         var isPeer = partner === '同行店';
+        var settleType = cellPlain(c[16]);
         return {
             name: name,
             storeId: cellPlain(c[0]),
@@ -2378,12 +2379,13 @@
             withdrawPhone: cellPlain(c[12]),
             opStatus: cellPlain(c[13]),
             onboardStatus: cellPlain(c[14]),
-            settleType: cellPlain(c[15]),
-            settleCycle: cellPlain(c[16]),
-            splitService: cellPlain(c[17]),
-            storeStatus: cellStatus(c[18]),
-            createTime: cellPlain(c[19]),
-            onboardChannelGuess: cellPlain(c[15]) !== '—' ? '支付宝/微信（演示）' : '—',
+            balancePay: cellPlain(c[15]),
+            settleType: settleType,
+            settleCycle: cellPlain(c[17]),
+            splitService: cellPlain(c[18]),
+            storeStatus: cellStatus(c[19]),
+            createTime: cellPlain(c[20]),
+            onboardChannelGuess: settleType !== '—' ? '支付宝/微信（演示）' : '—',
             hasRefrigerator: false,
             hasFreezer: false,
             detailTags: [],
@@ -2429,8 +2431,9 @@
         grid.appendChild(detailCell('经纬度', store.latlng));
         grid.appendChild(detailCell('运营状态', store.opStatus));
         grid.appendChild(detailCell('进件状态', archiveOnboardEnum({}, store.onboardStatus)));
-        grid.appendChild(detailCell('结算类型', store.settleType));
+        grid.appendChild(detailCell('余额支付', store.balancePay));
 
+        grid.appendChild(detailCell('结算类型', store.settleType));
         grid.appendChild(detailCell('结算周期', store.settleCycle));
         grid.appendChild(detailCell('分账服务', store.splitService));
         grid.appendChild(detailCellTagged('门店状态', store.storeStatus, true));
@@ -2692,24 +2695,30 @@
     }
 
     function storeHuifuAccountMeta(store) {
+        /* 与供应商进件信息一致：优先绑定商户号，余额支付取列表口径 */
         var bind = getHuifuMerchantBind('store', store && store.storeId);
         if (bind && bind.merchantNo) {
             return {
                 merchantNo: bind.merchantNo,
-                payStatus: bind.status === '进件成功' ? '已开通' : '—',
+                payStatus:
+                    bind.status === '进件成功'
+                        ? '已开通'
+                        : store && store.balancePay
+                          ? store.balancePay
+                          : '—',
                 bound: true
             };
         }
+        var id = store && store.storeId ? String(store.storeId).replace(/\s+/g, '') : '';
+        var pay = store && store.balancePay != null ? String(store.balancePay).trim() : '';
+        if (!pay || pay === '—' || pay === '-') pay = '未开通';
         var snap =
             window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function'
                 ? window.StoreWalletDemo.snapshot()
                 : null;
         return {
-            merchantNo:
-                (snap && snap.merchantNo) ||
-                (store && store.storeId ? 'HF-' + String(store.storeId).replace(/\s+/g, '') : '—') ||
-                '—',
-            payStatus: (snap && snap.balancePayStatus) || '—',
+            merchantNo: (snap && snap.merchantNo) || (id ? 'HF-' + id : '—'),
+            payStatus: pay,
             bound: false
         };
     }

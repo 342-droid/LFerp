@@ -487,18 +487,66 @@
         return fb;
     }
 
+    var STORE_BALANCE_PAY_KEY = 'mdm_store_balance_payment_v1';
     var STORE_COL = {
-        onboard: 14
+        onboard: 14,
+        balancePay: 15,
+        settleType: 16,
+        settleCycle: 17,
+        split: 18,
+        status: 19,
+        createTime: 20
     };
 
     function storeRecordKey(id) {
         return 'archive::store::' + String(id || '').trim();
     }
 
+    function readStoreBalancePayments() {
+        return readJsonStore(STORE_BALANCE_PAY_KEY) || {};
+    }
+
+    function writeStoreBalancePayments(map) {
+        writeJsonStore(STORE_BALANCE_PAY_KEY, map || {});
+    }
+
+    function getStoreBalancePayment(storeId) {
+        var map = readStoreBalancePayments();
+        var raw = String(map[String(storeId || '').trim()] || '').trim();
+        return raw === '未开通' ? '已拒绝' : raw;
+    }
+
+    function setStoreBalancePayment(storeId, status) {
+        var id = String(storeId || '').trim();
+        if (!id) return;
+        var map = readStoreBalancePayments();
+        map[id] = status;
+        writeStoreBalancePayments(map);
+    }
+
+    function resolveStoreBalancePayment(storeId, onboardingDisplay) {
+        var saved = getStoreBalancePayment(storeId);
+        if (saved) return saved;
+        if (onboardingDisplay === '进件成功') return '审核中';
+        return '未提交';
+    }
+
+    function triggerStoreBalancePayment(storeId) {
+        var id = String(storeId || '').trim();
+        if (!id) return '';
+        var current = getStoreBalancePayment(id);
+        if (current === '已开通' || current === '审核中' || current === '已拒绝') return current;
+        setStoreBalancePayment(id, '审核中');
+        if (typeof showToast === 'function') {
+            showToast('进件成功，已自动发起余额支付申请', 'success');
+        }
+        return '审核中';
+    }
+
     function syncStoreArchiveRow(tr, payload) {
         if (!tr) return;
         var cells = tr.querySelectorAll('td');
-        if (cells.length < STORE_COL.onboard + 1) return;
+        if (cells.length < STORE_COL.status + 1) return;
         var storeId = cells[0].textContent.trim();
         var recordKey = storeRecordKey(storeId);
         var onboardFallback = cells[STORE_COL.onboard].textContent.trim();
@@ -506,6 +554,10 @@
         if (payload && payload.status === 'submitted') onboardDisplay = '进件中';
         if (payload === null) onboardDisplay = '未进件';
         cells[STORE_COL.onboard].textContent = onboardDisplay;
+        if (onboardDisplay === '进件成功') {
+            triggerStoreBalancePayment(storeId);
+        }
+        cells[STORE_COL.balancePay].textContent = resolveStoreBalancePayment(storeId, onboardDisplay);
     }
 
     function syncAllStoreArchiveRows() {
@@ -514,6 +566,12 @@
         tbody.querySelectorAll('tr').forEach(function (tr) {
             syncStoreArchiveRow(tr);
         });
+    }
+
+    function seedStoreDemoBalancePayments() {
+        var map = readStoreBalancePayments();
+        if (!map.ONS303445581201) map.ONS303445581201 = '已开通';
+        writeStoreBalancePayments(map);
     }
 
     function resolveSupplierBalancePayment(supplierId, onboardingDisplay) {
@@ -732,25 +790,28 @@
         var qStore = (document.getElementById('qStoreName') || {}).value.trim();
         var qOp = (document.getElementById('qStoreOpStatus') || {}).value.trim();
         var qOnboard = (document.getElementById('qStoreOnboardStatus') || {}).value.trim();
+        var qBalance = (document.getElementById('qStoreBalancePay') || {}).value.trim();
         var qSplit = (document.getElementById('qStoreSplit') || {}).value.trim();
         var qSt = (document.getElementById('qStoreStatus') || {}).value.trim();
         var opMap = { '1': '营业中', '2': '筹备', '3': '停业' };
         tbody.querySelectorAll('tr').forEach(function (tr) {
             var cells = tr.querySelectorAll('td');
-            if (cells.length < 21) return;
+            if (cells.length < STORE_COL.status + 1) return;
             var sub = cells[1].textContent.trim();
             /* 门店名称列可能含链接，取纯文本 */
             var sn = cells[2].textContent.trim();
             var opTxt = cells[13].textContent.trim();
             var onboardTxt = cells[STORE_COL.onboard].textContent.trim();
-            var splitTxt = cells[17].textContent.trim();
-            var stSpan = cells[18].querySelector('.status');
+            var balanceTxt = cells[STORE_COL.balancePay].textContent.trim();
+            var splitTxt = cells[STORE_COL.split].textContent.trim();
+            var stSpan = cells[STORE_COL.status].querySelector('.status');
             var stTxt = stSpan ? stSpan.textContent.trim() : '';
             var ok = true;
             if (qSub && sub.indexOf(qSub) === -1) ok = false;
             if (qStore && sn.indexOf(qStore) === -1) ok = false;
             if (qOp && opTxt !== opMap[qOp]) ok = false;
             if (qOnboard && onboardTxt !== qOnboard) ok = false;
+            if (qBalance && balanceTxt !== qBalance) ok = false;
             if (qSplit === 'on' && splitTxt !== '开启') ok = false;
             if (qSplit === 'off' && splitTxt !== '关闭' && splitTxt !== '未开通') ok = false;
             if (qSt === 'normal' && stTxt !== '正常') ok = false;
@@ -861,7 +922,7 @@
             detailModalTitle: '门店详情',
             modalWidth: '720px',
             checkboxColumn: false,
-            statusColumnIndex: 18,
+            statusColumnIndex: STORE_COL.status,
             actionColumnMode: 'editOnboard',
             pageSize: 10,
             detailView: {
@@ -931,8 +992,8 @@
                         editFulfillWarehouse: c[8].textContent.trim(),
                         editRegionText: c[9].textContent.trim(),
                         editAddressText: c[10].textContent.trim(),
-                        editStoreOpStatus: c[18].querySelector('.status')
-                            ? c[18].querySelector('.status').textContent.trim()
+                        editStoreOpStatus: c[STORE_COL.status].querySelector('.status')
+                            ? c[STORE_COL.status].querySelector('.status').textContent.trim()
                             : '正常'
                     };
                 },
@@ -940,15 +1001,16 @@
                     if (!pm.currentEditRow) return;
                     var row = pm.currentEditRow;
                     var st = document.getElementById('editStoreOpStatus').value.trim();
-                    pm.updateTableRow(row, {
+                    var patch = {
                         2: document.getElementById('editStoreName').value.trim(),
                         6: document.getElementById('editContactPerson').value.trim(),
                         7: document.getElementById('editPhone').value.trim(),
                         8: document.getElementById('editFulfillWarehouse').value.trim(),
                         9: document.getElementById('editRegionText').value.trim(),
-                        10: document.getElementById('editAddressText').value.trim(),
-                        18: { value: st, isStatus: true }
-                    });
+                        10: document.getElementById('editAddressText').value.trim()
+                    };
+                    patch[STORE_COL.status] = { value: st, isStatus: true };
+                    pm.updateTableRow(row, patch);
                     pm.decorateDetailLinkCell(row);
                     showToast('门店档案已更新（演示）', 'success');
                     pm.currentEditRow = null;
@@ -956,6 +1018,7 @@
             }
         });
         pm.init();
+        seedStoreDemoBalancePayments();
         syncAllStoreArchiveRows();
         window.addEventListener('storage', function (e) {
             if (e.key === 'mdm_unified_onboarding_records_v1') {
@@ -968,6 +1031,7 @@
                 'qStoreName',
                 'qStoreOpStatus',
                 'qStoreOnboardStatus',
+                'qStoreBalancePay',
                 'qStoreSplit',
                 'qStoreStatus'
             ],
@@ -3309,12 +3373,13 @@
 
     function initAuditStoreRegistration() {
         var pm = new PageManager({
-            entityName: '门店注册申请',
+            entityName: '入驻申请',
             checkboxColumn: false,
             fields: [],
             detailView: {
                 enabled: true,
-                columnIndex: 3,
+                /* 入驻方名称列：申请单号/来源/主体名称/主体类型 之后 */
+                columnIndex: 4,
                 linkClass: 'subject-name-link',
                 onOpenDetail: function (row) {
                     if (window.MdmAuditStoreUi) {
@@ -3354,12 +3419,13 @@
         });
         pm.init();
         bindSimpleFilter(pm, {
-            resetFields: ['qSubjectName', 'qStoreName', 'qAuditStatus'],
+            resetFields: ['qSubjectName', 'qStoreName', 'qSubjectType', 'qAuditStatus'],
             filterFn: function (p) {
                 var tbody = document.getElementById(p.config.tableBodyId);
                 if (!tbody) return;
                 var qS = (document.getElementById('qSubjectName') || {}).value.trim();
                 var qN = (document.getElementById('qStoreName') || {}).value.trim();
+                var qType = (document.getElementById('qSubjectType') || {}).value.trim();
                 var qSt = (document.getElementById('qAuditStatus') || {}).value.trim();
                 var map = {
                     pending: '待审核',
@@ -3369,12 +3435,14 @@
                 };
                 tbody.querySelectorAll('tr').forEach(function (tr) {
                     var cells = tr.querySelectorAll('td');
-                    if (cells.length < 11) return;
+                    if (cells.length < 12) return;
                     var ok = true;
                     if (qS && cells[2].textContent.trim().indexOf(qS) === -1) ok = false;
-                    if (qN && cells[3].textContent.trim().indexOf(qN) === -1) ok = false;
+                    if (qType && cells[3].textContent.trim() !== qType) ok = false;
+                    /* 入驻方名称（主体类型之后） */
+                    if (qN && cells[4].textContent.trim().indexOf(qN) === -1) ok = false;
                     if (qSt && map[qSt]) {
-                        var t = cells[7].querySelector('.status');
+                        var t = cells[8].querySelector('.status');
                         var tx = t ? t.textContent.trim() : '';
                         if (tx !== map[qSt]) ok = false;
                     }
