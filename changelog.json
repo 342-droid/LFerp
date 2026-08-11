@@ -1,10 +1,140 @@
 {
-  "latestSha": "617ea2504a941ca6e7eea28dfbebd8f520e3fd53",
-  "total": 249,
+  "latestSha": "4e8616bc994cec30357aa16043efbabbd341063a",
+  "total": 250,
   "days": [
     {
       "date": "2026-08-12",
       "items": [
+        {
+          "sha": "4e8616b",
+          "type": "feat",
+          "text": "门店供应商场地照归入基础信息并与进件联动",
+          "author": "sisi",
+          "time": "02:34",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_h5.html",
+              "module": "",
+              "title": "冷丰 MDM · 门店扫码 H5"
+            },
+            {
+              "file": "MDM/mdm_bd_store_form.html",
+              "module": "",
+              "title": "冷丰 MDM · 添加 / 编辑门店"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_resource_onboarding.html",
+              "module": "冷丰WMS",
+              "title": "支付进件"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            },
+            {
+              "file": "shop-h5/h5/store/register.html",
+              "module": "",
+              "title": "门店注册 · Shop H5"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "新增编辑仅保留门头/场地照必填；详情基础信息展示三张场地照，待上传可点上传"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "text": "新增编辑不采集场地照；详情基础信息展示三张场地照并支持待上传上传"
+            },
+            {
+              "file": null,
+              "text": "门店进件: 档案已上传照可带入"
+            },
+            {
+              "file": null,
+              "text": "成功前回写基础信息，成功后进件信息不再展示场地照且与基础信息隔离"
+            },
+            {
+              "file": null,
+              "text": "门店H5注册: 「正门头照片」更名为「门头/场地照」"
+            },
+            {
+              "file": "shop-h5/h5/store/register.html",
+              "text": "BD门店注册: 门头字段统一为「门头/场地照」"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "text": "门店入驻审核: 详情与编辑页门头字段改名为「门头/场地照」"
+            }
+          ]
+        },
         {
           "sha": "617ea25",
           "type": "feat",
