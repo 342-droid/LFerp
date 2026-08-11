@@ -1883,14 +1883,22 @@
         return String(cells[2].textContent || '').replace(/\D/g, '');
     }
 
-    function validatePeoplePhoneAndSms(phoneInputId, smsInputId, phoneLabel) {
+    function validatePeoplePhone(phoneInputId, phoneLabel) {
         var label = phoneLabel || '手机';
         var raw = (document.getElementById(phoneInputId).value || '').replace(/\D/g, '');
         if (raw.length !== 11) {
             showToast('请输入11位' + label, 'error');
             return false;
         }
-        var smsCode = (document.getElementById(smsInputId).value || '').replace(/\D/g, '');
+        return raw;
+    }
+
+    function validatePeoplePhoneAndSms(phoneInputId, smsInputId, phoneLabel) {
+        var raw = validatePeoplePhone(phoneInputId, phoneLabel);
+        if (!raw) return false;
+        var smsEl = document.getElementById(smsInputId);
+        if (!smsEl) return raw;
+        var smsCode = (smsEl.value || '').replace(/\D/g, '');
         if (smsCode.length !== 6) {
             showToast('请输入6位数字验证码', 'error');
             return false;
@@ -1933,22 +1941,20 @@
             cfg.nameEditCounterId +
             '">0 / 20</span>' +
             '</div></div>';
+        /* 创建：仅手机号，无验证码；编辑仍可短信校验 */
         var phoneHtml =
             '<div class="modal-form-group" style="width:100%">' +
             '<label><span class="mdm-people-req mdm-bd-req">*</span>' +
             cfg.phoneLabel +
             '</label>' +
-            '<div class="mdm-people-control mdm-bd-control mdm-people-phone-row mdm-bd-phone-row">' +
-            '<div class="input-wrapper">' +
+            '<div class="mdm-people-control mdm-bd-control">' +
+            '<div class="input-wrapper" style="flex:1">' +
             '<input type="text" id="' +
             cfg.phoneAddId +
             '" placeholder="请输入' +
             cfg.phoneLabel +
             '" inputmode="numeric" maxlength="11">' +
             '<span class="clear-btn">×</span></div>' +
-            '<button type="button" class="btn btn-primary btn-sm mdm-people-sms-btn mdm-bd-sms-btn" id="' +
-            cfg.smsBtnAddId +
-            '">获取验证码</button>' +
             '</div></div>';
         var phoneEditHtml =
             '<div class="modal-form-group" style="width:100%">' +
@@ -1976,6 +1982,7 @@
                 label: '验证码',
                 type: 'text',
                 required: true,
+                hiddenInAdd: true,
                 placeholder: '请输入6位数字验证码'
             }
         ];
@@ -2017,11 +2024,10 @@
             html:
                 '<div class="modal-form-group" style="width:100%">' +
                 '<label><span class="mdm-bd-req">*</span>BD手机</label>' +
-                '<div class="mdm-bd-control mdm-bd-phone-row">' +
-                '<div class="input-wrapper">' +
+                '<div class="mdm-bd-control">' +
+                '<div class="input-wrapper" style="flex:1">' +
                 '<input type="text" id="bdAddPhone" placeholder="请输入BD手机" inputmode="numeric" maxlength="11">' +
                 '<span class="clear-btn">×</span></div>' +
-                '<button type="button" class="btn btn-primary btn-sm mdm-bd-sms-btn" id="bdSmsBtn">获取验证码</button>' +
                 '</div></div>',
             editHtml:
                 '<div class="modal-form-group" style="width:100%">' +
@@ -2038,6 +2044,7 @@
             label: '验证码',
             type: 'text',
             required: true,
+            hiddenInAdd: true,
             placeholder: '请输入6位数字验证码'
         },
         {
@@ -2165,12 +2172,11 @@
                 validations: [
                     { id: 'bdName', message: '请输入BD姓名', required: true },
                     { id: 'bdAddPhone', message: '请输入BD手机', required: true },
-                    { id: 'bdSmsCode', message: '请输入6位数字验证码', required: true },
                     { id: 'bdCategory', message: '请选择BD分类', required: true },
                     { id: 'bdIdentity', message: '请选择BD身份', required: true }
                 ],
                 onSave: function () {
-                    var raw = validateBdPhoneAndSms('bdAddPhone', 'bdSmsCode');
+                    var raw = validatePeoplePhone('bdAddPhone', 'BD手机');
                     if (!raw) return false;
                     var id = 'BD-PROMO-' + String(Date.now()).slice(-6);
                     var masked = maskBdPhoneForCell(raw);
@@ -2447,11 +2453,10 @@
                 },
                 validations: [
                     { id: 'purName', message: '请输入采购员姓名', required: true },
-                    { id: 'purAddPhone', message: '请输入手机号码', required: true },
-                    { id: 'purSmsCode', message: '请输入6位数字验证码', required: true }
+                    { id: 'purAddPhone', message: '请输入手机号码', required: true }
                 ],
                 onSave: function () {
-                    var raw = validatePeoplePhoneAndSms('purAddPhone', 'purSmsCode', '手机号码');
+                    var raw = validatePeoplePhone('purAddPhone', '手机号码');
                     if (!raw) return false;
                     var id = 'PUR-' + String(Date.now()).slice(-6);
                     var masked = maskBdPhoneForCell(raw);
@@ -2622,11 +2627,10 @@
                 },
                 validations: [
                     { id: 'dname', message: '请输入姓名', required: true },
-                    { id: 'drvAddPhone', message: '请输入手机号码', required: true },
-                    { id: 'drvSmsCode', message: '请输入6位数字验证码', required: true }
+                    { id: 'drvAddPhone', message: '请输入手机号码', required: true }
                 ],
                 onSave: function () {
-                    var raw = validatePeoplePhoneAndSms('drvAddPhone', 'drvSmsCode', '手机号码');
+                    var raw = validatePeoplePhone('drvAddPhone', '手机号码');
                     if (!raw) return false;
                     var id = 'DRV' + String(Date.now()).slice(-8);
                     var masked = maskBdPhoneForCell(raw);
@@ -2770,11 +2774,10 @@
                 },
                 validations: [
                     { id: 'aname', message: '请输入姓名', required: true },
-                    { id: 'ancAddPhone', message: '请输入手机号码', required: true },
-                    { id: 'ancSmsCode', message: '请输入6位数字验证码', required: true }
+                    { id: 'ancAddPhone', message: '请输入手机号码', required: true }
                 ],
                 onSave: function () {
-                    var raw = validatePeoplePhoneAndSms('ancAddPhone', 'ancSmsCode', '手机号码');
+                    var raw = validatePeoplePhone('ancAddPhone', '手机号码');
                     if (!raw) return false;
                     var id = 'ANC' + String(Date.now()).slice(-8);
                     var masked = maskBdPhoneForCell(raw);

@@ -680,6 +680,9 @@
             fieldDefaults: copy(item.fields || {}),
             recordKey: item.key,
             variant: 'resource',
+            /* 审核中心：单据已提交；仅返回/保存（待提交草稿另有删除），无「提交进件」 */
+            auditCenterEdit: true,
+            forceEdit: true,
             onRecordChange: function () {
                 render();
             }
@@ -691,7 +694,7 @@
             showToast('当前记录不在审核失败状态', 'info');
             return;
         }
-        showToast('请先编辑资料，再在弹窗内点击提交', 'info');
+        showToast('请先编辑并保存资料，再在列表操作栏点击「审核」', 'info');
         openEdit(item);
     }
 
