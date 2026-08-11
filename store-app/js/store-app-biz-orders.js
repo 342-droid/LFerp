@@ -6,6 +6,15 @@
  * - 若结算未配置门店佣金比例，则门店无佣金，不生成清分数据（门店明细）
  * - hasStoreClearing / storeCommissionRate 用于演示上述口径
  * - settleStatus 佣金结算状态：待结算 | 结算中 | 已结算 | 结算失败 | 已取消
+ *
+ * 原型演示组合（订单状态 × 结算状态）：
+ * - 待发货 × 待结算：已支付并生成清分，订单未完成
+ * - 待发货 × —（无清分）：已支付，但结算未配置门店佣金比例
+ * - 待自提 × 待结算：已支付并生成清分，订单未完成
+ * - 待收货 × 待结算：已支付并生成清分，订单未完成
+ * - 交易成功 × 结算失败：结算异常
+ * - 交易成功 × 已结算：交易完成，佣金入账
+ * - 交易失败 × 已取消：曾生成清分，后因全额退款等佣金冲回为 0
  */
 (function (global) {
   var IMG = {
@@ -20,6 +29,7 @@
 
   var ORDERS = [
     {
+      /* 交易失败 × 已取消：曾生成清分，全额退款后佣金冲回为 0 */
       id: '612965464845',
       date: '2021-12-28',
       nick: '斯斯',
@@ -30,11 +40,9 @@
       goods: '[益力多]乳酸菌乳饮品（原味）【100ml*5支*2排】 * 1 共1件商品',
       paid: 21.4,
       refund: 21.4,
-      /* 支付时已按比例生成清分；全额退款后佣金冲回为 0，门店明细仍保留 */
       storeCommissionRate: 0.05,
       hasStoreClearing: true,
       commission: 0,
-      /* 佣金因退款失效 */
       settleStatus: '已取消',
       settleTime: '2021-12-25 10:22:08',
       goodsCount: 1,
@@ -43,8 +51,8 @@
       refundTime: '2021-12-25 10:22:08',
       finishTime: '-',
       remark: '',
-      status: 'done',
-      statusText: '交易成功',
+      status: 'failed',
+      statusText: '交易失败',
       dayKey: '2021-12-28',
       goodsItems: [
         {
@@ -66,6 +74,7 @@
       ]
     },
     {
+      /* 待发货 × 待结算：已支付并生成清分，订单未完成 */
       id: '612965464901',
       date: '2026-08-03',
       nick: '阿杰',
@@ -79,7 +88,6 @@
       storeCommissionRate: 0.15,
       hasStoreClearing: true,
       commission: 8.4,
-      /* 订单未完成，佣金未达结算条件 */
       settleStatus: '待结算',
       settleTime: '-',
       goodsCount: 2,
@@ -102,6 +110,7 @@
       refundItems: []
     },
     {
+      /* 待自提 × 待结算：已支付并生成清分，订单未完成 */
       id: '612965464902',
       date: '2026-08-03',
       nick: '小满',
@@ -115,12 +124,11 @@
       storeCommissionRate: 0.1,
       hasStoreClearing: true,
       commission: 6.0,
-      /* 已触发结算，处理中 */
-      settleStatus: '结算中',
+      settleStatus: '待结算',
       settleTime: '-',
       goodsCount: 2,
       payTime: '2026-08-03 10:20:33',
-      deliveryTime: '到店自提',
+      deliveryTime: '-',
       finishTime: '-',
       remark: '',
       status: 'pending_pickup',
@@ -138,6 +146,7 @@
       refundItems: []
     },
     {
+      /* 待收货 × 待结算：已支付并生成清分，订单未完成 */
       id: '612965464903',
       date: '2026-08-02',
       nick: '韩梅',
@@ -151,9 +160,8 @@
       storeCommissionRate: 0.15,
       hasStoreClearing: true,
       commission: 4.5,
-      /* 佣金结算异常 */
-      settleStatus: '结算失败',
-      settleTime: '2026-08-03 02:10:05',
+      settleStatus: '待结算',
+      settleTime: '-',
       goodsCount: 1,
       payTime: '2026-08-02 16:08:11',
       deliveryTime: '2026-08-03 10:00-12:00',
@@ -174,6 +182,7 @@
       refundItems: []
     },
     {
+      /* 交易成功 × 已结算：交易完成，佣金入账 */
       id: '612965464904',
       date: '2026-08-01',
       nick: '文博',
@@ -187,7 +196,6 @@
       storeCommissionRate: 0.1834,
       hasStoreClearing: true,
       commission: 10.97,
-      /* 已结算入门店余额账户 */
       settleStatus: '已结算',
       settleTime: '2026-08-02 18:30:00',
       goodsCount: 2,
@@ -210,7 +218,7 @@
       refundItems: []
     },
     {
-      /* 已支付，但结算未配置门店佣金比例 → 无佣金、不生成清分（门店明细） */
+      /* 待发货 × —（无清分）：已支付，但结算未配置门店佣金比例 */
       id: '612965464905',
       date: '2026-08-03',
       nick: '阿哲',
@@ -224,7 +232,8 @@
       storeCommissionRate: null,
       hasStoreClearing: false,
       commission: 0,
-      settleStatus: '',
+      /* 无清分：结算状态展示为 — */
+      settleStatus: '—',
       settleTime: '-',
       goodsCount: 1,
       payTime: '2026-08-03 14:05:40',
@@ -241,6 +250,42 @@
           qty: 1,
           paid: 12.8,
           commission: 0
+        }
+      ],
+      refundItems: []
+    },
+    {
+      /* 交易成功 × 结算失败：结算异常 */
+      id: '612965464906',
+      date: '2026-07-30',
+      nick: '阿敏',
+      contact: '陈敏',
+      phone: '13500003309',
+      verifyCode: 'HX9006',
+      shipMode: '快递',
+      goods: '有机生菜 300g * 3 共3件商品',
+      paid: 38.7,
+      refund: 0,
+      storeCommissionRate: 0.12,
+      hasStoreClearing: true,
+      commission: 4.64,
+      settleStatus: '结算失败',
+      settleTime: '2026-08-01 03:15:22',
+      goodsCount: 3,
+      payTime: '2026-07-30 19:22:10',
+      deliveryTime: '2026-07-31 09:00-11:00',
+      finishTime: '2026-07-31 14:08:33',
+      remark: '',
+      status: 'done',
+      statusText: '交易成功',
+      dayKey: '2026-07-30',
+      goodsItems: [
+        {
+          name: '有机生菜 300g / 份',
+          img: IMG.p3,
+          qty: 3,
+          paid: 38.7,
+          commission: 4.64
         }
       ],
       refundItems: []
