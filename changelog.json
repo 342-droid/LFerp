@@ -1,10 +1,128 @@
 {
-  "latestSha": "adcde6a8a1fc41de62cab878d9e8552dfa22fb8e",
-  "total": 247,
+  "latestSha": "e3f9295d19539bd8d3338718c1129a6062aff46d",
+  "total": 248,
   "days": [
     {
       "date": "2026-08-11",
       "items": [
+        {
+          "sha": "e3f9295",
+          "type": "feat",
+          "text": "商家主体合并为所有主体并完善入驻审核",
+          "author": "sisi",
+          "time": "22:55",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_party_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商商家（已下线）"
+            },
+            {
+              "file": "MDM/mdm_party_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间商家（已下线）"
+            },
+            {
+              "file": "MDM/mdm_party_store.html",
+              "module": "冷丰WMS",
+              "title": "门店商家"
+            },
+            {
+              "file": "MDM/mdm_party_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商商家"
+            },
+            {
+              "file": "MDM/mdm_party_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库商家"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_party_all.html",
+              "text": "门店/供应商/仓库商家合并列表；样式对齐运营后台；新增门店商家去掉验证码"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "text": "供应商详情字段对齐新增供应商商家；供应商财务一道审核且无编辑；流程文案调整为创建门店/供应商商家"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "进件旁展示余额支付，进件信息与供应商对齐"
+            },
+            {
+              "file": null,
+              "text": "顶栏一级菜单支持横向滑动；侧栏商家列表仅保留三档案"
+            }
+          ]
+        },
         {
           "sha": "adcde6a",
           "type": "feat",
@@ -1713,7 +1831,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_member_c.html",
@@ -2442,7 +2560,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_marketing_cash_redpack.html",
@@ -3076,7 +3194,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_marketing_cash_redpack.html",
@@ -4051,7 +4169,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_member_c.html",
@@ -4415,7 +4533,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_marketing_cash_redpack.html",
@@ -5800,7 +5918,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_marketing_points_mall.html",
@@ -7360,7 +7478,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_member_c.html",
@@ -7767,7 +7885,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_member_c.html",
@@ -11550,7 +11668,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_member_c.html",
@@ -11735,7 +11853,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_member_c.html",
@@ -11743,29 +11861,9 @@
               "title": "会员管理"
             },
             {
-              "file": "MDM/mdm_party_carrier.html",
+              "file": "MDM/mdm_party_all.html",
               "module": "冷丰WMS",
-              "title": "承运商主体"
-            },
-            {
-              "file": "MDM/mdm_party_live_room.html",
-              "module": "冷丰WMS",
-              "title": "直播间主体"
-            },
-            {
-              "file": "MDM/mdm_party_store.html",
-              "module": "冷丰WMS",
-              "title": "门店主体"
-            },
-            {
-              "file": "MDM/mdm_party_supplier.html",
-              "module": "冷丰WMS",
-              "title": "供应商主体"
-            },
-            {
-              "file": "MDM/mdm_party_warehouse.html",
-              "module": "冷丰WMS",
-              "title": "仓库主体"
+              "title": "所有主体"
             },
             {
               "file": "MDM/mdm_people_anchor.html",
@@ -12475,27 +12573,27 @@
             {
               "file": "MDM/mdm_party_carrier.html",
               "module": "冷丰WMS",
-              "title": "承运商主体"
+              "title": "承运商商家（已下线）"
             },
             {
               "file": "MDM/mdm_party_live_room.html",
               "module": "冷丰WMS",
-              "title": "直播间主体"
+              "title": "直播间商家（已下线）"
             },
             {
               "file": "MDM/mdm_party_store.html",
               "module": "冷丰WMS",
-              "title": "门店主体"
+              "title": "门店商家"
             },
             {
               "file": "MDM/mdm_party_supplier.html",
               "module": "冷丰WMS",
-              "title": "供应商主体"
+              "title": "供应商商家"
             },
             {
               "file": "MDM/mdm_party_warehouse.html",
               "module": "冷丰WMS",
-              "title": "仓库主体"
+              "title": "仓库商家"
             },
             {
               "file": "MDM/mdm_people_anchor.html",
@@ -12736,7 +12834,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_bd_h5.html",
@@ -12822,7 +12920,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_bd_h5.html",
@@ -12873,7 +12971,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_bd_h5.html",
@@ -12893,7 +12991,7 @@
               "text": "审核中心侧栏恢复「进件审核」菜单，hash 切换时同步高亮"
             },
             {
-              "file": "MDM/mdm_audit_store_registration.html",
+              "file": null,
               "text": "门店注册审核详情/编辑：老板/联系人板块移至档案字段下，字段与 BD 对齐"
             },
             {
@@ -13486,7 +13584,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_member_c.html",
@@ -13596,7 +13694,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_member_c.html",
@@ -13818,7 +13916,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_member_c.html",
@@ -14487,7 +14585,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_member_c.html",
@@ -14571,7 +14669,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_member_c.html",
@@ -14720,7 +14818,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_member_c.html",
@@ -14728,29 +14826,9 @@
               "title": "会员管理"
             },
             {
-              "file": "MDM/mdm_party_carrier.html",
+              "file": "MDM/mdm_party_all.html",
               "module": "冷丰WMS",
-              "title": "承运商主体"
-            },
-            {
-              "file": "MDM/mdm_party_live_room.html",
-              "module": "冷丰WMS",
-              "title": "直播间主体"
-            },
-            {
-              "file": "MDM/mdm_party_store.html",
-              "module": "冷丰WMS",
-              "title": "门店主体"
-            },
-            {
-              "file": "MDM/mdm_party_supplier.html",
-              "module": "冷丰WMS",
-              "title": "供应商主体"
-            },
-            {
-              "file": "MDM/mdm_party_warehouse.html",
-              "module": "冷丰WMS",
-              "title": "仓库主体"
+              "title": "所有主体"
             },
             {
               "file": "MDM/mdm_people_anchor.html",
@@ -14858,7 +14936,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_member_c.html",
@@ -14866,29 +14944,9 @@
               "title": "会员管理"
             },
             {
-              "file": "MDM/mdm_party_carrier.html",
+              "file": "MDM/mdm_party_all.html",
               "module": "冷丰WMS",
-              "title": "承运商主体"
-            },
-            {
-              "file": "MDM/mdm_party_live_room.html",
-              "module": "冷丰WMS",
-              "title": "直播间主体"
-            },
-            {
-              "file": "MDM/mdm_party_store.html",
-              "module": "冷丰WMS",
-              "title": "门店主体"
-            },
-            {
-              "file": "MDM/mdm_party_supplier.html",
-              "module": "冷丰WMS",
-              "title": "供应商主体"
-            },
-            {
-              "file": "MDM/mdm_party_warehouse.html",
-              "module": "冷丰WMS",
-              "title": "仓库主体"
+              "title": "所有主体"
             },
             {
               "file": "MDM/mdm_people_anchor.html",
@@ -15091,7 +15149,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_bd_merchants.html",
@@ -15109,29 +15167,34 @@
               "title": "会员管理"
             },
             {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
               "file": "MDM/mdm_party_carrier.html",
               "module": "冷丰WMS",
-              "title": "承运商主体"
+              "title": "承运商商家（已下线）"
             },
             {
               "file": "MDM/mdm_party_live_room.html",
               "module": "冷丰WMS",
-              "title": "直播间主体"
+              "title": "直播间商家（已下线）"
             },
             {
               "file": "MDM/mdm_party_store.html",
               "module": "冷丰WMS",
-              "title": "门店主体"
+              "title": "门店商家"
             },
             {
               "file": "MDM/mdm_party_supplier.html",
               "module": "冷丰WMS",
-              "title": "供应商主体"
+              "title": "供应商商家"
             },
             {
               "file": "MDM/mdm_party_warehouse.html",
               "module": "冷丰WMS",
-              "title": "仓库主体"
+              "title": "仓库商家"
             },
             {
               "file": "MDM/mdm_people_anchor.html",
@@ -15297,7 +15360,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_bd_h5.html",
@@ -15416,7 +15479,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_member_c.html",
@@ -15424,29 +15487,34 @@
               "title": "会员管理"
             },
             {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
               "file": "MDM/mdm_party_carrier.html",
               "module": "冷丰WMS",
-              "title": "承运商主体"
+              "title": "承运商商家（已下线）"
             },
             {
               "file": "MDM/mdm_party_live_room.html",
               "module": "冷丰WMS",
-              "title": "直播间主体"
+              "title": "直播间商家（已下线）"
             },
             {
               "file": "MDM/mdm_party_store.html",
               "module": "冷丰WMS",
-              "title": "门店主体"
+              "title": "门店商家"
             },
             {
               "file": "MDM/mdm_party_supplier.html",
               "module": "冷丰WMS",
-              "title": "供应商主体"
+              "title": "供应商商家"
             },
             {
               "file": "MDM/mdm_party_warehouse.html",
               "module": "冷丰WMS",
-              "title": "仓库主体"
+              "title": "仓库商家"
             },
             {
               "file": "MDM/mdm_people_anchor.html",
@@ -15767,7 +15835,7 @@
             {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
-              "title": "门店注册审核"
+              "title": "入驻审核"
             },
             {
               "file": "MDM/mdm_bd_h5.html",
@@ -15810,29 +15878,34 @@
               "title": "会员管理"
             },
             {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
               "file": "MDM/mdm_party_carrier.html",
               "module": "冷丰WMS",
-              "title": "承运商主体"
+              "title": "承运商商家（已下线）"
             },
             {
               "file": "MDM/mdm_party_live_room.html",
               "module": "冷丰WMS",
-              "title": "直播间主体"
+              "title": "直播间商家（已下线）"
             },
             {
               "file": "MDM/mdm_party_store.html",
               "module": "冷丰WMS",
-              "title": "门店主体"
+              "title": "门店商家"
             },
             {
               "file": "MDM/mdm_party_supplier.html",
               "module": "冷丰WMS",
-              "title": "供应商主体"
+              "title": "供应商商家"
             },
             {
               "file": "MDM/mdm_party_warehouse.html",
               "module": "冷丰WMS",
-              "title": "仓库主体"
+              "title": "仓库商家"
             },
             {
               "file": "MDM/mdm_people_anchor.html",
