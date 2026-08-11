@@ -164,6 +164,37 @@
         return d;
     }
 
+    /**
+     * 门店档案表单可折叠块（默认收起）
+     * @returns {{ wrap: HTMLElement, body: HTMLElement }}
+     */
+    function makeFormCollapse(title, defaultCollapsed) {
+        var collapsed = defaultCollapsed !== false;
+        var wrap = document.createElement('div');
+        wrap.className = 'store-form__collapse' + (collapsed ? ' is-collapsed' : '');
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'store-form__collapse-toggle';
+        btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        var titleEl = document.createElement('span');
+        titleEl.className = 'store-form__collapse-title';
+        titleEl.textContent = title;
+        var chevron = document.createElement('span');
+        chevron.className = 'store-form__collapse-chevron';
+        chevron.setAttribute('aria-hidden', 'true');
+        btn.appendChild(titleEl);
+        btn.appendChild(chevron);
+        var bodyEl = document.createElement('div');
+        bodyEl.className = 'store-form__collapse-body';
+        btn.addEventListener('click', function () {
+            var nowCollapsed = wrap.classList.toggle('is-collapsed');
+            btn.setAttribute('aria-expanded', nowCollapsed ? 'false' : 'true');
+        });
+        wrap.appendChild(btn);
+        wrap.appendChild(bodyEl);
+        return { wrap: wrap, body: bodyEl };
+    }
+
     function radioGroup(label, required, name, items, selectedVal) {
         var row = document.createElement('div');
         row.className = 'store-form__row';
@@ -584,50 +615,68 @@
         franchise.appendChild(formRow('门店楼层', true, txt('请输入门店楼层', '')));
         franchise.appendChild(formRow('店门口口述视频', false, uploadMock('+ 上传店门口视频', '店前两分钟口述视频')));
         franchise.appendChild(formRow('店内口述视频', false, uploadMock('+ 上传店内视频', '店内一分钟口述视频')));
-        franchise.appendChild(formRow('门店方圆500米入住户数', false, txt('请输入实际入住总户数', '')));
-        franchise.appendChild(formRow('日均客单量', false, txt('请输入日均客单量', '')));
-        franchise.appendChild(formRow('店内工作人员总数', false, txt('请输入工作人员总数', '')));
-        franchise.appendChild(
+        /* 门店经营与认知、特殊情况说明：分两个可折叠板块，默认收起 */
+        var franchiseOpsCollapse = makeFormCollapse('门店经营与认知', true);
+        franchiseOpsCollapse.body.appendChild(
+            formRow('门店方圆500米入住户数', false, txt('请输入实际入住总户数', ''))
+        );
+        franchiseOpsCollapse.body.appendChild(formRow('日均客单量', false, txt('请输入日均客单量', '')));
+        franchiseOpsCollapse.body.appendChild(
+            formRow('店内工作人员总数', false, txt('请输入工作人员总数', ''))
+        );
+        franchiseOpsCollapse.body.appendChild(
             formRow(
                 '实际经营者对直播业务的理解',
                 false,
                 txtAreaWithCount('请输入老板对直播业务的理解', 500, '')
             )
         );
-        franchise.appendChild(
+        franchiseOpsCollapse.body.appendChild(
             formRow(
                 '门店日常运营服务理解与配合',
                 false,
                 txtAreaWithCount('请输入日常运营服务理解与配合情况', 500, '')
             )
         );
-        franchise.appendChild(
+        franchiseOpsCollapse.body.appendChild(
             formRow(
                 '私域直播投入产出期望',
                 false,
                 txtAreaWithCount('请输入老板对私域直播 ROI 的期望', 500, '')
             )
         );
-        franchise.appendChild(
+        franchiseOpsCollapse.body.appendChild(
             formRow('私域直播/社区团购熟悉程度', false, txtAreaWithCount('请输入了解程度', 500, ''))
         );
-        franchise.appendChild(
+        franchiseOpsCollapse.body.appendChild(
             formRow('周边小区及居住人群描述', false, txtAreaWithCount('请输入周边小区及人群描述', 500, ''))
         );
-        franchise.appendChild(formRow('拉到1000人信心说明', false, txtAreaWithCount('请输入信心说明', 500, '')));
-        franchise.appendChild(
+        franchiseOpsCollapse.body.appendChild(
+            formRow('拉到1000人信心说明', false, txtAreaWithCount('请输入信心说明', 500, ''))
+        );
+        franchise.appendChild(franchiseOpsCollapse.wrap);
+
+        var franchiseSpecialCollapse = makeFormCollapse('特殊情况说明', true);
+        franchiseSpecialCollapse.body.appendChild(
             formRow('特殊情况说明', false, txtAreaWithCount('如涉及区域保护、特殊沟通，请填写说明', 500, ''))
         );
-        franchise.appendChild(formRow('特殊情况配图', false, uploadMock('+ 上传特殊情况配图', '最多 6 张')));
+        franchiseSpecialCollapse.body.appendChild(
+            formRow('特殊情况配图', false, uploadMock('+ 上传特殊情况配图', '最多 6 张'))
+        );
+        franchise.appendChild(franchiseSpecialCollapse.wrap);
         body.appendChild(franchise);
 
         var peer = document.createElement('div');
         peer.style.display = 'none';
-        peer.appendChild(sectionHint('同行店补充资料'));
-        peer.appendChild(
+        /* 已合作其他平台情况、近三天上播及销量截图：默认可折叠收起 */
+        var peerCollapse = makeFormCollapse('同行店补充资料', true);
+        peerCollapse.body.appendChild(
             formRow('已合作其他平台情况', false, txtAreaWithCount('目前门店已合作的其他平台情况', 500, ''))
         );
-        peer.appendChild(formRow('近三天上播及销量截图', false, uploadMock('+ 上传经营截图', '最多 6 张')));
+        peerCollapse.body.appendChild(
+            formRow('近三天上播及销量截图', false, uploadMock('+ 上传经营截图', '最多 6 张'))
+        );
+        peer.appendChild(peerCollapse.wrap);
         body.appendChild(peer);
 
         function syncPartner() {
@@ -753,7 +802,8 @@
     }
 
     function buildSupplierAddBody() {
-        return createSupplierFormBundle({ includeInboundWarehouse: true }).body;
+        /* 供应商档案新增/编辑：不采集入库仓库 */
+        return createSupplierFormBundle({ includeInboundWarehouse: false }).body;
     }
 
     function createCarrierFormBundle() {
@@ -1053,17 +1103,11 @@
             var cells = tr.querySelectorAll('td');
             var supplierId = cells[0] ? cellPlainText(cells[0]) : '';
             var supplierName = cells[2] ? cellPlainText(cells[2]) : '';
-            var inboundWarehouse = readSupplierInboundWarehouseBinding(supplierId, supplierName);
             var bundle = createSupplierFormBundle({
-                includeInboundWarehouse: true,
-                initialInboundWarehouse: inboundWarehouse
+                includeInboundWarehouse: false
             });
             bundle.fillFromArchiveRow(tr);
             attachWideModal('编辑供应商', bundle.body, function () {
-                var selectedWarehouse = '';
-                if (bundle.refs && bundle.refs.inboundWarehouseSel) {
-                    selectedWarehouse = String(bundle.refs.inboundWarehouseSel.value || '').trim();
-                }
                 var nextName =
                     bundle.refs && bundle.refs.nameInp
                         ? String(bundle.refs.nameInp.value || '').trim()
@@ -1085,11 +1129,6 @@
                         shortName: nextShort
                     });
                 }
-                saveSupplierInboundWarehouseBinding(
-                    supplierId,
-                    nextName || supplierName,
-                    selectedWarehouse
-                );
             });
         },
         openLiveRoomAdd: function () {

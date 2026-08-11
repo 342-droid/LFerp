@@ -505,7 +505,8 @@
         var specialTrim = (f.specialCircumstancesNote || '').trim();
         var textOk = specialTrim.length > 0 && specialTrim !== '无';
         var hasPic = state.specialUrls.length > 0;
-        if (!textOk && !hasPic)
+        if (!textOk && !hasPic) {
+          expandCollapsibleById('specialCircumstancesNote');
           return (
             toastLines(
               '该区域涉及区域保护范围',
@@ -514,7 +515,9 @@
             ),
             false
           );
-        if (specialTrim === '无' && !hasPic)
+        }
+        if (specialTrim === '无' && !hasPic) {
+          expandCollapsibleById('specialCircumstancesNote');
           return (
             toastLines(
               '该区域涉及区域保护范围',
@@ -523,6 +526,7 @@
             ),
             false
           );
+        }
       }
     }
 
@@ -602,12 +606,35 @@
     return phase === 'draft' || phase === 'awaiting_bd';
   }
 
+  function bindCollapsibleSections() {
+    document.querySelectorAll('[data-shop-h5-collapse] > .shop-h5-sec-head--toggle').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var sec = btn.closest('[data-shop-h5-collapse]');
+        if (!sec) return;
+        var collapsed = sec.classList.toggle('is-collapsed');
+        btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      });
+    });
+  }
+
+  function expandCollapsibleById(fieldId) {
+    var node = $(fieldId);
+    if (!node) return;
+    var sec = node.closest('[data-shop-h5-collapse]');
+    if (!sec) return;
+    sec.classList.remove('is-collapsed');
+    var btn = sec.querySelector('.shop-h5-sec-head--toggle');
+    if (btn) btn.setAttribute('aria-expanded', 'true');
+  }
+
   function init() {
     var params = new URLSearchParams(location.search);
     var storeIdRaw = (params.get('storeId') || '').trim();
     var bdFromUrl =
       (params.get('bdId') || '').trim() ||
       (params.get('bdEmployeeCode') || '').trim();
+
+    bindCollapsibleSections();
 
     $('btnBack').onclick = function () {
       history.back();

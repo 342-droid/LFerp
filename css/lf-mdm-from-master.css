@@ -981,6 +981,73 @@
   box-sizing: border-box;
 }
 
+/* 与「基础信息」板块标题同款：左侧蓝条，无卡片边框 */
+.store-form__collapse {
+  margin: 0 0 14px;
+}
+
+.store-form__collapse-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.store-form__collapse-title {
+  margin: 0;
+  padding-left: 10px;
+  border-left: 3px solid #1677ff;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.store-form__collapse-chevron {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+  transition: transform 0.18s ease;
+}
+
+.store-form__collapse-chevron::before {
+  content: '';
+  display: block;
+  width: 7px;
+  height: 7px;
+  margin: 4px auto 0;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.store-form__collapse.is-collapsed .store-form__collapse-chevron {
+  transform: rotate(-90deg);
+}
+
+.store-form__collapse.is-collapsed .store-form__collapse-toggle {
+  margin-bottom: 0;
+}
+
+.store-form__collapse.is-collapsed .store-form__collapse-body {
+  display: none;
+}
+
+.store-form__collapse-body {
+  padding: 0;
+  background: transparent;
+}
+
 .store-form__section-hint {
   margin: 4px 0 14px 132px;
   padding: 8px 10px;

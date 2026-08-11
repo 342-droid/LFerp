@@ -79,7 +79,7 @@
      *   contactPersonLabel?: string,
      *   showBindBd?: boolean,
      *   compactStoreSubjectForm?: boolean,
-     *   omitSmsAndLoginAccount?: boolean, 添加商家表单去掉验证码、登录账号（门店/供应商）
+     *   omitSmsAndLoginAccount?: boolean, 添加商家表单去掉验证码、登录账号（门店/供应商/仓库）
      *   disableConfirmMessage?: string,
      *   addModalId?: string,
      *   editModalId?: string,
@@ -1325,6 +1325,8 @@
             仓库: {
                 pageLabel: '仓库',
                 subjectTypeLabel: '仓库',
+                /* 与门店/供应商一致：新增仓库商家不收集验证码 / 登录账号 */
+                omitSmsAndLoginAccount: true,
                 enableSubjectOnboarding: true,
                 defaultStatus: '开启',
                 addModalId: 'mdmAllAddWh',

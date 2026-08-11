@@ -263,7 +263,10 @@
      *   title: string,
      *   merchantShortNameDefault?: string,
      *   variant?: string,
-     *   fieldDefaults?: Record<string, any>
+     *   fieldDefaults?: Record<string, any>,
+     *   forceView?: boolean,
+     *   forceEdit?: boolean,
+     *   auditCenterEdit?: boolean  审核中心编辑：无「提交进件」；保存保持已提交/待审
      * }} opts
      */
     function openUnifiedOnboardingModal(opts) {
@@ -276,6 +279,7 @@
         var variant = opts.variant || 'store';
         var onboardingKind = opts.onboardingKind || '';
         var isSupplierOnboarding = onboardingKind === 'supplier';
+        var auditCenterEdit = !!opts.auditCenterEdit;
         var backdrop = el(
             'div',
             variant === 'resource' ? 'store-archive-modal-backdrop' : 'store-archive-modal-backdrop'
@@ -320,8 +324,14 @@
             store_indoor_pic: !!formFields.store_indoor_pic,
             store_cashier_desk_pic: !!formFields.store_cashier_desk_pic
         };
-        var editMode = opts.forceView ? false : !(existingRecord && existingRecord.status === 'submitted');
+        /* 审核中心直接可编；创建/待提交默认可编；已提交非审核中心先进查看 */
+        var editMode = false;
+        if (opts.forceView) editMode = false;
+        else if (auditCenterEdit || opts.forceEdit) editMode = true;
+        else editMode = !(existingRecord && existingRecord.status === 'submitted');
         var recordStatus = existingRecord ? existingRecord.status : '';
+        /* 首次保存后才出现删除；已有服务端/本地记录视为已保存过 */
+        var hasSavedOnce = !!(existingRecord && (existingRecord.status === 'draft' || existingRecord.status === 'submitted'));
         var uploadRenders = [];
         var agreementUi = null;
 
@@ -741,18 +751,30 @@
 
         function persist(status) {
             var now = Date.now();
-            var payload = {
-                recordKey: recordKey,
-                status: status,
-                title: opts.title || '进件',
-                variant: variant,
-                merchantShortName: opts.merchantShortNameDefault || '',
-                fields: collectFields(),
-                updatedAt: now,
-                submittedAt: status === 'submitted' ? now : null
-            };
+            var prev = readRecord(recordKey) || (existingRecord ? copyObj(existingRecord) : {}) || {};
+            var payload = copyObj(prev);
+            payload.recordKey = recordKey;
+            payload.status = status;
+            payload.title = opts.title || prev.title || '进件';
+            payload.variant = variant || prev.variant || 'resource';
+            payload.merchantShortName =
+                opts.merchantShortNameDefault || prev.merchantShortName || '';
+            payload.fields = collectFields();
+            payload.updatedAt = now;
+            if (status === 'submitted') {
+                payload.submittedAt = prev.submittedAt || now;
+                if (!payload.auditStatus) {
+                    payload.auditStatus = '待BD审核';
+                    payload.nextAuditNode = 'BD审核';
+                }
+            } else if (status === 'draft') {
+                payload.submittedAt = null;
+                payload.auditStatus = '';
+                payload.nextAuditNode = '';
+            }
             saveRecord(recordKey, payload);
             recordStatus = status;
+            existingRecord = copyObj(payload);
             if (typeof opts.onRecordChange === 'function') {
                 try {
                     opts.onRecordChange(copyObj(payload));
@@ -778,10 +800,16 @@
                 bDelete.style.display = 'none';
                 return;
             }
-            bEdit.style.display = !editMode && recordStatus === 'submitted' ? '' : 'none';
+            /* 创建/编辑：保存+返回；首次保存后：返回+删除+保存；提交进件仅非审核中心的待提交 */
+            bEdit.style.display =
+                !auditCenterEdit && !editMode && recordStatus === 'submitted' ? '' : 'none';
             bSave.style.display = editMode ? '' : 'none';
-            bSubmit.style.display = editMode ? '' : 'none';
-            bDelete.style.display = editMode && recordStatus === 'draft' ? '' : 'none';
+            bDelete.style.display =
+                editMode && hasSavedOnce && recordStatus === 'draft' ? '' : 'none';
+            bSubmit.style.display =
+                !auditCenterEdit && editMode && hasSavedOnce && recordStatus === 'draft'
+                    ? ''
+                    : 'none';
         }
 
         var footer = el('div', 'erp-modal__footer');
@@ -795,17 +823,18 @@
         });
         bDelete.addEventListener('click', function () {
             if (recordStatus !== 'draft') {
-                showToast('仅草稿支持删除', 'error');
+                showToast('仅待提交草稿支持删除', 'error');
                 return;
             }
             removeRecord(recordKey);
             recordStatus = '';
+            hasSavedOnce = false;
             if (typeof opts.onRecordChange === 'function') {
                 try {
                     opts.onRecordChange(null);
                 } catch (e) {}
             }
-            showToast('草稿已删除', 'success');
+            showToast('待提交草稿已删除', 'success');
             backdrop.remove();
         });
         bEdit.addEventListener('click', function () {
@@ -813,13 +842,26 @@
             refreshEditable();
         });
         bSave.addEventListener('click', function () {
+            /* 审核中心已是提交进件态：保存保持 submitted / 待审核，不退回待提交 */
+            if (auditCenterEdit && (recordStatus === 'submitted' || !recordStatus)) {
+                if (!recordStatus) {
+                    /* 异常空状态按已提交处理 */
+                }
+                persist('submitted');
+                hasSavedOnce = true;
+                showToast('已保存', 'success');
+                refreshEditable();
+                return;
+            }
             persist('draft');
-            showToast('已保存草稿', 'success');
+            hasSavedOnce = true;
+            showToast('已保存（待提交）', 'success');
             refreshEditable();
         });
         bSubmit.addEventListener('click', function () {
             if (!validateBeforeSubmit()) return;
             persist('submitted');
+            hasSavedOnce = true;
             editMode = false;
             refreshEditable();
             showToast('已提交进件（演示）', 'success');
