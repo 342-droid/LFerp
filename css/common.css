@@ -219,6 +219,8 @@ body {
     position: relative;
     z-index: 1000;
     border-bottom: 1px solid #e0e0e0;
+    gap: 12px;
+    min-width: 0;
 }
 
 .sidebar-toggle {
@@ -234,7 +236,8 @@ body {
     border-radius: 3px;
     box-shadow: none;
     width: 25px;
-    margin-right: 20px;
+    margin-right: 8px;
+    flex-shrink: 0;
 }
 
 /* 侧边栏菜单 */
@@ -254,11 +257,25 @@ body {
     display: none !important;
 }
 
+/* 一级菜单：放不下时横向滑动（触控 / 触控板 / 滚轮） */
 .nav-tabs {
     display: flex;
-    gap: 30px;
-    margin-right: auto;
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
     align-items: center;
+    gap: 24px;
+    min-width: 0;
+    margin-right: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    touch-action: pan-x;
+}
+
+.nav-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .nav-tabs a {
@@ -269,6 +286,8 @@ body {
     font-weight: 500;
     display: inline-flex;
     align-items: center;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .nav-tabs a.active {
@@ -289,6 +308,7 @@ body {
     display: flex;
     align-items: center;
     gap: 15px;
+    flex-shrink: 0;
 }
 
 .header-right img {

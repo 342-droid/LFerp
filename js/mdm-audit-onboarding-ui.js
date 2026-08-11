@@ -839,9 +839,9 @@
         if (title) {
             title.textContent = onb
                 ? '审核中心 / 进件审核 / 进件审核'
-                : '审核中心 / 门店审核 / 门店注册审核';
+                : '审核中心 / 入驻审核';
         }
-        if (tab) tab.textContent = onb ? '进件审核' : '门店注册审核';
+        if (tab) tab.textContent = onb ? '进件审核' : '入驻审核';
         if (onb) render();
     }
 

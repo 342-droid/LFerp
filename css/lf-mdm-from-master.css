@@ -1071,7 +1071,7 @@
   color: var(--color-text-muted);
 }
 
-/* 审核中心 — 门店注册审核 */
+/* 审核中心 — 入驻审核 */
 .audit-flow {
   display: grid;
   grid-template-columns: repeat(4, minmax(180px, 1fr));

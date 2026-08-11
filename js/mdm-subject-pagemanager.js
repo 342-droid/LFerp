@@ -62,9 +62,9 @@
             var stTxt = st ? st.textContent.trim() : '';
             var ok = true;
             if (qName && nm.indexOf(qName) === -1) ok = false;
-            if (qSt === 'normal' && stTxt !== '正常') ok = false;
+            if ((qSt === 'normal' || qSt === 'open') && stTxt !== '正常' && stTxt !== '开启') ok = false;
             if (qSt === 'frozen' && stTxt !== '冻结') ok = false;
-            if (qSt === 'stopped' && stTxt !== '停用') ok = false;
+            if ((qSt === 'stopped' || qSt === 'disabled') && stTxt !== '停用' && stTxt !== '禁用') ok = false;
             tr.style.display = ok ? '' : 'none';
         });
         pm.refreshPagination();
@@ -79,6 +79,7 @@
      *   contactPersonLabel?: string,
      *   showBindBd?: boolean,
      *   compactStoreSubjectForm?: boolean,
+     *   omitSmsAndLoginAccount?: boolean, 添加商家表单去掉验证码、登录账号（门店/供应商）
      *   disableConfirmMessage?: string,
      *   addModalId?: string,
      *   editModalId?: string,
@@ -809,35 +810,30 @@
         }
     }
 
-    function init(spec) {
+    function fieldId(prefix, id) {
+        return String(prefix || '') + id;
+    }
+
+    /** 主体/商家表单字段（创建与查看口径按类型配置） */
+    function buildSubjectFields(spec) {
         var showBindBd = !!spec.showBindBd;
-        var compactLogin = !!spec.compactStoreSubjectForm;
+        var omitSmsAndLogin = !!spec.omitSmsAndLoginAccount;
+        var compactLogin = !!spec.compactStoreSubjectForm || omitSmsAndLogin;
         var contactLabel = spec.contactPersonLabel || '联系人';
         var bindHdr = spec.bindColumnLabel || '绑定BD名称';
-        var disableMsg = spec.disableConfirmMessage || '确定禁用该主体吗？';
-        var addModalId = spec.addModalId || 'mdmSubjectAddModal';
-        var editModalId = spec.editModalId || 'mdmSubjectDetailModal';
-        var addBtnLabel = spec.addButtonLabel || '+ 新增' + spec.pageLabel + '主体';
         var multiSubjectType = Array.isArray(spec.subjectTypeOptions) && spec.subjectTypeOptions.length > 0;
         var typeOptions = multiSubjectType
             ? spec.subjectTypeOptions.map(function (x) {
                   return { value: x, text: x };
               })
             : [{ value: spec.subjectTypeLabel, text: spec.subjectTypeLabel }];
-        var idPrefixMap = {
-            门店: 'STORE',
-            供应商: 'SUP',
-            仓库: 'WH',
-            直播间: 'LIVE',
-            承运商: 'CAR'
-        };
-        var subjectIdPrefix = spec.subjectIdPrefix || idPrefixMap[spec.pageLabel] || 'SUB';
-
-        var showSubjectOnboarding = !!spec.enableSubjectOnboarding;
+        var pfx = spec.fieldIdPrefix || '';
+        var phoneId = fieldId(pfx, 'addPhone');
+        var smsBtnId = fieldId(pfx, 'mdmSmsDummyBtn');
 
         var fields = [
             {
-                id: 'subjectId',
+                id: fieldId(pfx, 'subjectId'),
                 label: '主体ID',
                 type: 'text',
                 required: true,
@@ -845,7 +841,7 @@
                 hiddenInAdd: true
             },
             {
-                id: 'subjectName',
+                id: fieldId(pfx, 'subjectName'),
                 label: '主体名称',
                 type: 'text',
                 required: true,
@@ -856,7 +852,7 @@
 
         if (showBindBd) {
             fields.push({
-                id: 'dockPerson',
+                id: fieldId(pfx, 'dockPerson'),
                 label: '绑定BD',
                 type: 'select',
                 required: true,
@@ -871,7 +867,7 @@
             });
         } else {
             fields.push({
-                id: 'dockPerson',
+                id: fieldId(pfx, 'dockPerson'),
                 label: bindHdr,
                 type: 'text',
                 editDisabled: true,
@@ -879,9 +875,30 @@
             });
         }
 
+        var phoneAddHtml = omitSmsAndLogin
+            ? '<div class="modal-form-group" style="width:100%">' +
+              '<label style="min-width:100px"><span style="color:red">*</span>手机号码</label>' +
+              '<div class="input-wrapper" style="flex:1">' +
+              '<input type="text" id="' +
+              phoneId +
+              '" placeholder="请输入手机号码">' +
+              '<span class="clear-btn">×</span></div></div>'
+            : '<div class="modal-form-group" style="width:100%">' +
+              '<label style="min-width:100px"><span style="color:red">*</span>手机号码</label>' +
+              '<div style="flex:1;display:flex;gap:8px;align-items:center">' +
+              '<div class="input-wrapper" style="flex:1">' +
+              '<input type="text" id="' +
+              phoneId +
+              '" placeholder="请输入手机号码">' +
+              '<span class="clear-btn">×</span></div>' +
+              '<button type="button" class="btn btn-secondary btn-sm mdm-sms-dummy-btn" id="' +
+              smsBtnId +
+              '">获取验证码</button>' +
+              '</div></div>';
+
         fields.push(
             {
-                id: 'subjectType',
+                id: fieldId(pfx, 'subjectType'),
                 label: '主体类型',
                 type: 'select',
                 required: true,
@@ -890,7 +907,7 @@
                 options: typeOptions
             },
             {
-                id: 'contactPerson',
+                id: fieldId(pfx, 'contactPerson'),
                 label: contactLabel,
                 type: 'text',
                 required: true,
@@ -899,41 +916,35 @@
             },
             {
                 type: 'raw',
-                html:
-                    '<div class="modal-form-group" style="width:100%">' +
-                    '<label style="min-width:100px"><span style="color:red">*</span>手机号码</label>' +
-                    '<div style="flex:1;display:flex;gap:8px;align-items:center">' +
-                    '<div class="input-wrapper" style="flex:1">' +
-                    '<input type="text" id="addPhone" placeholder="请输入手机号码">' +
-                    '<span class="clear-btn">×</span></div>' +
-                    '<button type="button" class="btn btn-secondary btn-sm" id="mdmSmsDummyBtn">获取验证码</button>' +
-                    '</div></div>',
+                html: phoneAddHtml,
                 editHtml:
                     '<div class="modal-form-group"><label style="min-width:100px">手机号码</label>' +
                     '<div class="input-wrapper">' +
                     '<input type="text" id="editRowPhoneDisplay" disabled>' +
                     '<span class="clear-btn">×</span></div></div>'
-            },
-            {
-                id: 'smsCode',
+            }
+        );
+        if (!omitSmsAndLogin) {
+            fields.push({
+                id: fieldId(pfx, 'smsCode'),
                 label: '验证码',
                 type: 'text',
                 required: true,
                 editDisabled: true
-            },
-            ...(compactLogin
-                ? []
-                : [
-                      {
-                          id: 'loginAccount',
-                          label: '登录账号',
-                          type: 'text',
-                          editDisabled: true,
-                          placeholder: '请输入登录账号'
-                      }
-                  ]),
+            });
+        }
+        if (!compactLogin) {
+            fields.push({
+                id: fieldId(pfx, 'loginAccount'),
+                label: '登录账号',
+                type: 'text',
+                editDisabled: true,
+                placeholder: '请输入登录账号'
+            });
+        }
+        fields.push(
             {
-                id: 'createTime',
+                id: fieldId(pfx, 'createTime'),
                 label: '创建时间',
                 type: 'text',
                 editDisabled: true,
@@ -941,31 +952,127 @@
                 hiddenInAdd: true
             },
             {
-                id: 'lastOperator',
+                id: fieldId(pfx, 'lastOperator'),
                 label: '最后操作人',
                 type: 'text',
                 editDisabled: true,
                 hiddenInAdd: true
             },
             {
-                id: 'rowStatus',
+                id: fieldId(pfx, 'rowStatus'),
                 label: '状态',
                 type: 'select',
                 required: true,
                 editDisabled: true,
                 hiddenInAdd: true,
-                options: [
+                options: spec.statusOptions || [
                     { value: '正常', text: '正常' },
                     { value: '冻结', text: '冻结' },
                     { value: '停用', text: '停用' }
                 ]
             }
         );
+        return fields;
+    }
+
+    function buildAddValidations(spec) {
+        var pfx = spec.fieldIdPrefix || '';
+        var showBindBd = !!spec.showBindBd;
+        var omitSmsAndLogin = !!spec.omitSmsAndLoginAccount;
+        var multiSubjectType = Array.isArray(spec.subjectTypeOptions) && spec.subjectTypeOptions.length > 0;
+        var contactLabel = spec.contactPersonLabel || '联系人';
+        var list = [
+            { id: fieldId(pfx, 'subjectName'), message: '请输入主体名称', required: true },
+            ...(showBindBd
+                ? [{ id: fieldId(pfx, 'dockPerson'), message: '请选择绑定BD', required: true }]
+                : []),
+            ...(multiSubjectType
+                ? [{ id: fieldId(pfx, 'subjectType'), message: '请选择主体类型', required: true }]
+                : []),
+            {
+                id: fieldId(pfx, 'contactPerson'),
+                message: '请输入' + contactLabel,
+                required: true
+            },
+            { id: fieldId(pfx, 'addPhone'), message: '请输入手机号码', required: true }
+        ];
+        if (!omitSmsAndLogin) {
+            list.push({ id: fieldId(pfx, 'smsCode'), message: '请输入验证码', required: true });
+        }
+        return list;
+    }
+
+    function saveSubjectRowFromAddForm(pm, spec) {
+        var pfx = spec.fieldIdPrefix || '';
+        var showBindBd = !!spec.showBindBd;
+        var omitSmsAndLogin = !!spec.omitSmsAndLoginAccount;
+        var compactLogin = !!spec.compactStoreSubjectForm || omitSmsAndLogin;
+        var idPrefixMap = {
+            门店: 'STORE',
+            供应商: 'SUP',
+            仓库: 'WH',
+            直播间: 'LIVE',
+            承运商: 'CAR'
+        };
+        var subjectIdPrefix = spec.subjectIdPrefix || idPrefixMap[spec.pageLabel] || 'SUB';
+        var phoneEl = document.getElementById(fieldId(pfx, 'addPhone'));
+        var pv = phoneEl ? phoneEl.value.trim() : '';
+        if (!pv) {
+            showToast('请输入手机号码');
+            return false;
+        }
+        var loginEl = document.getElementById(fieldId(pfx, 'loginAccount'));
+        var loginVal = compactLogin ? '—' : loginEl ? loginEl.value.trim() || '—' : '—';
+        if (!compactLogin && (!loginVal || loginVal === '—')) {
+            showToast('请输入登录账号');
+            return false;
+        }
+        var dockVal = '—';
+        if (showBindBd) {
+            var dockEl = document.getElementById(fieldId(pfx, 'dockPerson'));
+            dockVal = dockEl ? dockEl.value.trim() : '';
+            if (!dockVal) {
+                showToast('请选择绑定BD');
+                return false;
+            }
+        }
+        var typeEl = document.getElementById(fieldId(pfx, 'subjectType'));
+        var typeVal = typeEl ? typeEl.value.trim() : spec.subjectTypeLabel;
+        var nameEl = document.getElementById(fieldId(pfx, 'subjectName'));
+        var contactEl = document.getElementById(fieldId(pfx, 'contactPerson'));
+        pm.addTableRow({
+            cells: [
+                nextSubjectRowId(subjectIdPrefix, pm),
+                nameEl ? nameEl.value.trim() : '',
+                dockVal,
+                typeVal || spec.subjectTypeLabel,
+                contactEl ? contactEl.value.trim() : '',
+                maskPhoneForTable(pv),
+                loginVal,
+                pm.getCurrentTimeStr(),
+                '当前用户',
+                { value: spec.defaultStatus || '正常', isStatus: true }
+            ]
+        });
+        showToast(spec.pageLabel + '商家已保存', 'success');
+        return true;
+    }
+
+    function init(spec) {
+        var showBindBd = !!spec.showBindBd;
+        var omitSmsAndLogin = !!spec.omitSmsAndLoginAccount;
+        var multiSubjectType = Array.isArray(spec.subjectTypeOptions) && spec.subjectTypeOptions.length > 0;
+        var disableMsg = spec.disableConfirmMessage || '确定禁用该主体吗？';
+        var addModalId = spec.addModalId || 'mdmSubjectAddModal';
+        var editModalId = spec.editModalId || 'mdmSubjectDetailModal';
+        var addBtnLabel = spec.addButtonLabel || '+ 新增' + spec.pageLabel + '商家';
+        var showSubjectOnboarding = !!spec.enableSubjectOnboarding;
+        var fields = buildSubjectFields(spec);
 
         var pm = new PageManager({
-            entityName: spec.entityName || spec.pageLabel + '主体',
-            addModalTitle: spec.addModalTitle || '添加' + spec.pageLabel + '主体',
-            editModalTitle: spec.editModalTitle || '编辑' + spec.pageLabel + '主体',
+            entityName: spec.entityName || spec.pageLabel + '商家',
+            addModalTitle: spec.addModalTitle || '添加' + spec.pageLabel + '商家',
+            editModalTitle: spec.editModalTitle || '编辑' + spec.pageLabel + '商家',
             detailModalTitle: spec.detailModalTitle || spec.pageLabel + '详情',
             statusColumnIndex: 9,
             checkboxColumn: false,
@@ -1012,68 +1119,13 @@
                 triggerBtnId: 'mdmSubjectAddBtn',
                 onOpen: function () {
                     if (!multiSubjectType) {
-                        var st = document.getElementById('subjectType');
+                        var st = document.getElementById(fieldId(spec.fieldIdPrefix, 'subjectType'));
                         if (st) st.value = spec.subjectTypeLabel;
                     }
                 },
-                validations: [
-                    { id: 'subjectName', message: '请输入主体名称', required: true },
-                    ...(showBindBd
-                        ? [{ id: 'dockPerson', message: '请选择绑定BD', required: true }]
-                        : []),
-                    ...(multiSubjectType
-                        ? [{ id: 'subjectType', message: '请选择主体类型', required: true }]
-                        : []),
-                    {
-                        id: 'contactPerson',
-                        message: '请输入' + contactLabel,
-                        required: true
-                    },
-                    { id: 'addPhone', message: '请输入手机号码', required: true },
-                    { id: 'smsCode', message: '请输入验证码', required: true }
-                ],
+                validations: buildAddValidations(spec),
                 onSave: function () {
-                    var pv = document.getElementById('addPhone')
-                        ? document.getElementById('addPhone').value.trim()
-                        : '';
-                    if (!pv) {
-                        showToast('请输入手机号码');
-                        return false;
-                    }
-                    var loginVal = compactLogin
-                        ? '—'
-                        : document.getElementById('loginAccount')
-                          ? document.getElementById('loginAccount').value.trim() || '—'
-                          : '—';
-                    if (!compactLogin && (!loginVal || loginVal === '—')) {
-                        showToast('请输入登录账号');
-                        return false;
-                    }
-                    var dockVal = '—';
-                    if (showBindBd) {
-                        var dockEl = document.getElementById('dockPerson');
-                        dockVal = dockEl ? dockEl.value.trim() : '';
-                        if (!dockVal) {
-                            showToast('请选择绑定BD');
-                            return false;
-                        }
-                    }
-                    var typeEl = document.getElementById('subjectType');
-                    var typeVal = typeEl ? typeEl.value.trim() : spec.subjectTypeLabel;
-                    var cells = [
-                        nextSubjectRowId(subjectIdPrefix, pm),
-                        document.getElementById('subjectName').value.trim(),
-                        dockVal,
-                        typeVal || spec.subjectTypeLabel,
-                        document.getElementById('contactPerson').value.trim(),
-                        maskPhoneForTable(pv),
-                        loginVal,
-                        pm.getCurrentTimeStr(),
-                        '当前用户',
-                        { value: '正常', isStatus: true }
-                    ];
-                    pm.addTableRow({ cells: cells });
-                    showToast(spec.pageLabel + '主体已保存', 'success');
+                    return saveSubjectRowFromAddForm(pm, spec);
                 }
             },
             editModal: {
@@ -1138,8 +1190,268 @@
             });
 
         document.body.addEventListener('click', function (e) {
-            if (e.target && e.target.id === 'mdmSmsDummyBtn')
+            var t = e.target;
+            if (
+                t &&
+                (t.id === 'mdmSmsDummyBtn' ||
+                    (t.classList && t.classList.contains('mdm-sms-dummy-btn')))
+            ) {
                 showToast('验证码已发送（演示）', 'info');
+            }
+        });
+
+        setTimeout(function () {
+            pm.decorateAllDetailLinkCells();
+            document.querySelectorAll('#tableBody tr').forEach(function (tr) {
+                pm.refreshDisableToggleLabel(tr);
+            });
+        }, 0);
+
+        return pm;
+    }
+
+    function rowMerchantKind(tr) {
+        var c = tr ? tr.querySelectorAll('td') : [];
+        var t = c[3] ? c[3].textContent.trim() : '';
+        if (t === '供应商' || t === '仓库' || t === '门店') return t;
+        return '门店';
+    }
+
+    function openKindAddModal(modalId, kindSpec) {
+        var modal = document.getElementById(modalId);
+        if (!modal) return;
+        modal.querySelectorAll('input, select, textarea').forEach(function (el) {
+            if (el.disabled) return;
+            if (el.tagName === 'SELECT') el.selectedIndex = 0;
+            else el.value = '';
+        });
+        var st = document.getElementById(fieldId(kindSpec.fieldIdPrefix, 'subjectType'));
+        if (st) st.value = kindSpec.subjectTypeLabel;
+        modal.style.display = 'block';
+    }
+
+    function mountKindAddModal(mainPm, kindSpec) {
+        var modalId = kindSpec.addModalId;
+        var cancelId = modalId + 'CancelBtn';
+        var saveId = modalId + 'SaveBtn';
+        var helper = new PageManager({
+            fields: buildSubjectFields(kindSpec),
+            entityName: kindSpec.pageLabel + '商家',
+            addModalTitle: '添加' + kindSpec.pageLabel + '商家',
+            addModal: {
+                modalId: modalId,
+                cancelBtnId: cancelId,
+                saveBtnId: saveId
+            }
+        });
+        helper.autoGenerateModals();
+
+        var btn = document.getElementById(kindSpec.triggerBtnId);
+        if (btn) {
+            btn.addEventListener('click', function () {
+                openKindAddModal(modalId, kindSpec);
+            });
+        }
+        var modal = document.getElementById(modalId);
+        if (!modal) return;
+        var closeBtn = modal.querySelector('.close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function () {
+                modal.style.display = 'none';
+            });
+        }
+        var cancelBtn = document.getElementById(cancelId);
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function () {
+                modal.style.display = 'none';
+            });
+        }
+        var saveBtn = document.getElementById(saveId);
+        if (saveBtn) {
+            saveBtn.addEventListener('click', function () {
+                var rules = buildAddValidations(kindSpec);
+                for (var i = 0; i < rules.length; i++) {
+                    var el = document.getElementById(rules[i].id);
+                    var val = el ? String(el.value || '').trim() : '';
+                    if (rules[i].required && !val) {
+                        showToast(rules[i].message);
+                        if (el) el.focus();
+                        return;
+                    }
+                }
+                if (saveSubjectRowFromAddForm(mainPm, kindSpec) === false) return;
+                modal.style.display = 'none';
+                mainPm.decorateAllDetailLinkCells();
+                mainPm.refreshPagination();
+            });
+        }
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+    }
+
+    /**
+     * 所有主体：门店/供应商/仓库商家合并列表；三套新增按钮各自打开原表单字段
+     */
+    function initUnified() {
+        var kindByLabel = {
+            门店: {
+                pageLabel: '门店',
+                subjectTypeLabel: '门店',
+                showBindBd: true,
+                compactStoreSubjectForm: true,
+                /* 与供应商一致：新增门店商家不收集验证码 / 登录账号 */
+                omitSmsAndLoginAccount: true,
+                enableSubjectOnboarding: true,
+                defaultStatus: '开启',
+                addModalId: 'mdmAllAddStore',
+                triggerBtnId: 'mdmAddStoreMerchantBtn',
+                fieldIdPrefix: 'st_',
+                subjectIdPrefix: 'STORE',
+                disableConfirmMessage: '确定禁用此门店吗？'
+            },
+            供应商: {
+                pageLabel: '供应商',
+                subjectTypeLabel: '供应商',
+                omitSmsAndLoginAccount: true,
+                enableSubjectOnboarding: true,
+                defaultStatus: '开启',
+                addModalId: 'mdmAllAddSup',
+                triggerBtnId: 'mdmAddSupMerchantBtn',
+                fieldIdPrefix: 'sup_',
+                subjectIdPrefix: 'SUP',
+                disableConfirmMessage: '确定禁用此供应商吗？'
+            },
+            仓库: {
+                pageLabel: '仓库',
+                subjectTypeLabel: '仓库',
+                enableSubjectOnboarding: true,
+                defaultStatus: '开启',
+                addModalId: 'mdmAllAddWh',
+                triggerBtnId: 'mdmAddWhMerchantBtn',
+                fieldIdPrefix: 'wh_',
+                subjectIdPrefix: 'WH',
+                disableConfirmMessage: '确定禁用此仓库吗？'
+            }
+        };
+        var editModalId = 'mdmPartyAllDetail';
+        var activeKind = kindByLabel['门店'];
+
+        var detailFields = buildSubjectFields({
+            pageLabel: '商家',
+            subjectTypeLabel: '门店',
+            subjectTypeOptions: ['门店', '供应商', '仓库'],
+            bindColumnLabel: '绑定BD名称',
+            contactPersonLabel: '联系人',
+            statusOptions: [
+                { value: '开启', text: '开启' },
+                { value: '冻结', text: '冻结' },
+                { value: '禁用', text: '禁用' }
+            ]
+        });
+
+        var pm = new PageManager({
+            entityName: '商家',
+            editModalTitle: '商家详情',
+            detailModalTitle: '商家详情',
+            statusColumnIndex: 9,
+            checkboxColumn: false,
+            /* 列表操作对齐运营后台：仅「禁用/开启」；进件从详情进入 */
+            actionColumnMode: 'disableToggle',
+            disableToggleVerb: 'openClose',
+            pageSize: 20,
+            fields: detailFields,
+            detailView: {
+                enabled: true,
+                columnIndex: 1,
+                linkClass: 'subject-name-link'
+            },
+            onDisableToggle: function (row, status) {
+                var label = rowMerchantKind(row);
+                var kindSpec = kindByLabel[label] || kindByLabel['门店'];
+                if (status === '禁用' || status === '停用' || status === '冻结') {
+                    pm.updateTableRow(row, { 9: { value: '开启', isStatus: true } });
+                    pm.refreshDisableToggleLabel(row);
+                    return;
+                }
+                showLfWarmConfirm(kindSpec.disableConfirmMessage, function () {
+                    pm.updateTableRow(row, { 9: { value: '禁用', isStatus: true } });
+                    pm.refreshDisableToggleLabel(row);
+                });
+            },
+            editModal: {
+                modalId: editModalId,
+                cancelBtnId: editModalId + 'CancelBtn',
+                saveBtnId: editModalId + 'SaveBtn',
+                validations: [],
+                mapRowToForm: function (row) {
+                    pm.currentEditRow = row;
+                    activeKind = kindByLabel[rowMerchantKind(row)] || kindByLabel['门店'];
+                    var c = row.querySelectorAll('td');
+                    var titleEl = document.querySelector('#' + editModalId + ' .modal-title');
+                    if (titleEl) titleEl.textContent = activeKind.pageLabel + '详情';
+                    return {
+                        editSubjectId: c[0].textContent.trim(),
+                        editSubjectName: c[1].textContent.trim(),
+                        editDockPerson: c[2].textContent.trim(),
+                        editSubjectType: c[3].textContent.trim(),
+                        editContactPerson: c[4].textContent.trim(),
+                        editRowPhoneDisplay: c[5].textContent.trim(),
+                        editLoginAccount: c[6].textContent.trim(),
+                        editCreateTime: c[7].textContent.trim(),
+                        editLastOperator: c[8].textContent.trim(),
+                        editRowStatus: c[9].querySelector('.status')
+                            ? c[9].querySelector('.status').textContent.trim()
+                            : '开启',
+                        editSmsCode: '—'
+                    };
+                },
+                onSave: function () {},
+                onDetailModeChange: function (isDetail) {
+                    var g = document.getElementById('editSmsCode');
+                    if (g && g.closest) {
+                        g.closest('.modal-form-group').style.display = isDetail ? 'none' : '';
+                    }
+                    var editModal = document.getElementById(editModalId);
+                    if (!editModal) return;
+                    var form = editModal.querySelector('.modal-form');
+                    if (form) form.style.display = isDetail ? 'none' : '';
+                    var blk = editModal.querySelector('[data-subject-onboard-detail]');
+                    if (!isDetail) {
+                        if (blk) blk.style.display = 'none';
+                        return;
+                    }
+                    var row = pm.currentEditRow;
+                    var kindSpec = kindByLabel[rowMerchantKind(row)] || kindByLabel['门店'];
+                    renderSubjectDetailOnboardingBlock(pm, kindSpec, editModalId);
+                }
+            }
+        });
+
+        pm.init();
+
+        ['门店', '供应商', '仓库'].forEach(function (label) {
+            mountKindAddModal(pm, kindByLabel[label]);
+        });
+
+        document.getElementById('btnFilterReset') &&
+            document.getElementById('btnFilterReset').addEventListener('click', function () {
+                var ni = document.getElementById('qSubjectName');
+                var ss = document.getElementById('qStatus');
+                if (ni) ni.value = '';
+                if (ss) ss.value = '';
+                filterSubjectRows(pm);
+            });
+        document.getElementById('btnFilterQuery') &&
+            document.getElementById('btnFilterQuery').addEventListener('click', function () {
+                filterSubjectRows(pm);
+            });
+
+        document.body.addEventListener('click', function (e) {
+            var t = e.target;
+            if (t && t.classList && t.classList.contains('mdm-sms-dummy-btn')) {
+                showToast('验证码已发送（演示）', 'info');
+            }
         });
 
         setTimeout(function () {
@@ -1154,6 +1466,7 @@
 
     window.MdmSubjectLf = {
         init: init,
+        initUnified: initUnified,
         filterSubjectRows: filterSubjectRows,
         showLfWarmConfirm: showLfWarmConfirm
     };
