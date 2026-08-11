@@ -532,7 +532,7 @@
 
     if (!f.companyCallbackNotified)
       return toastLines('请勾选：已知晓需接听公司公务来电（17316440268、17339691157）', '', true), false;
-    if (!f.frontPhotoUploaded) return toastLines('请上传门头照片', '', true), false;
+    if (!f.frontPhotoUploaded) return toastLines('请上传门头/场地照', '', true), false;
 
     return true;
   }
@@ -663,7 +663,7 @@
     $('btnFrontPhoto').onclick = function () {
       state.frontPhotoUploaded = true;
       $('frontUploadedBadge').classList.remove('shop-h5-hidden');
-      toast('已选择文件：演示门头照已标记为已上传');
+      toast('已选择文件：演示门头/场地照已标记为已上传');
     };
 
     $('btnRefrigeratedPick').onclick = function () {

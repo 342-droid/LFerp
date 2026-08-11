@@ -377,7 +377,7 @@
             opts = opts || {};
             var row = el('div', 'store-form__row');
             if (ocrFields && ocrFields.length) row.classList.add('store-form__row--ocr');
-            row.appendChild(sfLabel(label, true));
+            row.appendChild(sfLabel(label, opts.required !== false));
             var ctrl = el('div', 'store-form__control');
             var seeded = uploadState[key] ? caption : '';
 
@@ -640,9 +640,15 @@
 
         var s4 = el('section', 'store-onboard-section');
         s4.appendChild(sectionTitle('门店场地'));
-        uploadRow(s4, '门头/场地照', 'store_header_pic', 'F22');
-        uploadRow(s4, '内景/工作区域照', 'store_indoor_pic', 'F24');
-        uploadRow(s4, '收银台/前台照', 'store_cashier_desk_pic', 'F105');
+        /* 仅门店进件：门头/场地照必填；内景、收银台及供应商场地照均为选填 */
+        var venueHeaderRequired = variant === 'store' || onboardingKind === 'store';
+        uploadRow(s4, '门头/场地照', 'store_header_pic', 'F22', null, {
+            required: venueHeaderRequired
+        });
+        uploadRow(s4, '内景/工作区域照', 'store_indoor_pic', 'F24', null, { required: false });
+        uploadRow(s4, '收银台/前台照', 'store_cashier_desk_pic', 'F105', null, {
+            required: false
+        });
         body.appendChild(s4);
 
         function getInputVal(key) {
@@ -702,11 +708,11 @@
                 ['license_pic', '营业执照'],
                 ['legal_cert_front_pic', '法人身份证人像面'],
                 ['legal_cert_back_pic', '法人身份证国徽面'],
-                ['open_license_pic', '开户许可证'],
-                ['store_header_pic', '门头/场地照'],
-                ['store_indoor_pic', '内景/工作区域照'],
-                ['store_cashier_desk_pic', '收银台/前台照']
+                ['open_license_pic', '开户许可证']
             ];
+            if (venueHeaderRequired) {
+                requiredUploads.push(['store_header_pic', '门头/场地照']);
+            }
             for (var j = 0; j < requiredUploads.length; j++) {
                 var up = requiredUploads[j];
                 if (!uploadState[up[0]]) {

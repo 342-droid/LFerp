@@ -38,7 +38,7 @@ const auditRows = [
     region: '浙江省 / 杭州市 / 西湖区',
     address: '文一西路 558 号 1 层临街',
     latlng: '120.0912,30.2866',
-    facadePhoto: [{ type: 'image', name: '门店门头照-文一西路.jpg' }],
+    facadePhoto: [{ type: 'image', name: '门头场地照-文一西路.jpg' }],
     hasRefrigeratedCabinet: '有',
     refrigeratedPhotos: [
       { type: 'image', name: '冷藏柜-1.jpg' },
@@ -269,7 +269,7 @@ function appendRegistrationFields(body, row) {
   body.appendChild(detailRow('省市区', row.region));
   body.appendChild(detailRow('详细地址', row.address));
   body.appendChild(detailRow('经纬度', row.latlng));
-  body.appendChild(detailRow('门店门头照', mediaGrid(row.facadePhoto)));
+  body.appendChild(detailRow('门头/场地照', mediaGrid(row.facadePhoto)));
   body.appendChild(detailRow('有无冷藏柜', row.hasRefrigeratedCabinet));
   body.appendChild(detailRow('冷藏柜照片', mediaGrid(row.refrigeratedPhotos)));
   body.appendChild(detailRow('有无冷冻柜', row.hasFreezerCabinet));

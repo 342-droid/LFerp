@@ -991,18 +991,18 @@
     function secFacade() {
       return (
         '<section class="h5-sec">' +
-        secHead('▣', '门头照', '必传。用于便于放货和城管报备。') +
+        secHead('▣', '门头/场地照', '必传。用于便于放货和城管报备。') +
         '<div class="h5-sec-body">' +
         field(
-          '正门头照片',
+          '门头/场地照',
           true,
           '<div class="h5-facade"><div class="h5-facade-img"></div>' +
             (st.frontPhoto ? '<span class="h5-facade-badge">已上传</span>' : '') +
             '</div>' +
             '<button type="button" class="bd-btn bd-btn-outline" style="width:100%;margin-top:8px" id="f_front">' +
-            (st.frontPhoto ? '更换正门头照片' : '上传正门头照片') +
+            (st.frontPhoto ? '更换门头/场地照' : '上传门头/场地照') +
             '</button>',
-          '需上传清晰的门店正面外观'
+          '需上传清晰的门店正面外观或场地照片'
         ) +
         '</div></section>'
       );
@@ -1442,7 +1442,7 @@
         return false;
       }
       if (!st.frontPhoto) {
-        bdToast('请上传门头照片');
+        bdToast('请上传门头/场地照');
         return false;
       }
       return true;
@@ -1671,7 +1671,7 @@
           readFormToState();
           fullRender();
           fillDomFromState();
-          bdToast && bdToast('已选择文件', '演示：门头照已标记上传');
+          bdToast && bdToast('已选择文件', '演示：门头/场地照已标记上传');
         };
 
       var cancel = el('h5Cancel');

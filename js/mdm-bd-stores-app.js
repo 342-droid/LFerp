@@ -551,10 +551,10 @@
       parts.push(
         archiveCard(
           '🖼',
-          '门头照',
+          '门头/场地照',
           '必传。用于便于放货和城管报备。',
           fieldBlock(
-            '正门头照片',
+            '门头/场地照',
             '<img class="bd-storefront-photo" alt="门头示意" src="data:image/svg+xml,' +
               encodeURIComponent(
                 '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="160"><rect fill="#e5e7eb" width="100%" height="100%"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#64748b" font-size="14">门头示意</text></svg>'

@@ -1697,6 +1697,32 @@
   box-shadow: none;
 }
 
+/* 档案详情 · 基础信息场地照（待上传可点上传） */
+.mdm-archive-venue-upload {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.mdm-archive-venue-upload__status {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.mdm-archive-venue-upload .erp-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  line-height: 1.4;
+  height: auto;
+  min-height: 28px;
+}
+
+.mdm-archive-venue-upload--done {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
 .mdm-photo-lightbox {
   z-index: 3200;
   display: flex;
