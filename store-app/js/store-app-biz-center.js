@@ -34,13 +34,9 @@
   };
 
   /**
-   * 经营中心展示门店分佣信息 = 清分门店明细
-   * 结算未配置门店佣金比例的已支付单不生成清分，不进入本列表
+   * 经营中心订单列表：含清分单 + 无清分单（结算未配门店佣金比例时结算状态展示 —）
    */
-  var ORDERS =
-    window.StoreAppBizOrders && typeof window.StoreAppBizOrders.listStoreClearing === 'function'
-      ? window.StoreAppBizOrders.listStoreClearing()
-      : (window.StoreAppBizOrders && window.StoreAppBizOrders.list) || [];
+  var ORDERS = (window.StoreAppBizOrders && window.StoreAppBizOrders.list) || [];
 
   function $(id) {
     return document.getElementById(id);
@@ -129,6 +125,7 @@
   function statusClass(status) {
     if (status === 'pending_ship') return 'is-ship';
     if (status === 'pending_pickup' || status === 'pending_receipt') return 'is-pending';
+    if (status === 'failed') return 'is-failed';
     return '';
   }
 
@@ -183,7 +180,7 @@
     return Array.isArray(o.refundItems) && o.refundItems.length > 0;
   }
 
-  /** 结算状态：待结算 | 结算中 | 已结算 | 结算失败 | 已取消 */
+  /** 结算状态：待结算 | 结算中 | 已结算 | 结算失败 | 已取消；无清分展示 — */
   function settleStatusClass(status) {
     var s = String(status || '');
     if (s === '已结算') return 'is-settled';
@@ -194,12 +191,20 @@
     return '';
   }
 
+  function settleStatusLabel(o) {
+    if (o && o.settleStatus) return o.settleStatus;
+    if (window.StoreAppBizOrders && typeof StoreAppBizOrders.hasStoreClearing === 'function') {
+      if (!StoreAppBizOrders.hasStoreClearing(o)) return '—';
+    }
+    return '待结算';
+  }
+
   function renderOrder(o) {
     var shipCls = o.shipMode === '快递' || o.shipMode === '自提' ? ' sa-biz-kv__v--ship' : '';
     var refundTimeRow = hasRefund(o)
       ? kvRow('退款时间', esc(o.refundTime || '-'))
       : '';
-    var settleStatus = o.settleStatus || '待结算';
+    var settleStatus = settleStatusLabel(o);
     var settleCls = settleStatusClass(settleStatus);
     return (
       '<article class="sa-biz-order" data-order-id="' +
