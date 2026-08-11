@@ -1,7 +1,158 @@
 {
-  "latestSha": "e3f9295d19539bd8d3338718c1129a6062aff46d",
-  "total": 248,
+  "latestSha": "617ea2504a941ca6e7eea28dfbebd8f520e3fd53",
+  "total": 249,
   "days": [
+    {
+      "date": "2026-08-12",
+      "items": [
+        {
+          "sha": "617ea25",
+          "type": "feat",
+          "text": "完善进件保存审核交互并简化商家人员创建表单",
+          "author": "sisi",
+          "time": "01:45",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_h5.html",
+              "module": "",
+              "title": "冷丰 MDM · 门店扫码 H5"
+            },
+            {
+              "file": "MDM/mdm_bd_store_form.html",
+              "module": "",
+              "title": "冷丰 MDM · 添加 / 编辑门店"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_resource_onboarding.html",
+              "module": "冷丰WMS",
+              "title": "支付进件"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            },
+            {
+              "file": "shop-h5/h5/store/register.html",
+              "module": "",
+              "title": "门店注册 · Shop H5"
+            },
+            {
+              "file": "shop-h5/h5/store/status.html",
+              "module": "",
+              "title": "门店状态 · Shop H5"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_party_all.html",
+              "text": "新增仓库商家去掉验证码与登录账号"
+            },
+            {
+              "file": null,
+              "text": "BD: 创建时去掉验证码"
+            },
+            {
+              "file": null,
+              "text": "添加门店页支持经营认知等板块收起展开"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "text": "创建时去掉验证码"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "text": "创建时去掉验证码"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "text": "创建时去掉验证码"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "加盟/合作店经营认知与特殊情况分板块默认收起；同行店补充资料可折叠"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "text": "新增/编辑去掉入库仓库字段"
+            },
+            {
+              "file": null,
+              "text": "进件审核: 审核中心编辑无提交进件，保存保持待审"
+            },
+            {
+              "file": null,
+              "text": "待提交草稿首次保存后才可删除"
+            },
+            {
+              "file": "shop-h5/h5/store/register.html",
+              "text": "经营认知、特殊情况、同行店补充资料默认收起"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-11",
       "items": [
