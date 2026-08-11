@@ -1,7 +1,66 @@
 {
-  "latestSha": "198192ffdfd35150935eae65af5e0a6a6b99c9bb",
-  "total": 246,
+  "latestSha": "adcde6a8a1fc41de62cab878d9e8552dfa22fb8e",
+  "total": 247,
   "days": [
+    {
+      "date": "2026-08-11",
+      "items": [
+        {
+          "sha": "adcde6a",
+          "type": "feat",
+          "text": "经营中心按订单与结算状态对照表完善演示数据",
+          "author": "sisi",
+          "time": "15:19",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "module": "",
+              "title": "经营中心 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/biz-order-goods.html",
+              "module": "",
+              "title": "订单商品明细 · 门店APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/biz-center.html",
+              "text": "按对照表调整订单与结算状态组合，含无清分「—」与交易失败；待自提配送时间显示为 -"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "佣金明细同源演示数据与脚本缓存版号同步"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-10",
       "items": [
