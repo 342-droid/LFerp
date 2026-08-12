@@ -1,10 +1,106 @@
 {
-  "latestSha": "4e8616bc994cec30357aa16043efbabbd341063a",
-  "total": 250,
+  "latestSha": "e01ee8ae557f19c35e0d82fea05ee511186a593b",
+  "total": 251,
   "days": [
     {
       "date": "2026-08-12",
       "items": [
+        {
+          "sha": "e01ee8a",
+          "type": "feat",
+          "text": "创建商家主体与人员时增加短信验证码校验",
+          "author": "sisi",
+          "time": "10:08",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_party_all.html",
+              "text": "新增门店/供应商/仓库需获取并填写6位验证码；仍不收集登录账号"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "text": "创建时增加获取验证码与6位校验"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "text": "创建时增加获取验证码与6位校验"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "text": "创建时增加获取验证码与6位校验"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "text": "创建时增加获取验证码与6位校验"
+            }
+          ]
+        },
         {
           "sha": "4e8616b",
           "type": "feat",

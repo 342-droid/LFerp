@@ -2526,6 +2526,71 @@
     "status": "diff",
     "date": "2026-08-04"
   },
+  "e01ee8a|MDM/mdm_archive_carrier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-12"
+  },
+  "e01ee8a|MDM/mdm_archive_live_room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-12"
+  },
+  "e01ee8a|MDM/mdm_archive_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-12"
+  },
+  "e01ee8a|MDM/mdm_archive_supplier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-12"
+  },
+  "e01ee8a|MDM/mdm_archive_warehouse.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-12"
+  },
+  "e01ee8a|MDM/mdm_audit_store_registration.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-12"
+  },
+  "e01ee8a|MDM/mdm_member_c.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-12"
+  },
+  "e01ee8a|MDM/mdm_party_all.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-12"
+  },
+  "e01ee8a|MDM/mdm_people_anchor.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-12"
+  },
+  "e01ee8a|MDM/mdm_people_bd.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-12"
+  },
+  "e01ee8a|MDM/mdm_people_driver.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-12"
+  },
+  "e01ee8a|MDM/mdm_people_purchaser.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-12"
+  },
+  "e01ee8a|MDM/mdm_super_admin_accounts.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-12"
+  },
   "e3f9295|MDM/mdm_archive_carrier.html": {
     "before": "changelog-assets/e3f9295/MDM__mdm_archive_carrier.html.before.jpg",
     "after": "changelog-assets/e3f9295/MDM__mdm_archive_carrier.html.after.jpg",
