@@ -78,8 +78,8 @@
      *   bindColumnLabel?: string,
      *   contactPersonLabel?: string,
      *   showBindBd?: boolean,
-     *   compactStoreSubjectForm?: boolean,
-     *   omitSmsAndLoginAccount?: boolean, 添加商家表单去掉验证码、登录账号（门店/供应商/仓库）
+     *   compactStoreSubjectForm?: boolean, 为 true 时不展示登录账号（可与验证码并存）
+     *   omitSmsAndLoginAccount?: boolean, 添加商家表单同时去掉验证码与登录账号
      *   disableConfirmMessage?: string,
      *   addModalId?: string,
      *   editModalId?: string,
@@ -971,7 +971,8 @@
                 label: '验证码',
                 type: 'text',
                 required: true,
-                editDisabled: true
+                editDisabled: true,
+                placeholder: '请输入6位数字验证码'
             });
         }
         if (!compactLogin) {
@@ -1038,7 +1039,7 @@
             { id: fieldId(pfx, 'addPhone'), message: '请输入手机号码', required: true }
         ];
         if (!omitSmsAndLogin) {
-            list.push({ id: fieldId(pfx, 'smsCode'), message: '请输入验证码', required: true });
+            list.push({ id: fieldId(pfx, 'smsCode'), message: '请输入6位数字验证码', required: true });
         }
         return list;
     }
@@ -1057,10 +1058,19 @@
         };
         var subjectIdPrefix = spec.subjectIdPrefix || idPrefixMap[spec.pageLabel] || 'SUB';
         var phoneEl = document.getElementById(fieldId(pfx, 'addPhone'));
-        var pv = phoneEl ? phoneEl.value.trim() : '';
-        if (!pv) {
-            showToast('请输入手机号码');
+        var pv = phoneEl ? phoneEl.value.replace(/\D/g, '') : '';
+        if (pv.length !== 11) {
+            showToast('请输入11位手机号码');
             return false;
+        }
+        if (!omitSmsAndLogin) {
+            var smsEl = document.getElementById(fieldId(pfx, 'smsCode'));
+            var smsCode = smsEl ? (smsEl.value || '').replace(/\D/g, '') : '';
+            if (smsCode.length !== 6) {
+                showToast('请输入6位数字验证码');
+                if (smsEl) smsEl.focus();
+                return false;
+            }
         }
         var loginEl = document.getElementById(fieldId(pfx, 'loginAccount'));
         var loginVal = compactLogin ? '—' : loginEl ? loginEl.value.trim() || '—' : '—';
@@ -1230,6 +1240,12 @@
                 filterSubjectRows(pm);
             });
 
+        var smsInput = document.getElementById(fieldId(spec.fieldIdPrefix, 'smsCode'));
+        if (smsInput) {
+            smsInput.setAttribute('maxlength', '6');
+            smsInput.setAttribute('inputmode', 'numeric');
+        }
+
         document.body.addEventListener('click', function (e) {
             var t = e.target;
             if (
@@ -1237,7 +1253,7 @@
                 (t.id === 'mdmSmsDummyBtn' ||
                     (t.classList && t.classList.contains('mdm-sms-dummy-btn')))
             ) {
-                showToast('验证码已发送（演示）', 'info');
+                handleSubjectSmsDummyClick(t);
             }
         });
 
@@ -1249,6 +1265,21 @@
         }, 0);
 
         return pm;
+    }
+
+    function handleSubjectSmsDummyClick(btn) {
+        var modal = btn && btn.closest ? btn.closest('.modal') : null;
+        var phoneInp = modal ? modal.querySelector('input[id$="addPhone"]') : null;
+        if (!phoneInp && btn && btn.id) {
+            phoneInp = document.getElementById(String(btn.id).replace(/mdmSmsDummyBtn$/, 'addPhone'));
+        }
+        var digits = phoneInp ? String(phoneInp.value || '').replace(/\D/g, '') : '';
+        if (digits.length !== 11) {
+            showToast('请先输入11位手机号码', 'info');
+            if (phoneInp) phoneInp.focus();
+            return;
+        }
+        showToast('验证码已发送（演示）', 'info');
     }
 
     function rowMerchantKind(tr) {
@@ -1286,6 +1317,11 @@
             }
         });
         helper.autoGenerateModals();
+        var smsInput = document.getElementById(fieldId(kindSpec.fieldIdPrefix, 'smsCode'));
+        if (smsInput) {
+            smsInput.setAttribute('maxlength', '6');
+            smsInput.setAttribute('inputmode', 'numeric');
+        }
 
         var btn = document.getElementById(kindSpec.triggerBtnId);
         if (btn) {
@@ -1340,9 +1376,8 @@
                 pageLabel: '门店',
                 subjectTypeLabel: '门店',
                 showBindBd: true,
+                /* 创建需短信验证码；不收集登录账号 */
                 compactStoreSubjectForm: true,
-                /* 与供应商一致：新增门店商家不收集验证码 / 登录账号 */
-                omitSmsAndLoginAccount: true,
                 enableSubjectOnboarding: true,
                 defaultStatus: '开启',
                 addModalId: 'mdmAllAddStore',
@@ -1354,7 +1389,8 @@
             供应商: {
                 pageLabel: '供应商',
                 subjectTypeLabel: '供应商',
-                omitSmsAndLoginAccount: true,
+                /* 创建需短信验证码；不收集登录账号 */
+                compactStoreSubjectForm: true,
                 enableSubjectOnboarding: true,
                 defaultStatus: '开启',
                 addModalId: 'mdmAllAddSup',
@@ -1366,8 +1402,8 @@
             仓库: {
                 pageLabel: '仓库',
                 subjectTypeLabel: '仓库',
-                /* 与门店/供应商一致：新增仓库商家不收集验证码 / 登录账号 */
-                omitSmsAndLoginAccount: true,
+                /* 创建需短信验证码；不收集登录账号 */
+                compactStoreSubjectForm: true,
                 enableSubjectOnboarding: true,
                 defaultStatus: '开启',
                 addModalId: 'mdmAllAddWh',
