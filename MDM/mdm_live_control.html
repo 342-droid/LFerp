@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 直播中控</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-live.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/live-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content lf-live-control-page">
+            <div class="lf-live-control-topbar">
+                <button type="button" class="lf-live-control-back" id="controlBackBtn">← 返回直播场次</button>
+                <div class="lf-live-control-topbar__main">
+                    <span class="lf-live-control-topbar__title" id="controlSessionTitle">直播中控</span>
+                    <span class="lf-live-badge" id="controlStatusBadge" hidden>—</span>
+                </div>
+            </div>
+            <hr class="content-divider">
+
+            <div id="controlPicker" class="lf-live-control-picker">
+                <div class="lf-live-empty-tip">选择一个直播场次后，可以进入直播中控工作台</div>
+                <div class="lf-live-session-picker">
+                    <label for="controlSessionSelect">选择直播场次</label>
+                    <select id="controlSessionSelect"></select>
+                    <button type="button" class="erp-btn erp-btn--primary" id="controlEnterBtn">进入</button>
+                </div>
+            </div>
+
+            <div id="controlWorkspace" class="lf-live-control-workspace" hidden>
+                <section class="lf-live-control-col lf-live-control-col--broadcast">
+                    <div class="lf-live-panel">
+                        <div class="lf-live-panel__header">
+                            <span class="lf-live-panel__title">看播与开播</span>
+                            <span class="lf-live-badge" id="broadcastStateBadge">未开播</span>
+                        </div>
+                        <div class="lf-live-broadcast-preview" id="broadcastPreview">
+                            <div class="lf-live-broadcast-preview__placeholder">视频预览占位区</div>
+                        </div>
+                        <div class="lf-live-broadcast-actions">
+                            <button type="button" class="erp-btn erp-btn--primary" id="btnStartLive">开始直播</button>
+                            <button type="button" class="erp-btn" id="btnStopLive">关闭直播</button>
+                        </div>
+                        <div class="lf-live-broadcast-meta">
+                            <div class="lf-live-broadcast-meta__row">
+                                <label>推流地址</label>
+                                <div class="lf-live-copy-row">
+                                    <input class="erp-input" id="broadcastPushUrl" readonly>
+                                    <button type="button" class="erp-btn" id="btnCopyPush">复制</button>
+                                </div>
+                            </div>
+                            <div class="lf-live-broadcast-meta__row">
+                                <label>当前协议</label>
+                                <div id="broadcastProtocol">RTMP / HLS（演示占位）</div>
+                            </div>
+                            <div class="lf-live-broadcast-meta__row">
+                                <label>状态</label>
+                                <div id="broadcastStateText">未开播</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="lf-live-control-col lf-live-control-col--product">
+                    <div class="lf-live-panel lf-live-panel--fill">
+                        <div class="lf-live-panel__header">
+                            <span class="lf-live-panel__title">商品管理</span>
+                        </div>
+                        <div class="lf-live-product-search">
+                            <input class="erp-input" id="controlProductQ" placeholder="搜索商品">
+                        </div>
+                        <div class="lf-live-product-list" id="controlProductList"></div>
+                    </div>
+                </section>
+
+                <aside class="lf-live-control-col lf-live-control-col--side">
+                    <div class="lf-live-panel">
+                        <div class="lf-live-panel__header">
+                            <span class="lf-live-panel__title">实时数据</span>
+                        </div>
+                        <div class="lf-live-monitor-sales">
+                            <div class="lf-live-monitor-sales__value" id="monitorSales">¥0.00</div>
+                            <div class="lf-live-monitor-sales__label">销售总额</div>
+                        </div>
+                        <div class="lf-live-monitor-grid" id="monitorMetrics"></div>
+                        <div class="lf-live-panel__subheader">
+                            <span id="monitorOrderTitle">实时订单(0)</span>
+                        </div>
+                        <div class="lf-live-order-list" id="monitorOrders"></div>
+                    </div>
+
+                    <div class="lf-live-panel">
+                        <div class="lf-live-panel__header">
+                            <span class="lf-live-panel__title">互动</span>
+                        </div>
+                        <div class="lf-live-welfare-btns">
+                            <button type="button" class="erp-btn" data-welfare="coupon">发放优惠券</button>
+                            <button type="button" class="erp-btn" data-welfare="bag">发放福袋</button>
+                            <button type="button" class="erp-btn" data-welfare="sign">发放签到</button>
+                            <button type="button" class="erp-btn" data-welfare="task">观看任务</button>
+                        </div>
+                        <div class="lf-live-chat-list" id="controlChatList"></div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-live-demo-data.js"></script>
+    <script src="../js/mdm-live-control.js"></script>
+</body>
+</html>

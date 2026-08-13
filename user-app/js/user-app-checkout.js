@@ -1369,6 +1369,8 @@
    * 2) 余额不足 / 未用余额 → 支付方式选择半层（银行卡走密码；微信/支付宝跳三方）
    */
   function onSubmitOrder() {
+    /* 黑名单禁用「下单」：确认/提交订单拦截 */
+    if (window.UaBlacklistGuard && window.UaBlacklistGuard.guardOrderSubmit()) return;
     if (!validateBeforeSubmit()) return;
     var legs = getPayLegs();
     if (payState.useBalance && legs.balanceOnly) {

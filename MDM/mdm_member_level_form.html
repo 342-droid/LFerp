@@ -25,7 +25,7 @@
         }
         .member-level-form-back:hover { text-decoration: underline; }
 
-        /* 卡片版式对齐积分规则页 */
+        /* 卡片通栏；字段控件参考成长值规则页，不必贴满右缘 */
         .pts-rule-card {
             background: #fff;
             border: 1px solid #eee;
@@ -57,7 +57,7 @@
             margin-bottom: 16px;
         }
         .pts-rule-field__label {
-            flex: 0 0 168px;
+            flex: 0 0 140px;
             text-align: right;
             font-size: 13px;
             color: #333;
@@ -67,27 +67,34 @@
             color: #ff4d4f;
             margin-right: 2px;
         }
-        .pts-rule-field__control {
+        /* 覆盖 lf-mdm-edit-page 的 max-width:none，控件区保持可读宽度 */
+        #memberLevelForm .pts-rule-field__control {
             flex: 1;
             min-width: 0;
-            max-width: none;
+            max-width: 640px;
         }
-        .pts-rule-field__control .erp-input,
-        .pts-rule-field__control .erp-select,
-        .pts-rule-field__control textarea.erp-input {
+        #memberLevelForm .pts-rule-field__control .erp-input,
+        #memberLevelForm .pts-rule-field__control .erp-select,
+        #memberLevelForm .pts-rule-field__control textarea.erp-input {
             width: 100%;
             box-sizing: border-box;
         }
-        .pts-rule-field__control .erp-input,
-        .pts-rule-field__control .erp-select {
+        #memberLevelForm .pts-rule-field__control .erp-input,
+        #memberLevelForm .pts-rule-field__control .erp-select {
             height: 36px;
         }
-        .pts-rule-field__control textarea.erp-input {
+        #memberLevelForm .pts-rule-field__control textarea.erp-input {
             height: auto;
             min-height: 88px;
             padding: 8px 10px;
             line-height: 1.5;
             resize: vertical;
+        }
+        /* 券列表、适用范围等稍宽内容：可略放宽，仍不贴边 */
+        #memberLevelForm .pts-rule-field[data-benefit="giftCoupon"] .pts-rule-field__control,
+        #memberLevelForm .pts-rule-field[data-benefit="birthday"] .pts-rule-field__control,
+        #memberLevelForm .pts-rule-field[data-benefit="memberDiscount"] .pts-rule-field__control {
+            max-width: 760px;
         }
 
         .member-level-label-tip {
@@ -132,6 +139,13 @@
             width: auto;
             flex: 0 0 140px;
             max-width: 180px;
+            height: 36px;
+            box-sizing: border-box;
+        }
+        .member-level-unit .erp-select {
+            width: auto;
+            flex: 0 0 180px;
+            max-width: 220px;
             height: 36px;
             box-sizing: border-box;
         }
@@ -601,17 +615,19 @@
             padding: 8px 10px;
         }
         .ml-coupon-table th:nth-child(1),
-        .ml-coupon-table td:nth-child(1) { width: 22%; }
+        .ml-coupon-table td:nth-child(1) { width: 20%; }
         .ml-coupon-table th:nth-child(2),
-        .ml-coupon-table td:nth-child(2) { width: 12%; }
+        .ml-coupon-table td:nth-child(2) { width: 11%; }
         .ml-coupon-table th:nth-child(3),
-        .ml-coupon-table td:nth-child(3) { width: 14%; }
+        .ml-coupon-table td:nth-child(3) { width: 10%; }
         .ml-coupon-table th:nth-child(4),
-        .ml-coupon-table td:nth-child(4) { width: 24%; }
+        .ml-coupon-table td:nth-child(4) { width: 12%; }
         .ml-coupon-table th:nth-child(5),
-        .ml-coupon-table td:nth-child(5) { width: 14%; }
+        .ml-coupon-table td:nth-child(5) { width: 21%; }
         .ml-coupon-table th:nth-child(6),
-        .ml-coupon-table td:nth-child(6) { width: 14%; }
+        .ml-coupon-table td:nth-child(6) { width: 13%; }
+        .ml-coupon-table th:nth-child(7),
+        .ml-coupon-table td:nth-child(7) { width: 13%; }
         .ml-coupon-table tr.is-selected {
             background: #fff7f0;
         }

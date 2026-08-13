@@ -2249,6 +2249,8 @@
 
     document.getElementById('confirmPayBtn') &&
       document.getElementById('confirmPayBtn').addEventListener('click', function () {
+        /* 黑名单禁用「下单」：确认订单提交拦截 */
+        if (global.UaBlacklistGuard && global.UaBlacklistGuard.guardOrderSubmit()) return;
         if (agreeCheck && !agreeCheck.classList.contains('is-checked')) {
           showToast('请先同意交易服务协议');
           return;
@@ -2332,6 +2334,8 @@
 
   function initLiveRoomPage() {
     ensureCart();
+    /* 黑名单禁用「观看直播」：不拉流，页内提示 */
+    if (global.UaBlacklistGuard) global.UaBlacklistGuard.applyLiveWatchBan();
     var state = {
       keyword: '',
       skuProductId: '',
@@ -2694,6 +2698,8 @@
 
     document.getElementById('liveConfirmPayBtn') &&
       document.getElementById('liveConfirmPayBtn').addEventListener('click', function () {
+        /* 黑名单禁用「下单」：直播确认订单提交拦截 */
+        if (global.UaBlacklistGuard && global.UaBlacklistGuard.guardOrderSubmit()) return;
         showToast('支付功能演示');
       });
 
@@ -2720,6 +2726,8 @@
       });
     document.getElementById('liveSendBtn') &&
       document.getElementById('liveSendBtn').addEventListener('click', function () {
+        /* 黑名单禁用「禁止直播评论」：发评论弹窗拦截 */
+        if (global.UaBlacklistGuard && global.UaBlacklistGuard.guardLiveComment()) return;
         var input = document.getElementById('liveCommentInput');
         var text = input && String(input.value || '').trim();
         if (!text) {

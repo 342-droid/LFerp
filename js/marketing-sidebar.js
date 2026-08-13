@@ -1,4 +1,4 @@
-/* 营销专用侧栏：积分管理 / 营销活动（分组均默认展开，与会员侧栏一致） */
+/* 营销专用侧栏：积分管理 / 营销活动 / 营销记录（分组均默认展开，与会员侧栏一致） */
 (function () {
     const wp = window.wmsPath || { page: function (f) { return f; }, asset: function (r) { return r; } };
     const pageHref = function (f) { return wp.page(f); };
@@ -20,6 +20,10 @@
     const pointsItems = [
         { href: 'mdm_marketing_points_home.html', text: '积分首页' },
         { href: 'mdm_marketing_consume_points.html', text: '消费赠积分' }
+    ];
+
+    const recordItems = [
+        { href: 'mdm_marketing_mall_record.html', text: '领券记录' }
     ];
 
     const activityItems = [
@@ -99,6 +103,7 @@
         '<ul class="sidebar-menu">' +
         renderCollapsibleGroup('积分管理', '策略管理', pointsItems) +
         renderCollapsibleGroup('营销活动', '策略管理', activityItems) +
+        renderCollapsibleGroup('营销记录', '策略管理', recordItems) +
         '</ul>' +
         '</aside>';
 })();

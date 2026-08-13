@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 直播类目</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/mdm-member360-list.css">
+    <link rel="stylesheet" href="../css/lf-live.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/live-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">直播类目</button></div>
+            <hr class="content-divider">
+
+            <div class="lf-live-toolbar">
+                <button type="button" class="erp-btn erp-btn--primary" id="liveCatAddBtn">新增类目</button>
+            </div>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>类目名称</th>
+                                <th>排序</th>
+                                <th>启用状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liveCatTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-live-demo-data.js"></script>
+    <script src="../js/mdm-live-product-category.js"></script>
+</body>
+</html>
