@@ -1,10 +1,132 @@
 {
-  "latestSha": "b970025c1ed55aeaf60f36d92fb17d6c11c79d6a",
-  "total": 253,
+  "latestSha": "a6d598174bd34943275e5954a873885632e74770",
+  "total": 254,
   "days": [
     {
       "date": "2026-08-13",
       "items": [
+        {
+          "sha": "a6d5981",
+          "type": "feat",
+          "text": "门店配置合入账户项并对齐直播与全页确认订单",
+          "author": "sisi",
+          "time": "17:25",
+          "pages": [
+            {
+              "file": "MDM/mdm_settle_account_config.html",
+              "module": "冷丰结算",
+              "title": "账户配置"
+            },
+            {
+              "file": "MDM/mdm_settle_fee_config.html",
+              "module": "冷丰结算",
+              "title": "费用配置"
+            },
+            {
+              "file": "MDM/mdm_settle_freight_config.html",
+              "module": "冷丰结算",
+              "title": "运费配置"
+            },
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "module": "冷丰结算",
+              "title": "结算中心"
+            },
+            {
+              "file": "SCM/basic_settings_cooperation.html",
+              "module": "冷丰WMS",
+              "title": "合作管理"
+            },
+            {
+              "file": "SCM/basic_settings_material.html",
+              "module": "冷丰WMS",
+              "title": "素材管理"
+            },
+            {
+              "file": "SCM/basic_settings_member.html",
+              "module": "冷丰WMS",
+              "title": "会员配置"
+            },
+            {
+              "file": "SCM/basic_settings_miniprogram_agreement.html",
+              "module": "冷丰WMS",
+              "title": "小程序协议"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "SCM/basic_settings_recommendation.html",
+              "module": "冷丰WMS",
+              "title": "推荐位配置"
+            },
+            {
+              "file": "SCM/basic_settings_system.html",
+              "module": "冷丰WMS",
+              "title": "系统管理"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/basic_settings_order.html",
+              "text": "原订单配置升级为门店配置，同页分开展示订单配置与账户配置并各自保存"
+            },
+            {
+              "file": "MDM/mdm_settle_account_config.html",
+              "text": "结算侧入口改为跳转门店配置，费用配置侧栏仅保留运费配置"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "商品列表展示快递/自提；确认订单半遮罩字段与全页一致，确认后可唤起支付"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "text": "与直播确认单共用字段与金额逻辑，内容区统一动态渲染"
+            }
+          ]
+        },
         {
           "sha": "b970025",
           "type": "feat",
@@ -888,6 +1010,11 @@
               "title": "结算中心"
             },
             {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
               "file": "store-app/h5/biz-center.html",
               "module": "",
               "title": "经营中心 · 门店APP"
@@ -1066,9 +1193,9 @@
               "title": "零售订单"
             },
             {
-              "file": "MDM/mdm_settle_account_config.html",
-              "module": "冷丰结算",
-              "title": "账户配置"
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
             },
             {
               "file": "store-app/h5/biz-center.html",
@@ -1360,9 +1487,9 @@
               "title": "零售订单"
             },
             {
-              "file": "MDM/mdm_settle_account_config.html",
-              "module": "冷丰结算",
-              "title": "账户配置"
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
             },
             {
               "file": "store-app/h5/biz-center.html",
@@ -1373,6 +1500,11 @@
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
             },
             {
               "file": "user-app/h5/newcomer-zone.html",
@@ -1660,6 +1792,11 @@
               "title": "仓库管理"
             },
             {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-confirm.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -1858,11 +1995,6 @@
               "file": "MDM/mdm_member_tag.html",
               "module": "冷丰WMS",
               "title": "会员标签"
-            },
-            {
-              "file": "MDM/mdm_settle_account_config.html",
-              "module": "冷丰结算",
-              "title": "账户配置"
             },
             {
               "file": "user-app/h5/account-cancel.html",
@@ -2165,6 +2297,11 @@
               "title": "确认订单 · 用户 APP"
             },
             {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/newcomer-zone.html",
               "module": "",
               "title": "新人专区 · 用户 APP"
@@ -2264,9 +2401,9 @@
               "title": "仓库档案"
             },
             {
-              "file": "MDM/mdm_settle_account_config.html",
-              "module": "冷丰结算",
-              "title": "账户配置"
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
             },
             {
               "file": "store-app/h5/biz-center.html",
@@ -2409,14 +2546,14 @@
               "title": "采购员"
             },
             {
-              "file": "MDM/mdm_settle_account_config.html",
-              "module": "冷丰结算",
-              "title": "账户配置"
-            },
-            {
               "file": "MDM/mdm_super_admin_accounts.html",
               "module": "冷丰WMS",
               "title": "商户主体建档"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
             },
             {
               "file": "store-app/h5/bank-cards.html",
@@ -2756,9 +2893,9 @@
               "title": "门店档案"
             },
             {
-              "file": "MDM/mdm_settle_account_config.html",
-              "module": "冷丰结算",
-              "title": "账户配置"
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
             },
             {
               "file": "store-app/h5/biz-center.html",
@@ -2854,9 +2991,9 @@
               "title": "仓库档案"
             },
             {
-              "file": "MDM/mdm_settle_account_config.html",
-              "module": "冷丰结算",
-              "title": "账户配置"
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
             },
             {
               "file": "store-app/h5/bank-cards.html",
@@ -3483,9 +3620,9 @@
               "title": "零售订单"
             },
             {
-              "file": "MDM/mdm_settle_account_config.html",
-              "module": "冷丰结算",
-              "title": "账户配置"
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
             },
             {
               "file": "store-app/h5/biz-center.html",
@@ -3951,9 +4088,9 @@
               "title": "仓库档案"
             },
             {
-              "file": "MDM/mdm_settle_account_config.html",
-              "module": "冷丰结算",
-              "title": "账户配置"
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
             },
             {
               "file": "store-app/h5/biz-center.html",
@@ -5259,11 +5396,6 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
-            },
-            {
-              "file": "MDM/mdm_settle_account_config.html",
-              "module": "冷丰结算",
-              "title": "账户配置"
             },
             {
               "file": "MDM/mdm_super_admin_accounts.html",
@@ -10406,11 +10538,6 @@
           "time": "18:30",
           "pages": [
             {
-              "file": "MDM/mdm_settle_account_config.html",
-              "module": "冷丰结算",
-              "title": "账户配置"
-            },
-            {
               "file": "MDM/mdm_settle_fee_config.html",
               "module": "冷丰结算",
               "title": "费用配置"
@@ -13213,7 +13340,7 @@
             {
               "file": "SCM/basic_settings_order.html",
               "module": "冷丰WMS",
-              "title": "订单配置"
+              "title": "门店配置"
             },
             {
               "file": "SCM/basic_settings_recommendation.html",
@@ -13237,10 +13364,6 @@
               "text": "顶栏「采购」后新增「基础设置」入口，含侧栏、小程序协议页与订单配置页"
             },
             {
-              "file": "SCM/basic_settings_order.html",
-              "text": "顶栏「采购」后新增「基础设置」入口，含侧栏、小程序协议页与订单配置页"
-            },
-            {
               "file": null,
               "text": "MDM 顶栏「基础数据中心」更名为「业务伙伴」，侧栏「主体中心」更名为「商家主体」"
             },
@@ -13249,7 +13372,7 @@
               "text": "新增 order-config-ui 共用组件"
             },
             {
-              "file": "SCM/basic_settings_order.html",
+              "file": null,
               "text": "门店详情订单配置文案与必填/温馨提示样式对齐设计稿"
             }
           ]
