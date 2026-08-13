@@ -114,6 +114,20 @@
     "status": "diff",
     "date": "2026-08-04"
   },
+  "156270f|MDM/mdm_product_mall.html": {
+    "before": "changelog-assets/156270f/MDM__mdm_product_mall.html.before.jpg",
+    "after": "changelog-assets/156270f/MDM__mdm_product_mall.html.after.jpg",
+    "regions": 66,
+    "status": "diff",
+    "date": "2026-08-14"
+  },
+  "156270f|MDM/mdm_product_proxy_list.html": {
+    "before": "changelog-assets/156270f/MDM__mdm_product_proxy_list.html.before.jpg",
+    "after": "changelog-assets/156270f/MDM__mdm_product_proxy_list.html.after.jpg",
+    "regions": 18,
+    "status": "diff",
+    "date": "2026-08-14"
+  },
   "183dce7|user-app/h5/checkout.html": {
     "before": "changelog-assets/183dce7/user-app__h5__checkout.html.before.jpg",
     "after": "changelog-assets/183dce7/user-app__h5__checkout.html.after.jpg",

@@ -1,10 +1,39 @@
 {
-  "latestSha": "309ec8f70977a594096195daeb8182ceebda1d93",
-  "total": 258,
+  "latestSha": "156270f80c35cb4e5407ce52c6ee3b46e6e202a0",
+  "total": 259,
   "days": [
     {
       "date": "2026-08-14",
       "items": [
+        {
+          "sha": "156270f",
+          "type": "feat",
+          "text": "商品列表履约方式列调整到可售时间前",
+          "author": "sisi",
+          "time": "00:41",
+          "pages": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "可售时间前新增履约方式列"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "履约方式排前、可售时间排后"
+            }
+          ]
+        },
         {
           "sha": "309ec8f",
           "type": "feat",
