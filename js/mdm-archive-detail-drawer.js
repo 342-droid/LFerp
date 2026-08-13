@@ -17,6 +17,7 @@
         HF20260423002: { balance: 56.8, inTransit: 0 }
     };
     var SUPPLIER_PAYMENT_AGREEMENT = {
+        type: '挂网协议',
         name: '斗拱平台综合支付服务协议',
         url: 'https://cloudpnrcdn.oss-cn-shanghai.aliyuncs.com/opps/api/prod/download_file/PaymentServiceAgreement.htm'
     };
@@ -1063,6 +1064,7 @@
         var pa = f.payment_agreement || {};
         return {
             signed: !!(f.payment_agreement_signed || pa.signed),
+            type: String(pa.type || SUPPLIER_PAYMENT_AGREEMENT.type),
             name: String(pa.name || SUPPLIER_PAYMENT_AGREEMENT.name),
             url: String(pa.url || SUPPLIER_PAYMENT_AGREEMENT.url)
         };
@@ -1097,6 +1099,7 @@
     function paymentAgreementDetailCells(fields) {
         var info = resolvePaymentAgreementInfo(fields);
         return [
+            detailCell('协议类型', info.type || SUPPLIER_PAYMENT_AGREEMENT.type || '—'),
             detailCellAgreementSigned(info.signed),
             detailCellLink('协议名称', '《' + info.name + '》', info.url)
         ];
@@ -2217,11 +2220,23 @@
 
         var body = el('div', 'erp-modal__body');
         var grid = el('div', 'supplier-detail-grid');
-        onboardingDetailCells(view.fields, kind, {
+        var viewFields = view.fields;
+        if (kind === 'supplier') {
+            viewFields = ensureSupplierOnboardingFieldsForDisplay(viewFields, {
+                onboard: view.onboardStatus || m.onboardStatus,
+                shortName: view.shortName || m.shortName,
+                name: m.merchantName || view.shortName,
+                detailAddress: (m.defaults && m.defaults.detail_addr) || '',
+                phone: m.contactMobile || '',
+                contactName: ''
+            });
+        }
+        onboardingDetailCells(viewFields, kind, {
             shortName: view.shortName,
             merchantNo: view.merchantNo,
             payStatus: view.payStatus,
-            onboardStatus: view.onboardStatus
+            onboardStatus: view.onboardStatus,
+            hideVenuePhotos: kind === 'supplier' ? false : undefined
         }).forEach(function (cell) {
             grid.appendChild(cell);
         });
@@ -2475,10 +2490,10 @@
 
     /**
      * 进件信息字段（门店 / 供应商档案对齐）
-     * 顺序：商户简称 → 汇付商户号 → 余额支付开通 → 进件状态 → 其余共用字段 → 签订协议
+     * 与统一进件表单 collectFields 对齐：执照/法人/商户/结算/场地照/协议；现有字段保留并补齐拆分项
      * @param {object} fields
      * @param {string} [kind] store | supplier
-     * @param {object} [meta] { shortName, merchantNo, payStatus, onboardStatus }
+     * @param {object} [meta] { shortName, merchantNo, payStatus, onboardStatus, hideVenuePhotos }
      */
     function onboardingDetailCells(fields, kind, meta) {
         var f = fields || {};
@@ -2514,10 +2529,19 @@
             detailCell('身份证号', legal.id_no || '—'),
             detailCell('身份证起始日期', legal.id_start_date || '—'),
             detailCell('身份证有效期', legal.id_valid_date || '—'),
-            detailCellPhoto('开户许可证', f.open_license_pic)
+            detailCellPhoto('开户许可证', f.open_license_pic),
+            /* 与进件结算 OCR 字段对齐（保留上方「银行卡信息配置」合成项） */
+            detailCell('开户名', card.account_name || '—'),
+            detailCell('银行卡号', card.card_no || '—'),
+            detailCell('开户银行', card.bank_name || '—'),
+            detailCell('开户支行', card.bank_branch || '—')
         ];
-        /* 进件成功后进件信息板块不再展示场地照（与基础信息隔离） */
-        if (!m.hideVenuePhotos) {
+        /*
+         * 场地三照：供应商进件信息始终展示（对齐进件表单）；
+         * 门店在进件成功后可由 hideVenuePhotos 隐藏（改到基础信息）
+         */
+        var showVenuePhotos = kind === 'supplier' || !m.hideVenuePhotos;
+        if (showVenuePhotos) {
             cells = cells.concat([
                 detailCellPhoto('门头/场地照(F22)', f.store_header_pic),
                 detailCellPhoto('内景/工作区域照(F24)', f.store_indoor_pic),
@@ -4800,6 +4824,74 @@
         };
     }
 
+    /**
+     * 供应商进件信息展示补全：已有进件记录优先；进件中/成功且本地无完整字段时补演示值，保证板块字段与照片齐全
+     */
+    function ensureSupplierOnboardingFieldsForDisplay(fields, r) {
+        var f = cloneObj(fields || {}) || {};
+        var st = String((r && r.onboard) || '').trim();
+        var needDemo = st === '进件成功' || st === '进件中' || st === '已进件' || st === '审核成功';
+        if (!needDemo) return f;
+
+        function fillEmpty(obj, key, val) {
+            if (obj[key] == null || obj[key] === '') obj[key] = val;
+        }
+
+        if (!f.short_name) f.short_name = (r && (r.shortName || r.name)) || '';
+        if (!f.receipt_name) f.receipt_name = f.short_name || (r && r.name) || '';
+        if (!f.detail_addr) f.detail_addr = (r && r.detailAddress) || '';
+        if (!f.legal_mobile_no) f.legal_mobile_no = (r && r.phone) || '13800001234';
+        if (!f.contact_mobile_no) f.contact_mobile_no = (r && r.phone) || '13800001234';
+        if (!f.contact_email) f.contact_email = 'supplier@lengfeng.demo';
+
+        f.license_info = f.license_info || {};
+        fillEmpty(f.license_info, 'name', (r && r.name) || '演示供应商');
+        fillEmpty(f.license_info, 'code', '91310000MA1FLSUP01');
+        fillEmpty(f.license_info, 'start_date', '2024-01-01');
+        fillEmpty(f.license_info, 'valid_date', '长期有效');
+        fillEmpty(f.license_info, 'address', (r && r.detailAddress) || '上海市浦东新区张江路');
+
+        f.legal_info = f.legal_info || {};
+        fillEmpty(f.legal_info, 'legal_name', (r && r.contactName) || '演示法人');
+        fillEmpty(f.legal_info, 'id_no', '310101199001011234');
+        fillEmpty(f.legal_info, 'id_start_date', '2020-01-01');
+        fillEmpty(f.legal_info, 'id_valid_date', '2040-01-01');
+
+        f.card_info = f.card_info || {};
+        fillEmpty(f.card_info, 'account_name', f.license_info.name || (r && r.name) || '');
+        fillEmpty(f.card_info, 'card_no', '6222021001123456789');
+        fillEmpty(f.card_info, 'bank_name', '中国工商银行');
+        fillEmpty(f.card_info, 'bank_branch', '中国工商银行上海张江支行');
+
+        if (!f.license_pic) f.license_pic = true;
+        if (!f.legal_cert_front_pic) f.legal_cert_front_pic = true;
+        if (!f.legal_cert_back_pic) f.legal_cert_back_pic = true;
+        if (!f.open_license_pic) f.open_license_pic = true;
+        if (!f.store_header_pic) f.store_header_pic = true;
+        if (!f.store_indoor_pic) f.store_indoor_pic = true;
+        if (!f.store_cashier_desk_pic) f.store_cashier_desk_pic = true;
+
+        if (st === '进件成功' || st === '已进件' || st === '审核成功') {
+            f.payment_agreement_signed = true;
+            f.payment_agreement = f.payment_agreement || {};
+            fillEmpty(f.payment_agreement, 'type', SUPPLIER_PAYMENT_AGREEMENT.type);
+            fillEmpty(f.payment_agreement, 'name', SUPPLIER_PAYMENT_AGREEMENT.name);
+            fillEmpty(f.payment_agreement, 'url', SUPPLIER_PAYMENT_AGREEMENT.url);
+            f.payment_agreement.signed = true;
+        } else {
+            f.payment_agreement = f.payment_agreement || {
+                type: SUPPLIER_PAYMENT_AGREEMENT.type,
+                name: SUPPLIER_PAYMENT_AGREEMENT.name,
+                url: SUPPLIER_PAYMENT_AGREEMENT.url,
+                signed: !!f.payment_agreement_signed
+            };
+            fillEmpty(f.payment_agreement, 'type', SUPPLIER_PAYMENT_AGREEMENT.type);
+            fillEmpty(f.payment_agreement, 'name', SUPPLIER_PAYMENT_AGREEMENT.name);
+            fillEmpty(f.payment_agreement, 'url', SUPPLIER_PAYMENT_AGREEMENT.url);
+        }
+        return f;
+    }
+
     function panelSupplierOnboarding(r) {
         var recordKey = onboardRecordKey('supplier', r.id);
         function freshSupplierDefaults() {
@@ -4821,12 +4913,30 @@
             onboardingGrid.innerHTML = '';
             var onboardingSummary = getOnboardingSummary(recordKey, onboardingDefaults);
             onboardingSummary.recordKey = recordKey;
-            onboardingDetailCells(onboardingSummary.fields, 'supplier', {
+            var view = buildOnboardViewFields({
+                recordKey: recordKey,
+                defaults: onboardingDefaults,
+                huifuMerchantNo: huifuMeta.merchantNo,
+                bindKind: 'supplier',
+                bindEntityId: r.id,
                 shortName: r.shortName || r.name,
-                merchantNo: huifuMeta.merchantNo,
-                payStatus: huifuMeta.payStatus,
+                merchantName: r.name,
+                contactMobile: r.phone,
+                onboardStatus: r.onboard,
+                title: '供应商进件',
+                subjectType: '供应商'
+            });
+            var displayFields = ensureSupplierOnboardingFieldsForDisplay(view.fields, r);
+            onboardingDetailCells(displayFields, 'supplier', {
+                shortName: view.shortName || r.shortName || r.name,
+                merchantNo: view.merchantNo || huifuMeta.merchantNo,
+                payStatus:
+                    huifuMeta.payStatus && huifuMeta.payStatus !== '—'
+                        ? huifuMeta.payStatus
+                        : view.payStatus,
                 onboardStatus: archiveOnboardEnum(onboardingSummary, r.onboard),
-                hideVenuePhotos: isOnboardingAuditSuccess(onboardingSummary, r.onboard)
+                /* 供应商进件信息始终展示场地照，与进件表单一致 */
+                hideVenuePhotos: false
             }).forEach(function (cell) {
                 onboardingGrid.appendChild(cell);
             });
