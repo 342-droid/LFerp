@@ -942,6 +942,43 @@
       );
     }
 
+    /** 可收起板块标题；默认配合 section.h5-sec--collapsible.is-collapsed */
+    function secHeadToggle(ic, title, sub) {
+      return (
+        '<button type="button" class="h5-sec-head h5-sec-head--toggle" aria-expanded="false">' +
+        '<span class="h5-sec-ic">' +
+        ic +
+        '</span><div class="h5-sec-head-main"><h3 class="h5-sec-t">' +
+        esc(title) +
+        '</h3>' +
+        (sub ? '<p class="h5-sec-s">' + esc(sub) + '</p>' : '') +
+        '</div><span class="h5-sec-chevron" aria-hidden="true"></span></button>'
+      );
+    }
+
+    function bindCollapsibleSections() {
+      var root = document.getElementById('bd-store-form-root');
+      if (!root) return;
+      root.querySelectorAll('.h5-sec--collapsible > .h5-sec-head--toggle').forEach(function (btn) {
+        btn.onclick = function () {
+          var sec = btn.closest('.h5-sec--collapsible');
+          if (!sec) return;
+          var collapsed = sec.classList.toggle('is-collapsed');
+          btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        };
+      });
+    }
+
+    function expandCollapsibleById(fieldId) {
+      var node = document.getElementById(fieldId);
+      if (!node) return;
+      var sec = node.closest('.h5-sec--collapsible');
+      if (!sec) return;
+      sec.classList.remove('is-collapsed');
+      var btn = sec.querySelector('.h5-sec-head--toggle');
+      if (btn) btn.setAttribute('aria-expanded', 'true');
+    }
+
     function fieldTa(lab, id, placeholder, hint) {
       return field(
         lab,
@@ -954,18 +991,18 @@
     function secFacade() {
       return (
         '<section class="h5-sec">' +
-        secHead('▣', '门头照', '必传。用于便于放货和城管报备。') +
+        secHead('▣', '门头/场地照', '必传。用于便于放货和城管报备。') +
         '<div class="h5-sec-body">' +
         field(
-          '正门头照片',
+          '门头/场地照',
           true,
           '<div class="h5-facade"><div class="h5-facade-img"></div>' +
             (st.frontPhoto ? '<span class="h5-facade-badge">已上传</span>' : '') +
             '</div>' +
             '<button type="button" class="bd-btn bd-btn-outline" style="width:100%;margin-top:8px" id="f_front">' +
-            (st.frontPhoto ? '更换正门头照片' : '上传正门头照片') +
+            (st.frontPhoto ? '更换门头/场地照' : '上传门头/场地照') +
             '</button>',
-          '需上传清晰的门店正面外观'
+          '需上传清晰的门店正面外观或场地照片'
         ) +
         '</div></section>'
       );
@@ -1042,8 +1079,8 @@
     function secFranchiseOps() {
       if (!isFP()) return '';
       return (
-        '<section class="h5-sec">' +
-        secHead('☰', '门店经营与认知', '门店经营情况与认知说明') +
+        '<section class="h5-sec h5-sec--collapsible is-collapsed">' +
+        secHeadToggle('☰', '门店经营与认知', '门店经营情况与认知说明') +
         '<div class="h5-sec-body">' +
         field(
           '门店方圆五百米的总户数（实际入住户数）',
@@ -1085,8 +1122,8 @@
     function secFranchiseSpecial() {
       if (!isFP()) return '';
       return (
-        '<section class="h5-sec">' +
-        secHead('☰', '特殊情况说明', '选填；触发区域保护提醒时须用文字或图片补充说明。') +
+        '<section class="h5-sec h5-sec--collapsible is-collapsed">' +
+        secHeadToggle('☰', '特殊情况说明', '选填；触发区域保护提醒时须用文字或图片补充说明。') +
         '<div class="h5-sec-body">' +
         field(
           '说明内容',
@@ -1113,8 +1150,8 @@
     function secPeer() {
       if (!isPeer()) return '';
       return (
-        '<section class="h5-sec">' +
-        secHead('☰', '同行店补充资料', '请如实填写以下资料') +
+        '<section class="h5-sec h5-sec--collapsible is-collapsed">' +
+        secHeadToggle('☰', '同行店补充资料', '请如实填写以下资料') +
         '<div class="h5-sec-body">' +
         field(
           '合作平台现状：说明目前门店已合作的其他平台情况。',
@@ -1389,10 +1426,12 @@
           var okText = sp.length > 0 && sp !== '无';
           var hasPic = st.specialPhotos.length > 0;
           if (!okText && !hasPic) {
+            expandCollapsibleById('f_spec');
             bdToast('区域保护：请填写特殊情况说明或上传配图');
             return false;
           }
           if (sp === '无' && !hasPic) {
+            expandCollapsibleById('f_spec');
             bdToast('区域保护：不可仅填「无」而无配图');
             return false;
           }
@@ -1403,7 +1442,7 @@
         return false;
       }
       if (!st.frontPhoto) {
-        bdToast('请上传门头照片');
+        bdToast('请上传门头/场地照');
         return false;
       }
       return true;
@@ -1413,6 +1452,8 @@
       var el = function (id) {
         return document.getElementById(id);
       };
+
+      bindCollapsibleSections();
 
       var hb = el('h5HeadBack');
       if (hb) {
@@ -1630,7 +1671,7 @@
           readFormToState();
           fullRender();
           fillDomFromState();
-          bdToast && bdToast('已选择文件', '演示：门头照已标记上传');
+          bdToast && bdToast('已选择文件', '演示：门头/场地照已标记上传');
         };
 
       var cancel = el('h5Cancel');

@@ -1,5 +1,7 @@
 (function () {
   var CHECKOUT_KEY = 'ua_checkout_v1';
+  /* 上次页内收单渠道：wechat | alipay；无记录则首次默认微信支付 */
+  var CHANNEL_PREF_KEY = 'ua_checkout_channel_pref_v1';
   var CART_PAGE_KEY = 'ua_restock_cart_page_v2';
   var CHEVRON = '<svg class="ua-co-package__row-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>';
 
@@ -50,13 +52,95 @@
   var payPwd = '';
   var couponTab = 'available';
   var payState = {
+    /* 默认开启钱包余额抵扣 */
     useBalance: true,
-    /* wechat | alipay | card */
-    channel: 'wechat',
+    /* wechat | alipay | card | null — 余额足够时默认不勾选；不足时用上次/微信 */
+    channel: null,
     methodId: '',
     methodName: '',
     methodTone: ''
   };
+
+  function isPayChannel(channel) {
+    return channel === 'alipay' || channel === 'wechat';
+  }
+
+  function normalizeChannel(channel) {
+    return channel === 'alipay' ? 'alipay' : 'wechat';
+  }
+
+  function channelMeta(channel) {
+    var ch = normalizeChannel(channel);
+    if (ch === 'alipay') {
+      return {
+        channel: 'alipay',
+        methodId: 'alipay',
+        methodName: '支付宝',
+        methodTone: 'is-alipay'
+      };
+    }
+    return {
+      channel: 'wechat',
+      methodId: 'wechat',
+      methodName: '微信支付',
+      methodTone: 'is-wechat'
+    };
+  }
+
+  function applyChannelToPayState(channel) {
+    var meta = channelMeta(channel);
+    payState.channel = meta.channel;
+    payState.methodId = meta.methodId;
+    payState.methodName = meta.methodName;
+    payState.methodTone = meta.methodTone;
+  }
+
+  function clearChannelSelection() {
+    payState.channel = null;
+    payState.methodId = '';
+    payState.methodName = '';
+    payState.methodTone = '';
+  }
+
+  function readLastChannelPref() {
+    try {
+      var raw = localStorage.getItem(CHANNEL_PREF_KEY);
+      if (raw === 'alipay' || raw === 'wechat') return raw;
+    } catch (e) {
+      /* ignore */
+    }
+    return null;
+  }
+
+  function saveLastChannelPref(channel) {
+    if (!isPayChannel(channel)) return;
+    try {
+      localStorage.setItem(CHANNEL_PREF_KEY, channel);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  /** 余额足够：默认不勾选；仍需收单时：恢复上次选择，首次默认微信 */
+  function initPayChannelSelection() {
+    var legs = getPayLegs();
+    if (legs.channelLeg > 0.001) {
+      applyChannelToPayState(readLastChannelPref() || 'wechat');
+    } else {
+      clearChannelSelection();
+    }
+  }
+
+  function syncChannelWhenBalanceChanged() {
+    var legs = getPayLegs();
+    if (legs.channelLeg > 0.001) {
+      if (!isPayChannel(payState.channel)) {
+        applyChannelToPayState(readLastChannelPref() || 'wechat');
+      }
+    } else if (payState.useBalance && legs.balanceOnly) {
+      clearChannelSelection();
+    }
+  }
 
   function formatMoney(num) {
     return '¥' + num.toFixed(2);
@@ -476,6 +560,10 @@
   function buildPayLegParts(legs) {
     var L = legs || getPayLegs();
     var parts = [];
+    var pointsAmt = state.pointsEnabled ? Number(state.pointsDeduct) || 0 : 0;
+    if (pointsAmt > 0.001) {
+      parts.push({ name: '积分抵扣', amount: pointsAmt });
+    }
     if (L.balanceLeg > 0.001) {
       parts.push({ name: '钱包余额', amount: L.balanceLeg });
     }
@@ -491,12 +579,58 @@
     return parts;
   }
 
-  function formatPayLegsLine(parts) {
-    return (parts || [])
+  /** 支付明细两行：钱包余额 / 支付宝（或微信），金额红色负号 */
+  function formatPayLegsRowsHtml(parts, className, options) {
+    var list = (parts || []).filter(function (p) {
+      return p && Number(p.amount) > 0.001;
+    });
+    if (!list.length) return '';
+    var opts = options || {};
+    var rows = list
       .map(function (p) {
-        return p.name + ' ' + formatMoney(Number(p.amount) || 0);
+        return (
+          '<div class="ua-co-pay-legs__row">' +
+          '<span class="ua-co-pay-legs__name">' +
+          p.name +
+          '</span>' +
+          '<span class="ua-co-pay-legs__amount">-' +
+          formatMoney(Number(p.amount) || 0) +
+          '</span>' +
+          '</div>'
+        );
       })
-      .join(' · ');
+      .join('');
+    return (
+      '<div class="' +
+      (className || 'ua-co-pay-legs') +
+      '"' +
+      (opts.hidden ? ' hidden' : '') +
+      '>' +
+      rows +
+      '</div>'
+    );
+  }
+
+  function payLegsToggleBtnHtml() {
+    return (
+      '<button type="button" class="ua-co-pay-legs-toggle" id="checkoutPayLegsToggle" aria-expanded="false" aria-label="展开支付明细">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>' +
+      '</button>'
+    );
+  }
+
+  function bindPayLegsToggle(toggleId, legsSelector) {
+    var toggle = document.getElementById(toggleId);
+    var legsEl = document.querySelector(legsSelector);
+    if (!toggle || !legsEl) return;
+    toggle.addEventListener('click', function () {
+      var expanded = toggle.getAttribute('aria-expanded') === 'true';
+      var next = !expanded;
+      toggle.setAttribute('aria-expanded', next ? 'true' : 'false');
+      toggle.setAttribute('aria-label', next ? '收起支付明细' : '展开支付明细');
+      toggle.classList.toggle('is-expanded', next);
+      legsEl.hidden = !next;
+    });
   }
 
   function formatPayMethodNames(parts) {
@@ -507,18 +641,41 @@
       .join('、');
   }
 
-  /** 底部「应付」= 合计 − 钱包可用余额（未开余额时为合计全额） */
+  /** 底部「待支付」= 小计 − 钱包已抵扣（未开余额时为小计全额） */
   function getFooterPayable(legs) {
     var L = legs || getPayLegs();
     return L.channelLeg;
   }
 
+  function syncChannelCardUI() {
+    var card = document.getElementById('checkoutChannelCard');
+    if (!card) return;
+    var channel = isPayChannel(payState.channel) ? payState.channel : '';
+    card.querySelectorAll('[data-channel]').forEach(function (btn) {
+      var selected = !!channel && btn.getAttribute('data-channel') === channel;
+      btn.classList.toggle('is-selected', selected);
+      btn.setAttribute('aria-checked', selected ? 'true' : 'false');
+    });
+  }
+
   function renderPayWays() {
     var legs = getPayLegs();
-    var hint = document.getElementById('checkoutWalletHint');
-    if (hint) hint.textContent = '可用 ' + formatMoney(legs.available);
-    var useBalanceEl = document.getElementById('checkoutUseBalance');
-    if (useBalanceEl) useBalanceEl.checked = !!payState.useBalance;
+    var payWays = document.getElementById('checkoutPayWays');
+    var walletRow = payWays ? payWays.querySelector('.ua-co-row--wallet') : null;
+    /* 钱包余额为 0 时不展示该行 */
+    var showWallet = Number(legs.available) > 0.001;
+    if (payWays) payWays.hidden = !showWallet;
+    if (walletRow) walletRow.hidden = !showWallet;
+    if (showWallet) {
+      var hint = document.getElementById('checkoutWalletHint');
+      if (hint) hint.textContent = '已抵扣 ' + formatMoney(legs.balanceLeg);
+      var useBalanceEl = document.getElementById('checkoutUseBalance');
+      if (useBalanceEl) useBalanceEl.checked = !!payState.useBalance;
+    }
+    /* 支付宝/微信始终展示；余额足够时默认不勾选 */
+    var channelCard = document.getElementById('checkoutChannelCard');
+    if (channelCard) channelCard.hidden = false;
+    syncChannelCardUI();
   }
 
   function buildPayMethods() {
@@ -779,6 +936,11 @@
     if (couponRow) couponRow.hidden = !state.coupon;
     var pointsRow = document.getElementById('checkoutPointsDiscountRow');
     if (pointsRow) pointsRow.hidden = !state.pointsEnabled;
+    /* 开关关闭时下方明细不展示积分抵扣金额 */
+    setText(
+      'checkoutPointsDiscount',
+      state.pointsEnabled && points > 0 ? '-' + formatMoney(points) : ''
+    );
 
     var couponText = document.getElementById('checkoutCouponText');
     if (couponText) {
@@ -788,7 +950,10 @@
 
     var pointsHint = document.getElementById('checkoutPointsHint');
     if (pointsHint) {
-      pointsHint.textContent = '可用' + state.pointsAvailable + '积分，抵¥' + state.pointsDeduct.toFixed(2);
+      /* 未开启积分抵扣时，不展示可抵金额 */
+      pointsHint.textContent = state.pointsEnabled
+        ? '可用' + state.pointsAvailable + '积分，抵¥' + state.pointsDeduct.toFixed(2)
+        : '可用' + state.pointsAvailable + '积分';
     }
     var pointsToggle = document.getElementById('checkoutPointsToggle');
     if (pointsToggle) pointsToggle.checked = !!state.pointsEnabled;
@@ -1082,9 +1247,16 @@
     payState.methodId = method.id;
     payState.methodName = method.name;
     payState.methodTone = method.tone || '';
-    if (method.type === 'card') payState.channel = 'card';
-    else if (method.type === 'alipay') payState.channel = 'alipay';
-    else payState.channel = 'wechat';
+    if (method.type === 'card') {
+      payState.channel = 'card';
+      return;
+    }
+    if (method.type === 'alipay' || method.type === 'wechat') {
+      applyChannelToPayState(method.type);
+      saveLastChannelPref(method.type);
+      return;
+    }
+    payState.channel = 'wechat';
   }
 
   function collectCheckoutOrderItems() {
@@ -1106,9 +1278,51 @@
     return items;
   }
 
-  /** 支付成功写入演示订单，供订单详情透出混合支付 */
+  /**
+   * 按商品金额占比分摊支付方式到各商品明细（原路退回依据）
+   * payLegs: [{ name, amount }]
+   */
+  function allocatePayLegsToItems(items, payLegs) {
+    var list = (items || []).map(function (it) {
+      var line = Math.round(Number(it.price || 0) * Number(it.qty || 1) * 100) / 100;
+      return Object.assign({}, it, { lineAmount: line, payLegs: [] });
+    });
+    var total = list.reduce(function (s, it) {
+      return s + (it.lineAmount || 0);
+    }, 0);
+    var legs = (payLegs || []).filter(function (leg) {
+      return leg && Number(leg.amount) > 0.001;
+    });
+    if (!list.length || !legs.length) return list;
+    if (total <= 0) {
+      list[0].payLegs = legs.map(function (leg) {
+        return { name: leg.name, amount: Math.round(Number(leg.amount) * 100) / 100 };
+      });
+      return list;
+    }
+    legs.forEach(function (leg) {
+      var remain = Math.round(Number(leg.amount) * 100) / 100;
+      list.forEach(function (it, idx) {
+        var share =
+          idx === list.length - 1
+            ? remain
+            : Math.round(((it.lineAmount / total) * Number(leg.amount)) * 100) / 100;
+        if (share < 0) share = 0;
+        if (idx < list.length - 1) remain = Math.round((remain - share) * 100) / 100;
+        if (share > 0.001) {
+          it.payLegs.push({ name: leg.name, amount: share });
+        }
+      });
+    });
+    return list;
+  }
+
+  /** 支付成功写入演示订单，供订单详情透出混合支付与商品分摊 */
   function persistPaidCheckoutOrder(legs) {
     var parts = buildPayLegParts(legs);
+    var items = allocatePayLegsToItems(collectCheckoutOrderItems(), parts);
+    var pointsAmt = state.pointsEnabled ? Number(state.pointsDeduct) || 0 : 0;
+    var pointsCount = state.pointsEnabled ? Number(state.pointsAvailable) || 0 : 0;
     var payload = {
       orderNo: window.UaOrdersStore ? window.UaOrdersStore.genOrderNo() : String(Date.now()),
       status: 'shipping',
@@ -1120,8 +1334,10 @@
       payLabel: formatMoney(legs.payable),
       payMethod: formatPayMethodNames(parts),
       payLegs: parts,
+      deductPoints: pointsCount,
+      deductAmount: pointsAmt,
       from: 'restock.html',
-      items: collectCheckoutOrderItems()
+      items: items
     };
     if (window.UaOrdersStore && typeof window.UaOrdersStore.upsert === 'function') {
       return window.UaOrdersStore.upsert(payload);
@@ -1136,25 +1352,90 @@
 
   var lastPaidOrder = null;
 
-  function finishPaySuccess(paidLegs) {
-    var legs = paidLegs || getPayLegs();
+  /** 混合支付：冻结积分+余额 → 等待三方/密码成功后再解冻划拨 */
+  function beginPayFreeze(legs) {
+    var L = legs || getPayLegs();
+    var pointsAmt = state.pointsEnabled ? Number(state.pointsDeduct) || 0 : 0;
     if (
-      legs.balanceLeg > 0 &&
+      window.StoreWalletDemo &&
+      typeof window.StoreWalletDemo.freezeRestockPay === 'function' &&
+      (L.balanceLeg > 0.001 || pointsAmt > 0)
+    ) {
+      return window.StoreWalletDemo.freezeRestockPay({
+        balanceAmount: L.balanceLeg,
+        pointsAmount: pointsAmt,
+        channel: L.channel || payState.channel || ''
+      });
+    }
+    return { ok: true, skipped: true };
+  }
+
+  function settlePayAfterChannelOk(legs) {
+    var L = legs || getPayLegs();
+    var channelLabel = payChannelShortName(L.channel || payState.channel);
+    var result = { ok: true };
+    if (
+      window.StoreWalletDemo &&
+      typeof window.StoreWalletDemo.commitRestockPayFreeze === 'function'
+    ) {
+      var committed = window.StoreWalletDemo.commitRestockPayFreeze({
+        balanceAmount: L.balanceLeg,
+        channel: L.channel || payState.channel,
+        channelLabel: channelLabel
+      });
+      if (committed && committed.ok) result = committed;
+    } else if (
+      L.balanceLeg > 0 &&
       window.StoreWalletDemo &&
       typeof window.StoreWalletDemo.applyRestockPay === 'function'
     ) {
-      window.StoreWalletDemo.applyRestockPay(legs.balanceLeg);
+      window.StoreWalletDemo.applyRestockPay(L.balanceLeg, {
+        channel: L.channel || payState.channel,
+        channelLabel: channelLabel
+      });
     }
-    lastPaidOrder = persistPaidCheckoutOrder(legs);
-    showResult(true, legs);
+    /* 三方回调成功并解冻划拨余额后，再扣减积分 */
+    if (state.pointsEnabled) {
+      state.pointsAvailable = 0;
+      state.pointsEnabled = false;
+      state.pointsDeduct = 0;
+    }
+    return result;
   }
 
-  /** 微信/支付宝：演示跳转三方收单，不经本页密码 */
+  function releasePayFreeze() {
+    if (
+      window.StoreWalletDemo &&
+      typeof window.StoreWalletDemo.releaseRestockPayFreeze === 'function'
+    ) {
+      window.StoreWalletDemo.releaseRestockPayFreeze();
+    }
+  }
+
+  function finishPaySuccess(paidLegs) {
+    var legs = paidLegs || getPayLegs();
+    /* 先落库/展示（含积分分摊），再解冻划拨余额并扣减积分 */
+    lastPaidOrder = persistPaidCheckoutOrder(legs);
+    showResult(true, legs);
+    settlePayAfterChannelOk(legs);
+  }
+
+  function finishPayFail(paidLegs) {
+    releasePayFreeze();
+    showResult(false, paidLegs || getPayLegs());
+  }
+
+  /** 微信/支付宝：演示跳转三方收单；混合支付先冻结再等回调 */
   function jumpThirdPartyPay(method) {
     applySelectedMethod(method);
     closeSheet('method');
     var legs = getPayLegs();
     legs.channel = payState.channel;
+    var freeze = beginPayFreeze(legs);
+    if (freeze && freeze.ok === false) {
+      window.alert(freeze.message || '余额冻结失败');
+      return;
+    }
     var overlay = document.getElementById('checkoutThirdPay');
     if (!overlay) {
       overlay = document.createElement('div');
@@ -1165,7 +1446,10 @@
       document.body.appendChild(overlay);
     }
     var text = document.getElementById('checkoutThirdPayText');
-    if (text) text.textContent = '正在跳转' + method.name + '…';
+    if (text) {
+      text.textContent =
+        '已冻结余额/积分，正在验证' + method.name + '回调…';
+    }
     overlay.hidden = false;
     window.setTimeout(function () {
       overlay.hidden = true;
@@ -1177,6 +1461,11 @@
     payPwd = '';
     updatePayPwdDisplay();
     var legs = getPayLegs();
+    var freeze = beginPayFreeze(legs);
+    if (freeze && freeze.ok === false) {
+      window.alert(freeze.message || '余额冻结失败');
+      return;
+    }
     setText('checkoutPayAmount', formatMoney(legs.payable));
 
     var methodText = document.getElementById('checkoutPayMethodText');
@@ -1198,16 +1487,10 @@
 
     var sheetSplit = document.getElementById('checkoutPaySheetSplit');
     if (sheetSplit) {
+      var splitParts = buildPayLegParts(legs);
       if (legs.balanceLeg > 0 && legs.channelLeg > 0) {
         sheetSplit.hidden = false;
-        sheetSplit.innerHTML =
-          '<div>余额 ' +
-          formatMoney(legs.balanceLeg) +
-          '</div><div>' +
-          channelLabel(payState.channel) +
-          ' ' +
-          formatMoney(legs.channelLeg) +
-          '</div>';
+        sheetSplit.innerHTML = formatPayLegsRowsHtml(splitParts, 'ua-co-pay-legs ua-co-pay-legs--sheet');
       } else {
         sheetSplit.hidden = true;
         sheetSplit.innerHTML = '';
@@ -1247,12 +1530,13 @@
     updatePayPwdDisplay();
     if (payPwd.length === 6) {
       window.setTimeout(function () {
+        /* 密码结算中关闭面板：保留冻结，成功 commit / 失败 release */
         closeSheet('pay');
         var success = payPwd !== '000000';
         var paidLegs = getPayLegs();
-        paidLegs.channel = payState.channel;
+        paidLegs.channel = payState.channel === 'balance' ? 'balance' : payState.channel;
         if (success) finishPaySuccess(paidLegs);
-        else showResult(false, paidLegs);
+        else finishPayFail(paidLegs);
       }, 300);
     }
   }
@@ -1268,18 +1552,24 @@
 
     if (success) {
       var legs = paidLegs || getPayLegs();
-      var parts = buildPayLegParts(legs);
-      var legsLine = formatPayLegsLine(parts);
+      var parts = buildPayLegParts(legs).filter(function (p) {
+        return p && Number(p.amount) > 0.001;
+      });
+      var isMixed = parts.length >= 2;
+      var amountHtml = isMixed
+        ? '<div class="ua-co-result__amount-line">' +
+          '<span class="ua-co-result__amount">' +
+          formatMoney(legs.payable) +
+          '</span>' +
+          payLegsToggleBtnHtml() +
+          '</div>' +
+          formatPayLegsRowsHtml(parts, 'ua-co-pay-legs ua-co-pay-legs--result', { hidden: true })
+        : '<div class="ua-co-result__amount">' + formatMoney(legs.payable) + '</div>';
       body.innerHTML =
         '<div class="ua-co-result__icon ua-co-result__icon--success">' +
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg></div>' +
         '<div class="ua-co-result__title">支付成功</div>' +
-        '<div class="ua-co-result__amount">' +
-        formatMoney(legs.payable) +
-        '</div>' +
-        (legsLine
-          ? '<div class="ua-co-result__pay-legs">' + legsLine + '</div>'
-          : '') +
+        amountHtml +
         '<div class="ua-co-result__actions">' +
         '<button type="button" class="ua-co-result__btn" id="checkoutResultOrders">查看订单</button>' +
         '<button type="button" class="ua-co-result__btn ua-co-result__btn--primary" id="checkoutResultHome">返回首页</button>' +
@@ -1290,6 +1580,7 @@
         '<div class="ua-co-result__product"><img src="../assets/restock/product-egg.svg" alt=""><div class="ua-co-result__product-name">红壳黄心鲜鸡蛋 中码 托装</div><div class="ua-co-result__product-price">¥28.90</div></div>' +
         '<div class="ua-co-result__product"><img src="../assets/restock/product-leaf.svg" alt=""><div class="ua-co-result__product-name">油麦菜【菜鲜】</div><div class="ua-co-result__product-price">¥3.20</div></div>' +
         '</div></div>';
+      if (isMixed) bindPayLegsToggle('checkoutPayLegsToggle', '.ua-co-pay-legs--result');
       document.getElementById('checkoutResultOrders').addEventListener('click', function () {
         var order = lastPaidOrder;
         if (order && window.UaOrdersStore && window.UaOrdersStore.buildDetailHref) {
@@ -1365,8 +1656,8 @@
 
   /**
    * 提交分流：
-   * 1) 余额充足 → 直接支付密码半层
-   * 2) 余额不足 / 未用余额 → 支付方式选择半层（银行卡走密码；微信/支付宝跳三方）
+   * 1) 余额充足 → 直接支付密码半层（收单渠道可空）
+   * 2) 余额不足 / 未用余额 → 须勾选支付宝/微信后跳三方收单
    */
   function onSubmitOrder() {
     /* 黑名单禁用「下单」：确认/提交订单拦截 */
@@ -1377,6 +1668,18 @@
       payState.channel = 'balance';
       payState.methodName = '钱包余额';
       openPaySheet();
+      return;
+    }
+    if (!isPayChannel(payState.channel)) {
+      window.alert('请选择支付方式');
+      return;
+    }
+    var channel = payState.channel;
+    var method = buildPayMethods().find(function (m) {
+      return m.type === channel;
+    });
+    if (method) {
+      jumpThirdPartyPay(method);
       return;
     }
     openMethodSheet();
@@ -1420,7 +1723,10 @@
 
     document.querySelectorAll('[data-sheet-close]').forEach(function (el) {
       el.addEventListener('click', function () {
-        closeSheet(el.getAttribute('data-sheet-close'));
+        var sheetName = el.getAttribute('data-sheet-close');
+        /* 用户取消密码支付：释放已冻结的余额/积分 */
+        if (sheetName === 'pay') releasePayFreeze();
+        closeSheet(sheetName);
       });
     });
 
@@ -1484,7 +1790,24 @@
     document.getElementById('checkoutUseBalance') &&
       document.getElementById('checkoutUseBalance').addEventListener('change', function (e) {
         payState.useBalance = !!e.target.checked;
+        syncChannelWhenBalanceChanged();
         renderSummary();
+      });
+
+    document.getElementById('checkoutChannelCard') &&
+      document.getElementById('checkoutChannelCard').addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-channel]');
+        if (!btn) return;
+        var channel = btn.getAttribute('data-channel');
+        if (channel !== 'alipay' && channel !== 'wechat') return;
+        /* 再次点击已选项 → 取消勾选 */
+        if (payState.channel === channel) {
+          clearChannelSelection();
+        } else {
+          applyChannelToPayState(channel);
+          saveLastChannelPref(channel);
+        }
+        syncChannelCardUI();
       });
 
     document.getElementById('checkoutMethodList') &&
@@ -1503,6 +1826,7 @@
 
   initState();
   applyPickedAddressFromBook();
+  initPayChannelSelection();
   renderAll();
   bindEvents();
 })();

@@ -6,7 +6,7 @@
     <title>冷丰WMS - 门店档案</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
-    <link rel="stylesheet" href="../css/lf-mdm-from-master.css?v=20260806-date-combo">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css?v=20260812-venue-upload">
     <style>
         .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
         .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
@@ -60,6 +60,16 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label>余额支付</label>
+                        <select id="qStoreBalancePay" style="height:36px;min-width:120px;border:1px solid #ddd;border-radius:3px;padding:0 8px;">
+                            <option value="">全部</option>
+                            <option value="未提交">未提交</option>
+                            <option value="审核中">审核中</option>
+                            <option value="已开通">已开通</option>
+                            <option value="已拒绝">已拒绝</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>分账服务</label>
                         <select id="qStoreSplit" style="height:36px;min-width:120px;border:1px solid #ddd;border-radius:3px;padding:0 8px;">
                             <option value="">全部</option>
@@ -72,7 +82,7 @@
                         <select id="qStoreStatus" style="height:36px;min-width:120px;border:1px solid #ddd;border-radius:3px;padding:0 8px;">
                             <option value="">全部</option>
                             <option value="normal">正常</option>
-                            <option value="stopped">停用</option>
+                            <option value="stopped">已禁用</option>
                         </select>
                     </div>
                     <div class="form-actions">
@@ -102,6 +112,7 @@
                                 <th>可提现手机号</th>
                                 <th>运营状态</th>
                                 <th>进件状态</th>
+                                <th>余额支付</th>
                                 <th>结算类型</th>
                                 <th>结算周期</th>
                                 <th>分账服务</th>
@@ -127,6 +138,7 @@
                                 <td><a href="#" class="mdm-store-withdraw">—</a></td>
                                 <td>营业中</td>
                                 <td>未进件</td>
+                                <td>未提交</td>
                                 <td>—</td>
                                 <td>—</td>
                                 <td>未开通</td>
@@ -150,6 +162,7 @@
                                 <td><a href="#" class="mdm-store-withdraw">138****2211</a></td>
                                 <td>营业中</td>
                                 <td>进件成功</td>
+                                <td>已开通</td>
                                 <td>T+1</td>
                                 <td>自然周</td>
                                 <td>开启</td>
@@ -173,6 +186,7 @@
                                 <td><a href="#" class="mdm-store-withdraw">186****9001</a></td>
                                 <td>营业中</td>
                                 <td>进件中</td>
+                                <td>未提交</td>
                                 <td>D+1</td>
                                 <td>自然月</td>
                                 <td>关闭</td>
@@ -196,10 +210,11 @@
                                 <td><a href="#" class="mdm-store-withdraw">—</a></td>
                                 <td>筹备</td>
                                 <td>未进件</td>
+                                <td>未提交</td>
                                 <td>—</td>
                                 <td>—</td>
                                 <td>关闭</td>
-                                <td><span class="status inactive">停用</span></td>
+                                <td><span class="status inactive">已禁用</span></td>
                                 <td>2026-04-18 09:33:02</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
                             </tr>
@@ -217,13 +232,14 @@
     <script src="../js/page-manager.js"></script>
     <script src="../js/mdm-subject-pagemanager.js"></script>
     <script src="../js/mdm-unified-onboarding-ui.js"></script>
-    <script src="../js/mdm-resource-archive-forms.js"></script>
+    <script src="../js/mdm-resource-archive-forms.js?v=20260812-venue-detail-upload"></script>
     <script src="../js/order-config-ui.js"></script>
     <script src="../js/mdm-store-region-cascader.js"></script>
-    <script src="../js/store-wallet-demo.js?v=20260806-no-payback"></script>
+    <script src="../js/store-account-config.js?v=20260810-sac1"></script>
+    <script src="../js/store-wallet-demo.js?v=20260810-account-cfg"></script>
     <script src="../js/store-bind-card-demo.js?v=20260806-bank"></script>
-    <script src="../store-app/js/store-app-biz-orders.js?v=20260806-settle"></script>
-    <script src="../js/mdm-archive-detail-drawer.js?v=20260806-custom-clear"></script>
+    <script src="../store-app/js/store-app-biz-orders.js?v=20260811-pickup-dash"></script>
+    <script src="../js/mdm-archive-detail-drawer.js?v=20260812-venue-detail-upload"></script>
     <script src="../js/mdm-erp-lists.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {

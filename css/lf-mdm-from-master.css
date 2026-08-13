@@ -1017,6 +1017,11 @@
   width: 100%;
 }
 
+.erp-modal--account-cfg {
+  max-width: 520px;
+  width: 100%;
+}
+
 .erp-modal--onboarding {
   max-width: 880px;
   width: 100%;
@@ -1057,6 +1062,73 @@
 .store-form__control > .erp-select {
   width: 100%;
   box-sizing: border-box;
+}
+
+/* 与「基础信息」板块标题同款：左侧蓝条，无卡片边框 */
+.store-form__collapse {
+  margin: 0 0 14px;
+}
+
+.store-form__collapse-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.store-form__collapse-title {
+  margin: 0;
+  padding-left: 10px;
+  border-left: 3px solid #1677ff;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.store-form__collapse-chevron {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+  transition: transform 0.18s ease;
+}
+
+.store-form__collapse-chevron::before {
+  content: '';
+  display: block;
+  width: 7px;
+  height: 7px;
+  margin: 4px auto 0;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.store-form__collapse.is-collapsed .store-form__collapse-chevron {
+  transform: rotate(-90deg);
+}
+
+.store-form__collapse.is-collapsed .store-form__collapse-toggle {
+  margin-bottom: 0;
+}
+
+.store-form__collapse.is-collapsed .store-form__collapse-body {
+  display: none;
+}
+
+.store-form__collapse-body {
+  padding: 0;
+  background: transparent;
 }
 
 .store-form__section-hint {
@@ -1149,7 +1221,7 @@
   color: var(--color-text-muted);
 }
 
-/* 审核中心 — 门店注册审核 */
+/* 审核中心 — 入驻审核 */
 .audit-flow {
   display: grid;
   grid-template-columns: repeat(4, minmax(180px, 1fr));
@@ -1661,6 +1733,215 @@
 
 .supplier-detail-onboard-actions {
   margin-bottom: var(--space-md);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 进件信息 · 已上传照片缩略图 / 放大查看 */
+.mdm-onboard-photo {
+  display: block;
+  width: 100%;
+  max-width: 180px;
+  height: 112px;
+  padding: 0;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f8fafc;
+  cursor: zoom-in;
+  position: relative;
+}
+
+.mdm-onboard-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mdm-onboard-photo:hover {
+  border-color: var(--color-primary, #2f6bff);
+  box-shadow: 0 0 0 2px rgba(47, 107, 255, 0.12);
+}
+
+.mdm-onboard-photo--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  color: #666;
+  font-size: 13px;
+}
+
+.mdm-onboard-photo--fallback:hover {
+  border-color: var(--color-border, #e5e7eb);
+  box-shadow: none;
+}
+
+/* 档案详情 · 基础信息场地照（待上传可点上传） */
+.mdm-archive-venue-upload {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.mdm-archive-venue-upload__status {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.mdm-archive-venue-upload .erp-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  line-height: 1.4;
+  height: auto;
+  min-height: 28px;
+}
+
+.mdm-archive-venue-upload--done {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.mdm-photo-lightbox {
+  z-index: 3200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.mdm-photo-lightbox__box {
+  position: relative;
+  max-width: min(920px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  background: #111;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.mdm-photo-lightbox__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+
+.mdm-photo-lightbox__title {
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mdm-photo-lightbox__head .erp-modal__header-btn {
+  color: #fff;
+  border-color: transparent;
+}
+
+.mdm-photo-lightbox__img {
+  display: block;
+  max-width: min(920px, calc(100vw - 48px));
+  max-height: calc(100vh - 96px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  background: #000;
+}
+
+/* 门店/供应商进件 · 绑定汇付商户号 */
+.mdm-huifu-bind-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.erp-modal--huifu-bind {
+  width: min(640px, calc(100vw - 32px));
+  max-width: 640px;
+}
+
+.mdm-huifu-bind__info-title + .mdm-huifu-bind__info-grid + .mdm-huifu-bind__info-title {
+  margin-top: 14px;
+}
+
+.mdm-huifu-bind__row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mdm-huifu-bind__label {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.mdm-huifu-bind__control {
+  width: 100%;
+  min-width: 0;
+}
+
+.mdm-huifu-bind__control .erp-input {
+  width: 100%;
+  height: 32px;
+}
+
+.mdm-huifu-bind__err {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #cf1322;
+  line-height: 1.5;
+}
+
+.mdm-huifu-bind__info {
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid var(--color-border, #e5e5e5);
+  border-radius: 4px;
+  background: #fff;
+}
+
+.mdm-huifu-bind__info-title {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.mdm-huifu-bind__info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+}
+
+.mdm-huifu-bind__info-k {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 2px;
+}
+
+.mdm-huifu-bind__info-v {
+  font-size: 13px;
+  color: #333;
+  word-break: break-all;
+}
+
+@media (max-width: 560px) {
+  .mdm-huifu-bind__info-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .supplier-detail-tab .erp-table-scroll {
@@ -1669,6 +1950,18 @@
 
 .supplier-detail-table-ops {
   white-space: nowrap;
+}
+
+/* 进件列表操作栏：按钮左对齐（覆盖全局 .action-links 居中） */
+.supplier-detail-tab .erp-table td:last-child,
+.store-onboard-section .erp-table td:last-child {
+  text-align: left;
+}
+
+.supplier-detail-tab .erp-table .action-links,
+.store-onboard-section .erp-table .action-links {
+  justify-content: flex-start;
+  text-align: left;
 }
 
 /* 门店详情：门头照 / 冷柜缩略图 / 门店仓库强调 */
@@ -2308,6 +2601,116 @@ select.store-ledger-filter__control {
   color: #1a1a1a;
   line-height: 1.3;
   word-break: break-all;
+}
+
+.store-summary-bar__value--with-action {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.store-summary-bar__value-text {
+  min-width: 0;
+}
+
+.store-summary-bar__action-btn {
+  flex: 0 0 auto;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--color-primary, #2f6bff);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--color-primary, #2f6bff);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 24px;
+  cursor: pointer;
+}
+
+.store-summary-bar__action-btn:hover:not(:disabled) {
+  background: rgba(47, 107, 255, 0.06);
+}
+
+.store-summary-bar__action-btn:disabled {
+  border-color: #d9d9d9;
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+/* 门店档案 · 账户信息 · 账户配置入口/弹框 */
+.store-account-cfg-entry {
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--color-primary, #2f6bff);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--color-primary, #2f6bff);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  line-height: 26px;
+}
+
+.store-account-cfg-entry:hover {
+  background: rgba(47, 107, 255, 0.06);
+}
+
+.store-account-cfg__banner {
+  margin: 0 0 16px;
+  padding: 8px 12px;
+  background: #f7f9fc;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.store-account-cfg__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.store-account-cfg__label {
+  flex: 0 0 100px;
+  font-size: 13px;
+  color: #333;
+  line-height: 32px;
+  text-align: right;
+}
+
+.store-account-cfg__control {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.store-account-cfg__control .erp-input {
+  width: 160px;
+  height: 32px;
+}
+
+.store-account-cfg__unit {
+  font-size: 13px;
+  color: #666;
+}
+
+.store-account-cfg__meta {
+  width: 100%;
+  font-size: 12px;
+  color: #999;
+}
+
+.store-account-cfg__tip {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.55;
+  margin-top: 4px;
 }
 
 .store-onboard-section {

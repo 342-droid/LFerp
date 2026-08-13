@@ -456,6 +456,10 @@
   color: #2f8fff;
 }
 
+.sa-biz-order__status.is-failed {
+  color: #999;
+}
+
 .sa-biz-kv {
   display: grid;
   grid-template-columns: 64px 1fr;

@@ -169,6 +169,15 @@ function loadHeader() {
         `;
         
         headerContainer.innerHTML = headerHtml;
+
+        /* 一级菜单横向滚动：当前页签滚入可视区 */
+        var navTabs = headerContainer.querySelector('.nav-tabs');
+        var activeTab = navTabs && navTabs.querySelector('a.active');
+        if (activeTab && typeof activeTab.scrollIntoView === 'function') {
+            requestAnimationFrame(function () {
+                activeTab.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'auto' });
+            });
+        }
         
         // 添加调试信息
         console.log('Header loaded, sidebarToggle element:', document.getElementById('sidebarToggle'));

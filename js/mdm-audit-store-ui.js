@@ -1,5 +1,5 @@
 /**
- * 门店注册审核 — 详情弹窗、媒体预览、审核流程（由 vendor audit-store-registration 迁入）
+ * 入驻审核 — 详情弹窗、媒体预览、审核流程（由 vendor audit-store-registration 迁入）
  */
 (function () {
     function escapeHtml(s) {
@@ -63,7 +63,20 @@
         return row.partnerDivision === '加盟店' || row.partnerDivision === '合作店';
     }
 
+    function isSupplierAuditRow(row) {
+        return row && row.subjectType === '供应商';
+    }
+
     function isAuditFieldRequired(fieldKey, row) {
+        if (isSupplierAuditRow(row)) {
+            /* 与「新增供应商商家」一致：主体名称 / 联系人 / 手机号码 */
+            var supReq = {
+                subjectName: true,
+                phone: true,
+                contact: true
+            };
+            return !!supReq[fieldKey];
+        }
         var common = {
             subjectName: true,
             bd: true,
@@ -153,18 +166,24 @@
         Object.keys(p).forEach(function (k) {
             merged[k] = p[k];
         });
-        var checks = [
-            { key: 'subjectName', msg: '请填写门店主体' },
-            { key: 'bd', msg: '请填写绑定BD' },
-            { key: 'warehouse', msg: '请选择配送仓库' },
-            { key: 'storeName', msg: '请填写门店名称' },
-            { key: 'partnerDivision', msg: '请选择门店合作类型' },
-            { key: 'storeType', msg: '请填写门店类型' },
-            { key: 'region', msg: '请选择省市区' },
-            { key: 'address', msg: '请填写详细地址' },
-            { key: 'phone', msg: '请填写联系电话' },
-            { key: 'contact', msg: '请填写联系人姓名' }
-        ];
+        var checks = isSupplierAuditRow(merged)
+            ? [
+                  { key: 'subjectName', msg: '请填写主体名称' },
+                  { key: 'contact', msg: '请填写联系人' },
+                  { key: 'phone', msg: '请填写手机号码' }
+              ]
+            : [
+                  { key: 'subjectName', msg: '请填写门店主体' },
+                  { key: 'bd', msg: '请填写绑定BD' },
+                  { key: 'warehouse', msg: '请选择配送仓库' },
+                  { key: 'storeName', msg: '请填写入驻方名称' },
+                  { key: 'partnerDivision', msg: '请选择门店合作类型' },
+                  { key: 'storeType', msg: '请填写门店类型' },
+                  { key: 'region', msg: '请选择省市区' },
+                  { key: 'address', msg: '请填写详细地址' },
+                  { key: 'phone', msg: '请填写联系电话' },
+                  { key: 'contact', msg: '请填写联系人姓名' }
+              ];
         var i;
         for (i = 0; i < checks.length; i++) {
             var v = String(p[checks[i].key] != null ? p[checks[i].key] : '').trim();
@@ -173,13 +192,14 @@
                 return false;
             }
         }
+        if (isSupplierAuditRow(merged)) return true;
         var code = String(p.verifyCode != null ? p.verifyCode : '').trim();
         if (!code || code.length < 4) {
             if (typeof showToast === 'function') showToast('请填写验证码', 'error');
             return false;
         }
         if (!hasFacadePhoto(merged)) {
-            if (typeof showToast === 'function') showToast('请上传门店门头照', 'error');
+            if (typeof showToast === 'function') showToast('请上传门头/场地照', 'error');
             return false;
         }
         if (isFranchiseOrPartnerRow(merged)) {
@@ -306,17 +326,40 @@
         return wrap;
     }
 
+    /** 供应商入驻：字段与「新增供应商商家」一致（主体名称 / 主体类型 / 联系人 / 手机号码） */
+    function appendSupplierRegistrationFields(body, row) {
+        body.appendChild(el('div', 'supplier-detail-section-title', '供应商商家字段'));
+        body.appendChild(detailRow('主体名称', row.subjectName, 'subjectName', row));
+        body.appendChild(detailRow('主体类型', row.subjectType || '供应商'));
+        body.appendChild(detailRow('联系人', row.contact, 'contact', row));
+        body.appendChild(detailRow('手机号码', row.phone, 'phone', row));
+    }
+
+    function appendSupplierEditableFields(body, row) {
+        body.appendChild(el('div', 'supplier-detail-section-title', '供应商商家字段'));
+        body.appendChild(editRow('主体名称', textInput('请输入主体名称', row.subjectName), 'subjectName', row));
+        body.appendChild(detailRow('主体类型', row.subjectType || '供应商'));
+        body.appendChild(editRow('联系人', textInput('请输入联系人', row.contact), 'contact', row));
+        var phoneInp = textInput('请输入手机号码', row.phone);
+        phoneInp.type = 'tel';
+        body.appendChild(editRow('手机号码', phoneInp, 'phone', row));
+    }
+
     function appendRegistrationFields(body, row) {
+        if (isSupplierAuditRow(row)) {
+            appendSupplierRegistrationFields(body, row);
+            return;
+        }
         var isFranchiseOrPartner = row.partnerDivision === '加盟店' || row.partnerDivision === '合作店';
         var isPeerStore = row.partnerDivision === '同行店';
 
         body.appendChild(el('div', 'supplier-detail-section-title', '主体字段'));
         body.appendChild(detailRow('主体名称', row.subjectName, 'subjectName', row));
         body.appendChild(detailRow('绑定BD', row.bd, 'bd', row));
-        body.appendChild(detailRow('主体类型', '门店'));
+        body.appendChild(detailRow('主体类型', row.subjectType || '门店'));
 
         body.appendChild(el('div', 'supplier-detail-section-title', '门店档案字段'));
-        body.appendChild(detailRow('门店名称', row.storeName, 'storeName', row));
+        body.appendChild(detailRow('入驻方名称', row.storeName, 'storeName', row));
         body.appendChild(detailRow('门店简称', row.shortName));
         body.appendChild(detailRow('门店合作类型', row.partnerDivision, 'partnerDivision', row));
         body.appendChild(detailRow('门店类型', row.storeType, 'storeType', row));
@@ -324,7 +367,7 @@
         body.appendChild(detailRow('省市区', row.region, 'region', row));
         body.appendChild(detailRow('详细地址', row.address, 'address', row));
         body.appendChild(detailRow('经纬度', row.latlng));
-        body.appendChild(detailRow('门店门头照', mediaGrid(row.facadePhoto), 'facadePhoto', row));
+        body.appendChild(detailRow('门头/场地照', mediaGrid(row.facadePhoto), 'facadePhoto', row));
         body.appendChild(detailRow('有无冷藏柜', row.hasRefrigeratedCabinet));
         body.appendChild(detailRow('冷藏柜照片', mediaGrid(row.refrigeratedPhotos)));
         body.appendChild(detailRow('有无冷冻柜', row.hasFreezerCabinet));
@@ -359,6 +402,14 @@
     }
 
     function approveAudit(row) {
+        /* 供应商：财务总监一道审核，待审核直接 → 审核成功 */
+        if (isSupplierAuditRow(row)) {
+            if (row.auditStatus === '待审核') {
+                row.auditStatus = '审核成功';
+                row.mdmStatus = '已生成主体与供应商档案';
+            }
+            return;
+        }
         if (row.auditStatus === '待审核') {
             row.auditStatus = '待总监审核';
             row.mdmStatus = '未生成';
@@ -376,7 +427,8 @@
     }
 
     function submitEditedAudit(row) {
-        row.auditStatus = '待总监审核';
+        /* 供应商驳回后重提：回到待财务审核；门店仍进总监环节 */
+        row.auditStatus = isSupplierAuditRow(row) ? '待审核' : '待总监审核';
         row.mdmStatus = '未生成';
     }
 
@@ -399,6 +451,10 @@
     function appendEditableFields(body, row, opts) {
         opts = opts || {};
         var onPartnerChange = opts.onPartnerChange;
+        if (isSupplierAuditRow(row)) {
+            appendSupplierEditableFields(body, row);
+            return;
+        }
 
         var isFranchiseOrPartner = row.partnerDivision === '加盟店' || row.partnerDivision === '合作店';
         var isPeerStore = row.partnerDivision === '同行店';
@@ -406,10 +462,10 @@
         body.appendChild(el('div', 'supplier-detail-section-title', '主体字段'));
         body.appendChild(editRow('主体名称', textInput('请输入主体名称', row.subjectName), 'subjectName', row));
         body.appendChild(editRow('绑定BD', textInput('请输入绑定BD', row.bd), 'bd', row));
-        body.appendChild(detailRow('主体类型', '门店'));
+        body.appendChild(detailRow('主体类型', row.subjectType || '门店'));
 
         body.appendChild(el('div', 'supplier-detail-section-title', '门店档案字段'));
-        body.appendChild(editRow('门店名称', textInput('请输入门店名称', row.storeName), 'storeName', row));
+        body.appendChild(editRow('入驻方名称', textInput('请输入入驻方名称', row.storeName), 'storeName', row));
         body.appendChild(editRow('门店简称', textInput('请输入门店简称', row.shortName), 'shortName', row));
         var partnerSel = selectInput(
             [
@@ -426,7 +482,7 @@
         body.appendChild(editRow('省市区', textInput('请输入省市区', row.region), 'region', row));
         body.appendChild(editRow('详细地址', textInput('请输入详细地址', row.address), 'address', row));
         body.appendChild(editRow('经纬度', textInput('例如 120.09,30.28', row.latlng), 'latlng', row));
-        body.appendChild(detailRow('门店门头照', mediaGrid(row.facadePhoto), 'facadePhoto', row));
+        body.appendChild(detailRow('门头/场地照', mediaGrid(row.facadePhoto), 'facadePhoto', row));
         body.appendChild(
             editRow(
                 '有无冷藏柜',
@@ -545,6 +601,7 @@
             id: 'WF-STORE-20260507001',
             source: 'PC 创建门店',
             subjectName: '冷丰演示门店',
+            subjectType: '门店',
             storeName: '冷丰演示门店文一西路店',
             shortName: '冷丰-文一西路',
             bd: '王强',
@@ -560,7 +617,7 @@
             region: '浙江省 / 杭州市 / 西湖区',
             address: '文一西路 558 号 1 层临街',
             latlng: '120.0912,30.2866',
-            facadePhoto: [{ type: 'image', name: '门店门头照-文一西路.jpg' }],
+            facadePhoto: [{ type: 'image', name: '门头场地照-文一西路.jpg' }],
             hasRefrigeratedCabinet: '有',
             refrigeratedPhotos: [
                 { type: 'image', name: '冷藏柜-1.jpg' },
@@ -588,6 +645,7 @@
             id: 'WF-STORE-20260507002',
             source: 'PC 创建门店',
             subjectName: '五角场体验店',
+            subjectType: '门店',
             storeName: '五角场体验店',
             shortName: '五角场体验',
             bd: '李四',
@@ -631,6 +689,7 @@
             id: 'WF-STORE-20260506001',
             source: 'PC 创建门店',
             subjectName: '滨江便民店',
+            subjectType: '门店',
             storeName: '滨江便民店春晓路店',
             shortName: '滨江-春晓路',
             bd: '王强',
@@ -671,6 +730,7 @@
             id: 'WF-STORE-20260506008',
             source: 'PC 创建门店',
             subjectName: '张江快闪店',
+            subjectType: '门店',
             storeName: '张江快闪店',
             shortName: '张江快闪',
             bd: '赵小九',
@@ -697,6 +757,46 @@
                 { type: 'image', name: '上播销量截图-第2天.jpg' },
                 { type: 'image', name: '上播销量截图-第3天.jpg' }
             ]
+        },
+        {
+            /* 供应商入驻：字段对齐「新增供应商商家」 */
+            id: 'WF-SUP-20260508001',
+            source: 'PC 创建供应商',
+            subjectName: '小牛供应链',
+            subjectType: '供应商',
+            storeName: '小牛供应链',
+            bd: '—',
+            contact: '王敏',
+            phone: '13800132210',
+            auditStatus: '待审核',
+            mdmStatus: '未生成',
+            submittedAt: '2026-05-08 10:15'
+        },
+        {
+            id: 'WF-SUP-20260507010',
+            source: 'PC 创建供应商',
+            subjectName: '珠宝集采中心',
+            subjectType: '供应商',
+            storeName: '珠宝集采中心',
+            bd: '—',
+            contact: '钱多多',
+            phone: '15912347788',
+            auditStatus: '审核失败',
+            mdmStatus: '未生成',
+            submittedAt: '2026-05-07 11:40'
+        },
+        {
+            id: 'WF-SUP-20260506020',
+            source: 'PC 创建供应商',
+            subjectName: '华东辅料仓配',
+            subjectType: '供应商',
+            storeName: '华东辅料仓配',
+            bd: '—',
+            contact: '牛强',
+            phone: '15912347788',
+            auditStatus: '审核成功',
+            mdmStatus: '已生成主体与供应商档案',
+            submittedAt: '2026-05-06 16:08'
         }
     ];
 
@@ -724,7 +824,8 @@
         if (rec.auditStatus === '待审核' || rec.auditStatus === '待总监审核') {
             return d + '　<a href="#" class="mdm-audit-review">审核</a>';
         }
-        if (rec.auditStatus === '审核失败') {
+        /* 供应商财务审核无编辑；门店审核失败可改资料重提 */
+        if (rec.auditStatus === '审核失败' && !isSupplierAuditRow(rec)) {
             return d + '　<a href="#" class="mdm-audit-edit">编辑</a>';
         }
         return d;
@@ -732,16 +833,18 @@
 
     function applyRowToDom(tr, rec) {
         var cells = tr.querySelectorAll('td');
-        if (cells.length < 11) return;
+        if (cells.length < 12) return;
+        cells[1].textContent = rec.source || '';
         cells[2].textContent = rec.subjectName || '';
-        cells[3].textContent = rec.storeName || '';
-        cells[4].textContent = rec.bd || '';
-        cells[5].textContent = rec.contact || '';
-        cells[6].textContent = rec.phone || '';
-        cells[7].innerHTML = statusCellHtml(rec.auditStatus);
-        cells[8].innerHTML = statusCellHtml(rec.mdmStatus);
-        cells[10].className = 'action-links';
-        cells[10].innerHTML = renderActionHtml(rec);
+        cells[3].textContent = rec.subjectType || '门店';
+        cells[4].textContent = rec.storeName || '';
+        cells[5].textContent = rec.bd || '—';
+        cells[6].textContent = rec.contact || '';
+        cells[7].textContent = rec.phone || '';
+        cells[8].innerHTML = statusCellHtml(rec.auditStatus);
+        cells[9].innerHTML = statusCellHtml(rec.mdmStatus);
+        cells[11].className = 'action-links';
+        cells[11].innerHTML = renderActionHtml(rec);
     }
 
     function openAuditDetail(row) {
@@ -750,7 +853,7 @@
         backdrop.setAttribute('data-audit-center-modal', '1');
         var modal = el('div', 'erp-modal erp-modal--store-wide');
         var header = el('div', 'erp-modal__header');
-        header.appendChild(el('h2', 'erp-modal__title', '门店注册审核详情'));
+        header.appendChild(el('h2', 'erp-modal__title', '入驻审核详情'));
         var actions = el('div', 'erp-modal__header-actions');
         var close = el('button', 'erp-modal__header-btn');
         close.type = 'button';
@@ -797,6 +900,10 @@
         Object.keys(patch).forEach(function (k) {
             row[k] = patch[k];
         });
+        /* 供应商商家无独立入驻方名称：列表「入驻方名称」与主体名称同步 */
+        if (isSupplierAuditRow(row) && patch.subjectName != null) {
+            row.storeName = String(patch.subjectName).trim();
+        }
     }
 
     function openAuditReview(row, pm, startInEdit) {
@@ -805,7 +912,7 @@
         backdrop.setAttribute('data-audit-center-modal', '1');
         var modal = el('div', 'erp-modal erp-modal--store-wide');
         var header = el('div', 'erp-modal__header');
-        header.appendChild(el('h2', 'erp-modal__title', '审核门店注册申请'));
+        header.appendChild(el('h2', 'erp-modal__title', '审核入驻申请'));
         var actions = el('div', 'erp-modal__header-actions');
         var close = el('button', 'erp-modal__header-btn');
         close.type = 'button';
@@ -839,14 +946,27 @@
         function renderReview() {
             body.innerHTML = '';
             footer.innerHTML = '';
-            var phaseLabel =
-                row.auditStatus === '待审核'
-                    ? 'BD 审核'
-                    : row.auditStatus === '待总监审核'
-                      ? 'BD 总监终审'
-                      : row.auditStatus === '审核失败'
-                        ? '审核失败（待修改资料）'
-                        : '—';
+            var isSup = isSupplierAuditRow(row);
+            var phaseLabel;
+            if (isSup) {
+                phaseLabel =
+                    row.auditStatus === '待审核'
+                        ? '财务审核（财务总监）'
+                        : row.auditStatus === '审核失败'
+                          ? '审核失败'
+                          : row.auditStatus === '审核成功'
+                            ? '财务审核已通过'
+                            : '—';
+            } else {
+                phaseLabel =
+                    row.auditStatus === '待审核'
+                        ? 'BD 审核'
+                        : row.auditStatus === '待总监审核'
+                          ? 'BD 总监终审'
+                          : row.auditStatus === '审核失败'
+                            ? '审核失败（待修改资料）'
+                            : '—';
+            }
             body.appendChild(detailRow('当前环节', phaseLabel));
             body.appendChild(detailRow('审核状态', row.auditStatus));
             appendRegistrationFields(body, row);
@@ -858,26 +978,31 @@
             footer.appendChild(cancel);
 
             if (row.auditStatus === '待审核') {
-                var edit = mkBtn('编辑', false);
-                edit.addEventListener('click', renderEdit);
+                if (!isSup) {
+                    var edit = mkBtn('编辑', false);
+                    edit.addEventListener('click', renderEdit);
+                    footer.appendChild(edit);
+                }
                 var reject = mkBtn('驳回', false);
                 reject.addEventListener('click', function () {
                     rejectAudit(row);
                     backdrop.remove();
                     onDone();
-                    showToast('已驳回申请（演示）', 'info');
+                    showToast(isSup ? '财务已驳回申请（演示）' : '已驳回申请（演示）', 'info');
                 });
                 var approve = mkBtn('审核通过', true);
                 approve.addEventListener('click', function () {
                     approveAudit(row);
                     backdrop.remove();
                     onDone();
-                    showToast('审核已处理（演示）', 'success');
+                    showToast(
+                        isSup ? '财务审核通过，已生成供应商商家（演示）' : '审核已处理（演示）',
+                        'success'
+                    );
                 });
-                footer.appendChild(edit);
                 footer.appendChild(reject);
                 footer.appendChild(approve);
-            } else if (row.auditStatus === '待总监审核') {
+            } else if (!isSup && row.auditStatus === '待总监审核') {
                 var reject2 = mkBtn('驳回', false);
                 reject2.addEventListener('click', function () {
                     rejectAudit(row);
@@ -894,7 +1019,7 @@
                 });
                 footer.appendChild(reject2);
                 footer.appendChild(approve2);
-            } else if (row.auditStatus === '审核失败') {
+            } else if (!isSup && row.auditStatus === '审核失败') {
                 var editFail = mkBtn('编辑资料', false);
                 editFail.addEventListener('click', renderEdit);
                 footer.appendChild(editFail);
@@ -948,7 +1073,8 @@
             footer.appendChild(submit);
         }
 
-        if (startInEdit) renderEdit();
+        /* 供应商财务审核无编辑态 */
+        if (startInEdit && !isSupplierAuditRow(row)) renderEdit();
         else renderReview();
 
         modal.appendChild(header);

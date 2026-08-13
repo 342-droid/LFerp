@@ -51,21 +51,23 @@
 
   /**
    * 账变类型 / 状态：与 MDM 门店档案·账变记录枚举对齐
-   * 收入：首次充值、保证金入账、佣金结算、充值、提现回退
-   * 支出：提现、售后赔付、保证金出账
-   * 售后赔付：仅从余额账户或保证金账户出账
-   * 划拨（C 端 Tab「锁定/补齐」）：保证金补缴
-   * 状态：成功、处理中、失败（提现一经发起不可撤销，无已撤销）
+   * 收入：账户=入账钱包；支付方式=来源（不可与账户同值）
+   * 支出：账户=对手方；付款方式=出款钱包/渠道（不可与账户同值）
+   * 售后/责任类扣款：账户=平台，付款方式=保证金账户；保证金不足则失败
    */
   var BIZ_TYPE_MAP = {
-    保证金划拨出账: '保证金出账',
     保证金划拨入账: '保证金入账',
     保证金补齐: '保证金补缴',
     平台佣金: '佣金结算',
     佣金入账: '佣金结算',
     订单佣金: '佣金结算',
     提现申请: '提现',
-    售后问责: '售后赔付'
+    售后问责: '售后/责任类扣款',
+    售后赔付: '售后/责任类扣款',
+    保证金出账: '售后/责任类扣款',
+    保证金划拨出账: '售后/责任类扣款',
+    余额支付: '进货支付',
+    进货退款: '退款'
   };
   var INCOME_TYPES = [
     '首次充值',
@@ -77,19 +79,24 @@
     '平台佣金',
     '佣金入账',
     '充值',
-    '提现回退'
+    '提现回退',
+    '退款',
+    '进货退款'
   ];
+  /* 支出筛选：含旧名「售后赔付 / 保证金出账 / 保证金划拨出账」等 → 售后/责任类扣款 */
   var EXPENSE_TYPES = [
     '提现',
     '提现申请',
     '售后赔付',
     '售后问责',
+    '售后/责任类扣款',
     '保证金出账',
     '保证金划拨出账',
     '佣金回退',
-    '余额支付'
+    '余额支付',
+    '进货支付'
   ];
-  var LOCK_TYPES = ['保证金补缴', '保证金补齐'];
+  var LOCK_TYPES = ['保证金补缴', '保证金补齐', '保证金解冻'];
 
   function mapLedgerBizType(rawType) {
     var t = String(rawType || '');
@@ -115,7 +122,12 @@
       return item.dir === 'out' || EXPENSE_TYPES.indexOf(type) >= 0 || EXPENSE_TYPES.indexOf(mapped) >= 0;
     }
     if (tab === 'lock') {
-      return item.dir === 'lock' || LOCK_TYPES.indexOf(type) >= 0 || LOCK_TYPES.indexOf(mapped) >= 0;
+      return (
+        item.dir === 'lock' ||
+        item.dir === 'unlock' ||
+        LOCK_TYPES.indexOf(type) >= 0 ||
+        LOCK_TYPES.indexOf(mapped) >= 0
+      );
     }
     return true;
   }
@@ -338,22 +350,57 @@
 
   function amtClass(dir) {
     if (dir === 'in') return 'is-in';
-    if (dir === 'lock') return 'is-lock';
+    if (dir === 'lock' || dir === 'unlock') return 'is-lock';
     return 'is-out';
   }
 
   function amtPrefix(dir) {
-    if (dir === 'in') return '+';
+    if (dir === 'in' || dir === 'unlock') return '+';
     if (dir === 'out') return '-';
     return '';
   }
 
-  function accountLabel(account) {
-    var a = String(account || '');
+  function accountLabel(account, subAccount) {
+    var a = String(account || '').trim();
+    var sub = String(subAccount || '');
+    if (a === '平台') return '平台';
+    if (a.indexOf('资金到账') >= 0) return '资金到账账户';
     if (a.indexOf('保证金') >= 0 && a.indexOf('余额') >= 0) return '保证金账户/余额账户';
     if (a.indexOf('保证金') >= 0) return '保证金账户';
-    if (a.indexOf('余额') >= 0) return '余额账户';
+    if (a.indexOf('余额') >= 0) {
+      if (sub.indexOf('货款') >= 0) return '余额账户-货款';
+      return '余额账户';
+    }
+    /* 提现账户 / 佣金回退商户简称等：原样展示 */
     return a || '—';
+  }
+
+  /** 提现：账户=银行名称(卡号后四位)；其它走 accountLabel */
+  function accountDisplay(item) {
+    if (isWithdrawLedger(item) && mapLedgerBizType(item && item.type) === '提现') {
+      var a = String((item && item.account) || '').trim();
+      if (a && a.indexOf('资金到账') < 0 && a.indexOf('余额') < 0 && a.indexOf('保证金') < 0) {
+        return a;
+      }
+      return withdrawBankLabel(item);
+    }
+    return accountLabel(item && item.account, item && item.subAccount);
+  }
+
+  function isExpenseLedger(item) {
+    var type = String((item && item.type) || '');
+    var mapped = mapLedgerBizType(type);
+    return (
+      (item && item.dir === 'out') ||
+      EXPENSE_TYPES.indexOf(type) >= 0 ||
+      EXPENSE_TYPES.indexOf(mapped) >= 0
+    );
+  }
+
+  /** 支出（含提现）：字段名「付款方式」；收入 / 锁定补齐：「支付方式」 */
+  function payWayFieldLabel(item) {
+    if (isExpenseLedger(item) || isWithdrawLedger(item)) return '付款方式';
+    return '支付方式';
   }
 
   /** 对公展示为「银行名称(卡号后四位)」；支付方式仅：银行卡 / 支付宝 / 微信 */
@@ -375,43 +422,55 @@
     return biz === '提现' || biz === '提现回退';
   }
 
-  /** 提现流水：展示提现银行（银行名+卡号后四位） */
+  /** 提现到账银行：银行名+卡号后四位（用于账户字段） */
   function withdrawBankLabel(item) {
     var corp = corpBankLabel(item);
     if (corp) return corp;
+    var a = String((item && item.account) || '').trim();
+    if (a && a.indexOf('资金到账') < 0 && a.indexOf('银行') >= 0) return a;
     var m = String((item && (item.payMethod || item.channel)) || '').trim();
-    if (m && m !== '对公账户' && m !== '对公') return m;
+    if (m && m !== '对公账户' && m !== '对公' && m.indexOf('账户') < 0) return m;
     return '—';
   }
 
   function payMethodLabel(item) {
-    var type = String((item && item.type) || '');
-    /* 保证金划拨 / 补齐：支付方式为余额账户 */
+    var m = String((item && (item.payMethod || item.channel)) || '').trim();
     if (
+      m === '平台' ||
+      m === '余额账户' ||
+      m === '保证金账户' ||
+      m === '余额账户/保证金账户'
+    ) {
+      return m;
+    }
+    var type = String((item && item.type) || '');
+    var mapped = mapLedgerBizType(type);
+    /* 提现：付款方式为出款钱包（余额/保证金），不再展示银行 */
+    if (mapped === '提现' || type === '提现申请') {
+      if (m === '保证金账户' || m === '余额账户/保证金账户') return m;
+      return '余额账户';
+    }
+    if (m) return m;
+    /* 旧「保证金出账」默认保证金账户；其余售后/责任类扣款默认余额账户 */
+    if (type === '保证金出账') return '保证金账户';
+    if (
+      mapped === '进货支付' ||
+      mapped === '售后/责任类扣款' ||
+      type === '余额支付' ||
+      type === '佣金回退' ||
       type === '保证金补齐' ||
       type === '保证金划拨出账' ||
-      type === '保证金划拨入账' ||
-      String((item && item.payMethod) || '') === '余额账户'
+      type === '保证金划拨入账'
     ) {
       return '余额账户';
     }
-    var m = String((item && (item.payMethod || item.channel)) || '').trim();
     var no = String((item && item.channelNo) || '');
-    if (m === '支付宝' || m === '微信') return m;
-    if (/^WX/i.test(no) || m.indexOf('微信') >= 0) return '微信';
-    if (/^ALI|ZFB/i.test(no) || m.indexOf('支付宝') >= 0) return '支付宝';
-    /* 对公账户 / 银行名 → 统一成 银行(后四位) */
-    if (
-      !m ||
-      m === '对公账户' ||
-      m === '对公' ||
-      m.indexOf('银行') >= 0 ||
-      (item && item.bankName)
-    ) {
+    if (/^WX/i.test(no)) return '微信';
+    if (/^ALI|ZFB/i.test(no)) return '支付宝';
+    if (item && item.bankName) {
       var corp = corpBankLabel(item);
       if (corp) return corp;
     }
-    if (m && m !== '对公账户' && m !== '对公') return m;
     return '—';
   }
 
@@ -513,15 +572,15 @@
           '</span></div>' +
           '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">账户</span>' +
           '<span class="ua-sw-ledger__v">' +
-          escHtml(accountLabel(item.account)) +
+          escHtml(accountDisplay(item)) +
           '</span></div>' +
           '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">' +
-          (isWithdrawLedger(item) ? '提现银行' : '支付方式') +
+          payWayFieldLabel(item) +
           '</span>' +
           '<span class="ua-sw-ledger__v">' +
-          escHtml(isWithdrawLedger(item) ? withdrawBankLabel(item) : payMethodLabel(item)) +
+          escHtml(payMethodLabel(item)) +
           '</span></div>' +
-          '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">支付流水</span>' +
+          '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">交易流水</span>' +
           '<span class="ua-sw-ledger__v">' +
           escHtml(item.channelNo || '—') +
           '</span></div>' +
@@ -590,26 +649,27 @@
         lead: '入驻锁定资金，保障履约与售后责任，不可提现。',
         points: [
           '入驻时锁定，不支持提现',
-          '售后赔付可从保证金账户出账，可能形成缺口',
-          '存在缺口时，后续入账优先补齐保证金'
+          '存在缺口时，后续入账优先补齐保证金',
+          '「售后/责任类扣款」从保证金账户付款至平台；保证金不足时出账失败（不从余额拼扣）'
         ]
       },
       balance: {
         title: '余额账户说明',
-        lead: '用于进货支付；提现仅限已满 T+1 的可提款。',
+        lead: '',
         points: [
-          '可提款：已满 T+1，可提现至汇付对公账户',
-          '入账未满 T+1 的金额不可提现（可支付进货）',
-          '货款：不可提现，进货时优先扣减'
+          '货款：不可提现，仅用于门店进货支付。',
+          '可提款：余额账户中已满足 T+1 解冻规则的资金，可提现至汇付对公账户（不包含货款）。',
+          '待解冻：入账未满 T+1 的资金，不可提现，可用于门店进货支付。',
+          '进货支付 / 售后·责任类扣款（余额账户付款）/ 佣金回退等：不扣货款，可扣 = 余额 − 货款（可提款 + 待解冻）'
         ]
       },
       goods: {
         title: '货款说明',
-        lead: '货款不可提现，用于保障进货周转。',
+        lead: '货款：不可提现，仅用于门店进货支付。',
         points: [
-          '首次充值划入的货款额度，不支持提现',
-          '进货支付时优先扣减货款；相关退款可恢复货款水位',
-          '可提现部分请查看上方「可提款」金额'
+          '不支持提现，仅用于门店进货支付',
+          '进货支付、售后/责任类扣款、佣金回退等规则见余额与保证金说明',
+          '可提现部分请查看上方「可提款金额」'
         ]
       }
     };
@@ -627,9 +687,10 @@
       if (!conf || !sheet || !titleEl || !bodyEl) return;
       titleEl.textContent = conf.title;
       bodyEl.innerHTML =
-        '<p class="ua-sw-sheet__lead">' +
-        conf.lead +
-        '</p><ul class="ua-sw-sheet__list">' +
+        (conf.lead
+          ? '<p class="ua-sw-sheet__lead">' + conf.lead + '</p>'
+          : '') +
+        '<ul class="ua-sw-sheet__list">' +
         conf.points
           .map(function (p) {
             return '<li>' + p + '</li>';
@@ -790,7 +851,7 @@
           return;
         }
         snap = api.snapshot();
-        if (snap.depositGap > 0) {
+        if (snap.depositGap > 0 && !snap.depositGapFillSuppressed) {
           window.alert('保证金存在缺口 ' + api.money(snap.depositGap) + '，请先补齐后再提现。');
           return;
         }

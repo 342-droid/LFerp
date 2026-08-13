@@ -8,6 +8,11 @@
       priceNum: 43.95,
       paidAmount: 87.9,
       qty: 2,
+      /* 演示：混合支付分摊，原路退回 */
+      payLegs: [
+        { name: '钱包余额', amount: 40 },
+        { name: '微信', amount: 47.9 }
+      ],
       freight: 0,
       shippingFee: 0,
       orderSpecId: 'cherry-25',
@@ -231,13 +236,29 @@
     return list;
   }
 
+  /** 售后数量池/商品读取统一订单号：入参 > URL/申请单；避免 null 串单 */
+  function resolveOrderNo(orderNo) {
+    if (orderNo != null && String(orderNo).trim() !== '') return String(orderNo).trim();
+    try {
+      if (typeof getCurrentOrderNo === 'function') {
+        var cur = getCurrentOrderNo();
+        if (cur) return cur;
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return '';
+  }
+
   function getAftersaleRecordsByItem(itemIndex, orderNo) {
     var list = loadAftersaleRecords();
     var idx = Number(itemIndex);
+    var no = resolveOrderNo(orderNo);
     return list.filter(function (r) {
       if (Number(r.itemIndex) !== idx) return false;
-      if (orderNo && r.orderNo && r.orderNo !== orderNo) return false;
-      return true;
+      /* 有订单号时严格隔离；无订单号时仅看演示单，禁止串到其它进货单 */
+      if (no) return String(r.orderNo || '') === no;
+      return !r.orderNo || String(r.orderNo) === DEMO_ORDER_NO;
     });
   }
 
@@ -319,12 +340,12 @@
     return bars;
   }
 
-  function hasOpenAftersaleOfGroup(itemIndex, typeOrGroup) {
+  function hasOpenAftersaleOfGroup(itemIndex, typeOrGroup, orderNo) {
     var group =
       typeOrGroup === 'refund' || typeOrGroup === 'restock' || typeOrGroup === 'exchange'
         ? typeOrGroup
         : getAftersaleTypeGroup(typeOrGroup);
-    return getAftersaleRecordsByItem(itemIndex).some(function (r) {
+    return getAftersaleRecordsByItem(itemIndex, orderNo).some(function (r) {
       return getAftersaleTypeGroup(r.type) === group && !isAftersaleFinished(r);
     });
   }
@@ -345,9 +366,65 @@
     return type === 'refund_only' || type === 'pre_ship' || type === 'return';
   }
 
-  function getPurchaseQty(itemIndex) {
-    var item = DEMO_ITEMS[itemIndex] || DEMO_ITEMS[0];
+  function getPurchaseQty(itemIndex, orderNo) {
+    var idx = Number(itemIndex) || 0;
+    var no = resolveOrderNo(orderNo);
+    try {
+      if (no && global.UaOrdersStore && typeof global.UaOrdersStore.getByNo === 'function') {
+        var order = global.UaOrdersStore.getByNo(no);
+        var it = order && Array.isArray(order.items) ? order.items[idx] : null;
+        var q = it != null ? Number(it.qty) : NaN;
+        if (!isNaN(q) && q > 0) return q;
+      }
+    } catch (e0) {
+      /* ignore */
+    }
+    try {
+      var raw = sessionStorage.getItem('ua_last_order_v1');
+      if (raw) {
+        var last = JSON.parse(raw);
+        if (!no || String(last.orderNo || '') === String(no)) {
+          var lastIt = last && Array.isArray(last.items) ? last.items[idx] : null;
+          var lq = lastIt != null ? Number(lastIt.qty) : NaN;
+          if (!isNaN(lq) && lq > 0) return lq;
+        }
+      }
+    } catch (e1) {
+      /* ignore */
+    }
+    var item = DEMO_ITEMS[idx] || DEMO_ITEMS[0];
     return Number((item && item.qty) || 1) || 1;
+  }
+
+  /** 按件数折算可退金额：优先实付单价，避免 price 缺失导致金额为 0 */
+  function getItemUnitPaid(item) {
+    item = item || {};
+    var qty = Number(item.qty);
+    if (!(qty > 0)) qty = 1;
+    var paid = Number(item.paidAmount);
+    if (paid > 0) return Math.round((paid / qty) * 100) / 100;
+    var price = Number(item.priceNum != null ? item.priceNum : item.price);
+    return price > 0 ? Math.round(price * 100) / 100 : 0;
+  }
+
+  function getItemRefundAmount(item, qty) {
+    item = item || getItem();
+    var q = qty != null ? Number(qty) : Number(item.qty) || 1;
+    if (!(q > 0)) return 0;
+    return Math.round(getItemUnitPaid(item) * q * 100) / 100;
+  }
+
+  /** 详情/成功页展示金额：申请单金额为 0 时回退到商品实付 */
+  function resolveRefundDisplayAmount(app, item) {
+    var fromApp = app && app.amount != null ? Number(app.amount) : NaN;
+    if (fromApp > 0) return Math.round(fromApp * 100) / 100;
+    var q =
+      app && app.qty != null && Number(app.qty) > 0
+        ? Number(app.qty)
+        : Number(item && item.qty) || 1;
+    var computed = getItemRefundAmount(item, q);
+    if (computed > 0) return computed;
+    return fromApp > 0 ? Math.round(fromApp * 100) / 100 : 0;
   }
 
   /** 单条售后占用件数；成功单缺省 qty 时回退为购买数（兼容旧演示数据） */
@@ -393,7 +470,7 @@
    * 2) 补货池：购买数 − 已售后累计(进行中+已完成的退款/退货/补货/换货)；退款会扣补货上限，补货不扣可退
    */
   function getRefundSuccessQty(itemIndex, orderNo, excludeId) {
-    var purchaseQty = getPurchaseQty(itemIndex);
+    var purchaseQty = getPurchaseQty(itemIndex, orderNo);
     return getAftersaleRecordsByItem(itemIndex, orderNo).reduce(function (sum, r) {
       if (excludeId && r.id === excludeId) return sum;
       if (!isRefundPoolType(r.type) || r.stage !== 'success') return sum;
@@ -402,7 +479,7 @@
   }
 
   function getRefundOpenQty(itemIndex, orderNo, excludeId) {
-    var purchaseQty = getPurchaseQty(itemIndex);
+    var purchaseQty = getPurchaseQty(itemIndex, orderNo);
     return getAftersaleRecordsByItem(itemIndex, orderNo).reduce(function (sum, r) {
       if (excludeId && r.id === excludeId) return sum;
       if (!isRefundPoolType(r.type) || isAftersaleFinished(r)) return sum;
@@ -413,7 +490,7 @@
   /** 可退上限；退货退款可再卡 ≤ pickedQty（已核销/已提货） */
   function getRefundableMaxQty(itemIndex, orderNo, opts) {
     opts = opts || {};
-    var purchaseQty = getPurchaseQty(itemIndex);
+    var purchaseQty = getPurchaseQty(itemIndex, orderNo);
     var max = Math.max(
       0,
       purchaseQty -
@@ -432,7 +509,7 @@
 
   /** 已售后累计占用（进行中+已完成；关闭/失败不计）——用于补货上限 */
   function getAftersaleOccupiedQty(itemIndex, orderNo, excludeId) {
-    var purchaseQty = getPurchaseQty(itemIndex);
+    var purchaseQty = getPurchaseQty(itemIndex, orderNo);
     return getAftersaleRecordsByItem(itemIndex, orderNo).reduce(function (sum, r) {
       if (excludeId && r.id === excludeId) return sum;
       if (r.stage === 'closed' || r.stage === 'failed') return sum;
@@ -445,7 +522,7 @@
 
   function getRestockMaxQty(itemIndex, orderNo, opts) {
     opts = opts || {};
-    var purchaseQty = getPurchaseQty(itemIndex);
+    var purchaseQty = getPurchaseQty(itemIndex, orderNo);
     return Math.max(
       0,
       purchaseQty - getAftersaleOccupiedQty(itemIndex, orderNo, opts.excludeId)
@@ -629,7 +706,8 @@
           item: rec.itemIndex != null ? String(rec.itemIndex) : '0',
           reason: rec.reason || '',
           closeReason: rec.closeReason || '',
-          asId: rec.id || ''
+          asId: rec.id || '',
+          orderNo: rec.orderNo || getCurrentOrderNo() || ''
         },
         extra
       )
@@ -666,7 +744,7 @@
             : Number((getItem() && getItem().qty) || 1) || 1;
     upsertAftersaleRecord({
       id: id,
-      orderNo: app.orderNo || '1089765423471123',
+      orderNo: app.orderNo || getCurrentOrderNo() || DEMO_ORDER_NO,
       itemIndex: app.itemIndex != null ? app.itemIndex : getItemIndex(),
       type: syncType,
       stage: stage || 'audit',
@@ -2111,8 +2189,266 @@
     return '客户自身原因导致商品损坏，不符退货要求。';
   }
 
-  function computeRefundBreakdown(total) {
-    return [{ label: '退回微信', amount: total }];
+  /** 读取订单/商品支付分摊，供原路退回 */
+  /** 当前售后链路订单号：URL > 申请单 > 空（避免误落到演示单/最近一单） */
+  function getCurrentOrderNo() {
+    var fromUrl = getParams().get('orderNo');
+    if (fromUrl) return String(fromUrl).trim();
+    try {
+      var app = loadApplication();
+      if (app && app.orderNo) return String(app.orderNo).trim();
+    } catch (e) {
+      /* ignore */
+    }
+    return '';
+  }
+
+  function getOrderByCurrentNo() {
+    var no = getCurrentOrderNo();
+    if (no && global.UaOrdersStore && typeof global.UaOrdersStore.getByNo === 'function') {
+      var order = global.UaOrdersStore.getByNo(no);
+      if (order) return order;
+    }
+    try {
+      var orderRaw = sessionStorage.getItem('ua_last_order_v1');
+      if (!orderRaw) return null;
+      var last = JSON.parse(orderRaw);
+      if (!no || String(last.orderNo || '') === no) return last;
+    } catch (e1) {
+      /* ignore */
+    }
+    return null;
+  }
+
+  function getOrderPayLegsContext() {
+    var idx = getItemIndex();
+    var order = getOrderByCurrentNo();
+    var item = order && Array.isArray(order.items) ? order.items[idx] : null;
+    var itemLegs =
+      item && Array.isArray(item.payLegs)
+        ? item.payLegs.filter(function (leg) {
+            return leg && leg.name && Number(leg.amount) > 0.001;
+          })
+        : [];
+    var orderLegs =
+      order && Array.isArray(order.payLegs)
+        ? order.payLegs.filter(function (leg) {
+            return leg && leg.name && Number(leg.amount) > 0.001;
+          })
+        : [];
+    return { order: order, item: item, itemLegs: itemLegs, orderLegs: orderLegs };
+  }
+
+  /** 支付方式归一：支付宝 / 微信 / 钱包 / 积分 */
+  function normalizeRefundChannel(name) {
+    var n = String(name || '');
+    if (/积分/.test(n)) return { key: 'points', label: '退回积分', kind: 'points' };
+    if (/支付宝|亲密|alipay/i.test(n)) return { key: 'alipay', label: '退回支付宝', kind: 'alipay' };
+    if (/微信|wechat/i.test(n)) return { key: 'wechat', label: '退回微信', kind: 'wechat' };
+    if (/钱包|余额|balance/i.test(n)) return { key: 'wallet', label: '退回钱包', kind: 'wallet' };
+    return { key: 'wallet', label: '退回钱包', kind: 'wallet' };
+  }
+
+  var REFUND_CHANNEL_ORDER = { alipay: 1, wechat: 2, wallet: 3, points: 4 };
+
+  function refundChannelIconHtml(kind) {
+    if (kind === 'alipay') {
+      return '<span class="ua-or-result-breakdown__icon ua-or-result-breakdown__icon--alipay" aria-hidden="true">支</span>';
+    }
+    if (kind === 'wechat') {
+      return (
+        '<span class="ua-or-result-breakdown__icon ua-or-result-breakdown__icon--wechat" aria-hidden="true">' +
+        '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 4C5.9 4 3 6.5 3 9.6c0 1.8.9 3.4 2.4 4.5L4.8 16l2.3-1.2c.7.2 1.5.3 2.4.3.2 0 .5 0 .7-.1-.2-.5-.3-1.1-.3-1.7 0-3.1 2.9-5.6 6.5-5.6.2 0 .5 0 .7.1C16.3 5.5 13.2 4 9.5 4zm-2.2 3.2c-.5 0-.9.4-.9.9s.4.9.9.9.9-.4.9-.9-.4-.9-.9-.9zm4.4 0c-.5 0-.9.4-.9.9s.4.9.9.9.9-.4.9-.9-.4-.9-.9-.9zM15.6 9c-2.9 0-5.2 2-5.2 4.5S12.7 18 15.6 18c.7 0 1.4-.1 2-.4l1.8.9-.5-1.7c1.2-.9 1.9-2.1 1.9-3.5C20.8 11 18.5 9 15.6 9zm-1.5 2.5c.4 0 .7.3.7.7s-.3.7-.7.7-.7-.3-.7-.7.3-.7.7-.7zm3 0c.4 0 .7.3.7.7s-.3.7-.7.7-.7-.3-.7-.7.3-.7.7-.7z"/></svg>' +
+        '</span>'
+      );
+    }
+    if (kind === 'points') {
+      return (
+        '<span class="ua-or-result-breakdown__icon ua-or-result-breakdown__icon--points" aria-hidden="true">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 7v10M9 10.5h6M9 13.5h6"/></svg>' +
+        '</span>'
+      );
+    }
+    return (
+      '<span class="ua-or-result-breakdown__icon ua-or-result-breakdown__icon--wallet" aria-hidden="true">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14h2"/></svg>' +
+      '</span>'
+    );
+  }
+
+  function isPointsPayLeg(name) {
+    return /积分/.test(String(name || ''));
+  }
+
+  function sumCashRefundParts(parts) {
+    return Math.round(
+      (parts || []).reduce(function (s, part) {
+        if (!part || part.key === 'points') return s;
+        return s + (Number(part.amount) || 0);
+      }, 0) * 100
+    ) / 100;
+  }
+
+  /** 进货售后成功：仅将退回钱包金额记入门店钱包收入明细（防重复记账） */
+  function maybePostWalletRefundLedger(app, parts) {
+    if (!app || app.walletRefundPosted) return;
+    if (!isFromRestock()) return;
+    if (
+      !global.StoreWalletDemo ||
+      typeof global.StoreWalletDemo.applyWalletRefund !== 'function'
+    ) {
+      return;
+    }
+    var walletAmt = 0;
+    (parts || []).forEach(function (part) {
+      if (part && part.key === 'wallet') walletAmt += Number(part.amount) || 0;
+    });
+    walletAmt = Math.round(walletAmt * 100) / 100;
+    if (!(walletAmt > 0.001)) return;
+    var res = global.StoreWalletDemo.applyWalletRefund(walletAmt, {
+      bizNo: app.id || app.applyNo || '',
+      channelNo: 'RF-WALLET-' + String(app.id || Date.now()).slice(-6),
+      remark: '进货订单退款·由平台退回钱包（仅钱包变动金额）'
+    });
+    if (res && res.ok) {
+      app.walletRefundPosted = true;
+      saveApplication(app);
+    }
+  }
+
+  /**
+   * 原路退回拆分：
+   * - 申请金额（现金）= 退回钱包 + 退回支付宝/微信，分毫不差
+   * - 积分另列展示，不计入申请金额
+   */
+  function computeRefundBreakdown(total, item) {
+    var refundTotal = Math.round(Number(total) * 100) / 100;
+    if (!(refundTotal > 0)) return [];
+    var ctx = getOrderPayLegsContext();
+    var source =
+      item && Array.isArray(item.payLegs) && item.payLegs.length
+        ? item.payLegs.slice()
+        : ctx.itemLegs.length
+          ? ctx.itemLegs.slice()
+          : ctx.orderLegs.slice();
+    source = (source || []).filter(function (leg) {
+      return leg && leg.name && Number(leg.amount) > 0.001;
+    });
+
+    var cashLegs = [];
+    var pointsFromLegs = 0;
+    source.forEach(function (leg) {
+      if (isPointsPayLeg(leg.name)) {
+        pointsFromLegs = Math.round((pointsFromLegs + Number(leg.amount)) * 100) / 100;
+      } else {
+        cashLegs.push(leg);
+      }
+    });
+
+    if (!cashLegs.length) {
+      cashLegs = [{ name: '微信', amount: refundTotal }];
+    }
+
+    var cashBase = cashLegs.reduce(function (s, leg) {
+      return s + (Number(leg.amount) || 0);
+    }, 0);
+    cashBase = Math.round(cashBase * 100) / 100;
+    if (!(cashBase > 0)) {
+      cashLegs = [{ name: '微信', amount: refundTotal }];
+      cashBase = refundTotal;
+    }
+
+    var merged = {};
+    var remain = refundTotal;
+    cashLegs.forEach(function (leg, idx) {
+      var share =
+        idx === cashLegs.length - 1
+          ? remain
+          : Math.round(((Number(leg.amount) / cashBase) * refundTotal) * 100) / 100;
+      if (share < 0) share = 0;
+      if (idx < cashLegs.length - 1) remain = Math.round((remain - share) * 100) / 100;
+      if (!(share > 0.001)) return;
+      var ch = normalizeRefundChannel(leg.name);
+      if (ch.key === 'points') return;
+      if (!merged[ch.key]) {
+        merged[ch.key] = {
+          key: ch.key,
+          label: ch.label,
+          kind: ch.kind,
+          amount: 0
+        };
+      }
+      merged[ch.key].amount = Math.round((merged[ch.key].amount + share) * 100) / 100;
+    });
+
+    var parts = Object.keys(merged)
+      .map(function (k) {
+        return merged[k];
+      })
+      .filter(function (part) {
+        return part && Number(part.amount) > 0.001;
+      });
+
+    /* 尾差抹到金额最大的现金渠道，保证与申请金额一致 */
+    var cashSum = sumCashRefundParts(parts);
+    var drift = Math.round((refundTotal - cashSum) * 100) / 100;
+    if (Math.abs(drift) >= 0.01 && parts.length) {
+      parts.sort(function (a, b) {
+        return Number(b.amount) - Number(a.amount);
+      });
+      parts[0].amount = Math.round((Number(parts[0].amount) + drift) * 100) / 100;
+    }
+
+    /* 积分：按申请金额占商品现金实付比例折算，单独展示 */
+    var order = ctx.order || {};
+    var pointsAmt = pointsFromLegs;
+    if (!(pointsAmt > 0.001)) pointsAmt = Number(order.deductAmount) || 0;
+    if (pointsAmt > 0.001) {
+      var itemCash = Number(item && item.paidAmount);
+      if (!(itemCash > 0)) {
+        itemCash = Math.round(
+          (Number(item && item.priceNum) || 0) * (Number(item && item.qty) || 1) * 100
+        ) / 100;
+      }
+      var scale = itemCash > 0 ? refundTotal / itemCash : 1;
+      if (scale > 1) scale = 1;
+      if (scale < 0) scale = 0;
+      var pointsRefund = Math.round(pointsAmt * scale * 100) / 100;
+      if (pointsRefund > 0.001) {
+        parts.push({
+          key: 'points',
+          label: '退回积分',
+          kind: 'points',
+          amount: pointsRefund
+        });
+      }
+    }
+
+    return parts.sort(function (a, b) {
+      return (REFUND_CHANNEL_ORDER[a.key] || 99) - (REFUND_CHANNEL_ORDER[b.key] || 99);
+    });
+  }
+
+  function formatRefundAmountText(amount) {
+    return '¥ ' + Number(amount || 0).toFixed(2);
+  }
+
+  function renderRefundBreakdownRows(parts) {
+    return (parts || [])
+      .map(function (part) {
+        return (
+          '<li class="ua-or-result-breakdown__item">' +
+          refundChannelIconHtml(part.kind) +
+          '<span class="ua-or-result-breakdown__name">' +
+          escapeHtml(part.label) +
+          '</span>' +
+          '<span class="ua-or-result-breakdown__amount">' +
+          formatRefundAmountText(part.amount) +
+          '</span>' +
+          '</li>'
+        );
+      })
+      .join('');
   }
 
   function buildReapplyHref(app) {
@@ -2573,6 +2909,7 @@
       formType: formType,
       itemIndex: getItemIndex(),
       delivery: getDelivery(),
+      orderNo: getCurrentOrderNo() || existing.orderNo || '',
       applyTime: isEdit && existing.applyTime ? existing.applyTime : formatDateTime(),
       refundNo: isEdit && existing.refundNo ? existing.refundNo : genRefundNo(),
       productName: item.name,
@@ -3971,7 +4308,7 @@
     var isEdit = getParams().get('edit') === '1';
     var excludeId = isEdit && app ? app.aftersaleId || app.refundNo || '' : '';
     /* 补货上限：购买 − 已售后累计（进行中+已完成）；与可退池独立，但退款会占用本上限 */
-    var maxOrderQty = getRestockMaxQty(getItemIndex(), null, {
+    var maxOrderQty = getRestockMaxQty(getItemIndex(), getCurrentOrderNo(), {
       excludeId: excludeId || undefined
     });
     var maxQtyMap = {};
@@ -4377,23 +4714,39 @@
     var idx = getItemIndex();
     var base = DEMO_ITEMS[idx] || DEMO_ITEMS[0];
     try {
-      var orderRaw = sessionStorage.getItem('ua_last_order_v1');
-      if (orderRaw) {
-        var order = JSON.parse(orderRaw);
-        var it = order && Array.isArray(order.items) ? order.items[idx] : null;
-        if (it) {
-          return Object.assign({}, base, {
-            name: it.name || base.name,
-            spec: it.spec ? '规格：' + it.spec : base.spec,
-            img: it.img || base.img,
-            qty: it.qty || base.qty,
-            isPointsExchange: !!it.isPointsExchange
-          });
+      var order = getOrderByCurrentNo();
+      var it = order && Array.isArray(order.items) ? order.items[idx] : null;
+      if (it) {
+        var qty = Number(it.qty);
+        if (!(qty > 0)) qty = Number(base.qty) || 1;
+        var price = Number(it.price);
+        if (!(price > 0)) price = Number(it.priceNum);
+        if (!(price > 0)) price = Number(base.priceNum) || 0;
+        var line = Number(it.paidAmount);
+        if (!(line > 0)) line = Math.round(price * qty * 100) / 100;
+        /* 用实付反推单价，保证 40*6=240 */
+        if (line > 0 && (!(price > 0) || Math.abs(price * qty - line) > 0.05)) {
+          price = Math.round((line / qty) * 100) / 100;
         }
+        return Object.assign({}, base, {
+          name: it.name || base.name,
+          spec: it.spec ? (String(it.spec).indexOf('规格') === 0 ? it.spec : '规格：' + it.spec) : base.spec,
+          img: it.img || base.img,
+          qty: qty,
+          priceNum: price,
+          paidAmount: line,
+          payLegs: Array.isArray(it.payLegs) ? it.payLegs : [],
+          isPointsExchange: !!it.isPointsExchange
+        });
       }
     } catch (e) { /* ignore */ }
     return Object.assign({}, base, {
-      isPointsExchange: isPointsExchangeByIndex(idx)
+      isPointsExchange: isPointsExchangeByIndex(idx),
+      payLegs: Array.isArray(base.payLegs) ? base.payLegs : [],
+      paidAmount:
+        base.paidAmount != null
+          ? base.paidAmount
+          : Math.round((Number(base.priceNum) || 0) * (Number(base.qty) || 1) * 100) / 100
     });
   }
 
@@ -4405,12 +4758,17 @@
     var p = getParams();
     var status = p.get('status') || 'shipping';
     var delivery = p.get('delivery') || '';
+    var orderNo = getCurrentOrderNo();
     /* 零售待自提详情页独立 */
     if (status === 'pickup' && isRetailApp()) {
       var pickupHref = 'order-detail-pickup.html';
       var pickupQs = [];
       if (delivery) pickupQs.push('delivery=' + encodeURIComponent(delivery));
       if (p.get('from')) pickupQs.push('from=' + encodeURIComponent(p.get('from')));
+      if (orderNo) pickupQs.push('orderNo=' + encodeURIComponent(orderNo));
+      if (p.get('pointsItem')) {
+        pickupQs.push('pointsItem=' + encodeURIComponent(p.get('pointsItem')));
+      }
       return pickupQs.length ? pickupHref + '?' + pickupQs.join('&') : pickupHref;
     }
     var href = 'order-detail.html?status=' + encodeURIComponent(status);
@@ -4419,6 +4777,8 @@
     if (delivery) href += '&delivery=' + encodeURIComponent(delivery);
     if (p.get('cutoff')) href += '&cutoff=' + encodeURIComponent(p.get('cutoff'));
     if (p.get('reason')) href += '&reason=' + encodeURIComponent(p.get('reason'));
+    if (orderNo) href += '&orderNo=' + encodeURIComponent(orderNo);
+    if (p.get('pointsItem')) href += '&pointsItem=' + encodeURIComponent(p.get('pointsItem'));
     return href;
   }
 
@@ -4449,7 +4809,10 @@
       'asIds',
       'asFilter',
       'asItem',
-      'shipped'
+      'shipped',
+      /* 进货/零售售后必须带订单号，否则回详情会落到演示单 */
+      'orderNo',
+      'pointsItem'
     ];
     var qs = [];
     keys.forEach(function (key) {
@@ -4845,12 +5208,13 @@
 
     var allowed = getAllowedSelectServices(scene);
     var itemIndex = getItemIndex();
-    var refundMax = getRefundableMaxQty(itemIndex);
-    var returnMax = getRefundableMaxQty(itemIndex, null, {
+    var selectOrderNo = getCurrentOrderNo();
+    var refundMax = getRefundableMaxQty(itemIndex, selectOrderNo);
+    var returnMax = getRefundableMaxQty(itemIndex, selectOrderNo, {
       forReturn: true,
       pickedQty: getItemPickedQty(itemIndex)
     });
-    var restockMax = getRestockMaxQty(itemIndex);
+    var restockMax = getRestockMaxQty(itemIndex, selectOrderNo);
     document.querySelectorAll('.ua-or-service').forEach(function (row) {
       var service = row.getAttribute('data-service');
       var show = allowed.indexOf(service) >= 0;
@@ -4918,21 +5282,22 @@
     var excludeId = isEdit && app ? app.aftersaleId || app.refundNo || '' : '';
     var isReturn = formType === 'return';
     /* 可退上限：购买−已退−进行中；退货退款再卡 ≤ 已提货/已核销 */
-    var maxQty = getRefundableMaxQty(getItemIndex(), null, {
+    var maxQty = getRefundableMaxQty(getItemIndex(), getCurrentOrderNo(), {
       excludeId: excludeId || undefined,
       forReturn: isReturn,
       pickedQty: isReturn ? getItemPickedQty(getItemIndex()) : null
     });
     if (!(maxQty >= 0)) maxQty = 0;
     var defaultQty = maxQty > 0 ? Math.min(Number(item.qty) || maxQty, maxQty) : 0;
+    var defaultAmount = getItemRefundAmount(item, defaultQty);
     var state = {
       formType: formType,
       goodsStatus: isReturn ? '已收到货' : '',
       reason: '',
       qty: defaultQty,
       maxQty: maxQty,
-      amount: item.priceNum * (defaultQty || 0),
-      maxAmount: item.priceNum * (defaultQty || 0),
+      amount: defaultAmount,
+      maxAmount: defaultAmount,
       freight: item.freight || 0,
       desc: '',
       images: []
@@ -4940,10 +5305,14 @@
     if (isEdit && app) {
       if (app.reason) state.reason = app.reason;
       if (app.qty) state.qty = Math.min(Number(app.qty) || 0, state.maxQty);
-      if (app.amount != null) state.amount = app.amount;
+      if (Number(app.amount) > 0) state.amount = Number(app.amount);
       if (app.goodsStatus) state.goodsStatus = app.goodsStatus;
       if (app.desc) state.desc = app.desc;
       if (app.images && app.images.length) state.images = app.images.slice();
+    }
+    if (!(state.amount > 0) && state.qty > 0) {
+      state.amount = getItemRefundAmount(item, state.qty);
+      state.maxAmount = state.amount;
     }
     if (state.qty < 1 && state.maxQty >= 1) state.qty = 1;
     if (state.qty > state.maxQty) state.qty = state.maxQty;
@@ -4984,7 +5353,7 @@
     if (receivedTag) receivedTag.hidden = !(isReturn || state.goodsStatus === '已收到货');
 
     function unitPrice() {
-      return item.priceNum;
+      return getItemUnitPaid(item);
     }
 
     function syncAmountByQty() {
@@ -5200,7 +5569,8 @@
     var app = loadApplication();
     var isEdit = getParams().get('edit') === '1';
     var excludeId = isEdit && app ? app.aftersaleId || app.refundNo || '' : '';
-    var maxQty = getRefundableMaxQty(getItemIndex(), null, {
+    var orderNo = getCurrentOrderNo();
+    var maxQty = getRefundableMaxQty(getItemIndex(), orderNo, {
       excludeId: excludeId || undefined
     });
     if (!(maxQty >= 0)) maxQty = 0;
@@ -5209,14 +5579,12 @@
       reason: isEdit && app && app.reason ? app.reason : '',
       qty: qty,
       maxQty: maxQty,
-      amount:
-        item.paidAmount != null
-          ? Math.round((item.paidAmount * (qty / Math.max(1, item.qty))) * 100) / 100
-          : item.priceNum * qty,
+      amount: getItemRefundAmount(item, qty),
       shippingFee: item.shippingFee != null ? item.shippingFee : item.freight || 0,
       desc: isEdit && app && app.desc ? app.desc : '',
       images: isEdit && app && app.images ? app.images.slice() : []
     };
+    if (isEdit && app && Number(app.amount) > 0) state.amount = Number(app.amount);
 
     initNav('仅退款', buildDetailBackHref());
     renderProductCard('refundProductCard');
@@ -5328,10 +5696,22 @@
           window.alert('请选择退款原因');
           return;
         }
+        if (!(state.qty > 0) || !(state.maxQty > 0)) {
+          window.alert('该商品可售后数量已用完，无法再申请售后');
+          return;
+        }
+        if (!(state.amount > 0)) {
+          state.amount = getItemRefundAmount(item, state.qty);
+        }
+        if (!(state.amount > 0)) {
+          window.alert('退款金额异常，请返回订单详情重试');
+          return;
+        }
         persistAndGoDetail('pre_ship', {
           reason: state.reason,
           qty: state.qty,
           amount: state.amount,
+          orderNo: orderNo || getCurrentOrderNo() || '',
           desc: state.desc,
           images: state.images
         });
@@ -5393,6 +5773,7 @@
           refundNo: genRefundNo(),
           formType: isReturn ? 'return' : isRestock ? 'restock' : isExchange ? 'exchange' : 'refund_only',
           delivery: delivery,
+          orderNo: getCurrentOrderNo() || '',
           itemIndex: getItemIndex(),
           productName: item.name,
           productSpec: item.spec,
@@ -5400,6 +5781,9 @@
         },
         app
       );
+      saveApplication(app);
+    } else if (!app.orderNo && getCurrentOrderNo()) {
+      app.orderNo = getCurrentOrderNo();
       saveApplication(app);
     }
 
@@ -5476,24 +5860,32 @@
             : '换货已完成，请注意查收商品。';
         }
       } else {
+      /* 退款/退货退款成功：标题 + 原路退回渠道明细（仅展示实际支付过的方式） */
+      if (resultHead) resultHead.hidden = true;
       if (breakdown) breakdown.hidden = false;
       if (messageCard) messageCard.hidden = true;
-      var total = app.amount != null ? app.amount : item.priceNum * item.qty;
+      var total = resolveRefundDisplayAmount(app, item);
+      if (!(total > 0)) {
+        total = getItemRefundAmount(item, app.qty != null ? app.qty : item.qty);
+      }
+      var parts = computeRefundBreakdown(total, item);
+      /* 申请金额 = 退回钱包 + 支付宝/微信（现金原路合计） */
+      var cashTotal = sumCashRefundParts(parts);
+      if (cashTotal > 0) total = cashTotal;
+      if (Number(app.amount) !== total) {
+        app.amount = total;
+        saveApplication(app);
+      }
+      /* 进货售后：退回钱包金额同步记入钱包收入明细（仅钱包腿） */
+      maybePostWalletRefundLedger(app, parts);
+      var titleInCard = document.getElementById('refundResultBreakdownTitle');
+      if (titleInCard) titleInCard.textContent = getResultTitle(refundType, stage);
       var totalEl = document.getElementById('refundResultTotalAmount');
       if (totalEl) totalEl.textContent = formatPrice(total);
       var listEl = document.getElementById('refundResultBreakdownList');
       if (listEl) {
-        listEl.innerHTML = computeRefundBreakdown(total)
-          .map(function (part) {
-            return (
-              '<li class="ua-or-result-breakdown__item"><span>' +
-              part.label +
-              '</span><span>' +
-              formatPrice(part.amount) +
-              '</span></li>'
-            );
-          })
-          .join('');
+        listEl.hidden = false;
+        listEl.innerHTML = renderRefundBreakdownRows(parts);
       }
       }
     } else {
@@ -5978,12 +6370,21 @@
         if (amountRowWrap) amountRowWrap.hidden = true;
       } else {
         if (amountRowWrap) amountRowWrap.hidden = false;
-        var amountNum =
-          app.amount != null
-            ? app.amount
-            : item.paidAmount != null
-              ? item.paidAmount
-              : item.priceNum * item.qty;
+        /* 申请金额 = 现金原路退回合计（钱包+支付宝/微信） */
+        var amountNum = resolveRefundDisplayAmount(app, item);
+        if (!(amountNum > 0)) {
+          amountNum = getItemRefundAmount(
+            item,
+            app.qty != null ? app.qty : item.qty
+          );
+        }
+        var cashParts = computeRefundBreakdown(amountNum, item);
+        var cashTotal = sumCashRefundParts(cashParts);
+        if (cashTotal > 0) amountNum = cashTotal;
+        if (app && Number(app.amount) !== amountNum && amountNum > 0) {
+          app.amount = amountNum;
+          saveApplication(app);
+        }
         if (cancelClosed) {
           amountRow.className =
             'ua-or-detail-info-row__value ua-or-detail-info-row__value--amount ua-or-detail-info-row__value--amount-block';
@@ -9791,11 +10192,16 @@
     var backHref = 'restock.html?tab=me';
     if (params.get('fromDetail') === '1') {
       var odQs = [];
-      ['from', 'status', 'supplier', 'delivery', 'cutoff', 'reason', 'scene'].forEach(function (key) {
-        var val = params.get(key);
-        if (val) odQs.push(key + '=' + encodeURIComponent(val));
-      });
+      ['from', 'status', 'supplier', 'delivery', 'cutoff', 'reason', 'scene', 'orderNo', 'pointsItem'].forEach(
+        function (key) {
+          var val = params.get(key);
+          if (val) odQs.push(key + '=' + encodeURIComponent(val));
+        }
+      );
       if (!params.get('status')) odQs.push('status=receipt');
+      if (!params.get('orderNo') && getCurrentOrderNo()) {
+        odQs.push('orderNo=' + encodeURIComponent(getCurrentOrderNo()));
+      }
       backHref = 'order-detail.html?' + odQs.join('&');
     }
 
@@ -9935,7 +10341,8 @@
             status: params.get('status') || 'receipt',
             supplier: rec.shopName || params.get('supplier') || '',
             delivery: params.get('delivery') || 'warehouse',
-            scene: params.get('scene') || 'post_ship'
+            scene: params.get('scene') || 'post_ship',
+            orderNo: rec.orderNo || params.get('orderNo') || getCurrentOrderNo() || ''
           });
         });
       });

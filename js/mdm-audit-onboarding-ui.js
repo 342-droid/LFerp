@@ -680,6 +680,9 @@
             fieldDefaults: copy(item.fields || {}),
             recordKey: item.key,
             variant: 'resource',
+            /* 审核中心：单据已提交；仅返回/保存（待提交草稿另有删除），无「提交进件」 */
+            auditCenterEdit: true,
+            forceEdit: true,
             onRecordChange: function () {
                 render();
             }
@@ -691,7 +694,7 @@
             showToast('当前记录不在审核失败状态', 'info');
             return;
         }
-        showToast('请先编辑资料，再在弹窗内点击提交', 'info');
+        showToast('请先编辑并保存资料，再在列表操作栏点击「审核」', 'info');
         openEdit(item);
     }
 
@@ -839,9 +842,9 @@
         if (title) {
             title.textContent = onb
                 ? '审核中心 / 进件审核 / 进件审核'
-                : '审核中心 / 门店审核 / 门店注册审核';
+                : '审核中心 / 入驻审核';
         }
-        if (tab) tab.textContent = onb ? '进件审核' : '门店注册审核';
+        if (tab) tab.textContent = onb ? '进件审核' : '入驻审核';
         if (onb) render();
     }
 

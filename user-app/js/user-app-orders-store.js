@@ -104,7 +104,10 @@
               pointsCode: it.pointsCode || '',
               points: Number(it.points) || 0,
               money: Number(it.money) || 0,
-              qty: it.qty
+              qty: it.qty,
+              price: Number(it.price) || 0,
+              /* 支付方式按商品金额占比分摊，供原路退回 */
+              payLegs: Array.isArray(it.payLegs) ? it.payLegs : []
             };
           })
         )

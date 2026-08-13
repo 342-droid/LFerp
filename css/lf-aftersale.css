@@ -1095,6 +1095,101 @@
   font-size: 15px;
 }
 
+/* 混合支付：退款金额组成（交互同支付明细，金额无「-」号） */
+.aftersale-pay-legs-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  vertical-align: top;
+}
+
+.aftersale-pay-legs-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.aftersale-pay-legs-amount {
+  font-variant-numeric: tabular-nums;
+  color: #303133;
+}
+
+.aftersale-status-banner__item .aftersale-pay-legs-wrap {
+  align-items: flex-start;
+}
+
+.aftersale-goods-summary__item--pay-legs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.aftersale-goods-summary__item--pay-legs .aftersale-pay-legs-wrap {
+  align-items: center;
+}
+
+.aftersale-goods-summary__item--pay-legs .aftersale-pay-legs-line strong {
+  margin-left: 0;
+}
+
+.aftersale-pay-legs-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #909399;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.aftersale-pay-legs-toggle svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s ease;
+}
+
+.aftersale-pay-legs-toggle.is-expanded svg {
+  transform: rotate(180deg);
+}
+
+.aftersale-pay-legs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 120px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.aftersale-pay-legs[hidden] {
+  display: none !important;
+}
+
+.aftersale-pay-leg-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.aftersale-pay-leg-name {
+  color: #909399;
+}
+
+.aftersale-pay-leg-amount {
+  color: #ff4d4f;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
 .aftersale-approve-grid {
   display: flex;
   flex-direction: column;

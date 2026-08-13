@@ -40,6 +40,72 @@
         return b;
     }
 
+    /** 温馨提示二次确认（盖住进件弹层） */
+    function closeWarmConfirmModal() {
+        document.querySelectorAll('[data-unified-onboard-warm-confirm="1"]').forEach(function (n) {
+            n.remove();
+        });
+    }
+
+    function openWarmConfirmModal(message, onConfirm, opts) {
+        opts = opts || {};
+        closeWarmConfirmModal();
+        var backdrop = el(
+            'div',
+            'erp-modal-backdrop erp-modal-backdrop--over-drawer mdm-people-warm-confirm-backdrop'
+        );
+        backdrop.setAttribute('data-unified-onboard-warm-confirm', '1');
+
+        var modal = el('div', 'erp-modal erp-modal--confirm');
+        var header = el('div', 'erp-modal__header');
+        header.appendChild(el('h2', 'erp-modal__title', opts.title || '温馨提示'));
+        var acts = el('div', 'erp-modal__header-actions');
+        var closeBtn = el('button', 'erp-modal__header-btn');
+        closeBtn.type = 'button';
+        closeBtn.setAttribute('aria-label', '关闭');
+        closeBtn.innerHTML = '&times;';
+        acts.appendChild(closeBtn);
+        header.appendChild(acts);
+
+        var body = el('div', 'erp-modal__body');
+        var row = el('div', 'erp-modal-confirm__row');
+        row.appendChild(el('div', 'erp-modal-confirm__icon', '!'));
+        var msg = el('div', 'erp-modal-confirm__msg');
+        String(message || '')
+            .split(/\n/)
+            .forEach(function (line, i) {
+                if (i > 0) msg.appendChild(document.createElement('br'));
+                msg.appendChild(document.createTextNode(line));
+            });
+        row.appendChild(msg);
+        body.appendChild(row);
+
+        var footer = el('div', 'erp-modal__footer');
+        var cancelBtn = mkBtn(opts.cancelText || '取消', false);
+        var okBtn = mkBtn(opts.okText || '确定', true);
+        footer.appendChild(cancelBtn);
+        footer.appendChild(okBtn);
+
+        modal.appendChild(header);
+        modal.appendChild(body);
+        modal.appendChild(footer);
+        backdrop.appendChild(modal);
+
+        function shut() {
+            closeWarmConfirmModal();
+        }
+        backdrop.addEventListener('click', function (ev) {
+            if (ev.target === backdrop) shut();
+        });
+        closeBtn.addEventListener('click', shut);
+        cancelBtn.addEventListener('click', shut);
+        okBtn.addEventListener('click', function () {
+            shut();
+            if (typeof onConfirm === 'function') onConfirm();
+        });
+        document.body.appendChild(backdrop);
+    }
+
     function sfLabel(text, required) {
         var lab = el('label', 'store-form__label');
         if (required) {
@@ -263,7 +329,10 @@
      *   title: string,
      *   merchantShortNameDefault?: string,
      *   variant?: string,
-     *   fieldDefaults?: Record<string, any>
+     *   fieldDefaults?: Record<string, any>,
+     *   forceView?: boolean,
+     *   forceEdit?: boolean,
+     *   auditCenterEdit?: boolean  审核中心编辑：无「提交进件」；保存保持已提交/待审
      * }} opts
      */
     function openUnifiedOnboardingModal(opts) {
@@ -276,6 +345,7 @@
         var variant = opts.variant || 'store';
         var onboardingKind = opts.onboardingKind || '';
         var isSupplierOnboarding = onboardingKind === 'supplier';
+        var auditCenterEdit = !!opts.auditCenterEdit;
         var backdrop = el(
             'div',
             variant === 'resource' ? 'store-archive-modal-backdrop' : 'store-archive-modal-backdrop'
@@ -320,8 +390,14 @@
             store_indoor_pic: !!formFields.store_indoor_pic,
             store_cashier_desk_pic: !!formFields.store_cashier_desk_pic
         };
-        var editMode = opts.forceView ? false : !(existingRecord && existingRecord.status === 'submitted');
+        /* 审核中心直接可编；创建/待提交默认可编；已提交非审核中心先进查看 */
+        var editMode = false;
+        if (opts.forceView) editMode = false;
+        else if (auditCenterEdit || opts.forceEdit) editMode = true;
+        else editMode = !(existingRecord && existingRecord.status === 'submitted');
         var recordStatus = existingRecord ? existingRecord.status : '';
+        /* 首次保存后才出现删除；已有服务端/本地记录视为已保存过 */
+        var hasSavedOnce = !!(existingRecord && (existingRecord.status === 'draft' || existingRecord.status === 'submitted'));
         var uploadRenders = [];
         var agreementUi = null;
 
@@ -367,7 +443,7 @@
             opts = opts || {};
             var row = el('div', 'store-form__row');
             if (ocrFields && ocrFields.length) row.classList.add('store-form__row--ocr');
-            row.appendChild(sfLabel(label, true));
+            row.appendChild(sfLabel(label, opts.required !== false));
             var ctrl = el('div', 'store-form__control');
             var seeded = uploadState[key] ? caption : '';
 
@@ -630,9 +706,15 @@
 
         var s4 = el('section', 'store-onboard-section');
         s4.appendChild(sectionTitle('门店场地'));
-        uploadRow(s4, '门头/场地照', 'store_header_pic', 'F22');
-        uploadRow(s4, '内景/工作区域照', 'store_indoor_pic', 'F24');
-        uploadRow(s4, '收银台/前台照', 'store_cashier_desk_pic', 'F105');
+        /* 仅门店进件：门头/场地照必填；内景、收银台及供应商场地照均为选填 */
+        var venueHeaderRequired = variant === 'store' || onboardingKind === 'store';
+        uploadRow(s4, '门头/场地照', 'store_header_pic', 'F22', null, {
+            required: venueHeaderRequired
+        });
+        uploadRow(s4, '内景/工作区域照', 'store_indoor_pic', 'F24', null, { required: false });
+        uploadRow(s4, '收银台/前台照', 'store_cashier_desk_pic', 'F105', null, {
+            required: false
+        });
         body.appendChild(s4);
 
         function getInputVal(key) {
@@ -692,11 +774,11 @@
                 ['license_pic', '营业执照'],
                 ['legal_cert_front_pic', '法人身份证人像面'],
                 ['legal_cert_back_pic', '法人身份证国徽面'],
-                ['open_license_pic', '开户许可证'],
-                ['store_header_pic', '门头/场地照'],
-                ['store_indoor_pic', '内景/工作区域照'],
-                ['store_cashier_desk_pic', '收银台/前台照']
+                ['open_license_pic', '开户许可证']
             ];
+            if (venueHeaderRequired) {
+                requiredUploads.push(['store_header_pic', '门头/场地照']);
+            }
             for (var j = 0; j < requiredUploads.length; j++) {
                 var up = requiredUploads[j];
                 if (!uploadState[up[0]]) {
@@ -741,18 +823,30 @@
 
         function persist(status) {
             var now = Date.now();
-            var payload = {
-                recordKey: recordKey,
-                status: status,
-                title: opts.title || '进件',
-                variant: variant,
-                merchantShortName: opts.merchantShortNameDefault || '',
-                fields: collectFields(),
-                updatedAt: now,
-                submittedAt: status === 'submitted' ? now : null
-            };
+            var prev = readRecord(recordKey) || (existingRecord ? copyObj(existingRecord) : {}) || {};
+            var payload = copyObj(prev);
+            payload.recordKey = recordKey;
+            payload.status = status;
+            payload.title = opts.title || prev.title || '进件';
+            payload.variant = variant || prev.variant || 'resource';
+            payload.merchantShortName =
+                opts.merchantShortNameDefault || prev.merchantShortName || '';
+            payload.fields = collectFields();
+            payload.updatedAt = now;
+            if (status === 'submitted') {
+                payload.submittedAt = prev.submittedAt || now;
+                if (!payload.auditStatus) {
+                    payload.auditStatus = '待BD审核';
+                    payload.nextAuditNode = 'BD审核';
+                }
+            } else if (status === 'draft') {
+                payload.submittedAt = null;
+                payload.auditStatus = '';
+                payload.nextAuditNode = '';
+            }
             saveRecord(recordKey, payload);
             recordStatus = status;
+            existingRecord = copyObj(payload);
             if (typeof opts.onRecordChange === 'function') {
                 try {
                     opts.onRecordChange(copyObj(payload));
@@ -778,10 +872,16 @@
                 bDelete.style.display = 'none';
                 return;
             }
-            bEdit.style.display = !editMode && recordStatus === 'submitted' ? '' : 'none';
+            /* 创建/编辑：保存+返回；首次保存后：返回+删除+保存；提交进件仅非审核中心的待提交 */
+            bEdit.style.display =
+                !auditCenterEdit && !editMode && recordStatus === 'submitted' ? '' : 'none';
             bSave.style.display = editMode ? '' : 'none';
-            bSubmit.style.display = editMode ? '' : 'none';
-            bDelete.style.display = editMode && recordStatus === 'draft' ? '' : 'none';
+            bDelete.style.display =
+                editMode && hasSavedOnce && recordStatus === 'draft' ? '' : 'none';
+            bSubmit.style.display =
+                !auditCenterEdit && editMode && hasSavedOnce && recordStatus === 'draft'
+                    ? ''
+                    : 'none';
         }
 
         var footer = el('div', 'erp-modal__footer');
@@ -795,31 +895,53 @@
         });
         bDelete.addEventListener('click', function () {
             if (recordStatus !== 'draft') {
-                showToast('仅草稿支持删除', 'error');
+                showToast('仅待提交草稿支持删除', 'error');
                 return;
             }
-            removeRecord(recordKey);
-            recordStatus = '';
-            if (typeof opts.onRecordChange === 'function') {
-                try {
-                    opts.onRecordChange(null);
-                } catch (e) {}
-            }
-            showToast('草稿已删除', 'success');
-            backdrop.remove();
+            /* 去进件页：删除需二次确认；提交进件仅校验完整性、无需确认 */
+            openWarmConfirmModal(
+                '确认删除该进件草稿？删除后不可恢复。',
+                function () {
+                    removeRecord(recordKey);
+                    recordStatus = '';
+                    hasSavedOnce = false;
+                    if (typeof opts.onRecordChange === 'function') {
+                        try {
+                            opts.onRecordChange(null);
+                        } catch (e) {}
+                    }
+                    showToast('待提交草稿已删除', 'success');
+                    backdrop.remove();
+                },
+                { title: '删除进件', okText: '确认删除' }
+            );
         });
         bEdit.addEventListener('click', function () {
             editMode = true;
             refreshEditable();
         });
         bSave.addEventListener('click', function () {
+            /* 审核中心已是提交进件态：保存保持 submitted / 待审核，不退回待提交 */
+            if (auditCenterEdit && (recordStatus === 'submitted' || !recordStatus)) {
+                if (!recordStatus) {
+                    /* 异常空状态按已提交处理 */
+                }
+                persist('submitted');
+                hasSavedOnce = true;
+                showToast('已保存', 'success');
+                refreshEditable();
+                return;
+            }
             persist('draft');
-            showToast('已保存草稿', 'success');
+            hasSavedOnce = true;
+            showToast('已保存（待提交）', 'success');
             refreshEditable();
         });
         bSubmit.addEventListener('click', function () {
+            /* 提交进件：仅校验字段完整性，不弹二次确认 */
             if (!validateBeforeSubmit()) return;
             persist('submitted');
+            hasSavedOnce = true;
             editMode = false;
             refreshEditable();
             showToast('已提交进件（演示）', 'success');

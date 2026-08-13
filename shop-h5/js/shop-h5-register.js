@@ -505,7 +505,8 @@
         var specialTrim = (f.specialCircumstancesNote || '').trim();
         var textOk = specialTrim.length > 0 && specialTrim !== '无';
         var hasPic = state.specialUrls.length > 0;
-        if (!textOk && !hasPic)
+        if (!textOk && !hasPic) {
+          expandCollapsibleById('specialCircumstancesNote');
           return (
             toastLines(
               '该区域涉及区域保护范围',
@@ -514,7 +515,9 @@
             ),
             false
           );
-        if (specialTrim === '无' && !hasPic)
+        }
+        if (specialTrim === '无' && !hasPic) {
+          expandCollapsibleById('specialCircumstancesNote');
           return (
             toastLines(
               '该区域涉及区域保护范围',
@@ -523,12 +526,13 @@
             ),
             false
           );
+        }
       }
     }
 
     if (!f.companyCallbackNotified)
       return toastLines('请勾选：已知晓需接听公司公务来电（17316440268、17339691157）', '', true), false;
-    if (!f.frontPhotoUploaded) return toastLines('请上传门头照片', '', true), false;
+    if (!f.frontPhotoUploaded) return toastLines('请上传门头/场地照', '', true), false;
 
     return true;
   }
@@ -602,12 +606,35 @@
     return phase === 'draft' || phase === 'awaiting_bd';
   }
 
+  function bindCollapsibleSections() {
+    document.querySelectorAll('[data-shop-h5-collapse] > .shop-h5-sec-head--toggle').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var sec = btn.closest('[data-shop-h5-collapse]');
+        if (!sec) return;
+        var collapsed = sec.classList.toggle('is-collapsed');
+        btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      });
+    });
+  }
+
+  function expandCollapsibleById(fieldId) {
+    var node = $(fieldId);
+    if (!node) return;
+    var sec = node.closest('[data-shop-h5-collapse]');
+    if (!sec) return;
+    sec.classList.remove('is-collapsed');
+    var btn = sec.querySelector('.shop-h5-sec-head--toggle');
+    if (btn) btn.setAttribute('aria-expanded', 'true');
+  }
+
   function init() {
     var params = new URLSearchParams(location.search);
     var storeIdRaw = (params.get('storeId') || '').trim();
     var bdFromUrl =
       (params.get('bdId') || '').trim() ||
       (params.get('bdEmployeeCode') || '').trim();
+
+    bindCollapsibleSections();
 
     $('btnBack').onclick = function () {
       history.back();
@@ -636,7 +663,7 @@
     $('btnFrontPhoto').onclick = function () {
       state.frontPhotoUploaded = true;
       $('frontUploadedBadge').classList.remove('shop-h5-hidden');
-      toast('已选择文件：演示门头照已标记为已上传');
+      toast('已选择文件：演示门头/场地照已标记为已上传');
     };
 
     $('btnRefrigeratedPick').onclick = function () {

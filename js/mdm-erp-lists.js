@@ -96,6 +96,16 @@
             var resourceName = (c[options.resourceNameCol] || {}).textContent || '';
             var detailAddr = (c[options.detailAddrCol] || {}).textContent || '';
             var contactMobile = (c[options.contactMobileCol] || {}).textContent || '';
+            var entityId = (c[0] || {}).textContent || '';
+            entityId = String(entityId).trim();
+            var venuePics = { store_header_pic: '', store_indoor_pic: '', store_cashier_desk_pic: '' };
+            if (
+                window.MdmResourceArchiveForms &&
+                typeof window.MdmResourceArchiveForms.readVenuePhotos === 'function'
+            ) {
+                venuePics =
+                    window.MdmResourceArchiveForms.readVenuePhotos(kind, entityId) || venuePics;
+            }
             var one = {
                 subject_name: subjectName,
                 short_name: resourceName.trim(),
@@ -107,7 +117,9 @@
                 open_license_pic: '',
                 license_info: {},
                 legal_info: {},
-                store_header_pic: options.storeHeaderPic || '',
+                store_header_pic: venuePics.store_header_pic || options.storeHeaderPic || '',
+                store_indoor_pic: venuePics.store_indoor_pic || '',
+                store_cashier_desk_pic: venuePics.store_cashier_desk_pic || '',
                 card_info: {}
             };
             firstRows.push(one);
@@ -487,18 +499,66 @@
         return fb;
     }
 
+    var STORE_BALANCE_PAY_KEY = 'mdm_store_balance_payment_v1';
     var STORE_COL = {
-        onboard: 14
+        onboard: 14,
+        balancePay: 15,
+        settleType: 16,
+        settleCycle: 17,
+        split: 18,
+        status: 19,
+        createTime: 20
     };
 
     function storeRecordKey(id) {
         return 'archive::store::' + String(id || '').trim();
     }
 
+    function readStoreBalancePayments() {
+        return readJsonStore(STORE_BALANCE_PAY_KEY) || {};
+    }
+
+    function writeStoreBalancePayments(map) {
+        writeJsonStore(STORE_BALANCE_PAY_KEY, map || {});
+    }
+
+    function getStoreBalancePayment(storeId) {
+        var map = readStoreBalancePayments();
+        var raw = String(map[String(storeId || '').trim()] || '').trim();
+        return raw === '未开通' ? '已拒绝' : raw;
+    }
+
+    function setStoreBalancePayment(storeId, status) {
+        var id = String(storeId || '').trim();
+        if (!id) return;
+        var map = readStoreBalancePayments();
+        map[id] = status;
+        writeStoreBalancePayments(map);
+    }
+
+    function resolveStoreBalancePayment(storeId, onboardingDisplay) {
+        var saved = getStoreBalancePayment(storeId);
+        if (saved) return saved;
+        if (onboardingDisplay === '进件成功') return '审核中';
+        return '未提交';
+    }
+
+    function triggerStoreBalancePayment(storeId) {
+        var id = String(storeId || '').trim();
+        if (!id) return '';
+        var current = getStoreBalancePayment(id);
+        if (current === '已开通' || current === '审核中' || current === '已拒绝') return current;
+        setStoreBalancePayment(id, '审核中');
+        if (typeof showToast === 'function') {
+            showToast('进件成功，已自动发起余额支付申请', 'success');
+        }
+        return '审核中';
+    }
+
     function syncStoreArchiveRow(tr, payload) {
         if (!tr) return;
         var cells = tr.querySelectorAll('td');
-        if (cells.length < STORE_COL.onboard + 1) return;
+        if (cells.length < STORE_COL.status + 1) return;
         var storeId = cells[0].textContent.trim();
         var recordKey = storeRecordKey(storeId);
         var onboardFallback = cells[STORE_COL.onboard].textContent.trim();
@@ -506,6 +566,10 @@
         if (payload && payload.status === 'submitted') onboardDisplay = '进件中';
         if (payload === null) onboardDisplay = '未进件';
         cells[STORE_COL.onboard].textContent = onboardDisplay;
+        if (onboardDisplay === '进件成功') {
+            triggerStoreBalancePayment(storeId);
+        }
+        cells[STORE_COL.balancePay].textContent = resolveStoreBalancePayment(storeId, onboardDisplay);
     }
 
     function syncAllStoreArchiveRows() {
@@ -514,6 +578,12 @@
         tbody.querySelectorAll('tr').forEach(function (tr) {
             syncStoreArchiveRow(tr);
         });
+    }
+
+    function seedStoreDemoBalancePayments() {
+        var map = readStoreBalancePayments();
+        if (!map.ONS303445581201) map.ONS303445581201 = '已开通';
+        writeStoreBalancePayments(map);
     }
 
     function resolveSupplierBalancePayment(supplierId, onboardingDisplay) {
@@ -637,6 +707,25 @@
         else if (kind === 'supplier') title = '供应商进件';
         else if (kind === 'liveRoom') title = '直播间进件';
         else if (kind === 'carrier') title = '承运商进件';
+        var venue = { store_header_pic: '', store_indoor_pic: '', store_cashier_desk_pic: '' };
+        if (
+            (kind === 'store' || kind === 'supplier') &&
+            window.MdmResourceArchiveForms &&
+            typeof window.MdmResourceArchiveForms.readVenuePhotos === 'function'
+        ) {
+            venue = window.MdmResourceArchiveForms.readVenuePhotos(kind, recordId) || venue;
+            if (!venue.store_header_pic && shortName) {
+                var byName =
+                    window.MdmResourceArchiveForms.readVenuePhotos(kind, 'name:' + shortName) || {};
+                venue = {
+                    store_header_pic: venue.store_header_pic || byName.store_header_pic || '',
+                    store_indoor_pic: venue.store_indoor_pic || byName.store_indoor_pic || '',
+                    store_cashier_desk_pic:
+                        venue.store_cashier_desk_pic || byName.store_cashier_desk_pic || ''
+                };
+            }
+        }
+        var recordKey = 'archive::' + kind + '::' + recordId;
         var modalOpts = {
             title: title,
             merchantShortNameDefault: shortName,
@@ -646,20 +735,31 @@
                 receipt_name: shortName,
                 detail_addr: detailAddr,
                 contact_mobile_no: contactMobile,
-                store_header_pic: kind === 'store' ? '档案门头照' : ''
+                store_header_pic: venue.store_header_pic || '',
+                store_indoor_pic: venue.store_indoor_pic || '',
+                store_cashier_desk_pic: venue.store_cashier_desk_pic || ''
             },
-            recordKey: 'archive::' + kind + '::' + recordId,
-            variant: 'resource'
+            recordKey: recordKey,
+            variant: kind === 'store' ? 'store' : 'resource'
         };
-        if (kind === 'supplier' && tr) {
-            modalOpts.onRecordChange = function (payload) {
-                syncSupplierArchiveRow(tr, payload);
-            };
-        } else if (kind === 'store' && tr) {
-            modalOpts.onRecordChange = function (payload) {
-                syncStoreArchiveRow(tr, payload);
-            };
-        }
+        modalOpts.onRecordChange = function (payload) {
+            if (
+                payload &&
+                payload.fields &&
+                payload.auditStatus !== '审核成功' &&
+                (kind === 'store' || kind === 'supplier') &&
+                window.MdmResourceArchiveForms &&
+                typeof window.MdmResourceArchiveForms.syncVenuePhotosFromOnboarding === 'function'
+            ) {
+                window.MdmResourceArchiveForms.syncVenuePhotosFromOnboarding(
+                    kind,
+                    recordId,
+                    payload.fields
+                );
+            }
+            if (kind === 'supplier' && tr) syncSupplierArchiveRow(tr, payload);
+            else if (kind === 'store' && tr) syncStoreArchiveRow(tr, payload);
+        };
         window.MdmUnifiedOnboardingUi.openModal(modalOpts);
     }
 
@@ -732,25 +832,28 @@
         var qStore = (document.getElementById('qStoreName') || {}).value.trim();
         var qOp = (document.getElementById('qStoreOpStatus') || {}).value.trim();
         var qOnboard = (document.getElementById('qStoreOnboardStatus') || {}).value.trim();
+        var qBalance = (document.getElementById('qStoreBalancePay') || {}).value.trim();
         var qSplit = (document.getElementById('qStoreSplit') || {}).value.trim();
         var qSt = (document.getElementById('qStoreStatus') || {}).value.trim();
         var opMap = { '1': '营业中', '2': '筹备', '3': '停业' };
         tbody.querySelectorAll('tr').forEach(function (tr) {
             var cells = tr.querySelectorAll('td');
-            if (cells.length < 21) return;
+            if (cells.length < STORE_COL.status + 1) return;
             var sub = cells[1].textContent.trim();
             /* 门店名称列可能含链接，取纯文本 */
             var sn = cells[2].textContent.trim();
             var opTxt = cells[13].textContent.trim();
             var onboardTxt = cells[STORE_COL.onboard].textContent.trim();
-            var splitTxt = cells[17].textContent.trim();
-            var stSpan = cells[18].querySelector('.status');
+            var balanceTxt = cells[STORE_COL.balancePay].textContent.trim();
+            var splitTxt = cells[STORE_COL.split].textContent.trim();
+            var stSpan = cells[STORE_COL.status].querySelector('.status');
             var stTxt = stSpan ? stSpan.textContent.trim() : '';
             var ok = true;
             if (qSub && sub.indexOf(qSub) === -1) ok = false;
             if (qStore && sn.indexOf(qStore) === -1) ok = false;
             if (qOp && opTxt !== opMap[qOp]) ok = false;
             if (qOnboard && onboardTxt !== qOnboard) ok = false;
+            if (qBalance && balanceTxt !== qBalance) ok = false;
             if (qSplit === 'on' && splitTxt !== '开启') ok = false;
             if (qSplit === 'off' && splitTxt !== '关闭' && splitTxt !== '未开通') ok = false;
             if (qSt === 'normal' && stTxt !== '正常') ok = false;
@@ -861,7 +964,7 @@
             detailModalTitle: '门店详情',
             modalWidth: '720px',
             checkboxColumn: false,
-            statusColumnIndex: 18,
+            statusColumnIndex: STORE_COL.status,
             actionColumnMode: 'editOnboard',
             pageSize: 10,
             detailView: {
@@ -931,8 +1034,8 @@
                         editFulfillWarehouse: c[8].textContent.trim(),
                         editRegionText: c[9].textContent.trim(),
                         editAddressText: c[10].textContent.trim(),
-                        editStoreOpStatus: c[18].querySelector('.status')
-                            ? c[18].querySelector('.status').textContent.trim()
+                        editStoreOpStatus: c[STORE_COL.status].querySelector('.status')
+                            ? c[STORE_COL.status].querySelector('.status').textContent.trim()
                             : '正常'
                     };
                 },
@@ -940,15 +1043,16 @@
                     if (!pm.currentEditRow) return;
                     var row = pm.currentEditRow;
                     var st = document.getElementById('editStoreOpStatus').value.trim();
-                    pm.updateTableRow(row, {
+                    var patch = {
                         2: document.getElementById('editStoreName').value.trim(),
                         6: document.getElementById('editContactPerson').value.trim(),
                         7: document.getElementById('editPhone').value.trim(),
                         8: document.getElementById('editFulfillWarehouse').value.trim(),
                         9: document.getElementById('editRegionText').value.trim(),
-                        10: document.getElementById('editAddressText').value.trim(),
-                        18: { value: st, isStatus: true }
-                    });
+                        10: document.getElementById('editAddressText').value.trim()
+                    };
+                    patch[STORE_COL.status] = { value: st, isStatus: true };
+                    pm.updateTableRow(row, patch);
                     pm.decorateDetailLinkCell(row);
                     showToast('门店档案已更新（演示）', 'success');
                     pm.currentEditRow = null;
@@ -956,6 +1060,7 @@
             }
         });
         pm.init();
+        seedStoreDemoBalancePayments();
         syncAllStoreArchiveRows();
         window.addEventListener('storage', function (e) {
             if (e.key === 'mdm_unified_onboarding_records_v1') {
@@ -968,6 +1073,7 @@
                 'qStoreName',
                 'qStoreOpStatus',
                 'qStoreOnboardStatus',
+                'qStoreBalancePay',
                 'qStoreSplit',
                 'qStoreStatus'
             ],
@@ -991,10 +1097,75 @@
                 subjectCol: 1,
                 resourceNameCol: 2,
                 detailAddrCol: 10,
-                contactMobileCol: 7,
-                storeHeaderPic: '档案门头照'
+                contactMobileCol: 7
             });
         }, 0);
+    }
+
+    /**
+     * 演示：为「珠宝集采中心」预置完整待提交草稿，便于详情列表点「提交进件」弹出二次确认
+     */
+    function ensureDemoSupplierSubmitConfirmDraft() {
+        var ui = window.MdmUnifiedOnboardingUi;
+        if (!ui || typeof ui.upsertRecord !== 'function') return;
+        var key = 'archive::supplier::SUP20188303';
+        var existing = typeof ui.getRecord === 'function' ? ui.getRecord(key) : null;
+        /* 已是待提交草稿则不覆盖，避免冲掉用户刚改的内容 */
+        if (existing && existing.status === 'draft') return;
+        var agreement = ui.SUPPLIER_PAYMENT_AGREEMENT || {
+            type: '挂网协议',
+            name: '斗拱平台综合支付服务协议',
+            url: 'https://cloudpnrcdn.oss-cn-shanghai.aliyuncs.com/opps/api/prod/download_file/PaymentServiceAgreement.htm'
+        };
+        var fields = {
+            short_name: '珠宝集采',
+            receipt_name: '珠宝集采',
+            detail_addr: '上海市浦东新区珠宝交易中心A座',
+            legal_mobile_no: '13900008888',
+            contact_mobile_no: '13900008888',
+            contact_email: 'jewelry@lengfeng.demo',
+            license_info: {
+                name: '珠宝集采中心',
+                code: '91310000MA1FLSUP03',
+                start_date: '2024-01-01',
+                valid_date: '长期有效',
+                address: '上海市浦东新区珠宝交易中心A座'
+            },
+            legal_info: {
+                legal_name: '演示法人',
+                id_no: '310101199001011234',
+                id_start_date: '2020-01-01',
+                id_valid_date: '2040-01-01'
+            },
+            card_info: {
+                account_name: '珠宝集采中心',
+                card_no: '6222021001123456789',
+                bank_name: '中国工商银行',
+                bank_branch: '中国工商银行上海张江支行'
+            },
+            license_pic: true,
+            legal_cert_front_pic: true,
+            legal_cert_back_pic: true,
+            open_license_pic: true,
+            store_header_pic: true,
+            store_indoor_pic: true,
+            store_cashier_desk_pic: true,
+            payment_agreement_signed: true,
+            payment_agreement: {
+                type: agreement.type,
+                name: agreement.name,
+                url: agreement.url,
+                signed: true
+            }
+        };
+        ui.upsertRecord(key, {
+            key: key,
+            title: '供应商进件',
+            merchantShortName: '珠宝集采',
+            status: 'draft',
+            fields: fields,
+            updatedAt: Date.now()
+        });
     }
 
     function initArchiveSupplier() {
@@ -1096,6 +1267,7 @@
             }
         });
         pm.init();
+        ensureDemoSupplierSubmitConfirmDraft();
         seedSupplierDemoBalancePayments();
         syncAllSupplierArchiveRows();
         window.addEventListener('storage', function (e) {
@@ -1819,14 +1991,22 @@
         return String(cells[2].textContent || '').replace(/\D/g, '');
     }
 
-    function validatePeoplePhoneAndSms(phoneInputId, smsInputId, phoneLabel) {
+    function validatePeoplePhone(phoneInputId, phoneLabel) {
         var label = phoneLabel || '手机';
         var raw = (document.getElementById(phoneInputId).value || '').replace(/\D/g, '');
         if (raw.length !== 11) {
             showToast('请输入11位' + label, 'error');
             return false;
         }
-        var smsCode = (document.getElementById(smsInputId).value || '').replace(/\D/g, '');
+        return raw;
+    }
+
+    function validatePeoplePhoneAndSms(phoneInputId, smsInputId, phoneLabel) {
+        var raw = validatePeoplePhone(phoneInputId, phoneLabel);
+        if (!raw) return false;
+        var smsEl = document.getElementById(smsInputId);
+        if (!smsEl) return raw;
+        var smsCode = (smsEl.value || '').replace(/\D/g, '');
         if (smsCode.length !== 6) {
             showToast('请输入6位数字验证码', 'error');
             return false;
@@ -1869,6 +2049,7 @@
             cfg.nameEditCounterId +
             '">0 / 20</span>' +
             '</div></div>';
+        /* 创建 / 编辑均需短信验证码 */
         var phoneHtml =
             '<div class="modal-form-group" style="width:100%">' +
             '<label><span class="mdm-people-req mdm-bd-req">*</span>' +
@@ -2106,7 +2287,7 @@
                     { id: 'bdIdentity', message: '请选择BD身份', required: true }
                 ],
                 onSave: function () {
-                    var raw = validateBdPhoneAndSms('bdAddPhone', 'bdSmsCode');
+                    var raw = validatePeoplePhoneAndSms('bdAddPhone', 'bdSmsCode', 'BD手机');
                     if (!raw) return false;
                     var id = 'BD-PROMO-' + String(Date.now()).slice(-6);
                     var masked = maskBdPhoneForCell(raw);
@@ -3309,12 +3490,13 @@
 
     function initAuditStoreRegistration() {
         var pm = new PageManager({
-            entityName: '门店注册申请',
+            entityName: '入驻申请',
             checkboxColumn: false,
             fields: [],
             detailView: {
                 enabled: true,
-                columnIndex: 3,
+                /* 入驻方名称列：申请单号/来源/主体名称/主体类型 之后 */
+                columnIndex: 4,
                 linkClass: 'subject-name-link',
                 onOpenDetail: function (row) {
                     if (window.MdmAuditStoreUi) {
@@ -3354,12 +3536,13 @@
         });
         pm.init();
         bindSimpleFilter(pm, {
-            resetFields: ['qSubjectName', 'qStoreName', 'qAuditStatus'],
+            resetFields: ['qSubjectName', 'qStoreName', 'qSubjectType', 'qAuditStatus'],
             filterFn: function (p) {
                 var tbody = document.getElementById(p.config.tableBodyId);
                 if (!tbody) return;
                 var qS = (document.getElementById('qSubjectName') || {}).value.trim();
                 var qN = (document.getElementById('qStoreName') || {}).value.trim();
+                var qType = (document.getElementById('qSubjectType') || {}).value.trim();
                 var qSt = (document.getElementById('qAuditStatus') || {}).value.trim();
                 var map = {
                     pending: '待审核',
@@ -3369,12 +3552,14 @@
                 };
                 tbody.querySelectorAll('tr').forEach(function (tr) {
                     var cells = tr.querySelectorAll('td');
-                    if (cells.length < 11) return;
+                    if (cells.length < 12) return;
                     var ok = true;
                     if (qS && cells[2].textContent.trim().indexOf(qS) === -1) ok = false;
-                    if (qN && cells[3].textContent.trim().indexOf(qN) === -1) ok = false;
+                    if (qType && cells[3].textContent.trim() !== qType) ok = false;
+                    /* 入驻方名称（主体类型之后） */
+                    if (qN && cells[4].textContent.trim().indexOf(qN) === -1) ok = false;
                     if (qSt && map[qSt]) {
-                        var t = cells[7].querySelector('.status');
+                        var t = cells[8].querySelector('.status');
                         var tx = t ? t.textContent.trim() : '';
                         if (tx !== map[qSt]) ok = false;
                     }
