@@ -240,6 +240,48 @@
     "status": "diff",
     "date": "2026-07-31"
   },
+  "2323fbf|MDM/mdm_archive_carrier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-13"
+  },
+  "2323fbf|MDM/mdm_archive_live_room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-13"
+  },
+  "2323fbf|MDM/mdm_archive_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-13"
+  },
+  "2323fbf|MDM/mdm_archive_supplier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-13"
+  },
+  "2323fbf|MDM/mdm_archive_warehouse.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-13"
+  },
+  "2323fbf|store-app/h5/password-edit.html": {
+    "before": "changelog-assets/2323fbf/store-app__h5__password-edit.html.before.jpg",
+    "after": "changelog-assets/2323fbf/store-app__h5__password-edit.html.after.jpg",
+    "regions": 9,
+    "status": "diff",
+    "date": "2026-08-13"
+  },
+  "2323fbf|store-app/h5/password-forgot.html": {
+    "after": "changelog-assets/2323fbf/store-app__h5__password-forgot.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-13"
+  },
+  "2323fbf|store-app/h5/password.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-13"
+  },
   "247f643|MDM/mdm_order_live.html": {
     "regions": 0,
     "status": "diff",

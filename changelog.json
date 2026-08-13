@@ -1,7 +1,75 @@
 {
-  "latestSha": "e01ee8ae557f19c35e0d82fea05ee511186a593b",
-  "total": 251,
+  "latestSha": "2323fbfa4725aafd00d7711c9581e88f4bec6307",
+  "total": 252,
   "days": [
+    {
+      "date": "2026-08-13",
+      "items": [
+        {
+          "sha": "2323fbf",
+          "type": "feat",
+          "text": "完善忘记密码流程并补齐供应商入库仓与进件详情",
+          "author": "sisi",
+          "time": "14:47",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "store-app/h5/password-edit.html",
+              "module": "",
+              "title": "密码管理 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/password-forgot.html",
+              "module": "",
+              "title": "忘记密码 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/password.html",
+              "module": "",
+              "title": "密码管理 · 门店APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/password-forgot.html",
+              "text": "短信六位验证码页按设计还原；验证后仅设新密码与确定密码；登录密码深色全键盘与报错文案对齐"
+            },
+            {
+              "file": "store-app/h5/password-edit.html",
+              "text": "登录密码支持字母数字特殊字符键盘；选中显示光标，点其他区域取消高亮；支付密码焦点同理"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "text": "新增/编辑恢复必填入库仓库；详情进件信息补齐开户与协议场地照等字段"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-12",
       "items": [
@@ -2469,6 +2537,11 @@
               "title": "密码管理 · 门店APP"
             },
             {
+              "file": "store-app/h5/password-forgot.html",
+              "module": "",
+              "title": "忘记密码 · 门店APP"
+            },
+            {
               "file": "store-app/h5/password.html",
               "module": "",
               "title": "密码管理 · 门店APP"
@@ -2729,6 +2802,11 @@
               "file": "store-app/h5/password-edit.html",
               "module": "",
               "title": "密码管理 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/password-forgot.html",
+              "module": "",
+              "title": "忘记密码 · 门店APP"
             },
             {
               "file": "store-app/h5/password.html",
@@ -6099,6 +6177,11 @@
               "title": "密码管理 · 门店APP"
             },
             {
+              "file": "store-app/h5/password-forgot.html",
+              "module": "",
+              "title": "忘记密码 · 门店APP"
+            },
+            {
               "file": "store-app/h5/password.html",
               "module": "",
               "title": "密码管理 · 门店APP"
@@ -7247,6 +7330,11 @@
               "file": "store-app/h5/password-edit.html",
               "module": "",
               "title": "密码管理 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/password-forgot.html",
+              "module": "",
+              "title": "忘记密码 · 门店APP"
             },
             {
               "file": "store-app/h5/password.html",
