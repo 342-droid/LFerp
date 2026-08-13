@@ -858,8 +858,8 @@
             '<td class="product-proxy-table__td product-proxy-table__td--sale">' + renderSalePrice(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--line">' + renderLinePrice(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--sales">' + item.sales + '</td>' +
-            renderSaleTimeCell(item) +
             '<td class="product-proxy-table__td product-proxy-table__td--fulfillment">' + renderDeliveryMode(item) + '</td>' +
+            renderSaleTimeCell(item) +
             '<td class="product-proxy-table__td product-proxy-table__td--status">' + renderStatus(item.status) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--action">' + renderActions(item) + '</td>' +
             '</tr>'
