@@ -426,6 +426,9 @@
         updateBdSelectOptions(selectEl, STORE_BIND_BD_ENUM, selectedName);
     }
 
+    /** 与仓库档案一致：仅「仓库类型=仓库」且启用中的仓库可作入库仓 */
+    var FALLBACK_INBOUND_WAREHOUSE_NAMES = ['主仓库', '前置仓-华东一号库演示超长名称'];
+
     function collectEnabledWarehouseNamesFromRows(rows) {
         var list = [];
         var seen = {};
@@ -433,9 +436,14 @@
             var c = tr.querySelectorAll('td');
             if (c.length < 12) return;
             var name = String((c[2].textContent || '').trim());
+            var warehouseType = String((c[3].textContent || '').trim());
             if (!name || seen[name]) return;
-            var stNode = c[11].querySelector('.status');
-            var statusText = String((stNode ? stNode.textContent : c[11].textContent) || '').trim();
+            /* 仓库类型为「门店」的不进入库仓库下拉 */
+            if (warehouseType !== '仓库') return;
+            var stNode = c[11].querySelector ? c[11].querySelector('.status') : null;
+            var statusText = String((stNode ? stNode.textContent : c[11].textContent) || '')
+                .replace(/\s+/g, '')
+                .trim();
             if (statusText !== '启用' && statusText !== '启动') return;
             seen[name] = true;
             list.push(name);
@@ -465,10 +473,18 @@
         }
     }
 
+    function resolveArchiveWarehousePageUrl() {
+        if (window.wmsPath && typeof window.wmsPath.page === 'function') {
+            return window.wmsPath.page('mdm_archive_warehouse.html');
+        }
+        return 'mdm_archive_warehouse.html';
+    }
+
     function hydrateInboundWarehouseSelect(selectEl, selectedName) {
-        updateWarehouseSelectOptions(selectEl, [], selectedName);
+        /* 先落演示兜底，避免 fetch 未完成或失败时下拉空白 */
+        updateWarehouseSelectOptions(selectEl, FALLBACK_INBOUND_WAREHOUSE_NAMES, selectedName);
         if (typeof fetch !== 'function') return;
-        fetch('mdm_archive_warehouse.html', { cache: 'no-store' })
+        fetch(resolveArchiveWarehousePageUrl(), { cache: 'no-store' })
             .then(function (res) {
                 if (!res || !res.ok) return '';
                 return res.text();
@@ -481,10 +497,11 @@
                 return collectEnabledWarehouseNamesFromRows(rows);
             })
             .then(function (list) {
-                updateWarehouseSelectOptions(selectEl, list || [], selectedName);
+                var names = list && list.length ? list : FALLBACK_INBOUND_WAREHOUSE_NAMES;
+                updateWarehouseSelectOptions(selectEl, names, selectedName);
             })
             .catch(function () {
-                updateWarehouseSelectOptions(selectEl, [], selectedName);
+                updateWarehouseSelectOptions(selectEl, FALLBACK_INBOUND_WAREHOUSE_NAMES, selectedName);
             });
     }
 
@@ -926,8 +943,7 @@
     }
 
     function buildSupplierAddBody() {
-        /* 供应商档案新增/编辑：不采集入库仓库 */
-        return createSupplierFormBundle({ includeInboundWarehouse: false }).body;
+        return createSupplierFormBundle({ includeInboundWarehouse: true }).body;
     }
 
     function createCarrierFormBundle() {
@@ -1245,15 +1261,30 @@
             });
         },
         openSupplierAdd: function () {
-            attachWideModal('新增供应商', buildSupplierAddBody());
+            var bundle = createSupplierFormBundle({ includeInboundWarehouse: true });
+            attachWideModal('新增供应商', bundle.body, function () {
+                var name =
+                    bundle.refs && bundle.refs.nameInp
+                        ? String(bundle.refs.nameInp.value || '').trim()
+                        : '';
+                var selectedWarehouse =
+                    bundle.refs && bundle.refs.inboundWarehouseSel
+                        ? String(bundle.refs.inboundWarehouseSel.value || '').trim()
+                        : '';
+                if (name) {
+                    saveSupplierInboundWarehouseBinding('', name, selectedWarehouse);
+                }
+            });
         },
         openSupplierEdit: function (tr) {
             if (!tr) return;
             var cells = tr.querySelectorAll('td');
             var supplierId = cells[0] ? cellPlainText(cells[0]) : '';
             var supplierName = cells[2] ? cellPlainText(cells[2]) : '';
+            var inboundWarehouse = readSupplierInboundWarehouseBinding(supplierId, supplierName);
             var bundle = createSupplierFormBundle({
-                includeInboundWarehouse: false
+                includeInboundWarehouse: true,
+                initialInboundWarehouse: inboundWarehouse
             });
             bundle.fillFromArchiveRow(tr);
             attachWideModal('编辑供应商', bundle.body, function () {
@@ -1265,12 +1296,21 @@
                     bundle.refs && bundle.refs.shortNameInp
                         ? String(bundle.refs.shortNameInp.value || '').trim()
                         : '';
+                var selectedWarehouse =
+                    bundle.refs && bundle.refs.inboundWarehouseSel
+                        ? String(bundle.refs.inboundWarehouseSel.value || '').trim()
+                        : '';
                 if (cells[2]) cells[2].textContent = nextName || supplierName;
                 if (cells[3]) {
                     cells[3].textContent = nextShort || '—';
                     cells[3].setAttribute('data-field', 'shortName');
                 }
                 tr.setAttribute('data-short-name', nextShort);
+                saveSupplierInboundWarehouseBinding(
+                    supplierId,
+                    nextName || supplierName,
+                    selectedWarehouse
+                );
                 if (window.MdmSupplierArchiveStore) {
                     window.MdmSupplierArchiveStore.upsert({
                         id: supplierId,
