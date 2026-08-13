@@ -18,6 +18,15 @@
         { href: 'carrier.html', text: '承运商' },
         { href: 'delivery_hub.html', text: '站点' }
     ];
+
+    // 数据导入菜单项
+    const dataImportMenuItems = [
+        { href: 'location_import.html', text: '储位导入' },
+        { href: 'inventory_init_import.html', text: '库存初始化导入' },
+        { href: 'warehouse_company_import.html', text: '仓库-货主导入' },
+        { href: 'user_company_import.html', text: '用户-货主导入' },
+        { href: 'user_profile_import.html', text: '用户-作业档案导入' }
+    ];
     
     // 权限管理菜单项
     const permissionMenuItems = [
@@ -83,6 +92,7 @@
 
     // 判断当前页面属于哪个菜单
     const isBasicPage = basicMenuItems.some(item => item.href === currentPage);
+    const isDataImportPage = dataImportMenuItems.some(item => item.href === currentPage);
     const isPermissionPage = permissionMenuItems.some(item => item.href === currentPage);
     const isStrategyPage = strategyMenuItems.some(item => item.href === currentPage);
     const isInventoryPage = inventoryMenuItems.some(item => item.href === currentPage);
@@ -96,6 +106,10 @@
     const isOpsToolsPage = opsToolsMenuItems.some(item => item.href === currentPage);
 
     const basicMenuHtml = basicMenuItems.map(item => 
+        '<li><a href="' + pageHref(item.href) + '"' + (item.href === currentPage ? ' class="active"' : '') + '>' + item.text + '</a></li>'
+    ).join('');
+
+    const dataImportMenuHtml = dataImportMenuItems.map(item =>
         '<li><a href="' + pageHref(item.href) + '"' + (item.href === currentPage ? ' class="active"' : '') + '>' + item.text + '</a></li>'
     ).join('');
     
@@ -154,6 +168,14 @@
             '<button class="menu-toggle">▼</button>' +
             '</a>' +
             '<ul class="submenu' + (isBasicPage ? ' expanded' : '') + '">' + basicMenuHtml + '</ul>' +
+            '</li>' +
+            '<li class="menu-item">' +
+            '<a href="#" class="menu-link" onclick="toggleSubmenu(this)">' +
+            '<img src="' + assetHref('image/任务管理.svg') + '" alt="数据导入" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
+            '<span>数据导入</span>' +
+            '<button class="menu-toggle">▼</button>' +
+            '</a>' +
+            '<ul class="submenu' + (isDataImportPage ? ' expanded' : '') + '">' + dataImportMenuHtml + '</ul>' +
             '</li>' +
             '<li class="menu-item">' +
             '<a href="#" class="menu-link" onclick="toggleSubmenu(this)">' +
