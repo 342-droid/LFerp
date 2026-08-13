@@ -2634,7 +2634,9 @@
               p.id +
               '">去抢购</button></div>';
           return (
-            '<article class="ua-live-goods__item">' +
+            '<article class="ua-live-goods__item" data-live-goods-id="' +
+            p.id +
+            '" role="link" tabindex="0">' +
             '<div class="ua-live-goods__thumb">' +
             '<span class="ua-live-goods__rank">' +
             (index + 1) +
@@ -2950,6 +2952,18 @@
             spec: pItem.spec
           });
           renderLiveGoodsList();
+          return;
+        }
+        /* 点击商品卡片（非加购/抢购/数量按钮）进入商品详情 */
+        var card = e.target.closest('[data-live-goods-id]');
+        if (card) {
+          var goodsId = card.getAttribute('data-live-goods-id');
+          if (!goodsId) return;
+          window.location.href =
+            'goods-detail.html?id=' +
+            encodeURIComponent(goodsId) +
+            '&from=' +
+            encodeURIComponent('live-room.html');
         }
       });
 
