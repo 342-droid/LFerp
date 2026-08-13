@@ -716,6 +716,552 @@
     });
   }
 
+  /** 直播确认单行 → 与全页确认订单一致的 checkout item */
+  function mapProductLineToCheckoutItem(p, line) {
+    line = line || {};
+    if (!p) return null;
+    var fulfillType = getProductFulfillType(p);
+    var merchant = getProductMerchant(p);
+    var merchantName =
+      fulfillType === 'express'
+        ? getSupplierDisplayName(merchant) || (merchant && merchant.name) || ''
+        : (merchant && merchant.name) || STORE.name;
+    return {
+      id: p.id,
+      name: p.shortName || p.name,
+      fullName: p.name,
+      spec: line.spec != null ? String(line.spec) : String(p.spec || ''),
+      price: Number(line.price != null ? line.price : getLivePrice(p)),
+      img: p.img,
+      watermark: !!p.watermark,
+      qty: Number(line.qty) > 0 ? Number(line.qty) : 1,
+      fulfillType: fulfillType,
+      merchantId: merchant && merchant.id ? merchant.id : STORE.id,
+      merchantName: merchantName,
+      isPointsExchange: false,
+      deliveryText:
+        fulfillType === 'express'
+          ? (merchant && merchant.deliveryText) || '预计2-3天送达'
+          : p.pickupBadge || STORE.pickupBadge || '后天可提'
+    };
+  }
+
+  /** 确认订单金额/积分抵扣（全页与直播半遮罩共用） */
+  function computeOrderConfirmPricing(items) {
+    items = items || [];
+    var splits = buildConfirmSplitOrders(items);
+    var hasExpress = splits.some(function (s) {
+      return s.fulfillType === 'express';
+    });
+    var hasPickup = splits.some(function (s) {
+      return s.fulfillType === 'pickup';
+    });
+    var isNewcomerCheckout = items.some(function (it) {
+      return !!it.isNewcomerExclusive;
+    });
+    var mallGoodsTotal = 0;
+    var pointsExchangeCash = 0;
+    var pointsExchangePts = 0;
+    items.forEach(function (it) {
+      if (it.isPointsExchange) {
+        pointsExchangeCash += (Number(it.money) || 0) * (it.qty || 0);
+        pointsExchangePts += (Number(it.points) || 0) * (it.qty || 0);
+      } else {
+        mallGoodsTotal += (Number(it.price) || 0) * (it.qty || 0);
+      }
+    });
+    mallGoodsTotal = Math.round(mallGoodsTotal * 100) / 100;
+    pointsExchangeCash = Math.round(pointsExchangeCash * 100) / 100;
+    var goodsTotal = Math.round((mallGoodsTotal + pointsExchangeCash) * 100) / 100;
+    var freight = 0;
+    var cfg = global.MdmPointsMallConfig;
+    var availablePts = (cfg && cfg.AVAILABLE_POINTS_DEMO) || 161;
+    var ptsLeftForDeduct = Math.max(0, availablePts - pointsExchangePts);
+    var deductInfo = isNewcomerCheckout
+      ? {
+          enabled: false,
+          deductAmount: 0,
+          pointsUsed: 0,
+          eligibleAmount: 0,
+          tip: '新人专区商品不支持积分抵扣'
+        }
+      : cfg && cfg.calcCashDeduction
+        ? cfg.calcCashDeduction(
+            items.filter(function (it) {
+              return !it.isPointsExchange && !it.isNewcomerExclusive;
+            }),
+            ptsLeftForDeduct
+          )
+        : {
+            enabled: false,
+            deductAmount: 0,
+            pointsUsed: 0,
+            eligibleAmount: 0,
+            tip: ''
+          };
+    if (pointsExchangePts > 0 && deductInfo.enabled) {
+      deductInfo.tip =
+        (deductInfo.deductAmount > 0
+          ? '兑换已占 ' +
+            pointsExchangePts +
+            ' 积分，剩余可抵 ¥' +
+            Number(deductInfo.deductAmount).toFixed(2)
+          : '兑换已占 ' +
+            pointsExchangePts +
+            ' 积分，剩余积分不足抵现') +
+        '（可用共 ' +
+        availablePts +
+        '）';
+    }
+    return {
+      items: items,
+      splits: splits,
+      hasExpress: hasExpress,
+      hasPickup: hasPickup,
+      isNewcomerCheckout: isNewcomerCheckout,
+      mallGoodsTotal: mallGoodsTotal,
+      pointsExchangeCash: pointsExchangeCash,
+      pointsExchangePts: pointsExchangePts,
+      goodsTotal: goodsTotal,
+      freight: freight,
+      availablePts: availablePts,
+      deductInfo: deductInfo,
+      usePointsDeduct: !isNewcomerCheckout && !!deductInfo.enabled
+    };
+  }
+
+  function formatConfirmPointsPrice(item) {
+    var pts = Number(item.points) || 0;
+    var cash = Number(item.money) || 0;
+    if (cash > 0) return pts + '积分 + ' + formatMoney(cash);
+    return pts + '积分';
+  }
+
+  function calcConfirmPayable(pricing, usePointsDeduct) {
+    var d =
+      usePointsDeduct && pricing.deductInfo && pricing.deductInfo.enabled
+        ? pricing.deductInfo
+        : { deductAmount: 0 };
+    return Math.max(
+      0,
+      Math.round((pricing.goodsTotal + pricing.freight - (d.deductAmount || 0)) * 100) /
+        100
+    );
+  }
+
+  function getConfirmDeductDisplay(pricing, usePointsDeduct) {
+    var deductInfo = pricing.deductInfo || {};
+    var pointsExchangePts = pricing.pointsExchangePts || 0;
+    var d =
+      usePointsDeduct && deductInfo.enabled
+        ? deductInfo
+        : { deductAmount: 0, pointsUsed: 0 };
+    var text = '未使用';
+    var muted = true;
+    if (!deductInfo.enabled || !(deductInfo.eligibleAmount > 0)) {
+      text = deductInfo.tip || '不可用';
+      muted = true;
+    } else if (usePointsDeduct && d.deductAmount > 0) {
+      text =
+        pointsExchangePts > 0
+          ? '已抵 ¥' +
+            d.deductAmount.toFixed(2) +
+            '（兑换已占' +
+            pointsExchangePts +
+            '积分）'
+          : '已抵 ' + d.pointsUsed + '积分（-¥' + d.deductAmount.toFixed(2) + '）';
+      muted = false;
+    } else {
+      text =
+        pointsExchangePts > 0 && deductInfo.tip ? deductInfo.tip : '不使用抵扣';
+      muted = true;
+    }
+    return {
+      text: text,
+      muted: muted,
+      deductAmount: d.deductAmount || 0,
+      pointsUsed: d.pointsUsed || 0,
+      payable: calcConfirmPayable(pricing, usePointsDeduct)
+    };
+  }
+
+  function formatConfirmPayLabel(pricing, payable) {
+    var pts = pricing.pointsExchangePts || 0;
+    if (pts > 0 && payable > 0) return pts + '积分 + ' + formatMoney(payable);
+    if (pts > 0) return pts + '积分';
+    return formatMoney(payable);
+  }
+
+  /**
+   * 确认订单共用内容（全页 / 直播半遮罩）
+   * @returns {{ html: string, pricing: object, payable: number, splits: array, hasExpress: boolean, hasPickup: boolean }}
+   */
+  function buildSharedOrderConfirmView(items, remarks, pricing, usePointsDeduct) {
+    remarks = remarks || {};
+    items = items || [];
+    pricing = pricing || computeOrderConfirmPricing(items);
+    if (usePointsDeduct == null) usePointsDeduct = pricing.usePointsDeduct;
+    var splits = pricing.splits;
+    var hasExpress = pricing.hasExpress;
+    var hasPickup = pricing.hasPickup;
+    var freight = pricing.freight;
+    var goodsTotal = pricing.goodsTotal;
+    var pointsExchangePts = pricing.pointsExchangePts || 0;
+    var deductDisp = getConfirmDeductDisplay(pricing, usePointsDeduct);
+    var payable = deductDisp.payable;
+    var couponText = pricing.isNewcomerCheckout
+      ? '新人专区不可用券'
+      : '暂无可用优惠券';
+
+    var shopIcon =
+      '<svg class="ua-confirm-split__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path d="M9 22V12h6v10"/></svg>';
+    var chevron =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>';
+    var rowChevron =
+      '<svg class="ua-confirm-row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>';
+
+    function renderItemRow(item) {
+      var nameHtml = item.isNewcomerExclusive
+        ? '<span class="ua-cart-item__tag">新人专享</span>' + item.name
+        : item.isPointsExchange
+          ? '<span class="ua-cart-item__tag">积分兑换</span>' + item.name
+          : item.name;
+      var priceHtml = item.isPointsExchange
+        ? formatConfirmPointsPrice(item)
+        : formatMoney(item.price);
+      return (
+        '<div class="ua-confirm-item' +
+        (item.isPointsExchange ? ' ua-confirm-item--points' : '') +
+        (item.isNewcomerExclusive ? ' ua-confirm-item--newcomer' : '') +
+        '">' +
+        '<div class="ua-confirm-item__thumb">' +
+        '<img src="' +
+        item.img +
+        '" alt="">' +
+        (item.watermark
+          ? '<span class="ua-shop-watermark ua-shop-watermark--sm">生产验证商品<br>请勿下单</span>'
+          : '') +
+        '</div>' +
+        '<div class="ua-confirm-item__body">' +
+        '<div class="ua-confirm-item__name">' +
+        nameHtml +
+        '</div>' +
+        '<span class="ua-confirm-item__spec">' +
+        item.spec +
+        '</span>' +
+        '<div class="ua-confirm-item__bottom">' +
+        '<span class="ua-confirm-item__price' +
+        (item.isPointsExchange ? ' ua-confirm-item__price--points' : '') +
+        '">' +
+        priceHtml +
+        '</span>' +
+        '<span class="ua-confirm-item__qty">x' +
+        item.qty +
+        '</span></div></div></div>'
+      );
+    }
+
+    function renderPkgBody(split) {
+      if (split.items.length === 1) return renderItemRow(split.items[0]);
+      var thumbs = split.items
+        .slice(0, 4)
+        .map(function (item) {
+          return (
+            '<div class="ua-confirm-pkg__thumb"><img src="' +
+            item.img +
+            '" alt=""></div>'
+          );
+        })
+        .join('');
+      return (
+        '<div class="ua-confirm-pkg__multi">' +
+        '<div class="ua-confirm-pkg__thumbs">' +
+        thumbs +
+        '</div>' +
+        '<button type="button" class="ua-confirm-pkg__count" data-expand-split="' +
+        split.key +
+        '">共' +
+        split.totalQty +
+        '件' +
+        chevron +
+        '</button></div>' +
+        '<div class="ua-confirm-pkg__detail" data-split-detail="' +
+        split.key +
+        '" hidden>' +
+        split.items.map(renderItemRow).join('') +
+        '</div>'
+      );
+    }
+
+    var pickupStoreHtml = hasPickup
+      ? '<div class="ua-confirm-split__store">' +
+        '<div class="ua-confirm-split__store-label">自提门店</div>' +
+        '<div class="ua-confirm-split__store-name">' +
+        STORE.name +
+        '</div>' +
+        '<p class="ua-confirm-split__store-addr">' +
+        STORE.address +
+        '</p>' +
+        '<div class="ua-confirm-split__store-meta">' +
+        STORE.contact +
+        ' · 距您' +
+        (STORE.distance || '180m') +
+        '</div></div>'
+      : '';
+
+    var pickupStoreShown = false;
+    var splitsHtml = splits
+      .map(function (split) {
+        var tagClass =
+          split.fulfillType === 'express'
+            ? 'ua-confirm-split__tag--express'
+            : 'ua-confirm-split__tag--pickup';
+        var tagText = split.fulfillType === 'express' ? '快递到家' : '门店自提';
+        var storeBlock = '';
+        if (split.fulfillType === 'pickup' && !pickupStoreShown) {
+          storeBlock = pickupStoreHtml;
+          pickupStoreShown = true;
+        }
+        return (
+          '<section class="ua-confirm-split" data-split-key="' +
+          split.key +
+          '">' +
+          '<div class="ua-confirm-split__head">' +
+          shopIcon +
+          '<span class="ua-confirm-split__name">' +
+          split.merchantName +
+          '</span>' +
+          '<span class="ua-confirm-split__tag ' +
+          tagClass +
+          '">' +
+          tagText +
+          '</span></div>' +
+          storeBlock +
+          '<div class="ua-confirm-pkg">' +
+          '<div class="ua-confirm-pkg__head">' +
+          '<span class="ua-confirm-pkg__label">包裹' +
+          split.packageNo +
+          '（' +
+          split.packageLabel +
+          '）</span>' +
+          '<span class="ua-confirm-pkg__time">' +
+          split.timeText +
+          (split.fulfillType === 'express' ? ' · 免运费' : '') +
+          '</span></div>' +
+          renderPkgBody(split) +
+          '<div class="ua-confirm-pkg__remark">' +
+          '<span class="ua-confirm-pkg__remark-label">备注</span>' +
+          '<input type="text" class="ua-confirm-pkg__remark-input" data-remark-split="' +
+          split.key +
+          '" placeholder="填写备注（50字以内）" maxlength="50" value="' +
+          (remarks[split.key] || '') +
+          '">' +
+          '</div></div></section>'
+        );
+      })
+      .join('');
+
+    var addressHtml = hasExpress
+      ? '<button type="button" class="ua-confirm-card ua-confirm-address" data-confirm-address>' +
+        '<span class="ua-confirm-address__pin" aria-hidden="true">' +
+        '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 00-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 00-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>' +
+        '</span>' +
+        '<div class="ua-confirm-address__body">' +
+        '<div class="ua-confirm-address__user"><span>武者</span><span>181****4215</span></div>' +
+        '<p class="ua-confirm-address__text">四川省成都市武侯区天府大道中段666号天府软件园A区</p>' +
+        '</div>' +
+        '<svg class="ua-confirm-address__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>' +
+        '</button>'
+      : '';
+
+    var optionsHtml =
+      '<section class="ua-confirm-card ua-confirm-options">' +
+      '<button type="button" class="ua-confirm-row" data-confirm-invoice>' +
+      '<span class="ua-confirm-row__label">发票抬头</span>' +
+      '<span class="ua-confirm-row__value">不开发票</span>' +
+      rowChevron +
+      '</button>' +
+      '<button type="button" class="ua-confirm-row" data-confirm-coupon>' +
+      '<span class="ua-confirm-row__label">优惠券</span>' +
+      '<span class="ua-confirm-row__value ua-confirm-row__value--muted" data-confirm-coupon-text>' +
+      couponText +
+      '</span>' +
+      rowChevron +
+      '</button>' +
+      '<button type="button" class="ua-confirm-row" data-confirm-points>' +
+      '<span class="ua-confirm-row__label">积分抵扣</span>' +
+      '<span class="ua-confirm-row__value' +
+      (deductDisp.muted ? ' ua-confirm-row__value--muted' : '') +
+      '" data-confirm-points-text>' +
+      deductDisp.text +
+      '</span>' +
+      rowChevron +
+      '</button></section>';
+
+    var summaryHtml =
+      '<section class="ua-confirm-card ua-confirm-summary">' +
+      '<div class="ua-confirm-summary__row"><span>商品总价</span><span data-confirm-goods-total>' +
+      formatMoney(goodsTotal) +
+      '</span></div>' +
+      '<div class="ua-confirm-summary__row" data-confirm-exchange-row' +
+      (pointsExchangePts > 0 ? '' : ' hidden') +
+      '><span>积分兑换</span><span data-confirm-exchange-pts>' +
+      pointsExchangePts +
+      '积分</span></div>' +
+      '<div class="ua-confirm-summary__row"><span class="ua-confirm-summary__label">运费' +
+      '<button type="button" class="ua-confirm-summary__help" data-confirm-freight-help aria-label="运费说明">i</button></span>' +
+      '<span data-confirm-freight>' +
+      (freight > 0 ? formatMoney(freight) : '免运费') +
+      '</span></div>' +
+      '<div class="ua-confirm-summary__row"><span>优惠券</span><span class="ua-confirm-summary__discount" data-confirm-coupon-discount>-¥0.00</span></div>' +
+      '<div class="ua-confirm-summary__row" data-confirm-deduct-summary-row' +
+      (deductDisp.deductAmount > 0 ? '' : ' hidden') +
+      '><span>积分抵扣</span><span class="ua-confirm-summary__discount" data-confirm-deduct-amount>-¥' +
+      Number(deductDisp.deductAmount || 0).toFixed(2) +
+      '</span></div>' +
+      '<div class="ua-confirm-summary__row ua-confirm-summary__row--total"><span>合计</span><strong data-confirm-sum>' +
+      formatConfirmPayLabel(pricing, payable) +
+      '</strong></div></section>';
+
+    var agreeHtml =
+      '<label class="ua-confirm-agree">' +
+      '<button type="button" class="ua-shop-check is-checked" data-confirm-agree aria-checked="true"></button>' +
+      '<span>我已阅读并同意《交易服务协议》</span></label>';
+
+    return {
+      html: addressHtml + splitsHtml + optionsHtml + summaryHtml + agreeHtml,
+      pricing: pricing,
+      goodsTotal: goodsTotal,
+      freight: freight,
+      payable: payable,
+      usePointsDeduct: usePointsDeduct,
+      hasExpress: hasExpress,
+      hasPickup: hasPickup,
+      splits: splits
+    };
+  }
+
+  function syncSharedOrderConfirmAmounts(host, pricing, usePointsDeduct, payEls) {
+    if (!host || !pricing) return calcConfirmPayable(pricing, usePointsDeduct);
+    var disp = getConfirmDeductDisplay(pricing, usePointsDeduct);
+    var payable = disp.payable;
+    var goodsEl = host.querySelector('[data-confirm-goods-total]');
+    if (goodsEl) goodsEl.textContent = formatMoney(pricing.goodsTotal);
+    var freightEl = host.querySelector('[data-confirm-freight]');
+    if (freightEl) {
+      freightEl.textContent =
+        pricing.freight > 0 ? formatMoney(pricing.freight) : '免运费';
+    }
+    var couponEl = host.querySelector('[data-confirm-coupon-discount]');
+    if (couponEl) couponEl.textContent = '-¥0.00';
+    var exchangeRow = host.querySelector('[data-confirm-exchange-row]');
+    var exchangePtsEl = host.querySelector('[data-confirm-exchange-pts]');
+    if (exchangeRow) exchangeRow.hidden = !(pricing.pointsExchangePts > 0);
+    if (exchangePtsEl) {
+      exchangePtsEl.textContent = (pricing.pointsExchangePts || 0) + '积分';
+    }
+    var deductRow = host.querySelector('[data-confirm-deduct-summary-row]');
+    var deductAmt = host.querySelector('[data-confirm-deduct-amount]');
+    if (deductRow) deductRow.hidden = !(disp.deductAmount > 0);
+    if (deductAmt) {
+      deductAmt.textContent = '-¥' + Number(disp.deductAmount || 0).toFixed(2);
+    }
+    var deductText = host.querySelector('[data-confirm-points-text]');
+    if (deductText) {
+      deductText.textContent = disp.text;
+      deductText.classList.toggle('ua-confirm-row__value--muted', disp.muted);
+    }
+    var sumEl = host.querySelector('[data-confirm-sum]');
+    if (sumEl) sumEl.textContent = formatConfirmPayLabel(pricing, payable);
+    var payLabel = formatConfirmPayLabel(pricing, payable);
+    (payEls || []).forEach(function (el) {
+      if (!el) return;
+      el.innerHTML = payLabel;
+    });
+    var sheetAmount = document.getElementById('confirmPaySheetAmount');
+    if (sheetAmount) {
+      var pts = pricing.pointsExchangePts || 0;
+      sheetAmount.textContent =
+        pts > 0 && payable > 0
+          ? '扣 ' + pts + '积分，付 ' + formatMoney(payable)
+          : payable > 0
+            ? formatMoney(payable)
+            : pts > 0
+              ? '扣除 ' + pts + '积分'
+              : formatMoney(0);
+    }
+    return payable;
+  }
+
+  function bindSharedOrderConfirmInteractions(host, view, remarks, hooks) {
+    if (!host || !view) return;
+    remarks = remarks || {};
+    hooks = hooks || {};
+    host.querySelectorAll('[data-remark-split]').forEach(function (input) {
+      input.addEventListener('input', function () {
+        remarks[input.getAttribute('data-remark-split')] = input.value || '';
+      });
+    });
+    host.querySelectorAll('[data-expand-split]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var key = btn.getAttribute('data-expand-split');
+        var detail = host.querySelector('[data-split-detail="' + key + '"]');
+        if (!detail) return;
+        var open = detail.hidden;
+        detail.hidden = !open;
+        var group = (view.splits || []).find(function (s) {
+          return s.key === key;
+        });
+        var chevron =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>';
+        btn.innerHTML =
+          (open ? '收起' : '共' + (group ? group.totalQty : '') + '件') + chevron;
+      });
+    });
+    var addr = host.querySelector('[data-confirm-address]');
+    if (addr) {
+      addr.addEventListener('click', function () {
+        showToast('选择收货地址（演示）');
+      });
+    }
+    var invoice = host.querySelector('[data-confirm-invoice]');
+    if (invoice) {
+      invoice.addEventListener('click', function () {
+        showToast('发票设置（演示）');
+      });
+    }
+    var coupon = host.querySelector('[data-confirm-coupon]');
+    if (coupon) {
+      coupon.addEventListener('click', function () {
+        if (hooks.onCoupon) hooks.onCoupon();
+        else if (view.pricing && view.pricing.isNewcomerCheckout) {
+          showToast('新人专区商品不支持用券');
+        } else showToast('暂无可用优惠券');
+      });
+    }
+    var points = host.querySelector('[data-confirm-points]');
+    if (points) {
+      points.addEventListener('click', function () {
+        if (hooks.onPointsDeduct) hooks.onPointsDeduct();
+        else showToast('积分抵扣（演示）');
+      });
+    }
+    var freightHelp = host.querySelector('[data-confirm-freight-help]');
+    if (freightHelp) {
+      freightHelp.addEventListener('click', function () {
+        showToast(view.hasExpress ? '快递订单满额包邮（演示）' : '自提订单无需运费');
+      });
+    }
+    var agree = host.querySelector('[data-confirm-agree]');
+    if (agree) {
+      agree.addEventListener('click', function () {
+        var next = !agree.classList.contains('is-checked');
+        agree.classList.toggle('is-checked', next);
+        agree.setAttribute('aria-checked', next ? 'true' : 'false');
+      });
+    }
+  }
+
   function getLivePrice(p) {
     if (!p) return 0;
     return p.livePrice != null ? p.livePrice : p.price;
@@ -1690,350 +2236,71 @@
   function initOrderConfirmPage() {
     ensureCart();
     var items = getCheckoutItems();
-    var splitListEl = document.getElementById('confirmSplitList');
-    var addressCard = document.getElementById('confirmAddressCard');
-    var goodsTotalEl = document.getElementById('confirmGoodsTotal');
-    var freightEl = document.getElementById('confirmFreight');
-    var couponDiscountEl = document.getElementById('confirmCouponDiscount');
-    var sumEl = document.getElementById('confirmSum');
-    var payEl = document.getElementById('confirmPayAmount');
-    var paySheetAmount = document.getElementById('confirmPaySheetAmount');
-    var agreeCheck = document.getElementById('confirmAgreeCheck');
-    var paySheet = document.getElementById('confirmPaySheet');
-    var payMethod = 'wechat';
-    var remarks = {};
-    var isNewcomerCheckout = items.some(function (it) {
-      return !!it.isNewcomerExclusive;
-    });
-    /* 新人专区商品不支持积分抵扣 */
-    var usePointsDeduct = !isNewcomerCheckout;
-
     if (!items.length) {
       window.location.href = 'cart.html';
       return;
     }
 
-    var splits = buildConfirmSplitOrders(items);
-    var hasExpress = splits.some(function (s) {
-      return s.fulfillType === 'express';
-    });
-    var hasPickup = splits.some(function (s) {
-      return s.fulfillType === 'pickup';
-    });
-
-    /* 商品总价：普通商品货款 + 积分兑换现金加价（积分本身另计） */
-    var mallGoodsTotal = 0;
-    var pointsExchangeCash = 0;
-    var pointsExchangePts = 0;
-    items.forEach(function (it) {
-      if (it.isPointsExchange) {
-        pointsExchangeCash += (Number(it.money) || 0) * (it.qty || 0);
-        pointsExchangePts += (Number(it.points) || 0) * (it.qty || 0);
-      } else {
-        mallGoodsTotal += (Number(it.price) || 0) * (it.qty || 0);
-      }
-    });
-    mallGoodsTotal = Math.round(mallGoodsTotal * 100) / 100;
-    pointsExchangeCash = Math.round(pointsExchangeCash * 100) / 100;
-    var goodsTotal = Math.round((mallGoodsTotal + pointsExchangeCash) * 100) / 100;
-    var freight = hasExpress ? 0 : 0;
-
-    var cfg = global.MdmPointsMallConfig;
-    var availablePts =
-      (cfg && cfg.AVAILABLE_POINTS_DEMO) || 161;
-    /* 兑换与抵现共用可用积分：先预留兑换所需，剩余才可抵普通商品现金 */
-    var ptsLeftForDeduct = Math.max(0, availablePts - pointsExchangePts);
-    /* 抵扣仅作用普通商品；积分兑换 / 新人专区商品不参与可抵基数 */
-    var deductInfo = isNewcomerCheckout
-      ? { enabled: false, deductAmount: 0, pointsUsed: 0, tip: '新人专区商品不支持积分抵扣' }
-      : cfg && cfg.calcCashDeduction
-        ? cfg.calcCashDeduction(
-            items.filter(function (it) {
-              return !it.isPointsExchange && !it.isNewcomerExclusive;
-            }),
-            ptsLeftForDeduct
-          )
-        : { enabled: false, deductAmount: 0, pointsUsed: 0, tip: '' };
-    if (pointsExchangePts > 0 && deductInfo.enabled) {
-      deductInfo.tip =
-        (deductInfo.deductAmount > 0
-          ? '兑换已占 ' +
-            pointsExchangePts +
-            ' 积分，剩余可抵 ¥' +
-            Number(deductInfo.deductAmount).toFixed(2)
-          : '兑换已占 ' +
-            pointsExchangePts +
-            ' 积分，剩余积分不足抵现') +
-        '（可用共 ' +
-        availablePts +
-        '）';
-    }
+    var body = document.getElementById('confirmBody');
+    var payEl = document.getElementById('confirmPayAmount');
+    var paySheet = document.getElementById('confirmPaySheet');
+    var payMethod = 'wechat';
+    var remarks = {};
+    var pricing = computeOrderConfirmPricing(items);
+    var usePointsDeduct = pricing.usePointsDeduct;
+    var view = null;
+    var pendingOrder = null;
 
     function currentDeduct() {
-      if (!usePointsDeduct || !deductInfo.enabled) {
+      if (!usePointsDeduct || !pricing.deductInfo.enabled) {
         return { deductAmount: 0, pointsUsed: 0 };
       }
-      return deductInfo;
+      return pricing.deductInfo;
     }
 
     function calcPayable() {
-      var d = currentDeduct();
-      return Math.max(
-        0,
-        Math.round((goodsTotal + freight - (d.deductAmount || 0)) * 100) / 100
-      );
-    }
-
-    var shopIcon =
-      '<svg class="ua-confirm-split__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path d="M9 22V12h6v10"/></svg>';
-    var chevron =
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>';
-
-    if (addressCard) addressCard.hidden = !hasExpress;
-
-    function formatPointsPrice(item) {
-      var pts = Number(item.points) || 0;
-      var cash = Number(item.money) || 0;
-      if (cash > 0) return pts + '积分 + ' + formatMoney(cash);
-      return pts + '积分';
-    }
-
-    function renderItemRow(item) {
-      var nameHtml = item.isNewcomerExclusive
-        ? '<span class="ua-cart-item__tag">新人专享</span>' + item.name
-        : item.isPointsExchange
-          ? '<span class="ua-cart-item__tag">积分兑换</span>' + item.name
-          : item.name;
-      var priceHtml = item.isPointsExchange
-        ? formatPointsPrice(item)
-        : formatMoney(item.price);
-      return (
-        '<div class="ua-confirm-item' +
-        (item.isPointsExchange ? ' ua-confirm-item--points' : '') +
-        (item.isNewcomerExclusive ? ' ua-confirm-item--newcomer' : '') +
-        '">' +
-        '<div class="ua-confirm-item__thumb">' +
-        '<img src="' +
-        item.img +
-        '" alt="">' +
-        (item.watermark
-          ? '<span class="ua-shop-watermark ua-shop-watermark--sm">生产验证商品<br>请勿下单</span>'
-          : '') +
-        '</div>' +
-        '<div class="ua-confirm-item__body">' +
-        '<div class="ua-confirm-item__name">' +
-        nameHtml +
-        '</div>' +
-        '<span class="ua-confirm-item__spec">' +
-        item.spec +
-        '</span>' +
-        '<div class="ua-confirm-item__bottom">' +
-        '<span class="ua-confirm-item__price' +
-        (item.isPointsExchange ? ' ua-confirm-item__price--points' : '') +
-        '">' +
-        priceHtml +
-        '</span>' +
-        '<span class="ua-confirm-item__qty">x' +
-        item.qty +
-        '</span></div></div></div>'
-      );
+      return calcConfirmPayable(pricing, usePointsDeduct);
     }
 
     function syncAmounts() {
-      var d = currentDeduct();
-      var payable = calcPayable();
-      if (goodsTotalEl) goodsTotalEl.textContent = formatMoney(goodsTotal);
-      if (freightEl) freightEl.textContent = freight > 0 ? formatMoney(freight) : '免运费';
-      if (couponDiscountEl) couponDiscountEl.textContent = '-¥0.00';
-      var exchangeRow = document.getElementById('confirmExchangePointsRow');
-      var exchangePtsEl = document.getElementById('confirmExchangePoints');
-      if (exchangeRow) exchangeRow.hidden = !(pointsExchangePts > 0);
-      if (exchangePtsEl) exchangePtsEl.textContent = pointsExchangePts + '积分';
-      var deductRow = document.getElementById('confirmPointsDeductSummaryRow');
-      var deductAmt = document.getElementById('confirmPointsDeductAmount');
-      if (deductRow) deductRow.hidden = !(d.deductAmount > 0);
-      if (deductAmt) deductAmt.textContent = '-¥' + Number(d.deductAmount || 0).toFixed(2);
-      var deductText = document.getElementById('confirmPointsDeductText');
-      if (deductText) {
-        if (!deductInfo.enabled || !(deductInfo.eligibleAmount > 0)) {
-          deductText.textContent = deductInfo.tip || '不可用';
-          deductText.classList.add('ua-confirm-row__value--muted');
-        } else if (usePointsDeduct && d.deductAmount > 0) {
-          deductText.textContent =
-            pointsExchangePts > 0
-              ? '已抵 ¥' +
-                d.deductAmount.toFixed(2) +
-                '（兑换已占' +
-                pointsExchangePts +
-                '积分）'
-              : '已抵 ' + d.pointsUsed + '积分（-¥' + d.deductAmount.toFixed(2) + '）';
-          deductText.classList.remove('ua-confirm-row__value--muted');
-        } else {
-          deductText.textContent =
-            pointsExchangePts > 0 && deductInfo.tip
-              ? deductInfo.tip
-              : '不使用抵扣';
-          deductText.classList.add('ua-confirm-row__value--muted');
-        }
-      }
-      var sumLabel = '';
-      if (pointsExchangePts > 0 && payable > 0) {
-        sumLabel = pointsExchangePts + '积分 + ' + formatMoney(payable);
-      } else if (pointsExchangePts > 0) {
-        sumLabel = pointsExchangePts + '积分';
-      } else {
-        sumLabel = formatMoney(payable);
-      }
-      if (sumEl) sumEl.textContent = sumLabel;
-      if (payEl) {
-        payEl.innerHTML =
-          pointsExchangePts > 0
-            ? (payable > 0
-                ? pointsExchangePts + '积分 + ' + formatMoney(payable)
-                : pointsExchangePts + '积分')
-            : formatMoney(payable);
-      }
-      if (paySheetAmount) {
-        paySheetAmount.textContent =
-          pointsExchangePts > 0 && payable > 0
-            ? '扣 ' + pointsExchangePts + '积分，付 ' + formatMoney(payable)
-            : payable > 0
-              ? formatMoney(payable)
-              : pointsExchangePts > 0
-                ? '扣除 ' + pointsExchangePts + '积分'
-                : formatMoney(0);
-      }
-    }
-
-    function renderPkgBody(split) {
-      if (split.items.length === 1) return renderItemRow(split.items[0]);
-      var thumbs = split.items
-        .slice(0, 4)
-        .map(function (item) {
-          return (
-            '<div class="ua-confirm-pkg__thumb"><img src="' +
-            item.img +
-            '" alt=""></div>'
-          );
-        })
-        .join('');
-      return (
-        '<div class="ua-confirm-pkg__multi">' +
-        '<div class="ua-confirm-pkg__thumbs">' +
-        thumbs +
-        '</div>' +
-        '<button type="button" class="ua-confirm-pkg__count" data-expand-split="' +
-        split.key +
-        '">共' +
-        split.totalQty +
-        '件' +
-        chevron +
-        '</button></div>' +
-        '<div class="ua-confirm-pkg__detail" data-split-detail="' +
-        split.key +
-        '" hidden>' +
-        split.items.map(renderItemRow).join('') +
-        '</div>'
+      return syncSharedOrderConfirmAmounts(
+        body,
+        pricing,
+        usePointsDeduct,
+        [payEl]
       );
     }
 
-    function renderPickupStoreBlock() {
-      if (!hasPickup) return '';
-      return (
-        '<div class="ua-confirm-split__store">' +
-        '<div class="ua-confirm-split__store-label">自提门店</div>' +
-        '<div class="ua-confirm-split__store-name">' +
-        STORE.name +
-        '</div>' +
-        '<p class="ua-confirm-split__store-addr">' +
-        STORE.address +
-        '</p>' +
-        '<div class="ua-confirm-split__store-meta">' +
-        STORE.contact +
-        ' · 距您' +
-        (STORE.distance || '180m') +
-        '</div></div>'
-      );
-    }
-
-    if (splitListEl) {
-      var pickupStoreShown = false;
-      splitListEl.innerHTML = splits
-        .map(function (split) {
-          var tagClass =
-            split.fulfillType === 'express'
-              ? 'ua-confirm-split__tag--express'
-              : 'ua-confirm-split__tag--pickup';
-          var tagText = split.fulfillType === 'express' ? '快递到家' : '门店自提';
-          var storeBlock = '';
-          if (split.fulfillType === 'pickup' && !pickupStoreShown) {
-            storeBlock = renderPickupStoreBlock();
-            pickupStoreShown = true;
+    function renderConfirmBody() {
+      if (!body) return;
+      view = buildSharedOrderConfirmView(items, remarks, pricing, usePointsDeduct);
+      body.innerHTML = view.html;
+      bindSharedOrderConfirmInteractions(body, view, remarks, {
+        onCoupon: function () {
+          if (pricing.isNewcomerCheckout) {
+            showToast('新人专区商品不支持用券');
+            return;
           }
-          return (
-            '<section class="ua-confirm-split" data-split-key="' +
-            split.key +
-            '">' +
-            '<div class="ua-confirm-split__head">' +
-            shopIcon +
-            '<span class="ua-confirm-split__name">' +
-            split.merchantName +
-            '</span>' +
-            '<span class="ua-confirm-split__tag ' +
-            tagClass +
-            '">' +
-            tagText +
-            '</span></div>' +
-            storeBlock +
-            '<div class="ua-confirm-pkg">' +
-            '<div class="ua-confirm-pkg__head">' +
-            '<span class="ua-confirm-pkg__label">包裹' +
-            split.packageNo +
-            '（' +
-            split.packageLabel +
-            '）</span>' +
-            '<span class="ua-confirm-pkg__time">' +
-            split.timeText +
-            (split.fulfillType === 'express' ? ' · 免运费' : '') +
-            '</span></div>' +
-            renderPkgBody(split) +
-            '<div class="ua-confirm-pkg__remark">' +
-            '<span class="ua-confirm-pkg__remark-label">备注</span>' +
-            '<input type="text" class="ua-confirm-pkg__remark-input" data-remark-split="' +
-            split.key +
-            '" placeholder="填写备注（50字以内）" maxlength="50" value="' +
-            (remarks[split.key] || '') +
-            '">' +
-            '</div></div></section>'
-          );
-        })
-        .join('');
-
-      splitListEl.querySelectorAll('[data-remark-split]').forEach(function (input) {
-        input.addEventListener('input', function () {
-          remarks[input.getAttribute('data-remark-split')] = input.value || '';
-        });
+          showToast('暂无可用优惠券');
+        },
+        onPointsDeduct: function () {
+          if (pricing.isNewcomerCheckout) {
+            showToast('新人专区商品不支持积分抵扣');
+            return;
+          }
+          if (!pricing.deductInfo.enabled || !(pricing.deductInfo.eligibleAmount > 0)) {
+            showToast(pricing.deductInfo.tip || '当前订单无可抵扣的普通商品');
+            return;
+          }
+          usePointsDeduct = !usePointsDeduct;
+          syncAmounts();
+          showToast(usePointsDeduct ? '已使用积分抵扣（仅普通商品）' : '已取消积分抵扣');
+        }
       });
-
-      splitListEl.querySelectorAll('[data-expand-split]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          var key = btn.getAttribute('data-expand-split');
-          var detail = splitListEl.querySelector('[data-split-detail="' + key + '"]');
-          if (!detail) return;
-          var open = detail.hidden;
-          detail.hidden = !open;
-          var group = splits.find(function (s) {
-            return s.key === key;
-          });
-          btn.innerHTML =
-            (open ? '收起' : '共' + (group ? group.totalQty : '') + '件') + chevron;
-        });
-      });
+      syncAmounts();
     }
 
-    syncAmounts();
-
-    var pendingOrder = null;
+    renderConfirmBody();
 
     function clearCheckoutCart() {
       items.forEach(function (it) {
@@ -2102,17 +2369,17 @@
         orderNo: global.UaOrdersStore ? global.UaOrdersStore.genOrderNo() : String(Date.now()),
         status: 'unpaid',
         createdAt: global.UaOrdersStore ? global.UaOrdersStore.nowText() : '',
-        exchangePoints: pointsExchangePts,
+        exchangePoints: pricing.pointsExchangePts,
         deductPoints: usePointsDeduct ? d.pointsUsed || 0 : 0,
         deductAmount: usePointsDeduct ? d.deductAmount || 0 : 0,
-        goodsTotal: goodsTotal,
-        freight: freight,
+        goodsTotal: pricing.goodsTotal,
+        freight: pricing.freight,
         payable: payable,
         payLabel:
-          pointsExchangePts > 0 && payable > 0
-            ? pointsExchangePts + '积分 + ¥' + payable.toFixed(2)
-            : pointsExchangePts > 0
-              ? pointsExchangePts + '积分'
+          pricing.pointsExchangePts > 0 && payable > 0
+            ? pricing.pointsExchangePts + '积分 + ¥' + payable.toFixed(2)
+            : pricing.pointsExchangePts > 0
+              ? pricing.pointsExchangePts + '积分'
               : '¥' + payable.toFixed(2),
         items: items.map(function (it) {
           return {
@@ -2158,7 +2425,7 @@
       return saved;
     }
 
-  function goPaidOrderDetail(order) {
+    function goPaidOrderDetail(order) {
       var paid = null;
       if (global.UaOrdersStore && order && order.orderNo) {
         paid = global.UaOrdersStore.updateStatus(order.orderNo, 'shipping');
@@ -2195,65 +2462,19 @@
       });
     }
 
-    document.getElementById('confirmAddressCard') &&
-      document.getElementById('confirmAddressCard').addEventListener('click', function () {
-        showToast('选择收货地址（演示）');
-      });
-
     document.getElementById('confirmServiceBtn') &&
       document.getElementById('confirmServiceBtn').addEventListener('click', function () {
         showToast('联系客服（演示）');
       });
 
-    document.getElementById('confirmInvoiceRow') &&
-      document.getElementById('confirmInvoiceRow').addEventListener('click', function () {
-        showToast('发票设置（演示）');
-      });
-
-    document.getElementById('confirmCouponRow') &&
-      document.getElementById('confirmCouponRow').addEventListener('click', function () {
-        if (isNewcomerCheckout) {
-          showToast('新人专区商品不支持用券');
-          return;
-        }
-        showToast('暂无可用优惠券');
-      });
-
-    document.getElementById('confirmPointsDeductRow') &&
-      document.getElementById('confirmPointsDeductRow').addEventListener('click', function () {
-        if (isNewcomerCheckout) {
-          showToast('新人专区商品不支持积分抵扣');
-          return;
-        }
-        if (!deductInfo.enabled || !(deductInfo.eligibleAmount > 0)) {
-          showToast(deductInfo.tip || '当前订单无可抵扣的普通商品');
-          return;
-        }
-        usePointsDeduct = !usePointsDeduct;
-        syncAmounts();
-        showToast(usePointsDeduct ? '已使用积分抵扣（仅普通商品）' : '已取消积分抵扣');
-      });
-
-    document.getElementById('confirmFreightHelp') &&
-      document.getElementById('confirmFreightHelp').addEventListener('click', function () {
-        showToast(hasExpress ? '快递订单满额包邮（演示）' : '自提订单无需运费');
-      });
-
-    if (agreeCheck) {
-      agreeCheck.addEventListener('click', function () {
-        var next = !agreeCheck.classList.contains('is-checked');
-        agreeCheck.classList.toggle('is-checked', next);
-        agreeCheck.setAttribute('aria-checked', next ? 'true' : 'false');
-      });
-    }
-
     document.getElementById('confirmPayBtn') &&
       document.getElementById('confirmPayBtn').addEventListener('click', function () {
+        var agreeCheck = body && body.querySelector('[data-confirm-agree]');
         if (agreeCheck && !agreeCheck.classList.contains('is-checked')) {
           showToast('请先同意交易服务协议');
           return;
         }
-        if (pointsExchangePts > availablePts) {
+        if (pricing.pointsExchangePts > pricing.availablePts) {
           showToast('可用积分不足，无法兑换');
           return;
         }
@@ -2261,18 +2482,16 @@
         if (
           usePointsDeduct &&
           dNeed.pointsUsed > 0 &&
-          pointsExchangePts + dNeed.pointsUsed > availablePts
+          pricing.pointsExchangePts + dNeed.pointsUsed > pricing.availablePts
         ) {
           showToast('可用积分不足（兑换与抵扣合计超出）');
           return;
         }
-        /* 新人专区：提交前再次校验是否已有支付成功订单 */
         var ncCheck = validateNewcomerCheckout();
         if (!ncCheck.ok) {
           showToast(ncCheck.message || '暂无法购买新人专区商品');
           return;
         }
-        /* 提交订单成功后唤起支付，不跳转待支付页 */
         if (!pendingOrder) {
           var created = createUnpaidOrder();
           if (!created) return;
@@ -2284,7 +2503,6 @@
     document.querySelectorAll('[data-confirm-close]').forEach(function (el) {
       el.addEventListener('click', function () {
         closePaySheet();
-        /* 关闭支付后订单仍为待支付，可在订单列表继续付款 */
         if (pendingOrder) {
           showToast('可稍后在订单列表完成支付');
         }
@@ -2300,7 +2518,6 @@
 
     document.getElementById('confirmPaySubmit') &&
       document.getElementById('confirmPaySubmit').addEventListener('click', function () {
-        /* 支付瞬间再校验：避免多笔待支付订单先后支付薅羊毛 */
         var payNcCheck = validateNewcomerCheckout();
         if (!payNcCheck.ok) {
           showToast(payNcCheck.message || '您已有支付成功的订单，无法继续支付新人专区订单');
@@ -2433,8 +2650,8 @@
             '<div class="ua-live-goods__name">' +
             p.shortName +
             '</div>' +
-            '<div class="ua-live-goods__stock">库存' +
-            (p.liveStock != null ? p.liveStock : 66) +
+            '<div class="ua-live-goods__fulfill">' +
+            (getProductFulfillType(p) === 'express' ? '快递' : '自提') +
             '</div>' +
             '<div class="ua-live-goods__bottom">' +
             '<div class="ua-live-goods__price"><small>¥</small>' +
@@ -2503,69 +2720,159 @@
       }
     }
 
-    function renderConfirmSheet(items) {
-      state.confirmItems = items || [];
+    var confirmRemarks = {};
+    var confirmPricing = null;
+    var confirmUsePointsDeduct = true;
+    var confirmPendingOrder = null;
+    var confirmPayMethod = 'wechat';
+    var confirmPaySheet = document.getElementById('confirmPaySheet');
+
+    function syncLiveConfirmAmounts() {
       var body = document.getElementById('liveConfirmBody');
       var payEl = document.getElementById('liveConfirmPay');
+      if (!confirmPricing) return 0;
+      var payable = syncSharedOrderConfirmAmounts(
+        body,
+        confirmPricing,
+        confirmUsePointsDeduct,
+        [payEl]
+      );
+      state.confirmPayable = payable;
+      return payable;
+    }
+
+    function renderConfirmSheet(checkoutItems) {
+      state.confirmItems = checkoutItems || [];
+      var body = document.getElementById('liveConfirmBody');
       if (!body) return;
-      var total = 0;
-      var count = 0;
-      var goodsHtml = state.confirmItems
-        .map(function (item) {
-          total += item.price * item.qty;
-          count += item.qty;
-          return (
-            '<div class="ua-live-confirm__item">' +
-            '<img src="' +
-            item.img +
-            '" alt="">' +
-            '<div class="ua-live-confirm__item-body">' +
-            '<div class="ua-live-confirm__item-name">' +
-            item.name +
-            '</div>' +
-            '<div class="ua-live-confirm__item-spec">' +
-            item.spec +
-            '</div>' +
-            '<div class="ua-live-confirm__item-row">' +
-            '<span class="ua-live-confirm__item-price">¥' +
-            formatPriceLabel(item.price) +
-            '</span>' +
-            '<span class="ua-live-confirm__item-qty">x' +
-            item.qty +
-            '</span></div></div></div>'
-          );
+      confirmRemarks = {};
+      confirmPendingOrder = null;
+      confirmPricing = computeOrderConfirmPricing(state.confirmItems);
+      confirmUsePointsDeduct = confirmPricing.usePointsDeduct;
+      var view = buildSharedOrderConfirmView(
+        state.confirmItems,
+        confirmRemarks,
+        confirmPricing,
+        confirmUsePointsDeduct
+      );
+      body.innerHTML = view.html;
+      bindSharedOrderConfirmInteractions(body, view, confirmRemarks, {
+        onCoupon: function () {
+          showToast('暂无可用优惠券');
+        },
+        onPointsDeduct: function () {
+          if (!confirmPricing.deductInfo.enabled || !(confirmPricing.deductInfo.eligibleAmount > 0)) {
+            showToast(confirmPricing.deductInfo.tip || '当前订单无可抵扣的普通商品');
+            return;
+          }
+          confirmUsePointsDeduct = !confirmUsePointsDeduct;
+          syncLiveConfirmAmounts();
+          showToast(confirmUsePointsDeduct ? '已使用积分抵扣（仅普通商品）' : '已取消积分抵扣');
+        }
+      });
+      syncLiveConfirmAmounts();
+    }
+
+    function clearLiveConfirmCart() {
+      var ids = {};
+      (state.confirmItems || []).forEach(function (it) {
+        ids[it.id] = true;
+      });
+      var liveCart = readLiveCart();
+      liveCart.items = (liveCart.items || []).filter(function (it) {
+        return !ids[it.id];
+      });
+      writeLiveCart(liveCart);
+      var shopCart = ensureCart();
+      shopCart.items = (shopCart.items || []).filter(function (it) {
+        return !ids[it.id];
+      });
+      writeCart(shopCart);
+      syncBadges();
+      renderLiveGoodsList();
+    }
+
+    function createLiveUnpaidOrder() {
+      if (!confirmPricing) return null;
+      var d =
+        confirmUsePointsDeduct && confirmPricing.deductInfo.enabled
+          ? confirmPricing.deductInfo
+          : { deductAmount: 0, pointsUsed: 0 };
+      var payable = calcConfirmPayable(confirmPricing, confirmUsePointsDeduct);
+      var orderPayload = {
+        orderNo: global.UaOrdersStore ? global.UaOrdersStore.genOrderNo() : String(Date.now()),
+        status: 'unpaid',
+        createdAt: global.UaOrdersStore ? global.UaOrdersStore.nowText() : '',
+        exchangePoints: 0,
+        deductPoints: confirmUsePointsDeduct ? d.pointsUsed || 0 : 0,
+        deductAmount: confirmUsePointsDeduct ? d.deductAmount || 0 : 0,
+        goodsTotal: confirmPricing.goodsTotal,
+        freight: confirmPricing.freight,
+        payable: payable,
+        payLabel: '¥' + payable.toFixed(2),
+        source: 'live',
+        items: (state.confirmItems || []).map(function (it) {
+          return {
+            id: it.id,
+            name: it.name,
+            spec: it.spec || '',
+            img: it.img || '',
+            qty: it.qty,
+            price: Number(it.price) || 0,
+            points: 0,
+            money: 0,
+            isPointsExchange: false,
+            isNewcomerExclusive: false
+          };
         })
-        .join('');
-      body.innerHTML =
-        goodsHtml +
-        '<div class="ua-live-confirm__rows">' +
-        '<div class="ua-live-confirm__row"><span>商品总价 <em>共计' +
-        count +
-        '件商品</em></span><strong>¥' +
-        formatPriceLabel(total) +
-        '</strong></div>' +
-        '<div class="ua-live-confirm__row"><span>优惠券</span><span class="ua-live-confirm__muted">暂无可用优惠券</span></div>' +
-        '<div class="ua-live-confirm__row ua-live-confirm__row--sum"><span>合计</span><strong>¥' +
-        formatPriceLabel(total) +
-        '</strong></div></div>' +
-        '<div class="ua-live-confirm__payway">' +
-        '<span class="ua-live-confirm__wx"><i></i>微信支付</span>' +
-        '<span class="ua-shop-check is-checked" aria-hidden="true"></span></div>';
-      if (payEl) payEl.textContent = formatMoney(total);
+      };
+      var saved = global.UaOrdersStore
+        ? global.UaOrdersStore.upsert(orderPayload)
+        : orderPayload;
+      clearLiveConfirmCart();
+      confirmPendingOrder = saved;
+      return saved;
+    }
+
+    function openLivePaySheet() {
+      syncLiveConfirmAmounts();
+      if (confirmPaySheet) confirmPaySheet.hidden = false;
+    }
+
+    function closeLivePaySheet() {
+      if (confirmPaySheet) confirmPaySheet.hidden = true;
+    }
+
+    function goLivePaidOrderDetail(order) {
+      var paid = null;
+      if (global.UaOrdersStore && order && order.orderNo) {
+        paid = global.UaOrdersStore.updateStatus(order.orderNo, 'shipping');
+      }
+      if (!paid) {
+        paid = Object.assign({}, order || {}, { status: 'shipping' });
+        if (global.UaOrdersStore && paid.orderNo) {
+          paid = global.UaOrdersStore.upsert(paid);
+        }
+      }
+      var href =
+        global.UaOrdersStore && global.UaOrdersStore.buildDetailHref
+          ? global.UaOrdersStore.buildDetailHref(paid)
+          : 'order-detail.html?status=shipping&orderNo=' +
+            encodeURIComponent((paid && paid.orderNo) || '');
+      window.location.href = href;
     }
 
     function openConfirmWithLiveCart() {
-      var items = getLiveCartItems().map(function (item) {
-        var p = PRODUCTS[item.id];
-        return {
-          id: item.id,
-          name: p.shortName || p.name,
-          spec: item.spec || (p && p.spec) || '',
-          price: Number(item.price != null ? item.price : getLivePrice(p)),
-          img: p.img,
-          qty: item.qty
-        };
-      });
+      var items = getLiveCartItems()
+        .map(function (item) {
+          var p = PRODUCTS[item.id];
+          return mapProductLineToCheckoutItem(p, {
+            spec: item.spec || (p && p.spec) || '',
+            price: item.price,
+            qty: item.qty
+          });
+        })
+        .filter(Boolean);
       if (!items.length) {
         showToast('请先选择商品');
         return;
@@ -2577,16 +2884,13 @@
     function openConfirmWithSku() {
       var cur = currentSku();
       if (!cur) return;
-      renderConfirmSheet([
-        {
-          id: cur.product.id,
-          name: cur.product.shortName || cur.product.name,
-          spec: cur.spec.label,
-          price: cur.spec.price,
-          img: cur.product.img,
-          qty: cur.qty
-        }
-      ]);
+      var line = mapProductLineToCheckoutItem(cur.product, {
+        spec: cur.spec.label,
+        price: cur.spec.price,
+        qty: cur.qty
+      });
+      if (!line) return;
+      renderConfirmSheet([line]);
       closeSheet('sku');
       openSheet('confirm');
     }
@@ -2694,7 +2998,50 @@
 
     document.getElementById('liveConfirmPayBtn') &&
       document.getElementById('liveConfirmPayBtn').addEventListener('click', function () {
-        showToast('支付功能演示');
+        var body = document.getElementById('liveConfirmBody');
+        var agree = body && body.querySelector('[data-confirm-agree]');
+        if (agree && !agree.classList.contains('is-checked')) {
+          showToast('请先同意交易服务协议');
+          return;
+        }
+        if (!confirmPendingOrder) {
+          var created = createLiveUnpaidOrder();
+          if (!created) return;
+          showToast('订单已生成，请支付');
+        }
+        openLivePaySheet();
+      });
+
+    document.querySelectorAll('[data-confirm-close]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        closeLivePaySheet();
+        if (confirmPendingOrder) {
+          showToast('可稍后在订单列表完成支付');
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-pay-method]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        confirmPayMethod = btn.getAttribute('data-pay-method');
+        document.querySelectorAll('[data-pay-method]').forEach(function (b) {
+          var active = b.getAttribute('data-pay-method') === confirmPayMethod;
+          b.classList.toggle('is-active', active);
+          var check = b.querySelector('.ua-shop-check');
+          if (check) check.classList.toggle('is-checked', active);
+        });
+      });
+    });
+
+    document.getElementById('confirmPaySubmit') &&
+      document.getElementById('confirmPaySubmit').addEventListener('click', function () {
+        closeLivePaySheet();
+        var order = confirmPendingOrder;
+        if (!order && global.UaOrdersStore) order = global.UaOrdersStore.getLatest();
+        showToast('支付成功（演示）');
+        setTimeout(function () {
+          goLivePaidOrderDetail(order);
+        }, 500);
       });
 
     document.getElementById('liveCouponBtn') &&

@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰WMS - 订单配置</title>
+    <title>冷丰WMS - 门店配置</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <link rel="stylesheet" href="../css/basic-settings.css">
+    <link rel="stylesheet" href="../css/lf-settle-account-config.css?v=20260813-bs-store">
+    <link rel="stylesheet" href="../css/basic-settings.css?v=20260813-bs-store">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -16,18 +17,90 @@
     <div id="header-container"></div>
     <div class="container">
         <main class="main-content">
-            <div class="content-title">基础设置 / 订单配置</div>
+            <div class="content-title">基础设置 / 门店配置</div>
             <hr class="content-divider">
-            <div class="bs-page-card store-order-config">
-                <div id="bsOrderConfigRoot"></div>
-                <div class="store-order-config__footer">
-                    <button type="button" class="btn btn-primary" id="bsOrderSaveBtn">保存</button>
-                </div>
+
+            <div class="bs-store-config sac-page">
+                <!-- 订单配置：独立保存 -->
+                <section class="sac-section" id="bsOrderSection">
+                    <div class="sac-section__head" id="bsOrderSectionToggle" role="button" tabindex="0">
+                        <span class="sac-section__arrow">▼</span>
+                        <span class="sac-section__title">订单配置</span>
+                    </div>
+                    <div class="sac-section__body">
+                        <div class="sac-order-config" id="bsOrderConfigRoot"></div>
+                        <div class="bs-section-actions">
+                            <button type="button" class="btn btn-primary" id="bsOrderSaveBtn">保存</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 账户配置：独立保存 -->
+                <section class="sac-section" id="bsAccountSection">
+                    <div class="sac-section__head" id="bsAccountSectionToggle" role="button" tabindex="0">
+                        <span class="sac-section__arrow">▼</span>
+                        <span class="sac-section__title">账户配置</span>
+                    </div>
+                    <div class="sac-section__body">
+                        <div class="sac-field">
+                            <label class="sac-field__label" for="bsDepositRequired">
+                                <span class="erp-req">*</span>保证金账户金额
+                            </label>
+                            <div class="sac-field__control">
+                                <div class="sac-unit">
+                                    <input class="erp-input" id="bsDepositRequired" type="number" min="0" step="0.01" placeholder="请输入">
+                                    <span class="sac-unit__text">元</span>
+                                </div>
+                                <div class="sac-tip">全平台门店默认应保有金额；门店个性化配置优先于本项。</div>
+                            </div>
+                        </div>
+
+                        <div class="sac-field">
+                            <label class="sac-field__label" for="bsGoodsQuotaRequired">
+                                <span class="erp-req">*</span>货款金额
+                            </label>
+                            <div class="sac-field__control">
+                                <div class="sac-unit">
+                                    <input class="erp-input" id="bsGoodsQuotaRequired" type="number" min="0" step="0.01" placeholder="请输入">
+                                    <span class="sac-unit__text">元</span>
+                                </div>
+                                <div class="sac-tip">全平台门店默认货款应缴金额（首次货款额度）；门店个性化配置优先于本项。</div>
+                            </div>
+                        </div>
+
+                        <div class="sac-field">
+                            <div class="sac-field__label">
+                                <span class="sac-field__label-row">
+                                    <span><span class="erp-req">*</span>历史数据影响</span>
+                                    <span class="sac-help" tabindex="0" aria-label="历史数据影响说明">
+                                        <span class="sac-help-btn" aria-hidden="true">?</span>
+                                        <span class="sac-help-tip" role="tooltip">
+                                            <span class="sac-help-tip__item"><strong>是：</strong>修改配置后，已产生的历史数据会按照新配置规则同步调整或重新计算</span>
+                                            <span class="sac-help-tip__item"><strong>否：</strong>修改配置后，仅影响新增数据，历史数据保持原配置结果不变</span>
+                                        </span>
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="sac-field__control">
+                                <div class="sac-radio-row">
+                                    <label><input type="radio" name="bsAffectHistory" value="yes"> 是</label>
+                                    <label><input type="radio" name="bsAffectHistory" value="no" checked> 否</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bs-section-actions">
+                            <button type="button" class="btn btn-primary" id="bsAccountSaveBtn">保存</button>
+                        </div>
+                    </div>
+                </section>
             </div>
         </main>
     </div>
     <script src="../js/common.js"></script>
-    <script src="../js/order-config-ui.js"></script>
-    <script src="../js/basic-settings-order.js"></script>
+    <script src="../js/order-config-ui.js?v=20260813-bs-store"></script>
+    <script src="../js/store-account-config.js?v=20260810-sac1"></script>
+    <script src="../js/store-wallet-demo.js?v=20260810-deposit-unfreeze6"></script>
+    <script src="../js/basic-settings-order.js?v=20260813-bs-store"></script>
 </body>
 </html>

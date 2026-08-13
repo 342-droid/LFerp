@@ -2109,7 +2109,8 @@
   margin-bottom: 4px;
 }
 
-.ua-live-goods__stock {
+.ua-live-goods__stock,
+.ua-live-goods__fulfill {
   font-size: 12px;
   color: #999;
   margin-bottom: auto;
@@ -2451,7 +2452,24 @@
 
 .ua-live-sheet--confirm .ua-live-sheet__panel,
 .ua-live-confirm {
-  max-height: 70%;
+  max-height: 88%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 半遮罩内复用全页确认订单字段样式 */
+.ua-live-confirm__body.ua-confirm-body {
+  padding: 12px 12px 8px;
+  background: #f5f5f5;
+}
+
+.ua-live-confirm__body .ua-confirm-card,
+.ua-live-confirm__body .ua-confirm-split {
+  margin-bottom: 10px;
+}
+
+.ua-live-confirm__body .ua-confirm-agree {
+  margin: 4px 0 8px;
 }
 
 .ua-live-confirm__head {

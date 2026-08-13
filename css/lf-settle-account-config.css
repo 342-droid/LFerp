@@ -214,3 +214,74 @@
   color: #999;
   line-height: 1.5;
 }
+
+/* 订单配置：复用账户配置字段行交互（左右布局 + tip） */
+.sac-order-config {
+  width: 100%;
+}
+
+.sac-order-config .store-order-config__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 0;
+  border-bottom: 0;
+}
+
+.sac-order-config .store-order-config__label {
+  flex: 0 0 168px;
+  width: 168px;
+  text-align: right;
+  font-size: 13px;
+  color: #333;
+  line-height: 36px;
+}
+
+.sac-order-config .store-order-config__required {
+  color: #ff4d4f;
+  margin-right: 2px;
+}
+
+.sac-order-config .store-order-config__control {
+  flex: 1;
+  min-width: 0;
+}
+
+.sac-order-config .store-order-config__radios {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 36px;
+}
+
+.sac-order-config .store-order-config__radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+}
+
+.sac-order-config .store-order-config__radio input[type='radio'] {
+  width: auto;
+  height: auto;
+  margin: 0;
+  accent-color: #1677ff;
+}
+
+.sac-order-config .store-order-config__hint,
+.sac-order-config .store-order-config__warn {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.sac-order-config .store-order-config__hint {
+  color: #999;
+}
+
+.sac-order-config .store-order-config__warn {
+  color: #ff7019;
+}
