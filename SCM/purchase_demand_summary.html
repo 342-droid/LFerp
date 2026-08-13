@@ -272,6 +272,86 @@
         #skuImagePreviewCloseBtn {
             margin-top: 16px;
         }
+
+        .form-actions {
+            align-items: center;
+        }
+
+        .check-stock-option {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 4px;
+            font-size: 13px;
+            color: #333;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .check-stock-option input[type="checkbox"] {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .check-stock-option__label {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .check-stock-option__tip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            margin-left: 2px;
+            border-radius: 50%;
+            border: 1px solid #bbb;
+            color: #888;
+            font-size: 11px;
+            line-height: 1;
+            cursor: help;
+            position: relative;
+            user-select: none;
+        }
+
+        .check-stock-option__tip:hover,
+        .check-stock-option__tip:focus {
+            border-color: #2196F3;
+            color: #2196F3;
+            outline: none;
+        }
+
+        .check-stock-option__tip-popover {
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 8px);
+            transform: translateX(-50%);
+            width: max-content;
+            max-width: 360px;
+            padding: 8px 10px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.82);
+            color: #fff;
+            font-size: 12px;
+            line-height: 1.55;
+            white-space: normal;
+            text-align: left;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.15s ease;
+            z-index: 20;
+        }
+
+        .check-stock-option__tip:hover .check-stock-option__tip-popover,
+        .check-stock-option__tip:focus .check-stock-option__tip-popover {
+            opacity: 1;
+            visibility: visible;
+        }
     </style>
 </head>
 <body>
@@ -419,6 +499,15 @@
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary" id="btnSearch">查询</button>
                         <button type="button" class="btn btn-secondary" id="btnGeneratePurchase">生成采购单</button>
+                        <span class="check-stock-option">
+                            <label class="check-stock-option__label" for="checkStockValidate">
+                                <input type="checkbox" id="checkStockValidate" checked>
+                                校验库存
+                            </label>
+                            <span class="check-stock-option__tip" tabindex="0" aria-label="校验库存说明">?
+                                <span class="check-stock-option__tip-popover">勾选状态：推荐采购量 = 待采购数量 - 仓库可用库存<br>（现有库存 + 在途库存 - 占用库存 - 待出库库存）<br>供应商直发默认需采购，不校验库存</span>
+                            </span>
+                        </span>
                     </div>
                 </form>
             </section>

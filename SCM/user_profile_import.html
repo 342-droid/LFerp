@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 用户-作业档案导入</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">用户-作业档案导入</button>
+            </div>
+
+            <hr class="content-divider">
+
+            <div class="content-title">数据导入 / 用户-作业档案导入</div>
+
+            <section class="data-import-panel">
+                <div class="batch-init-toolbar">
+                    <div class="batch-init-toolbar__left">
+                        <button type="button" class="batch-init-btn batch-init-btn--query" id="importQueryBtn">查询</button>
+                        <button type="button" class="batch-init-btn batch-init-btn--template" id="importTemplateBtn">模板下载</button>
+                    </div>
+                    <div class="batch-init-toolbar__center">
+                        <button type="button" class="batch-init-btn batch-init-btn--browse" id="importBrowseBtn">文件浏览</button>
+                        <input type="file" id="importFile" class="batch-init-file" accept=".csv,text/csv">
+                    </div>
+                    <div class="batch-init-toolbar__right">
+                        <button type="button" class="batch-init-btn batch-init-btn--exec" id="importSubmitBtn" disabled>执行导入 (上限1000条)</button>
+                    </div>
+                </div>
+                <div class="batch-init-table-wrap">
+                    <table class="batch-init-table">
+                        <thead>
+                            <tr>
+                                <th style="width:22%">文件名</th>
+                                <th style="width:12%">状态</th>
+                                <th style="width:16%">结果</th>
+                                <th style="width:14%">创建人</th>
+                                <th style="width:22%">创建时间</th>
+                                <th style="width:14%">下载结果</th>
+                            </tr>
+                        </thead>
+                        <tbody id="importTbody">
+                            <tr>
+                                <td>用户作业档案导入_20260727.csv</td>
+                                <td>成功</td>
+                                <td>导入成功</td>
+                                <td>张三</td>
+                                <td>2026-07-27 10:21:18</td>
+                                <td><button type="button" class="batch-init-link import-download-result">下载</button></td>
+                            </tr>
+                            <tr>
+                                <td>用户-作业档案_批量绑定_批次02.csv</td>
+                                <td>失败</td>
+                                <td>导入失败，请下载结果查看</td>
+                                <td>李四</td>
+                                <td>2026-07-26 15:36:42</td>
+                                <td><button type="button" class="batch-init-link import-download-result">下载</button></td>
+                            </tr>
+                            <tr>
+                                <td>user_profile_0705.csv</td>
+                                <td>成功</td>
+                                <td>导入成功</td>
+                                <td>王五</td>
+                                <td>2026-07-25 09:55:07</td>
+                                <td><button type="button" class="batch-init-link import-download-result">下载</button></td>
+                            </tr>
+                            <tr>
+                                <td>用户作业档案_补录失败样例.csv</td>
+                                <td>失败</td>
+                                <td>导入失败，请下载结果查看</td>
+                                <td>赵六</td>
+                                <td>2026-07-24 17:08:33</td>
+                                <td><button type="button" class="batch-init-link import-download-result">下载</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        window.WMS_DATA_IMPORT = { label: '用户-作业档案导入' };
+    </script>
+    <script src="../js/wms-data-import-page.js"></script>
+</body>
+</html>
