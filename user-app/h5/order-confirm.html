@@ -6,7 +6,7 @@
   <title>确认订单 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
-  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260725-confirm-split">
+  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260813-confirm-sync2">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-confirm-page">
@@ -26,79 +26,8 @@
     </header>
 
     <div class="ua-scroll">
-      <div class="ua-confirm-body">
-        <!-- 快递收货地址：有快递单时展示 -->
-        <button type="button" class="ua-confirm-card ua-confirm-address" id="confirmAddressCard" hidden>
-          <span class="ua-confirm-address__pin" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 00-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 00-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
-          </span>
-          <div class="ua-confirm-address__body">
-            <div class="ua-confirm-address__user">
-              <span id="confirmAddrName">武者</span>
-              <span id="confirmAddrPhone">181****4215</span>
-            </div>
-            <p class="ua-confirm-address__text" id="confirmAddrText">四川省成都市武侯区天府大道中段666号天府软件园A区</p>
-          </div>
-          <svg class="ua-confirm-address__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-        </button>
-
-        <!-- 拆单卡片列表 -->
-        <div id="confirmSplitList"></div>
-
-        <!-- 金额与优惠 -->
-        <section class="ua-confirm-card ua-confirm-options">
-          <button type="button" class="ua-confirm-row" id="confirmInvoiceRow">
-            <span class="ua-confirm-row__label">发票抬头</span>
-            <span class="ua-confirm-row__value" id="confirmInvoiceText">不开发票</span>
-            <svg class="ua-confirm-row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-          </button>
-          <button type="button" class="ua-confirm-row" id="confirmCouponRow">
-            <span class="ua-confirm-row__label">优惠券</span>
-            <span class="ua-confirm-row__value ua-confirm-row__value--muted" id="confirmCouponText">暂无可用优惠券</span>
-            <svg class="ua-confirm-row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-          </button>
-          <button type="button" class="ua-confirm-row" id="confirmPointsDeductRow">
-            <span class="ua-confirm-row__label">积分抵扣</span>
-            <span class="ua-confirm-row__value" id="confirmPointsDeductText">未使用</span>
-            <svg class="ua-confirm-row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-          </button>
-        </section>
-
-        <section class="ua-confirm-card ua-confirm-summary">
-          <div class="ua-confirm-summary__row">
-            <span>商品总价</span>
-            <span id="confirmGoodsTotal">¥0.00</span>
-          </div>
-          <div class="ua-confirm-summary__row" id="confirmExchangePointsRow" hidden>
-            <span>积分兑换</span>
-            <span id="confirmExchangePoints">0积分</span>
-          </div>
-          <div class="ua-confirm-summary__row">
-            <span class="ua-confirm-summary__label">
-              运费
-              <button type="button" class="ua-confirm-summary__help" id="confirmFreightHelp" aria-label="运费说明">i</button>
-            </span>
-            <span id="confirmFreight">¥0.00</span>
-          </div>
-          <div class="ua-confirm-summary__row">
-            <span>优惠券</span>
-            <span class="ua-confirm-summary__discount" id="confirmCouponDiscount">-¥0.00</span>
-          </div>
-          <div class="ua-confirm-summary__row" id="confirmPointsDeductSummaryRow" hidden>
-            <span>积分抵扣</span>
-            <span class="ua-confirm-summary__discount" id="confirmPointsDeductAmount">-¥0.00</span>
-          </div>
-          <div class="ua-confirm-summary__row ua-confirm-summary__row--total">
-            <span>合计</span>
-            <strong id="confirmSum">¥0.00</strong>
-          </div>
-        </section>
-
-        <label class="ua-confirm-agree">
-          <button type="button" class="ua-shop-check is-checked" id="confirmAgreeCheck" aria-checked="true"></button>
-          <span>我已阅读并同意《交易服务协议》</span>
-        </label>
-      </div>
+      <!-- 字段内容与直播间确认订单半遮罩共用 buildSharedOrderConfirmView -->
+      <div class="ua-confirm-body" id="confirmBody"></div>
     </div>
 
     <footer class="ua-confirm-footer">
@@ -136,7 +65,7 @@
   <script src="../js/user-app-points-mall-order.js"></script>
   <script src="../js/user-app-orders-store.js?v=20260728-status-sync2"></script>
   <script src="../js/user-app-newcomer-zone-order.js"></script>
-  <script src="../js/user-app-shop.js?v=20260728-status-sync2"></script>
+  <script src="../js/user-app-shop.js?v=20260813-confirm-sync2"></script>
   <script>UAShop.initOrderConfirmPage();</script>
 </body>
 </html>

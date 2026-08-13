@@ -19,6 +19,28 @@
     padding-top: 8px;
 }
 
+/* 基础设置 · 门店配置（订单 / 账户分块独立保存） */
+.bs-store-config {
+    width: 100%;
+    padding-bottom: 24px;
+}
+
+.bs-store-config .sac-section {
+    margin-bottom: 16px;
+}
+
+.bs-section-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 8px;
+    margin-top: 4px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.bs-section-actions .btn {
+    min-width: 88px;
+}
+
 .bs-agreement-tabs {
     display: flex;
     gap: 32px;

@@ -6,7 +6,7 @@
   <title>黑灯直播间 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
-  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260723-live-shop">
+  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260813-confirm-sync2">
   <link rel="stylesheet" href="../css/user-app-live-entry-fx.css">
 </head>
 <body class="user-app-body">
@@ -142,7 +142,7 @@
       </div>
     </div>
 
-    <!-- 图三：确认订单 -->
+    <!-- 图三：确认订单（字段/逻辑与 order-confirm 全页一致，半遮罩承载） -->
     <div class="ua-live-sheet ua-live-sheet--confirm" id="liveConfirmSheet" hidden>
       <div class="ua-live-sheet__mask" data-live-close="confirm"></div>
       <div class="ua-live-sheet__panel ua-live-confirm">
@@ -150,18 +150,45 @@
           <h3>确认订单</h3>
           <button type="button" class="ua-live-confirm__close" data-live-close="confirm" aria-label="关闭">×</button>
         </div>
-        <div class="ua-live-confirm__body" id="liveConfirmBody"></div>
+        <div class="ua-live-confirm__body ua-confirm-body" id="liveConfirmBody"></div>
         <div class="ua-live-confirm__footer">
-          <div class="ua-live-confirm__pay-text">实付 <strong id="liveConfirmPay">¥0.00</strong></div>
-          <button type="button" class="ua-live-confirm__pay-btn" id="liveConfirmPayBtn">立即支付</button>
+          <div class="ua-live-confirm__pay-text">合计支付 <strong id="liveConfirmPay">¥0.00</strong></div>
+          <button type="button" class="ua-live-confirm__pay-btn" id="liveConfirmPayBtn">确认订单</button>
         </div>
       </div>
     </div>
+
+    <!-- 支付弹层：与 order-confirm 全页一致 -->
+    <div class="ua-confirm-sheet" id="confirmPaySheet" hidden>
+      <div class="ua-confirm-sheet__mask" data-confirm-close="pay"></div>
+      <div class="ua-confirm-sheet__panel">
+        <button type="button" class="ua-confirm-sheet__close" data-confirm-close="pay" aria-label="关闭">×</button>
+        <div class="ua-confirm-pay-sheet__amount" id="confirmPaySheetAmount">¥0.00</div>
+        <div class="ua-confirm-pay-sheet__timer">支付剩余时间 <span id="confirmPayTimer">29:59</span></div>
+        <div class="ua-confirm-pay-sheet__list">
+          <button type="button" class="ua-confirm-pay-sheet__item is-active" data-pay-method="wechat">
+            <span class="ua-confirm-pay-sheet__icon ua-confirm-pay-sheet__icon--wechat">微</span>
+            <span class="ua-confirm-pay-sheet__name">微信支付</span>
+            <span class="ua-shop-check is-checked" aria-hidden="true"></span>
+          </button>
+          <button type="button" class="ua-confirm-pay-sheet__item" data-pay-method="alipay">
+            <span class="ua-confirm-pay-sheet__icon ua-confirm-pay-sheet__icon--alipay">支</span>
+            <span class="ua-confirm-pay-sheet__name">支付宝</span>
+            <span class="ua-shop-check" aria-hidden="true"></span>
+          </button>
+        </div>
+        <button type="button" class="ua-confirm-pay-sheet__submit" id="confirmPaySubmit">立即支付</button>
+      </div>
+    </div>
+
+    <div class="ua-shop-toast" id="uaShopToast" hidden></div>
   </div>
   <script src="../../js/mdm-supplier-archive-store.js"></script>
+  <script src="../../js/mdm-marketing-points-mall-config.js"></script>
+  <script src="../js/user-app-orders-store.js?v=20260728-status-sync2"></script>
   <script src="../js/user-app-profile.js"></script>
   <script src="../js/user-app-live-entry-fx.js"></script>
-  <script src="../js/user-app-shop.js?v=20260723-live-shop"></script>
+  <script src="../js/user-app-shop.js?v=20260813-confirm-sync2"></script>
   <script>UAShop.initLiveRoomPage();</script>
 </body>
 </html>
