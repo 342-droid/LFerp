@@ -1,10 +1,65 @@
 {
-  "latestSha": "a6d598174bd34943275e5954a873885632e74770",
-  "total": 254,
+  "latestSha": "7e1251ccf3bfa02ac664c508642908f95e6d1c3e",
+  "total": 255,
   "days": [
     {
       "date": "2026-08-13",
       "items": [
+        {
+          "sha": "7e1251c",
+          "type": "feat",
+          "text": "直播间商品卡片支持跳转商品详情",
+          "author": "sisi",
+          "time": "17:29",
+          "pages": [
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "点击商品卡片进入商品详情，返回回到直播间；加购与抢购按钮不受影响"
+            }
+          ]
+        },
         {
           "sha": "a6d5981",
           "type": "feat",
