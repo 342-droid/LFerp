@@ -40,6 +40,72 @@
         return b;
     }
 
+    /** 温馨提示二次确认（盖住进件弹层） */
+    function closeWarmConfirmModal() {
+        document.querySelectorAll('[data-unified-onboard-warm-confirm="1"]').forEach(function (n) {
+            n.remove();
+        });
+    }
+
+    function openWarmConfirmModal(message, onConfirm, opts) {
+        opts = opts || {};
+        closeWarmConfirmModal();
+        var backdrop = el(
+            'div',
+            'erp-modal-backdrop erp-modal-backdrop--over-drawer mdm-people-warm-confirm-backdrop'
+        );
+        backdrop.setAttribute('data-unified-onboard-warm-confirm', '1');
+
+        var modal = el('div', 'erp-modal erp-modal--confirm');
+        var header = el('div', 'erp-modal__header');
+        header.appendChild(el('h2', 'erp-modal__title', opts.title || '温馨提示'));
+        var acts = el('div', 'erp-modal__header-actions');
+        var closeBtn = el('button', 'erp-modal__header-btn');
+        closeBtn.type = 'button';
+        closeBtn.setAttribute('aria-label', '关闭');
+        closeBtn.innerHTML = '&times;';
+        acts.appendChild(closeBtn);
+        header.appendChild(acts);
+
+        var body = el('div', 'erp-modal__body');
+        var row = el('div', 'erp-modal-confirm__row');
+        row.appendChild(el('div', 'erp-modal-confirm__icon', '!'));
+        var msg = el('div', 'erp-modal-confirm__msg');
+        String(message || '')
+            .split(/\n/)
+            .forEach(function (line, i) {
+                if (i > 0) msg.appendChild(document.createElement('br'));
+                msg.appendChild(document.createTextNode(line));
+            });
+        row.appendChild(msg);
+        body.appendChild(row);
+
+        var footer = el('div', 'erp-modal__footer');
+        var cancelBtn = mkBtn(opts.cancelText || '取消', false);
+        var okBtn = mkBtn(opts.okText || '确定', true);
+        footer.appendChild(cancelBtn);
+        footer.appendChild(okBtn);
+
+        modal.appendChild(header);
+        modal.appendChild(body);
+        modal.appendChild(footer);
+        backdrop.appendChild(modal);
+
+        function shut() {
+            closeWarmConfirmModal();
+        }
+        backdrop.addEventListener('click', function (ev) {
+            if (ev.target === backdrop) shut();
+        });
+        closeBtn.addEventListener('click', shut);
+        cancelBtn.addEventListener('click', shut);
+        okBtn.addEventListener('click', function () {
+            shut();
+            if (typeof onConfirm === 'function') onConfirm();
+        });
+        document.body.appendChild(backdrop);
+    }
+
     function sfLabel(text, required) {
         var lab = el('label', 'store-form__label');
         if (required) {
@@ -832,16 +898,23 @@
                 showToast('仅待提交草稿支持删除', 'error');
                 return;
             }
-            removeRecord(recordKey);
-            recordStatus = '';
-            hasSavedOnce = false;
-            if (typeof opts.onRecordChange === 'function') {
-                try {
-                    opts.onRecordChange(null);
-                } catch (e) {}
-            }
-            showToast('待提交草稿已删除', 'success');
-            backdrop.remove();
+            /* 去进件页：删除需二次确认；提交进件仅校验完整性、无需确认 */
+            openWarmConfirmModal(
+                '确认删除该进件草稿？删除后不可恢复。',
+                function () {
+                    removeRecord(recordKey);
+                    recordStatus = '';
+                    hasSavedOnce = false;
+                    if (typeof opts.onRecordChange === 'function') {
+                        try {
+                            opts.onRecordChange(null);
+                        } catch (e) {}
+                    }
+                    showToast('待提交草稿已删除', 'success');
+                    backdrop.remove();
+                },
+                { title: '删除进件', okText: '确认删除' }
+            );
         });
         bEdit.addEventListener('click', function () {
             editMode = true;
@@ -865,6 +938,7 @@
             refreshEditable();
         });
         bSubmit.addEventListener('click', function () {
+            /* 提交进件：仅校验字段完整性，不弹二次确认 */
             if (!validateBeforeSubmit()) return;
             persist('submitted');
             hasSavedOnce = true;

@@ -2054,11 +2054,15 @@
         );
     }
 
-    function submitOnboardingRecord(meta) {
+    /**
+     * 列表/提交共用：校验进件必填完整性（失败 toast，通过返回 fields）
+     * @returns {{ ok: boolean, fields?: object }}
+     */
+    function validateOnboardingRecordReady(meta) {
         var ui = window.MdmUnifiedOnboardingUi;
-        if (!ui || typeof ui.upsertRecord !== 'function' || typeof ui.getRecord !== 'function') {
+        if (!ui || typeof ui.getRecord !== 'function') {
             if (typeof showToast === 'function') showToast('进件模块未加载', 'error');
-            return false;
+            return { ok: false };
         }
         var recordKey = meta.recordKey;
         var fallbackDefaults = cloneObj(meta.defaults || {});
@@ -2071,7 +2075,7 @@
         var missing = firstMissingOnboardingField(fields, missingKind);
         if (missing) {
             if (typeof showToast === 'function') showToast('请先完善：' + missing, 'error');
-            return false;
+            return { ok: false };
         }
         if (meta.title === '供应商进件') {
             var agreementInfo = resolvePaymentAgreementInfo(fields);
@@ -2079,9 +2083,22 @@
                 if (typeof showToast === 'function') {
                     showToast('请先阅读并勾选《斗拱平台综合支付服务协议》', 'error');
                 }
-                return false;
+                return { ok: false };
             }
         }
+        return { ok: true, fields: fields };
+    }
+
+    function submitOnboardingRecord(meta) {
+        var ui = window.MdmUnifiedOnboardingUi;
+        if (!ui || typeof ui.upsertRecord !== 'function' || typeof ui.getRecord !== 'function') {
+            if (typeof showToast === 'function') showToast('进件模块未加载', 'error');
+            return false;
+        }
+        var checked = validateOnboardingRecordReady(meta);
+        if (!checked.ok) return false;
+        var fields = checked.fields || {};
+        var recordKey = meta.recordKey;
         var now = Date.now();
         var oldRec = ui.getRecord(recordKey) || {};
         var rec = {
@@ -2377,14 +2394,23 @@
         if (editable) {
             wrap.appendChild(
                 opBtn('删除', function () {
-                    if (
-                        window.MdmUnifiedOnboardingUi &&
-                        typeof window.MdmUnifiedOnboardingUi.removeRecord === 'function'
-                    ) {
-                        window.MdmUnifiedOnboardingUi.removeRecord(m.recordKey);
-                        if (typeof showToast === 'function') showToast('已删除进件草稿', 'success');
-                        refresh();
-                    }
+                    /* 进件信息列表：删除需二次确认 */
+                    openWarmConfirmModal(
+                        '确认删除该进件草稿？删除后不可恢复。',
+                        function () {
+                            if (
+                                window.MdmUnifiedOnboardingUi &&
+                                typeof window.MdmUnifiedOnboardingUi.removeRecord === 'function'
+                            ) {
+                                window.MdmUnifiedOnboardingUi.removeRecord(m.recordKey);
+                                if (typeof showToast === 'function') {
+                                    showToast('已删除进件草稿', 'success');
+                                }
+                                refresh();
+                            }
+                        },
+                        { title: '删除进件', okText: '确认删除' }
+                    );
                 })
             );
             wrap.appendChild(
@@ -2398,7 +2424,15 @@
                         m.openModal(false);
                         return;
                     }
-                    if (submitOnboardingRecord(m)) refresh();
+                    /* 列表：先校验必填完整性，通过后再二次确认 */
+                    if (!validateOnboardingRecordReady(m).ok) return;
+                    openWarmConfirmModal(
+                        '确认提交进件？提交后将进入审核。',
+                        function () {
+                            if (submitOnboardingRecord(m)) refresh();
+                        },
+                        { title: '提交进件', okText: '确认提交' }
+                    );
                 })
             );
         }
