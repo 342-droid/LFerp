@@ -1,0 +1,271 @@
+/* 营销 — 现金红包（对齐积分首页布局，补充明细筛选与列表） */
+
+.mkt-cr-home .mdm-biz-tip {
+  margin-top: 16px;
+}
+
+.mkt-cr-home .mdm-biz-tip ol {
+  margin: 6px 0 0;
+  padding-left: 1.4em;
+}
+
+.mkt-cr-home .mdm-biz-tip li {
+  margin: 2px 0;
+}
+
+.mkt-cr-expire {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.mkt-cr-expire__input {
+  width: 72px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #333;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.mkt-cr-expire__input:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.12);
+}
+
+.mkt-cr-expire__input:disabled {
+  background: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.mkt-cr-expire .btn {
+  height: 32px;
+  padding: 0 14px;
+  font-size: 13px;
+  line-height: 30px;
+}
+
+.mkt-cr-expire .btn:disabled,
+.mkt-cr-expire__input:disabled + span + .btn {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.mkt-cr-stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.mkt-cr-stats-block {
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.mkt-cr-stats-block__label {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+}
+
+.mkt-cr-stats-block .mkt-points-stats {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.mkt-cr-detail-wrap {
+  margin-top: 16px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  padding: 16px 16px 8px;
+  box-sizing: border-box;
+}
+
+.mkt-cr-detail-wrap .search-section {
+  margin: 0 0 12px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.mkt-cr-filter-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #555;
+}
+
+.mkt-cr-filter-stats__item strong {
+  color: #333;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.mkt-cr-billno {
+  max-width: 168px;
+  font-size: 12px;
+  color: #333;
+  line-height: 1.4;
+  word-break: break-all;
+  font-variant-numeric: tabular-nums;
+}
+
+.mkt-cr-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 160px;
+}
+
+.mkt-cr-user__avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ffe7ba;
+  color: #d46b08;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+}
+
+.mkt-cr-user__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mkt-cr-user__meta {
+  min-width: 0;
+}
+
+.mkt-cr-user__name {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.35;
+}
+
+.mkt-cr-user__id {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.3;
+}
+
+.mkt-cr-activity__type {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.35;
+}
+
+.mkt-cr-activity__id {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #999;
+}
+
+.mkt-cr-status-cell {
+  line-height: 1.45;
+}
+
+.mkt-cr-status-cell__reason {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: #999;
+}
+
+.mkt-cr-status-cell .mdm-status--danger {
+  color: #ff4d4f;
+}
+
+.mkt-cr-op {
+  border: none;
+  background: none;
+  padding: 0;
+  color: #1890ff;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.mkt-cr-op:hover {
+  color: #40a9ff;
+}
+
+.mkt-cr-amount-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mkt-cr-amount-range .erp-input,
+.mkt-cr-amount-range input {
+  width: 88px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.mkt-cr-amount-range .sep {
+  color: #999;
+  font-size: 12px;
+}
+
+#crFilterForm.search-form {
+  gap: 16px 20px;
+  align-items: center;
+}
+
+#crFilterForm.search-form > .form-group {
+  flex: 0 0 auto;
+  max-width: none;
+}
+
+#crFilterForm .form-group--datetime .mkt-rg-filter-range {
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 1100px) {
+  .mkt-cr-stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .mkt-cr-stats-block .mkt-points-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .mkt-cr-stats-block .mkt-points-stat {
+    border-right: none;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .mkt-cr-stats-block .mkt-points-stat:last-child {
+    border-bottom: none;
+  }
+}

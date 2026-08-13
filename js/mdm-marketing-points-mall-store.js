@@ -8,7 +8,7 @@
  * - 本模块只读选品库，绝不回写/改写选品库主数据
  */
 (function () {
-  var STORAGE_KEY = 'mdm_marketing_points_mall_v11';
+  var STORAGE_KEY = 'mdm_marketing_points_mall_v12';
 
   function makeSpecs(code, basePrice, points, money, count, enabledCount, img) {
     var names = ['默认', '500g', '1kg', '2.5kg'];
@@ -73,6 +73,9 @@
       scheduleOffAt: '2026-08-31T23:59',
       deliveryMode: 'platform',
       exchangeType: 'points',
+      saleScope: 'region',
+      saleRegions: { '440000': 1 },
+      saleRegionSummary: [{ id: '440000', label: '广东省' }, { id: '330000', label: '浙江省' }],
       supplierId: '斯斯供应商商家',
       supplierName: '斯斯供应商商家',
       memberLevelIds: [],
@@ -90,6 +93,8 @@
       status: 'off_shelf',
       deliveryMode: 'platform',
       exchangeType: 'points',
+      saleScope: 'store',
+      saleStores: { 'st-001': 1, 'st-002': 1, 'st-003': 1 },
       memberLevelIds: ['ML10002', 'ML10001'],
       limitType: 'day',
       limitPerOrder: null,
@@ -105,6 +110,7 @@
       status: 'on_shelf',
       deliveryMode: 'express',
       exchangeType: 'points_money',
+      saleScope: 'all',
       supplierId: '斯斯供应商商家',
       supplierName: '斯斯供应商商家',
       memberLevelIds: [],

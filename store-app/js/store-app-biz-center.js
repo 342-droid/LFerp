@@ -33,109 +33,10 @@
     monthCnt: 0
   };
 
-  /** status: pending_ship | pending_pickup | pending_receipt | done */
-  var ORDERS = [
-    {
-      id: '612965464845',
-      date: '2021-12-28',
-      nick: '斯斯',
-      contact: '斯斯',
-      phone: '15988434315',
-      verifyCode: 'HX8843',
-      shipMode: '快递',
-      goods: '智利空运车厘子JJ级 250g * 1 共1件商品',
-      paid: 38.35,
-      refund: 38.35,
-      commission: 0,
-      payTime: '2021-12-23 15:15:19',
-      deliveryTime: '2021-12-24 16:00-17:00',
-      finishTime: '-',
-      remark: '',
-      status: 'done',
-      statusText: '交易成功',
-      dayKey: '2021-12-28'
-    },
-    {
-      id: '612965464901',
-      date: '2026-08-03',
-      nick: '阿杰',
-      contact: '王杰',
-      phone: '13800138001',
-      verifyCode: 'HX9001',
-      shipMode: '快递',
-      goods: '赣南脐橙 5斤装 * 2 共2件商品',
-      paid: 56.0,
-      refund: 0,
-      commission: 8.4,
-      payTime: '2026-08-03 09:12:08',
-      deliveryTime: '-',
-      finishTime: '-',
-      remark: '尽快发货',
-      status: 'pending_ship',
-      statusText: '待发货',
-      dayKey: '2026-08-03'
-    },
-    {
-      id: '612965464902',
-      date: '2026-08-03',
-      nick: '小满',
-      contact: '林小满',
-      phone: '13700001101',
-      verifyCode: 'HX9002',
-      shipMode: '自提',
-      goods: '阳光番茄 500g * 2 共2件商品',
-      paid: 59.8,
-      refund: 0,
-      commission: 6.0,
-      payTime: '2026-08-03 10:20:33',
-      deliveryTime: '到店自提',
-      finishTime: '-',
-      remark: '',
-      status: 'pending_pickup',
-      statusText: '待自提',
-      dayKey: '2026-08-03'
-    },
-    {
-      id: '612965464903',
-      date: '2026-08-02',
-      nick: '韩梅',
-      contact: '韩冬梅',
-      phone: '13700001103',
-      verifyCode: 'HX9003',
-      shipMode: '快递',
-      goods: '紫薯 1kg * 1 共1件商品',
-      paid: 29.9,
-      refund: 0,
-      commission: 4.5,
-      payTime: '2026-08-02 16:08:11',
-      deliveryTime: '2026-08-03 10:00-12:00',
-      finishTime: '-',
-      remark: '',
-      status: 'pending_receipt',
-      statusText: '待收货',
-      dayKey: '2026-08-02'
-    },
-    {
-      id: '612965464904',
-      date: '2026-08-01',
-      nick: '文博',
-      contact: '马文博',
-      phone: '13700001106',
-      verifyCode: 'HX9004',
-      shipMode: '自提',
-      goods: '黄瓜 500g * 2 共2件商品',
-      paid: 59.8,
-      refund: 0,
-      commission: 10.97,
-      payTime: '2026-08-01 11:45:02',
-      deliveryTime: '到店自提',
-      finishTime: '2026-08-01 18:20:40',
-      remark: '',
-      status: 'done',
-      statusText: '交易成功',
-      dayKey: '2026-08-01'
-    }
-  ];
+  /**
+   * 经营中心订单列表：含清分单 + 无清分单（结算未配门店佣金比例时结算状态展示 —）
+   */
+  var ORDERS = (window.StoreAppBizOrders && window.StoreAppBizOrders.list) || [];
 
   function $(id) {
     return document.getElementById(id);
@@ -224,6 +125,7 @@
   function statusClass(status) {
     if (status === 'pending_ship') return 'is-ship';
     if (status === 'pending_pickup' || status === 'pending_receipt') return 'is-pending';
+    if (status === 'failed') return 'is-failed';
     return '';
   }
 
@@ -273,8 +175,37 @@
     );
   }
 
+  function hasRefund(o) {
+    if (Number(o.refund) > 0) return true;
+    return Array.isArray(o.refundItems) && o.refundItems.length > 0;
+  }
+
+  /** 结算状态：待结算 | 结算中 | 已结算 | 结算失败 | 已取消；无清分展示 — */
+  function settleStatusClass(status) {
+    var s = String(status || '');
+    if (s === '已结算') return 'is-settled';
+    if (s === '结算中') return 'is-settling';
+    if (s === '待结算') return 'is-settle-wait';
+    if (s === '结算失败') return 'is-settle-fail';
+    if (s === '已取消') return 'is-settle-cancel';
+    return '';
+  }
+
+  function settleStatusLabel(o) {
+    if (o && o.settleStatus) return o.settleStatus;
+    if (window.StoreAppBizOrders && typeof StoreAppBizOrders.hasStoreClearing === 'function') {
+      if (!StoreAppBizOrders.hasStoreClearing(o)) return '—';
+    }
+    return '待结算';
+  }
+
   function renderOrder(o) {
     var shipCls = o.shipMode === '快递' || o.shipMode === '自提' ? ' sa-biz-kv__v--ship' : '';
+    var refundTimeRow = hasRefund(o)
+      ? kvRow('退款时间', esc(o.refundTime || '-'))
+      : '';
+    var settleStatus = settleStatusLabel(o);
+    var settleCls = settleStatusClass(settleStatus);
     return (
       '<article class="sa-biz-order" data-order-id="' +
       esc(o.id) +
@@ -309,13 +240,30 @@
           '">复制</button>'
       ) +
       kvRow('履约方式', '<span class="' + shipCls.trim() + '">' + esc(o.shipMode) + '</span>') +
-      kvRow('购买商品', esc(o.goods)) +
+      kvRow(
+        '购买商品',
+        '<a class="sa-biz-goods-link" href="biz-order-goods.html?id=' +
+          encodeURIComponent(o.id) +
+          '">' +
+          esc(o.goods) +
+          '</a>'
+      ) +
       kvRow('实付金额', esc(money(o.paid)) + '元') +
       kvRow('退款金额', esc(money(o.refund)) + '元') +
       kvRow('所得佣金', esc(money(o.commission)) + '元') +
+      kvRow(
+        '结算状态',
+        '<span class="sa-biz-settle ' +
+          settleCls +
+          '">' +
+          esc(settleStatus) +
+          '</span>'
+      ) +
       kvRow('支付时间', esc(o.payTime || '-')) +
       kvRow('配送时间', esc(o.deliveryTime || '-')) +
+      refundTimeRow +
       kvRow('完成时间', esc(o.finishTime || '-')) +
+      kvRow('结算时间', esc(o.settleTime || '-')) +
       kvRow('备注', esc(o.remark || '')) +
       '</div></article>'
     );
@@ -380,14 +328,19 @@
     el.textContent = state.balanceHidden ? '****' : money(state.withdrawable);
   }
 
+  var EYE_VISIBLE =
+    '<path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/>';
+  var EYE_HIDDEN =
+    '<path d="M3 3l18 18"/><path d="M10.5 10.7A2.5 2.5 0 0012 14.5c.5 0 1-.1 1.4-.4"/><path d="M9.2 5.5C10.1 5.2 11 5 12 5c6.5 0 10 7 10 7a18 18 0 01-4.2 4.6"/><path d="M6.1 6.2A17 17 0 002 12s3.5 7 10 7c1.3 0 2.5-.3 3.6-.7"/>';
+
   function setEyeUi() {
     var btn = $('bizEyeBtn');
-    if (!btn) return;
-    var on = btn.querySelector('.sa-biz-eye__on');
-    var off = btn.querySelector('.sa-biz-eye__off');
-    if (on) on.hidden = state.balanceHidden;
-    if (off) off.hidden = !state.balanceHidden;
+    var icon = $('bizEyeIcon');
+    if (!btn || !icon) return;
+    icon.innerHTML = state.balanceHidden ? EYE_HIDDEN : EYE_VISIBLE;
     btn.setAttribute('aria-pressed', state.balanceHidden ? 'true' : 'false');
+    btn.setAttribute('aria-label', state.balanceHidden ? '显示余额' : '隐藏余额');
+    btn.setAttribute('title', state.balanceHidden ? '显示余额' : '隐藏余额');
   }
 
   function bind() {

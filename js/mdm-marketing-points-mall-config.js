@@ -1,9 +1,11 @@
 /**
  * 营销-积分商城配置：轮播图 + 积分规则（兑换开关/售后/抵现）读取
- * 与会员-积分规则 mdm_member_points_rule_v1 共用数据源
+ * 兑换规则：mdm_member_points_rule_v1
+ * 抵现规则：优先 mdm_member_points_cash_v1（启用中取最新创建），兼容旧版全局 cash 字段
  */
 (function () {
   var RULE_KEY = 'mdm_member_points_rule_v1';
+  var CASH_LIST_KEY = 'mdm_member_points_cash_v1';
   var BANNER_KEY = 'mdm_marketing_points_mall_banners_v1';
   var MAX_BANNERS = 10;
   var AVAILABLE_POINTS_DEMO = 161;
@@ -77,25 +79,84 @@
     };
   }
 
-  function getRule() {
+  function cashFromListItem(item) {
+    if (!item) return null;
+    return {
+      enabled: item.enabled !== false,
+      perPointAmount: Number(item.perPointAmount) > 0 ? Number(item.perPointAmount) : 0.01,
+      maxRatio: Number(item.maxRatio) > 0 ? Math.floor(Number(item.maxRatio)) : 50,
+      maxAmount: Number(item.maxAmount) > 0 ? Number(item.maxAmount) : 100,
+      scope: normalizeScope(item.productScope || item.scope),
+      portScope: item.portScope || 'all',
+      ports: Array.isArray(item.ports) ? item.ports : [],
+      storeScope: item.storeScope || 'all',
+      stores: item.stores && typeof item.stores === 'object' ? item.stores : {}
+    };
+  }
+
+  /** 抵现规则列表：可按场景命中；未命中则返回 enabled:false */
+  function resolveCashFromList(ctx) {
+    try {
+      if (window.MdmMemberPointsCashStore && typeof window.MdmMemberPointsCashStore.resolveActiveRule === 'function') {
+        var matched = window.MdmMemberPointsCashStore.resolveActiveRule(ctx || {});
+        if (!matched) {
+          return {
+            enabled: false,
+            perPointAmount: 0.01,
+            maxRatio: 50,
+            maxAmount: 100,
+            scope: { type: 'all', products: [], categories: [] }
+          };
+        }
+        return cashFromListItem(matched);
+      }
+      var raw = localStorage.getItem(CASH_LIST_KEY);
+      if (!raw) return null;
+      var list = JSON.parse(raw);
+      if (!Array.isArray(list) || !list.length) return null;
+      var enabled = list.filter(function (it) {
+        return it && it.enabled !== false;
+      });
+      if (!enabled.length) {
+        return {
+          enabled: false,
+          perPointAmount: 0.01,
+          maxRatio: 50,
+          maxAmount: 100,
+          scope: { type: 'all', products: [], categories: [] }
+        };
+      }
+      enabled.sort(function (a, b) {
+        return String(b.createdAt || '').localeCompare(String(a.createdAt || ''));
+      });
+      return cashFromListItem(enabled[0]);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function getRule(ctx) {
     var parsed = loadRuleRaw();
     var rule = clone(DEFAULT_RULE);
-    if (!parsed) return rule;
-    if (typeof parsed.enabled === 'boolean') rule.enabled = parsed.enabled;
-    if (parsed.cash) {
-      if (typeof parsed.cash.enabled === 'boolean') rule.cash.enabled = parsed.cash.enabled;
-      if (parsed.cash.perPointAmount != null) rule.cash.perPointAmount = Number(parsed.cash.perPointAmount);
-      if (parsed.cash.maxRatio != null) rule.cash.maxRatio = Number(parsed.cash.maxRatio);
-      if (parsed.cash.maxAmount != null) rule.cash.maxAmount = Number(parsed.cash.maxAmount);
-      rule.cash.scope = normalizeScope(parsed.cash.scope);
-    }
-    if (parsed.exchange) {
-      if (typeof parsed.exchange.enabled === 'boolean') rule.exchange.enabled = parsed.exchange.enabled;
-      if (typeof parsed.exchange.refundEnabled === 'boolean') {
-        rule.exchange.refundEnabled = parsed.exchange.refundEnabled;
+    if (parsed) {
+      if (typeof parsed.enabled === 'boolean') rule.enabled = parsed.enabled;
+      if (parsed.exchange) {
+        if (typeof parsed.exchange.enabled === 'boolean') rule.exchange.enabled = parsed.exchange.enabled;
+        if (typeof parsed.exchange.refundEnabled === 'boolean') {
+          rule.exchange.refundEnabled = parsed.exchange.refundEnabled;
+        }
+        rule.exchange.refundValidity = 'keep_original';
       }
-      rule.exchange.refundValidity = 'keep_original';
+      if (parsed.cash) {
+        if (typeof parsed.cash.enabled === 'boolean') rule.cash.enabled = parsed.cash.enabled;
+        if (parsed.cash.perPointAmount != null) rule.cash.perPointAmount = Number(parsed.cash.perPointAmount);
+        if (parsed.cash.maxRatio != null) rule.cash.maxRatio = Number(parsed.cash.maxRatio);
+        if (parsed.cash.maxAmount != null) rule.cash.maxAmount = Number(parsed.cash.maxAmount);
+        rule.cash.scope = normalizeScope(parsed.cash.scope);
+      }
     }
+    var cashList = resolveCashFromList(ctx);
+    if (cashList) rule.cash = cashList;
     return rule;
   }
 
@@ -147,10 +208,13 @@
 
   /**
    * 积分抵现：仅普通商品参与；积分兑换商品不计入可抵扣基数
+   * 未命中抵现规则时不支持抵扣
    * @param {{goodsAmount:number, availablePoints?:number, productId?:string, category?:string}[]} mallLines
+   * @param {number} [availablePoints]
+   * @param {{port?:string, storeId?:string}} [ctx]
    */
-  function calcCashDeduction(mallLines, availablePoints) {
-    var rule = getRule();
+  function calcCashDeduction(mallLines, availablePoints, ctx) {
+    var rule = getRule(ctx || {});
     var ptsAvail =
       availablePoints != null ? Number(availablePoints) : AVAILABLE_POINTS_DEMO;
     if (!(rule.enabled && rule.cash && rule.cash.enabled)) {
@@ -160,7 +224,7 @@
         deductAmount: 0,
         pointsUsed: 0,
         maxAmount: 0,
-        tip: '积分抵现未开启'
+        tip: '未命中积分抵现规则，不支持抵扣'
       };
     }
     var per = Number(rule.cash.perPointAmount) || 0;
@@ -180,10 +244,27 @@
     var eligible = 0;
     (mallLines || []).forEach(function (line) {
       if (!line || line.isPointsExchange) return;
-      if (!scopeIncludes(rule.cash.scope, line.productId || line.id, line.category)) return;
+      /* 按商品维度再校验规则商品范围 */
+      var lineCtx = Object.assign({}, ctx || {}, {
+        productId: line.productId || line.id,
+        category: line.category
+      });
+      var lineRule = getRule(lineCtx);
+      if (!(lineRule.enabled && lineRule.cash && lineRule.cash.enabled)) return;
+      if (!scopeIncludes(lineRule.cash.scope, line.productId || line.id, line.category)) return;
       eligible += (Number(line.price) || 0) * (Number(line.qty) || 0);
     });
     eligible = Math.round(eligible * 100) / 100;
+    if (!(eligible > 0)) {
+      return {
+        enabled: false,
+        eligibleAmount: 0,
+        deductAmount: 0,
+        pointsUsed: 0,
+        maxAmount: 0,
+        tip: '未命中积分抵现规则，不支持抵扣'
+      };
+    }
     var byRatio = Math.round(((eligible * maxRatio) / 100) * 100) / 100;
     var maxAmount = Math.min(byRatio, maxAmountCap);
     var byPoints = Math.round(ptsAvail * per * 100) / 100;

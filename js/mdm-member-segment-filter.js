@@ -47,25 +47,23 @@
     }
   ];
 
-  var DEMO_PRODUCTS = [
-    { id: 'P10001', name: '冷冻巴沙鱼柳 500g' },
-    { id: 'P10002', name: '鲜活大闸蟹 2.0两' },
-    { id: 'P10003', name: '挪威三文鱼刺身' },
-    { id: 'P10004', name: '精选牛腱子 1kg' },
-    { id: 'P10005', name: '进口车厘子 JJ级' },
-    { id: 'P10006', name: '有机西兰花 400g' },
-    { id: 'P10007', name: '手打虾滑 250g' },
-    { id: 'P10008', name: '冻榴莲肉 300g' }
-  ];
+  var DEMO_PRODUCTS = [];
+  var DEMO_CATEGORIES = [];
 
-  var DEMO_CATEGORIES = [
-    { id: 'seafood', name: '海鲜水产' },
-    { id: 'meat', name: '肉禽蛋' },
-    { id: 'fruit', name: '水果' },
-    { id: 'veg', name: '蔬菜' },
-    { id: 'frozen', name: '冷冻食品' },
-    { id: 'snack', name: '休闲零食' }
-  ];
+  function loadCatalogPickLists() {
+    if (window.MdmProductCatalog) {
+      if (typeof window.MdmProductCatalog.getScopeProducts === 'function') {
+        DEMO_PRODUCTS = window.MdmProductCatalog.getScopeProducts().map(function (p) {
+          return { id: p.id, name: p.name };
+        });
+      }
+      if (typeof window.MdmProductCatalog.getCategories === 'function') {
+        DEMO_CATEGORIES = window.MdmProductCatalog.getCategories();
+      }
+    }
+  }
+
+  loadCatalogPickLists();
 
   var FIELDS = {
     basic: [
@@ -1716,6 +1714,7 @@
 
       if (ev.target.closest('[data-open-product]')) {
         syncDraftFromDom();
+        loadCatalogPickLists();
         openDemoMultiPick({
           title: '选择商品',
           items: DEMO_PRODUCTS,
@@ -1732,6 +1731,7 @@
 
       if (ev.target.closest('[data-open-category]')) {
         syncDraftFromDom();
+        loadCatalogPickLists();
         openDemoMultiPick({
           title: '选择商品类目',
           items: DEMO_CATEGORIES,

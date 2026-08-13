@@ -10,7 +10,7 @@
     ];
 
     const topLevelItems = [
-        { href: 'basic_settings_order.html', text: '订单配置' },
+        { href: 'basic_settings_order.html', text: '门店配置' },
         { href: 'basic_settings_recommendation.html', text: '推荐位配置' },
         { href: 'basic_settings_member.html', text: '会员配置' },
         { href: 'basic_settings_material.html', text: '素材管理', icon: '基础信息' },

@@ -1,5 +1,5 @@
 /**
- * 会员等级 — 成长值规则配置（有效期 / 消费获取 / 活跃获取 / 升降级策略说明）
+ * 会员等级 — 成长值规则配置（有效期 / 降级时效 / 消费获取 / 活跃获取 / 升降级策略说明）
  */
 (function () {
     var STORAGE_KEY = 'mdm_member_level_growth_rule_v1';
@@ -9,9 +9,15 @@
     var defaultRule = {
         validityType: 'rolling',
         validityDays: 365,
+        /* 降级更新时效：daily 每天凌晨 / monthly 每月1号 / quarterly 每季度1号 */
+        downgradeSchedule: 'daily',
         consumeEnabled: true,
         consumeAmount: 1,
         consumeGrowth: 1,
+        /* 成长值不足1时：count_one 计1分 / ignore 不计分 / round 四舍五入 */
+        consumeLessThanOne: 'count_one',
+        /* 成长值发放时间：payment 支付完成 / trade 交易完成 */
+        consumeGrantTiming: 'payment',
         activityEnabled: false,
         activities: {
             signin: { enabled: true, growth: 5, dailyLimit: 5 },
@@ -41,9 +47,12 @@
             var rule = clone(defaultRule);
             if (parsed.validityType) rule.validityType = parsed.validityType;
             if (parsed.validityDays != null) rule.validityDays = Number(parsed.validityDays) || defaultRule.validityDays;
+            if (parsed.downgradeSchedule) rule.downgradeSchedule = parsed.downgradeSchedule;
             if (typeof parsed.consumeEnabled === 'boolean') rule.consumeEnabled = parsed.consumeEnabled;
             if (parsed.consumeAmount != null) rule.consumeAmount = Number(parsed.consumeAmount);
             if (parsed.consumeGrowth != null) rule.consumeGrowth = Number(parsed.consumeGrowth);
+            if (parsed.consumeLessThanOne) rule.consumeLessThanOne = parsed.consumeLessThanOne;
+            if (parsed.consumeGrantTiming) rule.consumeGrantTiming = parsed.consumeGrantTiming;
             if (typeof parsed.activityEnabled === 'boolean') rule.activityEnabled = parsed.activityEnabled;
             if (parsed.activities) {
                 Object.keys(rule.activities).forEach(function (key) {
@@ -73,13 +82,27 @@
         daysRow.style.display = rolling && rolling.checked ? '' : 'none';
     }
 
+    function setRadioGroup(name, value) {
+        document.querySelectorAll('input[name="' + name + '"]').forEach(function (el) {
+            el.checked = el.value === value;
+        });
+    }
+
+    function readRadioGroup(name, fallback) {
+        var checked = document.querySelector('input[name="' + name + '"]:checked');
+        return checked ? checked.value : fallback;
+    }
+
     function syncConsumeUI() {
         var enabled = document.getElementById('consumeEnabled');
-        var row = document.getElementById('consumeRuleRow');
-        if (!row) return;
-        row.style.opacity = enabled && enabled.checked ? '1' : '0.45';
-        row.querySelectorAll('input').forEach(function (input) {
-            input.disabled = !(enabled && enabled.checked);
+        var on = !!(enabled && enabled.checked);
+        ['consumeRuleRow', 'consumeLessThanOneRow', 'consumeGrantTimingRow'].forEach(function (id) {
+            var row = document.getElementById(id);
+            if (!row) return;
+            row.style.opacity = on ? '1' : '0.45';
+            row.querySelectorAll('input').forEach(function (input) {
+                input.disabled = !on;
+            });
         });
     }
 
@@ -123,12 +146,17 @@
         var days = document.getElementById('validityDays');
         if (days) days.value = rule.validityDays;
 
+        setRadioGroup('downgradeSchedule', rule.downgradeSchedule || 'daily');
+
         var consumeEnabled = document.getElementById('consumeEnabled');
         if (consumeEnabled) consumeEnabled.checked = !!rule.consumeEnabled;
         var consumeAmount = document.getElementById('consumeAmount');
         if (consumeAmount) consumeAmount.value = rule.consumeAmount;
         var consumeGrowth = document.getElementById('consumeGrowth');
         if (consumeGrowth) consumeGrowth.value = rule.consumeGrowth;
+
+        setRadioGroup('consumeLessThanOne', rule.consumeLessThanOne || 'count_one');
+        setRadioGroup('consumeGrantTiming', rule.consumeGrantTiming || 'payment');
 
         var activityEnabled = document.getElementById('activityEnabled');
         if (activityEnabled) {
@@ -160,9 +188,12 @@
             ? 'rolling'
             : 'permanent';
         var validityDays = Number((document.getElementById('validityDays') || {}).value);
+        var downgradeSchedule = readRadioGroup('downgradeSchedule', 'daily');
         var consumeEnabled = !!(document.getElementById('consumeEnabled') || {}).checked;
         var consumeAmount = Number((document.getElementById('consumeAmount') || {}).value);
         var consumeGrowth = Number((document.getElementById('consumeGrowth') || {}).value);
+        var consumeLessThanOne = readRadioGroup('consumeLessThanOne', 'count_one');
+        var consumeGrantTiming = readRadioGroup('consumeGrantTiming', 'payment');
         var activityEnabled = ACTIVITY_PENDING
             ? false
             : !!(document.getElementById('activityEnabled') || {}).checked;
@@ -183,9 +214,12 @@
         return {
             validityType: validityType,
             validityDays: validityDays,
+            downgradeSchedule: downgradeSchedule,
             consumeEnabled: consumeEnabled,
             consumeAmount: consumeAmount,
             consumeGrowth: consumeGrowth,
+            consumeLessThanOne: consumeLessThanOne,
+            consumeGrantTiming: consumeGrantTiming,
             activityEnabled: activityEnabled,
             activities: activities
         };
@@ -198,6 +232,10 @@
                 return false;
             }
         }
+        if (['daily', 'monthly', 'quarterly'].indexOf(rule.downgradeSchedule) < 0) {
+            toast('请选择降级更新时效', 'warning');
+            return false;
+        }
         if (rule.consumeEnabled) {
             if (!(rule.consumeAmount > 0) || isNaN(rule.consumeAmount)) {
                 toast('消费金额须大于 0', 'warning');
@@ -205,6 +243,14 @@
             }
             if (rule.consumeGrowth < 0 || isNaN(rule.consumeGrowth) || !Number.isInteger(rule.consumeGrowth)) {
                 toast('消费获得成长值须为非负整数', 'warning');
+                return false;
+            }
+            if (['count_one', 'ignore', 'round'].indexOf(rule.consumeLessThanOne) < 0) {
+                toast('请选择成长值不足1时的处理方式', 'warning');
+                return false;
+            }
+            if (['payment', 'trade'].indexOf(rule.consumeGrantTiming) < 0) {
+                toast('请选择成长值发放时间', 'warning');
                 return false;
             }
         }

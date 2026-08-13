@@ -1,0 +1,519 @@
+/* C 端 — 注册有礼弹窗 / 悬浮窗 / 验收面板 / 红包领取 */
+
+.ua-rg-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.ua-rg-modal__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.ua-rg-modal__panel {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+.ua-rg-modal__title {
+  margin: 0;
+  padding: 22px 20px 8px;
+  font-size: 17px;
+  font-weight: 600;
+  color: #111;
+  text-align: center;
+}
+
+.ua-rg-modal__desc {
+  margin: 0;
+  padding: 0 20px 8px;
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.ua-rg-modal__list {
+  margin: 0 20px 16px;
+  padding: 12px 14px;
+  list-style: none;
+  background: #fff7f0;
+  border-radius: 8px;
+}
+
+.ua-rg-modal__list li {
+  position: relative;
+  padding: 4px 0 4px 12px;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.45;
+}
+
+.ua-rg-modal__list li::before {
+  content: '·';
+  position: absolute;
+  left: 0;
+  color: #ff7019;
+  font-weight: 700;
+}
+
+.ua-rg-modal__empty {
+  margin: 0 20px 16px;
+  font-size: 13px;
+  color: #999;
+  text-align: center;
+}
+
+.ua-rg-modal__actions {
+  display: flex;
+  border-top: 1px solid #eee;
+}
+
+.ua-rg-modal__btn {
+  flex: 1;
+  height: 48px;
+  border: none;
+  background: #fff;
+  font-size: 15px;
+  color: #666;
+  cursor: pointer;
+}
+
+.ua-rg-modal__btn + .ua-rg-modal__btn {
+  border-left: 1px solid #eee;
+}
+
+.ua-rg-modal__btn--primary {
+  color: #ff7019;
+  font-weight: 600;
+}
+
+.ua-rg-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28%;
+  z-index: 2600;
+  max-width: 80%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+  transform: translateX(-50%) translateY(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.ua-rg-toast.is-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* 顶部悬浮：引导下载 / 打开 APP（小程序） */
+.ua-rg-float {
+  position: fixed;
+  top: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(390px, calc(100% - 24px));
+  z-index: 1200;
+  pointer-events: none;
+}
+
+.ua-rg-float__inner {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 8px 12px;
+  background: rgba(17, 17, 17, 0.88);
+  color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.ua-rg-float__text {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.ua-rg-float__btn {
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 14px;
+  background: #ff7019;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ua-rg-float__close {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* 验收调试面板 */
+.ua-rg-demo {
+  position: fixed;
+  right: 8px;
+  bottom: 72px;
+  z-index: 2300;
+  width: 168px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #eee;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  font-size: 11px;
+  color: #333;
+}
+
+.ua-rg-demo__title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.ua-rg-demo__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.ua-rg-demo__row select {
+  margin-left: auto;
+  max-width: 78px;
+  font-size: 11px;
+}
+
+.ua-rg-demo__apply {
+  width: 100%;
+  margin-top: 4px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: #ff7019;
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* 红包领取半屏弹窗 */
+.ua-rp-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.ua-rp-sheet__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.ua-rp-sheet__panel {
+  position: relative;
+  width: 100%;
+  max-width: 430px;
+  max-height: 72vh;
+  padding: 0 0 calc(16px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, #ff8a3d 0%, #ff5a1f 36%, #fff 36%);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.16);
+  animation: ua-rp-sheet-up 0.22s ease;
+  overflow: auto;
+  box-sizing: border-box;
+}
+
+@keyframes ua-rp-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.ua-rp-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 8px;
+}
+
+.ua-rp-sheet__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.ua-rp-sheet__close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* 红包领取页（兼容旧入口，内容区同卡片） */
+.ua-rp-page .ua-scroll {
+  background: linear-gradient(180deg, #ff8a3d 0%, #ff5a1f 42%, #f6f6f6 42%);
+}
+
+.ua-rp-card {
+  margin: 12px 16px 8px;
+  padding: 28px 20px 24px;
+  background: #fff;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 10px 28px rgba(255, 90, 31, 0.18);
+}
+
+.ua-rp-page .ua-rp-card {
+  margin: 48px 20px 24px;
+}
+
+.ua-rp-card__label {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #999;
+}
+
+.ua-rp-card__amount {
+  margin: 0 0 6px;
+  font-size: 40px;
+  font-weight: 700;
+  color: #ff5a1f;
+  font-variant-numeric: tabular-nums;
+}
+
+.ua-rp-card__amount em {
+  font-style: normal;
+  font-size: 16px;
+  margin-left: 2px;
+}
+
+.ua-rp-card__meta {
+  margin: 0 0 20px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
+.ua-rp-card__btn {
+  width: 100%;
+  height: 44px;
+  border: none;
+  border-radius: 22px;
+  background: linear-gradient(90deg, #ff8a3d, #ff5a1f);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ua-rp-card__btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.ua-rp-card__done {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #0b5c3b;
+}
+
+.ua-rp-card__fail {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #c62828;
+  line-height: 1.45;
+}
+
+.ua-rp-card__link {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 13px;
+  color: #ff5a1f;
+  text-decoration: none;
+}
+
+/* 红包领取记录 */
+.ua-rp-filter {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ua-rp-filter__btn {
+  flex-shrink: 0;
+  height: 30px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 15px;
+  background: #fff;
+  color: #666;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.ua-rp-filter__btn.is-active {
+  background: #fff1e8;
+  color: #ff5a1f;
+  font-weight: 600;
+}
+
+.ua-rp-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  margin: 0 0 10px;
+  border: none;
+  background: #fff;
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: default;
+  box-sizing: border-box;
+}
+
+.ua-rp-item--claimable {
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(255, 90, 31, 0.18);
+}
+
+.ua-rp-item__meta {
+  min-width: 0;
+}
+
+.ua-rp-item__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.35;
+}
+
+.ua-rp-item__sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.ua-rp-item__bill {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #bbb;
+  line-height: 1.35;
+  word-break: break-all;
+  font-variant-numeric: tabular-nums;
+}
+
+.ua-rp-item__tip {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #c62828;
+}
+
+.ua-rp-item__right {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.ua-rp-item__amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ff5a1f;
+  font-variant-numeric: tabular-nums;
+}
+
+.ua-rp-item__amount em {
+  font-style: normal;
+  font-size: 12px;
+  margin-left: 1px;
+}
+
+.ua-rp-item__action {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #ff8a3d, #ff5a1f);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.ua-rp-status {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.ua-rp-status--ok {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.ua-rp-status--pending {
+  background: #fff7e6;
+  color: #d48806;
+}
+
+.ua-rp-status--fail {
+  background: #fff1ef;
+  color: #e03d2a;
+}
+
+.ua-rp-status--muted {
+  background: #f5f5f5;
+  color: #999;
+}
+

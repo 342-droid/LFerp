@@ -3,6 +3,7 @@
  */
 (function () {
   var ALL_PRODUCTS = [];
+  var saleFilterCtrl = null;
   var state = {
     filtered: [],
     page: 1,
@@ -14,6 +15,10 @@
       category: '',
       exchangeType: '',
       deliveryMode: '',
+      saleScope: '',
+      saleStoreId: '',
+      saleRegionId: '',
+      saleRegionParts: { province: '', city: '', district: '' },
       status: '',
       hasSchedule: '',
       pointsMin: '',
@@ -74,6 +79,35 @@
     return normalizeDeliveryMode(mode) === 'express' ? '快递配送' : '平台配送';
   }
 
+  function normalizeSaleScope(scope) {
+    if (scope === 'region' || scope === 'store' || scope === 'all') return scope;
+    return 'all';
+  }
+
+  function saleScopeLabel(item) {
+    var scope = normalizeSaleScope(item && item.saleScope);
+    if (scope === 'region') {
+      var regions = Array.isArray(item.saleRegionSummary) ? item.saleRegionSummary : [];
+      if (regions.length) {
+        var names = regions
+          .map(function (r) {
+            return typeof r === 'string' ? r : r && (r.name || r.label || r.text);
+          })
+          .filter(Boolean);
+        if (names.length) {
+          return names.length > 2 ? '省市区（' + names.slice(0, 2).join('、') + '等）' : '省市区（' + names.join('、') + '）';
+        }
+      }
+      return '省市区';
+    }
+    if (scope === 'store') {
+      var stores = item.saleStores && typeof item.saleStores === 'object' ? Object.keys(item.saleStores) : [];
+      if (stores.length) return '门店（' + stores.length + '）';
+      return '门店';
+    }
+    return '全部';
+  }
+
   function matchFilters(item) {
     var f = state.filters;
     if (f.keyword) {
@@ -85,6 +119,16 @@
     if (f.hasSchedule === 'yes' && !hasScheduleConfigured(item)) return false;
     if (f.hasSchedule === 'no' && hasScheduleConfigured(item)) return false;
     if (f.deliveryMode && normalizeDeliveryMode(item.deliveryMode) !== f.deliveryMode) return false;
+    if (window.MdmMemberPointsRuleListFilter && window.MdmMemberPointsRuleListFilter.matchSaleScopeFilter) {
+      if (!window.MdmMemberPointsRuleListFilter.matchSaleScopeFilter(item, {
+        type: f.saleScope,
+        storeId: f.saleStoreId,
+        regionId: f.saleRegionId,
+        regionParts: f.saleRegionParts
+      })) return false;
+    } else if (f.saleScope && normalizeSaleScope(item.saleScope) !== f.saleScope) {
+      return false;
+    }
 
     var enabled = getEnabledSpecs(item);
     if (!enabled.length) return false;
@@ -287,6 +331,9 @@
           '<td class="product-proxy-table__td" rowspan="' + rowSpan + '">' +
           escapeHtml(exchangeTypeLabel(item.exchangeType || spec.exchangeType)) +
           '</td>' +
+          '<td class="product-proxy-table__td" rowspan="' + rowSpan + '">' +
+          escapeHtml(saleScopeLabel(item)) +
+          '</td>' +
           '<td class="product-proxy-table__td" rowspan="' + rowSpan + '">' + renderStatus(item) + '</td>' +
           '<td class="product-proxy-table__td" rowspan="' + rowSpan + '">' + renderScheduleCell(item) + '</td>' +
           '<td class="product-proxy-table__td" rowspan="' + rowSpan + '">' + renderActions(item) + '</td>';
@@ -381,16 +428,26 @@
     state.filters.hasSchedule = (document.getElementById('qMallHasSchedule') || {}).value || '';
     state.filters.pointsMin = (document.getElementById('qMallPointsMin') || {}).value;
     state.filters.pointsMax = (document.getElementById('qMallPointsMax') || {}).value;
+    var sale = saleFilterCtrl ? saleFilterCtrl.getState() : {};
+    state.filters.saleScope = sale.type || (document.getElementById('qMallSaleScope') || {}).value || '';
+    state.filters.saleStoreId = sale.storeId || '';
+    state.filters.saleRegionId = sale.regionId || '';
+    state.filters.saleRegionParts = sale.regionParts || { province: '', city: '', district: '' };
   }
 
   function resetFiltersForm() {
     var form = document.getElementById('pointsMallFilterForm');
     if (form) form.reset();
+    if (saleFilterCtrl) saleFilterCtrl.reset();
     state.filters = {
       keyword: '',
       category: '',
       exchangeType: '',
       deliveryMode: '',
+      saleScope: '',
+      saleStoreId: '',
+      saleRegionId: '',
+      saleRegionParts: { province: '', city: '', district: '' },
       status: '',
       hasSchedule: '',
       pointsMin: '',
@@ -736,6 +793,18 @@
     bindClearButtons();
     bindEnableBar();
     syncEnableBar();
+
+    if (window.MdmMemberPointsRuleListFilter && window.MdmMemberPointsRuleListFilter.bindSaleScopeFilter) {
+      saleFilterCtrl = window.MdmMemberPointsRuleListFilter.bindSaleScopeFilter({
+        typeSelect: document.getElementById('qMallSaleScope'),
+        regionGroup: document.getElementById('qMallSaleRegionGroup'),
+        regionMount: document.getElementById('qMallSaleRegionMount'),
+        regionCascaderId: 'mallSaleRegionFilter',
+        storeGroup: document.getElementById('qMallSaleStoreGroup'),
+        storeInput: document.getElementById('qMallStore'),
+        storeDropdown: document.getElementById('qMallStoreDropdown')
+      });
+    }
 
     document.getElementById('pointsMallBannerBtn') &&
       document.getElementById('pointsMallBannerBtn').addEventListener('click', openBannerModal);

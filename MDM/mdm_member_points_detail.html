@@ -70,7 +70,8 @@
             padding: 0;
             display: none;
         }
-        .pts-datetime-wrap.has-value .pts-datetime-clear { display: block; }
+        .pts-datetime-wrap.has-value:hover .pts-datetime-clear,
+        .pts-datetime-wrap.has-value:focus-within .pts-datetime-clear { display: block; }
         .pts-datetime-clear:hover { background: #ccc; color: #333; }
         .pts-datetime-row .sep { color: #999; font-size: 12px; }
         #pointsDetailSearchForm.search-form {
@@ -195,19 +196,6 @@
         <main class="main-content">
             <div class="content-tabs"><button class="active">积分明细</button></div>
             <hr class="content-divider">
-            <div class="content-title">会员 / 积分管理 / 积分明细</div>
-
-            <div class="flow-box">
-                积分按<strong>获取批次</strong>管理：每笔获取积分的过期时间 = 获取时间 + 积分规则有效期；扣减（抵现 / 兑换）采用<strong>先进先出（FIFO）</strong>，优先消耗最早获取、状态为「可用」且仍有剩余的批次（冻结批次不可扣）。
-                消费赠送：<strong>支付成功即赠送</strong>，此时状态为<strong>冻结</strong>；订单<strong>交易成功</strong>后才变为<strong>可用</strong>。状态枚举：过期、可用、冻结。
-                积分兑换售后按<strong>保留原有效期</strong>退回：按兑换扣减逆序退还到原获取批次。
-                「本批剩余」为该笔获取经 FIFO 扣减后仍留存的积分；扣减流水的备注中可查看具体扣减批次。
-                变动类型：消费赠送、会员升级、签到、福袋、观看任务、积分兑换、积分兑换取消、积分抵现、积分兑换售后、积分抵现售后。
-            </div>
-
-            <div class="member-points-toolbar">
-                <button type="button" class="erp-btn" id="btnGotoPtsRule">积分规则</button>
-            </div>
 
             <section class="search-section">
                 <form class="search-form" id="pointsDetailSearchForm">

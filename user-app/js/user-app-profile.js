@@ -8,7 +8,21 @@
   /** 同步到 B 端会员管理的列表存储 */
   var MEMBER_LIST_KEY = 'mdm_member_c_list_v1';
   /** C 端演示会员固定 ID，便于 B 端识别与更新 */
-  var C_MEMBER_ID = 'UC10001';
+  var DEFAULT_MEMBER_ID = 'UC10001';
+  var ACTIVE_MEMBER_KEY = 'ua_active_member_id_v1';
+
+  function getActiveMemberId() {
+    if (window.UaAccountCancel && typeof window.UaAccountCancel.getActiveMemberId === 'function') {
+      return window.UaAccountCancel.getActiveMemberId();
+    }
+    try {
+      return localStorage.getItem(ACTIVE_MEMBER_KEY) || DEFAULT_MEMBER_ID;
+    } catch (e) {
+      return DEFAULT_MEMBER_ID;
+    }
+  }
+
+  var C_MEMBER_ID = getActiveMemberId();
   /** 与会员中心演示成长值保持一致 */
   var DEMO_GROWTH = 1485;
   /** 与积分明细页「当前积分」保持一致（可用+冻结） */
@@ -17,10 +31,20 @@
   var DEFAULT_PROFILE = {
     nickname: '宁静致远',
     displayPhone: '15589069061',
+    gender: '保密',
     birthday: '',
     district: '',
     avatar: '../assets/profile-avatar.svg'
   };
+
+  var GENDER_OPTIONS = ['保密', '男', '女'];
+
+  function normalizeGender(value) {
+    var g = String(value || '').trim();
+    if (GENDER_OPTIONS.indexOf(g) >= 0) return g;
+    if (g === '未知' || g === '保密' || !g) return '保密';
+    return '保密';
+  }
 
   function levelIconSvg(bg, fg, label) {
     var svg =
@@ -110,13 +134,15 @@
       var raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return Object.assign({}, DEFAULT_PROFILE);
       var parsed = JSON.parse(raw);
-      return Object.assign({}, DEFAULT_PROFILE, parsed || {});
+      var next = Object.assign({}, DEFAULT_PROFILE, parsed || {});
+      next.gender = normalizeGender(next.gender);
+      return next;
     } catch (e) {
       return Object.assign({}, DEFAULT_PROFILE);
     }
   }
 
-  /** 清空演示会员 UC10001 的生日（C 端资料 + B 端会员列表） */
+  /** 清空当前活跃演示会员的生日（C 端资料 + B 端会员列表） */
   function clearDemoMemberBirthday() {
     try {
       var profile = loadProfile();
@@ -124,9 +150,10 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
 
       var list = loadMemberList();
+      var memberId = getActiveMemberId();
       var changed = false;
       for (var i = 0; i < list.length; i++) {
-        if (list[i] && list[i].id === C_MEMBER_ID) {
+        if (list[i] && list[i].id === memberId && list[i].status !== '注销') {
           list[i].birthday = '';
           changed = true;
         }
@@ -165,13 +192,14 @@
     var level = resolveCurrentLevel(DEMO_GROWTH);
     var nick = profile.nickname || DEFAULT_PROFILE.nickname;
     var phone = profile.displayPhone || DEFAULT_PROFILE.displayPhone;
+    var memberId = getActiveMemberId();
     return {
-      id: C_MEMBER_ID,
+      id: memberId,
       nickname: nick,
       avatarText: String(nick).charAt(0) || '会',
       phone: phone,
       phoneMasked: maskPhone(phone),
-      gender: '未知',
+      gender: normalizeGender(profile.gender),
       isMember: '是',
       level: level.name,
       tags: 'C端注册',
@@ -197,15 +225,17 @@
   function syncProfileToMemberList(profile) {
     var list = loadMemberList();
     var rec = profileToMemberRecord(profile);
+    var memberId = getActiveMemberId();
     var idx = -1;
     for (var i = 0; i < list.length; i++) {
-      if (list[i] && list[i].id === C_MEMBER_ID) {
+      /* 不覆盖已注销档案；仅更新当前活跃会员 */
+      if (list[i] && list[i].id === memberId && list[i].status !== '注销') {
         idx = i;
         break;
       }
     }
     if (idx >= 0) {
-      list[idx] = Object.assign({}, list[idx], rec);
+      list[idx] = Object.assign({}, list[idx], rec, { status: list[idx].status || '正常' });
     } else {
       list.unshift(rec);
     }
@@ -215,6 +245,7 @@
 
   function saveProfile(data) {
     var next = Object.assign({}, DEFAULT_PROFILE, data || {});
+    next.gender = normalizeGender(next.gender);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     /* 同步到 B 端会员管理，便于列表展示与详情读取 */
     try {
@@ -278,8 +309,11 @@
   global.UAProfile = {
     STORAGE_KEY: STORAGE_KEY,
     MEMBER_LIST_KEY: MEMBER_LIST_KEY,
-    C_MEMBER_ID: C_MEMBER_ID,
+    get C_MEMBER_ID() { return getActiveMemberId(); },
+    getActiveMemberId: getActiveMemberId,
     DEFAULT_PROFILE: DEFAULT_PROFILE,
+    GENDER_OPTIONS: GENDER_OPTIONS,
+    normalizeGender: normalizeGender,
     DEMO_POINTS_CURRENT: DEMO_POINTS_CURRENT,
     maskPhone: maskPhone,
     load: loadProfile,

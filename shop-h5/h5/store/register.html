@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>门店注册 · Shop H5</title>
   <link rel="stylesheet" href="../../css/shop-h5-app-shell.css">
-  <link rel="stylesheet" href="../../css/shop-h5-store-pages.css">
+  <link rel="stylesheet" href="../../css/shop-h5-store-pages.css?v=20260811-sec-collapse">
 </head>
 <body class="shop-h5-app-list">
   <div class="shop-h5-mobile-container">
@@ -183,17 +183,17 @@
             <div class="shop-h5-sec-head">
               <div class="shop-h5-sec-icon">🖼</div>
               <div class="shop-h5-sec-titles">
-                <h3>门头照</h3>
+                <h3>门头/场地照</h3>
                 <p>必传。用于便于放货和城管报备。</p>
               </div>
             </div>
             <div class="shop-h5-field">
-              <div class="shop-h5-field-hd"><span class="shop-h5-req">正门头照片</span><span class="shop-h5-hint">需上传清晰的门店正面外观</span></div>
+              <div class="shop-h5-field-hd"><span class="shop-h5-req">门头/场地照</span><span class="shop-h5-hint">需上传清晰的门店正面外观或场地照片</span></div>
               <div class="shop-h5-storefront-wrap shop-h5-relative">
-                <img src="../../assets/storefront-demo.svg" alt="门头示意">
+                <img src="../../assets/storefront-demo.svg" alt="门头/场地示意">
                 <span id="frontUploadedBadge" class="shop-h5-badge-uploaded shop-h5-hidden">已上传</span>
               </div>
-              <button type="button" class="shop-h5-upload-btn" style="margin-top:10px;width:100%" id="btnFrontPhoto">上传正门头照片</button>
+              <button type="button" class="shop-h5-upload-btn" style="margin-top:10px;width:100%" id="btnFrontPhoto">上传门头/场地照</button>
             </div>
           </section>
 
@@ -253,14 +253,16 @@
               </div>
             </section>
 
-            <section class="shop-h5-section">
-              <div class="shop-h5-sec-head">
+            <section class="shop-h5-section shop-h5-section--collapsible is-collapsed" data-shop-h5-collapse>
+              <button type="button" class="shop-h5-sec-head shop-h5-sec-head--toggle" aria-expanded="false">
                 <div class="shop-h5-sec-icon">📋</div>
                 <div class="shop-h5-sec-titles">
                   <h3>门店经营与认知</h3>
                   <p>门店经营情况与认知说明</p>
                 </div>
-              </div>
+                <span class="shop-h5-sec-chevron" aria-hidden="true"></span>
+              </button>
+              <div class="shop-h5-sec-body">
               <div class="shop-h5-field">
                 <div class="shop-h5-field-hd"><span>门店方圆五百米的总户数（实际入住户数）</span></div>
                 <input class="shop-h5-input" id="householdsWithin500m" type="text" inputmode="numeric" placeholder="按实际入住户数填写">
@@ -297,16 +299,19 @@
                 <div class="shop-h5-field-hd"><span>店老板对是否拉到1000人有信心</span></div>
                 <textarea class="shop-h5-textarea" id="confidenceReach1000" placeholder="信心来源或顾虑说明"></textarea>
               </div>
+              </div>
             </section>
 
-            <section class="shop-h5-section">
-              <div class="shop-h5-sec-head">
+            <section class="shop-h5-section shop-h5-section--collapsible is-collapsed" data-shop-h5-collapse>
+              <button type="button" class="shop-h5-sec-head shop-h5-sec-head--toggle" aria-expanded="false">
                 <div class="shop-h5-sec-icon">⚠</div>
                 <div class="shop-h5-sec-titles">
                   <h3>特殊情况说明</h3>
                   <p>选填；触发区域保护提醒时须用文字或图片补充说明。</p>
                 </div>
-              </div>
+                <span class="shop-h5-sec-chevron" aria-hidden="true"></span>
+              </button>
+              <div class="shop-h5-sec-body">
               <div class="shop-h5-field">
                 <div class="shop-h5-field-hd"><span>说明内容</span><span class="shop-h5-hint">如无特殊情况可填写：无</span></div>
                 <textarea class="shop-h5-textarea" id="specialCircumstancesNote" placeholder="如无特殊情况可填写：无"></textarea>
@@ -319,18 +324,21 @@
                 </div>
                 <div class="shop-h5-photo-grid cols-6" id="specialPhotosGrid"></div>
               </div>
+              </div>
             </section>
           </div>
 
           <div id="blockPeer" class="shop-h5-hidden">
-            <section class="shop-h5-section">
-              <div class="shop-h5-sec-head">
+            <section class="shop-h5-section shop-h5-section--collapsible is-collapsed" data-shop-h5-collapse>
+              <button type="button" class="shop-h5-sec-head shop-h5-sec-head--toggle" aria-expanded="false">
                 <div class="shop-h5-sec-icon">📋</div>
                 <div class="shop-h5-sec-titles">
                   <h3>同行店补充资料</h3>
                   <p>请如实填写以下资料</p>
                 </div>
-              </div>
+                <span class="shop-h5-sec-chevron" aria-hidden="true"></span>
+              </button>
+              <div class="shop-h5-sec-body">
               <div class="shop-h5-field">
                 <div class="shop-h5-field-hd"><span>合作平台现状：说明目前门店已合作的其他平台情况。</span></div>
                 <textarea class="shop-h5-textarea" id="otherPlatformsCooperation" placeholder="如实填写美团、多多买菜、其他团购或直播平台等"></textarea>
@@ -343,6 +351,7 @@
                   <span class="shop-h5-hint" style="margin:0"><span id="broadcastCount">0</span>/6</span>
                 </div>
                 <div class="shop-h5-photo-grid cols-6" id="broadcastGrid"></div>
+              </div>
               </div>
             </section>
           </div>
@@ -366,6 +375,6 @@
   </div>
 
   <script src="../../../js/path-prefix.js"></script>
-  <script src="../../js/shop-h5-register.js"></script>
+  <script src="../../js/shop-h5-register.js?v=20260811-sec-collapse"></script>
 </body>
 </html>

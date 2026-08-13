@@ -50,6 +50,18 @@
 
   function normalizeOrder(order) {
     order = order || {};
+    var payLegs = Array.isArray(order.payLegs)
+      ? order.payLegs
+          .map(function (leg) {
+            return {
+              name: String((leg && leg.name) || ''),
+              amount: Math.round((Number(leg && leg.amount) || 0) * 100) / 100
+            };
+          })
+          .filter(function (leg) {
+            return leg.name;
+          })
+      : [];
     return {
       orderNo: String(order.orderNo || ''),
       status: order.status || 'unpaid',
@@ -63,6 +75,10 @@
       freight: Number(order.freight) || 0,
       payable: Number(order.payable) || 0,
       payLabel: order.payLabel || '',
+      /* 混合支付：支付方式名（顿号拼接）+ 各腿金额明细 */
+      payMethod: order.payMethod || '',
+      payLegs: payLegs,
+      from: order.from || '',
       items: Array.isArray(order.items) ? order.items : []
     };
   }
@@ -88,7 +104,10 @@
               pointsCode: it.pointsCode || '',
               points: Number(it.points) || 0,
               money: Number(it.money) || 0,
-              qty: it.qty
+              qty: it.qty,
+              price: Number(it.price) || 0,
+              /* 支付方式按商品金额占比分摊，供原路退回 */
+              payLegs: Array.isArray(it.payLegs) ? it.payLegs : []
             };
           })
         )

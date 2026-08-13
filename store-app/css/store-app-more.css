@@ -1,0 +1,99 @@
+/* 更多页 — 对齐参考图 */
+
+.sa-more-shell {
+  background: #fff;
+}
+
+.sa-more {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.sa-more-head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fff;
+}
+
+.sa-more-head__title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #111;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+.sa-more-head__edit {
+  border: 0;
+  background: transparent;
+  color: #ff6a00;
+  font-size: 16px;
+  font-weight: 400;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.sa-more-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px 12px 24px;
+  background: #fff;
+}
+
+.sa-more-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  row-gap: 22px;
+  column-gap: 8px;
+}
+
+.sa-more-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sa-more-item:active .sa-more-item__icon {
+  transform: scale(0.96);
+  opacity: 0.92;
+}
+
+.sa-more-item__icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  background: #ff6a00;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+.sa-more-item__icon svg {
+  width: 30px;
+  height: 30px;
+}
+
+.sa-more-item__label {
+  font-size: 12px;
+  color: #333;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+}

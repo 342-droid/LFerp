@@ -934,6 +934,11 @@
   width: 100%;
 }
 
+.erp-modal--account-cfg {
+  max-width: 520px;
+  width: 100%;
+}
+
 .erp-modal--onboarding {
   max-width: 880px;
   width: 100%;
@@ -974,6 +979,73 @@
 .store-form__control > .erp-select {
   width: 100%;
   box-sizing: border-box;
+}
+
+/* 与「基础信息」板块标题同款：左侧蓝条，无卡片边框 */
+.store-form__collapse {
+  margin: 0 0 14px;
+}
+
+.store-form__collapse-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.store-form__collapse-title {
+  margin: 0;
+  padding-left: 10px;
+  border-left: 3px solid #1677ff;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.store-form__collapse-chevron {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+  transition: transform 0.18s ease;
+}
+
+.store-form__collapse-chevron::before {
+  content: '';
+  display: block;
+  width: 7px;
+  height: 7px;
+  margin: 4px auto 0;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.store-form__collapse.is-collapsed .store-form__collapse-chevron {
+  transform: rotate(-90deg);
+}
+
+.store-form__collapse.is-collapsed .store-form__collapse-toggle {
+  margin-bottom: 0;
+}
+
+.store-form__collapse.is-collapsed .store-form__collapse-body {
+  display: none;
+}
+
+.store-form__collapse-body {
+  padding: 0;
+  background: transparent;
 }
 
 .store-form__section-hint {
@@ -1066,7 +1138,7 @@
   color: var(--color-text-muted);
 }
 
-/* 审核中心 — 门店注册审核 */
+/* 审核中心 — 入驻审核 */
 .audit-flow {
   display: grid;
   grid-template-columns: repeat(4, minmax(180px, 1fr));
@@ -1578,6 +1650,215 @@
 
 .supplier-detail-onboard-actions {
   margin-bottom: var(--space-md);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 进件信息 · 已上传照片缩略图 / 放大查看 */
+.mdm-onboard-photo {
+  display: block;
+  width: 100%;
+  max-width: 180px;
+  height: 112px;
+  padding: 0;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f8fafc;
+  cursor: zoom-in;
+  position: relative;
+}
+
+.mdm-onboard-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mdm-onboard-photo:hover {
+  border-color: var(--color-primary, #2f6bff);
+  box-shadow: 0 0 0 2px rgba(47, 107, 255, 0.12);
+}
+
+.mdm-onboard-photo--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  color: #666;
+  font-size: 13px;
+}
+
+.mdm-onboard-photo--fallback:hover {
+  border-color: var(--color-border, #e5e7eb);
+  box-shadow: none;
+}
+
+/* 档案详情 · 基础信息场地照（待上传可点上传） */
+.mdm-archive-venue-upload {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.mdm-archive-venue-upload__status {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.mdm-archive-venue-upload .erp-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  line-height: 1.4;
+  height: auto;
+  min-height: 28px;
+}
+
+.mdm-archive-venue-upload--done {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.mdm-photo-lightbox {
+  z-index: 3200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.mdm-photo-lightbox__box {
+  position: relative;
+  max-width: min(920px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  background: #111;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.mdm-photo-lightbox__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+
+.mdm-photo-lightbox__title {
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mdm-photo-lightbox__head .erp-modal__header-btn {
+  color: #fff;
+  border-color: transparent;
+}
+
+.mdm-photo-lightbox__img {
+  display: block;
+  max-width: min(920px, calc(100vw - 48px));
+  max-height: calc(100vh - 96px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  background: #000;
+}
+
+/* 门店/供应商进件 · 绑定汇付商户号 */
+.mdm-huifu-bind-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.erp-modal--huifu-bind {
+  width: min(640px, calc(100vw - 32px));
+  max-width: 640px;
+}
+
+.mdm-huifu-bind__info-title + .mdm-huifu-bind__info-grid + .mdm-huifu-bind__info-title {
+  margin-top: 14px;
+}
+
+.mdm-huifu-bind__row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mdm-huifu-bind__label {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.mdm-huifu-bind__control {
+  width: 100%;
+  min-width: 0;
+}
+
+.mdm-huifu-bind__control .erp-input {
+  width: 100%;
+  height: 32px;
+}
+
+.mdm-huifu-bind__err {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #cf1322;
+  line-height: 1.5;
+}
+
+.mdm-huifu-bind__info {
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid var(--color-border, #e5e5e5);
+  border-radius: 4px;
+  background: #fff;
+}
+
+.mdm-huifu-bind__info-title {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.mdm-huifu-bind__info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+}
+
+.mdm-huifu-bind__info-k {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 2px;
+}
+
+.mdm-huifu-bind__info-v {
+  font-size: 13px;
+  color: #333;
+  word-break: break-all;
+}
+
+@media (max-width: 560px) {
+  .mdm-huifu-bind__info-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .supplier-detail-tab .erp-table-scroll {
@@ -1586,6 +1867,18 @@
 
 .supplier-detail-table-ops {
   white-space: nowrap;
+}
+
+/* 进件列表操作栏：按钮左对齐（覆盖全局 .action-links 居中） */
+.supplier-detail-tab .erp-table td:last-child,
+.store-onboard-section .erp-table td:last-child {
+  text-align: left;
+}
+
+.supplier-detail-tab .erp-table .action-links,
+.store-onboard-section .erp-table .action-links {
+  justify-content: flex-start;
+  text-align: left;
 }
 
 /* 门店详情：门头照 / 冷柜缩略图 / 门店仓库强调 */
@@ -1892,6 +2185,284 @@
   font-size: 13px;
 }
 
+/* 账变记录筛选：对齐操作日志类页面（标签+控件横排，按钮右下带图标） */
+.store-ledger-filter {
+  margin-bottom: 16px;
+  padding: 4px 0 12px;
+}
+
+.store-ledger-filter__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 28px;
+}
+
+.store-ledger-filter__field {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+/* 佣金明细：日期字段 + 时段 + 区间 紧凑组合 */
+.store-comm-date-combo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.store-comm-date-combo .store-ledger-filter__control {
+  min-width: 0;
+}
+
+.store-comm-date-combo__range {
+  min-width: 280px;
+}
+
+.store-ledger-filter__label {
+  color: #666;
+  font-size: 13px;
+  font-weight: 400;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.store-ledger-filter__control {
+  height: 32px;
+  min-width: 120px;
+  padding: 0 10px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  background: #fff;
+  color: #333;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.store-ledger-filter__control:focus {
+  border-color: var(--color-primary, #ff7a00);
+}
+
+select.store-ledger-filter__control {
+  padding-right: 28px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.store-ledger-daterange {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  min-width: 260px;
+  padding: 0 10px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.store-ledger-daterange:focus-within {
+  border-color: var(--color-primary, #ff7a00);
+}
+
+.store-ledger-daterange__icon {
+  width: 16px;
+  height: 16px;
+  color: #999;
+  flex-shrink: 0;
+}
+
+.store-ledger-daterange__input {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 28px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #333;
+  font-size: 13px;
+  padding: 0;
+}
+
+.store-ledger-daterange__input::-webkit-calendar-picker-indicator {
+  opacity: 0.45;
+  cursor: pointer;
+}
+
+.store-ledger-daterange__sep {
+  color: #bbb;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+.store-ledger-filter__actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.store-ledger-filter__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 16px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  background: #fff;
+  color: #333;
+  font-size: 13px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.store-ledger-filter__btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.store-ledger-filter__btn:hover {
+  border-color: var(--color-primary, #ff7a00);
+  color: var(--color-primary, #ff7a00);
+}
+
+.store-ledger-filter__btn--primary {
+  background: var(--color-primary, #ff7a00);
+  border-color: var(--color-primary, #ff7a00);
+  color: #fff;
+}
+
+.store-ledger-filter__btn--primary:hover {
+  background: var(--color-primary-hover, #e86e00);
+  border-color: var(--color-primary-hover, #e86e00);
+  color: #fff;
+}
+
+.store-empty--illus {
+  padding: 56px 16px 64px;
+  background: transparent;
+  border: none;
+}
+
+.store-empty__icon {
+  width: 88px;
+  height: 72px;
+  margin: 0 auto 14px;
+  position: relative;
+  background:
+    linear-gradient(160deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-radius: 6px 6px 4px 4px;
+  box-shadow: inset 0 0 0 1px #e5e7eb;
+}
+
+.store-empty__icon::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -10px;
+  width: 54px;
+  height: 16px;
+  margin-left: -27px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  transform: perspective(40px) rotateX(28deg);
+  transform-origin: bottom center;
+}
+
+.store-empty__icon::after {
+  content: '';
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  top: 22px;
+  height: 8px;
+  border-radius: 2px;
+  background: #d1d5db;
+  box-shadow: 0 14px 0 #d1d5db, 0 28px 0 #e5e7eb;
+  opacity: 0.7;
+}
+
+.store-empty__text {
+  color: #999;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.store-empty__hint {
+  margin-top: 6px;
+  color: #bbb;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+  max-width: 360px;
+}
+
+.store-wallet-ledger-host .erp-table-scroll {
+  border-radius: 4px;
+}
+
+.store-wallet-ledger-host .erp-table th {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.store-ledger-page-host {
+  margin-top: 12px;
+}
+
+.store-ledger-pagination {
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 8px 0 4px;
+}
+
+.store-ledger-pagination .erp-pagination__mid {
+  gap: 12px;
+}
+
+.store-ledger-pagination .erp-pagination__right {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.erp-pagination__size {
+  height: 28px;
+  padding: 0 24px 0 8px;
+  border: 1px solid var(--color-border, #d9d9d9);
+  border-radius: 4px;
+  background: #fff;
+  color: #333;
+  font-size: 13px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+.store-ledger-pagination .erp-page-btn.is-active {
+  background: var(--color-primary, #ff7a00);
+  border-color: var(--color-primary, #ff7a00);
+  color: #fff;
+}
+
+.store-ledger-pagination .erp-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .store-summary-bar {
   display: flex;
   flex-wrap: wrap;
@@ -1902,6 +2473,161 @@
   background: #fafafa;
   margin-bottom: var(--space-md);
   font-size: 13px;
+}
+
+/* 上标签 / 下数值 / 竖线分隔（对齐业绩报表汇总条） */
+.store-summary-bar--stats {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0;
+  padding: 16px 8px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+}
+
+.store-summary-bar__item {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 20px;
+  position: relative;
+}
+
+.store-summary-bar__item + .store-summary-bar__item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10%;
+  bottom: 10%;
+  width: 1px;
+  background: #ececec;
+}
+
+.store-summary-bar__label {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+  margin-bottom: 8px;
+  font-weight: 400;
+}
+
+.store-summary-bar__value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.3;
+  word-break: break-all;
+}
+
+.store-summary-bar__value--with-action {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.store-summary-bar__value-text {
+  min-width: 0;
+}
+
+.store-summary-bar__action-btn {
+  flex: 0 0 auto;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--color-primary, #2f6bff);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--color-primary, #2f6bff);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 24px;
+  cursor: pointer;
+}
+
+.store-summary-bar__action-btn:hover:not(:disabled) {
+  background: rgba(47, 107, 255, 0.06);
+}
+
+.store-summary-bar__action-btn:disabled {
+  border-color: #d9d9d9;
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+/* 门店档案 · 账户信息 · 账户配置入口/弹框 */
+.store-account-cfg-entry {
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--color-primary, #2f6bff);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--color-primary, #2f6bff);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  line-height: 26px;
+}
+
+.store-account-cfg-entry:hover {
+  background: rgba(47, 107, 255, 0.06);
+}
+
+.store-account-cfg__banner {
+  margin: 0 0 16px;
+  padding: 8px 12px;
+  background: #f7f9fc;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.store-account-cfg__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.store-account-cfg__label {
+  flex: 0 0 100px;
+  font-size: 13px;
+  color: #333;
+  line-height: 32px;
+  text-align: right;
+}
+
+.store-account-cfg__control {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.store-account-cfg__control .erp-input {
+  width: 160px;
+  height: 32px;
+}
+
+.store-account-cfg__unit {
+  font-size: 13px;
+  color: #666;
+}
+
+.store-account-cfg__meta {
+  width: 100%;
+  font-size: 12px;
+  color: #999;
+}
+
+.store-account-cfg__tip {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.55;
+  margin-top: 4px;
 }
 
 .store-onboard-section {
@@ -2519,8 +3245,14 @@
   flex-wrap: wrap;
 }
 
-.member-growth-time-range .erp-input {
+.member-growth-time-range .erp-input,
+.member-growth-time-range .lf-datetime-wrap input[type="datetime-local"] {
   width: 190px;
+  height: 32px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0 28px 0 8px;
+  box-sizing: border-box;
 }
 
 .member-growth-time-range__sep {
@@ -2768,3 +3500,118 @@
   border-top: 1px solid #f0f0f0;
 }
 
+
+/* 门店档案 · 银行卡（只读，对齐门店 APP 卡面） */
+.store-bank-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 4px 0 20px;
+}
+
+.store-bank-card {
+  position: relative;
+  width: 320px;
+  max-width: 100%;
+  height: 104px;
+  border-radius: 12px;
+  padding: 16px 16px 18px;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: #fff;
+  background: #4a5568;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.store-bank-card.is-abc {
+  background: linear-gradient(135deg, #0a9b7a 0%, #007a5e 100%);
+}
+.store-bank-card.is-cmb {
+  background: linear-gradient(135deg, #c43b3b 0%, #9e2228 100%);
+}
+.store-bank-card.is-boc {
+  background: linear-gradient(135deg, #b83045 0%, #8c1c2e 100%);
+}
+.store-bank-card.is-ccb {
+  background: linear-gradient(135deg, #1a5fad 0%, #0d3f7a 100%);
+}
+.store-bank-card.is-icbc {
+  background: linear-gradient(135deg, #d4222a 0%, #a30f16 100%);
+}
+.store-bank-card.is-citic {
+  background: linear-gradient(135deg, #c43b3b 0%, #8f2028 100%);
+}
+.store-bank-card.is-ceb {
+  background: linear-gradient(135deg, #5b3d8c 0%, #3d2866 100%);
+}
+.store-bank-card.is-comm {
+  background: linear-gradient(135deg, #1f6fb5 0%, #0f4d82 100%);
+}
+.store-bank-card.is-default {
+  background: linear-gradient(135deg, #5a6570 0%, #3d454d 100%);
+}
+
+.store-bank-card__wm {
+  position: absolute;
+  right: 12px;
+  bottom: -8px;
+  font-size: 72px;
+  font-weight: 700;
+  opacity: 0.12;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+.store-bank-card__top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.store-bank-card__logo {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.store-bank-card__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.store-bank-card__tag {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.store-bank-card__no {
+  position: relative;
+  z-index: 1;
+  font-size: 18px;
+  letter-spacing: 1px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}

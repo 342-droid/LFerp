@@ -15,6 +15,11 @@
     return document.body && document.body.getAttribute('data-order-page') === 'proxy';
   }
 
+  /** 门店钱包/混合支付相关单据字段：仅代采订单页生效，零售订单保持原样 */
+  function isProxyWalletPayFeature() {
+    return isProxyOrderPage();
+  }
+
   function getListCellIndices(row) {
     var sceneEl = row ? row.querySelector('.order-scene') : null;
     var hasDeliveryCol = !!(row && (row.getAttribute('data-delivery-mode') || row.querySelector('.order-delivery-mode')));
@@ -242,7 +247,21 @@
         { time: '2026-06-04 14:20', title: '订单已创建', desc: '订单创建，金额 ¥118.18' },
         { time: '2026-06-05 09:30', title: '商家已发货', desc: '快递已发出，配送至用户收货地址' }
       ],
-      clearingEmpty: true
+      /* 支付成功且结算已配置门店佣金比例 → 生成清分（门店明细） */
+      storeCommissionRate: 0.1,
+      clearingEmpty: false,
+      clearing: {
+        storeRows: [
+          {
+            party: '门店',
+            name: '悠悠生鲜超市',
+            rate: '10%',
+            amount: '¥12.82',
+            status: '已生成',
+            remark: '支付成功即时清分'
+          }
+        ]
+      }
     },
     'ORD-3212689201599002': {
       displayId: 'ORD-3212689201599002',
@@ -339,7 +358,20 @@
           desc: '订单尚有商品待提：赣南脐橙 果大皮薄 5斤装（剩 1 件）'
         }
       ],
-      clearingEmpty: true
+      storeCommissionRate: 0.15,
+      clearingEmpty: false,
+      clearing: {
+        storeRows: [
+          {
+            party: '门店',
+            name: '华强北',
+            rate: '15%',
+            amount: '¥8.13',
+            status: '已生成',
+            remark: '支付成功即时清分'
+          }
+        ]
+      }
     },
     'ORD-3212689201599003': {
       displayId: 'ORD-3212689201599003',
@@ -389,8 +421,13 @@
         merchant: '¥46.18',
         refund: '¥0.00'
       },
-      paymentCount: 1,
-      /* 含仅退款 / 退货退款 / 补货，列表字段按类型展示 */
+      /* 混合支付演示仅代采订单页消费；零售打开同单号不展示钱包拆分 */
+      payLegs: [
+        { name: '微信', amount: 30 },
+        { name: '钱包余额', amount: 16.18 }
+      ],
+      paymentCount: 2,
+      /* 含仅退款 / 退货退款 / 补货；退款额拆分字段仅代采售后明细使用 */
       aftersales: [{
         id: 'AS-9003-1',
         productName: '新鲜红颜草莓 香甜多汁 500g装',
@@ -398,6 +435,9 @@
         status: '待收货',
         returnQty: 1,
         refundAmount: '¥19.59',
+        refundAlipay: '¥0.00',
+        refundWechat: '¥12.00',
+        refundWallet: '¥7.59',
         refundCoupon: '¥2.50',
         refundPoints: 0,
         adjustAmount: '¥0.00'
@@ -408,6 +448,9 @@
         status: '退款中',
         returnQty: 1,
         refundAmount: '¥12.00',
+        refundAlipay: '¥0.00',
+        refundWechat: '¥8.00',
+        refundWallet: '¥4.00',
         refundCoupon: '¥0.00',
         refundPoints: 0,
         adjustAmount: '-¥1.00'
@@ -442,7 +485,98 @@
         { time: '2026-06-03 16:48', title: '订单已创建', desc: '订单创建，金额 ¥46.18' },
         { time: '2026-06-04 10:00', title: '商家已发货', desc: '快递已发出，配送至用户收货地址' }
       ],
-      clearingEmpty: true
+      /*
+       * 已支付，但结算未配置门店佣金比例：
+       * 仍生成供应商结算 + 平台分佣；不生成门店/商户清分项
+       */
+      storeCommissionRate: null,
+      clearingEmpty: false,
+      clearing: {
+        summary: { skuCount: 2, itemCount: 4, pending: 0, cleared: 4, abnormal: 0 },
+        orderReceivable: '¥23.46',
+        orderClearedText: '4/4 已清分',
+        orderAbnormal: 0,
+        skus: [
+          {
+            name: '新鲜红颜草莓 香甜多汁 500g装',
+            paid: '¥34.18',
+            roleCommission: '¥0.34',
+            supplierCost: '¥18.00',
+            marginRate: '47.34%',
+            receivable: '¥18.34',
+            clearedCount: 2,
+            totalCount: 2,
+            abnormalCount: 0,
+            rows: [
+              {
+                payee: '上海冷丰科技有限公司',
+                role: '平台',
+                account: '6666****6395',
+                method: '按比例 1%',
+                strategyDefault: true,
+                strategyName: '商城结算策略',
+                receivable: '¥0.34',
+                received: '¥0.00',
+                clearStatus: '已清分',
+                settleStatus: '待结算',
+                bookStatus: '待入账'
+              },
+              {
+                payee: '上海恒业智汇贸易有限公司',
+                role: '供应商',
+                account: '-',
+                method: '采购成本',
+                strategyDefault: true,
+                strategyName: '商城结算策略',
+                receivable: '¥18.00',
+                received: '¥0.00',
+                clearStatus: '已清分',
+                settleStatus: '待结算',
+                bookStatus: '待入账'
+              }
+            ]
+          },
+          {
+            name: '进口香蕉 香甜软糯 3斤装',
+            paid: '¥12.00',
+            roleCommission: '¥0.12',
+            supplierCost: '¥5.00',
+            marginRate: '58.33%',
+            receivable: '¥5.12',
+            clearedCount: 2,
+            totalCount: 2,
+            abnormalCount: 0,
+            rows: [
+              {
+                payee: '上海冷丰科技有限公司',
+                role: '平台',
+                account: '6666****6395',
+                method: '按比例 1%',
+                strategyDefault: true,
+                strategyName: '商城结算策略',
+                receivable: '¥0.12',
+                received: '¥0.00',
+                clearStatus: '已清分',
+                settleStatus: '待结算',
+                bookStatus: '待入账'
+              },
+              {
+                payee: '上海恒业智汇贸易有限公司',
+                role: '供应商',
+                account: '-',
+                method: '采购成本',
+                strategyDefault: true,
+                strategyName: '商城结算策略',
+                receivable: '¥5.00',
+                received: '¥0.00',
+                clearStatus: '已清分',
+                settleStatus: '待结算',
+                bookStatus: '待入账'
+              }
+            ]
+          }
+        ]
+      }
     },
     'ORD-3212689201560682': {
       displayId: 'ORD-3212689201560682',
@@ -509,7 +643,153 @@
         { time: '2026-06-03 09:00', type: 'ship', title: '商家已发货', desc: '快递已发出，配送至用户收货地址' },
         { time: '2026-06-03 11:20', type: 'success', title: '交易成功', desc: '用户已签收，订单已完成' }
       ],
-      clearingEmpty: true
+      storeCommissionRate: 0.12,
+      clearingEmpty: false,
+      clearing: {
+        storeRows: [
+          {
+            party: '门店',
+            name: '悠悠生鲜超市',
+            rate: '12%',
+            amount: '¥1.80',
+            status: '已生成',
+            remark: '支付成功即时清分'
+          }
+        ]
+      }
+    },
+    /* 清分明细演示：SKU 维度分佣 + 供应商采购成本（采购价×售卖系数×下单数量） */
+    'ORD-3212689201599201': {
+      displayId: 'ORD-3212689201599201',
+      progress: {
+        completedSteps: 2,
+        outcome: null,
+        status: '待提货',
+        submitTime: '2026-08-07 15:20'
+      },
+      goods: [{
+        id: 'g1',
+        name: '哈密瓜-自提',
+        spec: '规格：自提',
+        img: '../user-app/assets/order-product-1.svg',
+        spu: 'SPU-9201…',
+        sku: 'SKU-9201…',
+        barcode: '6901009201001',
+        weight: '1.00',
+        price: '¥0.40',
+        qty: '1',
+        subtotal: '¥0.40',
+        marketing: '普通售卖'
+      }],
+      amounts: {
+        goods: '¥0.40',
+        discount: '¥0.00',
+        shipping: '¥0.00',
+        payable: '¥0.40',
+        paid: '¥0.40',
+        merchant: '¥0.40',
+        refund: '¥0.00'
+      },
+      paymentCount: 1,
+      customer: { nickname: '赵金芝', phone: '13800009201', userId: '318605592681792201' },
+      delivery: {
+        type: 'SELF_PICKUP',
+        deliveryMode: '自提',
+        name: '赵金芝',
+        phone: '13800009201',
+        address: '浙江省湖州市德清县乾元镇天恩路1号',
+        store: '德清乾元天恩冷丰店'
+      },
+      tags: {
+        channel: 'MINI_PROGRAM',
+        orderScene: '商城',
+        payChannel: '微信',
+        marketing: '普通售卖',
+        livePeriod: '-',
+        bd: '1',
+        settleStatus: '待结算',
+        commissionStatus: '已清分'
+      },
+      logs: [
+        { time: '2026-08-07 15:20', title: '订单已创建', desc: '订单创建，金额 ¥0.40' },
+        { time: '2026-08-07 15:21', title: '支付成功', desc: '已生成清分明细' },
+        { time: '2026-08-07 16:00', title: '商品已到提货点', desc: '请尽快前往门店提货' }
+      ],
+      storeCommissionRate: 0.01,
+      clearingEmpty: false,
+      clearing: {
+        summary: { skuCount: 1, itemCount: 4, pending: 0, cleared: 4, abnormal: 0 },
+        orderReceivable: '¥0.02',
+        orderClearedText: '4/4 已清分',
+        orderAbnormal: 0,
+        skus: [{
+          name: '哈密瓜-自提',
+          paid: '¥0.40',
+          roleCommission: '¥0.00',
+          /* 供应商采购成本 = 采购价 × 售卖系数 × 下单数量 */
+          supplierCost: '¥0.02',
+          marginRate: '95.00%',
+          receivable: '¥0.02',
+          clearedCount: 4,
+          totalCount: 4,
+          abnormalCount: 0,
+          rows: [
+            {
+              payee: '上海冷丰科技有限公司',
+              role: '平台',
+              subRole: 'BD扶商',
+              account: '6666****6395',
+              method: '按比例 1%',
+              strategyDefault: true,
+              strategyName: '商城结算策略',
+              receivable: '¥0.00',
+              received: '¥0.00',
+              clearStatus: '已清分',
+              settleStatus: '待结算',
+              bookStatus: '待入账'
+            },
+            {
+              payee: '上海沁香商品供应链管理有限公司',
+              role: '商户',
+              account: '6666****7448',
+              method: '按比例 5%',
+              strategyDefault: true,
+              strategyName: '商城结算策略',
+              receivable: '¥0.00',
+              received: '¥0.00',
+              clearStatus: '已清分',
+              settleStatus: '待结算',
+              bookStatus: '待入账'
+            },
+            {
+              payee: '德清乾元天恩冷丰店',
+              role: '门店',
+              account: '6666****7448',
+              method: '按比例 1%',
+              strategyDefault: true,
+              strategyName: '商城结算策略',
+              receivable: '¥0.00',
+              received: '¥0.00',
+              clearStatus: '已清分',
+              settleStatus: '待结算',
+              bookStatus: '待入账'
+            },
+            {
+              payee: '上海恒业智汇贸易有限公司',
+              role: '供应商',
+              account: '-',
+              method: '采购成本',
+              strategyDefault: true,
+              strategyName: '商城结算策略',
+              receivable: '¥0.02',
+              received: '¥0.00',
+              clearStatus: '已清分',
+              settleStatus: '待结算',
+              bookStatus: '待入账'
+            }
+          ]
+        }]
+      }
     }
   };
 
@@ -1365,9 +1645,43 @@
     return v == null || v === '' ? '-' : String(v);
   }
 
+  function formatAftersaleMoney(v) {
+    if (v == null || v === '') return '¥0.00';
+    if (typeof v === 'number') return '¥' + Number(v).toFixed(2);
+    var s = String(v).trim();
+    if (!s || s === '-') return '¥0.00';
+    if (s.indexOf('¥') >= 0) return s;
+    var n = Number(s);
+    if (!isNaN(n)) return '¥' + n.toFixed(2);
+    return s;
+  }
+
+  /** 退款额二级：小计 / 支付宝 / 微信 / 钱包（缺省时小计归微信，其余为 0） */
+  function resolveAftersaleRefundBreakdown(item) {
+    var subtotal =
+      item && (item.refundSubtotal != null ? item.refundSubtotal : item.refundAmount);
+    var hasParts =
+      item &&
+      (item.refundAlipay != null || item.refundWechat != null || item.refundWallet != null);
+    if (!hasParts) {
+      return {
+        subtotal: formatAftersaleMoney(subtotal),
+        alipay: '¥0.00',
+        wechat: formatAftersaleMoney(subtotal),
+        wallet: '¥0.00'
+      };
+    }
+    return {
+      subtotal: formatAftersaleMoney(subtotal),
+      alipay: formatAftersaleMoney(item.refundAlipay),
+      wechat: formatAftersaleMoney(item.refundWechat),
+      wallet: formatAftersaleMoney(item.refundWallet)
+    };
+  }
+
   /**
    * 单据明细 · 售后明细：一条售后单一行；展示仅退款/退货退款/补货。
-   * 列随列表内类型动态调整：退款类出退货/退款字段，补货出补货数字段。
+   * 代采：退款额一级下挂二级小计/支付宝/微信/钱包；零售：退款额单列，不受钱包字段影响。
    */
   function buildAftersalePanel(aftersales) {
     var list = (Array.isArray(aftersales) ? aftersales : []).filter(function (a) {
@@ -1378,28 +1692,63 @@
     var hasRefundType = list.some(function (a) {
       return a.type === '仅退款' || a.type === '退货退款';
     });
-    var hasRestock = list.some(function (a) { return a.type === '补货'; });
+    var hasRestock = list.some(function (a) {
+      return a.type === '补货';
+    });
+    var walletSplit = isProxyWalletPayFeature();
 
-    var columns = [
-      { key: 'product', label: '商品', align: 'left' },
-      { key: 'type', label: '售后类型', align: 'center' },
-      { key: 'status', label: '售后状态', align: 'center' }
+    /* 代采有退款类时两级表头；零售保持退款额单列 */
+    var headRows = walletSplit && hasRefundType ? 2 : 1;
+    var topCols = [
+      { key: 'product', label: '商品', align: 'left', rowspan: headRows },
+      { key: 'type', label: '售后类型', align: 'center', rowspan: headRows },
+      { key: 'status', label: '售后状态', align: 'center', rowspan: headRows }
     ];
+    var bodyKeys = ['product', 'type', 'status'];
     if (hasRefundType) {
-      columns = columns.concat([
-        { key: 'returnQty', label: '退货数', align: 'center' },
-        { key: 'refundAmount', label: '退款额', align: 'center' },
-        { key: 'refundCoupon', label: '退券', align: 'center' },
-        { key: 'refundPoints', label: '退积分', align: 'center' },
-        { key: 'adjustAmount', label: '多退少补', align: 'center' }
+      topCols.push({ key: 'returnQty', label: '退货数', align: 'center', rowspan: headRows });
+      if (walletSplit) {
+        topCols.push({
+          key: 'refundAmount',
+          label: '退款额',
+          align: 'center',
+          colspan: 4,
+          group: true
+        });
+        bodyKeys = bodyKeys.concat([
+          'returnQty',
+          'refundSubtotal',
+          'refundAlipay',
+          'refundWechat',
+          'refundWallet'
+        ]);
+      } else {
+        topCols.push({ key: 'refundAmount', label: '退款额', align: 'center', rowspan: headRows });
+        bodyKeys = bodyKeys.concat(['returnQty', 'refundAmount']);
+      }
+      topCols = topCols.concat([
+        { key: 'refundCoupon', label: '退券', align: 'center', rowspan: headRows },
+        { key: 'refundPoints', label: '退积分', align: 'center', rowspan: headRows },
+        { key: 'adjustAmount', label: '多退少补', align: 'center', rowspan: headRows }
       ]);
+      bodyKeys = bodyKeys.concat(['refundCoupon', 'refundPoints', 'adjustAmount']);
     }
     if (hasRestock) {
-      columns = columns.concat([
-        { key: 'applyRestockQty', label: '申请补货数', align: 'center' },
-        { key: 'actualRestockQty', label: '实际补货数', align: 'center' }
+      topCols = topCols.concat([
+        { key: 'applyRestockQty', label: '申请补货数', align: 'center', rowspan: headRows },
+        { key: 'actualRestockQty', label: '实际补货数', align: 'center', rowspan: headRows }
       ]);
+      bodyKeys = bodyKeys.concat(['applyRestockQty', 'actualRestockQty']);
     }
+
+    var refundSubHeads = walletSplit
+      ? [
+          { key: 'refundSubtotal', label: '小计' },
+          { key: 'refundAlipay', label: '支付宝' },
+          { key: 'refundWechat', label: '微信' },
+          { key: 'refundWallet', label: '钱包' }
+        ]
+      : [];
 
     function cellHtml(item, key) {
       var isRefund = item.type === '仅退款' || item.type === '退货退款';
@@ -1408,13 +1757,28 @@
       if (key === 'type') return aftersaleTypeTagHtml(item.type);
       if (key === 'status') return aftersaleStatusTagHtml(item.status);
       if (key === 'returnQty') {
-        /* 仅退款、退货退款均扣减商品数量，都展示退货数 */
         if (item.type === '仅退款' || item.type === '退货退款') {
           return aftersaleCellText(item.returnQty);
         }
         return '-';
       }
-      if (key === 'refundAmount' || key === 'refundCoupon' || key === 'refundPoints' || key === 'adjustAmount') {
+      if (key === 'refundAmount') {
+        return isRefund ? aftersaleCellText(item.refundAmount) : '-';
+      }
+      if (
+        key === 'refundSubtotal' ||
+        key === 'refundAlipay' ||
+        key === 'refundWechat' ||
+        key === 'refundWallet'
+      ) {
+        if (!isRefund) return '-';
+        var br = resolveAftersaleRefundBreakdown(item);
+        if (key === 'refundSubtotal') return aftersaleCellText(br.subtotal);
+        if (key === 'refundAlipay') return aftersaleCellText(br.alipay);
+        if (key === 'refundWechat') return aftersaleCellText(br.wechat);
+        return aftersaleCellText(br.wallet);
+      }
+      if (key === 'refundCoupon' || key === 'refundPoints' || key === 'adjustAmount') {
         return isRefund ? aftersaleCellText(item[key]) : '-';
       }
       if (key === 'applyRestockQty' || key === 'actualRestockQty') {
@@ -1425,20 +1789,55 @@
 
     var wrap = el('div', 'order-detail-aftersale-panel');
     var table = el('table', 'order-detail-aftersale-table');
-    table.innerHTML =
-      '<thead><tr>' +
-      columns.map(function (c) {
-        return '<th class="is-' + c.align + '">' + c.label + '</th>';
-      }).join('') +
-      '</tr></thead>';
+    var head1 =
+      '<tr>' +
+      topCols
+        .map(function (c) {
+          if (c.group) {
+            return (
+              '<th class="is-center is-group" colspan="' +
+              c.colspan +
+              '">' +
+              c.label +
+              '</th>'
+            );
+          }
+          return (
+            '<th class="is-' +
+            c.align +
+            '" rowspan="' +
+            (c.rowspan || 1) +
+            '">' +
+            c.label +
+            '</th>'
+          );
+        })
+        .join('') +
+      '</tr>';
+    var head2 = '';
+    if (walletSplit && hasRefundType) {
+      head2 =
+        '<tr>' +
+        refundSubHeads
+          .map(function (c) {
+            return '<th class="is-center is-sub">' + c.label + '</th>';
+          })
+          .join('') +
+        '</tr>';
+    }
+    table.innerHTML = '<thead>' + head1 + head2 + '</thead>';
     var tbody = el('tbody');
     list.forEach(function (item) {
       var tr = document.createElement('tr');
       if (item.id) tr.setAttribute('data-aftersale-id', item.id);
       if (item.type) tr.setAttribute('data-aftersale-type', item.type);
-      tr.innerHTML = columns.map(function (c) {
-        return '<td class="is-' + c.align + '">' + cellHtml(item, c.key) + '</td>';
-      }).join('');
+      tr.innerHTML = bodyKeys
+        .map(function (key) {
+          var align =
+            key === 'product' ? 'left' : 'center';
+          return '<td class="is-' + align + '">' + cellHtml(item, key) + '</td>';
+        })
+        .join('');
       tbody.appendChild(tr);
     });
     table.appendChild(tbody);
@@ -1754,20 +2153,465 @@
     });
   }
 
-  function buildAmounts(amounts) {
+  /** 收款明细·支付方式枚举：支付宝 / 微信 / 钱包余额 */
+  function normalizeRetailPayMethod(name) {
+    var n = String(name || '');
+    if (/支付宝|alipay/i.test(n)) return '支付宝';
+    if (/微信|wechat/i.test(n)) return '微信';
+    if (/钱包|余额|balance/i.test(n)) return '钱包余额';
+    return '';
+  }
+
+  function shortFlowId(s, keep) {
+    var str = String(s || '');
+    var n = keep || 16;
+    if (str.length <= n) return str;
+    return str.slice(0, n) + '…';
+  }
+
+  function formatMoneyYuan(n) {
+    return '¥' + (Number(n) || 0).toFixed(2);
+  }
+
+  function cashPayLegsOf(detail) {
+    /* 零售订单不消费混合支付腿，避免串改买家实付/收款明细 */
+    if (!isProxyWalletPayFeature()) return [];
+    var legs = [];
+    if (detail && Array.isArray(detail.payLegs)) legs = detail.payLegs;
+    else if (detail && detail.amounts && Array.isArray(detail.amounts.payLegs)) {
+      legs = detail.amounts.payLegs;
+    }
+    return legs.filter(function (leg) {
+      if (!leg || !leg.name || !(Number(leg.amount) > 0)) return false;
+      return !!normalizeRetailPayMethod(leg.name);
+    });
+  }
+
+  /**
+   * 代采：生成收款明细（通道汇付 + 支付方式含钱包余额）
+   * 零售：不生成钱包/混合支付明细，保持空态
+   */
+  function ensureDetailPayments(detail) {
+    if (!detail) return [];
+    if (!isProxyWalletPayFeature()) return [];
+    if (Array.isArray(detail.payments) && detail.payments.length) {
+      return detail.payments.map(function (p) {
+        return {
+          flowNo: p.flowNo || p.id || '—',
+          direction: p.direction || '收款',
+          channel: '汇付',
+          payMethod: normalizeRetailPayMethod(p.payMethod || p.method) || p.payMethod || '微信',
+          status: p.status || '成功',
+          amount: p.amount || formatMoneyYuan(p.amountNum),
+          channelNo: p.channelNo || p.channelFlowNo || '—',
+          payTime: p.payTime || p.time || '—'
+        };
+      });
+    }
+    var legs = cashPayLegsOf(detail);
+    var payTime =
+      (detail.progress && (detail.progress.payTime || detail.progress.submitTime)) || '—';
+    var seed = String(detail.displayId || detail.id || 'PAY').replace(/\D/g, '').slice(-10);
+    if (legs.length) {
+      return legs.map(function (leg, idx) {
+        var method = normalizeRetailPayMethod(leg.name) || '微信';
+        return {
+          flowNo: 'PAY-' + seed + ('0' + (idx + 1)).slice(-2) + '926528',
+          direction: '收款',
+          channel: '汇付',
+          payMethod: method,
+          status: '成功',
+          amount: formatMoneyYuan(leg.amount),
+          channelNo: '5620' + seed + String(idx + 3) + '230',
+          payTime: payTime
+        };
+      });
+    }
+    var tagPay = detail.tags && detail.tags.payChannel;
+    var method =
+      normalizeRetailPayMethod(tagPay) ||
+      (tagPay && tagPay !== '-' ? normalizeRetailPayMethod(tagPay) : '') ||
+      '微信';
+    if (!normalizeRetailPayMethod(method)) method = '微信';
+    return [
+      {
+        flowNo: 'PAY-' + seed + '344719926528',
+        direction: '收款',
+        channel: '汇付',
+        payMethod: method,
+        status: '成功',
+        amount: (detail.amounts && detail.amounts.paid) || '¥0.00',
+        channelNo: '5620' + seed + '9230',
+        payTime: payTime
+      }
+    ];
+  }
+
+  function buildPaymentPanel(payments) {
+    var list = payments || [];
+    if (!list.length) return buildEmptyState('暂无收款明细');
+    var wrap = el('div', 'order-detail-payment');
+    var table = el('table', 'order-detail-payment-table');
+    table.innerHTML =
+      '<thead><tr>' +
+      '<th>流水号</th>' +
+      '<th>方向</th>' +
+      '<th>通道</th>' +
+      '<th>支付方式</th>' +
+      '<th>状态</th>' +
+      '<th>金额</th>' +
+      '<th>通道流水</th>' +
+      '<th>支付时间</th>' +
+      '</tr></thead>';
+    var tbody = document.createElement('tbody');
+    list.forEach(function (p) {
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td title="' +
+        String(p.flowNo || '') +
+        '">' +
+        shortFlowId(p.flowNo, 18) +
+        '</td>' +
+        '<td><span class="order-detail-pay-tag">' +
+        (p.direction || '收款') +
+        '</span></td>' +
+        '<td>' +
+        (p.channel || '汇付') +
+        '</td>' +
+        '<td>' +
+        (p.payMethod || '—') +
+        '</td>' +
+        '<td><span class="order-detail-pay-tag">' +
+        (p.status || '成功') +
+        '</span></td>' +
+        '<td>' +
+        (p.amount || '—') +
+        '</td>' +
+        '<td title="' +
+        String(p.channelNo || '') +
+        '">' +
+        shortFlowId(p.channelNo, 16) +
+        '</td>' +
+        '<td>' +
+        (p.payTime || '—') +
+        '</td>';
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    return wrap;
+  }
+
+  function buildAmounts(amounts, payLegs) {
     var box = el('div', 'order-detail-amount-box');
+    var legs = (payLegs || []).filter(function (leg) {
+      return leg && leg.name && Number(leg.amount) > 0 && normalizeRetailPayMethod(leg.name);
+    });
+    var paidHtml;
+    if (legs.length >= 2) {
+      var legsRows = legs
+        .map(function (leg) {
+          return (
+            '<div class="order-detail-pay-leg-row">' +
+            '<span class="order-detail-pay-leg-name">' +
+            normalizeRetailPayMethod(leg.name) +
+            '</span>' +
+            '<span class="order-detail-pay-leg-amount">-¥' +
+            Number(leg.amount).toFixed(2) +
+            '</span>' +
+            '</div>'
+          );
+        })
+        .join('');
+      paidHtml =
+        '<div class="order-detail-amount-row order-detail-amount-row--paid order-detail-amount-row--paid-mixed">' +
+        '<span>买家实付</span>' +
+        '<span class="order-detail-paid-wrap">' +
+        '<span class="order-detail-paid-line">' +
+        '<span class="order-detail-paid-amount">' +
+        amounts.paid +
+        '</span>' +
+        '<button type="button" class="order-detail-pay-legs-toggle" aria-expanded="false" aria-label="展开支付明细">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
+        '<path d="M6 9l6 6 6-6"/></svg>' +
+        '</button>' +
+        '</span>' +
+        '<div class="order-detail-pay-legs" hidden>' +
+        legsRows +
+        '</div>' +
+        '</span>' +
+        '</div>';
+    } else {
+      paidHtml =
+        '<div class="order-detail-amount-row order-detail-amount-row--paid"><span>买家实付</span><span>' +
+        amounts.paid +
+        '</span></div>';
+    }
     box.innerHTML =
-      '<div class="order-detail-amount-row"><span>商品金额</span><span>' + amounts.goods + '</span></div>' +
-      '<div class="order-detail-amount-row"><span>优惠（促销+券+积分抵扣）</span><span>' + amounts.discount + '</span></div>' +
-      '<div class="order-detail-amount-row"><span>+ 运费</span><span>' + amounts.shipping + '</span></div>' +
-      '<div class="order-detail-amount-row order-detail-amount-row--due"><span>应付金额</span><span>' + amounts.payable + '</span></div>' +
-      '<div class="order-detail-amount-row order-detail-amount-row--paid"><span>买家实付</span><span>' + amounts.paid + '</span></div>' +
-      '<div class="order-detail-amount-foot"><span>商家实收 ' + amounts.merchant + '</span><span>退款 ' + amounts.refund + '</span></div>';
+      '<div class="order-detail-amount-row"><span>商品金额</span><span>' +
+      amounts.goods +
+      '</span></div>' +
+      '<div class="order-detail-amount-row"><span>优惠（促销+券+积分抵扣）</span><span>' +
+      amounts.discount +
+      '</span></div>' +
+      '<div class="order-detail-amount-row"><span>+ 运费</span><span>' +
+      amounts.shipping +
+      '</span></div>' +
+      '<div class="order-detail-amount-row order-detail-amount-row--due"><span>应付金额</span><span>' +
+      amounts.payable +
+      '</span></div>' +
+      paidHtml +
+      '<div class="order-detail-amount-foot"><span>商家实收 ' +
+      amounts.merchant +
+      '</span><span>退款 ' +
+      amounts.refund +
+      '</span></div>';
+
+    var toggle = box.querySelector('.order-detail-pay-legs-toggle');
+    var legsEl = box.querySelector('.order-detail-pay-legs');
+    if (toggle && legsEl) {
+      toggle.addEventListener('click', function () {
+        var expanded = toggle.getAttribute('aria-expanded') === 'true';
+        var next = !expanded;
+        toggle.setAttribute('aria-expanded', next ? 'true' : 'false');
+        toggle.setAttribute('aria-label', next ? '收起支付明细' : '展开支付明细');
+        toggle.classList.toggle('is-expanded', next);
+        legsEl.hidden = !next;
+      });
+    }
     return box;
   }
 
   function buildEmptyState(text) {
     return el('div', 'order-detail-empty', '<div class="order-detail-empty__icon" aria-hidden="true"></div>' + text);
+  }
+
+  function clearingTag(text, tone) {
+    return (
+      '<span class="order-clearing-tag order-clearing-tag--' +
+      (tone || 'muted') +
+      '">' +
+      text +
+      '</span>'
+    );
+  }
+
+  function clearingSummaryText(summary) {
+    var s = summary || {};
+    return (
+      '共 ' +
+      (s.skuCount != null ? s.skuCount : 0) +
+      ' SKU · ' +
+      (s.itemCount != null ? s.itemCount : 0) +
+      ' 个清分项 · 待清分 ' +
+      (s.pending != null ? s.pending : 0) +
+      ' · 已清分 ' +
+      (s.cleared != null ? s.cleared : 0) +
+      ' · 异常 ' +
+      (s.abnormal != null ? s.abnormal : 0)
+    );
+  }
+
+  /**
+   * SKU 维度清分明细（对齐订单详情截图：收款方/账户/分佣规则/金额/清分结算/入账）
+   * 供应商采购成本 = 采购价 × 售卖系数 × 用户单品下单数量
+   */
+  function buildSkuClearingBody(clearing) {
+    var wrap = el('div', 'order-detail-clearing order-detail-clearing--sku');
+    var skus = clearing.skus || [];
+    skus.forEach(function (sku) {
+      var block = el('div', 'order-clearing-sku');
+      var head = el('div', 'order-clearing-sku__head');
+      head.innerHTML =
+        '<div class="order-clearing-sku__title">' +
+        '<span class="order-clearing-sku__badge">SKU</span>' +
+        '<span class="order-clearing-sku__name">' +
+        (sku.name || '—') +
+        '</span>' +
+        '</div>' +
+        '<div class="order-clearing-sku__metrics">' +
+        '<span>实付 <em>' +
+        (sku.paid || '¥0.00') +
+        '</em></span>' +
+        '<span>角色分佣 <em>' +
+        (sku.roleCommission || '¥0.00') +
+        '</em></span>' +
+        '<span>供应商采购成本 <em>' +
+        (sku.supplierCost || '¥0.00') +
+        '</em></span>' +
+        '<span>毛利率 ' +
+        clearingTag(sku.marginRate || '0.00%', 'success-soft') +
+        '</span>' +
+        '</div>';
+      block.appendChild(head);
+
+      var tableWrap = el('div', 'order-clearing-table-wrap');
+      var table = el('table', 'order-clearing-table');
+      table.innerHTML =
+        '<colgroup>' +
+        '<col class="order-clearing-table__col order-clearing-table__col--payee">' +
+        '<col class="order-clearing-table__col order-clearing-table__col--account">' +
+        '<col class="order-clearing-table__col order-clearing-table__col--method">' +
+        '<col class="order-clearing-table__col order-clearing-table__col--strategy">' +
+        '<col class="order-clearing-table__col order-clearing-table__col--amount">' +
+        '<col class="order-clearing-table__col order-clearing-table__col--amount">' +
+        '<col class="order-clearing-table__col order-clearing-table__col--status">' +
+        '<col class="order-clearing-table__col order-clearing-table__col--book">' +
+        '</colgroup>' +
+        '<thead>' +
+        '<tr>' +
+        '<th rowspan="2">收款方</th>' +
+        '<th rowspan="2">账户</th>' +
+        '<th colspan="2" class="order-clearing-table__group">分佣规则</th>' +
+        '<th colspan="2" class="order-clearing-table__group">金额（元）</th>' +
+        '<th colspan="2" class="order-clearing-table__group">流转状态</th>' +
+        '</tr>' +
+        '<tr>' +
+        '<th>分佣方式</th><th>命中策略</th>' +
+        '<th>应收</th><th>实收</th>' +
+        '<th>清分 / 结算</th><th>入账 / 异常</th>' +
+        '</tr>' +
+        '</thead>';
+      var tbody = document.createElement('tbody');
+      (sku.rows || []).forEach(function (row) {
+        var tr = document.createElement('tr');
+        var roleHtml = row.role
+          ? '<span class="order-clearing-payee__role">' + row.role + '</span>'
+          : '';
+        var subRoleHtml = row.subRole
+          ? '<span class="order-clearing-payee__sub">' + row.subRole + '</span>'
+          : '';
+        var strategyHtml =
+          '<div class="order-clearing-strategy">' +
+          (row.strategyDefault
+            ? clearingTag('默认策略', 'warning-outline')
+            : '') +
+          (row.strategyName
+            ? clearingTag(row.strategyName, 'muted-outline')
+            : '') +
+          '</div>';
+        tr.innerHTML =
+          '<td class="order-clearing-table__td--payee">' +
+          '<div class="order-clearing-payee">' +
+          '<div class="order-clearing-payee__name">' +
+          (row.payee || '—') +
+          '</div>' +
+          '<div class="order-clearing-payee__meta">' +
+          roleHtml +
+          subRoleHtml +
+          '</div>' +
+          '</div>' +
+          '</td>' +
+          '<td class="order-clearing-table__td--account">' +
+          (row.account || '—') +
+          '</td>' +
+          '<td class="order-clearing-table__td--method">' +
+          (row.method || '—') +
+          '</td>' +
+          '<td class="order-clearing-table__td--strategy">' +
+          strategyHtml +
+          '</td>' +
+          '<td class="order-clearing-table__td--amount">' +
+          (row.receivable || '¥0.00') +
+          '</td>' +
+          '<td class="order-clearing-table__td--amount">' +
+          (row.received || '¥0.00') +
+          '</td>' +
+          '<td class="order-clearing-table__td--status">' +
+          clearingTag(row.clearStatus || '待清分', row.clearStatus === '已清分' ? 'success' : 'muted') +
+          clearingTag(row.settleStatus || '待结算', 'muted') +
+          '</td>' +
+          '<td class="order-clearing-table__td--status">' +
+          clearingTag(row.bookStatus || '待入账', 'muted') +
+          '</td>';
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      tableWrap.appendChild(table);
+      block.appendChild(tableWrap);
+
+      var foot = el('div', 'order-clearing-sku__foot');
+      foot.innerHTML =
+        '<span class="order-clearing-sku__foot-label">SKU 小计</span>' +
+        '<span>应收 <em>' +
+        (sku.receivable || '¥0.00') +
+        '</em></span>' +
+        '<span>' +
+        (sku.clearedCount != null ? sku.clearedCount : 0) +
+        '/' +
+        (sku.totalCount != null ? sku.totalCount : 0) +
+        ' 已清分 · ' +
+        (sku.abnormalCount != null ? sku.abnormalCount : 0) +
+        ' 异常</span>';
+      block.appendChild(foot);
+      wrap.appendChild(block);
+    });
+
+    var orderFoot = el('div', 'order-clearing-order-total');
+    orderFoot.innerHTML =
+      '<span class="order-clearing-order-total__label">订单清分合计</span>' +
+      '<span>应收 <em>' +
+      (clearing.orderReceivable || '¥0.00') +
+      '</em></span>' +
+      '<span>' +
+      (clearing.orderClearedText || '0/0 已清分') +
+      ' · ' +
+      (clearing.orderAbnormal != null ? clearing.orderAbnormal : 0) +
+      ' 异常</span>';
+    wrap.appendChild(orderFoot);
+    return wrap;
+  }
+
+  /**
+   * 结算规则：用户支付后即生成清分明细。
+   * - 未配置门店佣金比例：仍有供应商结算 + 平台分佣，不生成门店/商户清分项
+   * - 已配置门店佣金比例：含门店（及策略内其他角色）清分项
+   * 优先渲染 SKU 维度清分（clearing.skus），否则回退门店明细表。
+   */
+  function buildClearingBody(detail) {
+    var clearing = detail.clearing || {};
+    if (!detail.clearingEmpty && clearing.skus && clearing.skus.length) {
+      return buildSkuClearingBody(clearing);
+    }
+
+    var storeRows = clearing.storeRows || detail.clearingStoreRows || [];
+    var rateConfigured =
+      detail.storeCommissionRate != null && detail.storeCommissionRate !== '';
+    var hasStoreClearing = !detail.clearingEmpty && storeRows.length > 0 && rateConfigured;
+
+    if (!hasStoreClearing) {
+      return buildEmptyState(detail.clearingEmptyReason || '暂无清分明细');
+    }
+
+    var wrap = el('div', 'order-detail-clearing');
+    wrap.appendChild(el('div', 'order-detail-clearing__subtitle', '门店明细'));
+    var table = el('table', 'order-detail-goods-table order-detail-clearing-table');
+    table.innerHTML =
+      '<thead><tr>' +
+      '<th>分账方</th><th>名称</th><th>佣金比例</th><th>清分金额</th><th>状态</th><th>说明</th>' +
+      '</tr></thead>';
+    var tbody = document.createElement('tbody');
+    storeRows.forEach(function (row) {
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' +
+        (row.party || '门店') +
+        '</td><td>' +
+        (row.name || '—') +
+        '</td><td>' +
+        (row.rate || '—') +
+        '</td><td>' +
+        (row.amount || '—') +
+        '</td><td>' +
+        (row.status || '已生成') +
+        '</td><td>' +
+        (row.remark || '—') +
+        '</td>';
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    return wrap;
   }
 
   function buildKv(rows) {
@@ -1809,12 +2653,17 @@
     progressCard.appendChild(stepsEl);
     main.appendChild(progressCard);
 
+    var payments = ensureDetailPayments(detail);
+    var payLegs = cashPayLegsOf(detail);
+    var paymentCount = isProxyWalletPayFeature()
+      ? payments.length || Number(detail.paymentCount) || 0
+      : payments.length;
     var docCard = el('div', 'order-detail-card');
     docCard.appendChild(el('h3', 'order-detail-card__title', '单据明细'));
     var tabs = el('div', 'order-detail-doc-tabs');
     var tabDefs = [
       { id: 'goods', label: '商品明细' },
-      { id: 'payment', label: '收款明细 (' + detail.paymentCount + ')' },
+      { id: 'payment', label: '收款明细 (' + paymentCount + ')' },
       { id: 'discount', label: '折扣明细' },
       { id: 'aftersale', label: '售后明细' }
     ];
@@ -1830,7 +2679,7 @@
       if (tab.id === 'goods') {
         var goodsPanel = buildGoodsPanel(goods, pickupMode, detail.aftersales);
         panel.appendChild(goodsPanel);
-        panel.appendChild(buildAmounts(detail.amounts));
+        panel.appendChild(buildAmounts(detail.amounts || {}, payLegs));
         if (drawer && pickupMode) {
           drawer._pickupRefs = drawer._pickupRefs || {};
           drawer._pickupRefs.goodsPanel = goodsPanel;
@@ -1841,7 +2690,7 @@
           drawer._pickupRefs.aftersales = detail.aftersales || [];
         }
       } else if (tab.id === 'payment') {
-        panel.appendChild(buildEmptyState('暂无收款明细'));
+        panel.appendChild(buildPaymentPanel(payments));
       } else if (tab.id === 'aftersale') {
         panel.appendChild(buildAftersalePanel(detail.aftersales));
       } else {
@@ -1867,14 +2716,25 @@
     var clearingCard = el('div', 'order-detail-card');
     var clearingHead = el('div', 'order-detail-card__head');
     clearingHead.appendChild(el('h3', 'order-detail-card__title', '清分明细'));
-    var recalcBtn = el('button', 'order-detail-btn order-detail-btn--primary', '重算分佣');
-    recalcBtn.type = 'button';
-    recalcBtn.addEventListener('click', function () {
-      if (typeof showToast === 'function') showToast('重算分佣已提交（演示）', 'success');
-    });
-    clearingHead.appendChild(recalcBtn);
+    var hasSkuClearing =
+      !detail.clearingEmpty &&
+      detail.clearing &&
+      detail.clearing.skus &&
+      detail.clearing.skus.length;
+    if (hasSkuClearing) {
+      clearingHead.appendChild(
+        el('div', 'order-clearing-summary', clearingSummaryText(detail.clearing.summary))
+      );
+    } else {
+      var recalcBtn = el('button', 'order-detail-btn order-detail-btn--primary', '重算分佣');
+      recalcBtn.type = 'button';
+      recalcBtn.addEventListener('click', function () {
+        if (typeof showToast === 'function') showToast('重算分佣已提交（演示）', 'success');
+      });
+      clearingHead.appendChild(recalcBtn);
+    }
     clearingCard.appendChild(clearingHead);
-    clearingCard.appendChild(buildEmptyState('暂无清分明细'));
+    clearingCard.appendChild(buildClearingBody(detail));
     main.appendChild(clearingCard);
 
     var logCard = el('div', 'order-detail-card');

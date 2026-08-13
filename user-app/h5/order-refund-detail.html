@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>退款详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
-  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260728-hide-restock-qty">
+  <link rel="stylesheet" href="../css/user-app-order-refund.css?v=20260809-refund-channels">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-order-refund-detail-page">
@@ -48,12 +48,11 @@
       </section>
 
       <section class="ua-or-card ua-or-result-breakdown" id="refundResultBreakdown" hidden>
-        <div class="ua-or-result-breakdown__total">
-          <span class="ua-or-result-breakdown__icon" aria-hidden="true">¥</span>
-          <span class="ua-or-result-breakdown__label">退款总金额</span>
-          <span class="ua-or-result-breakdown__amount" id="refundResultTotalAmount">¥0.00</span>
-        </div>
+        <h2 class="ua-or-result-breakdown__title" id="refundResultBreakdownTitle">退款成功</h2>
         <ul class="ua-or-result-breakdown__list" id="refundResultBreakdownList"></ul>
+        <!-- 兼容旧脚本节点 -->
+        <span id="refundResultTotalAmount" hidden></span>
+        <button type="button" id="refundResultLegsToggle" hidden aria-hidden="true"></button>
       </section>
 
       <section class="ua-or-card ua-or-result-message" id="refundResultMessage" hidden>
@@ -370,7 +369,9 @@
 
     <div class="ua-or-toast" id="refundDetailToast" hidden></div>
   </div>
-  <script src="../js/user-app-order-refund.js?v=20260730-restock-close"></script>
+  <script src="../js/user-app-orders-store.js?v=20260808-item-paylegs"></script>
+  <script src="../../js/store-wallet-demo.js?v=20260810-wallet-v24"></script>
+  <script src="../js/user-app-order-refund.js?v=20260809-wallet-refund-ledger"></script>
   <script>UAOrderRefund.initDetailPage();</script>
 </body>
 </html>

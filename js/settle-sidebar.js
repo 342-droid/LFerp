@@ -1,4 +1,4 @@
-/* 结算专用侧栏：结算中心 / 费用配置（运费配置） */
+/* 结算专用侧栏：结算中心 / 费用配置（运费配置、账户配置） */
 (function () {
     var wp = window.wmsPath || {
         page: function (f) {
@@ -22,6 +22,7 @@
         return;
     }
 
+    /* 账户配置已迁至基础设置 / 门店配置；结算侧栏费用配置仅保留运费 */
     var feeConfigItems = [{ href: 'mdm_settle_freight_config.html', text: '运费配置' }];
 
     function pageMatches(href) {
@@ -32,6 +33,8 @@
     var isFeeSection = feeConfigItems.some(function (item) {
         return pageMatches(item.href);
     });
+    /* 旧账户配置页会跳转到门店配置；停留在结算域时仍高亮费用配置 */
+    if (pageMatches('mdm_settle_account_config.html')) isFeeSection = true;
 
     var feeSubmenuHtml = feeConfigItems
         .map(function (item) {

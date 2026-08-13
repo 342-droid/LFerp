@@ -1,0 +1,427 @@
+/* 门店 APP 商户进件：白底壳 + 门店橙主色；表单样式复用 BD mdm-bd-mobile */
+
+.sa-ob-shell {
+  --bd-primary: #ff6a00;
+  --bd-primary-soft: rgba(255, 106, 0, 0.12);
+  --bd-text: #171717;
+  --bd-muted: #8b8b8b;
+  --bd-border: #e5e7eb;
+  --bd-card: #fff;
+  --bd-destructive: #df2638;
+  background: #f5f5f5;
+}
+
+.sa-ob {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #f5f5f5;
+  overflow: hidden;
+}
+
+.sa-ob-nav {
+  flex-shrink: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 48px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.sa-ob-nav__back {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #222;
+  text-decoration: none;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.sa-ob-nav__back svg {
+  width: 22px;
+  height: 22px;
+}
+
+.sa-ob-nav__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #111;
+}
+
+.sa-ob-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px 16px calc(108px + env(safe-area-inset-bottom));
+}
+
+.sa-ob-scroll--hub {
+  padding-bottom: 28px;
+}
+
+/* 状态总览 */
+.sa-ob-status {
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.sa-ob-status__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.sa-ob-status__badge.is-none {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.sa-ob-status__badge.is-draft {
+  background: #fff7ef;
+  color: #ff6a00;
+}
+
+.sa-ob-status__badge.is-pending {
+  background: #fff7ef;
+  color: #d97706;
+}
+
+.sa-ob-status__badge.is-ok {
+  background: #ecfdf5;
+  color: #15803d;
+}
+
+.sa-ob-status__badge.is-fail {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.sa-ob-status__title {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111;
+}
+
+.sa-ob-status__desc {
+  margin: 0;
+  font-size: 13px;
+  color: #888;
+  line-height: 1.5;
+}
+
+.sa-ob-status__reject {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* 审核流程（与 PC 门店进件一致） */
+.sa-ob-flow {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px 14px 8px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.sa-ob-flow__head {
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #222;
+}
+
+.sa-ob-flow__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sa-ob-flow__list li {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  padding: 0 0 16px 0;
+}
+
+.sa-ob-flow__list li:last-child {
+  padding-bottom: 4px;
+}
+
+.sa-ob-flow__list li:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 24px;
+  bottom: 0;
+  width: 2px;
+  background: #e5e7eb;
+}
+
+.sa-ob-flow__list li.is-done:not(:last-child)::before,
+.sa-ob-flow__list li.is-current:not(:last-child)::before {
+  background: rgba(255, 106, 0, 0.35);
+}
+
+.sa-ob-flow__dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  background: #edf2f7;
+  color: #94a3b8;
+  z-index: 1;
+}
+
+.sa-ob-flow__list li.is-done .sa-ob-flow__dot {
+  background: #ff6a00;
+  color: #fff;
+}
+
+.sa-ob-flow__list li.is-current .sa-ob-flow__dot {
+  background: #ff6a00;
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 106, 0, 0.18);
+}
+
+.sa-ob-flow__list li.is-fail .sa-ob-flow__dot {
+  background: #dc2626;
+  color: #fff;
+}
+
+.sa-ob-flow__main {
+  flex: 1;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.sa-ob-flow__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.sa-ob-flow__list li.is-todo .sa-ob-flow__name {
+  color: #9ca3af;
+}
+
+.sa-ob-flow__tip {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #999;
+}
+
+.sa-ob-hub-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.sa-ob-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 46px;
+  border-radius: 12px;
+  border: 0;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sa-ob-btn--primary {
+  background: #ff6a00;
+  color: #fff;
+}
+
+.sa-ob-btn--primary:active {
+  opacity: 0.92;
+}
+
+.sa-ob-btn--ghost {
+  background: #fff;
+  color: #333;
+  border: 1px solid #e5e7eb;
+}
+
+.sa-ob-note {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* 步进条：门店橙 */
+.sa-ob-shell .bd-onboard-steps {
+  top: 0;
+  margin: 0 0 14px;
+}
+
+.sa-ob-shell .bd-onboard-steps button.done::before,
+.sa-ob-shell .bd-onboard-steps button.active::before {
+  background: rgba(255, 106, 0, 0.45);
+}
+
+.sa-ob-shell .bd-onboard-steps button.done span,
+.sa-ob-shell .bd-onboard-steps button.active span {
+  background: linear-gradient(180deg, #ff8a33, #ff6a00);
+  box-shadow: 0 4px 10px rgba(255, 106, 0, 0.28);
+}
+
+.sa-ob-shell .bd-onboard-steps button.active em {
+  color: #ff6a00;
+}
+
+.sa-ob-shell .bd-license-photo-frame .corner {
+  border-color: #ff6a00;
+}
+
+.sa-ob-shell .bd-license-view,
+.sa-ob-shell .bd-open-license-upload {
+  color: #ff6a00;
+}
+
+.sa-ob-shell .bd-open-license-upload {
+  border-color: rgba(255, 106, 0, 0.28);
+  background: rgba(255, 106, 0, 0.08);
+}
+
+.sa-ob-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.97);
+  border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.sa-ob-footer .bd-btn {
+  flex: 1;
+  border-radius: 12px;
+  height: 44px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sa-ob-footer .bd-btn-primary {
+  background: #ff6a00;
+  border-color: #ff6a00;
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(255, 106, 0, 0.28);
+}
+
+.sa-ob-footer .bd-btn-outline {
+  box-shadow: none;
+  color: #333;
+}
+
+.sa-ob-img {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  background: rgba(0, 0, 0, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+}
+
+.sa-ob-img[hidden] {
+  display: none !important;
+}
+
+.sa-ob-img img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.sa-ob-img__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: none;
+  color: #fff;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.sa-ob-toast {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  z-index: 120;
+  max-width: 78%;
+  padding: 12px 18px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+}
+
+.sa-ob-toast[hidden] {
+  display: none !important;
+}
+
+.sa-ob-readonly-tip {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff7ef;
+  color: #b45309;
+  font-size: 12px;
+  line-height: 1.45;
+}

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>确认订单 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
-  <link rel="stylesheet" href="../css/user-app-checkout.css">
+  <link rel="stylesheet" href="../css/user-app-checkout.css?v=20260808-points-row-hide">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-checkout-page" id="checkoutShell">
@@ -47,40 +47,6 @@
         <!-- 供应商 + 包裹 -->
         <div id="checkoutSupplierList"></div>
 
-        <!-- 支付方式：余额 + 微信/支付宝混合 -->
-        <section class="ua-co-card ua-co-payways" id="checkoutPayWays">
-          <div class="ua-co-payways__title">支付方式</div>
-          <label class="ua-co-payway">
-            <span class="ua-co-payway__main">
-              <span class="ua-co-payway__name">钱包余额</span>
-              <span class="ua-co-payway__hint" id="checkoutWalletHint">可用 ¥0.00</span>
-            </span>
-            <input type="checkbox" id="checkoutUseBalance" checked>
-          </label>
-          <div class="ua-co-payway-split" id="checkoutPaySplit" hidden>
-            <div class="ua-co-payway-split__row"><span>余额支付</span><strong id="checkoutBalanceLeg">¥0.00</strong></div>
-            <div class="ua-co-payway-split__row"><span>渠道补差</span><strong id="checkoutChannelLeg">¥0.00</strong></div>
-          </div>
-          <div class="ua-co-payway-channels" id="checkoutChannelBlock" role="radiogroup" aria-label="收单渠道">
-            <div class="ua-co-payways__sub">渠道补差（余额不足时）</div>
-            <label class="ua-co-payway ua-co-payway--radio">
-              <span class="ua-co-payway__left">
-                <span class="ua-co-payway__icon ua-co-payway__icon--wx" aria-hidden="true"></span>
-                <span class="ua-co-payway__name">微信支付</span>
-              </span>
-              <input type="radio" name="checkoutChannel" value="wechat" checked>
-            </label>
-            <label class="ua-co-payway ua-co-payway--radio">
-              <span class="ua-co-payway__left">
-                <span class="ua-co-payway__icon ua-co-payway__icon--ali" aria-hidden="true"></span>
-                <span class="ua-co-payway__name">支付宝</span>
-              </span>
-              <input type="radio" name="checkoutChannel" value="alipay">
-            </label>
-          </div>
-          <p class="ua-co-payways__tip" id="checkoutPayTip">余额不足时可用微信/支付宝补足差额</p>
-        </section>
-
         <!-- 优惠券 / 积分 / 发票 -->
         <section class="ua-co-card ua-co-options">
           <button type="button" class="ua-co-row" id="checkoutCouponRow">
@@ -90,7 +56,7 @@
           </button>
           <div class="ua-co-row ua-co-row--static">
             <span class="ua-co-row__label">积分抵扣</span>
-            <span class="ua-co-row__hint" id="checkoutPointsHint">可用1200积分，抵¥12.00</span>
+            <span class="ua-co-row__hint" id="checkoutPointsHint">可用1200积分</span>
             <label class="ua-co-switch">
               <input type="checkbox" class="ua-co-switch__input" id="checkoutPointsToggle">
               <span class="ua-co-switch__track"></span>
@@ -118,14 +84,49 @@
           </div>
           <div class="ua-co-summary__row ua-co-summary__row--discount"><span>活动优惠</span><span id="checkoutActivityDiscount">-¥0.00</span></div>
           <div class="ua-co-summary__row ua-co-summary__row--discount" id="checkoutCouponDiscountRow"><span>优惠券</span><span id="checkoutCouponDiscount">-¥10.00</span></div>
-          <div class="ua-co-summary__row ua-co-summary__row--discount" id="checkoutPointsDiscountRow" hidden><span>积分抵扣</span><span id="checkoutPointsDiscount">-¥12.00</span></div>
-          <div class="ua-co-summary__row ua-co-summary__row--total"><span>应付金额</span><span id="checkoutPayable">¥0.00</span></div>
+          <div class="ua-co-summary__row ua-co-summary__row--discount" id="checkoutPointsDiscountRow" hidden><span>积分抵扣</span><span id="checkoutPointsDiscount"></span></div>
+          <div class="ua-co-summary__row ua-co-summary__row--total"><span>小计</span><span id="checkoutPayable">¥0.00</span></div>
+        </section>
+
+        <!-- 钱包余额开关；不足时用下方支付宝/微信补足 -->
+        <section class="ua-co-card ua-co-payways" id="checkoutPayWays">
+          <div class="ua-co-row ua-co-row--static ua-co-row--wallet">
+            <span class="ua-co-row__label">钱包余额</span>
+            <span class="ua-co-row__hint" id="checkoutWalletHint">已抵扣 ¥0.00</span>
+            <label class="ua-co-switch">
+              <input type="checkbox" class="ua-co-switch__input" id="checkoutUseBalance" checked>
+              <span class="ua-co-switch__track"></span>
+            </label>
+          </div>
+        </section>
+
+        <!-- 支付宝 / 微信支付（对齐设计稿） -->
+        <section class="ua-co-card ua-co-channel" id="checkoutChannelCard" role="radiogroup" aria-label="支付方式">
+          <button type="button" class="ua-co-channel__option" data-channel="alipay" role="radio" aria-checked="false">
+            <span class="ua-co-channel__left">
+              <span class="ua-co-channel__icon ua-co-channel__icon--alipay" aria-hidden="true">支</span>
+              <span class="ua-co-channel__name">支付宝</span>
+            </span>
+            <span class="ua-co-channel__radio" aria-hidden="true"></span>
+          </button>
+          <button type="button" class="ua-co-channel__option" data-channel="wechat" role="radio" aria-checked="false">
+            <span class="ua-co-channel__left">
+              <span class="ua-co-channel__icon ua-co-channel__icon--wechat" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
+                  <path fill="#fff" d="M9.2 7.2c-3.1 0-5.6 2.1-5.6 4.7 0 1.5.8 2.9 2.1 3.8l-.5 1.6 1.9-1c.7.2 1.4.3 2.1.3.3 0 .6 0 .9-.1-.2-.5-.3-1.1-.3-1.6 0-2.7 2.6-4.9 5.8-4.9.2 0 .3 0 .5 0C15.5 8.5 12.6 7.2 9.2 7.2zm-2.2 2.2a.75.75 0 110 1.5.75.75 0 010-1.5zm4.3 0a.75.75 0 110 1.5.75.75 0 010-1.5z"/>
+                  <path fill="#fff" d="M17.4 12.2c-2.7 0-4.9 1.8-4.9 4.1 0 1.3.7 2.5 1.9 3.3l-.4 1.3 1.6-.8c.6.2 1.2.3 1.8.3 2.7 0 4.9-1.8 4.9-4.1s-2.2-4.1-4.9-4.1zm-1.7 2.7a.65.65 0 110 1.3.65.65 0 010-1.3zm3.4 0a.65.65 0 110 1.3.65.65 0 010-1.3z"/>
+                </svg>
+              </span>
+              <span class="ua-co-channel__name">微信支付</span>
+            </span>
+            <span class="ua-co-channel__radio" aria-hidden="true"></span>
+          </button>
         </section>
       </div>
     </div>
 
     <footer class="ua-co-footer" id="checkoutFooter">
-      <div class="ua-co-footer__total">应付：<strong id="checkoutFooterTotal">¥0.00</strong></div>
+      <div class="ua-co-footer__total">待支付：<strong id="checkoutFooterTotal">¥0.00</strong></div>
       <button type="button" class="ua-co-footer__submit" id="checkoutSubmitBtn">提交订单</button>
     </footer>
 
@@ -211,7 +212,20 @@
       </div>
     </div>
 
-    <!-- 支付密码 -->
+    <!-- 余额不足：选择支付方式（对齐充值页选卡交互） -->
+    <div class="ua-co-sheet" id="checkoutMethodSheet" hidden>
+      <div class="ua-co-sheet__mask" data-sheet-close="method"></div>
+      <div class="ua-co-sheet__panel ua-co-sheet__panel--method">
+        <div class="ua-co-sheet__head">
+          <h3 class="ua-co-sheet__title">选择支付方式</h3>
+          <button type="button" class="ua-co-sheet__close" data-sheet-close="method" aria-label="关闭">×</button>
+        </div>
+        <div class="ua-co-method-sheet__amount">还需支付 <strong id="checkoutMethodAmount">¥0.00</strong></div>
+        <div class="ua-co-method-sheet__list" id="checkoutMethodList" role="listbox" aria-label="支付方式"></div>
+      </div>
+    </div>
+
+    <!-- 支付密码（余额充足 / 快捷银行卡） -->
     <div class="ua-co-sheet" id="checkoutPaySheet" hidden>
       <div class="ua-co-sheet__mask" data-sheet-close="pay"></div>
       <div class="ua-co-sheet__panel ua-co-sheet__panel--pay">
@@ -220,8 +234,8 @@
           <div class="ua-co-pay__title">确认付款</div>
           <div class="ua-co-pay__amount" id="checkoutPayAmount">¥0.00</div>
           <div class="ua-co-pay__method" id="checkoutPayMethod">
-            <svg viewBox="0 0 24 24" fill="#09BB07"><circle cx="12" cy="12" r="11"/><path d="M8 10c1.5 2 3 3 4 3s2.5-1 4-3" stroke="#fff" stroke-width="1.5" fill="none"/></svg>
-            <span id="checkoutPayMethodText">微信支付</span>
+            <svg viewBox="0 0 24 24" fill="#FF7A00"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18" stroke="#fff" stroke-width="1.2"/><circle cx="16.5" cy="14.5" r="1.2" fill="#fff"/></svg>
+            <span id="checkoutPayMethodText">钱包余额</span>
           </div>
           <div class="ua-co-pay__split" id="checkoutPaySheetSplit" hidden></div>
           <div class="ua-co-pay__pwd-label">请输入支付密码</div>
@@ -252,7 +266,9 @@
     </div>
   </div>
   <script src="../../js/mdm-supplier-archive-store.js"></script>
-  <script src="../../js/store-wallet-demo.js"></script>
-  <script src="../js/user-app-checkout.js?v=20260803-wallet-pay"></script>
+  <script src="../../js/store-wallet-demo.js?v=20260810-wallet-v24"></script>
+  <script src="../../js/store-bind-card-demo.js"></script>
+  <script src="../js/user-app-orders-store.js?v=20260808-item-paylegs"></script>
+  <script src="../js/user-app-checkout.js?v=20260808-points-off"></script>
 </body>
 </html>

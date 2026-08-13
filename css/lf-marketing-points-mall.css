@@ -136,6 +136,7 @@
 }
 
 .mkt-points-mall-table {
+  width: 100%;
   min-width: 1360px;
 }
 
@@ -150,6 +151,7 @@
 .mkt-points-mall-table__col--stock { width: 78px; }
 .mkt-points-mall-table__col--delivery { width: 88px; }
 .mkt-points-mall-table__col--type { width: 96px; }
+.mkt-points-mall-table__col--scope { width: 110px; }
 .mkt-points-mall-table__col--exchange { width: 120px; }
 .mkt-points-mall-table__col--qty { width: 96px; }
 .mkt-points-mall-table__col--status { width: 72px; }
@@ -912,4 +914,137 @@
 
 .mkt-points-mall-banner-add {
   margin-top: 12px;
+}
+
+/* —— 积分商城列表：小屏适配 —— */
+/* 列表页内容区铺满主栏，大屏不再旁侧大块留白 */
+.mkt-points-mall-page {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+.mkt-points-mall-page .search-section,
+.mkt-points-mall-page .mkt-points-mall-enable-bar,
+.mkt-points-mall-page .mkt-points-mall-toolbar,
+.mkt-points-mall-page .table-section {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+.mkt-points-mall-page .table-section {
+  min-width: 0;
+}
+
+.mkt-points-mall-page .table-scroll-container.product-table-wrap {
+  width: 100%;
+  max-width: none;
+  overflow-x: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: normal;
+  max-height: calc(100vh - 280px);
+}
+
+.mkt-points-mall-page .mkt-points-mall-table {
+  width: 100%;
+  min-width: 1360px;
+  max-width: none;
+  table-layout: fixed;
+}
+
+.mkt-points-mall-page .mkt-points-mall-table th,
+.mkt-points-mall-page .mkt-points-mall-table td {
+  white-space: normal;
+  word-break: break-word;
+}
+
+.mkt-points-mall-page .mkt-points-mall-table .mkt-points-mall-schedule-cell,
+.mkt-points-mall-page .mkt-points-mall-table .action-links {
+  white-space: nowrap;
+}
+
+@media (max-width: 1200px) {
+  .mkt-points-mall-page {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .mkt-points-mall-enable-bar {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  #pointsMallFilterForm.search-form > .form-group {
+    flex: 1 1 160px;
+    max-width: 100%;
+  }
+
+  #pointsMallFilterForm .form-group > input,
+  #pointsMallFilterForm .form-group > select,
+  #pointsMallFilterForm .form-group > .input-wrapper,
+  #pointsMallFilterForm .form-group > .input-wrapper > input {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  #pointsMallFilterForm .form-group--points-range .mkt-points-mall-range {
+    width: 100%;
+    min-width: 0;
+  }
+
+  #pointsMallFilterForm .form-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .mkt-points-mall-toolbar {
+    align-items: flex-start;
+  }
+
+  .mkt-points-mall-toolbar-tip {
+    flex: 1 1 100%;
+    line-height: 1.5;
+  }
+
+  .mkt-points-mall-page .product-pagination {
+    align-items: flex-start;
+  }
+
+  .mkt-points-mall-page .product-pagination__right {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .mkt-points-mall-page .table-scroll-container.product-table-wrap {
+    max-height: calc(100vh - 240px);
+  }
+
+  .mkt-points-mall-page .mkt-points-mall-table {
+    min-width: 1200px;
+    font-size: 12px;
+  }
+
+  .mkt-points-mall-page .mkt-points-mall-table th,
+  .mkt-points-mall-page .mkt-points-mall-table td {
+    padding: 8px 10px;
+  }
+
+  .mkt-points-mall-enable-bar__desc {
+    font-size: 12px;
+  }
+}
+
+/* 适用范围二级联动筛选：默认隐藏，避免被 .form-group{display:flex} 顶开 */
+.mkt-points-mall-page .search-form > .form-group[hidden],
+.mkt-points-mall-page .search-form > .form-group.pts-sale-filter-extra[hidden] {
+  display: none !important;
+}
+.mkt-points-mall-page .search-section,
+.mkt-points-mall-page .search-form,
+.mkt-points-mall-page .search-form > .form-group.pts-sale-filter-extra {
+  overflow: visible;
 }

@@ -646,26 +646,77 @@
         deductRow.hidden = true;
       }
     }
-    var exchangeRow = document.getElementById('orderExchangePointsRow');
-    var exchangeEl = document.getElementById('orderExchangePoints');
-    if (exchangeRow && exchangeEl) {
-      if (Number(order.exchangePoints) > 0) {
-        exchangeRow.hidden = false;
-        exchangeEl.textContent = Number(order.exchangePoints) + '积分';
-      } else {
-        exchangeRow.hidden = false;
-        exchangeEl.textContent = '0积分';
-        /* 有积分兑换行才强调展示；纯普通单也显示 0 便于验收 */
-        if (!(order.items || []).some(function (it) { return it.isPointsExchange; })) {
-          exchangeRow.hidden = true;
-        }
-      }
-    }
     var payTotalEl = document.getElementById('orderPayTotal');
     if (payTotalEl) {
       payTotalEl.textContent = order.payLabel || '¥' + Number(order.payable || 0).toFixed(2);
     }
+    applyOrderPayDisplay(order);
     return order;
+  }
+
+  /** 混合支付：支付方式透出名称；实付旁展开收起明细（默认收起）；单一支付不展示图标 */
+  function applyOrderPayDisplay(order) {
+    var legs = (order && Array.isArray(order.payLegs) ? order.payLegs : []).filter(function (leg) {
+      return leg && leg.name && Number(leg.amount) > 0;
+    });
+    var methodEl = document.getElementById('orderPayMethodValue');
+    var legsEl = document.getElementById('orderPayLegs');
+    var toggle = document.getElementById('orderPayLegsToggle');
+    var methodNames =
+      (order && order.payMethod) ||
+      legs
+        .map(function (leg) {
+          return leg.name;
+        })
+        .join('、');
+
+    if (methodEl) {
+      if (methodNames) methodEl.textContent = methodNames;
+    }
+
+    if (!legsEl) return;
+    if (legs.length >= 2) {
+      legsEl.hidden = true;
+      legsEl.innerHTML = legs
+        .map(function (leg) {
+          return (
+            '<div class="ua-od-price__pay-leg-row">' +
+            '<span class="ua-od-price__pay-leg-name">' +
+            leg.name +
+            '</span>' +
+            '<span class="ua-od-price__pay-leg-amount">-¥' +
+            Number(leg.amount).toFixed(2) +
+            '</span>' +
+            '</div>'
+          );
+        })
+        .join('');
+      if (toggle) {
+        toggle.hidden = false;
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-label', '展开支付明细');
+        toggle.classList.remove('is-expanded');
+        if (!toggle._boundPayLegs) {
+          toggle._boundPayLegs = true;
+          toggle.addEventListener('click', function () {
+            var expanded = toggle.getAttribute('aria-expanded') === 'true';
+            var next = !expanded;
+            toggle.setAttribute('aria-expanded', next ? 'true' : 'false');
+            toggle.setAttribute('aria-label', next ? '收起支付明细' : '展开支付明细');
+            toggle.classList.toggle('is-expanded', next);
+            legsEl.hidden = !next;
+          });
+        }
+      }
+    } else {
+      legsEl.hidden = true;
+      legsEl.innerHTML = '';
+      if (toggle) {
+        toggle.hidden = true;
+        toggle.classList.remove('is-expanded');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+    }
   }
 
   function toast(msg) {
@@ -751,6 +802,8 @@
   }
 
   function getDemoOrderNo() {
+    var fromUrl = getParams().get('orderNo');
+    if (fromUrl) return String(fromUrl).trim();
     var el = document.getElementById('orderNoText');
     return (el && el.textContent && el.textContent.trim()) || '1089765423471123';
   }
@@ -964,17 +1017,18 @@
       }
     }
     var api = getAftersaleApi();
+    var orderNo = typeof getDemoOrderNo === 'function' ? getDemoOrderNo() : '';
     if (
       api &&
       typeof api.canShowAftersaleEntry === 'function' &&
-      !api.canShowAftersaleEntry(itemIndex)
+      !api.canShowAftersaleEntry(itemIndex, orderNo)
     ) {
       return { ok: false, msg: '该商品可售后数量已用完，无法再申请售后' };
     }
     if (!api || !api.hasOpenAftersaleOfGroup) return { ok: true };
     /* 申请退款：同类型（退款/退货）进行中不可再发起 */
     if (actionMode === 'refund') {
-      if (api.hasOpenAftersaleOfGroup(itemIndex, 'refund')) {
+      if (api.hasOpenAftersaleOfGroup(itemIndex, 'refund', orderNo)) {
         return { ok: false, msg: '该商品已有进行中的退款/退货售后，请先处理完成后再申请' };
       }
     }

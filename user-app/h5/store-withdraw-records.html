@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>提现明细 · 门店 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-store-withdraw.css?v=20260804">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-wd-page">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-wd-scroll">
+      <header class="ua-wd-nav">
+        <a href="store-withdraw.html" class="ua-wd-nav__back" id="wdrBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="ua-wd-nav__title">明细</h1>
+        <span class="ua-wd-nav__link" aria-hidden="true"></span>
+      </header>
+
+      <div class="ua-wd-records" id="wdrList"></div>
+    </div>
+  </div>
+
+  <script src="../../js/store-wallet-demo.js"></script>
+  <script src="../js/user-app-store-withdraw-records.js?v=20260804"></script>
+</body>
+</html>

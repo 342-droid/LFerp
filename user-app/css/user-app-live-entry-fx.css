@@ -1,0 +1,420 @@
+/* 直播间进场特效：欢迎横幅 / 进场座驾 / 全屏特效 */
+
+.ua-live-fx-host {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ua-live-fx-host[hidden] {
+  display: none !important;
+}
+
+.ua-live-fx {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.ua-live-fx.is-play {
+  opacity: 1;
+}
+
+.ua-live-fx.is-out {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.ua-live-fx-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #fff 0%, #d7e4ff 100%);
+  color: #1e4f8c;
+  font-size: 15px;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.65);
+}
+
+.ua-live-fx-avatar--sm {
+  width: 28px;
+  height: 28px;
+  font-size: 13px;
+}
+
+/* —— 欢迎横幅 —— */
+.ua-live-fx--banner {
+  display: flex;
+  align-items: flex-start;
+  padding: 88px 0 0 12px;
+}
+
+.ua-live-fx-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 88%;
+  padding: 6px 10px 6px 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(176, 196, 222, 0.95) 0%, rgba(92, 120, 168, 0.92) 55%, rgba(70, 96, 140, 0.55) 100%);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  color: #fff;
+  transform: translateX(-120%);
+}
+
+.ua-live-fx--banner.is-play .ua-live-fx-banner {
+  animation: uaLiveFxBannerIn 2.4s cubic-bezier(0.22, 0.9, 0.28, 1) forwards;
+}
+
+.ua-live-fx-banner__text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 6px;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.ua-live-fx-banner__name {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ua-live-fx-banner__level {
+  font-size: 11px;
+  opacity: 0.92;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.ua-live-fx-banner__action {
+  font-size: 12px;
+  opacity: 0.95;
+}
+
+.ua-live-fx-banner__tag {
+  margin-left: 2px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #3d5a80;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+@keyframes uaLiveFxBannerIn {
+  0% { transform: translateX(-120%); opacity: 0; }
+  18% { transform: translateX(0); opacity: 1; }
+  78% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(-8%); opacity: 0; }
+}
+
+/* —— 进场座驾 —— */
+.ua-live-fx--vehicle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ua-live-fx-vehicle {
+  position: relative;
+  width: 100%;
+  height: 120px;
+  transform: translateX(-110%);
+}
+
+.ua-live-fx--vehicle.is-play .ua-live-fx-vehicle {
+  animation: uaLiveFxVehiclePass 2.6s cubic-bezier(0.35, 0.1, 0.25, 1) forwards;
+}
+
+.ua-live-fx-vehicle__trail {
+  position: absolute;
+  left: 8%;
+  right: 18%;
+  top: 58%;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(255, 200, 80, 0.55), transparent);
+  filter: blur(4px);
+}
+
+.ua-live-fx-vehicle__car {
+  position: absolute;
+  left: 12%;
+  top: 18px;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.35));
+}
+
+.ua-live-fx-vehicle__card {
+  position: absolute;
+  left: 42%;
+  top: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 8px 8px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 214, 102, 0.95), rgba(230, 140, 20, 0.92));
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  color: #4a2c00;
+}
+
+.ua-live-fx-vehicle__name {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.ua-live-fx-vehicle__sub {
+  margin-top: 2px;
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+@keyframes uaLiveFxVehiclePass {
+  0% { transform: translateX(-110%); opacity: 0; }
+  15% { opacity: 1; }
+  45% { transform: translateX(0); }
+  70% { transform: translateX(8%); opacity: 1; }
+  100% { transform: translateX(120%); opacity: 0; }
+}
+
+/* —— 全屏特效 —— */
+.ua-live-fx--fullscreen {
+  background: radial-gradient(circle at 50% 42%, rgba(80, 140, 255, 0.45), rgba(10, 16, 40, 0.72) 62%, rgba(0, 0, 0, 0.55));
+}
+
+.ua-live-fx-full__rays {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  width: 220%;
+  height: 220%;
+  transform: translate(-50%, -50%) rotate(0deg);
+  background: conic-gradient(from 0deg, transparent 0 8%, rgba(180, 220, 255, 0.18) 10%, transparent 14% 22%, rgba(255, 255, 255, 0.12) 24%, transparent 28% 100%);
+  opacity: 0;
+}
+
+.ua-live-fx--fullscreen.is-play .ua-live-fx-full__rays {
+  animation: uaLiveFxRays 3s ease-out forwards;
+}
+
+.ua-live-fx-full__sparkles {
+  position: absolute;
+  inset: 0;
+}
+
+.ua-live-fx-full__sparkles i {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 10px 2px rgba(160, 210, 255, 0.9);
+  opacity: 0;
+}
+
+.ua-live-fx-full__sparkles i:nth-child(1) { left: 18%; top: 22%; }
+.ua-live-fx-full__sparkles i:nth-child(2) { left: 72%; top: 18%; }
+.ua-live-fx-full__sparkles i:nth-child(3) { left: 30%; top: 58%; }
+.ua-live-fx-full__sparkles i:nth-child(4) { left: 80%; top: 48%; }
+.ua-live-fx-full__sparkles i:nth-child(5) { left: 12%; top: 70%; }
+.ua-live-fx-full__sparkles i:nth-child(6) { left: 55%; top: 28%; }
+.ua-live-fx-full__sparkles i:nth-child(7) { left: 42%; top: 76%; }
+.ua-live-fx-full__sparkles i:nth-child(8) { left: 88%; top: 66%; }
+
+.ua-live-fx--fullscreen.is-play .ua-live-fx-full__sparkles i {
+  animation: uaLiveFxSpark 1.6s ease-in-out infinite;
+}
+.ua-live-fx--fullscreen.is-play .ua-live-fx-full__sparkles i:nth-child(2) { animation-delay: 0.15s; }
+.ua-live-fx--fullscreen.is-play .ua-live-fx-full__sparkles i:nth-child(3) { animation-delay: 0.3s; }
+.ua-live-fx--fullscreen.is-play .ua-live-fx-full__sparkles i:nth-child(4) { animation-delay: 0.45s; }
+.ua-live-fx--fullscreen.is-play .ua-live-fx-full__sparkles i:nth-child(5) { animation-delay: 0.2s; }
+.ua-live-fx--fullscreen.is-play .ua-live-fx-full__sparkles i:nth-child(6) { animation-delay: 0.55s; }
+.ua-live-fx--fullscreen.is-play .ua-live-fx-full__sparkles i:nth-child(7) { animation-delay: 0.35s; }
+.ua-live-fx--fullscreen.is-play .ua-live-fx-full__sparkles i:nth-child(8) { animation-delay: 0.1s; }
+
+.ua-live-fx-full__core {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%) scale(0.72);
+  text-align: center;
+  color: #fff;
+  opacity: 0;
+}
+
+.ua-live-fx--fullscreen.is-play .ua-live-fx-full__core {
+  animation: uaLiveFxFullCore 3s ease forwards;
+}
+
+.ua-live-fx-full__badge {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(180, 220, 255, 0.7);
+  background: rgba(30, 70, 140, 0.55);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.ua-live-fx-full__avatar {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 800;
+  color: #123a72;
+  background: linear-gradient(160deg, #f4f9ff, #9ec5ff 55%, #5a8fe0);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.75), 0 0 36px rgba(120, 180, 255, 0.75);
+}
+
+.ua-live-fx-full__name {
+  font-size: 22px;
+  font-weight: 800;
+  text-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+
+.ua-live-fx-full__desc {
+  margin-top: 6px;
+  font-size: 13px;
+  opacity: 0.92;
+}
+
+@keyframes uaLiveFxRays {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(0deg) scale(0.8); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(55deg) scale(1.15); }
+}
+
+@keyframes uaLiveFxSpark {
+  0%, 100% { opacity: 0; transform: scale(0.4); }
+  40% { opacity: 1; transform: scale(1); }
+  70% { opacity: 0.4; }
+}
+
+@keyframes uaLiveFxFullCore {
+  0% { opacity: 0; transform: translate(-50%, -40%) scale(0.7); }
+  18% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  75% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -56%) scale(1.05); }
+}
+
+/* 直播间内演示切换 */
+.ua-live-fx-demo {
+  position: absolute;
+  right: 10px;
+  top: 108px;
+  z-index: 13;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ua-live-fx-demo__btn {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1;
+  padding: 7px 10px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.ua-live-fx-demo__btn.is-active {
+  background: rgba(255, 77, 58, 0.85);
+  border-color: transparent;
+}
+
+/* B 端配置预览（迷你舞台） */
+.lf-live-fx-preview {
+  margin-top: 10px;
+  width: 100%;
+  max-width: 320px;
+  height: 180px;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(20, 20, 24, 0.2), rgba(10, 10, 14, 0.55)),
+    radial-gradient(ellipse at 50% 30%, #3a3a48, #121218 70%);
+  border: 1px solid #e8e8e8;
+}
+
+.lf-live-fx-preview .ua-live-fx-host {
+  position: absolute;
+  inset: 0;
+}
+
+.lf-live-fx-preview .ua-live-fx--banner {
+  padding-top: 28px;
+}
+
+.lf-live-fx-preview .ua-live-fx.is-preview .ua-live-fx-banner,
+.lf-live-fx-preview .ua-live-fx.is-preview .ua-live-fx-vehicle,
+.lf-live-fx-preview .ua-live-fx.is-preview .ua-live-fx-full__core,
+.lf-live-fx-preview .ua-live-fx.is-preview .ua-live-fx-full__rays,
+.lf-live-fx-preview .ua-live-fx.is-preview .ua-live-fx-full__sparkles i {
+  animation: none !important;
+}
+
+.lf-live-fx-preview .ua-live-fx.is-preview {
+  opacity: 1;
+}
+
+.lf-live-fx-preview .ua-live-fx.is-preview .ua-live-fx-banner {
+  transform: none;
+}
+
+.lf-live-fx-preview .ua-live-fx.is-preview .ua-live-fx-vehicle {
+  transform: translateX(0);
+}
+
+.lf-live-fx-preview .ua-live-fx.is-preview .ua-live-fx-full__core {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(0.78);
+}
+
+.lf-live-fx-preview .ua-live-fx.is-preview .ua-live-fx-full__rays {
+  opacity: 0.55;
+}
+
+.lf-live-fx-preview .ua-live-fx.is-preview .ua-live-fx-full__sparkles i {
+  opacity: 0.85;
+}
+
+.lf-live-fx-preview .ua-live-fx-vehicle__car svg {
+  width: 96px;
+  height: 38px;
+}
+
+.lf-live-fx-preview .ua-live-fx-full__avatar {
+  width: 52px;
+  height: 52px;
+  font-size: 20px;
+}
+
+.lf-live-fx-preview .ua-live-fx-full__name {
+  font-size: 16px;
+}
+
+.lf-live-fx-preview-tip {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #888;
+}

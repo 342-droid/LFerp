@@ -1,0 +1,434 @@
+/**
+ * 会员 · 积分规则相关页共用样式（全局规则 / 消费送积分 / 积分抵现）
+ */
+.pts-rule-card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  width: 100%;
+  max-width: none;
+}
+.pts-rule-card__title {
+  padding: 12px 16px;
+  background: #fafafa;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pts-rule-card__body {
+  padding: 16px 16px 8px;
+}
+.pts-rule-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.pts-rule-field__label {
+  flex: 0 0 168px;
+  width: 168px;
+  max-width: 168px;
+  box-sizing: border-box;
+  text-align: right;
+  font-size: 13px;
+  color: #333;
+  line-height: 36px;
+}
+.pts-rule-field__label .erp-req {
+  color: #ff4d4f;
+  margin-right: 2px;
+}
+.pts-rule-field__control {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+}
+.pts-rule-field__control .erp-input,
+.pts-rule-field__control .erp-select,
+.pts-rule-field__control textarea.erp-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+.pts-rule-field__control .erp-input,
+.pts-rule-field__control .erp-select {
+  height: 36px;
+}
+.pts-rule-field__control textarea.erp-input {
+  height: auto;
+  min-height: 88px;
+  padding: 8px 10px;
+  line-height: 1.5;
+  resize: vertical;
+}
+.pts-rule-field__control > .erp-input.pts-rule-field__input--name {
+  max-width: 480px;
+}
+.pts-rule-unit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+.pts-rule-unit .erp-input,
+.pts-rule-unit .erp-select {
+  width: auto;
+  flex: 0 0 140px;
+  max-width: 180px;
+}
+.pts-rule-unit__text {
+  font-size: 13px;
+  color: #666;
+  white-space: nowrap;
+}
+.pts-rule-tip {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.45;
+}
+.pts-rule-check-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 20px;
+  align-items: center;
+  min-height: 36px;
+}
+.pts-rule-check-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+}
+.pts-rule-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid #bbb;
+  color: #888;
+  font-size: 11px;
+  font-style: normal;
+  line-height: 1;
+  cursor: help;
+  user-select: none;
+}
+.pts-rule-help:hover {
+  border-color: #ff7019;
+  color: #ff7019;
+}
+.pts-rule-section-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.pts-rule-scope-box {
+  margin-top: 0;
+}
+.pts-rule-scope-actions {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.pts-rule-scope-actions[hidden],
+.pts-rule-scope-chips[hidden],
+.pts-rule-scope-empty[hidden],
+.pts-rule-port-list[hidden],
+.pts-rule-store-panel[hidden],
+.pts-rule-field__control > .product-proxy-sale-scope__region[hidden],
+.pts-rule-field__control > .product-proxy-sale-scope__store[hidden] {
+  display: none !important;
+}
+
+/* 列表筛选：二级联动项默认隐藏（覆盖 .form-group { display:flex }） */
+.search-form > .form-group[hidden],
+.search-form > .form-group.pts-sale-filter-extra[hidden] {
+  display: none !important;
+}
+
+/* 省市区筛选展开时不被裁切 */
+.search-section,
+.search-form,
+.search-form > .form-group.pts-sale-filter-extra {
+  overflow: visible;
+}
+
+/* 覆盖 lf-product 售卖范围子面板的 padding-left:100px，与上方单选左对齐 */
+.pts-rule-field__control > .product-proxy-sale-scope__region,
+.pts-rule-field__control > .product-proxy-sale-scope__store {
+  margin-top: 12px;
+  padding-left: 0;
+}
+.pts-rule-scope-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  min-height: 8px;
+}
+.pts-rule-scope-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  background: #fafafa;
+  font-size: 12px;
+  color: #555;
+  line-height: 1.4;
+}
+.pts-rule-scope-chip__remove {
+  border: none;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+}
+.pts-rule-scope-chip__remove:hover {
+  color: #ff7019;
+}
+.pts-rule-scope-empty {
+  font-size: 12px;
+  color: #999;
+  margin-top: 6px;
+}
+.pts-rule-port-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-top: 10px;
+}
+.pts-rule-store-panel {
+  margin-top: 10px;
+}
+.pts-rule-store-count {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #666;
+}
+.pts-rule-form-back {
+  display: inline-block;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #666;
+  text-decoration: none;
+}
+.pts-rule-form-back:hover {
+  color: #ff7019;
+}
+.pts-rule-list-toolbar {
+  margin: 0 0 12px;
+}
+.pts-rule-ops a {
+  margin-right: 8px;
+}
+.pts-rule-ops a:last-child {
+  margin-right: 0;
+}
+.pts-rule-pick-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.pts-rule-pick-modal {
+  width: min(520px, 96vw);
+  max-height: min(72vh, 560px);
+  background: #fff;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+.pts-rule-pick-modal--product {
+  width: min(960px, 96vw);
+  max-height: min(86vh, 720px);
+}
+.pts-rule-pick-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eee;
+}
+.pts-rule-pick-modal__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+.pts-rule-pick-modal__close {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  color: #999;
+  cursor: pointer;
+}
+.pts-rule-pick-modal__body {
+  padding: 12px 16px;
+  overflow: auto;
+  flex: 1;
+}
+.pts-rule-pick-filter {
+  width: 100%;
+  height: 32px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+.pts-rule-pick-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pts-rule-pick-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  user-select: none;
+}
+.pts-rule-pick-item input {
+  accent-color: var(--color-primary, #ff7019);
+  margin: 0;
+}
+.pts-rule-pick-modal__footer {
+  padding: 12px 16px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+.pts-rule-product-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+.pts-rule-product-filter .erp-input,
+.pts-rule-product-filter .erp-select {
+  height: 32px;
+  box-sizing: border-box;
+}
+.pts-rule-product-filter__cat,
+.pts-rule-product-filter__channel,
+.pts-rule-product-filter__status {
+  width: 128px;
+}
+.pts-rule-product-filter .erp-input {
+  width: 140px;
+}
+.pts-rule-product-table-wrap {
+  max-height: min(46vh, 400px);
+  overflow: auto;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+.pts-rule-product-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+  font-size: 13px;
+}
+.pts-rule-product-table th,
+.pts-rule-product-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: left;
+  vertical-align: middle;
+}
+.pts-rule-product-table th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #555;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.pts-rule-product-row.is-checked {
+  background: #fff7f0;
+}
+.pts-rule-product-thumb {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #f5f5f5;
+  display: block;
+}
+.pts-rule-product-thumb--empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #bbb;
+}
+.pts-rule-product-status {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.pts-rule-product-status--selling {
+  color: #389e0d;
+  background: #f6ffed;
+}
+.pts-rule-product-status--pending_sale {
+  color: #d48806;
+  background: #fffbe6;
+}
+.pts-rule-product-status--stopped {
+  color: #8c8c8c;
+  background: #f5f5f5;
+}
+.pts-rule-product-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #666;
+}
+.pts-rule-product-pager__btns {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.pts-rule-product-pager__page {
+  min-width: 64px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.pts-rule-pick-empty {
+  padding: 24px;
+  text-align: center;
+  color: #999;
+  font-size: 13px;
+}

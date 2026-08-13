@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 新人专区</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-product.css">
+    <link rel="stylesheet" href="../css/lf-marketing-points-home.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-marketing-newcomer-zone.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/marketing-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content mkt-newcomer-zone-page">
+            <div class="content-tabs"><button class="active">新人专区</button></div>
+            <hr class="content-divider">
+
+            <!-- 新人专区开关：本页可直接开关，控制 C 端入口展示 -->
+            <div class="mkt-newcomer-zone-enable-bar">
+                <span class="mkt-newcomer-zone-enable-bar__label">新人专区</span>
+                <div class="mkt-newcomer-zone-enable-bar__main">
+                    <div class="mkt-newcomer-zone-enable-bar__row">
+                        <button type="button" class="mkt-points-switch" id="newcomerZoneEnableSwitch" aria-pressed="false" aria-label="新人专区开关"></button>
+                        <span class="mkt-newcomer-zone-enable-bar__status" id="newcomerZoneEnableStatus">已关闭</span>
+                    </div>
+                    <p class="mkt-newcomer-zone-enable-bar__desc" id="newcomerZoneEnableDesc">关闭后，C 端不展示新人专区入口；商品清单在本页维护。</p>
+                </div>
+            </div>
+
+            <div class="mdm-biz-tip" role="note">
+                新人专区仅<strong>新用户（无支付订单）</strong>限购<strong>一单</strong>，且只能购买<strong>1 件</strong>。新人专区商品<strong>不支持用券和积分抵扣</strong>。
+            </div>
+
+            <section class="search-section">
+                <form class="search-form" id="newcomerZoneFilterForm" onsubmit="return false;">
+                    <div class="form-group">
+                        <label>商品名称/编码:</label>
+                        <div class="input-wrapper">
+                            <input id="qNcKeyword" placeholder="商品名称或编码" autocomplete="off">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>商品类目:</label>
+                        <select id="qNcCategory">
+                            <option value="">全部</option>
+                            <option value="新鲜蔬菜">新鲜蔬菜</option>
+                            <option value="时令水果">时令水果</option>
+                            <option value="粮油调味">粮油调味</option>
+                            <option value="肉禽蛋品">肉禽蛋品</option>
+                            <option value="酒水饮料">酒水饮料</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>履约方式:</label>
+                        <select id="qNcDeliveryMode">
+                            <option value="">全部</option>
+                            <option value="express">快递配送</option>
+                            <option value="platform">平台配送</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>适用范围:</label>
+                        <select id="qNcSaleScope">
+                            <option value="">全部</option>
+                            <option value="all">全部范围</option>
+                            <option value="region">省市区</option>
+                            <option value="store">门店</option>
+                        </select>
+                    </div>
+                    <div class="form-group pts-sale-filter-extra" id="qNcSaleRegionGroup" hidden style="display:none">
+                        <label>具体省市区:</label>
+                        <div id="qNcSaleRegionMount"></div>
+                    </div>
+                    <div class="form-group custom-select-wrapper pts-sale-filter-extra" id="qNcSaleStoreGroup" hidden style="display:none">
+                        <label>具体门店:</label>
+                        <div class="custom-select">
+                            <input type="text" id="qNcStore" placeholder="请选择/搜索门店" autocomplete="off">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="qNcStoreDropdown"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>状态:</label>
+                        <select id="qNcStatus">
+                            <option value="">全部</option>
+                            <option value="on_shelf">上架</option>
+                            <option value="off_shelf">下架</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>是否设置定时上下架:</label>
+                        <select id="qNcHasSchedule">
+                            <option value="">全部</option>
+                            <option value="yes">是</option>
+                            <option value="no">否</option>
+                        </select>
+                    </div>
+                    <div class="form-group form-group--points-range">
+                        <label>活动价:</label>
+                        <div class="mkt-newcomer-zone-range" role="group" aria-label="活动价区间">
+                            <input class="mkt-newcomer-zone-range__input" id="qNcPriceMin" type="number" min="0" step="0.01" placeholder="最小值" inputmode="decimal">
+                            <span class="mkt-newcomer-zone-range__sep">至</span>
+                            <input class="mkt-newcomer-zone-range__input" id="qNcPriceMax" type="number" min="0" step="0.01" placeholder="最大值" inputmode="decimal">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="newcomerZoneFilterReset">重置</button>
+                        <button type="button" class="btn btn-primary" id="newcomerZoneFilterQuery">查询</button>
+                    </div>
+                </form>
+            </section>
+
+            <div class="member-points-toolbar mkt-newcomer-zone-toolbar">
+                <button type="button" class="erp-btn erp-btn--primary" id="newcomerZoneAddBtn">添加商品</button>
+                <button type="button" class="erp-btn" id="newcomerZoneBannerBtn">轮播图配置</button>
+                <span class="mkt-newcomer-zone-toolbar-tip">仅可选选品库中「可售卖渠道含电商直播」且「售卖中」的商品</span>
+            </div>
+
+            <section class="table-section">
+                <div class="table-scroll-container product-table-wrap">
+                    <table class="product-table product-proxy-table mkt-newcomer-zone-table">
+                        <colgroup>
+                            <col class="mkt-newcomer-zone-table__col mkt-newcomer-zone-table__col--seq">
+                            <col class="mkt-newcomer-zone-table__col mkt-newcomer-zone-table__col--name">
+                            <col class="mkt-newcomer-zone-table__col mkt-newcomer-zone-table__col--code">
+                            <col class="mkt-newcomer-zone-table__col mkt-newcomer-zone-table__col--img">
+                            <col class="mkt-newcomer-zone-table__col mkt-newcomer-zone-table__col--category">
+                            <col class="mkt-newcomer-zone-table__col mkt-newcomer-zone-table__col--spec">
+                            <col class="mkt-newcomer-zone-table__col mkt-newcomer-zone-table__col--purchase">
+                            <col class="mkt-newcomer-zone-table__col mkt-newcomer-zone-table__col--line">
+                            <col class="mkt-newcomer-zone-table__col mkt-newcomer-zone-table__col--stock">
+                            <col class="mkt-newcomer-zone-table__col mkt-newcomer-zone-table__col--exchange">
+                            <col class="mkt-newcomer-zone-table__col mkt-newcomer-zone-table__col--qty">
+                            <col class="mkt-newcomer-zone-table__col mkt-newcomer-zone-table__col--delivery">
+                            <col class="mkt-newcomer-zone-table__col mkt-newcomer-zone-table__col--status">
+                            <col class="mkt-newcomer-zone-table__col mkt-newcomer-zone-table__col--schedule">
+                            <col class="mkt-newcomer-zone-table__col mkt-newcomer-zone-table__col--action">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>商品名称</th>
+                                <th>商品编码</th>
+                                <th>商品图</th>
+                                <th>商品类目</th>
+                                <th>规格</th>
+                                <th>采购价</th>
+                                <th>划线价</th>
+                                <th>
+                                    <button type="button" class="mkt-newcomer-zone-th-sort" data-sort-key="stock" aria-label="按库存排序">
+                                        库存
+                                        <span class="mkt-newcomer-zone-sort" aria-hidden="true">
+                                            <i class="mkt-newcomer-zone-sort__asc"></i>
+                                            <i class="mkt-newcomer-zone-sort__desc"></i>
+                                        </span>
+                                    </button>
+                                </th>
+                                <th>活动价</th>
+                                <th>
+                                    <button type="button" class="mkt-newcomer-zone-th-sort" data-sort-key="sold" aria-label="按已售排序">
+                                        已售
+                                        <i class="mkt-newcomer-zone-th-help" title="C端实际成交数量；售后不回退库存">?</i>
+                                        <span class="mkt-newcomer-zone-sort" aria-hidden="true">
+                                            <i class="mkt-newcomer-zone-sort__asc"></i>
+                                            <i class="mkt-newcomer-zone-sort__desc"></i>
+                                        </span>
+                                    </button>
+                                </th>
+                                <th>履约方式</th>
+                                <th>状态</th>
+                                <th>定时上下架</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="newcomerZoneTableBody"></tbody>
+                    </table>
+                </div>
+                <div class="product-empty" id="newcomerZoneEmpty" hidden>暂无符合条件的商品</div>
+                <div class="product-pagination" id="newcomerZonePagination">
+                    <span id="newcomerZonePaginationTotal">共 0 条</span>
+                    <div class="product-pagination__right">
+                        <select class="product-pagination__size" id="newcomerZonePageSize" aria-label="每页条数">
+                            <option value="20" selected>20条/页</option>
+                            <option value="50">50条/页</option>
+                            <option value="100">100条/页</option>
+                        </select>
+                        <div class="product-pagination__pages" id="newcomerZonePaginationPages"></div>
+                        <label class="product-pagination__goto">
+                            前往
+                            <input id="newcomerZonePageGoto" type="text" value="1" inputmode="numeric">
+                            页
+                        </label>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/region-cascader.js"></script>
+    <script src="../js/mdm-product-catalog-store.js"></script>
+    <script src="../js/mdm-product-proxy-region-picker.js"></script>
+    <script src="../js/mdm-product-proxy-store-picker.js"></script>
+    <script src="../js/mdm-member-points-rule-list-filter.js"></script>
+    <script src="../js/mdm-marketing-newcomer-zone-store.js"></script>
+    <script src="../js/mdm-marketing-newcomer-zone-config.js"></script>
+    <script src="../js/mdm-marketing-newcomer-zone-picker.js"></script>
+    <script src="../js/mdm-marketing-newcomer-zone.js"></script>
+</body>
+</html>

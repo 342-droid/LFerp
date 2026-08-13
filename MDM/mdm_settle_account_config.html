@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰结算 - 账户配置</title>
+    <script src="../js/path-prefix.js"></script>
+    <script>
+      (function () {
+        var target = 'basic_settings_order.html';
+        if (window.wmsPath && typeof window.wmsPath.page === 'function') {
+          target = window.wmsPath.page(target);
+        } else {
+          target = '../SCM/' + target;
+        }
+        window.location.replace(target);
+      })();
+    </script>
+</head>
+<body>
+    <p style="padding:24px;font-size:14px;color:#666;">账户配置已迁至「基础设置 / 门店配置」，正在跳转…</p>
+</body>
+</html>

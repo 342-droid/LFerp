@@ -80,6 +80,9 @@
           { coupon: '免运费券', qty: 1 }
         ],
         birthdayDesc: '生日当月可领取生日专属券×1、免运费券×1，完善生日信息后系统将在生日当天推送提醒。',
+        liveEntryEffectEnabled: true,
+        liveEntryEffectType: 'banner',
+        liveEntryEffectDesc: '进场展示银色欢迎横幅',
         status: '启用'
       },
       {
@@ -98,6 +101,9 @@
         birthdayEnabled: true,
         birthdayCouponMode: 'total',
         birthdayCoupons: [{ coupon: '生日专属券', qty: 2 }],
+        liveEntryEffectEnabled: true,
+        liveEntryEffectType: 'vehicle',
+        liveEntryEffectDesc: '进场展示金牌座驾特效',
         status: '启用'
       },
       {
@@ -120,6 +126,9 @@
           { coupon: '生日专属券', qty: 1 },
           { coupon: '满200减30券', qty: 1 }
         ],
+        liveEntryEffectEnabled: true,
+        liveEntryEffectType: 'fullscreen',
+        liveEntryEffectDesc: '进场展示钻石全屏特效',
         status: '启用'
       }
     ];
@@ -291,12 +300,12 @@
       });
     }
     var ratioOn = level.pointsRatioEnabled == null
-      ? (level.pointsRatio != null && Number(level.pointsRatio) !== 100)
+      ? (level.pointsRatio != null && Number(level.pointsRatio) > 100)
       : !!level.pointsRatioEnabled;
-    if (ratioOn && level.pointsRatio != null) {
+    if (ratioOn && level.pointsRatio != null && Number(level.pointsRatio) > 100) {
       items.push({
         key: 'ratio',
-        name: '积分倍率',
+        name: '消费积分等级赠送比例',
         desc: (level.pointsRatioDesc && String(level.pointsRatioDesc).trim()) || formatRatio(level.pointsRatio),
         icon: 'ratio'
       });
@@ -316,6 +325,20 @@
         needBirthday: !hasBirthdayFilled()
       });
     }
+    if (level.liveEntryEffectEnabled) {
+      var effectLabels = {
+        banner: '欢迎横幅',
+        vehicle: '进场座驾',
+        fullscreen: '全屏特效'
+      };
+      var effectName = effectLabels[level.liveEntryEffectType] || '欢迎横幅';
+      items.push({
+        key: 'liveEntry',
+        name: '进入直播间特效',
+        desc: (level.liveEntryEffectDesc && String(level.liveEntryEffectDesc).trim()) || effectName,
+        icon: 'live'
+      });
+    }
     return items;
   }
 
@@ -330,7 +353,9 @@
       ratio:
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 16l4-8 3 5 2-3 5 6"/><path d="M4 19h16"/></svg>',
       birthday:
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 4v4M8 6l1.5 2M16 6l-1.5 2"/><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M4 14h16"/></svg>'
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 4v4M8 6l1.5 2M16 6l-1.5 2"/><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M4 14h16"/></svg>',
+      live:
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 8l4 3V9a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2h-8a2 2 0 01-2-2v-2l-4 3V8z"/><circle cx="15" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>'
     };
     return map[type] || map.points;
   }
@@ -862,6 +887,13 @@
         growthPill.setAttribute(
           'href',
           window.UaNav.withFrom(growthPill.getAttribute('href') || 'growth-detail.html')
+        );
+      }
+      var ruleLink = document.getElementById('mcRuleLink');
+      if (ruleLink) {
+        ruleLink.setAttribute(
+          'href',
+          window.UaNav.withFrom(ruleLink.getAttribute('href') || 'growth-rule-desc.html')
         );
       }
     }

@@ -1,0 +1,1053 @@
+/* 营销 - 新人专区 */
+
+/* 顶部开关条（对齐消费赠积分） */
+.mkt-newcomer-zone-enable-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+}
+
+.mkt-newcomer-zone-enable-bar__label {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  line-height: 24px;
+}
+
+.mkt-newcomer-zone-enable-bar__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.mkt-newcomer-zone-enable-bar__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  line-height: 24px;
+}
+
+.mkt-newcomer-zone-enable-bar__status {
+  font-size: 14px;
+  color: #999;
+}
+
+.mkt-newcomer-zone-enable-bar__link {
+  font-size: 13px;
+  color: #ff7019;
+  text-decoration: none;
+}
+
+.mkt-newcomer-zone-enable-bar__link:hover {
+  text-decoration: underline;
+}
+
+.mkt-newcomer-zone-enable-bar__desc {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
+/* 筛选：对齐积分明细 search-form */
+#pointsMallFilterForm.search-form {
+  gap: 16px 20px;
+}
+
+#pointsMallFilterForm.search-form > .form-group {
+  flex: 0 0 auto;
+  max-width: none;
+  width: auto;
+}
+
+/* 仅约束普通筛选项，勿波及兑换积分区间内的子 input（否则会多出一套边框/宽度） */
+#pointsMallFilterForm .form-group > input,
+#pointsMallFilterForm .form-group > select,
+#pointsMallFilterForm .form-group > .input-wrapper > input {
+  width: 180px;
+}
+
+#pointsMallFilterForm .form-group--points-range .mkt-newcomer-zone-range {
+  width: auto;
+  min-width: 220px;
+}
+
+.mkt-newcomer-zone-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.mkt-newcomer-zone-range:focus-within {
+  border-color: var(--color-primary, #ff7019);
+}
+
+.mkt-newcomer-zone-range__input {
+  width: 88px !important;
+  min-width: 0;
+  height: 100%;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent;
+  font-size: 13px;
+  color: var(--color-text, #333333);
+  padding: 0 !important;
+}
+
+.mkt-newcomer-zone-range__input:focus {
+  outline: none;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.mkt-newcomer-zone-range__input::placeholder {
+  color: #c0c4cc;
+}
+
+.mkt-newcomer-zone-range__sep {
+  flex-shrink: 0;
+  color: #999;
+  font-size: 12px;
+}
+
+.mkt-newcomer-zone-toolbar {
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mkt-newcomer-zone-toolbar-tip {
+  font-size: 12px;
+  color: #909399;
+}
+
+.mkt-newcomer-zone-table {
+  width: 100%;
+  min-width: 1360px;
+}
+
+.mkt-newcomer-zone-table__col--seq { width: 56px; }
+.mkt-newcomer-zone-table__col--name { width: 12%; }
+.mkt-newcomer-zone-table__col--code { width: 110px; }
+.mkt-newcomer-zone-table__col--img { width: 72px; }
+.mkt-newcomer-zone-table__col--category { width: 8%; }
+.mkt-newcomer-zone-table__col--spec { width: 10%; }
+.mkt-newcomer-zone-table__col--purchase { width: 72px; }
+.mkt-newcomer-zone-table__col--line { width: 72px; }
+.mkt-newcomer-zone-table__col--stock { width: 78px; }
+.mkt-newcomer-zone-table__col--delivery { width: 88px; }
+.mkt-newcomer-zone-table__col--type { width: 96px; }
+.mkt-newcomer-zone-table__col--exchange { width: 120px; }
+.mkt-newcomer-zone-table__col--qty { width: 96px; }
+.mkt-newcomer-zone-table__col--status { width: 72px; }
+.mkt-newcomer-zone-table__col--schedule { width: 148px; }
+.mkt-newcomer-zone-table__col--action { width: 120px; }
+
+.mkt-newcomer-zone-table .product-proxy-code__sub {
+  color: #909399;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* 奇偶商品行区分；同一商品多 SKU 展开行共用背景，中间不加横线 */
+.mkt-newcomer-zone-table .mkt-newcomer-zone-row--sku-open > td {
+  border-bottom-color: transparent;
+}
+
+.mkt-newcomer-zone-schedule-cell {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.mkt-newcomer-zone-th-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.mkt-newcomer-zone-th-sort:hover {
+  color: var(--color-primary, #ff7019);
+}
+
+.mkt-newcomer-zone-sort {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-left: 2px;
+  vertical-align: middle;
+}
+
+.mkt-newcomer-zone-sort__asc,
+.mkt-newcomer-zone-sort__desc {
+  display: block;
+  width: 0;
+  height: 0;
+  border-left: 3.5px solid transparent;
+  border-right: 3.5px solid transparent;
+  opacity: 0.35;
+}
+
+.mkt-newcomer-zone-sort__asc {
+  border-bottom: 4px solid currentColor;
+}
+
+.mkt-newcomer-zone-sort__desc {
+  border-top: 4px solid currentColor;
+}
+
+.mkt-newcomer-zone-th-sort.is-asc .mkt-newcomer-zone-sort__asc,
+.mkt-newcomer-zone-th-sort.is-desc .mkt-newcomer-zone-sort__desc {
+  opacity: 1;
+  color: var(--color-primary, #ff7019);
+}
+
+.mkt-newcomer-zone-price {
+  font-size: 13px;
+  font-weight: 700;
+  color: #333;
+}
+
+.mkt-newcomer-zone-line-price {
+  font-size: 13px;
+  color: #999;
+}
+
+.mkt-newcomer-zone-td--seq {
+  color: #666;
+  text-align: center;
+}
+
+.mkt-newcomer-zone-spec-cell {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.45;
+}
+
+.mkt-newcomer-zone-spec-toggle {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #ff7019;
+  font-size: 12px;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.mkt-newcomer-zone-spec-toggle:hover {
+  text-decoration: underline;
+}
+
+.mkt-newcomer-zone-th-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: #e8e8e8;
+  color: #666;
+  font-size: 11px;
+  font-style: normal;
+  line-height: 1;
+  cursor: help;
+  vertical-align: middle;
+}
+
+.mkt-newcomer-zone-picker-toolbar {
+  flex-wrap: wrap;
+  gap: 10px 12px;
+}
+
+.mkt-newcomer-zone-picker-added {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+  white-space: nowrap;
+}
+
+.mkt-newcomer-zone-picker-added select {
+  height: 32px;
+  min-width: 110px;
+  padding: 0 8px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #333;
+  background: #fff;
+}
+
+.mkt-newcomer-zone-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.mkt-newcomer-zone-form-row__label {
+  font-size: 13px;
+  color: #333;
+}
+
+.mkt-newcomer-zone-form-row__label .req {
+  color: #f56c6c;
+  margin-right: 2px;
+}
+
+.mkt-newcomer-zone-form-row__hint {
+  font-size: 12px;
+  color: #909399;
+}
+
+.mkt-newcomer-zone-form-row__input,
+.mkt-newcomer-zone-form-row__select {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #333;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.mkt-newcomer-zone-form-row__input:focus,
+.mkt-newcomer-zone-form-row__select:focus {
+  outline: none;
+  border-color: var(--color-primary, #ff7019);
+}
+
+.mkt-newcomer-zone-form-product {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mkt-newcomer-zone-form-product__img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #f0f0f0;
+}
+
+.mkt-newcomer-zone-form-product__name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin: 0 0 4px;
+}
+
+.mkt-newcomer-zone-form-product__meta {
+  font-size: 12px;
+  color: #909399;
+  margin: 0;
+}
+
+.mkt-newcomer-zone-spec-table-wrap {
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.mkt-newcomer-zone-spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.mkt-newcomer-zone-spec-table th,
+.mkt-newcomer-zone-spec-table td {
+  padding: 8px 6px;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.mkt-newcomer-zone-spec-table th {
+  background: #fafafa;
+  color: #666;
+  font-weight: 500;
+}
+
+.mkt-newcomer-zone-spec-table tr.is-disabled td {
+  color: #bbb;
+  background: #fcfcfc;
+}
+
+.mkt-newcomer-zone-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #333;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mkt-newcomer-zone-spec-table input[type="number"],
+.mkt-newcomer-zone-spec-table select {
+  width: 88px;
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 12px;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.mkt-newcomer-zone-spec-table select {
+  width: 110px;
+}
+
+.mkt-newcomer-zone-spec-table input:focus,
+.mkt-newcomer-zone-spec-table select:focus {
+  outline: none;
+  border-color: var(--color-primary, #ff7019);
+}
+
+.mkt-newcomer-zone-spec-table input:disabled,
+.mkt-newcomer-zone-spec-table select:disabled {
+  background: #f5f5f5;
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+.erp-modal--newcomer-zone-config {
+  width: 920px;
+  max-width: 96vw;
+}
+
+.erp-modal--newcomer-zone-config .erp-modal__body {
+  max-height: min(72vh, 640px);
+  overflow: auto;
+}
+
+.mkt-newcomer-zone-level-scope {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-bottom: 8px;
+}
+
+.mkt-newcomer-zone-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mkt-newcomer-zone-level-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 8px 10px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  background: #fafafa;
+}
+
+.mkt-newcomer-zone-level-list[hidden] {
+  display: none;
+}
+
+.mkt-newcomer-zone-check--level {
+  font-size: 13px;
+}
+
+.mkt-newcomer-zone-limit-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+
+.mkt-newcomer-zone-limit-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #333;
+}
+
+.mkt-newcomer-zone-limit-item span {
+  white-space: nowrap;
+  color: #666;
+}
+
+.mkt-newcomer-zone-limit-item .mkt-newcomer-zone-form-row__input {
+  width: 88px;
+}
+
+.mkt-newcomer-zone-limit-item em {
+  font-style: normal;
+  color: #909399;
+  font-size: 12px;
+}
+
+.mkt-newcomer-zone-spec-table th[hidden],
+.mkt-newcomer-zone-spec-table td[hidden] {
+  display: none;
+}
+
+.mkt-newcomer-zone-spec-table input[data-field="stock"],
+.mkt-newcomer-zone-spec-table input[data-field="minSaleQty"] {
+  width: 72px;
+}
+
+.mkt-newcomer-zone-picker-tip {
+  font-size: 12px;
+  color: #909399;
+  margin: 0;
+  padding: 0 4px;
+}
+
+/* 编辑积分商品页 — 版式对齐积分规则（卡片 + 左右字段） */
+.mkt-newcomer-zone-form-toolbar {
+  margin: 0 0 12px;
+}
+
+.mkt-newcomer-zone-form-back {
+  color: #2196F3;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.mkt-newcomer-zone-form-back:hover {
+  text-decoration: underline;
+}
+
+.mkt-newcomer-zone-form-intro {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.65;
+}
+
+.mkt-newcomer-zone-card.pts-rule-card,
+.pts-rule-card.mkt-newcomer-zone-card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  max-width: none;
+  width: 100%;
+}
+
+.mkt-newcomer-zone-card .pts-rule-card__title {
+  padding: 12px 16px;
+  background: #fafafa;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.mkt-newcomer-zone-card .pts-rule-card__body {
+  padding: 16px 16px 8px;
+}
+
+.mkt-newcomer-zone-card .pts-rule-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.mkt-newcomer-zone-card .pts-rule-field__label {
+  flex: 0 0 140px;
+  text-align: right;
+  font-size: 13px;
+  color: #333;
+  line-height: 36px;
+}
+
+.mkt-newcomer-zone-card .pts-rule-field__label .erp-req {
+  color: #ff4d4f;
+  margin-right: 2px;
+}
+
+.mkt-newcomer-zone-card .pts-rule-field__control {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+}
+
+.mkt-newcomer-zone-card .pts-rule-field__control--wide {
+  max-width: none;
+}
+
+.mkt-newcomer-zone-card .pts-rule-check-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 20px;
+  align-items: center;
+  min-height: 36px;
+}
+
+.mkt-newcomer-zone-card .pts-rule-check-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  color: #333;
+}
+
+.mkt-newcomer-zone-card .pts-rule-tip {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.45;
+}
+
+.mkt-newcomer-zone-form-actions.pts-rule-actions,
+.pts-rule-actions.mkt-newcomer-zone-form-actions {
+  /* 底栏样式由 lf-mdm-edit-page.css 统一接管 */
+}
+
+.mkt-newcomer-zone-form-product {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0 8px;
+  background: transparent;
+  border-radius: 0;
+  margin-bottom: 0;
+}
+
+.mkt-newcomer-zone-sale-scope__panel {
+  margin-top: 12px;
+  padding-left: 0 !important;
+}
+
+.mkt-newcomer-zone-form-detail {
+  max-width: none;
+}
+
+.mkt-newcomer-zone-card .product-proxy-form__images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.mkt-newcomer-zone-card .product-add-upload__box {
+  width: 88px;
+  height: 88px;
+}
+
+.mkt-newcomer-zone-card .product-add-editor__toolbar button {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #333;
+}
+
+.mkt-newcomer-zone-card .product-add-editor__toolbar button:hover {
+  background: #eee;
+  border-color: #ddd;
+}
+
+.mkt-newcomer-zone-schedule {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.mkt-newcomer-zone-schedule[hidden],
+.mkt-newcomer-zone-limit-value[hidden],
+.mkt-newcomer-zone-sale-scope__panel[hidden],
+.mkt-newcomer-zone-level-list[hidden],
+.product-proxy-sale-scope__store-count[hidden],
+.pts-rule-tip[hidden] {
+  display: none !important;
+}
+
+.mkt-newcomer-zone-schedule__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+.mkt-newcomer-zone-schedule__item .mkt-newcomer-zone-form-row__input,
+.mkt-newcomer-zone-schedule__item .erp-input {
+  width: 200px;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.mkt-newcomer-zone-limit-radios {
+  margin-bottom: 0;
+}
+
+.mkt-newcomer-zone-limit-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.mkt-newcomer-zone-limit-value .mkt-newcomer-zone-form-row__input,
+.mkt-newcomer-zone-limit-value .erp-input {
+  width: 140px;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.mkt-newcomer-zone-limit-value em {
+  font-style: normal;
+  color: #909399;
+  font-size: 12px;
+}
+
+.mkt-newcomer-zone-card .mkt-newcomer-zone-spec-table-wrap {
+  max-height: 320px;
+}
+
+.mkt-newcomer-zone-spec-img {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #2196F3;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.mkt-newcomer-zone-spec-img img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #f5f5f5;
+  border: 1px solid #eee;
+}
+
+.mkt-newcomer-zone-spec-img:hover span {
+  text-decoration: underline;
+}
+
+.mkt-newcomer-zone-card .mkt-newcomer-zone-level-scope {
+  margin-bottom: 0;
+}
+
+.mkt-newcomer-zone-card .mkt-newcomer-zone-level-list {
+  margin-top: 10px;
+}
+
+.product-tag--schedule {
+  background: #fff7e6;
+  color: #d48806;
+  border: 1px solid #ffd591;
+}
+
+/* 轮播图配置弹窗 */
+.erp-modal--newcomer-zone-banner {
+  width: min(720px, 94vw);
+  max-width: min(720px, 94vw);
+}
+
+.mkt-newcomer-zone-banner-tip {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
+.mkt-newcomer-zone-banner-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: min(56vh, 480px);
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.mkt-newcomer-zone-banner-item {
+  border: 1px solid #eee;
+  border-radius: 4px;
+  padding: 12px;
+  background: #fafafa;
+}
+
+.mkt-newcomer-zone-banner-item__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.mkt-newcomer-zone-banner-item__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.mkt-newcomer-zone-banner-item__remove {
+  border: none;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+}
+
+.mkt-newcomer-zone-banner-item__remove:hover {
+  color: #ff4d4f;
+}
+
+.mkt-newcomer-zone-banner-fields {
+  display: grid;
+  gap: 10px;
+}
+
+.mkt-newcomer-zone-banner-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.mkt-newcomer-zone-banner-field > label {
+  flex: 0 0 72px;
+  text-align: right;
+  font-size: 13px;
+  color: #666;
+  line-height: 32px;
+}
+
+.mkt-newcomer-zone-banner-field > label .req {
+  color: #ff4d4f;
+  margin-right: 2px;
+}
+
+.mkt-newcomer-zone-banner-field__ctrl {
+  flex: 1;
+  min-width: 0;
+}
+
+.mkt-newcomer-zone-banner-field__ctrl .erp-input {
+  width: 100%;
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.mkt-newcomer-zone-banner-upload {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mkt-newcomer-zone-banner-preview {
+  width: 96px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #eee;
+  border: 1px solid #e8e8e8;
+}
+
+.mkt-newcomer-zone-banner-preview.is-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #bbb;
+}
+
+.mkt-newcomer-zone-banner-add {
+  margin-top: 12px;
+}
+
+/* —— 新人专区列表：小屏适配 —— */
+/* 列表页内容区铺满主栏，大屏不再旁侧大块留白 */
+.mkt-newcomer-zone-page {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+.mkt-newcomer-zone-page .mdm-biz-tip {
+  margin: 0 0 16px;
+}
+
+.mkt-newcomer-zone-page .search-section,
+.mkt-newcomer-zone-page .mkt-newcomer-zone-enable-bar,
+.mkt-newcomer-zone-page .mkt-newcomer-zone-toolbar,
+.mkt-newcomer-zone-page .table-section {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+.mkt-newcomer-zone-page .table-section {
+  min-width: 0;
+}
+
+.mkt-newcomer-zone-page .table-scroll-container.product-table-wrap {
+  width: 100%;
+  max-width: none;
+  overflow-x: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: normal;
+  max-height: calc(100vh - 280px);
+}
+
+.mkt-newcomer-zone-page .mkt-newcomer-zone-table {
+  width: 100%;
+  min-width: 1360px;
+  max-width: none;
+  table-layout: fixed;
+}
+
+.mkt-newcomer-zone-page .mkt-newcomer-zone-table th,
+.mkt-newcomer-zone-page .mkt-newcomer-zone-table td {
+  white-space: normal;
+  word-break: break-word;
+}
+
+.mkt-newcomer-zone-page .mkt-newcomer-zone-table .mkt-newcomer-zone-schedule-cell,
+.mkt-newcomer-zone-page .mkt-newcomer-zone-table .action-links {
+  white-space: nowrap;
+}
+
+@media (max-width: 1200px) {
+  .mkt-newcomer-zone-page {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .mkt-newcomer-zone-enable-bar {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  #pointsMallFilterForm.search-form > .form-group {
+    flex: 1 1 160px;
+    max-width: 100%;
+  }
+
+  #pointsMallFilterForm .form-group > input,
+  #pointsMallFilterForm .form-group > select,
+  #pointsMallFilterForm .form-group > .input-wrapper,
+  #pointsMallFilterForm .form-group > .input-wrapper > input {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  #pointsMallFilterForm .form-group--points-range .mkt-newcomer-zone-range {
+    width: 100%;
+    min-width: 0;
+  }
+
+  #pointsMallFilterForm .form-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .mkt-newcomer-zone-toolbar {
+    align-items: flex-start;
+  }
+
+  .mkt-newcomer-zone-toolbar-tip {
+    flex: 1 1 100%;
+    line-height: 1.5;
+  }
+
+  .mkt-newcomer-zone-page .product-pagination {
+    align-items: flex-start;
+  }
+
+  .mkt-newcomer-zone-page .product-pagination__right {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .mkt-newcomer-zone-page .table-scroll-container.product-table-wrap {
+    max-height: calc(100vh - 240px);
+  }
+
+  .mkt-newcomer-zone-page .mkt-newcomer-zone-table {
+    min-width: 1200px;
+    font-size: 12px;
+  }
+
+  .mkt-newcomer-zone-page .mkt-newcomer-zone-table th,
+  .mkt-newcomer-zone-page .mkt-newcomer-zone-table td {
+    padding: 8px 10px;
+  }
+
+  .mkt-newcomer-zone-enable-bar__desc {
+    font-size: 12px;
+  }
+}
+
+/* 适用范围二级联动筛选：默认隐藏，避免被 .form-group{display:flex} 顶开 */
+.mkt-newcomer-zone-page .search-form > .form-group[hidden],
+.mkt-newcomer-zone-page .search-form > .form-group.pts-sale-filter-extra[hidden] {
+  display: none !important;
+}
+.mkt-newcomer-zone-page .search-section,
+.mkt-newcomer-zone-page .search-form,
+.mkt-newcomer-zone-page .search-form > .form-group.pts-sale-filter-extra {
+  overflow: visible;
+}

@@ -291,7 +291,7 @@ function buildStoreFormBody(store, mode) {
   body.appendChild(mapRow);
 
   const uploadRow = el('div', 'store-form__row');
-  uploadRow.appendChild(sfLabel('门店门头照', true));
+  uploadRow.appendChild(sfLabel('门头/场地照', true));
   const upCtrl = el('div', 'store-form__control');
   upCtrl.appendChild(uploadMock('+ 点击上传'));
   uploadRow.appendChild(upCtrl);
@@ -547,7 +547,7 @@ export function openStoreDetailDrawer(store) {
 
     const cellFacadeThumb = () => {
       const c = el('div', 'supplier-detail-cell');
-      c.appendChild(el('div', 'supplier-detail-cell__label', '门店门头照'));
+      c.appendChild(el('div', 'supplier-detail-cell__label', '门头/场地照'));
       const wrap = el('div', 'store-detail-thumb-row');
       wrap.appendChild(el('div', 'store-detail-thumb store-detail-thumb--lg'));
       c.appendChild(wrap);

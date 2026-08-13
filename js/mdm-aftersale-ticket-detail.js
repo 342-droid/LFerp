@@ -226,6 +226,123 @@
     return '¥' + (Math.round(num * 100) / 100).toFixed(2);
   }
 
+  /**
+   * 退款金额组成渠道：与订单支付明细一致
+   * 支付宝 / 微信二选一（不会同时出现）+ 可选钱包余额
+   */
+  function normalizeAftersalePayMethod(name) {
+    var n = String(name || '').trim();
+    if (!n) return '';
+    if (/支付宝|alipay/i.test(n)) return '支付宝';
+    if (/微信|wechat|weixin/i.test(n)) return '微信';
+    if (/钱包|余额|balance/i.test(n)) return '钱包余额';
+    return '';
+  }
+
+  function normalizePayLegs(legs) {
+    return (legs || [])
+      .map(function (leg) {
+        if (!leg) return null;
+        var name = normalizeAftersalePayMethod(leg.name || leg.method || leg.channel);
+        var amount = typeof leg.amount === 'number' ? leg.amount : parseFloat(leg.amount);
+        if (!name || isNaN(amount) || !(amount > 0)) return null;
+        return { name: name, amount: Math.round(amount * 100) / 100 };
+      })
+      .filter(Boolean);
+  }
+
+  /** 按目标金额等比缩放组成；不足两腿时不展示展开 */
+  function scalePayLegs(legs, targetAmount) {
+    var list = normalizePayLegs(legs);
+    var target = typeof targetAmount === 'number' ? targetAmount : parseFloat(targetAmount);
+    if (list.length < 2 || isNaN(target) || !(target > 0)) return [];
+    var sum = list.reduce(function (s, leg) {
+      return s + leg.amount;
+    }, 0);
+    if (!(sum > 0)) return [];
+    var scaled = list.map(function (leg) {
+      return {
+        name: leg.name,
+        amount: Math.round((leg.amount / sum) * target * 100) / 100
+      };
+    });
+    var scaledSum = scaled.reduce(function (s, leg) {
+      return s + leg.amount;
+    }, 0);
+    var drift = Math.round((target - scaledSum) * 100) / 100;
+    if (drift !== 0 && scaled.length) {
+      scaled[scaled.length - 1].amount =
+        Math.round((scaled[scaled.length - 1].amount + drift) * 100) / 100;
+    }
+    return scaled.filter(function (leg) {
+      return leg.amount > 0;
+    });
+  }
+
+  /** 混合支付演示：通道（支付宝|微信二选一）+ 钱包余额；原路退回组成同此 */
+  function seedMixedPayLegs(total) {
+    var t = Math.round((Number(total) || 0) * 100) / 100;
+    if (!(t > 0)) return [];
+    var channel = Math.round(t * 0.55 * 100) / 100;
+    var wallet = Math.round((t - channel) * 100) / 100;
+    if (!(wallet > 0)) return [{ name: '微信', amount: t }];
+    return [
+      { name: '微信', amount: channel },
+      { name: '钱包余额', amount: wallet }
+    ];
+  }
+
+  /** 混合支付退款组成：仅代采售后生效，零售售后不拆腿 */
+  function isProxyAftersale(detail) {
+    return !!(detail && detail.orderSource === '代采');
+  }
+
+  function detailPayLegs(detail) {
+    if (!isProxyAftersale(detail)) return [];
+    return normalizePayLegs(detail && detail.payLegs);
+  }
+
+  /**
+   * 金额 + 可展开退款金额组成（交互同支付明细，金额前无「-」号）
+   * opts.tag: 'b' | 'strong' | '' — 主金额包裹标签
+   */
+  function renderMoneyWithPayLegs(amount, legs, opts) {
+    opts = opts || {};
+    var moneyText = money(amount);
+    var scaled = scalePayLegs(legs, amount);
+    var amountHtml =
+      opts.tag === 'b'
+        ? '<b class="is-money">' + moneyText + '</b>'
+        : opts.tag === 'strong'
+          ? '<strong class="is-money">' + moneyText + '</strong>'
+          : '<span class="aftersale-pay-legs-amount">' + moneyText + '</span>';
+    if (scaled.length < 2) return amountHtml;
+    var rows = scaled
+      .map(function (leg) {
+        return (
+          '<span class="aftersale-pay-leg-row">' +
+          '<span class="aftersale-pay-leg-name">' +
+          escapeHtml(leg.name) +
+          '</span>' +
+          '<span class="aftersale-pay-leg-amount">' +
+          money(leg.amount) +
+          '</span></span>'
+        );
+      })
+      .join('');
+    return (
+      '<span class="aftersale-pay-legs-wrap">' +
+      '<span class="aftersale-pay-legs-line">' +
+      amountHtml +
+      '<button type="button" class="aftersale-pay-legs-toggle js-as-pay-legs-toggle" aria-expanded="false" aria-label="展开退款金额组成">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
+      '<path d="M6 9l6 6 6-6"/></svg></button></span>' +
+      '<span class="aftersale-pay-legs" hidden>' +
+      rows +
+      '</span></span>'
+    );
+  }
+
   function listHref() {
     var wp = window.wmsPath;
     if (wp && typeof wp.page === 'function') return wp.page('mdm_aftersale_ticket.html');
@@ -634,6 +751,7 @@
       'method=' + encodeURIComponent(ticket.method || '线下付款'),
       'status=' + encodeURIComponent(ticket.status || '待退款'),
       'source=' + encodeURIComponent('售后退款'),
+      'orderSource=' + encodeURIComponent(detail.orderSource || '零售'),
       'createdAt=' + encodeURIComponent(ticket.createdAt || '')
     ];
     return base + '?' + qs.join('&');
@@ -1444,6 +1562,16 @@
     };
     detail.progress = buildProgress(type, status, id, applyTime, applicant, detail);
 
+    /* 混合支付演示：仅代采售后；仅退款/退货退款默认拆「微信+钱包余额」；mixedPay=0 关闭 */
+    if (
+      orderSource === '代采' &&
+      createsRefundDoc(type) &&
+      amount > 0 &&
+      queryParam('mixedPay') !== '0'
+    ) {
+      detail.payLegs = seedMixedPayLegs(amount);
+    }
+
     return seedLogisticsByStatus(seedUserOpsByStatus(detail));
   }
 
@@ -1611,9 +1739,11 @@
       '</b></div>' +
       '<div class="aftersale-status-banner__item"><span>' +
       (createsRefundDoc(detail.type) ? '申请退款金额' : '申请金额') +
-      '</span><b class="is-money">' +
-      money(detail.applyAmount) +
-      '</b></div>';
+      '</span>' +
+      (createsRefundDoc(detail.type) && isProxyAftersale(detail)
+        ? renderMoneyWithPayLegs(detail.applyAmount, detailPayLegs(detail), { tag: 'b' })
+        : '<b class="is-money">' + money(detail.applyAmount) + '</b>') +
+      '</div>';
 
     // 待审批态额外展示订单状态；已完成态按设计仅四列
     if (isPending(status)) {
@@ -1796,6 +1926,10 @@
 
   function renderGoods(detail, editable) {
     var isRestock = goodsTableType(detail) === '补货';
+    var payLegs =
+      isProxyAftersale(detail) && createsRefundDoc(goodsTableType(detail))
+        ? detailPayLegs(detail)
+        : [];
     var hasAnyActual =
       isRestock &&
       detail.goods.some(function (g) {
@@ -1811,9 +1945,13 @@
       .map(function (g, idx) {
         var amtCell = renderGoodsAmountCell(g, idx, editable, isRestock);
         var qtyCell = renderGoodsQtyCell(g, idx, editable, isRestock);
+        var rowLegs = normalizePayLegs(g.payLegs && g.payLegs.length ? g.payLegs : payLegs);
         var applyCell = isRestock
           ? escapeHtml(g.applyQty != null ? g.applyQty : g.refundQty)
-          : money(g.applyAmount);
+          : renderMoneyWithPayLegs(g.applyAmount, rowLegs, {});
+        var paidCell = isRestock
+          ? money(g.paidAmount)
+          : renderMoneyWithPayLegs(g.paidAmount, rowLegs, {});
         return (
           '<tr' +
           (state.editing.amountIdx === idx || state.editing.qtyIdx === idx
@@ -1836,7 +1974,7 @@
           '</td><td>' +
           escapeHtml(g.buyQty) +
           '</td><td>' +
-          money(g.paidAmount) +
+          paidCell +
           '</td><td>' +
           money(g.couponShare) +
           '</td><td>' +
@@ -1848,6 +1986,9 @@
       })
       .join('');
     var s = detail.summary;
+    var totalRefundHtml = isRestock
+      ? '<strong class="is-money">' + money(0) + '</strong>'
+      : renderMoneyWithPayLegs(s.refundAmount, payLegs, { tag: 'strong' });
     return (
       '<section class="aftersale-detail-card">' +
       '<h2 class="aftersale-detail-card__title">商品明细（共 ' +
@@ -1865,9 +2006,13 @@
       rows +
       '</tbody></table>' +
       '<div class="aftersale-goods-summary">' +
-      '<div class="aftersale-goods-summary__item">总计退款金额<strong class="is-money">' +
-      money(isRestock ? 0 : s.refundAmount) +
-      '</strong></div>' +
+      '<div class="aftersale-goods-summary__item' +
+      (!isRestock && scalePayLegs(payLegs, s.refundAmount).length >= 2
+        ? ' aftersale-goods-summary__item--pay-legs'
+        : '') +
+      '">总计退款金额' +
+      totalRefundHtml +
+      '</div>' +
       '<div class="aftersale-goods-summary__item">总计' +
       (isRestock
         ? hasAnyActual || detail.status === '已完成'
@@ -3913,6 +4058,23 @@
     var modal = $('asAddrModal');
 
     function onRootClick(e) {
+      var payLegsToggle = e.target.closest('.js-as-pay-legs-toggle');
+      if (payLegsToggle) {
+        e.preventDefault();
+        var wrap = payLegsToggle.closest('.aftersale-pay-legs-wrap');
+        var legsEl = wrap && wrap.querySelector('.aftersale-pay-legs');
+        if (!legsEl) return;
+        var expanded = payLegsToggle.getAttribute('aria-expanded') === 'true';
+        var next = !expanded;
+        payLegsToggle.setAttribute('aria-expanded', next ? 'true' : 'false');
+        payLegsToggle.setAttribute(
+          'aria-label',
+          next ? '收起退款金额组成' : '展开退款金额组成'
+        );
+        payLegsToggle.classList.toggle('is-expanded', next);
+        legsEl.hidden = !next;
+        return;
+      }
       var editGoodsStatus = e.target.closest('.js-as-edit-goods-status');
       if (editGoodsStatus) {
         if (editGoodsStatus.disabled) return;

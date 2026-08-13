@@ -119,18 +119,25 @@
   border: 0;
   background: transparent;
   padding: 0;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   color: #999;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .sa-biz-eye svg {
   width: 16px;
   height: 16px;
+  display: block;
+  pointer-events: none;
+}
+
+.sa-biz-eye:active {
+  opacity: 0.7;
 }
 
 .sa-biz-summary__amount {
@@ -449,6 +456,10 @@
   color: #2f8fff;
 }
 
+.sa-biz-order__status.is-failed {
+  color: #999;
+}
+
 .sa-biz-kv {
   display: grid;
   grid-template-columns: 64px 1fr;
@@ -470,6 +481,35 @@
 .sa-biz-kv__v--ship {
   color: #222;
   font-weight: 500;
+}
+
+/* 佣金结算状态：待结算 | 结算中 | 已结算 | 结算失败 | 已取消 */
+.sa-biz-settle {
+  font-weight: 500;
+}
+.sa-biz-settle.is-settle-wait {
+  color: #e6a23c;
+}
+.sa-biz-settle.is-settling {
+  color: #409eff;
+}
+.sa-biz-settle.is-settled {
+  color: #67c23a;
+}
+.sa-biz-settle.is-settle-fail {
+  color: #e53935;
+}
+.sa-biz-settle.is-settle-cancel {
+  color: #999;
+}
+
+.sa-biz-goods-link {
+  color: #333;
+  text-decoration: none;
+}
+
+.sa-biz-goods-link:active {
+  color: #ff6a00;
 }
 
 .sa-biz-copy {

@@ -17,10 +17,9 @@
     <script src="../js/marketing-sidebar.js"></script>
     <div id="header-container"></div>
     <div class="container">
-        <main class="main-content">
+        <main class="main-content mkt-points-mall-page">
             <div class="content-tabs"><button class="active">积分商城</button></div>
             <hr class="content-divider">
-            <div class="content-title">营销 / 营销活动 / 积分商城</div>
 
             <!-- 积分商城开关：与会员-积分规则「积分兑换商品」共用；去配置跳转积分规则页 -->
             <div class="mkt-points-mall-enable-bar">
@@ -70,6 +69,28 @@
                             <option value="express">快递配送</option>
                             <option value="platform">平台配送</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label>适用范围:</label>
+                        <select id="qMallSaleScope">
+                            <option value="">全部</option>
+                            <option value="all">全部范围</option>
+                            <option value="region">省市区</option>
+                            <option value="store">门店</option>
+                        </select>
+                    </div>
+                    <div class="form-group pts-sale-filter-extra" id="qMallSaleRegionGroup" hidden style="display:none">
+                        <label>具体省市区:</label>
+                        <div id="qMallSaleRegionMount"></div>
+                    </div>
+                    <div class="form-group custom-select-wrapper pts-sale-filter-extra" id="qMallSaleStoreGroup" hidden style="display:none">
+                        <label>具体门店:</label>
+                        <div class="custom-select">
+                            <input type="text" id="qMallStore" placeholder="请选择/搜索门店" autocomplete="off">
+                            <span class="select-arrow">▼</span>
+                            <span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="qMallStoreDropdown"></div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>状态:</label>
@@ -126,6 +147,7 @@
                             <col class="mkt-points-mall-table__col mkt-points-mall-table__col--qty">
                             <col class="mkt-points-mall-table__col mkt-points-mall-table__col--delivery">
                             <col class="mkt-points-mall-table__col mkt-points-mall-table__col--type">
+                            <col class="mkt-points-mall-table__col mkt-points-mall-table__col--scope">
                             <col class="mkt-points-mall-table__col mkt-points-mall-table__col--status">
                             <col class="mkt-points-mall-table__col mkt-points-mall-table__col--schedule">
                             <col class="mkt-points-mall-table__col mkt-points-mall-table__col--action">
@@ -162,6 +184,7 @@
                                 </th>
                                 <th>履约方式</th>
                                 <th>兑换方式</th>
+                                <th>适用范围</th>
                                 <th>状态</th>
                                 <th>定时上下架</th>
                                 <th>操作</th>
@@ -191,8 +214,12 @@
         </main>
     </div>
     <script src="../js/common.js"></script>
+    <script src="../js/region-cascader.js"></script>
     <script src="../js/mdm-member-level-data.js"></script>
     <script src="../js/mdm-product-catalog-store.js"></script>
+    <script src="../js/mdm-product-proxy-region-picker.js"></script>
+    <script src="../js/mdm-product-proxy-store-picker.js"></script>
+    <script src="../js/mdm-member-points-rule-list-filter.js"></script>
     <script src="../js/mdm-marketing-points-mall-store.js"></script>
     <script src="../js/mdm-marketing-points-mall-config.js"></script>
     <script src="../js/mdm-marketing-points-mall-picker.js"></script>

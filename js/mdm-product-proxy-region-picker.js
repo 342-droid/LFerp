@@ -535,9 +535,54 @@
     refresh();
   }
 
+  /** 转为 RegionCascader 使用的 { 省: { 市: [区] } } 结构 */
+  function toCascaderTree() {
+    var tree = {};
+    REGION_TREE.forEach(function (p) {
+      tree[p.name] = {};
+      (p.children || []).forEach(function (c) {
+        tree[p.name][c.name] = (c.children || []).map(function (d) {
+          return d.name;
+        });
+      });
+    });
+    return tree;
+  }
+
+  /** 按省/市/区名称查找区级 adcode */
+  function findIdByNamePath(province, city, district) {
+    var pNode = null;
+    for (var i = 0; i < REGION_TREE.length; i++) {
+      if (REGION_TREE[i].name === province) {
+        pNode = REGION_TREE[i];
+        break;
+      }
+    }
+    if (!pNode) return '';
+    var cNode = null;
+    var cities = pNode.children || [];
+    for (var j = 0; j < cities.length; j++) {
+      if (cities[j].name === city) {
+        cNode = cities[j];
+        break;
+      }
+    }
+    if (!cNode) return '';
+    var districts = cNode.children || [];
+    for (var k = 0; k < districts.length; k++) {
+      if (districts[k].name === district) return String(districts[k].id || '');
+    }
+    return '';
+  }
+
   window.MdmProxyRegionPicker = {
     open: openRegionPicker,
     summarize: summarizeSelections,
-    cloneSelected: cloneSelected
+    cloneSelected: cloneSelected,
+    getTree: function () {
+      return REGION_TREE;
+    },
+    toCascaderTree: toCascaderTree,
+    findIdByNamePath: findIdByNamePath
   };
 })();

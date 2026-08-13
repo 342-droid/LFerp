@@ -257,6 +257,63 @@
     return normalizeCatalog(catalog);
   }
 
+  /**
+   * 选品库关联商品类目（主数据类目清单 + 商品上已出现的类目）
+   * 供会员适用范围、营销选品等共用；id/name 均为类目名称（与商品 category 字段一致）
+   */
+  function getCategories() {
+    var seen = {};
+    var list = [];
+    function pushName(name) {
+      name = String(name || '').trim();
+      if (!name || seen[name]) return;
+      seen[name] = true;
+      list.push({ id: name, name: name });
+    }
+    CATEGORIES.forEach(pushName);
+    getAll().forEach(function (item) {
+      pushName(item && item.category);
+    });
+    return list;
+  }
+
+  /**
+   * 转为适用范围选择器商品结构：id=商品编码 code
+   */
+  function toScopeProduct(item) {
+    var detail = enrichDetail(Object.assign({}, item || {}));
+    var category = String(detail.category || '').trim();
+    var skus = (detail.specs || []).map(function (s) {
+      return {
+        code: s.skuCode || '',
+        price: Number(s.price) || Number(detail.price) || 0
+      };
+    });
+    if (!skus.length) {
+      skus = [{ code: detail.code || '', price: Number(detail.price) || 0 }];
+    }
+    var saleChannels = Array.isArray(detail.saleChannels) ? detail.saleChannels.slice() : [];
+    return {
+      id: String(detail.code || ''),
+      code: String(detail.code || ''),
+      name: String(detail.name || ''),
+      categoryId: category,
+      category: category,
+      image: detail.img || '',
+      status: detail.status || 'selling',
+      channel: detail.channel || '',
+      saleChannels: saleChannels,
+      skus: skus
+    };
+  }
+
+  /** 选品库商品（适用范围 / 筛选多选） */
+  function getScopeProducts() {
+    return getAll().map(toScopeProduct).filter(function (p) {
+      return !!p.id;
+    });
+  }
+
   function getByCode(code) {
     if (!catalog.length) load();
     for (var i = 0; i < catalog.length; i++) {
@@ -323,6 +380,9 @@
   window.MdmProductCatalog = {
     getAll: getAll,
     getByCode: getByCode,
+    getCategories: getCategories,
+    getScopeProducts: getScopeProducts,
+    toScopeProduct: toScopeProduct,
     updateAudit: updateAudit,
     updateProduct: updateProduct,
     resubmitAudit: resubmitAudit,

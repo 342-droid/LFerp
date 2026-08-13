@@ -20,6 +20,13 @@
         exclude_category: '排除类目'
     };
 
+    /** 进入直播间特效样式 */
+    var LIVE_ENTRY_EFFECT_LABEL = {
+        banner: '欢迎横幅',
+        vehicle: '进场座驾',
+        fullscreen: '全屏特效'
+    };
+
     function levelIconSvg(bg, fg, label) {
         var svg =
             '<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72">' +
@@ -54,15 +61,20 @@
             item.memberDiscountEnabled = item.memberDiscount != null && Number(item.memberDiscount) < 100;
         }
         if (item.pointsRatioEnabled == null) {
-            item.pointsRatioEnabled = item.pointsRatio != null && Number(item.pointsRatio) !== 100;
+            item.pointsRatioEnabled = item.pointsRatio != null && Number(item.pointsRatio) > 100;
         }
         if (item.birthdayEnabled == null) item.birthdayEnabled = false;
+        if (item.liveEntryEffectEnabled == null) item.liveEntryEffectEnabled = false;
+        if (!item.liveEntryEffectType || !LIVE_ENTRY_EFFECT_LABEL[item.liveEntryEffectType]) {
+            item.liveEntryEffectType = 'banner';
+        }
 
         item.giftPointsDesc = item.giftPointsDesc || '';
         item.giftCouponDesc = item.giftCouponDesc || '';
         item.memberDiscountDesc = item.memberDiscountDesc || '';
         item.pointsRatioDesc = item.pointsRatioDesc || '';
         item.birthdayDesc = item.birthdayDesc || '';
+        item.liveEntryEffectDesc = item.liveEntryEffectDesc || '';
         item.discountScope = normalizeDiscountScope(item.discountScope);
         if (!item.giftCouponMode) item.giftCouponMode = 'total';
         /* 生日送券仅生日月每年一次，统一为 total，不再使用每月/每日 */
@@ -97,6 +109,9 @@
                 birthdayCouponMode: 'total',
                 birthdayCoupons: [],
                 birthdayDesc: '',
+                liveEntryEffectEnabled: false,
+                liveEntryEffectType: 'banner',
+                liveEntryEffectDesc: '',
                 memberCount: 5620,
                 updatedAt: '2026-04-15 09:12:08',
                 status: '启用'
@@ -130,6 +145,9 @@
                     { coupon: '免运费券', qty: 1 }
                 ],
                 birthdayDesc: '生日当月可领取',
+                liveEntryEffectEnabled: true,
+                liveEntryEffectType: 'banner',
+                liveEntryEffectDesc: '进场展示银色欢迎横幅',
                 memberCount: 1280,
                 updatedAt: '2026-04-18 15:30:44',
                 status: '启用'
@@ -164,6 +182,9 @@
                 birthdayCouponMode: 'total',
                 birthdayCoupons: [{ coupon: '生日专属券', qty: 2 }],
                 birthdayDesc: '',
+                liveEntryEffectEnabled: true,
+                liveEntryEffectType: 'vehicle',
+                liveEntryEffectDesc: '进场展示金牌座驾特效',
                 memberCount: 312,
                 updatedAt: '2026-04-20 10:22:11',
                 status: '启用'
@@ -190,8 +211,8 @@
                 discountScope: {
                     type: 'include_product',
                     products: [
-                        { id: 'P1001', name: '冷丰精选西红柿' },
-                        { id: 'P1003', name: '有机生菜' }
+                        resolveSeedProduct('SPU00085', '圆茄 优质'),
+                        resolveSeedProduct('SPU00078', '长茄子 广茄')
                     ],
                     categories: []
                 },
@@ -205,6 +226,9 @@
                     { coupon: '满200减30券', qty: 1 }
                 ],
                 birthdayDesc: '',
+                liveEntryEffectEnabled: true,
+                liveEntryEffectType: 'fullscreen',
+                liveEntryEffectDesc: '进场展示钻石全屏特效',
                 memberCount: 86,
                 updatedAt: '2026-04-20 10:22:11',
                 status: '启用'
@@ -278,11 +302,15 @@
             parts.push('会员折扣：' + disc);
         }
         if (item.pointsRatioEnabled) {
-            parts.push('积分倍率：' + (item.pointsRatio / 100).toFixed(2).replace(/\.?0+$/, '') + ' 倍');
+            parts.push('消费积分等级赠送比例：' + (item.pointsRatio / 100).toFixed(2).replace(/\.?0+$/, '') + ' 倍');
         }
         if (item.birthdayEnabled) {
             var birthText = formatBirthdayCouponList(item.birthdayCoupons);
             parts.push(birthText ? '生日送券：生日月赠送：' + birthText : '生日送券：已开启');
+        }
+        if (item.liveEntryEffectEnabled) {
+            var effectName = LIVE_ENTRY_EFFECT_LABEL[item.liveEntryEffectType] || '欢迎横幅';
+            parts.push('进入直播间特效：' + effectName);
         }
         if (!parts.length) {
             return '<span class="member-level-benefit-empty">暂无权益</span>';
@@ -296,85 +324,33 @@
         );
     }
 
-    var DEMO_CATEGORIES = [
-        { id: 'C01', name: '生鲜蔬菜' },
-        { id: 'C02', name: '肉禽蛋品' },
-        { id: 'C03', name: '乳品饮料' },
-        { id: 'C04', name: '烟酒专区' },
-        { id: 'C05', name: '冷冻食品' },
-        { id: 'C06', name: '水果' }
-    ];
-
-    var DEMO_PRODUCTS = [
-        {
-            id: 'P1001',
-            name: '冷丰精选西红柿',
-            categoryId: 'C01',
-            image: 'https://images.unsplash.com/photo-1546094096-0df4bcaaa337?w=80&h=80&fit=crop',
-            skus: [
-                { code: 'SKU-P1001-S', price: 6.5 },
-                { code: 'SKU-P1001-L', price: 12.8 }
-            ]
-        },
-        {
-            id: 'P1002',
-            name: '新鲜黄瓜',
-            categoryId: 'C01',
-            image: 'https://images.unsplash.com/photo-1604977042946-1eecc30f269e?w=80&h=80&fit=crop',
-            skus: [{ code: 'SKU-P1002-01', price: 4.9 }]
-        },
-        {
-            id: 'P1003',
-            name: '有机生菜',
-            categoryId: 'C01',
-            image: 'https://images.unsplash.com/photo-1622206151226-18ca2c9ab4a1?w=80&h=80&fit=crop',
-            skus: [
-                { code: 'SKU-P1003-A', price: 5.2 },
-                { code: 'SKU-P1003-B', price: 8.6 }
-            ]
-        },
-        {
-            id: 'P1004',
-            name: '土鸡蛋 30 枚',
-            categoryId: 'C02',
-            image: 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=80&h=80&fit=crop',
-            skus: [{ code: 'SKU-P1004-30', price: 29.9 }]
-        },
-        {
-            id: 'P1005',
-            name: '冷丰鲜牛奶',
-            categoryId: 'C03',
-            image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=80&h=80&fit=crop',
-            skus: [
-                { code: 'SKU-P1005-500', price: 6.8 },
-                { code: 'SKU-P1005-1L', price: 11.5 }
-            ]
-        },
-        {
-            id: 'P1006',
-            name: '冷冻虾仁',
-            categoryId: 'C05',
-            image: 'https://images.unsplash.com/photo-1565680018434-b513d5ea5c19?w=80&h=80&fit=crop',
-            skus: [{ code: 'SKU-P1006-250', price: 39.9 }]
-        },
-        {
-            id: 'P1007',
-            name: '精品五花肉',
-            categoryId: 'C02',
-            image: 'https://images.unsplash.com/photo-1603048297172-c92544798d5a?w=80&h=80&fit=crop',
-            skus: [
-                { code: 'SKU-P1007-500', price: 28.0 },
-                { code: 'SKU-P1007-1KG', price: 52.0 }
-            ]
-        },
-        {
-            id: 'P1008',
-            name: '香蕉（进口）',
-            categoryId: 'C06',
-            image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=80&h=80&fit=crop',
-            skus: [{ code: 'SKU-P1008-01', price: 9.9 }]
+    function getDemoCategories() {
+        if (global.MdmProductCatalog && typeof global.MdmProductCatalog.getCategories === 'function') {
+            return global.MdmProductCatalog.getCategories();
         }
-    ];
+        return [
+            { id: '新鲜蔬菜', name: '新鲜蔬菜' },
+            { id: '时令水果', name: '时令水果' },
+            { id: '粮油调味', name: '粮油调味' },
+            { id: '肉禽蛋品', name: '肉禽蛋品' },
+            { id: '酒水饮料', name: '酒水饮料' }
+        ];
+    }
+
+    function getDemoProducts() {
+        if (global.MdmProductCatalog && typeof global.MdmProductCatalog.getScopeProducts === 'function') {
+            return global.MdmProductCatalog.getScopeProducts();
+        }
+        return [];
+    }
+
+    function resolveSeedProduct(code, fallbackName) {
+        if (global.MdmProductCatalog && typeof global.MdmProductCatalog.getByCode === 'function') {
+            var item = global.MdmProductCatalog.getByCode(code);
+            if (item) return { id: item.code, name: item.name };
+        }
+        return { id: code, name: fallbackName || code };
+    }
 
     global.MdmMemberLevelData = {
         STORAGE_KEY: STORAGE_KEY,
@@ -382,8 +358,15 @@
         NAME_MAX: NAME_MAX,
         MODE_LABEL: MODE_LABEL,
         SCOPE_LABEL: SCOPE_LABEL,
-        DEMO_PRODUCTS: DEMO_PRODUCTS,
-        DEMO_CATEGORIES: DEMO_CATEGORIES,
+        LIVE_ENTRY_EFFECT_LABEL: LIVE_ENTRY_EFFECT_LABEL,
+        get DEMO_PRODUCTS() {
+            return getDemoProducts();
+        },
+        get DEMO_CATEGORIES() {
+            return getDemoCategories();
+        },
+        getDemoProducts: getDemoProducts,
+        getDemoCategories: getDemoCategories,
         levelIconSvg: levelIconSvg,
         defaultDiscountScope: defaultDiscountScope,
         normalizeDiscountScope: normalizeDiscountScope,

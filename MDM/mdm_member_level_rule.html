@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/mdm-member360-list.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <style>
         .member-level-rule-toolbar {
             margin: 0 0 12px;
@@ -141,18 +142,6 @@
             gap: 10px;
             padding: 8px 0 24px;
         }
-        .member-level-rule-strategy {
-            padding: 12px 14px;
-            background: #fff7f0;
-            border: 1px solid #ffe0c2;
-            border-radius: 4px;
-            font-size: 13px;
-            color: #555;
-            line-height: 1.7;
-        }
-        .member-level-rule-strategy strong {
-            color: #ff7019;
-        }
         .member-level-rule-pending-badge {
             display: inline-block;
             margin-left: 8px;
@@ -188,23 +177,12 @@
         <main class="main-content">
             <div class="content-tabs"><button class="active">成长值规则</button></div>
             <hr class="content-divider">
-            <div class="content-title">会员 / 会员体系 / 成长值规则</div>
-
-            <div class="flow-box">
-                成长值可通过<strong>消费</strong>获取（<strong>活跃</strong>获成长值待开发）。
-                会员等级升降级：当前有效成长值满足某等级门槛即可升级（达标后立即生效）；不满足则降级（每日统一处理）。
-                成长值有效期可在下方自行配置，过期成长值将失效并可能触发降级。
-            </div>
-
-            <div class="member-level-rule-toolbar">
-                <button type="button" class="erp-btn" id="btnBackLevel">返回会员等级</button>
-            </div>
 
             <form id="memberLevelRuleForm">
                 <div class="member-level-rule-card">
                     <div class="member-level-rule-card__title">升降级策略</div>
                     <div class="member-level-rule-card__body">
-                        <div class="member-level-rule-strategy">
+                        <div class="mdm-biz-tip mdm-biz-tip--flush" role="note">
                             <div><strong>升级：</strong>会员当前有效成长值 ≥ 某等级成长值门槛时，自动升至该等级（取满足条件的最高等级），<strong>达标后立即生效</strong>。</div>
                             <div><strong>降级：</strong>会员当前有效成长值 &lt; 当前等级门槛时，降至满足条件的最高等级，于<strong>每日统一处理</strong>。</div>
                             <div>策略固定为「满足成长值即可升级，不满足成长值即会降级」，无需额外开关。</div>
@@ -239,6 +217,23 @@
                                 <div class="member-level-rule-tip">常用配置：365 天（自然年）、180 天等。</div>
                             </div>
                         </div>
+                        <div class="member-level-rule-field" id="downgradeScheduleRow">
+                            <label class="member-level-rule-field__label"><span class="erp-req">*</span>降级更新时效</label>
+                            <div class="member-level-rule-field__control">
+                                <div class="member-level-rule-radio-row">
+                                    <label class="member-level-rule-radio-label">
+                                        <input type="radio" name="downgradeSchedule" value="daily" id="downgradeDaily" checked> 每天凌晨
+                                    </label>
+                                    <label class="member-level-rule-radio-label">
+                                        <input type="radio" name="downgradeSchedule" value="monthly" id="downgradeMonthly"> 每月1号
+                                    </label>
+                                    <label class="member-level-rule-radio-label">
+                                        <input type="radio" name="downgradeSchedule" value="quarterly" id="downgradeQuarterly"> 每季度1号
+                                    </label>
+                                </div>
+                                <div class="member-level-rule-tip">按所选时效批量复核会员成长值是否满足当前等级，不满足则降级。</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -266,6 +261,37 @@
                                     <span class="member-level-rule-unit__text">成长值</span>
                                 </div>
                                 <div class="member-level-rule-tip">以订单实付金额计算；订单售后成功时，按获取时的比例扣除对应成长值。</div>
+                            </div>
+                        </div>
+                        <div class="member-level-rule-field" id="consumeLessThanOneRow">
+                            <label class="member-level-rule-field__label"><span class="erp-req">*</span>成长值不足1时</label>
+                            <div class="member-level-rule-field__control">
+                                <div class="member-level-rule-radio-row">
+                                    <label class="member-level-rule-radio-label">
+                                        <input type="radio" name="consumeLessThanOne" value="count_one" id="consumeLtoCountOne" checked> 计1分
+                                    </label>
+                                    <label class="member-level-rule-radio-label">
+                                        <input type="radio" name="consumeLessThanOne" value="ignore" id="consumeLtoIgnore"> 不计分
+                                    </label>
+                                    <label class="member-level-rule-radio-label">
+                                        <input type="radio" name="consumeLessThanOne" value="round" id="consumeLtoRound"> 四舍五入
+                                    </label>
+                                </div>
+                                <div class="member-level-rule-tip">单笔订单按规则计算出的成长值小于 1 时的处理方式。</div>
+                            </div>
+                        </div>
+                        <div class="member-level-rule-field" id="consumeGrantTimingRow">
+                            <label class="member-level-rule-field__label"><span class="erp-req">*</span>成长值发放时间</label>
+                            <div class="member-level-rule-field__control">
+                                <div class="member-level-rule-radio-row">
+                                    <label class="member-level-rule-radio-label">
+                                        <input type="radio" name="consumeGrantTiming" value="payment" id="consumeGrantPayment" checked> 支付完成
+                                    </label>
+                                    <label class="member-level-rule-radio-label">
+                                        <input type="radio" name="consumeGrantTiming" value="trade" id="consumeGrantTrade"> 交易完成
+                                    </label>
+                                </div>
+                                <div class="member-level-rule-tip">支付完成：付款成功即发放；交易完成：订单完成（确认收货/自提完成）后发放。</div>
                             </div>
                         </div>
                     </div>

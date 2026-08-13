@@ -1,0 +1,26 @@
+---
+description: 切到或使用 zhangzheng-test 时先同步最新 main
+alwaysApply: true
+---
+
+# zhangzheng-test 同步 main
+
+当用户从 `main`（或其它分支）**切换到 / 开始在 `zhangzheng-test` 上工作**，或明确要求同步 main 时，代理应主动执行（无需再问是否同步），除非用户明确说「不要合 main」：
+
+## 必须步骤
+
+1. `git fetch origin`
+2. 确认当前在 `zhangzheng-test`（不在则 `git checkout zhangzheng-test`）
+3. `git merge origin/main`（普通合并，禁止强推、禁止改写已推送历史）
+4. 若有冲突：停下来列出冲突文件，请用户确认如何解决后再继续
+5. 合并成功后简要说明：已合入最新 `main`，本地是否 ahead、是否需要 push
+
+## 不要做的
+
+- 不要用 `zhangzheng-test` → `main` 来代替「把 main 合进测试分支」
+- 不要在用户未要求时把合并结果推到远端；需要 push 时先说明再执行（或等用户说推）
+- 不要 `git push --force` / `--force-with-lease`（见 git-push-safety）
+
+## 说明
+
+此规则依赖对话中的代理执行；用户仅在 IDE 里静默切分支、未发起对话时，代理无法感知，也就不会自动跑 git。

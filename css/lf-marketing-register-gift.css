@@ -1,0 +1,505 @@
+/* 营销活动 — 注册有礼
+ * 列表字号/字体/颜色/状态/操作列：复用 mdm-member360-list.css（对齐会员等级等 .table 列表）
+ */
+
+.mkt-rg-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  flex-wrap: wrap;
+}
+
+/* 新增活动：按钮形态，无下划线 */
+.mkt-rg-toolbar .erp-btn {
+  text-decoration: none !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  line-height: 1;
+}
+
+.mkt-rg-toolbar .erp-btn:hover,
+.mkt-rg-toolbar .erp-btn:focus {
+  text-decoration: none !important;
+}
+
+/* 页面级业务提示：统一用 css/lf-mdm-biz-tip.css 的 .mdm-biz-tip */
+
+/* 列表筛选：与积分明细/成长值明细一致，按内容宽度紧凑排，时间起止同一行 */
+#rgFilterForm.search-form,
+#crFilterForm.search-form {
+  gap: 16px 20px;
+  align-items: center;
+}
+
+#rgFilterForm.search-form > .form-group,
+#crFilterForm.search-form > .form-group {
+  flex: 0 0 auto;
+  max-width: none;
+  width: auto;
+  align-items: center;
+}
+
+#rgFilterForm.search-form > .form-group.form-group--rg-time,
+#crFilterForm.search-form > .form-group.form-group--rg-time {
+  flex: 0 0 auto;
+  max-width: none;
+}
+
+#rgFilterForm .form-group > input,
+#rgFilterForm .form-group > select,
+#rgFilterForm .form-group > .input-wrapper > input,
+#crFilterForm .form-group > input,
+#crFilterForm .form-group > select,
+#crFilterForm .form-group > .input-wrapper > input {
+  width: 180px;
+}
+
+.mkt-rg-filter-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  height: 32px;
+}
+
+.mkt-rg-filter-range .sep {
+  color: #999;
+  font-size: 12px;
+  line-height: 32px;
+  flex-shrink: 0;
+}
+
+#rgFilterForm .mkt-rg-datetime-wrap,
+#crFilterForm .mkt-rg-datetime-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+#rgFilterForm .search-form .form-group input[type='datetime-local'],
+#rgFilterForm .mkt-rg-datetime-wrap input[type='datetime-local'],
+#crFilterForm .search-form .form-group input[type='datetime-local'],
+#crFilterForm .mkt-rg-datetime-wrap input[type='datetime-local'] {
+  width: 190px;
+  height: 32px;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0 28px 0 8px;
+  line-height: 1.2;
+}
+
+/* 列表「奖励」列：复用会员等级「会员权益」橙点多行样式 */
+.mkt-rg-reward-cell.member-level-benefit-cell,
+.table td.mkt-rg-reward-cell {
+  white-space: normal !important;
+  overflow: visible;
+  text-overflow: unset;
+  text-align: left;
+  vertical-align: middle;
+  min-width: 200px;
+  max-width: 420px;
+}
+
+.member-level-benefit-summary {
+  max-width: 420px;
+  text-align: left;
+  white-space: normal;
+}
+
+.member-level-benefit-list {
+  max-width: 420px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+  color: #555;
+  line-height: 1.55;
+  white-space: normal;
+  text-align: left;
+}
+
+.member-level-benefit-list li {
+  margin: 0 0 2px;
+}
+
+.member-level-benefit-list li::before {
+  content: '· ';
+  color: #ff7019;
+  font-weight: 700;
+}
+
+/* 场景分组：标题无橙点，子项缩进橙点 */
+.member-level-benefit-list.mkt-rg-reward-groups > li.mkt-rg-reward-group {
+  margin: 0 0 6px;
+}
+
+.member-level-benefit-list.mkt-rg-reward-groups > li.mkt-rg-reward-group::before {
+  content: none;
+}
+
+.mkt-rg-reward-group__title {
+  color: #333;
+  font-weight: 500;
+  line-height: 1.5;
+  margin: 0 0 2px;
+}
+
+.mkt-rg-reward-group__items {
+  margin: 0;
+  padding: 0 0 0 12px;
+  list-style: none;
+}
+
+.mkt-rg-reward-group__items li {
+  margin: 0 0 1px;
+  color: #555;
+}
+
+.mkt-rg-reward-group__items li::before {
+  content: '· ';
+  color: #ff7019;
+  font-weight: 700;
+}
+
+.member-level-benefit-empty {
+  font-size: 12px;
+  color: #bbb;
+}
+
+/* 编辑页：时间区间清空 */
+.mkt-rg-datetime-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mkt-rg-datetime-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.mkt-rg-datetime-wrap input[type='datetime-local'] {
+  width: 210px;
+  height: 36px;
+  box-sizing: border-box;
+  padding-right: 28px;
+}
+
+.mkt-rg-datetime-clear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: #ddd;
+  color: #666;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  cursor: pointer;
+  padding: 0;
+  display: none;
+}
+
+.mkt-rg-datetime-wrap.has-value:hover .mkt-rg-datetime-clear,
+.mkt-rg-datetime-wrap.has-value:focus-within .mkt-rg-datetime-clear {
+  display: block;
+}
+
+.mkt-rg-datetime-clear:hover {
+  background: #ccc;
+  color: #333;
+}
+
+.mkt-rg-datetime-row .sep {
+  color: #999;
+  font-size: 12px;
+}
+
+.mkt-rg-check-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  align-items: center;
+  min-height: 36px;
+}
+
+.mkt-rg-check-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  user-select: none;
+  min-height: 36px;
+}
+
+.mkt-rg-check-label input {
+  accent-color: var(--color-primary, #ff7019);
+  margin: 0;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.mkt-rg-check-label.is-locked {
+  cursor: default;
+  color: #555;
+}
+
+.mkt-rg-tip {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.45;
+}
+
+/* —— 奖励配置：对齐会员等级「会员权益」字段布局（先开关再配置） —— */
+.mkt-rg-reward-card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+.mkt-rg-reward-card__title {
+  padding: 12px 16px;
+  background: #fafafa;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.mkt-rg-reward-card__body {
+  padding: 16px 16px 8px;
+}
+
+.mkt-rg-reward-card .pts-rule-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.mkt-rg-reward-card .pts-rule-field__label {
+  flex: 0 0 120px;
+  text-align: right;
+  font-size: 13px;
+  color: #333;
+  line-height: 36px;
+}
+
+.mkt-rg-reward-card .pts-rule-field__control {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+}
+
+.mkt-rg-reward-card .member-level-benefit-head {
+  margin-bottom: 10px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+}
+
+.mkt-rg-reward-card .member-level-benefit-body {
+  transition: opacity 0.15s ease;
+}
+
+.mkt-rg-reward-card .member-level-benefit-body.is-disabled,
+.mkt-rg-reward-card .member-level-benefit-body[hidden] {
+  display: none;
+}
+
+.mkt-rg-unit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.mkt-rg-unit .erp-input {
+  width: auto;
+  flex: 0 0 140px;
+  max-width: 180px;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.mkt-rg-unit__text {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: #666;
+  white-space: nowrap;
+}
+
+/* 现金红包金额区间 */
+.mkt-rg-cash-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mkt-rg-cash-range__label {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: #666;
+  min-width: 96px;
+}
+
+.mkt-rg-cash-range .erp-input {
+  width: 100px;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.mkt-rg-cash-range__sep {
+  color: #999;
+  font-size: 13px;
+}
+
+.mkt-rg-coupon-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mkt-rg-coupon-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mkt-rg-coupon-row select.erp-input,
+.mkt-rg-coupon-row .erp-select {
+  flex: 1;
+  min-width: 180px;
+  max-width: 320px;
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.mkt-rg-coupon-qty {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.mkt-rg-coupon-qty .erp-input {
+  width: 72px;
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.mkt-rg-coupon-qty em {
+  font-style: normal;
+  font-size: 13px;
+  color: #666;
+}
+
+.mkt-rg-coupon-remove {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: #2196f3;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0 4px;
+  line-height: 32px;
+}
+
+.mkt-rg-coupon-remove:hover {
+  text-decoration: underline;
+}
+
+.mkt-rg-coupon-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 400px;
+  height: 34px;
+  margin-top: 8px;
+  border: 1px dashed #ddd;
+  border-radius: 4px;
+  background: #fafafa;
+  color: #333;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.mkt-rg-coupon-add:hover:not(:disabled) {
+  border-color: #ff7019;
+  color: #ff7019;
+  background: #fff7f0;
+}
+
+.mkt-rg-coupon-add:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.mkt-rg-form-back {
+  color: #2196f3;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.mkt-rg-form-back:hover {
+  text-decoration: underline;
+}
+
+.mkt-rg-form-toolbar {
+  margin: 0 0 14px;
+}
+
+.mdm-edit-page .mkt-rg-reward-card {
+  width: 100%;
+  max-width: none;
+}
+
+@media (max-width: 900px) {
+  .mkt-rg-filter-range {
+    flex-wrap: wrap;
+    height: auto;
+    white-space: normal;
+  }
+
+  #rgFilterForm .mkt-rg-datetime-wrap input[type='datetime-local'] {
+    width: 100%;
+    min-width: 160px;
+  }
+
+  .mkt-rg-reward-card .pts-rule-field {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .mkt-rg-reward-card .pts-rule-field__label {
+    flex: none;
+    text-align: left;
+    line-height: 1.4;
+  }
+}

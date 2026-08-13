@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 编辑新人专区商品</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-product.css">
+    <link rel="stylesheet" href="../css/lf-marketing-newcomer-zone.css">
+    <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/marketing-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content mdm-edit-page">
+            <div class="content-tabs"><button class="active">编辑新人专区商品</button></div>
+            <hr class="content-divider">
+            <div class="content-title">营销 / 营销活动 / 新人专区 / 编辑新人专区商品</div>
+
+            <div class="mkt-newcomer-zone-form-toolbar">
+                <a class="mkt-newcomer-zone-form-back" href="mdm_marketing_newcomer_zone.html">← 返回新人专区</a>
+            </div>
+
+            <div class="flow-box mkt-newcomer-zone-form-intro">
+                配置新人专区商品的上下架、履约、售卖范围及规格活动价；保存后同步至新人专区列表。C 端仅新用户限购一单、每单 1 件，且不支持用券和积分抵扣。
+            </div>
+
+            <div id="mallFormPanel">
+                <div class="pts-rule-card mkt-newcomer-zone-card">
+                    <div class="pts-rule-card__title">商品信息</div>
+                    <div class="pts-rule-card__body">
+                        <div class="mkt-newcomer-zone-form-product" id="mallFormProduct">
+                            <img class="mkt-newcomer-zone-form-product__img" id="mallFormImg" src="" alt="">
+                            <div>
+                                <p class="mkt-newcomer-zone-form-product__name" id="mallFormName">—</p>
+                                <p class="mkt-newcomer-zone-form-product__meta" id="mallFormMeta">—</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-card mkt-newcomer-zone-card">
+                    <div class="pts-rule-card__title">基础配置</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>商品状态</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-check-row" id="mallFormStatusScope">
+                                    <label class="pts-rule-check-label">
+                                        <input type="radio" name="mallFormStatus" value="on_shelf"> 上架
+                                    </label>
+                                    <label class="pts-rule-check-label">
+                                        <input type="radio" name="mallFormStatus" value="off_shelf" checked> 下架
+                                    </label>
+                                    <label class="pts-rule-check-label">
+                                        <input type="radio" name="mallFormStatus" value="schedule"> 定时上下架
+                                    </label>
+                                </div>
+                                <div class="mkt-newcomer-zone-schedule" id="mallFormSchedule" hidden>
+                                    <label class="mkt-newcomer-zone-schedule__item">
+                                        <span>上架时间</span>
+                                        <input class="erp-input mkt-newcomer-zone-form-row__input" id="mallFormScheduleOn" type="datetime-local">
+                                    </label>
+                                    <label class="mkt-newcomer-zone-schedule__item">
+                                        <span>下架时间</span>
+                                        <input class="erp-input mkt-newcomer-zone-form-row__input" id="mallFormScheduleOff" type="datetime-local">
+                                    </label>
+                                </div>
+                                <div class="pts-rule-tip" id="mallFormScheduleHint" hidden>选择「定时上下架」后需填写上架/下架时间，到点自动切换状态</div>
+                            </div>
+                        </div>
+
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">履约方式</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-check-row" id="mallFormDeliveryMode">
+                                    <label class="pts-rule-check-label">
+                                        <input type="radio" name="mallFormDeliveryMode" value="express"> 快递配送
+                                    </label>
+                                    <label class="pts-rule-check-label">
+                                        <input type="radio" name="mallFormDeliveryMode" value="platform" checked> 平台配送
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="pts-rule-card mkt-newcomer-zone-card">
+                    <div class="pts-rule-card__title">售卖范围</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">范围类型</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-check-row" id="mallFormSaleScope">
+                                    <label class="pts-rule-check-label">
+                                        <input type="radio" name="mallFormSaleScope" value="all" checked> 全部
+                                    </label>
+                                    <label class="pts-rule-check-label">
+                                        <input type="radio" name="mallFormSaleScope" value="region"> 省市区
+                                    </label>
+                                    <label class="pts-rule-check-label">
+                                        <input type="radio" name="mallFormSaleScope" value="store"> 门店
+                                    </label>
+                                </div>
+
+                                <div class="product-proxy-sale-scope__region mkt-newcomer-zone-sale-scope__panel" id="mallSaleScopeRegion" hidden>
+                                    <div class="product-proxy-sale-scope__alert">
+                                        <span class="product-proxy-sale-scope__alert-icon">i</span>
+                                        <span class="product-proxy-sale-scope__alert-text">支持按省 / 市 / 区配置售卖范围，可勾选整省、整市或具体区县</span>
+                                    </div>
+                                    <button type="button" class="product-proxy-sale-scope__pick" id="mallSaleScopePickBtn">+ 选择区域</button>
+                                    <div class="product-proxy-sale-scope__tags" id="mallSaleScopeTags"></div>
+                                </div>
+
+                                <div class="product-proxy-sale-scope__store mkt-newcomer-zone-sale-scope__panel" id="mallSaleScopeStore" hidden>
+                                    <button type="button" class="product-proxy-sale-scope__pick" id="mallSaleScopeStorePickBtn">+ 选择门店</button>
+                                    <p class="product-proxy-sale-scope__store-count" id="mallSaleScopeStoreCount" hidden>已选择 0 个门店</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pts-rule-field" style="margin-top:16px;">
+                            <label class="pts-rule-field__label">售卖端口</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-check-row" id="mallFormPortScope">
+                                    <label class="pts-rule-check-label">
+                                        <input type="radio" name="mallFormPortScope" value="all" checked> 不限
+                                    </label>
+                                    <label class="pts-rule-check-label">
+                                        <input type="radio" name="mallFormPortScope" value="custom"> 指定端口
+                                    </label>
+                                </div>
+                                <div class="mkt-newcomer-zone-level-list" id="mallFormPortList" hidden style="margin-top:10px;">
+                                    <label class="mkt-newcomer-zone-check mkt-newcomer-zone-check--level">
+                                        <input type="checkbox" data-field="salePort" value="mini_program">
+                                        <span>小程序</span>
+                                    </label>
+                                    <label class="mkt-newcomer-zone-check mkt-newcomer-zone-check--level">
+                                        <input type="checkbox" data-field="salePort" value="app">
+                                        <span>APP</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-card mkt-newcomer-zone-card">
+                    <div class="pts-rule-card__title">规格与活动价</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">规格</label>
+                            <div class="pts-rule-field__control pts-rule-field__control--wide">
+                                <div class="mkt-newcomer-zone-spec-table-wrap">
+                                    <table class="mkt-newcomer-zone-spec-table">
+                                        <thead>
+                                            <tr>
+                                                <th>开启售卖</th>
+                                                <th>SKU编码</th>
+                                                <th>规格</th>
+                                                <th>规格图片</th>
+                                                <th>采购价</th>
+                                                <th>划线价</th>
+                                                <th>库存</th>
+                                                <th>活动价</th>
+                                                <th>已售</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="mallFormSpecBody"></tbody>
+                                    </table>
+                                </div>
+                                <div class="pts-rule-tip">规格与选品库 SKU 一致；可更换规格图片；划线价选填；勾选开启的规格会出现在新人专区列表中；活动价必填且≥0；C 端每人限购 1 件</div>
+                                <input type="file" id="mallFormSpecImageInput" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-card mkt-newcomer-zone-card">
+                    <div class="pts-rule-card__title">媒体与详情</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">商品图片</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-tip" style="margin-top:0;">支持 JPG/PNG/GIF/WEBP，单张小于 5MB；第一张将作为列表主图</div>
+                                <div class="product-proxy-form__images" id="mallFormImages"></div>
+                                <input type="file" id="mallFormImageInput" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">商品详情</label>
+                            <div class="pts-rule-field__control pts-rule-field__control--wide mkt-newcomer-zone-form-detail">
+                                <div class="product-add-editor">
+                                    <div class="product-add-editor__toolbar">
+                                        <button type="button" data-cmd="bold" title="加粗"><strong>B</strong></button>
+                                        <button type="button" data-cmd="italic" title="斜体"><em>I</em></button>
+                                        <button type="button" data-cmd="underline" title="下划线"><u>U</u></button>
+                                        <span class="product-add-editor__divider"></span>
+                                        <button type="button" data-cmd="insertUnorderedList" title="无序列表">• 列表</button>
+                                        <button type="button" data-cmd="insertOrderedList" title="有序列表">1. 列表</button>
+                                        <span class="product-add-editor__divider"></span>
+                                        <button type="button" data-cmd="formatBlock" data-val="h3" title="小标题">标题</button>
+                                        <button type="button" id="mallFormInsertImage" title="插入图片">图片</button>
+                                        <button type="button" data-cmd="removeFormat" title="清除格式">清除</button>
+                                        <input type="file" id="mallFormDetailImageInput" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
+                                    </div>
+                                    <div class="product-add-editor__body" id="mallFormDetailEditor" contenteditable="true" data-placeholder="请输入商品详情，支持图片、文字描述"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pts-rule-actions mkt-newcomer-zone-form-actions mdm-edit-page__footer">
+                <button type="button" class="btn btn-secondary" id="mallFormCancel">取消</button>
+                <button type="button" class="btn btn-primary" id="mallFormSave">保存</button>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-product-catalog-store.js"></script>
+    <script src="../js/mdm-product-proxy-region-picker.js"></script>
+    <script src="../js/mdm-product-proxy-store-picker.js"></script>
+    <script src="../js/mdm-marketing-newcomer-zone-store.js"></script>
+    <script src="../js/mdm-marketing-newcomer-zone-form.js"></script>
+</body>
+</html>

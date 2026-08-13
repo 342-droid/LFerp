@@ -1,0 +1,46 @@
+/* 充值页 — 复用提现页骨架，仅补差异（方式可选、渠道图标色） */
+
+.ua-rc-method-row {
+  cursor: pointer;
+}
+
+.ua-rc-method-row .ua-wd-bank__arrow {
+  width: 16px;
+  height: 16px;
+  color: #c8c8c8;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.ua-wd-bank__icon.is-corp {
+  background: #003b8f;
+}
+
+.ua-wd-bank__icon.is-alipay {
+  background: #1677ff;
+}
+
+.ua-wd-bank__icon.is-wechat {
+  background: #07c160;
+}
+
+.ua-wd-bank-option .ua-wd-bank__icon.is-corp {
+  background: #003b8f;
+}
+
+.ua-wd-bank-option .ua-wd-bank__icon.is-alipay {
+  background: #1677ff;
+}
+
+.ua-wd-bank-option .ua-wd-bank__icon.is-wechat {
+  background: #07c160;
+}
+
+.ua-wd-bank-option .ua-wd-bank__icon.is-card,
+.ua-wd-bank__icon.is-card {
+  background: #ff6a00;
+}
+
+.ua-wd-bank__tip[hidden] {
+  display: none !important;
+}

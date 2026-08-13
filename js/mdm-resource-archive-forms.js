@@ -6,6 +6,56 @@
 (function (global) {
     var STORE_BIND_BD_ENUM = ['张伟', '刘芳'];
     var SUPPLIER_INBOUND_WAREHOUSE_BIND_KEY = 'mdm_supplier_inbound_warehouse_bindings_v1';
+    /** 门店/供应商档案基础信息场地照（与进件 store_*_pic 键对齐） */
+    var ARCHIVE_VENUE_PHOTOS_KEY = 'mdm_archive_venue_photos_v1';
+
+    function venuePhotoMapKey(kind, entityId) {
+        return String(kind || '') + '::' + String(entityId || '').trim();
+    }
+
+    function readVenuePhotos(kind, entityId) {
+        var map = readJsonStore(ARCHIVE_VENUE_PHOTOS_KEY);
+        var one = map[venuePhotoMapKey(kind, entityId)] || {};
+        return {
+            store_header_pic: one.store_header_pic || '',
+            store_indoor_pic: one.store_indoor_pic || '',
+            store_cashier_desk_pic: one.store_cashier_desk_pic || ''
+        };
+    }
+
+    function writeVenuePhotos(kind, entityId, photos) {
+        var id = String(entityId || '').trim();
+        if (!id) return;
+        var map = readJsonStore(ARCHIVE_VENUE_PHOTOS_KEY);
+        var prev = map[venuePhotoMapKey(kind, id)] || {};
+        var next = photos || {};
+        map[venuePhotoMapKey(kind, id)] = {
+            store_header_pic:
+                next.store_header_pic != null ? next.store_header_pic : prev.store_header_pic || '',
+            store_indoor_pic:
+                next.store_indoor_pic != null ? next.store_indoor_pic : prev.store_indoor_pic || '',
+            store_cashier_desk_pic:
+                next.store_cashier_desk_pic != null
+                    ? next.store_cashier_desk_pic
+                    : prev.store_cashier_desk_pic || ''
+        };
+        writeJsonStore(ARCHIVE_VENUE_PHOTOS_KEY, map);
+    }
+
+    /** 进件成功前：进件侧场地照回写档案基础信息 */
+    function syncVenuePhotosFromOnboarding(kind, entityId, fields) {
+        var f = fields || {};
+        function asVal(v) {
+            if (v === true) return '已上传';
+            if (typeof v === 'string' && v.trim()) return v.trim();
+            return '';
+        }
+        writeVenuePhotos(kind, entityId, {
+            store_header_pic: asVal(f.store_header_pic),
+            store_indoor_pic: asVal(f.store_indoor_pic),
+            store_cashier_desk_pic: asVal(f.store_cashier_desk_pic)
+        });
+    }
 
     function removeArchiveFormModals() {
         document.querySelectorAll('[data-mdm-archive-form="1"]').forEach(function (n) {
@@ -150,6 +200,62 @@
         return up;
     }
 
+    /** 可切换已上传状态的演示上传控件；requiredMsg 非空则必填 */
+    function uploadMockTracked(btnLabel, hint, initialUploaded, requiredMsg) {
+        var up = uploadMock(btnLabel, hint);
+        up.setAttribute('data-upload-tracked', '1');
+        up.setAttribute('data-upload-state', initialUploaded ? '1' : '0');
+        if (requiredMsg) up.setAttribute('data-upload-required-msg', requiredMsg);
+        var b = up.querySelector('button');
+        var h = up.querySelector('.store-form__upload-hint');
+        function syncHint() {
+            var on = up.getAttribute('data-upload-state') === '1';
+            if (b) b.textContent = on ? '重新上传' : btnLabel;
+            if (h) h.textContent = on ? '已上传（演示）' : hint || '支持 JPG/PNG，单张图片不超过 5M';
+        }
+        if (b) {
+            b.addEventListener('click', function () {
+                up.setAttribute('data-upload-state', '1');
+                syncHint();
+                if (typeof showToast === 'function') showToast('演示：已标记上传', 'success');
+            });
+        }
+        syncHint();
+        return up;
+    }
+
+    function readUploadTracked(el) {
+        return !!(el && el.getAttribute('data-upload-state') === '1');
+    }
+
+    /** 新增/编辑门店仅收门头/场地照；内景与收银台在详情基础信息中上传 */
+    function appendStoreHeaderPhotoField(body, refs, opts) {
+        opts = opts || {};
+        var initial = opts.initial || {};
+        var headerRequired = opts.headerRequired !== false;
+        refs.headerPicUp = uploadMockTracked(
+            '+ 上传门头/场地照',
+            '支持 JPG/PNG，单张图片不超过 5M',
+            !!initial.store_header_pic,
+            headerRequired ? '请上传门头/场地照' : ''
+        );
+        body.appendChild(formRow('门头/场地照', headerRequired, refs.headerPicUp));
+    }
+
+    function collectVenuePhotosFromRefs(refs) {
+        var out = {};
+        if (refs && refs.headerPicUp) {
+            out.store_header_pic = readUploadTracked(refs.headerPicUp) ? '已上传' : '';
+        }
+        if (refs && refs.indoorPicUp) {
+            out.store_indoor_pic = readUploadTracked(refs.indoorPicUp) ? '已上传' : '';
+        }
+        if (refs && refs.cashierPicUp) {
+            out.store_cashier_desk_pic = readUploadTracked(refs.cashierPicUp) ? '已上传' : '';
+        }
+        return out;
+    }
+
     function sectionTitle(text) {
         var d = document.createElement('div');
         d.className = 'supplier-detail-section-title';
@@ -162,6 +268,37 @@
         d.className = 'store-form__section-hint';
         d.textContent = text;
         return d;
+    }
+
+    /**
+     * 门店档案表单可折叠块（默认收起）
+     * @returns {{ wrap: HTMLElement, body: HTMLElement }}
+     */
+    function makeFormCollapse(title, defaultCollapsed) {
+        var collapsed = defaultCollapsed !== false;
+        var wrap = document.createElement('div');
+        wrap.className = 'store-form__collapse' + (collapsed ? ' is-collapsed' : '');
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'store-form__collapse-toggle';
+        btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        var titleEl = document.createElement('span');
+        titleEl.className = 'store-form__collapse-title';
+        titleEl.textContent = title;
+        var chevron = document.createElement('span');
+        chevron.className = 'store-form__collapse-chevron';
+        chevron.setAttribute('aria-hidden', 'true');
+        btn.appendChild(titleEl);
+        btn.appendChild(chevron);
+        var bodyEl = document.createElement('div');
+        bodyEl.className = 'store-form__collapse-body';
+        btn.addEventListener('click', function () {
+            var nowCollapsed = wrap.classList.toggle('is-collapsed');
+            btn.setAttribute('aria-expanded', nowCollapsed ? 'false' : 'true');
+        });
+        wrap.appendChild(btn);
+        wrap.appendChild(bodyEl);
+        return { wrap: wrap, body: bodyEl };
     }
 
     function radioGroup(label, required, name, items, selectedVal) {
@@ -289,6 +426,9 @@
         updateBdSelectOptions(selectEl, STORE_BIND_BD_ENUM, selectedName);
     }
 
+    /** 与仓库档案一致：仅「仓库类型=仓库」且启用中的仓库可作入库仓 */
+    var FALLBACK_INBOUND_WAREHOUSE_NAMES = ['主仓库', '前置仓-华东一号库演示超长名称'];
+
     function collectEnabledWarehouseNamesFromRows(rows) {
         var list = [];
         var seen = {};
@@ -296,9 +436,14 @@
             var c = tr.querySelectorAll('td');
             if (c.length < 12) return;
             var name = String((c[2].textContent || '').trim());
+            var warehouseType = String((c[3].textContent || '').trim());
             if (!name || seen[name]) return;
-            var stNode = c[11].querySelector('.status');
-            var statusText = String((stNode ? stNode.textContent : c[11].textContent) || '').trim();
+            /* 仓库类型为「门店」的不进入库仓库下拉 */
+            if (warehouseType !== '仓库') return;
+            var stNode = c[11].querySelector ? c[11].querySelector('.status') : null;
+            var statusText = String((stNode ? stNode.textContent : c[11].textContent) || '')
+                .replace(/\s+/g, '')
+                .trim();
             if (statusText !== '启用' && statusText !== '启动') return;
             seen[name] = true;
             list.push(name);
@@ -328,10 +473,18 @@
         }
     }
 
+    function resolveArchiveWarehousePageUrl() {
+        if (window.wmsPath && typeof window.wmsPath.page === 'function') {
+            return window.wmsPath.page('mdm_archive_warehouse.html');
+        }
+        return 'mdm_archive_warehouse.html';
+    }
+
     function hydrateInboundWarehouseSelect(selectEl, selectedName) {
-        updateWarehouseSelectOptions(selectEl, [], selectedName);
+        /* 先落演示兜底，避免 fetch 未完成或失败时下拉空白 */
+        updateWarehouseSelectOptions(selectEl, FALLBACK_INBOUND_WAREHOUSE_NAMES, selectedName);
         if (typeof fetch !== 'function') return;
-        fetch('mdm_archive_warehouse.html', { cache: 'no-store' })
+        fetch(resolveArchiveWarehousePageUrl(), { cache: 'no-store' })
             .then(function (res) {
                 if (!res || !res.ok) return '';
                 return res.text();
@@ -344,10 +497,11 @@
                 return collectEnabledWarehouseNamesFromRows(rows);
             })
             .then(function (list) {
-                updateWarehouseSelectOptions(selectEl, list || [], selectedName);
+                var names = list && list.length ? list : FALLBACK_INBOUND_WAREHOUSE_NAMES;
+                updateWarehouseSelectOptions(selectEl, names, selectedName);
             })
             .catch(function () {
-                updateWarehouseSelectOptions(selectEl, [], selectedName);
+                updateWarehouseSelectOptions(selectEl, FALLBACK_INBOUND_WAREHOUSE_NAMES, selectedName);
             });
     }
 
@@ -403,6 +557,19 @@
                         showToast(one.getAttribute('data-required-msg') || '请完善必填项', 'error');
                     }
                     one.focus && one.focus();
+                    return;
+                }
+            }
+            var uploadReq = bodyEl.querySelectorAll('[data-upload-required-msg]');
+            for (var u = 0; u < uploadReq.length; u++) {
+                var upEl = uploadReq[u];
+                if (upEl.getAttribute('data-upload-state') !== '1') {
+                    if (typeof showToast === 'function') {
+                        showToast(
+                            upEl.getAttribute('data-upload-required-msg') || '请上传必填照片',
+                            'error'
+                        );
+                    }
                     return;
                 }
             }
@@ -499,7 +666,9 @@
         { value: 'ANC5003', label: '郑可' }
     ];
 
-    function createStoreFormBundle() {
+    function createStoreFormBundle(options) {
+        var opts = options || {};
+        var optsInitialVenuePhotos = opts.initialVenuePhotos || {};
         var refs = {};
         var body = document.createElement('div');
         body.appendChild(sectionTitle('基础信息'));
@@ -571,7 +740,10 @@
         refs.addressTa = addressWrap.querySelector('textarea');
         body.appendChild(formRow('详细地址', true, addressWrap));
         body.appendChild(mapMockRow(false));
-        body.appendChild(formRow('门店门头照', true, uploadMock('+ 点击上传')));
+        appendStoreHeaderPhotoField(body, refs, {
+            headerRequired: true,
+            initial: optsInitialVenuePhotos || {}
+        });
         body.appendChild(formRow('有无冷藏柜', false, yesNoSelect('请选择有无冷藏柜')));
         body.appendChild(formRow('冷藏柜照片', false, uploadMock('+ 上传冷藏柜照片', '最多 5 张')));
         body.appendChild(formRow('有无冷冻柜', false, yesNoSelect('请选择有无冷冻柜')));
@@ -584,50 +756,68 @@
         franchise.appendChild(formRow('门店楼层', true, txt('请输入门店楼层', '')));
         franchise.appendChild(formRow('店门口口述视频', false, uploadMock('+ 上传店门口视频', '店前两分钟口述视频')));
         franchise.appendChild(formRow('店内口述视频', false, uploadMock('+ 上传店内视频', '店内一分钟口述视频')));
-        franchise.appendChild(formRow('门店方圆500米入住户数', false, txt('请输入实际入住总户数', '')));
-        franchise.appendChild(formRow('日均客单量', false, txt('请输入日均客单量', '')));
-        franchise.appendChild(formRow('店内工作人员总数', false, txt('请输入工作人员总数', '')));
-        franchise.appendChild(
+        /* 门店经营与认知、特殊情况说明：分两个可折叠板块，默认收起 */
+        var franchiseOpsCollapse = makeFormCollapse('门店经营与认知', true);
+        franchiseOpsCollapse.body.appendChild(
+            formRow('门店方圆500米入住户数', false, txt('请输入实际入住总户数', ''))
+        );
+        franchiseOpsCollapse.body.appendChild(formRow('日均客单量', false, txt('请输入日均客单量', '')));
+        franchiseOpsCollapse.body.appendChild(
+            formRow('店内工作人员总数', false, txt('请输入工作人员总数', ''))
+        );
+        franchiseOpsCollapse.body.appendChild(
             formRow(
                 '实际经营者对直播业务的理解',
                 false,
                 txtAreaWithCount('请输入老板对直播业务的理解', 500, '')
             )
         );
-        franchise.appendChild(
+        franchiseOpsCollapse.body.appendChild(
             formRow(
                 '门店日常运营服务理解与配合',
                 false,
                 txtAreaWithCount('请输入日常运营服务理解与配合情况', 500, '')
             )
         );
-        franchise.appendChild(
+        franchiseOpsCollapse.body.appendChild(
             formRow(
                 '私域直播投入产出期望',
                 false,
                 txtAreaWithCount('请输入老板对私域直播 ROI 的期望', 500, '')
             )
         );
-        franchise.appendChild(
+        franchiseOpsCollapse.body.appendChild(
             formRow('私域直播/社区团购熟悉程度', false, txtAreaWithCount('请输入了解程度', 500, ''))
         );
-        franchise.appendChild(
+        franchiseOpsCollapse.body.appendChild(
             formRow('周边小区及居住人群描述', false, txtAreaWithCount('请输入周边小区及人群描述', 500, ''))
         );
-        franchise.appendChild(formRow('拉到1000人信心说明', false, txtAreaWithCount('请输入信心说明', 500, '')));
-        franchise.appendChild(
+        franchiseOpsCollapse.body.appendChild(
+            formRow('拉到1000人信心说明', false, txtAreaWithCount('请输入信心说明', 500, ''))
+        );
+        franchise.appendChild(franchiseOpsCollapse.wrap);
+
+        var franchiseSpecialCollapse = makeFormCollapse('特殊情况说明', true);
+        franchiseSpecialCollapse.body.appendChild(
             formRow('特殊情况说明', false, txtAreaWithCount('如涉及区域保护、特殊沟通，请填写说明', 500, ''))
         );
-        franchise.appendChild(formRow('特殊情况配图', false, uploadMock('+ 上传特殊情况配图', '最多 6 张')));
+        franchiseSpecialCollapse.body.appendChild(
+            formRow('特殊情况配图', false, uploadMock('+ 上传特殊情况配图', '最多 6 张'))
+        );
+        franchise.appendChild(franchiseSpecialCollapse.wrap);
         body.appendChild(franchise);
 
         var peer = document.createElement('div');
         peer.style.display = 'none';
-        peer.appendChild(sectionHint('同行店补充资料'));
-        peer.appendChild(
+        /* 已合作其他平台情况、近三天上播及销量截图：默认可折叠收起 */
+        var peerCollapse = makeFormCollapse('同行店补充资料', true);
+        peerCollapse.body.appendChild(
             formRow('已合作其他平台情况', false, txtAreaWithCount('目前门店已合作的其他平台情况', 500, ''))
         );
-        peer.appendChild(formRow('近三天上播及销量截图', false, uploadMock('+ 上传经营截图', '最多 6 张')));
+        peerCollapse.body.appendChild(
+            formRow('近三天上播及销量截图', false, uploadMock('+ 上传经营截图', '最多 6 张'))
+        );
+        peer.appendChild(peerCollapse.wrap);
         body.appendChild(peer);
 
         function syncPartner() {
@@ -659,11 +849,11 @@
             syncPartner();
         }
 
-        return { body: body, fillFromArchiveRow: fillFromArchiveRow };
+        return { body: body, fillFromArchiveRow: fillFromArchiveRow, refs: refs };
     }
 
-    function buildStoreAddBody() {
-        return createStoreFormBundle().body;
+    function buildStoreAddBody(initialVenuePhotos) {
+        return createStoreFormBundle({ initialVenuePhotos: initialVenuePhotos || {} }).body;
     }
 
     function createSupplierFormBundle(options) {
@@ -1036,17 +1226,55 @@
     }
 
     global.MdmResourceArchiveForms = {
+        readVenuePhotos: readVenuePhotos,
+        writeVenuePhotos: writeVenuePhotos,
+        syncVenuePhotosFromOnboarding: syncVenuePhotosFromOnboarding,
         openStoreAdd: function () {
-            attachWideModal('添加门店', buildStoreAddBody());
+            var bundle = createStoreFormBundle({});
+            attachWideModal('添加门店', bundle.body, function () {
+                var name =
+                    bundle.refs && bundle.refs.nameInp
+                        ? String(bundle.refs.nameInp.value || '').trim()
+                        : '';
+                var tempId = 'NEW-STORE-' + String(Date.now()).slice(-6);
+                writeVenuePhotos('store', tempId, collectVenuePhotosFromRefs(bundle.refs));
+                /* 演示：亦按名称索引，便于列表尚未落库时进件带入 */
+                if (name) writeVenuePhotos('store', 'name:' + name, collectVenuePhotosFromRefs(bundle.refs));
+            });
         },
         openStoreEdit: function (tr) {
             if (!tr) return;
-            var bundle = createStoreFormBundle();
+            var cells = tr.querySelectorAll('td');
+            var storeId = cells[0] ? cellPlainText(cells[0]) : '';
+            var storeName = cells[2] ? cellPlainText(cells[2]) : '';
+            var initial = readVenuePhotos('store', storeId);
+            if (!initial.store_header_pic && storeName) {
+                initial = readVenuePhotos('store', 'name:' + storeName);
+            }
+            var bundle = createStoreFormBundle({ initialVenuePhotos: initial });
             bundle.fillFromArchiveRow(tr);
-            attachWideModal('编辑门店', bundle.body);
+            attachWideModal('编辑门店', bundle.body, function () {
+                writeVenuePhotos('store', storeId, collectVenuePhotosFromRefs(bundle.refs));
+                if (storeName) {
+                    writeVenuePhotos('store', 'name:' + storeName, collectVenuePhotosFromRefs(bundle.refs));
+                }
+            });
         },
         openSupplierAdd: function () {
-            attachWideModal('新增供应商', buildSupplierAddBody());
+            var bundle = createSupplierFormBundle({ includeInboundWarehouse: true });
+            attachWideModal('新增供应商', bundle.body, function () {
+                var name =
+                    bundle.refs && bundle.refs.nameInp
+                        ? String(bundle.refs.nameInp.value || '').trim()
+                        : '';
+                var selectedWarehouse =
+                    bundle.refs && bundle.refs.inboundWarehouseSel
+                        ? String(bundle.refs.inboundWarehouseSel.value || '').trim()
+                        : '';
+                if (name) {
+                    saveSupplierInboundWarehouseBinding('', name, selectedWarehouse);
+                }
+            });
         },
         openSupplierEdit: function (tr) {
             if (!tr) return;
@@ -1060,10 +1288,6 @@
             });
             bundle.fillFromArchiveRow(tr);
             attachWideModal('编辑供应商', bundle.body, function () {
-                var selectedWarehouse = '';
-                if (bundle.refs && bundle.refs.inboundWarehouseSel) {
-                    selectedWarehouse = String(bundle.refs.inboundWarehouseSel.value || '').trim();
-                }
                 var nextName =
                     bundle.refs && bundle.refs.nameInp
                         ? String(bundle.refs.nameInp.value || '').trim()
@@ -1072,12 +1296,21 @@
                     bundle.refs && bundle.refs.shortNameInp
                         ? String(bundle.refs.shortNameInp.value || '').trim()
                         : '';
+                var selectedWarehouse =
+                    bundle.refs && bundle.refs.inboundWarehouseSel
+                        ? String(bundle.refs.inboundWarehouseSel.value || '').trim()
+                        : '';
                 if (cells[2]) cells[2].textContent = nextName || supplierName;
                 if (cells[3]) {
                     cells[3].textContent = nextShort || '—';
                     cells[3].setAttribute('data-field', 'shortName');
                 }
                 tr.setAttribute('data-short-name', nextShort);
+                saveSupplierInboundWarehouseBinding(
+                    supplierId,
+                    nextName || supplierName,
+                    selectedWarehouse
+                );
                 if (window.MdmSupplierArchiveStore) {
                     window.MdmSupplierArchiveStore.upsert({
                         id: supplierId,
@@ -1085,11 +1318,6 @@
                         shortName: nextShort
                     });
                 }
-                saveSupplierInboundWarehouseBinding(
-                    supplierId,
-                    nextName || supplierName,
-                    selectedWarehouse
-                );
             });
         },
         openLiveRoomAdd: function () {

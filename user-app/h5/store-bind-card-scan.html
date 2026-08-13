@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
+  <title>扫描银行卡 · 门店 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-store-bind-card.css?v=20260805">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-bc-page" style="display:flex;flex-direction:column;">
+    <header class="ua-bc-nav">
+      <a href="store-bind-card.html" class="ua-bc-nav__back" id="bcsBack" aria-label="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+      </a>
+      <h1 class="ua-bc-nav__title">绑定银行卡</h1>
+      <span class="ua-bc-nav__side" aria-hidden="true"></span>
+    </header>
+
+    <div class="ua-bc-holder">
+      <span class="ua-bc-holder__name">
+        持卡人：<span id="bcsHolder">王小二</span>
+        <button type="button" class="ua-bc-holder__info" id="bcsHolderInfo" aria-label="持卡人说明">i</button>
+      </span>
+    </div>
+
+    <div class="ua-bc-scan-body">
+      <div class="ua-bc-scan-frame" id="bcsFrame">
+        <div class="ua-bc-scan-frame__demo" id="bcsDemoCard" hidden>
+          <span id="bcsDemoNo">622848 1235 4896 32156</span>
+        </div>
+        <span id="bcsFrameTip">对准银行卡正面</span>
+      </div>
+      <p class="ua-bc-scan-tip">将银行卡正面置于此区域，并对齐扫描框边缘</p>
+      <div class="ua-bc-scan-actions">
+        <button type="button" class="ua-bc-submit" id="bcsCapture">模拟扫卡识别</button>
+      </div>
+    </div>
+
+    <div class="ua-bc-modal" id="bcsHolderModal" hidden>
+      <div class="ua-bc-modal__mask" data-bcs-close></div>
+      <div class="ua-bc-modal__panel">
+        <h3 class="ua-bc-modal__title">持卡人说明</h3>
+        <div class="ua-bc-modal__body">
+          <p>为了你的账户资金安全，只能绑定持卡人本人的银行卡。</p>
+          <p>获取更多帮助，请致电丰银宝客服400-88888888。</p>
+        </div>
+        <button type="button" class="ua-bc-modal__ok" data-bcs-close>知道了</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/store-bind-card-demo.js?v=20260805-bank5"></script>
+  <script src="../js/user-app-store-bind-card-scan.js?v=20260805-ret"></script>
+</body>
+</html>

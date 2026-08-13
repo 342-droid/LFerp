@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <link rel="stylesheet" href="../css/lf-order.css">
+    <link rel="stylesheet" href="../css/lf-order.css?v=20260810-aftersale-refund-group">
 </head>
 <body data-order-page="retail">
     <div id="sidebar-container"></div>
@@ -235,6 +235,38 @@
                                         <td>微信</td>
                                         <td><span class="order-tag order-tag--pending-ship">待发货</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561-B">查看</a></td>
+                                    </tr>
+                                    <!-- 清分明细演示单：哈密瓜-自提，供应商采购成本=采购价×售卖系数×下单数量 -->
+                                    <tr data-order-id="ORD-3212689201599201" data-delivery-mode="pickup" data-pay-channel="wechat">
+                                        <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599201">ORD-3212689201599201</a></td>
+                                        <td>2026-08-07 15:20</td>
+                                        <td>赵金芝</td>
+                                        <td>赵金芝</td>
+                                        <td>13800009201</td>
+                                        <td>
+                                            <div class="order-product-cell">
+                                                <img class="order-product-cell__thumb" src="../user-app/assets/order-product-1.svg" alt="">
+                                                <span class="order-product-cell__name">哈密瓜-自提</span>
+                                            </div>
+                                        </td>
+                                        <td>× 1</td>
+                                        <td><span class="order-tag order-tag--sale">普通售卖</span></td>
+                                        <td>¥0.40</td>
+                                        <td>¥0.00</td>
+                                        <td>¥0.00</td>
+                                        <td>-</td>
+                                        <td>¥0.00</td>
+                                        <td>¥0.40</td>
+                                        <td><span class="order-scene">商城</span></td>
+                                        <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
+                                        <td>微信</td>
+                                        <td><span class="order-tag order-tag--pickup">待提货</span></td>
+                                        <td class="order-live-table__sticky-col">
+                                            <div class="order-live-table__actions">
+                                                <a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599201">查看</a>
+                                                <button type="button" class="order-live-table__verify js-order-verify" data-order-id="ORD-3212689201599201">核销</button>
+                                            </div>
+                                        </td>
                                     </tr>
                                     <tr data-order-id="ORD-3212689201584693" data-delivery-mode="pickup" data-pay-channel="alipay">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201584693">ORD-3212689201584693</a></td>
@@ -740,6 +772,6 @@
     <script src="../js/order-platform-aftersale.js"></script>
     <script src="../js/order-proxy-express.js"></script>
     <script src="../js/order-live-list.js"></script>
-    <script src="../js/order-live-detail.js"></script>
+    <script src="../js/order-live-detail.js?v=20260810-proxy-wallet-iso"></script>
 </body>
 </html>

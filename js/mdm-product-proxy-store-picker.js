@@ -340,6 +340,11 @@
     open: openStorePicker,
     cloneSelected: cloneSelected,
     count: selectedCount,
-    getStoreById: getStoreById
+    getStoreById: getStoreById,
+    listAll: function () {
+      return STORES.map(function (s) {
+        return { id: s.id, name: s.name, address: s.address, regionId: s.regionId };
+      });
+    }
   };
 })();

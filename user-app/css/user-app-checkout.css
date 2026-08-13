@@ -61,9 +61,107 @@
   overflow: hidden;
 }
 
-/* 混合支付方式 */
+/* 钱包余额开关 */
 .ua-co-payways {
-  padding: 12px 12px 10px;
+  padding: 0;
+}
+
+.ua-co-payways .ua-co-row--wallet {
+  border-top: none;
+}
+
+/* 支付宝 / 微信支付选择卡片（对齐设计稿） */
+.ua-co-channel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.ua-co-channel__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 14px 16px;
+  border: none;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.ua-co-channel__option + .ua-co-channel__option {
+  border-top: 1px solid #f0f0f0;
+}
+
+.ua-co-channel__left {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.ua-co-channel__icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ua-co-channel__icon--alipay {
+  background: #1677ff;
+}
+
+.ua-co-channel__icon--wechat {
+  background: #07c160;
+}
+
+.ua-co-channel__icon--wechat svg {
+  display: block;
+}
+
+.ua-co-channel__name {
+  font-size: 15px;
+  font-weight: 400;
+  color: #222;
+  line-height: 1.3;
+}
+
+.ua-co-channel__radio {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid #d9d9d9;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  background: #fff;
+  position: relative;
+}
+
+.ua-co-channel__option.is-selected .ua-co-channel__radio {
+  border-color: #52c41a;
+  background: #52c41a;
+}
+
+.ua-co-channel__option.is-selected .ua-co-channel__radio::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 3px;
+  width: 5px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 
 .ua-co-payways__title {
@@ -85,10 +183,6 @@
 
 .ua-co-payway--radio {
   border-bottom: 1px solid #f5f5f5;
-}
-
-.ua-co-payway-channels .ua-co-payway:last-child {
-  border-bottom: none;
 }
 
 .ua-co-payway__main {
@@ -168,13 +262,177 @@
   line-height: 1.4;
 }
 
-.ua-co-pay__split {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin: -8px 0 16px;
-  font-size: 12px;
+/* 提交后：支付方式选择半层（视觉对齐充值页选卡） */
+.ua-co-sheet__panel--method {
+  max-height: 72%;
+}
+
+.ua-co-method-sheet__amount {
+  flex-shrink: 0;
+  padding: 4px 16px 12px;
+  text-align: center;
+  font-size: 14px;
   color: #666;
+}
+
+.ua-co-method-sheet__amount strong {
+  margin-left: 4px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #ff7a00;
+}
+
+.ua-co-method-sheet__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 8px 20px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ua-co-method-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 12px;
+  border: none;
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ua-co-method-option + .ua-co-method-option {
+  border-top: 1px solid #f5f5f5;
+  border-radius: 0;
+}
+
+.ua-co-method-option__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #ff6a00;
+}
+
+.ua-co-method-option__icon.is-alipay {
+  background: #1677ff;
+}
+
+.ua-co-method-option__icon.is-wechat {
+  background: #07c160;
+}
+
+.ua-co-method-option__icon.is-card {
+  background: #ff6a00;
+}
+
+.ua-co-method-option__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ua-co-method-option__name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #222;
+  line-height: 1.35;
+}
+
+.ua-co-method-option__tip {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #999;
+}
+
+.ua-co-method-option__arrow {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: #c8c8c8;
+}
+
+.ua-co-thirdpay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 15px;
+}
+
+.ua-co-thirdpay[hidden] {
+  display: none !important;
+}
+
+.ua-co-thirdpay__spin {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: ua-co-spin 0.8s linear infinite;
+}
+
+@keyframes ua-co-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ua-co-pay__split {
+  margin: -4px 0 16px;
+  width: 100%;
+  max-width: 220px;
+}
+
+.ua-co-pay-legs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.ua-co-pay-legs__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.ua-co-pay-legs__name {
+  color: #666;
+  flex-shrink: 0;
+}
+
+.ua-co-pay-legs__amount {
+  color: #ff4d30;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.ua-co-pay-legs--result {
+  max-width: 220px;
+  margin: 0 auto 28px;
+}
+
+.ua-co-pay-legs--sheet {
+  margin: 0 auto;
 }
 
 /* 配送门店 */
@@ -575,6 +833,10 @@
   padding: 6px 0;
   font-size: 13px;
   color: #666;
+}
+
+.ua-co-summary__row[hidden] {
+  display: none !important;
 }
 
 .ua-co-summary__label {
@@ -1312,11 +1574,59 @@
   line-height: 1.5;
 }
 
+.ua-co-result__amount-line {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.ua-co-result__amount-line .ua-co-result__amount {
+  margin-bottom: 0;
+}
+
 .ua-co-result__amount {
   font-size: 28px;
   font-weight: 700;
   color: #ff4d30;
-  margin-bottom: 32px;
+  margin-bottom: 8px;
+}
+
+.ua-co-pay-legs-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ua-co-pay-legs-toggle svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+}
+
+.ua-co-pay-legs-toggle.is-expanded svg {
+  transform: rotate(180deg);
+}
+
+.ua-co-pay-legs[hidden] {
+  display: none !important;
+}
+
+.ua-co-result__pay-legs {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 28px;
+  text-align: center;
+  line-height: 1.5;
 }
 
 .ua-co-result__actions {

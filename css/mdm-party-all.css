@@ -1,0 +1,308 @@
+/* 所有主体 — 对齐运营后台截图样式 */
+.mdm-party-all-page {
+  --pa-orange: #ff6a00;
+  --pa-orange-hover: #f05f00;
+  --pa-name: #e85d4c;
+  --pa-action: #c9a227;
+  --pa-border: #e8e8e8;
+  --pa-muted: #8c8c8c;
+  --pa-text: #333;
+  --pa-bg: #f5f6f8;
+}
+
+.mdm-party-all-page .main-content {
+  background: var(--pa-bg);
+  padding: 12px 16px 24px;
+}
+
+.mdm-party-all-page .content-tabs {
+  display: none;
+}
+
+.mdm-party-all-page .content-divider {
+  display: none;
+}
+
+.mdm-party-all-page .content-title {
+  display: none;
+}
+
+/* 筛选区 */
+.mdm-party-all-page .search-section {
+  background: #fff;
+  border: 1px solid var(--pa-border);
+  border-radius: 4px;
+  padding: 16px 16px 8px;
+  margin-bottom: 12px;
+}
+
+.mdm-party-all-page .search-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 24px;
+  margin: 0;
+}
+
+.mdm-party-all-page .search-form .form-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0 0 8px;
+  min-width: 220px;
+}
+
+.mdm-party-all-page .search-form .form-group label {
+  font-size: 13px;
+  color: var(--pa-text);
+  font-weight: 400;
+  margin: 0;
+}
+
+.mdm-party-all-page .search-form .input-wrapper,
+.mdm-party-all-page .search-form select {
+  width: 240px;
+  max-width: 100%;
+  position: relative;
+}
+
+.mdm-party-all-page .search-form .input-wrapper .clear-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #bfbfbf;
+  font-size: 14px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.mdm-party-all-page .search-form .input-wrapper input,
+.mdm-party-all-page .search-form select {
+  height: 32px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 0 10px;
+  font-size: 13px;
+  color: var(--pa-text);
+  background: #fff;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.mdm-party-all-page .search-form .input-wrapper input:focus,
+.mdm-party-all-page .search-form select:focus {
+  outline: none;
+  border-color: var(--pa-orange);
+  box-shadow: 0 0 0 2px rgba(255, 106, 0, 0.12);
+}
+
+.mdm-party-all-page .search-form .form-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px auto;
+}
+
+.mdm-party-all-page .pa-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  border: 1px solid transparent;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.mdm-party-all-page .pa-btn--primary {
+  background: var(--pa-orange);
+  border-color: var(--pa-orange);
+  color: #fff;
+}
+
+.mdm-party-all-page .pa-btn--primary:hover {
+  background: var(--pa-orange-hover);
+  border-color: var(--pa-orange-hover);
+  color: #fff;
+}
+
+.mdm-party-all-page .pa-btn--ghost {
+  background: #fff;
+  border-color: #d9d9d9;
+  color: var(--pa-text);
+}
+
+.mdm-party-all-page .pa-btn--ghost:hover {
+  border-color: var(--pa-orange);
+  color: var(--pa-orange);
+}
+
+.mdm-party-all-page .pa-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* 新增按钮行 */
+.mdm-party-all-page .mdm-party-add-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.mdm-party-all-page .mdm-party-add-bar .pa-btn {
+  min-width: 132px;
+}
+
+/* 表格卡片 */
+.mdm-party-all-page .table-section {
+  background: #fff;
+  border: 1px solid var(--pa-border);
+  border-radius: 4px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.mdm-party-all-page .table-scroll-container {
+  border: none;
+  border-radius: 0;
+  max-height: calc(100vh - 280px);
+}
+
+.mdm-party-all-page .table {
+  border: none;
+  min-width: 1280px;
+}
+
+.mdm-party-all-page .table thead th {
+  background: #fafafa;
+  color: var(--pa-text);
+  font-weight: 500;
+  font-size: 13px;
+  border: none;
+  border-bottom: 1px solid var(--pa-border);
+  padding: 12px 14px;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.mdm-party-all-page .table td {
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 14px;
+  font-size: 13px;
+  color: var(--pa-text);
+  text-align: left;
+  vertical-align: middle;
+  background: #fff;
+}
+
+.mdm-party-all-page .table tbody tr:nth-child(even) td {
+  background: #fcfcfc;
+}
+
+.mdm-party-all-page .table tbody tr:hover td {
+  background: #fff7f0;
+}
+
+.mdm-party-all-page .table th:last-child,
+.mdm-party-all-page .table td:last-child {
+  text-align: left;
+}
+
+/* 商家名称：截图红色链接 */
+.mdm-party-all-page .subject-name-link {
+  color: var(--pa-name);
+  text-decoration: none;
+  font-weight: 400;
+}
+
+.mdm-party-all-page .subject-name-link:hover {
+  color: #d94838;
+  text-decoration: underline;
+}
+
+/* 创建时间偏灰 */
+.mdm-party-all-page .table td:nth-child(8) {
+  color: var(--pa-muted);
+}
+
+/* 状态胶囊：开启 */
+.mdm-party-all-page .status {
+  display: inline-block;
+  min-width: 44px;
+  padding: 1px 8px;
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+  text-align: center;
+  border: 1px solid transparent;
+}
+
+.mdm-party-all-page .status.active {
+  background: #f6ffed;
+  border-color: #b7eb8f;
+  color: #52c41a;
+}
+
+.mdm-party-all-page .status.inactive {
+  background: #fafafa;
+  border-color: #d9d9d9;
+  color: #8c8c8c;
+}
+
+/* 操作：金色禁用 */
+.mdm-party-all-page .action-links {
+  display: inline-flex;
+  gap: 12px;
+  justify-content: flex-start;
+}
+
+.mdm-party-all-page .action-links a,
+.mdm-party-all-page .action-links a.mdm-disable-toggle {
+  color: var(--pa-action);
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.mdm-party-all-page .action-links a:hover {
+  opacity: 0.85;
+  text-decoration: underline;
+}
+
+.mdm-party-all-page .action-links a.mdm-onboard-btn {
+  color: var(--pa-orange);
+}
+
+/* 分页区 */
+.mdm-party-all-page #pagination-container {
+  padding: 12px 16px;
+  border-top: 1px solid #f0f0f0;
+  background: #fff;
+}
+
+.mdm-party-all-page #pagination-container .pagination,
+.mdm-party-all-page #pagination-container .page-btn.active,
+.mdm-party-all-page #pagination-container .active {
+  --pa-page-active: var(--pa-orange);
+}
+
+.mdm-party-all-page #pagination-container .page-btn.active,
+.mdm-party-all-page #pagination-container button.active,
+.mdm-party-all-page #pagination-container .pagination-page.active {
+  background: var(--pa-orange) !important;
+  border-color: var(--pa-orange) !important;
+  color: #fff !important;
+}
