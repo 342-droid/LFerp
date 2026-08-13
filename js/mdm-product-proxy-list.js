@@ -260,6 +260,9 @@
     item.fulfillmentMode = item.deliveryMode;
     if (item.etaCountdown == null) item.etaCountdown = '';
     if (!item.etaCountdownUnit) item.etaCountdownUnit = '天';
+    if (item.saleTimeMode !== 'custom') item.saleTimeMode = 'follow_category';
+    if (!item.saleTimeStart) item.saleTimeStart = '08:00';
+    if (!item.saleTimeEnd) item.saleTimeEnd = '22:00';
     return item;
   }
 
@@ -523,6 +526,10 @@
           original.linePrice = payload.linePrice;
           original.etaCountdown = payload.etaCountdown || '';
           original.etaCountdownUnit = payload.etaCountdownUnit || '天';
+          original.saleTimeMode =
+            payload.saleTimeMode === 'custom' ? 'custom' : 'follow_category';
+          original.saleTimeStart = payload.saleTimeStart || '08:00';
+          original.saleTimeEnd = payload.saleTimeEnd || '22:00';
           original.deliveryMode = normalizeDeliveryMode(payload.deliveryMode || payload.fulfillmentMode);
           original.fulfillmentMode = original.deliveryMode;
           original.detail = payload.detail;
@@ -553,6 +560,9 @@
           status: 'draft',
           etaCountdown: payload.etaCountdown || '',
           etaCountdownUnit: payload.etaCountdownUnit || '天',
+          saleTimeMode: payload.saleTimeMode === 'custom' ? 'custom' : 'follow_category',
+          saleTimeStart: payload.saleTimeStart || '08:00',
+          saleTimeEnd: payload.saleTimeEnd || '22:00',
           deliveryMode: normalizeDeliveryMode(payload.deliveryMode || payload.fulfillmentMode),
           fulfillmentMode: normalizeDeliveryMode(payload.deliveryMode || payload.fulfillmentMode),
           detail: payload.detail,
@@ -652,6 +662,114 @@
     return '<span class="product-proxy-price product-proxy-price--line">' + formatMoney(item.linePrice) + '</span>';
   }
 
+  function getSaleTimeValue(item) {
+    if (window.MdmProductSaleTime && typeof window.MdmProductSaleTime.resolve === 'function') {
+      return window.MdmProductSaleTime.resolve(item);
+    }
+    return {
+      start: item.saleTimeStart || '08:00',
+      end: item.saleTimeEnd || '22:00'
+    };
+  }
+
+  function renderSaleTimeCell(item) {
+    var t = getSaleTimeValue(item);
+    var label =
+      window.MdmProductSaleTime && typeof window.MdmProductSaleTime.format === 'function'
+        ? window.MdmProductSaleTime.format(item)
+        : t.start + '–' + t.end;
+    return (
+      '<td class="product-proxy-table__td product-proxy-table__td--sale-time">' +
+      '<button type="button" class="product-sale-time-cell" data-sale-time-edit data-code="' +
+      escapeHtml(item.code) +
+      '" data-start="' +
+      escapeHtml(t.start) +
+      '" data-end="' +
+      escapeHtml(t.end) +
+      '" title="点击编辑可售时间">' +
+      '<span class="product-sale-time-cell__text">' +
+      escapeHtml(label) +
+      '</span></button></td>'
+    );
+  }
+
+  function beginSaleTimeEdit(btn) {
+    if (!btn || btn.classList.contains('is-editing')) return;
+    var code = btn.getAttribute('data-code');
+    var start = btn.getAttribute('data-start') || '08:00';
+    var end = btn.getAttribute('data-end') || '22:00';
+    btn.classList.add('is-editing');
+    btn.innerHTML =
+      '<span class="product-sale-time-editor">' +
+      '<input type="time" class="product-sale-time-editor__input" data-sale-start value="' +
+      escapeHtml(start) +
+      '">' +
+      '<span class="product-sale-time-editor__sep">至</span>' +
+      '<input type="time" class="product-sale-time-editor__input" data-sale-end value="' +
+      escapeHtml(end) +
+      '">' +
+      '</span>';
+    var startEl = btn.querySelector('[data-sale-start]');
+    if (startEl) startEl.focus();
+
+    function cleanup() {
+      document.removeEventListener('mousedown', onDocDown, true);
+    }
+
+    function commit() {
+      if (!btn.classList.contains('is-editing')) return;
+      cleanup();
+      var s = ((btn.querySelector('[data-sale-start]') || {}).value || '').trim();
+      var e = ((btn.querySelector('[data-sale-end]') || {}).value || '').trim();
+      if (!s || !e) {
+        renderTable();
+        return;
+      }
+      if (s === e) {
+        if (typeof showToast === 'function') showToast('可售开始与结束时间不能相同', 'warning');
+        return;
+      }
+      var product = getProduct(code);
+      if (!product) {
+        renderTable();
+        return;
+      }
+      product.saleTimeMode = 'custom';
+      product.saleTimeStart = s;
+      product.saleTimeEnd = e;
+      if (!product.detail) product.detail = {};
+      product.detail.saleTimeMode = 'custom';
+      product.detail.saleTimeStart = s;
+      product.detail.saleTimeEnd = e;
+      persistProducts();
+      renderTable();
+      if (typeof showToast === 'function') showToast('可售时间已更新', 'success');
+    }
+
+    function onDocDown(ev) {
+      if (btn.contains(ev.target)) return;
+      commit();
+    }
+
+    setTimeout(function () {
+      document.addEventListener('mousedown', onDocDown, true);
+    }, 0);
+
+    btn.querySelectorAll('input').forEach(function (input) {
+      input.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter') {
+          ev.preventDefault();
+          commit();
+        }
+        if (ev.key === 'Escape') {
+          ev.preventDefault();
+          cleanup();
+          renderTable();
+        }
+      });
+    });
+  }
+
   function renderStatus(status) {
     if (status === 'draft') {
       return '<span class="product-tag product-tag--draft">草稿</span>';
@@ -740,6 +858,7 @@
             '<td class="product-proxy-table__td product-proxy-table__td--sale">' + renderSalePrice(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--line">' + renderLinePrice(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--sales">' + item.sales + '</td>' +
+            renderSaleTimeCell(item) +
             '<td class="product-proxy-table__td product-proxy-table__td--fulfillment">' + renderDeliveryMode(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--status">' + renderStatus(item.status) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--action">' + renderActions(item) + '</td>' +
@@ -875,6 +994,15 @@
       });
 
     document.addEventListener('click', function (e) {
+      var saleTimeBtn = e.target.closest('[data-sale-time-edit]');
+      if (saleTimeBtn && !saleTimeBtn.classList.contains('is-editing')) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeAllMoreMenus();
+        beginSaleTimeEdit(saleTimeBtn);
+        return;
+      }
+
       var toggle = e.target.closest('[data-more-toggle]');
       if (toggle) {
         e.preventDefault();

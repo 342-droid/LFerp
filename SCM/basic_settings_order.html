@@ -8,7 +8,8 @@
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-settle-account-config.css?v=20260813-bs-store">
-    <link rel="stylesheet" href="../css/basic-settings.css?v=20260813-bs-store">
+    <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
+    <link rel="stylesheet" href="../css/basic-settings.css?v=20260814-hours-align">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -21,25 +22,36 @@
             <hr class="content-divider">
 
             <div class="bs-store-config sac-page">
-                <!-- 订单配置：独立保存 -->
+                <!-- 订单配置：标题行右侧「修改」；编辑中变为「取消 / 保存」 -->
                 <section class="sac-section" id="bsOrderSection">
-                    <div class="sac-section__head" id="bsOrderSectionToggle" role="button" tabindex="0">
-                        <span class="sac-section__arrow">▼</span>
-                        <span class="sac-section__title">订单配置</span>
+                    <div class="sac-section__head">
+                        <div class="sac-section__head-main" id="bsOrderSectionToggle" role="button" tabindex="0">
+                            <span class="sac-section__arrow">▼</span>
+                            <span class="sac-section__title">订单配置</span>
+                        </div>
+                        <div class="bs-section-head-actions" data-bs-actions="order">
+                            <button type="button" class="erp-btn" id="bsOrderEditBtn">修改</button>
+                            <button type="button" class="erp-btn" id="bsOrderCancelBtn" hidden>取消</button>
+                            <button type="button" class="erp-btn erp-btn--primary" id="bsOrderSaveBtn" hidden>保存</button>
+                        </div>
                     </div>
                     <div class="sac-section__body">
                         <div class="sac-order-config" id="bsOrderConfigRoot"></div>
-                        <div class="bs-section-actions">
-                            <button type="button" class="btn btn-primary" id="bsOrderSaveBtn">保存</button>
-                        </div>
                     </div>
                 </section>
 
-                <!-- 账户配置：独立保存 -->
+                <!-- 账户配置：标题行右侧「修改」；编辑中变为「取消 / 保存」 -->
                 <section class="sac-section" id="bsAccountSection">
-                    <div class="sac-section__head" id="bsAccountSectionToggle" role="button" tabindex="0">
-                        <span class="sac-section__arrow">▼</span>
-                        <span class="sac-section__title">账户配置</span>
+                    <div class="sac-section__head">
+                        <div class="sac-section__head-main" id="bsAccountSectionToggle" role="button" tabindex="0">
+                            <span class="sac-section__arrow">▼</span>
+                            <span class="sac-section__title">账户配置</span>
+                        </div>
+                        <div class="bs-section-head-actions" data-bs-actions="account">
+                            <button type="button" class="erp-btn" id="bsAccountEditBtn">修改</button>
+                            <button type="button" class="erp-btn" id="bsAccountCancelBtn" hidden>取消</button>
+                            <button type="button" class="erp-btn erp-btn--primary" id="bsAccountSaveBtn" hidden>保存</button>
+                        </div>
                     </div>
                     <div class="sac-section__body">
                         <div class="sac-field">
@@ -88,9 +100,68 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </section>
 
-                        <div class="bs-section-actions">
-                            <button type="button" class="btn btn-primary" id="bsAccountSaveBtn">保存</button>
+                <!-- 营业时间配置：标题行右侧「修改」；编辑中变为「取消 / 保存」 -->
+                <section class="sac-section" id="bsHoursSection">
+                    <div class="sac-section__head">
+                        <div class="sac-section__head-main" id="bsHoursSectionToggle" role="button" tabindex="0">
+                            <span class="sac-section__arrow">▼</span>
+                            <span class="sac-section__title">营业时间配置</span>
+                        </div>
+                        <div class="bs-section-head-actions" data-bs-actions="hours">
+                            <button type="button" class="erp-btn" id="bsHoursEditBtn">修改</button>
+                            <button type="button" class="erp-btn" id="bsHoursCancelBtn" hidden>取消</button>
+                            <button type="button" class="erp-btn erp-btn--primary" id="bsHoursSaveBtn" hidden>保存</button>
+                        </div>
+                    </div>
+                    <div class="sac-section__body">
+                        <div class="sac-field">
+                            <label class="sac-field__label" for="bsHoursStart">
+                                <span class="erp-req">*</span>默认营业时间
+                            </label>
+                            <div class="sac-field__control">
+                                <div class="bs-hours-range">
+                                    <input class="erp-input" id="bsHoursStart" type="time" value="08:00">
+                                    <span class="bs-hours-range__sep">至</span>
+                                    <input class="erp-input" id="bsHoursEnd" type="time" value="22:00">
+                                </div>
+                                <div class="sac-tip">全平台门店默认营业时段；门店个性化营业时间优先于本项。超过营业时间则门店打烊（运营状态变为「打烊」）。</div>
+                            </div>
+                        </div>
+
+                        <div class="sac-field">
+                            <div class="sac-field__label">
+                                <span class="erp-req">*</span>允许跨日营业
+                            </div>
+                            <div class="sac-field__control">
+                                <div class="sac-radio-row">
+                                    <label><input type="radio" name="bsHoursCrossDay" value="yes"> 是</label>
+                                    <label><input type="radio" name="bsHoursCrossDay" value="no" checked> 否</label>
+                                </div>
+                                <div class="sac-tip">开启后，默认营业时间与商品类目可售时间均支持跨日（结束时间可早于开始时间，如 22:00 至次日 02:00）。</div>
+                            </div>
+                        </div>
+
+                        <div class="sac-field bs-hours-cat-field">
+                            <div class="sac-field__label">商品类目可售时间</div>
+                            <div class="sac-field__control">
+                                <div class="bs-hours-cat" id="bsHoursCategoryList"></div>
+                                <button type="button" class="erp-btn" id="bsHoursCategoryAddBtn">+ 添加商品类目</button>
+                                <div class="sac-tip" id="bsHoursCategoryTip">按选品库商品类目配置每天可售时段。优先级：商品自定义可售时间 &gt; 快递商品24小时可售 &gt; 商品类目可售时间 &gt; 默认营业时间。超过可售时间则该类目商品不可售。</div>
+                            </div>
+                        </div>
+
+                        <div class="sac-field bs-hours-express-field">
+                            <div class="sac-field__label">快递商品</div>
+                            <div class="sac-field__control">
+                                <div class="bs-hours-switch-row">
+                                    <span class="bs-hours-switch__text">24小时可售</span>
+                                    <button type="button" class="bs-hours-switch" id="bsHoursExpress24h" aria-pressed="false" aria-label="快递商品24小时可售开关"></button>
+                                </div>
+                                <div class="sac-tip">开启后，履约方式为「快递」的商品默认全天可售（00:00–23:59）。优先级：商品自定义可售时间 &gt; 快递商品24小时可售 &gt; 商品类目可售时间 &gt; 默认营业时间。</div>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -98,9 +169,10 @@
         </main>
     </div>
     <script src="../js/common.js"></script>
+    <script src="../js/mdm-product-catalog-store.js"></script>
     <script src="../js/order-config-ui.js?v=20260813-bs-store"></script>
     <script src="../js/store-account-config.js?v=20260810-sac1"></script>
     <script src="../js/store-wallet-demo.js?v=20260810-deposit-unfreeze6"></script>
-    <script src="../js/basic-settings-order.js?v=20260813-bs-store"></script>
+    <script src="../js/basic-settings-order.js?v=20260814-sale-priority"></script>
 </body>
 </html>

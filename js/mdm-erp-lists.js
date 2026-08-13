@@ -835,7 +835,8 @@
         var qBalance = (document.getElementById('qStoreBalancePay') || {}).value.trim();
         var qSplit = (document.getElementById('qStoreSplit') || {}).value.trim();
         var qSt = (document.getElementById('qStoreStatus') || {}).value.trim();
-        var opMap = { '1': '营业中', '2': '筹备', '3': '停业' };
+        /* 运营状态：运营中 / 打烊（超过营业时间自动打烊） */
+        var opMap = { '1': '运营中', '2': '打烊' };
         tbody.querySelectorAll('tr').forEach(function (tr) {
             var cells = tr.querySelectorAll('td');
             if (cells.length < STORE_COL.status + 1) return;

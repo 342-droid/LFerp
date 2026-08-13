@@ -1034,7 +1034,7 @@
         var s = String(text || '');
         if (/正常|启用|已进件|进件成功|已开通|营业|审核/.test(s)) return 'success';
         if (/冻结|停用|已拒绝|进件失败/.test(s)) return 'danger';
-        if (/进件中|未进件|未提交|筹备|停业/.test(s)) return 'warning';
+        if (/进件中|未进件|未提交|筹备|停业|打烊/.test(s)) return 'warning';
         return 'neutral';
     }
 
