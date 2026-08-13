@@ -1102,6 +1102,72 @@
         }, 0);
     }
 
+    /**
+     * 演示：为「珠宝集采中心」预置完整待提交草稿，便于详情列表点「提交进件」弹出二次确认
+     */
+    function ensureDemoSupplierSubmitConfirmDraft() {
+        var ui = window.MdmUnifiedOnboardingUi;
+        if (!ui || typeof ui.upsertRecord !== 'function') return;
+        var key = 'archive::supplier::SUP20188303';
+        var existing = typeof ui.getRecord === 'function' ? ui.getRecord(key) : null;
+        /* 已是待提交草稿则不覆盖，避免冲掉用户刚改的内容 */
+        if (existing && existing.status === 'draft') return;
+        var agreement = ui.SUPPLIER_PAYMENT_AGREEMENT || {
+            type: '挂网协议',
+            name: '斗拱平台综合支付服务协议',
+            url: 'https://cloudpnrcdn.oss-cn-shanghai.aliyuncs.com/opps/api/prod/download_file/PaymentServiceAgreement.htm'
+        };
+        var fields = {
+            short_name: '珠宝集采',
+            receipt_name: '珠宝集采',
+            detail_addr: '上海市浦东新区珠宝交易中心A座',
+            legal_mobile_no: '13900008888',
+            contact_mobile_no: '13900008888',
+            contact_email: 'jewelry@lengfeng.demo',
+            license_info: {
+                name: '珠宝集采中心',
+                code: '91310000MA1FLSUP03',
+                start_date: '2024-01-01',
+                valid_date: '长期有效',
+                address: '上海市浦东新区珠宝交易中心A座'
+            },
+            legal_info: {
+                legal_name: '演示法人',
+                id_no: '310101199001011234',
+                id_start_date: '2020-01-01',
+                id_valid_date: '2040-01-01'
+            },
+            card_info: {
+                account_name: '珠宝集采中心',
+                card_no: '6222021001123456789',
+                bank_name: '中国工商银行',
+                bank_branch: '中国工商银行上海张江支行'
+            },
+            license_pic: true,
+            legal_cert_front_pic: true,
+            legal_cert_back_pic: true,
+            open_license_pic: true,
+            store_header_pic: true,
+            store_indoor_pic: true,
+            store_cashier_desk_pic: true,
+            payment_agreement_signed: true,
+            payment_agreement: {
+                type: agreement.type,
+                name: agreement.name,
+                url: agreement.url,
+                signed: true
+            }
+        };
+        ui.upsertRecord(key, {
+            key: key,
+            title: '供应商进件',
+            merchantShortName: '珠宝集采',
+            status: 'draft',
+            fields: fields,
+            updatedAt: Date.now()
+        });
+    }
+
     function initArchiveSupplier() {
         var fields = [
             { id: 'resId', label: '供应商ID', type: 'text', editDisabled: true },
@@ -1201,6 +1267,7 @@
             }
         });
         pm.init();
+        ensureDemoSupplierSubmitConfirmDraft();
         seedSupplierDemoBalancePayments();
         syncAllSupplierArchiveRows();
         window.addEventListener('storage', function (e) {
