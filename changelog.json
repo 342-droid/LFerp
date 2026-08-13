@@ -1,10 +1,91 @@
 {
-  "latestSha": "7e1251ccf3bfa02ac664c508642908f95e6d1c3e",
-  "total": 255,
+  "latestSha": "6a143d322ddd3ad1592d604d956471504afe674d",
+  "total": 257,
   "days": [
     {
       "date": "2026-08-13",
       "items": [
+        {
+          "sha": "6a143d3",
+          "type": "feat",
+          "text": "采购需求汇总支持校验库存选项",
+          "author": "342-droid",
+          "time": "20:30",
+          "pages": [
+            {
+              "file": "SCM/purchase_demand_summary.html",
+              "module": "冷丰采购",
+              "title": "采购需求汇总"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/purchase_demand_summary.html",
+              "text": "生成采购单旁增加「校验库存」勾选（默认勾选）及计算说明提示"
+            }
+          ]
+        },
+        {
+          "sha": "0ef4fac",
+          "type": "feat",
+          "text": "仓储新增数据导入菜单及五类批量导入页",
+          "author": "342-droid",
+          "time": "20:29",
+          "pages": [
+            {
+              "file": "SCM/inventory_init_import.html",
+              "module": "冷丰WMS",
+              "title": "库存初始化导入"
+            },
+            {
+              "file": "SCM/location_import.html",
+              "module": "冷丰WMS",
+              "title": "储位导入"
+            },
+            {
+              "file": "SCM/user_company_import.html",
+              "module": "冷丰WMS",
+              "title": "用户-货主导入"
+            },
+            {
+              "file": "SCM/user_profile_import.html",
+              "module": "冷丰WMS",
+              "title": "用户-作业档案导入"
+            },
+            {
+              "file": "SCM/warehouse_company_import.html",
+              "module": "冷丰WMS",
+              "title": "仓库-货主导入"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": null,
+              "text": "仓储侧栏在基础信息下方增加「数据导入」；导入执行按钮未选文件不可点，选中后变蓝并在文件浏览下方显示文件名"
+            },
+            {
+              "file": "SCM/location_import.html",
+              "text": "新增独立导入页，支持模板下载、文件选择、执行导入与导入记录"
+            },
+            {
+              "file": "SCM/inventory_init_import.html",
+              "text": "新增独立导入页，交互对齐采购批量上传物流单号"
+            },
+            {
+              "file": "SCM/warehouse_company_import.html",
+              "text": "新增独立导入页，支持模板下载、文件选择、执行导入与导入记录"
+            },
+            {
+              "file": "SCM/user_company_import.html",
+              "text": "新增独立导入页，支持模板下载、文件选择、执行导入与导入记录"
+            },
+            {
+              "file": "SCM/user_profile_import.html",
+              "text": "新增独立导入页，支持模板下载、文件选择、执行导入与导入记录"
+            }
+          ]
+        },
         {
           "sha": "7e1251c",
           "type": "feat",

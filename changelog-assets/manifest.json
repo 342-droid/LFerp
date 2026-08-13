@@ -40,6 +40,31 @@
     "status": "diff",
     "date": "2026-08-05"
   },
+  "0ef4fac|SCM/inventory_init_import.html": {
+    "after": "changelog-assets/0ef4fac/SCM__inventory_init_import.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-13"
+  },
+  "0ef4fac|SCM/location_import.html": {
+    "after": "changelog-assets/0ef4fac/SCM__location_import.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-13"
+  },
+  "0ef4fac|SCM/user_company_import.html": {
+    "after": "changelog-assets/0ef4fac/SCM__user_company_import.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-13"
+  },
+  "0ef4fac|SCM/user_profile_import.html": {
+    "after": "changelog-assets/0ef4fac/SCM__user_profile_import.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-13"
+  },
+  "0ef4fac|SCM/warehouse_company_import.html": {
+    "after": "changelog-assets/0ef4fac/SCM__warehouse_company_import.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-13"
+  },
   "10d7914|MDM/mdm_archive_store.html": {
     "regions": 0,
     "status": "diff",
@@ -1346,6 +1371,13 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-08-06"
+  },
+  "6a143d3|SCM/purchase_demand_summary.html": {
+    "before": "changelog-assets/6a143d3/SCM__purchase_demand_summary.html.before.jpg",
+    "after": "changelog-assets/6a143d3/SCM__purchase_demand_summary.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-08-13"
   },
   "6c2378f|MDM/mdm_order_live.html": {
     "regions": 0,
