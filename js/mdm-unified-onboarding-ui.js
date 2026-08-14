@@ -421,6 +421,7 @@
                 'license_info.valid_date': '长期有效',
                 'license_info.address': '云南省昭通市昭阳区太平街道办事处昭通大道',
                 'legal_info.legal_name': '陈大华',
+                'legal_info.cert_type': '身份证',
                 'legal_info.id_no': '532101199003145212',
                 'legal_info.id_start_date': '2022-03-07',
                 'legal_info.id_valid_date': '2042-03-07',
@@ -559,6 +560,7 @@
             row.appendChild(sfLabel('身份证上传', true));
             var ctrl = el('div', 'store-form__control');
             var ocrFields = [
+                { label: '证件类型', key: 'legal_info.cert_type', value: formFields.legal_info.cert_type || '身份证' },
                 { label: '法人姓名', key: 'legal_info.legal_name', value: formFields.legal_info.legal_name },
                 { label: '身份证号', key: 'legal_info.id_no', value: formFields.legal_info.id_no },
                 { label: '身份证起始日期', key: 'legal_info.id_start_date', value: formFields.legal_info.id_start_date },
@@ -744,7 +746,7 @@
                     address: getInputVal('license_info.address')
                 },
                 legal_info: {
-                    cert_type: getInputVal('legal_info.cert_type'),
+                    cert_type: getInputVal('legal_info.cert_type') || '身份证',
                     legal_name: getInputVal('legal_info.legal_name'),
                     id_no: getInputVal('legal_info.id_no'),
                     id_start_date: getInputVal('legal_info.id_start_date'),

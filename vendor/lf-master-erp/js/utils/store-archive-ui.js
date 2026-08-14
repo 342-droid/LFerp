@@ -434,7 +434,7 @@ function buildStoreOnboardDemoRow(store) {
     store.channel || '—',
     'MCH772910001',
     '6225 **** **** 6601',
-    '对公/对私/非法人',
+    '对公',
     '—',
     wx,
     '已认证',
