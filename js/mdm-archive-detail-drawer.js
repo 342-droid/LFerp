@@ -1495,7 +1495,7 @@
 
     /**
      * 档案基础信息场地照：待上传可点上传；已上传可预览并重新上传（不回写进件成功后的进件照）
-     * @param {{ kind: string, entityId: string, entityName?: string, fieldKey: string }} opts
+     * @param {{ kind: string, entityId: string, entityName?: string, fieldKey: string, required?: boolean }} opts
      */
     function detailCellArchiveVenuePhoto(label, src, opts) {
         opts = opts || {};
@@ -1503,8 +1503,17 @@
         var entityId = opts.entityId || '';
         var entityName = opts.entityName || '';
         var fieldKey = opts.fieldKey || '';
+        var required = !!opts.required;
         var c = el('div', 'supplier-detail-cell');
-        c.appendChild(el('div', 'supplier-detail-cell__label', label));
+        var lab = el('div', 'supplier-detail-cell__label');
+        if (required) {
+            var req = el('span', 'store-form__req', '*');
+            lab.appendChild(req);
+            lab.appendChild(document.createTextNode(label));
+        } else {
+            lab.textContent = label;
+        }
+        c.appendChild(lab);
         var b = el('div', 'supplier-detail-cell__body');
         var currentSrc = src;
 
@@ -1530,7 +1539,13 @@
             var url = resolvePhotoSrc(currentSrc, label);
             if (!url) {
                 var pending = el('div', 'mdm-archive-venue-upload');
-                pending.appendChild(el('span', 'mdm-archive-venue-upload__status', '待上传'));
+                pending.appendChild(
+                    el(
+                        'span',
+                        'mdm-archive-venue-upload__status',
+                        required ? '待上传（必填）' : '待上传'
+                    )
+                );
                 var upBtn = mkBtn('上传', true);
                 upBtn.addEventListener('click', function () {
                     currentSrc = '已上传';
@@ -1580,7 +1595,8 @@
         return c;
     }
 
-    function appendArchiveVenuePhotoCells(grid, kind, entityId, entityName) {
+    function appendArchiveVenuePhotoCells(grid, kind, entityId, entityName, opts) {
+        opts = opts || {};
         var venue = readArchiveVenuePhotos(kind, entityId, entityName);
         var specs = [
             { key: 'store_header_pic', label: '门头/场地照' },
@@ -1593,7 +1609,9 @@
                     kind: kind,
                     entityId: entityId,
                     entityName: entityName,
-                    fieldKey: spec.key
+                    fieldKey: spec.key,
+                    /* 仅门店详情基础信息：门头/场地照必填 */
+                    required: !!(opts.headerRequired && spec.key === 'store_header_pic')
                 })
             );
         });
@@ -1678,6 +1696,7 @@
         appendSection('法人基本信息', [
             ['身份证人像面', f.legal_cert_front_pic, 'image'],
             ['身份证国徽面', f.legal_cert_back_pic, 'image'],
+            ['证件类型', legal.cert_type || '身份证'],
             ['法人姓名', legal.legal_name || rec.legalName || ext.legalName || '—'],
             ['身份证号', legal.id_no || maskMiddle(rec.legalIdNo || ext.legalIdNo)],
             ['身份证起始日期', legal.id_start_date || rec.legalCertBeginDate || ext.legalCertBeginDate || '—'],
@@ -1957,16 +1976,6 @@
         };
     }
 
-    function cardInfoText(card) {
-        var c = card || {};
-        var parts = [];
-        if (c.account_name) parts.push(c.account_name);
-        if (c.card_no) parts.push(c.card_no);
-        if (c.bank_name) parts.push(c.bank_name);
-        if (c.bank_branch) parts.push(c.bank_branch);
-        return parts.length ? parts.join(' / ') : '待填写';
-    }
-
     function uploadedText(v) {
         return v ? '已上传' : '待上传';
     }
@@ -2236,7 +2245,6 @@
         header.appendChild(acts);
 
         var body = el('div', 'erp-modal__body');
-        var grid = el('div', 'supplier-detail-grid');
         var viewFields = view.fields;
         if (kind === 'supplier') {
             viewFields = ensureSupplierOnboardingFieldsForDisplay(viewFields, {
@@ -2247,17 +2255,27 @@
                 phone: m.contactMobile || '',
                 contactName: ''
             });
+            appendGroupedSupplierOnboardingDetail(body, viewFields, {
+                shortName: view.shortName,
+                merchantName: m.merchantName || view.shortName,
+                placeName: m.merchantName || view.shortName || m.shortName,
+                merchantNo: view.merchantNo,
+                payStatus: view.payStatus,
+                onboardStatus: view.onboardStatus
+            });
+        } else {
+            var grid = el('div', 'supplier-detail-grid');
+            onboardingDetailCells(viewFields, kind, {
+                shortName: view.shortName,
+                merchantNo: view.merchantNo,
+                payStatus: view.payStatus,
+                onboardStatus: view.onboardStatus,
+                hideVenuePhotos: undefined
+            }).forEach(function (cell) {
+                grid.appendChild(cell);
+            });
+            body.appendChild(grid);
         }
-        onboardingDetailCells(viewFields, kind, {
-            shortName: view.shortName,
-            merchantNo: view.merchantNo,
-            payStatus: view.payStatus,
-            onboardStatus: view.onboardStatus,
-            hideVenuePhotos: kind === 'supplier' ? false : undefined
-        }).forEach(function (cell) {
-            grid.appendChild(cell);
-        });
-        body.appendChild(grid);
 
         var footer = el('div', 'erp-modal__footer');
         var okBtn = mkBtn('关闭', true);
@@ -2527,7 +2545,7 @@
      * 与统一进件表单 collectFields 对齐：执照/法人/商户/结算/场地照/协议；现有字段保留并补齐拆分项
      * @param {object} fields
      * @param {string} [kind] store | supplier
-     * @param {object} [meta] { shortName, merchantNo, payStatus, onboardStatus, hideVenuePhotos }
+     * @param {object} [meta] { shortName, merchantNo, payStatus, onboardStatus, hideVenuePhotos, placeName }
      */
     function onboardingDetailCells(fields, kind, meta) {
         var f = fields || {};
@@ -2540,6 +2558,13 @@
         var payStatus = m.payStatus != null && m.payStatus !== '' ? m.payStatus : '—';
         var onboardStatus =
             m.onboardStatus != null && m.onboardStatus !== '' ? m.onboardStatus : '未进件';
+        var placeName =
+            m.placeName ||
+            f.place_name ||
+            f.short_name ||
+            m.shortName ||
+            m.merchantName ||
+            '—';
         var cells = [
             detailCell('商户简称', shortName),
             detailCell('汇付商户号', merchantNo),
@@ -2550,7 +2575,6 @@
             detailCell('法人手机号', f.legal_mobile_no || '—'),
             detailCell('管理员手机号', f.contact_mobile_no || '—'),
             detailCell('管理员邮箱', f.contact_email || '—'),
-            detailCell('银行卡信息配置', cardInfoText(card)),
             detailCellPhoto('营业执照(F07)', f.license_pic),
             detailCell('营业执照名称', lic.name || '—'),
             detailCell('证件代码', lic.code || '—'),
@@ -2559,12 +2583,13 @@
             detailCell('注册地址', lic.address || '—'),
             detailCellPhoto('法人身份证人像面(F02)', f.legal_cert_front_pic),
             detailCellPhoto('法人身份证国徽面(F03)', f.legal_cert_back_pic),
+            detailCell('证件类型', legal.cert_type || '身份证'),
             detailCell('法人姓名', legal.legal_name || '—'),
             detailCell('身份证号', legal.id_no || '—'),
             detailCell('身份证起始日期', legal.id_start_date || '—'),
             detailCell('身份证有效期', legal.id_valid_date || '—'),
             detailCellPhoto('开户许可证', f.open_license_pic),
-            /* 与进件结算 OCR 字段对齐（保留上方「银行卡信息配置」合成项） */
+            /* 与进件结算 OCR 字段对齐 */
             detailCell('开户名', card.account_name || '—'),
             detailCell('银行卡号', card.card_no || '—'),
             detailCell('开户银行', card.bank_name || '—'),
@@ -2577,6 +2602,7 @@
         var showVenuePhotos = kind === 'supplier' || !m.hideVenuePhotos;
         if (showVenuePhotos) {
             cells = cells.concat([
+                detailCell('经营场所名称', placeName),
                 detailCellPhoto('门头/场地照(F22)', f.store_header_pic),
                 detailCellPhoto('内景/工作区域照(F24)', f.store_indoor_pic),
                 detailCellPhoto('收银台/前台照(F105)', f.store_cashier_desk_pic)
@@ -2589,14 +2615,89 @@
         return cells;
     }
 
+    /**
+     * 供应商进件信息：按进件表单分区展示，便于核对是否遗漏
+     * 顺序对齐表单：执照 → 法人 → 商户 → 结算 → 场地 → 协议
+     */
+    function appendGroupedSupplierOnboardingDetail(container, fields, meta) {
+        var f = fields || {};
+        var m = meta || {};
+        var card = f.card_info || {};
+        var lic = f.license_info || {};
+        var legal = f.legal_info || {};
+        var shortName = f.short_name || m.shortName || '—';
+        var placeName =
+            m.placeName || f.place_name || f.short_name || m.shortName || m.merchantName || '—';
+
+        function addSection(title, cells) {
+            container.appendChild(sectionTitle(title));
+            var grid = el('div', 'supplier-detail-grid');
+            (cells || []).forEach(function (cell) {
+                grid.appendChild(cell);
+            });
+            container.appendChild(grid);
+        }
+
+        addSection('执照信息', [
+            detailCellPhoto('营业执照(F07)', f.license_pic),
+            detailCell('营业执照名称', lic.name || '—'),
+            detailCell('证件代码', lic.code || '—'),
+            detailCell('执照起始日期', lic.start_date || '—'),
+            detailCell('执照有效期', lic.valid_date || '—'),
+            detailCell('注册地址', lic.address || '—')
+        ]);
+        addSection('法人信息', [
+            detailCellPhoto('法人身份证人像面(F02)', f.legal_cert_front_pic),
+            detailCellPhoto('法人身份证国徽面(F03)', f.legal_cert_back_pic),
+            detailCell('证件类型', legal.cert_type || '身份证'),
+            detailCell('法人姓名', legal.legal_name || '—'),
+            detailCell('身份证号', legal.id_no || '—'),
+            detailCell('身份证起始日期', legal.id_start_date || '—'),
+            detailCell('身份证有效期', legal.id_valid_date || '—')
+        ]);
+        addSection('商户信息', [
+            detailCell('商户简称', shortName),
+            detailCell('汇付商户号', m.merchantNo != null && m.merchantNo !== '' ? m.merchantNo : '—'),
+            detailCell('余额支付开通', m.payStatus != null && m.payStatus !== '' ? m.payStatus : '—'),
+            detailCell(
+                '进件状态',
+                m.onboardStatus != null && m.onboardStatus !== '' ? m.onboardStatus : '未进件'
+            ),
+            detailCell('小票名称', f.receipt_name || '—'),
+            detailCell('实际经营地址', f.detail_addr || '—'),
+            detailCell('法人手机号', f.legal_mobile_no || '—'),
+            detailCell('管理员手机号', f.contact_mobile_no || '—'),
+            detailCell('管理员邮箱', f.contact_email || '—')
+        ]);
+        addSection('结算信息', [
+            detailCellPhoto('开户许可证', f.open_license_pic),
+            detailCell('开户名', card.account_name || '—'),
+            detailCell('银行卡号', card.card_no || '—'),
+            detailCell('开户银行', card.bank_name || '—'),
+            detailCell('开户支行', card.bank_branch || '—')
+        ]);
+        addSection('门店场地', [
+            detailCell('经营场所名称', placeName),
+            detailCellPhoto('门头/场地照(F22)', f.store_header_pic),
+            detailCellPhoto('内景/工作区域照(F24)', f.store_indoor_pic),
+            detailCellPhoto('收银台/前台照(F105)', f.store_cashier_desk_pic)
+        ]);
+        addSection('签订协议', paymentAgreementDetailCells(f));
+    }
+
     function rowToStore(tr) {
         var c = tr.querySelectorAll('td');
-        if (c.length < 21) return null;
+        if (c.length < 16) return null;
         var name = cellPlain(c[2]);
         var partner = cellPlain(c[3]);
         var isFP = partner === '加盟店' || partner === '合作店';
         var isPeer = partner === '同行店';
-        var settleType = cellPlain(c[16]);
+        var settleType = cellPlain(c[13]);
+        function attr(key, fallback) {
+            var v = tr.getAttribute(key);
+            if (v == null || v === '') return fallback != null ? fallback : '—';
+            return v;
+        }
         return {
             name: name,
             storeId: cellPlain(c[0]),
@@ -2609,18 +2710,19 @@
             storeType: cellPlain(c[4]),
             bd: cellPlain(c[5]),
             fulfillWarehouse: cellPlain(c[8]),
-            region: cellPlain(c[9]),
-            address: cellPlain(c[10]),
-            latlng: cellPlain(c[11]),
-            withdrawPhone: cellPlain(c[12]),
-            opStatus: cellPlain(c[13]),
-            onboardStatus: cellPlain(c[14]),
-            balancePay: cellPlain(c[15]),
+            region: attr('data-region', '—'),
+            address: attr('data-address', '—'),
+            latlng: attr('data-latlng', '—'),
+            withdrawPhone: attr('data-withdraw', '—'),
+            opStatus: cellPlain(c[9]),
+            businessHours: cellPlain(c[10]),
+            onboardStatus: cellPlain(c[11]),
+            balancePay: cellPlain(c[12]),
             settleType: settleType,
-            settleCycle: cellPlain(c[17]),
-            splitService: cellPlain(c[18]),
-            storeStatus: cellStatus(c[19]),
-            createTime: cellPlain(c[20]),
+            settleCycle: attr('data-settle-cycle', '—'),
+            splitService: attr('data-split', '—'),
+            storeStatus: cellStatus(c[14]),
+            createTime: cellPlain(c[15]),
             onboardChannelGuess: settleType !== '—' ? '支付宝/微信（演示）' : '—',
             hasRefrigerator: false,
             hasFreezer: false,
@@ -2666,6 +2768,7 @@
 
         grid.appendChild(detailCell('经纬度', store.latlng));
         grid.appendChild(detailCell('运营状态', store.opStatus));
+        grid.appendChild(detailCellStoreHours(store.storeId));
         grid.appendChild(detailCell('进件状态', archiveOnboardEnum({}, store.onboardStatus)));
         grid.appendChild(detailCell('余额支付', store.balancePay));
 
@@ -2675,7 +2778,9 @@
         grid.appendChild(detailCellTagged('门店状态', store.storeStatus, true));
         grid.appendChild(detailCell('可提现手机号', store.withdrawPhone));
 
-        appendArchiveVenuePhotoCells(grid, 'store', store.storeId, store.name);
+        appendArchiveVenuePhotoCells(grid, 'store', store.storeId, store.name, {
+            headerRequired: true
+        });
 
         grid.appendChild(detailCellWarehouse('门店仓库', store.fulfillWarehouse));
 
@@ -4621,6 +4726,55 @@
         return root;
     }
 
+    /** 门店详情：可编辑营业时间（标题行 / 基础信息共用） */
+    function mountStoreBusinessHoursHost(container, storeId, hostClass) {
+        var api = window.MdmStoreBusinessHours;
+        if (!container || !storeId || !api || typeof api.renderCellHtml !== 'function') return null;
+        var host = el('span', hostClass || 'store-drawer__hours');
+        host.setAttribute('data-store-hours-host', String(storeId));
+        function paintOne(node) {
+            if (!node) return;
+            node.innerHTML = api.renderCellHtml(storeId);
+        }
+        function paintAll() {
+            var sel =
+                '[data-store-hours-host="' +
+                String(storeId).replace(/\\/g, '\\\\').replace(/"/g, '\\"') +
+                '"]';
+            document.querySelectorAll(sel).forEach(paintOne);
+        }
+        paintOne(host);
+        host.addEventListener('click', function (e) {
+            var editBtn = e.target.closest('[data-store-hours-edit]');
+            if (!editBtn) return;
+            var wrap = editBtn.closest('[data-store-hours-wrap]');
+            if (!wrap || wrap.classList.contains('is-editing')) return;
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof api.beginEdit !== 'function') return;
+            api.beginEdit(wrap, {
+                onRedraw: function () {
+                    paintAll();
+                }
+            });
+        });
+        container.appendChild(host);
+        return host;
+    }
+
+    function mountStoreHeroBusinessHours(nameRow, storeId) {
+        mountStoreBusinessHoursHost(nameRow, storeId, 'store-drawer__hours');
+    }
+
+    function detailCellStoreHours(storeId) {
+        var cell = el('div', 'supplier-detail-cell');
+        cell.appendChild(el('div', 'supplier-detail-cell__label', '营业时间'));
+        var val = el('div', 'supplier-detail-cell__value');
+        mountStoreBusinessHoursHost(val, storeId, 'store-detail-hours');
+        cell.appendChild(val);
+        return cell;
+    }
+
     function attachDrawer(opts) {
         removeArchiveDrawers();
         var backdrop = el('div', 'store-drawer-backdrop');
@@ -4655,6 +4809,9 @@
                 el('span', 'store-drawer__tag store-drawer__tag--' + t.kind, t.label)
             );
         });
+        if (opts.storeHoursStoreId) {
+            mountStoreHeroBusinessHours(nameRow, opts.storeHoursStoreId);
+        }
         hero.appendChild(nameRow);
         (opts.metaLines || []).forEach(function (line) {
             hero.appendChild(el('div', 'store-drawer__meta', line));
@@ -4726,6 +4883,7 @@
             title: '门店详情',
             heroName: store.name,
             heroTags: store.detailTags,
+            storeHoursStoreId: store.storeId,
             metaLines: ['门店ID：' + store.storeId + ' · 所属组织：' + store.orgId],
             wideClass: 'store-drawer--store-wide',
             withFooter: false,
@@ -4886,6 +5044,7 @@
         fillEmpty(f.license_info, 'address', (r && r.detailAddress) || '上海市浦东新区张江路');
 
         f.legal_info = f.legal_info || {};
+        fillEmpty(f.legal_info, 'cert_type', '身份证');
         fillEmpty(f.legal_info, 'legal_name', (r && r.contactName) || '演示法人');
         fillEmpty(f.legal_info, 'id_no', '310101199001011234');
         fillEmpty(f.legal_info, 'id_start_date', '2020-01-01');
@@ -4941,10 +5100,10 @@
         var p = el('div', 'supplier-detail-tab');
 
         p.appendChild(sectionTitle('进件信息'));
-        var onboardingGrid = el('div', 'supplier-detail-grid');
+        var onboardingWrap = el('div', 'supplier-onboard-detail-wrap');
         function renderOnboardingInfo() {
             var huifuMeta = supplierHuifuAccountMeta(r);
-            onboardingGrid.innerHTML = '';
+            onboardingWrap.innerHTML = '';
             var onboardingSummary = getOnboardingSummary(recordKey, onboardingDefaults);
             onboardingSummary.recordKey = recordKey;
             var view = buildOnboardViewFields({
@@ -4961,22 +5120,20 @@
                 subjectType: '供应商'
             });
             var displayFields = ensureSupplierOnboardingFieldsForDisplay(view.fields, r);
-            onboardingDetailCells(displayFields, 'supplier', {
+            appendGroupedSupplierOnboardingDetail(onboardingWrap, displayFields, {
                 shortName: view.shortName || r.shortName || r.name,
+                merchantName: r.name,
+                placeName: r.shortName || r.name,
                 merchantNo: view.merchantNo || huifuMeta.merchantNo,
                 payStatus:
                     huifuMeta.payStatus && huifuMeta.payStatus !== '—'
                         ? huifuMeta.payStatus
                         : view.payStatus,
-                onboardStatus: archiveOnboardEnum(onboardingSummary, r.onboard),
-                /* 供应商进件信息始终展示场地照，与进件表单一致 */
-                hideVenuePhotos: false
-            }).forEach(function (cell) {
-                onboardingGrid.appendChild(cell);
+                onboardStatus: archiveOnboardEnum(onboardingSummary, r.onboard)
             });
         }
         renderOnboardingInfo();
-        p.appendChild(onboardingGrid);
+        p.appendChild(onboardingWrap);
 
         p.appendChild(sectionTitle('供应商进件'));
         var onboard = el('div', 'store-onboard-section store-onboard-section--white');

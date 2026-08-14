@@ -500,15 +500,250 @@
     }
 
     var STORE_BALANCE_PAY_KEY = 'mdm_store_balance_payment_v1';
+    var STORE_HOURS_KEY = 'mdm_store_business_hours_v1';
+    var PLATFORM_HOURS_KEY = 'lf_basic_settings_business_hours';
+    /* 列表列：…配送仓(8)、运营状态(9)、营业时间(10)、进件(11)…（省市区/地址/经纬度/可提现/结算周期/分账已从列表移除，改存 tr data-*） */
     var STORE_COL = {
-        onboard: 14,
-        balancePay: 15,
-        settleType: 16,
-        settleCycle: 17,
-        split: 18,
-        status: 19,
-        createTime: 20
+        hours: 10,
+        onboard: 11,
+        balancePay: 12,
+        settleType: 13,
+        status: 14,
+        createTime: 15
     };
+
+    function loadPlatformBusinessHoursForStore() {
+        try {
+            var raw = localStorage.getItem(PLATFORM_HOURS_KEY);
+            if (!raw) return { start: '08:00', end: '22:00', crossDay: 'no' };
+            var parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed !== 'object') {
+                return { start: '08:00', end: '22:00', crossDay: 'no' };
+            }
+            return {
+                start: parsed.start || '08:00',
+                end: parsed.end || '22:00',
+                crossDay: parsed.crossDay === 'yes' ? 'yes' : 'no'
+            };
+        } catch (e) {
+            return { start: '08:00', end: '22:00', crossDay: 'no' };
+        }
+    }
+
+    function readStoreHoursMap() {
+        return readJsonStore(STORE_HOURS_KEY) || {};
+    }
+
+    function writeStoreHoursMap(map) {
+        writeJsonStore(STORE_HOURS_KEY, map || {});
+    }
+
+    function resolveStoreBusinessHours(storeId) {
+        var id = String(storeId || '').trim();
+        var custom = id ? readStoreHoursMap()[id] : null;
+        if (custom && custom.start && custom.end) {
+            return {
+                start: custom.start,
+                end: custom.end,
+                source: 'custom'
+            };
+        }
+        var platform = loadPlatformBusinessHoursForStore();
+        return {
+            start: platform.start,
+            end: platform.end,
+            source: 'platform'
+        };
+    }
+
+    function saveStoreBusinessHours(storeId, hours) {
+        var id = String(storeId || '').trim();
+        if (!id) return;
+        var map = readStoreHoursMap();
+        if (!hours || !hours.start || !hours.end) {
+            delete map[id];
+        } else {
+            map[id] = { start: hours.start, end: hours.end };
+        }
+        writeStoreHoursMap(map);
+    }
+
+    function formatStoreHoursRange(start, end) {
+        return (start || '08:00') + '–' + (end || '22:00');
+    }
+
+    function renderStoreHoursCellHtml(storeId) {
+        var h = resolveStoreBusinessHours(storeId);
+        var label = formatStoreHoursRange(h.start, h.end);
+        var tag =
+            h.source === 'platform'
+                ? '<span class="mdm-store-hours-cell__tag">平台</span>'
+                : '<span class="mdm-store-hours-cell__tag mdm-store-hours-cell__tag--custom">本店</span>';
+        var tip =
+            h.source === 'platform'
+                ? '跟随平台默认营业时间'
+                : '本店独立营业时间';
+        return (
+            '<div class="mdm-store-hours-cell" data-store-hours-wrap data-store-id="' +
+            String(storeId || '').replace(/"/g, '&quot;') +
+            '" data-start="' +
+            String(h.start || '08:00').replace(/"/g, '&quot;') +
+            '" data-end="' +
+            String(h.end || '22:00').replace(/"/g, '&quot;') +
+            '" data-source="' +
+            h.source +
+            '" title="' +
+            tip +
+            '">' +
+            '<span class="mdm-store-hours-cell__text">' +
+            label +
+            '</span>' +
+            tag +
+            '<button type="button" class="mdm-store-hours-cell__edit" data-store-hours-edit title="编辑营业时间" aria-label="编辑营业时间">' +
+            '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+            '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>' +
+            '</svg></button>' +
+            '</div>'
+        );
+    }
+
+    function refreshStoreHoursCell(tr) {
+        if (!tr) return;
+        var cells = tr.querySelectorAll('td');
+        if (cells.length <= STORE_COL.hours) return;
+        var storeId = (cells[0].textContent || '').trim();
+        cells[STORE_COL.hours].innerHTML = renderStoreHoursCellHtml(storeId);
+    }
+
+    function refreshAllStoreHoursCells() {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+        tbody.querySelectorAll('tr').forEach(refreshStoreHoursCell);
+    }
+
+    function beginStoreHoursEdit(wrap, options) {
+        if (!wrap || wrap.classList.contains('is-editing')) return;
+        var opts = options || {};
+        var storeId = wrap.getAttribute('data-store-id') || '';
+        var start = wrap.getAttribute('data-start') || '08:00';
+        var end = wrap.getAttribute('data-end') || '22:00';
+        var platform = loadPlatformBusinessHoursForStore();
+        wrap.classList.add('is-editing');
+        wrap.removeAttribute('title');
+        wrap.innerHTML =
+            '<span class="mdm-store-hours-editor">' +
+            '<input type="time" class="mdm-store-hours-editor__input" data-hours-start value="' +
+            start +
+            '">' +
+            '<span class="mdm-store-hours-editor__sep">至</span>' +
+            '<input type="time" class="mdm-store-hours-editor__input" data-hours-end value="' +
+            end +
+            '">' +
+            '<span class="mdm-store-hours-editor__actions">' +
+            '<button type="button" class="mdm-store-hours-editor__follow" data-hours-follow>跟随平台</button>' +
+            '<button type="button" class="mdm-store-hours-editor__done" data-hours-done>完成</button>' +
+            '</span>' +
+            '</span>';
+        var startEl = wrap.querySelector('[data-hours-start]');
+        if (startEl) startEl.focus();
+
+        function redraw() {
+            if (typeof opts.onRedraw === 'function') {
+                opts.onRedraw(storeId);
+                refreshAllStoreHoursCells();
+                return;
+            }
+            var tr = wrap.closest('tr');
+            refreshStoreHoursCell(tr);
+        }
+
+        function commit(followPlatform) {
+            if (!wrap.classList.contains('is-editing')) return;
+            if (followPlatform) {
+                saveStoreBusinessHours(storeId, null);
+                redraw();
+                if (typeof showToast === 'function') {
+                    showToast('已恢复跟随平台默认营业时间', 'success');
+                }
+                return;
+            }
+            var s = ((wrap.querySelector('[data-hours-start]') || {}).value || '').trim();
+            var e = ((wrap.querySelector('[data-hours-end]') || {}).value || '').trim();
+            if (!s || !e) {
+                redraw();
+                return;
+            }
+            if (platform.crossDay !== 'yes' && s >= e) {
+                if (typeof showToast === 'function') {
+                    showToast('未开启跨日营业时，结束时间需晚于开始时间', 'warning');
+                }
+                return;
+            }
+            if (s === e) {
+                if (typeof showToast === 'function') {
+                    showToast('营业开始与结束时间不能相同', 'warning');
+                }
+                return;
+            }
+            saveStoreBusinessHours(storeId, { start: s, end: e });
+            redraw();
+            if (typeof showToast === 'function') showToast('本店营业时间已更新', 'success');
+        }
+
+        var followBtn = wrap.querySelector('[data-hours-follow]');
+        if (followBtn) {
+            followBtn.addEventListener('mousedown', function (ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                commit(true);
+            });
+        }
+
+        var doneBtn = wrap.querySelector('[data-hours-done]');
+        if (doneBtn) {
+            doneBtn.addEventListener('mousedown', function (ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                commit(false);
+            });
+        }
+
+        wrap.querySelectorAll('input').forEach(function (input) {
+            input.addEventListener('keydown', function (ev) {
+                if (ev.key === 'Enter') {
+                    ev.preventDefault();
+                    commit(false);
+                }
+                if (ev.key === 'Escape') {
+                    ev.preventDefault();
+                    redraw();
+                }
+            });
+        });
+    }
+
+    function bindStoreHoursListEdit() {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody || tbody._storeHoursBound) return;
+        tbody._storeHoursBound = true;
+        tbody.addEventListener('click', function (e) {
+            var editBtn = e.target.closest('[data-store-hours-edit]');
+            if (!editBtn) return;
+            var wrap = editBtn.closest('[data-store-hours-wrap]');
+            if (!wrap || wrap.classList.contains('is-editing')) return;
+            e.preventDefault();
+            e.stopPropagation();
+            beginStoreHoursEdit(wrap);
+        });
+    }
+
+    function seedDemoStoreHours() {
+        var map = readStoreHoursMap();
+        if (!map.ONS303445581201) {
+            map.ONS303445581201 = { start: '09:00', end: '21:00' };
+            writeStoreHoursMap(map);
+        }
+    }
 
     function storeRecordKey(id) {
         return 'archive::store::' + String(id || '').trim();
@@ -843,10 +1078,10 @@
             var sub = cells[1].textContent.trim();
             /* 门店名称列可能含链接，取纯文本 */
             var sn = cells[2].textContent.trim();
-            var opTxt = cells[13].textContent.trim();
+            var opTxt = cells[9].textContent.trim();
             var onboardTxt = cells[STORE_COL.onboard].textContent.trim();
             var balanceTxt = cells[STORE_COL.balancePay].textContent.trim();
-            var splitTxt = cells[STORE_COL.split].textContent.trim();
+            var splitTxt = String(tr.getAttribute('data-split') || '').trim();
             var stSpan = cells[STORE_COL.status].querySelector('.status');
             var stTxt = stSpan ? stSpan.textContent.trim() : '';
             var ok = true;
@@ -1033,8 +1268,8 @@
                         editContactPerson: c[6].textContent.trim(),
                         editPhone: c[7].textContent.trim(),
                         editFulfillWarehouse: c[8].textContent.trim(),
-                        editRegionText: c[9].textContent.trim(),
-                        editAddressText: c[10].textContent.trim(),
+                        editRegionText: row.getAttribute('data-region') || '',
+                        editAddressText: row.getAttribute('data-address') || '',
                         editStoreOpStatus: c[STORE_COL.status].querySelector('.status')
                             ? c[STORE_COL.status].querySelector('.status').textContent.trim()
                             : '正常'
@@ -1044,13 +1279,15 @@
                     if (!pm.currentEditRow) return;
                     var row = pm.currentEditRow;
                     var st = document.getElementById('editStoreOpStatus').value.trim();
+                    var regionEl = document.getElementById('editRegionText');
+                    var addressEl = document.getElementById('editAddressText');
+                    if (regionEl) row.setAttribute('data-region', regionEl.value.trim());
+                    if (addressEl) row.setAttribute('data-address', addressEl.value.trim());
                     var patch = {
                         2: document.getElementById('editStoreName').value.trim(),
                         6: document.getElementById('editContactPerson').value.trim(),
                         7: document.getElementById('editPhone').value.trim(),
-                        8: document.getElementById('editFulfillWarehouse').value.trim(),
-                        9: document.getElementById('editRegionText').value.trim(),
-                        10: document.getElementById('editAddressText').value.trim()
+                        8: document.getElementById('editFulfillWarehouse').value.trim()
                     };
                     patch[STORE_COL.status] = { value: st, isStatus: true };
                     pm.updateTableRow(row, patch);
@@ -1062,10 +1299,18 @@
         });
         pm.init();
         seedStoreDemoBalancePayments();
+        seedDemoStoreHours();
+        refreshAllStoreHoursCells();
+        bindStoreHoursListEdit();
         syncAllStoreArchiveRows();
         window.addEventListener('storage', function (e) {
-            if (e.key === 'mdm_unified_onboarding_records_v1') {
+            if (
+                e.key === 'mdm_unified_onboarding_records_v1' ||
+                e.key === PLATFORM_HOURS_KEY ||
+                e.key === STORE_HOURS_KEY
+            ) {
                 syncAllStoreArchiveRows();
+                refreshAllStoreHoursCells();
             }
         });
         bindSimpleFilter(pm, {
@@ -1133,6 +1378,7 @@
                 address: '上海市浦东新区珠宝交易中心A座'
             },
             legal_info: {
+                cert_type: '身份证',
                 legal_name: '演示法人',
                 id_no: '310101199001011234',
                 id_start_date: '2020-01-01',
@@ -3573,6 +3819,13 @@
             pm.decorateAllDetailLinkCells();
         }, 0);
     }
+
+    window.MdmStoreBusinessHours = {
+        renderCellHtml: renderStoreHoursCellHtml,
+        beginEdit: beginStoreHoursEdit,
+        refreshAll: refreshAllStoreHoursCells,
+        resolve: resolveStoreBusinessHours
+    };
 
     window.MdmErpLists = {
         initArchiveStore: initArchiveStore,

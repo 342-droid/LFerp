@@ -13,6 +13,163 @@
         .mdm-store-withdraw { color: #2196F3; text-decoration: none; cursor: pointer; }
         .mdm-store-withdraw:hover { text-decoration: underline; color: #1976D2; }
         .flow-box { margin: 14px 0; padding: 12px 14px; background: #fafafa; border: 1px solid #eee; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.65; }
+        .mdm-store-hours-cell {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            max-width: 100%;
+            min-height: 28px;
+            padding: 2px 4px 2px 6px;
+            margin: 0;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            background: transparent;
+            color: #333;
+            font-size: 13px;
+            line-height: 1.4;
+            box-sizing: border-box;
+        }
+        .mdm-store-hours-cell.is-editing {
+            display: block;
+            padding: 4px;
+            border-color: #ffd0b0;
+            background: #fff;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        }
+        .mdm-store-hours-cell__tag {
+            flex-shrink: 0;
+            padding: 0 5px;
+            border-radius: 2px;
+            background: #f5f5f5;
+            color: #999;
+            font-size: 11px;
+            line-height: 18px;
+        }
+        .mdm-store-hours-cell__tag--custom {
+            background: #fff7f0;
+            color: #ff7019;
+        }
+        .mdm-store-hours-cell__edit {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            margin: 0;
+            padding: 0;
+            border: none;
+            border-radius: 4px;
+            background: transparent;
+            color: #999;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .mdm-store-hours-cell__edit:hover {
+            background: #fff7f0;
+            color: #ff7019;
+        }
+        .mdm-store-hours-editor {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 6px;
+            min-width: 148px;
+        }
+        .mdm-store-hours-editor__input {
+            width: 100%;
+            height: 28px;
+            padding: 0 6px;
+            border: none;
+            border-radius: 4px;
+            background: #f5f5f5;
+            font-size: 12px;
+            color: #333;
+            box-sizing: border-box;
+        }
+        .mdm-store-hours-editor__sep {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            line-height: 1;
+        }
+        .mdm-store-hours-editor__actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .mdm-store-hours-editor__follow,
+        .mdm-store-hours-editor__done {
+            flex: 1;
+            height: 26px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .mdm-store-hours-editor__follow {
+            border: 1px solid #ffd0b0;
+            background: #fff7f0;
+            color: #ff7019;
+        }
+        .mdm-store-hours-editor__follow:hover { background: #ffefe3; }
+        .mdm-store-hours-editor__done {
+            border: 1px solid #ff7019;
+            background: #ff7019;
+            color: #fff;
+        }
+        .mdm-store-hours-editor__done:hover { background: #e86512; border-color: #e86512; }
+        .store-drawer__hours {
+            display: inline-flex;
+            align-items: center;
+            max-width: 100%;
+        }
+        .store-drawer__hours .mdm-store-hours-cell {
+            border-color: #eee;
+            background: #fafafa;
+        }
+        .store-drawer__hours .mdm-store-hours-cell.is-editing {
+            min-width: 0;
+            background: #fff;
+        }
+        .store-detail-hours {
+            display: inline-flex;
+            align-items: center;
+            max-width: 100%;
+        }
+        .store-detail-hours .mdm-store-hours-cell.is-editing {
+            min-width: 0;
+        }
+        /* 门店详情：时间编辑器横向排列 */
+        .store-drawer__hours .mdm-store-hours-editor,
+        .store-detail-hours .mdm-store-hours-editor {
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+        .store-drawer__hours .mdm-store-hours-editor__input,
+        .store-detail-hours .mdm-store-hours-editor__input {
+            width: auto;
+            min-width: 108px;
+            flex: 0 0 auto;
+        }
+        .store-drawer__hours .mdm-store-hours-editor__sep,
+        .store-detail-hours .mdm-store-hours-editor__sep {
+            text-align: left;
+            flex: 0 0 auto;
+        }
+        .store-drawer__hours .mdm-store-hours-editor__actions,
+        .store-detail-hours .mdm-store-hours-editor__actions {
+            flex: 0 0 auto;
+        }
+        .store-drawer__hours .mdm-store-hours-editor__follow,
+        .store-drawer__hours .mdm-store-hours-editor__done,
+        .store-detail-hours .mdm-store-hours-editor__follow,
+        .store-detail-hours .mdm-store-hours-editor__done {
+            flex: 0 0 auto;
+            padding: 0 10px;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -105,23 +262,25 @@
                                 <th>联系人</th>
                                 <th>手机号码</th>
                                 <th>配送仓库</th>
-                                <th>省市区</th>
-                                <th>详细地址</th>
-                                <th>经纬度</th>
-                                <th>可提现手机号</th>
                                 <th>运营状态</th>
+                                <th>营业时间</th>
                                 <th>进件状态</th>
                                 <th>余额支付</th>
                                 <th>结算类型</th>
-                                <th>结算周期</th>
-                                <th>分账服务</th>
                                 <th>门店状态</th>
                                 <th>创建时间</th>
                                 <th>操作</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
-                            <tr>
+                            <tr
+                                data-region="北京市/市辖区/东城区"
+                                data-address="地下车库"
+                                data-latlng="—"
+                                data-withdraw="—"
+                                data-settle-cycle="—"
+                                data-split="未开通"
+                            >
                                 <td>ONS307892038169264128</td>
                                 <td>冷丰演示门店</td>
                                 <td><a href="#" class="subject-name-link">测试通知</a></td>
@@ -131,21 +290,23 @@
                                 <td>夏利</td>
                                 <td>178****4646</td>
                                 <td>华东履约仓 / WH–SH–01</td>
-                                <td>北京市/市辖区/东城区</td>
-                                <td>地下车库</td>
-                                <td>—</td>
-                                <td><a href="#" class="mdm-store-withdraw">—</a></td>
                                 <td>打烊</td>
+                                <td class="mdm-store-hours-td" data-store-hours-col></td>
                                 <td>未进件</td>
                                 <td>未提交</td>
                                 <td>—</td>
-                                <td>—</td>
-                                <td>未开通</td>
                                 <td><span class="status inactive">冻结</span></td>
                                 <td>2026-04-29T22:53:02</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
                             </tr>
-                            <tr>
+                            <tr
+                                data-region="天津市/市辖区/河东区"
+                                data-address="长三角珠宝产业园A3栋"
+                                data-latlng="117.25,39.12"
+                                data-withdraw="138****2211"
+                                data-settle-cycle="自然周"
+                                data-split="开启"
+                            >
                                 <td>ONS303445581201</td>
                                 <td>冷丰演示门店</td>
                                 <td><a href="#" class="subject-name-link">111</a></td>
@@ -155,21 +316,23 @@
                                 <td>张三</td>
                                 <td>138****2211</td>
                                 <td>创建门店时选择的履约仓库</td>
-                                <td>天津市/市辖区/河东区</td>
-                                <td>长三角珠宝产业园A3栋</td>
-                                <td>117.25,39.12</td>
-                                <td><a href="#" class="mdm-store-withdraw">138****2211</a></td>
                                 <td>运营中</td>
+                                <td class="mdm-store-hours-td" data-store-hours-col></td>
                                 <td>进件成功</td>
                                 <td>已开通</td>
-                                <td>T+1</td>
-                                <td>自然周</td>
-                                <td>开启</td>
+                                <td>对公</td>
                                 <td><span class="status active">正常</span></td>
                                 <td>2026-04-20 10:22:11</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
                             </tr>
-                            <tr>
+                            <tr
+                                data-region="上海市/市辖区/浦东新区"
+                                data-address="张江路88号"
+                                data-latlng="121.58,31.20"
+                                data-withdraw="186****9001"
+                                data-settle-cycle="自然月"
+                                data-split="关闭"
+                            >
                                 <td>ONS303445581202</td>
                                 <td>五角场体验店</td>
                                 <td><a href="#" class="subject-name-link">DDD</a></td>
@@ -179,21 +342,23 @@
                                 <td>李四</td>
                                 <td>186****9001</td>
                                 <td>沪东前置仓</td>
-                                <td>上海市/市辖区/浦东新区</td>
-                                <td>张江路88号</td>
-                                <td>121.58,31.20</td>
-                                <td><a href="#" class="mdm-store-withdraw">186****9001</a></td>
                                 <td>运营中</td>
+                                <td class="mdm-store-hours-td" data-store-hours-col></td>
                                 <td>进件中</td>
                                 <td>未提交</td>
-                                <td>D+1</td>
-                                <td>自然月</td>
-                                <td>关闭</td>
+                                <td>对公</td>
                                 <td><span class="status active">正常</span></td>
                                 <td>2026-04-19 15:01:44</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
                             </tr>
-                            <tr>
+                            <tr
+                                data-region="浙江省/杭州市/余杭区"
+                                data-address="文一西路969号"
+                                data-latlng="120.05,30.28"
+                                data-withdraw="—"
+                                data-settle-cycle="—"
+                                data-split="关闭"
+                            >
                                 <td>ONS303445581203</td>
                                 <td>张江快闪店</td>
                                 <td><a href="#" class="subject-name-link">张三</a></td>
@@ -203,16 +368,11 @@
                                 <td>张三</td>
                                 <td>—</td>
                                 <td>创建门店时选择的履约仓库</td>
-                                <td>浙江省/杭州市/余杭区</td>
-                                <td>文一西路969号</td>
-                                <td>120.05,30.28</td>
-                                <td><a href="#" class="mdm-store-withdraw">—</a></td>
                                 <td>打烊</td>
+                                <td class="mdm-store-hours-td" data-store-hours-col></td>
                                 <td>未进件</td>
                                 <td>未提交</td>
                                 <td>—</td>
-                                <td>—</td>
-                                <td>关闭</td>
                                 <td><span class="status inactive">已禁用</span></td>
                                 <td>2026-04-18 09:33:02</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
@@ -238,8 +398,8 @@
     <script src="../js/store-wallet-demo.js?v=20260810-account-cfg"></script>
     <script src="../js/store-bind-card-demo.js?v=20260806-bank"></script>
     <script src="../store-app/js/store-app-biz-orders.js?v=20260811-pickup-dash"></script>
-    <script src="../js/mdm-archive-detail-drawer.js?v=20260812-venue-detail-upload"></script>
-    <script src="../js/mdm-erp-lists.js?v=20260813-op-status"></script>
+    <script src="../js/mdm-archive-detail-drawer.js?v=20260815-store-hours-hero"></script>
+    <script src="../js/mdm-erp-lists.js?v=20260815-store-hours-api"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         MdmErpLists.initArchiveStore();
