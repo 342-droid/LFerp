@@ -245,6 +245,8 @@
   }
 
   function submitOrder() {
+    /* 黑名单禁用「下单」：积分确认订单提交拦截 */
+    if (window.UaBlacklistGuard && window.UaBlacklistGuard.guardOrderSubmit()) return;
     if (!lines.length) return;
     var t = totals();
     if (t.points > AVAILABLE_POINTS) {

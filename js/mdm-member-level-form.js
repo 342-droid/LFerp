@@ -8,16 +8,16 @@
     if (!Data) return;
 
     var COUPON_OPTIONS = [
-        { value: '满50减5券', label: '满50减5券', amount: '减5元', channel: '全渠道', validPeriod: '领取后7天有效', collectLimit: '不限', stock: '999', expired: false },
-        { value: '满100减15券', label: '满100减15券', amount: '减15元', channel: 'APP/小程序', validPeriod: '2026-01-01~12-31', collectLimit: '每人3次', stock: '500', expired: false },
-        { value: '满200减30券', label: '满200减30券', amount: '减30元', channel: '全渠道', validPeriod: '2026-03-01~09-30', collectLimit: '每人2次', stock: '200', expired: false },
-        { value: '满300减50券', label: '满300减50券', amount: '减50元', channel: '门店自提', validPeriod: '领取后15天有效', collectLimit: '每人1次', stock: '100', expired: false },
-        { value: '生日专属券', label: '生日专属券', amount: '减10元', channel: '全渠道', validPeriod: '生日当月有效', collectLimit: '每人1次', stock: '999', expired: false },
-        { value: '免运费券', label: '免运费券', amount: '免运费', channel: '快递配送', validPeriod: '领取后3天有效', collectLimit: '每人2次', stock: '300', expired: false },
-        { value: '新人专享券', label: '新人专享券', amount: '减8元', channel: 'APP/小程序', validPeriod: '领取后30天有效', collectLimit: '每人1次', stock: '800', expired: false },
-        { value: '周末专享券', label: '周末专享券', amount: '9折', channel: '全渠道', validPeriod: '每周五~周日', collectLimit: '不限', stock: '999', expired: false },
-        { value: '生鲜满减券', label: '生鲜满减券', amount: '减12元', channel: '全渠道', validPeriod: '2026-04-01~10-31', collectLimit: '每人3次', stock: '450', expired: false },
-        { value: '过期满减券', label: '过期满减券', amount: '减20元', channel: '全渠道', validPeriod: '2025-01-01~12-31', collectLimit: '每人1次', stock: '0', expired: true }
+        { value: '满50减5券', label: '满50减5券', amount: '减5元', threshold: '50元', channel: '全渠道', validPeriod: '领取后7天有效', collectLimit: '不限', stock: '999', expired: false },
+        { value: '满100减15券', label: '满100减15券', amount: '减15元', threshold: '100元', channel: 'APP/小程序', validPeriod: '2026-01-01~12-31', collectLimit: '每人3次', stock: '500', expired: false },
+        { value: '满200减30券', label: '满200减30券', amount: '减30元', threshold: '200元', channel: '全渠道', validPeriod: '2026-03-01~09-30', collectLimit: '每人2次', stock: '200', expired: false },
+        { value: '满300减50券', label: '满300减50券', amount: '减50元', threshold: '300元', channel: '门店自提', validPeriod: '领取后15天有效', collectLimit: '每人1次', stock: '100', expired: false },
+        { value: '生日专属券', label: '生日专属券', amount: '减10元', threshold: '无门槛', channel: '全渠道', validPeriod: '生日当月有效', collectLimit: '每人1次', stock: '999', expired: false },
+        { value: '免运费券', label: '免运费券', amount: '免运费', threshold: '无门槛', channel: '快递配送', validPeriod: '领取后3天有效', collectLimit: '每人2次', stock: '300', expired: false },
+        { value: '新人专享券', label: '新人专享券', amount: '减8元', threshold: '无门槛', channel: 'APP/小程序', validPeriod: '领取后30天有效', collectLimit: '每人1次', stock: '800', expired: false },
+        { value: '周末专享券', label: '周末专享券', amount: '9折', threshold: '5元', channel: '全渠道', validPeriod: '每周五~周日', collectLimit: '不限', stock: '999', expired: false },
+        { value: '生鲜满减券', label: '生鲜满减券', amount: '减12元', threshold: '5元', channel: '全渠道', validPeriod: '2026-04-01~10-31', collectLimit: '每人3次', stock: '450', expired: false },
+        { value: '过期满减券', label: '过期满减券', amount: '减20元', threshold: '5元', channel: '全渠道', validPeriod: '2025-01-01~12-31', collectLimit: '每人1次', stock: '0', expired: true }
     ];
 
     var MODE_OPTIONS = [
@@ -354,7 +354,7 @@
         table.className = 'erp-table ml-coupon-table';
         var thead = document.createElement('thead');
         var trh = document.createElement('tr');
-        ['优惠券名称', '减免金额', '适用渠道', '有效期', '领取限制', '剩余库存'].forEach(function (h) {
+        ['优惠券名称', '券面值', '门槛', '适用渠道', '有效期', '领取限制', '剩余库存'].forEach(function (h) {
             var th = document.createElement('th');
             th.textContent = h;
             trh.appendChild(th);
@@ -426,7 +426,7 @@
             if (!slice.length) {
                 var emptyTr = document.createElement('tr');
                 var emptyTd = document.createElement('td');
-                emptyTd.colSpan = 6;
+                emptyTd.colSpan = 7;
                 emptyTd.className = 'member-level-coupon-picker__empty';
                 emptyTd.style.textAlign = 'center';
                 emptyTd.textContent = '无匹配优惠券';
@@ -453,7 +453,7 @@
                     tdName.appendChild(nameLabel);
                     tr.appendChild(tdName);
 
-                    [c.amount, c.channel, c.validPeriod, c.collectLimit, c.stock].forEach(function (text) {
+                    [c.amount, c.threshold, c.channel, c.validPeriod, c.collectLimit, c.stock].forEach(function (text) {
                         var td = document.createElement('td');
                         td.textContent = text;
                         tr.appendChild(td);
