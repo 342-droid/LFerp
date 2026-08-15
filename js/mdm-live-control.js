@@ -1,5 +1,9 @@
 /**
  * 直播管理 — 直播中控工作台
+ * 直播商品：从启用排品中添加；售卖 / 预告、置顶（仅 1 个，低于讲解）、讲解（默认置顶）、
+ * SKU 库存（需保存）/ 上下架、展示序号、上移下移。
+ * 预告：C 端展示商品预告但不可售卖；售卖：C 端可正常下单。
+ * 直播排品 tab：仅展示已启用且未加入直播商品的排品。
  */
 (function () {
   'use strict';
@@ -13,8 +17,20 @@
     }
   };
 
+  var QUICK_REPLIES = ['欢迎来到直播间～', '这款正在讲解，库存有限先拍', '下单备注自提门店即可'];
+
   var sessionId = '';
-  var productQuery = '';
+  var mainTab = 'product';
+  var productTab = 'cart';
+  var sideTab = 'metrics';
+  var expandedIds = {};
+  var virtualUser = '';
+  var schedFilter = { name: '', sku: '', category: '' };
+  var cartFilter = { name: '', sku: '' };
+  var pendingStock = {};
+  var selectedCart = {};
+  var selectedSched = {};
+  var C_STATE_KEY = 'lf_live_c_state_v1';
 
   function toast(msg, type) {
     if (typeof showToast === 'function') showToast(msg, type || 'success');
@@ -55,11 +71,89 @@
         orderCount: 0,
         orderGmv: 0,
         salesAmount: 0,
+        muted: false,
         recentOrders: [],
-        chatMessages: []
+        chatMessages: [],
+        watchRecords: []
       };
     }
-    return Demo.controlMetrics[id];
+    var m = Demo.controlMetrics[id];
+    if (!m.chatMessages) m.chatMessages = [];
+    if (!m.watchRecords) m.watchRecords = [];
+    if (!m.recentOrders) m.recentOrders = [];
+    return m;
+  }
+
+  function normalizeSchedStatus(st) {
+    if (typeof Demo.normalizeSchedStatus === 'function') return Demo.normalizeSchedStatus(st);
+    if (st === 'enabled' || st === 'on_shelf' || st === 'listing') return 'enabled';
+    if (st === 'disabled' || st === 'off_shelf' || st === 'delisting') return 'disabled';
+    return 'draft';
+  }
+
+  function ensureControlFields(p, index) {
+    if (p.inCart == null) {
+      p.inCart =
+        p.liveStatus === 'explaining' ||
+        p.liveStatus === 'displaying' ||
+        p.liveStatus === 'selling' ||
+        p.liveStatus === 'preview';
+    }
+    if (p.saleMode == null) {
+      if (p.spuOn === true || (p.inCart && p.liveStatus && p.liveStatus !== 'off_shelf' && p.liveStatus !== 'preview')) {
+        p.saleMode = 'selling';
+      } else {
+        p.saleMode = 'preview';
+      }
+    }
+    if (p.explaining == null) p.explaining = p.liveStatus === 'explaining';
+    if (p.pinned == null) p.pinned = false;
+    if (p.cartSort == null) p.cartSort = index + 1;
+    if (p.previewPriceMode == null) p.previewPriceMode = 'sale';
+  }
+
+  function skusOf(p) {
+    if (p.skus && p.skus.length) return p.skus;
+    return [
+      {
+        id: (p.id || 'x') + '-sku',
+        specName: p.spec || '默认规格',
+        price: p.price,
+        marketPrice: p.marketPrice,
+        stock: p.stock,
+        enabled: true
+      }
+    ];
+  }
+
+  function displayStock(p, sku) {
+    var bag = pendingStock[p.id];
+    if (bag && Object.prototype.hasOwnProperty.call(bag, sku.id)) return bag[sku.id];
+    return sku.stock != null ? sku.stock : 0;
+  }
+
+  function syncLiveStatus(p) {
+    if (p.saleMode === 'preview') {
+      p.liveStatus = p.explaining ? 'explaining' : 'preview';
+      return;
+    }
+    if (p.explaining) {
+      p.liveStatus = 'explaining';
+      return;
+    }
+    var skus = skusOf(p);
+    var onSkus = skus.filter(function (s) {
+      return s.enabled !== false;
+    });
+    var stock = onSkus.reduce(function (sum, s) {
+      return sum + (Number(s.stock) || 0);
+    }, 0);
+    p.stock = stock;
+    if (!onSkus.length || stock <= 0) {
+      p.liveStatus = 'sold_out';
+      return;
+    }
+    p.liveStatus = 'selling';
   }
 
   function statusLabel(st) {
@@ -75,32 +169,6 @@
     return 'lf-live-badge lf-live-badge--muted';
   }
 
-  function liveStatusLabel(st) {
-    var map = {
-      selling: '在售',
-      displaying: '展示中',
-      explaining: '讲解中',
-      sold_out: '售罄',
-      off_shelf: '已下架'
-    };
-    return map[st] || st || '在售';
-  }
-
-  function liveStatusClass(st) {
-    if (st === 'explaining') return 'lf-live-badge lf-live-badge--live';
-    if (st === 'displaying') return 'lf-live-badge lf-live-badge--ok';
-    if (st === 'sold_out') return 'lf-live-badge lf-live-badge--danger';
-    if (st === 'off_shelf') return 'lf-live-badge lf-live-badge--muted';
-    return 'lf-live-badge lf-live-badge--warn';
-  }
-
-  function broadcastText(sess) {
-    if (!sess) return '未开播';
-    if (sess.status === 'live') return '直播中';
-    if (sess.status === 'ended') return '已结束';
-    return '未开播';
-  }
-
   function formatMoney(n) {
     var v = Number(n);
     if (isNaN(v)) return '¥0.00';
@@ -111,6 +179,18 @@
     var v = Number(n) || 0;
     if (v >= 10000) return (v / 10000).toFixed(1) + 'w';
     return String(v);
+  }
+
+  function formatSessionTime(startAt, endAt) {
+    function short(t) {
+      if (!t) return '—';
+      return String(t).replace(/^\d{4}-/, '').slice(0, 11);
+    }
+    return short(startAt) + ' - ' + short(endAt);
+  }
+
+  function nowTime() {
+    return new Date().toTimeString().slice(0, 8);
   }
 
   function fillSessionSelect(preset) {
@@ -133,6 +213,18 @@
         .join('');
   }
 
+  function fillCategoryFilter() {
+    var sel = document.getElementById('schedFilterCategory');
+    if (!sel) return;
+    sel.innerHTML =
+      '<option value="">全部类目</option>' +
+      (Demo.categories || [])
+        .map(function (c) {
+          return '<option value="' + escapeHtml(c.id) + '">' + escapeHtml(c.name) + '</option>';
+        })
+        .join('');
+  }
+
   function enterSession(id) {
     if (!id || !findSession(id)) {
       toast('请选择直播场次', 'warning');
@@ -141,100 +233,590 @@
     var url = wp.page('mdm_live_control.html') + '?sessionId=' + encodeURIComponent(id);
     window.history.replaceState(null, '', url);
     sessionId = id;
+    expandedIds = {};
     render();
   }
 
-  function renderHeader(sess) {
-    var title = document.getElementById('controlSessionTitle');
-    var badge = document.getElementById('controlStatusBadge');
-    if (title) title.textContent = sess ? sess.name : '直播中控';
-    if (badge) {
-      if (!sess) {
-        badge.hidden = true;
-        return;
+  function allCartProducts() {
+    var list = productsOf(sessionId);
+    list.forEach(ensureControlFields);
+    return list
+      .filter(function (p) {
+        return !!p.inCart;
+      })
+      .sort(compareCart);
+  }
+
+  function cartProducts() {
+    return allCartProducts().filter(function (p) {
+      if (cartFilter.name && String(p.name || '').indexOf(cartFilter.name) < 0) return false;
+      if (cartFilter.sku && String(p.sku || '').indexOf(cartFilter.sku) < 0) return false;
+      return true;
+    });
+  }
+
+  function updateCartCount() {
+    var n = allCartProducts().length;
+    var tab = document.getElementById('controlCartTabBtn');
+    var count = document.getElementById('controlCartCount');
+    if (tab) tab.textContent = '直播商品(' + n + ')';
+    if (count) count.textContent = '共 ' + n + ' 件';
+  }
+
+  function compareCart(a, b) {
+    if (a.explaining && !b.explaining) return -1;
+    if (!a.explaining && b.explaining) return 1;
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    return (a.cartSort || 0) - (b.cartSort || 0);
+  }
+
+  function schedProducts() {
+    var list = productsOf(sessionId);
+    list.forEach(ensureControlFields);
+    return list.filter(function (p) {
+      if (p.inCart) return false;
+      if (normalizeSchedStatus(p.status) !== 'enabled') return false;
+      if (schedFilter.name && String(p.name || '').indexOf(schedFilter.name) < 0) return false;
+      if (schedFilter.sku && String(p.sku || '').indexOf(schedFilter.sku) < 0) return false;
+      if (schedFilter.category && String(p.categoryId || '') !== schedFilter.category) return false;
+      return true;
+    });
+  }
+
+  function findProduct(id) {
+    var list = productsOf(sessionId);
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) return { item: list[i], index: i, list: list };
+    }
+    return null;
+  }
+
+  function findSku(p, skuId) {
+    var skus = skusOf(p);
+    for (var i = 0; i < skus.length; i++) {
+      if (skus[i].id === skuId) return skus[i];
+    }
+    return null;
+  }
+
+  function nextCartSort() {
+    var max = 0;
+    allCartProducts().forEach(function (p) {
+      if ((p.cartSort || 0) > max) max = p.cartSort;
+    });
+    return max + 1;
+  }
+
+  function addToCart(p) {
+    ensureControlFields(p, 0);
+    p.inCart = true;
+    p.saleMode = 'preview';
+    p.explaining = false;
+    p.pinned = false;
+    p.pendingAdd = null;
+    p.removeAt = null;
+    p.previewPriceMode = p.previewPriceMode || 'sale';
+    p.cartSort = nextCartSort();
+    syncLiveStatus(p);
+    compactCartSort();
+  }
+
+  function removeFromCart(p) {
+    p.inCart = false;
+    p.saleMode = 'preview';
+    p.explaining = false;
+    p.pinned = false;
+    p.removeAt = null;
+    delete pendingStock[p.id];
+    delete selectedCart[p.id];
+    syncLiveStatus(p);
+    compactCartSort();
+  }
+
+  function formatClock(ts) {
+    if (!ts) return '';
+    var d = new Date(ts);
+    function pad(n) {
+      return n < 10 ? '0' + n : String(n);
+    }
+    return pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
+  function toLocalInput(ts) {
+    var d = new Date(ts);
+    function pad(n) {
+      return n < 10 ? '0' + n : String(n);
+    }
+    return (
+      d.getFullYear() +
+      '-' +
+      pad(d.getMonth() + 1) +
+      '-' +
+      pad(d.getDate()) +
+      'T' +
+      pad(d.getHours()) +
+      ':' +
+      pad(d.getMinutes())
+    );
+  }
+
+  function processScheduled() {
+    var sess = findSession(sessionId);
+    var now = Date.now();
+    var changed = false;
+    productsOf(sessionId).forEach(function (p) {
+      ensureControlFields(p, 0);
+      if (p.inCart && p.removeAt && now >= p.removeAt) {
+        removeFromCart(p);
+        changed = true;
       }
-      badge.hidden = false;
+      if (!p.inCart && p.pendingAdd) {
+        if (p.pendingAdd.type === 'at' && p.pendingAdd.at && now >= p.pendingAdd.at) {
+          addToCart(p);
+          changed = true;
+        } else if (p.pendingAdd.type === 'on_live_start' && sess && sess.status === 'live') {
+          addToCart(p);
+          changed = true;
+        }
+      }
+    });
+    return changed;
+  }
+
+  function priceBlock(p) {
+    var html = '<span class="lf-live-cart-card__sale">' + escapeHtml(formatMoney(p.price)) + '</span>';
+    if (p.marketPrice != null && Number(p.marketPrice) > 0) {
+      html += '<span class="lf-live-cart-card__market">' + escapeHtml(formatMoney(p.marketPrice)) + '</span>';
+    }
+    return '<div class="lf-live-cart-card__prices">' + html + '</div>';
+  }
+
+  function selectedCartIds() {
+    return Object.keys(selectedCart).filter(function (id) {
+      return selectedCart[id];
+    });
+  }
+
+  function selectedSchedIds() {
+    return Object.keys(selectedSched).filter(function (id) {
+      return selectedSched[id];
+    });
+  }
+
+  function clearExplainExcept(keepId) {
+    productsOf(sessionId).forEach(function (p) {
+      if (p.id !== keepId) p.explaining = false;
+    });
+  }
+
+  function clearPinExcept(keepId) {
+    productsOf(sessionId).forEach(function (p) {
+      if (p.id !== keepId) p.pinned = false;
+    });
+  }
+
+  function thumbHtml(item, seq) {
+    var name = String(item.name || '商');
+    var ch = name.charAt(0);
+    var hue = 0;
+    for (var i = 0; i < name.length; i++) hue += name.charCodeAt(i);
+    hue = 18 + (hue % 40);
+    var inner = item.img
+      ? '<span class="lf-live-thumb"><img src="' + escapeHtml(item.img) + '" alt=""></span>'
+      : '<span class="lf-live-thumb lf-live-thumb--ph" style="--ph-hue:' +
+        hue +
+        '">' +
+        '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="8" y="12" width="32" height="24" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="21" r="3" fill="currentColor"/><path d="M12 32l8-8 6 6 5-5 5 7H12z" fill="currentColor" opacity=".45"/></svg>' +
+        '<em>' +
+        escapeHtml(ch) +
+        '</em></span>';
+    var badge =
+      seq != null
+        ? '<span class="lf-live-thumb-seq">' + escapeHtml(String(seq)) + '</span>'
+        : '';
+    return '<span class="lf-live-thumb-wrap">' + badge + inner + '</span>';
+  }
+
+  function syncCState() {
+    var explaining = null;
+    var previewMode = 'sale';
+    allCartProducts().forEach(function (p) {
+      if (p.explaining && !explaining) {
+        explaining = {
+          name: p.name,
+          price: p.price,
+          marketPrice: p.marketPrice,
+          previewPriceMode: p.previewPriceMode || 'sale',
+          saleMode: p.saleMode,
+          img: p.img || ''
+        };
+        if (p.saleMode === 'preview') previewMode = p.previewPriceMode || 'sale';
+      }
+    });
+    if (!explaining || explaining.saleMode !== 'preview') {
+      allCartProducts().some(function (p) {
+        if (p.saleMode !== 'preview') return false;
+        previewMode = p.previewPriceMode || 'sale';
+        return true;
+      });
+    }
+    try {
+      localStorage.setItem(
+        C_STATE_KEY,
+        JSON.stringify({
+          explaining: explaining,
+          previewPriceMode: previewMode
+        })
+      );
+    } catch (e) {}
+  }
+
+  function compactCartSort() {
+    var list = productsOf(sessionId)
+      .filter(function (p) {
+        return !!p.inCart;
+      })
+      .sort(function (a, b) {
+        return (a.cartSort || 0) - (b.cartSort || 0);
+      });
+    list.forEach(function (p, i) {
+      p.cartSort = i + 1;
+    });
+    return list;
+  }
+
+  function insertCartAt(p, targetSeq) {
+    var list = compactCartSort();
+    var n = list.length;
+    if (!n) return false;
+    if (targetSeq === '' || targetSeq == null) return false;
+    var to = Math.floor(Number(targetSeq));
+    if (!isFinite(to)) return false;
+    to = Math.max(1, Math.min(n, to));
+    var from = p.cartSort;
+    if (from === to) return false;
+    var ordered = list.filter(function (item) {
+      return item.id !== p.id;
+    });
+    ordered.splice(to - 1, 0, p);
+    ordered.forEach(function (item, i) {
+      item.cartSort = i + 1;
+    });
+    return true;
+  }
+
+  function setActiveTab(rootId, attr, value) {
+    var root = document.getElementById(rootId);
+    if (!root) return;
+    root.querySelectorAll('[' + attr + ']').forEach(function (btn) {
+      btn.classList.toggle('is-active', btn.getAttribute(attr) === value);
+    });
+  }
+
+  function renderHeader(sess) {
+    var pickerTitle = document.getElementById('controlPickerTitle');
+    var meta = document.getElementById('controlSessionMeta');
+    var actions = document.getElementById('controlTopActions');
+    var badge = document.getElementById('controlStatusBadge');
+    var startBtn = document.getElementById('btnStartLive');
+    var stopBtn = document.getElementById('btnStopLive');
+    var push = document.getElementById('broadcastPushUrl');
+
+    if (!sess) {
+      if (pickerTitle) pickerTitle.hidden = false;
+      if (meta) meta.hidden = true;
+      if (actions) actions.hidden = true;
+      return;
+    }
+
+    if (pickerTitle) pickerTitle.hidden = true;
+    if (meta) {
+      meta.hidden = false;
+      meta.innerHTML =
+        '<span>直播名称：<b>' +
+        escapeHtml(sess.name || '—') +
+        '</b></span>' +
+        '<span>主播：<b>' +
+        escapeHtml(sess.anchorName || '—') +
+        '</b></span>' +
+        '<span>开播时间：<b>' +
+        escapeHtml(formatSessionTime(sess.startAt, sess.endAt)) +
+        '</b></span>' +
+        '<span>直播场次ID：<b>' +
+        escapeHtml(sess.id || '—') +
+        '</b></span>';
+    }
+    if (actions) actions.hidden = false;
+    if (badge) {
       badge.className = statusBadgeClass(sess.status);
       badge.textContent = statusLabel(sess.status);
     }
+    if (startBtn) {
+      startBtn.hidden = sess.status === 'live' || sess.status === 'ended';
+      startBtn.disabled = !sess || sess.status === 'ended';
+    }
+    if (stopBtn) {
+      stopBtn.hidden = sess.status !== 'live';
+      stopBtn.disabled = sess.status !== 'live';
+    }
+    if (push) push.value = sess.pushUrl || '';
   }
 
   function renderBroadcast(sess) {
-    var state = broadcastText(sess);
-    var badge = document.getElementById('broadcastStateBadge');
-    var text = document.getElementById('broadcastStateText');
-    var push = document.getElementById('broadcastPushUrl');
     var preview = document.getElementById('broadcastPreview');
-    if (badge) {
-      badge.className =
-        state === '直播中'
-          ? 'lf-live-badge lf-live-badge--live'
-          : state === '已结束'
-            ? 'lf-live-badge lf-live-badge--muted'
-            : 'lf-live-badge lf-live-badge--warn';
-      badge.textContent = state;
-    }
-    if (text) text.textContent = state;
-    if (push) push.value = (sess && sess.pushUrl) || '';
+    var live = sess && sess.status === 'live';
     if (preview) {
-      preview.classList.toggle('is-live', state === '直播中');
-      preview.innerHTML =
-        state === '直播中'
-          ? '<div class="lf-live-broadcast-preview__placeholder is-live">直播画面预览中…</div>'
-          : '<div class="lf-live-broadcast-preview__placeholder">视频预览占位区</div>';
+      preview.classList.toggle('is-live', !!live);
+      var ph = preview.querySelector('.lf-live-broadcast-preview__placeholder');
+      if (ph) ph.textContent = live ? '直播画面' : '直播画面';
     }
-    var startBtn = document.getElementById('btnStartLive');
-    var stopBtn = document.getElementById('btnStopLive');
-    if (startBtn) startBtn.disabled = !sess || sess.status === 'live' || sess.status === 'ended';
-    if (stopBtn) stopBtn.disabled = !sess || sess.status !== 'live';
+    var muteBtn = document.getElementById('btnMuteChat');
+    var muted = !!(metricsOf(sess.id).muted);
+    if (muteBtn) {
+      muteBtn.classList.toggle('is-on', muted);
+      muteBtn.setAttribute('aria-pressed', muted ? 'true' : 'false');
+      muteBtn.textContent = muted ? '已禁言' : '禁言';
+    }
+    renderDanmuOverlay(sess);
   }
 
-  function renderProducts(sess) {
-    var box = document.getElementById('controlProductList');
+  function renderDanmuOverlay(sess) {
+    var box = document.getElementById('broadcastDanmu');
     if (!box) return;
-    var list = productsOf(sess.id).filter(function (p) {
-      if (!productQuery) return true;
-      return String(p.name || '').indexOf(productQuery) >= 0 || String(p.sku || '').indexOf(productQuery) >= 0;
+    var msgs = (metricsOf(sess.id).chatMessages || []).filter(function (m) {
+      return !m.isSys;
     });
+    var last = msgs.slice(-8);
+    box.innerHTML = last
+      .map(function (m) {
+        return (
+          '<div class="lf-live-danmu-overlay__item"><b>' +
+          escapeHtml(m.user) +
+          '</b> ' +
+          escapeHtml(m.text) +
+          '</div>'
+        );
+      })
+      .join('');
+  }
+
+  function productBadges(p) {
+    var html = '';
+    if (p.explaining) html += '<span class="lf-live-badge lf-live-badge--live">讲解中</span>';
+    else if (p.pinned) html += '<span class="lf-live-badge lf-live-badge--ok">置顶</span>';
+    if (p.saleMode === 'preview') html += '<span class="lf-live-badge lf-live-badge--muted">预告</span>';
+    else if (p.liveStatus === 'sold_out') html += '<span class="lf-live-badge lf-live-badge--danger">售罄</span>';
+    else html += '<span class="lf-live-badge lf-live-badge--warn">售卖</span>';
+    return html;
+  }
+
+  function renderCart() {
+    var box = document.getElementById('controlCartList');
+    if (!box) return;
+    updateCartCount();
+    var list = cartProducts();
+    var total = allCartProducts().length;
+    var allEl = document.getElementById('cartSelectAll');
+    if (allEl) {
+      allEl.checked = total > 0 && list.every(function (p) {
+        return selectedCart[p.id];
+      });
+    }
+    if (!total) {
+      box.innerHTML = '<div class="lf-live-empty-inline">暂无直播商品，请从直播选品中添加</div>';
+      return;
+    }
     if (!list.length) {
-      box.innerHTML = '<div class="lf-live-empty-inline">暂无商品</div>';
+      box.innerHTML = '<div class="lf-live-empty-inline">没有符合条件的直播商品</div>';
       return;
     }
     box.innerHTML = list
       .map(function (p) {
-        var st = p.liveStatus || (p.status === 'off_shelf' ? 'off_shelf' : 'selling');
+        var skus = skusOf(p);
+        var expanded = !!expandedIds[p.id];
+        var selling = p.saleMode !== 'preview';
+        var previewMode = p.previewPriceMode || 'sale';
+        var skuRows = skus
+          .map(function (sku) {
+            var on = sku.enabled !== false;
+            return (
+              '<div class="lf-live-cart-sku" data-sku-id="' +
+              escapeHtml(sku.id) +
+              '">' +
+              '<span class="lf-live-cart-sku__spec">' +
+              escapeHtml(sku.specName || '默认规格') +
+              '</span>' +
+              '<span class="lf-live-cart-sku__price">' +
+              escapeHtml(formatMoney(sku.price)) +
+              '</span>' +
+              '<label class="lf-live-cart-sku__stock">库存 ' +
+              '<input class="erp-input" type="number" min="0" data-stock-input value="' +
+              escapeHtml(String(displayStock(p, sku))) +
+              '"></label>' +
+              '<button type="button" class="erp-btn erp-btn--primary" data-act="sku-save">保存</button>' +
+              '<button type="button" class="erp-btn" data-act="sku-toggle">' +
+              (on ? '下架 SKU' : '上架 SKU') +
+              '</button></div>'
+            );
+          })
+          .join('');
+        var skuBlock = expanded ? '<div class="lf-live-cart-skus">' + skuRows + '</div>' : '';
+        var previewRow = selling
+          ? ''
+          : '<div class="lf-live-preview-price">预告价格展示 ' +
+            '<button type="button" data-act="preview-price" data-mode="question"' +
+            (previewMode === 'question' ? ' class="is-mode-on"' : '') +
+            '>问号</button>' +
+            '<button type="button" data-act="preview-price" data-mode="market"' +
+            (previewMode === 'market' ? ' class="is-mode-on"' : '') +
+            '>划线价</button>' +
+            '<button type="button" data-act="preview-price" data-mode="sale"' +
+            (previewMode === 'sale' ? ' class="is-mode-on"' : '') +
+            '>售价</button></div>';
+        var extraHint = '';
+        if (p.removeAt) extraHint += '<div class="lf-live-card-hint">将于 ' + escapeHtml(formatClock(p.removeAt)) + ' 移除</div>';
         return (
-          '<div class="lf-live-product-card" data-id="' +
+          '<div class="lf-live-cart-card" data-id="' +
           escapeHtml(p.id) +
           '">' +
-          '<div class="lf-live-product-card__head">' +
-          '<div class="lf-live-product-card__name">' +
+          '<div class="lf-live-cart-card__main">' +
+          '<input type="checkbox" class="lf-live-card-check" data-act="select"' +
+          (selectedCart[p.id] ? ' checked' : '') +
+          '>' +
+          thumbHtml(p, p.cartSort || 1) +
+          '<div class="lf-live-cart-card__info">' +
+          '<div class="lf-live-cart-card__name">' +
           escapeHtml(p.name) +
+          ' ' +
+          productBadges(p) +
           '</div>' +
-          '<span class="' +
-          liveStatusClass(st) +
-          '">' +
-          escapeHtml(liveStatusLabel(st)) +
-          '</span></div>' +
-          '<div class="lf-live-product-card__meta">' +
-          escapeHtml(p.spec || '—') +
-          ' · 库存 ' +
-          escapeHtml(String(p.stock != null ? p.stock : 0)) +
+          '<div class="lf-live-cart-card__code">' +
+          escapeHtml(p.sku || '—') +
           '</div>' +
-          '<div class="lf-live-product-card__ops">' +
-          '<button type="button" data-act="on">上架</button>' +
-          '<button type="button" data-act="off">下架</button>' +
-          '<button type="button" data-act="display">设为展示中</button>' +
-          '<button type="button" data-act="top">置顶讲解</button>' +
-          '<button type="button" data-act="explain">讲解</button>' +
-          '<button type="button" data-act="soldout">售罄</button>' +
-          '<button type="button" data-act="stock">调库存</button>' +
-          '<button type="button" data-act="up">上移</button>' +
-          '<button type="button" data-act="down">下移</button>' +
-          '</div></div>'
+          priceBlock(p) +
+          '</div></div>' +
+          previewRow +
+          extraHint +
+          '<div class="lf-live-cart-card__ops">' +
+          '<span class="lf-live-ops-group">' +
+          '<button type="button" data-act="sale-mode" data-mode="selling"' +
+          (selling ? ' class="is-mode-on"' : '') +
+          '>售卖</button>' +
+          '<button type="button" data-act="sale-mode" data-mode="preview"' +
+          (selling ? '' : ' class="is-mode-on"') +
+          '>预告</button>' +
+          '<button type="button" data-act="remove">移除</button></span>' +
+          '<button type="button" data-act="pin">' +
+          (p.pinned ? '取消置顶' : '置顶') +
+          '</button>' +
+          '<button type="button" data-act="explain">' +
+          (p.explaining ? '取消讲解' : '讲解') +
+          '</button>' +
+          '<span class="lf-live-sort-group">' +
+          '<span class="lf-live-sort-group__label">排序</span>' +
+          '<input class="lf-live-seq-input" data-seq-input type="number" min="1" max="' +
+          total +
+          '" value="' +
+          escapeHtml(String(p.cartSort || 1)) +
+          '" title="输入序号后点击保存">' +
+          '<button type="button" class="is-primary" data-act="seq-save">保存</button></span>' +
+          '<button type="button" data-act="expand">' +
+          (expanded ? '收起SKU' : 'SKU管理(' + skus.length + ')') +
+          '</button>' +
+          '</div>' +
+          skuBlock +
+          '</div>'
         );
       })
       .join('');
+  }
+
+  function renderSched() {
+    var box = document.getElementById('controlSchedList');
+    if (!box) return;
+    var list = schedProducts();
+    var countEl = document.getElementById('controlSchedCount');
+    if (countEl) countEl.textContent = '共 ' + list.length + ' 件';
+    var allEl = document.getElementById('schedSelectAll');
+    if (allEl) {
+      allEl.checked = list.length > 0 && list.every(function (p) {
+        return selectedSched[p.id];
+      });
+    }
+    if (!list.length) {
+      box.innerHTML = '<div class="lf-live-empty-inline">暂无待添加的启用选品</div>';
+      return;
+    }
+    box.innerHTML = list
+      .map(function (p) {
+        var pending = '';
+        if (p.pendingAdd && p.pendingAdd.type === 'on_live_start') {
+          pending = '<div class="lf-live-card-hint">开播后自动添加</div>';
+        } else if (p.pendingAdd && p.pendingAdd.at) {
+          pending = '<div class="lf-live-card-hint">将于 ' + escapeHtml(formatClock(p.pendingAdd.at)) + ' 添加</div>';
+        }
+        return (
+          '<div class="lf-live-cart-card" data-id="' +
+          escapeHtml(p.id) +
+          '">' +
+          '<div class="lf-live-cart-card__main">' +
+          '<input type="checkbox" class="lf-live-card-check" data-act="select"' +
+          (selectedSched[p.id] ? ' checked' : '') +
+          '>' +
+          thumbHtml(p) +
+          '<div class="lf-live-cart-card__info">' +
+          '<div class="lf-live-cart-card__name">' +
+          escapeHtml(p.name) +
+          '</div>' +
+          '<div class="lf-live-cart-card__code">' +
+          escapeHtml(p.sku || '—') +
+          (p.category ? ' · ' + escapeHtml(p.category) : '') +
+          '</div>' +
+          priceBlock(p) +
+          '</div>' +
+          '<button type="button" class="lf-live-sched-add is-primary" data-act="add">添加到直播商品</button>' +
+          '</div>' +
+          pending +
+          '</div>'
+        );
+      })
+      .join('');
+  }
+
+  function renderProductPanes() {
+    var cartPane = document.getElementById('controlCartPane');
+    var schedPane = document.getElementById('controlSchedPane');
+    if (cartPane) cartPane.hidden = productTab !== 'cart';
+    if (schedPane) schedPane.hidden = productTab !== 'sched';
+    setActiveTab('controlProductSubTabs', 'data-product-tab', productTab);
+    updateCartCount();
+    if (productTab === 'cart') renderCart();
+    else renderSched();
+  }
+
+  function renderMainTabs() {
+    var productPane = document.getElementById('controlTabProduct');
+    var welfarePane = document.getElementById('controlTabWelfare');
+    var isProduct = mainTab === 'product';
+    if (productPane) productPane.hidden = !isProduct;
+    if (welfarePane) welfarePane.hidden = isProduct;
+    setActiveTab('controlMainTabs', 'data-main-tab', mainTab);
+    if (!isProduct) {
+      var map = {
+        coupon: { title: '发放优惠券', hint: '向当前直播间发放本场已绑定的优惠券活动。', label: '立即发放优惠券' },
+        bag: { title: '发放福袋', hint: '向当前直播间发放本场已绑定的福袋。', label: '立即发放福袋' },
+        sign: { title: '发放签到', hint: '开启本场签到，观众可在直播间完成签到。', label: '立即发放签到' },
+        task: { title: '观看任务', hint: '发放本场观看任务，完成后可领取奖励。', label: '立即发放观看任务' }
+      };
+      var conf = map[mainTab] || map.coupon;
+      var title = document.getElementById('welfarePaneTitle');
+      var hint = document.getElementById('welfarePaneHint');
+      var btn = document.getElementById('btnDeliverWelfare');
+      if (title) title.textContent = conf.title;
+      if (hint) hint.textContent = conf.hint;
+      if (btn) btn.textContent = conf.label;
+    }
   }
 
   function renderMonitor(sess) {
@@ -276,28 +858,40 @@
     }
     list.innerHTML = orders
       .map(function (o) {
+        var name = o.nickname || '匿名用户';
+        var ch = String(name).charAt(0);
+        var hue = 0;
+        for (var i = 0; i < name.length; i++) hue += name.charCodeAt(i);
+        hue = hue % 360;
+        var level = o.level || 'Lv.0';
         return (
           '<div class="lf-live-order-item">' +
-          '<div class="lf-live-order-item__main">' +
+          '<span class="lf-live-order-avatar" style="background:hsl(' +
+          hue +
+          ',58%,52%)">' +
+          escapeHtml(ch) +
+          '</span>' +
+          '<div class="lf-live-order-item__mid">' +
           '<div class="lf-live-order-item__user">' +
-          escapeHtml(o.nickname || '匿名用户') +
-          ' <span>' +
-          escapeHtml(o.phone || '') +
-          '</span></div>' +
+          escapeHtml(name) +
+          ' <em class="lf-live-order-lv">' +
+          escapeHtml(level) +
+          '</em></div>' +
           '<div class="lf-live-order-item__goods">' +
           escapeHtml(o.productName || '—') +
-          (o.qty != null ? ' x' + o.qty : '') +
-          (o.spec ? ' / ' + escapeHtml(o.spec) : '') +
-          '</div></div>' +
+          (o.qty != null ? ' <span>x' + o.qty + '</span>' : '') +
+          '</div>' +
+          (o.spec
+            ? '<div class="lf-live-order-item__spec">' + escapeHtml(o.spec) + '</div>'
+            : '') +
+          '</div>' +
           '<div class="lf-live-order-item__side">' +
           '<div class="lf-live-order-item__amount">' +
           escapeHtml(formatMoney(o.amount)) +
           '</div>' +
-          '<div class="' +
-          (o.paid ? 'is-paid' : 'is-unpaid') +
-          '">' +
+          '<span class="lf-live-order-status">' +
           escapeHtml(o.statusLabel || '—') +
-          '</div>' +
+          '</span>' +
           '<div class="lf-live-order-item__time">' +
           escapeHtml(o.time || '') +
           '</div></div></div>'
@@ -307,11 +901,11 @@
   }
 
   function renderChat(sess) {
-    var box = document.getElementById('controlChatList');
+    var box = document.getElementById('sidePaneChat');
     if (!box) return;
-    var msgs = (metricsOf(sess.id).chatMessages || []).slice();
+    var msgs = metricsOf(sess.id).chatMessages || [];
     if (!msgs.length) {
-      box.innerHTML = '<div class="lf-live-empty-inline">暂无聊天消息</div>';
+      box.innerHTML = '<div class="lf-live-empty-inline">暂无弹幕</div>';
       return;
     }
     box.innerHTML = msgs
@@ -335,6 +929,55 @@
       .join('');
   }
 
+  function renderWatch(sess) {
+    var box = document.getElementById('sidePaneWatch');
+    if (!box) return;
+    var rows = metricsOf(sess.id).watchRecords || [];
+    if (!rows.length) {
+      box.innerHTML = '<div class="lf-live-empty-inline">暂无观看记录</div>';
+      return;
+    }
+    box.innerHTML = rows
+      .map(function (w) {
+        return (
+          '<div class="lf-live-watch-item">' +
+          '<div class="lf-live-watch-item__user">' +
+          escapeHtml(w.nickname || '匿名用户') +
+          ' <span>' +
+          escapeHtml(w.phone || '') +
+          '</span></div>' +
+          '<div class="lf-live-watch-item__meta">进入 ' +
+          escapeHtml(w.enterTime || '—') +
+          ' · 停留 ' +
+          escapeHtml(w.duration || '—') +
+          '</div></div>'
+        );
+      })
+      .join('');
+  }
+
+  function renderSidePanes(sess) {
+    var metrics = document.getElementById('sidePaneMetrics');
+    var chat = document.getElementById('sidePaneChat');
+    var watch = document.getElementById('sidePaneWatch');
+    if (metrics) metrics.hidden = sideTab !== 'metrics';
+    if (chat) chat.hidden = sideTab !== 'chat';
+    if (watch) watch.hidden = sideTab !== 'watch';
+    setActiveTab('controlSideTabs', 'data-side-tab', sideTab);
+    if (sideTab === 'metrics') renderMonitor(sess);
+    if (sideTab === 'chat') renderChat(sess);
+    if (sideTab === 'watch') renderWatch(sess);
+    renderMonitor(sess);
+  }
+
+  function renderQuickReplies() {
+    var box = document.getElementById('quickReplyBox');
+    if (!box) return;
+    box.innerHTML = QUICK_REPLIES.map(function (t) {
+      return '<button type="button" class="erp-btn" data-reply="' + escapeHtml(t) + '">' + escapeHtml(t) + '</button>';
+    }).join('');
+  }
+
   function render() {
     var picker = document.getElementById('controlPicker');
     var workspace = document.getElementById('controlWorkspace');
@@ -349,25 +992,167 @@
 
     if (picker) picker.hidden = true;
     if (workspace) workspace.hidden = false;
+    processScheduled();
     renderHeader(sess);
     renderBroadcast(sess);
-    renderProducts(sess);
-    renderMonitor(sess);
-    renderChat(sess);
+    renderMainTabs();
+    renderProductPanes();
+    renderSidePanes(sess);
+    syncCState();
   }
 
-  function findProduct(id) {
-    var list = productsOf(sessionId);
-    for (var i = 0; i < list.length; i++) {
-      if (list[i].id === id) return { item: list[i], index: i, list: list };
+  function pushChat(text, extra) {
+    var m = metricsOf(sessionId);
+    var item = {
+      id: 'c-' + Date.now(),
+      user: virtualUser || '主播小丰',
+      text: text,
+      time: nowTime(),
+      isAnchor: !virtualUser
+    };
+    if (extra) {
+      Object.keys(extra).forEach(function (k) {
+        item[k] = extra[k];
+      });
     }
-    return null;
+    m.chatMessages = m.chatMessages || [];
+    m.chatMessages.push(item);
   }
 
-  function clearExplainExcept(keepId) {
-    productsOf(sessionId).forEach(function (p) {
-      if (p.id !== keepId && p.liveStatus === 'explaining') p.liveStatus = 'selling';
-    });
+  function copyText(val, input) {
+    if (!val) return toast('暂未获取到推流地址', 'warning');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(val).then(
+        function () {
+          toast('推流地址已复制');
+        },
+        function () {
+          toast('复制失败，请手动选择', 'warning');
+        }
+      );
+      return;
+    }
+    if (input) input.select();
+    try {
+      document.execCommand('copy');
+      toast('推流地址已复制');
+    } catch (e) {
+      toast('复制失败，请手动选择', 'warning');
+    }
+  }
+
+  function openDialog(id) {
+    var el = document.getElementById(id);
+    if (el) el.hidden = false;
+  }
+
+  function closeDialog(id) {
+    var el = document.getElementById(id);
+    if (el) el.hidden = true;
+  }
+
+  function moveCart(p, dir) {
+    compactCartSort();
+    return insertCartAt(p, p.cartSort + dir);
+  }
+
+  function handleCartAct(act, card, btn) {
+    var found = findProduct(card.getAttribute('data-id'));
+    if (!found) return;
+    var p = found.item;
+    ensureControlFields(p, found.index);
+
+    if (act === 'select') {
+      selectedCart[p.id] = !selectedCart[p.id];
+      renderCart();
+      return;
+    }
+    if (act === 'expand') {
+      expandedIds[p.id] = !expandedIds[p.id];
+      render();
+      return;
+    }
+    if (act === 'seq-save') {
+      var seqInput = card.querySelector('[data-seq-input]');
+      var raw = seqInput ? seqInput.value : '';
+      if (raw === '' || !isFinite(Number(raw))) {
+        if (seqInput) seqInput.value = String(p.cartSort || 1);
+        return toast('请输入有效序号', 'warning');
+      }
+      if (!insertCartAt(p, raw)) {
+        if (seqInput) seqInput.value = String(p.cartSort || 1);
+        return;
+      }
+      toast('已调整到序号 ' + p.cartSort);
+      productsOf(sessionId).forEach(syncLiveStatus);
+      render();
+      return;
+    }
+    if (act === 'sale-mode') {
+      var mode = btn.getAttribute('data-mode') || 'selling';
+      p.saleMode = mode === 'preview' ? 'preview' : 'selling';
+      syncLiveStatus(p);
+      toast(p.saleMode === 'preview' ? '已设为预告，C 端仅展示不可售卖' : '已设为售卖，C 端可正常下单');
+    } else if (act === 'preview-price') {
+      p.previewPriceMode = btn.getAttribute('data-mode') || 'sale';
+      toast(
+        p.previewPriceMode === 'question'
+          ? '预告价展示为问号'
+          : p.previewPriceMode === 'market'
+            ? '预告价展示为划线价'
+            : '预告价展示为售价'
+      );
+    } else if (act === 'pin') {
+      if (p.saleMode === 'selling' && p.liveStatus === 'sold_out') {
+        return toast('商品已售罄，暂不支持置顶', 'warning');
+      }
+      if (p.pinned) {
+        p.pinned = false;
+        toast('已取消置顶，回到原序号 ' + p.cartSort);
+      } else {
+        clearPinExcept(p.id);
+        p.pinned = true;
+        toast('已临时置顶，原序号 ' + p.cartSort + ' 不变');
+      }
+    } else if (act === 'explain') {
+      if (p.saleMode === 'selling' && p.liveStatus === 'sold_out') {
+        return toast('商品已售罄，暂不支持讲解', 'warning');
+      }
+      if (p.explaining) {
+        p.explaining = false;
+        toast('已取消讲解，回到原序号 ' + p.cartSort);
+      } else {
+        clearExplainExcept(p.id);
+        p.explaining = true;
+        toast('已设为讲解中，C 端展示讲解卡片，原序号不变');
+      }
+      syncLiveStatus(p);
+    } else if (act === 'remove') {
+      removeFromCart(p);
+      toast('已移出直播商品，回到直播选品');
+    } else if (act === 'sku-toggle') {
+      var skuRow = btn.closest('[data-sku-id]');
+      var sku = skuRow ? findSku(p, skuRow.getAttribute('data-sku-id')) : null;
+      if (!sku) return;
+      sku.enabled = sku.enabled === false;
+      syncLiveStatus(p);
+      toast(sku.enabled !== false ? 'SKU 已上架' : 'SKU 已下架');
+    } else if (act === 'sku-save') {
+      var saveRow = btn.closest('[data-sku-id]');
+      var saveSku = saveRow ? findSku(p, saveRow.getAttribute('data-sku-id')) : null;
+      var saveInput = saveRow ? saveRow.querySelector('[data-stock-input]') : null;
+      if (!saveSku || !saveInput) return;
+      var n = Math.floor(Number(saveInput.value));
+      if (isNaN(n) || n < 0) return toast('请输入有效库存', 'warning');
+      saveSku.stock = n;
+      if (pendingStock[p.id]) delete pendingStock[p.id][saveSku.id];
+      syncLiveStatus(p);
+      toast('库存已保存');
+    } else {
+      return;
+    }
+    productsOf(sessionId).forEach(syncLiveStatus);
+    render();
   }
 
   function bindEvents() {
@@ -392,6 +1177,7 @@
         if (!sess) return;
         if (sess.status === 'ended') return toast('已结束场次无法开播', 'warning');
         sess.status = 'live';
+        processScheduled();
         toast('已开始直播');
         render();
       });
@@ -406,139 +1192,399 @@
       });
     }
 
+    var pushBtn = document.getElementById('btnPushUrl');
+    if (pushBtn) {
+      pushBtn.addEventListener('click', function () {
+        openDialog('pushUrlDialog');
+      });
+    }
+    document.querySelectorAll('[data-close-dialog]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        closeDialog(el.getAttribute('data-close-dialog'));
+      });
+    });
     var copyBtn = document.getElementById('btnCopyPush');
     if (copyBtn) {
       copyBtn.addEventListener('click', function () {
         var input = document.getElementById('broadcastPushUrl');
-        var val = (input && input.value) || '';
-        if (!val) return toast('暂未获取到推流地址', 'warning');
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(val).then(
-            function () {
-              toast('推流地址已复制');
-            },
-            function () {
-              toast('复制失败，请手动选择', 'warning');
-            }
-          );
-        } else {
-          input.select();
-          try {
-            document.execCommand('copy');
-            toast('推流地址已复制');
-          } catch (e) {
-            toast('复制失败，请手动选择', 'warning');
-          }
-        }
+        copyText((input && input.value) || '', input);
       });
     }
 
-    var q = document.getElementById('controlProductQ');
-    if (q) {
-      q.addEventListener('input', function () {
-        productQuery = (q.value || '').trim();
-        var sess = findSession(sessionId);
-        if (sess) renderProducts(sess);
-      });
-    }
-
-    var productList = document.getElementById('controlProductList');
-    if (productList) {
-      productList.addEventListener('click', function (ev) {
-        var btn = ev.target.closest('[data-act]');
+    var mainTabs = document.getElementById('controlMainTabs');
+    if (mainTabs) {
+      mainTabs.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('[data-main-tab]');
         if (!btn) return;
-        var card = btn.closest('[data-id]');
-        if (!card) return;
-        var found = findProduct(card.getAttribute('data-id'));
-        if (!found) return;
-        var act = btn.getAttribute('data-act');
-        var p = found.item;
-        if (act === 'on') {
-          p.status = 'on_shelf';
-          p.liveStatus = p.liveStatus === 'off_shelf' ? 'selling' : p.liveStatus || 'selling';
-          toast('商品已上架');
-        } else if (act === 'off') {
-          p.status = 'off_shelf';
-          p.liveStatus = 'off_shelf';
-          toast('商品已下架');
-        } else if (act === 'display') {
-          if (p.liveStatus === 'off_shelf' || p.liveStatus === 'sold_out') {
-            return toast('商品未上架或已售罄，暂不支持该操作', 'warning');
-          }
-          p.liveStatus = 'displaying';
-          toast('已设为展示中');
-        } else if (act === 'explain' || act === 'top') {
-          if (p.liveStatus === 'off_shelf' || p.liveStatus === 'sold_out') {
-            return toast('商品未上架或已售罄，暂不支持该操作', 'warning');
-          }
-          clearExplainExcept(p.id);
-          p.liveStatus = 'explaining';
-          if (act === 'top') {
-            found.list.splice(found.index, 1);
-            found.list.unshift(p);
-            toast('已置顶讲解');
-          } else {
-            toast('已设为讲解中');
-          }
-        } else if (act === 'soldout') {
-          p.liveStatus = 'sold_out';
-          p.stock = 0;
-          toast('已标记售罄');
-        } else if (act === 'stock') {
-          var next = window.prompt('请输入直播售卖库存', String(p.stock != null ? p.stock : 0));
-          if (next == null) return;
-          var n = Math.floor(Number(next));
-          if (isNaN(n) || n < 0) return toast('请输入有效库存', 'warning');
-          p.stock = n;
-          if (n > 0 && p.liveStatus === 'sold_out') p.liveStatus = 'selling';
-          toast('库存已更新');
-        } else if (act === 'up') {
-          if (found.index <= 0) return;
-          var prev = found.list[found.index - 1];
-          found.list[found.index - 1] = p;
-          found.list[found.index] = prev;
-          toast('已上移');
-        } else if (act === 'down') {
-          if (found.index >= found.list.length - 1) return;
-          var nxt = found.list[found.index + 1];
-          found.list[found.index + 1] = p;
-          found.list[found.index] = nxt;
-          toast('已下移');
-        }
+        mainTab = btn.getAttribute('data-main-tab');
+        render();
+      });
+    }
+    var subTabs = document.getElementById('controlProductSubTabs');
+    if (subTabs) {
+      subTabs.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('[data-product-tab]');
+        if (!btn) return;
+        productTab = btn.getAttribute('data-product-tab');
+        render();
+      });
+    }
+    var goSched = document.getElementById('btnGoSched');
+    if (goSched) {
+      goSched.addEventListener('click', function () {
+        productTab = 'sched';
+        render();
+      });
+    }
+    var sideTabs = document.getElementById('controlSideTabs');
+    if (sideTabs) {
+      sideTabs.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('[data-side-tab]');
+        if (!btn) return;
+        sideTab = btn.getAttribute('data-side-tab');
         render();
       });
     }
 
-    document.querySelectorAll('[data-welfare]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
+    var queryBtn = document.getElementById('schedFilterQuery');
+    var resetBtn = document.getElementById('schedFilterReset');
+    if (queryBtn) {
+      queryBtn.addEventListener('click', function () {
+        schedFilter = {
+          name: ((document.getElementById('schedFilterName') || {}).value || '').trim(),
+          sku: ((document.getElementById('schedFilterSku') || {}).value || '').trim(),
+          category: (document.getElementById('schedFilterCategory') || {}).value || ''
+        };
+        renderSched();
+      });
+    }
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function () {
+        var name = document.getElementById('schedFilterName');
+        var sku = document.getElementById('schedFilterSku');
+        var cat = document.getElementById('schedFilterCategory');
+        if (name) name.value = '';
+        if (sku) sku.value = '';
+        if (cat) cat.value = '';
+        schedFilter = { name: '', sku: '', category: '' };
+        renderSched();
+      });
+    }
+
+    var cartQueryBtn = document.getElementById('cartFilterQuery');
+    var cartResetBtn = document.getElementById('cartFilterReset');
+    if (cartQueryBtn) {
+      cartQueryBtn.addEventListener('click', function () {
+        cartFilter = {
+          name: ((document.getElementById('cartFilterName') || {}).value || '').trim(),
+          sku: ((document.getElementById('cartFilterSku') || {}).value || '').trim()
+        };
+        renderCart();
+      });
+    }
+    if (cartResetBtn) {
+      cartResetBtn.addEventListener('click', function () {
+        var name = document.getElementById('cartFilterName');
+        var sku = document.getElementById('cartFilterSku');
+        if (name) name.value = '';
+        if (sku) sku.value = '';
+        cartFilter = { name: '', sku: '' };
+        renderCart();
+      });
+    }
+
+    var cartList = document.getElementById('controlCartList');
+    if (cartList) {
+      cartList.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('[data-act]');
+        if (!btn || btn.matches('input[type="checkbox"]')) return;
+        var card = btn.closest('[data-id]');
+        if (!card) return;
+        handleCartAct(btn.getAttribute('data-act'), card, btn);
+      });
+      cartList.addEventListener('input', function (ev) {
+        var input = ev.target.closest('[data-stock-input]');
+        if (!input) return;
+        var card = input.closest('[data-id]');
+        var skuRow = input.closest('[data-sku-id]');
+        if (!card || !skuRow) return;
+        var pid = card.getAttribute('data-id');
+        var skuId = skuRow.getAttribute('data-sku-id');
+        if (!pendingStock[pid]) pendingStock[pid] = {};
+        pendingStock[pid][skuId] = input.value;
+      });
+      cartList.addEventListener('change', function (ev) {
+        var check = ev.target.closest('[data-act="select"]');
+        if (check) {
+          var card = check.closest('[data-id]');
+          if (!card) return;
+          selectedCart[card.getAttribute('data-id')] = !!check.checked;
+          renderCart();
+        }
+      });
+      cartList.addEventListener('keydown', function (ev) {
+        if (ev.key !== 'Enter') return;
+        var seq = ev.target.closest('[data-seq-input]');
+        if (!seq) return;
+        ev.preventDefault();
+        var card = seq.closest('[data-id]');
+        if (card) handleCartAct('seq-save', card, seq);
+      });
+    }
+
+    var cartSelectAll = document.getElementById('cartSelectAll');
+    if (cartSelectAll) {
+      cartSelectAll.addEventListener('change', function () {
+        var on = !!cartSelectAll.checked;
+        cartProducts().forEach(function (p) {
+          selectedCart[p.id] = on;
+        });
+        renderCart();
+      });
+    }
+    var btnCartBatchRemove = document.getElementById('btnCartBatchRemove');
+    if (btnCartBatchRemove) {
+      btnCartBatchRemove.addEventListener('click', function () {
+        var ids = selectedCartIds();
+        if (!ids.length) return toast('请先勾选要移除的商品', 'warning');
+        ids.forEach(function (id) {
+          var found = findProduct(id);
+          if (found) removeFromCart(found.item);
+        });
+        toast('已批量移除 ' + ids.length + ' 件商品');
+        render();
+      });
+    }
+    var btnCartTimedRemove = document.getElementById('btnCartTimedRemove');
+    if (btnCartTimedRemove) {
+      btnCartTimedRemove.addEventListener('click', function () {
+        var ids = selectedCartIds();
+        if (!ids.length) return toast('请先勾选要定时移除的商品', 'warning');
+        var hint = document.getElementById('timedRemoveHint');
+        var input = document.getElementById('timedRemoveAt');
+        if (hint) hint.textContent = '将定时移除已选的 ' + ids.length + ' 件商品。';
+        if (input) input.value = toLocalInput(Date.now() + 5 * 60 * 1000);
+        openDialog('timedRemoveDialog');
+      });
+    }
+    var timedRemoveConfirm = document.getElementById('timedRemoveConfirm');
+    if (timedRemoveConfirm) {
+      timedRemoveConfirm.addEventListener('click', function () {
+        var ids = selectedCartIds();
+        var input = document.getElementById('timedRemoveAt');
+        var ts = input && input.value ? new Date(input.value).getTime() : NaN;
+        if (!ids.length) return toast('请先勾选商品', 'warning');
+        if (isNaN(ts)) return toast('请选择移除时间', 'warning');
+        ids.forEach(function (id) {
+          var found = findProduct(id);
+          if (found) found.item.removeAt = ts;
+        });
+        closeDialog('timedRemoveDialog');
+        toast('已设置定时移除');
+        render();
+      });
+    }
+
+    var schedList = document.getElementById('controlSchedList');
+    if (schedList) {
+      schedList.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('[data-act]');
+        if (!btn || btn.matches('input[type="checkbox"]')) return;
+        var card = btn.closest('[data-id]');
+        if (!card) return;
+        var act = btn.getAttribute('data-act');
+        var found = findProduct(card.getAttribute('data-id'));
+        if (!found) return;
+        var p = found.item;
+        if (act === 'add') {
+          if (normalizeSchedStatus(p.status) !== 'enabled') {
+            return toast('仅启用选品可添加到直播商品', 'warning');
+          }
+          addToCart(p);
+          delete selectedSched[p.id];
+          toast('已添加到直播商品，默认为预告状态');
+          productTab = 'cart';
+          render();
+        }
+      });
+      schedList.addEventListener('change', function (ev) {
+        var check = ev.target.closest('[data-act="select"]');
+        if (!check) return;
+        var card = check.closest('[data-id]');
+        if (!card) return;
+        selectedSched[card.getAttribute('data-id')] = !!check.checked;
+        renderSched();
+      });
+    }
+    var schedSelectAll = document.getElementById('schedSelectAll');
+    if (schedSelectAll) {
+      schedSelectAll.addEventListener('change', function () {
+        var on = !!schedSelectAll.checked;
+        schedProducts().forEach(function (p) {
+          selectedSched[p.id] = on;
+        });
+        renderSched();
+      });
+    }
+    var btnSchedBatchAdd = document.getElementById('btnSchedBatchAdd');
+    if (btnSchedBatchAdd) {
+      btnSchedBatchAdd.addEventListener('click', function () {
+        var ids = selectedSchedIds();
+        if (!ids.length) return toast('请先勾选要添加的选品', 'warning');
+        var n = 0;
+        ids.forEach(function (id) {
+          var found = findProduct(id);
+          if (!found || found.item.inCart) return;
+          addToCart(found.item);
+          delete selectedSched[id];
+          n += 1;
+        });
+        toast('已批量添加 ' + n + ' 件商品，默认为预告状态');
+        productTab = 'cart';
+        render();
+      });
+    }
+    var btnSchedTimedAdd = document.getElementById('btnSchedTimedAdd');
+    if (btnSchedTimedAdd) {
+      btnSchedTimedAdd.addEventListener('click', function () {
+        var ids = selectedSchedIds();
+        if (!ids.length) return toast('请先勾选要定时添加的选品', 'warning');
+        var hint = document.getElementById('timedAddHint');
+        var input = document.getElementById('timedAddAt');
+        if (hint) hint.textContent = '将为已选的 ' + ids.length + ' 件选品设置添加时间。';
+        if (input) input.value = toLocalInput(Date.now() + 5 * 60 * 1000);
+        var radios = document.querySelectorAll('input[name="timedAddMode"]');
+        radios.forEach(function (r) {
+          r.checked = r.value === 'at';
+        });
+        openDialog('timedAddDialog');
+      });
+    }
+    var timedAddConfirm = document.getElementById('timedAddConfirm');
+    if (timedAddConfirm) {
+      timedAddConfirm.addEventListener('click', function () {
+        var ids = selectedSchedIds();
+        if (!ids.length) return toast('请先勾选选品', 'warning');
+        var modeEl = document.querySelector('input[name="timedAddMode"]:checked');
+        var mode = modeEl ? modeEl.value : 'at';
+        var sess = findSession(sessionId);
+        var ts = NaN;
+        if (mode !== 'on_live_start') {
+          var input = document.getElementById('timedAddAt');
+          ts = input && input.value ? new Date(input.value).getTime() : NaN;
+          if (isNaN(ts)) return toast('请选择添加时间', 'warning');
+        }
+        ids.forEach(function (id) {
+          var found = findProduct(id);
+          if (!found || found.item.inCart) return;
+          if (mode === 'on_live_start') {
+            if (sess && sess.status === 'live') {
+              addToCart(found.item);
+            } else {
+              found.item.pendingAdd = { type: 'on_live_start' };
+            }
+          } else {
+            found.item.pendingAdd = { type: 'at', at: ts };
+          }
+        });
+        closeDialog('timedAddDialog');
+        toast(mode === 'on_live_start' ? '已设置为开播后自动添加' : '已设置定时添加');
+        render();
+      });
+    }
+
+    var muteBtn = document.getElementById('btnMuteChat');
+    if (muteBtn) {
+      muteBtn.addEventListener('click', function () {
+        var m = metricsOf(sessionId);
+        m.muted = !m.muted;
+        toast(m.muted ? '已开启禁言' : '已关闭禁言');
+        render();
+      });
+    }
+
+    var virtualBtn = document.getElementById('btnVirtualAccount');
+    if (virtualBtn) {
+      virtualBtn.addEventListener('click', function () {
+        var next = window.prompt('请输入虚拟互动账号昵称', virtualUser || '场控小助手');
+        if (next == null) return;
+        virtualUser = String(next).trim();
+        toast(virtualUser ? '当前虚拟账号：' + virtualUser : '已切回主播身份');
+      });
+    }
+
+    var quickBtn = document.getElementById('btnQuickReply');
+    var quickBox = document.getElementById('quickReplyBox');
+    if (quickBtn && quickBox) {
+      quickBtn.addEventListener('click', function () {
+        quickBox.hidden = !quickBox.hidden;
+        quickBtn.classList.toggle('is-open', !quickBox.hidden);
+      });
+      quickBox.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('[data-reply]');
+        if (!btn) return;
+        var input = document.getElementById('controlDanmuInput');
+        if (input) input.value = btn.getAttribute('data-reply') || '';
+        quickBox.hidden = true;
+        quickBtn.classList.remove('is-open');
+      });
+    }
+
+    var sendBtn = document.getElementById('btnSendDanmu');
+    var danmuInput = document.getElementById('controlDanmuInput');
+    function sendDanmu() {
+      var text = ((danmuInput && danmuInput.value) || '').trim();
+      if (!text) return toast('请输入弹幕内容', 'warning');
+      pushChat(text);
+      if (danmuInput) danmuInput.value = '';
+      toast('弹幕已发送');
+      var sess = findSession(sessionId);
+      if (sess) {
+        renderDanmuOverlay(sess);
+        if (sideTab === 'chat') renderChat(sess);
+      }
+    }
+    if (sendBtn) sendBtn.addEventListener('click', sendDanmu);
+    if (danmuInput) {
+      danmuInput.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter') {
+          ev.preventDefault();
+          sendDanmu();
+        }
+      });
+    }
+
+    var welfareBtn = document.getElementById('btnDeliverWelfare');
+    if (welfareBtn) {
+      welfareBtn.addEventListener('click', function () {
         var map = {
           coupon: '发放优惠券',
           bag: '发放福袋',
           sign: '发放签到',
           task: '观看任务'
         };
-        var key = btn.getAttribute('data-welfare');
-        var label = map[key] || '直播福利';
-        var m = metricsOf(sessionId);
-        m.chatMessages = m.chatMessages || [];
-        m.chatMessages.push({
-          id: 'c-' + Date.now(),
-          user: '系统',
-          text: '演示：已触发「' + label + '」',
-          time: new Date().toTimeString().slice(0, 8),
-          isSys: true
-        });
+        var label = map[mainTab] || '直播福利';
+        pushChat('演示：已触发「' + label + '」', { user: '系统', isSys: true, isAnchor: false });
         toast('演示：' + label);
         var sess = findSession(sessionId);
-        if (sess) renderChat(sess);
+        if (sess) {
+          renderDanmuOverlay(sess);
+          if (sideTab === 'chat') renderChat(sess);
+        }
       });
-    });
+    }
   }
 
   document.addEventListener('DOMContentLoaded', function () {
     sessionId = qs('sessionId');
     fillSessionSelect(sessionId);
+    fillCategoryFilter();
+    renderQuickReplies();
     bindEvents();
     render();
+    window.setInterval(function () {
+      if (!sessionId) return;
+      if (processScheduled()) render();
+    }, 5000);
   });
 })();

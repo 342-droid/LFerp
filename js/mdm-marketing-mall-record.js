@@ -15,6 +15,7 @@
       nickname: '',
       phone: '',
       collectMethod: '',
+      activityId: '',
       status: ''
     }
   };
@@ -28,17 +29,15 @@
   }
 
   function statusClass(st) {
-    if (st === '待使用') return 'mdm-status mdm-status--ok';
+    if (st === '未使用' || st === '待使用') return 'mdm-status mdm-status--ok';
     if (st === '已使用') return 'mdm-status mdm-status--muted';
     if (st === '已过期') return 'mdm-status mdm-status--warn';
     return 'mdm-status';
   }
 
   function activityIdText(row) {
-    if (row.collectMethod === '直播发券' && row.activityId && row.activityId !== '—') {
-      return row.activityId;
-    }
-    return '—';
+    var id = typeof Store.formatActivityId === 'function' ? Store.formatActivityId(row) : '';
+    return id || '—';
   }
 
   function orderNosHtml(row) {
@@ -49,13 +48,35 @@
   }
 
   function readFilterFromForm() {
+    var method = (document.getElementById('qCollectMethod') || {}).value || '';
+    var activityId = '';
+    if (method && method !== '后台人工发券') {
+      activityId = (document.getElementById('qActivityId') || {}).value || '';
+    }
     return {
       userId: (document.getElementById('qUserId') || {}).value || '',
       nickname: (document.getElementById('qNickname') || {}).value || '',
       phone: (document.getElementById('qPhone') || {}).value || '',
-      collectMethod: (document.getElementById('qCollectMethod') || {}).value || '',
+      collectMethod: method,
+      activityId: activityId,
       status: (document.getElementById('qStatus') || {}).value || ''
     };
+  }
+
+  function syncActivityFilter() {
+    var methodSel = document.getElementById('qCollectMethod');
+    var group = document.getElementById('qActivityIdGroup');
+    var label = document.getElementById('qActivityIdLabel');
+    var sel = document.getElementById('qActivityId');
+    var method = methodSel ? methodSel.value : '';
+    var meta = typeof Store.fillActivityFilterSelect === 'function'
+      ? Store.fillActivityFilterSelect(sel, method)
+      : null;
+    if (group) {
+      if (meta) group.removeAttribute('hidden');
+      else group.setAttribute('hidden', '');
+    }
+    if (label && meta) label.textContent = meta.label;
   }
 
   function renderPagination(total) {
@@ -90,7 +111,7 @@
 
     if (!slice.length) {
       tbody.innerHTML =
-        '<tr><td colspan="15" style="text-align:center;color:#999;padding:24px;">暂无符合条件的记录</td></tr>';
+        '<tr><td colspan="14" style="text-align:center;color:#999;padding:24px;">暂无符合条件的记录</td></tr>';
     } else {
       tbody.innerHTML = slice
         .map(function (row) {
@@ -101,7 +122,6 @@
             '<td>' + escapeHtml(row.nickname) + '</td>' +
             '<td>' + escapeHtml(row.phone) + '</td>' +
             '<td>' + escapeHtml(row.couponName) + '</td>' +
-            '<td>' + escapeHtml(row.type) + '</td>' +
             '<td>' + escapeHtml(row.faceValue) + '</td>' +
             '<td>' + escapeHtml(row.threshold) + '</td>' +
             '<td>' + escapeHtml(row.templateId) + '</td>' +
@@ -123,6 +143,10 @@
     var queryBtn = document.getElementById('btnFilterQuery');
     var resetBtn = document.getElementById('btnFilterReset');
     var form = document.getElementById('mallRecordSearchForm');
+    var methodSel = document.getElementById('qCollectMethod');
+    if (methodSel) {
+      methodSel.addEventListener('change', syncActivityFilter);
+    }
     if (queryBtn) {
       queryBtn.addEventListener('click', function () {
         state.filter = readFilterFromForm();
@@ -141,7 +165,8 @@
         if (phone) phone.value = '';
         if (method) method.value = '';
         if (status) status.value = '';
-        state.filter = { userId: '', nickname: '', phone: '', collectMethod: '', status: '' };
+        syncActivityFilter();
+        state.filter = { userId: '', nickname: '', phone: '', collectMethod: '', activityId: '', status: '' };
         render(true);
       });
     }
@@ -157,5 +182,6 @@
   }
 
   bind();
+  syncActivityFilter();
   render(true);
 })();

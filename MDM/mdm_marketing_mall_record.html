@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="../css/mdm-member360-list.css">
     <style>
         .mall-record-orders { line-height: 1.55; white-space: normal; }
+        .search-form > .form-group[hidden] { display: none !important; }
     </style>
 </head>
 <body>
@@ -46,18 +47,26 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>领取方式:</label>
+                        <label>领券场景:</label>
                         <select id="qCollectMethod">
                             <option value="">全部</option>
-                            <option value="后台人工发券">后台人工发券</option>
                             <option value="直播发券">直播发券</option>
+                            <option value="福袋发券">福袋发券</option>
+                            <option value="签到发券">签到发券</option>
+                            <option value="后台人工发券">后台人工发券</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="qActivityIdGroup" hidden>
+                        <label id="qActivityIdLabel">直播场次ID:</label>
+                        <select id="qActivityId">
+                            <option value="">全部</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>状态:</label>
                         <select id="qStatus">
                             <option value="">全部</option>
-                            <option value="待使用">待使用</option>
+                            <option value="未使用">未使用</option>
                             <option value="已使用">已使用</option>
                             <option value="已过期">已过期</option>
                         </select>
@@ -79,12 +88,11 @@
                                 <th>用户昵称</th>
                                 <th>手机号</th>
                                 <th>优惠券名称</th>
-                                <th>类型</th>
                                 <th>面额</th>
                                 <th>门槛</th>
                                 <th>模版ID</th>
                                 <th>领取时间</th>
-                                <th>领取方式</th>
+                                <th>领券场景</th>
                                 <th>活动ID</th>
                                 <th>状态</th>
                                 <th>核销关联订单</th>

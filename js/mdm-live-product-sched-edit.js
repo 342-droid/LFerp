@@ -360,15 +360,14 @@
     });
     document.getElementById('pOnBtn').addEventListener('click', function () {
       if (!product) return;
-      product.status = 'on_shelf';
-      if (product.liveStatus === 'off_shelf') product.liveStatus = 'selling';
-      toast('商品已上架');
+      product.status = 'enabled';
+      toast('商品已启用，可在直播间上架');
     });
     document.getElementById('pOffBtn').addEventListener('click', function () {
       if (!product) return;
-      product.status = 'off_shelf';
-      product.liveStatus = 'off_shelf';
-      toast('商品已下架');
+      product.status = 'disabled';
+      if (product.liveStatus && product.liveStatus !== 'off_shelf') product.liveStatus = 'off_shelf';
+      toast('商品已禁用');
     });
     document.getElementById('pDeleteBtn').addEventListener('click', function () {
       if (!product) return;

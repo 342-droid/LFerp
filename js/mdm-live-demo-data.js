@@ -202,6 +202,12 @@
     { id: 'lcat-005', name: '爆款秒杀', sort: 5, enabled: true }
   ];
 
+  function normalizeSchedStatus(st) {
+    if (st === 'enabled' || st === 'on_shelf' || st === 'listing') return 'enabled';
+    if (st === 'disabled' || st === 'off_shelf' || st === 'delisting') return 'disabled';
+    return 'draft';
+  }
+
   function makeSku(overrides) {
     return Object.assign(
       {
@@ -236,8 +242,13 @@
         price: 19.9,
         marketPrice: 29.9,
         stock: 860,
-        status: 'on_shelf',
+        status: 'enabled',
         liveStatus: 'explaining',
+        inCart: true,
+        saleMode: 'selling',
+        explaining: true,
+        pinned: false,
+        cartSort: 1,
         addedAt: '2026-08-10 16:20:00',
         img: '',
         desc: '高原日照充足，口感沙甜多汁。',
@@ -281,8 +292,13 @@
         price: 28.8,
         marketPrice: 36.0,
         stock: 320,
-        status: 'listing',
+        status: 'enabled',
         liveStatus: 'displaying',
+        inCart: true,
+        saleMode: 'selling',
+        explaining: false,
+        pinned: true,
+        cartSort: 2,
         addedAt: '2026-08-10 16:25:00',
         img: '',
         desc: '冷鲜到店，肥瘦均匀。',
@@ -320,7 +336,12 @@
         marketPrice: 49.9,
         stock: 150,
         status: 'draft',
-        liveStatus: 'selling',
+        liveStatus: 'off_shelf',
+        inCart: false,
+        saleMode: 'preview',
+        explaining: false,
+        pinned: false,
+        cartSort: 3,
         addedAt: '2026-08-11 09:10:00',
         img: '',
         desc: '',
@@ -355,8 +376,13 @@
         price: 49.9,
         marketPrice: 69.9,
         stock: 0,
-        status: 'on_shelf',
-        liveStatus: 'sold_out',
+        status: 'disabled',
+        liveStatus: 'off_shelf',
+        inCart: false,
+        saleMode: 'preview',
+        explaining: false,
+        pinned: false,
+        cartSort: 4,
         addedAt: '2026-08-11 10:00:00',
         img: '',
         desc: '脆甜多汁。',
@@ -379,6 +405,96 @@
             unit: '箱'
           })
         ]
+      },
+      {
+        id: 'lp-008',
+        sessionId: 'sess-001',
+        sku: 'LF-VG-10208',
+        name: '红心火龙果',
+        category: '时令果蔬',
+        categoryId: 'lcat-001',
+        spec: '2粒装',
+        price: 16.8,
+        marketPrice: 22.8,
+        stock: 540,
+        status: 'enabled',
+        liveStatus: 'off_shelf',
+        inCart: false,
+        saleMode: 'preview',
+        explaining: false,
+        pinned: false,
+        cartSort: 5,
+        addedAt: '2026-08-11 14:20:00',
+        img: '',
+        desc: '当季红心火龙果。',
+        arrivalTime: '1',
+        arrivalUnit: 'DAY',
+        deliveryMode: 'pickup',
+        images: [],
+        detailImages: [],
+        displaySalesMode: 'ACTUAL',
+        displaySales: '',
+        purchaseLimitType: 'NONE',
+        purchaseLimit: '',
+        skus: [
+          makeSku({
+            id: 'sku-008a',
+            specName: '2粒装',
+            price: 16.8,
+            marketPrice: 22.8,
+            stock: 360,
+            unit: '盒'
+          }),
+          makeSku({
+            id: 'sku-008b',
+            specName: '4粒装',
+            price: 29.9,
+            marketPrice: 39.9,
+            stock: 180,
+            unit: '盒'
+          })
+        ]
+      },
+      {
+        id: 'lp-009',
+        sessionId: 'sess-001',
+        sku: 'LF-GR-40018',
+        name: '七色糙米',
+        category: '粮油干货',
+        categoryId: 'lcat-004',
+        spec: '1kg',
+        price: 22.9,
+        marketPrice: 32.9,
+        stock: 260,
+        status: 'enabled',
+        liveStatus: 'off_shelf',
+        inCart: false,
+        saleMode: 'preview',
+        explaining: false,
+        pinned: false,
+        cartSort: 6,
+        addedAt: '2026-08-11 15:05:00',
+        img: '',
+        desc: '杂粮搭配糙米。',
+        arrivalTime: '2',
+        arrivalUnit: 'DAY',
+        deliveryMode: 'mail',
+        images: [],
+        detailImages: [],
+        displaySalesMode: 'ACTUAL',
+        displaySales: '',
+        purchaseLimitType: 'NONE',
+        purchaseLimit: '',
+        skus: [
+          makeSku({
+            id: 'sku-009a',
+            specName: '1kg',
+            price: 22.9,
+            marketPrice: 32.9,
+            stock: 260,
+            unit: '袋'
+          })
+        ]
       }
     ],
     'sess-002': [
@@ -393,8 +509,13 @@
         price: 9.9,
         marketPrice: 15.9,
         stock: 1200,
-        status: 'on_shelf',
+        status: 'enabled',
         liveStatus: 'selling',
+        inCart: true,
+        saleMode: 'selling',
+        explaining: false,
+        pinned: false,
+        cartSort: 1,
         addedAt: '2026-08-11 11:00:00',
         img: '',
         desc: '',
@@ -429,8 +550,13 @@
         price: 59.9,
         marketPrice: 79.9,
         stock: 0,
-        status: 'off_shelf',
+        status: 'disabled',
         liveStatus: 'off_shelf',
+        inCart: false,
+        saleMode: 'preview',
+        explaining: false,
+        pinned: false,
+        cartSort: 2,
         addedAt: '2026-08-11 11:05:00',
         img: '',
         desc: '',
@@ -453,6 +579,47 @@
             unit: '袋'
           })
         ]
+      },
+      {
+        id: 'lp-010',
+        sessionId: 'sess-002',
+        sku: 'LF-VG-10330',
+        name: '章丘大葱',
+        category: '时令果蔬',
+        categoryId: 'lcat-001',
+        spec: '2斤装',
+        price: 8.8,
+        marketPrice: 12.8,
+        stock: 800,
+        status: 'enabled',
+        liveStatus: 'off_shelf',
+        inCart: false,
+        saleMode: 'preview',
+        explaining: false,
+        pinned: false,
+        cartSort: 3,
+        addedAt: '2026-08-11 16:10:00',
+        img: '',
+        desc: '',
+        arrivalTime: '1',
+        arrivalUnit: 'DAY',
+        deliveryMode: 'pickup',
+        images: [],
+        detailImages: [],
+        displaySalesMode: 'ACTUAL',
+        displaySales: '',
+        purchaseLimitType: 'NONE',
+        purchaseLimit: '',
+        skus: [
+          makeSku({
+            id: 'sku-010a',
+            specName: '2斤装',
+            price: 8.8,
+            marketPrice: 12.8,
+            stock: 800,
+            unit: '把'
+          })
+        ]
       }
     ],
     'sess-003': [
@@ -467,8 +634,13 @@
         price: 45.0,
         marketPrice: 58.0,
         stock: 80,
-        status: 'delisting',
+        status: 'disabled',
         liveStatus: 'off_shelf',
+        inCart: false,
+        saleMode: 'preview',
+        explaining: false,
+        pinned: false,
+        cartSort: 1,
         addedAt: '2026-08-09 15:40:00',
         img: '',
         desc: '散养土鸡蛋礼盒。',
@@ -632,46 +804,70 @@
       recentOrders: [
         {
           id: 'o-1001',
+          nickname: '希奎',
+          level: 'Lv.0',
+          productName: '火龙果',
+          spec: '白心',
+          qty: 1,
+          amount: 1,
+          statusLabel: '交易失败',
+          paid: false,
+          time: '2026-08-14 23:37:42'
+        },
+        {
+          id: 'o-1002',
+          nickname: '爱叫啥叫啥',
+          level: 'Lv.0',
+          productName: '七色糙米',
+          spec: '20kg',
+          qty: 1,
+          amount: 0.01,
+          statusLabel: '交易失败',
+          paid: false,
+          time: '2026-08-14 23:36:18'
+        },
+        {
+          id: 'o-1003',
           nickname: '果子狸',
-          phone: '138****6521',
+          level: 'Lv.3',
           productName: '云南高山西红柿',
           spec: '5斤装',
           qty: 2,
           amount: 39.8,
           statusLabel: '已支付',
           paid: true,
-          time: '19:42:18'
+          time: '2026-08-14 23:32:05'
         },
         {
-          id: 'o-1002',
+          id: 'o-1004',
           nickname: '阿南',
-          phone: '159****8830',
+          level: 'Lv.1',
           productName: '冷鲜黑猪五花肉',
           spec: '500g',
           qty: 1,
           amount: 28.8,
           statusLabel: '已支付',
           paid: true,
-          time: '19:41:05'
-        },
-        {
-          id: 'o-1003',
-          nickname: '小满',
-          phone: '186****2209',
-          productName: '鲜活基围虾',
-          spec: '500g',
-          qty: 3,
-          amount: 119.7,
-          statusLabel: '待支付',
-          paid: false,
-          time: '19:40:33'
+          time: '2026-08-14 23:28:51'
         }
       ],
       chatMessages: [
         { id: 'c1', user: '果子狸', text: '西红柿还有吗？', time: '19:42:01' },
         { id: 'c2', user: '主播小丰', text: '有的，讲解中这款还有库存～', time: '19:42:08', isAnchor: true },
         { id: 'c3', user: '阿南', text: '五花肉包邮吗', time: '19:41:50' },
-        { id: 'c4', user: '小满', text: '来个福袋！', time: '19:41:22' }
+        { id: 'c4', user: '小满', text: '来个福袋！', time: '19:41:22' },
+        { id: 'c5', user: '希奎', text: '火龙果什么时候讲', time: '19:40:58' },
+        { id: 'c6', user: '爱叫啥叫啥', text: '糙米有优惠吗', time: '19:40:41' },
+        { id: 'c7', user: '阿木', text: '主播声音真好', time: '19:40:12' },
+        { id: 'c8', user: '小满', text: '求讲解基围虾', time: '19:39:50' },
+        { id: 'c9', user: '果子狸', text: '已下单，尽快发货', time: '19:39:28' },
+        { id: 'c10', user: '主播小丰', text: '下单备注自提门店即可', time: '19:39:10', isAnchor: true }
+      ],
+      watchRecords: [
+        { id: 'w1', nickname: '果子狸', phone: '138****6521', enterTime: '19:12:08', duration: '30:10' },
+        { id: 'w2', nickname: '阿南', phone: '159****8830', enterTime: '19:20:41', duration: '21:37' },
+        { id: 'w3', nickname: '小满', phone: '186****2209', enterTime: '19:33:02', duration: '09:16' },
+        { id: 'w4', nickname: '阿木', phone: '137****4410', enterTime: '19:38:55', duration: '03:23' }
       ]
     },
     'sess-002': {
@@ -683,7 +879,8 @@
       orderGmv: 0,
       salesAmount: 0,
       recentOrders: [],
-      chatMessages: []
+      chatMessages: [],
+      watchRecords: []
     },
     'sess-003': {
       viewers: 0,
@@ -694,7 +891,8 @@
       orderGmv: 72100.0,
       salesAmount: 68240.0,
       recentOrders: [],
-      chatMessages: [{ id: 'c9', user: '系统', text: '本场直播已结束', time: '13:00:00', isSys: true }]
+      chatMessages: [{ id: 'c9', user: '系统', text: '本场直播已结束', time: '13:00:00', isSys: true }],
+      watchRecords: []
     },
     'sess-004': {
       viewers: 0,
@@ -705,7 +903,8 @@
       orderGmv: 0,
       salesAmount: 0,
       recentOrders: [],
-      chatMessages: []
+      chatMessages: [],
+      watchRecords: []
     }
   };
 
@@ -725,6 +924,7 @@
     sessions: sessions,
     categories: categories,
     productsBySession: productsBySession,
+    normalizeSchedStatus: normalizeSchedStatus,
     dataMetrics: dataMetrics,
     controlMetrics: controlMetrics,
     demoStores: demoStores,

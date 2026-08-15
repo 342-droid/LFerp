@@ -114,6 +114,10 @@
   min-width: 140px;
 }
 
+.erp-field[hidden] {
+  display: none !important;
+}
+
 .erp-field__label {
   font-size: 12px;
   color: var(--color-text-secondary);
@@ -761,8 +765,8 @@
 }
 
 .erp-modal--member-c-coupon {
-  max-width: 1080px;
-  width: min(96vw, 1080px);
+  max-width: 1180px;
+  width: min(96vw, 1180px);
 }
 
 .erp-modal-backdrop--nested {
@@ -822,21 +826,23 @@
 }
 
 .member-c-coupon-table th:nth-child(1),
-.member-c-coupon-table td:nth-child(1) { width: 18%; }
+.member-c-coupon-table td:nth-child(1) { width: 16%; }
 .member-c-coupon-table th:nth-child(2),
-.member-c-coupon-table td:nth-child(2) { width: 10%; }
+.member-c-coupon-table td:nth-child(2) { width: 8%; }
 .member-c-coupon-table th:nth-child(3),
-.member-c-coupon-table td:nth-child(3) { width: 9%; }
+.member-c-coupon-table td:nth-child(3) { width: 8%; }
 .member-c-coupon-table th:nth-child(4),
-.member-c-coupon-table td:nth-child(4) { width: 11%; }
+.member-c-coupon-table td:nth-child(4) { width: 10%; }
 .member-c-coupon-table th:nth-child(5),
-.member-c-coupon-table td:nth-child(5) { width: 18%; }
+.member-c-coupon-table td:nth-child(5) { width: 14%; }
 .member-c-coupon-table th:nth-child(6),
-.member-c-coupon-table td:nth-child(6) { width: 11%; }
+.member-c-coupon-table td:nth-child(6) { width: 10%; }
 .member-c-coupon-table th:nth-child(7),
-.member-c-coupon-table td:nth-child(7) { width: 11%; }
+.member-c-coupon-table td:nth-child(7) { width: 10%; }
 .member-c-coupon-table th:nth-child(8),
-.member-c-coupon-table td:nth-child(8) { width: 12%; }
+.member-c-coupon-table td:nth-child(8) { width: 10%; }
+.member-c-coupon-table th:nth-child(9),
+.member-c-coupon-table td:nth-child(9) { width: 8%; }
 
 .member-c-coupon-table .erp-link {
   font-size: 12px;

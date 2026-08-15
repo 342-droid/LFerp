@@ -1,14 +1,35 @@
 /**
  * 营销记录 — 领券记录（localStorage）
- * Key: mdm_mall_marketing_record_v2
+ * Key: mdm_mall_marketing_record_v3
  */
 (function (global) {
   'use strict';
 
-  var STORAGE_KEY = 'mdm_mall_marketing_record_v2';
+  var STORAGE_KEY = 'mdm_mall_marketing_record_v3';
   var COLLECT_METHOD_MANUAL = '后台人工发券';
   var COLLECT_METHOD_LIVE = '直播发券';
+  var COLLECT_METHOD_BAG = '福袋发券';
+  var COLLECT_METHOD_SIGNIN = '签到发券';
   var COUPON_TYPE = '商品优惠券';
+  var SCENE_OPTIONS = [
+    COLLECT_METHOD_LIVE,
+    COLLECT_METHOD_BAG,
+    COLLECT_METHOD_SIGNIN,
+    COLLECT_METHOD_MANUAL
+  ];
+  var ACTIVITY_FILTER_META = {};
+  ACTIVITY_FILTER_META[COLLECT_METHOD_LIVE] = {
+    label: '直播场次ID',
+    ids: ['sess-001', 'sess-002', 'sess-003', 'sess-004']
+  };
+  ACTIVITY_FILTER_META[COLLECT_METHOD_BAG] = {
+    label: '福袋模板ID',
+    ids: ['tpl-b1', 'tpl-pool-b1', 'tpl-pool-b2']
+  };
+  ACTIVITY_FILTER_META[COLLECT_METHOD_SIGNIN] = {
+    label: '签到模板ID',
+    ids: ['tpl-s1', 'tpl-pool-s1']
+  };
 
   var COUPON_META = {
     满50减5券: { faceValue: '5元', threshold: '50元', templateId: 'TPL10001', channel: '全渠道', validPeriod: '领取后7天有效' },
@@ -36,7 +57,7 @@
       collectAt: '2026-08-03 20:15:08',
       collectMethod: COLLECT_METHOD_LIVE,
       activityId: 'sess-001',
-      status: '待使用',
+      status: '未使用',
       remark: '—',
       channel: '全渠道',
       validPeriod: '领取后7天有效',
@@ -53,8 +74,8 @@
       threshold: '5元',
       templateId: 'TPL10009',
       collectAt: '2026-07-22 19:40:11',
-      collectMethod: COLLECT_METHOD_LIVE,
-      activityId: 'sess-001',
+      collectMethod: COLLECT_METHOD_BAG,
+      activityId: 'tpl-b1',
       status: '已使用',
       remark: '—',
       channel: '全渠道',
@@ -72,8 +93,8 @@
       threshold: '5元',
       templateId: 'TPL10008',
       collectAt: '2026-06-14 21:08:44',
-      collectMethod: COLLECT_METHOD_LIVE,
-      activityId: 'sess-002',
+      collectMethod: COLLECT_METHOD_SIGNIN,
+      activityId: 'tpl-s1',
       status: '已过期',
       remark: '—',
       channel: '全渠道',
@@ -93,7 +114,7 @@
       collectAt: '2026-08-01 10:22:11',
       collectMethod: COLLECT_METHOD_MANUAL,
       activityId: '—',
-      status: '待使用',
+      status: '未使用',
       remark: '张三 / zhangsan',
       channel: '全渠道',
       validPeriod: '领取后7天有效',
@@ -112,8 +133,8 @@
       collectAt: '2026-08-01 10:22:11',
       collectMethod: COLLECT_METHOD_MANUAL,
       activityId: '—',
-      /* 核销后退货退回：券回到待使用，原核销订单仍保留 */
-      status: '待使用',
+      /* 核销后退货退回：券回到未使用，原核销订单仍保留 */
+      status: '未使用',
       remark: '张三 / zhangsan',
       channel: '快递配送',
       validPeriod: '领取后3天有效',
@@ -152,7 +173,7 @@
       collectAt: '2026-08-11 19:22:40',
       collectMethod: COLLECT_METHOD_LIVE,
       activityId: 'sess-001',
-      status: '待使用',
+      status: '未使用',
       remark: '—',
       channel: '全渠道',
       validPeriod: '领取后7天有效',
@@ -171,7 +192,7 @@
       collectAt: '2026-08-05 14:08:33',
       collectMethod: COLLECT_METHOD_MANUAL,
       activityId: '—',
-      status: '待使用',
+      status: '未使用',
       remark: '李四 / lisi',
       channel: 'APP/小程序',
       validPeriod: '2026-01-01~12-31',
@@ -207,8 +228,8 @@
       threshold: '5元',
       templateId: 'TPL10009',
       collectAt: '2026-08-12 08:40:12',
-      collectMethod: COLLECT_METHOD_LIVE,
-      activityId: 'sess-002',
+      collectMethod: COLLECT_METHOD_BAG,
+      activityId: 'tpl-pool-b1',
       status: '已使用',
       remark: '—',
       channel: '全渠道',
@@ -247,7 +268,7 @@
       collectAt: '2026-08-10 16:40:18',
       collectMethod: COLLECT_METHOD_MANUAL,
       activityId: '—',
-      status: '待使用',
+      status: '未使用',
       remark: '王五 / wangwu',
       channel: 'APP/小程序',
       validPeriod: '领取后30天有效',
@@ -264,9 +285,9 @@
       threshold: '200元',
       templateId: 'TPL10003',
       collectAt: '2026-08-11 20:05:33',
-      collectMethod: COLLECT_METHOD_LIVE,
-      activityId: 'sess-001',
-      status: '待使用',
+      collectMethod: COLLECT_METHOD_SIGNIN,
+      activityId: 'tpl-pool-s1',
+      status: '未使用',
       remark: '—',
       channel: '全渠道',
       validPeriod: '2026-03-01~09-30',
@@ -285,7 +306,7 @@
       collectAt: '2026-08-12 18:21:09',
       collectMethod: COLLECT_METHOD_MANUAL,
       activityId: '—',
-      status: '待使用',
+      status: '未使用',
       remark: '演示运营 / admin',
       channel: '全渠道',
       validPeriod: '2026-04-01~10-31',
@@ -352,14 +373,102 @@
       .join('<br>');
   }
 
+  function normalizeCouponStatus(st) {
+    var s = String(st || '').trim();
+    if (!s || s === '待使用') return '未使用';
+    return s;
+  }
+
+  function normalizeCollectMethod(method) {
+    var s = String(method || '').trim();
+    if (s === '后台手工发券') return COLLECT_METHOD_MANUAL;
+    if (
+      s === COLLECT_METHOD_LIVE ||
+      s === COLLECT_METHOD_BAG ||
+      s === COLLECT_METHOD_SIGNIN ||
+      s === COLLECT_METHOD_MANUAL
+    ) {
+      return s;
+    }
+    return COLLECT_METHOD_MANUAL;
+  }
+
+  function defaultActivityId(method) {
+    if (method === COLLECT_METHOD_LIVE) return 'sess-001';
+    if (method === COLLECT_METHOD_BAG) return 'tpl-b1';
+    if (method === COLLECT_METHOD_SIGNIN) return 'tpl-s1';
+    return '';
+  }
+
+  function normalizeActivityId(method, activityId) {
+    if (method === COLLECT_METHOD_MANUAL) return '';
+    var id = String(activityId || '').trim();
+    if (!id || id === '—') return defaultActivityId(method);
+    return id;
+  }
+
+  /* 直播场次ID / 福袋模板ID / 签到模板ID；后台人工发券为空 */
+  function formatActivityId(row) {
+    var method = normalizeCollectMethod(row && row.collectMethod);
+    if (method === COLLECT_METHOD_MANUAL) return '';
+    var id = String((row && row.activityId) || '').trim();
+    if (!id || id === '—') return '';
+    return id;
+  }
+
+  function getActivityFilterMeta(method) {
+    var key = String(method || '').trim();
+    if (!key || key === COLLECT_METHOD_MANUAL) return null;
+    return ACTIVITY_FILTER_META[key] || null;
+  }
+
+  function listActivityFilterIds(method) {
+    var meta = getActivityFilterMeta(method);
+    if (!meta) return [];
+    var seen = {};
+    var ids = [];
+    function push(id) {
+      var s = String(id || '').trim();
+      if (!s || s === '—' || seen[s]) return;
+      seen[s] = true;
+      ids.push(s);
+    }
+    (meta.ids || []).forEach(push);
+    try {
+      loadList().forEach(function (row) {
+        if (normalizeCollectMethod(row.collectMethod) !== normalizeCollectMethod(method)) return;
+        push(formatActivityId(row));
+      });
+    } catch (e) { /* ignore */ }
+    return ids;
+  }
+
+  function fillActivityFilterSelect(selectEl, method) {
+    if (!selectEl) return null;
+    var meta = getActivityFilterMeta(method);
+    while (selectEl.firstChild) selectEl.removeChild(selectEl.firstChild);
+    var all = document.createElement('option');
+    all.value = '';
+    all.textContent = '全部';
+    selectEl.appendChild(all);
+    if (!meta) {
+      selectEl.value = '';
+      return null;
+    }
+    listActivityFilterIds(method).forEach(function (id) {
+      var o = document.createElement('option');
+      o.value = id;
+      o.textContent = id;
+      selectEl.appendChild(o);
+    });
+    selectEl.value = '';
+    return meta;
+  }
+
   function normalizeRow(row) {
     if (!row || typeof row !== 'object') return row;
     var meta = COUPON_META[row.couponName] || {};
-    var method = row.collectMethod || COLLECT_METHOD_MANUAL;
-    var activityId = row.activityId;
-    if (!activityId) {
-      activityId = method === COLLECT_METHOD_LIVE ? 'sess-001' : '—';
-    }
+    var method = normalizeCollectMethod(row.collectMethod);
     return {
       id: row.id,
       userId: row.userId,
@@ -372,8 +481,8 @@
       templateId: row.templateId || meta.templateId || 'TPL00000',
       collectAt: row.collectAt,
       collectMethod: method,
-      activityId: activityId,
-      status: row.status || '待使用',
+      activityId: normalizeActivityId(method, row.activityId),
+      status: normalizeCouponStatus(row.status),
       remark: row.remark || '—',
       channel: row.channel || meta.channel || '全渠道',
       validPeriod: row.validPeriod || meta.validPeriod || '—',
@@ -389,8 +498,13 @@
         return SEED.slice().map(normalizeRow);
       }
       var parsed = JSON.parse(raw);
-      var list = Array.isArray(parsed) ? parsed : SEED.slice();
-      return list.map(normalizeRow);
+      var source = Array.isArray(parsed) ? parsed : SEED.slice();
+      var hadLegacy = source.some(function (row) {
+        return row && String(row.status || '') === '待使用';
+      });
+      var list = source.map(normalizeRow);
+      if (hadLegacy) saveList(list);
+      return list;
     } catch (e) {
       return SEED.slice().map(normalizeRow);
     }
@@ -450,12 +564,16 @@
     var phone = String(f.phone || '').trim();
     var status = String(f.status || '').trim();
     var collectMethod = String(f.collectMethod || '').trim();
+    var activityId = String(f.activityId || '').trim();
     return list.filter(function (row) {
       if (userId && String(row.userId || '').toLowerCase().indexOf(userId) === -1) return false;
       if (nickname && String(row.nickname || '').toLowerCase().indexOf(nickname) === -1) return false;
       if (phone && String(row.phone || '').indexOf(phone) === -1) return false;
       if (status && String(row.status || '') !== status) return false;
       if (collectMethod && String(row.collectMethod || '') !== collectMethod) return false;
+      if (collectMethod && collectMethod !== COLLECT_METHOD_MANUAL && activityId && String(row.activityId || '') !== activityId) {
+        return false;
+      }
       return true;
     });
   }
@@ -488,8 +606,8 @@
         templateId: meta.templateId,
         collectAt: collectAt,
         collectMethod: COLLECT_METHOD_MANUAL,
-        activityId: '—',
-        status: opts.status || '待使用',
+        activityId: '',
+        status: normalizeCouponStatus(opts.status),
         remark: remark,
         channel: meta.channel || (opts.coupon && opts.coupon.channel) || '全渠道',
         validPeriod: meta.validPeriod || (opts.coupon && opts.coupon.validPeriod) || '—',
@@ -505,6 +623,9 @@
     COLLECT_METHOD: COLLECT_METHOD_MANUAL,
     COLLECT_METHOD_MANUAL: COLLECT_METHOD_MANUAL,
     COLLECT_METHOD_LIVE: COLLECT_METHOD_LIVE,
+    COLLECT_METHOD_BAG: COLLECT_METHOD_BAG,
+    COLLECT_METHOD_SIGNIN: COLLECT_METHOD_SIGNIN,
+    SCENE_OPTIONS: SCENE_OPTIONS,
     loadList: loadList,
     saveList: saveList,
     filterList: filterList,
@@ -512,6 +633,11 @@
     formatRemark: formatRemark,
     formatOrderNos: formatOrderNos,
     formatOrderNosHtml: formatOrderNosHtml,
+    formatActivityId: formatActivityId,
+    getActivityFilterMeta: getActivityFilterMeta,
+    listActivityFilterIds: listActivityFilterIds,
+    fillActivityFilterSelect: fillActivityFilterSelect,
+    normalizeCollectMethod: normalizeCollectMethod,
     normalizeOrderNos: normalizeOrderNos,
     couponMeta: couponMeta
   };

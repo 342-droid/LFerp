@@ -6,7 +6,7 @@
   <title>黑灯直播间 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
-  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260723-live-shop">
+  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260816-live-c4">
   <link rel="stylesheet" href="../css/user-app-live-entry-fx.css">
 </head>
 <body class="user-app-body">
@@ -55,6 +55,15 @@
       </div>
 
       <div class="ua-live-room__box" aria-hidden="true"></div>
+
+      <div class="ua-live-explain" id="liveExplainCard" hidden>
+        <span class="ua-live-explain__tag">讲解中</span>
+        <div class="ua-live-explain__thumb" id="liveExplainThumb"></div>
+        <div class="ua-live-explain__body">
+          <div class="ua-live-explain__name" id="liveExplainName"></div>
+          <div class="ua-live-explain__price" id="liveExplainPrice"></div>
+        </div>
+      </div>
 
       <div class="ua-live-fx-host" id="liveEntryFxHost" hidden aria-hidden="true"></div>
 
@@ -162,7 +171,7 @@
 <script src="../../js/mdm-supplier-archive-store.js"></script>
 <script src="../js/user-app-profile.js"></script>
 <script src="../js/user-app-live-entry-fx.js"></script>
-<script src="../js/user-app-shop.js?v=20260723-live-shop"></script>
+<script src="../js/user-app-shop.js?v=20260816-live-c4"></script>
 <script>UAShop.initLiveRoomPage();</script>
 </body>
 </html>

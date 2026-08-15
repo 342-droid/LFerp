@@ -286,15 +286,84 @@
     }
 
     function couponSceneLabel(method) {
-        if (method === '直播发券') return '直播发券';
-        return '后台手工发券';
+        if (window.MdmMallMarketingRecordStore && typeof window.MdmMallMarketingRecordStore.normalizeCollectMethod === 'function') {
+            return window.MdmMallMarketingRecordStore.normalizeCollectMethod(method);
+        }
+        if (method === '后台手工发券') return '后台人工发券';
+        if (method === '直播发券' || method === '福袋发券' || method === '签到发券' || method === '后台人工发券') {
+            return method;
+        }
+        return '后台人工发券';
+    }
+
+    function couponActivityIdText(row) {
+        if (window.MdmMallMarketingRecordStore && typeof window.MdmMallMarketingRecordStore.formatActivityId === 'function') {
+            return window.MdmMallMarketingRecordStore.formatActivityId(row) || '—';
+        }
+        var scene = couponSceneLabel(row && (row.scene || row.collectMethod));
+        if (scene === '后台人工发券') return '—';
+        var id = String((row && row.activityId) || '').trim();
+        return id && id !== '—' ? id : '—';
     }
 
     function couponStatusClass(st) {
-        if (st === '待使用') return 'mdm-status mdm-status--ok';
+        if (st === '未使用' || st === '待使用') return 'mdm-status mdm-status--ok';
         if (st === '已使用') return 'mdm-status mdm-status--muted';
         if (st === '已过期') return 'mdm-status mdm-status--warn';
         return 'mdm-status';
+    }
+
+    function parseCollectLimit(text) {
+        var s = String(text || '').trim();
+        if (!s || s === '不限') return Infinity;
+        var m = s.match(/(\d+)/);
+        return m ? Number(m[1]) : Infinity;
+    }
+
+    function parseStockQty(coupon) {
+        var n = Number(coupon && coupon.stock);
+        return isNaN(n) || n < 0 ? Infinity : n;
+    }
+
+    function countUserCouponClaimed(userId, couponName) {
+        var Store = window.MdmMallMarketingRecordStore;
+        if (!Store || typeof Store.loadList !== 'function') return 0;
+        var uid = String(userId || '');
+        var name = String(couponName || '');
+        if (!uid || !name) return 0;
+        return Store.loadList().filter(function (row) {
+            return String(row.userId) === uid && String(row.couponName) === name;
+        }).length;
+    }
+
+    function getUserClaimableQty(member, coupon) {
+        var limit = parseCollectLimit(coupon && coupon.collectLimit);
+        if (!isFinite(limit)) return Infinity;
+        var name = (coupon && (coupon.label || coupon.value)) || '';
+        return Math.max(0, limit - countUserCouponClaimed(member && member.id, name));
+    }
+
+    function formatClaimableQty(n) {
+        return isFinite(n) ? String(n) : '不限';
+    }
+
+    function toastIssueFail(reason) {
+        var msg = '发放失败：' + reason;
+        if (typeof showToast === 'function') showToast(msg, 'error');
+        else window.alert(msg);
+    }
+
+    function validateIssueQty(qty, claimable, stock) {
+        if (!qty || isNaN(qty) || qty < 1 || qty !== Math.floor(qty)) {
+            return '发放数量须为正整数';
+        }
+        if (isFinite(claimable) && qty > claimable) {
+            return '发放数量不能超过可领数量（当前可领 ' + claimable + '）';
+        }
+        if (isFinite(stock) && qty > stock) {
+            return '发放数量不能超过券库存（当前剩余 ' + stock + '）';
+        }
+        return '';
     }
 
     function normalizeCouponOrderNos(row) {
@@ -324,30 +393,36 @@
                 validPeriod: '领取后7天有效',
                 collectAt: '2026-08-03 20:15:08',
                 scene: '直播发券',
-                status: '待使用',
+                collectMethod: '直播发券',
+                activityId: 'sess-001',
+                status: '未使用',
                 orderNos: []
             },
             {
-                id: 'LC' + uid + '-002',
+                id: 'LB' + uid + '-001',
                 name: '生鲜满减券',
                 threshold: '5元',
                 faceValue: '12元',
                 channel: '全渠道',
                 validPeriod: '2026-04-01~10-31',
                 collectAt: '2026-07-22 19:40:11',
-                scene: '直播发券',
+                scene: '福袋发券',
+                collectMethod: '福袋发券',
+                activityId: 'tpl-b1',
                 status: '已使用',
                 orderNos: ['ORD-3212689201598341']
             },
             {
-                id: 'LC' + uid + '-003',
+                id: 'SI' + uid + '-001',
                 name: '周末专享券',
                 threshold: '5元',
                 faceValue: '9折',
                 channel: '全渠道',
                 validPeriod: '每周五~周日',
                 collectAt: '2026-06-14 21:08:44',
-                scene: '直播发券',
+                scene: '签到发券',
+                collectMethod: '签到发券',
+                activityId: 'tpl-s1',
                 status: '已过期',
                 orderNos: []
             }
@@ -365,8 +440,10 @@
                 channel: 'APP/小程序',
                 validPeriod: '领取后30天有效',
                 collectAt: '2026-08-10 16:40:18',
-                scene: '后台手工发券',
-                status: '待使用',
+                scene: '后台人工发券',
+                collectMethod: '后台人工发券',
+                activityId: '',
+                status: '未使用',
                 orderNos: []
             },
             {
@@ -377,8 +454,10 @@
                 channel: '快递配送',
                 validPeriod: '领取后3天有效',
                 collectAt: '2026-08-01 10:22:11',
-                scene: '后台手工发券',
-                status: '待使用',
+                scene: '后台人工发券',
+                collectMethod: '后台人工发券',
+                activityId: '',
+                status: '未使用',
                 orderNos: ['ORD-3212689201598341']
             },
             {
@@ -389,7 +468,9 @@
                 channel: 'APP/小程序',
                 validPeriod: '2026-01-01~12-31',
                 collectAt: '2026-08-01 11:08:20',
-                scene: '后台手工发券',
+                scene: '后台人工发券',
+                collectMethod: '后台人工发券',
+                activityId: '',
                 status: '已使用',
                 orderNos: ['ORD-3212689201588561', 'ORD-3212689201599001']
             }
@@ -414,7 +495,9 @@
                     validPeriod: row.validPeriod || '—',
                     collectAt: row.collectAt,
                     scene: couponSceneLabel(row.collectMethod),
-                    status: row.status || '待使用',
+                    collectMethod: couponSceneLabel(row.collectMethod),
+                    activityId: row.activityId,
+                    status: row.status === '待使用' ? '未使用' : (row.status || '未使用'),
                     orderNos: normalizeCouponOrderNos(row)
                 };
             });
@@ -437,7 +520,7 @@
         root.appendChild(el('div', 'supplier-detail-section-title', '优惠券'));
 
         var allRows = loadMemberCouponRows(rec);
-        var state = { name: '', threshold: '', scene: '', status: '', timeStart: '', timeEnd: '' };
+        var state = { name: '', threshold: '', scene: '', activityId: '', status: '', timeStart: '', timeEnd: '' };
 
         var toolbar = el('div', 'erp-toolbar member-drawer-filter-toolbar');
         var nameInp = mkInput('请输入优惠券名称');
@@ -449,13 +532,20 @@
         var sceneSel = mkSelect([
             { value: '', label: '全部' },
             { value: '直播发券', label: '直播发券' },
-            { value: '后台手工发券', label: '后台手工发券' }
+            { value: '福袋发券', label: '福袋发券' },
+            { value: '签到发券', label: '签到发券' },
+            { value: '后台人工发券', label: '后台人工发券' }
         ]);
-        toolbar.appendChild(mkField('领取场景', sceneSel));
+        toolbar.appendChild(mkField('领券场景', sceneSel));
+
+        var activitySel = mkSelect([{ value: '', label: '全部' }]);
+        var activityField = mkField('直播场次ID', activitySel);
+        activityField.hidden = true;
+        toolbar.appendChild(activityField);
 
         var statusSel = mkSelect([
             { value: '', label: '全部' },
-            { value: '待使用', label: '待使用' },
+            { value: '未使用', label: '未使用' },
             { value: '已使用', label: '已使用' },
             { value: '已过期', label: '已过期' }
         ]);
@@ -494,7 +584,10 @@
                 if (name && String(row.name || '').toLowerCase().indexOf(name) === -1) return false;
                 if (threshold && String(row.threshold || '').toLowerCase().indexOf(threshold) === -1) return false;
                 if (state.scene && row.scene !== state.scene) return false;
-                if (state.status && row.status !== state.status) return false;
+                if (state.activityId && String(row.activityId || '') !== state.activityId) return false;
+                if (state.status === '未使用') {
+                    if (row.status !== '未使用' && row.status !== '待使用') return false;
+                } else if (state.status && row.status !== state.status) return false;
                 if (state.timeStart && toComparable(row.collectAt) < toComparable(state.timeStart)) return false;
                 if (state.timeEnd && toComparable(row.collectAt) > toComparable(state.timeEnd)) return false;
                 return true;
@@ -506,7 +599,7 @@
             var table = el('table', 'erp-table');
             var thead = el('thead');
             var trh = el('tr');
-            ['领券ID', '券名称', '门槛', '券面额', '适用渠道', '有效期', '领取时间', '状态', '核销关联订单'].forEach(function (h) {
+            ['领券ID', '券名称', '门槛', '券面额', '适用渠道', '有效期', '领取时间', '领券场景', '活动ID', '状态', '核销关联订单'].forEach(function (h) {
                 trh.appendChild(el('th', '', h));
             });
             thead.appendChild(trh);
@@ -514,7 +607,7 @@
             if (!rows.length) {
                 var emptyTr = el('tr');
                 var emptyTd = el('td', '', '暂无匹配优惠券');
-                emptyTd.colSpan = 9;
+                emptyTd.colSpan = 11;
                 emptyTd.style.textAlign = 'center';
                 emptyTd.style.color = '#999';
                 emptyTd.style.padding = '24px 10px';
@@ -523,7 +616,7 @@
             } else {
                 rows.forEach(function (row) {
                     var tr = el('tr');
-                    [row.id, row.name, row.threshold, row.faceValue, row.channel, row.validPeriod, row.collectAt].forEach(function (text) {
+                    [row.id, row.name, row.threshold, row.faceValue, row.channel, row.validPeriod, row.collectAt, row.scene, couponActivityIdText(row)].forEach(function (text) {
                         tr.appendChild(el('td', '', text || '—'));
                     });
                     var tdStatus = el('td');
@@ -560,10 +653,26 @@
             pageHost.appendChild(bar);
         }
 
+        function syncActivityFilter() {
+            var Store = window.MdmMallMarketingRecordStore;
+            var meta = Store && typeof Store.fillActivityFilterSelect === 'function'
+                ? Store.fillActivityFilterSelect(activitySel, sceneSel.value)
+                : null;
+            var labelEl = activityField.querySelector('.erp-field__label');
+            if (meta) {
+                if (labelEl) labelEl.textContent = meta.label;
+                activityField.hidden = false;
+            } else {
+                activityField.hidden = true;
+                activitySel.value = '';
+            }
+        }
+
         function readState() {
             state.name = nameInp.value || '';
             state.threshold = thresholdInp.value || '';
             state.scene = sceneSel.value || '';
+            state.activityId = activityField.hidden ? '' : (activitySel.value || '');
             state.status = statusSel.value || '';
             state.timeStart = timeStartCtl.input.value || '';
             state.timeEnd = timeEndCtl.input.value || '';
@@ -582,12 +691,14 @@
             nameInp.value = '';
             thresholdInp.value = '';
             sceneSel.value = '';
+            activitySel.value = '';
             statusSel.value = '';
             timeStartCtl.input.value = '';
             timeEndCtl.input.value = '';
             timeStartCtl.sync();
             timeEndCtl.sync();
-            state = { name: '', threshold: '', scene: '', status: '', timeStart: '', timeEnd: '' };
+            syncActivityFilter();
+            state = { name: '', threshold: '', scene: '', activityId: '', status: '', timeStart: '', timeEnd: '' };
             renderList();
         });
 
@@ -604,6 +715,8 @@
             }
         });
 
+        sceneSel.addEventListener('change', syncActivityFilter);
+        syncActivityFilter();
         renderList();
         return root;
     }
@@ -2092,8 +2205,19 @@
         });
     }
 
+    function addCouponQtyDisplayRow(body, label, value) {
+        var row = el('div', 'erp-modal-field');
+        row.appendChild(el('label', 'erp-modal-field__label', label));
+        var ctrl = el('div', 'erp-modal-field__control');
+        ctrl.appendChild(el('div', 'pts-adjust-member', value));
+        row.appendChild(ctrl);
+        body.appendChild(row);
+    }
+
     function openCouponIssueQtyModal(member, coupon, onConfirm) {
         closeCouponIssueQtyModal();
+        var claimable = getUserClaimableQty(member, coupon);
+        var stockNum = parseStockQty(coupon);
         var nested = el('div', 'erp-modal-backdrop erp-modal-backdrop--nested');
         nested.setAttribute('data-member-c-coupon-qty', '1');
         var modal = el('div', 'erp-modal erp-modal--member-c-coupon-qty');
@@ -2108,12 +2232,9 @@
         header.appendChild(ha);
 
         var body = el('div', 'erp-modal__body');
-        var rowName = el('div', 'erp-modal-field');
-        rowName.appendChild(el('label', 'erp-modal-field__label', '优惠券'));
-        var nameCtrl = el('div', 'erp-modal-field__control');
-        nameCtrl.appendChild(el('div', 'pts-adjust-member', coupon.label));
-        rowName.appendChild(nameCtrl);
-        body.appendChild(rowName);
+        addCouponQtyDisplayRow(body, '优惠券', coupon.label);
+        addCouponQtyDisplayRow(body, '可领数量', formatClaimableQty(claimable));
+        addCouponQtyDisplayRow(body, '剩余库存', isFinite(stockNum) ? String(stockNum) : String(coupon.stock || '—'));
 
         var rowQty = el('div', 'erp-modal-field');
         var labQty = el('label', 'erp-modal-field__label');
@@ -2126,12 +2247,17 @@
         qtyInp.step = '1';
         qtyInp.placeholder = '请输入正整数';
         qtyInp.value = '1';
+        var maxQty = Math.min(
+            isFinite(claimable) ? claimable : Infinity,
+            isFinite(stockNum) ? stockNum : Infinity
+        );
+        if (isFinite(maxQty) && maxQty >= 1) qtyInp.max = String(maxQty);
+        qtyInp.addEventListener('input', function () {
+            var n = Number(qtyInp.value);
+            if (isFinite(maxQty) && n > maxQty) qtyInp.value = String(maxQty);
+        });
         qtyCtrl.appendChild(qtyInp);
-        var stockNum = Number(coupon.stock);
-        if (!isNaN(stockNum) && stockNum >= 0) {
-            qtyInp.max = String(Math.max(1, stockNum));
-            qtyCtrl.appendChild(el('div', 'pts-adjust-tip', '剩余库存 ' + coupon.stock));
-        }
+        qtyCtrl.appendChild(el('div', 'pts-adjust-tip', '不能超过该用户可领数量，也不能大于券库存'));
         rowQty.appendChild(qtyCtrl);
         body.appendChild(rowQty);
 
@@ -2142,12 +2268,15 @@
         bOk.addEventListener('click', function () {
             var raw = (qtyInp.value || '').trim();
             var val = Number(raw);
-            if (!raw || isNaN(val) || val < 1 || !/^\d+$/.test(raw)) {
-                window.alert('发放数量须为正整数');
+            var latestClaimable = getUserClaimableQty(member, coupon);
+            var latestStock = parseStockQty(coupon);
+            if (!raw || !/^\d+$/.test(raw)) {
+                toastIssueFail('发放数量须为正整数');
                 return;
             }
-            if (!isNaN(stockNum) && stockNum >= 0 && val > stockNum) {
-                window.alert('发放数量不得大于剩余库存（当前剩余 ' + coupon.stock + '）');
+            var reason = validateIssueQty(val, latestClaimable, latestStock);
+            if (reason) {
+                toastIssueFail(reason);
                 return;
             }
             closeCouponIssueQtyModal();
@@ -2212,7 +2341,7 @@
         var table = el('table', 'erp-table member-c-coupon-table');
         var thead = el('thead');
         var trh = el('tr');
-        ['优惠券名称', '券面值', '门槛', '适用渠道', '有效期', '领取限制', '剩余库存', '操作'].forEach(function (h) {
+        ['优惠券名称', '券面值', '门槛', '适用渠道', '有效期', '领取限制', '可领数量', '剩余库存', '操作'].forEach(function (h) {
             trh.appendChild(el('th', '', h));
         });
         thead.appendChild(trh);
@@ -2249,13 +2378,14 @@
             if (!slice.length) {
                 var emptyTr = el('tr');
                 var emptyTd = el('td', 'is-empty', '无匹配优惠券');
-                emptyTd.colSpan = 8;
+                emptyTd.colSpan = 9;
                 emptyTr.appendChild(emptyTd);
                 tbody.appendChild(emptyTr);
             } else {
                 slice.forEach(function (c) {
+                    var claimable = getUserClaimableQty(member, c);
                     var tr = el('tr');
-                    [c.label, c.amount, c.threshold, c.channel, c.validPeriod, c.collectLimit, c.stock].forEach(function (text) {
+                    [c.label, c.amount, c.threshold, c.channel, c.validPeriod, c.collectLimit, formatClaimableQty(claimable), c.stock].forEach(function (text) {
                         tr.appendChild(el('td', '', text));
                     });
                     var tdOp = el('td');
@@ -2263,6 +2393,16 @@
                     issueBtn.href = '#';
                     issueBtn.addEventListener('click', function (e) {
                         e.preventDefault();
+                        var latestClaimable = getUserClaimableQty(member, c);
+                        var latestStock = parseStockQty(c);
+                        if (isFinite(latestClaimable) && latestClaimable <= 0) {
+                            toastIssueFail('该用户可领数量为 0');
+                            return;
+                        }
+                        if (isFinite(latestStock) && latestStock <= 0) {
+                            toastIssueFail('券库存不足');
+                            return;
+                        }
                         openCouponIssueQtyModal(member, c, function (qty) {
                             var op = getCurrentOperator();
                             if (window.MdmMallMarketingRecordStore && typeof window.MdmMallMarketingRecordStore.addManualIssue === 'function') {
@@ -2276,8 +2416,11 @@
                                     operatorAccount: op.account
                                 });
                             }
+                            if (isFinite(latestStock)) {
+                                c.stock = String(Math.max(0, latestStock - qty));
+                            }
                             closeList();
-                            showToast('已向会员 ' + member.id + ' 发放「' + c.label + '」× ' + qty, 'success');
+                            showToast('发放成功', 'success');
                         });
                     });
                     tdOp.appendChild(issueBtn);

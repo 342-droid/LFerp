@@ -3128,7 +3128,7 @@
                         } else {
                             var actions =
                                 '<a href="#" class="mdm-mem-detail">查看详情</a>' +
-                                '<a href="#" class="mdm-mem-coupon">优惠券</a>' +
+                                '<a href="#" class="mdm-mem-coupon">发券</a>' +
                                 '<a href="#" class="mdm-mem-points">调整积分</a>' +
                                 '<a href="#" class="mdm-mem-growth">调整成长值</a>';
                             if (stNow === '正常') actions += '<a href="#" class="mdm-mem-blacklist">拉黑</a>';
