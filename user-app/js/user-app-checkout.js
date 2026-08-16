@@ -1660,6 +1660,8 @@
    * 2) 余额不足 / 未用余额 → 须勾选支付宝/微信后跳三方收单
    */
   function onSubmitOrder() {
+    /* 黑名单禁用「下单」：确认/提交订单拦截 */
+    if (window.UaBlacklistGuard && window.UaBlacklistGuard.guardOrderSubmit()) return;
     if (!validateBeforeSubmit()) return;
     var legs = getPayLegs();
     if (payState.useBalance && legs.balanceOnly) {

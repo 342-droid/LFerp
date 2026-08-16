@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 直播场次详情</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
+    <link rel="stylesheet" href="../css/lf-live.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/live-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">直播场次详情</button></div>
+            <hr class="content-divider">
+
+            <div class="lf-live-form-toolbar">
+                <a class="lf-live-form-back" id="sessionDetailBack" href="mdm_live_session.html">← 返回直播场次</a>
+                <button type="button" class="erp-btn erp-btn--primary" id="sessionDetailEdit">编辑</button>
+            </div>
+
+            <div id="sessionDetailEmpty" class="lf-live-empty-tip" hidden>未找到该直播场次</div>
+
+            <div id="sessionDetailPanel" hidden>
+                <div class="lf-live-detail-hero">
+                    <div>
+                        <h2 class="lf-live-detail-hero__title" id="dName">—</h2>
+                        <div class="lf-live-detail-hero__sub">直播间 ID：<span id="dRoomId">—</span></div>
+                    </div>
+                    <span class="lf-live-badge" id="dStatusBadge">—</span>
+                </div>
+
+                <div class="pts-rule-card lf-live-card">
+                    <div class="pts-rule-card__title">基础信息</div>
+                    <div class="pts-rule-card__body">
+                        <div class="lf-live-desc-grid" id="dBaseGrid"></div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-card lf-live-card">
+                    <div class="pts-rule-card__title">分发与可见范围</div>
+                    <div class="pts-rule-card__body">
+                        <div class="lf-live-desc-grid" id="dScopeGrid"></div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-card lf-live-card">
+                    <div class="pts-rule-card__title">状态与备注</div>
+                    <div class="pts-rule-card__body">
+                        <div class="lf-live-desc-grid" id="dStatusGrid"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-live-demo-data.js"></script>
+    <script src="../js/mdm-live-session-detail.js"></script>
+</body>
+</html>

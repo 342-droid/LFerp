@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 直播场次</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/mdm-member360-list.css">
+    <link rel="stylesheet" href="../css/lf-live.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/live-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">直播场次</button></div>
+            <hr class="content-divider">
+
+            <section class="search-section">
+                <form class="search-form" id="liveSessionFilterForm" onsubmit="return false;">
+                    <div class="form-group">
+                        <label>场次名称:</label>
+                        <div class="input-wrapper">
+                            <input id="qSessionName" placeholder="请输入场次名称" autocomplete="off">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>状态:</label>
+                        <select id="qSessionStatus">
+                            <option value="">全部</option>
+                            <option value="live">直播中</option>
+                            <option value="upcoming">未开始</option>
+                            <option value="ended">已结束</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>场次类型:</label>
+                        <select id="qSessionType">
+                            <option value="">全部</option>
+                            <option value="regular">常规场</option>
+                            <option value="origin">产地专场</option>
+                            <option value="member">会员专场</option>
+                            <option value="flash">闪购场</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>直播时段:</label>
+                        <select id="qSessionSlot"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>关联直播间:</label>
+                        <select id="qSessionRoom"></select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="sessionFilterReset">重置</button>
+                        <button type="button" class="btn btn-primary" id="sessionFilterQuery">查询</button>
+                    </div>
+                </form>
+            </section>
+
+            <div class="lf-live-toolbar">
+                <button type="button" class="erp-btn erp-btn--primary" id="sessionAddBtn">新建直播场次</button>
+            </div>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>场次名称</th>
+                                <th>直播间</th>
+                                <th>时段</th>
+                                <th>类型</th>
+                                <th>状态</th>
+                                <th>开播时间</th>
+                                <th>结束时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sessionTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-live-demo-data.js"></script>
+    <script src="../js/mdm-live-session.js"></script>
+</body>
+</html>

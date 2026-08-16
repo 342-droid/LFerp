@@ -174,6 +174,162 @@
   };
 
   var LIVE_PRODUCT_IDS = ['dumpling', 'wonton-pork', 'wonton-corn', 'duck-mix'];
+  var LIVE_SALE_MODE_KEY = 'ua_live_sale_mode_v1';
+  var LIVE_PREVIEW_PRICE_KEY = 'ua_live_preview_price_v1';
+  var LIVE_EXPLAIN_KEY = 'ua_live_explain_v1';
+  var LIVE_C_STATE_KEY = 'lf_live_c_state_v1';
+
+  function readLiveCState() {
+    try {
+      var raw = localStorage.getItem(LIVE_C_STATE_KEY);
+      var data = raw ? JSON.parse(raw) : null;
+      return data && typeof data === 'object' ? data : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function readLiveSaleMode() {
+    try {
+      var v = localStorage.getItem(LIVE_SALE_MODE_KEY);
+      return v === 'preview' ? 'preview' : 'selling';
+    } catch (e) {
+      return 'selling';
+    }
+  }
+
+  function writeLiveSaleMode(mode) {
+    localStorage.setItem(LIVE_SALE_MODE_KEY, mode === 'preview' ? 'preview' : 'selling');
+  }
+
+  function isLivePreview() {
+    return readLiveSaleMode() === 'preview';
+  }
+
+  function readPreviewPriceMode() {
+    try {
+      var v = localStorage.getItem(LIVE_PREVIEW_PRICE_KEY);
+      if (v === 'question' || v === 'market' || v === 'sale') return v;
+    } catch (e) {}
+    var st = readLiveCState();
+    if (st.previewPriceMode === 'question' || st.previewPriceMode === 'market' || st.previewPriceMode === 'sale') {
+      return st.previewPriceMode;
+    }
+    return 'sale';
+  }
+
+  function writePreviewPriceMode(mode) {
+    localStorage.setItem(
+      LIVE_PREVIEW_PRICE_KEY,
+      mode === 'question' || mode === 'market' ? mode : 'sale'
+    );
+  }
+
+  function readExplainFlag() {
+    try {
+      return localStorage.getItem(LIVE_EXPLAIN_KEY);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function writeExplainFlag(on) {
+    localStorage.setItem(LIVE_EXPLAIN_KEY, on ? 'on' : 'off');
+  }
+
+  function isLiveExplainOn() {
+    var flag = readExplainFlag();
+    if (flag === 'on') return true;
+    if (flag === 'off') return false;
+    return !!readLiveCState().explaining;
+  }
+
+  function liveQuestionMarksHtml() {
+    return '<span class="ua-live-goods__price-q">???</span>';
+  }
+
+  function hasStrikePrice(val) {
+    return val != null && val !== '' && Number(val) > 0;
+  }
+
+  function livePreviewPriceInner(p, mode) {
+    if (mode === 'question') return liveQuestionMarksHtml();
+    if (mode === 'market') {
+      var m = p && (hasStrikePrice(p.originPrice) ? p.originPrice : hasStrikePrice(p.marketPrice) ? p.marketPrice : null);
+      if (!hasStrikePrice(m)) return liveQuestionMarksHtml();
+      return (
+        '<span class="ua-live-goods__price--market"><small>¥</small>' +
+        Number(m).toFixed(2) +
+        '</span>'
+      );
+    }
+    return '<small>¥</small>' + Number(getLivePrice(p)).toFixed(2);
+  }
+
+  function liveGoodsPriceHtml(p) {
+    if (!isLivePreview()) {
+      return '<small>¥</small>' + Number(getLivePrice(p)).toFixed(2);
+    }
+    return livePreviewPriceInner(p, readPreviewPriceMode());
+  }
+
+  function getLiveExplainPayload() {
+    var flag = readExplainFlag();
+    var st = readLiveCState();
+    if (flag === 'off') return null;
+    if (st && st.explaining) return st.explaining;
+    if (flag !== 'on') return null;
+    var p = PRODUCTS[LIVE_PRODUCT_IDS[0]];
+    if (!p) return null;
+    return {
+      name: p.shortName || p.name,
+      price: getLivePrice(p),
+      marketPrice: p.originPrice,
+      previewPriceMode: readPreviewPriceMode(),
+      saleMode: readLiveSaleMode(),
+      img: p.img
+    };
+  }
+
+  function liveExplainPriceHtml(info) {
+    var preview = isLivePreview() || (info && info.saleMode === 'preview');
+    var mode = (info && info.previewPriceMode) || readPreviewPriceMode();
+    if (preview && mode === 'question') return liveQuestionMarksHtml();
+    if (preview && mode === 'market') {
+      var m = info && (hasStrikePrice(info.marketPrice) ? info.marketPrice : hasStrikePrice(info.originPrice) ? info.originPrice : null);
+      if (!hasStrikePrice(m)) return liveQuestionMarksHtml();
+      return (
+        '<span class="ua-live-goods__price--market"><small>¥</small>' +
+        Number(m).toFixed(2) +
+        '</span>'
+      );
+    }
+    return '<small>¥</small>' + Number((info && info.price) || 0).toFixed(2);
+  }
+
+  function renderLiveExplainCard() {
+    var card = document.getElementById('liveExplainCard');
+    if (!card) return;
+    var info = getLiveExplainPayload();
+    if (!info) {
+      card.hidden = true;
+      return;
+    }
+    var nameEl = document.getElementById('liveExplainName');
+    var priceEl = document.getElementById('liveExplainPrice');
+    var thumbEl = document.getElementById('liveExplainThumb');
+    if (nameEl) nameEl.textContent = info.name || '讲解商品';
+    if (priceEl) priceEl.innerHTML = liveExplainPriceHtml(info);
+    if (thumbEl) {
+      if (info.img) {
+        thumbEl.innerHTML = '<img src="' + info.img + '" alt="">';
+      } else {
+        var ch = String(info.name || '商').charAt(0);
+        thumbEl.innerHTML = '<span>' + ch + '</span>';
+      }
+    }
+    card.hidden = false;
+  }
 
   function readCart() {
     try {
@@ -2469,6 +2625,8 @@
 
     document.getElementById('confirmPayBtn') &&
       document.getElementById('confirmPayBtn').addEventListener('click', function () {
+        /* 黑名单禁用「下单」：确认订单提交拦截 */
+        if (global.UaBlacklistGuard && global.UaBlacklistGuard.guardOrderSubmit()) return;
         var agreeCheck = body && body.querySelector('[data-confirm-agree]');
         if (agreeCheck && !agreeCheck.classList.contains('is-checked')) {
           showToast('请先同意交易服务协议');
@@ -2549,6 +2707,8 @@
 
   function initLiveRoomPage() {
     ensureCart();
+    /* 黑名单禁用「观看直播」：不拉流，页内提示 */
+    if (global.UaBlacklistGuard) global.UaBlacklistGuard.applyLiveWatchBan();
     var state = {
       keyword: '',
       skuProductId: '',
@@ -2612,9 +2772,15 @@
         .map(function (p, index) {
           var liveItem = findLiveItem(liveCart, p.id);
           var inLive = liveItem && liveItem.qty > 0;
-          var price = getLivePrice(p);
-          var actions = inLive
-            ? '<div class="ua-live-goods__stepper">' +
+          var preview = isLivePreview();
+          var actions;
+          if (preview) {
+            actions =
+              '<div class="ua-live-goods__ops">' +
+              '<button type="button" class="ua-live-goods__buy is-soon" disabled>即将开售</button></div>';
+          } else if (inLive) {
+            actions =
+              '<div class="ua-live-goods__stepper">' +
               '<button type="button" data-live-minus="' +
               p.id +
               '">−</button>' +
@@ -2623,8 +2789,10 @@
               '</span>' +
               '<button type="button" data-live-plus="' +
               p.id +
-              '">+</button></div>'
-            : '<div class="ua-live-goods__ops">' +
+              '">+</button></div>';
+          } else {
+            actions =
+              '<div class="ua-live-goods__ops">' +
               '<button type="button" class="ua-live-goods__add" data-live-add="' +
               p.id +
               '" aria-label="加入购物车">' +
@@ -2633,17 +2801,23 @@
               '<button type="button" class="ua-live-goods__buy" data-live-rush="' +
               p.id +
               '">去抢购</button></div>';
+          }
           return (
-            '<article class="ua-live-goods__item" data-live-goods-id="' +
+            '<article class="ua-live-goods__item' +
+            (preview ? ' is-preview' : '') +
+            '" data-live-goods-id="' +
             p.id +
             '" role="link" tabindex="0">' +
             '<div class="ua-live-goods__thumb">' +
-            '<span class="ua-live-goods__rank">' +
+            '<span class="ua-live-goods__rank"' +
+            (preview ? ' hidden' : '') +
+            '>' +
             (index + 1) +
             '</span>' +
             '<img src="' +
             p.img +
             '" alt="">' +
+            (preview ? '<span class="ua-live-goods__preview-badge">预告中</span>' : '') +
             (p.watermark
               ? '<span class="ua-shop-watermark ua-shop-watermark--sm">生产验证商品<br>请勿下单</span>'
               : '') +
@@ -2656,8 +2830,8 @@
             (getProductFulfillType(p) === 'express' ? '快递' : '自提') +
             '</div>' +
             '<div class="ua-live-goods__bottom">' +
-            '<div class="ua-live-goods__price"><small>¥</small>' +
-            Number(price).toFixed(2) +
+            '<div class="ua-live-goods__price">' +
+            liveGoodsPriceHtml(p) +
             '</div>' +
             actions +
             '</div></div></article>'
@@ -2668,6 +2842,10 @@
     }
 
     function openSkuSheet(productId) {
+      if (isLivePreview()) {
+        showToast('该商品为预告，暂不可购买');
+        return;
+      }
       var p = PRODUCTS[productId];
       if (!p) return;
       var specs = getLiveSpecs(p);
@@ -2865,6 +3043,10 @@
     }
 
     function openConfirmWithLiveCart() {
+      if (isLivePreview()) {
+        showToast('预告商品暂不可购买');
+        return;
+      }
       var items = getLiveCartItems()
         .map(function (item) {
           var p = PRODUCTS[item.id];
@@ -2922,11 +3104,19 @@
       document.getElementById('liveGoodsList').addEventListener('click', function (e) {
         var addBtn = e.target.closest('[data-live-add]');
         if (addBtn) {
+          if (isLivePreview()) {
+            showToast('该商品为预告，暂不可购买');
+            return;
+          }
           openSkuSheet(addBtn.getAttribute('data-live-add'));
           return;
         }
         var rushBtn = e.target.closest('[data-live-rush]');
         if (rushBtn) {
+          if (isLivePreview()) {
+            showToast('该商品为预告，暂不可购买');
+            return;
+          }
           openSkuSheet(rushBtn.getAttribute('data-live-rush'));
           return;
         }
@@ -3012,6 +3202,8 @@
 
     document.getElementById('liveConfirmPayBtn') &&
       document.getElementById('liveConfirmPayBtn').addEventListener('click', function () {
+        /* 黑名单禁用「下单」：直播确认订单提交拦截 */
+        if (global.UaBlacklistGuard && global.UaBlacklistGuard.guardOrderSubmit()) return;
         var body = document.getElementById('liveConfirmBody');
         var agree = body && body.querySelector('[data-confirm-agree]');
         if (agree && !agree.classList.contains('is-checked')) {
@@ -3049,6 +3241,7 @@
 
     document.getElementById('confirmPaySubmit') &&
       document.getElementById('confirmPaySubmit').addEventListener('click', function () {
+        if (global.UaBlacklistGuard && global.UaBlacklistGuard.guardOrderSubmit()) return;
         closeLivePaySheet();
         var order = confirmPendingOrder;
         if (!order && global.UaOrdersStore) order = global.UaOrdersStore.getLatest();
@@ -3081,6 +3274,8 @@
       });
     document.getElementById('liveSendBtn') &&
       document.getElementById('liveSendBtn').addEventListener('click', function () {
+        /* 黑名单禁用「禁止直播评论」：发评论弹窗拦截 */
+        if (global.UaBlacklistGuard && global.UaBlacklistGuard.guardLiveComment()) return;
         var input = document.getElementById('liveCommentInput');
         var text = input && String(input.value || '').trim();
         if (!text) {
@@ -3090,6 +3285,61 @@
         if (input) input.value = '';
         showToast('发送成功');
       });
+
+    (function mountLiveGoodsDemo() {
+      if (document.getElementById('uaLiveGoodsDemo')) return;
+      var panel = document.createElement('div');
+      panel.id = 'uaLiveGoodsDemo';
+      panel.className = 'ua-live-goods-demo';
+      var cur = readLiveSaleMode();
+      var priceMode = readPreviewPriceMode();
+      var explainOn = isLiveExplainOn();
+      panel.innerHTML =
+        '<div class="ua-live-goods-demo__title">直播商品验收开关</div>' +
+        '<label class="ua-live-goods-demo__row">商品状态' +
+        '<select id="uaLiveGoodsDemoMode">' +
+        '<option value="selling"' +
+        (cur === 'selling' ? ' selected' : '') +
+        '>售卖</option>' +
+        '<option value="preview"' +
+        (cur === 'preview' ? ' selected' : '') +
+        '>预告</option></select></label>' +
+        '<label class="ua-live-goods-demo__row">预告价格' +
+        '<select id="uaLiveGoodsDemoPrice">' +
+        '<option value="question"' +
+        (priceMode === 'question' ? ' selected' : '') +
+        '>问号</option>' +
+        '<option value="market"' +
+        (priceMode === 'market' ? ' selected' : '') +
+        '>划线价</option>' +
+        '<option value="sale"' +
+        (priceMode === 'sale' ? ' selected' : '') +
+        '>售价</option></select></label>' +
+        '<label class="ua-live-goods-demo__row">讲解卡片' +
+        '<select id="uaLiveGoodsDemoExplain">' +
+        '<option value="off"' +
+        (explainOn ? '' : ' selected') +
+        '>关闭</option>' +
+        '<option value="on"' +
+        (explainOn ? ' selected' : '') +
+        '>开启</option></select></label>' +
+        '<button type="button" class="ua-live-goods-demo__apply" id="uaLiveGoodsDemoApply">应用并刷新</button>';
+      document.body.appendChild(panel);
+      var apply = document.getElementById('uaLiveGoodsDemoApply');
+      if (apply) {
+        apply.addEventListener('click', function () {
+          var sel = document.getElementById('uaLiveGoodsDemoMode');
+          var priceSel = document.getElementById('uaLiveGoodsDemoPrice');
+          var explainSel = document.getElementById('uaLiveGoodsDemoExplain');
+          writeLiveSaleMode(sel ? sel.value : 'selling');
+          writePreviewPriceMode(priceSel ? priceSel.value : 'sale');
+          writeExplainFlag(explainSel && explainSel.value === 'on');
+          window.location.reload();
+        });
+      }
+    })();
+
+    renderLiveExplainCard();
 
     /* 进场特效：进入直播间自动播放；右侧可切换演示三种样式 */
     (function bindLiveEntryFx() {
