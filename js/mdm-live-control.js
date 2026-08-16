@@ -1,9 +1,11 @@
 /**
  * 直播管理 — 直播中控工作台
- * 直播商品：从启用排品中添加；售卖 / 预告、置顶（仅 1 个，低于讲解）、讲解（默认置顶）、
+ * 直播商品：从上架排品中添加；售卖 / 预告、置顶（仅 1 个，低于讲解）、讲解（默认置顶）、
  * SKU 库存（需保存）/ 上下架、展示序号、上移下移。
  * 预告：C 端展示商品预告但不可售卖；售卖：C 端可正常下单。
- * 直播排品 tab：仅展示已启用且未加入直播商品的排品。
+ * 直播排品 tab：仅展示已上架且未加入直播商品的排品。
+ * 弹幕：点击可禁言（本场）、回复、屏蔽（C 端不展示该条）。
+ * 观看记录：当前在线 / 累计观看 / 观看人次。
  */
 (function () {
   'use strict';
@@ -23,6 +25,10 @@
   var mainTab = 'product';
   var productTab = 'cart';
   var sideTab = 'metrics';
+  var watchTab = 'online';
+  var watchSortDesc = true;
+  var watchStatusFilter = '';
+  var danmuMenuTarget = null;
   var expandedIds = {};
   var virtualUser = '';
   var schedFilter = { name: '', sku: '', category: '' };
@@ -72,16 +78,131 @@
         orderGmv: 0,
         salesAmount: 0,
         muted: false,
+        mutedUsers: {},
         recentOrders: [],
         chatMessages: [],
-        watchRecords: []
+        watchViewers: [],
+        watchVisits: [],
+        watchRecords: [],
+        visitCount: 0
       };
     }
     var m = Demo.controlMetrics[id];
     if (!m.chatMessages) m.chatMessages = [];
     if (!m.watchRecords) m.watchRecords = [];
     if (!m.recentOrders) m.recentOrders = [];
+    if (!m.mutedUsers) m.mutedUsers = {};
+    if (!m.watchViewers) m.watchViewers = [];
+    if (!m.watchVisits) m.watchVisits = [];
+    if (!m.watchViewers.length && m.watchRecords.length) {
+      m.watchViewers = m.watchRecords.map(function (w, i) {
+        return {
+          id: w.id || 'wv-' + i,
+          userId: w.userId || w.id || 'u-' + i,
+          nickname: w.nickname || '匿名用户',
+          lastEnterTime: w.enterTime || '',
+          enterCount: w.enterCount || 1,
+          totalDuration: w.duration || w.totalDuration || '',
+          online: w.online !== false,
+          muted: !!w.muted
+        };
+      });
+    }
     return m;
+  }
+
+  function avatarHue(name) {
+    var hue = 0;
+    var s = String(name || '');
+    for (var i = 0; i < s.length; i++) hue += s.charCodeAt(i);
+    return hue % 360;
+  }
+
+  function avatarHtml(name) {
+    var n = name || '匿';
+    return (
+      '<span class="lf-live-avatar" style="background:hsl(' +
+      avatarHue(n) +
+      ',58%,52%)">' +
+      escapeHtml(n.charAt(0)) +
+      '</span>'
+    );
+  }
+
+  function chatUserKey(userId, nickname) {
+    return userId || nickname || '';
+  }
+
+  function isUserMuted(m, userId, nickname) {
+    var map = (m && m.mutedUsers) || {};
+    if (userId && map[userId]) return true;
+    if (nickname && map[nickname]) return true;
+    return false;
+  }
+
+  function setUserMuted(userId, nickname, on) {
+    var m = metricsOf(sessionId);
+    m.mutedUsers = m.mutedUsers || {};
+    var key = chatUserKey(userId, nickname);
+    if (!key) return;
+    if (on) {
+      m.mutedUsers[key] = true;
+      if (userId) m.mutedUsers[userId] = true;
+    } else {
+      delete m.mutedUsers[key];
+      if (userId) delete m.mutedUsers[userId];
+      if (nickname) delete m.mutedUsers[nickname];
+    }
+    (m.watchViewers || []).forEach(function (v) {
+      if ((userId && v.userId === userId) || (nickname && v.nickname === nickname)) {
+        v.muted = !!on;
+      }
+    });
+  }
+
+  function findChatById(id) {
+    var msgs = metricsOf(sessionId).chatMessages || [];
+    for (var i = 0; i < msgs.length; i++) {
+      if (msgs[i].id === id) return msgs[i];
+    }
+    return null;
+  }
+
+  function closeDanmuMenu() {
+    var menu = document.getElementById('danmuActMenu');
+    if (menu) menu.hidden = true;
+    danmuMenuTarget = null;
+  }
+
+  function openDanmuMenu(ev, msg) {
+    if (!msg || msg.isSys) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    var menu = document.getElementById('danmuActMenu');
+    if (!menu) return;
+    danmuMenuTarget = msg;
+    var muted = isUserMuted(metricsOf(sessionId), msg.userId, msg.user);
+    var muteBtn = document.getElementById('danmuActMute');
+    var blockBtn = document.getElementById('danmuActBlock');
+    if (muteBtn) {
+      muteBtn.hidden = !!(msg.isAnchor || msg.isSys);
+      muteBtn.textContent = muted ? '恢复' : '禁言';
+    }
+    if (blockBtn) {
+      blockBtn.textContent = msg.blocked ? '取消屏蔽' : '屏蔽';
+    }
+    menu.hidden = false;
+    var x = ev.clientX;
+    var y = ev.clientY;
+    var rect = menu.getBoundingClientRect();
+    if (x + rect.width > window.innerWidth - 8) x = window.innerWidth - rect.width - 8;
+    if (y + rect.height > window.innerHeight - 8) y = window.innerHeight - rect.height - 8;
+    menu.style.left = Math.max(8, x) + 'px';
+    menu.style.top = Math.max(8, y) + 'px';
+  }
+
+  function timeSortValue(s) {
+    return String(s || '');
   }
 
   function normalizeSchedStatus(st) {
@@ -466,7 +587,29 @@
         C_STATE_KEY,
         JSON.stringify({
           explaining: explaining,
-          previewPriceMode: previewMode
+          previewPriceMode: previewMode,
+          chatMessages: (metricsOf(sessionId).chatMessages || []).map(function (m) {
+            return {
+              id: m.id,
+              userId: m.userId || '',
+              user: m.user,
+              text: m.text,
+              time: m.time || '',
+              isAnchor: !!m.isAnchor,
+              isSys: !!m.isSys,
+              blocked: !!m.blocked
+            };
+          }),
+          mutedUserIds: Object.keys(metricsOf(sessionId).mutedUsers || {}).filter(function (k) {
+            return !!(metricsOf(sessionId).mutedUsers || {})[k];
+          }),
+          muted: !!metricsOf(sessionId).muted,
+          cViewerText: (function () {
+            var sess = findSession(sessionId);
+            if (!sess || typeof Demo.formatCViewerText !== 'function') return '';
+            var cfg = Demo.normalizeCViewerConfig(sess);
+            return Demo.formatCViewerText(Demo.resolveCViewerCount(sess, metricsOf(sessionId)), cfg.display);
+          })()
         })
       );
     } catch (e) {}
@@ -585,13 +728,15 @@
     var box = document.getElementById('broadcastDanmu');
     if (!box) return;
     var msgs = (metricsOf(sess.id).chatMessages || []).filter(function (m) {
-      return !m.isSys;
+      return !m.isSys && !m.blocked;
     });
     var last = msgs.slice(-8);
     box.innerHTML = last
       .map(function (m) {
         return (
-          '<div class="lf-live-danmu-overlay__item"><b>' +
+          '<div class="lf-live-danmu-overlay__item" data-chat-id="' +
+          escapeHtml(m.id) +
+          '"><b>' +
           escapeHtml(m.user) +
           '</b> ' +
           escapeHtml(m.text) +
@@ -624,7 +769,7 @@
       });
     }
     if (!total) {
-      box.innerHTML = '<div class="lf-live-empty-inline">暂无直播商品，请从直播选品中添加</div>';
+      box.innerHTML = '<div class="lf-live-empty-inline">暂无直播商品，请从直播排品中添加</div>';
       return;
     }
     if (!list.length) {
@@ -745,7 +890,7 @@
       });
     }
     if (!list.length) {
-      box.innerHTML = '<div class="lf-live-empty-inline">暂无待添加的启用选品</div>';
+      box.innerHTML = '<div class="lf-live-empty-inline">暂无待添加的上架排品</div>';
       return;
     }
     box.innerHTML = list
@@ -903,7 +1048,7 @@
   function renderChat(sess) {
     var box = document.getElementById('sidePaneChat');
     if (!box) return;
-    var msgs = metricsOf(sess.id).chatMessages || [];
+    var msgs = (metricsOf(sess.id).chatMessages || []).slice().reverse();
     if (!msgs.length) {
       box.innerHTML = '<div class="lf-live-empty-inline">暂无弹幕</div>';
       return;
@@ -911,15 +1056,19 @@
     box.innerHTML = msgs
       .map(function (m) {
         var cls = m.isAnchor ? ' is-anchor' : m.isSys ? ' is-sys' : '';
+        if (m.blocked) cls += ' is-blocked';
         return (
           '<div class="lf-live-chat-item' +
           cls +
+          '" data-chat-id="' +
+          escapeHtml(m.id) +
           '">' +
           '<span class="lf-live-chat-item__user">' +
           escapeHtml(m.user) +
           '</span>' +
           '<span class="lf-live-chat-item__text">' +
           escapeHtml(m.text) +
+          (m.blocked ? '<em class="lf-live-chat-item__tag">已屏蔽</em>' : '') +
           '</span>' +
           '<span class="lf-live-chat-item__time">' +
           escapeHtml(m.time || '') +
@@ -930,27 +1079,109 @@
   }
 
   function renderWatch(sess) {
-    var box = document.getElementById('sidePaneWatch');
+    var box = document.getElementById('watchListBody');
     if (!box) return;
-    var rows = metricsOf(sess.id).watchRecords || [];
+    var m = metricsOf(sess.id);
+    var viewers = m.watchViewers || [];
+    var visits = m.watchVisits || [];
+    var onlineCount = viewers.filter(function (v) {
+      return !!v.online;
+    }).length;
+    var onlineBtn = document.getElementById('watchTabOnline');
+    var uniqueBtn = document.getElementById('watchTabUnique');
+    var visitsBtn = document.getElementById('watchTabVisits');
+    if (onlineBtn) onlineBtn.textContent = '当前在线(' + onlineCount + '人)';
+    if (uniqueBtn) uniqueBtn.textContent = '累计观看(' + viewers.length + '人)';
+    if (visitsBtn) visitsBtn.textContent = '观看人次(' + visits.length + '人次)';
+    setActiveTab('watchSubTabs', 'data-watch-tab', watchTab);
+    var sortBtn = document.getElementById('watchSortBtn');
+    if (sortBtn) sortBtn.textContent = watchSortDesc ? '倒序' : '正序';
+    var filterEl = document.getElementById('watchStatusFilter');
+    if (filterEl) {
+      filterEl.hidden = watchTab === 'visits';
+      if (watchTab !== 'visits') filterEl.value = watchStatusFilter;
+    }
+
+    var rows;
+    var emptyText;
+    if (watchTab === 'visits') {
+      rows = visits.slice();
+      emptyText = '暂无观看人次';
+      rows.sort(function (a, b) {
+        var va = timeSortValue(a.enterTime);
+        var vb = timeSortValue(b.enterTime);
+        return watchSortDesc ? (va < vb ? 1 : va > vb ? -1 : 0) : va < vb ? -1 : va > vb ? 1 : 0;
+      });
+      if (!rows.length) {
+        box.innerHTML = '<div class="lf-live-empty-inline">' + emptyText + '</div>';
+        return;
+      }
+      box.innerHTML = rows
+        .map(function (w) {
+          return (
+            '<div class="lf-live-watch-item">' +
+            avatarHtml(w.nickname) +
+            '<div class="lf-live-watch-item__body">' +
+            '<div class="lf-live-watch-item__user">' +
+            escapeHtml(w.nickname || '匿名用户') +
+            '</div>' +
+            '<div class="lf-live-watch-item__meta">进入 ' +
+            escapeHtml(w.enterTime || '—') +
+            ' · 离开 ' +
+            escapeHtml(w.leaveTime ? w.leaveTime : '观看中') +
+            '<br>停留 ' +
+            escapeHtml(w.stayDuration || '—') +
+            '</div></div></div>'
+          );
+        })
+        .join('');
+      return;
+    }
+
+    rows = viewers.filter(function (v) {
+      if (watchTab === 'online' && !v.online) return false;
+      var muted = isUserMuted(m, v.userId, v.nickname) || !!v.muted;
+      if (watchStatusFilter === 'muted' && !muted) return false;
+      if (watchStatusFilter === 'normal' && muted) return false;
+      return true;
+    });
+    rows.sort(function (a, b) {
+      var va = timeSortValue(a.lastEnterTime);
+      var vb = timeSortValue(b.lastEnterTime);
+      return watchSortDesc ? (va < vb ? 1 : va > vb ? -1 : 0) : va < vb ? -1 : va > vb ? 1 : 0;
+    });
+    emptyText = watchTab === 'online' ? '暂无在线观众' : '暂无累计观看';
     if (!rows.length) {
-      box.innerHTML = '<div class="lf-live-empty-inline">暂无观看记录</div>';
+      box.innerHTML = '<div class="lf-live-empty-inline">' + emptyText + '</div>';
       return;
     }
     box.innerHTML = rows
       .map(function (w) {
+        var muted = isUserMuted(m, w.userId, w.nickname) || !!w.muted;
         return (
-          '<div class="lf-live-watch-item">' +
+          '<div class="lf-live-watch-item" data-user-id="' +
+          escapeHtml(w.userId || '') +
+          '" data-nickname="' +
+          escapeHtml(w.nickname || '') +
+          '">' +
+          avatarHtml(w.nickname) +
+          '<div class="lf-live-watch-item__body">' +
           '<div class="lf-live-watch-item__user">' +
           escapeHtml(w.nickname || '匿名用户') +
-          ' <span>' +
-          escapeHtml(w.phone || '') +
-          '</span></div>' +
-          '<div class="lf-live-watch-item__meta">进入 ' +
-          escapeHtml(w.enterTime || '—') +
-          ' · 停留 ' +
-          escapeHtml(w.duration || '—') +
-          '</div></div>'
+          (muted ? ' <span class="lf-live-badge lf-live-badge--danger">禁言</span>' : '') +
+          '</div>' +
+          '<div class="lf-live-watch-item__meta">最近进入 ' +
+          escapeHtml(w.lastEnterTime || '—') +
+          '<br>进入 ' +
+          escapeHtml(String(w.enterCount || 1)) +
+          '次 · 累计观看 ' +
+          escapeHtml(w.totalDuration || '—') +
+          '</div></div>' +
+          '<div class="lf-live-watch-item__ops"><a href="#" data-watch-act="' +
+          (muted ? 'unmute' : 'mute') +
+          '">' +
+          (muted ? '恢复' : '禁言') +
+          '</a></div></div>'
         );
       })
       .join('');
@@ -960,14 +1191,24 @@
     var metrics = document.getElementById('sidePaneMetrics');
     var chat = document.getElementById('sidePaneChat');
     var watch = document.getElementById('sidePaneWatch');
+    var orderWrap = document.getElementById('monitorOrderWrap');
     if (metrics) metrics.hidden = sideTab !== 'metrics';
     if (chat) chat.hidden = sideTab !== 'chat';
     if (watch) watch.hidden = sideTab !== 'watch';
+    if (orderWrap) orderWrap.hidden = sideTab !== 'metrics';
     setActiveTab('controlSideTabs', 'data-side-tab', sideTab);
     if (sideTab === 'metrics') renderMonitor(sess);
     if (sideTab === 'chat') renderChat(sess);
     if (sideTab === 'watch') renderWatch(sess);
-    renderMonitor(sess);
+  }
+
+  function refreshInteractUi() {
+    var sess = findSession(sessionId);
+    if (!sess) return;
+    renderDanmuOverlay(sess);
+    if (sideTab === 'chat') renderChat(sess);
+    if (sideTab === 'watch') renderWatch(sess);
+    syncCState();
   }
 
   function renderQuickReplies() {
@@ -1006,6 +1247,7 @@
     var item = {
       id: 'c-' + Date.now(),
       user: virtualUser || '主播小丰',
+      userId: virtualUser ? 'u-virtual' : 'u-anchor',
       text: text,
       time: nowTime(),
       isAnchor: !virtualUser
@@ -1039,6 +1281,89 @@
     } catch (e) {
       toast('复制失败，请手动选择', 'warning');
     }
+  }
+
+  function parseAutoCloseMinutes(val) {
+    var n = Math.floor(Number(val));
+    if (isNaN(n) || n < 1) return null;
+    return n > 999 ? 999 : n;
+  }
+
+  function setSwitchOn(el, on) {
+    if (!el) return;
+    el.classList.toggle('is-on', !!on);
+    el.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+
+  function isSwitchOn(el) {
+    return !!(el && el.classList.contains('is-on'));
+  }
+
+  function syncDlgAutoCloseExtra() {
+    var extra = document.getElementById('dlgAutoCloseExtra');
+    if (extra) extra.hidden = !isSwitchOn(document.getElementById('dlgAutoCloseEnabled'));
+  }
+
+  function getRadioValue(name, fallback) {
+    var el = document.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : fallback;
+  }
+
+  function setRadioValue(name, value) {
+    document.querySelectorAll('input[name="' + name + '"]').forEach(function (el) {
+      el.checked = el.value === value;
+    });
+  }
+
+  function readCViewerFromDialog() {
+    var clamp = Demo.clampInt || function (v, min, max, fb) {
+      var n = Math.floor(Number(v));
+      if (!isFinite(n)) return fb;
+      if (n < min) return min;
+      if (n > max) return max;
+      return n;
+    };
+    var initialMax = Demo.C_VIEWER_INITIAL_MAX || 999999;
+    var extraMax = Demo.C_VIEWER_EXTRA_MAX || 100;
+    var display = getRadioValue('dlgCViewerDisplay', 'online');
+    if (display !== 'unique' && display !== 'visits') display = 'online';
+    var extraMin = clamp((document.getElementById('dlgCViewerExtraMin') || {}).value, 0, extraMax, 0);
+    var extraMaxVal = clamp((document.getElementById('dlgCViewerExtraMax') || {}).value, 0, extraMax, 0);
+    return {
+      display: display,
+      initial: clamp((document.getElementById('dlgCViewerInitial') || {}).value, 0, initialMax, 0),
+      extraMin: extraMin,
+      extraMax: extraMaxVal
+    };
+  }
+
+  function fillCloseSettingsDialog(sess) {
+    var minEl = document.getElementById('dlgAutoCloseMinutes');
+    var enabledSw = document.getElementById('dlgAutoCloseEnabled');
+    var sw = document.getElementById('dlgRemoveOnClose');
+    var cfg = typeof Demo.normalizeCViewerConfig === 'function' ? Demo.normalizeCViewerConfig(sess) : {
+      display: 'online',
+      initial: 0,
+      extraMin: 0,
+      extraMax: 0
+    };
+    setSwitchOn(enabledSw, !!(sess && sess.autoCloseEnabled));
+    if (minEl) minEl.value = sess && sess.autoCloseMinutes != null ? sess.autoCloseMinutes : '';
+    setSwitchOn(sw, !!(sess && sess.removeProductsOnClose));
+    setRadioValue('dlgCViewerDisplay', cfg.display);
+    var initialEl = document.getElementById('dlgCViewerInitial');
+    var extraMinEl = document.getElementById('dlgCViewerExtraMin');
+    var extraMaxEl = document.getElementById('dlgCViewerExtraMax');
+    if (initialEl) initialEl.value = cfg.initial;
+    if (extraMinEl) extraMinEl.value = cfg.extraMin;
+    if (extraMaxEl) extraMaxEl.value = cfg.extraMax;
+    syncDlgAutoCloseExtra();
+  }
+
+  function removeAllCartProducts() {
+    productsOf(sessionId).slice().forEach(function (p) {
+      if (p.inCart) removeFromCart(p);
+    });
   }
 
   function openDialog(id) {
@@ -1129,7 +1454,7 @@
       syncLiveStatus(p);
     } else if (act === 'remove') {
       removeFromCart(p);
-      toast('已移出直播商品，回到直播选品');
+      toast('已移出直播商品，回到直播排品');
     } else if (act === 'sku-toggle') {
       var skuRow = btn.closest('[data-sku-id]');
       var sku = skuRow ? findSku(p, skuRow.getAttribute('data-sku-id')) : null;
@@ -1187,7 +1512,12 @@
         var sess = findSession(sessionId);
         if (!sess) return;
         sess.status = 'ended';
-        toast('已关闭直播');
+        if (sess.autoCloseEnabled && sess.removeProductsOnClose) {
+          removeAllCartProducts();
+          toast('已关闭直播，并移除全部直播商品');
+        } else {
+          toast('已关闭直播');
+        }
         render();
       });
     }
@@ -1236,13 +1566,179 @@
         render();
       });
     }
+    var settingsBtn = document.getElementById('btnCartSettings');
+    if (settingsBtn) {
+      settingsBtn.addEventListener('click', function () {
+        var sess = findSession(sessionId);
+        if (!sess) return;
+        fillCloseSettingsDialog(sess);
+        openDialog('cartSettingsDialog');
+      });
+    }
+    var settingsEnabledSw = document.getElementById('dlgAutoCloseEnabled');
+    if (settingsEnabledSw) {
+      settingsEnabledSw.addEventListener('click', function () {
+        setSwitchOn(settingsEnabledSw, !isSwitchOn(settingsEnabledSw));
+        syncDlgAutoCloseExtra();
+      });
+    }
+    var settingsSw = document.getElementById('dlgRemoveOnClose');
+    if (settingsSw) {
+      settingsSw.addEventListener('click', function () {
+        setSwitchOn(settingsSw, !isSwitchOn(settingsSw));
+      });
+    }
+    var settingsConfirm = document.getElementById('cartSettingsConfirm');
+    if (settingsConfirm) {
+      settingsConfirm.addEventListener('click', function () {
+        var sess = findSession(sessionId);
+        if (!sess) return;
+        var enabled = isSwitchOn(document.getElementById('dlgAutoCloseEnabled'));
+        var minutes = parseAutoCloseMinutes((document.getElementById('dlgAutoCloseMinutes') || {}).value);
+        if (enabled && minutes == null) return toast('请填写直播断流后自动关播分钟数', 'warning');
+        var viewer = readCViewerFromDialog();
+        if (viewer.extraMin > viewer.extraMax) {
+          return toast('额外跟随人数下限不能大于上限', 'warning');
+        }
+        sess.autoCloseEnabled = enabled;
+        sess.autoCloseMinutes = minutes;
+        sess.removeProductsOnClose = enabled && isSwitchOn(document.getElementById('dlgRemoveOnClose'));
+        sess.cViewerDisplay = viewer.display;
+        sess.cViewerInitial = viewer.initial;
+        sess.cViewerExtraMin = viewer.extraMin;
+        sess.cViewerExtraMax = viewer.extraMax;
+        closeDialog('cartSettingsDialog');
+        toast('设置已保存');
+        render();
+      });
+    }
     var sideTabs = document.getElementById('controlSideTabs');
     if (sideTabs) {
       sideTabs.addEventListener('click', function (ev) {
         var btn = ev.target.closest('[data-side-tab]');
         if (!btn) return;
         sideTab = btn.getAttribute('data-side-tab');
+        closeDanmuMenu();
         render();
+      });
+    }
+
+    var watchSubTabs = document.getElementById('watchSubTabs');
+    if (watchSubTabs) {
+      watchSubTabs.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('[data-watch-tab]');
+        if (!btn) return;
+        watchTab = btn.getAttribute('data-watch-tab');
+        var sess = findSession(sessionId);
+        if (sess) renderWatch(sess);
+      });
+    }
+    var watchSortBtn = document.getElementById('watchSortBtn');
+    if (watchSortBtn) {
+      watchSortBtn.addEventListener('click', function () {
+        watchSortDesc = !watchSortDesc;
+        var sess = findSession(sessionId);
+        if (sess) renderWatch(sess);
+      });
+    }
+    var watchFilter = document.getElementById('watchStatusFilter');
+    if (watchFilter) {
+      watchFilter.addEventListener('change', function () {
+        watchStatusFilter = watchFilter.value || '';
+        var sess = findSession(sessionId);
+        if (sess) renderWatch(sess);
+      });
+    }
+    var watchBody = document.getElementById('watchListBody');
+    if (watchBody) {
+      watchBody.addEventListener('click', function (ev) {
+        var actEl = ev.target.closest('[data-watch-act]');
+        if (!actEl) return;
+        ev.preventDefault();
+        var row = actEl.closest('.lf-live-watch-item');
+        if (!row) return;
+        var userId = row.getAttribute('data-user-id') || '';
+        var nickname = row.getAttribute('data-nickname') || '';
+        var on = actEl.getAttribute('data-watch-act') === 'mute';
+        setUserMuted(userId, nickname, on);
+        toast(on ? '已对该用户本场禁言' : '已恢复该用户本场发言');
+        refreshInteractUi();
+      });
+    }
+
+    var overlay = document.getElementById('broadcastDanmu');
+    if (overlay) {
+      overlay.addEventListener('click', function (ev) {
+        var item = ev.target.closest('[data-chat-id]');
+        if (!item) return;
+        var msg = findChatById(item.getAttribute('data-chat-id'));
+        openDanmuMenu(ev, msg);
+      });
+    }
+    var chatList = document.getElementById('sidePaneChat');
+    if (chatList) {
+      chatList.addEventListener('click', function (ev) {
+        var item = ev.target.closest('[data-chat-id]');
+        if (!item) return;
+        var msg = findChatById(item.getAttribute('data-chat-id'));
+        openDanmuMenu(ev, msg);
+      });
+    }
+    var danmuMenu = document.getElementById('danmuActMenu');
+    if (danmuMenu) {
+      danmuMenu.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('[data-danmu-act]');
+        if (!btn) return;
+        ev.stopPropagation();
+        var msg = danmuMenuTarget;
+        var act = btn.getAttribute('data-danmu-act');
+        closeDanmuMenu();
+        if (!msg) return;
+        if (act === 'mute') {
+          if (msg.isAnchor || msg.isSys) return;
+          var muted = isUserMuted(metricsOf(sessionId), msg.userId, msg.user);
+          setUserMuted(msg.userId, msg.user, !muted);
+          toast(muted ? '已恢复该用户本场发言' : '已对该用户本场禁言');
+          refreshInteractUi();
+          return;
+        }
+        if (act === 'block') {
+          msg.blocked = !msg.blocked;
+          toast(msg.blocked ? '该弹幕已屏蔽，C 端不再展示' : '已取消屏蔽');
+          refreshInteractUi();
+          return;
+        }
+        if (act === 'reply') {
+          var input = document.getElementById('danmuReplyText');
+          if (input) {
+            input.value = '@' + (msg.user || '') + ' ';
+          }
+          openDialog('danmuReplyDialog');
+          window.setTimeout(function () {
+            if (!input) return;
+            input.focus();
+            input.selectionStart = input.selectionEnd = input.value.length;
+          }, 0);
+        }
+      });
+    }
+    document.addEventListener('click', function (ev) {
+      var menu = document.getElementById('danmuActMenu');
+      if (!menu || menu.hidden) return;
+      if (ev.target.closest('#danmuActMenu') || ev.target.closest('[data-chat-id]')) return;
+      closeDanmuMenu();
+    });
+    var replySend = document.getElementById('danmuReplySend');
+    if (replySend) {
+      replySend.addEventListener('click', function () {
+        var input = document.getElementById('danmuReplyText');
+        var text = ((input && input.value) || '').trim();
+        if (!text) return toast('请输入消息内容', 'warning');
+        pushChat(text);
+        if (input) input.value = '';
+        closeDialog('danmuReplyDialog');
+        toast('消息已发送');
+        refreshInteractUi();
       });
     }
 
@@ -1398,7 +1894,7 @@
         var p = found.item;
         if (act === 'add') {
           if (normalizeSchedStatus(p.status) !== 'enabled') {
-            return toast('仅启用选品可添加到直播商品', 'warning');
+            return toast('仅上架排品可添加到直播商品', 'warning');
           }
           addToCart(p);
           delete selectedSched[p.id];
@@ -1538,11 +2034,7 @@
       pushChat(text);
       if (danmuInput) danmuInput.value = '';
       toast('弹幕已发送');
-      var sess = findSession(sessionId);
-      if (sess) {
-        renderDanmuOverlay(sess);
-        if (sideTab === 'chat') renderChat(sess);
-      }
+      refreshInteractUi();
     }
     if (sendBtn) sendBtn.addEventListener('click', sendDanmu);
     if (danmuInput) {
@@ -1566,11 +2058,7 @@
         var label = map[mainTab] || '直播福利';
         pushChat('演示：已触发「' + label + '」', { user: '系统', isSys: true, isAnchor: false });
         toast('演示：' + label);
-        var sess = findSession(sessionId);
-        if (sess) {
-          renderDanmuOverlay(sess);
-          if (sideTab === 'chat') renderChat(sess);
-        }
+        refreshInteractUi();
       });
     }
   }

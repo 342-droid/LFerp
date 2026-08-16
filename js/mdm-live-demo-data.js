@@ -96,6 +96,13 @@
         { id: 'tpl-c1', type: 'COUPON', typeName: '优惠券', name: '晚间满减券', stock: 500 },
         { id: 'tpl-b1', type: 'FORTUNE_BAG', typeName: '福袋', name: '开播福袋', stock: 200 }
       ],
+      autoCloseEnabled: true,
+      autoCloseMinutes: 5,
+      removeProductsOnClose: false,
+      cViewerDisplay: 'online',
+      cViewerInitial: 18,
+      cViewerExtraMin: 1,
+      cViewerExtraMax: 3,
       createStatus: 'ENABLED',
       remark: '',
       createdAt: '2026-08-10 15:20:00'
@@ -120,13 +127,37 @@
       intro: '早市产地专场，覆盖杭甬核心城区。',
       viewPermission: 'ALL',
       regions: [
-        { code: '330100', label: '浙江省 杭州市（全市）' },
-        { code: '330200', label: '浙江省 宁波市（全市）' }
+        { code: '440100', label: '广东省 / 广州市（全市）' },
+        { code: '440300', label: '广东省 / 深圳市（全市）' }
+      ],
+      saleRegions: {
+        '440101': true,
+        '440102': true,
+        '440103': true,
+        '440104': true,
+        '440105': true,
+        '440301': true,
+        '440302': true,
+        '440303': true,
+        '440304': true,
+        '440305': true
+      },
+      saleRegionSummary: [
+        { id: '440100', label: '广东省 / 广州市（全市）' },
+        { id: '440300', label: '广东省 / 深圳市（全市）' }
       ],
       stores: [],
+      saleStores: {},
       pushUrl: 'rtmp://push.demo.lengfeng.com/live/sess-002?txSecret=****',
       playUrl: 'https://play.demo.lengfeng.com/live/sess-002.m3u8',
       templates: [],
+      autoCloseEnabled: true,
+      autoCloseMinutes: 10,
+      removeProductsOnClose: true,
+      cViewerDisplay: 'online',
+      cViewerInitial: 0,
+      cViewerExtraMin: 0,
+      cViewerExtraMax: 0,
       createStatus: 'ENABLED',
       remark: '区域试播',
       createdAt: '2026-08-11 09:40:00'
@@ -152,14 +183,22 @@
       viewPermission: 'STORE_MEMBER',
       regions: [],
       stores: [
-        { id: 'store-001', name: '冷丰生鲜·城东店' },
-        { id: 'store-002', name: '冷丰生鲜·高新店' }
+        { id: 'st-001', name: '振宁十足' },
+        { id: 'st-002', name: '萧山万达店' }
       ],
+      saleStores: { 'st-001': true, 'st-002': true },
       pushUrl: 'rtmp://push.demo.lengfeng.com/live/sess-003?txSecret=****',
       playUrl: 'https://play.demo.lengfeng.com/live/sess-003.m3u8',
       templates: [
         { id: 'tpl-s1', type: 'SIGN_IN', typeName: '签到', name: '会员日签到', stock: null }
       ],
+      autoCloseEnabled: true,
+      autoCloseMinutes: 5,
+      removeProductsOnClose: false,
+      cViewerDisplay: 'unique',
+      cViewerInitial: 0,
+      cViewerExtraMin: 0,
+      cViewerExtraMax: 0,
       createStatus: 'ENABLED',
       remark: '已结束归档',
       createdAt: '2026-08-09 10:00:00'
@@ -188,6 +227,13 @@
       pushUrl: 'rtmp://push.demo.lengfeng.com/live/sess-004?txSecret=****',
       playUrl: 'https://play.demo.lengfeng.com/live/sess-004.m3u8',
       templates: defaultTemplates(),
+      autoCloseEnabled: true,
+      autoCloseMinutes: 15,
+      removeProductsOnClose: true,
+      cViewerDisplay: 'visits',
+      cViewerInitial: 0,
+      cViewerExtraMin: 0,
+      cViewerExtraMax: 0,
       createStatus: 'DRAFT',
       remark: '',
       createdAt: '2026-08-11 18:10:00'
@@ -796,6 +842,7 @@
     'sess-001': {
       viewers: 1862,
       totalViews: 15620,
+      visitCount: 22180,
       peakViewers: 3240,
       likes: 28640,
       orderCount: 428,
@@ -851,17 +898,52 @@
           time: '2026-08-14 23:28:51'
         }
       ],
+      mutedUsers: { 'u-laozhang': true, 'u-xiaomei': true },
       chatMessages: [
-        { id: 'c1', user: '果子狸', text: '西红柿还有吗？', time: '19:42:01' },
-        { id: 'c2', user: '主播小丰', text: '有的，讲解中这款还有库存～', time: '19:42:08', isAnchor: true },
-        { id: 'c3', user: '阿南', text: '五花肉包邮吗', time: '19:41:50' },
-        { id: 'c4', user: '小满', text: '来个福袋！', time: '19:41:22' },
-        { id: 'c5', user: '希奎', text: '火龙果什么时候讲', time: '19:40:58' },
-        { id: 'c6', user: '爱叫啥叫啥', text: '糙米有优惠吗', time: '19:40:41' },
-        { id: 'c7', user: '阿木', text: '主播声音真好', time: '19:40:12' },
-        { id: 'c8', user: '小满', text: '求讲解基围虾', time: '19:39:50' },
-        { id: 'c9', user: '果子狸', text: '已下单，尽快发货', time: '19:39:28' },
-        { id: 'c10', user: '主播小丰', text: '下单备注自提门店即可', time: '19:39:10', isAnchor: true }
+        { id: 'c1', userId: 'u-guozi', user: '果子狸', text: '西红柿还有吗？', time: '19:42:01' },
+        { id: 'c2', userId: 'u-anchor', user: '主播小丰', text: '有的，讲解中这款还有库存～', time: '19:42:08', isAnchor: true },
+        { id: 'c3', userId: 'u-anan', user: '阿南', text: '五花肉包邮吗', time: '19:41:50' },
+        { id: 'c4', userId: 'u-xiaoman', user: '小满', text: '来个福袋！', time: '19:41:22' },
+        { id: 'c5', userId: 'u-xikui', user: '希奎', text: '火龙果什么时候讲', time: '19:40:58' },
+        { id: 'c6', userId: 'u-aijiaosha', user: '爱叫啥叫啥', text: '糙米有优惠吗', time: '19:40:41' },
+        { id: 'c7', userId: 'u-amu', user: '阿木', text: '主播声音真好', time: '19:40:12' },
+        { id: 'c8', userId: 'u-xiaoman', user: '小满', text: '求讲解基围虾', time: '19:39:50' },
+        { id: 'c9', userId: 'u-guozi', user: '果子狸', text: '已下单，尽快发货', time: '19:39:28' },
+        { id: 'c10', userId: 'u-anchor', user: '主播小丰', text: '下单备注自提门店即可', time: '19:39:10', isAnchor: true }
+      ],
+      watchViewers: [
+        { id: 'wv1', userId: 'u-guozi', nickname: '果子狸', lastEnterTime: '19:12:08', enterCount: 3, totalDuration: '01:12:10', online: true, muted: false },
+        { id: 'wv2', userId: 'u-anan', nickname: '阿南', lastEnterTime: '19:20:41', enterCount: 2, totalDuration: '48:37', online: true, muted: false },
+        { id: 'wv3', userId: 'u-xiaoman', nickname: '小满', lastEnterTime: '19:33:02', enterCount: 1, totalDuration: '09:16', online: true, muted: false },
+        { id: 'wv4', userId: 'u-amu', nickname: '阿木', lastEnterTime: '19:38:55', enterCount: 1, totalDuration: '03:23', online: true, muted: false },
+        { id: 'wv5', userId: 'u-xikui', nickname: '希奎', lastEnterTime: '19:08:12', enterCount: 2, totalDuration: '36:40', online: true, muted: false },
+        { id: 'wv6', userId: 'u-aijiaosha', nickname: '爱叫啥叫啥', lastEnterTime: '19:28:20', enterCount: 1, totalDuration: '12:05', online: true, muted: false },
+        { id: 'wv7', userId: 'u-xiaozhou', nickname: '小周', lastEnterTime: '19:40:00', enterCount: 1, totalDuration: '02:10', online: true, muted: false },
+        { id: 'wv8', userId: 'u-laozhang', nickname: '老张', lastEnterTime: '19:05:00', enterCount: 4, totalDuration: '01:45:00', online: true, muted: true },
+        { id: 'wv9', userId: 'u-abei', nickname: '阿北', lastEnterTime: '19:02:00', enterCount: 1, totalDuration: '08:00', online: false, muted: false },
+        { id: 'wv10', userId: 'u-xiaolin', nickname: '小林', lastEnterTime: '18:50:00', enterCount: 2, totalDuration: '22:18', online: false, muted: false },
+        { id: 'wv11', userId: 'u-xiaomei', nickname: '小美', lastEnterTime: '18:22:40', enterCount: 1, totalDuration: '15:02', online: false, muted: true }
+      ],
+      watchVisits: [
+        { id: 'vs1', userId: 'u-xiaomei', nickname: '小美', enterTime: '18:07:38', leaveTime: '18:22:40', stayDuration: '15:02' },
+        { id: 'vs2', userId: 'u-xiaolin', nickname: '小林', enterTime: '18:12:10', leaveTime: '18:26:40', stayDuration: '14:30' },
+        { id: 'vs3', userId: 'u-guozi', nickname: '果子狸', enterTime: '18:20:00', leaveTime: '18:45:12', stayDuration: '25:12' },
+        { id: 'vs4', userId: 'u-laozhang', nickname: '老张', enterTime: '18:22:00', leaveTime: '18:50:00', stayDuration: '28:00' },
+        { id: 'vs5', userId: 'u-anan', nickname: '阿南', enterTime: '18:40:00', leaveTime: '19:06:20', stayDuration: '26:20' },
+        { id: 'vs6', userId: 'u-xiaolin', nickname: '小林', enterTime: '18:34:42', leaveTime: '18:42:30', stayDuration: '07:48' },
+        { id: 'vs7', userId: 'u-guozi', nickname: '果子狸', enterTime: '18:52:00', leaveTime: '19:10:00', stayDuration: '18:00' },
+        { id: 'vs8', userId: 'u-laozhang', nickname: '老张', enterTime: '18:55:10', leaveTime: '19:02:40', stayDuration: '07:30' },
+        { id: 'vs9', userId: 'u-abei', nickname: '阿北', enterTime: '18:54:00', leaveTime: '19:02:00', stayDuration: '08:00' },
+        { id: 'vs10', userId: 'u-xikui', nickname: '希奎', enterTime: '18:48:00', leaveTime: '19:06:28', stayDuration: '18:28' },
+        { id: 'vs11', userId: 'u-laozhang', nickname: '老张', enterTime: '19:03:20', leaveTime: '19:04:50', stayDuration: '01:30' },
+        { id: 'vs12', userId: 'u-laozhang', nickname: '老张', enterTime: '19:05:00', leaveTime: '', stayDuration: '37:18' },
+        { id: 'vs13', userId: 'u-xikui', nickname: '希奎', enterTime: '19:08:12', leaveTime: '', stayDuration: '34:06' },
+        { id: 'vs14', userId: 'u-guozi', nickname: '果子狸', enterTime: '19:12:08', leaveTime: '', stayDuration: '30:10' },
+        { id: 'vs15', userId: 'u-anan', nickname: '阿南', enterTime: '19:20:41', leaveTime: '', stayDuration: '21:37' },
+        { id: 'vs16', userId: 'u-aijiaosha', nickname: '爱叫啥叫啥', enterTime: '19:28:20', leaveTime: '', stayDuration: '12:05' },
+        { id: 'vs17', userId: 'u-xiaoman', nickname: '小满', enterTime: '19:33:02', leaveTime: '', stayDuration: '09:16' },
+        { id: 'vs18', userId: 'u-amu', nickname: '阿木', enterTime: '19:38:55', leaveTime: '', stayDuration: '03:23' },
+        { id: 'vs19', userId: 'u-xiaozhou', nickname: '小周', enterTime: '19:40:00', leaveTime: '', stayDuration: '02:10' }
       ],
       watchRecords: [
         { id: 'w1', nickname: '果子狸', phone: '138****6521', enterTime: '19:12:08', duration: '30:10' },
@@ -885,6 +967,7 @@
     'sess-003': {
       viewers: 0,
       totalViews: 9240,
+      visitCount: 11860,
       peakViewers: 2100,
       likes: 15200,
       orderCount: 420,
@@ -918,6 +1001,92 @@
     { id: 'tpl-pool-t2', type: 'TASK', typeName: '观看任务', name: '观看满30分钟领券', stock: null }
   ];
 
+  function clampInt(val, min, max, fallback) {
+    var n = Math.floor(Number(val));
+    if (!isFinite(n)) return fallback;
+    if (n < min) return min;
+    if (n > max) return max;
+    return n;
+  }
+
+  var C_VIEWER_INITIAL_MAX = 999999;
+  var C_VIEWER_EXTRA_MAX = 100;
+
+  function normalizeCViewerConfig(sess) {
+    sess = sess || {};
+    var display = sess.cViewerDisplay;
+    if (display !== 'unique' && display !== 'visits') display = 'online';
+    var extraMin = clampInt(sess.cViewerExtraMin, 0, C_VIEWER_EXTRA_MAX, 0);
+    var extraMax = clampInt(sess.cViewerExtraMax, 0, C_VIEWER_EXTRA_MAX, 0);
+    if (extraMin > extraMax) {
+      var tmp = extraMin;
+      extraMin = extraMax;
+      extraMax = tmp;
+    }
+    return {
+      display: display,
+      initial: clampInt(sess.cViewerInitial, 0, C_VIEWER_INITIAL_MAX, 0),
+      extraMin: extraMin,
+      extraMax: extraMax
+    };
+  }
+
+  function extraFollowAt(index, min, max, seed) {
+    var lo = clampInt(min, 0, C_VIEWER_EXTRA_MAX, 0);
+    var hi = clampInt(max, 0, C_VIEWER_EXTRA_MAX, 0);
+    if (lo > hi) {
+      var t = lo;
+      lo = hi;
+      hi = t;
+    }
+    var span = hi - lo + 1;
+    var h = 2166136261;
+    var key = String(seed || 'live') + ':' + index;
+    for (var i = 0; i < key.length; i++) {
+      h ^= key.charCodeAt(i);
+      h = (h + (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24)) >>> 0;
+    }
+    return lo + (h % span);
+  }
+
+  function boostedOnlineCount(realCount, cfg, seed) {
+    var real = clampInt(realCount, 0, 99999999, 0);
+    if (cfg.extraMin === 0 && cfg.extraMax === 0) return cfg.initial + real;
+    var extra = 0;
+    var i;
+    for (i = 0; i < real; i++) {
+      extra += extraFollowAt(i, cfg.extraMin, cfg.extraMax, seed);
+    }
+    return cfg.initial + real + extra;
+  }
+
+  function cViewerDisplayLabel(display) {
+    if (display === 'unique') return '累计观看人数';
+    if (display === 'visits') return '累计观看人次';
+    return '实际在线人数';
+  }
+
+  function formatCViewerText(count, display) {
+    var n = clampInt(count, 0, 99999999, 0);
+    if (display === 'unique') return n + '人看过';
+    if (display === 'visits') return n + '人次观看';
+    return n + '人正在观看';
+  }
+
+  function resolveCViewerCount(sess, metrics) {
+    var cfg = normalizeCViewerConfig(sess);
+    var m = metrics || {};
+    var real = 0;
+    if (cfg.display === 'unique') {
+      real = clampInt(m.totalViews, 0, 99999999, 0);
+    } else if (cfg.display === 'visits') {
+      real = m.visitCount != null ? clampInt(m.visitCount, 0, 99999999, 0) : (m.watchVisits || []).length;
+    } else {
+      real = clampInt(m.viewers, 0, 99999999, 0);
+    }
+    return boostedOnlineCount(real, cfg, sess && sess.id);
+  }
+
   window.MdmLiveDemo = {
     rooms: rooms,
     timeslots: timeslots,
@@ -925,6 +1094,13 @@
     categories: categories,
     productsBySession: productsBySession,
     normalizeSchedStatus: normalizeSchedStatus,
+    normalizeCViewerConfig: normalizeCViewerConfig,
+    resolveCViewerCount: resolveCViewerCount,
+    formatCViewerText: formatCViewerText,
+    cViewerDisplayLabel: cViewerDisplayLabel,
+    clampInt: clampInt,
+    C_VIEWER_INITIAL_MAX: C_VIEWER_INITIAL_MAX,
+    C_VIEWER_EXTRA_MAX: C_VIEWER_EXTRA_MAX,
     dataMetrics: dataMetrics,
     controlMetrics: controlMetrics,
     demoStores: demoStores,
@@ -937,7 +1113,7 @@
     ],
     viewPermissionOptions: [
       { value: 'ALL', label: '全部用户' },
-      { value: 'STORE_MEMBER', label: '仅门店会员' }
+      { value: 'STORE_MEMBER', label: '仅会员可看' }
     ],
     templateTypeOptions: [
       { value: 'COUPON', label: '优惠券' },

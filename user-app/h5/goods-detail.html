@@ -6,7 +6,7 @@
   <title>商品详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
-  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260725-gd-cart">
+  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260816-live-c7">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-gd-page">
@@ -21,6 +21,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
         </a>
         <img class="ua-gd-hero__img" id="goodsDetailHero" src="../assets/shop/beef-hero.svg" alt="">
+        <span class="ua-live-goods__preview-badge ua-gd-hero__preview-badge" id="goodsDetailPreviewBadge" hidden>预告中</span>
         <div class="ua-gd-hero__tags" id="goodsDetailTags">
           <span class="ua-gd-hero__tag">
             <i></i>精选新鲜牛后腿肉
@@ -117,6 +118,7 @@
       <div class="ua-gd-footer__actions">
         <button type="button" class="ua-gd-footer__cart" id="goodsDetailAddCart">加入购物车</button>
         <button type="button" class="ua-gd-footer__buy" id="goodsDetailBuyNow">立即购买</button>
+        <button type="button" class="ua-gd-footer__soon" id="goodsDetailSoon" hidden disabled>即将开售</button>
       </div>
     </footer>
 
@@ -150,7 +152,7 @@
   </div>
 <script src="../js/user-app-blacklist-guard.js"></script>
 <script src="../../js/mdm-supplier-archive-store.js"></script>
-<script src="../js/user-app-shop.js?v=20260725-gd-cart"></script>
+<script src="../js/user-app-shop.js?v=20260816-live-c7"></script>
 <script>UAShop.initGoodsDetailPage();</script>
 </body>
 </html>

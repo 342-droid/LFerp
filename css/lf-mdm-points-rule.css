@@ -141,6 +141,7 @@
   gap: 8px;
   align-items: center;
 }
+.pts-rule-field[hidden],
 .pts-rule-scope-actions[hidden],
 .pts-rule-scope-chips[hidden],
 .pts-rule-scope-empty[hidden],

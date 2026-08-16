@@ -114,16 +114,51 @@
 
     var scopeExtra = '';
     if (sess.liveType === 'REGION') {
-      scopeExtra = descItem('适用区域', chipsHtml(sess.regions), true);
+      scopeExtra = descItem('适用城市', chipsHtml(sess.regions), true);
     } else if (sess.liveType === 'TARGETED') {
       scopeExtra = descItem('适用门店', chipsHtml(sess.stores), true);
     }
 
     document.getElementById('dScopeGrid').innerHTML = [
-      descItem('观看权限', escapeHtml(viewPermissionLabel(sess.viewPermission))),
+      descItem('是否会员可看', escapeHtml(viewPermissionLabel(sess.viewPermission))),
       descItem('分发范围', escapeHtml(sess.liveTypeName || '—')),
       scopeExtra
     ].join('');
+
+    var closeItems = [descItem('直播自动关播', escapeHtml(sess.autoCloseEnabled ? '开启' : '关闭'))];
+    if (sess.autoCloseEnabled) {
+      closeItems.push(
+        descItem(
+          '断流自动关播',
+          escapeHtml(
+            sess.autoCloseMinutes != null && sess.autoCloseMinutes !== ''
+              ? '直播断流 ' + sess.autoCloseMinutes + ' 分钟后自动关播'
+              : '—'
+          ),
+          true
+        )
+      );
+      closeItems.push(descItem('关播后同步移除直播商品', escapeHtml(sess.removeProductsOnClose ? '是' : '否')));
+    }
+    document.getElementById('dCloseGrid').innerHTML = closeItems.join('');
+
+    var cfg =
+      typeof Demo.normalizeCViewerConfig === 'function'
+        ? Demo.normalizeCViewerConfig(sess)
+        : { display: 'online', initial: 0, extraMin: 0, extraMax: 0 };
+    var viewerLabel =
+      typeof Demo.cViewerDisplayLabel === 'function' ? Demo.cViewerDisplayLabel(cfg.display) : cfg.display;
+    var viewerItems = [descItem('C端人数展示', escapeHtml(viewerLabel))];
+    viewerItems.push(descItem('初始值', escapeHtml(String(cfg.initial))));
+    viewerItems.push(
+      descItem(
+        '额外跟随人数',
+        escapeHtml('每真实增加 1 人/次，额外跟随随机 ' + cfg.extraMin + '-' + cfg.extraMax + ' 人'),
+        true
+      )
+    );
+    var viewerGrid = document.getElementById('dViewerGrid');
+    if (viewerGrid) viewerGrid.innerHTML = viewerItems.join('');
 
     document.getElementById('dStatusGrid').innerHTML = [
       descItem(

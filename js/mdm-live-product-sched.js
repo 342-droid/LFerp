@@ -1,6 +1,6 @@
 /**
  * 直播商品 — 直播排品
- * 排品状态：草稿 / 启用 / 禁用。启用不等于直播间上架。
+ * 排品状态：草稿 / 上架 / 下架。上架不等于直接展示到直播间。
  */
 (function () {
   'use strict';
@@ -59,8 +59,8 @@
   function statusLabel(st) {
     var map = {
       draft: '草稿',
-      enabled: '启用',
-      disabled: '禁用'
+      enabled: '上架',
+      disabled: '下架'
     };
     return map[normalizeStatus(st)] || '草稿';
   }
@@ -269,8 +269,8 @@
           '<a href="' +
           escapeHtml(editHref) +
           '">编辑</a>' +
-          (canEnable ? '<a href="#" data-act="on">启用</a>' : '') +
-          (canDisable ? '<a href="#" data-act="off">禁用</a>' : '');
+          (canEnable ? '<a href="#" data-act="on">上架</a>' : '') +
+          (canDisable ? '<a href="#" data-act="off">下架</a>' : '');
         var expandBtn = canExpand
           ? '<button type="button" class="lf-live-expand-btn" data-act="expand" aria-expanded="' +
             (expanded ? 'true' : 'false') +
@@ -426,7 +426,7 @@
       var item = found.item;
       if (act === 'on') {
         item.status = 'enabled';
-        toast('商品已启用，可在直播间上架');
+        toast('商品已上架，可在中控添加到直播商品');
         render();
         return;
       }
@@ -437,7 +437,7 @@
         item.explaining = false;
         item.pinned = false;
         if (item.liveStatus && item.liveStatus !== 'off_shelf') item.liveStatus = 'off_shelf';
-        toast('商品已禁用');
+        toast('商品已下架');
         render();
         return;
       }

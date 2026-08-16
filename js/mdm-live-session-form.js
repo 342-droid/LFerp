@@ -16,6 +16,9 @@
   var editingId = '';
   var boundTemplates = [];
   var coverDataUrl = '';
+  var saleRegions = {};
+  var saleRegionSummary = [];
+  var saleStores = {};
 
   function toast(msg, type) {
     if (typeof showToast === 'function') showToast(msg, type || 'success');
@@ -55,6 +58,72 @@
   function fromLocalInput(str) {
     if (!str) return '';
     return String(str).replace('T', ' ') + (str.length === 16 ? ':00' : '');
+  }
+
+  function parseAutoCloseMinutes(val) {
+    var n = Math.floor(Number(val));
+    if (isNaN(n) || n < 1) return null;
+    return n > 999 ? 999 : n;
+  }
+
+  function setSwitchOn(el, on) {
+    if (!el) return;
+    el.classList.toggle('is-on', !!on);
+    el.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+
+  function isSwitchOn(el) {
+    return !!(el && el.classList.contains('is-on'));
+  }
+
+  function syncAutoCloseExtra() {
+    var extra = document.getElementById('fAutoCloseExtra');
+    if (extra) extra.hidden = !isSwitchOn(document.getElementById('fAutoCloseEnabled'));
+  }
+
+  function getCViewerDisplay() {
+    var el = document.querySelector('input[name="fCViewerDisplay"]:checked');
+    var v = el ? el.value : 'online';
+    if (v !== 'unique' && v !== 'visits') return 'online';
+    return v;
+  }
+
+  function setCViewerDisplay(v) {
+    if (v !== 'unique' && v !== 'visits') v = 'online';
+    var el = document.querySelector('input[name="fCViewerDisplay"][value="' + v + '"]');
+    if (el) el.checked = true;
+  }
+
+  function readCViewerFields() {
+    var clamp = Demo.clampInt || function (val, min, max, fallback) {
+      var n = Math.floor(Number(val));
+      if (!isFinite(n)) return fallback;
+      if (n < min) return min;
+      if (n > max) return max;
+      return n;
+    };
+    var initialMax = Demo.C_VIEWER_INITIAL_MAX || 999999;
+    var extraMax = Demo.C_VIEWER_EXTRA_MAX || 100;
+    return {
+      display: getCViewerDisplay(),
+      initial: clamp((document.getElementById('fCViewerInitial') || {}).value, 0, initialMax, 0),
+      extraMin: clamp((document.getElementById('fCViewerExtraMin') || {}).value, 0, extraMax, 0),
+      extraMax: clamp((document.getElementById('fCViewerExtraMax') || {}).value, 0, extraMax, 0)
+    };
+  }
+
+  function fillCViewerFields(sess) {
+    var cfg =
+      typeof Demo.normalizeCViewerConfig === 'function'
+        ? Demo.normalizeCViewerConfig(sess)
+        : { display: 'online', initial: 0, extraMin: 0, extraMax: 0 };
+    setCViewerDisplay(cfg.display);
+    var initialEl = document.getElementById('fCViewerInitial');
+    var minEl = document.getElementById('fCViewerExtraMin');
+    var maxEl = document.getElementById('fCViewerExtraMax');
+    if (initialEl) initialEl.value = cfg.initial;
+    if (minEl) minEl.value = cfg.extraMin;
+    if (maxEl) maxEl.value = cfg.extraMax;
   }
 
   function liveTypeLabel(v) {
@@ -124,42 +193,106 @@
         })
         .join('');
     }
+  }
 
-    var regEl = document.getElementById('fRegions');
-    if (regEl) {
-      regEl.innerHTML = (Demo.demoRegions || [])
-        .map(function (r) {
-          return (
-            '<label class="lf-live-check">' +
-            '<input type="checkbox" name="region" value="' +
-            escapeHtml(r.code) +
-            '" data-label="' +
-            escapeHtml(r.label) +
-            '"> ' +
-            escapeHtml(r.label) +
-            '</label>'
-          );
-        })
-        .join('');
-    }
+  function cloneMap(map) {
+    var out = {};
+    Object.keys(map || {}).forEach(function (k) {
+      out[k] = map[k];
+    });
+    return out;
+  }
 
-    var storeEl = document.getElementById('fStores');
-    if (storeEl) {
-      storeEl.innerHTML = (Demo.demoStores || [])
-        .map(function (s) {
-          return (
-            '<label class="lf-live-check">' +
-            '<input type="checkbox" name="store" value="' +
-            escapeHtml(s.id) +
-            '" data-label="' +
-            escapeHtml(s.name) +
-            '"> ' +
-            escapeHtml(s.name) +
-            '</label>'
-          );
-        })
-        .join('');
+  function resetSaleScope() {
+    saleRegions = {};
+    saleRegionSummary = [];
+    saleStores = {};
+  }
+
+  function getSaleStoreCount() {
+    if (window.MdmProxyStorePicker && typeof window.MdmProxyStorePicker.count === 'function') {
+      return window.MdmProxyStorePicker.count(saleStores);
     }
+    return Object.keys(saleStores || {}).length;
+  }
+
+  function renderSaleRegionTags() {
+    var tagsEl = document.getElementById('fRegionTags');
+    if (!tagsEl) return;
+    tagsEl.innerHTML = (saleRegionSummary || [])
+      .map(function (item) {
+        return '<span class="product-proxy-sale-scope__tag">' + escapeHtml(item.label || item.id || '') + '</span>';
+      })
+      .join('');
+  }
+
+  function syncSaleScopeUi() {
+    renderSaleRegionTags();
+    var count = getSaleStoreCount();
+    var countEl = document.getElementById('fStoreCount');
+    if (countEl) {
+      countEl.hidden = !count;
+      countEl.textContent = '已选择 ' + count + ' 个门店';
+    }
+  }
+
+  function hydrateSaleScope(sess) {
+    resetSaleScope();
+    if (!sess) {
+      syncSaleScopeUi();
+      return;
+    }
+    if (sess.saleRegions && Object.keys(sess.saleRegions).length) {
+      saleRegions = cloneMap(sess.saleRegions);
+      saleRegionSummary = Array.isArray(sess.saleRegionSummary) ? sess.saleRegionSummary.slice() : [];
+      if (
+        window.MdmProxyRegionPicker &&
+        window.MdmProxyRegionPicker.summarize &&
+        !saleRegionSummary.length
+      ) {
+        saleRegionSummary = window.MdmProxyRegionPicker.summarize(saleRegions);
+      }
+    } else if (sess.regions && sess.regions.length && window.MdmProxyRegionPicker) {
+      var codes = sess.regions.map(function (r) {
+        return String(r.code || r.id || '');
+      });
+      saleRegions = {};
+      codes.forEach(function (id) {
+        if (id) saleRegions[id] = true;
+      });
+      saleRegionSummary = window.MdmProxyRegionPicker.summarize
+        ? window.MdmProxyRegionPicker.summarize(saleRegions)
+        : sess.regions.map(function (r) {
+            return { id: r.code || r.id, label: r.label || r.name };
+          });
+    }
+    if (sess.saleStores && Object.keys(sess.saleStores).length) {
+      saleStores = cloneMap(sess.saleStores);
+    } else if (sess.stores && sess.stores.length) {
+      saleStores = {};
+      sess.stores.forEach(function (s) {
+        if (s && s.id) saleStores[s.id] = true;
+      });
+    }
+    syncSaleScopeUi();
+  }
+
+  function selectedStoresForSave() {
+    return Object.keys(saleStores || {})
+      .map(function (id) {
+        var found =
+          window.MdmProxyStorePicker && typeof window.MdmProxyStorePicker.getStoreById === 'function'
+            ? window.MdmProxyStorePicker.getStoreById(id)
+            : null;
+        return { id: id, name: found ? found.name : id };
+      })
+      .filter(Boolean);
+  }
+
+  function selectedRegionsForSave() {
+    return (saleRegionSummary || []).map(function (item) {
+      return { code: item.id, id: item.id, label: item.label, name: item.label };
+    });
   }
 
   function syncAnchorFromRoom() {
@@ -175,8 +308,18 @@
     var liveType = (document.getElementById('fLiveType') || {}).value || '';
     var regionRow = document.getElementById('fRegionRow');
     var storeRow = document.getElementById('fStoreRow');
+    var permTip = document.getElementById('fViewPermissionTip');
     if (regionRow) regionRow.hidden = liveType !== 'REGION';
     if (storeRow) storeRow.hidden = liveType !== 'TARGETED';
+    if (permTip) {
+      if (liveType === 'REGION') {
+        permTip.textContent = '在所选城市范围内，限制本场是否仅会员可看。';
+      } else if (liveType === 'TARGETED') {
+        permTip.textContent = '在所选门店范围内，限制本场是否仅会员可看。';
+      } else {
+        permTip.textContent = '官方直播仅可限制本场是否仅会员可看。';
+      }
+    }
   }
 
   function renderTemplates() {
@@ -242,29 +385,6 @@
     if (stockRow) stockRow.hidden = !(type === 'COUPON' || type === 'FORTUNE_BAG');
   }
 
-  function setCheckedValues(name, values) {
-    var set = {};
-    (values || []).forEach(function (v) {
-      set[String(v)] = true;
-    });
-    document.querySelectorAll('input[name="' + name + '"]').forEach(function (el) {
-      el.checked = !!set[el.value];
-    });
-  }
-
-  function getCheckedItems(name) {
-    var items = [];
-    document.querySelectorAll('input[name="' + name + '"]:checked').forEach(function (el) {
-      items.push({
-        id: el.value,
-        code: el.value,
-        name: el.getAttribute('data-label') || el.value,
-        label: el.getAttribute('data-label') || el.value
-      });
-    });
-    return items;
-  }
-
   function getViewPermission() {
     var el = document.querySelector('input[name="viewPermission"]:checked');
     return el ? el.value : 'ALL';
@@ -289,6 +409,14 @@
       boundTemplates = [];
       renderTemplates();
       syncScopeVisibility();
+      var minutesEl = document.getElementById('fAutoCloseMinutes');
+      if (minutesEl) minutesEl.value = '';
+      setSwitchOn(document.getElementById('fAutoCloseEnabled'), false);
+      setSwitchOn(document.getElementById('fRemoveOnClose'), false);
+      syncAutoCloseExtra();
+      fillCViewerFields(null);
+      resetSaleScope();
+      syncSaleScopeUi();
       return;
     }
 
@@ -311,27 +439,21 @@
     document.getElementById('fCover').value = sess.cover || '';
     coverDataUrl = sess.cover || '';
     if (coverDataUrl) showCoverPreview(coverDataUrl);
+    document.getElementById('fAutoCloseMinutes').value =
+      sess.autoCloseMinutes != null ? sess.autoCloseMinutes : '';
+    setSwitchOn(document.getElementById('fAutoCloseEnabled'), !!sess.autoCloseEnabled);
+    setSwitchOn(document.getElementById('fRemoveOnClose'), !!sess.removeProductsOnClose);
+    syncAutoCloseExtra();
+    fillCViewerFields(sess);
     document.getElementById('fPushUrl').value = sess.pushUrl || '';
     document.getElementById('fPlayUrl').value = sess.playUrl || '';
     setViewPermission(sess.viewPermission || 'ALL');
-    setCheckedValues(
-      'region',
-      (sess.regions || []).map(function (r) {
-        return r.code || r.id;
-      })
-    );
-    setCheckedValues(
-      'store',
-      (sess.stores || []).map(function (s) {
-        return s.id;
-      })
-    );
+    hydrateSaleScope(sess);
     boundTemplates = (sess.templates || []).map(function (t) {
       return Object.assign({}, t);
     });
     renderTemplates();
     syncScopeVisibility();
-    updateStoreHint();
   }
 
   function showCoverPreview(url) {
@@ -342,13 +464,6 @@
       return;
     }
     ph.innerHTML = '<img src="' + escapeHtml(url) + '" alt="封面预览">';
-  }
-
-  function updateStoreHint() {
-    var hint = document.getElementById('fStoreHint');
-    if (!hint) return;
-    var n = getCheckedItems('store').length;
-    hint.textContent = n ? '已选择 ' + n + ' 个门店' : '请选择门店';
   }
 
   function validate() {
@@ -365,14 +480,22 @@
     if (!liveType) return toast('请选择直播类型', 'warning'), false;
     if (!startAt) return toast('请选择开播时间', 'warning'), false;
     if (!endAt) return toast('请选择结束时间', 'warning'), false;
+    if (isSwitchOn(document.getElementById('fAutoCloseEnabled'))) {
+      var autoCloseMinutes = parseAutoCloseMinutes((document.getElementById('fAutoCloseMinutes') || {}).value);
+      if (autoCloseMinutes == null) return toast('请填写直播断流后自动关播分钟数', 'warning'), false;
+    }
+    var viewer = readCViewerFields();
+    if (viewer.extraMin > viewer.extraMax) {
+      return toast('额外跟随人数下限不能大于上限', 'warning'), false;
+    }
     if (new Date(endAt.replace(/-/g, '/')).getTime() <= new Date(startAt.replace(/-/g, '/')).getTime()) {
       return toast('结束时间必须晚于开播时间', 'warning'), false;
     }
-    if (liveType === 'REGION' && !getCheckedItems('region').length) {
-      return toast('区域直播请至少选择一个适用区域', 'warning'), false;
+    if (liveType === 'REGION' && !saleRegionSummary.length) {
+      return toast('区域直播请至少选择一个适用城市', 'warning'), false;
     }
-    if (liveType === 'TARGETED' && !getCheckedItems('store').length) {
-      return toast('定向直播请至少选择一个关联门店', 'warning'), false;
+    if (liveType === 'TARGETED' && !getSaleStoreCount()) {
+      return toast('定向直播请至少选择一个适用门店', 'warning'), false;
     }
     return true;
   }
@@ -385,13 +508,9 @@
       return s.id === slotId;
     });
     var room = findRoom(roomId);
-    var regions = liveType === 'REGION' ? getCheckedItems('region') : [];
-    var stores =
-      liveType === 'TARGETED'
-        ? getCheckedItems('store').map(function (s) {
-            return { id: s.id, name: s.name };
-          })
-        : [];
+    var regions = liveType === 'REGION' ? selectedRegionsForSave() : [];
+    var stores = liveType === 'TARGETED' ? selectedStoresForSave() : [];
+    var viewer = readCViewerFields();
 
     return {
       name: document.getElementById('fName').value.trim(),
@@ -407,9 +526,21 @@
       endAt: fromLocalInput(document.getElementById('fEndAt').value),
       cover: document.getElementById('fCover').value || coverDataUrl || '',
       intro: document.getElementById('fIntro').value.trim(),
+      autoCloseEnabled: isSwitchOn(document.getElementById('fAutoCloseEnabled')),
+      autoCloseMinutes: parseAutoCloseMinutes((document.getElementById('fAutoCloseMinutes') || {}).value),
+      removeProductsOnClose:
+        isSwitchOn(document.getElementById('fAutoCloseEnabled')) &&
+        isSwitchOn(document.getElementById('fRemoveOnClose')),
+      cViewerDisplay: viewer.display,
+      cViewerInitial: viewer.initial,
+      cViewerExtraMin: viewer.extraMin,
+      cViewerExtraMax: viewer.extraMax,
       viewPermission: getViewPermission(),
       regions: regions,
+      saleRegions: liveType === 'REGION' ? cloneMap(saleRegions) : {},
+      saleRegionSummary: liveType === 'REGION' ? (saleRegionSummary || []).slice() : [],
       stores: stores,
+      saleStores: liveType === 'TARGETED' ? cloneMap(saleStores) : {},
       templates: boundTemplates.map(function (t) {
         return Object.assign({}, t);
       })
@@ -452,6 +583,7 @@
         Demo.controlMetrics[id] = {
           viewers: 0,
           totalViews: 0,
+          visitCount: 0,
           peakViewers: 0,
           likes: 0,
           orderCount: 0,
@@ -486,7 +618,57 @@
     var typeEl = document.getElementById('fLiveType');
     if (typeEl) typeEl.addEventListener('change', syncScopeVisibility);
 
-    document.getElementById('fStores').addEventListener('change', updateStoreHint);
+    var regionPickBtn = document.getElementById('fRegionPickBtn');
+    if (regionPickBtn) {
+      regionPickBtn.addEventListener('click', function () {
+        if (!window.MdmProxyRegionPicker) {
+          toast('区域选择组件未加载', 'warning');
+          return;
+        }
+        window.MdmProxyRegionPicker.open({
+          selected: saleRegions,
+          onConfirm: function (selected, summary) {
+            saleRegions = cloneMap(selected);
+            saleRegionSummary = Array.isArray(summary) ? summary : [];
+            if (window.MdmProxyRegionPicker.summarize && !saleRegionSummary.length) {
+              saleRegionSummary = window.MdmProxyRegionPicker.summarize(saleRegions);
+            }
+            syncSaleScopeUi();
+          }
+        });
+      });
+    }
+
+    var storePickBtn = document.getElementById('fStorePickBtn');
+    if (storePickBtn) {
+      storePickBtn.addEventListener('click', function () {
+        if (!window.MdmProxyStorePicker) {
+          toast('门店选择组件未加载', 'warning');
+          return;
+        }
+        window.MdmProxyStorePicker.open({
+          selected: saleStores,
+          onConfirm: function (selected) {
+            saleStores = cloneMap(selected);
+            syncSaleScopeUi();
+          }
+        });
+      });
+    }
+
+    var autoCloseSw = document.getElementById('fAutoCloseEnabled');
+    if (autoCloseSw) {
+      autoCloseSw.addEventListener('click', function () {
+        setSwitchOn(autoCloseSw, !isSwitchOn(autoCloseSw));
+        syncAutoCloseExtra();
+      });
+    }
+    var removeSw = document.getElementById('fRemoveOnClose');
+    if (removeSw) {
+      removeSw.addEventListener('click', function () {
+        setSwitchOn(removeSw, !isSwitchOn(removeSw));
+      });
+    }
 
     var coverBox = document.getElementById('fCoverBox');
     var coverFile = document.getElementById('fCoverFile');

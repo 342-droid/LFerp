@@ -361,13 +361,13 @@
     document.getElementById('pOnBtn').addEventListener('click', function () {
       if (!product) return;
       product.status = 'enabled';
-      toast('商品已启用，可在直播间上架');
+      toast('商品已上架，可在中控添加到直播商品');
     });
     document.getElementById('pOffBtn').addEventListener('click', function () {
       if (!product) return;
       product.status = 'disabled';
       if (product.liveStatus && product.liveStatus !== 'off_shelf') product.liveStatus = 'off_shelf';
-      toast('商品已禁用');
+      toast('商品已下架');
     });
     document.getElementById('pDeleteBtn').addEventListener('click', function () {
       if (!product) return;
