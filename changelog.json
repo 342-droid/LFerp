@@ -1,7 +1,158 @@
 {
-  "latestSha": "f4fd5542c4893ff68b5a5fd15c970473f9619117",
-  "total": 264,
+  "latestSha": "f737b6f9edcc546f67461996f778dd6fe708d969",
+  "total": 265,
   "days": [
+    {
+      "date": "2026-08-17",
+      "items": [
+        {
+          "sha": "f737b6f",
+          "type": "feat",
+          "text": "新增文件中心与切换地址，并修复后台列表序号对齐",
+          "author": "sisi",
+          "time": "00:10",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_member_batch_tag_members.html",
+              "module": "冷丰WMS",
+              "title": "人群列表"
+            },
+            {
+              "file": "MDM/mdm_member_segment_members.html",
+              "module": "冷丰WMS",
+              "title": "人群列表"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "SCM/basic_settings_cooperation.html",
+              "module": "冷丰WMS",
+              "title": "合作管理"
+            },
+            {
+              "file": "SCM/basic_settings_file_center.html",
+              "module": "冷丰WMS",
+              "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_material.html",
+              "module": "冷丰WMS",
+              "title": "素材列表"
+            },
+            {
+              "file": "SCM/basic_settings_material_type.html",
+              "module": "冷丰WMS",
+              "title": "素材类型"
+            },
+            {
+              "file": "SCM/basic_settings_member.html",
+              "module": "冷丰WMS",
+              "title": "会员配置"
+            },
+            {
+              "file": "SCM/basic_settings_miniprogram_agreement.html",
+              "module": "冷丰WMS",
+              "title": "小程序协议"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "SCM/basic_settings_recommendation.html",
+              "module": "冷丰WMS",
+              "title": "推荐位配置"
+            },
+            {
+              "file": "SCM/basic_settings_system.html",
+              "module": "冷丰WMS",
+              "title": "系统管理"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/switch-address.html",
+              "module": "",
+              "title": "切换地址 · 用户 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/basic_settings_file_center.html",
+              "text": "基础设置新增文件中心页（我的/全部/下载流水），支持筛选、分页与下载演示"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "工具栏新增导出，提交后右下角文件中心角标+1，进入文件中心后清零"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "text": "门店定位旁增加入口，跳转切换地址；非门店定位仅展示小区/建筑短名"
+            },
+            {
+              "file": "user-app/h5/switch-address.html",
+              "text": "还原搜索定位、收货地址/附近地址与门店列表；门店展示营业中/非营业及营业时段"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "text": "会员条码下新增「我的默认门店」卡片，支持切换门店"
+            },
+            {
+              "file": null,
+              "text": "后台列表序号改为真实单元格并兼容业务列索引，修复表头与内容错位"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-16",
       "items": [
@@ -738,9 +889,19 @@
               "title": "合作管理"
             },
             {
+              "file": "SCM/basic_settings_file_center.html",
+              "module": "冷丰WMS",
+              "title": "文件中心"
+            },
+            {
               "file": "SCM/basic_settings_material.html",
               "module": "冷丰WMS",
-              "title": "素材管理"
+              "title": "素材列表"
+            },
+            {
+              "file": "SCM/basic_settings_material_type.html",
+              "module": "冷丰WMS",
+              "title": "素材类型"
             },
             {
               "file": "SCM/basic_settings_member.html",
@@ -962,9 +1123,19 @@
               "title": "合作管理"
             },
             {
+              "file": "SCM/basic_settings_file_center.html",
+              "module": "冷丰WMS",
+              "title": "文件中心"
+            },
+            {
               "file": "SCM/basic_settings_material.html",
               "module": "冷丰WMS",
-              "title": "素材管理"
+              "title": "素材列表"
+            },
+            {
+              "file": "SCM/basic_settings_material_type.html",
+              "module": "冷丰WMS",
+              "title": "素材类型"
             },
             {
               "file": "SCM/basic_settings_member.html",
@@ -14706,6 +14877,11 @@
               "title": "合作管理"
             },
             {
+              "file": "SCM/basic_settings_file_center.html",
+              "module": "冷丰WMS",
+              "title": "文件中心"
+            },
+            {
               "file": "SCM/basic_settings_index.html",
               "module": "冷丰WMS",
               "title": "基础设置"
@@ -14713,7 +14889,12 @@
             {
               "file": "SCM/basic_settings_material.html",
               "module": "冷丰WMS",
-              "title": "素材管理"
+              "title": "素材列表"
+            },
+            {
+              "file": "SCM/basic_settings_material_type.html",
+              "module": "冷丰WMS",
+              "title": "素材类型"
             },
             {
               "file": "SCM/basic_settings_member.html",
