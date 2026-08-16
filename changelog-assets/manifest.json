@@ -2493,6 +2493,78 @@
     "status": "diff",
     "date": "2026-08-04"
   },
+  "ca7034b|MDM/mdm_archive_carrier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-15"
+  },
+  "ca7034b|MDM/mdm_archive_live_room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-15"
+  },
+  "ca7034b|MDM/mdm_archive_store.html": {
+    "before": "changelog-assets/ca7034b/MDM__mdm_archive_store.html.before.jpg",
+    "after": "changelog-assets/ca7034b/MDM__mdm_archive_store.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-08-15"
+  },
+  "ca7034b|MDM/mdm_archive_supplier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-15"
+  },
+  "ca7034b|MDM/mdm_archive_warehouse.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-15"
+  },
+  "ca7034b|MDM/mdm_audit_store_registration.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-15"
+  },
+  "ca7034b|MDM/mdm_member_c.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-15"
+  },
+  "ca7034b|MDM/mdm_party_all.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-15"
+  },
+  "ca7034b|MDM/mdm_people_anchor.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-15"
+  },
+  "ca7034b|MDM/mdm_people_bd.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-15"
+  },
+  "ca7034b|MDM/mdm_people_driver.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-15"
+  },
+  "ca7034b|MDM/mdm_people_purchaser.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-15"
+  },
+  "ca7034b|MDM/mdm_resource_onboarding.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-15"
+  },
+  "ca7034b|MDM/mdm_super_admin_accounts.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-15"
+  },
   "d695157|MDM/mdm_member_level.html": {
     "before": "changelog-assets/d695157/MDM__mdm_member_level.html.before.jpg",
     "after": "changelog-assets/d695157/MDM__mdm_member_level.html.after.jpg",
@@ -3364,6 +3436,147 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-08-06"
+  },
+  "f49d13e|MDM/mdm_product_mall.html": {
+    "before": "changelog-assets/f49d13e/MDM__mdm_product_mall.html.before.jpg",
+    "after": "changelog-assets/f49d13e/MDM__mdm_product_mall.html.after.jpg",
+    "regions": 61,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|MDM/mdm_product_proxy_list.html": {
+    "before": "changelog-assets/f49d13e/MDM__mdm_product_proxy_list.html.before.jpg",
+    "after": "changelog-assets/f49d13e/MDM__mdm_product_proxy_list.html.after.jpg",
+    "regions": 67,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|SCM/basic_settings_order.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/cart.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/category.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/goods-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/home.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/live-room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/mall.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/order-aftersale-list.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/order-confirm.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/order-detail-pickup.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/order-refund-address-book.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/order-refund-address-create.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/order-refund-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/order-refund-exchange.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/order-refund-only.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/order-refund-pickup-edit.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/order-refund-pickup-order.html": {
+    "before": "changelog-assets/f49d13e/user-app__h5__order-refund-pickup-order.html.before.jpg",
+    "after": "changelog-assets/f49d13e/user-app__h5__order-refund-pickup-order.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/order-refund-pre-ship.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/order-refund-restock.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/order-refund-return-goods.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/order-refund-return-ship.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/order-refund-return.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/order-refund-select.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
+  },
+  "f49d13e|user-app/h5/profile.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-16"
   },
   "f7fad69|MDM/mdm_archive_store.html": {
     "regions": 0,
