@@ -191,7 +191,7 @@
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    if (typeof showToast === 'function') showToast('导出成功', 'success');
+    /* 导出任务与角标由全局 LfFileCenterNotify 处理 */
   }
 
   function bindEvents() {

@@ -1,8 +1,9 @@
 /**
  * 后台数据列表自动加「序号」列（仓储 / 采购 / 物流除外）
  *
- * 策略：仅在 thead 插入「序号」th，tbody 用 tr::before 伪列展示数字，
- * 不插入真实 td，避免打乱业务脚本的 cells[n] / STORE_COL 等硬编码索引。
+ * 策略：thead / tbody 均插入真实「序号」单元格，保证与表头对齐。
+ * 同时对 tr.querySelectorAll('td') / tr.querySelector('td') 做兼容过滤，
+ * 业务脚本的 cells[n] / STORE_COL 仍按「业务列」从 0 起算（跳过序号列）。
  * 已有「序号」表头的列表视为自管，跳过。
  */
 (function (global) {
@@ -13,9 +14,11 @@
     /(?:^|\/)(mdm-sidebar|order-sidebar|product-sidebar|marketing-sidebar|settle-sidebar|aftersale-sidebar|basic-settings-sidebar)(?:\.js)?(?:\?|$)/i;
 
   var TABLE_SEL =
-    'table.table, table.product-proxy-table, table.product-table, table.order-live-table, table.queue-table, table.aftersale-table, table.aftersale-refund-table';
+    'table.table, table.product-proxy-table, table.product-table, table.order-live-table, table.queue-table, table.aftersale-table, table.aftersale-refund-table, table.fc-table';
   var SKIP_CLOSEST =
     '.modal, .modal-content, .store-drawer, [data-mdm-archive-drawer], [role="dialog"], .lf-drawer, .product-proxy-form, .sku-picker';
+
+  var shimInstalled = false;
 
   function scriptSrcList() {
     var out = [];
@@ -53,7 +56,9 @@
   function hasNativeSerialHeader(table) {
     var ths = table.querySelectorAll('thead tr:first-child th, thead tr:first-child td');
     for (var i = 0; i < ths.length; i++) {
-      if (normalizeHeaderText(ths[i]) === '序号') return true;
+      if (normalizeHeaderText(ths[i]) === '序号' && !ths[i].classList.contains('lf-row-no-th')) {
+        return true;
+      }
     }
     return false;
   }
@@ -67,7 +72,6 @@
     if (!table.tBodies || !table.tBodies.length) return false;
     var headerCells = table.tHead.rows[0].cells.length;
     if (headerCells < 2) return false;
-    /* 配置区嵌套小表跳过；主列表区保留 */
     if (table.closest('.bs-hours-cat, .sac-field, .store-form, .product-proxy-form')) return false;
     if (!table.closest('.table-section, .main-content, .member-tab-panel, .product-proxy-page, .content-panel')) {
       return false;
@@ -91,25 +95,44 @@
       table.classList.remove('lf-row-no-on');
       return false;
     }
-    if (table.classList.contains('lf-row-no-on') && table.querySelector('th.lf-row-no-th')) {
-      return true;
-    }
     var headerRow = table.tHead.rows[0];
     if (!headerRow) return false;
-    var th = document.createElement('th');
-    th.className = 'lf-row-no-th';
-    th.textContent = '序号';
-    th.scope = 'col';
-    headerRow.insertBefore(th, headerRow.firstChild);
-    ensureColForSerial(table);
+    var existing = headerRow.querySelector('th.lf-row-no-th');
+    if (!existing) {
+      var th = document.createElement('th');
+      th.className = 'lf-row-no-th';
+      th.textContent = '序号';
+      th.scope = 'col';
+      headerRow.insertBefore(th, headerRow.firstChild);
+      ensureColForSerial(table);
+    }
     table.classList.add('lf-row-no-on');
     table.classList.remove('lf-row-no-native');
     return true;
   }
 
+  function isDataRow(tr) {
+    if (!tr || tr.nodeType !== 1) return false;
+    if (tr.querySelector('td[colspan]')) return false;
+    var tds = tr.querySelectorAll('td');
+    return tds.length > 0;
+  }
+
+  function visibleDataRows(tbody) {
+    var rows = [];
+    var trs = tbody.rows;
+    for (var i = 0; i < trs.length; i++) {
+      var tr = trs[i];
+      if (!isDataRow(tr)) continue;
+      if (tr.style.display === 'none' || tr.getAttribute('hidden') != null) continue;
+      if (tr.classList.contains('lf-row-no-skip')) continue;
+      rows.push(tr);
+    }
+    return rows;
+  }
+
   /**
    * 跨页连续编号：根据分页文案推断起始序号（从 0 起的 reset 值）
-   * 解析失败则每页从 1 开始。
    */
   function inferCounterReset(table) {
     var explicit = table.getAttribute('data-lf-row-start');
@@ -153,11 +176,37 @@
     return 0;
   }
 
-  function applyCounterReset(table) {
+  function syncRowNumbers(table) {
     var tbody = table.tBodies[0];
     if (!tbody) return;
+    var rows = visibleDataRows(tbody);
     var start = inferCounterReset(table);
-    tbody.style.counterReset = 'lf-row-no ' + start;
+    var i;
+    for (i = 0; i < rows.length; i++) {
+      var tr = rows[i];
+      var td = tr.querySelector('td.lf-row-no-td');
+      if (!td) {
+        td = document.createElement('td');
+        td.className = 'lf-row-no-td';
+        tr.insertBefore(td, tr.firstChild);
+      } else if (tr.firstChild !== td) {
+        tr.insertBefore(td, tr.firstChild);
+      }
+      /* 自上而下 1、2、3…（列表本身按创建时间倒序时，视觉上仍从 1 起编） */
+      td.textContent = String(start + i + 1);
+    }
+
+    /* 隐藏行也补齐空序号格，避免列错位 */
+    var allTrs = tbody.rows;
+    for (i = 0; i < allTrs.length; i++) {
+      var row = allTrs[i];
+      if (!isDataRow(row)) continue;
+      if (row.querySelector('td.lf-row-no-td')) continue;
+      var empty = document.createElement('td');
+      empty.className = 'lf-row-no-td';
+      empty.textContent = '';
+      row.insertBefore(empty, row.firstChild);
+    }
   }
 
   function enhanceTable(table) {
@@ -167,7 +216,7 @@
       return;
     }
     if (!ensureSerialHeader(table)) return;
-    applyCounterReset(table);
+    syncRowNumbers(table);
   }
 
   function enhanceAll(root) {
@@ -191,8 +240,46 @@
     var link = document.createElement('link');
     link.id = 'lf-table-row-no-css';
     link.rel = 'stylesheet';
-    link.href = assetUrl('css/lf-table-row-no.css') + '?v=20260815-row-no-order';
+    link.href = assetUrl('css/lf-table-row-no.css') + '?v=20260817-row-td';
     document.head.appendChild(link);
+  }
+
+  /**
+   * 兼容：业务代码 tr.querySelectorAll('td')[n] 仍指向原业务列
+   */
+  function installCellsShim() {
+    if (shimInstalled) return;
+    shimInstalled = true;
+
+    var nativeQSA = Element.prototype.querySelectorAll;
+    var nativeQS = Element.prototype.querySelector;
+
+    function inRowNoTable(el) {
+      return (
+        el &&
+        el.tagName === 'TR' &&
+        el.closest &&
+        el.closest('table.lf-row-no-on')
+      );
+    }
+
+    function isBareTdSelector(sel) {
+      return String(sel || '').replace(/\s+/g, '') === 'td';
+    }
+
+    Element.prototype.querySelectorAll = function (selectors) {
+      if (inRowNoTable(this) && isBareTdSelector(selectors)) {
+        return nativeQSA.call(this, 'td:not(.lf-row-no-td)');
+      }
+      return nativeQSA.apply(this, arguments);
+    };
+
+    Element.prototype.querySelector = function (selectors) {
+      if (inRowNoTable(this) && isBareTdSelector(selectors)) {
+        return nativeQS.call(this, 'td:not(.lf-row-no-td)');
+      }
+      return nativeQS.apply(this, arguments);
+    };
   }
 
   var scheduled = false;
@@ -219,18 +306,25 @@
           need = true;
           break;
         }
+        if (m.type === 'attributes' && (m.attributeName === 'style' || m.attributeName === 'hidden' || m.attributeName === 'class')) {
+          need = true;
+          break;
+        }
       }
       if (need) scheduleEnhance();
     });
     obs.observe(document.body, {
       childList: true,
       subtree: true,
-      characterData: true
+      characterData: true,
+      attributes: true,
+      attributeFilter: ['style', 'hidden', 'class']
     });
   }
 
   function init() {
     if (!shouldEnablePage()) return;
+    installCellsShim();
     ensureStylesheet();
     enhanceAll(document);
     bindObservers();
@@ -242,7 +336,11 @@
     enhanceAll: enhanceAll,
     enhanceTable: enhanceTable,
     refresh: scheduleEnhance,
-    shouldEnablePage: shouldEnablePage
+    shouldEnablePage: shouldEnablePage,
+    dataCells: function (tr) {
+      if (!tr) return [];
+      return tr.querySelectorAll('td:not(.lf-row-no-td)');
+    }
   };
 
   if (document.readyState === 'loading') {

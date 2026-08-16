@@ -1,0 +1,111 @@
+/*!
+ * 后台右下角快捷悬浮：文件中心 / 消息通知
+ */
+.lf-fab-dock {
+  position: fixed;
+  right: 24px;
+  bottom: 28px;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.lf-fab-dock__btn {
+  pointer-events: auto;
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+  color: #ff7019;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  font-family: inherit;
+}
+
+.lf-fab-dock__btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(255, 112, 25, 0.28);
+}
+
+.lf-fab-dock__btn:focus-visible {
+  outline: 2px solid #ff7019;
+  outline-offset: 2px;
+}
+
+.lf-fab-dock__btn svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.lf-fab-dock__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #f5222d;
+  color: #fff;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+  font-weight: 600;
+  box-sizing: border-box;
+  border: 1px solid #fff;
+  transform-origin: center;
+}
+
+.lf-fab-dock__badge[hidden] {
+  display: none !important;
+}
+
+.lf-fab-dock__badge.is-pulse {
+  animation: lf-fab-badge-pulse 0.38s ease;
+}
+
+@keyframes lf-fab-badge-pulse {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+.lf-fab-fly {
+  position: fixed;
+  z-index: 1300;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: #ff7019;
+  box-shadow: 0 2px 8px rgba(255, 112, 25, 0.45);
+  pointer-events: none;
+  opacity: 0.95;
+  transition: transform 0.55s cubic-bezier(0.32, 0.08, 0.24, 1), opacity 0.55s ease;
+  transform: translate(0, 0) scale(1);
+}
+
+.lf-fab-fly.is-active {
+  transform: translate(var(--fly-x, 0), var(--fly-y, 0)) scale(0.35);
+  opacity: 0.2;
+}
+
+@media (max-width: 768px) {
+  .lf-fab-dock {
+    right: 14px;
+    bottom: 18px;
+  }
+}

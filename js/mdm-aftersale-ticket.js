@@ -703,7 +703,6 @@
     var queryBtn = $('asTicketQuery');
     var resetBtn = $('asTicketReset');
     var collapseBtn = $('asTicketCollapse');
-    var exportBtn = $('asTicketExport');
     var sizeEl = $('asTicketPageSize');
     var pagesEl = $('asTicketPages');
     var jumpGo = $('asTicketJumpGo');
@@ -735,12 +734,6 @@
         collapseBtn.setAttribute('aria-expanded', state.collapsed ? 'false' : 'true');
         var svg = collapseBtn.querySelector('svg path');
         if (svg) svg.setAttribute('d', state.collapsed ? 'M6 9l6 6 6-6' : 'M18 15l-6-6-6 6');
-      });
-    }
-
-    if (exportBtn) {
-      exportBtn.addEventListener('click', function () {
-        if (typeof showToast === 'function') showToast('导出列表（演示）共 ' + state.filtered.length + ' 条', 'success');
       });
     }
 
