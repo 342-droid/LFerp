@@ -201,6 +201,18 @@ function createTablePagination(options) {
         currentRows.forEach(row => {
             tableBody.appendChild(row.cloneNode(true));
         });
+
+        var tableEl = tableBody.closest('table');
+        if (tableEl) {
+            tableEl.setAttribute('data-lf-row-start', String(startIndex));
+        }
+        if (typeof window !== 'undefined' && window.LfTableRowNo && typeof window.LfTableRowNo.refresh === 'function') {
+            window.LfTableRowNo.refresh();
+        } else if (typeof window !== 'undefined') {
+            try {
+                window.dispatchEvent(new Event('lf-table-row-no:refresh'));
+            } catch (e) { /* ignore */ }
+        }
         
         // 渲染分页组件
         createPagination({

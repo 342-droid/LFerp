@@ -1,0 +1,83 @@
+/**
+ * 后台数据列表「序号」列
+ * 使用 tbody tr::before 伪列，不插入真实 td，避免打乱业务脚本的 cells[n] 索引。
+ */
+.table.lf-row-no-on > thead > tr > th.lf-row-no-th,
+.product-proxy-table.lf-row-no-on > thead > tr > th.lf-row-no-th,
+.order-live-table.lf-row-no-on > thead > tr > th.lf-row-no-th,
+.queue-table.lf-row-no-on > thead > tr > th.lf-row-no-th,
+.aftersale-table.lf-row-no-on > thead > tr > th.lf-row-no-th,
+.aftersale-refund-table.lf-row-no-on > thead > tr > th.lf-row-no-th {
+  width: 56px;
+  min-width: 56px;
+  max-width: 72px;
+  padding: 12px 8px;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.table.lf-row-no-on > tbody,
+.product-proxy-table.lf-row-no-on > tbody,
+.order-live-table.lf-row-no-on > tbody,
+.queue-table.lf-row-no-on > tbody,
+.aftersale-table.lf-row-no-on > tbody,
+.aftersale-refund-table.lf-row-no-on > tbody {
+  counter-reset: lf-row-no;
+}
+
+.table.lf-row-no-on > tbody > tr,
+.product-proxy-table.lf-row-no-on > tbody > tr,
+.order-live-table.lf-row-no-on > tbody > tr,
+.queue-table.lf-row-no-on > tbody > tr,
+.aftersale-table.lf-row-no-on > tbody > tr,
+.aftersale-refund-table.lf-row-no-on > tbody > tr {
+  counter-increment: lf-row-no;
+}
+
+.table.lf-row-no-on > tbody > tr::before,
+.product-proxy-table.lf-row-no-on > tbody > tr::before,
+.order-live-table.lf-row-no-on > tbody > tr::before,
+.queue-table.lf-row-no-on > tbody > tr::before,
+.aftersale-table.lf-row-no-on > tbody > tr::before,
+.aftersale-refund-table.lf-row-no-on > tbody > tr::before {
+  content: counter(lf-row-no);
+  display: table-cell;
+  width: 56px;
+  min-width: 56px;
+  max-width: 72px;
+  padding: 12px 8px;
+  text-align: center;
+  vertical-align: middle;
+  color: #666;
+  font-size: 13px;
+  font-weight: 400;
+  white-space: nowrap;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  background: inherit;
+}
+
+.product-proxy-table.lf-row-no-on > tbody > tr::before,
+.order-live-table.lf-row-no-on > tbody > tr::before,
+.queue-table.lf-row-no-on > tbody > tr::before,
+.aftersale-table.lf-row-no-on > tbody > tr::before,
+.aftersale-refund-table.lf-row-no-on > tbody > tr::before {
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 8px;
+  background: #ffffff;
+}
+
+.order-live-table.lf-row-no-on > thead > tr > th.lf-row-no-th,
+.queue-table.lf-row-no-on > thead > tr > th.lf-row-no-th {
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: center;
+  font-weight: 600;
+}
+
+.order-live-table.lf-row-no-on > tbody > tr:hover::before {
+  background: #fafafa;
+}

@@ -2760,6 +2760,19 @@
     return 'checkout.html?from=' + encodeURIComponent(from);
   }
 
+  function buildOrderConfirmReturnHref() {
+    var from = getParams().get('from') || 'order-confirm.html';
+    try {
+      var decoded = decodeURIComponent(from);
+      if (/order-confirm\.html/i.test(decoded) || /order-confirm(\?|$)/i.test(decoded)) {
+        return decoded;
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return 'order-confirm.html';
+  }
+
   function buildPickupEditReturnHref(extra) {
     extra = extra || {};
     var refundType = extra.type || getRefundType() || 'return';
@@ -9062,13 +9075,15 @@
     var backHref =
       addrFrom === 'checkout'
         ? buildCheckoutReturnHref()
-        : addrFrom === 'profile'
-          ? buildProfileReturnHref()
-          : buildPickupEditHref({
-              type: refundType,
-              stage: stage,
-              pickupEditFrom: getPickupEditFrom()
-            });
+        : addrFrom === 'order_confirm'
+          ? buildOrderConfirmReturnHref()
+          : addrFrom === 'profile'
+            ? buildProfileReturnHref()
+            : buildPickupEditHref({
+                type: refundType,
+                stage: stage,
+                pickupEditFrom: getPickupEditFrom()
+              });
     var backEl = document.getElementById('addrBookBack');
     if (backEl) backEl.setAttribute('href', backHref);
 

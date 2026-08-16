@@ -211,7 +211,7 @@
   }
 
   var SALE_TIME_PRIORITY_TIP =
-    '优先级：商品自定义可售时间 > 快递商品24小时可售 > 商品类目可售时间 > 默认营业时间。';
+    '优先级：商品自定义可售时间 > 快递商品24小时可售 > 商品类目可售时间 > 门店自定义营业时间 > 平台默认营业时间。';
 
   function syncCategoryHoursTip() {
     var tip = $('bsHoursCategoryTip');
