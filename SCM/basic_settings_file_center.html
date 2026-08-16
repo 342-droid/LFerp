@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 文件中心</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/basic-settings.css">
+    <link rel="stylesheet" href="../css/lf-file-center.css?v=20260816-fc1">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/basic-settings-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-title">基础设置 / 文件中心</div>
+            <hr class="content-divider">
+
+            <div class="fc-page">
+                <div class="fc-tabs" role="tablist">
+                    <button type="button" class="fc-tabs__item is-active" data-fc-tab="mine" role="tab" aria-selected="true">我的文件</button>
+                    <button type="button" class="fc-tabs__item" data-fc-tab="all" role="tab" aria-selected="false">全部文件</button>
+                    <button type="button" class="fc-tabs__item" data-fc-tab="logs" role="tab" aria-selected="false">下载流水</button>
+                </div>
+
+                <div class="fc-panel is-active" id="fcPanel">
+                    <form class="fc-filter" id="fcFilterForm" onsubmit="return false;">
+                        <div class="fc-filter__field">
+                            <label class="fc-filter__label" for="fcTaskNo">任务号</label>
+                            <input class="fc-filter__input" id="fcTaskNo" type="text" placeholder="请输入任务号" autocomplete="off">
+                        </div>
+                        <div class="fc-filter__field" id="fcFilterTypeWrap">
+                            <label class="fc-filter__label" for="fcType">类型</label>
+                            <input class="fc-filter__input" id="fcType" type="text" placeholder="请输入类型" autocomplete="off">
+                        </div>
+                        <div class="fc-filter__field" id="fcFilterStatusWrap">
+                            <label class="fc-filter__label" for="fcStatus">状态</label>
+                            <select class="fc-filter__select" id="fcStatus">
+                                <option value="">请选择状态</option>
+                                <option value="ready">可下载</option>
+                                <option value="pending">生成中</option>
+                                <option value="expired">已过期</option>
+                                <option value="failed">失败</option>
+                            </select>
+                        </div>
+                        <div class="fc-filter__actions">
+                            <button type="button" class="fc-btn fc-btn--primary" id="fcQueryBtn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                                查询
+                            </button>
+                            <button type="button" class="fc-btn fc-btn--default" id="fcResetBtn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M5 19a9 9 0 0014-7"/><path d="M19 5a9 9 0 00-14 7"/></svg>
+                                重置
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="fc-table-wrap">
+                        <table class="fc-table" id="fcTable">
+                            <thead id="fcTableHead"></thead>
+                            <tbody id="fcTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="fc-pager" id="fcPager"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/basic-settings-file-center.js?v=20260816-fc3"></script>
+</body>
+</html>

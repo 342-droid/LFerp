@@ -148,12 +148,29 @@
   font-size: 15px;
   font-weight: 600;
   text-decoration: none;
+  max-width: calc(100% - 96px);
 }
 
 .ua-home-locate svg {
   width: 16px;
   height: 16px;
   color: var(--ua-shop-red-deep);
+  flex-shrink: 0;
+}
+
+.ua-home-locate__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.ua-home-locate__chevron {
+  width: 14px !important;
+  height: 14px !important;
+  color: #666 !important;
+  stroke: #666;
+  flex-shrink: 0;
 }
 
 .ua-home-live-meta {

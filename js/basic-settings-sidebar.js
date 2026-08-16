@@ -9,14 +9,23 @@
         { href: 'basic_settings_miniprogram_agreement.html', text: '小程序协议' }
     ];
 
+    const materialItems = [
+        { href: 'basic_settings_material_type.html', text: '素材类型' },
+        { href: 'basic_settings_material.html', text: '素材列表' }
+    ];
+
     const topLevelItems = [
         { href: 'basic_settings_order.html', text: '门店配置' },
         { href: 'basic_settings_recommendation.html', text: '推荐位配置' },
         { href: 'basic_settings_member.html', text: '会员配置' },
-        { href: 'basic_settings_material.html', text: '素材管理', icon: '基础信息' },
         { href: 'basic_settings_system.html', text: '系统管理', icon: '权限管理' },
         { href: 'basic_settings_cooperation.html', text: '合作管理' }
     ];
+
+    const fileCenterItem = {
+        href: 'basic_settings_file_center.html',
+        text: '文件中心'
+    };
 
     function pageMatches(href) {
         return currentPage === String(href || '').toLowerCase();
@@ -27,6 +36,7 @@
     }
 
     const isAgreementSection = groupHasActive(agreementItems);
+    const isMaterialSection = groupHasActive(materialItems);
 
     function renderCollapsibleGroup(label, iconRel, items, sectionActive) {
         const submenuHtml = items.map(function (item) {
@@ -65,8 +75,6 @@
         return;
     }
 
-    const topLevelHtml = topLevelItems.map(renderTopLevelItem).join('');
-
     sidebarContainer.innerHTML =
         '<aside class="sidebar" id="sidebar">' +
         '<div class="sidebar-header">' +
@@ -75,7 +83,10 @@
         '</div>' +
         '<ul class="sidebar-menu">' +
         renderCollapsibleGroup('协议配置', null, agreementItems, isAgreementSection) +
-        topLevelHtml +
+        topLevelItems.slice(0, 3).map(renderTopLevelItem).join('') +
+        renderCollapsibleGroup('素材管理', '基础信息', materialItems, isMaterialSection) +
+        renderTopLevelItem(fileCenterItem) +
+        topLevelItems.slice(3).map(renderTopLevelItem).join('') +
         '</ul>' +
         '</aside>';
 })();

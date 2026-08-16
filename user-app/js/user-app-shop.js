@@ -3001,6 +3001,9 @@
   function initHomePage() {
     ensureCart();
     syncBadges();
+    if (global.UaSwitchAddress && typeof global.UaSwitchAddress.syncHomeLocate === 'function') {
+      global.UaSwitchAddress.syncHomeLocate();
+    }
     var enterBtn = document.getElementById('homeEnterLiveBtn');
     var card = document.getElementById('homeLiveCard');
     function enterLive(e) {

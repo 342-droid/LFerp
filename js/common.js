@@ -959,13 +959,26 @@ if (document.readyState === 'loading') {
         if (window.LfTableRowNo || document.getElementById('lf-table-row-no-js')) return;
         var s = document.createElement('script');
         s.id = 'lf-table-row-no-js';
-        s.src = assetUrl('js/lf-table-row-no.js') + '?v=20260815-row-no-order';
+        s.src = assetUrl('js/lf-table-row-no.js') + '?v=20260817-row-td';
         s.async = false;
         (document.body || document.head).appendChild(s);
     }
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', loadRowNo);
-    } else {
+    function loadFabDock() {
+        if (window.LfFileCenterNotify || document.getElementById('lf-fab-dock-js')) return;
+        if (/\/(shop-h5|user-app|store-app)\//i.test(window.location.pathname || '')) return;
+        var s = document.createElement('script');
+        s.id = 'lf-fab-dock-js';
+        s.src = assetUrl('js/lf-fab-dock.js') + '?v=20260816-fab1';
+        s.async = false;
+        (document.body || document.head).appendChild(s);
+    }
+    function boot() {
         loadRowNo();
+        loadFabDock();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', boot);
+    } else {
+        boot();
     }
 })();
