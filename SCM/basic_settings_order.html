@@ -149,7 +149,7 @@
                             <div class="sac-field__control">
                                 <div class="bs-hours-cat" id="bsHoursCategoryList"></div>
                                 <button type="button" class="erp-btn" id="bsHoursCategoryAddBtn">+ 添加商品类目</button>
-                                <div class="sac-tip" id="bsHoursCategoryTip">按选品库商品类目配置每天可售时段。优先级：商品自定义可售时间 &gt; 快递商品24小时可售 &gt; 商品类目可售时间 &gt; 默认营业时间。超过可售时间则该类目商品不可售。</div>
+                                <div class="sac-tip" id="bsHoursCategoryTip">按选品库商品类目配置每天可售时段。优先级：商品自定义可售时间 &gt; 快递商品24小时可售 &gt; 商品类目可售时间 &gt; 门店自定义营业时间 &gt; 平台默认营业时间。超过可售时间则该类目商品不可售。</div>
                             </div>
                         </div>
 
@@ -160,7 +160,7 @@
                                     <span class="bs-hours-switch__text">24小时可售</span>
                                     <button type="button" class="bs-hours-switch" id="bsHoursExpress24h" aria-pressed="false" aria-label="快递商品24小时可售开关"></button>
                                 </div>
-                                <div class="sac-tip">开启后，履约方式为「快递」的商品默认全天可售（00:00–23:59）。优先级：商品自定义可售时间 &gt; 快递商品24小时可售 &gt; 商品类目可售时间 &gt; 默认营业时间。</div>
+                                <div class="sac-tip">开启后，履约方式为「快递」的商品默认全天可售（00:00–23:59）。优先级：商品自定义可售时间 &gt; 快递商品24小时可售 &gt; 商品类目可售时间 &gt; 门店自定义营业时间 &gt; 平台默认营业时间。超过可售时间则该类目商品不可售。</div>
                             </div>
                         </div>
                     </div>
@@ -173,6 +173,6 @@
     <script src="../js/order-config-ui.js?v=20260813-bs-store"></script>
     <script src="../js/store-account-config.js?v=20260810-sac1"></script>
     <script src="../js/store-wallet-demo.js?v=20260810-deposit-unfreeze6"></script>
-    <script src="../js/basic-settings-order.js?v=20260814-sale-priority"></script>
+    <script src="../js/basic-settings-order.js?v=20260815-sale-store-hours"></script>
 </body>
 </html>

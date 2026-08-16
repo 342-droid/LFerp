@@ -942,3 +942,27 @@ if (document.readyState === 'loading') {
         initChangelogEntry();
     }
 })();
+
+/* 后台列表序号（仓储/采购/物流除外）：按侧栏自动启停 */
+(function () {
+    function assetUrl(rel) {
+        var wp = window.wmsPath;
+        if (wp && typeof wp.asset === 'function') return wp.asset(rel);
+        var p = String(window.location && window.location.pathname || '').replace(/\\/g, '/');
+        if (/\/(MDM|SCM|CRM)(\/|$)/i.test(p)) return '../' + rel;
+        return rel;
+    }
+    function loadRowNo() {
+        if (window.LfTableRowNo || document.getElementById('lf-table-row-no-js')) return;
+        var s = document.createElement('script');
+        s.id = 'lf-table-row-no-js';
+        s.src = assetUrl('js/lf-table-row-no.js') + '?v=20260815-row-no-order';
+        s.async = false;
+        (document.body || document.head).appendChild(s);
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadRowNo);
+    } else {
+        loadRowNo();
+    }
+})();

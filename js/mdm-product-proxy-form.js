@@ -92,9 +92,11 @@
 
   /**
    * 门店配置 · 营业时间（localStorage）
-   * 回写优先级：商品自定义(SPU) > 快递24小时可售 > 商品类目可售时间 > 默认营业时间
+   * 回写优先级：商品自定义(SPU) > 快递24小时可售 > 商品类目可售时间 > 门店自定义营业时间 > 平台默认营业时间
+   * 超过可售时间则该类目商品不可售
    */
   var PLATFORM_HOURS_KEY = 'lf_basic_settings_business_hours';
+  var STORE_HOURS_KEY = 'mdm_store_business_hours_v1';
   var EXPRESS_24H_RANGE = { start: '00:00', end: '23:59' };
 
   function loadPlatformBusinessHours() {
@@ -115,11 +117,30 @@
     }
   }
 
+  function loadStoreCustomBusinessHours(storeId) {
+    var id = String(storeId || '').trim();
+    if (!id) return null;
+    try {
+      var raw = localStorage.getItem(STORE_HOURS_KEY);
+      if (!raw) return null;
+      var map = JSON.parse(raw);
+      if (!map || typeof map !== 'object') return null;
+      var custom = map[id];
+      if (custom && custom.start && custom.end) {
+        return { start: custom.start, end: custom.end, source: 'store' };
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return null;
+  }
+
   function saleTimeSourceTipText(source) {
     if (source === 'custom') return '已采用商品自定义可售卖时间';
     if (source === 'express24h') return '24小时可售';
     if (source === 'category') return '已采用商品类目可售卖时间';
-    return '已采用营业时间';
+    if (source === 'store') return '已采用门店自定义营业时间';
+    return '已采用平台默认营业时间';
   }
 
   function updateSaleTimeSourceTip(backdrop, source) {
@@ -165,8 +186,8 @@
     return getProductCategoryPaths(product || {});
   }
 
-  /** 按 快递24h > 类目可售时间 > 默认营业时间 解析可售时段（不含商品自定义） */
-  function resolveInheritedSaleTime(categoryPaths, deliveryMode) {
+  /** 按 快递24h > 类目可售时间 > 门店自定义营业时间 > 平台默认营业时间 解析可售时段（不含商品自定义） */
+  function resolveInheritedSaleTime(categoryPaths, deliveryMode, storeId) {
     var platform = loadPlatformBusinessHours();
     var fallback = { start: '08:00', end: '22:00', source: 'business' };
     var mode = normalizeDeliveryMode(deliveryMode);
@@ -177,28 +198,62 @@
         source: 'express24h'
       };
     }
-    if (!platform) return fallback;
-    var paths = Array.isArray(categoryPaths) ? categoryPaths : [];
-    var cats = platform.categoryHours || [];
-    for (var i = 0; i < cats.length; i++) {
-      var row = cats[i];
-      if (!row || !row.start || !row.end) continue;
-      var catName = row.name || row.id;
-      for (var j = 0; j < paths.length; j++) {
-        if (categoryPathMatches(paths[j], catName)) {
-          return {
-            start: row.start,
-            end: row.end,
-            source: 'category',
-            categoryName: catName
-          };
+    if (platform) {
+      var paths = Array.isArray(categoryPaths) ? categoryPaths : [];
+      var cats = platform.categoryHours || [];
+      for (var i = 0; i < cats.length; i++) {
+        var row = cats[i];
+        if (!row || !row.start || !row.end) continue;
+        var catName = row.name || row.id;
+        for (var j = 0; j < paths.length; j++) {
+          if (categoryPathMatches(paths[j], catName)) {
+            return {
+              start: row.start,
+              end: row.end,
+              source: 'category',
+              categoryName: catName
+            };
+          }
         }
       }
     }
-    if (platform.start && platform.end) {
+    var storeHours = loadStoreCustomBusinessHours(storeId);
+    if (storeHours) return storeHours;
+    if (platform && platform.start && platform.end) {
       return { start: platform.start, end: platform.end, source: 'business' };
     }
     return fallback;
+  }
+
+  /** 当前时刻是否落在可售窗口内（支持跨日） */
+  function isWithinSaleWindow(start, end, crossDay, now) {
+    var s = String(start || '').trim();
+    var e = String(end || '').trim();
+    if (!s || !e) return false;
+    var d = now instanceof Date ? now : new Date();
+    var hh = String(d.getHours()).padStart(2, '0');
+    var mm = String(d.getMinutes()).padStart(2, '0');
+    var cur = hh + ':' + mm;
+    if (crossDay === 'yes' || s > e) {
+      /* 跨日：如 22:00–02:00，当前 >= 开始 或 < 结束 */
+      return cur >= s || cur < e;
+    }
+    return cur >= s && cur < e;
+  }
+
+  /**
+   * 是否在可售时间内（超过则不可售）
+   * @param {object} product
+   * @param {{ storeId?: string, now?: Date }} [options]
+   */
+  function isProductSaleableNow(product, options) {
+    var opts = options || {};
+    var t = resolveEffectiveSaleTime(product, opts);
+    if (!t || !t.start || !t.end) return false;
+    if (t.source === 'express24h') return true;
+    var platform = loadPlatformBusinessHours();
+    var crossDay = platform && platform.crossDay === 'yes' ? 'yes' : 'no';
+    return isWithinSaleWindow(t.start, t.end, crossDay, opts.now);
   }
 
   function applySaleTimeToForm(backdrop, start, end) {
@@ -215,14 +270,15 @@
 
   function syncInheritedSaleTime(backdrop, product) {
     if (!formState) return;
-    /* 用户改过时间框，或已保存为 SPU 自定义时，不再被类目/营业时间/24h 覆盖 */
+    /* 用户改过时间框，或已保存为 SPU 自定义时，不再被类目/门店/营业时间/24h 覆盖 */
     if (formState.saleTimeTouched || formState.saleTimeMode === 'custom') {
       updateSaleTimeSourceTip(backdrop, 'custom');
       return;
     }
     var resolved = resolveInheritedSaleTime(
       getCurrentCategoryPaths(product),
-      getCurrentDeliveryMode(backdrop, product)
+      getCurrentDeliveryMode(backdrop, product),
+      (product && product.storeId) || ''
     );
     formState.saleTimeSource = resolved.source;
     applySaleTimeToForm(backdrop, resolved.start, resolved.end);
@@ -358,7 +414,7 @@
       skuPool: pool,
       selectedSkuIds: selectedIds
     };
-    /* SPU 已配置可售时间优先；否则按 快递24h > 类目可售时间 > 默认营业时间 自动回写 */
+    /* SPU 已配置可售时间优先；否则按 快递24h > 类目 > 门店自定义 > 平台默认 自动回写 */
     var isCustomSale =
       detail.saleTimeMode === 'custom' || product.saleTimeMode === 'custom';
     if (isCustomSale && (detail.saleTimeStart || product.saleTimeStart)) {
@@ -371,7 +427,8 @@
     } else {
       var inherited = resolveInheritedSaleTime(
         getProductCategoryPaths(product),
-        result.deliveryMode
+        result.deliveryMode,
+        product.storeId || ''
       );
       result.saleTimeMode = 'follow_category';
       result.saleTimeTouched = false;
@@ -1162,7 +1219,8 @@
         pickerInstance && typeof pickerInstance.getPaths === 'function'
           ? pickerInstance.getPaths()
           : getProductCategoryPaths(product),
-        deliveryMode
+        deliveryMode,
+        (product && product.storeId) || ''
       );
       saleTimeStart = inheritedOnSave.start;
       saleTimeEnd = inheritedOnSave.end;
@@ -1327,8 +1385,9 @@
   }
 
   /** 列表/表单共用：解析商品有效可售时间 */
-  function resolveEffectiveSaleTime(product) {
+  function resolveEffectiveSaleTime(product, options) {
     product = product || {};
+    var opts = options || {};
     var detail = product.detail || {};
     var isCustom =
       detail.saleTimeMode === 'custom' || product.saleTimeMode === 'custom';
@@ -1339,19 +1398,22 @@
     }
     return resolveInheritedSaleTime(
       getProductCategoryPaths(product),
-      product.deliveryMode || product.fulfillmentMode || detail.deliveryMode
+      product.deliveryMode || product.fulfillmentMode || detail.deliveryMode,
+      opts.storeId || product.storeId || ''
     );
   }
 
-  function formatSaleTimeLabel(product) {
-    var t = resolveEffectiveSaleTime(product);
+  function formatSaleTimeLabel(product, options) {
+    var t = resolveEffectiveSaleTime(product, options);
     if (t.source === 'express24h') return '24小时可售';
     return (t.start || '08:00') + '–' + (t.end || '22:00');
   }
 
   window.MdmProductSaleTime = {
     resolve: resolveEffectiveSaleTime,
-    format: formatSaleTimeLabel
+    format: formatSaleTimeLabel,
+    isSaleableNow: isProductSaleableNow,
+    isWithinWindow: isWithinSaleWindow
   };
 
   window.MdmProxyProductForm = {

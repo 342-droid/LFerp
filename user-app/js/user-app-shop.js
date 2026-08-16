@@ -1,6 +1,12 @@
 (function (global) {
   var CART_KEY = 'ua_shop_cart_v2';
   var LIVE_CART_KEY = 'ua_live_cart_v1';
+  var CONFIRM_SHIPPING_ADDR_KEY = 'ua_order_confirm_shipping_address';
+  var DEFAULT_SHIPPING_ADDRESS = {
+    contact: '武者',
+    phone: '181****4215',
+    full: '四川省成都市武侯区天府大道中段666号天府软件园A区'
+  };
   var STORE = {
     id: 'store-prod-verify',
     name: '生产验证门店',
@@ -892,6 +898,89 @@
     return formatMoney(payable);
   }
 
+  function escapeConfirmHtml(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function maskShippingPhone(phone) {
+    var digits = String(phone || '').replace(/\D/g, '');
+    if (digits.length >= 7) {
+      return digits.slice(0, 3) + '****' + digits.slice(-4);
+    }
+    return String(phone || '');
+  }
+
+  function readConfirmShippingAddress() {
+    try {
+      var raw = sessionStorage.getItem(CONFIRM_SHIPPING_ADDR_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && parsed.full) {
+          return {
+            contact: parsed.contact || DEFAULT_SHIPPING_ADDRESS.contact,
+            phone: parsed.phone || DEFAULT_SHIPPING_ADDRESS.phone,
+            full: parsed.full
+          };
+        }
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return {
+      contact: DEFAULT_SHIPPING_ADDRESS.contact,
+      phone: DEFAULT_SHIPPING_ADDRESS.phone,
+      full: DEFAULT_SHIPPING_ADDRESS.full
+    };
+  }
+
+  function writeConfirmShippingAddress(addr) {
+    if (!addr || !addr.full) return;
+    try {
+      sessionStorage.setItem(
+        CONFIRM_SHIPPING_ADDR_KEY,
+        JSON.stringify({
+          contact: addr.contact || DEFAULT_SHIPPING_ADDRESS.contact,
+          phone: addr.phone || DEFAULT_SHIPPING_ADDRESS.phone,
+          full: addr.full
+        })
+      );
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function applyPickedAddressForConfirm() {
+    try {
+      var raw = sessionStorage.getItem('ua_refund_picked_address');
+      if (!raw) return false;
+      var picked = JSON.parse(raw);
+      sessionStorage.removeItem('ua_refund_picked_address');
+      if (!picked || !picked.full) return false;
+      writeConfirmShippingAddress({
+        contact: picked.contact || DEFAULT_SHIPPING_ADDRESS.contact,
+        phone:
+          maskShippingPhone(picked.phone) ||
+          picked.phone ||
+          DEFAULT_SHIPPING_ADDRESS.phone,
+        full: picked.full
+      });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function openConfirmAddressBook() {
+    var returnTo = 'order-confirm.html' + (window.location.search || '');
+    window.location.href =
+      'order-refund-address-book.html?addrFrom=order_confirm&from=' +
+      encodeURIComponent(returnTo);
+  }
+
   /**
    * 确认订单共用内容（全页 / 直播半遮罩）
    * @returns {{ html: string, pricing: object, payable: number, splits: array, hasExpress: boolean, hasPickup: boolean }}
@@ -912,6 +1001,7 @@
     var couponText = pricing.isNewcomerCheckout
       ? '新人专区不可用券'
       : '暂无可用优惠券';
+    var shippingAddr = readConfirmShippingAddress();
 
     var shopIcon =
       '<svg class="ua-confirm-split__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path d="M9 22V12h6v10"/></svg>';
@@ -1062,13 +1152,19 @@
       .join('');
 
     var addressHtml = hasExpress
-      ? '<button type="button" class="ua-confirm-card ua-confirm-address" data-confirm-address>' +
+      ? '<button type="button" class="ua-confirm-card ua-confirm-address" data-confirm-address aria-label="变更收货地址">' +
         '<span class="ua-confirm-address__pin" aria-hidden="true">' +
         '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 00-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 00-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>' +
         '</span>' +
         '<div class="ua-confirm-address__body">' +
-        '<div class="ua-confirm-address__user"><span>武者</span><span>181****4215</span></div>' +
-        '<p class="ua-confirm-address__text">四川省成都市武侯区天府大道中段666号天府软件园A区</p>' +
+        '<div class="ua-confirm-address__user"><span>' +
+        escapeConfirmHtml(shippingAddr.contact) +
+        '</span><span>' +
+        escapeConfirmHtml(shippingAddr.phone) +
+        '</span></div>' +
+        '<p class="ua-confirm-address__text">' +
+        escapeConfirmHtml(shippingAddr.full) +
+        '</p>' +
         '</div>' +
         '<svg class="ua-confirm-address__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>' +
         '</button>'
@@ -1220,8 +1316,13 @@
     });
     var addr = host.querySelector('[data-confirm-address]');
     if (addr) {
-      addr.addEventListener('click', function () {
-        showToast('选择收货地址（演示）');
+      addr.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        if (hooks.onAddress) {
+          hooks.onAddress();
+          return;
+        }
+        openConfirmAddressBook();
       });
     }
     var invoice = host.querySelector('[data-confirm-invoice]');
@@ -2235,6 +2336,7 @@
 
   function initOrderConfirmPage() {
     ensureCart();
+    applyPickedAddressForConfirm();
     var items = getCheckoutItems();
     if (!items.length) {
       window.location.href = 'cart.html';
