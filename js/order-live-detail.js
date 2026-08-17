@@ -156,6 +156,18 @@
         refund: '¥0.00'
       },
       paymentCount: 1,
+      /* 演示：处理中仅退款，零售/代采取消订单需拦截 */
+      aftersales: [{
+        id: 'AS-8561-1',
+        productName: '微辣萝卜干 500g 4号…',
+        type: '仅退款',
+        status: '待审批',
+        returnQty: 1,
+        refundAmount: '¥0.90',
+        refundCoupon: '¥0.00',
+        refundPoints: 0,
+        adjustAmount: '¥0.00'
+      }],
       customer: { nickname: '赵金芝', phone: '13800001987', userId: '318605592681791401' },
       delivery: {
         type: 'EXPRESS',
@@ -1633,6 +1645,60 @@
     var s = status || '-';
     var mod = AFTERSALE_STATUS_MOD[s] || 'info';
     return '<span class="order-detail-as-status order-detail-as-status--' + mod + '">' + s + '</span>';
+  }
+
+  var ORDER_AS_STATUS_PRIORITY = ['退款异常', '待审批', '退款中', '待退货', '待收货', '已拒绝', '已完成', '已取消'];
+
+  function resolveOrderAftersaleStatus(aftersales) {
+    var list = Array.isArray(aftersales) ? aftersales : [];
+    var best = '';
+    var bestIdx = 999;
+    list.forEach(function (a) {
+      if (!a || !a.status) return;
+      var i = ORDER_AS_STATUS_PRIORITY.indexOf(a.status);
+      if (i >= 0 && i < bestIdx) {
+        bestIdx = i;
+        best = a.status;
+      }
+    });
+    return best;
+  }
+
+  function syncRetailListAftersaleUI(scopeRow) {
+    var rows = scopeRow
+      ? [scopeRow]
+      : Array.prototype.slice.call(document.querySelectorAll('.order-live-table tbody tr[data-order-id]'));
+    rows.forEach(function (row) {
+      if (!row) return;
+      var orderId = row.getAttribute('data-order-id');
+      var detail = DETAILS[orderId] || fallbackDetail(orderId, row);
+      var goods = detail.goods || [];
+      var aftersales = detail.aftersales || [];
+      var first = goods[0];
+      var tag = first ? resolveGoodsAftersaleTag(first, aftersales) : '';
+      var nameEl = row.querySelector('.order-product-cell__name');
+      if (nameEl) {
+        var cell = nameEl.closest('.order-product-cell');
+        var meta = cell ? cell.querySelector('.order-product-cell__meta') : null;
+        if (!meta && cell) {
+          meta = document.createElement('div');
+          meta.className = 'order-product-cell__meta';
+          nameEl.parentNode.insertBefore(meta, nameEl);
+          meta.appendChild(nameEl);
+        }
+        if (meta) {
+          Array.prototype.forEach.call(meta.querySelectorAll('.order-detail-goods-as-tag'), function (node) {
+            node.remove();
+          });
+          if (tag) meta.insertAdjacentHTML('beforeend', goodsAftersaleTagHtml(tag));
+        }
+      }
+      var asCell = row.querySelector('.order-as-status-cell');
+      if (asCell) {
+        var asStatus = resolveOrderAftersaleStatus(aftersales);
+        asCell.innerHTML = asStatus ? aftersaleStatusTagHtml(asStatus) : '-';
+      }
+    });
   }
 
   function aftersaleTypeTagHtml(type) {
@@ -3198,13 +3264,32 @@
     refreshPickupDrawer(drawer);
   }
 
+  var CANCEL_BLOCK_AFTERSALE_TYPES = ['仅退款', '退货退款', '补货', '换货'];
+  var AFTERSALE_FINISHED_STATUSES = ['已完成', '已取消', '已拒绝'];
+
+  function isCancelBlockAftersale(item) {
+    return (
+      !!item &&
+      CANCEL_BLOCK_AFTERSALE_TYPES.indexOf(item.type) >= 0 &&
+      AFTERSALE_FINISHED_STATUSES.indexOf(item.status) < 0
+    );
+  }
+
+  /** 仅退款 / 退货退款 / 补货 / 换货未完结时，各端均不可取消订单 */
+  function hasOpenAftersaleBlockingCancel(orderId, row) {
+    var detail = DETAILS[orderId] || (row ? fallbackDetail(orderId, row) : null);
+    if (!detail || !Array.isArray(detail.aftersales)) return false;
+    return detail.aftersales.some(isCancelBlockAftersale);
+  }
+
   window.OrderLivePickup = {
     verifyWholeOrder: verifyWholeOrder,
     hasOpenRefundAftersale: hasOpenRefundAftersale,
     getOpenRefundAftersales: getOpenRefundAftersales,
     hasApprovedRefundAftersale: hasApprovedRefundAftersale,
     getApprovedRefundAftersales: getApprovedRefundAftersales,
-    closeOpenRefundAftersalesOnVerify: closeOpenRefundAftersalesOnVerify
+    closeOpenRefundAftersalesOnVerify: closeOpenRefundAftersalesOnVerify,
+    hasOpenAftersaleBlockingCancel: hasOpenAftersaleBlockingCancel
   };
 
   function confirmProxyReceipt(orderId) {
@@ -3261,7 +3346,13 @@
       }
       return detail;
     },
-    openDrawer: openDrawer
+    openDrawer: openDrawer,
+    syncRetailListAftersaleUI: syncRetailListAftersaleUI,
+    getOrderAftersaleStatus: function (orderId, row) {
+      var detail = DETAILS[orderId] || (row ? fallbackDetail(orderId, row) : null);
+      return resolveOrderAftersaleStatus(detail && detail.aftersales);
+    },
+    hasOpenAftersaleBlockingCancel: hasOpenAftersaleBlockingCancel
   };
 
   function openFromQuery() {
@@ -3286,10 +3377,12 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
       initViewLinks();
+      syncRetailListAftersaleUI();
       openFromQuery();
     });
   } else {
     initViewLinks();
+    syncRetailListAftersaleUI();
     openFromQuery();
   }
 })();

@@ -261,6 +261,17 @@
       </div>
     </div>
 
+    <div class="ua-or-cancel-modal" id="orderCancelBlockModal" hidden>
+      <div class="ua-or-cancel-modal__mask" id="orderCancelBlockModalMask"></div>
+      <div class="ua-or-cancel-modal__panel" role="dialog" aria-modal="true" aria-labelledby="orderCancelBlockTitle">
+        <h3 class="ua-or-cancel-modal__title" id="orderCancelBlockTitle">无法取消订单</h3>
+        <p class="ua-or-cancel-modal__text">当前订单存在处理中售后，暂无法取消订单。</p>
+        <div class="ua-or-cancel-modal__actions">
+          <button type="button" class="ua-or-cancel-modal__btn ua-or-cancel-modal__btn--confirm" id="orderCancelBlockOk">好的</button>
+        </div>
+      </div>
+    </div>
+
     <div class="ua-or-cancel-modal" id="orderConfirmReceiptModal" hidden>
       <div class="ua-or-cancel-modal__mask" id="orderConfirmReceiptModalMask"></div>
       <div class="ua-or-cancel-modal__panel" role="dialog" aria-modal="true" aria-labelledby="orderConfirmReceiptTitle">

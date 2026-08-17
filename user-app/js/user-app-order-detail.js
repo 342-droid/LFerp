@@ -480,7 +480,27 @@
     return 'order-refund-select.html?scene=' + encodeURIComponent(scene) + '&' + query;
   }
 
+  function hasOpenAftersaleBlockingCancel() {
+    var api = window.UaOrderRefund;
+    if (!api || typeof api.hasOpenAftersaleBlockingCancel !== 'function') return false;
+    return api.hasOpenAftersaleBlockingCancel(currentOrderNo());
+  }
+
+  function openCancelBlockModal() {
+    var modal = document.getElementById('orderCancelBlockModal');
+    if (modal) modal.hidden = false;
+  }
+
+  function closeCancelBlockModal() {
+    var modal = document.getElementById('orderCancelBlockModal');
+    if (modal) modal.hidden = true;
+  }
+
   function openCancelModal() {
+    if (hasOpenAftersaleBlockingCancel()) {
+      openCancelBlockModal();
+      return;
+    }
     var modal = document.getElementById('orderCancelModal');
     if (modal) modal.hidden = false;
   }
@@ -1306,6 +1326,11 @@
       document.getElementById('orderCancelModalMask').addEventListener('click', closeCancelModal);
     document.getElementById('orderCancelModalConfirm') &&
       document.getElementById('orderCancelModalConfirm').addEventListener('click', confirmCancelOrder);
+
+    document.getElementById('orderCancelBlockOk') &&
+      document.getElementById('orderCancelBlockOk').addEventListener('click', closeCancelBlockModal);
+    document.getElementById('orderCancelBlockModalMask') &&
+      document.getElementById('orderCancelBlockModalMask').addEventListener('click', closeCancelBlockModal);
 
     document.getElementById('orderConfirmReceiptDismiss') &&
       document.getElementById('orderConfirmReceiptDismiss').addEventListener(

@@ -350,6 +350,25 @@
     });
   }
 
+  var CANCEL_BLOCK_AFTERSALE_TYPES = {
+    refund_only: true,
+    pre_ship: true,
+    return: true,
+    restock: true,
+    exchange: true
+  };
+
+  /** 仅退款 / 退货退款 / 补货 / 换货未完结时，各端均不可取消订单。 */
+  function hasOpenAftersaleBlockingCancel(orderNo) {
+    var no = resolveOrderNo(orderNo);
+    if (!no) return false;
+    return loadAftersaleRecords().some(function (r) {
+      if (!r || !CANCEL_BLOCK_AFTERSALE_TYPES[r.type]) return false;
+      if (String(r.orderNo || '') !== no) return false;
+      return !isAftersaleFinished(r);
+    });
+  }
+
   function getMergedRefundAmount(records) {
     return (records || [])
       .filter(function (r) {
@@ -10405,6 +10424,7 @@
     getAftersaleProgressView: getAftersaleProgressView,
     getAftersaleTypeGroup: getAftersaleTypeGroup,
     hasOpenAftersaleOfGroup: hasOpenAftersaleOfGroup,
+    hasOpenAftersaleBlockingCancel: hasOpenAftersaleBlockingCancel,
     getMergedRefundAmount: getMergedRefundAmount,
     getItemRefundedPickupQty: getItemRefundedPickupQty,
     getItemRemainingPickupQty: getItemRemainingPickupQty,

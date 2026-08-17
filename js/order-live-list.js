@@ -55,6 +55,8 @@
     var payChannel = paySel ? (paySel.value || '').trim() : '';
     var deliverySel = document.getElementById('qDeliveryMode');
     var delivery = deliverySel ? (deliverySel.value || '').trim() : '';
+    var asSel = document.getElementById('qAftersaleStatus');
+    var asStatus = asSel ? (asSel.value || '').trim() : '';
 
     var tbody = document.querySelector('.order-live-table tbody');
     if (!tbody) return;
@@ -70,15 +72,41 @@
         var mode = row.getAttribute('data-delivery-mode') || 'pickup';
         show = mode === delivery;
       }
+      if (show && asStatus) {
+        var rowAs = getRowAftersaleStatus(row);
+        show = asStatus === 'none' ? !rowAs : rowAs === asStatus;
+      }
       row.hidden = !show;
       if (show) visible += 1;
     });
     var totalEl = document.querySelector('.order-pagination__total');
-    if (totalEl && (payChannel || (isRetail && delivery))) {
+    var hasFilter = !!(payChannel || (isRetail && delivery) || asStatus);
+    if (totalEl && hasFilter) {
       totalEl.textContent = '共 ' + visible + ' 条';
-    } else if (totalEl && !payChannel && !(isRetail && delivery)) {
+    } else if (totalEl && !hasFilter) {
       totalEl.textContent = '共 ' + rows.length + ' 条';
     }
+  }
+
+  function getRowAftersaleStatus(row) {
+    if (!row) return '';
+    var cell = row.querySelector('.order-as-status-cell');
+    if (cell) {
+      var tag = cell.querySelector('.order-detail-as-status');
+      if (tag) return tag.textContent.trim();
+      var text = cell.textContent.trim();
+      if (text && text !== '-') return text;
+      return '';
+    }
+    var orderId = row.getAttribute('data-order-id');
+    if (
+      orderId &&
+      window.OrderLiveDetail &&
+      typeof window.OrderLiveDetail.getOrderAftersaleStatus === 'function'
+    ) {
+      return window.OrderLiveDetail.getOrderAftersaleStatus(orderId, row) || '';
+    }
+    return '';
   }
 
   function initPagination() {
@@ -151,7 +179,9 @@
   };
 
   function updateRowAfterVerify(row) {
-    var statusCell = row.querySelector('td:nth-last-child(2) .order-tag');
+    var statusCell =
+      row.querySelector('.order-status-cell .order-tag') ||
+      row.querySelector('td:nth-last-child(2) .order-tag');
     if (statusCell) {
       statusCell.className = 'order-tag order-tag--completed';
       statusCell.textContent = '已完成';
@@ -201,6 +231,9 @@
         var verified = !!(result && (result.ok === true || result === true));
         var closedCount = result && result.closedAftersales ? result.closedAftersales.length : 0;
         updateRowAfterVerify(row);
+        if (window.OrderLiveDetail && typeof window.OrderLiveDetail.syncRetailListAftersaleUI === 'function') {
+          window.OrderLiveDetail.syncRetailListAftersaleUI(row);
+        }
         if (typeof showToast === 'function') {
           if (verified && closedCount > 0) {
             showToast('整单核销成功，已自动关闭 ' + closedCount + ' 笔退款售后（订单核销，自动关闭）', 'success');
@@ -215,7 +248,10 @@
   }
 
   function getRowOrderStatus(row) {
-    var statusEl = row ? row.querySelector('td:nth-last-child(2) .order-tag') : null;
+    var statusEl = row
+      ? row.querySelector('.order-status-cell .order-tag') ||
+        row.querySelector('td:nth-last-child(2) .order-tag')
+      : null;
     return statusEl ? statusEl.textContent.trim() : '';
   }
 
@@ -255,6 +291,20 @@
     return status === '待收货';
   }
 
+  function canRetailOpenAftersale(row) {
+    if (window.OrderPlatformAftersale && typeof window.OrderPlatformAftersale.canOpenAftersaleDrawer === 'function') {
+      return window.OrderPlatformAftersale.canOpenAftersaleDrawer(row);
+    }
+    return canRetailPlatformRefund(row) || getRowOrderStatus(row) === '已完成';
+  }
+
+  function retailAftersaleActionLabel(row) {
+    if (window.OrderPlatformAftersale && typeof window.OrderPlatformAftersale.aftersaleActionLabel === 'function') {
+      return window.OrderPlatformAftersale.aftersaleActionLabel(row);
+    }
+    return getRowOrderStatus(row) === '已完成' ? '发起售后' : '平台退款';
+  }
+
   function createRetailActionButton(className, orderId, label) {
     var btn = document.createElement('button');
     btn.type = 'button';
@@ -276,7 +326,8 @@
     var cancelBtn = cell.querySelector('.js-retail-cancel-order');
     var refundBtn = cell.querySelector('.js-retail-platform-refund');
     var showCancel = canCancelRetailOrder(row);
-    var showRefund = canRetailPlatformRefund(row);
+    var showRefund = canRetailOpenAftersale(row);
+    var aftersaleLabel = retailAftersaleActionLabel(row);
     var isExpress = (row.getAttribute('data-delivery-mode') || '') === 'express';
     var showUpload = isExpress && canUploadRetailExpress(row);
     var showVerify = !isExpress && getRowOrderStatus(row) === '待提货';
@@ -324,8 +375,12 @@
       cancelBtn.remove();
     }
     if (showRefund) {
-      if (refundBtn) actions.appendChild(refundBtn);
-      else actions.appendChild(createRetailActionButton('js-retail-platform-refund', orderId, '平台退款'));
+      if (refundBtn) {
+        refundBtn.textContent = aftersaleLabel;
+        actions.appendChild(refundBtn);
+      } else {
+        actions.appendChild(createRetailActionButton('js-retail-platform-refund', orderId, aftersaleLabel));
+      }
     } else if (refundBtn) {
       refundBtn.remove();
     }
@@ -351,6 +406,7 @@
   function showRetailConfirmDialog(options) {
     var exist = document.getElementById(options.backdropId);
     if (exist) exist.remove();
+    var alertOnly = options.mode === 'alert';
     var backdrop = document.createElement('div');
     backdrop.className = 'order-verify-confirm-backdrop';
     backdrop.id = options.backdropId;
@@ -363,9 +419,11 @@
       options.message +
       '</p>' +
       '<div class="order-verify-confirm__actions">' +
-      '<button type="button" class="order-detail-btn js-retail-dialog-cancel">取消</button>' +
+      (alertOnly
+        ? ''
+        : '<button type="button" class="order-detail-btn js-retail-dialog-cancel">取消</button>') +
       '<button type="button" class="order-detail-btn order-detail-btn--primary js-retail-dialog-ok">' +
-      options.okLabel +
+      (options.okLabel || (alertOnly ? '好的' : '确认取消')) +
       '</button>' +
       '</div></div>';
     document.body.appendChild(backdrop);
@@ -379,11 +437,22 @@
     backdrop.addEventListener('click', function (e) {
       if (e.target === backdrop) close();
     });
-    backdrop.querySelector('.js-retail-dialog-cancel').addEventListener('click', close);
+    var cancelBtn = backdrop.querySelector('.js-retail-dialog-cancel');
+    if (cancelBtn) cancelBtn.addEventListener('click', close);
     backdrop.querySelector('.js-retail-dialog-ok').addEventListener('click', function () {
       close();
-      options.onConfirm();
+      if (typeof options.onConfirm === 'function') options.onConfirm();
     });
+  }
+
+  function hasOpenAftersaleBlockingCancel(orderId, row) {
+    if (window.OrderLivePickup && typeof window.OrderLivePickup.hasOpenAftersaleBlockingCancel === 'function') {
+      return window.OrderLivePickup.hasOpenAftersaleBlockingCancel(orderId, row);
+    }
+    if (window.OrderLiveDetail && typeof window.OrderLiveDetail.hasOpenAftersaleBlockingCancel === 'function') {
+      return window.OrderLiveDetail.hasOpenAftersaleBlockingCancel(orderId, row);
+    }
+    return false;
   }
 
   function initRetailCancelAndRefund() {
@@ -401,6 +470,16 @@
           if (typeof showToast === 'function') showToast('当前订单状态不可取消', 'error');
           return;
         }
+        if (hasOpenAftersaleBlockingCancel(orderId, row)) {
+          showRetailConfirmDialog({
+            backdropId: 'orderRetailCancelBlockBackdrop',
+            title: '无法取消订单',
+            message: '当前订单存在处理中售后，暂无法取消订单。',
+            mode: 'alert',
+            okLabel: '好的'
+          });
+          return;
+        }
         showRetailConfirmDialog({
           backdropId: 'orderRetailCancelBackdrop',
           title: '取消订单',
@@ -410,7 +489,9 @@
             '</strong> 吗？<br>取消后订单将关闭，此操作不可撤销。',
           okLabel: '确认取消',
           onConfirm: function () {
-            var statusCell = row.querySelector('td:nth-last-child(2) .order-tag');
+            var statusCell =
+              row.querySelector('.order-status-cell .order-tag') ||
+              row.querySelector('td:nth-last-child(2) .order-tag');
             if (statusCell) {
               statusCell.className = 'order-tag order-tag--closed';
               statusCell.textContent = '已关闭';
@@ -429,7 +510,7 @@
         var refundOrderId = refundBtn.getAttribute('data-order-id');
         var refundRow = refundBtn.closest('tr');
         if (!refundOrderId || !refundRow) return;
-        if (!canRetailPlatformRefund(refundRow)) {
+        if (!canRetailOpenAftersale(refundRow)) {
           if (typeof showToast === 'function') showToast('当前订单状态不可申请退款', 'error');
           return;
         }
