@@ -666,7 +666,15 @@ body[data-order-page="retail"] .order-live-table__action:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  max-width: 220px;
+  max-width: 260px;
+}
+
+.order-product-cell__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
 }
 
 .order-product-cell__thumb {

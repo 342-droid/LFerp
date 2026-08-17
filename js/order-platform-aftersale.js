@@ -25,7 +25,10 @@
   }
 
   function getRowOrderStatus(row) {
-    var statusEl = row ? row.querySelector('td:nth-last-child(2) .order-tag') : null;
+    var statusEl = row
+      ? row.querySelector('.order-status-cell .order-tag') ||
+        row.querySelector('td:nth-last-child(2) .order-tag')
+      : null;
     return statusEl ? statusEl.textContent.trim() : '';
   }
 
@@ -63,6 +66,18 @@
       return status === '待收货' || status === '待提货';
     }
     return status === '待收货';
+  }
+
+  function canStartAftersale(row) {
+    return getRowOrderStatus(row) === '已完成';
+  }
+
+  function canOpenAftersaleDrawer(row) {
+    return canPlatformRefund(row) || canStartAftersale(row);
+  }
+
+  function aftersaleActionLabel(row) {
+    return canStartAftersale(row) ? '发起售后' : '平台退款';
   }
 
   function parseMoney(val) {
@@ -625,6 +640,8 @@
   global.OrderPlatformAftersale = {
     canCancelOrder: canCancelOrder,
     canPlatformRefund: canPlatformRefund,
+    canOpenAftersaleDrawer: canOpenAftersaleDrawer,
+    aftersaleActionLabel: aftersaleActionLabel,
     getRowOrderStatus: getRowOrderStatus,
     getFulfillmentKind: getFulfillmentKind,
     open: openDrawer,
