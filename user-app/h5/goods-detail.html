@@ -6,7 +6,7 @@
   <title>商品详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
-  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260816-live-c7">
+  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260817-sale1">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-gd-page">
@@ -22,6 +22,7 @@
         </a>
         <img class="ua-gd-hero__img" id="goodsDetailHero" src="../assets/shop/beef-hero.svg" alt="">
         <span class="ua-live-goods__preview-badge ua-gd-hero__preview-badge" id="goodsDetailPreviewBadge" hidden>预告中</span>
+        <span class="ua-sale-unsaleable-badge ua-gd-hero__unsaleable-badge" id="goodsDetailUnsaleableBadge" hidden>今日不可售</span>
         <div class="ua-gd-hero__tags" id="goodsDetailTags">
           <span class="ua-gd-hero__tag">
             <i></i>精选新鲜牛后腿肉
@@ -152,7 +153,8 @@
   </div>
 <script src="../js/user-app-blacklist-guard.js"></script>
 <script src="../../js/mdm-supplier-archive-store.js"></script>
-<script src="../js/user-app-shop.js?v=20260816-live-c7"></script>
+<script src="../js/user-app-product-sale-time.js?v=20260817-sale1"></script>
+<script src="../js/user-app-shop.js?v=20260817-sale1"></script>
 <script>UAShop.initGoodsDetailPage();</script>
 </body>
 </html>

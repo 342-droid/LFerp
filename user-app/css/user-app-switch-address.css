@@ -192,19 +192,21 @@
   min-width: 0;
 }
 
-.ua-sa-pickup-card__name-row {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 2px 6px;
-  margin-bottom: 4px;
-  line-height: 1.35;
-}
-
 .ua-sa-pickup-card__name {
   font-size: 15px;
   font-weight: 600;
   color: #222;
+  line-height: 1.35;
+  margin-bottom: 2px;
+}
+
+.ua-sa-pickup-card__biz-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 6px;
+  margin-bottom: 4px;
+  line-height: 1.4;
 }
 
 .ua-sa-pickup-card__biz {
@@ -218,7 +220,7 @@
 }
 
 .ua-sa-pickup-card__biz--closed {
-  color: #999;
+  color: #5ac8fa;
 }
 
 .ua-sa-pickup-card__hours {

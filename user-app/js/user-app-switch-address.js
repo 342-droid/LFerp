@@ -290,7 +290,7 @@
     var open = isWithinBusinessWindow(hours.start, hours.end, crossDay, now);
     return {
       open: open,
-      statusText: open ? '营业中' : '非营业',
+      statusText: open ? '营业中' : '休息中',
       hoursText: formatHoursRange(hours.start, hours.end),
       source: hours.source || 'platform'
     };
@@ -320,15 +320,15 @@
       escapeHtml(item.avatar) +
       '" alt="">' +
       '<div class="ua-sa-pickup-card__main">' +
-      '<div class="ua-sa-pickup-card__name-row">' +
-      '<span class="ua-sa-pickup-card__name">' +
+      '<div class="ua-sa-pickup-card__name">' +
       escapeHtml(item.name) +
-      '</span>' +
+      '</div>' +
+      '<div class="ua-sa-pickup-card__biz-row">' +
       '<span class="ua-sa-pickup-card__biz ' +
       statusCls +
-      '">【' +
+      '">' +
       escapeHtml(biz.statusText) +
-      '】</span>' +
+      '</span>' +
       '<span class="ua-sa-pickup-card__hours">' +
       escapeHtml(biz.hoursText) +
       '</span>' +
@@ -611,6 +611,7 @@
         storeLeader: '',
         storeDist: '',
         storeAvatar: '',
+        storeId: '',
         shareLabel: SHARE_LABEL.mall,
         selectedShipId: payload.shipId || '',
         selectedPickupId: '',
@@ -638,6 +639,7 @@
         storeLeader: item.leader,
         storeDist: item.dist,
         storeAvatar: item.avatar,
+        storeId: item.storeId || '',
         shareLabel: SHARE_LABEL.community,
         selectedPickupId: item.id,
         picked: true,
@@ -790,6 +792,22 @@
     render();
   }
 
+  function resolveHomeStoreId(ctx) {
+    if (!ctx) return 'store-prod-verify';
+    if (ctx.storeId) return String(ctx.storeId);
+    if (ctx.selectedPickupId) {
+      var found = PICKUPS.find(function (p) {
+        return p.id === ctx.selectedPickupId;
+      });
+      if (found && found.storeId) return found.storeId;
+    }
+    /* 收货地址 / 附近地址：仍展示平台默认门店营业时段 */
+    if (ctx.pickedKind === 'ship' || ctx.pickedKind === 'address') {
+      return 'store-prod-verify';
+    }
+    return 'store-prod-verify';
+  }
+
   function syncHomeLocate() {
     var nameEl = document.getElementById('homeLocateName');
     var locate = document.getElementById('homeLocate');
@@ -810,6 +828,14 @@
     }
     var shareEl = document.getElementById('homeShareLabel');
     if (shareEl) shareEl.textContent = ctx.shareLabel || SHARE_LABEL.mall;
+
+    var hoursEl = document.getElementById('homeLocateBizHours');
+    if (hoursEl) {
+      var storeId = resolveHomeStoreId(ctx);
+      var biz = getStoreBizMeta(storeId);
+      hoursEl.textContent = biz.hoursText;
+      hoursEl.hidden = false;
+    }
   }
 
   global.UaSwitchAddress = {
@@ -817,6 +843,7 @@
     syncHomeLocate: syncHomeLocate,
     readCtx: readCtx,
     writeCtx: writeCtx,
+    getStoreBizMeta: getStoreBizMeta,
     STORAGE_KEY: STORAGE_KEY,
     SHARE_LABEL: SHARE_LABEL
   };

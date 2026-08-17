@@ -513,12 +513,33 @@
   min-width: 0;
 }
 
+.ua-default-pickup__name-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-bottom: 4px;
+}
+
 .ua-default-pickup__name {
   font-size: 15px;
   font-weight: 600;
   color: #333;
   line-height: 1.35;
-  margin-bottom: 4px;
+  min-width: 0;
+}
+
+.ua-default-pickup__biz-hours {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 400;
+  color: #999;
+  white-space: nowrap;
+}
+
+.ua-default-pickup__biz-hours[hidden] {
+  display: none !important;
 }
 
 .ua-default-pickup__addr {
