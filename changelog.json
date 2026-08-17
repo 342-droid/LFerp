@@ -1,10 +1,303 @@
 {
-  "latestSha": "2fa1f91722b4e6357e6be7237c7b91ff2de273c8",
-  "total": 266,
+  "latestSha": "87441e78e145180a4d2734c832874180d92c6153",
+  "total": 267,
   "days": [
     {
       "date": "2026-08-17",
       "items": [
+        {
+          "sha": "87441e7",
+          "type": "feat",
+          "text": "增加C端账号密码登录并将微信授权作为主入口",
+          "author": "zhangzheng",
+          "time": "20:36",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_control.html",
+              "module": "冷丰WMS",
+              "title": "直播中控"
+            },
+            {
+              "file": "MDM/mdm_live_data.html",
+              "module": "冷丰WMS",
+              "title": "直播数据"
+            },
+            {
+              "file": "MDM/mdm_live_product_category.html",
+              "module": "冷丰WMS",
+              "title": "直播类目"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched.html",
+              "module": "冷丰WMS",
+              "title": "直播排品"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "编辑直播商品"
+            },
+            {
+              "file": "MDM/mdm_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间"
+            },
+            {
+              "file": "MDM/mdm_live_session.html",
+              "module": "冷丰WMS",
+              "title": "直播场次"
+            },
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "module": "冷丰WMS",
+              "title": "直播场次详情"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "module": "冷丰WMS",
+              "title": "直播场次编辑"
+            },
+            {
+              "file": "MDM/mdm_live_timeslot.html",
+              "module": "冷丰WMS",
+              "title": "直播时段"
+            },
+            {
+              "file": "user-app/h5/account-cancel.html",
+              "module": "",
+              "title": "账号注销 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/change-password.html",
+              "module": "",
+              "title": "修改密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/forgot-password.html",
+              "module": "",
+              "title": "找回密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/growth-detail.html",
+              "module": "",
+              "title": "我的成长值 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/growth-rule-desc.html",
+              "module": "",
+              "title": "规则说明 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "module": "",
+              "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-wechat.html",
+              "module": "",
+              "title": "微信授权登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "module": "",
+              "title": "登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/member-center.html",
+              "module": "",
+              "title": "会员中心 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/newcomer-zone.html",
+              "module": "",
+              "title": "新人专区 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-detail.html",
+              "module": "",
+              "title": "积分明细 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-mall.html",
+              "module": "",
+              "title": "积分商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-order-confirm.html",
+              "module": "",
+              "title": "确认兑换 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-product-detail.html",
+              "module": "",
+              "title": "积分商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-rule-desc.html",
+              "module": "",
+              "title": "规则说明 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile-edit.html",
+              "module": "",
+              "title": "会员资料 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-claim.html",
+              "module": "",
+              "title": "领取红包 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-records.html",
+              "module": "",
+              "title": "红包领取记录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/set-password.html",
+              "module": "",
+              "title": "设置密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/settings-more.html",
+              "module": "",
+              "title": "更多 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/settings.html",
+              "module": "",
+              "title": "设置 · 用户 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "user-app/h5/login.html",
+              "text": "主按钮改为微信授权登录，一键登录等收进其他方式；顶部展示冷丰特选 logo"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "text": "未注册提示自动注册，登录成功后不再引导设置密码"
+            },
+            {
+              "file": "user-app/h5/login-password.html",
+              "text": "支持忘记密码、账号注册；未设密码可立即设置或改用短信登录"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "text": "短信验证后设置密码即可注册登录"
+            },
+            {
+              "file": "user-app/h5/forgot-password.html",
+              "text": "短信验证后重置密码"
+            },
+            {
+              "file": "user-app/h5/set-password.html",
+              "text": "需短信验证；登录侧可改手机号，密码框在验证码上方"
+            },
+            {
+              "file": "user-app/h5/change-password.html",
+              "text": "与设置密码同版式，仅标题不同；个人中心手机号只读为当前账号"
+            },
+            {
+              "file": "user-app/h5/settings.html",
+              "text": "密码管理按是否已设密码展示未设置或修改密码；底部增加退出登录"
+            },
+            {
+              "file": "user-app/h5/login-wechat.html",
+              "text": "申请权限页使用冷丰特选 logo"
+            },
+            {
+              "file": "MDM/mdm_live_control.html",
+              "text": "直播商品上下架只影响小黄车展示；批量/定时改为下架；添加时可选上架或预告"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "text": "断流关播分钟改为 0-1440；关播后改为同步下架直播商品"
+            },
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "text": "关播后同步下架文案同步"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "商品验收开关「售卖」改为「上架」"
+            },
+            {
+              "file": null,
+              "text": "关闭引导下载浮窗后本次启动不再弹出"
+            }
+          ]
+        },
         {
           "sha": "2fa1f91",
           "type": "feat",
@@ -3643,6 +3936,11 @@
               "title": "修改密码 · 用户 APP"
             },
             {
+              "file": "user-app/h5/forgot-password.html",
+              "module": "",
+              "title": "找回密码 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/goods-detail.html",
               "module": "",
               "title": "商品详情 · 用户 APP"
@@ -3668,9 +3966,19 @@
               "title": "黑灯直播间 · 用户 APP"
             },
             {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/login-phone.html",
               "module": "",
               "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
             },
             {
               "file": "user-app/h5/login-wechat.html",
@@ -3766,6 +4074,11 @@
               "file": "user-app/h5/redpack-records.html",
               "module": "",
               "title": "红包领取记录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/set-password.html",
+              "module": "",
+              "title": "设置密码 · 用户 APP"
             },
             {
               "file": "user-app/h5/settings-more.html",
@@ -5012,6 +5325,11 @@
               "title": "每日签到 · 用户 APP"
             },
             {
+              "file": "user-app/h5/forgot-password.html",
+              "module": "",
+              "title": "找回密码 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/goods-detail.html",
               "module": "",
               "title": "商品详情 · 用户 APP"
@@ -5037,9 +5355,19 @@
               "title": "黑灯直播间 · 用户 APP"
             },
             {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/login-phone.html",
               "module": "",
               "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
             },
             {
               "file": "user-app/h5/login-wechat.html",
@@ -5135,6 +5463,11 @@
               "file": "user-app/h5/redpack-records.html",
               "module": "",
               "title": "红包领取记录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/set-password.html",
+              "module": "",
+              "title": "设置密码 · 用户 APP"
             },
             {
               "file": "user-app/h5/settings-more.html",
@@ -7226,6 +7559,11 @@
               "title": "红包领取记录 · 用户 APP"
             },
             {
+              "file": "user-app/h5/set-password.html",
+              "module": "",
+              "title": "设置密码 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/settings-more.html",
               "module": "",
               "title": "更多 · 用户 APP"
@@ -8311,6 +8649,11 @@
               "title": "修改密码 · 用户 APP"
             },
             {
+              "file": "user-app/h5/forgot-password.html",
+              "module": "",
+              "title": "找回密码 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/growth-detail.html",
               "module": "",
               "title": "我的成长值 · 用户 APP"
@@ -8326,9 +8669,19 @@
               "title": "黑灯直播间 · 用户 APP"
             },
             {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/login-phone.html",
               "module": "",
               "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
             },
             {
               "file": "user-app/h5/login-wechat.html",
@@ -8414,6 +8767,11 @@
               "file": "user-app/h5/redpack-records.html",
               "module": "",
               "title": "红包领取记录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/set-password.html",
+              "module": "",
+              "title": "设置密码 · 用户 APP"
             },
             {
               "file": "user-app/h5/settings-more.html",
@@ -9408,6 +9766,11 @@
               "title": "分类 · 用户 APP"
             },
             {
+              "file": "user-app/h5/forgot-password.html",
+              "module": "",
+              "title": "找回密码 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/goods-detail.html",
               "module": "",
               "title": "商品详情 · 用户 APP"
@@ -9423,9 +9786,19 @@
               "title": "黑灯直播间 · 用户 APP"
             },
             {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/login-phone.html",
               "module": "",
               "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
             },
             {
               "file": "user-app/h5/login-wechat.html",
@@ -9471,6 +9844,11 @@
               "file": "user-app/h5/profile.html",
               "module": "",
               "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/set-password.html",
+              "module": "",
+              "title": "设置密码 · 用户 APP"
             }
           ],
           "notes": [
@@ -13554,9 +13932,24 @@
               "title": "门店配置"
             },
             {
+              "file": "user-app/h5/forgot-password.html",
+              "module": "",
+              "title": "找回密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/login-phone.html",
               "module": "",
               "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
             },
             {
               "file": "user-app/h5/login-wechat.html",
@@ -13597,6 +13990,11 @@
               "file": "user-app/h5/restock.html",
               "module": "",
               "title": "进货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/set-password.html",
+              "module": "",
+              "title": "设置密码 · 用户 APP"
             }
           ],
           "global": true,
@@ -14062,14 +14460,29 @@
               "title": "修改密码 · 用户 APP"
             },
             {
+              "file": "user-app/h5/forgot-password.html",
+              "module": "",
+              "title": "找回密码 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/home.html",
               "module": "",
               "title": "首页 · 用户 APP"
             },
             {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/login-phone.html",
               "module": "",
               "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
             },
             {
               "file": "user-app/h5/login-wechat.html",
@@ -14115,6 +14528,11 @@
               "file": "user-app/h5/redpack-claim.html",
               "module": "",
               "title": "领取红包 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/set-password.html",
+              "module": "",
+              "title": "设置密码 · 用户 APP"
             },
             {
               "file": "user-app/h5/settings-more.html",
