@@ -75,7 +75,7 @@
                         <div id="controlTabProduct" class="lf-live-ctab-pane">
                             <div class="lf-live-subtabs-row">
                                 <div class="lf-live-subtabs" id="controlProductSubTabs">
-                                    <button type="button" class="is-active" data-product-tab="cart" id="controlCartTabBtn">直播商品(0)</button>
+                                    <button type="button" class="is-active lf-live-subtab-tip" data-product-tab="cart" id="controlCartTabBtn" data-tip="直播商品处的上下架并不会修改直播排品的上下架，只是控制在直播商品（C端小黄车）是否展示。">直播商品(0)</button>
                                     <button type="button" data-product-tab="sched" id="controlSchedTabBtn">直播排品</button>
                                 </div>
                                 <button type="button" class="erp-btn" id="btnCartSettings">设置</button>
@@ -94,8 +94,8 @@
                                     </label>
                                     <span class="lf-live-cart-count" id="controlCartCount">共 0 件</span>
                                     <div class="lf-live-cart-toolbar__ops">
-                                        <button type="button" class="erp-btn" id="btnCartBatchRemove">批量移除</button>
-                                        <button type="button" class="erp-btn" id="btnCartTimedRemove">定时移除</button>
+                                        <button type="button" class="erp-btn" id="btnCartBatchRemove">批量下架</button>
+                                        <button type="button" class="erp-btn" id="btnCartTimedRemove">定时下架</button>
                                         <button type="button" class="erp-btn erp-btn--primary" id="btnGoSched">从直播排品添加</button>
                                     </div>
                                 </div>
@@ -208,12 +208,12 @@
                     <span class="lf-live-set-row__label"><span class="erp-req">*</span>断流自动关播</span>
                     <div class="lf-live-set-row__ctrl lf-live-set-follow">
                         <span>直播断流</span>
-                        <input class="erp-input" type="number" min="1" max="999" step="1" id="dlgAutoCloseMinutes" placeholder="请输入">
+                        <input class="erp-input" type="number" min="0" max="1440" step="1" id="dlgAutoCloseMinutes" placeholder="0-1440">
                         <span>分钟后自动关播</span>
                     </div>
                 </div>
                 <div class="lf-live-set-row">
-                    <span class="lf-live-set-row__label">关播后同步移除所有直播商品</span>
+                    <span class="lf-live-set-row__label">关播后同步下架所有直播商品</span>
                     <div class="lf-live-set-row__ctrl">
                         <button type="button" class="lf-live-switch" id="dlgRemoveOnClose" aria-pressed="false"></button>
                     </div>
@@ -257,10 +257,10 @@
     <div id="timedRemoveDialog" class="lf-live-dialog" hidden>
         <div class="lf-live-dialog__mask" data-close-dialog="timedRemoveDialog"></div>
         <div class="lf-live-dialog__box" role="dialog">
-            <div class="lf-live-dialog__title">定时移除</div>
-            <p class="lf-live-dialog__hint" id="timedRemoveHint">将按设定时间把选中商品移出直播商品。</p>
+            <div class="lf-live-dialog__title">定时下架</div>
+            <p class="lf-live-dialog__hint" id="timedRemoveHint">将按设定时间把选中商品从直播商品（C端小黄车）下架。</p>
             <div class="lf-live-dialog__field">
-                <span>移除时间</span>
+                <span>下架时间</span>
                 <input class="erp-input" type="datetime-local" id="timedRemoveAt">
             </div>
             <div class="lf-live-dialog__footer">
@@ -292,6 +292,23 @@
         </div>
     </div>
 
+    <div id="addCartDialog" class="lf-live-dialog" hidden>
+        <div class="lf-live-dialog__mask" data-close-dialog="addCartDialog"></div>
+        <div class="lf-live-dialog__box" role="dialog">
+            <div class="lf-live-dialog__title" id="addCartTitle">添加到直播商品</div>
+            <p class="lf-live-dialog__hint" id="addCartHint">请选择加入直播商品后的状态。</p>
+            <div class="lf-live-dialog__field">
+                <span><span class="erp-req">*</span>状态</span>
+                <label class="lf-live-radio"><input type="radio" name="addCartSaleMode" value="selling" checked> 上架</label>
+                <label class="lf-live-radio"><input type="radio" name="addCartSaleMode" value="preview"> 预告</label>
+            </div>
+            <div class="lf-live-dialog__footer">
+                <button type="button" class="erp-btn" data-close-dialog="addCartDialog">取消</button>
+                <button type="button" class="erp-btn erp-btn--primary" id="addCartConfirm">确定</button>
+            </div>
+        </div>
+    </div>
+
     <div id="timedAddDialog" class="lf-live-dialog" hidden>
         <div class="lf-live-dialog__mask" data-close-dialog="timedAddDialog"></div>
         <div class="lf-live-dialog__box" role="dialog">
@@ -306,6 +323,11 @@
             </div>
             <div class="lf-live-dialog__field">
                 <label class="lf-live-radio"><input type="radio" name="timedAddMode" value="on_live_start"> 开播后自动添加</label>
+            </div>
+            <div class="lf-live-dialog__field">
+                <span><span class="erp-req">*</span>状态</span>
+                <label class="lf-live-radio"><input type="radio" name="timedAddSaleMode" value="selling" checked> 上架</label>
+                <label class="lf-live-radio"><input type="radio" name="timedAddSaleMode" value="preview"> 预告</label>
             </div>
             <div class="lf-live-dialog__footer">
                 <button type="button" class="erp-btn" data-close-dialog="timedAddDialog">取消</button>

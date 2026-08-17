@@ -61,9 +61,11 @@
   }
 
   function parseAutoCloseMinutes(val) {
-    var n = Math.floor(Number(val));
-    if (isNaN(n) || n < 1) return null;
-    return n > 999 ? 999 : n;
+    var raw = String(val == null ? '' : val).trim();
+    if (!raw) return null;
+    var n = Math.floor(Number(raw));
+    if (!isFinite(n) || n < 0) return null;
+    return n > 1440 ? 1440 : n;
   }
 
   function setSwitchOn(el, on) {
@@ -482,7 +484,7 @@
     if (!endAt) return toast('请选择结束时间', 'warning'), false;
     if (isSwitchOn(document.getElementById('fAutoCloseEnabled'))) {
       var autoCloseMinutes = parseAutoCloseMinutes((document.getElementById('fAutoCloseMinutes') || {}).value);
-      if (autoCloseMinutes == null) return toast('请填写直播断流后自动关播分钟数', 'warning'), false;
+      if (autoCloseMinutes == null) return toast('请填写 0-1440 的断流关播分钟数', 'warning'), false;
     }
     var viewer = readCViewerFields();
     if (viewer.extraMin > viewer.extraMax) {

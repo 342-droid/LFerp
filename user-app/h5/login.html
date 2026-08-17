@@ -27,27 +27,46 @@
 
       <div class="ua-login-main">
         <div id="uaLoginOneClick" class="ua-login-panel">
-          <div class="ua-login-hero">
-            <div id="uaLoginPhoneDisplay" class="ua-login-phone">159****4315</div>
-            <div class="ua-login-carrier">中国移动提供认证服务</div>
+          <div class="ua-login-hero ua-login-hero--wechat">
+            <div class="ua-login-brand-logo" aria-hidden="true">冷丰<br>特选</div>
+            <div class="ua-login-welcome">欢迎登录冷丰</div>
+            <div class="ua-login-carrier">推荐使用微信授权，快捷安全</div>
           </div>
           <div class="ua-login-actions">
-            <button type="button" class="ua-login-btn ua-login-btn--primary" id="uaLoginOneClickBtn" onclick="if(window.UaUserAuth&amp;&amp;window.UaUserAuth.oneClickLogin){window.UaUserAuth.oneClickLogin();return false;}">本机号码一键登录</button>
+            <button type="button" class="ua-login-btn ua-login-btn--wechat" id="uaLoginWechatBtn" aria-label="微信授权登录">
+              <svg class="ua-login-btn__icon" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+                <ellipse cx="9.35" cy="10.45" rx="8.55" ry="7.15" fill="#fff"/>
+                <path fill="#fff" d="M3.2 16.6l-1.7 3.4 3.9-1.55z"/>
+                <circle cx="6.35" cy="10.15" r="1.05" fill="#07C160"/>
+                <circle cx="12.15" cy="10.15" r="1.05" fill="#07C160"/>
+                <ellipse cx="16.85" cy="15.05" rx="6.85" ry="5.55" fill="#fff"/>
+                <path fill="#fff" d="M21.35 19.55 23.4 22.2 20 20.95z"/>
+                <circle cx="14.45" cy="14.65" r=".9" fill="#07C160"/>
+                <circle cx="19.25" cy="14.65" r=".9" fill="#07C160"/>
+              </svg>
+              微信授权登录
+            </button>
           </div>
           <div class="ua-login-other-methods">
             <p class="ua-login-other-methods__title">其他登录方式</p>
             <div class="ua-login-other-methods__row">
-              <button type="button" class="ua-login-method" id="uaLoginWechatBtn" aria-label="微信登录">
+              <button type="button" class="ua-login-method" id="uaLoginOneClickBtn" aria-label="一键登录" onclick="if(window.UaUserAuth&amp;&amp;window.UaUserAuth.oneClickLogin){window.UaUserAuth.oneClickLogin();return false;}">
                 <span class="ua-login-method__icon">
-                  <img src="../assets/login-method-wechat.png" alt="">
+                  <img src="../assets/login-method-oneclick.svg" alt="">
                 </span>
-                <span class="ua-login-method__label">微信</span>
+                <span class="ua-login-method__label">一键登录</span>
               </button>
               <button type="button" class="ua-login-method" id="uaLoginPhoneMethodBtn" aria-label="其他手机登录">
                 <span class="ua-login-method__icon">
                   <img src="../assets/login-method-phone.svg" alt="">
                 </span>
                 <span class="ua-login-method__label">其他手机</span>
+              </button>
+              <button type="button" class="ua-login-method" id="uaLoginPasswordMethodBtn" aria-label="账号密码登录">
+                <span class="ua-login-method__icon">
+                  <img src="../assets/login-method-password.svg" alt="">
+                </span>
+                <span class="ua-login-method__label">账号密码</span>
               </button>
             </div>
           </div>
@@ -73,7 +92,7 @@
             <span class="ua-login-agree__box" aria-hidden="true"></span>
           </span>
           <span class="ua-login-agree__text">
-            我已阅读并同意<a href="#" onclick="return false">《中国移动认证服务条款》</a>和<a href="#" onclick="return false">《用户协议》</a><a href="#" onclick="return false">《隐私政策》</a>、<a href="#" onclick="return false">《登录政策》</a>，并授权冷丰获取本机号码
+            我已阅读并同意<a href="#" onclick="return false">《用户协议》</a>和<a href="#" onclick="return false">《隐私政策》</a>、<a href="#" onclick="return false">《登录政策》</a>
           </span>
         </label>
       </div>
@@ -83,6 +102,7 @@
   </div>
 <script src="../js/user-app-blacklist-guard.js"></script>
 <script src="../js/user-app-account-cancel.js"></script>
-<script src="../js/user-app-auth.js?v=20260725"></script>
+<script src="../js/user-app-auth.js?v=20260817"></script>
+<script src="../js/user-app-pwd-auth.js"></script>
 </body>
 </html>

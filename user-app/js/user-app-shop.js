@@ -451,7 +451,7 @@
       '<select id="uaLiveGoodsDemoMode">' +
       '<option value="selling"' +
       (cur === 'selling' ? ' selected' : '') +
-      '>售卖</option>' +
+      '>上架</option>' +
       '<option value="preview"' +
       (cur === 'preview' ? ' selected' : '') +
       '>预告</option></select></label>' +

@@ -1,8 +1,9 @@
 /**
  * 直播管理 — 直播中控工作台
- * 直播商品：从上架排品中添加；售卖 / 预告、置顶（仅 1 个，低于讲解）、讲解（默认置顶）、
+ * 直播商品：从上架排品中添加（添加时选择上架 / 预告，默认上架）；上架 / 预告、置顶（仅 1 个，低于讲解）、讲解（默认置顶）、
  * SKU 库存（需保存）/ 上下架、展示序号、上移下移。
- * 预告：C 端展示商品预告但不可售卖；售卖：C 端可正常下单。
+ * 预告：C 端展示商品预告但不可购买；上架：C 端可正常下单。
+ * 直播商品上下架只控制 C 端小黄车是否展示，不改直播排品上下架。
  * 直播排品 tab：仅展示已上架且未加入直播商品的排品。
  * 弹幕：点击可禁言（本场）、回复、屏蔽（C 端不展示该条）。
  * 观看记录：当前在线 / 累计观看 / 观看人次。
@@ -36,6 +37,7 @@
   var pendingStock = {};
   var selectedCart = {};
   var selectedSched = {};
+  var pendingAddIds = [];
   var C_STATE_KEY = 'lf_live_c_state_v1';
 
   function toast(msg, type) {
@@ -429,10 +431,18 @@
     return max + 1;
   }
 
-  function addToCart(p) {
+  function normalizeSaleMode(mode) {
+    return mode === 'preview' ? 'preview' : 'selling';
+  }
+
+  function saleModeLabel(mode) {
+    return normalizeSaleMode(mode) === 'selling' ? '上架' : '预告';
+  }
+
+  function addToCart(p, saleMode) {
     ensureControlFields(p, 0);
     p.inCart = true;
-    p.saleMode = 'preview';
+    p.saleMode = normalizeSaleMode(saleMode);
     p.explaining = false;
     p.pinned = false;
     p.pendingAdd = null;
@@ -493,11 +503,12 @@
         changed = true;
       }
       if (!p.inCart && p.pendingAdd) {
+        var pendingMode = p.pendingAdd.saleMode;
         if (p.pendingAdd.type === 'at' && p.pendingAdd.at && now >= p.pendingAdd.at) {
-          addToCart(p);
+          addToCart(p, pendingMode);
           changed = true;
         } else if (p.pendingAdd.type === 'on_live_start' && sess && sess.status === 'live') {
-          addToCart(p);
+          addToCart(p, pendingMode);
           changed = true;
         }
       }
@@ -752,7 +763,7 @@
     else if (p.pinned) html += '<span class="lf-live-badge lf-live-badge--ok">置顶</span>';
     if (p.saleMode === 'preview') html += '<span class="lf-live-badge lf-live-badge--muted">预告</span>';
     else if (p.liveStatus === 'sold_out') html += '<span class="lf-live-badge lf-live-badge--danger">售罄</span>';
-    else html += '<span class="lf-live-badge lf-live-badge--warn">售卖</span>';
+    else html += '<span class="lf-live-badge lf-live-badge--warn">上架</span>';
     return html;
   }
 
@@ -820,7 +831,7 @@
             (previewMode === 'sale' ? ' class="is-mode-on"' : '') +
             '>售价</button></div>';
         var extraHint = '';
-        if (p.removeAt) extraHint += '<div class="lf-live-card-hint">将于 ' + escapeHtml(formatClock(p.removeAt)) + ' 移除</div>';
+        if (p.removeAt) extraHint += '<div class="lf-live-card-hint">将于 ' + escapeHtml(formatClock(p.removeAt)) + ' 下架</div>';
         return (
           '<div class="lf-live-cart-card" data-id="' +
           escapeHtml(p.id) +
@@ -847,11 +858,11 @@
           '<span class="lf-live-ops-group">' +
           '<button type="button" data-act="sale-mode" data-mode="selling"' +
           (selling ? ' class="is-mode-on"' : '') +
-          '>售卖</button>' +
+          '>上架</button>' +
           '<button type="button" data-act="sale-mode" data-mode="preview"' +
           (selling ? '' : ' class="is-mode-on"') +
           '>预告</button>' +
-          '<button type="button" data-act="remove">移除</button></span>' +
+          '<button type="button" data-act="remove">下架</button></span>' +
           '<button type="button" data-act="pin">' +
           (p.pinned ? '取消置顶' : '置顶') +
           '</button>' +
@@ -897,9 +908,17 @@
       .map(function (p) {
         var pending = '';
         if (p.pendingAdd && p.pendingAdd.type === 'on_live_start') {
-          pending = '<div class="lf-live-card-hint">开播后自动添加</div>';
+          pending =
+            '<div class="lf-live-card-hint">开播后自动添加（' +
+            escapeHtml(saleModeLabel(p.pendingAdd.saleMode)) +
+            '）</div>';
         } else if (p.pendingAdd && p.pendingAdd.at) {
-          pending = '<div class="lf-live-card-hint">将于 ' + escapeHtml(formatClock(p.pendingAdd.at)) + ' 添加</div>';
+          pending =
+            '<div class="lf-live-card-hint">将于 ' +
+            escapeHtml(formatClock(p.pendingAdd.at)) +
+            ' 添加（' +
+            escapeHtml(saleModeLabel(p.pendingAdd.saleMode)) +
+            '）</div>';
         }
         return (
           '<div class="lf-live-cart-card" data-id="' +
@@ -1284,9 +1303,11 @@
   }
 
   function parseAutoCloseMinutes(val) {
-    var n = Math.floor(Number(val));
-    if (isNaN(n) || n < 1) return null;
-    return n > 999 ? 999 : n;
+    var raw = String(val == null ? '' : val).trim();
+    if (!raw) return null;
+    var n = Math.floor(Number(raw));
+    if (!isFinite(n) || n < 0) return null;
+    return n > 1440 ? 1440 : n;
   }
 
   function setSwitchOn(el, on) {
@@ -1376,6 +1397,42 @@
     if (el) el.hidden = true;
   }
 
+  function eligibleSchedIds(ids) {
+    return (ids || []).filter(function (id) {
+      var found = findProduct(id);
+      return found && !found.item.inCart && normalizeSchedStatus(found.item.status) === 'enabled';
+    });
+  }
+
+  function openAddCartDialog(ids) {
+    pendingAddIds = eligibleSchedIds(ids);
+    if (!pendingAddIds.length) return toast('请先勾选要添加的选品', 'warning');
+    var title = document.getElementById('addCartTitle');
+    var hint = document.getElementById('addCartHint');
+    var batch = pendingAddIds.length > 1;
+    if (title) title.textContent = batch ? '批量添加到直播商品' : '添加到直播商品';
+    if (hint) {
+      hint.textContent = batch
+        ? '将添加已选的 ' + pendingAddIds.length + ' 件商品，请选择状态。'
+        : '请选择加入直播商品后的状态。';
+    }
+    setRadioValue('addCartSaleMode', 'selling');
+    openDialog('addCartDialog');
+  }
+
+  function applyAddToCart(ids, saleMode) {
+    var mode = normalizeSaleMode(saleMode);
+    var n = 0;
+    eligibleSchedIds(ids).forEach(function (id) {
+      var found = findProduct(id);
+      if (!found) return;
+      addToCart(found.item, mode);
+      delete selectedSched[id];
+      n += 1;
+    });
+    return n;
+  }
+
   function moveCart(p, dir) {
     compactCartSort();
     return insertCartAt(p, p.cartSort + dir);
@@ -1417,7 +1474,7 @@
       var mode = btn.getAttribute('data-mode') || 'selling';
       p.saleMode = mode === 'preview' ? 'preview' : 'selling';
       syncLiveStatus(p);
-      toast(p.saleMode === 'preview' ? '已设为预告，C 端仅展示不可售卖' : '已设为售卖，C 端可正常下单');
+      toast(p.saleMode === 'preview' ? '已设为预告，C 端仅展示暂不可购买' : '已设为上架，C 端可正常下单');
     } else if (act === 'preview-price') {
       p.previewPriceMode = btn.getAttribute('data-mode') || 'sale';
       toast(
@@ -1454,7 +1511,7 @@
       syncLiveStatus(p);
     } else if (act === 'remove') {
       removeFromCart(p);
-      toast('已移出直播商品，回到直播排品');
+      toast('已下架，不再展示于直播商品（C 端小黄车）');
     } else if (act === 'sku-toggle') {
       var skuRow = btn.closest('[data-sku-id]');
       var sku = skuRow ? findSku(p, skuRow.getAttribute('data-sku-id')) : null;
@@ -1514,7 +1571,7 @@
         sess.status = 'ended';
         if (sess.autoCloseEnabled && sess.removeProductsOnClose) {
           removeAllCartProducts();
-          toast('已关闭直播，并移除全部直播商品');
+          toast('已关闭直播，并下架全部直播商品');
         } else {
           toast('已关闭直播');
         }
@@ -1595,7 +1652,7 @@
         if (!sess) return;
         var enabled = isSwitchOn(document.getElementById('dlgAutoCloseEnabled'));
         var minutes = parseAutoCloseMinutes((document.getElementById('dlgAutoCloseMinutes') || {}).value);
-        if (enabled && minutes == null) return toast('请填写直播断流后自动关播分钟数', 'warning');
+        if (enabled && minutes == null) return toast('请填写 0-1440 的断流关播分钟数', 'warning');
         var viewer = readCViewerFromDialog();
         if (viewer.extraMin > viewer.extraMax) {
           return toast('额外跟随人数下限不能大于上限', 'warning');
@@ -1842,12 +1899,12 @@
     if (btnCartBatchRemove) {
       btnCartBatchRemove.addEventListener('click', function () {
         var ids = selectedCartIds();
-        if (!ids.length) return toast('请先勾选要移除的商品', 'warning');
+        if (!ids.length) return toast('请先勾选要下架的商品', 'warning');
         ids.forEach(function (id) {
           var found = findProduct(id);
           if (found) removeFromCart(found.item);
         });
-        toast('已批量移除 ' + ids.length + ' 件商品');
+        toast('已批量下架 ' + ids.length + ' 件商品');
         render();
       });
     }
@@ -1855,10 +1912,10 @@
     if (btnCartTimedRemove) {
       btnCartTimedRemove.addEventListener('click', function () {
         var ids = selectedCartIds();
-        if (!ids.length) return toast('请先勾选要定时移除的商品', 'warning');
+        if (!ids.length) return toast('请先勾选要定时下架的商品', 'warning');
         var hint = document.getElementById('timedRemoveHint');
         var input = document.getElementById('timedRemoveAt');
-        if (hint) hint.textContent = '将定时移除已选的 ' + ids.length + ' 件商品。';
+        if (hint) hint.textContent = '将定时下架已选的 ' + ids.length + ' 件商品。';
         if (input) input.value = toLocalInput(Date.now() + 5 * 60 * 1000);
         openDialog('timedRemoveDialog');
       });
@@ -1870,13 +1927,13 @@
         var input = document.getElementById('timedRemoveAt');
         var ts = input && input.value ? new Date(input.value).getTime() : NaN;
         if (!ids.length) return toast('请先勾选商品', 'warning');
-        if (isNaN(ts)) return toast('请选择移除时间', 'warning');
+        if (isNaN(ts)) return toast('请选择下架时间', 'warning');
         ids.forEach(function (id) {
           var found = findProduct(id);
           if (found) found.item.removeAt = ts;
         });
         closeDialog('timedRemoveDialog');
-        toast('已设置定时移除');
+        toast('已设置定时下架');
         render();
       });
     }
@@ -1896,11 +1953,7 @@
           if (normalizeSchedStatus(p.status) !== 'enabled') {
             return toast('仅上架排品可添加到直播商品', 'warning');
           }
-          addToCart(p);
-          delete selectedSched[p.id];
-          toast('已添加到直播商品，默认为预告状态');
-          productTab = 'cart';
-          render();
+          openAddCartDialog([p.id]);
         }
       });
       schedList.addEventListener('change', function (ev) {
@@ -1927,15 +1980,21 @@
       btnSchedBatchAdd.addEventListener('click', function () {
         var ids = selectedSchedIds();
         if (!ids.length) return toast('请先勾选要添加的选品', 'warning');
-        var n = 0;
-        ids.forEach(function (id) {
-          var found = findProduct(id);
-          if (!found || found.item.inCart) return;
-          addToCart(found.item);
-          delete selectedSched[id];
-          n += 1;
-        });
-        toast('已批量添加 ' + n + ' 件商品，默认为预告状态');
+        openAddCartDialog(ids);
+      });
+    }
+    var addCartConfirm = document.getElementById('addCartConfirm');
+    if (addCartConfirm) {
+      addCartConfirm.addEventListener('click', function () {
+        if (!pendingAddIds.length) return toast('请先勾选要添加的选品', 'warning');
+        var saleMode = normalizeSaleMode(getRadioValue('addCartSaleMode', 'selling'));
+        var n = applyAddToCart(pendingAddIds, saleMode);
+        closeDialog('addCartDialog');
+        pendingAddIds = [];
+        if (!n) return toast('没有可添加的商品', 'warning');
+        toast(
+          (n > 1 ? '已批量添加 ' + n + ' 件商品，状态为' : '已添加到直播商品，状态为') + saleModeLabel(saleMode)
+        );
         productTab = 'cart';
         render();
       });
@@ -1947,12 +2006,13 @@
         if (!ids.length) return toast('请先勾选要定时添加的选品', 'warning');
         var hint = document.getElementById('timedAddHint');
         var input = document.getElementById('timedAddAt');
-        if (hint) hint.textContent = '将为已选的 ' + ids.length + ' 件选品设置添加时间。';
+        if (hint) hint.textContent = '将为已选的 ' + ids.length + ' 件选品设置添加时间，请同时选择状态。';
         if (input) input.value = toLocalInput(Date.now() + 5 * 60 * 1000);
         var radios = document.querySelectorAll('input[name="timedAddMode"]');
         radios.forEach(function (r) {
           r.checked = r.value === 'at';
         });
+        setRadioValue('timedAddSaleMode', 'selling');
         openDialog('timedAddDialog');
       });
     }
@@ -1970,21 +2030,22 @@
           ts = input && input.value ? new Date(input.value).getTime() : NaN;
           if (isNaN(ts)) return toast('请选择添加时间', 'warning');
         }
+        var saleMode = normalizeSaleMode(getRadioValue('timedAddSaleMode', 'selling'));
         ids.forEach(function (id) {
           var found = findProduct(id);
           if (!found || found.item.inCart) return;
           if (mode === 'on_live_start') {
             if (sess && sess.status === 'live') {
-              addToCart(found.item);
+              addToCart(found.item, saleMode);
             } else {
-              found.item.pendingAdd = { type: 'on_live_start' };
+              found.item.pendingAdd = { type: 'on_live_start', saleMode: saleMode };
             }
           } else {
-            found.item.pendingAdd = { type: 'at', at: ts };
+            found.item.pendingAdd = { type: 'at', at: ts, saleMode: saleMode };
           }
         });
         closeDialog('timedAddDialog');
-        toast(mode === 'on_live_start' ? '已设置为开播后自动添加' : '已设置定时添加');
+        toast(mode === 'on_live_start' ? '已设置为开播后自动添加（' + saleModeLabel(saleMode) + '）' : '已设置定时添加（' + saleModeLabel(saleMode) + '）');
         render();
       });
     }

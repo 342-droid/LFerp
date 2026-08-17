@@ -138,7 +138,7 @@
           true
         )
       );
-      closeItems.push(descItem('关播后同步移除直播商品', escapeHtml(sess.removeProductsOnClose ? '是' : '否')));
+      closeItems.push(descItem('关播后同步下架直播商品', escapeHtml(sess.removeProductsOnClose ? '是' : '否')));
     }
     document.getElementById('dCloseGrid').innerHTML = closeItems.join('');
 

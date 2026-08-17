@@ -23,7 +23,7 @@
   function init() {
     if (window.UaNav) {
       window.UaNav.applyBackLink('.ua-pe-nav__back', 'profile.html');
-      ['setChangePwd', 'setMore'].forEach(function (id) {
+      ['setMore'].forEach(function (id) {
         var a = document.getElementById(id);
         if (a && a.tagName === 'A' && window.UaNav.withFrom) {
           a.href = window.UaNav.withFrom(a.getAttribute('href') || '');
@@ -59,6 +59,67 @@
           }
         } catch (e) {}
         toast(installed ? '检测到已安装，演示唤起 APP' : '跳转应用商店下载冷丰 APP（演示）');
+      });
+    }
+
+    bindLogout();
+  }
+
+  function readSession() {
+    try {
+      var raw = localStorage.getItem('ua_user_session_v1');
+      if (!raw) return null;
+      var data = JSON.parse(raw);
+      return data && typeof data === 'object' ? data : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function isLoggedIn() {
+    var session = readSession();
+    return !!(session && session.loggedIn);
+  }
+
+  function doLogout() {
+    try {
+      localStorage.removeItem('ua_user_session_v1');
+    } catch (e) {}
+    try {
+      window.location.replace('login.html?logout=1&force=1');
+    } catch (e2) {
+      window.location.href = 'login.html?logout=1&force=1';
+    }
+  }
+
+  function bindLogout() {
+    var card = document.getElementById('setLogoutCard');
+    var btn = document.getElementById('setLogout');
+    var modal = document.getElementById('setLogoutModal');
+    var cancelBtn = document.getElementById('setLogoutCancel');
+    var confirmBtn = document.getElementById('setLogoutConfirm');
+    var mask = document.getElementById('setLogoutMask');
+
+    if (card && !isLoggedIn()) {
+      card.hidden = true;
+      return;
+    }
+
+    function closeModal() {
+      if (modal) modal.hidden = true;
+    }
+
+    function openModal() {
+      if (modal) modal.hidden = false;
+    }
+
+    if (btn) btn.addEventListener('click', openModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    if (mask) mask.addEventListener('click', closeModal);
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', function () {
+        closeModal();
+        doLogout();
       });
     }
   }

@@ -19,6 +19,11 @@
     var fromPath = (raw.split('/').pop() || '').split('?')[0].toLowerCase();
     if (fromPath && /\.html$/i.test(fromPath)) return fromPath;
     if (document.getElementById('uaLoginScreen')) return 'login.html';
+    if (document.querySelector('.ua-pwd-login-screen')) return 'login-password.html';
+    if (document.querySelector('.ua-register-screen')) return 'login-register.html';
+    if (document.querySelector('.ua-forgot-pwd-screen')) return 'forgot-password.html';
+    if (document.querySelector('.ua-change-pwd-screen')) return 'change-password.html';
+    if (document.querySelector('.ua-set-pwd-screen')) return 'set-password.html';
     if (document.querySelector('.ua-phone-login-screen')) return 'login-phone.html';
     if (document.querySelector('.ua-wechat-auth-screen')) return 'login-wechat.html';
     if (document.getElementById('uaProfileContent')) return 'profile.html';
@@ -28,11 +33,19 @@
 
   var page = resolvePageName();
   var isLoginPage = page === 'login.html' || !!document.getElementById('uaLoginScreen');
-  var isPhoneLoginPage = page === 'login-phone.html' || !!document.querySelector('.ua-phone-login-screen');
+  var isPwdLoginPage = page === 'login-password.html' || !!document.querySelector('.ua-pwd-login-screen');
+  var isRegisterPage = page === 'login-register.html' || !!document.querySelector('.ua-register-screen');
+  var isForgotPage = page === 'forgot-password.html' || !!document.querySelector('.ua-forgot-pwd-screen');
+  var isSetPwdPage = page === 'set-password.html' || !!document.querySelector('.ua-set-pwd-screen');
+  var isChangePwdPage = page === 'change-password.html' || !!document.querySelector('.ua-change-pwd-screen');
+  var isPwdFlowPage = isPwdLoginPage || isRegisterPage || isForgotPage || isSetPwdPage;
+  var isPhoneLoginPage =
+    page === 'login-phone.html' ||
+    (!isPwdFlowPage && !isChangePwdPage && !!document.querySelector('.ua-phone-login-screen'));
   var isWechatLoginPage = page === 'login-wechat.html' || !!document.querySelector('.ua-wechat-auth-screen');
   var isProfilePage = page === 'profile.html' || !!document.getElementById('uaProfileContent');
   var isAppInterior = APP_PAGES.indexOf(page) >= 0 || isProfilePage;
-  var isLoginFlowPage = isLoginPage || isPhoneLoginPage || isWechatLoginPage;
+  var isLoginFlowPage = isLoginPage || isPhoneLoginPage || isWechatLoginPage || isPwdFlowPage;
 
   if (!isLoginFlowPage && !isAppInterior) return;
 
@@ -47,6 +60,8 @@
   var oneClickBtn = document.getElementById('uaLoginOneClickBtn');
   var wechatEntryBtn = document.getElementById('uaLoginWechatBtn');
   var phoneMethodBtn = document.getElementById('uaLoginPhoneMethodBtn');
+  var passwordMethodBtn = document.getElementById('uaLoginPasswordMethodBtn');
+  var phonePasswordLinkBtn = document.getElementById('uaPhoneLoginPasswordLinkBtn');
   var wechatAgreeModal = document.getElementById('uaLoginWechatAgreeModal');
   var wechatAgreeCancelBtn = document.getElementById('uaLoginWechatAgreeCancelBtn');
   var wechatAgreeConfirmBtn = document.getElementById('uaLoginWechatAgreeConfirmBtn');
@@ -317,6 +332,16 @@
     return nickname || '冷丰用户';
   }
 
+  function willReregisterAfterCancel() {
+    var st = readCancelStatus();
+    var data = window.UaAccountCancel && window.UaAccountCancel.read ? window.UaAccountCancel.read() : {};
+    return st === 'canceled' || !!(data && data.phoneReleased);
+  }
+
+  function accountHasPassword(phone) {
+    return !!(window.UaPwdAuth && typeof window.UaPwdAuth.hasPassword === 'function' && window.UaPwdAuth.hasPassword(phone));
+  }
+
   function completeLogin(phone, nickname) {
     if (blockLoginIfCancelPending()) return;
     var nick = maybeReregisterAfterCancel(phone, nickname || '冷丰用户');
@@ -324,7 +349,32 @@
       loggedIn: true,
       phone: phone,
       phoneMasked: maskPhone(phone),
-      nickname: nick
+      nickname: nick,
+      hasPassword: accountHasPassword(phone)
+    };
+    writeSession(session);
+    redirectAfterAuth(session);
+  }
+
+  /** 手机号+短信：未注册自动注册，登录后不强制引导设置密码 */
+  function completeSmsLogin(phone) {
+    if (blockLoginIfCancelPending()) return;
+    var wasNew = !(window.UaPwdAuth && typeof window.UaPwdAuth.isRegistered === 'function' && window.UaPwdAuth.isRegistered(phone));
+    var reregister = willReregisterAfterCancel();
+    if (wasNew && window.UaPwdAuth && typeof window.UaPwdAuth.markRegistered === 'function') {
+      window.UaPwdAuth.markRegistered(phone);
+    }
+    var nick = maybeReregisterAfterCancel(phone, '冷丰用户');
+    if (reregister && window.UaPwdAuth && typeof window.UaPwdAuth.clearPassword === 'function') {
+      window.UaPwdAuth.clearPassword(phone);
+    }
+    var session = {
+      loggedIn: true,
+      phone: phone,
+      phoneMasked: maskPhone(phone),
+      nickname: nick,
+      hasPassword: accountHasPassword(phone),
+      loginMethod: 'sms'
     };
     writeSession(session);
     redirectAfterAuth(session);
@@ -414,6 +464,12 @@
       });
     }
 
+    if (passwordMethodBtn) {
+      passwordMethodBtn.addEventListener('click', function () {
+        goTo(buildLoginUrl('login-password.html'));
+      });
+    }
+
     if (wechatAgreeCancelBtn) {
       wechatAgreeCancelBtn.addEventListener('click', function () {
         pendingOneClickAfterAgree = false;
@@ -474,6 +530,12 @@
       });
     }
 
+    if (phonePasswordLinkBtn) {
+      phonePasswordLinkBtn.addEventListener('click', function () {
+        goTo(buildLoginUrl('login-password.html'));
+      });
+    }
+
     if (wechatAgreeCancelBtn) {
       wechatAgreeCancelBtn.addEventListener('click', function () {
         if (wechatAgreeModal) wechatAgreeModal.hidden = true;
@@ -520,7 +582,7 @@
           showToast('请输入验证码');
           return;
         }
-        completeLogin(phone, '冷丰用户');
+        completeSmsLogin(phone);
       });
     }
   }
@@ -559,6 +621,12 @@
   function initPhoneLoginPage() {
     normalizeLegacySession(readSession());
     if (agreeCheckbox) agreeCheckbox.checked = false;
+    if (phoneInput) {
+      try {
+        var qPhone = String(new URLSearchParams(window.location.search).get('phone') || '').replace(/\D/g, '');
+        if (qPhone.length === 11) phoneInput.value = qPhone;
+      } catch (e) {}
+    }
     bindPhoneLoginEvents();
   }
 
@@ -626,6 +694,11 @@
       return normalizeLegacySession(readSession());
     },
     oneClickLogin: handleOneClickLogin,
+    completeLogin: completeLogin,
+    redirectAfterAuth: redirectAfterAuth,
+    buildLoginUrl: buildLoginUrl,
+    goTo: goTo,
+    showToast: showToast,
     logout: function () {
       clearSession();
       goTo('login.html');

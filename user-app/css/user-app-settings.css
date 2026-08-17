@@ -64,6 +64,31 @@
   color: #e53935;
 }
 
+.ua-set-logout-card {
+  margin-top: 12px;
+}
+
+.ua-set-logout-card[hidden] {
+  display: none !important;
+}
+
+.ua-set-item--logout {
+  justify-content: center;
+  border-bottom: none;
+  color: #e53935;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.ua-cancel-modal[hidden] {
+  display: none !important;
+}
+
+.ua-cancel-modal__btn--danger {
+  color: #e53935;
+  font-weight: 600;
+}
+
 /* 注销驳回：单独卡片，仅展示最新一条 */
 .ua-set-reject-card {
   margin-top: 12px;
@@ -375,6 +400,12 @@
 
 .ua-pwd-input:focus {
   outline: none;
+}
+
+.ua-pwd-input[readonly] {
+  color: #b3b3b3;
+  cursor: default;
+  -webkit-text-fill-color: #b3b3b3;
 }
 
 .ua-pwd-sms {

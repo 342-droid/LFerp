@@ -107,6 +107,54 @@
   text-align: center;
 }
 
+.ua-login-hero--wechat {
+  padding-top: 72px;
+}
+
+.ua-login-brand-logo {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #ff8a3d, #ff4d18);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  box-shadow: 0 8px 20px rgba(255, 77, 24, 0.28);
+}
+
+.ua-login-brand-logo--auth {
+  width: 56px;
+  height: 56px;
+  margin: 0;
+  font-size: 12px;
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.ua-login-wechat-logo {
+  display: block;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.ua-login-welcome {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111;
+  letter-spacing: 0.2px;
+  line-height: 1.3;
+}
+
 .ua-login-phone {
   font-size: 32px;
   font-weight: 700;
@@ -150,6 +198,33 @@
   background: #f5222d;
 }
 
+.ua-login-btn--wechat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 50px;
+  line-height: 1;
+  background: #07c160;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(7, 193, 96, 0.38);
+}
+
+.ua-login-btn--wechat:active {
+  background: #06ad56;
+}
+
+.ua-login-btn__icon {
+  display: block;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  flex: 0 0 22px;
+  aspect-ratio: 1 / 1;
+  overflow: visible;
+}
+
 .ua-login-btn--ghost {
   margin-top: 14px;
   background: #fff;
@@ -179,7 +254,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: 40px;
+  gap: 28px;
 }
 
 .ua-login-method {
@@ -260,6 +335,14 @@
 .ua-login-agree-modal__actions {
   display: flex;
   gap: 12px;
+}
+
+.ua-login-agree-modal__actions--stack {
+  flex-direction: column;
+}
+
+.ua-login-agree-modal__actions--stack .ua-login-agree-modal__btn {
+  width: 100%;
 }
 
 .ua-login-agree-modal__btn {
@@ -445,11 +528,18 @@
   height: 40px;
   padding: 0;
   color: #333;
+  text-decoration: none;
 }
 
 .ua-phone-login-nav__back svg {
   width: 22px;
   height: 22px;
+}
+
+.ua-phone-login-nav__back[hidden],
+.ua-phone-login-nav__skip[hidden],
+.ua-phone-login-nav__spacer[hidden] {
+  display: none !important;
 }
 
 .ua-phone-login-nav__skip {
@@ -466,6 +556,7 @@
   display: flex;
   flex-direction: column;
   padding: 8px 24px 0;
+  overflow-y: auto;
 }
 
 .ua-phone-login-title {
@@ -474,6 +565,67 @@
   font-weight: 700;
   color: #111;
   line-height: 1.3;
+}
+
+.ua-phone-login-lead {
+  margin: -16px 0 22px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #999;
+}
+
+.ua-phone-login-hint {
+  margin: 12px 2px 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #999;
+}
+
+.ua-phone-login-links {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding: 0 2px;
+}
+
+.ua-phone-login-links button {
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: #ff4d4f;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ua-phone-login-eye {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #bbb;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ua-phone-login-eye svg {
+  width: 20px;
+  height: 20px;
+}
+
+.ua-phone-login-eye.is-on {
+  color: #666;
+}
+
+.ua-phone-login-nav__spacer {
+  width: 40px;
+  flex-shrink: 0;
 }
 
 .ua-phone-login-fields {
@@ -508,6 +660,12 @@
 
 .ua-phone-login-input::placeholder {
   color: #c8c8c8;
+}
+
+.ua-phone-login-input[readonly] {
+  color: #b3b3b3;
+  cursor: default;
+  -webkit-text-fill-color: #b3b3b3;
 }
 
 .ua-phone-login-sms {
@@ -738,5 +896,60 @@
 
 .ua-profile-head--guest .ua-profile-phone {
   color: #ff4d4f;
+  cursor: pointer;
+}
+
+/* 账号密码验收开关 */
+.ua-pwd-demo {
+  position: fixed;
+  right: 8px;
+  bottom: 80px;
+  z-index: 2300;
+  width: 188px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #eee;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  font-size: 11px;
+  color: #333;
+}
+
+.ua-pwd-demo__title {
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+.ua-pwd-demo__hint {
+  margin: 0 0 8px;
+  color: #999;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.ua-pwd-demo__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.ua-pwd-demo__row select {
+  margin-left: auto;
+  max-width: 108px;
+  font-size: 11px;
+}
+
+.ua-pwd-demo__apply {
+  width: 100%;
+  margin-top: 4px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: #ff7019;
+  color: #fff;
+  font-size: 11px;
   cursor: pointer;
 }

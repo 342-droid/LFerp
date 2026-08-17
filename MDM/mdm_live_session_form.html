@@ -116,18 +116,18 @@
                                 <div class="pts-rule-field__control">
                                     <div class="pts-rule-unit">
                                         <span class="pts-rule-unit__text">直播断流</span>
-                                        <input class="erp-input" id="fAutoCloseMinutes" type="number" min="1" max="999" step="1" placeholder="请输入">
+                                        <input class="erp-input" id="fAutoCloseMinutes" type="number" min="0" max="1440" step="1" placeholder="0-1440">
                                         <span class="pts-rule-unit__text">分钟后自动关播</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="pts-rule-field">
-                                <label class="pts-rule-field__label">关播后同步移除直播商品</label>
+                                <label class="pts-rule-field__label">关播后同步下架直播商品</label>
                                 <div class="pts-rule-field__control">
                                     <div class="lf-live-field-switch-row">
                                         <button type="button" class="lf-live-switch" id="fRemoveOnClose" aria-pressed="false"></button>
                                     </div>
-                                    <p class="pts-rule-tip">开启后，关播时将本场所有直播商品移出，回到直播排品。</p>
+                                    <p class="pts-rule-tip">开启后，关播时将本场所有直播商品下架，不再展示于 C 端小黄车（不改直播排品上下架）。</p>
                                 </div>
                             </div>
                         </div>

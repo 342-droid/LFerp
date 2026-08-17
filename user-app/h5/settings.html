@@ -44,8 +44,9 @@
             <span class="ua-set-item__text">版本信息</span>
             <span class="ua-set-item__extra">V1.2.0</span>
           </div>
-          <a href="change-password.html" class="ua-set-item" id="setChangePwd">
-            <span class="ua-set-item__text">修改密码</span>
+          <a href="change-password.html?scene=set" class="ua-set-item" id="setPwdManage">
+            <span class="ua-set-item__text">密码管理</span>
+            <span class="ua-set-item__extra" id="setPwdManageExtra">未设置</span>
             <span class="ua-set-item__arrow">&gt;</span>
           </a>
           <!-- 小程序设置：下载 APP 入口（APP 端可隐藏，原型始终展示便于验收） -->
@@ -62,6 +63,20 @@
             <span class="ua-set-item__arrow">&gt;</span>
           </a>
         </section>
+
+        <section class="ua-set-card ua-set-logout-card" id="setLogoutCard">
+          <button type="button" class="ua-set-item ua-set-item--logout" id="setLogout">退出登录</button>
+        </section>
+      </div>
+    </div>
+  </div>
+  <div class="ua-cancel-modal" id="setLogoutModal" hidden>
+    <div class="ua-cancel-modal__mask" id="setLogoutMask"></div>
+    <div class="ua-cancel-modal__panel" role="dialog" aria-modal="true" aria-labelledby="setLogoutTitle">
+      <p class="ua-cancel-modal__text" id="setLogoutTitle">确定退出登录吗？</p>
+      <div class="ua-cancel-modal__actions">
+        <button type="button" class="ua-cancel-modal__btn" id="setLogoutCancel">取消</button>
+        <button type="button" class="ua-cancel-modal__btn ua-cancel-modal__btn--danger" id="setLogoutConfirm">退出</button>
       </div>
     </div>
   </div>
@@ -69,6 +84,7 @@
 <script src="../js/user-app-blacklist-guard.js"></script>
 <script src="../js/user-app-nav.js"></script>
 <script src="../js/user-app-account-cancel.js"></script>
+<script src="../js/user-app-pwd-auth.js"></script>
 <script src="../js/user-app-settings.js"></script>
 </body>
 </html>
