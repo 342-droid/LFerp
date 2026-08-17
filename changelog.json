@@ -1,10 +1,99 @@
 {
-  "latestSha": "f737b6f9edcc546f67461996f778dd6fe708d969",
-  "total": 265,
+  "latestSha": "2fa1f91722b4e6357e6be7237c7b91ff2de273c8",
+  "total": 266,
   "days": [
     {
       "date": "2026-08-17",
       "items": [
+        {
+          "sha": "2fa1f91",
+          "type": "feat",
+          "text": "完善门店营业时间展示与商品可售时间限制",
+          "author": "sisi",
+          "time": "11:58",
+          "pages": [
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/switch-address.html",
+              "module": "",
+              "title": "切换地址 · 用户 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "user-app/h5/home.html",
+              "text": "定位门店名旁展示营业时间"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "text": "默认门店名称右侧展示营业时间"
+            },
+            {
+              "file": "user-app/h5/switch-address.html",
+              "text": "门店卡片营业状态与时段展示优化"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "text": "超过可售时间禁加购；营业时间内商品不可售才显示「今日不可售」标识"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "text": "超过可售时间商品置灰并禁加购"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "超过可售时间商品标记不可售并禁抢购"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "text": "不可售时底部改为「今日不可售」并禁下单"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "text": "不可售商品禁勾选加购，结算排除不可售项"
+            }
+          ]
+        },
         {
           "sha": "f737b6f",
           "type": "feat",
