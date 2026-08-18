@@ -55,8 +55,6 @@
     var payChannel = paySel ? (paySel.value || '').trim() : '';
     var deliverySel = document.getElementById('qDeliveryMode');
     var delivery = deliverySel ? (deliverySel.value || '').trim() : '';
-    var asSel = document.getElementById('qAftersaleStatus');
-    var asStatus = asSel ? (asSel.value || '').trim() : '';
 
     var tbody = document.querySelector('.order-live-table tbody');
     if (!tbody) return;
@@ -72,41 +70,16 @@
         var mode = row.getAttribute('data-delivery-mode') || 'pickup';
         show = mode === delivery;
       }
-      if (show && asStatus) {
-        var rowAs = getRowAftersaleStatus(row);
-        show = asStatus === 'none' ? !rowAs : rowAs === asStatus;
-      }
       row.hidden = !show;
       if (show) visible += 1;
     });
     var totalEl = document.querySelector('.order-pagination__total');
-    var hasFilter = !!(payChannel || (isRetail && delivery) || asStatus);
+    var hasFilter = !!(payChannel || (isRetail && delivery));
     if (totalEl && hasFilter) {
       totalEl.textContent = '共 ' + visible + ' 条';
     } else if (totalEl && !hasFilter) {
       totalEl.textContent = '共 ' + rows.length + ' 条';
     }
-  }
-
-  function getRowAftersaleStatus(row) {
-    if (!row) return '';
-    var cell = row.querySelector('.order-as-status-cell');
-    if (cell) {
-      var tag = cell.querySelector('.order-detail-as-status');
-      if (tag) return tag.textContent.trim();
-      var text = cell.textContent.trim();
-      if (text && text !== '-') return text;
-      return '';
-    }
-    var orderId = row.getAttribute('data-order-id');
-    if (
-      orderId &&
-      window.OrderLiveDetail &&
-      typeof window.OrderLiveDetail.getOrderAftersaleStatus === 'function'
-    ) {
-      return window.OrderLiveDetail.getOrderAftersaleStatus(orderId, row) || '';
-    }
-    return '';
   }
 
   function initPagination() {

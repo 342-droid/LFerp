@@ -1693,11 +1693,6 @@
           if (tag) meta.insertAdjacentHTML('beforeend', goodsAftersaleTagHtml(tag));
         }
       }
-      var asCell = row.querySelector('.order-as-status-cell');
-      if (asCell) {
-        var asStatus = resolveOrderAftersaleStatus(aftersales);
-        asCell.innerHTML = asStatus ? aftersaleStatusTagHtml(asStatus) : '-';
-      }
     });
   }
 
