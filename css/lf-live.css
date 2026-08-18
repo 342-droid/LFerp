@@ -1362,9 +1362,12 @@
   min-height: 36px;
 }
 
-#dlgAutoCloseExtra[hidden],
-#fAutoCloseExtra[hidden] {
+#dlgAutoCloseExtra[hidden] {
   display: none !important;
+}
+
+#dlgAutoCloseExtra .lf-live-dialog__hint {
+  margin: -4px 0 14px 160px;
 }
 
 .lf-live-set-row__ctrl--inline {
@@ -1423,6 +1426,12 @@
   min-width: 120px;
   flex: 0 0 120px;
   max-width: 140px;
+}
+
+.lf-live-set-row__ctrl--inline .erp-input.lf-live-datetime {
+  width: 220px;
+  min-width: 200px;
+  flex: 0 0 auto;
 }
 
 .pts-rule-unit .erp-input.lf-live-num-sm {

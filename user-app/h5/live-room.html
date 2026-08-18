@@ -6,7 +6,7 @@
   <title>黑灯直播间 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
-  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260817-sale1">
+  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260818-gdsheet">
   <link rel="stylesheet" href="../css/user-app-live-entry-fx.css">
 </head>
 <body class="user-app-body">
@@ -63,6 +63,7 @@
           <div class="ua-live-explain__name" id="liveExplainName"></div>
           <div class="ua-live-explain__price" id="liveExplainPrice"></div>
         </div>
+        <button type="button" class="ua-live-explain__buy" id="liveExplainBuy">去抢购</button>
       </div>
 
       <div class="ua-live-danmu" id="liveDanmuList" aria-live="polite"></div>
@@ -111,12 +112,143 @@
         </div>
         <div class="ua-live-goods__list" id="liveGoodsList"></div>
         <div class="ua-live-goods__footer">
-          <button type="button" class="ua-live-goods__cart-btn" id="liveGoodsCartIcon" aria-label="直播购物车">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4h2l2.1 10.5h9.8L19 8H7"/></svg>
-            <em class="ua-live-goods__badge" id="liveGoodsBadge" hidden>0</em>
-          </button>
           <div class="ua-live-goods__total" id="liveGoodsTotal">¥0.00</div>
           <button type="button" class="ua-live-goods__checkout" id="liveGoodsCheckout">立即下单</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 直播商品详情半屏：内容沿用商品详情页，仅改为底部半屏承载 -->
+    <div class="ua-live-sheet ua-live-sheet--detail" id="liveDetailSheet" hidden>
+      <div class="ua-live-sheet__mask" data-live-close="detail"></div>
+      <div class="ua-live-sheet__panel ua-live-gd">
+        <div class="ua-scroll ua-gd-scroll" id="goodsDetailScroll">
+          <section class="ua-gd-hero">
+            <a href="#" class="ua-gd-hero__back" id="goodsDetailBack" aria-label="返回">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+            </a>
+            <img class="ua-gd-hero__img" id="goodsDetailHero" src="" alt="">
+            <span class="ua-live-goods__preview-badge ua-gd-hero__preview-badge" id="goodsDetailPreviewBadge" hidden>预告中</span>
+            <span class="ua-sale-unsaleable-badge ua-gd-hero__unsaleable-badge" id="goodsDetailUnsaleableBadge" hidden>今日不可售</span>
+            <div class="ua-gd-hero__tags" id="goodsDetailTags"></div>
+          </section>
+
+          <section class="ua-gd-info">
+            <div class="ua-gd-info__price-row">
+              <div class="ua-gd-info__prices">
+                <span class="ua-gd-info__price" id="goodsDetailPrice"></span>
+                <span class="ua-gd-info__origin" id="goodsDetailOrigin" hidden></span>
+              </div>
+              <span class="ua-gd-info__sold" id="goodsDetailSold"></span>
+            </div>
+            <h1 class="ua-gd-info__title" id="goodsDetailTitle"></h1>
+            <p class="ua-gd-info__service" id="goodsDetailService"></p>
+          </section>
+
+          <section class="ua-gd-card ua-gd-rows">
+            <button type="button" class="ua-gd-row" id="goodsDetailFulfillRow">
+              <span class="ua-gd-row__label">配送</span>
+              <span class="ua-gd-row__value" id="goodsDetailFulfillText"></span>
+              <svg class="ua-gd-row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+            <button type="button" class="ua-gd-row" id="goodsDetailSpecRow">
+              <span class="ua-gd-row__label">规格</span>
+              <span class="ua-gd-row__value ua-gd-row__value--ellipsis" id="goodsDetailSpecValue"></span>
+              <span class="ua-gd-row__more">共<span id="goodsDetailSpecCount">1</span>款</span>
+              <svg class="ua-gd-row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </section>
+
+          <section class="ua-gd-card ua-gd-merchant" id="goodsDetailMerchant">
+            <img class="ua-gd-merchant__avatar" id="goodsDetailMerchantAvatar" src="../assets/restock/me-shop-avatar.svg" alt="">
+            <div class="ua-gd-merchant__body">
+              <div class="ua-gd-merchant__name" id="goodsDetailMerchantName"></div>
+              <div class="ua-gd-merchant__meta" id="goodsDetailMerchantMeta"></div>
+            </div>
+          </section>
+
+          <section class="ua-gd-review">
+            <div class="ua-gd-review__head">
+              <h2 class="ua-gd-review__title">商品评价 (<span id="goodsDetailReviewCount">0</span>)</h2>
+              <button type="button" class="ua-gd-review__more" id="goodsDetailReviewMore">查看更多 <span>›</span></button>
+            </div>
+            <div class="ua-gd-review__user">
+              <img class="ua-gd-review__avatar" src="../assets/shop/review-avatar.svg" alt="">
+              <div class="ua-gd-review__user-meta">
+                <div class="ua-gd-review__name">宁静致远</div>
+                <div class="ua-gd-review__stars" aria-label="5星">
+                  <span></span><span></span><span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+            <p class="ua-gd-review__spec">规格：精选金钱牛腱子肉1kg;</p>
+            <p class="ua-gd-review__text">冷丰特选上东西的品质都很好，家里的大人小孩都爱吃，吃完还会回购的。</p>
+            <div class="ua-gd-review__photos">
+              <img src="../assets/shop/beef-review-1.svg" alt="">
+              <img src="../assets/shop/beef-review-2.svg" alt="">
+              <img src="../assets/shop/beef-review-3.svg" alt="">
+            </div>
+          </section>
+
+          <section class="ua-gd-detail">
+            <div class="ua-gd-detail__divider"><span>商品详情</span></div>
+            <img class="ua-gd-detail__img" id="goodsDetailDetailImg" src="" alt="商品详情">
+          </section>
+        </div>
+
+        <footer class="ua-gd-footer">
+          <button type="button" class="ua-gd-footer__icon" id="goodsDetailServiceBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M4.5 13.5v-1.2a7.5 7.5 0 0115 0v1.2"/>
+              <path d="M6.5 13.5v2.2a1.8 1.8 0 001.8 1.8H10v-4H6.5zM14 13.5v4h1.7a1.8 1.8 0 001.8-1.8v-2.2H14z"/>
+              <path d="M12 19.5v1"/>
+            </svg>
+            <span>客服</span>
+          </button>
+          <a href="cart.html" class="ua-gd-footer__icon ua-gd-footer__icon--cart" id="goodsDetailCartBtn" aria-label="购物车" hidden>
+            <span class="ua-gd-footer__icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <circle cx="9" cy="20" r="1.5"/>
+                <circle cx="17" cy="20" r="1.5"/>
+                <path d="M3 4h2l2.2 11h9.6L19 8H7"/>
+              </svg>
+              <span class="ua-gd-footer__badge" data-ua-cart-badge hidden>0</span>
+            </span>
+            <span>购物车</span>
+          </a>
+          <div class="ua-gd-footer__actions">
+            <button type="button" class="ua-gd-footer__cart" id="goodsDetailAddCart" hidden>加入购物车</button>
+            <button type="button" class="ua-gd-footer__buy" id="goodsDetailBuyNow">立即购买</button>
+            <button type="button" class="ua-gd-footer__soon" id="goodsDetailSoon" hidden disabled>即将开售</button>
+          </div>
+        </footer>
+
+        <div class="ua-gd-sheet" id="goodsDetailSpecSheet" hidden>
+          <div class="ua-gd-sheet__mask" data-gd-close="spec"></div>
+          <div class="ua-gd-sheet__panel">
+            <div class="ua-gd-sheet__head">
+              <h3>选择规格</h3>
+              <button type="button" class="ua-gd-sheet__close" data-gd-close="spec" aria-label="关闭">×</button>
+            </div>
+            <div class="ua-gd-sheet__list" id="goodsDetailSpecList"></div>
+            <div class="ua-gd-sheet__foot">
+              <button type="button" class="ua-gd-sheet__confirm" id="goodsDetailSpecConfirm">确定</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="ua-gd-sheet" id="goodsDetailFulfillSheet" hidden>
+          <div class="ua-gd-sheet__mask" data-gd-close="fulfill"></div>
+          <div class="ua-gd-sheet__panel">
+            <div class="ua-gd-sheet__head">
+              <h3>配送说明</h3>
+              <button type="button" class="ua-gd-sheet__close" data-gd-close="fulfill" aria-label="关闭">×</button>
+            </div>
+            <div class="ua-gd-sheet__body" id="goodsDetailFulfillList"></div>
+            <div class="ua-gd-sheet__foot">
+              <button type="button" class="ua-gd-sheet__confirm" data-gd-close="fulfill">我知道了</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -147,7 +279,6 @@
           </div>
         </div>
         <div class="ua-live-sku__actions">
-          <button type="button" class="ua-live-sku__cart" id="liveSkuAddCart">加入购物车</button>
           <button type="button" class="ua-live-sku__buy" id="liveSkuBuyNow">立即购买</button>
         </div>
       </div>
@@ -201,7 +332,7 @@
   <script src="../js/user-app-profile.js"></script>
   <script src="../js/user-app-live-entry-fx.js"></script>
   <script src="../js/user-app-product-sale-time.js?v=20260817-sale1"></script>
-  <script src="../js/user-app-shop.js?v=20260817-sale1"></script>
+  <script src="../js/user-app-shop.js?v=20260818-gdsheet"></script>
   <script>UAShop.initLiveRoomPage();</script>
 </body>
 </html>

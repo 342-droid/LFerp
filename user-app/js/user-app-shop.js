@@ -269,9 +269,44 @@
     if (st.cViewerText) el.textContent = st.cViewerText;
   }
 
+  var liveGoodsListRenderer = null;
+
+  function readBLiveCartProducts() {
+    var st = readLiveCState();
+    return Array.isArray(st.cartProducts) ? st.cartProducts : [];
+  }
+
+  function hasBLiveCart() {
+    return readBLiveCartProducts().length > 0;
+  }
+
+  function findBLiveProduct(id) {
+    if (!id) return null;
+    var list = readBLiveCartProducts();
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] && list[i].id === id) return list[i];
+    }
+    return null;
+  }
+
+  function resolveLiveProduct(id) {
+    return findBLiveProduct(id) || PRODUCTS[id] || null;
+  }
+
+  function isLiveProductPreview(p) {
+    if (!p) return false;
+    if (p.saleMode === 'preview' || p.liveStatus === 'preview') return true;
+    if (hasBLiveCart()) return false;
+    return isLivePreview();
+  }
+
   function refreshLiveRoomOverlay() {
     renderLiveDanmu();
     renderLiveViewerCount();
+    renderLiveExplainCard();
+    if (typeof liveGoodsListRenderer === 'function') liveGoodsListRenderer();
+    var demo = document.getElementById('uaLiveGoodsDemo');
+    if (demo) demo.hidden = hasBLiveCart();
   }
 
   function liveMuteReason() {
@@ -401,24 +436,33 @@
   }
 
   function liveGoodsPriceHtml(p) {
-    if (!isLivePreview()) {
+    if (!isLiveProductPreview(p)) {
       return '<small>¥</small>' + Number(getLivePrice(p)).toFixed(2);
     }
-    return livePreviewPriceInner(p, readPreviewPriceMode());
+    var mode = (p && p.previewPriceMode) || readPreviewPriceMode();
+    return livePreviewPriceInner(p, mode);
   }
 
   function getLiveExplainPayload() {
-    var flag = readExplainFlag();
     var st = readLiveCState();
+    var hint = st && st.explaining;
+    if (hint && hint.id) {
+      var fromCart = findBLiveProduct(hint.id);
+      if (fromCart) return fromCart;
+    }
+    if (hint && (hint.id || hint.name)) return hint;
+    if (hasBLiveCart()) return null;
+    var flag = readExplainFlag();
     if (flag === 'off') return null;
-    if (st && st.explaining) return st.explaining;
     if (flag !== 'on') return null;
     var p = PRODUCTS[LIVE_PRODUCT_IDS[0]];
     if (!p) return null;
     return {
+      id: p.id,
       name: p.shortName || p.name,
       price: getLivePrice(p),
       marketPrice: p.originPrice,
+      originPrice: p.originPrice,
       previewPriceMode: readPreviewPriceMode(),
       saleMode: readLiveSaleMode(),
       img: p.img
@@ -484,21 +528,7 @@
   }
 
   function liveExplainPriceHtml(info) {
-    var preview = isLivePreview() || (info && info.saleMode === 'preview');
-    var mode = (info && info.previewPriceMode) || readPreviewPriceMode();
-    if (preview && mode === 'question') return liveQuestionMarksHtml();
-    if (preview && mode === 'market') {
-      var m =
-        info &&
-        (hasStrikePrice(info.marketPrice)
-          ? info.marketPrice
-          : hasStrikePrice(info.originPrice)
-            ? info.originPrice
-            : null);
-      if (!hasStrikePrice(m)) return liveQuestionMarksHtml();
-      return '<small>¥</small>' + Number(m).toFixed(2);
-    }
-    return '<small>¥</small>' + Number((info && info.price) || 0).toFixed(2);
+    return liveGoodsPriceHtml(info);
   }
 
   function renderLiveExplainCard() {
@@ -509,19 +539,29 @@
       card.hidden = true;
       return;
     }
+    var preview = isLiveProductPreview(info);
     var nameEl = document.getElementById('liveExplainName');
     var priceEl = document.getElementById('liveExplainPrice');
     var thumbEl = document.getElementById('liveExplainThumb');
+    var buyBtn = document.getElementById('liveExplainBuy');
     if (nameEl) nameEl.textContent = info.name || '讲解商品';
     if (priceEl) priceEl.innerHTML = liveExplainPriceHtml(info);
     if (thumbEl) {
+      var badge = preview ? '<span class="ua-live-goods__preview-badge">预告中</span>' : '';
       if (info.img) {
-        thumbEl.innerHTML = '<img src="' + info.img + '" alt="">';
+        thumbEl.innerHTML = badge + '<img src="' + info.img + '" alt="">';
       } else {
         var ch = String(info.name || '商').charAt(0);
-        thumbEl.innerHTML = '<span>' + ch + '</span>';
+        thumbEl.innerHTML = badge + '<span>' + ch + '</span>';
       }
     }
+    if (buyBtn) {
+      buyBtn.disabled = preview;
+      buyBtn.classList.toggle('is-soon', preview);
+      buyBtn.textContent = preview ? '即将开售' : '去抢购';
+      buyBtn.setAttribute('data-live-explain-id', info.id || '');
+    }
+    card.classList.toggle('is-preview', preview);
     card.hidden = false;
   }
 
@@ -814,6 +854,8 @@
   }
 
   function getProduct(id) {
+    var live = findBLiveProduct(id);
+    if (live) return live;
     return PRODUCTS[id] || PRODUCTS['beef-tendon'];
   }
 
@@ -871,7 +913,7 @@
   function addToCart(id, qty, opts) {
     opts = opts || {};
     var addQty = qty || 1;
-    var p = PRODUCTS[id];
+    var p = resolveLiveProduct(id) || PRODUCTS[id];
     if (p && !isProductSaleableNow(p)) {
       if (!opts.silent) showToast(unsaleableLabel());
       return ensureCart();
@@ -960,7 +1002,7 @@
     meta = meta || {};
     var liveCart = readLiveCart();
     var liveItem = findLiveItem(liveCart, id);
-    var p = PRODUCTS[id];
+    var p = resolveLiveProduct(id);
     if (qty > 0 && p && !isProductSaleableNow(p)) {
       showToast(unsaleableLabel());
       return liveCart;
@@ -2219,21 +2261,37 @@
     return product.store || STORE;
   }
 
-  function initGoodsDetailPage() {
-    ensureCart();
-    syncBadges();
-    var params = new URLSearchParams(window.location.search);
-    var product = getProduct(params.get('id') || 'beef-tendon');
-    var selectedSpec = product.defaultSpec || (product.specs && product.specs[0]) || product.spec;
-    var sheetIntent = 'pick';
-    var fulfillType = getProductFulfillType(product);
-    var merchant = getProductMerchant(product);
+  function mergeGoodsDetailProduct(p) {
+    if (!p) return p;
+    var base = PRODUCTS[p.id] || {};
+    var specs = p.specs && p.specs.length ? p.specs : base.specs;
+    if ((!specs || !specs.length) && p.liveSpecs && p.liveSpecs.length) {
+      specs = p.liveSpecs.map(function (s) {
+        return s.label;
+      });
+    }
+    return Object.assign({}, base, p, {
+      specs: specs || [],
+      defaultSpec: p.defaultSpec || p.spec || base.defaultSpec || (specs && specs[0]) || '',
+      heroTags: p.heroTags && p.heroTags.length ? p.heroTags : base.heroTags || [],
+      detailImg: p.detailImg || base.detailImg || p.img || '',
+      reviewCount: p.reviewCount != null ? p.reviewCount : base.reviewCount || 0,
+      serviceText: p.serviceText || base.serviceText || '坏了包退 三天内到货',
+      sold: p.sold != null ? p.sold : base.sold || 0
+    });
+  }
 
-    var from = params.get('from') || 'mall.html';
-    var fromLive = String(from).indexOf('live-room') >= 0;
-    var livePreview = fromLive && isLivePreview();
-    var back = document.getElementById('goodsDetailBack');
-    if (back) back.setAttribute('href', from);
+  function bindGoodsDetailPage(options) {
+    options = options || {};
+    var embedded = !!options.embedded;
+    var fromLive = !!options.fromLive || embedded;
+    var product = null;
+    var selectedSpec = '';
+    var sheetIntent = 'pick';
+    var fulfillType = 'pickup';
+    var merchant = STORE;
+    var livePreview = false;
+    var bound = false;
 
     function setText(id, text) {
       var el = document.getElementById(id);
@@ -2354,11 +2412,18 @@
     }
 
     function renderBase() {
-      document.title = (product.shortName || product.name) + ' · 用户 APP';
-      var hero = document.getElementById('goodsDetailHero');
-      if (hero) hero.src = product.img;
+      if (!embedded) document.title = (product.shortName || product.name) + ' · 用户 APP';
+      var heroImg = document.getElementById('goodsDetailHero');
+      if (heroImg) {
+        if (product.img) heroImg.src = product.img;
+        else heroImg.removeAttribute('src');
+      }
       var detailImg = document.getElementById('goodsDetailDetailImg');
-      if (detailImg) detailImg.src = product.detailImg || product.img;
+      if (detailImg) {
+        var dsrc = product.detailImg || product.img || '';
+        if (dsrc) detailImg.src = dsrc;
+        else detailImg.removeAttribute('src');
+      }
 
       var tags = document.getElementById('goodsDetailTags');
       if (tags) {
@@ -2388,22 +2453,32 @@
       }
       var previewBadge = document.getElementById('goodsDetailPreviewBadge');
       if (previewBadge) previewBadge.hidden = !livePreview;
-      var unsaleable = !livePreview && !isProductSaleableNow(product);
+      var soldOut = fromLive && product.liveStatus === 'sold_out';
+      var unsaleable = !livePreview && !soldOut && !isProductSaleableNow(product);
+      var blocked = livePreview || soldOut || unsaleable;
       var unsaleableBadge = document.getElementById('goodsDetailUnsaleableBadge');
-      if (unsaleableBadge) unsaleableBadge.hidden = !unsaleable;
+      if (unsaleableBadge) {
+        unsaleableBadge.hidden = !unsaleable && !soldOut;
+        unsaleableBadge.textContent = soldOut ? '已售罄' : unsaleableLabel();
+      }
       var hero = document.querySelector('.ua-gd-hero');
-      if (hero) hero.classList.toggle('is-unsaleable', unsaleable);
-      var pageRoot = document.querySelector('.ua-gd-page');
-      if (pageRoot) pageRoot.classList.toggle('is-unsaleable', unsaleable);
+      if (hero) hero.classList.toggle('is-unsaleable', unsaleable || soldOut);
+      var pageRoot = document.querySelector('.ua-gd-page') || document.querySelector('.ua-live-gd');
+      if (pageRoot) pageRoot.classList.toggle('is-unsaleable', unsaleable || soldOut);
+      var cartBtn = document.getElementById('goodsDetailCartBtn');
       var addBtn = document.getElementById('goodsDetailAddCart');
       var buyBtn = document.getElementById('goodsDetailBuyNow');
       var soonBtn = document.getElementById('goodsDetailSoon');
-      if (addBtn) addBtn.hidden = !!livePreview || unsaleable;
-      if (buyBtn) buyBtn.hidden = !!livePreview || unsaleable;
+      if (fromLive && cartBtn) cartBtn.hidden = true;
+      if (addBtn) addBtn.hidden = fromLive || blocked;
+      if (buyBtn) buyBtn.hidden = blocked;
       if (soonBtn) {
         if (livePreview) {
           soonBtn.hidden = false;
           soonBtn.textContent = '即将开售';
+        } else if (soldOut) {
+          soonBtn.hidden = false;
+          soonBtn.textContent = '已售罄';
         } else if (unsaleable) {
           soonBtn.hidden = false;
           soonBtn.textContent = unsaleableLabel();
@@ -2462,67 +2537,110 @@
       showToast('已加入购物车');
     }
 
-    renderBase();
+    function load(nextProduct) {
+      product = mergeGoodsDetailProduct(nextProduct);
+      if (!product) return;
+      selectedSpec = product.defaultSpec || (product.specs && product.specs[0]) || product.spec || '';
+      sheetIntent = 'pick';
+      fulfillType = getProductFulfillType(product);
+      merchant = getProductMerchant(product);
+      livePreview = fromLive && isLiveProductPreview(product);
+      renderBase();
+    }
 
-    document.getElementById('goodsDetailFulfillRow') &&
-      document.getElementById('goodsDetailFulfillRow').addEventListener('click', function () {
-        renderFulfillSheet();
-        openSheet('fulfill');
+    function bind() {
+      if (bound) return;
+      bound = true;
+      var back = document.getElementById('goodsDetailBack');
+      if (back && embedded) {
+        back.addEventListener('click', function (e) {
+          e.preventDefault();
+          if (typeof options.onClose === 'function') options.onClose();
+        });
+      }
+
+      document.getElementById('goodsDetailFulfillRow') &&
+        document.getElementById('goodsDetailFulfillRow').addEventListener('click', function () {
+          renderFulfillSheet();
+          openSheet('fulfill');
+        });
+
+      document.getElementById('goodsDetailSpecRow') &&
+        document.getElementById('goodsDetailSpecRow').addEventListener('click', function () {
+          openSpecSheet('pick');
+        });
+
+      document.querySelectorAll('[data-gd-close]').forEach(function (el) {
+        el.addEventListener('click', function () {
+          closeSheet(el.getAttribute('data-gd-close'));
+        });
       });
 
-    document.getElementById('goodsDetailSpecRow') &&
-      document.getElementById('goodsDetailSpecRow').addEventListener('click', function () {
-        openSpecSheet('pick');
-      });
+      document.getElementById('goodsDetailSpecConfirm') &&
+        document.getElementById('goodsDetailSpecConfirm').addEventListener('click', function () {
+          setText('goodsDetailSpecValue', selectedSpec);
+          var intent = sheetIntent;
+          closeSheet('spec');
+          if (livePreview) return;
+          if (!guardProductSaleable(product)) return;
+          if (intent === 'cart') addCurrentToCart();
+          else if (intent === 'buy') {
+            if (typeof options.onBuy === 'function') {
+              options.onBuy(product, selectedSpec);
+              return;
+            }
+            var cart = addToCart(product.id, 1);
+            (cart.items || []).forEach(function (it) {
+              it.checked = it.id === product.id;
+            });
+            writeCart(cart);
+            window.location.href = 'order-confirm.html';
+          }
+        });
 
-    document.querySelectorAll('[data-gd-close]').forEach(function (el) {
-      el.addEventListener('click', function () {
-        closeSheet(el.getAttribute('data-gd-close'));
-      });
-    });
+      document.getElementById('goodsDetailAddCart') &&
+        document.getElementById('goodsDetailAddCart').addEventListener('click', function () {
+          if (fromLive || livePreview) return;
+          if (!guardProductSaleable(product)) return;
+          openSpecSheet('cart');
+        });
 
-    document.getElementById('goodsDetailSpecConfirm') &&
-      document.getElementById('goodsDetailSpecConfirm').addEventListener('click', function () {
-        setText('goodsDetailSpecValue', selectedSpec);
-        var intent = sheetIntent;
-        closeSheet('spec');
-        if (livePreview) return;
-        if (!guardProductSaleable(product)) return;
-        if (intent === 'cart') addCurrentToCart();
-        else if (intent === 'buy') {
-          var cart = addToCart(product.id, 1);
-          (cart.items || []).forEach(function (it) {
-            it.checked = it.id === product.id;
-          });
-          writeCart(cart);
-          window.location.href = 'order-confirm.html';
-        }
-      });
+      document.getElementById('goodsDetailBuyNow') &&
+        document.getElementById('goodsDetailBuyNow').addEventListener('click', function () {
+          if (livePreview) return;
+          if (fromLive && product.liveStatus === 'sold_out') {
+            showToast('该商品已售罄');
+            return;
+          }
+          if (!guardProductSaleable(product)) return;
+          openSpecSheet('buy');
+        });
 
-    document.getElementById('goodsDetailAddCart') &&
-      document.getElementById('goodsDetailAddCart').addEventListener('click', function () {
-        if (livePreview) return;
-        if (!guardProductSaleable(product)) return;
-        openSpecSheet('cart');
-      });
+      document.getElementById('goodsDetailServiceBtn') &&
+        document.getElementById('goodsDetailServiceBtn').addEventListener('click', function () {
+          showToast('联系客服（演示）');
+        });
 
-    document.getElementById('goodsDetailBuyNow') &&
-      document.getElementById('goodsDetailBuyNow').addEventListener('click', function () {
-        if (livePreview) return;
-        if (!guardProductSaleable(product)) return;
-        openSpecSheet('buy');
-      });
+      document.getElementById('goodsDetailReviewMore') &&
+        document.getElementById('goodsDetailReviewMore').addEventListener('click', function () {
+          showToast('更多评价（演示）');
+        });
+    }
 
-    document.getElementById('goodsDetailServiceBtn') &&
-      document.getElementById('goodsDetailServiceBtn').addEventListener('click', function () {
-        showToast('联系客服（演示）');
-      });
+    return { load: load, bind: bind };
+  }
 
-    document.getElementById('goodsDetailReviewMore') &&
-      document.getElementById('goodsDetailReviewMore').addEventListener('click', function () {
-        showToast('更多评价（演示）');
-      });
-
+  function initGoodsDetailPage() {
+    ensureCart();
+    syncBadges();
+    var params = new URLSearchParams(window.location.search);
+    var from = params.get('from') || 'mall.html';
+    var fromLive = String(from).indexOf('live-room') >= 0;
+    var back = document.getElementById('goodsDetailBack');
+    if (back) back.setAttribute('href', from);
+    var ctl = bindGoodsDetailPage({ fromLive: fromLive, embedded: false });
+    ctl.bind();
+    ctl.load(getProduct(params.get('id') || 'beef-tendon'));
     if (fromLive) mountLiveGoodsDemo({ includeExplain: false, offsetFooter: true });
     if (global.UaProductSaleTime && global.UaProductSaleTime.mountDemoPanel) {
       global.UaProductSaleTime.mountDemoPanel({
@@ -3243,12 +3361,14 @@
       skuProductId: '',
       skuSpecIndex: 0,
       skuQty: 1,
+      detailProductId: '',
       confirmItems: null
     };
 
     function openSheet(name) {
       var map = {
         goods: 'liveGoodsSheet',
+        detail: 'liveDetailSheet',
         sku: 'liveSkuSheet',
         confirm: 'liveConfirmSheet'
       };
@@ -3259,89 +3379,121 @@
     function closeSheet(name) {
       var map = {
         goods: 'liveGoodsSheet',
+        detail: 'liveDetailSheet',
         sku: 'liveSkuSheet',
         confirm: 'liveConfirmSheet'
       };
       var el = document.getElementById(map[name]);
       if (el) el.hidden = true;
+      if (name === 'detail') {
+        var specSheet = document.getElementById('goodsDetailSpecSheet');
+        var fulfillSheet = document.getElementById('goodsDetailFulfillSheet');
+        if (specSheet) specSheet.hidden = true;
+        if (fulfillSheet) fulfillSheet.hidden = true;
+      }
+    }
+
+    var goodsDetailCtl = bindGoodsDetailPage({
+      embedded: true,
+      fromLive: true,
+      onClose: function () {
+        closeSheet('detail');
+      },
+      onBuy: function (p, spec) {
+        var specs = getLiveSpecs(p);
+        var found = null;
+        for (var i = 0; i < specs.length; i++) {
+          if (specs[i].label === spec) {
+            found = specs[i];
+            break;
+          }
+        }
+        var line = mapProductLineToCheckoutItem(p, {
+          spec: spec,
+          price: found ? found.price : getLivePrice(p),
+          qty: 1
+        });
+        if (!line) return;
+        renderConfirmSheet([line]);
+        openSheet('confirm');
+      }
+    });
+    goodsDetailCtl.bind();
+
+    function refreshOpenLiveDetail() {
+      if (!state.detailProductId) return;
+      var detailEl = document.getElementById('liveDetailSheet');
+      if (!detailEl || detailEl.hidden) return;
+      var dp = resolveLiveProduct(state.detailProductId);
+      if (dp) goodsDetailCtl.load(dp);
     }
 
     function updateLiveFooter() {
       var summary = getLiveCartSummary();
-      var badge = document.getElementById('liveGoodsBadge');
       var totalEl = document.getElementById('liveGoodsTotal');
-      if (badge) {
-        if (summary.count > 0) {
-          badge.hidden = false;
-          badge.textContent = String(summary.count > 99 ? '99+' : summary.count);
-        } else {
-          badge.hidden = true;
-        }
-      }
       if (totalEl) totalEl.textContent = formatMoney(summary.total);
     }
 
     function getFilteredLiveProducts() {
       var kw = String(state.keyword || '').trim().toLowerCase();
-      return LIVE_PRODUCT_IDS.map(function (id) {
-        return PRODUCTS[id];
-      }).filter(function (p) {
+      var fromB = readBLiveCartProducts();
+      var products = fromB.length
+        ? fromB
+        : LIVE_PRODUCT_IDS.map(function (id) {
+            return PRODUCTS[id];
+          }).filter(Boolean);
+      return products.filter(function (p) {
         if (!p) return false;
         if (!kw) return true;
-        return String(p.name).toLowerCase().indexOf(kw) !== -1;
+        var name = String(p.shortName || p.name || '').toLowerCase();
+        return name.indexOf(kw) !== -1;
       });
     }
 
     function renderLiveGoodsList() {
       var listEl = document.getElementById('liveGoodsList');
       if (!listEl) return;
-      var liveCart = readLiveCart();
       var products = getFilteredLiveProducts();
+      if (!products.length) {
+        listEl.innerHTML = '<div class="ua-live-goods__empty">暂无直播商品</div>';
+        updateLiveFooter();
+        refreshOpenLiveDetail();
+        return;
+      }
       listEl.innerHTML = products
         .map(function (p, index) {
-          var liveItem = findLiveItem(liveCart, p.id);
-          var inLive = liveItem && liveItem.qty > 0;
-          var preview = isLivePreview();
-          var unsaleable = !preview && !isProductSaleableNow(p);
+          var preview = isLiveProductPreview(p);
+          var soldOut = !preview && p.liveStatus === 'sold_out';
+          var unsaleable = !preview && !soldOut && !isProductSaleableNow(p);
           var actions;
           if (preview) {
             actions =
               '<div class="ua-live-goods__ops">' +
               '<button type="button" class="ua-live-goods__buy is-soon" disabled>即将开售</button></div>';
+          } else if (soldOut) {
+            actions =
+              '<div class="ua-live-goods__ops">' +
+              '<button type="button" class="ua-live-goods__buy is-unsaleable" disabled>已售罄</button></div>';
           } else if (unsaleable) {
             actions =
               '<div class="ua-live-goods__ops">' +
               '<button type="button" class="ua-live-goods__buy is-unsaleable" disabled>' +
               unsaleableLabel() +
               '</button></div>';
-          } else if (inLive) {
-            actions =
-              '<div class="ua-live-goods__stepper">' +
-              '<button type="button" data-live-minus="' +
-              p.id +
-              '">−</button>' +
-              '<span>' +
-              liveItem.qty +
-              '</span>' +
-              '<button type="button" data-live-plus="' +
-              p.id +
-              '">+</button></div>';
           } else {
             actions =
               '<div class="ua-live-goods__ops">' +
-              '<button type="button" class="ua-live-goods__add" data-live-add="' +
-              p.id +
-              '" aria-label="加入购物车">' +
-              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4h2l2.1 10.5h9.8L19 8H7"/></svg>' +
-              '</button>' +
               '<button type="button" class="ua-live-goods__buy" data-live-rush="' +
               p.id +
               '">去抢购</button></div>';
           }
+          var thumbInner = p.img
+            ? '<img src="' + p.img + '" alt="">'
+            : '<span class="ua-live-goods__thumb-ph">' + String(p.shortName || p.name || '商').charAt(0) + '</span>';
           return (
             '<article class="ua-live-goods__item' +
             (preview ? ' is-preview' : '') +
-            (unsaleable ? ' is-unsaleable' : '') +
+            (unsaleable || soldOut ? ' is-unsaleable' : '') +
             '" data-live-goods-id="' +
             p.id +
             '" role="link" tabindex="0">' +
@@ -3351,10 +3503,9 @@
             '>' +
             (index + 1) +
             '</span>' +
-            '<img src="' +
-            p.img +
-            '" alt="">' +
+            thumbInner +
             (preview ? '<span class="ua-live-goods__preview-badge">预告中</span>' : '') +
+            (soldOut ? '<span class="ua-live-goods__unsaleable-badge">已售罄</span>' : '') +
             (unsaleable
               ? '<span class="ua-live-goods__unsaleable-badge">' + unsaleableLabel() + '</span>'
               : '') +
@@ -3364,7 +3515,7 @@
             '</div>' +
             '<div class="ua-live-goods__info">' +
             '<div class="ua-live-goods__name">' +
-            p.shortName +
+            (p.shortName || p.name) +
             '</div>' +
             '<div class="ua-live-goods__fulfill">' +
             (getProductFulfillType(p) === 'express' ? '快递' : '自提') +
@@ -3379,15 +3530,30 @@
         })
         .join('');
       updateLiveFooter();
+      refreshOpenLiveDetail();
+    }
+
+    function openLiveDetail(productId) {
+      var p = resolveLiveProduct(productId);
+      if (!p) return;
+      state.detailProductId = p.id;
+      goodsDetailCtl.load(p);
+      var scroll = document.getElementById('goodsDetailScroll');
+      if (scroll) scroll.scrollTop = 0;
+      openSheet('detail');
     }
 
     function openSkuSheet(productId) {
-      if (isLivePreview()) {
+      var p = resolveLiveProduct(productId);
+      if (!p) return;
+      if (isLiveProductPreview(p)) {
         showToast('该商品为预告，暂不可购买');
         return;
       }
-      var p = PRODUCTS[productId];
-      if (!p) return;
+      if (p.liveStatus === 'sold_out') {
+        showToast('该商品已售罄');
+        return;
+      }
       if (!guardProductSaleable(p)) return;
       var specs = getLiveSpecs(p);
       state.skuProductId = productId;
@@ -3395,14 +3561,17 @@
       state.skuQty = 1;
       var thumb = document.getElementById('liveSkuThumb');
       var nameEl = document.getElementById('liveSkuName');
-      if (thumb) thumb.src = p.img;
+      if (thumb) {
+        if (p.img) thumb.src = p.img;
+        else thumb.removeAttribute('src');
+      }
       if (nameEl) nameEl.textContent = p.shortName || p.name;
       renderSkuSheet();
       openSheet('sku');
     }
 
     function currentSku() {
-      var p = PRODUCTS[state.skuProductId];
+      var p = resolveLiveProduct(state.skuProductId);
       if (!p) return null;
       var specs = getLiveSpecs(p);
       var spec = specs[state.skuSpecIndex] || specs[0];
@@ -3584,13 +3753,10 @@
     }
 
     function openConfirmWithLiveCart() {
-      if (isLivePreview()) {
-        showToast('预告商品暂不可购买');
-        return;
-      }
       var items = getLiveCartItems()
         .map(function (item) {
-          var p = PRODUCTS[item.id];
+          var p = resolveLiveProduct(item.id);
+          if (!p || isLiveProductPreview(p) || p.liveStatus === 'sold_out') return null;
           return mapProductLineToCheckoutItem(p, {
             spec: item.spec || (p && p.spec) || '',
             price: item.price,
@@ -3599,7 +3765,7 @@
         })
         .filter(Boolean);
       if (!items.length) {
-        showToast('请先选择商品');
+        showToast('请先选择可购买的商品');
         return;
       }
       renderConfirmSheet(items);
@@ -3631,7 +3797,20 @@
 
     document.querySelectorAll('[data-live-close]').forEach(function (el) {
       el.addEventListener('click', function () {
-        closeSheet(el.getAttribute('data-live-close'));
+        var name = el.getAttribute('data-live-close');
+        if (name === 'detail') {
+          var spec = document.getElementById('goodsDetailSpecSheet');
+          var fulfill = document.getElementById('goodsDetailFulfillSheet');
+          if (spec && !spec.hidden) {
+            spec.hidden = true;
+            return;
+          }
+          if (fulfill && !fulfill.hidden) {
+            fulfill.hidden = true;
+            return;
+          }
+        }
+        closeSheet(name);
       });
     });
 
@@ -3643,58 +3822,16 @@
 
     document.getElementById('liveGoodsList') &&
       document.getElementById('liveGoodsList').addEventListener('click', function (e) {
-        var addBtn = e.target.closest('[data-live-add]');
-        if (addBtn) {
-          if (isLivePreview()) {
-            showToast('该商品为预告，暂不可购买');
-            return;
-          }
-          openSkuSheet(addBtn.getAttribute('data-live-add'));
-          return;
-        }
         var rushBtn = e.target.closest('[data-live-rush]');
         if (rushBtn) {
-          if (isLivePreview()) {
-            showToast('该商品为预告，暂不可购买');
-            return;
-          }
-          openSkuSheet(rushBtn.getAttribute('data-live-rush'));
+          var rushId = rushBtn.getAttribute('data-live-rush');
+          openSkuSheet(rushId);
           return;
         }
-        var minus = e.target.closest('[data-live-minus]');
-        if (minus) {
-          var mid = minus.getAttribute('data-live-minus');
-          var mItem = findLiveItem(readLiveCart(), mid);
-          if (!mItem) return;
-          setLiveItemQty(mid, mItem.qty - 1, {
-            price: mItem.price,
-            spec: mItem.spec
-          });
-          renderLiveGoodsList();
-          return;
-        }
-        var plus = e.target.closest('[data-live-plus]');
-        if (plus) {
-          var pid = plus.getAttribute('data-live-plus');
-          var pItem = findLiveItem(readLiveCart(), pid);
-          if (!pItem) return;
-          setLiveItemQty(pid, pItem.qty + 1, {
-            price: pItem.price,
-            spec: pItem.spec
-          });
-          renderLiveGoodsList();
-          return;
-        }
-        /* 点击商品卡片（非加购/抢购/数量按钮）进入商品详情 */
         var card = e.target.closest('[data-live-goods-id]');
         if (card) {
           var goodsId = card.getAttribute('data-live-goods-id');
-          if (!goodsId) return;
-          window.location.href =
-            'goods-detail.html?id=' +
-            encodeURIComponent(goodsId) +
-            '&from=' +
-            encodeURIComponent('live-room.html');
+          if (goodsId) openLiveDetail(goodsId);
         }
       });
 
@@ -3715,20 +3852,6 @@
       document.getElementById('liveSkuPlus').addEventListener('click', function () {
         state.skuQty = Math.min(99, state.skuQty + 1);
         renderSkuSheet();
-      });
-
-    document.getElementById('liveSkuAddCart') &&
-      document.getElementById('liveSkuAddCart').addEventListener('click', function () {
-        var cur = currentSku();
-        if (!cur) return;
-        addToCart(cur.product.id, cur.qty, {
-          source: 'live',
-          price: cur.spec.price,
-          spec: cur.spec.label
-        });
-        closeSheet('sku');
-        renderLiveGoodsList();
-        showToast('已加入购物车');
       });
 
     document.getElementById('liveSkuBuyNow') &&
@@ -3843,6 +3966,36 @@
         renderLiveDanmu();
         showToast('发送成功');
       });
+
+    liveGoodsListRenderer = renderLiveGoodsList;
+
+    var explainBuy = document.getElementById('liveExplainBuy');
+    if (explainBuy) {
+      explainBuy.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        var info = getLiveExplainPayload();
+        if (!info) return;
+        if (isLiveProductPreview(info)) {
+          showToast('该商品为预告，暂不可购买');
+          return;
+        }
+        if (!info.id) return;
+        openSkuSheet(info.id);
+      });
+    }
+    var explainCard = document.getElementById('liveExplainCard');
+    if (explainCard) {
+      explainCard.addEventListener('click', function (ev) {
+        if (ev.target.closest('#liveExplainBuy')) return;
+        var info = getLiveExplainPayload();
+        if (!info || !info.id) return;
+        if (isLiveProductPreview(info)) {
+          showToast('该商品为预告，暂不可购买');
+          return;
+        }
+        openSkuSheet(info.id);
+      });
+    }
 
     mountLiveGoodsDemo();
     mountLiveDanmuDemo();

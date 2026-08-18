@@ -60,74 +60,6 @@
     return String(str).replace('T', ' ') + (str.length === 16 ? ':00' : '');
   }
 
-  function parseAutoCloseMinutes(val) {
-    var raw = String(val == null ? '' : val).trim();
-    if (!raw) return null;
-    var n = Math.floor(Number(raw));
-    if (!isFinite(n) || n < 0) return null;
-    return n > 1440 ? 1440 : n;
-  }
-
-  function setSwitchOn(el, on) {
-    if (!el) return;
-    el.classList.toggle('is-on', !!on);
-    el.setAttribute('aria-pressed', on ? 'true' : 'false');
-  }
-
-  function isSwitchOn(el) {
-    return !!(el && el.classList.contains('is-on'));
-  }
-
-  function syncAutoCloseExtra() {
-    var extra = document.getElementById('fAutoCloseExtra');
-    if (extra) extra.hidden = !isSwitchOn(document.getElementById('fAutoCloseEnabled'));
-  }
-
-  function getCViewerDisplay() {
-    var el = document.querySelector('input[name="fCViewerDisplay"]:checked');
-    var v = el ? el.value : 'online';
-    if (v !== 'unique' && v !== 'visits') return 'online';
-    return v;
-  }
-
-  function setCViewerDisplay(v) {
-    if (v !== 'unique' && v !== 'visits') v = 'online';
-    var el = document.querySelector('input[name="fCViewerDisplay"][value="' + v + '"]');
-    if (el) el.checked = true;
-  }
-
-  function readCViewerFields() {
-    var clamp = Demo.clampInt || function (val, min, max, fallback) {
-      var n = Math.floor(Number(val));
-      if (!isFinite(n)) return fallback;
-      if (n < min) return min;
-      if (n > max) return max;
-      return n;
-    };
-    var initialMax = Demo.C_VIEWER_INITIAL_MAX || 999999;
-    var extraMax = Demo.C_VIEWER_EXTRA_MAX || 100;
-    return {
-      display: getCViewerDisplay(),
-      initial: clamp((document.getElementById('fCViewerInitial') || {}).value, 0, initialMax, 0),
-      extraMin: clamp((document.getElementById('fCViewerExtraMin') || {}).value, 0, extraMax, 0),
-      extraMax: clamp((document.getElementById('fCViewerExtraMax') || {}).value, 0, extraMax, 0)
-    };
-  }
-
-  function fillCViewerFields(sess) {
-    var cfg =
-      typeof Demo.normalizeCViewerConfig === 'function'
-        ? Demo.normalizeCViewerConfig(sess)
-        : { display: 'online', initial: 0, extraMin: 0, extraMax: 0 };
-    setCViewerDisplay(cfg.display);
-    var initialEl = document.getElementById('fCViewerInitial');
-    var minEl = document.getElementById('fCViewerExtraMin');
-    var maxEl = document.getElementById('fCViewerExtraMax');
-    if (initialEl) initialEl.value = cfg.initial;
-    if (minEl) minEl.value = cfg.extraMin;
-    if (maxEl) maxEl.value = cfg.extraMax;
-  }
-
   function liveTypeLabel(v) {
     var opt = (Demo.liveTypeOptions || []).find(function (o) {
       return o.value === v;
@@ -411,12 +343,6 @@
       boundTemplates = [];
       renderTemplates();
       syncScopeVisibility();
-      var minutesEl = document.getElementById('fAutoCloseMinutes');
-      if (minutesEl) minutesEl.value = '';
-      setSwitchOn(document.getElementById('fAutoCloseEnabled'), false);
-      setSwitchOn(document.getElementById('fRemoveOnClose'), false);
-      syncAutoCloseExtra();
-      fillCViewerFields(null);
       resetSaleScope();
       syncSaleScopeUi();
       return;
@@ -441,12 +367,6 @@
     document.getElementById('fCover').value = sess.cover || '';
     coverDataUrl = sess.cover || '';
     if (coverDataUrl) showCoverPreview(coverDataUrl);
-    document.getElementById('fAutoCloseMinutes').value =
-      sess.autoCloseMinutes != null ? sess.autoCloseMinutes : '';
-    setSwitchOn(document.getElementById('fAutoCloseEnabled'), !!sess.autoCloseEnabled);
-    setSwitchOn(document.getElementById('fRemoveOnClose'), !!sess.removeProductsOnClose);
-    syncAutoCloseExtra();
-    fillCViewerFields(sess);
     document.getElementById('fPushUrl').value = sess.pushUrl || '';
     document.getElementById('fPlayUrl').value = sess.playUrl || '';
     setViewPermission(sess.viewPermission || 'ALL');
@@ -482,14 +402,6 @@
     if (!liveType) return toast('请选择直播类型', 'warning'), false;
     if (!startAt) return toast('请选择开播时间', 'warning'), false;
     if (!endAt) return toast('请选择结束时间', 'warning'), false;
-    if (isSwitchOn(document.getElementById('fAutoCloseEnabled'))) {
-      var autoCloseMinutes = parseAutoCloseMinutes((document.getElementById('fAutoCloseMinutes') || {}).value);
-      if (autoCloseMinutes == null) return toast('请填写 0-1440 的断流关播分钟数', 'warning'), false;
-    }
-    var viewer = readCViewerFields();
-    if (viewer.extraMin > viewer.extraMax) {
-      return toast('额外跟随人数下限不能大于上限', 'warning'), false;
-    }
     if (new Date(endAt.replace(/-/g, '/')).getTime() <= new Date(startAt.replace(/-/g, '/')).getTime()) {
       return toast('结束时间必须晚于开播时间', 'warning'), false;
     }
@@ -512,7 +424,6 @@
     var room = findRoom(roomId);
     var regions = liveType === 'REGION' ? selectedRegionsForSave() : [];
     var stores = liveType === 'TARGETED' ? selectedStoresForSave() : [];
-    var viewer = readCViewerFields();
 
     return {
       name: document.getElementById('fName').value.trim(),
@@ -528,15 +439,6 @@
       endAt: fromLocalInput(document.getElementById('fEndAt').value),
       cover: document.getElementById('fCover').value || coverDataUrl || '',
       intro: document.getElementById('fIntro').value.trim(),
-      autoCloseEnabled: isSwitchOn(document.getElementById('fAutoCloseEnabled')),
-      autoCloseMinutes: parseAutoCloseMinutes((document.getElementById('fAutoCloseMinutes') || {}).value),
-      removeProductsOnClose:
-        isSwitchOn(document.getElementById('fAutoCloseEnabled')) &&
-        isSwitchOn(document.getElementById('fRemoveOnClose')),
-      cViewerDisplay: viewer.display,
-      cViewerInitial: viewer.initial,
-      cViewerExtraMin: viewer.extraMin,
-      cViewerExtraMax: viewer.extraMax,
       viewPermission: getViewPermission(),
       regions: regions,
       saleRegions: liveType === 'REGION' ? cloneMap(saleRegions) : {},
@@ -571,6 +473,12 @@
             type: 'regular',
             typeName: '常规场',
             status: 'upcoming',
+            autoCloseEnabled: false,
+            autoCloseAt: '',
+            cViewerDisplay: 'online',
+            cViewerInitial: 0,
+            cViewerExtraMin: 0,
+            cViewerExtraMax: 0,
             pushUrl: 'rtmp://push.demo.lengfeng.com/live/' + id + '?txSecret=****',
             playUrl: 'https://play.demo.lengfeng.com/live/' + id + '.m3u8',
             createStatus: 'ENABLED',
@@ -655,20 +563,6 @@
             syncSaleScopeUi();
           }
         });
-      });
-    }
-
-    var autoCloseSw = document.getElementById('fAutoCloseEnabled');
-    if (autoCloseSw) {
-      autoCloseSw.addEventListener('click', function () {
-        setSwitchOn(autoCloseSw, !isSwitchOn(autoCloseSw));
-        syncAutoCloseExtra();
-      });
-    }
-    var removeSw = document.getElementById('fRemoveOnClose');
-    if (removeSw) {
-      removeSw.addEventListener('click', function () {
-        setSwitchOn(removeSw, !isSwitchOn(removeSw));
       });
     }
 
