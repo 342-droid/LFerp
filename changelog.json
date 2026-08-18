@@ -1,10 +1,127 @@
 {
-  "latestSha": "3406059518bd993058dfd333f56144ec4ad5c0b6",
-  "total": 272,
+  "latestSha": "3b33a6b945717c8eead294da781f325867378fec",
+  "total": 273,
   "days": [
     {
       "date": "2026-08-18",
       "items": [
+        {
+          "sha": "3b33a6b",
+          "type": "feat",
+          "text": "直播关播改到中控并支持小黄车半屏看商品详情",
+          "author": "zhangzheng",
+          "time": "19:18",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_control.html",
+              "module": "冷丰WMS",
+              "title": "直播中控"
+            },
+            {
+              "file": "MDM/mdm_live_data.html",
+              "module": "冷丰WMS",
+              "title": "直播数据"
+            },
+            {
+              "file": "MDM/mdm_live_product_category.html",
+              "module": "冷丰WMS",
+              "title": "直播类目"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched.html",
+              "module": "冷丰WMS",
+              "title": "直播排品"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "编辑直播商品"
+            },
+            {
+              "file": "MDM/mdm_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间"
+            },
+            {
+              "file": "MDM/mdm_live_session.html",
+              "module": "冷丰WMS",
+              "title": "直播场次"
+            },
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "module": "冷丰WMS",
+              "title": "直播场次详情"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "module": "冷丰WMS",
+              "title": "直播场次编辑"
+            },
+            {
+              "file": "MDM/mdm_live_timeslot.html",
+              "module": "冷丰WMS",
+              "title": "直播时段"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "text": "去掉关播设置和 C 端人数展示，这两项改到中控里配"
+            },
+            {
+              "file": "MDM/mdm_live_control.html",
+              "text": "自动关播改为填写关播时间；关播不再下架小黄车商品"
+            },
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "text": "关播设置改为展示关播时间"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "小黄车商品跟中控同步；点商品半屏打开原来的商品详情，并去掉购物车按钮"
+            }
+          ]
+        },
         {
           "sha": "3406059",
           "type": "feat",
