@@ -1,6 +1,6 @@
 {
   "latestSha": "3406059518bd993058dfd333f56144ec4ad5c0b6",
-  "total": 271,
+  "total": 272,
   "days": [
     {
       "date": "2026-08-18",
@@ -140,6 +140,35 @@
             {
               "file": "user-app/h5/live-room.html",
               "text": "同步商品可售脚本"
+            }
+          ]
+        },
+        {
+          "sha": "a846a32",
+          "type": "feat",
+          "text": "发货单支持作废并调整打印数量字段",
+          "author": "342-droid",
+          "time": "16:02",
+          "pages": [
+            {
+              "file": "SCM/obd_distribution.html",
+              "module": "冷丰WMS",
+              "title": "发货管理"
+            },
+            {
+              "file": "SCM/wave_template.html",
+              "module": "冷丰WMS",
+              "title": "波次模板"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/obd_distribution.html",
+              "text": "列表增加操作列，仅初始状态可作废，有包裹时拦截提示；打印模板「数量」改为「订货数量」、「实际配送数量」改为「本次配送量」，并在后方增加「累计配送量」"
+            },
+            {
+              "file": "SCM/wave_template.html",
+              "text": "详情、编辑弹窗参数区新增「是否复核」"
             }
           ]
         },

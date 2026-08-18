@@ -2026,6 +2026,18 @@
     "status": "diff",
     "date": "2026-08-13"
   },
+  "a846a32|SCM/obd_distribution.html": {
+    "before": "changelog-assets/a846a32/SCM__obd_distribution.html.before.jpg",
+    "after": "changelog-assets/a846a32/SCM__obd_distribution.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-08-18"
+  },
+  "a846a32|SCM/wave_template.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-18"
+  },
   "adcde6a|MDM/mdm_archive_carrier.html": {
     "regions": 0,
     "status": "diff",
