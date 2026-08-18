@@ -28,6 +28,57 @@
   display: none !important;
 }
 
+.ua-sale-dialog {
+  position: absolute;
+  inset: 0;
+  z-index: 9980;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.ua-sale-dialog[hidden] {
+  display: none !important;
+}
+
+.ua-sale-dialog__card {
+  width: 100%;
+  max-width: 280px;
+  padding: 22px 18px 16px;
+  background: #fff;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+.ua-sale-dialog__title {
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.3;
+}
+
+.ua-sale-dialog__text {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.55;
+}
+
+.ua-sale-dialog__ok {
+  width: 100%;
+  height: 40px;
+  margin-top: 16px;
+  border: none;
+  border-radius: 8px;
+  background: #3478f6;
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+}
+
 .ua-shop-check {
   width: 20px;
   height: 20px;
@@ -863,17 +914,35 @@
   text-decoration: none;
 }
 
+.ua-cart-item__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.ua-cart-item__fulfill {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.2;
+}
+
 .ua-cart-item__spec {
   align-self: flex-start;
   display: inline-flex;
   align-items: center;
   padding: 3px 8px;
-  margin-bottom: 6px;
   border-radius: 4px;
   background: #f5f5f5;
   font-size: 11px;
   color: #666;
-  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ua-cart-item__bottom {
@@ -894,6 +963,90 @@
 .ua-cart-item__price--points {
   color: var(--ua-shop-red);
   font-size: 14px;
+}
+
+.ua-invalid-goods {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #eee;
+}
+
+.ua-confirm-body .ua-invalid-goods {
+  margin-bottom: 10px;
+}
+
+.ua-invalid-goods__head {
+  text-align: center;
+  padding: 12px 12px 8px;
+  font-size: 13px;
+  color: #999;
+  line-height: 1.3;
+}
+
+.ua-invalid-goods__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.ua-invalid-goods__mark {
+  flex-shrink: 0;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  letter-spacing: 0.2em;
+  font-size: 12px;
+  color: #c4c4c4;
+  line-height: 1.2;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ua-invalid-goods__thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #eee;
+  flex-shrink: 0;
+  opacity: 0.55;
+  filter: grayscale(0.25);
+}
+
+.ua-invalid-goods__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ua-invalid-goods__body {
+  flex: 1;
+  min-width: 0;
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+}
+
+.ua-invalid-goods__name {
+  font-size: 13px;
+  color: #c4c4c4;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ua-invalid-goods__reason {
+  margin-top: auto;
+  text-align: right;
+  font-size: 12px;
+  color: #999;
 }
 
 .ua-cart-item__tag {
@@ -2310,9 +2463,12 @@
 
 .ua-sale-time-demo {
   position: fixed;
-  right: 8px;
-  bottom: 12px;
-  z-index: 2310;
+  right: 16px;
+  top: 50%;
+  bottom: auto;
+  left: auto;
+  transform: translateY(-50%);
+  z-index: 9990;
   width: 176px;
   padding: 10px;
   background: rgba(255, 255, 255, 0.96);
@@ -2339,8 +2495,15 @@
 
 .ua-sale-time-demo__row select {
   margin-left: auto;
-  max-width: 92px;
+  max-width: 108px;
   font-size: 11px;
+}
+
+.ua-sale-time-demo__tip {
+  margin: 0 0 6px;
+  color: #999;
+  font-size: 10px;
+  line-height: 1.35;
 }
 
 .ua-sale-time-demo__apply {
@@ -2355,24 +2518,18 @@
   cursor: pointer;
 }
 
-.ua-sale-time-demo--live {
-  bottom: 220px;
-}
-
+.ua-sale-time-demo--live,
 .ua-sale-time-demo--gd,
-.ua-sale-time-demo--gd-live {
-  bottom: 88px;
-}
-
+.ua-sale-time-demo--gd-live,
 .ua-sale-time-demo--cat,
-.ua-sale-time-demo--mall {
-  bottom: 72px;
-}
-
-.ua-sale-time-demo--cart {
-  bottom: 72px;
-  left: 8px;
-  right: auto;
+.ua-sale-time-demo--mall,
+.ua-sale-time-demo--cart,
+.ua-sale-time-demo--confirm {
+  right: 16px;
+  top: 50%;
+  bottom: auto;
+  left: auto;
+  transform: translateY(-50%);
 }
 
 .ua-live-goods__stepper {
