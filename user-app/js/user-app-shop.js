@@ -1,7 +1,13 @@
 (function (global) {
   var CART_KEY = 'ua_shop_cart_v2';
   var LIVE_CART_KEY = 'ua_live_cart_v1';
+  var CHECKOUT_SNAPSHOT_KEY = 'ua_checkout_snapshot_v1';
+  var CHECKOUT_TOAST_KEY = 'ua_checkout_sale_toast_v1';
   var CONFIRM_SHIPPING_ADDR_KEY = 'ua_order_confirm_shipping_address';
+  var INVALID_GOODS_REASON = '商品不可售';
+  var CHECKOUT_MSG_ALL_UNSALEABLE = '当前商品暂不可售，请调整商品后下单';
+  var CHECKOUT_MSG_PARTIAL_UNSALEABLE = '部分商品当前暂不可售，请调整商品后下单';
+  var CHECKOUT_MSG_STORE_REST = '当前门店休息中，商品暂不可售';
   var DEFAULT_SHIPPING_ADDRESS = {
     contact: '武者',
     phone: '181****4215',
@@ -682,12 +688,9 @@
     });
     if (!group) return cart;
     group.items.forEach(function (item) {
-      if (!isPointsExchangeItem(item)) {
-        var prod = PRODUCTS[item.id];
-        if (prod && !isProductSaleableNow(prod)) {
-          item.checked = false;
-          return;
-        }
+      if (!isPointsExchangeItem(item) && !isCartLineSaleableNow(item)) {
+        item.checked = false;
+        return;
       }
       item.checked = !!checked;
     });
@@ -707,6 +710,27 @@
     if (item && item.spec != null && item.spec !== '') return String(item.spec);
     var p = PRODUCTS[item && item.id];
     return p ? String(p.spec) : '';
+  }
+
+  /** 与直播间商品列表一致：快递 / 自提 */
+  function fulfillTypeLabel(fulfillType) {
+    return fulfillType === 'express' ? '快递' : '自提';
+  }
+
+  function cartItemFulfillLabel(item) {
+    return fulfillTypeLabel(getCartItemMerchantInfo(item).fulfillType);
+  }
+
+  function cartItemSpecRowHtml(item) {
+    return (
+      '<div class="ua-cart-item__meta">' +
+      '<span class="ua-cart-item__fulfill">' +
+      cartItemFulfillLabel(item) +
+      '</span>' +
+      '<span class="ua-cart-item__spec">' +
+      itemSpecText(item) +
+      '</span></div>'
+    );
   }
 
   function getCartCount(cart) {
@@ -844,6 +868,273 @@
     return true;
   }
 
+  function readSaleDemoForce() {
+    if (!global.UaProductSaleTime || typeof global.UaProductSaleTime.readDemo !== 'function') {
+      return 'auto';
+    }
+    return global.UaProductSaleTime.readDemo().force;
+  }
+
+  function readSaleDemoApplied() {
+    if (!global.UaProductSaleTime || typeof global.UaProductSaleTime.readDemo !== 'function') {
+      return 'all';
+    }
+    var applied = global.UaProductSaleTime.readDemo().applied;
+    if (applied === 'on') return 'all';
+    if (applied === 'off') return 'none';
+    if (!applied) return 'all';
+    return applied;
+  }
+
+  function writeSaleDemoApplied(applied) {
+    if (!global.UaProductSaleTime || typeof global.UaProductSaleTime.writeDemo !== 'function') {
+      return;
+    }
+    var v = applied === 'on' ? 'all' : applied === 'off' ? 'none' : applied;
+    if (!v) v = 'all';
+    global.UaProductSaleTime.writeDemo({ applied: v });
+  }
+
+  function stashCheckoutToast(msg) {
+    try {
+      if (msg) sessionStorage.setItem(CHECKOUT_TOAST_KEY, msg);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function consumeCheckoutToast() {
+    try {
+      var msg = sessionStorage.getItem(CHECKOUT_TOAST_KEY);
+      if (!msg) return;
+      sessionStorage.removeItem(CHECKOUT_TOAST_KEY);
+      showToast(msg);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  /**
+   * 购物车/确认订单展示与下单校验都用 applied（点「应用并刷新」后生效）。
+   * asCheckout：确认页行可能没有 PRODUCTS（新人专区等），缺品仍视为可售。
+   */
+  function isLineSaleableByScene(item, scene, asCheckout) {
+    if (!item) return false;
+    if (isPointsExchangeItem(item) || item.isPointsExchange) return true;
+    if (scene === 'all' || scene === 'on') return true;
+    if (scene === 'none' || scene === 'off') return false;
+    if (scene === 'partial') {
+      if (!PRODUCTS[item.id] && !item.id) return !!asCheckout;
+      return isPartialLineSaleable(item);
+    }
+    var p = PRODUCTS[item.id];
+    if (p) return isProductSaleableNow(p);
+    return !!asCheckout;
+  }
+
+  function isCartLineSaleableNow(item) {
+    return isLineSaleableByScene(item, readSaleDemoApplied(), false);
+  }
+
+  var partialSiblingOverride = null;
+
+  function lineFulfillType(item) {
+    if (item && (item.fulfillType === 'express' || item.fulfillType === 'pickup')) {
+      return item.fulfillType;
+    }
+    var p = item && PRODUCTS[item.id];
+    return p && p.fulfillType === 'express' ? 'express' : 'pickup';
+  }
+
+  /** 部分可售：有自提+快递时自提可售、快递失效；否则按行间隔拆，避免整单倒向一侧 */
+  function listPartialShopLines(siblings) {
+    var source = siblings || partialSiblingOverride || (ensureCart().items || []);
+    var seen = [];
+    var lines = [];
+    (source || []).forEach(function (it) {
+      if (!it || isPointsExchangeItem(it) || it.isPointsExchange) return;
+      var id = String(it.id || '');
+      if (!id) return;
+      if (seen.indexOf(id) !== -1) return;
+      seen.push(id);
+      lines.push(it);
+    });
+    return lines;
+  }
+
+  function isPartialLineSaleable(item, siblings) {
+    var lines = listPartialShopLines(siblings);
+    var id = String((item && item.id) || '');
+    var idx = -1;
+    for (var i = 0; i < lines.length; i++) {
+      if (String(lines[i].id) === id) {
+        idx = i;
+        break;
+      }
+    }
+    if (idx < 0) return false;
+    if (lines.length <= 1) return false;
+    var hasPickup = false;
+    var hasExpress = false;
+    lines.forEach(function (it) {
+      if (lineFulfillType(it) === 'express') hasExpress = true;
+      else hasPickup = true;
+    });
+    if (hasPickup && hasExpress) return lineFulfillType(item) === 'pickup';
+    return idx % 2 === 0;
+  }
+
+  function isCheckoutLineSaleableNow(item) {
+    return isLineSaleableByScene(item, readSaleDemoApplied(), true);
+  }
+
+  function isSaleDemoAppliedAll() {
+    var applied = readSaleDemoApplied();
+    return applied === 'all' || applied === 'on';
+  }
+
+  function isLineSaleableByCheckoutForce(item) {
+    /* 下单校验与当前列表一致，避免购物车失效、确认页秒变可售 */
+    if (isStoreRestingNow() && !isSaleDemoAppliedAll()) return false;
+    return isLineSaleableByScene(item, readSaleDemoApplied(), true);
+  }
+
+  function finishCheckoutUnsaleable(result) {
+    if (isStoreRestingNow() && !(result.saleable && result.saleable.length) && !isSaleDemoAppliedAll()) {
+      writeSaleDemoApplied('auto');
+    }
+    uncheckUnsaleableCartItems(result.unsaleable);
+    stashCheckoutToast(checkoutUnsaleableToast(result.saleable.length, result.unsaleable.length));
+    window.location.reload();
+  }
+
+  function getCartCheckoutCandidates() {
+    var cart = ensureCart();
+    return (cart.items || []).filter(function (it) {
+      if (!(isPointsExchangeItem(it) || PRODUCTS[it.id])) return false;
+      return !!it.checked && isCartLineSaleableNow(it);
+    });
+  }
+
+  function splitBySaleable(list, pred) {
+    var saleable = [];
+    var unsaleable = [];
+    (list || []).forEach(function (item) {
+      if (pred(item)) saleable.push(item);
+      else unsaleable.push(item);
+    });
+    return { saleable: saleable, unsaleable: unsaleable };
+  }
+
+  function isStoreRestingNow() {
+    if (global.UaProductSaleTime && typeof global.UaProductSaleTime.isStoreOpenNowRaw === 'function') {
+      return !global.UaProductSaleTime.isStoreOpenNowRaw();
+    }
+    return false;
+  }
+
+  function checkoutUnsaleableToast(saleableCount, unsaleableCount) {
+    if (!unsaleableCount) return '';
+    /* 门店休息导致整单不可售：优先于商品级不可售提示 */
+    if (!saleableCount && isStoreRestingNow()) return CHECKOUT_MSG_STORE_REST;
+    return saleableCount ? CHECKOUT_MSG_PARTIAL_UNSALEABLE : CHECKOUT_MSG_ALL_UNSALEABLE;
+  }
+
+  function writeCheckoutSnapshot(items) {
+    try {
+      sessionStorage.setItem(
+        CHECKOUT_SNAPSHOT_KEY,
+        JSON.stringify(
+          (items || []).map(function (it) {
+            return { id: it.id };
+          })
+        )
+      );
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function readCheckoutSnapshotIds() {
+    try {
+      var raw = sessionStorage.getItem(CHECKOUT_SNAPSHOT_KEY);
+      var arr = raw ? JSON.parse(raw) : [];
+      return (arr || [])
+        .map(function (x) {
+          return x && x.id;
+        })
+        .filter(Boolean);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function uncheckUnsaleableCartItems(unsaleableItems) {
+    var ids = {};
+    (unsaleableItems || []).forEach(function (it) {
+      if (it && it.id) ids[it.id] = true;
+    });
+    if (!Object.keys(ids).length) return ensureCart();
+    var cart = ensureCart();
+    var dirty = false;
+    (cart.items || []).forEach(function (it) {
+      if (ids[it.id] && it.checked) {
+        it.checked = false;
+        dirty = true;
+      }
+    });
+    if (dirty) writeCart(cart);
+    return cart;
+  }
+
+  function invalidGoodsDisplay(item) {
+    if (!item) return { id: '', name: '', img: '' };
+    if (item.isPointsExchange || isPointsExchangeItem(item)) {
+      return {
+        id: item.id,
+        name: item.name || '',
+        img: resolveCartAsset(item.img)
+      };
+    }
+    var p = PRODUCTS[item.id] || {};
+    return {
+      id: item.id,
+      name: item.name || p.shortName || p.name || '',
+      img: item.img || p.img || ''
+    };
+  }
+
+  function renderInvalidGoodsSection(items) {
+    items = items || [];
+    if (!items.length) return '';
+    return (
+      '<section class="ua-invalid-goods">' +
+      '<div class="ua-invalid-goods__head">失效宝贝' +
+      items.length +
+      '件</div>' +
+      items
+        .map(function (item) {
+          var d = invalidGoodsDisplay(item);
+          return (
+            '<article class="ua-invalid-goods__item">' +
+            '<span class="ua-invalid-goods__mark">失效</span>' +
+            '<div class="ua-invalid-goods__thumb"><img src="' +
+            d.img +
+            '" alt=""></div>' +
+            '<div class="ua-invalid-goods__body">' +
+            '<div class="ua-invalid-goods__name">' +
+            d.name +
+            '</div>' +
+            '<div class="ua-invalid-goods__reason">' +
+            INVALID_GOODS_REASON +
+            '</div></div></article>'
+          );
+        })
+        .join('') +
+      '</section>'
+    );
+  }
+
   /** 商城卡片：仅营业时间内商品不可售才展示标识 */
   function shouldShowProductUnsaleableBadge(product) {
     if (!product) return false;
@@ -858,7 +1149,7 @@
 
   function unsaleableLabel() {
     return (
-      (global.UaProductSaleTime && global.UaProductSaleTime.UNSALEABLE_LABEL) || '今日不可售'
+      (global.UaProductSaleTime && global.UaProductSaleTime.UNSALEABLE_LABEL) || '商品不可售'
     );
   }
 
@@ -926,8 +1217,7 @@
     var item = findItem(cart, id);
     if (!item) return cart;
     if (!isPointsExchangeItem(item)) {
-      var p = PRODUCTS[id];
-      if (p && !isProductSaleableNow(p) && qty > (item.qty || 0)) {
+      if (!isCartLineSaleableNow(item) && qty > (item.qty || 0)) {
         showToast(unsaleableLabel());
         return cart;
       }
@@ -994,14 +1284,11 @@
     var cart = ensureCart();
     var item = findItem(cart, id);
     if (!item) return cart;
-    if (!isPointsExchangeItem(item)) {
-      var prod = PRODUCTS[id];
-      if (prod && !isProductSaleableNow(prod)) {
-        item.checked = false;
-        writeCart(cart);
-        showToast(unsaleableLabel());
-        return cart;
-      }
+    if (!isPointsExchangeItem(item) && !isCartLineSaleableNow(item)) {
+      item.checked = false;
+      writeCart(cart);
+      showToast(unsaleableLabel());
+      return cart;
     }
     item.checked = !!checked;
     writeCart(cart);
@@ -1011,12 +1298,9 @@
   function toggleAll(checked) {
     var cart = ensureCart();
     (cart.items || []).forEach(function (item) {
-      if (!isPointsExchangeItem(item)) {
-        var prod = PRODUCTS[item.id];
-        if (prod && !isProductSaleableNow(prod)) {
-          item.checked = false;
-          return;
-        }
+      if (!isPointsExchangeItem(item) && !isCartLineSaleableNow(item)) {
+        item.checked = false;
+        return;
       }
       item.checked = !!checked;
     });
@@ -1034,16 +1318,21 @@
     return cart;
   }
 
-  function getCheckoutItems() {
+  function getCheckoutItems(opts) {
+    opts = opts || {};
     /* 新人专区：立即购买草稿优先（不走购物车） */
     if (global.UaNewcomerZoneOrder && typeof global.UaNewcomerZoneOrder.getCheckoutItems === 'function') {
       var newcomerItems = global.UaNewcomerZoneOrder.getCheckoutItems();
       if (newcomerItems && newcomerItems.length) return newcomerItems;
     }
     var cart = ensureCart();
+    var snapshotIds = opts && opts.fromSnapshot ? readCheckoutSnapshotIds() : [];
     return (cart.items || [])
       .filter(function (item) {
-        if (!(item.checked && (isPointsExchangeItem(item) || PRODUCTS[item.id]))) return false;
+        if (!(isPointsExchangeItem(item) || PRODUCTS[item.id])) return false;
+        if (snapshotIds.length) return snapshotIds.indexOf(item.id) !== -1;
+        if (!item.checked) return false;
+        if (opts && opts.includeUnsaleable) return true;
         if (isPointsExchangeItem(item)) return true;
         return isProductSaleableNow(PRODUCTS[item.id]);
       })
@@ -1402,9 +1691,10 @@
    * 确认订单共用内容（全页 / 直播半遮罩）
    * @returns {{ html: string, pricing: object, payable: number, splits: array, hasExpress: boolean, hasPickup: boolean }}
    */
-  function buildSharedOrderConfirmView(items, remarks, pricing, usePointsDeduct) {
+  function buildSharedOrderConfirmView(items, remarks, pricing, usePointsDeduct, invalidItems) {
     remarks = remarks || {};
     items = items || [];
+    invalidItems = invalidItems || [];
     pricing = pricing || computeOrderConfirmPricing(items);
     if (usePointsDeduct == null) usePointsDeduct = pricing.usePointsDeduct;
     var splits = pricing.splits;
@@ -1642,7 +1932,13 @@
       '<span>我已阅读并同意《交易服务协议》</span></label>';
 
     return {
-      html: addressHtml + splitsHtml + optionsHtml + summaryHtml + agreeHtml,
+      html:
+        addressHtml +
+        splitsHtml +
+        renderInvalidGoodsSection(invalidItems) +
+        optionsHtml +
+        summaryHtml +
+        agreeHtml,
       pricing: pricing,
       goodsTotal: goodsTotal,
       freight: freight,
@@ -1896,10 +2192,23 @@
       });
     });
 
+    var searchInput = document.querySelector('.ua-mall-search__input');
+    function goMallSearch() {
+      var kw = searchInput ? String(searchInput.value || '').trim() : '';
+      if (!kw) {
+        showToast('请输入商品名称');
+        return;
+      }
+      window.location.href = 'category.html?q=' + encodeURIComponent(kw);
+    }
     var searchBtn = document.getElementById('mallSearchBtn');
-    if (searchBtn) {
-      searchBtn.addEventListener('click', function () {
-        showToast('搜索功能演示');
+    if (searchBtn) searchBtn.addEventListener('click', goMallSearch);
+    if (searchInput) {
+      searchInput.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter') {
+          ev.preventDefault();
+          goMallSearch();
+        }
       });
     }
   }
@@ -1913,7 +2222,7 @@
       catId: params.get('cat') || 'test',
       sort: 'default',
       priceDir: 'asc',
-      keyword: ''
+      keyword: params.get('q') || ''
     };
 
     var topnav = document.getElementById('catTopnav');
@@ -1924,6 +2233,7 @@
     var salesBtn = document.getElementById('catSortSales');
     var priceBtn = document.getElementById('catSortPrice');
     var searchInput = document.getElementById('catSearchInput');
+    if (searchInput && state.keyword) searchInput.value = state.keyword;
     var allPanel = document.getElementById('catAllPanel');
     var cartTotalEl = document.getElementById('catCartTotal');
     var checkoutBtn = document.getElementById('catCheckoutBtn');
@@ -1960,19 +2270,32 @@
     }
 
     function getCategoryProducts() {
-      var cat = getMallCategory(state.catId);
-      var list = (cat.products || [])
-        .map(function (id) {
-          return PRODUCTS[id];
-        })
-        .filter(Boolean);
       var kw = String(state.keyword || '').trim().toLowerCase();
+      var list;
       if (kw) {
-        list = list.filter(function (p) {
-          return String(p.shortName || p.name || '')
-            .toLowerCase()
-            .indexOf(kw) >= 0;
-        });
+        /* 搜索结果：全库匹配，不可售仍展示并打标 */
+        list = Object.keys(PRODUCTS)
+          .map(function (id) {
+            return PRODUCTS[id];
+          })
+          .filter(function (p) {
+            return (
+              !!p &&
+              String(p.shortName || p.name || '')
+                .toLowerCase()
+                .indexOf(kw) >= 0
+            );
+          });
+      } else {
+        /* 分类浏览：不可售下架不展示 */
+        var cat = getMallCategory(state.catId);
+        list = (cat.products || [])
+          .map(function (id) {
+            return PRODUCTS[id];
+          })
+          .filter(function (p) {
+            return !!p && isProductSaleableNow(p);
+          });
       }
       if (state.sort === 'price') {
         list = list.slice().sort(function (a, b) {
@@ -2044,8 +2367,11 @@
 
     function renderProducts() {
       var cat = getMallCategory(state.catId);
-      if (titleEl) titleEl.textContent = cat.name;
-      document.title = cat.name + ' · 分类 · 用户 APP';
+      var searching = !!String(state.keyword || '').trim();
+      if (titleEl) titleEl.textContent = searching ? '搜索结果' : cat.name;
+      document.title = searching
+        ? '搜索结果 · 用户 APP'
+        : cat.name + ' · 分类 · 用户 APP';
       var list = getCategoryProducts();
       var cart = ensureCart();
       if (emptyEl) emptyEl.hidden = list.length > 0;
@@ -2390,7 +2716,10 @@
       if (previewBadge) previewBadge.hidden = !livePreview;
       var unsaleable = !livePreview && !isProductSaleableNow(product);
       var unsaleableBadge = document.getElementById('goodsDetailUnsaleableBadge');
-      if (unsaleableBadge) unsaleableBadge.hidden = !unsaleable;
+      if (unsaleableBadge) {
+        unsaleableBadge.hidden = !unsaleable;
+        unsaleableBadge.textContent = unsaleableLabel();
+      }
       var hero = document.querySelector('.ua-gd-hero');
       if (hero) hero.classList.toggle('is-unsaleable', unsaleable);
       var pageRoot = document.querySelector('.ua-gd-page');
@@ -2495,6 +2824,11 @@
             it.checked = it.id === product.id;
           });
           writeCart(cart);
+          writeCheckoutSnapshot(
+            (cart.items || []).filter(function (it) {
+              return it.id === product.id;
+            })
+          );
           window.location.href = 'order-confirm.html';
         }
       });
@@ -2558,37 +2892,32 @@
     });
   }
 
-  function applyMallSaleableState() {
-    document.querySelectorAll('.ua-mall-product[data-goods-id]').forEach(function (card) {
+  function hideUnsaleableBrowseCards(selector) {
+    document.querySelectorAll(selector).forEach(function (card) {
       var id = card.getAttribute('data-goods-id');
       var prod = PRODUCTS[id];
-      var showBadge = !!(prod && shouldShowProductUnsaleableBadge(prod));
-      /* 过了门店营业时间：不置灰、不打标识；营业时间内商品不可售才露出 */
-      card.classList.toggle('is-unsaleable', showBadge);
-      var img = card.querySelector('.ua-mall-product__img');
-      if (!img) return;
-      var badge = img.querySelector('.ua-sale-unsaleable-badge');
-      if (showBadge) {
-        if (!badge) {
-          badge = document.createElement('span');
-          badge.className = 'ua-sale-unsaleable-badge';
-          badge.textContent = unsaleableLabel();
-          img.appendChild(badge);
-        } else {
-          badge.textContent = unsaleableLabel();
-        }
-      } else if (badge) {
-        badge.remove();
-      }
+      /* 首页/商城浏览流：不可售下架不展示 */
+      card.hidden = !!(prod && !isProductSaleableNow(prod));
+      card.classList.remove('is-unsaleable');
+      var badge = card.querySelector('.ua-sale-unsaleable-badge');
+      if (badge) badge.remove();
     });
+  }
+
+  function applyMallSaleableState() {
+    hideUnsaleableBrowseCards('.ua-mall-product[data-goods-id]');
   }
 
   function initCartPage() {
     ensureCart();
     renderCart();
     syncBadges();
+    consumeCheckoutToast();
     if (global.UaProductSaleTime && global.UaProductSaleTime.mountDemoPanel) {
-      global.UaProductSaleTime.mountDemoPanel({ className: 'ua-sale-time-demo--cart' });
+      global.UaProductSaleTime.mountDemoPanel({
+        className: 'ua-sale-time-demo--cart',
+        variant: 'checkout'
+      });
     }
 
     document.getElementById('cartClearBtn') &&
@@ -2601,11 +2930,7 @@
     document.getElementById('cartSelectAll') &&
       document.getElementById('cartSelectAll').addEventListener('click', function () {
         var cart = ensureCart();
-        var selectable = (cart.items || []).filter(function (it) {
-          if (isPointsExchangeItem(it)) return true;
-          var prod = PRODUCTS[it.id];
-          return !!(prod && isProductSaleableNow(prod));
-        });
+        var selectable = (cart.items || []).filter(isCartLineSaleableNow);
         var allChecked =
           selectable.length > 0 &&
           selectable.every(function (it) {
@@ -2615,9 +2940,7 @@
         /* 不可售商品保持未勾选 */
         var next = ensureCart();
         (next.items || []).forEach(function (it) {
-          if (isPointsExchangeItem(it)) return;
-          var prod = PRODUCTS[it.id];
-          if (prod && !isProductSaleableNow(prod)) it.checked = false;
+          if (!isCartLineSaleableNow(it)) it.checked = false;
         });
         writeCart(next);
         renderCart();
@@ -2625,20 +2948,25 @@
 
     document.getElementById('cartCheckoutBtn') &&
       document.getElementById('cartCheckoutBtn').addEventListener('click', function () {
-        var summary = getCheckedSummary();
-        if (!summary.count) {
+        var candidates = getCartCheckoutCandidates();
+        if (!candidates.length) {
+          var shopItems = (ensureCart().items || []).filter(function (it) {
+            return isPointsExchangeItem(it) || PRODUCTS[it.id];
+          });
+          var hasSaleable = shopItems.some(isCartLineSaleableNow);
+          if (shopItems.length && !hasSaleable) {
+            showToast(checkoutUnsaleableToast(0, shopItems.length));
+            return;
+          }
           showToast('请选择商品');
           return;
         }
-        var blocked = (ensureCart().items || []).some(function (it) {
-          if (!it.checked || isPointsExchangeItem(it)) return false;
-          var prod = PRODUCTS[it.id];
-          return !!(prod && !isProductSaleableNow(prod));
-        });
-        if (blocked) {
-          showToast(unsaleableLabel());
+        var result = splitBySaleable(candidates, isLineSaleableByCheckoutForce);
+        if (result.unsaleable.length) {
+          finishCheckoutUnsaleable(result);
           return;
         }
+        writeCheckoutSnapshot(result.saleable);
         window.location.href = 'order-confirm.html';
       });
   }
@@ -2652,11 +2980,31 @@
     var emptyEl = document.getElementById('cartEmpty');
     if (!listEl) return;
 
-    var groups = groupCartItems(cart);
+    var cartDirty = false;
+    (cart.items || []).forEach(function (it) {
+      if (isPointsExchangeItem(it) || !it.checked) return;
+      if (!isCartLineSaleableNow(it)) {
+        it.checked = false;
+        cartDirty = true;
+      }
+    });
+    if (cartDirty) writeCart(cart);
+
+    var invalidItems = (cart.items || []).filter(function (it) {
+      if (isPointsExchangeItem(it) || !PRODUCTS[it.id]) return false;
+      return !isCartLineSaleableNow(it);
+    });
+    var groups = groupCartItems(cart)
+      .map(function (group) {
+        var saleable = group.items.filter(isCartLineSaleableNow);
+        if (!saleable.length) return null;
+        return Object.assign({}, group, { items: saleable });
+      })
+      .filter(Boolean);
     var shopIcon =
       '<svg class="ua-cart-group__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path d="M9 22V12h6v10"/></svg>';
 
-    if (!groups.length) {
+    if (!groups.length && !invalidItems.length) {
       listEl.innerHTML = '';
       if (emptyEl) emptyEl.hidden = false;
       if (totalEl) totalEl.textContent = '¥0.00';
@@ -2671,21 +3019,8 @@
 
     if (emptyEl) emptyEl.hidden = true;
 
-    var cartDirty = false;
-    (cart.items || []).forEach(function (it) {
-      if (isPointsExchangeItem(it) || !it.checked) return;
-      var prod = PRODUCTS[it.id];
-      if (prod && !isProductSaleableNow(prod)) {
-        it.checked = false;
-        cartDirty = true;
-      }
-    });
-    if (cartDirty) writeCart(cart);
-
     var selectable = (cart.items || []).filter(function (it) {
-      if (isPointsExchangeItem(it)) return true;
-      var prod = PRODUCTS[it.id];
-      return !!(prod && isProductSaleableNow(prod));
+      return isCartLineSaleableNow(it);
     });
     var allChecked =
       selectable.length > 0 &&
@@ -2700,10 +3035,9 @@
     listEl.innerHTML = groups
       .map(function (group) {
         var saleableItems = group.items.filter(function (it) {
-          if (isPointsExchangeItem(it)) return true;
-          var prod = PRODUCTS[it.id];
-          return !!(prod && isProductSaleableNow(prod));
+          return isCartLineSaleableNow(it);
         });
+        if (!saleableItems.length) return '';
         var groupChecked =
           saleableItems.length > 0 &&
           saleableItems.every(function (it) {
@@ -2741,9 +3075,7 @@
                 '<span class="ua-cart-item__tag">积分兑换</span>' +
                 (item.name || '') +
                 '</a>' +
-                '<span class="ua-cart-item__spec">' +
-                itemSpecText(item) +
-                '</span>' +
+                cartItemSpecRowHtml(item) +
                 '<div class="ua-cart-item__bottom">' +
                 '<div class="ua-cart-item__price ua-cart-item__price--points">' +
                 formatPointsExchangePrice(item) +
@@ -2763,22 +3095,16 @@
             }
             var p = PRODUCTS[item.id];
             if (!p) return '';
-            var unsaleable = !isProductSaleableNow(p);
             return (
-              '<article class="ua-cart-item' +
-              (unsaleable ? ' is-unsaleable' : '') +
-              '" data-id="' +
+              '<article class="ua-cart-item" data-id="' +
               p.id +
               '">' +
               '<div class="ua-cart-item__check">' +
-              (unsaleable
-                ? '<button type="button" class="ua-shop-check is-disabled" disabled aria-label="今日不可售"></button>'
-                : '<button type="button" class="ua-shop-check' +
-                  (item.checked ? ' is-checked' : '') +
-                  '" data-cart-check="' +
-                  p.id +
-                  '" aria-label="选择"></button>') +
-              '</div>' +
+              '<button type="button" class="ua-shop-check' +
+              (item.checked ? ' is-checked' : '') +
+              '" data-cart-check="' +
+              p.id +
+              '" aria-label="选择"></button></div>' +
               '<div class="ua-cart-item__thumb">' +
               '<a href="goods-detail.html?id=' +
               encodeURIComponent(p.id) +
@@ -2786,9 +3112,6 @@
               '<img src="' +
               p.img +
               '" alt="">' +
-              (unsaleable
-                ? '<span class="ua-sale-unsaleable-badge">' + unsaleableLabel() + '</span>'
-                : '') +
               (p.watermark
                 ? '<span class="ua-shop-watermark ua-shop-watermark--sm">生产验证商品<br>请勿下单</span>'
                 : '') +
@@ -2799,12 +3122,7 @@
               '&from=cart.html">' +
               (p.shortName || p.name) +
               '</a>' +
-              (unsaleable
-                ? '<span class="ua-cart-item__unsaleable">' + unsaleableLabel() + '</span>'
-                : '') +
-              '<span class="ua-cart-item__spec">' +
-              itemSpecText(item) +
-              '</span>' +
+              cartItemSpecRowHtml(item) +
               '<div class="ua-cart-item__bottom">' +
               '<div class="ua-cart-item__price">' +
               formatMoney(itemUnitPrice(item)) +
@@ -2816,9 +3134,7 @@
               '<span class="ua-cart-stepper__num">' +
               item.qty +
               '</span>' +
-              '<button type="button" class="ua-cart-stepper__btn ua-cart-stepper__btn--plus"' +
-              (unsaleable ? ' disabled' : '') +
-              ' data-cart-plus="' +
+              '<button type="button" class="ua-cart-stepper__btn ua-cart-stepper__btn--plus" data-cart-plus="' +
               p.id +
               '">+</button>' +
               '</div></div></div></article>'
@@ -2846,7 +3162,7 @@
           '</section>'
         );
       })
-      .join('');
+      .join('') + renderInvalidGoodsSection(invalidItems);
 
     listEl.querySelectorAll('[data-group-check]').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -2917,8 +3233,20 @@
   function initOrderConfirmPage() {
     ensureCart();
     applyPickedAddressForConfirm();
-    var items = getCheckoutItems();
-    if (!items.length) {
+    var rawItems = getCheckoutItems({ fromSnapshot: true, includeUnsaleable: true });
+    if (!rawItems.length) {
+      rawItems = getCheckoutItems({ includeUnsaleable: true });
+    }
+    if (!rawItems.length) {
+      window.location.href = 'cart.html';
+      return;
+    }
+    partialSiblingOverride = rawItems;
+    var classified = splitBySaleable(rawItems, isCheckoutLineSaleableNow);
+    var items = classified.saleable;
+    var invalidItems = classified.unsaleable;
+    uncheckUnsaleableCartItems(invalidItems);
+    if (!items.length && !invalidItems.length) {
       window.location.href = 'cart.html';
       return;
     }
@@ -2955,7 +3283,13 @@
 
     function renderConfirmBody() {
       if (!body) return;
-      view = buildSharedOrderConfirmView(items, remarks, pricing, usePointsDeduct);
+      view = buildSharedOrderConfirmView(
+        items,
+        remarks,
+        pricing,
+        usePointsDeduct,
+        invalidItems
+      );
       body.innerHTML = view.html;
       bindSharedOrderConfirmInteractions(body, view, remarks, {
         onCoupon: function () {
@@ -2982,7 +3316,15 @@
       syncAmounts();
     }
 
+    if (global.UaProductSaleTime && global.UaProductSaleTime.mountDemoPanel) {
+      global.UaProductSaleTime.mountDemoPanel({
+        className: 'ua-sale-time-demo--confirm',
+        variant: 'checkout'
+      });
+    }
+
     renderConfirmBody();
+    consumeCheckoutToast();
 
     function clearCheckoutCart() {
       items.forEach(function (it) {
@@ -3040,6 +3382,11 @@
 
     /** 提交订单（接口动作）：生成待支付订单，成功后由调用方唤起支付 */
     function createUnpaidOrder() {
+      if (!applyConfirmSaleableGuard()) return null;
+      if (!items.length) {
+        showToast(checkoutUnsaleableToast(0, 1));
+        return null;
+      }
       var newcomerCheck = validateNewcomerCheckout();
       if (!newcomerCheck.ok) {
         showToast(newcomerCheck.message || '暂无法购买新人专区商品');
@@ -3149,10 +3496,28 @@
         showToast('联系客服（演示）');
       });
 
+    function applyConfirmSaleableGuard() {
+      var againLines = items.concat(invalidItems);
+      partialSiblingOverride = againLines;
+      var again = splitBySaleable(againLines, isLineSaleableByCheckoutForce);
+      if (again.unsaleable.length) {
+        finishCheckoutUnsaleable(again);
+        return false;
+      }
+      items = again.saleable;
+      invalidItems = [];
+      return true;
+    }
+
     document.getElementById('confirmPayBtn') &&
       document.getElementById('confirmPayBtn').addEventListener('click', function () {
         /* 黑名单禁用「下单」：确认订单提交拦截 */
         if (global.UaBlacklistGuard && global.UaBlacklistGuard.guardOrderSubmit()) return;
+        if (!applyConfirmSaleableGuard()) return;
+        if (!items.length) {
+          showToast(checkoutUnsaleableToast(0, 1));
+          return;
+        }
         var agreeCheck = body && body.querySelector('[data-confirm-agree]');
         if (agreeCheck && !agreeCheck.classList.contains('is-checked')) {
           showToast('请先同意交易服务协议');
@@ -3232,6 +3597,7 @@
     }
     if (enterBtn) enterBtn.addEventListener('click', enterLive);
     if (card) card.addEventListener('click', enterLive);
+    hideUnsaleableBrowseCards('.ua-home-page [data-goods-id], .ua-home-page .ua-mall-product');
   }
 
   function initLiveRoomPage() {
