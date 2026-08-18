@@ -1,10 +1,45 @@
 {
-  "latestSha": "8b994bfb70c4d9a2fdce5a70b89dbc6b542e98d4",
-  "total": 274,
+  "latestSha": "67a490a9abf2857a00ca500e76feb251d7f2010c",
+  "total": 275,
   "days": [
     {
       "date": "2026-08-18",
       "items": [
+        {
+          "sha": "67a490a",
+          "type": "feat",
+          "text": "零售订单多规格商品支持悬停查看明细",
+          "author": "sisi",
+          "time": "22:22",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "module": "冷丰WMS",
+              "title": "排队记录"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "多规格商品改为「共 N 件 / M 个 SKU」，悬停弹出订单商品明细；列表和浮层每件商品旁展示售后标识"
+            }
+          ]
+        },
         {
           "sha": "8b994bf",
           "type": "feat",
