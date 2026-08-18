@@ -492,10 +492,33 @@
     );
   }
 
+  function fromLocalInput(str) {
+    if (!str) return '';
+    var s = String(str);
+    return s.replace('T', ' ') + (s.length === 16 ? ':00' : '');
+  }
+
+  function parseSessionTs(str) {
+    if (str == null || str === '') return NaN;
+    var s = String(str).trim();
+    if (!s) return NaN;
+    var ts = new Date(s).getTime();
+    if (!isFinite(ts)) ts = new Date(s.replace('T', ' ').replace(/-/g, '/')).getTime();
+    return ts;
+  }
+
   function processScheduled() {
     var sess = findSession(sessionId);
     var now = Date.now();
     var changed = false;
+    if (sess && sess.status === 'live' && sess.autoCloseEnabled) {
+      var closeTs = parseSessionTs(sess.autoCloseAt);
+      if (isFinite(closeTs) && now >= closeTs) {
+        sess.status = 'ended';
+        changed = true;
+        toast('已到关播时间，直播已结束');
+      }
+    }
     productsOf(sessionId).forEach(function (p) {
       ensureControlFields(p, 0);
       if (p.inCart && p.removeAt && now >= p.removeAt) {
@@ -570,24 +593,67 @@
     return '<span class="lf-live-thumb-wrap">' + badge + inner + '</span>';
   }
 
+  function serializeLiveCartProduct(p) {
+    var skus = skusOf(p);
+    var enabled = skus.filter(function (s) {
+      return s.enabled !== false;
+    });
+    var use = enabled.length ? enabled : skus;
+    var liveSpecs = use.map(function (s) {
+      return {
+        label: s.specName || p.spec || '默认规格',
+        price: Number(s.price != null ? s.price : p.price) || 0,
+        marketPrice: s.marketPrice != null ? s.marketPrice : p.marketPrice
+      };
+    });
+    if (!liveSpecs.length) {
+      liveSpecs = [
+        {
+          label: p.spec || '默认规格',
+          price: Number(p.price) || 0,
+          marketPrice: p.marketPrice
+        }
+      ];
+    }
+    var previewMode =
+      p.previewPriceMode === 'question' || p.previewPriceMode === 'market' ? p.previewPriceMode : 'sale';
+    return {
+      id: p.id,
+      name: p.name,
+      shortName: p.name,
+      spec: liveSpecs[0].label,
+      defaultSpec: liveSpecs[0].label,
+      specs: liveSpecs.map(function (s) {
+        return s.label;
+      }),
+      liveSpecs: liveSpecs,
+      price: Number(p.price) || 0,
+      livePrice: Number(p.price) || 0,
+      marketPrice: p.marketPrice,
+      originPrice: p.marketPrice,
+      img: p.img || '',
+      desc: p.desc || p.intro || '',
+      saleMode: p.saleMode === 'preview' ? 'preview' : 'selling',
+      previewPriceMode: previewMode,
+      explaining: !!p.explaining,
+      pinned: !!p.pinned,
+      cartSort: p.cartSort || 0,
+      liveStatus: p.liveStatus || '',
+      fulfillType: p.deliveryMode === 'mail' ? 'express' : 'pickup'
+    };
+  }
+
   function syncCState() {
+    var cartList = allCartProducts().map(serializeLiveCartProduct);
     var explaining = null;
     var previewMode = 'sale';
-    allCartProducts().forEach(function (p) {
-      if (p.explaining && !explaining) {
-        explaining = {
-          name: p.name,
-          price: p.price,
-          marketPrice: p.marketPrice,
-          previewPriceMode: p.previewPriceMode || 'sale',
-          saleMode: p.saleMode,
-          img: p.img || ''
-        };
-        if (p.saleMode === 'preview') previewMode = p.previewPriceMode || 'sale';
-      }
+    cartList.forEach(function (p) {
+      if (p.explaining && !explaining) explaining = p;
     });
-    if (!explaining || explaining.saleMode !== 'preview') {
-      allCartProducts().some(function (p) {
+    if (explaining && explaining.saleMode === 'preview') {
+      previewMode = explaining.previewPriceMode || 'sale';
+    } else {
+      cartList.some(function (p) {
         if (p.saleMode !== 'preview') return false;
         previewMode = p.previewPriceMode || 'sale';
         return true;
@@ -597,6 +663,7 @@
       localStorage.setItem(
         C_STATE_KEY,
         JSON.stringify({
+          cartProducts: cartList,
           explaining: explaining,
           previewPriceMode: previewMode,
           chatMessages: (metricsOf(sessionId).chatMessages || []).map(function (m) {
@@ -1302,12 +1369,11 @@
     }
   }
 
-  function parseAutoCloseMinutes(val) {
+  function parseAutoCloseAt(val) {
     var raw = String(val == null ? '' : val).trim();
     if (!raw) return null;
-    var n = Math.floor(Number(raw));
-    if (!isFinite(n) || n < 0) return null;
-    return n > 1440 ? 1440 : n;
+    var ts = parseSessionTs(raw);
+    return isFinite(ts) ? ts : null;
   }
 
   function setSwitchOn(el, on) {
@@ -1359,9 +1425,8 @@
   }
 
   function fillCloseSettingsDialog(sess) {
-    var minEl = document.getElementById('dlgAutoCloseMinutes');
+    var atEl = document.getElementById('dlgAutoCloseAt');
     var enabledSw = document.getElementById('dlgAutoCloseEnabled');
-    var sw = document.getElementById('dlgRemoveOnClose');
     var cfg = typeof Demo.normalizeCViewerConfig === 'function' ? Demo.normalizeCViewerConfig(sess) : {
       display: 'online',
       initial: 0,
@@ -1369,8 +1434,10 @@
       extraMax: 0
     };
     setSwitchOn(enabledSw, !!(sess && sess.autoCloseEnabled));
-    if (minEl) minEl.value = sess && sess.autoCloseMinutes != null ? sess.autoCloseMinutes : '';
-    setSwitchOn(sw, !!(sess && sess.removeProductsOnClose));
+    if (atEl) {
+      var ts = sess && sess.autoCloseAt ? parseSessionTs(sess.autoCloseAt) : NaN;
+      atEl.value = isFinite(ts) ? toLocalInput(ts) : '';
+    }
     setRadioValue('dlgCViewerDisplay', cfg.display);
     var initialEl = document.getElementById('dlgCViewerInitial');
     var extraMinEl = document.getElementById('dlgCViewerExtraMin');
@@ -1379,12 +1446,6 @@
     if (extraMinEl) extraMinEl.value = cfg.extraMin;
     if (extraMaxEl) extraMaxEl.value = cfg.extraMax;
     syncDlgAutoCloseExtra();
-  }
-
-  function removeAllCartProducts() {
-    productsOf(sessionId).slice().forEach(function (p) {
-      if (p.inCart) removeFromCart(p);
-    });
   }
 
   function openDialog(id) {
@@ -1569,12 +1630,7 @@
         var sess = findSession(sessionId);
         if (!sess) return;
         sess.status = 'ended';
-        if (sess.autoCloseEnabled && sess.removeProductsOnClose) {
-          removeAllCartProducts();
-          toast('已关闭直播，并下架全部直播商品');
-        } else {
-          toast('已关闭直播');
-        }
+        toast('已关闭直播');
         render();
       });
     }
@@ -1639,27 +1695,26 @@
         syncDlgAutoCloseExtra();
       });
     }
-    var settingsSw = document.getElementById('dlgRemoveOnClose');
-    if (settingsSw) {
-      settingsSw.addEventListener('click', function () {
-        setSwitchOn(settingsSw, !isSwitchOn(settingsSw));
-      });
-    }
     var settingsConfirm = document.getElementById('cartSettingsConfirm');
     if (settingsConfirm) {
       settingsConfirm.addEventListener('click', function () {
         var sess = findSession(sessionId);
         if (!sess) return;
         var enabled = isSwitchOn(document.getElementById('dlgAutoCloseEnabled'));
-        var minutes = parseAutoCloseMinutes((document.getElementById('dlgAutoCloseMinutes') || {}).value);
-        if (enabled && minutes == null) return toast('请填写 0-1440 的断流关播分钟数', 'warning');
+        var closeAtRaw = ((document.getElementById('dlgAutoCloseAt') || {}).value || '').trim();
+        var closeTs = parseAutoCloseAt(closeAtRaw);
+        if (enabled) {
+          if (closeTs == null) return toast('请选择关播时间', 'warning');
+          if (closeTs <= Date.now()) return toast('关播时间必须大于当前时间', 'warning');
+        }
         var viewer = readCViewerFromDialog();
         if (viewer.extraMin > viewer.extraMax) {
           return toast('额外跟随人数下限不能大于上限', 'warning');
         }
         sess.autoCloseEnabled = enabled;
-        sess.autoCloseMinutes = minutes;
-        sess.removeProductsOnClose = enabled && isSwitchOn(document.getElementById('dlgRemoveOnClose'));
+        if (enabled || closeTs != null) {
+          sess.autoCloseAt = closeTs != null ? fromLocalInput(closeAtRaw) : '';
+        }
         sess.cViewerDisplay = viewer.display;
         sess.cViewerInitial = viewer.initial;
         sess.cViewerExtraMin = viewer.extraMin;

@@ -205,19 +205,12 @@
             </div>
             <div id="dlgAutoCloseExtra" hidden>
                 <div class="lf-live-set-row">
-                    <span class="lf-live-set-row__label"><span class="erp-req">*</span>断流自动关播</span>
-                    <div class="lf-live-set-row__ctrl lf-live-set-follow">
-                        <span>直播断流</span>
-                        <input class="erp-input" type="number" min="0" max="1440" step="1" id="dlgAutoCloseMinutes" placeholder="0-1440">
-                        <span>分钟后自动关播</span>
+                    <span class="lf-live-set-row__label"><span class="erp-req">*</span>关播时间</span>
+                    <div class="lf-live-set-row__ctrl lf-live-set-row__ctrl--inline">
+                        <input class="erp-input lf-live-datetime" type="datetime-local" id="dlgAutoCloseAt">
                     </div>
                 </div>
-                <div class="lf-live-set-row">
-                    <span class="lf-live-set-row__label">关播后同步下架所有直播商品</span>
-                    <div class="lf-live-set-row__ctrl">
-                        <button type="button" class="lf-live-switch" id="dlgRemoveOnClose" aria-pressed="false"></button>
-                    </div>
-                </div>
+                <p class="lf-live-dialog__hint">到达设定时间后自动结束本场直播，时间须晚于当前时间。</p>
             </div>
             <div class="lf-live-set-row">
                 <span class="lf-live-set-row__label">C端人数展示</span>
