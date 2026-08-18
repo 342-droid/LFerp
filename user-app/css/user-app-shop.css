@@ -28,6 +28,57 @@
   display: none !important;
 }
 
+.ua-sale-dialog {
+  position: absolute;
+  inset: 0;
+  z-index: 9980;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.ua-sale-dialog[hidden] {
+  display: none !important;
+}
+
+.ua-sale-dialog__card {
+  width: 100%;
+  max-width: 280px;
+  padding: 22px 18px 16px;
+  background: #fff;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+.ua-sale-dialog__title {
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.3;
+}
+
+.ua-sale-dialog__text {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.55;
+}
+
+.ua-sale-dialog__ok {
+  width: 100%;
+  height: 40px;
+  margin-top: 16px;
+  border: none;
+  border-radius: 8px;
+  background: #3478f6;
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+}
+
 .ua-shop-check {
   width: 20px;
   height: 20px;
