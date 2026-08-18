@@ -341,8 +341,8 @@ function buildStoreFormBody(store, mode) {
       true,
       selectInput(
         [
-          { value: 'OPEN', label: '运营中' },
-          { value: 'CLOSED', label: '打烊' },
+          { value: 'OPEN', label: '营业中' },
+          { value: 'CLOSED', label: '休息中' },
         ],
         'OPEN',
       ),

@@ -1063,15 +1063,23 @@
     return isLineSaleableByScene(item, 'all', true);
   }
 
-  function isSaleDemoForceAll() {
-    var force = readSaleDemoForce();
-    return force === 'all' || force === 'on';
+  function isLineSaleableByCheckoutForce(item) {
+    /* 按商品自身窗口校验；店休息只让「跟随门店/平台」的商品不可售，快递24h/自定义/类目仍可过 */
+    return isLineSaleableByScene(item, readSaleDemoForce(), true);
   }
 
-  function isLineSaleableByCheckoutForce(item) {
-    /* 门店休息中：整单不可售；「全部可售」验收开关仍可放行 */
-    if (isStoreRestingNow() && !isSaleDemoForceAll()) return false;
-    return isLineSaleableByScene(item, readSaleDemoForce(), true);
+  function lineDependsOnStoreHours(item) {
+    if (!item) return true;
+    if (isPointsExchangeItem(item) || item.isPointsExchange) return false;
+    var p = PRODUCTS[item.id];
+    if (
+      p &&
+      global.UaProductSaleTime &&
+      typeof global.UaProductSaleTime.dependsOnStoreHours === 'function'
+    ) {
+      return !!global.UaProductSaleTime.dependsOnStoreHours(p);
+    }
+    return true;
   }
 
   function commitUnsaleableApplied(result) {
@@ -1117,8 +1125,11 @@
     showSaleDialog._t = setTimeout(finish, opts.duration || SALE_DIALOG_MS);
   }
 
-  function allUnsaleableDialogText() {
-    return isStoreRestingNow() ? CHECKOUT_MSG_STORE_REST : SALE_DIALOG_ALL;
+  function allUnsaleableDialogText(unsaleable) {
+    var list = unsaleable || [];
+    var allFollowStore = !list.length || list.every(lineDependsOnStoreHours);
+    if (isStoreRestingNow() && allFollowStore) return CHECKOUT_MSG_STORE_REST;
+    return SALE_DIALOG_ALL;
   }
 
   function getCartCheckoutCandidates() {
@@ -1146,10 +1157,10 @@
     return false;
   }
 
-  function checkoutUnsaleableToast(saleableCount, unsaleableCount) {
+  function checkoutUnsaleableToast(saleableCount, unsaleableCount, unsaleable) {
     if (!unsaleableCount) return '';
-    if (!saleableCount && isStoreRestingNow()) return CHECKOUT_MSG_STORE_REST;
-    return saleableCount ? SALE_DIALOG_PARTIAL_CART : SALE_DIALOG_ALL;
+    if (!saleableCount) return allUnsaleableDialogText(unsaleable);
+    return SALE_DIALOG_PARTIAL_CART;
   }
 
   function writeCheckoutSnapshot(items) {
@@ -1247,7 +1258,7 @@
     );
   }
 
-  /** 商城卡片：仅营业时间内商品不可售才展示标识 */
+  /** 商城卡片：商品自身窗口未到即展示「商品不可售」 */
   function shouldShowProductUnsaleableBadge(product) {
     if (!product) return false;
     if (
@@ -3133,6 +3144,7 @@
 
     document.getElementById('cartCheckoutBtn') &&
       document.getElementById('cartCheckoutBtn').addEventListener('click', function () {
+        /* 立即下单必须当场校验（确认页还会再校验一次） */
         var candidates = getCartCheckoutCandidates();
         if (!candidates.length) {
           var shopItems = (ensureCart().items || []).filter(function (it) {
@@ -3142,7 +3154,7 @@
           if (shopItems.length && !hasSaleable) {
             showSaleDialog({
               title: SALE_DIALOG_ALL_TITLE,
-              text: allUnsaleableDialogText(),
+              text: allUnsaleableDialogText(shopItems),
               okText: '确定'
             });
             return;
@@ -3162,7 +3174,7 @@
         if (!result.saleable.length) {
           showSaleDialog({
             title: SALE_DIALOG_ALL_TITLE,
-            text: allUnsaleableDialogText(),
+            text: allUnsaleableDialogText(result.unsaleable),
             okText: '确定'
           });
           return;
@@ -3593,7 +3605,7 @@
       if (!items.length) {
         showSaleDialog({
           title: SALE_DIALOG_ALL_TITLE,
-          text: allUnsaleableDialogText(),
+          text: allUnsaleableDialogText(invalidItems),
           okText: '确定',
           onDone: function () {
             window.location.href = 'cart.html';
@@ -3710,6 +3722,10 @@
         showToast('联系客服（演示）');
       });
 
+    /**
+     * 确认订单必须再校验一次（购物车「立即下单」已校过）。
+     * 避免停留期间门店打烊或商品窗口结束。
+     */
     function applyConfirmSaleableGuard() {
       partialSiblingOverride = items;
       var again = splitBySaleable(items, isLineSaleableByCheckoutForce);
@@ -3717,7 +3733,7 @@
         if (!items.length) {
           showSaleDialog({
             title: SALE_DIALOG_ALL_TITLE,
-            text: allUnsaleableDialogText(),
+            text: allUnsaleableDialogText(invalidItems),
             okText: '确定',
             onDone: function () {
               window.location.href = 'cart.html';
@@ -3736,7 +3752,7 @@
       if (!again.saleable.length) {
         showSaleDialog({
           title: SALE_DIALOG_ALL_TITLE,
-          text: allUnsaleableDialogText(),
+          text: allUnsaleableDialogText(again.unsaleable),
           okText: '确定',
           onDone: function () {
             window.location.href = 'cart.html';
@@ -3759,7 +3775,7 @@
         if (!items.length) {
           showSaleDialog({
             title: SALE_DIALOG_ALL_TITLE,
-            text: allUnsaleableDialogText(),
+            text: allUnsaleableDialogText(invalidItems),
             okText: '确定',
             onDone: function () {
               window.location.href = 'cart.html';

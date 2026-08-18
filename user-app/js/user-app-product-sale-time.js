@@ -1,7 +1,9 @@
 /**
  * C 端 — 商品可售时间
  * 优先级：商品自定义 > 快递24小时可售 > 商品类目可售时间 > 门店自定义营业时间 > 平台默认营业时间
- * 商品可售 = 当前处于门店营业时间 ∩ 商品可售时间
+ * 商品可售 = 当前处于该商品自己的可售时间（门店营业只作未配更具体窗口时的继承，不是总开关）
+ * 跟随门店/平台的商品：店休息则不可售；自定义 / 类目 / 快递24h：自身窗口有效则店休息仍可售
+ * 门店营业时间内，商品窗口更窄的仍可不可售
  * 超过可售时间：首页/分类下架不展示；搜索/详情/购物车打「商品不可售」
  *
  * 验收开关 localStorage：ua_product_sale_demo_v1
@@ -258,18 +260,22 @@
     if (demo.force === 'all' || demo.force === 'on') return true;
     if (demo.force === 'none' || demo.force === 'off') return false;
     if (demo.force === 'partial') return !isPartialDemoUnsaleable(product);
-    return isStoreOpenNowRaw(options) && isProductWindowOpenNow(product, options);
+    return isProductWindowOpenNow(product, options);
+  }
+
+  /** 可售窗口是否跟随门店/平台营业时间（店休息则这类商品不可售） */
+  function dependsOnStoreHours(product, options) {
+    var t = resolveEffectiveSaleTime(product, options);
+    return !t || t.source === 'store' || t.source === 'business';
   }
 
   /**
-   * 商品卡片「今日不可售」标识：
-   * 仅当门店营业时间内、且商品仍不可售时展示；
-   * 过了门店营业时间导致的不可售不展示标识。
+   * 商品卡片「商品不可售」标识：自身窗口未到即展示。
+   * 店休息时：跟随门店的商品打标；自定义/类目/快递24h 仍在窗口内则不打标。
    */
   function shouldShowUnsaleableBadge(product, options) {
     if (!product) return false;
-    if (isSaleableNow(product, options)) return false;
-    return isStoreOpenNow(options);
+    return !isSaleableNow(product, options);
   }
 
   function assertSaleable(product, options) {
@@ -369,6 +375,7 @@
     writeDemo: writeDemo,
     resolveStoreId: resolveStoreId,
     resolveStoreBusinessHours: resolveStoreBusinessHours,
+    dependsOnStoreHours: dependsOnStoreHours,
     UNSALEABLE_LABEL: UNSALEABLE_LABEL,
     DEMO_KEY: DEMO_KEY
   };
