@@ -165,7 +165,7 @@
 
             <section class="table-section">
                 <div class="table-scroll-container">
-                    <table class="table no-last-column-freeze">
+                    <table class="table">
                         <thead>
                             <tr>
                                 <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
@@ -186,6 +186,7 @@
                                 <th>创建人</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
+                                <th>操作</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody"></tbody>
@@ -371,14 +372,41 @@
                         shipTime: '2026-03-23 13:05:00'
                     }
                 ]
+            },
+            {
+                id: 'DIST-202608170001',
+                warehouse: 'W001-南京仓',
+                warehouseCode: 'W001',
+                distributionNo: 'FH2026081719000011',
+                status: '初始',
+                carrier: '中通',
+                carrierCode: 'ZTO',
+                plateNumber: '苏A66880',
+                driver: '赵六',
+                contactPhone: '13700137003',
+                inboundAddress: '江苏省南京市建邺区江东中路359号国金中心收货区',
+                volume: '',
+                weight: '',
+                cartonCount: 0,
+                loadTime: '',
+                shipTime: '',
+                handoverPrintCount: 0,
+                recyclableConsumables: '',
+                remark: '尚未装载包裹',
+                isValid: '是',
+                createTime: '2026-08-17 18:50:00',
+                createUser: '王五',
+                updateTime: '2026-08-17 18:50:00',
+                updateUser: '王五',
+                cartons: []
             }
         ];
 
         let filteredDistributionData = distributionMockData.slice();
         const outboundProductSnapshot = {
             OBD202603230001: [
-                { skuCode: 'SKU1001', skuName: '三文鱼切片 500g', unit: '盒', planQty: 100, allocatedQty: 100, pickedQty: 40, sortedQty: 0, reviewedQty: 0, loadedQty: 0, shippedQty: 0 },
-                { skuCode: 'SKU1002', skuName: '牛排 300g', unit: '盒', planQty: 60, allocatedQty: 60, pickedQty: 20, sortedQty: 0, reviewedQty: 0, loadedQty: 0, shippedQty: 0 }
+                { skuCode: 'SKU1001', skuName: '三文鱼切片 500g', unit: '盒', planQty: 100, allocatedQty: 100, pickedQty: 40, sortedQty: 0, reviewedQty: 0, loadedQty: 0, shippedQty: 30 },
+                { skuCode: 'SKU1002', skuName: '牛排 300g', unit: '盒', planQty: 60, allocatedQty: 60, pickedQty: 20, sortedQty: 0, reviewedQty: 0, loadedQty: 0, shippedQty: 10 }
             ],
             OBD202603230002: [
                 { skuCode: 'SKU2001', skuName: '冻虾仁 1kg', unit: '袋', planQty: 200, allocatedQty: 200, pickedQty: 200, sortedQty: 200, reviewedQty: 200, loadedQty: 200, shippedQty: 200 }
@@ -434,6 +462,51 @@
                 .replace(/'/g, '&#39;');
         }
 
+        function formatNow() {
+            const d = new Date();
+            const p = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+        }
+
+        function getOperatorName() {
+            const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+            return (user && (user.name || user.username)) || '当前用户';
+        }
+
+        /** 发货单下是否已挂载包裹：有包裹则不允许作废 */
+        function hasDistributionCartons(row) {
+            const cartons = row.cartons || [];
+            const count = row.cartonCount != null ? Number(row.cartonCount) : cartons.length;
+            return cartons.length > 0 || count > 0;
+        }
+
+        /**
+         * 作废发货单：仅初始状态可作废，作废后变为已取消；
+         * 发货单下存在包裹时拦截，提示不允许作废。
+         */
+        function voidDistribution(distributionNo) {
+            const row = distributionMockData.find(item => item.distributionNo === distributionNo);
+            if (!row) {
+                if (typeof showToast === 'function') showToast('作废失败，未找到发货单', 'error');
+                return;
+            }
+            if (row.status !== '初始') {
+                if (typeof showToast === 'function') showToast('仅初始状态发货单支持作废', 'error');
+                return;
+            }
+            if (hasDistributionCartons(row)) {
+                if (typeof showToast === 'function') {
+                    showToast('发货单下存在已装载的包裹，不允许作废！', 'error');
+                }
+                return;
+            }
+            row.status = '已取消';
+            row.updateTime = formatNow();
+            row.updateUser = getOperatorName();
+            renderTable(filteredDistributionData);
+            if (typeof showToast === 'function') showToast('发货单已作废', 'success');
+        }
+
         function getSelectedDistributions() {
             const checkedRows = Array.from(document.querySelectorAll('#tableBody .checkbox-row:checked'));
             return checkedRows
@@ -469,14 +542,40 @@
             return (line.skuName || line.productName || line.goodsName || '').trim();
         }
 
-        function addLineToBucket(bucket, outboundNo, productName, qty, actualQty) {
+        function resolvePriorShippedQty(line) {
+            const keys = ['priorShippedQty', 'deliveredQty', 'shippedQty'];
+            for (const key of keys) {
+                if (line[key] != null && line[key] !== '') return toNumber(line[key]);
+            }
+            return 0;
+        }
+
+        function resolveCumulativeQty(line, actualQty) {
+            const keys = ['cumulativeQty', 'totalDeliveredQty', 'totalShippedQty', 'accumulatedQty'];
+            for (const key of keys) {
+                if (line[key] != null && line[key] !== '') return toNumber(line[key]);
+            }
+            return resolvePriorShippedQty(line) + toNumber(actualQty);
+        }
+
+        function addLineToBucket(bucket, outboundNo, productName, qty, actualQty, priorShipped) {
             const cleanName = String(productName || '').trim();
             if (!cleanName) return;
             const cleanOutboundNo = String(outboundNo || '').trim();
             const key = `${cleanOutboundNo}__${cleanName}`;
-            const prev = bucket.get(key) || { outboundNo: cleanOutboundNo, productName: cleanName, qty: 0, actualQty: 0 };
+            const prev = bucket.get(key) || {
+                outboundNo: cleanOutboundNo,
+                productName: cleanName,
+                qty: 0,
+                actualQty: 0,
+                priorShipped: priorShipped ?? 0
+            };
+            if (!bucket.has(key)) {
+                prev.priorShipped = priorShipped ?? 0;
+            }
             prev.qty += toNumber(qty);
             prev.actualQty += toNumber(actualQty);
+            prev.cumulativeQty = prev.priorShipped + prev.actualQty;
             bucket.set(key, prev);
         }
 
@@ -488,7 +587,7 @@
                 const qty = resolvePlannedQty(line);
                 const actualQty = resolveActualQty(line, qty);
                 const outboundNo = line.outboundNo || line.outboundOrderNo || line.orderNo || defaultOutboundNo || '';
-                addLineToBucket(bucket, outboundNo, productName, qty, actualQty);
+                addLineToBucket(bucket, outboundNo, productName, qty, actualQty, resolvePriorShippedQty(line));
             });
         }
 
@@ -521,11 +620,13 @@
             }
 
             if (!cartons.length) {
+                const fallbackQty = row.cartonCount || 0;
                 return [{
                     outboundNo: row.distributionNo || '',
                     productName: '发货包裹',
-                    qty: row.cartonCount || 0,
-                    actualQty: row.cartonCount || 0
+                    qty: fallbackQty,
+                    actualQty: fallbackQty,
+                    cumulativeQty: fallbackQty
                 }];
             }
 
@@ -533,7 +634,8 @@
                 outboundNo: carton.outboundOrderNos || '',
                 productName: carton.cartonNo ? `包裹(${carton.cartonNo})` : '发货包裹',
                 qty: 1,
-                actualQty: 1
+                actualQty: 1,
+                cumulativeQty: 1
             }));
         }
 
@@ -831,6 +933,7 @@
                         const inboundLocation = getInboundLocation(row);
                         const totalQty = lines.reduce((sum, line) => sum + toNumber(line.qty), 0);
                         const totalActualQty = lines.reduce((sum, line) => sum + toNumber(line.actualQty), 0);
+                        const totalCumulativeQty = lines.reduce((sum, line) => sum + toNumber(line.cumulativeQty), 0);
                         const minDisplayRows = 5;
                         const blankRowCount = Math.max(0, minDisplayRows - lines.length);
                         const totalPages = selectedRows.length;
@@ -871,8 +974,9 @@
                                             <th style="width:52px;">序号</th>
                                             <th style="width:160px;">出库单号</th>
                                             <th>商品名称</th>
-                                            <th style="width:80px;">数量</th>
-                                            <th style="width:110px;">实际配送数量</th>
+                                            <th style="width:80px;">订货数量</th>
+                                            <th style="width:110px;">本次配送量</th>
+                                            <th style="width:110px;">累计配送量</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -883,17 +987,19 @@
                                             <td class="text-left">${escapeHtml(line.productName || '')}</td>
                                             <td class="center">${escapeHtml(formatQtyForPrint(line.qty))}</td>
                                             <td class="center">${escapeHtml(formatQtyForPrint(line.actualQty))}</td>
+                                            <td class="center">${escapeHtml(formatQtyForPrint(line.cumulativeQty))}</td>
                                         </tr>
                                     `).join('')}
                                     ${Array.from({ length: blankRowCount }).map(() => `
                                         <tr class="empty-row">
-                                            <td colspan="5"></td>
+                                            <td colspan="6"></td>
                                         </tr>
                                     `).join('')}
                                     <tr class="summary-row">
                                         <td colspan="3" style="text-align:right;">合计：</td>
                                         <td class="center">${escapeHtml(formatQtyForPrint(totalQty))}</td>
                                         <td class="center">${escapeHtml(formatQtyForPrint(totalActualQty))}</td>
+                                        <td class="center">${escapeHtml(formatQtyForPrint(totalCumulativeQty))}</td>
                                     </tr>
                                     </tbody>
                                 </table>
@@ -991,6 +1097,9 @@
                     <td>${item.createUser}</td>
                     <td>${item.updateTime}</td>
                     <td>${item.updateUser}</td>
+                    <td>
+                        ${item.status === '初始' ? `<span class="action-links"><a href="#" class="void-distribution-btn" data-distribution-no="${item.distributionNo}">作废</a></span>` : ''}
+                    </td>
                 `;
                 tbody.appendChild(row);
             });
@@ -1003,6 +1112,13 @@
                     e.preventDefault();
                     const no = link.getAttribute('data-distribution-no');
                     showDistributionDetail(no);
+                });
+            });
+            document.querySelectorAll('.void-distribution-btn').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.preventDefault();
+                    const no = btn.getAttribute('data-distribution-no');
+                    if (no) voidDistribution(no);
                 });
             });
         }
