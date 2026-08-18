@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <link rel="stylesheet" href="../css/lf-order.css?v=20260817-list-as-cols">
+    <link rel="stylesheet" href="../css/lf-order.css?v=20260818-goods-pop">
 </head>
 <body data-order-page="retail">
     <div id="sidebar-container"></div>
@@ -237,7 +237,7 @@
                                         <td class="order-status-cell"><span class="order-tag order-tag--pending-ship">待发货</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561-B">查看</a></td>
                                     </tr>
-                                    <!-- 清分明细演示单：哈密瓜-自提，供应商采购成本=采购价×售卖系数×下单数量 -->
+                                    <!-- 清分明细 + 多规格商品列演示：哈密瓜-自提 / 无糖酸奶；供应商采购成本=采购价×售卖系数×下单数量 -->
                                     <tr data-order-id="ORD-3212689201599201" data-delivery-mode="pickup" data-pay-channel="wechat">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599201">ORD-3212689201599201</a></td>
                                         <td>2026-08-07 15:20</td>
@@ -247,10 +247,16 @@
                                         <td>
                                             <div class="order-product-cell">
                                                 <img class="order-product-cell__thumb" src="../user-app/assets/order-product-1.svg" alt="">
-                                                <span class="order-product-cell__name">哈密瓜-自提</span>
+                                                <div class="order-product-cell__meta">
+                                                    <div class="order-product-cell__name-row">
+                                                        <span class="order-product-cell__name">哈密瓜-自提</span>
+                                                        <span class="order-detail-goods-as-tag is-refunding">退款中</span>
+                                                    </div>
+                                                    <button type="button" class="order-product-cell__sku js-order-goods-pop">共 2 件 / 2 个 SKU</button>
+                                                </div>
                                             </div>
                                         </td>
-                                        <td>× 1</td>
+                                        <td>× 2</td>
                                         <td><span class="order-tag order-tag--sale">普通售卖</span></td>
                                         <td>¥0.40</td>
                                         <td>¥0.00</td>
@@ -693,7 +699,13 @@
                                         <td>
                                             <div class="order-product-cell">
                                                 <img class="order-product-cell__thumb" src="../user-app/assets/order-product-1.svg" alt="">
-                                                <span class="order-product-cell__name">新鲜红颜草莓 香甜多汁 500g装 等2种</span>
+                                                <div class="order-product-cell__meta">
+                                                    <div class="order-product-cell__name-row">
+                                                        <span class="order-product-cell__name">新鲜红颜草莓 香甜多汁 500g装</span>
+                                                        <span class="order-detail-goods-as-tag is-refunding">退款中</span>
+                                                    </div>
+                                                    <button type="button" class="order-product-cell__sku js-order-goods-pop">共 3 件 / 2 个 SKU</button>
+                                                </div>
                                             </div>
                                         </td>
                                         <td>× 3</td>
@@ -773,6 +785,6 @@
     <script src="../js/order-platform-aftersale.js?v=20260817-as-after-done"></script>
     <script src="../js/order-proxy-express.js"></script>
     <script src="../js/order-live-list.js?v=20260818-no-as-col"></script>
-    <script src="../js/order-live-detail.js?v=20260818-no-as-col"></script>
+    <script src="../js/order-live-detail.js?v=20260818-goods-pop"></script>
 </body>
 </html>

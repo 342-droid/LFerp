@@ -666,15 +666,24 @@ body[data-order-page="retail"] .order-live-table__action:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  max-width: 260px;
+  max-width: 280px;
+  white-space: normal;
 }
 
 .order-product-cell__meta {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.order-product-cell__name-row {
+  display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  min-width: 0;
+  max-width: 100%;
 }
 
 .order-product-cell__thumb {
@@ -690,7 +699,111 @@ body[data-order-page="retail"] .order-live-table__action:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 180px;
   color: var(--color-text, #333333);
+}
+
+/* 多规格：橙色「共 N 件 / M 个 SKU」，悬停出明细浮层 */
+.order-product-cell__sku {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #ff7019;
+  font-size: 12px;
+  line-height: 1.4;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.order-product-cell__sku:hover,
+.order-product-cell__sku.is-open {
+  color: #ff8a33;
+}
+
+.order-goods-pop {
+  position: fixed;
+  z-index: 80;
+  width: 280px;
+  padding: 12px 14px 10px;
+  background: #ffffff;
+  border-radius: 4px;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.14));
+  box-sizing: border-box;
+}
+
+.order-goods-pop[hidden] {
+  display: none;
+}
+
+.order-goods-pop::before {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #ffffff;
+  transform: rotate(45deg);
+  left: -5px;
+  top: var(--arrow-top, 18px);
+}
+
+.order-goods-pop.is-left::before {
+  left: auto;
+  right: -5px;
+}
+
+.order-goods-pop__title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #303133;
+  line-height: 1.4;
+}
+
+.order-goods-pop__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.order-goods-pop__item:last-child {
+  padding-bottom: 2px;
+}
+
+.order-goods-pop__thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #f5f5f5;
+}
+
+.order-goods-pop__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.order-goods-pop__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #303133;
+  line-height: 1.4;
+}
+
+.order-goods-pop__spec,
+.order-goods-pop__price {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.4;
 }
 
 .order-tag {

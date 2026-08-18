@@ -682,16 +682,31 @@
       goods: [{
         id: 'g1',
         name: '哈密瓜-自提',
-        spec: '规格：自提',
+        spec: '规格：500g',
         img: '../user-app/assets/order-product-1.svg',
         spu: 'SPU-9201…',
         sku: 'SKU-9201…',
         barcode: '6901009201001',
-        weight: '1.00',
-        price: '¥0.40',
+        weight: '0.50',
+        price: '¥0.20',
         qty: '1',
-        subtotal: '¥0.40',
-        marketing: '普通售卖'
+        subtotal: '¥0.20',
+        marketing: '普通售卖',
+        aftersaleTag: '退款中'
+      }, {
+        id: 'g2',
+        name: '无糖酸奶-快递配送',
+        spec: '规格：无糖希腊酸奶 400g / 桶装',
+        img: '../user-app/assets/order-product-2.svg',
+        spu: 'SPU-9202…',
+        sku: 'SKU-9202…',
+        barcode: '6901009201002',
+        weight: '0.40',
+        price: '¥0.20',
+        qty: '1',
+        subtotal: '¥0.20',
+        marketing: '普通售卖',
+        aftersaleTag: '部分退款'
       }],
       amounts: {
         goods: '¥0.40',
@@ -1664,6 +1679,178 @@
     return best;
   }
 
+  function escapeText(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function displayGoodsName(name) {
+    return String(name || '').replace(/\s等\d+种$/, '');
+  }
+
+  function formatGoodsSpec(spec) {
+    return String(spec || '').replace(/^规格：/, '') || '-';
+  }
+
+  function goodsQtyOf(item) {
+    var n = parseInt(item && item.qty, 10);
+    return n > 0 ? n : 0;
+  }
+
+  function formatGoodsPriceQty(item) {
+    var price = item && item.price ? String(item.price) : '¥0.00';
+    if (price && price.indexOf('¥') !== 0 && /^\d/.test(price)) price = '¥' + price;
+    var qty = goodsQtyOf(item) || 1;
+    return price + ' × ' + qty;
+  }
+
+  var goodsPopEl = null;
+  var goodsPopHideTimer = null;
+  var goodsPopAnchor = null;
+
+  function ensureGoodsPop() {
+    if (goodsPopEl) return goodsPopEl;
+    goodsPopEl = document.createElement('div');
+    goodsPopEl.className = 'order-goods-pop';
+    goodsPopEl.hidden = true;
+    goodsPopEl.setAttribute('role', 'tooltip');
+    document.body.appendChild(goodsPopEl);
+    goodsPopEl.addEventListener('mouseenter', function () {
+      clearTimeout(goodsPopHideTimer);
+    });
+    goodsPopEl.addEventListener('mouseleave', scheduleHideGoodsPop);
+    return goodsPopEl;
+  }
+
+  function scheduleHideGoodsPop() {
+    clearTimeout(goodsPopHideTimer);
+    goodsPopHideTimer = setTimeout(hideGoodsPop, 140);
+  }
+
+  function hideGoodsPop() {
+    clearTimeout(goodsPopHideTimer);
+    goodsPopHideTimer = null;
+    if (goodsPopAnchor) goodsPopAnchor.classList.remove('is-open');
+    goodsPopAnchor = null;
+    if (goodsPopEl) goodsPopEl.hidden = true;
+  }
+
+  function buildGoodsPopHtml(goods, aftersales) {
+    var items = Array.isArray(goods) ? goods : [];
+    var html = '<div class="order-goods-pop__title">订单商品明细 (' + items.length + ' 项)</div>';
+    items.forEach(function (item) {
+      var tag = resolveGoodsAftersaleTag(item, aftersales);
+      html +=
+        '<div class="order-goods-pop__item">' +
+        '<img class="order-goods-pop__thumb" src="' + escapeText(item.img || '../user-app/assets/order-product-1.svg') + '" alt="">' +
+        '<div class="order-goods-pop__body">' +
+        '<div class="order-goods-pop__name">' + escapeText(displayGoodsName(item.name)) +
+        goodsAftersaleTagHtml(tag) + '</div>' +
+        '<div class="order-goods-pop__spec">' + escapeText(formatGoodsSpec(item.spec)) + '</div>' +
+        '<div class="order-goods-pop__price">' + escapeText(formatGoodsPriceQty(item)) + '</div>' +
+        '</div></div>';
+    });
+    return html;
+  }
+
+  function positionGoodsPop(anchor) {
+    var pop = ensureGoodsPop();
+    var rect = anchor.getBoundingClientRect();
+    var popW = pop.offsetWidth || 280;
+    var popH = pop.offsetHeight || 120;
+    var gap = 10;
+    var left = rect.right + gap;
+    var flip = false;
+    if (left + popW > window.innerWidth - 8) {
+      left = rect.left - popW - gap;
+      flip = true;
+    }
+    if (left < 8) left = 8;
+    var top = rect.top + rect.height / 2 - 22;
+    if (top + popH > window.innerHeight - 8) top = window.innerHeight - popH - 8;
+    if (top < 8) top = 8;
+    var arrowTop = Math.max(10, Math.min(popH - 20, rect.top + rect.height / 2 - top - 5));
+    pop.style.left = left + 'px';
+    pop.style.top = top + 'px';
+    pop.style.setProperty('--arrow-top', arrowTop + 'px');
+    pop.classList.toggle('is-left', flip);
+  }
+
+  function showGoodsPop(anchor) {
+    var row = anchor.closest('tr[data-order-id]');
+    if (!row) return;
+    var orderId = row.getAttribute('data-order-id');
+    var detail = DETAILS[orderId] || fallbackDetail(orderId, row);
+    var goods = detail.goods || [];
+    if (goods.length < 2) return;
+    clearTimeout(goodsPopHideTimer);
+    if (goodsPopAnchor && goodsPopAnchor !== anchor) goodsPopAnchor.classList.remove('is-open');
+    goodsPopAnchor = anchor;
+    anchor.classList.add('is-open');
+    var pop = ensureGoodsPop();
+    pop.innerHTML = buildGoodsPopHtml(goods, detail.aftersales || []);
+    pop.hidden = false;
+    positionGoodsPop(anchor);
+  }
+
+  function initListGoodsPopover() {
+    if (document.body && document.body.getAttribute('data-order-goods-pop') === '1') return;
+    if (document.body) document.body.setAttribute('data-order-goods-pop', '1');
+    document.addEventListener('mouseover', function (e) {
+      var trigger = e.target.closest('.js-order-goods-pop');
+      if (trigger) showGoodsPop(trigger);
+    });
+    document.addEventListener('mouseout', function (e) {
+      var trigger = e.target.closest('.js-order-goods-pop');
+      if (!trigger) return;
+      var to = e.relatedTarget;
+      if (to && (trigger.contains(to) || (goodsPopEl && goodsPopEl.contains(to)))) return;
+      scheduleHideGoodsPop();
+    });
+    document.addEventListener('focusin', function (e) {
+      var trigger = e.target.closest('.js-order-goods-pop');
+      if (trigger) showGoodsPop(trigger);
+    });
+    document.addEventListener('focusout', function (e) {
+      if (e.target && e.target.closest && e.target.closest('.js-order-goods-pop')) {
+        scheduleHideGoodsPop();
+      }
+    });
+    window.addEventListener('scroll', hideGoodsPop, true);
+    window.addEventListener('resize', hideGoodsPop);
+  }
+
+  function renderListProductCell(row, goods, aftersales) {
+    var cell = row.querySelector('.order-product-cell');
+    if (!cell) return;
+    var items = Array.isArray(goods) ? goods : [];
+    var first = items[0];
+    if (!first) return;
+    var thumbEl = cell.querySelector('.order-product-cell__thumb');
+    var thumbSrc = first.img || (thumbEl && thumbEl.getAttribute('src')) || '../user-app/assets/order-product-1.svg';
+    var tag = resolveGoodsAftersaleTag(first, aftersales);
+    var totalQty = items.reduce(function (sum, item) { return sum + goodsQtyOf(item); }, 0);
+    var skuCount = items.length;
+    var html =
+      '<img class="order-product-cell__thumb" src="' + escapeText(thumbSrc) + '" alt="">' +
+      '<div class="order-product-cell__meta">' +
+      '<div class="order-product-cell__name-row">' +
+      '<span class="order-product-cell__name">' + escapeText(displayGoodsName(first.name)) + '</span>' +
+      goodsAftersaleTagHtml(tag) +
+      '</div>';
+    if (skuCount > 1) {
+      html +=
+        '<button type="button" class="order-product-cell__sku js-order-goods-pop">' +
+        '共 ' + totalQty + ' 件 / ' + skuCount + ' 个 SKU</button>';
+    }
+    html += '</div>';
+    cell.innerHTML = html;
+    cell.classList.toggle('is-multi', skuCount > 1);
+  }
+
   function syncRetailListAftersaleUI(scopeRow) {
     var rows = scopeRow
       ? [scopeRow]
@@ -1672,27 +1859,7 @@
       if (!row) return;
       var orderId = row.getAttribute('data-order-id');
       var detail = DETAILS[orderId] || fallbackDetail(orderId, row);
-      var goods = detail.goods || [];
-      var aftersales = detail.aftersales || [];
-      var first = goods[0];
-      var tag = first ? resolveGoodsAftersaleTag(first, aftersales) : '';
-      var nameEl = row.querySelector('.order-product-cell__name');
-      if (nameEl) {
-        var cell = nameEl.closest('.order-product-cell');
-        var meta = cell ? cell.querySelector('.order-product-cell__meta') : null;
-        if (!meta && cell) {
-          meta = document.createElement('div');
-          meta.className = 'order-product-cell__meta';
-          nameEl.parentNode.insertBefore(meta, nameEl);
-          meta.appendChild(nameEl);
-        }
-        if (meta) {
-          Array.prototype.forEach.call(meta.querySelectorAll('.order-detail-goods-as-tag'), function (node) {
-            node.remove();
-          });
-          if (tag) meta.insertAdjacentHTML('beforeend', goodsAftersaleTagHtml(tag));
-        }
-      }
+      renderListProductCell(row, detail.goods || [], detail.aftersales || []);
     });
   }
 
@@ -2936,7 +3103,7 @@
       displayId: orderId,
       progress: progress,
       goods: [{
-        name: productName ? productName.textContent.trim() : '商品',
+        name: displayGoodsName(productName ? productName.textContent.trim() : '商品'),
         spec: '规格：默认',
         img: productImg ? productImg.getAttribute('src') : '../user-app/assets/order-product-1.svg',
         spu: 'SPU-0001…',
@@ -3372,11 +3539,13 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
       initViewLinks();
+      initListGoodsPopover();
       syncRetailListAftersaleUI();
       openFromQuery();
     });
   } else {
     initViewLinks();
+    initListGoodsPopover();
     syncRetailListAftersaleUI();
     openFromQuery();
   }
