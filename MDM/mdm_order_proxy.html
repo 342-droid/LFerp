@@ -77,21 +77,6 @@
                                         <option value="completed">已完成</option>
                                     </select>
                                 </div>
-                                <div class="order-filter-field">
-                                    <label class="order-filter-field__label" for="qAftersaleStatus">售后状态</label>
-                                    <select class="order-filter-field__select" id="qAftersaleStatus">
-                                        <option value="">全部</option>
-                                        <option value="none">无售后</option>
-                                        <option value="待审批">待审批</option>
-                                        <option value="退款中">退款中</option>
-                                        <option value="已拒绝">已拒绝</option>
-                                        <option value="待退货">待退货</option>
-                                        <option value="待收货">待收货</option>
-                                        <option value="退款异常">退款异常</option>
-                                        <option value="已完成">已完成</option>
-                                        <option value="已取消">已取消</option>
-                                    </select>
-                                </div>
                             </div>
                             <div class="order-filter-actions">
                                 <button type="button" class="order-filter-btn order-filter-btn--primary" id="orderFilterQuery">
@@ -131,7 +116,6 @@
                                         <th>支付渠道</th>
                                         <th>履约方式</th>
                                         <th>订单状态</th>
-                                        <th>售后状态</th>
                                         <th class="order-live-table__sticky-col">操作</th>
                                     </tr>
                                 </thead>
@@ -158,7 +142,6 @@
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--scene">配送</span></td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--closed">已关闭</span></td>
-                                        <td class="order-as-status-cell">-</td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201598341">查看</a></td>
                                     </tr>
                                     <tr data-order-id="ORD-3212689201588561" data-fulfillment-mode="store" data-pay-channel="wechat">
@@ -183,7 +166,6 @@
                                         <td>微信</td>
                                         <td><span class="order-tag order-tag--scene">快递</span></td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--paid">已支付</span></td>
-                                        <td class="order-as-status-cell">-</td>
                                         <td class="order-live-table__sticky-col"><div class="order-live-table__actions"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561">查看</a></div></td>
                                     </tr>
                                     <tr data-order-id="ORD-3212689201588561-B" data-fulfillment-mode="store">
@@ -208,7 +190,6 @@
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--scene">快递</span></td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--created">已创建</span></td>
-                                        <td class="order-as-status-cell">-</td>
                                         <td class="order-live-table__sticky-col"><div class="order-live-table__actions"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561-B">查看</a></div></td>
                                     </tr>
                                     <tr data-order-id="ORD-3212689201584693" data-fulfillment-mode="warehouse" data-pay-channel="alipay">
@@ -233,7 +214,6 @@
                                         <td>支付宝</td>
                                         <td><span class="order-tag order-tag--scene">配送</span></td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pending-ship">待发货</span></td>
-                                        <td class="order-as-status-cell">-</td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201584693">查看</a></td>
                                     </tr>
                                     <tr data-order-id="ORD-3212689201562037-A" data-fulfillment-mode="warehouse">
@@ -258,7 +238,6 @@
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--scene">配送</span></td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--created">已创建</span></td>
-                                        <td class="order-as-status-cell">-</td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-A">查看</a></td>
                                     </tr>
                                     <tr data-order-id="ORD-3212689201562037-B" data-fulfillment-mode="store">
@@ -283,7 +262,6 @@
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--scene">快递</span></td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--created">已创建</span></td>
-                                        <td class="order-as-status-cell">-</td>
                                         <td class="order-live-table__sticky-col"><div class="order-live-table__actions"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-B">查看</a></div></td>
                                     </tr>
                                     <tr data-order-id="ORD-3212689201560683" data-fulfillment-mode="warehouse">
@@ -308,7 +286,6 @@
                                         <td>-</td>
                                         <td><span class="order-tag order-tag--scene">配送</span></td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--created">已创建</span></td>
-                                        <td class="order-as-status-cell">-</td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560683">查看</a></td>
                                     </tr>
                                     <tr data-order-id="ORD-3212689201599001" data-fulfillment-mode="store" data-pay-channel="wechat">
@@ -333,7 +310,6 @@
                                         <td>微信</td>
                                         <td><span class="order-tag order-tag--scene">快递</span></td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--receipt">待收货</span></td>
-                                        <td class="order-as-status-cell">-</td>
                                         <td class="order-live-table__sticky-col"><div class="order-live-table__actions"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599001">查看</a><button type="button" class="order-live-table__confirm-receipt js-order-confirm-receipt" data-order-id="ORD-3212689201599001">确认收货</button></div></td>
                                     </tr>
                                     <tr data-order-id="ORD-3212689201599002" data-fulfillment-mode="store" data-pay-channel="alipay">
@@ -358,7 +334,6 @@
                                         <td>支付宝</td>
                                         <td><span class="order-tag order-tag--scene">快递</span></td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--receipt">待收货</span></td>
-                                        <td class="order-as-status-cell">-</td>
                                         <td class="order-live-table__sticky-col"><div class="order-live-table__actions"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599002">查看</a><button type="button" class="order-live-table__confirm-receipt js-order-confirm-receipt" data-order-id="ORD-3212689201599002">确认收货</button></div></td>
                                     </tr>
                                     <tr data-order-id="ORD-3212689201599003" data-fulfillment-mode="store" data-pay-channel="wechat">
@@ -383,7 +358,6 @@
                                         <td>微信</td>
                                         <td><span class="order-tag order-tag--scene">快递</span></td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--receipt">待收货</span></td>
-                                        <td class="order-as-status-cell">-</td>
                                         <td class="order-live-table__sticky-col"><div class="order-live-table__actions"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599003">查看</a><button type="button" class="order-live-table__confirm-receipt js-order-confirm-receipt" data-order-id="ORD-3212689201599003">确认收货</button></div></td>
                                     </tr>
                                     <tr data-order-id="ORD-3212689201560682" data-fulfillment-mode="store" data-pay-channel="alipay">
@@ -408,7 +382,6 @@
                                         <td>支付宝</td>
                                         <td><span class="order-tag order-tag--scene">快递</span></td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--completed">已完成</span></td>
-                                        <td class="order-as-status-cell">-</td>
                                         <td class="order-live-table__sticky-col"><div class="order-live-table__actions"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560682">查看</a></div></td>
                                     </tr>
                                 </tbody>
@@ -440,7 +413,7 @@
     <script src="../js/common.js"></script>
     <script src="../js/mdm-aftersale-reasons.js"></script>
     <script src="../js/order-platform-aftersale.js?v=20260817-as-after-done"></script>
-    <script src="../js/order-live-list.js?v=20260817-as-status-filter"></script>
+    <script src="../js/order-live-list.js?v=20260818-no-as-col"></script>
     <script src="../js/order-proxy-list.js?v=20260817-as-after-done"></script>
     <script src="../js/logistics-tracking-no.js"></script>
     <script src="../js/order-proxy-express.js"></script>
