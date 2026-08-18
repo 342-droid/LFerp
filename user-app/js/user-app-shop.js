@@ -5,9 +5,15 @@
   var CHECKOUT_TOAST_KEY = 'ua_checkout_sale_toast_v1';
   var CONFIRM_SHIPPING_ADDR_KEY = 'ua_order_confirm_shipping_address';
   var INVALID_GOODS_REASON = '商品不可售';
-  var CHECKOUT_MSG_ALL_UNSALEABLE = '当前商品暂不可售，请调整商品后下单';
-  var CHECKOUT_MSG_PARTIAL_UNSALEABLE = '部分商品当前暂不可售，请调整商品后下单';
   var CHECKOUT_MSG_STORE_REST = '当前门店休息中，商品暂不可售';
+  var SALE_DIALOG_PARTIAL_TITLE = '部分商品不可售';
+  var SALE_DIALOG_ALL_TITLE = '商品不可售';
+  var SALE_DIALOG_PARTIAL_CART =
+    '部分商品库存不足或已不可售，已为你剔除不可售商品，可继续下单';
+  var SALE_DIALOG_PARTIAL_CONFIRM =
+    '部分商品库存不足或已不可售，已为你剔除不可售商品，可继续支付';
+  var SALE_DIALOG_ALL = '商品库存不足或已不可售，需要重新挑选产品';
+  var SALE_DIALOG_MS = 2000;
   var DEFAULT_SHIPPING_ADDRESS = {
     contact: '武者',
     phone: '181****4215',
@@ -915,9 +921,34 @@
   }
 
   /**
-   * 购物车/确认订单展示与下单校验都用 applied（点「应用并刷新」后生效）。
+   * 购物车/确认订单展示：仅「点立即下单/确认订单时勾选且校验失败」的行进失效；
+   * 未勾选商品保持可售。点按钮按 force 校验勾选项。
    * asCheckout：确认页行可能没有 PRODUCTS（新人专区等），缺品仍视为可售。
    */
+  function readInvalidIds() {
+    if (!global.UaProductSaleTime || typeof global.UaProductSaleTime.readDemo !== 'function') {
+      return [];
+    }
+    var ids = global.UaProductSaleTime.readDemo().invalidIds;
+    return Array.isArray(ids) ? ids.map(String) : [];
+  }
+
+  function addInvalidIds(items) {
+    if (!global.UaProductSaleTime || typeof global.UaProductSaleTime.writeDemo !== 'function') {
+      return;
+    }
+    var ids = readInvalidIds();
+    (items || []).forEach(function (it) {
+      var id = String((it && it.id) || '');
+      if (id && ids.indexOf(id) === -1) ids.push(id);
+    });
+    global.UaProductSaleTime.writeDemo({ invalidIds: ids });
+  }
+
+  function isMarkedInvalid(item) {
+    return readInvalidIds().indexOf(String((item && item.id) || '')) !== -1;
+  }
+
   function isLineSaleableByScene(item, scene, asCheckout) {
     if (!item) return false;
     if (isPointsExchangeItem(item) || item.isPointsExchange) return true;
@@ -933,7 +964,8 @@
   }
 
   function isCartLineSaleableNow(item) {
-    return isLineSaleableByScene(item, readSaleDemoApplied(), false);
+    if (isMarkedInvalid(item)) return false;
+    return isLineSaleableByScene(item, 'all', false);
   }
 
   var partialSiblingOverride = null;
@@ -985,27 +1017,66 @@
   }
 
   function isCheckoutLineSaleableNow(item) {
-    return isLineSaleableByScene(item, readSaleDemoApplied(), true);
+    if (isMarkedInvalid(item)) return false;
+    return isLineSaleableByScene(item, 'all', true);
   }
 
-  function isSaleDemoAppliedAll() {
-    var applied = readSaleDemoApplied();
-    return applied === 'all' || applied === 'on';
+  function isSaleDemoForceAll() {
+    var force = readSaleDemoForce();
+    return force === 'all' || force === 'on';
   }
 
   function isLineSaleableByCheckoutForce(item) {
-    /* 下单校验与当前列表一致，避免购物车失效、确认页秒变可售 */
-    if (isStoreRestingNow() && !isSaleDemoAppliedAll()) return false;
-    return isLineSaleableByScene(item, readSaleDemoApplied(), true);
+    /* 门店休息中：整单不可售；「全部可售」验收开关仍可放行 */
+    if (isStoreRestingNow() && !isSaleDemoForceAll()) return false;
+    return isLineSaleableByScene(item, readSaleDemoForce(), true);
   }
 
-  function finishCheckoutUnsaleable(result) {
-    if (isStoreRestingNow() && !(result.saleable && result.saleable.length) && !isSaleDemoAppliedAll()) {
-      writeSaleDemoApplied('auto');
-    }
+  function commitUnsaleableApplied(result) {
+    addInvalidIds(result.unsaleable);
     uncheckUnsaleableCartItems(result.unsaleable);
-    stashCheckoutToast(checkoutUnsaleableToast(result.saleable.length, result.unsaleable.length));
-    window.location.reload();
+  }
+
+  function showSaleDialog(opts) {
+    opts = opts || {};
+    var host = document.querySelector('.ua-mobile-shell') || document.body;
+    var wrap = document.getElementById('uaSaleDialog');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.id = 'uaSaleDialog';
+      wrap.className = 'ua-sale-dialog';
+      host.appendChild(wrap);
+    }
+    wrap.innerHTML =
+      '<div class="ua-sale-dialog__card" role="alertdialog" aria-modal="true">' +
+      '<div class="ua-sale-dialog__title">' +
+      (opts.title || '') +
+      '</div>' +
+      '<div class="ua-sale-dialog__text">' +
+      (opts.text || '') +
+      '</div>' +
+      (opts.okText
+        ? '<button type="button" class="ua-sale-dialog__ok" data-sale-dialog-ok>' +
+          opts.okText +
+          '</button>'
+        : '') +
+      '</div>';
+    wrap.hidden = false;
+    var done = false;
+    function finish() {
+      if (done) return;
+      done = true;
+      wrap.hidden = true;
+      if (typeof opts.onDone === 'function') opts.onDone();
+    }
+    var ok = wrap.querySelector('[data-sale-dialog-ok]');
+    if (ok) ok.addEventListener('click', finish);
+    clearTimeout(showSaleDialog._t);
+    showSaleDialog._t = setTimeout(finish, opts.duration || SALE_DIALOG_MS);
+  }
+
+  function allUnsaleableDialogText() {
+    return isStoreRestingNow() ? CHECKOUT_MSG_STORE_REST : SALE_DIALOG_ALL;
   }
 
   function getCartCheckoutCandidates() {
@@ -1035,9 +1106,8 @@
 
   function checkoutUnsaleableToast(saleableCount, unsaleableCount) {
     if (!unsaleableCount) return '';
-    /* 门店休息导致整单不可售：优先于商品级不可售提示 */
     if (!saleableCount && isStoreRestingNow()) return CHECKOUT_MSG_STORE_REST;
-    return saleableCount ? CHECKOUT_MSG_PARTIAL_UNSALEABLE : CHECKOUT_MSG_ALL_UNSALEABLE;
+    return saleableCount ? SALE_DIALOG_PARTIAL_CART : SALE_DIALOG_ALL;
   }
 
   function writeCheckoutSnapshot(items) {
@@ -2955,19 +3025,41 @@
           });
           var hasSaleable = shopItems.some(isCartLineSaleableNow);
           if (shopItems.length && !hasSaleable) {
-            showToast(checkoutUnsaleableToast(0, shopItems.length));
+            showSaleDialog({
+              title: SALE_DIALOG_ALL_TITLE,
+              text: allUnsaleableDialogText(),
+              okText: '确定'
+            });
             return;
           }
           showToast('请选择商品');
           return;
         }
+        partialSiblingOverride = candidates;
         var result = splitBySaleable(candidates, isLineSaleableByCheckoutForce);
-        if (result.unsaleable.length) {
-          finishCheckoutUnsaleable(result);
+        if (!result.unsaleable.length) {
+          writeCheckoutSnapshot(result.saleable);
+          window.location.href = 'order-confirm.html';
           return;
         }
-        writeCheckoutSnapshot(result.saleable);
-        window.location.href = 'order-confirm.html';
+        commitUnsaleableApplied(result);
+        renderCart();
+        if (!result.saleable.length) {
+          showSaleDialog({
+            title: SALE_DIALOG_ALL_TITLE,
+            text: allUnsaleableDialogText(),
+            okText: '确定'
+          });
+          return;
+        }
+        writeCheckoutSnapshot(result.saleable.concat(result.unsaleable));
+        showSaleDialog({
+          title: SALE_DIALOG_PARTIAL_TITLE,
+          text: SALE_DIALOG_PARTIAL_CART,
+          onDone: function () {
+            window.location.href = 'order-confirm.html';
+          }
+        });
       });
   }
 
@@ -3384,7 +3476,14 @@
     function createUnpaidOrder() {
       if (!applyConfirmSaleableGuard()) return null;
       if (!items.length) {
-        showToast(checkoutUnsaleableToast(0, 1));
+        showSaleDialog({
+          title: SALE_DIALOG_ALL_TITLE,
+          text: allUnsaleableDialogText(),
+          okText: '确定',
+          onDone: function () {
+            window.location.href = 'cart.html';
+          }
+        });
         return null;
       }
       var newcomerCheck = validateNewcomerCheckout();
@@ -3497,16 +3596,44 @@
       });
 
     function applyConfirmSaleableGuard() {
-      var againLines = items.concat(invalidItems);
-      partialSiblingOverride = againLines;
-      var again = splitBySaleable(againLines, isLineSaleableByCheckoutForce);
-      if (again.unsaleable.length) {
-        finishCheckoutUnsaleable(again);
+      partialSiblingOverride = items;
+      var again = splitBySaleable(items, isLineSaleableByCheckoutForce);
+      if (!again.unsaleable.length) {
+        if (!items.length) {
+          showSaleDialog({
+            title: SALE_DIALOG_ALL_TITLE,
+            text: allUnsaleableDialogText(),
+            okText: '确定',
+            onDone: function () {
+              window.location.href = 'cart.html';
+            }
+          });
+          return false;
+        }
+        return true;
+      }
+      commitUnsaleableApplied(again);
+      items = again.saleable;
+      invalidItems = invalidItems.concat(again.unsaleable);
+      pricing = computeOrderConfirmPricing(items);
+      usePointsDeduct = pricing.usePointsDeduct;
+      renderConfirmBody();
+      if (!again.saleable.length) {
+        showSaleDialog({
+          title: SALE_DIALOG_ALL_TITLE,
+          text: allUnsaleableDialogText(),
+          okText: '确定',
+          onDone: function () {
+            window.location.href = 'cart.html';
+          }
+        });
         return false;
       }
-      items = again.saleable;
-      invalidItems = [];
-      return true;
+      showSaleDialog({
+        title: SALE_DIALOG_PARTIAL_TITLE,
+        text: SALE_DIALOG_PARTIAL_CONFIRM
+      });
+      return false;
     }
 
     document.getElementById('confirmPayBtn') &&
@@ -3515,7 +3642,14 @@
         if (global.UaBlacklistGuard && global.UaBlacklistGuard.guardOrderSubmit()) return;
         if (!applyConfirmSaleableGuard()) return;
         if (!items.length) {
-          showToast(checkoutUnsaleableToast(0, 1));
+          showSaleDialog({
+            title: SALE_DIALOG_ALL_TITLE,
+            text: allUnsaleableDialogText(),
+            okText: '确定',
+            onDone: function () {
+              window.location.href = 'cart.html';
+            }
+          });
           return;
         }
         var agreeCheck = body && body.querySelector('[data-confirm-agree]');

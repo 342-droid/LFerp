@@ -8,8 +8,9 @@
  *   force: auto | all | partial | none
  *   （按实际时间 / 全部可售 / 部分可售 / 全部不可售）
  *   applied: all | partial | none
- *   购物车/确认订单列表按 applied 展示（默认 all=可售）；
- *   点「立即下单 / 确认订单」才按 force 校验，失败后写入 applied 并刷新
+ *   购物车/确认订单列表按 applied 展示；
+ *   点「应用」回到初始可售态（applied=all）并记住 force；
+ *   部分/全部不可售点立即下单/确认订单才校验、弹提示并刷新
  *   兼容旧值 on→all、off→none
  */
 (function (global) {
@@ -52,7 +53,8 @@
   function readDemo() {
     var d = readJson(DEMO_KEY, {});
     var applied = d.applied != null ? normalizeForce(d.applied) : 'all';
-    return { force: normalizeForce(d.force), applied: applied };
+    var invalidIds = Array.isArray(d.invalidIds) ? d.invalidIds.map(String) : [];
+    return { force: normalizeForce(d.force), applied: applied, invalidIds: invalidIds };
   }
 
   /** 部分可售：按 id 做稳定散列拆半，避免多数 sku 被算到同一侧 */
@@ -280,7 +282,7 @@
     if (document.getElementById('uaSaleTimeDemo')) return;
     var demo = readDemo();
     var checkout = opts.variant === 'checkout';
-    var selected = checkout ? demo.applied || demo.force : demo.force;
+    var selected = demo.force;
     if (checkout && selected === 'auto') selected = 'all';
     var title = checkout ? '商品可售验收开关' : '可售时间验收开关';
     var optionsHtml = checkout
@@ -310,20 +312,28 @@
       optionsHtml +
       '</select></label>' +
       (checkout
-        ? '<div class="ua-sale-time-demo__tip">点应用后刷新列表。部分可售：自提可下单，快递进失效；同履约则隔件拆</div>'
+        ? '<div class="ua-sale-time-demo__tip">点应用回到初始可售。部分/全部不可售：再点立即下单或确认订单才校验并刷新</div>'
         : '') +
-      '<button type="button" class="ua-sale-time-demo__apply" id="uaSaleTimeDemoApply">' +
-      (checkout ? '应用并刷新' : '应用') +
-      '</button>';
+      '<button type="button" class="ua-sale-time-demo__apply" id="uaSaleTimeDemoApply">应用</button>';
     document.body.appendChild(panel);
+    function storeForce(force) {
+      var stored = force === 'all' ? 'on' : force === 'none' ? 'off' : force;
+      return stored;
+    }
     function applyForce() {
       var sel = document.getElementById('uaSaleTimeDemoForce');
       var fallback = checkout ? 'all' : 'auto';
       var force = normalizeForce((sel && sel.value) || fallback);
       /* 同时写入旧值 on/off，避免缓存的旧脚本把 none/partial 当成 auto */
-      var stored = force === 'all' ? 'on' : force === 'none' ? 'off' : force;
-      var next = { force: stored };
-      if (checkout) next.applied = force === 'auto' ? 'all' : force;
+      var next = { force: storeForce(force) };
+      if (checkout) {
+        /* 应用：回到操作前的初始可售态，场景留给立即下单/确认订单触发 */
+        next.applied = 'all';
+        next.invalidIds = [];
+        writeDemo(next);
+        global.location.reload();
+        return;
+      }
       writeDemo(next);
       if (typeof opts.onApply === 'function') {
         opts.onApply(force);
@@ -334,7 +344,16 @@
     var apply = document.getElementById('uaSaleTimeDemoApply');
     var sel = document.getElementById('uaSaleTimeDemoForce');
     if (apply) apply.addEventListener('click', applyForce);
-    if (sel) sel.addEventListener('change', applyForce);
+    if (sel) {
+      sel.addEventListener('change', function () {
+        var force = normalizeForce(sel.value || (checkout ? 'all' : 'auto'));
+        if (checkout) {
+          writeDemo({ force: storeForce(force) });
+          return;
+        }
+        applyForce();
+      });
+    }
   }
 
   global.UaProductSaleTime = {
