@@ -134,7 +134,7 @@
                             </tr>
                         </thead>
                         <tbody id="tableBody">
-                            <tr>
+                            <tr data-need-recheck="是">
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>WT001</td>
                                 <td>摘果标准模板</td>
@@ -150,7 +150,7 @@
                                     <a href="#" class="delete-btn">删除</a>
                                 </td>
                             </tr>
-                            <tr>
+                            <tr data-need-recheck="是">
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>WT002</td>
                                 <td>播种分播模板</td>
@@ -166,7 +166,7 @@
                                     <a href="#" class="delete-btn">删除</a>
                                 </td>
                             </tr>
-                            <tr data-allow-negative-inventory="否">
+                            <tr data-allow-negative-inventory="否" data-need-recheck="否">
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>WT003</td>
                                 <td>一键出库模板</td>
@@ -375,6 +375,7 @@
                     { id: 'groupByOwner', label: '按货主分组', type: 'radio', required: true, disabled: true, options: yesNoOptions },
                     { id: 'shortageAllocation', label: '缺量分配', type: 'radio', required: true, options: yesNoOptions },
                     { id: 'isHidden', label: '是否隐藏', type: 'radio', required: true, options: yesNoOptions },
+                    { id: 'needRecheck', label: '是否复核', type: 'radio', required: true, options: yesNoOptions },
                     { id: 'allowNegativeInventory', label: '允许负库存', type: 'radio', required: true, options: yesNoOptions }
                 ],
                 addModal: {
@@ -406,6 +407,7 @@
                         }
                         syncGroupByOwner(false);
                         setRadioValue('isHidden', '否');
+                        setRadioValue('needRecheck', '否');
                         const flowTypeInput = document.getElementById('flowType');
                         if (flowTypeInput) {
                             flowTypeInput.dataset.prevFlowType = '';
@@ -421,6 +423,7 @@
                         const outboundBizType = document.getElementById('outboundBizType').value.trim();
                         const isEnabled = document.getElementById('isEnabled').value.trim();
                         const isHidden = document.querySelector('input[name="isHidden"]:checked')?.value || '否';
+                        const needRecheck = document.querySelector('input[name="needRecheck"]:checked')?.value || '否';
                         const groupByOwner = document.querySelector('input[name="groupByOwner"]:checked')?.value || '是';
                         const allowNegativeInventory = document.querySelector('input[name="allowNegativeInventory"]:checked')?.value || '否';
 
@@ -439,6 +442,7 @@
                         });
                         if (newRow) {
                             newRow.dataset.isHidden = isHidden;
+                            newRow.dataset.needRecheck = needRecheck;
                             newRow.dataset.groupByOwner = groupByOwner;
                             newRow.dataset.allowNegativeInventory = allowNegativeInventory;
                         }
@@ -461,6 +465,7 @@
                     onSave: () => {
                         if (!page.currentEditRow) return;
                         const isHidden = document.querySelector('input[name="editIsHidden"]:checked')?.value || '否';
+                        const needRecheck = document.querySelector('input[name="editNeedRecheck"]:checked')?.value || '否';
                         const groupByOwner = document.querySelector('input[name="editGroupByOwner"]:checked')?.value || '是';
                         const allowNegativeInventory = document.querySelector('input[name="editAllowNegativeInventory"]:checked')?.value || '否';
                         page.updateTableRow(page.currentEditRow, {
@@ -475,6 +480,7 @@
                             9: '当前用户'
                         });
                         page.currentEditRow.dataset.isHidden = isHidden;
+                        page.currentEditRow.dataset.needRecheck = needRecheck;
                         page.currentEditRow.dataset.groupByOwner = groupByOwner;
                         page.currentEditRow.dataset.allowNegativeInventory = allowNegativeInventory;
                         showToast('波次模板已更新', 'success');
@@ -484,6 +490,7 @@
                         page.currentEditRow = row;
                         const cells = row.querySelectorAll('td');
                         setRadioValue('editIsHidden', row.dataset.isHidden || '否');
+                        setRadioValue('editNeedRecheck', row.dataset.needRecheck || '否');
                         syncGroupByOwner(true, row.dataset.groupByOwner || '是');
                         const flowType = cells[4].textContent.trim();
                         handleFlowTypeChange(true, {
