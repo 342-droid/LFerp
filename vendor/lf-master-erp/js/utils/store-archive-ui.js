@@ -341,11 +341,10 @@ function buildStoreFormBody(store, mode) {
       true,
       selectInput(
         [
-          { value: 'OPEN', label: '营业中' },
-          { value: 'CLOSED', label: 'CLOSED' },
-          { value: 'PREP', label: '筹备' },
+          { value: 'OPEN', label: '运营中' },
+          { value: 'CLOSED', label: '打烊' },
         ],
-        'CLOSED',
+        'OPEN',
       ),
     );
   }
@@ -435,7 +434,7 @@ function buildStoreOnboardDemoRow(store) {
     store.channel || '—',
     'MCH772910001',
     '6225 **** **** 6601',
-    '对公/对私/非法人',
+    '对公',
     '—',
     wx,
     '已认证',

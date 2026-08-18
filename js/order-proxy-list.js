@@ -22,6 +22,20 @@
     return getRowOrderStatus(row) === '待收货';
   }
 
+  function canOpenAftersale(row) {
+    if (window.OrderPlatformAftersale && typeof window.OrderPlatformAftersale.canOpenAftersaleDrawer === 'function') {
+      return window.OrderPlatformAftersale.canOpenAftersaleDrawer(row);
+    }
+    return canPlatformRefund(row) || getRowOrderStatus(row) === '已完成';
+  }
+
+  function aftersaleActionLabel(row) {
+    if (window.OrderPlatformAftersale && typeof window.OrderPlatformAftersale.aftersaleActionLabel === 'function') {
+      return window.OrderPlatformAftersale.aftersaleActionLabel(row);
+    }
+    return getRowOrderStatus(row) === '已完成' ? '发起售后' : '平台退款';
+  }
+
   function createActionButton(className, orderId, label) {
     var btn = document.createElement('button');
     btn.type = 'button';
@@ -43,7 +57,8 @@
     var cancelBtn = cell.querySelector('.js-proxy-cancel-order');
     var refundBtn = cell.querySelector('.js-proxy-platform-refund');
     var showCancel = canCancelOrder(row);
-    var showRefund = canPlatformRefund(row);
+    var showRefund = canOpenAftersale(row);
+    var aftersaleLabel = aftersaleActionLabel(row);
 
     if (trackBtn) trackBtn.remove();
     if (uploadBtn) uploadBtn.remove();
@@ -80,9 +95,10 @@
       var refundSlot = document.createElement('span');
       refundSlot.className = 'order-live-table__actions-item order-live-table__actions-item--refund';
       if (refundBtn) {
+        refundBtn.textContent = aftersaleLabel;
         refundSlot.appendChild(refundBtn);
       } else {
-        refundSlot.appendChild(createActionButton('js-proxy-platform-refund', orderId, '平台退款'));
+        refundSlot.appendChild(createActionButton('js-proxy-platform-refund', orderId, aftersaleLabel));
       }
       actions.appendChild(refundSlot);
     } else if (refundBtn) {
@@ -122,8 +138,19 @@
     }
   }
 
+  function hasOpenAftersaleBlockingCancel(orderId, row) {
+    if (window.OrderLivePickup && typeof window.OrderLivePickup.hasOpenAftersaleBlockingCancel === 'function') {
+      return window.OrderLivePickup.hasOpenAftersaleBlockingCancel(orderId, row);
+    }
+    if (window.OrderLiveDetail && typeof window.OrderLiveDetail.hasOpenAftersaleBlockingCancel === 'function') {
+      return window.OrderLiveDetail.hasOpenAftersaleBlockingCancel(orderId, row);
+    }
+    return false;
+  }
+
   function showProxyConfirmDialog(options) {
     closeProxyDialog(options.backdropId);
+    var alertOnly = options.mode === 'alert';
     var backdrop = document.createElement('div');
     backdrop.className = 'order-verify-confirm-backdrop';
     backdrop.id = options.backdropId;
@@ -140,9 +167,11 @@
       options.message +
       '</p>' +
       '<div class="order-verify-confirm__actions">' +
-      '<button type="button" class="order-detail-btn js-proxy-dialog-cancel">取消</button>' +
+      (alertOnly
+        ? ''
+        : '<button type="button" class="order-detail-btn js-proxy-dialog-cancel">取消</button>') +
       '<button type="button" class="order-detail-btn order-detail-btn--primary js-proxy-dialog-ok">' +
-      options.okLabel +
+      (options.okLabel || (alertOnly ? '好的' : '确定')) +
       '</button>' +
       '</div>' +
       '</div>';
@@ -152,12 +181,15 @@
     backdrop.addEventListener('click', function (e) {
       if (e.target === backdrop) closeProxyDialog(options.backdropId);
     });
-    backdrop.querySelector('.js-proxy-dialog-cancel').addEventListener('click', function () {
-      closeProxyDialog(options.backdropId);
-    });
+    var cancelBtn = backdrop.querySelector('.js-proxy-dialog-cancel');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', function () {
+        closeProxyDialog(options.backdropId);
+      });
+    }
     backdrop.querySelector('.js-proxy-dialog-ok').addEventListener('click', function () {
       closeProxyDialog(options.backdropId);
-      options.onConfirm();
+      if (typeof options.onConfirm === 'function') options.onConfirm();
     });
   }
 
@@ -176,7 +208,9 @@
   }
 
   function updateRowAfterConfirmReceipt(row) {
-    var statusCell = row.querySelector('td:nth-last-child(2) .order-tag');
+    var statusCell =
+      row.querySelector('.order-status-cell .order-tag') ||
+      row.querySelector('td:nth-last-child(2) .order-tag');
     if (statusCell) {
       statusCell.className = 'order-tag order-tag--completed';
       statusCell.textContent = '已完成';
@@ -187,7 +221,9 @@
   }
 
   function updateRowAfterCancel(row) {
-    var statusCell = row.querySelector('td:nth-last-child(2) .order-tag');
+    var statusCell =
+      row.querySelector('.order-status-cell .order-tag') ||
+      row.querySelector('td:nth-last-child(2) .order-tag');
     if (statusCell) {
       statusCell.className = 'order-tag order-tag--closed';
       statusCell.textContent = '已关闭';
@@ -239,6 +275,17 @@
           if (typeof showToast === 'function') showToast('当前订单状态不可取消', 'error');
           return;
         }
+        if (hasOpenAftersaleBlockingCancel(cancelOrderId, cancelRow)) {
+          showProxyConfirmDialog({
+            backdropId: 'orderProxyCancelBlockBackdrop',
+            titleId: 'orderProxyCancelBlockTitle',
+            title: '无法取消订单',
+            message: '当前订单存在处理中售后，暂无法取消订单。',
+            mode: 'alert',
+            okLabel: '好的'
+          });
+          return;
+        }
         showProxyConfirmDialog({
           backdropId: 'orderProxyCancelBackdrop',
           titleId: 'orderProxyCancelTitle',
@@ -263,7 +310,7 @@
         var refundOrderId = refundBtn.getAttribute('data-order-id');
         var refundRow = refundBtn.closest('tr');
         if (!refundOrderId || !refundRow) return;
-        if (!canPlatformRefund(refundRow)) {
+        if (!canOpenAftersale(refundRow)) {
           if (typeof showToast === 'function') showToast('当前订单状态不可申请退款', 'error');
           return;
         }

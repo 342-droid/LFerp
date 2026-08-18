@@ -1,0 +1,81 @@
+/**
+ * 后台数据列表「序号」列
+ * 使用真实 td.lf-row-no-td，与表头「序号」对齐；业务列整体右移归位。
+ */
+.table.lf-row-no-on > thead > tr > th.lf-row-no-th,
+.product-proxy-table.lf-row-no-on > thead > tr > th.lf-row-no-th,
+.product-table.lf-row-no-on > thead > tr > th.lf-row-no-th,
+.order-live-table.lf-row-no-on > thead > tr > th.lf-row-no-th,
+.queue-table.lf-row-no-on > thead > tr > th.lf-row-no-th,
+.aftersale-table.lf-row-no-on > thead > tr > th.lf-row-no-th,
+.aftersale-refund-table.lf-row-no-on > thead > tr > th.lf-row-no-th,
+.fc-table.lf-row-no-on > thead > tr > th.lf-row-no-th {
+  width: 56px;
+  min-width: 56px;
+  max-width: 72px;
+  padding: 12px 8px;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.table.lf-row-no-on > tbody > tr > td.lf-row-no-td,
+.product-proxy-table.lf-row-no-on > tbody > tr > td.lf-row-no-td,
+.product-table.lf-row-no-on > tbody > tr > td.lf-row-no-td,
+.order-live-table.lf-row-no-on > tbody > tr > td.lf-row-no-td,
+.queue-table.lf-row-no-on > tbody > tr > td.lf-row-no-td,
+.aftersale-table.lf-row-no-on > tbody > tr > td.lf-row-no-td,
+.aftersale-refund-table.lf-row-no-on > tbody > tr > td.lf-row-no-td,
+.fc-table.lf-row-no-on > tbody > tr > td.lf-row-no-td {
+  width: 56px;
+  min-width: 56px;
+  max-width: 72px;
+  padding: 12px 8px;
+  text-align: center;
+  vertical-align: middle;
+  color: #666;
+  font-size: 13px;
+  font-weight: 400;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+/* 覆盖 common.css「首列 checkbox 宽 50px」对序号列的影响 */
+.table.lf-row-no-on > thead > tr > th.lf-row-no-th:first-child {
+  width: 56px;
+  min-width: 56px;
+  text-align: center;
+}
+
+.table.lf-row-no-on > tbody > tr > td.lf-row-no-td:first-child {
+  text-align: center;
+}
+
+.product-proxy-table.lf-row-no-on > tbody > tr > td.lf-row-no-td,
+.order-live-table.lf-row-no-on > tbody > tr > td.lf-row-no-td,
+.queue-table.lf-row-no-on > tbody > tr > td.lf-row-no-td,
+.aftersale-table.lf-row-no-on > tbody > tr > td.lf-row-no-td,
+.aftersale-refund-table.lf-row-no-on > tbody > tr > td.lf-row-no-td,
+.fc-table.lf-row-no-on > tbody > tr > td.lf-row-no-td {
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
+  background: #ffffff;
+}
+
+.order-live-table.lf-row-no-on > thead > tr > th.lf-row-no-th,
+.queue-table.lf-row-no-on > thead > tr > th.lf-row-no-th,
+.fc-table.lf-row-no-on > thead > tr > th.lf-row-no-th {
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: center;
+  font-weight: 600;
+}
+
+.order-live-table.lf-row-no-on > tbody > tr:hover > td.lf-row-no-td {
+  background: #fafafa;
+}
+
+.fc-table.lf-row-no-on > tbody > tr:hover > td.lf-row-no-td {
+  background: #fff7f0;
+}

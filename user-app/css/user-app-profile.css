@@ -445,6 +445,137 @@
   height: 68px;
 }
 
+/* —— 我的默认门店 —— */
+.ua-default-pickup {
+  padding: 0;
+  overflow: hidden;
+}
+
+.ua-default-pickup[hidden] {
+  display: none !important;
+}
+
+.ua-default-pickup__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 15px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ua-default-pickup__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1.3;
+}
+
+.ua-default-pickup__switch {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 14px;
+  background: #f0c14b;
+  color: #333;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.ua-default-pickup__switch:active {
+  opacity: 0.9;
+}
+
+.ua-default-pickup__body {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 15px 16px;
+}
+
+.ua-default-pickup__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #e8f4ff;
+}
+
+.ua-default-pickup__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ua-default-pickup__name-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-bottom: 4px;
+}
+
+.ua-default-pickup__name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.35;
+  min-width: 0;
+}
+
+.ua-default-pickup__biz-hours {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 400;
+  color: #999;
+  white-space: nowrap;
+}
+
+.ua-default-pickup__biz-hours[hidden] {
+  display: none !important;
+}
+
+.ua-default-pickup__addr {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+
+.ua-default-pickup__meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ua-default-pickup__leader {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ua-default-pickup__dist {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
 .ua-service-card {
   padding: 15px 0 0;
 }

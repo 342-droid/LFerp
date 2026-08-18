@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 直播排品</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/mdm-member360-list.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-live.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/live-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content lf-live-sched-page">
+            <div class="content-tabs"><button class="active">直播排品</button></div>
+            <hr class="content-divider">
+
+            <div class="mdm-biz-tip" role="note">直播排品的商品<strong>上架</strong>代表直播间可以售卖该商品，并不会直接展示到直播间，需要直播场次的中控台添加到直播商品用户才可以看到。</div>
+
+            <section class="search-section lf-live-session-picker">
+                <form class="search-form" onsubmit="return false;">
+                    <div class="form-group lf-live-session-picker__field">
+                        <label for="liveSchedSession">选择直播场次</label>
+                        <select id="liveSchedSession"></select>
+                    </div>
+                </form>
+            </section>
+
+            <div id="liveSchedEmpty" class="lf-live-empty-tip">选择一个直播场次后，可以管理该场次的直播排品</div>
+
+            <div id="liveSchedPanel" hidden>
+                <div id="liveSchedMeta" class="lf-live-session-meta"></div>
+                <div class="lf-live-toolbar">
+                    <button type="button" class="erp-btn erp-btn--primary" id="liveSchedAddBtn">+ 添加商品</button>
+                </div>
+                <section class="table-section">
+                    <div class="table-scroll-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>序号</th>
+                                    <th>商品编号</th>
+                                    <th>图片</th>
+                                    <th>商品名称</th>
+                                    <th>类目</th>
+                                    <th>规格</th>
+                                    <th>售价</th>
+                                    <th>划线价</th>
+                                    <th>库存</th>
+                                    <th>添加时间</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="liveSchedTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="pagination-container"></div>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/mdm-live-demo-data.js"></script>
+    <script src="../js/mdm-live-product-sched.js"></script>
+</body>
+</html>

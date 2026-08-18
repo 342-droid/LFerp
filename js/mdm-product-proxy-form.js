@@ -90,6 +90,201 @@
     return [];
   }
 
+  /**
+   * 门店配置 · 营业时间（localStorage）
+   * 回写优先级：商品自定义(SPU) > 快递24小时可售 > 商品类目可售时间 > 门店自定义营业时间 > 平台默认营业时间
+   * 超过可售时间则该类目商品不可售
+   */
+  var PLATFORM_HOURS_KEY = 'lf_basic_settings_business_hours';
+  var STORE_HOURS_KEY = 'mdm_store_business_hours_v1';
+  var EXPRESS_24H_RANGE = { start: '00:00', end: '23:59' };
+
+  function loadPlatformBusinessHours() {
+    try {
+      var raw = localStorage.getItem(PLATFORM_HOURS_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      return {
+        start: parsed.start || '08:00',
+        end: parsed.end || '22:00',
+        crossDay: parsed.crossDay === 'yes' ? 'yes' : 'no',
+        express24hSale: parsed.express24hSale === 'yes' ? 'yes' : 'no',
+        categoryHours: Array.isArray(parsed.categoryHours) ? parsed.categoryHours : []
+      };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function loadStoreCustomBusinessHours(storeId) {
+    var id = String(storeId || '').trim();
+    if (!id) return null;
+    try {
+      var raw = localStorage.getItem(STORE_HOURS_KEY);
+      if (!raw) return null;
+      var map = JSON.parse(raw);
+      if (!map || typeof map !== 'object') return null;
+      var custom = map[id];
+      if (custom && custom.start && custom.end) {
+        return { start: custom.start, end: custom.end, source: 'store' };
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return null;
+  }
+
+  function saleTimeSourceTipText(source) {
+    if (source === 'custom') return '已采用商品自定义可售卖时间';
+    if (source === 'express24h') return '24小时可售';
+    if (source === 'category') return '已采用商品类目可售卖时间';
+    if (source === 'store') return '已采用门店自定义营业时间';
+    return '已采用平台默认营业时间';
+  }
+
+  function updateSaleTimeSourceTip(backdrop, source) {
+    var tip = backdrop && backdrop.querySelector('#proxySaleTimeSourceTip');
+    if (!tip) return;
+    tip.textContent = saleTimeSourceTipText(source);
+    tip.setAttribute('data-source', source || 'business');
+  }
+
+  function getCurrentDeliveryMode(backdrop, product) {
+    if (backdrop) {
+      var el = backdrop.querySelector('input[name="proxyDeliveryMode"]:checked');
+      if (el) return normalizeDeliveryMode(el.value);
+    }
+    if (formState && formState.deliveryMode) {
+      return normalizeDeliveryMode(formState.deliveryMode);
+    }
+    product = product || {};
+    return normalizeDeliveryMode(
+      product.deliveryMode || product.fulfillmentMode || (product.detail && product.detail.deliveryMode)
+    );
+  }
+
+  function categoryPathMatches(path, categoryName) {
+    var p = String(path || '').trim();
+    var name = String(categoryName || '').trim();
+    if (!p || !name) return false;
+    if (p === name) return true;
+    if (p.indexOf('/' + name) !== -1) return true;
+    if (p.indexOf(name + '/') === 0) return true;
+    var segs = p.split(/[\/、,，]/);
+    for (var i = 0; i < segs.length; i++) {
+      if (String(segs[i] || '').trim() === name) return true;
+    }
+    return p.indexOf(name) !== -1;
+  }
+
+  function getCurrentCategoryPaths(product) {
+    if (pickerInstance && typeof pickerInstance.getPaths === 'function') {
+      var paths = pickerInstance.getPaths() || [];
+      if (paths.length) return paths;
+    }
+    return getProductCategoryPaths(product || {});
+  }
+
+  /** 按 快递24h > 类目可售时间 > 门店自定义营业时间 > 平台默认营业时间 解析可售时段（不含商品自定义） */
+  function resolveInheritedSaleTime(categoryPaths, deliveryMode, storeId) {
+    var platform = loadPlatformBusinessHours();
+    var fallback = { start: '08:00', end: '22:00', source: 'business' };
+    var mode = normalizeDeliveryMode(deliveryMode);
+    if (mode === 'express' && platform && platform.express24hSale === 'yes') {
+      return {
+        start: EXPRESS_24H_RANGE.start,
+        end: EXPRESS_24H_RANGE.end,
+        source: 'express24h'
+      };
+    }
+    if (platform) {
+      var paths = Array.isArray(categoryPaths) ? categoryPaths : [];
+      var cats = platform.categoryHours || [];
+      for (var i = 0; i < cats.length; i++) {
+        var row = cats[i];
+        if (!row || !row.start || !row.end) continue;
+        var catName = row.name || row.id;
+        for (var j = 0; j < paths.length; j++) {
+          if (categoryPathMatches(paths[j], catName)) {
+            return {
+              start: row.start,
+              end: row.end,
+              source: 'category',
+              categoryName: catName
+            };
+          }
+        }
+      }
+    }
+    var storeHours = loadStoreCustomBusinessHours(storeId);
+    if (storeHours) return storeHours;
+    if (platform && platform.start && platform.end) {
+      return { start: platform.start, end: platform.end, source: 'business' };
+    }
+    return fallback;
+  }
+
+  /** 当前时刻是否落在可售窗口内（支持跨日） */
+  function isWithinSaleWindow(start, end, crossDay, now) {
+    var s = String(start || '').trim();
+    var e = String(end || '').trim();
+    if (!s || !e) return false;
+    var d = now instanceof Date ? now : new Date();
+    var hh = String(d.getHours()).padStart(2, '0');
+    var mm = String(d.getMinutes()).padStart(2, '0');
+    var cur = hh + ':' + mm;
+    if (crossDay === 'yes' || s > e) {
+      /* 跨日：如 22:00–02:00，当前 >= 开始 或 < 结束 */
+      return cur >= s || cur < e;
+    }
+    return cur >= s && cur < e;
+  }
+
+  /**
+   * 是否在可售时间内（超过则不可售）
+   * @param {object} product
+   * @param {{ storeId?: string, now?: Date }} [options]
+   */
+  function isProductSaleableNow(product, options) {
+    var opts = options || {};
+    var t = resolveEffectiveSaleTime(product, opts);
+    if (!t || !t.start || !t.end) return false;
+    if (t.source === 'express24h') return true;
+    var platform = loadPlatformBusinessHours();
+    var crossDay = platform && platform.crossDay === 'yes' ? 'yes' : 'no';
+    return isWithinSaleWindow(t.start, t.end, crossDay, opts.now);
+  }
+
+  function applySaleTimeToForm(backdrop, start, end) {
+    if (formState) {
+      formState.saleTimeStart = start || '08:00';
+      formState.saleTimeEnd = end || '22:00';
+    }
+    if (!backdrop) return;
+    var startEl = backdrop.querySelector('#proxySaleTimeStart');
+    var endEl = backdrop.querySelector('#proxySaleTimeEnd');
+    if (startEl) startEl.value = start || '08:00';
+    if (endEl) endEl.value = end || '22:00';
+  }
+
+  function syncInheritedSaleTime(backdrop, product) {
+    if (!formState) return;
+    /* 用户改过时间框，或已保存为 SPU 自定义时，不再被类目/门店/营业时间/24h 覆盖 */
+    if (formState.saleTimeTouched || formState.saleTimeMode === 'custom') {
+      updateSaleTimeSourceTip(backdrop, 'custom');
+      return;
+    }
+    var resolved = resolveInheritedSaleTime(
+      getCurrentCategoryPaths(product),
+      getCurrentDeliveryMode(backdrop, product),
+      (product && product.storeId) || ''
+    );
+    formState.saleTimeSource = resolved.source;
+    applySaleTimeToForm(backdrop, resolved.start, resolved.end);
+    updateSaleTimeSourceTip(backdrop, resolved.source);
+  }
+
   function buildDefaultDisplayName(productName, specValue, saleUnit) {
     var name = String(productName || '').trim();
     var spec = String(specValue == null ? '' : specValue).trim();
@@ -219,6 +414,28 @@
       skuPool: pool,
       selectedSkuIds: selectedIds
     };
+    /* SPU 已配置可售时间优先；否则按 快递24h > 类目 > 门店自定义 > 平台默认 自动回写 */
+    var isCustomSale =
+      detail.saleTimeMode === 'custom' || product.saleTimeMode === 'custom';
+    if (isCustomSale && (detail.saleTimeStart || product.saleTimeStart)) {
+      result.saleTimeMode = 'custom';
+      result.saleTimeTouched = false;
+      result.saleTimeSource = 'custom';
+      result.saleTimeStart =
+        detail.saleTimeStart || product.saleTimeStart || '08:00';
+      result.saleTimeEnd = detail.saleTimeEnd || product.saleTimeEnd || '22:00';
+    } else {
+      var inherited = resolveInheritedSaleTime(
+        getProductCategoryPaths(product),
+        result.deliveryMode,
+        product.storeId || ''
+      );
+      result.saleTimeMode = 'follow_category';
+      result.saleTimeTouched = false;
+      result.saleTimeSource = inherited.source;
+      result.saleTimeStart = inherited.start;
+      result.saleTimeEnd = inherited.end;
+    }
     if (!result.saleRegionSummary.length && Object.keys(result.saleRegions).length && window.MdmProxyRegionPicker) {
       result.saleRegionSummary = window.MdmProxyRegionPicker.summarize(result.saleRegions);
     }
@@ -538,13 +755,21 @@
       '          <div class="product-proxy-form__control" id="proxyFormCategoryPicker"></div>' +
       '        </div>' +
       '        <div class="product-proxy-form__field">' +
-      '          <label class="product-proxy-form__label" for="proxyFormEta">预计到店时间</label>' +
+      '          <label class="product-proxy-form__label" for="proxyFormEta">预计到达时间</label>' +
       '          <div class="product-proxy-form__control product-proxy-form__eta">' +
-      '            <input class="product-proxy-form__input product-proxy-form__eta-input" id="proxyFormEta" type="text" inputmode="numeric" value="' + escapeHtml(state.etaCountdown) + '" placeholder="请输入预计到店时间">' +
+      '            <input class="product-proxy-form__input product-proxy-form__eta-input" id="proxyFormEta" type="text" inputmode="numeric" value="' + escapeHtml(state.etaCountdown) + '" placeholder="请输入预计到达时间">' +
       '            <select class="product-proxy-form__input product-proxy-form__eta-unit" id="proxyFormEtaUnit" aria-label="倒计时单位">' +
       ETA_COUNTDOWN_UNITS.map(function (u) {
         return '<option value="' + escapeHtml(u) + '"' + (state.etaCountdownUnit === u ? ' selected' : '') + '>' + escapeHtml(u) + '</option>';
       }).join('') +
+      '            </select>' +
+      '          </div>' +
+      '        </div>' +
+      '        <div class="product-proxy-form__field">' +
+      '          <label class="product-proxy-form__label" for="proxyFormTag">商品标签</label>' +
+      '          <div class="product-proxy-form__control product-proxy-form__tag-select">' +
+      '            <select class="product-proxy-form__input" id="proxyFormTag">' +
+      '              <option value="">请选择商品标签</option>' + tagSelect +
       '            </select>' +
       '          </div>' +
       '        </div>' +
@@ -563,12 +788,19 @@
       '            </div>' +
       '          </div>' +
       '        </div>' +
-      '        <div class="product-proxy-form__field">' +
-      '          <label class="product-proxy-form__label" for="proxyFormTag">商品标签</label>' +
-      '          <div class="product-proxy-form__control product-proxy-form__tag-select">' +
-      '            <select class="product-proxy-form__input" id="proxyFormTag">' +
-      '              <option value="">请选择商品标签</option>' + tagSelect +
-      '            </select>' +
+      '        <div class="product-proxy-form__field product-proxy-form__field--sale-time">' +
+      '          <label class="product-proxy-form__label" for="proxySaleTimeStart">可售时间</label>' +
+      '          <div class="product-proxy-form__control product-proxy-form__sale-time-wrap">' +
+      '            <div class="product-proxy-form__eta product-proxy-form__sale-time-range">' +
+      '              <input class="product-proxy-form__input" id="proxySaleTimeStart" type="time" value="' + escapeHtml(state.saleTimeStart) + '" aria-label="可售开始时间">' +
+      '              <span class="product-proxy-form__sale-time-sep">至</span>' +
+      '              <input class="product-proxy-form__input" id="proxySaleTimeEnd" type="time" value="' + escapeHtml(state.saleTimeEnd) + '" aria-label="可售结束时间">' +
+      '            </div>' +
+      '            <div class="product-proxy-form__hint product-proxy-form__sale-time-tip" id="proxySaleTimeSourceTip" data-source="' +
+      escapeHtml(state.saleTimeSource || 'business') +
+      '">' +
+      escapeHtml(saleTimeSourceTipText(state.saleTimeSource || 'business')) +
+      '</div>' +
       '          </div>' +
       '        </div>' +
       '        <div class="product-proxy-form__field">' +
@@ -577,10 +809,10 @@
       '            <input class="product-proxy-form__input" id="proxyFormDisplaySales" type="text" value="' + escapeHtml(state.displaySales) + '" placeholder="请输入展示销量">' +
       '          </div>' +
       '        </div>' +
-      '        <div class="product-proxy-form__field product-proxy-form__field--full">' +
+      '        <div class="product-proxy-form__field product-proxy-form__field--text-desc">' +
       '          <label class="product-proxy-form__label" for="proxyFormTextDesc">文字描述</label>' +
       '          <div class="product-proxy-form__control">' +
-      '            <textarea class="product-proxy-form__textarea" id="proxyFormTextDesc" rows="3" placeholder="请输入商品文字描述">' + escapeHtml(state.textDesc) + '</textarea>' +
+      '            <textarea class="product-proxy-form__textarea product-proxy-form__textarea--inline" id="proxyFormTextDesc" rows="1" placeholder="请输入商品文字描述">' + escapeHtml(state.textDesc) + '</textarea>' +
       '          </div>' +
       '        </div>' +
       '      </div>' +
@@ -860,6 +1092,34 @@
     });
   }
 
+  function bindSaleTimeEvents(backdrop, product) {
+    function markTouched() {
+      if (!formState) return;
+      formState.saleTimeTouched = true;
+      formState.saleTimeMode = 'custom';
+      formState.saleTimeSource = 'custom';
+      updateSaleTimeSourceTip(backdrop, 'custom');
+    }
+    ['#proxySaleTimeStart', '#proxySaleTimeEnd'].forEach(function (sel) {
+      var el = backdrop.querySelector(sel);
+      if (!el) return;
+      el.addEventListener('change', markTouched);
+      el.addEventListener('input', markTouched);
+    });
+
+    backdrop.querySelectorAll('input[name="proxyDeliveryMode"]').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        if (!formState) return;
+        formState.deliveryMode = normalizeDeliveryMode(radio.value);
+        backdrop.querySelectorAll('input[name="proxyDeliveryMode"]').forEach(function (r) {
+          var lab = r.closest('.product-add-radio');
+          if (lab) lab.classList.toggle('is-checked', r.checked);
+        });
+        syncInheritedSaleTime(backdrop, product);
+      });
+    });
+  }
+
   function bindSaleScopeEvents(backdrop) {
     var regionPanel = backdrop.querySelector('#proxySaleScopeRegion');
     var storePanel = backdrop.querySelector('#proxySaleScopeStore');
@@ -948,6 +1208,23 @@
     var deliveryMode = normalizeDeliveryMode(deliveryEl ? deliveryEl.value : formState.deliveryMode);
     var etaCountdown = ((backdrop.querySelector('#proxyFormEta') || {}).value || '').trim();
     var etaCountdownUnit = ((backdrop.querySelector('#proxyFormEtaUnit') || {}).value || '天').trim() || '天';
+    var saleTimeStart = ((backdrop.querySelector('#proxySaleTimeStart') || {}).value || '').trim();
+    var saleTimeEnd = ((backdrop.querySelector('#proxySaleTimeEnd') || {}).value || '').trim();
+    var saleTimeMode =
+      formState && (formState.saleTimeTouched || formState.saleTimeMode === 'custom')
+        ? 'custom'
+        : 'follow_category';
+    if (saleTimeMode === 'follow_category') {
+      var inheritedOnSave = resolveInheritedSaleTime(
+        pickerInstance && typeof pickerInstance.getPaths === 'function'
+          ? pickerInstance.getPaths()
+          : getProductCategoryPaths(product),
+        deliveryMode,
+        (product && product.storeId) || ''
+      );
+      saleTimeStart = inheritedOnSave.start;
+      saleTimeEnd = inheritedOnSave.end;
+    }
     var exchange = normalizePointExchange(defaultSkuItem && defaultSkuItem.pointExchange);
     var priceType =
       exchange === 'points' ? 'points' : exchange === 'points_cash' ? 'money_points' : 'money';
@@ -972,6 +1249,9 @@
       tag: (backdrop.querySelector('#proxyFormTag') || {}).value,
       etaCountdown: etaCountdown,
       etaCountdownUnit: etaCountdownUnit,
+      saleTimeMode: saleTimeMode,
+      saleTimeStart: saleTimeStart,
+      saleTimeEnd: saleTimeEnd,
       deliveryMode: deliveryMode,
       fulfillmentMode: deliveryMode,
       category_l3_ids: pickerInstance ? pickerInstance.getValues() : getProductCategoryIds(product),
@@ -992,6 +1272,9 @@
         textDesc: (backdrop.querySelector('#proxyFormTextDesc') || {}).value.trim(),
         etaCountdown: etaCountdown,
         etaCountdownUnit: etaCountdownUnit,
+        saleTimeMode: saleTimeMode,
+        saleTimeStart: saleTimeStart,
+        saleTimeEnd: saleTimeEnd,
         deliveryMode: deliveryMode,
         saleScope: scopeEl ? scopeEl.value : 'all',
         saleRegions: cloneRegionSelected(formState.saleRegions),
@@ -1064,6 +1347,14 @@
           return;
         }
       }
+      if (!payload.saleTimeStart || !payload.saleTimeEnd) {
+        if (typeof showToast === 'function') showToast('请配置可售时间', 'warning');
+        return;
+      }
+      if (payload.saleTimeStart === payload.saleTimeEnd) {
+        if (typeof showToast === 'function') showToast('可售开始与结束时间不能相同', 'warning');
+        return;
+      }
       if (typeof onSave === 'function') onSave(payload, product);
       closeModal();
     });
@@ -1075,7 +1366,9 @@
       pickerInstance = window.MdmProxyCategoryPicker.mount({
         container: pickerEl,
         values: getProductCategoryIds(product),
-        onChange: function () {}
+        onChange: function () {
+          syncInheritedSaleTime(backdrop, product);
+        }
       });
     }
 
@@ -1083,11 +1376,45 @@
     bindProductNameSync(backdrop);
     bindImageEvents(backdrop);
     bindSkuPicker(backdrop);
+    bindSaleTimeEvents(backdrop, product);
     bindSaleScopeEvents(backdrop);
+    syncInheritedSaleTime(backdrop, product);
 
     var nameInput = backdrop.querySelector('#proxyFormName');
     if (nameInput) nameInput.focus();
   }
+
+  /** 列表/表单共用：解析商品有效可售时间 */
+  function resolveEffectiveSaleTime(product, options) {
+    product = product || {};
+    var opts = options || {};
+    var detail = product.detail || {};
+    var isCustom =
+      detail.saleTimeMode === 'custom' || product.saleTimeMode === 'custom';
+    var start = detail.saleTimeStart || product.saleTimeStart;
+    var end = detail.saleTimeEnd || product.saleTimeEnd;
+    if (isCustom && start && end) {
+      return { start: start, end: end, source: 'custom' };
+    }
+    return resolveInheritedSaleTime(
+      getProductCategoryPaths(product),
+      product.deliveryMode || product.fulfillmentMode || detail.deliveryMode,
+      opts.storeId || product.storeId || ''
+    );
+  }
+
+  function formatSaleTimeLabel(product, options) {
+    var t = resolveEffectiveSaleTime(product, options);
+    if (t.source === 'express24h') return '24小时可售';
+    return (t.start || '08:00') + '–' + (t.end || '22:00');
+  }
+
+  window.MdmProductSaleTime = {
+    resolve: resolveEffectiveSaleTime,
+    format: formatSaleTimeLabel,
+    isSaleableNow: isProductSaleableNow,
+    isWithinWindow: isWithinSaleWindow
+  };
 
   window.MdmProxyProductForm = {
     open: openProxyProductForm,

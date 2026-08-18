@@ -46,13 +46,15 @@
           </div>
         </div>
 
+        <p class="ua-phone-login-hint">若手机号未注册，短信认证通过后会自动注册新用户。</p>
+
         <div class="ua-phone-login-other">
           <div class="ua-login-other-methods ua-login-other-methods--in-phone">
             <p class="ua-login-other-methods__title">其他登录方式</p>
             <div class="ua-login-other-methods__row">
               <button type="button" class="ua-login-method" id="uaPhoneLoginWechatLinkBtn" aria-label="微信登录">
                 <span class="ua-login-method__icon">
-                  <img src="../assets/login-method-wechat.png" alt="">
+                  <img src="../assets/login-method-wechat.svg" alt="">
                 </span>
                 <span class="ua-login-method__label">微信</span>
               </button>
@@ -61,6 +63,12 @@
                   <img src="../assets/login-method-oneclick.svg" alt="">
                 </span>
                 <span class="ua-login-method__label">一键登录</span>
+              </button>
+              <button type="button" class="ua-login-method" id="uaPhoneLoginPasswordLinkBtn" aria-label="账号密码登录">
+                <span class="ua-login-method__icon">
+                  <img src="../assets/login-method-password.svg" alt="">
+                </span>
+                <span class="ua-login-method__label">账号密码</span>
               </button>
             </div>
           </div>
@@ -94,7 +102,9 @@
       <div class="ua-login-toast" id="uaLoginToast" role="status" aria-live="polite"></div>
     </div>
   </div>
-  <script src="../js/user-app-account-cancel.js"></script>
-  <script src="../js/user-app-auth.js"></script>
+<script src="../js/user-app-blacklist-guard.js"></script>
+<script src="../js/user-app-account-cancel.js"></script>
+<script src="../js/user-app-auth.js"></script>
+<script src="../js/user-app-pwd-auth.js"></script>
 </body>
 </html>

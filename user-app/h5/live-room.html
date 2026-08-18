@@ -6,7 +6,7 @@
   <title>黑灯直播间 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
-  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260813-live-detail">
+  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260817-sale1">
   <link rel="stylesheet" href="../css/user-app-live-entry-fx.css">
 </head>
 <body class="user-app-body">
@@ -27,7 +27,7 @@
           <span class="ua-live-room__logo">冷丰<br>特选</span>
           <div class="ua-live-room__host-text">
             <span class="ua-live-room__name">黑灯直播间</span>
-            <span class="ua-live-room__viewers">1人正在观看</span>
+            <span class="ua-live-room__viewers" id="liveViewerCount">1人正在观看</span>
           </div>
         </div>
       </header>
@@ -55,6 +55,17 @@
       </div>
 
       <div class="ua-live-room__box" aria-hidden="true"></div>
+
+      <div class="ua-live-explain" id="liveExplainCard" hidden>
+        <span class="ua-live-explain__tag">讲解中</span>
+        <div class="ua-live-explain__thumb" id="liveExplainThumb"></div>
+        <div class="ua-live-explain__body">
+          <div class="ua-live-explain__name" id="liveExplainName"></div>
+          <div class="ua-live-explain__price" id="liveExplainPrice"></div>
+        </div>
+      </div>
+
+      <div class="ua-live-danmu" id="liveDanmuList" aria-live="polite"></div>
 
       <div class="ua-live-fx-host" id="liveEntryFxHost" hidden aria-hidden="true"></div>
 
@@ -183,12 +194,14 @@
 
     <div class="ua-shop-toast" id="uaShopToast" hidden></div>
   </div>
+  <script src="../js/user-app-blacklist-guard.js"></script>
   <script src="../../js/mdm-supplier-archive-store.js"></script>
   <script src="../../js/mdm-marketing-points-mall-config.js"></script>
   <script src="../js/user-app-orders-store.js?v=20260728-status-sync2"></script>
   <script src="../js/user-app-profile.js"></script>
   <script src="../js/user-app-live-entry-fx.js"></script>
-  <script src="../js/user-app-shop.js?v=20260813-live-detail"></script>
+  <script src="../js/user-app-product-sale-time.js?v=20260817-sale1"></script>
+  <script src="../js/user-app-shop.js?v=20260817-sale1"></script>
   <script>UAShop.initLiveRoomPage();</script>
 </body>
 </html>

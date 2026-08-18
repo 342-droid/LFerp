@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>切换地址 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-switch-address.css?v=20260817-sky">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-sa-page">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <header class="ua-sa-nav">
+      <a href="home.html" class="ua-sa-nav__back" id="saBack" aria-label="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+      </a>
+      <h1 class="ua-sa-nav__title">切换地址</h1>
+    </header>
+
+    <div class="ua-scroll ua-sa-scroll" id="saScroll">
+      <div class="ua-sa-search" id="saSearchBar">
+        <button type="button" class="ua-sa-search__region" id="saRegionBtn" aria-label="选择地区">
+          <span id="saRegionText">浙江省/杭州市/西湖区</span>
+        </button>
+        <span class="ua-sa-search__divider" aria-hidden="true"></span>
+        <input
+          type="search"
+          class="ua-sa-search__input"
+          id="saSearchInput"
+          placeholder="请输入你想要购物的地址"
+          enterkeyhint="search"
+          autocomplete="off"
+        >
+      </div>
+
+      <section class="ua-sa-locate" aria-label="当前定位">
+        <div class="ua-sa-section-title">当前定位地址</div>
+        <div class="ua-sa-locate__row">
+          <div class="ua-sa-locate__addr" id="saLocateAddr">浙江省杭州市西湖区绿城西溪世纪...</div>
+          <button type="button" class="ua-sa-locate__relocate" id="saRelocateBtn">
+            <span class="ua-sa-locate__relocate-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21"/>
+              </svg>
+            </span>
+            重新定位
+          </button>
+        </div>
+      </section>
+
+      <!-- 附近有门店：图 2-1 -->
+      <div class="ua-sa-body" id="saBodyPickup" hidden>
+        <section class="ua-sa-block">
+          <div class="ua-sa-section-title">当前门店</div>
+          <div class="ua-sa-pickup-list" id="saCurrentPickup"></div>
+        </section>
+        <section class="ua-sa-block">
+          <div class="ua-sa-section-title">历史门店</div>
+          <div class="ua-sa-pickup-list" id="saHistoryPickup"></div>
+        </section>
+        <section class="ua-sa-block">
+          <div class="ua-sa-section-title">附近门店</div>
+          <div class="ua-sa-pickup-list" id="saNearbyPickup"></div>
+        </section>
+      </div>
+
+      <!-- 商城模式（无附近门店）：图 2-2 -->
+      <div class="ua-sa-body" id="saBodyMall" hidden>
+        <section class="ua-sa-block">
+          <div class="ua-sa-section-title">我的收货地址</div>
+          <div class="ua-sa-ship-list" id="saShipList"></div>
+        </section>
+        <section class="ua-sa-block">
+          <div class="ua-sa-section-title">附近地址</div>
+          <div class="ua-sa-near-list" id="saNearList"></div>
+        </section>
+      </div>
+
+      <!-- 搜索结果：图 2-3 / 搜索列表 -->
+      <div class="ua-sa-body" id="saBodySearch" hidden>
+        <section class="ua-sa-block">
+          <div class="ua-sa-section-title">当前定位地址</div>
+          <div class="ua-sa-search-list" id="saSearchList"></div>
+        </section>
+      </div>
+    </div>
+
+    <div class="ua-sa-toast" id="saToast" hidden></div>
+  </div>
+
+  <script src="../js/user-app-blacklist-guard.js"></script>
+  <script src="../js/user-app-switch-address.js?v=20260817-homebiz"></script>
+  <script>
+    if (window.UaSwitchAddress) UaSwitchAddress.initPage();
+  </script>
+</body>
+</html>

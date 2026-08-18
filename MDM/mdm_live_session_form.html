@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 直播场次编辑</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
+    <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
+    <link rel="stylesheet" href="../css/lf-product.css">
+    <link rel="stylesheet" href="../css/lf-live.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/live-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content mdm-edit-page">
+            <div class="content-tabs"><button class="active" id="sessionFormTab">新建直播场次</button></div>
+            <hr class="content-divider">
+
+            <div class="lf-live-form-toolbar">
+                <a class="lf-live-form-back" id="sessionFormBack" href="mdm_live_session.html">← 返回直播场次</a>
+            </div>
+
+            <form id="liveSessionForm" onsubmit="return false;">
+                <div class="pts-rule-card lf-live-card">
+                    <div class="pts-rule-card__title">基础信息</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>直播场次名称</label>
+                            <div class="pts-rule-field__control">
+                                <input class="erp-input" id="fName" placeholder="请输入直播场次名称" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>直播时段</label>
+                            <div class="pts-rule-field__control">
+                                <select class="erp-select" id="fSlot"></select>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>直播间</label>
+                            <div class="pts-rule-field__control">
+                                <select class="erp-select" id="fRoom"></select>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">主播用户ID</label>
+                            <div class="pts-rule-field__control">
+                                <input class="erp-input" id="fAnchorUserId" placeholder="系统根据直播间自动带出" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>直播类型</label>
+                            <div class="pts-rule-field__control">
+                                <select class="erp-select" id="fLiveType"></select>
+                                <p class="pts-rule-tip">官方直播仅限制是否会员可看；区域直播需配置会员权限与适用城市；定向直播需配置会员权限与适用门店。</p>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">主播名称</label>
+                            <div class="pts-rule-field__control">
+                                <input class="erp-input" id="fAnchorName" readonly disabled placeholder="系统根据直播间自动带出">
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>开播时间</label>
+                            <div class="pts-rule-field__control">
+                                <input class="erp-input" id="fStartAt" type="datetime-local">
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>结束时间</label>
+                            <div class="pts-rule-field__control">
+                                <input class="erp-input" id="fEndAt" type="datetime-local">
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">直播封面</label>
+                            <div class="pts-rule-field__control">
+                                <div class="lf-live-upload" id="fCoverBox">
+                                    <div class="lf-live-upload__placeholder" id="fCoverPlaceholder">点击上传封面<br><span>建议 5:3 横图，JPG/PNG</span></div>
+                                    <input type="file" id="fCoverFile" accept="image/jpeg,image/png" hidden>
+                                </div>
+                                <input type="hidden" id="fCover">
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">直播简介</label>
+                            <div class="pts-rule-field__control">
+                                <textarea class="erp-input lf-live-textarea" id="fIntro" rows="3" placeholder="请输入直播简介"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-card lf-live-card">
+                    <div class="pts-rule-card__title">关播设置</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">直播自动关播</label>
+                            <div class="pts-rule-field__control">
+                                <div class="lf-live-field-switch-row">
+                                    <button type="button" class="lf-live-switch" id="fAutoCloseEnabled" aria-pressed="false"></button>
+                                </div>
+                                <p class="pts-rule-tip">开启后，断流达到设定时长将自动结束本场直播。</p>
+                            </div>
+                        </div>
+                        <div id="fAutoCloseExtra" hidden>
+                            <div class="pts-rule-field">
+                                <label class="pts-rule-field__label"><span class="erp-req">*</span>断流自动关播</label>
+                                <div class="pts-rule-field__control">
+                                    <div class="pts-rule-unit">
+                                        <span class="pts-rule-unit__text">直播断流</span>
+                                        <input class="erp-input" id="fAutoCloseMinutes" type="number" min="0" max="1440" step="1" placeholder="0-1440">
+                                        <span class="pts-rule-unit__text">分钟后自动关播</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pts-rule-field">
+                                <label class="pts-rule-field__label">关播后同步下架直播商品</label>
+                                <div class="pts-rule-field__control">
+                                    <div class="lf-live-field-switch-row">
+                                        <button type="button" class="lf-live-switch" id="fRemoveOnClose" aria-pressed="false"></button>
+                                    </div>
+                                    <p class="pts-rule-tip">开启后，关播时将本场所有直播商品下架，不再展示于 C 端小黄车（不改直播排品上下架）。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-card lf-live-card">
+                    <div class="pts-rule-card__title">C端人数展示</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">C端人数展示</label>
+                            <div class="pts-rule-field__control">
+                                <div class="lf-live-radio-row">
+                                    <label class="lf-live-radio"><input type="radio" name="fCViewerDisplay" value="online" checked> 实际在线人数</label>
+                                    <label class="lf-live-radio"><input type="radio" name="fCViewerDisplay" value="unique"> 累计观看人数</label>
+                                    <label class="lf-live-radio"><input type="radio" name="fCViewerDisplay" value="visits"> 累计观看人次</label>
+                                </div>
+                                <p class="pts-rule-tip">展示在直播间顶部的人数口径。三种口径均可叠加初始值，以及每真实增加 1 人/次时的随机跟随人数。</p>
+                            </div>
+                        </div>
+                        <div id="fCViewerBoost">
+                            <div class="pts-rule-field">
+                                <label class="pts-rule-field__label">初始值</label>
+                                <div class="pts-rule-field__control">
+                                    <div class="pts-rule-unit">
+                                        <input class="erp-input lf-live-num-lg" id="fCViewerInitial" type="number" min="0" max="999999" step="1" placeholder="0-999999">
+                                        <span class="pts-rule-unit__text">（0-999999）</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pts-rule-field">
+                                <label class="pts-rule-field__label">额外跟随人数</label>
+                                <div class="pts-rule-field__control">
+                                    <div class="pts-rule-unit">
+                                        <span class="pts-rule-unit__text">每真实增加 1 人/次，额外跟随随机</span>
+                                        <input class="erp-input lf-live-num-sm" id="fCViewerExtraMin" type="number" min="0" max="100" step="1" placeholder="0">
+                                        <span class="pts-rule-unit__text">-</span>
+                                        <input class="erp-input lf-live-num-sm" id="fCViewerExtraMax" type="number" min="0" max="100" step="1" placeholder="0">
+                                        <span class="pts-rule-unit__text">人（0-100）</span>
+                                    </div>
+                                    <p class="pts-rule-tip">下限不能大于上限。C 端展示 = 初始值 + 真实数量 + 每次真实增加时随机跟随的人数之和。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-card lf-live-card">
+                    <div class="pts-rule-card__title">分发与可见范围</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">是否会员可看</label>
+                            <div class="pts-rule-field__control">
+                                <div class="lf-live-radio-row" id="fViewPermission"></div>
+                                <p class="pts-rule-tip" id="fViewPermissionTip">官方直播仅可限制本场是否仅会员可看。</p>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field" id="fRegionRow" hidden>
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>适用城市</label>
+                            <div class="pts-rule-field__control">
+                                <div class="product-proxy-sale-scope__region">
+                                    <div class="product-proxy-sale-scope__alert">
+                                        <span class="product-proxy-sale-scope__alert-icon">i</span>
+                                        <span class="product-proxy-sale-scope__alert-text">支持按省 / 市 / 区配置可见范围，可勾选整省、整市或具体区县</span>
+                                    </div>
+                                    <button type="button" class="product-proxy-sale-scope__pick" id="fRegionPickBtn">+ 选择区域</button>
+                                    <div class="product-proxy-sale-scope__tags" id="fRegionTags"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field" id="fStoreRow" hidden>
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>适用门店</label>
+                            <div class="pts-rule-field__control">
+                                <div class="product-proxy-sale-scope__store">
+                                    <button type="button" class="product-proxy-sale-scope__pick" id="fStorePickBtn">+ 选择门店</button>
+                                    <p class="product-proxy-sale-scope__store-count" id="fStoreCount" hidden>已选择 0 个门店</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-card lf-live-card" id="tencentCard" hidden>
+                    <div class="pts-rule-card__title">腾讯云直播参数</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">推流地址</label>
+                            <div class="pts-rule-field__control">
+                                <input class="erp-input" id="fPushUrl" readonly placeholder="系统自动生成">
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">播放地址</label>
+                            <div class="pts-rule-field__control">
+                                <input class="erp-input" id="fPlayUrl" readonly placeholder="系统自动生成">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-card lf-live-card">
+                    <div class="pts-rule-card__title">营销模板</div>
+                    <div class="pts-rule-card__body">
+                        <div class="lf-live-template-bound">
+                            <div class="lf-live-template-bound__label">已绑定模板</div>
+                            <div id="fTemplateList" class="lf-live-template-tags"></div>
+                        </div>
+                        <div class="lf-live-template-form">
+                            <div class="pts-rule-field">
+                                <label class="pts-rule-field__label">模板类型</label>
+                                <div class="pts-rule-field__control">
+                                    <select class="erp-select" id="fTplType">
+                                        <option value="">请选择模板类型</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="pts-rule-field">
+                                <label class="pts-rule-field__label">模板名称</label>
+                                <div class="pts-rule-field__control">
+                                    <select class="erp-select" id="fTplName" disabled>
+                                        <option value="">请先选择模板类型</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="pts-rule-field" id="fTplStockRow" hidden>
+                                <label class="pts-rule-field__label">发放数量</label>
+                                <div class="pts-rule-field__control">
+                                    <input class="erp-input" id="fTplStock" type="number" min="1" step="1" value="1">
+                                </div>
+                            </div>
+                            <div class="pts-rule-field">
+                                <label class="pts-rule-field__label"></label>
+                                <div class="pts-rule-field__control">
+                                    <button type="button" class="erp-btn erp-btn--primary" id="fTplAddBtn">添加模板</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <div class="mdm-edit-page__footer">
+                <button type="button" class="erp-btn" id="sessionFormCancel">取消</button>
+                <button type="button" class="erp-btn erp-btn--primary" id="sessionFormSave">保存</button>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-product-proxy-region-picker.js"></script>
+    <script src="../js/mdm-product-proxy-store-picker.js"></script>
+    <script src="../js/mdm-live-demo-data.js"></script>
+    <script src="../js/mdm-live-session-form.js"></script>
+</body>
+</html>

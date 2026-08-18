@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 直播中控</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-live.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/live-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content lf-live-control-page">
+            <div class="lf-live-control-topbar">
+                <button type="button" class="lf-live-control-back" id="controlBackBtn">← 返回直播场次</button>
+                <div class="lf-live-control-topbar__meta" id="controlSessionMeta" hidden></div>
+                <div class="lf-live-control-topbar__main" id="controlPickerTitle">
+                    <span class="lf-live-control-topbar__title">直播中控</span>
+                </div>
+                <div class="lf-live-control-topbar__right" id="controlTopActions" hidden>
+                    <span class="lf-live-badge" id="controlStatusBadge">—</span>
+                    <button type="button" class="erp-btn" id="btnPushUrl">推流地址</button>
+                    <button type="button" class="erp-btn erp-btn--primary" id="btnStartLive">开始直播</button>
+                    <button type="button" class="erp-btn erp-btn--danger" id="btnStopLive">关闭直播</button>
+                </div>
+            </div>
+
+            <div id="controlPicker" class="lf-live-control-picker">
+                <div class="lf-live-empty-tip">选择一个直播场次后，可以进入直播中控工作台</div>
+                <div class="lf-live-session-picker">
+                    <label for="controlSessionSelect">选择直播场次</label>
+                    <select id="controlSessionSelect"></select>
+                    <button type="button" class="erp-btn erp-btn--primary" id="controlEnterBtn">进入</button>
+                </div>
+            </div>
+
+            <div id="controlWorkspace" class="lf-live-control-workspace" hidden>
+                <section class="lf-live-control-col lf-live-control-col--broadcast">
+                    <div class="lf-live-panel lf-live-panel--fill">
+                        <div class="lf-live-broadcast-preview" id="broadcastPreview">
+                            <div class="lf-live-broadcast-preview__placeholder">直播画面</div>
+                            <div class="lf-live-danmu-overlay" id="broadcastDanmu"></div>
+                        </div>
+                        <div class="lf-live-interact">
+                            <div class="lf-live-interact-tools">
+                                <button type="button" class="erp-btn" id="btnVirtualAccount">虚拟互动账号</button>
+                                <button type="button" class="erp-btn" id="btnQuickReply">快捷回复</button>
+                            </div>
+                            <div class="lf-live-quick-reply" id="quickReplyBox" hidden></div>
+                            <div class="lf-live-danmu-send">
+                                <button type="button" class="erp-btn" id="btnMuteChat" aria-pressed="false">禁言</button>
+                                <textarea class="erp-input" id="controlDanmuInput" rows="2" placeholder="发送弹幕..." autocomplete="off"></textarea>
+                                <button type="button" class="erp-btn erp-btn--primary" id="btnSendDanmu">发送</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="lf-live-control-col lf-live-control-col--center">
+                    <div class="lf-live-panel lf-live-panel--fill">
+                        <div class="lf-live-ctabs" id="controlMainTabs">
+                            <button type="button" class="is-active" data-main-tab="product">商品</button>
+                            <button type="button" data-main-tab="coupon">发券</button>
+                            <button type="button" data-main-tab="bag">福袋</button>
+                            <button type="button" data-main-tab="sign">签到</button>
+                            <button type="button" data-main-tab="task">观看任务</button>
+                        </div>
+
+                        <div id="controlTabProduct" class="lf-live-ctab-pane">
+                            <div class="lf-live-subtabs-row">
+                                <div class="lf-live-subtabs" id="controlProductSubTabs">
+                                    <button type="button" class="is-active lf-live-subtab-tip" data-product-tab="cart" id="controlCartTabBtn" data-tip="直播商品处的上下架并不会修改直播排品的上下架，只是控制在直播商品（C端小黄车）是否展示。">直播商品(0)</button>
+                                    <button type="button" data-product-tab="sched" id="controlSchedTabBtn">直播排品</button>
+                                </div>
+                                <button type="button" class="erp-btn" id="btnCartSettings">设置</button>
+                            </div>
+
+                            <div id="controlCartPane">
+                                <form class="lf-live-control-filter lf-live-control-filter--bare" id="controlCartFilter" onsubmit="return false;">
+                                    <input class="erp-input" id="cartFilterName" placeholder="商品名称">
+                                    <input class="erp-input" id="cartFilterSku" placeholder="商品编号">
+                                    <button type="button" class="erp-btn" id="cartFilterReset">重置</button>
+                                    <button type="button" class="erp-btn erp-btn--primary" id="cartFilterQuery">查询</button>
+                                </form>
+                                <div class="lf-live-cart-toolbar">
+                                    <label class="lf-live-checkall">
+                                        <input type="checkbox" id="cartSelectAll"> 全选
+                                    </label>
+                                    <span class="lf-live-cart-count" id="controlCartCount">共 0 件</span>
+                                    <div class="lf-live-cart-toolbar__ops">
+                                        <button type="button" class="erp-btn" id="btnCartBatchRemove">批量下架</button>
+                                        <button type="button" class="erp-btn" id="btnCartTimedRemove">定时下架</button>
+                                        <button type="button" class="erp-btn erp-btn--primary" id="btnGoSched">从直播排品添加</button>
+                                    </div>
+                                </div>
+                                <div class="lf-live-product-list" id="controlCartList"></div>
+                            </div>
+
+                            <div id="controlSchedPane" hidden>
+                                <div class="mdm-biz-tip mdm-biz-tip--flush" role="note">仅展示本场已<strong>上架</strong>且尚未加入直播商品的排品，添加后会从本列表隐藏。</div>
+                                <form class="lf-live-control-filter lf-live-control-filter--bare" id="controlSchedFilter" onsubmit="return false;">
+                                    <input class="erp-input" id="schedFilterName" placeholder="商品名称">
+                                    <input class="erp-input" id="schedFilterSku" placeholder="商品编号">
+                                    <select class="erp-select" id="schedFilterCategory"></select>
+                                    <button type="button" class="erp-btn" id="schedFilterReset">重置</button>
+                                    <button type="button" class="erp-btn erp-btn--primary" id="schedFilterQuery">查询</button>
+                                </form>
+                                <div class="lf-live-cart-toolbar">
+                                    <label class="lf-live-checkall">
+                                        <input type="checkbox" id="schedSelectAll"> 全选
+                                    </label>
+                                    <span class="lf-live-cart-count" id="controlSchedCount">共 0 件</span>
+                                    <div class="lf-live-cart-toolbar__ops">
+                                        <button type="button" class="erp-btn erp-btn--primary" id="btnSchedBatchAdd">批量添加</button>
+                                        <button type="button" class="erp-btn" id="btnSchedTimedAdd">定时添加</button>
+                                    </div>
+                                </div>
+                                <div class="lf-live-product-list" id="controlSchedList"></div>
+                            </div>
+                        </div>
+
+                        <div id="controlTabWelfare" class="lf-live-ctab-pane" hidden>
+                            <div class="lf-live-welfare-pane">
+                                <div class="lf-live-welfare-pane__title" id="welfarePaneTitle">发放优惠券</div>
+                                <p class="lf-live-welfare-pane__hint" id="welfarePaneHint">向当前直播间发放本场已绑定的营销活动。</p>
+                                <button type="button" class="erp-btn erp-btn--primary" id="btnDeliverWelfare">立即发放</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <aside class="lf-live-control-col lf-live-control-col--side">
+                    <div class="lf-live-panel lf-live-panel--fill">
+                        <div class="lf-live-subtabs" id="controlSideTabs">
+                            <button type="button" class="is-active" data-side-tab="metrics">实时数据</button>
+                            <button type="button" data-side-tab="chat">全部弹幕</button>
+                            <button type="button" data-side-tab="watch">观看记录</button>
+                        </div>
+                        <div id="sidePaneMetrics">
+                            <div class="lf-live-monitor-sales">
+                                <div class="lf-live-monitor-sales__value" id="monitorSales">¥0.00</div>
+                                <div class="lf-live-monitor-sales__label">销售总额</div>
+                            </div>
+                            <div class="lf-live-monitor-grid" id="monitorMetrics"></div>
+                        </div>
+                        <div id="sidePaneChat" class="lf-live-chat-list" hidden></div>
+                        <div id="sidePaneWatch" class="lf-live-watch-pane" hidden>
+                            <div class="lf-live-watch-subtabs" id="watchSubTabs">
+                                <button type="button" class="is-active" data-watch-tab="online" id="watchTabOnline">当前在线(0人)</button>
+                                <button type="button" data-watch-tab="unique" id="watchTabUnique">累计观看(0人)</button>
+                                <button type="button" data-watch-tab="visits" id="watchTabVisits">观看人次(0人次)</button>
+                            </div>
+                            <div class="lf-live-watch-toolbar">
+                                <button type="button" class="erp-btn" id="watchSortBtn">倒序</button>
+                                <select class="erp-select" id="watchStatusFilter">
+                                    <option value="">全部状态</option>
+                                    <option value="muted">禁言</option>
+                                    <option value="normal">正常</option>
+                                </select>
+                            </div>
+                            <div class="lf-live-watch-list" id="watchListBody"></div>
+                        </div>
+                        <div id="monitorOrderWrap">
+                            <div class="lf-live-panel__subheader">
+                                <span id="monitorOrderTitle">实时订单(0)</span>
+                            </div>
+                            <div class="lf-live-order-list" id="monitorOrders"></div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+
+    <div id="pushUrlDialog" class="lf-live-dialog" hidden>
+        <div class="lf-live-dialog__mask" data-close-dialog="pushUrlDialog"></div>
+        <div class="lf-live-dialog__box" role="dialog" aria-labelledby="pushUrlTitle">
+            <div class="lf-live-dialog__title" id="pushUrlTitle">推流地址</div>
+            <p class="lf-live-dialog__hint">可直接复制推流链接到 OBS。</p>
+            <div class="lf-live-copy-row">
+                <input class="erp-input" id="broadcastPushUrl" readonly>
+                <button type="button" class="erp-btn erp-btn--primary" id="btnCopyPush">复制</button>
+            </div>
+            <div class="lf-live-dialog__footer">
+                <button type="button" class="erp-btn" data-close-dialog="pushUrlDialog">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cartSettingsDialog" class="lf-live-dialog" hidden>
+        <div class="lf-live-dialog__mask" data-close-dialog="cartSettingsDialog"></div>
+        <div class="lf-live-dialog__box lf-live-dialog__box--settings" role="dialog" aria-labelledby="cartSettingsTitle">
+            <div class="lf-live-dialog__title" id="cartSettingsTitle">直播设置</div>
+            <div class="lf-live-set-row">
+                <span class="lf-live-set-row__label">直播自动关播</span>
+                <div class="lf-live-set-row__ctrl">
+                    <button type="button" class="lf-live-switch" id="dlgAutoCloseEnabled" aria-pressed="false"></button>
+                </div>
+            </div>
+            <div id="dlgAutoCloseExtra" hidden>
+                <div class="lf-live-set-row">
+                    <span class="lf-live-set-row__label"><span class="erp-req">*</span>断流自动关播</span>
+                    <div class="lf-live-set-row__ctrl lf-live-set-follow">
+                        <span>直播断流</span>
+                        <input class="erp-input" type="number" min="0" max="1440" step="1" id="dlgAutoCloseMinutes" placeholder="0-1440">
+                        <span>分钟后自动关播</span>
+                    </div>
+                </div>
+                <div class="lf-live-set-row">
+                    <span class="lf-live-set-row__label">关播后同步下架所有直播商品</span>
+                    <div class="lf-live-set-row__ctrl">
+                        <button type="button" class="lf-live-switch" id="dlgRemoveOnClose" aria-pressed="false"></button>
+                    </div>
+                </div>
+            </div>
+            <div class="lf-live-set-row">
+                <span class="lf-live-set-row__label">C端人数展示</span>
+                <div class="lf-live-set-row__ctrl lf-live-set-row__ctrl--radios">
+                    <label class="lf-live-radio"><input type="radio" name="dlgCViewerDisplay" value="online" checked> 实际在线人数</label>
+                    <label class="lf-live-radio"><input type="radio" name="dlgCViewerDisplay" value="unique"> 累计观看人数</label>
+                    <label class="lf-live-radio"><input type="radio" name="dlgCViewerDisplay" value="visits"> 累计观看人次</label>
+                </div>
+            </div>
+            <div id="dlgCViewerBoost">
+                <div class="lf-live-set-row">
+                    <span class="lf-live-set-row__label">初始值</span>
+                    <div class="lf-live-set-row__ctrl lf-live-set-row__ctrl--inline">
+                        <input class="erp-input lf-live-num-lg" type="number" min="0" max="999999" step="1" id="dlgCViewerInitial" placeholder="0-999999">
+                    </div>
+                </div>
+                <div class="lf-live-set-row">
+                    <span class="lf-live-set-row__label">额外跟随人数</span>
+                    <div class="lf-live-set-row__ctrl lf-live-set-follow">
+                        <span class="lf-live-set-follow__text">每真实增加 1 人/次，额外跟随随机</span>
+                        <span class="lf-live-set-follow__range">
+                            <input class="erp-input" type="number" min="0" max="100" step="1" id="dlgCViewerExtraMin" placeholder="0">
+                            <span>-</span>
+                            <input class="erp-input" type="number" min="0" max="100" step="1" id="dlgCViewerExtraMax" placeholder="0">
+                            <span>人</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="lf-live-dialog__footer">
+                <button type="button" class="erp-btn" data-close-dialog="cartSettingsDialog">取消</button>
+                <button type="button" class="erp-btn erp-btn--primary" id="cartSettingsConfirm">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="timedRemoveDialog" class="lf-live-dialog" hidden>
+        <div class="lf-live-dialog__mask" data-close-dialog="timedRemoveDialog"></div>
+        <div class="lf-live-dialog__box" role="dialog">
+            <div class="lf-live-dialog__title">定时下架</div>
+            <p class="lf-live-dialog__hint" id="timedRemoveHint">将按设定时间把选中商品从直播商品（C端小黄车）下架。</p>
+            <div class="lf-live-dialog__field">
+                <span>下架时间</span>
+                <input class="erp-input" type="datetime-local" id="timedRemoveAt">
+            </div>
+            <div class="lf-live-dialog__footer">
+                <button type="button" class="erp-btn" data-close-dialog="timedRemoveDialog">取消</button>
+                <button type="button" class="erp-btn erp-btn--primary" id="timedRemoveConfirm">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="danmuActMenu" class="lf-live-danmu-menu" hidden>
+        <button type="button" data-danmu-act="mute" id="danmuActMute">禁言</button>
+        <button type="button" data-danmu-act="reply">回复</button>
+        <button type="button" data-danmu-act="block" id="danmuActBlock">屏蔽</button>
+    </div>
+
+    <div id="danmuReplyDialog" class="lf-live-dialog" hidden>
+        <div class="lf-live-dialog__mask" data-close-dialog="danmuReplyDialog"></div>
+        <div class="lf-live-dialog__box" role="dialog" aria-labelledby="danmuReplyTitle">
+            <div class="lf-live-dialog__title" id="danmuReplyTitle">发消息</div>
+            <p class="lf-live-dialog__hint">将发送到本场直播间，观众可见。</p>
+            <div class="lf-live-dialog__field lf-live-dialog__field--col">
+                <span>消息内容</span>
+                <textarea class="erp-input" id="danmuReplyText" rows="3" placeholder="输入回复内容"></textarea>
+            </div>
+            <div class="lf-live-dialog__footer">
+                <button type="button" class="erp-btn" data-close-dialog="danmuReplyDialog">取消</button>
+                <button type="button" class="erp-btn erp-btn--primary" id="danmuReplySend">发送</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addCartDialog" class="lf-live-dialog" hidden>
+        <div class="lf-live-dialog__mask" data-close-dialog="addCartDialog"></div>
+        <div class="lf-live-dialog__box" role="dialog">
+            <div class="lf-live-dialog__title" id="addCartTitle">添加到直播商品</div>
+            <p class="lf-live-dialog__hint" id="addCartHint">请选择加入直播商品后的状态。</p>
+            <div class="lf-live-dialog__field">
+                <span><span class="erp-req">*</span>状态</span>
+                <label class="lf-live-radio"><input type="radio" name="addCartSaleMode" value="selling" checked> 上架</label>
+                <label class="lf-live-radio"><input type="radio" name="addCartSaleMode" value="preview"> 预告</label>
+            </div>
+            <div class="lf-live-dialog__footer">
+                <button type="button" class="erp-btn" data-close-dialog="addCartDialog">取消</button>
+                <button type="button" class="erp-btn erp-btn--primary" id="addCartConfirm">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="timedAddDialog" class="lf-live-dialog" hidden>
+        <div class="lf-live-dialog__mask" data-close-dialog="timedAddDialog"></div>
+        <div class="lf-live-dialog__box" role="dialog">
+            <div class="lf-live-dialog__title">定时添加到直播商品</div>
+            <p class="lf-live-dialog__hint" id="timedAddHint">可指定时间添加，或在开播后自动添加。</p>
+            <div class="lf-live-dialog__field">
+                <label class="lf-live-radio"><input type="radio" name="timedAddMode" value="at" checked> 指定时间</label>
+            </div>
+            <div class="lf-live-dialog__field">
+                <span>添加时间</span>
+                <input class="erp-input" type="datetime-local" id="timedAddAt">
+            </div>
+            <div class="lf-live-dialog__field">
+                <label class="lf-live-radio"><input type="radio" name="timedAddMode" value="on_live_start"> 开播后自动添加</label>
+            </div>
+            <div class="lf-live-dialog__field">
+                <span><span class="erp-req">*</span>状态</span>
+                <label class="lf-live-radio"><input type="radio" name="timedAddSaleMode" value="selling" checked> 上架</label>
+                <label class="lf-live-radio"><input type="radio" name="timedAddSaleMode" value="preview"> 预告</label>
+            </div>
+            <div class="lf-live-dialog__footer">
+                <button type="button" class="erp-btn" data-close-dialog="timedAddDialog">取消</button>
+                <button type="button" class="erp-btn erp-btn--primary" id="timedAddConfirm">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-live-demo-data.js"></script>
+    <script src="../js/mdm-live-control.js"></script>
+</body>
+</html>

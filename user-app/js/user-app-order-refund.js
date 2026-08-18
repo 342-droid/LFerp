@@ -350,6 +350,25 @@
     });
   }
 
+  var CANCEL_BLOCK_AFTERSALE_TYPES = {
+    refund_only: true,
+    pre_ship: true,
+    return: true,
+    restock: true,
+    exchange: true
+  };
+
+  /** 仅退款 / 退货退款 / 补货 / 换货未完结时，各端均不可取消订单。 */
+  function hasOpenAftersaleBlockingCancel(orderNo) {
+    var no = resolveOrderNo(orderNo);
+    if (!no) return false;
+    return loadAftersaleRecords().some(function (r) {
+      if (!r || !CANCEL_BLOCK_AFTERSALE_TYPES[r.type]) return false;
+      if (String(r.orderNo || '') !== no) return false;
+      return !isAftersaleFinished(r);
+    });
+  }
+
   function getMergedRefundAmount(records) {
     return (records || [])
       .filter(function (r) {
@@ -2758,6 +2777,19 @@
   function buildCheckoutReturnHref() {
     var from = getParams().get('from') || 'restock.html';
     return 'checkout.html?from=' + encodeURIComponent(from);
+  }
+
+  function buildOrderConfirmReturnHref() {
+    var from = getParams().get('from') || 'order-confirm.html';
+    try {
+      var decoded = decodeURIComponent(from);
+      if (/order-confirm\.html/i.test(decoded) || /order-confirm(\?|$)/i.test(decoded)) {
+        return decoded;
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return 'order-confirm.html';
   }
 
   function buildPickupEditReturnHref(extra) {
@@ -9062,13 +9094,15 @@
     var backHref =
       addrFrom === 'checkout'
         ? buildCheckoutReturnHref()
-        : addrFrom === 'profile'
-          ? buildProfileReturnHref()
-          : buildPickupEditHref({
-              type: refundType,
-              stage: stage,
-              pickupEditFrom: getPickupEditFrom()
-            });
+        : addrFrom === 'order_confirm'
+          ? buildOrderConfirmReturnHref()
+          : addrFrom === 'profile'
+            ? buildProfileReturnHref()
+            : buildPickupEditHref({
+                type: refundType,
+                stage: stage,
+                pickupEditFrom: getPickupEditFrom()
+              });
     var backEl = document.getElementById('addrBookBack');
     if (backEl) backEl.setAttribute('href', backHref);
 
@@ -10390,6 +10424,7 @@
     getAftersaleProgressView: getAftersaleProgressView,
     getAftersaleTypeGroup: getAftersaleTypeGroup,
     hasOpenAftersaleOfGroup: hasOpenAftersaleOfGroup,
+    hasOpenAftersaleBlockingCancel: hasOpenAftersaleBlockingCancel,
     getMergedRefundAmount: getMergedRefundAmount,
     getItemRefundedPickupQty: getItemRefundedPickupQty,
     getItemRemainingPickupQty: getItemRemainingPickupQty,

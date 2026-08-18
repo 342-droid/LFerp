@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>我的 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
-  <link rel="stylesheet" href="../css/user-app-profile.css">
+  <link rel="stylesheet" href="../css/user-app-profile.css?v=20260817-hoursonly">
   <link rel="stylesheet" href="../css/user-app-queue.css">
   <link rel="stylesheet" href="../css/user-app-login.css">
-  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260723-shop">
+  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260817-homebiz">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-profile-page">
@@ -164,6 +164,27 @@
           </svg>
         </section>
 
+        <section class="ua-card ua-default-pickup" id="uaDefaultPickupCard">
+          <div class="ua-default-pickup__head">
+            <h2 class="ua-default-pickup__title">我的默认门店</h2>
+            <a href="switch-address.html?from=profile.html" class="ua-default-pickup__switch" id="uaDefaultPickupSwitch">切换门店</a>
+          </div>
+          <div class="ua-default-pickup__body">
+            <img class="ua-default-pickup__avatar" id="uaDefaultPickupAvatar" src="../assets/shop/review-avatar.svg" alt="">
+            <div class="ua-default-pickup__info">
+              <div class="ua-default-pickup__name-row">
+                <div class="ua-default-pickup__name" id="uaDefaultPickupName">江滨花园物业处2楼</div>
+                <span class="ua-default-pickup__biz-hours" id="uaDefaultPickupBizHours">08:00-22:00</span>
+              </div>
+              <div class="ua-default-pickup__addr" id="uaDefaultPickupAddr">浙江省杭州市滨江区江滨花园滨盛路4199号</div>
+              <div class="ua-default-pickup__meta">
+                <span class="ua-default-pickup__leader" id="uaDefaultPickupLeader">店长：店长阿杰 157****8933</span>
+                <span class="ua-default-pickup__dist" id="uaDefaultPickupDist">距您：14.4km</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section class="ua-card ua-service-card">
           <h2 class="ua-service-title">功能服务</h2>
           <nav class="ua-service-list">
@@ -262,6 +283,7 @@
       </span>
     </nav>
   </div>
+  <script src="../js/user-app-blacklist-guard.js"></script>
   <script src="../js/user-app-queue.js"></script>
   <script src="../js/user-app-nav.js"></script>
   <script src="../js/user-app-auth.js"></script>
@@ -270,6 +292,7 @@
   <script src="../../js/mdm-marketing-cash-redpack-store.js"></script>
   <script src="../../js/mdm-marketing-newcomer-zone-config.js"></script>
   <script src="../js/user-app-shop.js?v=20260723-shop"></script>
+  <script src="../js/user-app-switch-address.js?v=20260817-hoursonly"></script>
   <script src="../js/user-app-profile.js"></script>
   <script src="../js/user-app-register-gift.js"></script>
   <script>
@@ -291,6 +314,57 @@
           nzLink.href = window.UaNav.withFrom('newcomer-zone.html', 'profile.html');
         }
       }
+
+      /* 我的默认门店：社区门店定位时展示；商城模式（快递）隐藏 */
+      function syncDefaultPickupCard() {
+        var card = document.getElementById('uaDefaultPickupCard');
+        if (!card) return;
+        var ctx =
+          window.UaSwitchAddress && typeof window.UaSwitchAddress.readCtx === 'function'
+            ? window.UaSwitchAddress.readCtx()
+            : null;
+        var isMall = ctx && ctx.mode === 'mall' && ctx.picked;
+        card.hidden = !!isMall;
+        if (isMall) return;
+
+        var nameEl = document.getElementById('uaDefaultPickupName');
+        var addrEl = document.getElementById('uaDefaultPickupAddr');
+        var leaderEl = document.getElementById('uaDefaultPickupLeader');
+        var distEl = document.getElementById('uaDefaultPickupDist');
+        var avatarEl = document.getElementById('uaDefaultPickupAvatar');
+        if (ctx && ctx.mode === 'community' && ctx.displayName && nameEl) {
+          nameEl.textContent = ctx.displayName;
+        }
+        if (ctx && ctx.mode === 'community' && (ctx.storeAddr || ctx.locateAddr) && addrEl) {
+          addrEl.textContent = ctx.storeAddr || ctx.locateAddr;
+        }
+        if (ctx && ctx.mode === 'community' && ctx.storeLeader && leaderEl) {
+          leaderEl.textContent = ctx.storeLeader;
+        }
+        if (ctx && ctx.mode === 'community' && ctx.storeDist && distEl) {
+          distEl.textContent = ctx.storeDist;
+        }
+        if (ctx && ctx.mode === 'community' && ctx.storeAvatar && avatarEl) {
+          avatarEl.src = ctx.storeAvatar;
+        }
+
+        var hoursEl = document.getElementById('uaDefaultPickupBizHours');
+        if (hoursEl && window.UaSwitchAddress && typeof window.UaSwitchAddress.getStoreBizMeta === 'function') {
+          var storeId =
+            (ctx && ctx.storeId) ||
+            'store-prod-verify';
+          var biz = window.UaSwitchAddress.getStoreBizMeta(storeId);
+          hoursEl.textContent = biz.hoursText;
+          hoursEl.hidden = false;
+        }
+
+        var switchBtn = document.getElementById('uaDefaultPickupSwitch');
+        if (switchBtn) {
+          switchBtn.href = 'switch-address.html?from=' + encodeURIComponent('profile.html');
+        }
+      }
+      syncDefaultPickupCard();
+
       /* 登录回流带 rg=1 时，在「我的」页也触发发放弹窗 */
       if (window.UaRegisterGift) UaRegisterGift.bootPage();
     })();

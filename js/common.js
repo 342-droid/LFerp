@@ -98,6 +98,7 @@ function loadHeader() {
         const isMdmOrderPage = pageFile.startsWith('mdm_order_');
         const isMdmAftersalePage = pageFile.startsWith('mdm_aftersale_');
         const isMdmMarketingPage = pageFile.startsWith('mdm_marketing_');
+        const isMdmLivePage = pageFile.startsWith('mdm_live_');
         const isMdmSettlePage = pageFile.startsWith('mdm_settle_');
         const isMdmBdPage = pageFile.startsWith('mdm_bd_');
         const isMdmProductPage = pageFile.startsWith('mdm_product_');
@@ -108,6 +109,7 @@ function loadHeader() {
             !isMdmOrderPage &&
             !isMdmAftersalePage &&
             !isMdmMarketingPage &&
+            !isMdmLivePage &&
             !isMdmSettlePage;
         const isMdmWorkbenchPage = pageFile === 'mdm_workbench.html';
         const isMdmDataCenterPage =
@@ -134,6 +136,7 @@ function loadHeader() {
                     <a href="${wp.page('mdm_order_retail.html')}" class="${isMdmOrderPage ? 'active' : ''}">订单</a>
                     <a href="${wp.page('mdm_aftersale_ticket.html')}" class="${isMdmAftersalePage ? 'active' : ''}">售后</a>
                     <a href="${wp.page('mdm_marketing_points_home.html')}" class="${isMdmMarketingPage ? 'active' : ''}">营销</a>
+                    <a href="${wp.page('mdm_live_room.html')}" class="${isMdmLivePage ? 'active' : ''}">直播</a>
                     <a href="${wp.page('index.html')}" class="${!isTmsPage && !isPurchasePage && !isBasicSettingsPage && !isAuthzDesignerPage && !isMdmPage && !isMobilePage ? 'active' : ''}">仓储</a>
                     <a href="${wp.page('TMS_index.html')}" class="${isTmsPage ? 'active' : ''}">物流</a>
                     <a href="${wp.page('purchase_index.html')}" class="${isPurchasePage ? 'active' : ''}">采购</a>
@@ -940,5 +943,42 @@ if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initChangelogEntry);
     } else {
         initChangelogEntry();
+    }
+})();
+
+/* 后台列表序号（仓储/采购/物流除外）：按侧栏自动启停 */
+(function () {
+    function assetUrl(rel) {
+        var wp = window.wmsPath;
+        if (wp && typeof wp.asset === 'function') return wp.asset(rel);
+        var p = String(window.location && window.location.pathname || '').replace(/\\/g, '/');
+        if (/\/(MDM|SCM|CRM)(\/|$)/i.test(p)) return '../' + rel;
+        return rel;
+    }
+    function loadRowNo() {
+        if (window.LfTableRowNo || document.getElementById('lf-table-row-no-js')) return;
+        var s = document.createElement('script');
+        s.id = 'lf-table-row-no-js';
+        s.src = assetUrl('js/lf-table-row-no.js') + '?v=20260817-row-td';
+        s.async = false;
+        (document.body || document.head).appendChild(s);
+    }
+    function loadFabDock() {
+        if (window.LfFileCenterNotify || document.getElementById('lf-fab-dock-js')) return;
+        if (/\/(shop-h5|user-app|store-app)\//i.test(window.location.pathname || '')) return;
+        var s = document.createElement('script');
+        s.id = 'lf-fab-dock-js';
+        s.src = assetUrl('js/lf-fab-dock.js') + '?v=20260816-fab1';
+        s.async = false;
+        (document.body || document.head).appendChild(s);
+    }
+    function boot() {
+        loadRowNo();
+        loadFabDock();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', boot);
+    } else {
+        boot();
     }
 })();

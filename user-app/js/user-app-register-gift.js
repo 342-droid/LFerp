@@ -15,6 +15,8 @@
   var PENDING_KEY = 'ua_register_gift_pending_v1';
   var SESSION_KEY = 'ua_user_session_v1';
   var GRANTED_KEY = 'ua_register_gift_granted_v1';
+  /* 引导下载/打开 APP 浮窗：本次启动关闭后不再展示，下次启动再出 */
+  var FLOAT_CLOSED_KEY = 'ua_rg_float_closed_v1';
 
   var DEFAULT_DEMO = {
     hasUnionId: false,
@@ -774,8 +776,29 @@
     setDemo({ deviceBoundPhone: true });
   }
 
+  function isFloatClosedThisLaunch() {
+    try {
+      return sessionStorage.getItem(FLOAT_CLOSED_KEY) === '1';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function markFloatClosedThisLaunch() {
+    try {
+      sessionStorage.setItem(FLOAT_CLOSED_KEY, '1');
+    } catch (e) {}
+  }
+
+  function clearFloatClosedThisLaunch() {
+    try {
+      sessionStorage.removeItem(FLOAT_CLOSED_KEY);
+    } catch (e) {}
+  }
+
   function renderFloatBar() {
     if (getClientMode() !== 'mini') return;
+    if (isFloatClosedThisLaunch()) return;
     ensureStyle();
     var old = document.getElementById('uaRgFloat');
     if (old) old.remove();
@@ -799,6 +822,7 @@
       alert(installed ? '原型演示：已唤起 APP' : '原型演示：跳转应用商店下载 APP');
     });
     document.getElementById('uaRgFloatClose').addEventListener('click', function () {
+      markFloatClosedThisLaunch();
       bar.remove();
     });
   }
@@ -866,6 +890,8 @@
       try {
         localStorage.removeItem(GRANTED_KEY);
       } catch (e) {}
+      /* 验收：刷新引导时允许本轮再次展示浮窗 */
+      clearFloatClosedThisLaunch();
       bootPage();
     });
   }

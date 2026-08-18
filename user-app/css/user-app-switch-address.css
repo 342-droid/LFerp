@@ -1,0 +1,413 @@
+/*!
+ * 用户 APP · 切换地址
+ * 图 2-1 附近有门店 / 图 2-2 商城模式 / 搜索结果列表
+ */
+
+.ua-sa-page {
+  background: #fff;
+}
+
+.ua-sa-nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 44px;
+  flex-shrink: 0;
+  background: #fff;
+}
+
+.ua-sa-nav__back {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #111;
+  text-decoration: none;
+}
+
+.ua-sa-nav__back svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ua-sa-nav__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #111;
+}
+
+.ua-sa-scroll {
+  padding: 8px 0 28px;
+}
+
+.ua-sa-search {
+  display: flex;
+  align-items: center;
+  margin: 0 16px 14px;
+  padding: 0 12px;
+  min-height: 36px;
+  background: #f3f3f3;
+  border-radius: 18px;
+  gap: 8px;
+}
+
+.ua-sa-search__region {
+  flex-shrink: 0;
+  max-width: 46%;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 13px;
+  color: #333;
+  font-family: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.ua-sa-search__divider {
+  flex-shrink: 0;
+  width: 1px;
+  height: 14px;
+  background: #d0d0d0;
+}
+
+.ua-sa-search__input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  height: 36px;
+  font-size: 13px;
+  color: #333;
+  font-family: inherit;
+  outline: none;
+}
+
+.ua-sa-search__input::placeholder {
+  color: #b0b0b0;
+}
+
+.ua-sa-locate {
+  padding: 0 16px 8px;
+}
+
+.ua-sa-section-title {
+  font-size: 13px;
+  color: #999;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.ua-sa-locate__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ua-sa-locate__addr {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ua-sa-locate__relocate {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 13px;
+  color: #d4a017;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.ua-sa-locate__relocate-icon {
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid #d4a017;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #d4a017;
+}
+
+.ua-sa-locate__relocate-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.ua-sa-block {
+  padding: 12px 16px 4px;
+}
+
+.ua-sa-pickup-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 0;
+  border: 0;
+  border-bottom: 1px solid #f0f0f0;
+  background: transparent;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.ua-sa-pickup-card:last-child {
+  border-bottom: 0;
+}
+
+.ua-sa-pickup-card__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #f5f5f5;
+}
+
+.ua-sa-pickup-card__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ua-sa-pickup-card__name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.35;
+  margin-bottom: 2px;
+}
+
+.ua-sa-pickup-card__biz-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 6px;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.ua-sa-pickup-card__biz {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.ua-sa-pickup-card__biz--open {
+  color: #1f9d55;
+}
+
+.ua-sa-pickup-card__biz--closed {
+  color: #5ac8fa;
+}
+
+.ua-sa-pickup-card__hours {
+  font-size: 12px;
+  color: #999;
+  white-space: nowrap;
+}
+
+.ua-sa-pickup-card__addr,
+.ua-sa-pickup-card__leader {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ua-sa-pickup-card__side {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.ua-sa-pickup-card__dist {
+  font-size: 12px;
+  color: #999;
+  white-space: nowrap;
+}
+
+.ua-sa-select-btn {
+  min-width: 52px;
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 14px;
+  background: #f0c14b;
+  color: #333;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.ua-sa-ship-item,
+.ua-sa-near-item,
+.ua-sa-search-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 0;
+  border: 0;
+  border-bottom: 1px solid #f0f0f0;
+  background: transparent;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.ua-sa-ship-item:last-child,
+.ua-sa-near-item:last-child,
+.ua-sa-search-item:last-child {
+  border-bottom: 0;
+}
+
+.ua-sa-ship-item__main,
+.ua-sa-search-item__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ua-sa-ship-item__title,
+.ua-sa-near-item__title,
+.ua-sa-search-item__title {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.35;
+  margin-bottom: 4px;
+}
+
+.ua-sa-ship-item__sub,
+.ua-sa-search-item__sub {
+  display: block;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ua-sa-near-item__title {
+  margin-bottom: 0;
+  font-weight: 500;
+}
+
+.ua-sa-search-item__dist {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #999;
+  white-space: nowrap;
+}
+
+.ua-sa-empty {
+  padding: 24px 0;
+  text-align: center;
+  font-size: 13px;
+  color: #bbb;
+}
+
+.ua-sa-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%);
+  z-index: 2200;
+  max-width: 80%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+}
+
+.ua-sa-toast[hidden] {
+  display: none !important;
+}
+
+/* 验收开关：左下，避开右下注册有礼 */
+.ua-sa-demo {
+  position: fixed;
+  left: 8px;
+  bottom: 72px;
+  z-index: 2300;
+  width: 168px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #eee;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  font-size: 11px;
+  color: #333;
+}
+
+.ua-sa-demo__title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.ua-sa-demo__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.ua-sa-demo__row select {
+  margin-left: auto;
+  max-width: 88px;
+  font-size: 11px;
+}
+
+.ua-sa-demo__apply {
+  width: 100%;
+  height: 28px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 6px;
+  background: #ff7019;
+  color: #fff;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+}
