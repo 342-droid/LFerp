@@ -755,26 +755,30 @@
         : t.start + '–' + t.end;
     return (
       '<td class="product-proxy-table__td product-proxy-table__td--sale-time">' +
-      '<button type="button" class="product-sale-time-cell" data-sale-time-edit data-code="' +
+      '<div class="product-sale-time-cell" data-sale-time-wrap data-code="' +
       escapeHtml(item.code) +
       '" data-start="' +
       escapeHtml(t.start) +
       '" data-end="' +
       escapeHtml(t.end) +
-      '" title="点击编辑可售时间">' +
+      '">' +
       '<span class="product-sale-time-cell__text">' +
       escapeHtml(label) +
-      '</span></button></td>'
+      '</span>' +
+      '<button type="button" class="product-sale-time-cell__edit" data-sale-time-edit title="编辑可售时间" aria-label="编辑可售时间">' +
+      '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>' +
+      '</svg></button></div></td>'
     );
   }
 
-  function beginSaleTimeEdit(btn) {
-    if (!btn || btn.classList.contains('is-editing')) return;
-    var code = btn.getAttribute('data-code');
-    var start = btn.getAttribute('data-start') || '08:00';
-    var end = btn.getAttribute('data-end') || '22:00';
-    btn.classList.add('is-editing');
-    btn.innerHTML =
+  function beginSaleTimeEdit(wrap) {
+    if (!wrap || wrap.classList.contains('is-editing')) return;
+    var code = wrap.getAttribute('data-code');
+    var start = wrap.getAttribute('data-start') || '08:00';
+    var end = wrap.getAttribute('data-end') || '22:00';
+    wrap.classList.add('is-editing');
+    wrap.innerHTML =
       '<span class="product-sale-time-editor">' +
       '<input type="time" class="product-sale-time-editor__input" data-sale-start value="' +
       escapeHtml(start) +
@@ -784,7 +788,7 @@
       escapeHtml(end) +
       '">' +
       '</span>';
-    var startEl = btn.querySelector('[data-sale-start]');
+    var startEl = wrap.querySelector('[data-sale-start]');
     if (startEl) startEl.focus();
 
     function cleanup() {
@@ -792,10 +796,10 @@
     }
 
     function commit() {
-      if (!btn.classList.contains('is-editing')) return;
+      if (!wrap.classList.contains('is-editing')) return;
       cleanup();
-      var s = ((btn.querySelector('[data-sale-start]') || {}).value || '').trim();
-      var e = ((btn.querySelector('[data-sale-end]') || {}).value || '').trim();
+      var s = ((wrap.querySelector('[data-sale-start]') || {}).value || '').trim();
+      var e = ((wrap.querySelector('[data-sale-end]') || {}).value || '').trim();
       if (!s || !e) {
         renderTable();
         return;
@@ -822,7 +826,7 @@
     }
 
     function onDocDown(ev) {
-      if (btn.contains(ev.target)) return;
+      if (wrap.contains(ev.target)) return;
       commit();
     }
 
@@ -830,7 +834,7 @@
       document.addEventListener('mousedown', onDocDown, true);
     }, 0);
 
-    btn.querySelectorAll('input').forEach(function (input) {
+    wrap.querySelectorAll('input').forEach(function (input) {
       input.addEventListener('keydown', function (ev) {
         if (ev.key === 'Enter') {
           ev.preventDefault();
@@ -1068,12 +1072,15 @@
       });
 
     document.addEventListener('click', function (e) {
-      var saleTimeBtn = e.target.closest('[data-sale-time-edit]');
-      if (saleTimeBtn && !saleTimeBtn.classList.contains('is-editing')) {
-        e.preventDefault();
-        e.stopPropagation();
-        closeAllMoreMenus();
-        beginSaleTimeEdit(saleTimeBtn);
+      var saleTimeEdit = e.target.closest('[data-sale-time-edit]');
+      if (saleTimeEdit) {
+        var saleTimeWrap = saleTimeEdit.closest('[data-sale-time-wrap]');
+        if (saleTimeWrap && !saleTimeWrap.classList.contains('is-editing')) {
+          e.preventDefault();
+          e.stopPropagation();
+          closeAllMoreMenus();
+          beginSaleTimeEdit(saleTimeWrap);
+        }
         return;
       }
 

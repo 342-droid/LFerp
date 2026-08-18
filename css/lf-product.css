@@ -1751,8 +1751,8 @@ body.product-add-drawer-open {
 }
 
 .product-proxy-table__td--sale-time {
-  min-width: 118px;
-  max-width: 168px;
+  min-width: 142px;
+  max-width: 188px;
   overflow: hidden;
   white-space: nowrap;
 }
@@ -1833,9 +1833,10 @@ body.product-add-drawer-open {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   max-width: 100%;
   min-height: 28px;
-  padding: 2px 6px;
+  padding: 2px 4px 2px 6px;
   margin: 0;
   border: 1px solid transparent;
   border-radius: 4px;
@@ -1843,7 +1844,6 @@ body.product-add-drawer-open {
   color: #333;
   font-size: 13px;
   line-height: 1.4;
-  cursor: pointer;
   box-sizing: border-box;
 }
 
@@ -1853,8 +1853,23 @@ body.product-add-drawer-open {
   white-space: nowrap;
 }
 
-.product-sale-time-cell:hover {
-  border-color: #ffd0b0;
+.product-sale-time-cell__edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.product-sale-time-cell__edit:hover {
   background: #fff7f0;
   color: #ff7019;
 }
@@ -1866,7 +1881,6 @@ body.product-add-drawer-open {
   border-color: #ffd0b0;
   background: #fff;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-  cursor: default;
 }
 
 .product-sale-time-editor {
