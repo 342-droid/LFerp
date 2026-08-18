@@ -1,10 +1,69 @@
 {
-  "latestSha": "9773fc02bc2d16bb0d0a480d51c933f2ab0e2098",
-  "total": 270,
+  "latestSha": "3406059518bd993058dfd333f56144ec4ad5c0b6",
+  "total": 271,
   "days": [
     {
       "date": "2026-08-18",
       "items": [
+        {
+          "sha": "3406059",
+          "type": "feat",
+          "text": "完善购物车确认订单不可售弹框与勾选校验",
+          "author": "sisi",
+          "time": "18:26",
+          "pages": [
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/cart.html",
+              "text": "立即下单按勾选商品校验不可售；部分不可售弹框后失效进专区并跳转确认订单，文案为可继续下单；全部不可售只沉勾选项；点应用回到初始可售"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "text": "确认订单按场景弹出不可售弹框且 2 秒消失；部分不可售剔除后可继续支付；全部不可售点确定或超时回购物车"
+            }
+          ]
+        },
         {
           "sha": "9773fc0",
           "type": "feat",
