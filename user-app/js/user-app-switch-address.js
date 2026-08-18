@@ -412,6 +412,88 @@
     return s.slice(0, 14) + '...';
   }
 
+  /** 验收：有门店 = 社区定位+默认门店；无门店 = 商城/快递+收货地址 */
+  function applyNearbyDemo(force) {
+    var next = force === 'yes' || force === 'no' ? force : 'auto';
+    writeDemo({ nearbyForce: next });
+    var ctx = readCtx();
+    if (next === 'yes') {
+      var item = PICKUPS[0];
+      writeCtx(
+        Object.assign({}, ctx, {
+          mode: 'community',
+          nearbyHasPickup: true,
+          displayName: item.name,
+          shortName: item.name,
+          locateAddr: item.addr,
+          regionLabel: '浙江省/杭州市/西湖区',
+          storeAddr: item.addr,
+          storeLeader: item.leader,
+          storeDist: item.dist,
+          storeAvatar: item.avatar,
+          storeId: item.storeId || '',
+          shareLabel: SHARE_LABEL.community,
+          selectedPickupId: item.id,
+          selectedShipId: '',
+          picked: true,
+          pickedKind: 'store'
+        })
+      );
+      return;
+    }
+    if (next === 'no') {
+      var ship = SHIP_ADDRS[1];
+      writeCtx(
+        Object.assign({}, ctx, {
+          mode: 'mall',
+          nearbyHasPickup: false,
+          regionLabel: ship.regionLabel,
+          locateAddr: ship.locateAddr,
+          displayName: ship.title,
+          shortName: extractShortPlaceName(ship.title, ship.locateAddr),
+          storeAddr: '',
+          storeLeader: '',
+          storeDist: '',
+          storeAvatar: '',
+          storeId: '',
+          shareLabel: SHARE_LABEL.mall,
+          selectedShipId: ship.id,
+          selectedPickupId: '',
+          picked: true,
+          pickedKind: 'ship'
+        })
+      );
+    }
+  }
+
+  function mountHomeDemoPanel() {
+    if (!document.querySelector('.ua-home-page')) return;
+    if (document.getElementById('uaLocateDemo')) return;
+    var demo = readDemo();
+    var panel = document.createElement('div');
+    panel.id = 'uaLocateDemo';
+    panel.className = 'ua-locate-demo';
+    panel.innerHTML =
+      '<div class="ua-locate-demo__title">定位验收开关</div>' +
+      '<label class="ua-locate-demo__row">附近门店' +
+      '<select id="uaLocateDemoNearby">' +
+      '<option value="auto">按地址</option>' +
+      '<option value="yes">有门店</option>' +
+      '<option value="no">无门店</option>' +
+      '</select></label>' +
+      '<button type="button" class="ua-locate-demo__apply" id="uaLocateDemoApply">应用并刷新</button>';
+    document.body.appendChild(panel);
+    var sel = document.getElementById('uaLocateDemoNearby');
+    if (sel) sel.value = demo.nearbyForce || 'auto';
+    var apply = document.getElementById('uaLocateDemoApply');
+    if (apply) {
+      apply.addEventListener('click', function () {
+        applyNearbyDemo((sel && sel.value) || 'auto');
+        global.location.reload();
+      });
+    }
+  }
+
   function initPage() {
     var ctx = readCtx();
     var state = stateFromCtx(ctx);
@@ -774,7 +856,7 @@
       var apply = document.getElementById('uaSaDemoApply');
       if (apply) {
         apply.addEventListener('click', function () {
-          writeDemo({ nearbyForce: (sel && sel.value) || 'auto' });
+          applyNearbyDemo((sel && sel.value) || 'auto');
           global.location.reload();
         });
       }
@@ -841,6 +923,8 @@
   global.UaSwitchAddress = {
     initPage: initPage,
     syncHomeLocate: syncHomeLocate,
+    mountHomeDemoPanel: mountHomeDemoPanel,
+    applyNearbyDemo: applyNearbyDemo,
     readCtx: readCtx,
     writeCtx: writeCtx,
     getStoreBizMeta: getStoreBizMeta,
