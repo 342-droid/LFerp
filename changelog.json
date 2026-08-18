@@ -1,10 +1,206 @@
 {
-  "latestSha": "87441e78e145180a4d2734c832874180d92c6153",
-  "total": 267,
+  "latestSha": "3d5309868117aacf457eebfebbf2c932b847967c",
+  "total": 269,
   "days": [
+    {
+      "date": "2026-08-18",
+      "items": [
+        {
+          "sha": "3d53098",
+          "type": "feat",
+          "text": "首页补回定位验收开关并修复挂载条件",
+          "author": "sisi",
+          "time": "08:56",
+          "pages": [
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/switch-address.html",
+              "module": "",
+              "title": "切换地址 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/home.html",
+              "text": "右下增加定位验收开关，可切换有门店/无门店/按地址"
+            },
+            {
+              "file": "user-app/h5/switch-address.html",
+              "text": "验收开关应用逻辑与首页共用，写入定位上下文后刷新"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-17",
       "items": [
+        {
+          "sha": "63a7497",
+          "type": "feat",
+          "text": "订单售后状态展示与取消拦截，支持完成后发起售后",
+          "author": "sisi",
+          "time": "23:37",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "module": "冷丰WMS",
+              "title": "排队记录"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-book.html",
+              "module": "",
+              "title": "地址簿 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-create.html",
+              "module": "",
+              "title": "新建寄件人地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-exchange.html",
+              "module": "",
+              "title": "换货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-only.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-edit.html",
+              "module": "",
+              "title": "修改上门取件信息 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-order.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pre-ship.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-restock.html",
+              "module": "",
+              "title": "补货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-goods.html",
+              "module": "",
+              "title": "退货商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "module": "",
+              "title": "预约寄件 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return.html",
+              "module": "",
+              "title": "退货退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-select.html",
+              "module": "",
+              "title": "选择服务类型 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "商品信息加售后标识；订单状态后增售后状态列与筛选项；处理中售后拦截取消订单；已完成订单操作改为发起售后"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "同步商品售后标识与售后状态列及筛选项；处理中售后拦截取消订单；已完成订单可发起售后"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "存在处理中售后时取消订单弹窗提示无法取消"
+            },
+            {
+              "file": null,
+              "text": "新增订单售后状态与取消拦截 PRD 文档"
+            }
+          ]
+        },
         {
           "sha": "87441e7",
           "type": "feat",
