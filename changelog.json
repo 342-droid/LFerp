@@ -1,10 +1,190 @@
 {
-  "latestSha": "67a490a9abf2857a00ca500e76feb251d7f2010c",
-  "total": 275,
+  "latestSha": "2a06af7c080e6eb3a998fbc7063ba7920ca6199a",
+  "total": 277,
   "days": [
+    {
+      "date": "2026-08-19",
+      "items": [
+        {
+          "sha": "2a06af7",
+          "type": "feat",
+          "text": "商品列表可售时间改为点编辑图标才可改",
+          "author": "sisi",
+          "time": "00:24",
+          "pages": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "可售时间与门店营业时间一致，需点编辑小图标才能修改"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "可售时间同样改为点编辑小图标才能修改"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-18",
       "items": [
+        {
+          "sha": "5544460",
+          "type": "feat",
+          "text": "按商品窗口判定可售并统一门店营业状态文案",
+          "author": "sisi",
+          "time": "23:41",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/switch-address.html",
+              "module": "",
+              "title": "切换地址 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "运营状态改为「营业中 / 休息中」"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "text": "超过营业时间提示改为门店休息"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "text": "补充店名右侧展示营业时间的规则"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "text": "立即下单按商品自身窗口校验，店休息不再整单不可售"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "text": "提交时再校验一次，避免停留期间门店变为休息"
+            },
+            {
+              "file": null,
+              "text": "新增门店营业时间与商品可售时间说明；售后标识改为多规格时主行取第一件、浮层展示各件"
+            }
+          ]
+        },
         {
           "sha": "67a490a",
           "type": "feat",
