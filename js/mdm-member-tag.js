@@ -395,7 +395,7 @@
         if (nameInput) nameInput.focus();
     }
 
-    function renderTable(pageItems, startIndex) {
+    function renderTable(pageItems, startIndex, total) {
         var tbody = document.getElementById('tableBody');
         if (!tbody) return;
 
@@ -409,7 +409,7 @@
             var toggleText = item.status === '启用' ? '禁用' : '启用';
             return (
                 '<tr data-id="' + escapeHtml(item.id) + '">' +
-                '<td>' + (startIndex + idx + 1) + '</td>' +
+                '<td>' + (total - startIndex - idx) + '</td>' +
                 '<td>' + escapeHtml(item.tagValue) + '</td>' +
                 '<td>' + escapeHtml(item.tagGroup) + '</td>' +
                 '<td>' + escapeHtml(item.tagRule) + '</td>' +
@@ -456,7 +456,7 @@
         if (state.page > totalPages) state.page = totalPages;
         var start = (state.page - 1) * state.pageSize;
         var pageItems = filtered.slice(start, start + state.pageSize);
-        renderTable(pageItems, start);
+        renderTable(pageItems, start, total);
         renderPagination(total);
     }
 

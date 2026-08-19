@@ -276,7 +276,7 @@
       if (empty) empty.hidden = true;
       tbody.innerHTML = pageData.rows
         .map(function (row, idx) {
-          var index = (state.page - 1) * state.pageSize + idx + 1;
+          var index = pageData.total - (state.page - 1) * state.pageSize - idx;
           var checked = !!state.selected[row.code];
           var period = formatValidPeriod(row);
           return (

@@ -131,8 +131,24 @@
     return rows;
   }
 
+  function parseTotalText(text) {
+    var m = String(text || '').match(/共\s*(\d+)\s*条/);
+    return m ? parseInt(m[1], 10) : NaN;
+  }
+
+  function closestListRoot(table) {
+    return (
+      table.closest('.table-section') ||
+      table.closest('.order-table-card') ||
+      table.closest('.aftersale-table-card') ||
+      table.closest('.member-tab-panel') ||
+      table.closest('.main-content') ||
+      document
+    );
+  }
+
   /**
-   * 跨页连续编号：根据分页文案推断起始序号（从 0 起的 reset 值）
+   * 跨页连续编号：根据分页文案推断起始偏移（从 0 起）
    */
   function inferCounterReset(table) {
     var explicit = table.getAttribute('data-lf-row-start');
@@ -141,11 +157,7 @@
       return isNaN(n) ? 0 : Math.max(0, n);
     }
 
-    var root =
-      table.closest('.table-section') ||
-      table.closest('.member-tab-panel') ||
-      table.closest('.main-content') ||
-      document;
+    var root = closestListRoot(table);
 
     var info = root.querySelector('.pagination-info');
     if (info) {
@@ -176,11 +188,34 @@
     return 0;
   }
 
+  /**
+   * 全量条数：优先 data-lf-row-total，其次分页「共 N 条」
+   */
+  function inferTotalCount(table, start, pageRowCount) {
+    var explicit = table.getAttribute('data-lf-row-total');
+    if (explicit != null && explicit !== '') {
+      var n = parseInt(explicit, 10);
+      if (!isNaN(n) && n >= 0) return n;
+    }
+
+    var root = closestListRoot(table);
+    var nodes = root.querySelectorAll(
+      '.pagination-info, .order-pagination, .aftersale-pagination, .erp-pagination__total, .queue-pagination__total, [class*="pagination__total"], [id$="PaginationTotal"], [id$="Total"]'
+    );
+    var i;
+    for (i = 0; i < nodes.length; i++) {
+      var total = parseTotalText(nodes[i].textContent);
+      if (!isNaN(total)) return total;
+    }
+    return Math.max(start + pageRowCount, pageRowCount);
+  }
+
   function syncRowNumbers(table) {
     var tbody = table.tBodies[0];
     if (!tbody) return;
     var rows = visibleDataRows(tbody);
     var start = inferCounterReset(table);
+    var total = inferTotalCount(table, start, rows.length);
     var i;
     for (i = 0; i < rows.length; i++) {
       var tr = rows[i];
@@ -192,8 +227,8 @@
       } else if (tr.firstChild !== td) {
         tr.insertBefore(td, tr.firstChild);
       }
-      /* 自上而下 1、2、3…（列表本身按创建时间倒序时，视觉上仍从 1 起编） */
-      td.textContent = String(start + i + 1);
+      /* 序号倒序：全量结果从大到小编号，跨页连续 */
+      td.textContent = String(Math.max(1, total - start - i));
     }
 
     /* 隐藏行也补齐空序号格，避免列错位 */

@@ -148,7 +148,7 @@
         var detailUrl = memberDetailUrl(item.id);
         return (
           '<tr>' +
-          '  <td>' + (start + idx + 1) + '</td>' +
+          '  <td>' + (list.length - start - idx) + '</td>' +
           '  <td><span class="segment-members-avatar">' + escapeHtml(item.avatarText || '会') + '</span></td>' +
           '  <td><a class="subject-name-link" href="' + detailUrl + '">' + escapeHtml(item.nickname) + '</a></td>' +
           '  <td>' + escapeHtml(item.id) + '</td>' +
@@ -168,7 +168,7 @@
     var rows = [['序号', '昵称', '会员ID', '手机号', '注册时间']];
     list.forEach(function (item, idx) {
       rows.push([
-        String(idx + 1),
+        String(list.length - idx),
         item.nickname,
         item.id,
         maskPhone(item.phone),
