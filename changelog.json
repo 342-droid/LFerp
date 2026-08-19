@@ -1,10 +1,88 @@
 {
-  "latestSha": "fe38ac92889515be5a18598563958a94f7a24e30",
-  "total": 279,
+  "latestSha": "a9654c1631f7656d15354786f409c00c448118b3",
+  "total": 280,
   "days": [
     {
       "date": "2026-08-19",
       "items": [
+        {
+          "sha": "a9654c1",
+          "type": "feat",
+          "text": "购物车验收开关补门店休息中并改为点确定后刷新",
+          "author": "sisi",
+          "time": "11:05",
+          "pages": [
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/product-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/cart.html",
+              "text": "商品可售验收开关新增「门店休息中」，按全部商品跟随门店营业时间校验；有确定按钮的不可售弹框需点确定才关闭并刷新"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "text": "同一验收开关可切门店休息中；有确定的拦截弹框需点确定后回购物车"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "text": "有确定按钮的不可售弹框需点确定才关闭并刷新"
+            }
+          ]
+        },
         {
           "sha": "fe38ac9",
           "type": "chore",
