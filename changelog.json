@@ -1,10 +1,142 @@
 {
-  "latestSha": "2a06af7c080e6eb3a998fbc7063ba7920ca6199a",
-  "total": 277,
+  "latestSha": "fe38ac92889515be5a18598563958a94f7a24e30",
+  "total": 279,
   "days": [
     {
       "date": "2026-08-19",
       "items": [
+        {
+          "sha": "fe38ac9",
+          "type": "chore",
+          "text": "需求 PRD 仅留本地、不再纳入远端",
+          "author": "sisi",
+          "time": "09:47",
+          "pages": [],
+          "notes": [
+            {
+              "file": null,
+              "text": "忽略 docs 下全部 PRD 文档，并从版本库取消跟踪"
+            }
+          ]
+        },
+        {
+          "sha": "72ead21",
+          "type": "feat",
+          "text": "门店进货同步可售时间并补齐失效专区",
+          "author": "sisi",
+          "time": "09:46",
+          "pages": [
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/product-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/store-bind-card-confirm.html",
+              "module": "",
+              "title": "确定卡号 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-bind-card-scan.html",
+              "module": "",
+              "title": "扫描银行卡 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-bind-card.html",
+              "module": "",
+              "title": "绑定银行卡 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-pay-password.html",
+              "module": "",
+              "title": "设置支付密码 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "module": "",
+              "title": "充值 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "module": "",
+              "title": "我的钱包 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw-records.html",
+              "module": "",
+              "title": "提现明细 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw.html",
+              "module": "",
+              "title": "提现 · 门店 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "user-app/h5/restock.html",
+              "text": "首页和分类浏览不可售下架；搜索可看到并打「商品不可售」；结算按可售拆单，不可售进失效宝贝"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "text": "不可售时主图打标，加购和我要进货不可用"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "text": "提交再校验一次；被剔除的商品展示在失效宝贝专区"
+            },
+            {
+              "file": null,
+              "text": "进货端不跟门店营业时间；门店进货相关页去掉黑名单验收开关"
+            }
+          ]
+        },
         {
           "sha": "2a06af7",
           "type": "feat",
@@ -123,6 +255,11 @@
               "title": "分类 · 用户 APP"
             },
             {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/goods-detail.html",
               "module": "",
               "title": "商品详情 · 用户 APP"
@@ -148,9 +285,19 @@
               "title": "确认订单 · 用户 APP"
             },
             {
+              "file": "user-app/h5/product-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/profile.html",
               "module": "",
               "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
             },
             {
               "file": "user-app/h5/switch-address.html",
@@ -176,7 +323,7 @@
               "text": "立即下单按商品自身窗口校验，店休息不再整单不可售"
             },
             {
-              "file": "user-app/h5/order-confirm.html",
+              "file": "user-app/h5/checkout.html",
               "text": "提交时再校验一次，避免停留期间门店变为休息"
             },
             {
@@ -393,6 +540,11 @@
               "title": "分类 · 用户 APP"
             },
             {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/goods-detail.html",
               "module": "",
               "title": "商品详情 · 用户 APP"
@@ -418,9 +570,19 @@
               "title": "确认订单 · 用户 APP"
             },
             {
+              "file": "user-app/h5/product-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/profile.html",
               "module": "",
               "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
             }
           ],
           "notes": [
@@ -429,7 +591,7 @@
               "text": "立即下单按勾选商品校验不可售；部分不可售弹框后失效进专区并跳转确认订单，文案为可继续下单；全部不可售只沉勾选项；点应用回到初始可售"
             },
             {
-              "file": "user-app/h5/order-confirm.html",
+              "file": "user-app/h5/checkout.html",
               "text": "确认订单按场景弹出不可售弹框且 2 秒消失；部分不可售剔除后可继续支付；全部不可售点确定或超时回购物车"
             }
           ]
@@ -452,6 +614,11 @@
               "title": "分类 · 用户 APP"
             },
             {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/goods-detail.html",
               "module": "",
               "title": "商品详情 · 用户 APP"
@@ -477,9 +644,19 @@
               "title": "确认订单 · 用户 APP"
             },
             {
+              "file": "user-app/h5/product-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/profile.html",
               "module": "",
               "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
             }
           ],
           "notes": [
@@ -488,7 +665,7 @@
               "text": "规格左侧展示快递/自提；增加商品可售验收开关，点应用并刷新后按全部/部分/全部不可售展示；立即下单按当前列表校验，门店休息提示「当前门店休息中，商品暂不可售」，不可售沉到失效宝贝"
             },
             {
-              "file": "user-app/h5/order-confirm.html",
+              "file": "user-app/h5/checkout.html",
               "text": "同步验收开关与失效专区；确认订单按当前列表校验，不再从购物车不可售秒变成可售"
             },
             {
@@ -1049,6 +1226,11 @@
               "title": "分类 · 用户 APP"
             },
             {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/goods-detail.html",
               "module": "",
               "title": "商品详情 · 用户 APP"
@@ -1074,9 +1256,19 @@
               "title": "确认订单 · 用户 APP"
             },
             {
+              "file": "user-app/h5/product-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/profile.html",
               "module": "",
               "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
             },
             {
               "file": "user-app/h5/switch-address.html",
