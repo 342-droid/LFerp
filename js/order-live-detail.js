@@ -3149,7 +3149,7 @@
         address: isRetailExpressDetail(null, row)
           ? '浙江省杭州市西湖区文三路168号1幢502室'
           : '浙江省杭州市上城区望江街道望江路16号',
-        store: '悠悠生鲜超市'
+        store: (row && row.getAttribute('data-store')) || '悠悠生鲜超市'
       },
       tags: {
         channel: 'MINI_PROGRAM',

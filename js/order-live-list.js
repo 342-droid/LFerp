@@ -136,29 +136,55 @@
     }
   }
 
-  var RETURN_REFUND_ORDER_STATUSES = ['待审核', '退货中', '退款中', '退货成功', '退款成功', '发起退货/退款'];
-
-  function isReturnRefundOrderStatus(status) {
-    return RETURN_REFUND_ORDER_STATUSES.indexOf(status) >= 0;
-  }
+  var RETURN_REFUND_FILTER_LABEL = '发起退货/退款';
+  var RETURN_REFUND_AFTERSALE_STATUSES = [
+    '待审核',
+    '待审批',
+    '退货中',
+    '待退货',
+    '退款中',
+    '退款异常',
+    '退货成功',
+    '退款成功'
+  ];
 
   function getSelectedOrderStatusLabels() {
-    var labels = Array.prototype.slice
+    return Array.prototype.slice
       .call(document.querySelectorAll('#qOrderStatusMulti .js-order-status-opt:checked'))
       .map(function (cb) {
         return cb.getAttribute('data-label') || cb.value;
       });
-    var expanded = [];
-    labels.forEach(function (label) {
-      if (label === '发起退货/退款') {
-        RETURN_REFUND_ORDER_STATUSES.forEach(function (status) {
-          if (expanded.indexOf(status) < 0) expanded.push(status);
-        });
-        return;
-      }
-      if (expanded.indexOf(label) < 0) expanded.push(label);
+  }
+
+  function isReturnRefundAftersaleText(text) {
+    var s = String(text || '').replace(/\s+/g, '');
+    if (!s) return false;
+    return RETURN_REFUND_AFTERSALE_STATUSES.some(function (status) {
+      return s === status || s.indexOf(status) >= 0;
     });
-    return expanded;
+  }
+
+  function getRowAftersaleStatus(row) {
+    if (!row) return '';
+    var attr = (row.getAttribute('data-as-status') || row.getAttribute('data-demo-as') || '').trim();
+    if (attr) return attr;
+    var tag = row.querySelector('.order-detail-goods-as-tag');
+    if (tag) return tag.textContent.replace(/\s+/g, '');
+    var orderId = row.getAttribute('data-order-id');
+    if (orderId && window.OrderLiveDetail && typeof window.OrderLiveDetail.getOrderAftersaleStatus === 'function') {
+      return window.OrderLiveDetail.getOrderAftersaleStatus(orderId, row) || '';
+    }
+    return '';
+  }
+
+  function rowHasReturnRefundAftersale(row) {
+    if (!row) return false;
+    if (isReturnRefundAftersaleText(getRowAftersaleStatus(row))) return true;
+    var tags = row.querySelectorAll('.order-detail-goods-as-tag');
+    for (var i = 0; i < tags.length; i++) {
+      if (isReturnRefundAftersaleText(tags[i].textContent)) return true;
+    }
+    return false;
   }
 
   function closeOrderStatusMulti() {
@@ -248,7 +274,7 @@
     syncOrderStatusMulti();
   }
 
-  /** 零售/代采共用：支付渠道；零售另支持履约方式 */
+  /** 零售/代采共用：支付渠道；零售另支持履约方式；代采另支持下单门店 */
   function applyOrderListFilters() {
     var page = document.body ? document.body.getAttribute('data-order-page') : '';
     var isProxy = page === 'proxy';
@@ -261,7 +287,9 @@
     var delivery = deliverySel ? (deliverySel.value || '').trim() : '';
     var sceneSel = document.getElementById('qOrderScene');
     var scene = isRetail && sceneSel ? (sceneSel.value || '').trim() : '';
-    var statusLabels = isRetail ? getSelectedOrderStatusLabels() : [];
+    var storeSel = document.getElementById('qStore');
+    var store = isProxy && storeSel ? (storeSel.value || '').trim() : '';
+    var statusLabels = getSelectedOrderStatusLabels();
 
     var tbody = document.querySelector('.order-live-table tbody');
     if (!tbody) return;
@@ -283,24 +311,34 @@
         var sceneLabel = scene === 'live' ? '直播' : scene === 'mall' ? '商城' : '';
         show = !!(sceneLabel && sceneText.indexOf(sceneLabel) >= 0);
       }
+      if (show && store) {
+        var rowStore = (row.getAttribute('data-store') || '').trim();
+        show = rowStore === store;
+      }
       if (show && statusLabels.length) {
-        show = statusLabels.indexOf(getRowOrderStatus(row)) >= 0;
+        var orderStatuses = statusLabels.filter(function (label) {
+          return label !== RETURN_REFUND_FILTER_LABEL;
+        });
+        var wantAftersale = statusLabels.indexOf(RETURN_REFUND_FILTER_LABEL) >= 0;
+        var matchOrder = orderStatuses.length > 0 && orderStatuses.indexOf(getRowOrderStatus(row)) >= 0;
+        var matchAftersale = wantAftersale && rowHasReturnRefundAftersale(row);
+        show = matchOrder || matchAftersale;
       }
       row.hidden = !show;
       if (!show) {
-        var hiddenCheck = row.querySelector('.js-order-retail-check');
+        var hiddenCheck = row.querySelector('.js-order-retail-check, .js-order-proxy-check');
         if (hiddenCheck) hiddenCheck.checked = false;
       }
       if (show) visible += 1;
     });
     var totalEl = document.querySelector('.order-pagination__total');
-    var hasFilter = !!(payChannel || (isRetail && delivery) || scene || statusLabels.length);
+    var hasFilter = !!(payChannel || (isRetail && delivery) || scene || store || statusLabels.length);
     if (totalEl && hasFilter) {
       totalEl.textContent = '共 ' + visible + ' 条';
     } else if (totalEl && !hasFilter) {
       totalEl.textContent = '共 ' + rows.length + ' 条';
     }
-    if (isRetail) syncRetailExportChecks();
+    syncOrderExportChecks();
   }
 
   function initPagination() {
@@ -460,11 +498,12 @@
   }
 
   function canUploadRetailExpress(row) {
+    if (rowHasReturnRefundAftersale(row)) return false;
     var status = getRowOrderStatus(row);
     if (window.OrderProxyExpress && typeof window.OrderProxyExpress.canUploadExpressStatus === 'function') {
       return window.OrderProxyExpress.canUploadExpressStatus(status, 'retail');
     }
-    return !!status && status !== '已完成' && status !== '已关闭' && status !== '已取消' && !isReturnRefundOrderStatus(status);
+    return !!status && status !== '已完成' && status !== '已关闭' && status !== '已取消';
   }
 
   function canCancelRetailOrder(row) {
@@ -746,6 +785,7 @@
   }
 
   var RETAIL_EXPORT_FIELDS_KEY = 'lfRetailOrderExportFields';
+  var PROXY_EXPORT_FIELDS_KEY = 'lfProxyOrderExportFields';
   var RETAIL_EXPORT_FIELDS = [
     { key: 'orderNo', label: '订单号' },
     { key: 'orderTime', label: '下单时间' },
@@ -769,83 +809,141 @@
     { key: 'store', label: '所属门店', extra: true },
     { key: 'aftersaleStatus', label: '售后状态', extra: true }
   ];
+  var PROXY_EXPORT_FIELDS = [
+    { key: 'orderNo', label: '订单号' },
+    { key: 'orderTime', label: '下单时间' },
+    { key: 'nickname', label: '用户昵称' },
+    { key: 'receiverName', label: '收货人姓名' },
+    { key: 'receiverPhone', label: '收货人电话' },
+    { key: 'goods', label: '商品信息' },
+    { key: 'qty', label: '总件数' },
+    { key: 'payable', label: '应付金额' },
+    { key: 'discount', label: '优惠金额' },
+    { key: 'coupon', label: '优惠券' },
+    { key: 'pointsUsed', label: '使用积分' },
+    { key: 'pointsDeduct', label: '积分抵扣金额' },
+    { key: 'paid', label: '实付金额' },
+    { key: 'payChannel', label: '支付渠道' },
+    { key: 'deliveryMode', label: '履约方式' },
+    { key: 'store', label: '下单门店' },
+    { key: 'orderStatus', label: '订单状态' },
+    { key: 'address', label: '收货地址', extra: true },
+    { key: 'aftersaleStatus', label: '售后状态', extra: true }
+  ];
 
   function isRetailOrderPage() {
     return document.body && document.body.getAttribute('data-order-page') === 'retail';
   }
 
-  function getRetailTableRows() {
+  function isProxyOrderPage() {
+    return document.body && document.body.getAttribute('data-order-page') === 'proxy';
+  }
+
+  function getOrderExportSpec() {
+    if (isRetailOrderPage()) {
+      return {
+        fields: RETAIL_EXPORT_FIELDS,
+        storageKey: RETAIL_EXPORT_FIELDS_KEY,
+        filePrefix: '零售订单_',
+        checkClass: 'js-order-retail-check',
+        checkAllClass: 'js-order-retail-check-all',
+        btnId: 'orderRetailExport'
+      };
+    }
+    if (isProxyOrderPage()) {
+      return {
+        fields: PROXY_EXPORT_FIELDS,
+        storageKey: PROXY_EXPORT_FIELDS_KEY,
+        filePrefix: '代采订单_',
+        checkClass: 'js-order-proxy-check',
+        checkAllClass: 'js-order-proxy-check-all',
+        btnId: 'orderProxyExport'
+      };
+    }
+    return null;
+  }
+
+  function getOrderListTableRows() {
     return Array.prototype.slice.call(
       document.querySelectorAll('.order-live-table tbody tr[data-order-id]')
     );
   }
 
-  function getVisibleRetailRows() {
-    return getRetailTableRows().filter(function (row) {
+  function getVisibleOrderListRows() {
+    return getOrderListTableRows().filter(function (row) {
       return !row.hidden;
     });
   }
 
-  function getCheckedRetailRows() {
-    return getVisibleRetailRows().filter(function (row) {
-      var cb = row.querySelector('.js-order-retail-check');
+  function getCheckedOrderListRows(spec) {
+    spec = spec || getOrderExportSpec();
+    if (!spec) return [];
+    return getVisibleOrderListRows().filter(function (row) {
+      var cb = row.querySelector('.' + spec.checkClass);
       return cb && cb.checked;
     });
   }
 
-  function syncRetailExportChecks() {
-    if (!isRetailOrderPage()) return;
-    var visible = getVisibleRetailRows();
+  function syncOrderExportChecks() {
+    var spec = getOrderExportSpec();
+    if (!spec) return;
+    var visible = getVisibleOrderListRows();
     var checked = 0;
     visible.forEach(function (row) {
-      var cb = row.querySelector('.js-order-retail-check');
+      var cb = row.querySelector('.' + spec.checkClass);
       if (cb && cb.checked) checked += 1;
     });
-    var all = document.querySelector('.js-order-retail-check-all');
+    var all = document.querySelector('.' + spec.checkAllClass);
     if (!all) return;
     all.checked = visible.length > 0 && checked === visible.length;
     all.indeterminate = checked > 0 && checked < visible.length;
   }
 
-  function ensureRetailRowChecks() {
-    getRetailTableRows().forEach(function (row) {
-      if (row.querySelector('.js-order-retail-check')) return;
+  function ensureOrderListRowChecks(spec) {
+    spec = spec || getOrderExportSpec();
+    if (!spec) return;
+    getOrderListTableRows().forEach(function (row) {
+      if (row.querySelector('.' + spec.checkClass)) return;
       var td = document.createElement('td');
       td.className = 'order-live-table__check-col';
       td.innerHTML =
-        '<input type="checkbox" class="table-checkbox js-order-retail-check" aria-label="选择订单">';
+        '<input type="checkbox" class="table-checkbox ' +
+        spec.checkClass +
+        '" aria-label="选择订单">';
       row.insertBefore(td, row.firstChild);
     });
   }
 
-  function readRetailExportFields() {
-    var defaults = RETAIL_EXPORT_FIELDS.map(function (f) {
+  function readOrderExportFields(spec) {
+    var defaults = spec.fields.map(function (f) {
       return f.key;
     });
     try {
-      var raw = localStorage.getItem(RETAIL_EXPORT_FIELDS_KEY);
+      var raw = localStorage.getItem(spec.storageKey);
       var list = raw ? JSON.parse(raw) : null;
       if (!Array.isArray(list) || !list.length) return defaults;
-      return RETAIL_EXPORT_FIELDS.map(function (f) {
-        return f.key;
-      }).filter(function (key) {
-        return list.indexOf(key) >= 0;
-      });
+      return spec.fields
+        .map(function (f) {
+          return f.key;
+        })
+        .filter(function (key) {
+          return list.indexOf(key) >= 0;
+        });
     } catch (e) {
       return defaults;
     }
   }
 
-  function writeRetailExportFields(keys) {
+  function writeOrderExportFields(spec, keys) {
     try {
-      localStorage.setItem(RETAIL_EXPORT_FIELDS_KEY, JSON.stringify(keys || []));
+      localStorage.setItem(spec.storageKey, JSON.stringify(keys || []));
     } catch (e) {
       /* ignore */
     }
   }
 
-  function closeRetailExportModal() {
-    var backdrop = document.getElementById('orderRetailExportBackdrop');
+  function closeOrderExportModal() {
+    var backdrop = document.getElementById('orderListExportBackdrop');
     if (backdrop) backdrop.remove();
     if (
       !document.getElementById('orderDetailBackdrop') &&
@@ -856,7 +954,7 @@
     }
   }
 
-  function syncRetailExportFieldAll(modal) {
+  function syncOrderExportFieldAll(modal) {
     var boxes = modal.querySelectorAll('.js-order-export-field');
     var checked = 0;
     boxes.forEach(function (cb) {
@@ -868,7 +966,7 @@
     all.indeterminate = checked > 0 && checked < boxes.length;
   }
 
-  function collectRetailExportFields(modal) {
+  function collectOrderExportFields(modal) {
     return Array.prototype.slice
       .call(modal.querySelectorAll('.js-order-export-field:checked'))
       .map(function (cb) {
@@ -876,10 +974,10 @@
       });
   }
 
-  function renderRetailExportFieldHtml(savedKeys) {
+  function renderOrderExportFieldHtml(spec, savedKeys) {
     var listHtml = '';
     var extraHtml = '';
-    RETAIL_EXPORT_FIELDS.forEach(function (field) {
+    spec.fields.forEach(function (field) {
       var checked = savedKeys.indexOf(field.key) >= 0 ? ' checked' : '';
       var item =
         '<label class="order-export-modal__field">' +
@@ -907,7 +1005,7 @@
     );
   }
 
-  function submitRetailExport(scope, fieldKeys, triggerEl) {
+  function submitOrderListExport(spec, scope, fieldKeys, triggerEl) {
     var now = new Date();
     var stamp =
       now.getFullYear() +
@@ -916,13 +1014,14 @@
       '-' +
       String(now.getDate()).padStart(2, '0');
     var scopeLabel = scope === 'selected' ? '勾选数据' : '所有查询数据';
-    var count = scope === 'selected' ? getCheckedRetailRows().length : getVisibleRetailRows().length;
+    var count =
+      scope === 'selected' ? getCheckedOrderListRows(spec).length : getVisibleOrderListRows().length;
     if (window.LfFileCenterNotify && typeof window.LfFileCenterNotify.bump === 'function') {
       window.LfFileCenterNotify.bump(
         {
           title: '订单列表导出',
           type: 'order-list-export',
-          fileName: '零售订单_' + stamp + '.xlsx'
+          fileName: spec.filePrefix + stamp + '.xlsx'
         },
         { fromEl: triggerEl, toast: false }
       );
@@ -935,26 +1034,28 @@
     }
   }
 
-  function openRetailExportModal() {
-    closeRetailExportModal();
-    var selectedCount = getCheckedRetailRows().length;
-    var queryCount = getVisibleRetailRows().length;
+  function openOrderListExportModal() {
+    var spec = getOrderExportSpec();
+    if (!spec) return;
+    closeOrderExportModal();
+    var selectedCount = getCheckedOrderListRows(spec).length;
+    var queryCount = getVisibleOrderListRows().length;
     var defaultScope = selectedCount > 0 ? 'selected' : 'query';
-    var savedKeys = readRetailExportFields();
+    var savedKeys = readOrderExportFields(spec);
     if (!savedKeys.length) {
-      savedKeys = RETAIL_EXPORT_FIELDS.map(function (f) {
+      savedKeys = spec.fields.map(function (f) {
         return f.key;
       });
     }
 
     var backdrop = document.createElement('div');
     backdrop.className = 'order-verify-confirm-backdrop';
-    backdrop.id = 'orderRetailExportBackdrop';
+    backdrop.id = 'orderListExportBackdrop';
     backdrop.setAttribute('data-lf-skip-export-notify', '');
     backdrop.innerHTML =
-      '<div class="order-export-modal" role="dialog" aria-modal="true" aria-labelledby="orderRetailExportTitle">' +
+      '<div class="order-export-modal" role="dialog" aria-modal="true" aria-labelledby="orderListExportTitle">' +
       '<div class="order-export-modal__head">' +
-      '<h3 id="orderRetailExportTitle" class="order-export-modal__title">导出订单</h3>' +
+      '<h3 id="orderListExportTitle" class="order-export-modal__title">导出订单</h3>' +
       '<button type="button" class="order-export-modal__close js-order-export-close" aria-label="关闭">×</button>' +
       '</div>' +
       '<div class="order-export-modal__body">' +
@@ -984,7 +1085,7 @@
       '<input type="checkbox" class="js-order-export-field-all"> 全选' +
       '</label>' +
       '</div>' +
-      renderRetailExportFieldHtml(savedKeys) +
+      renderOrderExportFieldHtml(spec, savedKeys) +
       '</section>' +
       '</div>' +
       '<div class="order-export-modal__foot">' +
@@ -995,88 +1096,89 @@
 
     document.body.appendChild(backdrop);
     document.body.style.overflow = 'hidden';
-    syncRetailExportFieldAll(backdrop);
+    syncOrderExportFieldAll(backdrop);
 
     function onKeydown(e) {
       if (e.key === 'Escape') {
-        closeRetailExportModal();
+        closeOrderExportModal();
         document.removeEventListener('keydown', onKeydown);
       }
     }
     document.addEventListener('keydown', onKeydown);
 
     backdrop.addEventListener('click', function (e) {
-      if (e.target === backdrop) closeRetailExportModal();
+      if (e.target === backdrop) closeOrderExportModal();
     });
-    backdrop.querySelector('.js-order-export-close').addEventListener('click', closeRetailExportModal);
-    backdrop.querySelector('.js-order-export-cancel').addEventListener('click', closeRetailExportModal);
+    backdrop.querySelector('.js-order-export-close').addEventListener('click', closeOrderExportModal);
+    backdrop.querySelector('.js-order-export-cancel').addEventListener('click', closeOrderExportModal);
     backdrop.addEventListener('change', function (e) {
       var fieldAll = e.target.closest('.js-order-export-field-all');
       if (fieldAll) {
         backdrop.querySelectorAll('.js-order-export-field').forEach(function (cb) {
           cb.checked = fieldAll.checked;
         });
-        syncRetailExportFieldAll(backdrop);
+        syncOrderExportFieldAll(backdrop);
         return;
       }
       if (e.target.classList.contains('js-order-export-field')) {
-        syncRetailExportFieldAll(backdrop);
+        syncOrderExportFieldAll(backdrop);
       }
     });
     backdrop.querySelector('.js-order-export-ok').addEventListener('click', function () {
       var scopeInput = backdrop.querySelector('input[name="orderExportScope"]:checked');
       var scope = scopeInput ? scopeInput.value : 'query';
-      var fieldKeys = collectRetailExportFields(backdrop);
+      var fieldKeys = collectOrderExportFields(backdrop);
       if (!fieldKeys.length) {
         if (typeof showToast === 'function') showToast('请至少选择一个导出字段', 'warning');
         return;
       }
-      if (scope === 'selected' && !getCheckedRetailRows().length) {
+      if (scope === 'selected' && !getCheckedOrderListRows(spec).length) {
         if (typeof showToast === 'function') showToast('请先勾选要导出的订单', 'warning');
         return;
       }
-      if (scope === 'query' && !getVisibleRetailRows().length) {
+      if (scope === 'query' && !getVisibleOrderListRows().length) {
         if (typeof showToast === 'function') showToast('当前查询无数据可导出', 'warning');
         return;
       }
-      writeRetailExportFields(fieldKeys);
-      closeRetailExportModal();
+      writeOrderExportFields(spec, fieldKeys);
+      closeOrderExportModal();
       document.removeEventListener('keydown', onKeydown);
-      submitRetailExport(scope, fieldKeys, document.getElementById('orderRetailExport'));
+      submitOrderListExport(spec, scope, fieldKeys, document.getElementById(spec.btnId));
     });
   }
 
-  function initRetailExport() {
-    if (!isRetailOrderPage()) return;
-    ensureRetailRowChecks();
-    syncRetailExportChecks();
+  function initOrderListExport() {
+    var spec = getOrderExportSpec();
+    if (!spec) return;
+    ensureOrderListRowChecks(spec);
+    syncOrderExportChecks();
 
     var table = document.querySelector('.order-live-table');
-    if (table && !table.dataset.retailCheckBound) {
-      table.dataset.retailCheckBound = '1';
+    if (table && !table.dataset.orderExportCheckBound) {
+      table.dataset.orderExportCheckBound = '1';
       table.addEventListener('change', function (e) {
-        if (e.target.classList.contains('js-order-retail-check-all')) {
+        if (e.target.classList.contains(spec.checkAllClass)) {
           var checked = e.target.checked;
-          getVisibleRetailRows().forEach(function (row) {
-            var cb = row.querySelector('.js-order-retail-check');
+          getVisibleOrderListRows().forEach(function (row) {
+            var cb = row.querySelector('.' + spec.checkClass);
             if (cb) cb.checked = checked;
           });
-          syncRetailExportChecks();
+          syncOrderExportChecks();
           return;
         }
-        if (e.target.classList.contains('js-order-retail-check')) {
-          syncRetailExportChecks();
+        if (e.target.classList.contains(spec.checkClass)) {
+          syncOrderExportChecks();
         }
       });
     }
 
-    var exportBtn = document.getElementById('orderRetailExport');
-    if (exportBtn && !exportBtn.dataset.retailExportBound) {
-      exportBtn.dataset.retailExportBound = '1';
+    var exportBtn = document.getElementById(spec.btnId);
+    if (exportBtn && !exportBtn.dataset.orderExportBound) {
+      exportBtn.dataset.orderExportBound = '1';
       exportBtn.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        openRetailExportModal();
+        openOrderListExportModal();
       });
     }
   }
@@ -1130,7 +1232,7 @@
       initRetailBatchExpressUpload();
       initRetailActionLayout();
       initRetailCancelAndRefund();
-      initRetailExport();
+      initOrderListExport();
     });
   } else {
     initFilter();
@@ -1140,6 +1242,6 @@
     initRetailBatchExpressUpload();
     initRetailActionLayout();
     initRetailCancelAndRefund();
-    initRetailExport();
+    initOrderListExport();
   }
 })();
