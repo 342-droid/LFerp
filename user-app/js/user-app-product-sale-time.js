@@ -8,12 +8,13 @@
  * 超过可售时间：首页/分类下架不展示；搜索/详情/购物车打「商品不可售」
  *
  * 验收开关 localStorage：ua_product_sale_demo_v1
- *   force: auto | all | partial | none
- *   （按实际时间 / 全部可售 / 部分可售 / 全部不可售）
+ *   force: auto | all | partial | none | storeRest
+ *   （按实际时间 / 全部可售 / 部分可售 / 全部不可售 / 门店休息中）
  *   applied: all | partial | none
  *   购物车/确认订单列表按 applied 展示；
  *   点「应用」回到初始可售态（applied=all）并记住 force；
- *   部分/全部不可售点立即下单/确认订单才校验、弹提示并刷新
+ *   部分/全部不可售/门店休息中：点立即下单/确认订单才校验、弹提示并刷新
+ *   storeRest：假设全部商品跟随门店营业时间，店休息则全部不可售（进货端 ignoreStoreHours 不跟店）
  *   兼容旧值 on→all、off→none
  */
 (function (global) {
@@ -55,7 +56,13 @@
   function normalizeForce(force) {
     if (force === 'on') return 'all';
     if (force === 'off') return 'none';
-    if (force === 'all' || force === 'partial' || force === 'none' || force === 'auto') {
+    if (
+      force === 'all' ||
+      force === 'partial' ||
+      force === 'none' ||
+      force === 'auto' ||
+      force === 'storeRest'
+    ) {
       return force;
     }
     return 'auto';
@@ -259,6 +266,7 @@
 
   function isStoreOpenNow(options) {
     var demo = readDemo();
+    if (demo.force === 'storeRest') return false;
     /* 验收强制态视为营业中，便于露出商品级不可售标识 */
     if (demo.force === 'none' || demo.force === 'all' || demo.force === 'partial') return true;
     return isStoreOpenNowRaw(options);
@@ -266,12 +274,17 @@
 
   function isSaleableNow(product, options) {
     var demo = readDemo();
+    var opts = options || {};
     if (demo.force === 'all' || demo.force === 'on') return true;
     if (demo.force === 'none' || demo.force === 'off') return false;
     if (demo.force === 'partial') return !isPartialDemoUnsaleable(product);
-    var opts = options || {};
-    /* 代采进货：跟随门店/平台营业的商品全天可进货，只拦自身窗口 */
-    if (opts.ignoreStoreHours && dependsOnStoreHours(product, opts)) return true;
+    /* 代采进货：不跟门店营业时间，只拦自定义 / 类目 / 快递24h */
+    if (opts.ignoreStoreHours) {
+      if (dependsOnStoreHours(product, opts)) return true;
+      return isProductWindowOpenNow(product, opts);
+    }
+    /* 验收「门店休息中」：假设全部商品跟随门店营业时间，一律不可售 */
+    if (demo.force === 'storeRest') return false;
     return isProductWindowOpenNow(product, opts);
   }
 
@@ -341,7 +354,17 @@
       if (typeof opts.onDone === 'function') opts.onDone();
     }
     var ok = wrap.querySelector('[data-sale-dialog-ok]');
-    if (ok) ok.addEventListener('click', finish);
+    if (ok) {
+      /* 有确定按钮：只能手点关闭；未传 onDone 则刷新当页 */
+      ok.addEventListener('click', function () {
+        finish();
+        if (typeof opts.onDone !== 'function') {
+          global.location.reload();
+        }
+      });
+      clearTimeout(showSaleDialog._t);
+      return;
+    }
     clearTimeout(showSaleDialog._t);
     showSaleDialog._t = setTimeout(finish, opts.duration || SALE_DIALOG_MS);
   }
@@ -388,7 +411,12 @@
       '>部分可售</option>' +
       '<option value="none"' +
       (selected === 'none' ? ' selected' : '') +
-      '>全部不可售</option>';
+      '>全部不可售</option>' +
+      (checkout
+        ? '<option value="storeRest"' +
+          (selected === 'storeRest' ? ' selected' : '') +
+          '>门店休息中</option>'
+        : '');
     var panel = document.createElement('div');
     panel.id = 'uaSaleTimeDemo';
     panel.className = 'ua-sale-time-demo' + (opts.className ? ' ' + opts.className : '');
@@ -401,7 +429,7 @@
       optionsHtml +
       '</select></label>' +
       (checkout
-        ? '<div class="ua-sale-time-demo__tip">点应用回到初始可售。部分/全部不可售：再点立即下单或确认订单才校验并刷新</div>'
+        ? '<div class="ua-sale-time-demo__tip">点应用回到初始可售。部分/全部不可售/门店休息中：再点立即下单或确认订单才校验。门店休息中按全部商品跟随门店营业时间处理</div>'
         : '') +
       '<button type="button" class="ua-sale-time-demo__apply" id="uaSaleTimeDemoApply">应用</button>';
     document.body.appendChild(panel);

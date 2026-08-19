@@ -995,7 +995,7 @@
     if (!item) return false;
     if (isPointsExchangeItem(item) || item.isPointsExchange) return true;
     if (scene === 'all' || scene === 'on') return true;
-    if (scene === 'none' || scene === 'off') return false;
+    if (scene === 'none' || scene === 'off' || scene === 'storeRest') return false;
     if (scene === 'partial') {
       if (!PRODUCTS[item.id] && !item.id) return !!asCheckout;
       return isPartialLineSaleable(item);
@@ -1070,6 +1070,7 @@
 
   function lineDependsOnStoreHours(item) {
     if (!item) return true;
+    if (readSaleDemoForce() === 'storeRest') return true;
     if (isPointsExchangeItem(item) || item.isPointsExchange) return false;
     var p = PRODUCTS[item.id];
     if (
@@ -1120,7 +1121,17 @@
       if (typeof opts.onDone === 'function') opts.onDone();
     }
     var ok = wrap.querySelector('[data-sale-dialog-ok]');
-    if (ok) ok.addEventListener('click', finish);
+    if (ok) {
+      /* 有确定按钮：只能手点关闭；未传 onDone 则刷新当页 */
+      ok.addEventListener('click', function () {
+        finish();
+        if (typeof opts.onDone !== 'function') {
+          global.location.reload();
+        }
+      });
+      clearTimeout(showSaleDialog._t);
+      return;
+    }
     clearTimeout(showSaleDialog._t);
     showSaleDialog._t = setTimeout(finish, opts.duration || SALE_DIALOG_MS);
   }
@@ -1151,6 +1162,9 @@
   }
 
   function isStoreRestingNow() {
+    if (global.UaProductSaleTime && typeof global.UaProductSaleTime.readDemo === 'function') {
+      if (global.UaProductSaleTime.readDemo().force === 'storeRest') return true;
+    }
     if (global.UaProductSaleTime && typeof global.UaProductSaleTime.isStoreOpenNowRaw === 'function') {
       return !global.UaProductSaleTime.isStoreOpenNowRaw();
     }
