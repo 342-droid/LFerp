@@ -4,6 +4,7 @@
  * 商品可售 = 当前处于该商品自己的可售时间（门店营业只作未配更具体窗口时的继承，不是总开关）
  * 跟随门店/平台的商品：店休息则不可售；自定义 / 类目 / 快递24h：自身窗口有效则店休息仍可售
  * 门店营业时间内，商品窗口更窄的仍可不可售
+ * 代采进货端 ignoreStoreHours：不跟门店/平台营业时间，只拦自定义 / 类目 / 快递24h 窗口
  * 超过可售时间：首页/分类下架不展示；搜索/详情/购物车打「商品不可售」
  *
  * 验收开关 localStorage：ua_product_sale_demo_v1
@@ -23,6 +24,14 @@
   var DEMO_KEY = 'ua_product_sale_demo_v1';
   var EXPRESS_24H_RANGE = { start: '00:00', end: '23:59' };
   var UNSALEABLE_LABEL = '商品不可售';
+  var SALE_DIALOG_PARTIAL_TITLE = '部分商品不可售';
+  var SALE_DIALOG_ALL_TITLE = '商品不可售';
+  var SALE_DIALOG_PARTIAL_CART =
+    '部分商品库存不足或已不可售，已为你剔除不可售商品，可继续下单';
+  var SALE_DIALOG_PARTIAL_CONFIRM =
+    '部分商品库存不足或已不可售，已为你剔除不可售商品，可继续支付';
+  var SALE_DIALOG_ALL = '商品库存不足或已不可售，需要重新挑选产品';
+  var SALE_DIALOG_MS = 2000;
 
   function readJson(key, fallback) {
     try {
@@ -260,7 +269,81 @@
     if (demo.force === 'all' || demo.force === 'on') return true;
     if (demo.force === 'none' || demo.force === 'off') return false;
     if (demo.force === 'partial') return !isPartialDemoUnsaleable(product);
-    return isProductWindowOpenNow(product, options);
+    var opts = options || {};
+    /* 代采进货：跟随门店/平台营业的商品全天可进货，只拦自身窗口 */
+    if (opts.ignoreStoreHours && dependsOnStoreHours(product, opts)) return true;
+    return isProductWindowOpenNow(product, opts);
+  }
+
+  function restockSaleOptions(extra) {
+    return Object.assign({ ignoreStoreHours: true }, extra || {});
+  }
+
+  function isRestockChannel() {
+    try {
+      var path = String((global.location && global.location.pathname) || '');
+      if (/\/(restock|product-detail|checkout)\.html$/i.test(path)) return true;
+      var search = String((global.location && global.location.search) || '');
+      if (/from=restock/i.test(search) || /from=store-app/i.test(search)) return true;
+    } catch (e) {
+      /* ignore */
+    }
+    return false;
+  }
+
+  function showToast(msg) {
+    if (!msg) return;
+    var el = document.getElementById('uaSaleToast');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'uaSaleToast';
+      el.className = 'ua-sale-toast';
+      (document.querySelector('.ua-mobile-shell') || document.body).appendChild(el);
+    }
+    el.textContent = msg;
+    el.hidden = false;
+    clearTimeout(showToast._timer);
+    showToast._timer = setTimeout(function () {
+      el.hidden = true;
+    }, 1600);
+  }
+
+  function showSaleDialog(opts) {
+    opts = opts || {};
+    var host = document.querySelector('.ua-mobile-shell') || document.body;
+    var wrap = document.getElementById('uaSaleDialog');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.id = 'uaSaleDialog';
+      wrap.className = 'ua-sale-dialog';
+      host.appendChild(wrap);
+    }
+    wrap.innerHTML =
+      '<div class="ua-sale-dialog__card" role="alertdialog" aria-modal="true">' +
+      '<div class="ua-sale-dialog__title">' +
+      (opts.title || '') +
+      '</div>' +
+      '<div class="ua-sale-dialog__text">' +
+      (opts.text || '') +
+      '</div>' +
+      (opts.okText
+        ? '<button type="button" class="ua-sale-dialog__ok" data-sale-dialog-ok>' +
+          opts.okText +
+          '</button>'
+        : '') +
+      '</div>';
+    wrap.hidden = false;
+    var done = false;
+    function finish() {
+      if (done) return;
+      done = true;
+      wrap.hidden = true;
+      if (typeof opts.onDone === 'function') opts.onDone();
+    }
+    var ok = wrap.querySelector('[data-sale-dialog-ok]');
+    if (ok) ok.addEventListener('click', finish);
+    clearTimeout(showSaleDialog._t);
+    showSaleDialog._t = setTimeout(finish, opts.duration || SALE_DIALOG_MS);
   }
 
   /** 可售窗口是否跟随门店/平台营业时间（店休息则这类商品不可售） */
@@ -376,7 +459,16 @@
     resolveStoreId: resolveStoreId,
     resolveStoreBusinessHours: resolveStoreBusinessHours,
     dependsOnStoreHours: dependsOnStoreHours,
+    restockSaleOptions: restockSaleOptions,
+    isRestockChannel: isRestockChannel,
+    showToast: showToast,
+    showSaleDialog: showSaleDialog,
     UNSALEABLE_LABEL: UNSALEABLE_LABEL,
+    SALE_DIALOG_PARTIAL_TITLE: SALE_DIALOG_PARTIAL_TITLE,
+    SALE_DIALOG_ALL_TITLE: SALE_DIALOG_ALL_TITLE,
+    SALE_DIALOG_PARTIAL_CART: SALE_DIALOG_PARTIAL_CART,
+    SALE_DIALOG_PARTIAL_CONFIRM: SALE_DIALOG_PARTIAL_CONFIRM,
+    SALE_DIALOG_ALL: SALE_DIALOG_ALL,
     DEMO_KEY: DEMO_KEY
   };
 })(typeof window !== 'undefined' ? window : this);
