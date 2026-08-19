@@ -1,0 +1,243 @@
+.ua-sale-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 96px;
+  z-index: 9992;
+  transform: translateX(-50%);
+  max-width: 80%;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+.ua-sale-toast[hidden] {
+  display: none !important;
+}
+
+.ua-sale-dialog {
+  position: absolute;
+  inset: 0;
+  z-index: 9980;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.ua-sale-dialog[hidden] {
+  display: none !important;
+}
+
+.ua-sale-dialog__card {
+  width: 100%;
+  max-width: 280px;
+  padding: 22px 18px 16px;
+  background: #fff;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+.ua-sale-dialog__title {
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.3;
+}
+
+.ua-sale-dialog__text {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.55;
+}
+
+.ua-sale-dialog__ok {
+  width: 100%;
+  height: 40px;
+  margin-top: 16px;
+  border: none;
+  border-radius: 8px;
+  background: #3478f6;
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.ua-sale-unsaleable-badge {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  z-index: 2;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 10px;
+  line-height: 1.3;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.ua-pd-hero__unsaleable-badge {
+  left: 12px;
+  bottom: 12px;
+  transform: none;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.ua-restock-product.is-unsaleable,
+.ua-restock-cat-product.is-unsaleable,
+.ua-pd-page.is-unsaleable .ua-pd-hero__img {
+  opacity: 0.78;
+  filter: grayscale(0.25);
+}
+
+.ua-restock-product__add.is-unsaleable,
+.ua-restock-cat-product__spec-add.is-unsaleable,
+.ua-restock-cat-product__spec-btn.is-unsaleable,
+.ua-pd-footer__btn.is-unsaleable,
+.ua-pd-mspec__confirm.is-unsaleable {
+  background: #c8c8c8 !important;
+  color: #fff !important;
+  cursor: not-allowed;
+}
+
+.ua-sale-time-demo {
+  position: fixed;
+  right: 16px;
+  top: 50%;
+  z-index: 9990;
+  width: 176px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #eee;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  font-size: 11px;
+  color: #333;
+  transform: translateY(-50%);
+}
+
+.ua-sale-time-demo__title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.ua-sale-time-demo__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.ua-sale-time-demo__row select {
+  margin-left: auto;
+  max-width: 108px;
+  font-size: 11px;
+}
+
+.ua-sale-time-demo__tip {
+  margin: 0 0 6px;
+  color: #999;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.ua-sale-time-demo__apply {
+  width: 100%;
+  margin-top: 4px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: #ff7019;
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.ua-invalid-goods {
+  margin: 10px 12px 0;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #eee;
+}
+
+.ua-invalid-goods__head {
+  text-align: center;
+  padding: 12px 12px 8px;
+  font-size: 13px;
+  color: #999;
+  line-height: 1.3;
+}
+
+.ua-invalid-goods__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.ua-invalid-goods__mark {
+  flex-shrink: 0;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  letter-spacing: 0.2em;
+  font-size: 12px;
+  color: #c4c4c4;
+  line-height: 1.2;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ua-invalid-goods__thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #eee;
+  flex-shrink: 0;
+  opacity: 0.55;
+  filter: grayscale(0.25);
+}
+
+.ua-invalid-goods__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ua-invalid-goods__body {
+  flex: 1;
+  min-width: 0;
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+}
+
+.ua-invalid-goods__name {
+  font-size: 13px;
+  color: #c4c4c4;
+  line-height: 1.45;
+}
+
+.ua-invalid-goods__reason {
+  margin-top: auto;
+  text-align: right;
+  font-size: 12px;
+  color: #999;
+}

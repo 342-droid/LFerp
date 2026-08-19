@@ -6,6 +6,7 @@
   <title>商品详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-product-detail.css">
+  <link rel="stylesheet" href="../css/user-app-sale-time.css">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-pd-page" id="productDetailShell">
@@ -26,6 +27,7 @@
         </div>
         <div class="ua-pd-hero__gallery" id="productDetailGallery">
           <img class="ua-pd-hero__img ua-pd-hero__img--active" id="productDetailMainImg" src="" alt="">
+          <span class="ua-sale-unsaleable-badge ua-pd-hero__unsaleable-badge" id="productDetailUnsaleableBadge" hidden>商品不可售</span>
         </div>
         <div class="ua-pd-hero__dots" id="productDetailDots"></div>
       </section>
@@ -162,9 +164,9 @@
       </div>
     </div>
   </div>
-<script src="../js/user-app-blacklist-guard.js"></script>
 <script src="../../js/mdm-supplier-archive-store.js"></script>
 <script src="../js/user-app-product-catalog.js"></script>
+<script src="../js/user-app-product-sale-time.js?v=20260819-restock-sale"></script>
 <script src="../js/user-app-product-detail.js"></script>
 </body>
 </html>

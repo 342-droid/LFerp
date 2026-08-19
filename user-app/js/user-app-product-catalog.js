@@ -3,6 +3,7 @@
     'eggplant-long-10': {
       spuId: 'eggplant-long',
       title: '长茄子 广茄',
+      category: '蔬菜水果',
       subtitle: '新鲜直采 · 净菜优选 · 适合快炒与炖煮',
       imgs: ['../assets/restock/product-eggplant-long.svg'],
       priceNum: 40,
@@ -37,6 +38,7 @@
     'leaf-c1': {
       spuId: 'leaf-c1',
       title: '小香芹 优质 带叶',
+      category: '蔬菜水果',
       subtitle: '优质 | 小香芹 | 带根 | 瑕疵率<5%',
       imgs: ['../assets/restock/product-leaf.svg'],
       priceNum: 28,
@@ -82,6 +84,7 @@
     'leaf-y1-10': {
       spuId: 'leaf-y1',
       title: '油麦菜【菜鲜】',
+      category: '蔬菜水果',
       subtitle: '优质叶菜 · 20-30cm · 瑕疵率<5%',
       imgs: ['../assets/restock/product-leaf.svg'],
       priceNum: 30,
@@ -113,6 +116,8 @@
     cola: {
       spuId: 'cola',
       title: '[可口可乐]摩登罐汽水330ml',
+      category: '酒水饮料',
+      deliveryMode: 'express',
       subtitle: '24罐整箱 · 常温配送',
       imgs: ['../assets/restock/product-cola.svg'],
       priceNum: 52,
@@ -165,6 +170,8 @@
     water: {
       spuId: 'water',
       title: '[娃哈哈]纯净水596ml',
+      category: '酒水饮料',
+      deliveryMode: 'express',
       subtitle: '24瓶整箱 · 常温配送',
       imgs: ['../assets/restock/product-water.svg'],
       priceNum: 36,
@@ -191,6 +198,8 @@
     tea: {
       spuId: 'tea',
       title: '[康师傅]冰红茶500ml',
+      category: '酒水饮料',
+      deliveryMode: 'express',
       subtitle: '15瓶整箱 · 常温配送',
       imgs: ['../assets/restock/product-tea.svg'],
       priceNum: 42,

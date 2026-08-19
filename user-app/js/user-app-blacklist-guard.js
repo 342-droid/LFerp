@@ -158,6 +158,31 @@
     return funcs.indexOf(funcName) >= 0;
   }
 
+  function isStoreAppChannel() {
+    try {
+      var path = String((global.location && global.location.pathname) || '');
+      if (/\/store-app\//i.test(path)) return true;
+      var page = (path.split('/').pop() || '').toLowerCase();
+      if (
+        page === 'restock.html' ||
+        page === 'product-detail.html' ||
+        page === 'checkout.html' ||
+        page.indexOf('store-wallet') === 0 ||
+        page.indexOf('store-recharge') === 0 ||
+        page.indexOf('store-withdraw') === 0 ||
+        page.indexOf('store-bind-card') === 0 ||
+        page.indexOf('store-pay-password') === 0
+      ) {
+        return true;
+      }
+      var search = String((global.location && global.location.search) || '');
+      if (/from=store-app|port=store-app/i.test(search)) return true;
+    } catch (e) {
+      /* ignore */
+    }
+    return false;
+  }
+
   function isLoginFlowPage() {
     if (document.querySelector('.ua-change-pwd-screen')) return false;
     if (document.getElementById('uaLoginScreen')) return true;
@@ -253,7 +278,7 @@
   }
 
   function guardPageAccess() {
-    if (isLoginFlowPage()) return false;
+    if (isStoreAppChannel() || isLoginFlowPage()) return false;
     if (!isBanned(FUNC.ACCESS)) return false;
     document.body.classList.add('ua-bl-locked');
     ensureStyles();
@@ -266,6 +291,7 @@
   }
 
   function guardOrderSubmit() {
+    if (isStoreAppChannel()) return false;
     if (!isBanned(FUNC.ORDER)) return false;
     showBanModal(MSG.order);
     return true;
@@ -302,7 +328,7 @@
   }
 
   function renderDemoPanel() {
-    if (isLoginFlowPage()) return;
+    if (isLoginFlowPage() || isStoreAppChannel()) return;
     ensureStyles();
     var old = document.getElementById('uaBlDemo');
     if (old) old.remove();
@@ -376,6 +402,7 @@
   }
 
   function init() {
+    if (isStoreAppChannel()) return;
     ensureStyles();
     consumeUrlDemoOnce();
     renderDemoPanel();

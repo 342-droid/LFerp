@@ -58,6 +58,7 @@
 }
 
 .ua-pd-hero__gallery {
+  position: relative;
   aspect-ratio: 1;
   background: #fafafa;
   overflow: hidden;
