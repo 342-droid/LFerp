@@ -499,18 +499,29 @@
     return block;
   }
 
+  var BATCH_REFUND_STATUSES = ['待审核', '退货中', '退款中', '退货成功', '退款成功', '发起退货/退款'];
+
   function canUploadExpressStatus(status, context) {
-    // 代采快递由采购单回传，订单侧不再上传；仅零售快递可上传
+    // 代采快递由采购单回传，订单侧不再上传；仅零售快递可上传。售后态不写进订单状态。
     if (context === 'retail') {
       if (!status) return false;
-      return (
-        status !== '已完成' &&
-        status !== '已关闭' &&
-        status !== '已取消' &&
-        ['待审核', '退货中', '退款中', '退货成功', '退款成功', '发起退货/退款'].indexOf(status) < 0
-      );
+      return status !== '已完成' && status !== '已关闭' && status !== '已取消';
     }
     return false;
+  }
+
+  function rowHasReturnRefundAftersale(row) {
+    if (!row) return false;
+    var texts = [row.getAttribute('data-as-status') || '', row.getAttribute('data-demo-as') || ''];
+    row.querySelectorAll('.order-detail-goods-as-tag').forEach(function (el) {
+      texts.push(el.textContent || '');
+    });
+    return texts.some(function (text) {
+      var s = String(text || '').replace(/\s+/g, '');
+      return BATCH_REFUND_STATUSES.some(function (status) {
+        return s === status || s.indexOf(status) >= 0;
+      });
+    });
   }
 
   function buildDeliveryCard(detail, orderId, row, options) {
@@ -543,7 +554,7 @@
         '<dt>收货人</dt><dd>' + escapeHtml(detail.delivery.name) + '</dd>' +
         '<dt>电话</dt><dd>' + escapeHtml(detail.delivery.phone) + '</dd>' +
         '<dt>地址</dt><dd>' + escapeHtml(detail.delivery.address) + '</dd>' +
-        '<dt>所属门店</dt><dd>' + escapeHtml(detail.delivery.store) + '</dd>';
+        '<dt>下单门店</dt><dd>' + escapeHtml(detail.delivery.store) + '</dd>';
     }
     card.appendChild(baseKv);
 
@@ -599,7 +610,7 @@
         if (statusEl) orderStatus = statusEl.textContent.trim();
       }
 
-      if (allowManage && canUploadExpressStatus(orderStatus, 'retail')) {
+      if (allowManage && canUploadExpressStatus(orderStatus, 'retail') && !rowHasReturnRefundAftersale(row)) {
         var uploadBtn = el('button', 'order-detail-btn order-detail-btn--primary order-proxy-upload-btn', '+ 上传快递单');
         uploadBtn.type = 'button';
         uploadBtn.addEventListener('click', function () {
@@ -1082,17 +1093,16 @@
       else if (/快递公司|物流名称|物流公司/.test(h)) idxCourier = i;
     });
     if (idxOrder < 0 || idxTracking < 0) {
-      if (headers.length >= 3 && idxCourier < 0) {
-        idxOrder = 0;
-        idxTracking = 1;
-        idxCourier = 2;
-      } else if (headers.length >= 4 && idxName < 0) {
+      if (headers.length >= 4 && idxName < 0) {
         idxOrder = 0;
         idxName = 1;
         idxSpec = 2;
         idxTracking = 3;
+      } else if (headers.length >= 2) {
+        idxOrder = 0;
+        idxTracking = 1;
       } else {
-        return { rows: [], error: '表头需包含：订单号、物流单号、快递公司' };
+        return { rows: [], error: '表头需包含：订单号、物流单号' };
       }
     }
 
@@ -1207,8 +1217,6 @@
     };
   }
 
-  var BATCH_REFUND_STATUSES = ['待审核', '退货中', '退款中', '退货成功', '退款成功', '发起退货/退款'];
-
   function validateBatchExpressRow(row) {
     var orderId = String((row && row.orderId) || '').trim();
     var trackingNo = String((row && row.trackingNo) || '').trim();
@@ -1228,12 +1236,9 @@
       return { level: 'error', reason: trackingCheck.message || '物流单号格式不正确' };
     }
     var inferred = inferCourierFromTrackingNo(trackingCheck.value);
+    courier = inferred || courier;
     if (!courier) {
-      if (inferred) {
-        courier = inferred;
-      } else {
-        return { level: 'error', reason: '快递公司不能为空' };
-      }
+      return { level: 'error', reason: '未能根据物流单号识别快递公司' };
     }
     var meta = getRetailOrderMeta(orderId);
     if (!meta) {
@@ -1256,7 +1261,7 @@
         meta: meta
       };
     }
-    if (BATCH_REFUND_STATUSES.indexOf(meta.status) >= 0) {
+    if (rowHasReturnRefundAftersale(meta.row)) {
       return {
         level: 'error',
         reason: '该订单下存在申请退款中的商品，请先处理退款申请！',
@@ -1402,7 +1407,7 @@
         return;
       }
       addShipment(orderKey, {
-        courier: row.courier || inferCourierFromTrackingNo(row.trackingNo) || '申通快递',
+        courier: row.courier || inferCourierFromTrackingNo(row.trackingNo),
         trackingNo: row.trackingNo,
         goods: goods.length ? goods : [{ id: 'g-unknown', name: row.productName || '商品' }]
       });
@@ -1493,11 +1498,11 @@
 
   function getBatchExpressTemplateRows() {
     return [
-      ['订单号', '物流单号', '快递公司'],
-      ['ORD-3212689201588561', '773075059702651', '申通快递'],
-      ['ORD-3212689201599001', 'SF9988776655443', '顺丰速运'],
-      ['ORD-3212689201599003', 'SF5116882004079', '顺丰快递'],
-      ['ORD-3212689201560682', 'SF5116882004080', '顺丰快递']
+      ['订单号', '物流单号'],
+      ['ORD-3212689201588561', '773075059702651'],
+      ['ORD-3212689201599001', 'SF9988776655443'],
+      ['ORD-3212689201599003', 'SF5116882004079'],
+      ['ORD-3212689201560682', 'SF5116882004080']
     ];
   }
 
@@ -1506,7 +1511,7 @@
     if (window.XLSX && window.XLSX.utils && typeof window.XLSX.writeFile === 'function') {
       var wb = window.XLSX.utils.book_new();
       var ws = window.XLSX.utils.aoa_to_sheet(aoa);
-      ws['!cols'] = [{ wch: 28 }, { wch: 22 }, { wch: 14 }];
+      ws['!cols'] = [{ wch: 28 }, { wch: 22 }];
       window.XLSX.utils.book_append_sheet(wb, ws, '批量上传快递单');
       window.XLSX.writeFile(wb, '批量上传快递单模板.xlsx');
       return;
@@ -1693,7 +1698,7 @@
   function openBatchUploadWizard(opts) {
     var hint =
       opts.hint ||
-      '通过 Excel / CSV 批量上传快递单号。请先下载模板，按「订单号、物流单号、快递公司」填写后上传。上传成功即触发发货，同一订单可分多次上传以补充多个包裹（运单号自动去重）。';
+      '通过 Excel / CSV 批量上传快递单号。请先下载模板，按「订单号、物流单号」填写后上传。上传成功即触发发货，同一订单可分多次上传以补充多个包裹（运单号自动去重）。';
     var state = {
       step: 1,
       file: null,

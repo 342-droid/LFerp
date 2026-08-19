@@ -79,6 +79,30 @@
     return true;
   }
 
+  function findCheckCol(row) {
+    return row ? row.querySelector('.order-live-table__check-col') : null;
+  }
+
+  function insertSerialAfterCheck(row, cell) {
+    var check = findCheckCol(row);
+    if (check) {
+      if (check.nextSibling) row.insertBefore(cell, check.nextSibling);
+      else row.appendChild(cell);
+      return;
+    }
+    row.insertBefore(cell, row.firstChild);
+  }
+
+  function placeSerialCell(row, cell) {
+    var check = findCheckCol(row);
+    var desiredPrev = check || null;
+    if (desiredPrev) {
+      if (cell.previousSibling !== desiredPrev) insertSerialAfterCheck(row, cell);
+      return;
+    }
+    if (row.firstChild !== cell) row.insertBefore(cell, row.firstChild);
+  }
+
   function ensureColForSerial(table) {
     var colgroup = table.querySelector('colgroup');
     if (!colgroup) return;
@@ -86,7 +110,10 @@
     var col = document.createElement('col');
     col.className = 'lf-row-no-col product-proxy-table__col';
     col.style.width = '56px';
-    colgroup.insertBefore(col, colgroup.firstChild);
+    var checkCol = colgroup.querySelector('.order-live-table__check-col, col.order-live-table__check-col');
+    if (checkCol && checkCol.nextSibling) colgroup.insertBefore(col, checkCol.nextSibling);
+    else if (checkCol) colgroup.appendChild(col);
+    else colgroup.insertBefore(col, colgroup.firstChild);
   }
 
   function ensureSerialHeader(table) {
@@ -103,8 +130,10 @@
       th.className = 'lf-row-no-th';
       th.textContent = '序号';
       th.scope = 'col';
-      headerRow.insertBefore(th, headerRow.firstChild);
+      insertSerialAfterCheck(headerRow, th);
       ensureColForSerial(table);
+    } else {
+      placeSerialCell(headerRow, existing);
     }
     table.classList.add('lf-row-no-on');
     table.classList.remove('lf-row-no-native');
@@ -223,9 +252,9 @@
       if (!td) {
         td = document.createElement('td');
         td.className = 'lf-row-no-td';
-        tr.insertBefore(td, tr.firstChild);
-      } else if (tr.firstChild !== td) {
-        tr.insertBefore(td, tr.firstChild);
+        insertSerialAfterCheck(tr, td);
+      } else {
+        placeSerialCell(tr, td);
       }
       /* 序号倒序：全量结果从大到小编号，跨页连续 */
       td.textContent = String(Math.max(1, total - start - i));
@@ -240,7 +269,7 @@
       var empty = document.createElement('td');
       empty.className = 'lf-row-no-td';
       empty.textContent = '';
-      row.insertBefore(empty, row.firstChild);
+      insertSerialAfterCheck(row, empty);
     }
   }
 

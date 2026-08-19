@@ -608,7 +608,8 @@
   background: #fafcff;
 }
 
-body[data-order-page="retail"] .order-live-table__check-col {
+body[data-order-page="retail"] .order-live-table__check-col,
+body[data-order-page="proxy"] .order-live-table__check-col {
   width: 42px;
   min-width: 42px;
   padding-left: 12px;
@@ -620,11 +621,13 @@ body[data-order-page="retail"] .order-live-table__check-col {
   box-shadow: 6px 0 8px -4px rgba(0, 0, 0, 0.06);
 }
 
-body[data-order-page="retail"] .order-live-table thead .order-live-table__check-col {
+body[data-order-page="retail"] .order-live-table thead .order-live-table__check-col,
+body[data-order-page="proxy"] .order-live-table thead .order-live-table__check-col {
   z-index: 3;
 }
 
-body[data-order-page="retail"] .order-live-table__check-col .table-checkbox {
+body[data-order-page="retail"] .order-live-table__check-col .table-checkbox,
+body[data-order-page="proxy"] .order-live-table__check-col .table-checkbox {
   accent-color: var(--color-primary, #ff7019);
 }
 
