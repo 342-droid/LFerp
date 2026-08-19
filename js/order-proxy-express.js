@@ -503,7 +503,12 @@
     // 代采快递由采购单回传，订单侧不再上传；仅零售快递可上传
     if (context === 'retail') {
       if (!status) return false;
-      return status !== '已完成' && status !== '已关闭' && status !== '已取消';
+      return (
+        status !== '已完成' &&
+        status !== '已关闭' &&
+        status !== '已取消' &&
+        ['待审核', '退货中', '退款中', '退货成功', '退款成功', '发起退货/退款'].indexOf(status) < 0
+      );
     }
     return false;
   }
@@ -1050,57 +1055,267 @@
     };
   }
 
-  function parseBatchExpressRows(text) {
-    var lines = String(text || '')
-      .replace(/^\uFEFF/, '')
-      .split(/\r?\n/)
-      .map(function (l) {
-        return l.trim();
-      })
-      .filter(Boolean);
+  function parseBatchExpressGrid(matrix) {
+    var lines = [];
+    (matrix || []).forEach(function (row) {
+      var cols = (row || []).map(function (cell) {
+        return String(cell == null ? '' : cell).replace(/^\uFEFF/, '').trim();
+      });
+      var hasValue = cols.some(function (cell) {
+        return !!cell;
+      });
+      if (hasValue) lines.push(cols);
+    });
     if (lines.length < 2) return { rows: [], error: '文件无有效数据行' };
 
-    var headers = splitCsvLine(lines[0]).map(function (h) {
-      return String(h || '').trim();
-    });
+    var headers = lines[0];
     var idxOrder = -1;
     var idxName = -1;
     var idxSpec = -1;
     var idxTracking = -1;
+    var idxCourier = -1;
     headers.forEach(function (h, i) {
-      if (/订单号/.test(h)) idxOrder = i;
+      if (/订单号|订单编号/.test(h)) idxOrder = i;
       else if (/商品名称|商品名|品名/.test(h)) idxName = i;
       else if (/规格/.test(h)) idxSpec = i;
       else if (/物流单号|快递单号|运单号/.test(h)) idxTracking = i;
+      else if (/快递公司|物流名称|物流公司/.test(h)) idxCourier = i;
     });
-    if (idxOrder < 0 || idxName < 0 || idxSpec < 0 || idxTracking < 0) {
-      if (headers.length >= 4) {
+    if (idxOrder < 0 || idxTracking < 0) {
+      if (headers.length >= 3 && idxCourier < 0) {
+        idxOrder = 0;
+        idxTracking = 1;
+        idxCourier = 2;
+      } else if (headers.length >= 4 && idxName < 0) {
         idxOrder = 0;
         idxName = 1;
         idxSpec = 2;
         idxTracking = 3;
       } else {
-        return { rows: [], error: '表头需包含：订单号、商品名称、规格、物流单号' };
+        return { rows: [], error: '表头需包含：订单号、物流单号、快递公司' };
       }
     }
 
     var rows = [];
     for (var r = 1; r < lines.length; r++) {
-      var cols = splitCsvLine(lines[r]);
+      var cols = lines[r];
       var orderId = String(cols[idxOrder] || '').trim();
-      var productName = String(cols[idxName] || '').trim();
-      var spec = String(cols[idxSpec] || '').trim();
+      var productName = idxName >= 0 ? String(cols[idxName] || '').trim() : '';
+      var spec = idxSpec >= 0 ? String(cols[idxSpec] || '').trim() : '';
       var trackingNo = String(cols[idxTracking] || '').trim();
-      if (!orderId && !productName && !spec && !trackingNo) continue;
+      var courier = idxCourier >= 0 ? String(cols[idxCourier] || '').trim() : '';
+      if (!orderId && !productName && !spec && !trackingNo && !courier) continue;
       rows.push({
         orderId: orderId,
         productName: productName,
         spec: spec,
         trackingNo: trackingNo,
+        courier: courier,
         line: r + 1
       });
     }
     return { rows: rows, error: '' };
+  }
+
+  function parseBatchExpressRows(text) {
+    var lines = String(text || '')
+      .replace(/^\uFEFF/, '')
+      .split(/\r?\n/);
+    var matrix = [];
+    for (var i = 0; i < lines.length; i++) {
+      if (!String(lines[i] || '').trim()) continue;
+      matrix.push(splitCsvLine(lines[i]));
+    }
+    return parseBatchExpressGrid(matrix);
+  }
+
+  function parseBatchExpressWorkbook(buffer) {
+    if (!window.XLSX || typeof window.XLSX.read !== 'function') {
+      return { rows: [], error: 'Excel 解析组件未加载' };
+    }
+    try {
+      var wb = window.XLSX.read(buffer, { type: 'array', cellDates: false, raw: false });
+      var sheetName = wb.SheetNames && wb.SheetNames[0];
+      if (!sheetName || !wb.Sheets[sheetName]) return { rows: [], error: '文件无有效数据行' };
+      var matrix = window.XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {
+        header: 1,
+        raw: false,
+        defval: ''
+      });
+      return parseBatchExpressGrid(matrix);
+    } catch (err) {
+      return { rows: [], error: 'Excel 文件解析失败，请检查文件格式' };
+    }
+  }
+
+  function readBatchExpressFile(file, onDone) {
+    var name = String((file && file.name) || '').toLowerCase();
+    if (!file) {
+      onDone({ rows: [], error: '请先选择文件' });
+      return;
+    }
+    if (!/\.(csv|xlsx|xls)$/.test(name)) {
+      onDone({ rows: [], error: '请上传 .xlsx、.xls 或 .csv 文件' });
+      return;
+    }
+    var reader = new FileReader();
+    reader.onerror = function () {
+      onDone({ rows: [], error: '文件读取失败' });
+    };
+    if (/\.csv$/.test(name)) {
+      reader.onload = function () {
+        onDone(parseBatchExpressRows(String(reader.result || '')));
+      };
+      reader.readAsText(file, 'UTF-8');
+      return;
+    }
+    reader.onload = function () {
+      onDone(parseBatchExpressWorkbook(reader.result));
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function findRetailOrderRow(orderId) {
+    var id = String(orderId || '').trim();
+    if (!id) return null;
+    var rows = document.querySelectorAll('.order-live-table tbody tr[data-order-id]');
+    var i;
+    for (i = 0; i < rows.length; i++) {
+      if ((rows[i].getAttribute('data-order-id') || '') === id) return rows[i];
+    }
+    for (i = 0; i < rows.length; i++) {
+      var link = rows[i].querySelector('a.js-order-view');
+      var text = link ? String(link.textContent || '').trim() : '';
+      if (text === id) return rows[i];
+    }
+    return null;
+  }
+
+  function getRetailOrderMeta(orderId) {
+    var row = findRetailOrderRow(orderId);
+    if (!row) return null;
+    var nameEl = row.querySelector('.order-product-cell__name');
+    var statusEl = row.querySelector('.order-status-cell .order-tag');
+    var modeEl = row.querySelector('.order-delivery-mode');
+    return {
+      row: row,
+      orderId: row.getAttribute('data-order-id') || orderId,
+      productName: nameEl ? String(nameEl.textContent || '').trim() : '',
+      status: statusEl ? String(statusEl.textContent || '').trim() : '',
+      deliveryMode: row.getAttribute('data-delivery-mode') || '',
+      deliveryLabel: modeEl ? String(modeEl.textContent || '').trim() : ''
+    };
+  }
+
+  var BATCH_REFUND_STATUSES = ['待审核', '退货中', '退款中', '退货成功', '退款成功', '发起退货/退款'];
+
+  function validateBatchExpressRow(row) {
+    var orderId = String((row && row.orderId) || '').trim();
+    var trackingNo = String((row && row.trackingNo) || '').trim();
+    var courier = String((row && row.courier) || '').trim();
+    var productName = String((row && row.productName) || '').trim();
+    if (!orderId) {
+      return { level: 'error', reason: '订单号不能为空' };
+    }
+    if (!trackingNo) {
+      return { level: 'error', reason: '物流单号不能为空' };
+    }
+    var trackingCheck =
+      window.LogisticsTrackingNo && typeof window.LogisticsTrackingNo.validate === 'function'
+        ? window.LogisticsTrackingNo.validate(trackingNo)
+        : { ok: true, value: trackingNo };
+    if (!trackingCheck.ok) {
+      return { level: 'error', reason: trackingCheck.message || '物流单号格式不正确' };
+    }
+    var inferred = inferCourierFromTrackingNo(trackingCheck.value);
+    if (!courier) {
+      if (inferred) {
+        courier = inferred;
+      } else {
+        return { level: 'error', reason: '快递公司不能为空' };
+      }
+    }
+    var meta = getRetailOrderMeta(orderId);
+    if (!meta) {
+      return {
+        level: 'error',
+        reason: '未找到该订单',
+        trackingNo: trackingCheck.value,
+        courier: courier,
+        productName: productName
+      };
+    }
+    if (!productName) productName = meta.productName;
+    if (meta.deliveryMode && meta.deliveryMode !== 'express') {
+      return {
+        level: 'error',
+        reason: '订单履约方式不是快递，无法上传快递单',
+        trackingNo: trackingCheck.value,
+        courier: courier,
+        productName: productName,
+        meta: meta
+      };
+    }
+    if (BATCH_REFUND_STATUSES.indexOf(meta.status) >= 0) {
+      return {
+        level: 'error',
+        reason: '该订单下存在申请退款中的商品，请先处理退款申请！',
+        trackingNo: trackingCheck.value,
+        courier: courier,
+        productName: productName,
+        meta: meta
+      };
+    }
+    if (!canUploadExpressStatus(meta.status, 'retail')) {
+      return {
+        level: 'error',
+        reason: '订单状态不允许上传',
+        trackingNo: trackingCheck.value,
+        courier: courier,
+        productName: productName,
+        meta: meta
+      };
+    }
+    var list = getShipments(meta.orderId);
+    var existing = findShipmentByTracking(list, trackingCheck.value);
+    if (existing) {
+      if (!row.spec || shipmentHasNameSpec(existing, productName, row.spec)) {
+        return {
+          level: 'warn',
+          reason: '运单号已存在，将跳过不重复上传',
+          trackingNo: trackingCheck.value,
+          courier: courier || existing.courier || '',
+          productName: productName,
+          meta: meta
+        };
+      }
+    }
+    return {
+      level: 'ok',
+      reason: '',
+      trackingNo: trackingCheck.value,
+      courier: courier,
+      productName: productName,
+      meta: meta
+    };
+  }
+
+  function decorateBatchExpressRows(rows) {
+    return (rows || []).map(function (row, index) {
+      var check = validateBatchExpressRow(row);
+      return {
+        orderId: String(row.orderId || '').trim(),
+        productName: check.productName || String(row.productName || '').trim(),
+        spec: String(row.spec || '').trim(),
+        trackingNo: check.trackingNo || String(row.trackingNo || '').trim(),
+        courier: check.courier || String(row.courier || '').trim(),
+        line: row.line || index + 2,
+        index: index + 1,
+        level: check.level,
+        reason: check.reason || '',
+        meta: check.meta || null
+      };
+    });
   }
 
   function findShipmentByTracking(list, trackingNo) {
@@ -1129,39 +1344,56 @@
     return shipment;
   }
 
+  function toBatchFailRow(row, reason) {
+    return {
+      orderId: String((row && row.orderId) || '').trim(),
+      productName: String((row && row.productName) || '').trim(),
+      courier: String((row && row.courier) || '').trim(),
+      trackingNo: String((row && row.trackingNo) || '').trim(),
+      reason: reason || '导入失败'
+    };
+  }
+
   function applyBatchExpressUpload(rows) {
     var added = 0;
     var merged = 0;
     var skipped = 0;
     var invalid = 0;
+    var failures = [];
+    var decorated = decorateBatchExpressRows(rows);
 
-    (rows || []).forEach(function (row) {
-      if (!row.orderId || !row.productName || !row.spec || !row.trackingNo) {
+    decorated.forEach(function (row) {
+      if (row.level === 'error') {
         invalid += 1;
+        failures.push(toBatchFailRow(row, row.reason));
         return;
       }
-      var trackingCheck =
-        window.LogisticsTrackingNo && typeof window.LogisticsTrackingNo.validate === 'function'
-          ? window.LogisticsTrackingNo.validate(row.trackingNo)
-          : { ok: true, value: String(row.trackingNo || '').trim() };
-      if (!trackingCheck.ok) {
-        invalid += 1;
+      if (row.level === 'warn') {
+        skipped += 1;
         return;
       }
-      row.trackingNo = trackingCheck.value;
-      var good = resolveGoodByNameSpec(row.orderId, row.productName, row.spec);
-      var list = getShipments(row.orderId);
+      var orderKey = (row.meta && row.meta.orderId) || row.orderId;
+      var goods = [];
+      if (row.productName && row.spec) {
+        goods = [resolveGoodByNameSpec(orderKey, row.productName, row.spec)];
+      } else {
+        goods = resolveOrderGoodsList(orderKey);
+        if (!goods.length && row.productName) {
+          goods = [{ id: 'ns-' + normalizeGoodsText(row.productName), name: row.productName, spec: row.spec || '' }];
+        }
+      }
+      var list = getShipments(orderKey);
       var existing = findShipmentByTracking(list, row.trackingNo);
       if (existing) {
-        if (shipmentHasNameSpec(existing, row.productName, row.spec)) {
+        if (!row.spec || shipmentHasNameSpec(existing, row.productName, row.spec)) {
           skipped += 1;
           return;
         }
-        var goods = getShipmentGoods(existing).slice();
-        goods.push(good);
-        rebuildShipmentGoodsMeta(existing, goods);
+        var nextGoods = getShipmentGoods(existing).slice();
+        nextGoods.push(goods[0] || resolveGoodByNameSpec(orderKey, row.productName, row.spec));
+        rebuildShipmentGoodsMeta(existing, nextGoods);
         saveShipments(
-          row.orderId,
+          orderKey,
           list.map(function (item) {
             return item.id === existing.id ? existing : item;
           })
@@ -1169,15 +1401,23 @@
         merged += 1;
         return;
       }
-      addShipment(row.orderId, {
-        courier: inferCourierFromTrackingNo(row.trackingNo) || '申通快递',
+      addShipment(orderKey, {
+        courier: row.courier || inferCourierFromTrackingNo(row.trackingNo) || '申通快递',
         trackingNo: row.trackingNo,
-        goods: [good]
+        goods: goods.length ? goods : [{ id: 'g-unknown', name: row.productName || '商品' }]
       });
       added += 1;
     });
 
-    return { added: added, merged: merged, skipped: skipped, invalid: invalid };
+    return {
+      added: added,
+      merged: merged,
+      skipped: skipped,
+      invalid: invalid,
+      failures: failures,
+      success: added + merged,
+      failed: failures.length
+    };
   }
 
   function applyBatchExpressDelete(rows) {
@@ -1233,22 +1473,76 @@
     return { removed: removed, cleared: cleared, skipped: skipped, invalid: invalid, notFound: notFound };
   }
 
-  function downloadBatchExpressTemplate() {
-    var csv =
-      '\uFEFF订单号,商品名称,规格,物流单号\n' +
-      'ORD-3212689201599003,新鲜红颜草莓 香甜多汁 500g装,规格：500g,773088899900099\n' +
-      'ORD-3212689201599003,进口香蕉 香甜软糯 3斤装,规格：3斤,773088899900099\n' +
-      'ORD-3212689201588561,微辣萝卜干 500g 4号…,规格：500g,773075059702651\n' +
-      'ORD-3212689201599001,冷丰优选3J智利车厘子 3斤装,规格：3斤,SF9988776655443\n';
+  function downloadCsvFile(filename, csv) {
     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
-    a.download = '批量上传快递单模板.csv';
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+  }
+
+  function csvCell(val) {
+    var text = String(val == null ? '' : val);
+    if (/[",\n]/.test(text)) return '"' + text.replace(/"/g, '""') + '"';
+    return text;
+  }
+
+  function getBatchExpressTemplateRows() {
+    return [
+      ['订单号', '物流单号', '快递公司'],
+      ['ORD-3212689201588561', '773075059702651', '申通快递'],
+      ['ORD-3212689201599001', 'SF9988776655443', '顺丰速运'],
+      ['ORD-3212689201599003', 'SF5116882004079', '顺丰快递'],
+      ['ORD-3212689201560682', 'SF5116882004080', '顺丰快递']
+    ];
+  }
+
+  function downloadBatchExpressTemplate() {
+    var aoa = getBatchExpressTemplateRows();
+    if (window.XLSX && window.XLSX.utils && typeof window.XLSX.writeFile === 'function') {
+      var wb = window.XLSX.utils.book_new();
+      var ws = window.XLSX.utils.aoa_to_sheet(aoa);
+      ws['!cols'] = [{ wch: 28 }, { wch: 22 }, { wch: 14 }];
+      window.XLSX.utils.book_append_sheet(wb, ws, '批量上传快递单');
+      window.XLSX.writeFile(wb, '批量上传快递单模板.xlsx');
+      return;
+    }
+    var csv = '\uFEFF' + aoa.map(function (row) {
+      return row.map(csvCell).join(',');
+    }).join('\n') + '\n';
+    downloadCsvFile('批量上传快递单模板.csv', csv);
+  }
+
+  function downloadBatchExpressFailDetails(failures) {
+    var csv = '\uFEFF订单号,商品名称,物流名称,物流单号,失败原因\n';
+    (failures || []).forEach(function (row) {
+      csv +=
+        [
+          csvCell(row.orderId),
+          csvCell(row.productName),
+          csvCell(row.courier),
+          csvCell(row.trackingNo),
+          csvCell(row.reason)
+        ].join(',') + '\n';
+    });
+    var stamp = new Date();
+    function p(n) {
+      return String(n).padStart(2, '0');
+    }
+    var name =
+      '批量上传快递单_失败详情_' +
+      stamp.getFullYear() +
+      p(stamp.getMonth() + 1) +
+      p(stamp.getDate()) +
+      p(stamp.getHours()) +
+      p(stamp.getMinutes()) +
+      p(stamp.getSeconds()) +
+      '.csv';
+    downloadCsvFile(name, csv);
   }
 
   function downloadBatchExpressDeleteTemplate() {
@@ -1267,18 +1561,10 @@
     URL.revokeObjectURL(url);
   }
 
-  function openBatchUploadModal(options) {
-    var opts = options || {};
-    var mode = opts.mode === 'delete' ? 'delete' : 'upload';
-    var isDelete = mode === 'delete';
-    var title = isDelete ? '批量删除快递单' : '批量上传快递单';
+  function openBatchDeleteModal(opts) {
     var hint =
       opts.hint ||
-      (isDelete
-        ? '通过 Excel / CSV 批量删除快递单。请先下载模板，按「订单号、商品名称、规格、物流单号」填写：一商品一行。同一物流含多商品时，删除其中一条仅从该物流中移除对应商品；若移除后无商品则删除整条物流。'
-        : '通过 Excel / CSV 批量上传快递单。请先下载模板，按「订单号、商品名称、规格、物流单号」填写：一商品一行。同物流单号+同订单号+不同商品将合并为一条物流；同物流单号+不同订单号仅展示本订单商品；四者均一致则跳过不重复上传。');
-    var submitText = isDelete ? '确认删除' : '确认上传';
-    var templateName = isDelete ? '下载删除模板' : '下载导入模板';
+      '通过 Excel / CSV 批量删除快递单。请先下载模板，按「订单号、商品名称、规格、物流单号」填写：一商品一行。同一物流含多商品时，删除其中一条仅从该物流中移除对应商品；若移除后无商品则删除整条物流。';
 
     closeOverlay('orderProxyBatchUploadBackdrop');
     var backdrop = el('div', 'order-proxy-express-overlay');
@@ -1286,19 +1572,13 @@
     backdrop.innerHTML =
       '<div class="order-proxy-upload-modal order-proxy-batch-upload-modal" role="dialog" aria-labelledby="orderProxyBatchUploadTitle">' +
         '<div class="order-proxy-upload-modal__head">' +
-          '<h3 id="orderProxyBatchUploadTitle" class="order-proxy-upload-modal__title">' +
-          escapeHtml(title) +
-          '</h3>' +
+          '<h3 id="orderProxyBatchUploadTitle" class="order-proxy-upload-modal__title">批量删除快递单</h3>' +
           '<button type="button" class="order-proxy-upload-modal__close js-batch-express-close" aria-label="关闭">×</button>' +
         '</div>' +
         '<div class="order-proxy-upload-modal__body">' +
-          '<p class="order-proxy-upload-modal__hint">' +
-          escapeHtml(hint) +
-          '</p>' +
+          '<p class="order-proxy-upload-modal__hint">' + escapeHtml(hint) + '</p>' +
           '<div class="order-proxy-batch-upload__template">' +
-            '<button type="button" class="order-proxy-upload-field__link js-batch-express-template">' +
-            escapeHtml(templateName) +
-            '</button>' +
+            '<button type="button" class="order-proxy-upload-field__link js-batch-express-template">下载删除模板</button>' +
           '</div>' +
           '<div class="order-proxy-upload-field">' +
             '<label class="order-proxy-upload-field__label" for="orderProxyBatchFile">上传文件</label>' +
@@ -1306,14 +1586,11 @@
               '<input type="file" id="orderProxyBatchFile" class="order-proxy-batch-upload__file" accept=".csv,text/csv">' +
               '<span class="order-proxy-batch-upload__file-name js-batch-express-file-name">未选择文件</span>' +
             '</div>' +
-            '<p class="order-proxy-upload-field__auto-hint">请使用 CSV（可用 Excel 另存为），单次建议不超过 1000 条</p>' +
           '</div>' +
         '</div>' +
         '<div class="order-proxy-upload-modal__foot">' +
           '<button type="button" class="order-filter-btn order-filter-btn--default js-batch-express-close">取消</button>' +
-          '<button type="button" class="order-filter-btn order-filter-btn--primary js-batch-express-submit">' +
-          escapeHtml(submitText) +
-          '</button>' +
+          '<button type="button" class="order-filter-btn order-filter-btn--primary js-batch-express-submit">确认删除</button>' +
         '</div>' +
       '</div>';
 
@@ -1322,7 +1599,6 @@
 
     var fileInput = backdrop.querySelector('#orderProxyBatchFile');
     var fileNameEl = backdrop.querySelector('.js-batch-express-file-name');
-
     backdrop.addEventListener('click', function (e) {
       if (e.target === backdrop) closeOverlay('orderProxyBatchUploadBackdrop');
     });
@@ -1332,8 +1608,7 @@
       });
     });
     backdrop.querySelector('.js-batch-express-template').addEventListener('click', function () {
-      if (isDelete) downloadBatchExpressDeleteTemplate();
-      else downloadBatchExpressTemplate();
+      downloadBatchExpressDeleteTemplate();
       if (typeof showToast === 'function') showToast('模板已下载', 'success');
     });
     if (fileInput) {
@@ -1348,12 +1623,10 @@
         if (typeof showToast === 'function') showToast('请先选择 CSV 文件', 'error');
         return;
       }
-      var name = String(file.name || '').toLowerCase();
-      if (!/\.csv$/.test(name)) {
+      if (!/\.csv$/i.test(file.name || '')) {
         if (typeof showToast === 'function') showToast('请上传 CSV 文件（可用 Excel 另存为）', 'error');
         return;
       }
-
       var reader = new FileReader();
       reader.onload = function () {
         var parsed = parseBatchExpressRows(String(reader.result || ''));
@@ -1365,47 +1638,342 @@
           if (typeof showToast === 'function') showToast('文件中没有可处理的数据', 'error');
           return;
         }
-
         closeOverlay('orderProxyBatchUploadBackdrop');
-        if (isDelete) {
-          var delResult = applyBatchExpressDelete(parsed.rows);
-          if (typeof showToast === 'function') {
-            showToast(
-              '删除完成：移除 ' +
-                delResult.removed +
-                ' 条商品（其中清空物流 ' +
-                delResult.cleared +
-                '），跳过 ' +
-                delResult.skipped +
-                '，未匹配 ' +
-                delResult.notFound +
-                (delResult.invalid ? '，无效 ' + delResult.invalid : ''),
-              'success'
-            );
-          }
-          if (typeof opts.onSuccess === 'function') opts.onSuccess(file, delResult);
-        } else {
-          var upResult = applyBatchExpressUpload(parsed.rows);
-          if (typeof showToast === 'function') {
-            showToast(
-              '上传完成：新增 ' +
-                upResult.added +
-                '，合并 ' +
-                upResult.merged +
-                '，跳过重复 ' +
-                upResult.skipped +
-                (upResult.invalid ? '，无效 ' + upResult.invalid : ''),
-              'success'
-            );
-          }
-          if (typeof opts.onSuccess === 'function') opts.onSuccess(file, upResult);
+        var delResult = applyBatchExpressDelete(parsed.rows);
+        if (typeof showToast === 'function') {
+          showToast(
+            '删除完成：移除 ' +
+              delResult.removed +
+              ' 条商品（其中清空物流 ' +
+              delResult.cleared +
+              '），跳过 ' +
+              delResult.skipped +
+              '，未匹配 ' +
+              delResult.notFound +
+              (delResult.invalid ? '，无效 ' + delResult.invalid : ''),
+            'success'
+          );
         }
+        if (typeof opts.onSuccess === 'function') opts.onSuccess(file, delResult);
       };
       reader.onerror = function () {
         if (typeof showToast === 'function') showToast('文件读取失败', 'error');
       };
       reader.readAsText(file, 'UTF-8');
     });
+  }
+
+  function wizardStepHtml(current) {
+    function item(step, label) {
+      var cls = 'order-batch-wizard__step';
+      if (current > step) cls += ' is-done';
+      else if (current === step) cls += ' is-current';
+      return (
+        '<span class="' + cls + '">' +
+          '<span class="order-batch-wizard__dot"></span>' +
+          '<svg class="order-batch-wizard__check" viewBox="0 0 16 16" aria-hidden="true">' +
+            '<circle cx="8" cy="8" r="8" fill="#67c23a"></circle>' +
+            '<path d="M4.6 8.2l2.1 2.1 4.7-4.7" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>' +
+          '</svg>' +
+          '<span>' + label + '</span>' +
+        '</span>'
+      );
+    }
+    return (
+      '<div class="order-batch-wizard__steps">' +
+        item(1, '上传文件') +
+        '<span class="order-batch-wizard__chevron">›</span>' +
+        item(2, '数据预览') +
+        '<span class="order-batch-wizard__chevron">›</span>' +
+        item(3, '导入结果') +
+      '</div>'
+    );
+  }
+
+  function openBatchUploadWizard(opts) {
+    var hint =
+      opts.hint ||
+      '通过 Excel / CSV 批量上传快递单号。请先下载模板，按「订单号、物流单号、快递公司」填写后上传。上传成功即触发发货，同一订单可分多次上传以补充多个包裹（运单号自动去重）。';
+    var state = {
+      step: 1,
+      file: null,
+      previewRows: [],
+      onlyError: false,
+      result: null
+    };
+
+    closeOverlay('orderProxyBatchUploadBackdrop');
+    var backdrop = el('div', 'order-proxy-express-overlay');
+    backdrop.id = 'orderProxyBatchUploadBackdrop';
+    document.body.appendChild(backdrop);
+    syncBodyOverflow();
+
+    function closeWizard() {
+      closeOverlay('orderProxyBatchUploadBackdrop');
+    }
+
+    function countPreview(rows) {
+      var total = rows.length;
+      var err = 0;
+      var warn = 0;
+      rows.forEach(function (row) {
+        if (row.level === 'error') err += 1;
+        else if (row.level === 'warn') warn += 1;
+      });
+      return { total: total, valid: total - err, error: err, warn: warn };
+    }
+
+    function renderPreviewTable(rows) {
+      var list = state.onlyError ? rows.filter(function (row) { return row.level === 'error'; }) : rows;
+      if (!list.length) {
+        return '<div class="order-batch-wizard__table-wrap"><table class="order-batch-wizard__table"><tbody><tr><td>没有可展示的数据</td></tr></tbody></table></div>';
+      }
+      var html =
+        '<div class="order-batch-wizard__table-wrap"><table class="order-batch-wizard__table">' +
+        '<thead><tr><th>#</th><th>订单号</th><th>物流单号</th><th>快递公司</th><th>校验</th></tr></thead><tbody>';
+      list.forEach(function (row) {
+        var trCls = row.level === 'error' ? ' is-error' : row.level === 'warn' ? ' is-warn' : '';
+        var mark = row.level === 'error' ? row.reason : row.level === 'warn' ? row.reason : '有效';
+        html +=
+          '<tr class="' + trCls + '">' +
+            '<td>' + row.index + '</td>' +
+            '<td>' + escapeHtml(row.orderId) + '</td>' +
+            '<td>' + escapeHtml(row.trackingNo) + '</td>' +
+            '<td>' + escapeHtml(row.courier) + '</td>' +
+            '<td>' + escapeHtml(mark) + '</td>' +
+          '</tr>';
+      });
+      html += '</tbody></table></div>';
+      return html;
+    }
+
+    function renderFailTable(failures) {
+      if (!failures || !failures.length) return '';
+      var html =
+        '<div class="order-batch-wizard__table-wrap"><table class="order-batch-wizard__table">' +
+        '<thead><tr><th>订单号</th><th>商品名称</th><th>物流名称</th><th>物流单号</th><th>失败原因</th></tr></thead><tbody>';
+      failures.forEach(function (row) {
+        html +=
+          '<tr>' +
+            '<td>' + escapeHtml(row.orderId) + '</td>' +
+            '<td>' + escapeHtml(row.productName) + '</td>' +
+            '<td>' + escapeHtml(row.courier) + '</td>' +
+            '<td>' + escapeHtml(row.trackingNo) + '</td>' +
+            '<td>' + escapeHtml(row.reason) + '</td>' +
+          '</tr>';
+      });
+      html += '</tbody></table></div>';
+      return html;
+    }
+
+    function render() {
+      var body = '';
+      var foot = '';
+      if (state.step === 1) {
+        body =
+          wizardStepHtml(1) +
+          '<div class="order-batch-wizard__drop js-batch-drop">' +
+            '<svg class="order-batch-wizard__drop-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">' +
+              '<path d="M8 30v6a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4v-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>' +
+              '<path d="M24 8v24M16 16l8-8 8 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>' +
+            '</svg>' +
+            '<p class="order-batch-wizard__drop-title">将文件拖到此处，或点击上传</p>' +
+            '<p class="order-batch-wizard__drop-sub">支持 .xlsx、.xls、.csv 格式</p>' +
+            (state.file ? '<p class="order-batch-wizard__drop-name">' + escapeHtml(state.file.name) + '</p>' : '') +
+            '<input type="file" id="orderProxyBatchFile" accept=".csv,.xlsx,.xls,text/csv" hidden>' +
+          '</div>' +
+          '<button type="button" class="order-batch-wizard__tpl js-batch-express-template">下载导入模板</button>';
+        foot =
+          '<div class="order-proxy-upload-modal__foot">' +
+            '<button type="button" class="order-filter-btn order-filter-btn--default js-batch-express-close">取消</button>' +
+          '</div>';
+      } else if (state.step === 2) {
+        var stats = countPreview(state.previewRows);
+        body =
+          wizardStepHtml(2) +
+          '<div class="order-batch-wizard__stats">' +
+            '<span>总计 <strong>' + stats.total + '</strong></span>' +
+            '<span class="order-batch-wizard__stat--ok">有效 <strong>' + stats.valid + '</strong></span>' +
+            '<span class="order-batch-wizard__stat--err">错误 <strong>' + stats.error + '</strong></span>' +
+            '<span class="order-batch-wizard__stat--warn">警告 <strong>' + stats.warn + '</strong></span>' +
+          '</div>' +
+          '<div class="order-batch-wizard__toolbar">' +
+            '<span class="order-batch-wizard__toggle' + (state.onlyError ? ' is-on' : '') + ' js-batch-only-error">' +
+              '<span class="order-batch-wizard__switch"></span>仅显示错误行' +
+            '</span>' +
+          '</div>' +
+          renderPreviewTable(state.previewRows);
+        foot =
+          '<div class="order-proxy-upload-modal__foot is-split">' +
+            '<button type="button" class="order-filter-btn order-filter-btn--default js-batch-express-close">取消</button>' +
+            '<div class="order-proxy-upload-modal__foot-right">' +
+              '<button type="button" class="order-filter-btn order-filter-btn--default js-batch-prev">上一步</button>' +
+              '<button type="button" class="order-filter-btn order-filter-btn--primary js-batch-submit">提交导入</button>' +
+            '</div>' +
+          '</div>';
+      } else {
+        var result = state.result || { success: 0, failed: 0, failures: [] };
+        var total = result.success + result.failed;
+        var allOk = result.failed === 0;
+        body =
+          wizardStepHtml(3) +
+          '<div class="order-batch-wizard__result">' +
+            '<div class="order-batch-wizard__result-icon' + (allOk ? ' is-ok' : '') + '">' +
+              (allOk ? '✓' : '!') +
+            '</div>' +
+            '<p class="order-batch-wizard__result-title">成功导入 ' + result.success + '，导入失败 ' + result.failed + '</p>' +
+          '</div>' +
+          (result.failed
+            ? '<div class="order-batch-wizard__result-head">' +
+                '<div class="order-batch-wizard__stats">' +
+                  '<span>' + total + '总计</span>' +
+                  '<span class="order-batch-wizard__stat--ok">' + result.success + '成功导入</span>' +
+                  '<span class="order-batch-wizard__stat--err">' + result.failed + '导入失败</span>' +
+                '</div>' +
+              '</div>' +
+              renderFailTable(result.failures)
+            : '');
+        foot =
+          '<div class="order-proxy-upload-modal__foot">' +
+            (result.failed
+              ? '<button type="button" class="order-filter-btn order-filter-btn--outline js-batch-download-fail">下载失败详情</button>'
+              : '') +
+            '<button type="button" class="order-filter-btn order-filter-btn--default js-batch-reimport">重新导入</button>' +
+            '<button type="button" class="order-filter-btn order-filter-btn--primary js-batch-done">完成</button>' +
+          '</div>';
+      }
+
+      backdrop.innerHTML =
+        '<div class="order-proxy-upload-modal order-proxy-batch-wizard" role="dialog" aria-labelledby="orderProxyBatchUploadTitle">' +
+          '<div class="order-proxy-upload-modal__head">' +
+            '<h3 id="orderProxyBatchUploadTitle" class="order-proxy-upload-modal__title">批量上传快递单</h3>' +
+            '<button type="button" class="order-proxy-upload-modal__close js-batch-express-close" aria-label="关闭">×</button>' +
+          '</div>' +
+          '<div class="order-proxy-upload-modal__body">' +
+            '<p class="order-proxy-upload-modal__hint">' + escapeHtml(hint) + '</p>' +
+            body +
+          '</div>' +
+          foot +
+        '</div>';
+
+      bind();
+    }
+
+    function goPreviewFromFile(file) {
+      readBatchExpressFile(file, function (parsed) {
+        if (parsed.error) {
+          if (typeof showToast === 'function') showToast(parsed.error, 'error');
+          return;
+        }
+        if (!parsed.rows.length) {
+          if (typeof showToast === 'function') showToast('文件中没有可处理的数据', 'error');
+          return;
+        }
+        state.file = file;
+        state.previewRows = decorateBatchExpressRows(parsed.rows);
+        state.onlyError = false;
+        state.step = 2;
+        render();
+      });
+    }
+
+    function bind() {
+      backdrop.querySelectorAll('.js-batch-express-close').forEach(function (btn) {
+        btn.addEventListener('click', closeWizard);
+      });
+      var drop = backdrop.querySelector('.js-batch-drop');
+      var fileInput = backdrop.querySelector('#orderProxyBatchFile');
+      if (drop && fileInput) {
+        drop.addEventListener('click', function (e) {
+          if (e.target === fileInput) return;
+          fileInput.value = '';
+          fileInput.click();
+        });
+        drop.addEventListener('dragover', function (e) {
+          e.preventDefault();
+          drop.classList.add('is-dragover');
+        });
+        drop.addEventListener('dragleave', function () {
+          drop.classList.remove('is-dragover');
+        });
+        drop.addEventListener('drop', function (e) {
+          e.preventDefault();
+          drop.classList.remove('is-dragover');
+          var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+          if (file) goPreviewFromFile(file);
+        });
+        fileInput.addEventListener('change', function () {
+          var file = fileInput.files && fileInput.files[0];
+          if (file) goPreviewFromFile(file);
+        });
+      }
+      var tplBtn = backdrop.querySelector('.js-batch-express-template');
+      if (tplBtn) {
+        tplBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          downloadBatchExpressTemplate();
+          if (typeof showToast === 'function') showToast('模板已下载', 'success');
+        });
+      }
+      var onlyError = backdrop.querySelector('.js-batch-only-error');
+      if (onlyError) {
+        onlyError.addEventListener('click', function () {
+          state.onlyError = !state.onlyError;
+          render();
+        });
+      }
+      var prevBtn = backdrop.querySelector('.js-batch-prev');
+      if (prevBtn) {
+        prevBtn.addEventListener('click', function () {
+          state.step = 1;
+          render();
+        });
+      }
+      var submitBtn = backdrop.querySelector('.js-batch-submit');
+      if (submitBtn) {
+        submitBtn.addEventListener('click', function () {
+          var upResult = applyBatchExpressUpload(state.previewRows);
+          state.result = upResult;
+          state.step = 3;
+          render();
+          if (typeof opts.onSuccess === 'function') opts.onSuccess(state.file, upResult);
+        });
+      }
+      var downloadBtn = backdrop.querySelector('.js-batch-download-fail');
+      if (downloadBtn) {
+        downloadBtn.addEventListener('click', function () {
+          downloadBatchExpressFailDetails((state.result && state.result.failures) || []);
+          if (typeof showToast === 'function') showToast('失败详情已下载', 'success');
+        });
+      }
+      var reimportBtn = backdrop.querySelector('.js-batch-reimport');
+      if (reimportBtn) {
+        reimportBtn.addEventListener('click', function () {
+          state.step = 1;
+          state.file = null;
+          state.previewRows = [];
+          state.result = null;
+          state.onlyError = false;
+          render();
+        });
+      }
+      var doneBtn = backdrop.querySelector('.js-batch-done');
+      if (doneBtn) {
+        doneBtn.addEventListener('click', closeWizard);
+      }
+    }
+
+    backdrop.addEventListener('click', function (e) {
+      if (e.target === backdrop) closeWizard();
+    });
+    render();
+  }
+
+  function openBatchUploadModal(options) {
+    var opts = options || {};
+    if (opts.mode === 'delete') openBatchDeleteModal(opts);
+    else openBatchUploadWizard(opts);
   }
 
   window.OrderProxyExpress = {

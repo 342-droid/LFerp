@@ -205,6 +205,7 @@ function createTablePagination(options) {
         var tableEl = tableBody.closest('table');
         if (tableEl) {
             tableEl.setAttribute('data-lf-row-start', String(startIndex));
+            tableEl.setAttribute('data-lf-row-total', String(totalItems));
         }
         if (typeof window !== 'undefined' && window.LfTableRowNo && typeof window.LfTableRowNo.refresh === 'function') {
             window.LfTableRowNo.refresh();

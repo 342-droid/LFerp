@@ -365,7 +365,7 @@
           : '';
         return (
           '<tr data-id="' + item.id + '">' +
-          '  <td>' + (start + idx + 1) + '</td>' +
+          '  <td>' + (list.length - start - idx) + '</td>' +
           '  <td>' + renderTagsHtml(item) + '</td>' +
           '  <td>' + applyModeLabel(item.applyMode) + '</td>' +
           '  <td><span class="member-batch-logic">' + (item.logic === 'or' ? '或' : '且') + '</span></td>' +

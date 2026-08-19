@@ -111,7 +111,7 @@
         return '<span class="member-level-icon-cell member-level-icon-cell--empty">' + Data.escapeHtml(initial) + '</span>';
     }
 
-    function renderTable(pageItems, startIndex) {
+    function renderTable(pageItems, startIndex, total) {
         var tbody = document.getElementById('tableBody');
         if (!tbody) return;
 
@@ -139,7 +139,7 @@
                 : '<a href="#" data-action="toggle">' + toggleText + '</a>';
             return (
                 '<tr data-id="' + Data.escapeHtml(item.id) + '">' +
-                '<td>' + (startIndex + idx + 1) + '</td>' +
+                '<td>' + (total - startIndex - idx) + '</td>' +
                 '<td>' + renderLevelIconCell(item) + '</td>' +
                 '<td>' + Data.escapeHtml(item.name) + '</td>' +
                 '<td>' + growthLabel + '</td>' +
@@ -187,7 +187,7 @@
         if (state.page > totalPages) state.page = totalPages;
         var start = (state.page - 1) * state.pageSize;
         var pageItems = filtered.slice(start, start + state.pageSize);
-        renderTable(pageItems, start);
+        renderTable(pageItems, start, total);
         renderPagination(total);
     }
 

@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <link rel="stylesheet" href="../css/lf-order.css?v=20260818-goods-pop">
+    <link rel="stylesheet" href="../css/lf-order.css?v=20260819-batch318">
 </head>
 <body data-order-page="retail">
     <div id="sidebar-container"></div>
@@ -41,8 +41,18 @@
                                     <input class="order-filter-field__input" id="qProductName" type="text" placeholder="请输入商品名称">
                                 </div>
                                 <div class="order-filter-field">
-                                    <label class="order-filter-field__label order-filter-field__label--dropdown" for="qNickname">用户昵称</label>
-                                    <input class="order-filter-field__input" id="qNickname" type="text" placeholder="请输入用户昵称">
+                                    <div class="order-filter-switch" data-order-filter-switch="user">
+                                        <button type="button" class="order-filter-switch__trigger" aria-expanded="false" aria-haspopup="listbox">
+                                            <span class="order-filter-switch__text">用户昵称</span>
+                                        </button>
+                                        <div class="order-filter-switch__menu" hidden role="listbox">
+                                            <button type="button" class="order-filter-switch__item is-active" role="option" aria-selected="true" data-value="nickname" data-placeholder="请输入用户昵称">用户昵称</button>
+                                            <button type="button" class="order-filter-switch__item" role="option" aria-selected="false" data-value="receiverName" data-placeholder="请输入收货人姓名">收货人姓名</button>
+                                            <button type="button" class="order-filter-switch__item" role="option" aria-selected="false" data-value="receiverPhone" data-placeholder="请输入收货人电话">收货人电话</button>
+                                        </div>
+                                        <input type="hidden" id="qUserKey" name="qUserKey" value="nickname">
+                                    </div>
+                                    <input class="order-filter-field__input" id="qNickname" type="text" placeholder="请输入用户昵称" aria-label="用户昵称">
                                 </div>
                                 <div class="order-filter-field">
                                     <label class="order-filter-field__label" for="qPayChannel">支付渠道</label>
@@ -60,20 +70,52 @@
                                         <option value="express">快递</option>
                                     </select>
                                 </div>
+                                <div class="order-filter-field">
+                                    <label class="order-filter-field__label" for="qOrderScene">订单场景</label>
+                                    <select class="order-filter-field__select" id="qOrderScene">
+                                        <option value="">全部</option>
+                                        <option value="live">直播</option>
+                                        <option value="mall">商城</option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="order-filter-grid order-filter-grid--2 order-filter-grid--extra" id="orderFilterExtra" hidden>
                                 <div class="order-filter-field">
-                                    <label class="order-filter-field__label" for="qOrderStatus">订单状态</label>
-                                    <select class="order-filter-field__select" id="qOrderStatus">
-                                        <option value="">全部</option>
-                                        <option value="created">已创建</option>
-                                        <option value="paid">已支付</option>
-                                        <option value="pending_ship">待发货</option>
-                                        <option value="receipt">待收货</option>
-                                        <option value="pickup">待提货</option>
-                                        <option value="completed">已完成</option>
-                                        <option value="closed">已关闭</option>
-                                    </select>
+                                    <span class="order-filter-field__label">订单状态</span>
+                                    <div class="order-filter-multi" id="qOrderStatusMulti" data-placeholder="全部">
+                                        <button type="button" class="order-filter-multi__trigger" aria-expanded="false" aria-haspopup="listbox">
+                                            <span class="order-filter-multi__value">全部</span>
+                                        </button>
+                                        <div class="order-filter-multi__menu" hidden role="listbox">
+                                            <label class="order-filter-multi__item order-filter-multi__item--all">
+                                                <input type="checkbox" class="js-order-status-all"> 全选
+                                            </label>
+                                            <label class="order-filter-multi__item">
+                                                <input type="checkbox" class="js-order-status-opt" value="created" data-label="已创建"> 已创建
+                                            </label>
+                                            <label class="order-filter-multi__item">
+                                                <input type="checkbox" class="js-order-status-opt" value="paid" data-label="已支付"> 已支付
+                                            </label>
+                                            <label class="order-filter-multi__item">
+                                                <input type="checkbox" class="js-order-status-opt" value="pending_ship" data-label="待发货"> 待发货
+                                            </label>
+                                            <label class="order-filter-multi__item">
+                                                <input type="checkbox" class="js-order-status-opt" value="receipt" data-label="待收货"> 待收货
+                                            </label>
+                                            <label class="order-filter-multi__item">
+                                                <input type="checkbox" class="js-order-status-opt" value="pickup" data-label="待提货"> 待提货
+                                            </label>
+                                            <label class="order-filter-multi__item">
+                                                <input type="checkbox" class="js-order-status-opt" value="return_refund" data-label="发起退货/退款"> 发起退货/退款
+                                            </label>
+                                            <label class="order-filter-multi__item">
+                                                <input type="checkbox" class="js-order-status-opt" value="completed" data-label="已完成"> 已完成
+                                            </label>
+                                            <label class="order-filter-multi__item">
+                                                <input type="checkbox" class="js-order-status-opt" value="closed" data-label="已关闭"> 已关闭
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="order-filter-field">
                                     <label class="order-filter-field__label" for="qMarketingType">营销类型</label>
@@ -97,12 +139,17 @@
                                     </div>
                                 </div>
                                 <div class="order-filter-field">
-                                    <label class="order-filter-field__label" for="qLiveSessionId">直播场次 ID</label>
-                                    <input class="order-filter-field__input" id="qLiveSessionId" type="text" placeholder="请输入场次 ID">
-                                </div>
-                                <div class="order-filter-field">
-                                    <label class="order-filter-field__label" for="qLivePeriodId">直播时段 ID</label>
-                                    <input class="order-filter-field__input" id="qLivePeriodId" type="text" placeholder="请输入时段 ID">
+                                    <div class="order-filter-switch" data-order-filter-switch="live">
+                                        <button type="button" class="order-filter-switch__trigger" aria-expanded="false" aria-haspopup="listbox">
+                                            <span class="order-filter-switch__text">直播场次 ID</span>
+                                        </button>
+                                        <div class="order-filter-switch__menu" hidden role="listbox">
+                                            <button type="button" class="order-filter-switch__item is-active" role="option" aria-selected="true" data-value="session" data-placeholder="请输入场次 ID">直播场次 ID</button>
+                                            <button type="button" class="order-filter-switch__item" role="option" aria-selected="false" data-value="period" data-placeholder="请输入时段 ID">直播时段 ID</button>
+                                        </div>
+                                        <input type="hidden" id="qLiveIdType" name="qLiveIdType" value="session">
+                                    </div>
+                                    <input class="order-filter-field__input" id="qLiveId" type="text" placeholder="请输入场次 ID" aria-label="直播场次 ID">
                                 </div>
                             </div>
                             <div class="order-filter-actions">
@@ -126,12 +173,15 @@
                         <div class="order-table-toolbar">
                             <button type="button" class="order-table-toolbar__btn order-table-toolbar__btn--primary" id="orderRetailBatchUpload">批量上传快递单</button>
                             <button type="button" class="order-filter-btn order-filter-btn--default" id="orderRetailBatchDelete">批量删除快递单</button>
-                            <button type="button" class="order-filter-btn order-filter-btn--default" id="orderRetailExport" data-lf-export>导出</button>
+                            <button type="button" class="order-filter-btn order-filter-btn--default" id="orderRetailExport" data-lf-skip-export-notify>导出</button>
                         </div>
                         <div class="order-live-table-wrap">
                             <table class="order-live-table">
                                 <thead>
                                     <tr>
+                                        <th class="order-live-table__check-col">
+                                            <input type="checkbox" class="table-checkbox js-order-retail-check-all" aria-label="全选当前查询订单">
+                                        </th>
                                         <th>订单号</th>
                                         <th>下单时间</th>
                                         <th>用户昵称</th>
@@ -298,7 +348,7 @@
                                         <td><span class="order-scene">直播</span></td>
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>支付宝</td>
-                                        <td class="order-status-cell"><span class="order-tag order-tag--receipt">待收货</span></td>
+                                        <td class="order-status-cell"><span class="order-tag order-tag--as-review">待审核</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201584693">查看</a></td>
                                     </tr>
                                     <tr data-order-id="ORD-3212689201562037-A" data-delivery-mode="pickup">
@@ -324,7 +374,7 @@
                                         <td><span class="order-scene">商城</span></td>
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>-</td>
-                                        <td class="order-status-cell"><span class="order-tag order-tag--created">已创建</span></td>
+                                        <td class="order-status-cell"><span class="order-tag order-tag--as-returning">退货中</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-A">查看</a></td>
                                     </tr>
                                     <tr data-order-id="ORD-3212689201562037-B" data-delivery-mode="pickup">
@@ -350,7 +400,7 @@
                                         <td><span class="order-scene">直播、商城</span></td>
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>-</td>
-                                        <td class="order-status-cell"><span class="order-tag order-tag--created">已创建</span></td>
+                                        <td class="order-status-cell"><span class="order-tag order-tag--as-return-ok">退货成功</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-B">查看</a></td>
                                     </tr>
                                     <tr data-order-id="ORD-3212689201560683" data-delivery-mode="pickup">
@@ -376,7 +426,7 @@
                                         <td><span class="order-scene">直播</span></td>
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>-</td>
-                                        <td class="order-status-cell"><span class="order-tag order-tag--created">已创建</span></td>
+                                        <td class="order-status-cell"><span class="order-tag order-tag--as-refund-ok">退款成功</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560683">查看</a></td>
                                     </tr>
                                     <tr data-order-id="ORD-3212689201599001" data-delivery-mode="express" data-pay-channel="wechat">
@@ -719,11 +769,10 @@
                                         <td><span class="order-scene">商城</span></td>
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">快递</span></td>
                                         <td>微信</td>
-                                        <td class="order-status-cell"><span class="order-tag order-tag--receipt">待收货</span></td>
+                                        <td class="order-status-cell"><span class="order-tag order-tag--as-refunding">退款中</span></td>
                                         <td class="order-live-table__sticky-col">
                                             <div class="order-live-table__actions">
                                                 <a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599003">查看</a>
-                                                <button type="button" class="order-live-table__action js-retail-upload-express" data-order-id="ORD-3212689201599003">上传快递单</button>
                                             </div>
                                         </td>
                                     </tr>
@@ -783,8 +832,9 @@
     <script src="../js/logistics-tracking-no.js"></script>
     <script src="../js/mdm-aftersale-reasons.js"></script>
     <script src="../js/order-platform-aftersale.js?v=20260817-as-after-done"></script>
-    <script src="../js/order-proxy-express.js"></script>
-    <script src="../js/order-live-list.js?v=20260818-no-as-col"></script>
+    <script src="../js/vendor/xlsx.full.min.js"></script>
+    <script src="../js/order-proxy-express.js?v=20260819-xlsx"></script>
+    <script src="../js/order-live-list.js?v=20260819-batch318"></script>
     <script src="../js/order-live-detail.js?v=20260818-goods-pop"></script>
 </body>
 </html>
