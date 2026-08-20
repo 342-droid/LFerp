@@ -554,7 +554,7 @@
         '<dt>收货人</dt><dd>' + escapeHtml(detail.delivery.name) + '</dd>' +
         '<dt>电话</dt><dd>' + escapeHtml(detail.delivery.phone) + '</dd>' +
         '<dt>地址</dt><dd>' + escapeHtml(detail.delivery.address) + '</dd>' +
-        '<dt>下单门店</dt><dd>' + escapeHtml(detail.delivery.store) + '</dd>';
+        '<dt>门店</dt><dd>' + escapeHtml(detail.delivery.store) + '</dd>';
     }
     card.appendChild(baseKv);
 
