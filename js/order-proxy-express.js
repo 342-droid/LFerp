@@ -1087,7 +1087,7 @@
     var idxCourier = -1;
     headers.forEach(function (h, i) {
       if (/订单号|订单编号/.test(h)) idxOrder = i;
-      else if (/商品名称|商品名|品名/.test(h)) idxName = i;
+      else if (/商品信息|商品名称|商品名|品名/.test(h)) idxName = i;
       else if (/规格/.test(h)) idxSpec = i;
       else if (/物流单号|快递单号|运单号/.test(h)) idxTracking = i;
       else if (/快递公司|物流名称|物流公司/.test(h)) idxCourier = i;
@@ -1098,6 +1098,10 @@
         idxName = 1;
         idxSpec = 2;
         idxTracking = 3;
+      } else if (headers.length >= 3) {
+        idxOrder = 0;
+        idxName = 1;
+        idxTracking = 2;
       } else if (headers.length >= 2) {
         idxOrder = 0;
         idxTracking = 1;
@@ -1311,6 +1315,7 @@
       return {
         orderId: String(row.orderId || '').trim(),
         productName: check.productName || String(row.productName || '').trim(),
+        uploadedProductName: String(row.productName || '').trim(),
         spec: String(row.spec || '').trim(),
         trackingNo: check.trackingNo || String(row.trackingNo || '').trim(),
         courier: check.courier || String(row.courier || '').trim(),
@@ -1498,11 +1503,11 @@
 
   function getBatchExpressTemplateRows() {
     return [
-      ['订单号', '物流单号'],
-      ['ORD-3212689201588561', '773075059702651'],
-      ['ORD-3212689201599001', 'SF9988776655443'],
-      ['ORD-3212689201599003', 'SF5116882004079'],
-      ['ORD-3212689201560682', 'SF5116882004080']
+      ['订单号', '商品信息', '物流单号'],
+      ['ORD-3212689201588561', '小龙虾', '773075059702651'],
+      ['ORD-3212689201599001', '', 'SF9988776655443'],
+      ['ORD-3212689201599003', '哈密瓜-自提', 'SF5116882004079'],
+      ['ORD-3212689201560682', '', 'SF5116882004080']
     ];
   }
 
@@ -1511,7 +1516,7 @@
     if (window.XLSX && window.XLSX.utils && typeof window.XLSX.writeFile === 'function') {
       var wb = window.XLSX.utils.book_new();
       var ws = window.XLSX.utils.aoa_to_sheet(aoa);
-      ws['!cols'] = [{ wch: 28 }, { wch: 22 }];
+      ws['!cols'] = [{ wch: 28 }, { wch: 22 }, { wch: 22 }];
       window.XLSX.utils.book_append_sheet(wb, ws, '批量上传快递单');
       window.XLSX.writeFile(wb, '批量上传快递单模板.xlsx');
       return;
@@ -1698,7 +1703,7 @@
   function openBatchUploadWizard(opts) {
     var hint =
       opts.hint ||
-      '通过 Excel / CSV 批量上传快递单号。请先下载模板，按「订单号、物流单号」填写后上传。上传成功即触发发货，同一订单可分多次上传以补充多个包裹（运单号自动去重）。';
+      '通过 Excel / CSV 批量上传快递单号。请先下载模板，按「订单号、商品信息、物流单号」填写后上传，商品信息非必填。上传成功即触发发货，同一订单可分多次上传以补充多个包裹（运单号自动去重）。';
     var state = {
       step: 1,
       file: null,
@@ -1735,7 +1740,7 @@
       }
       var html =
         '<div class="order-batch-wizard__table-wrap"><table class="order-batch-wizard__table">' +
-        '<thead><tr><th>#</th><th>订单号</th><th>物流单号</th><th>快递公司</th><th>校验</th></tr></thead><tbody>';
+        '<thead><tr><th>#</th><th>订单号</th><th>商品信息</th><th>物流单号</th><th>快递公司</th><th>校验</th></tr></thead><tbody>';
       list.forEach(function (row) {
         var trCls = row.level === 'error' ? ' is-error' : row.level === 'warn' ? ' is-warn' : '';
         var mark = row.level === 'error' ? row.reason : row.level === 'warn' ? row.reason : '有效';
@@ -1743,6 +1748,7 @@
           '<tr class="' + trCls + '">' +
             '<td>' + row.index + '</td>' +
             '<td>' + escapeHtml(row.orderId) + '</td>' +
+            '<td>' + escapeHtml(row.uploadedProductName || '') + '</td>' +
             '<td>' + escapeHtml(row.trackingNo) + '</td>' +
             '<td>' + escapeHtml(row.courier) + '</td>' +
             '<td>' + escapeHtml(mark) + '</td>' +
