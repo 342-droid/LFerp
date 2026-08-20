@@ -10,7 +10,6 @@
 
   var UNSEEN_KEY = 'lfFileCenterUnseenCount';
   var TASKS_KEY = 'lfFileCenterQueuedTasks';
-  var MSG_UNSEEN_KEY = 'lfMessageUnseenCount';
   var EVENT_NAME = 'lf-file-center-unseen-change';
   var MAX_TASKS = 50;
   var lastBumpAt = 0;
@@ -59,15 +58,6 @@
       localStorage.setItem(UNSEEN_KEY, String(Math.max(0, n | 0)));
     } catch (e) {
       /* ignore */
-    }
-  }
-
-  function readMsgUnseen() {
-    try {
-      var n = parseInt(localStorage.getItem(MSG_UNSEEN_KEY) || '0', 10);
-      return isNaN(n) || n < 0 ? 0 : n;
-    } catch (e) {
-      return 0;
     }
   }
 
@@ -173,10 +163,6 @@
     return document.getElementById('lfFabFileBadge');
   }
 
-  function getMsgBadge() {
-    return document.getElementById('lfFabMsgBadge');
-  }
-
   function syncBadge(pulse) {
     var badge = getFileBadge();
     if (!badge) return;
@@ -192,18 +178,6 @@
       badge.classList.remove('is-pulse');
       void badge.offsetWidth;
       badge.classList.add('is-pulse');
-    }
-
-    var msgBadge = getMsgBadge();
-    if (msgBadge) {
-      var msgCount = readMsgUnseen();
-      if (msgCount > 0) {
-        msgBadge.hidden = false;
-        msgBadge.textContent = msgCount > 99 ? '99+' : String(msgCount);
-      } else {
-        msgBadge.hidden = true;
-        msgBadge.textContent = '';
-      }
     }
   }
 
@@ -291,7 +265,7 @@
     var link = document.createElement('link');
     link.id = 'lf-fab-dock-css';
     link.rel = 'stylesheet';
-    link.href = assetHref('css/lf-fab-dock.css') + '?v=20260816-fab1';
+    link.href = assetHref('css/lf-fab-dock.css') + '?v=20260820-file-only';
     document.head.appendChild(link);
   }
 
@@ -313,29 +287,9 @@
       '<path d="M9 13h6M9 17h6"/>' +
       '</svg>' +
       '<span class="lf-fab-dock__badge" id="lfFabFileBadge" hidden></span>' +
-      '</a>' +
-      '<button type="button" class="lf-fab-dock__btn" id="lfFabMessage" title="消息通知" aria-label="消息通知">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">' +
-      '<path d="M6 8a6 6 0 0112 0c0 7 3 7 3 9H3c0-2 3-2 3-9"/>' +
-      '<path d="M10 20a2 2 0 004 0"/>' +
-      '</svg>' +
-      '<span class="lf-fab-dock__badge" id="lfFabMsgBadge" hidden></span>' +
-      '</button>';
+      '</a>';
 
     document.body.appendChild(dock);
-
-    var msgBtn = document.getElementById('lfFabMessage');
-    if (msgBtn) {
-      msgBtn.addEventListener('click', function () {
-        if (typeof global.showToast === 'function') {
-          global.showToast(
-            readMsgUnseen() > 0 ? '暂无更多消息' : '暂无新消息',
-            'info'
-          );
-        }
-      });
-    }
-
     syncBadge(false);
   }
 
@@ -356,7 +310,7 @@
     });
     global.addEventListener('storage', function (ev) {
       if (!ev) return;
-      if (ev.key === UNSEEN_KEY || ev.key === TASKS_KEY || ev.key === MSG_UNSEEN_KEY) {
+      if (ev.key === UNSEEN_KEY || ev.key === TASKS_KEY) {
         syncBadge(false);
       }
     });
@@ -369,7 +323,7 @@
     getQueuedTasks: readTasks,
     syncBadge: syncBadge,
     EVENT: EVENT_NAME,
-    KEYS: { unseen: UNSEEN_KEY, tasks: TASKS_KEY, messageUnseen: MSG_UNSEEN_KEY }
+    KEYS: { unseen: UNSEEN_KEY, tasks: TASKS_KEY }
   };
 
   if (document.readyState === 'loading') {
