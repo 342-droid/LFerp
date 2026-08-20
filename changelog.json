@@ -1,10 +1,54 @@
 {
-  "latestSha": "ee1a07ea8f670861417e69e99c90f95931f238be",
-  "total": 281,
+  "latestSha": "ad944b66ed8a3bfc3984cd042e479aa7fd3b15dd",
+  "total": 282,
   "days": [
     {
       "date": "2026-08-19",
       "items": [
+        {
+          "sha": "ad944b6",
+          "type": "feat",
+          "text": "代采订单补齐筛选导出并增加下单门店",
+          "author": "sisi",
+          "time": "18:57",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "module": "冷丰WMS",
+              "title": "排队记录"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "用户信息可在同一框切换昵称/收货人姓名/电话；订单状态改为多选并增加「发起退货/退款」；列表、筛选和导出增加「下单门店」；支持勾选导出；详情配送信息门店改称「下单门店」"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "「发起退货/退款」按售后状态筛选，售后不再占用订单状态列；批量上传快递单模板改为只需订单号和物流单号，快递公司按单号识别"
+            },
+            {
+              "file": null,
+              "text": "有勾选列的订单列表，序号排在勾选框后面"
+            }
+          ]
+        },
         {
           "sha": "ee1a07e",
           "type": "feat",

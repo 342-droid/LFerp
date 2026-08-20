@@ -2039,6 +2039,32 @@
     "status": "diff",
     "date": "2026-08-19"
   },
+  "ad944b6|MDM/mdm_order_live.html": {
+    "before": "changelog-assets/ad944b6/MDM__mdm_order_live.html.before.jpg",
+    "after": "changelog-assets/ad944b6/MDM__mdm_order_live.html.after.jpg",
+    "regions": 11,
+    "status": "diff",
+    "date": "2026-08-19"
+  },
+  "ad944b6|MDM/mdm_order_proxy.html": {
+    "before": "changelog-assets/ad944b6/MDM__mdm_order_proxy.html.before.jpg",
+    "after": "changelog-assets/ad944b6/MDM__mdm_order_proxy.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-08-19"
+  },
+  "ad944b6|MDM/mdm_order_queue.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-19"
+  },
+  "ad944b6|MDM/mdm_order_retail.html": {
+    "before": "changelog-assets/ad944b6/MDM__mdm_order_retail.html.before.jpg",
+    "after": "changelog-assets/ad944b6/MDM__mdm_order_retail.html.after.jpg",
+    "regions": 11,
+    "status": "diff",
+    "date": "2026-08-19"
+  },
   "adcde6a|MDM/mdm_archive_carrier.html": {
     "regions": 0,
     "status": "diff",
