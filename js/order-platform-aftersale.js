@@ -77,7 +77,7 @@
   }
 
   function aftersaleActionLabel(row) {
-    return canStartAftersale(row) ? '发起售后' : '平台退款';
+    return canStartAftersale(row) ? '发起售后' : '申请售后';
   }
 
   function parseMoney(val) {

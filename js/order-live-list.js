@@ -274,7 +274,7 @@
     syncOrderStatusMulti();
   }
 
-  /** 零售/代采共用：支付渠道；零售另支持履约方式；代采另支持下单门店 */
+  /** 零售/代采共用：支付渠道、下单门店；零售另支持履约方式 */
   function applyOrderListFilters() {
     var page = document.body ? document.body.getAttribute('data-order-page') : '';
     var isProxy = page === 'proxy';
@@ -288,7 +288,7 @@
     var sceneSel = document.getElementById('qOrderScene');
     var scene = isRetail && sceneSel ? (sceneSel.value || '').trim() : '';
     var storeSel = document.getElementById('qStore');
-    var store = isProxy && storeSel ? (storeSel.value || '').trim() : '';
+    var store = storeSel ? (storeSel.value || '').trim() : '';
     var statusLabels = getSelectedOrderStatusLabels();
 
     var tbody = document.querySelector('.order-live-table tbody');
@@ -535,7 +535,7 @@
     if (window.OrderPlatformAftersale && typeof window.OrderPlatformAftersale.aftersaleActionLabel === 'function') {
       return window.OrderPlatformAftersale.aftersaleActionLabel(row);
     }
-    return getRowOrderStatus(row) === '已完成' ? '发起售后' : '平台退款';
+    return getRowOrderStatus(row) === '已完成' ? '发起售后' : '申请售后';
   }
 
   function createRetailActionButton(className, orderId, label) {
@@ -804,9 +804,9 @@
     { key: 'scene', label: '订单场景' },
     { key: 'deliveryMode', label: '履约方式' },
     { key: 'payChannel', label: '支付渠道' },
+    { key: 'store', label: '下单门店' },
     { key: 'orderStatus', label: '订单状态' },
     { key: 'address', label: '收货地址', extra: true },
-    { key: 'store', label: '所属门店', extra: true },
     { key: 'aftersaleStatus', label: '售后状态', extra: true }
   ];
   var PROXY_EXPORT_FIELDS = [

@@ -33,7 +33,7 @@
     if (window.OrderPlatformAftersale && typeof window.OrderPlatformAftersale.aftersaleActionLabel === 'function') {
       return window.OrderPlatformAftersale.aftersaleActionLabel(row);
     }
-    return getRowOrderStatus(row) === '已完成' ? '发起售后' : '平台退款';
+    return getRowOrderStatus(row) === '已完成' ? '发起售后' : '申请售后';
   }
 
   function createActionButton(className, orderId, label) {
