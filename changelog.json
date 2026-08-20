@@ -1,10 +1,39 @@
 {
-  "latestSha": "d0034d3f131d8d14fd1937a5e2464aac31576c5f",
-  "total": 285,
+  "latestSha": "530ca8db524e7b61b9316f50a9de1590884ff48c",
+  "total": 286,
   "days": [
     {
       "date": "2026-08-20",
       "items": [
+        {
+          "sha": "530ca8d",
+          "type": "feat",
+          "text": "零售订单批量上传快递单支持填写商品信息",
+          "author": "sisi",
+          "time": "23:58",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "批量上传快递单模板改为「订单号、商品信息、物流单号」，商品信息非必填；预览表增加商品信息列"
+            },
+            {
+              "file": null,
+              "text": "移除禅道314批量上传快递单失败详情研发需求文档"
+            }
+          ]
+        },
         {
           "sha": "d0034d3",
           "type": "fix",
