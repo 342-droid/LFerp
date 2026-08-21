@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰订单 - 快递截单</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
+    <style>
+        .pts-rule-unit .erp-input[type="time"] {
+            width: 140px;
+            flex: 0 0 140px;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/order-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content mdm-edit-page">
+            <div class="content-tabs"><button class="active">快递截单</button></div>
+            <hr class="content-divider">
+
+            <div class="mdm-biz-tip" role="note">仅作用于全平台零售线<strong>快递到家</strong>（供应商直发，不进仓储、不走采购）。采购 / 门店订货截单仍在「采购 → 门店订货汇总」配置，本页不包含。</div>
+
+            <form id="expressCutoffForm">
+                <div class="pts-rule-card">
+                    <div class="pts-rule-card__title">截单规则</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">开关</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-check-row">
+                                    <label class="pts-rule-check-label">
+                                        <input type="checkbox" id="cutoffEnabled" checked> 启用零售快递截单
+                                    </label>
+                                </div>
+                                <div class="pts-rule-tip">关闭后，零售快递订单全天可下，不再按截单时间拦截。</div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field" id="cutoffSceneRow">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>适用场景</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-check-row">
+                                    <label class="pts-rule-check-label">
+                                        <input type="checkbox" id="cutoffSceneLive" checked> 直播
+                                    </label>
+                                    <label class="pts-rule-check-label">
+                                        <input type="checkbox" id="cutoffSceneMall" checked> 商城
+                                    </label>
+                                </div>
+                                <div class="pts-rule-tip">未勾选的场景不截单。履约方式固定为快递，与采购侧「渠道 × 履约方式」截单相互独立。</div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field" id="cutoffTimeRow">
+                            <label class="pts-rule-field__label" for="cutoffTime"><span class="erp-req">*</span>每日截单时间</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-unit">
+                                    <input class="erp-input" id="cutoffTime" type="time" value="16:00">
+                                </div>
+                                <div class="pts-rule-tip">全平台统一。到达该时刻后，已勾选场景的零售快递按下方「截单后」规则处理。</div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field" id="cutoffAfterRow">
+                            <label class="pts-rule-field__label">截单后</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-check-row">
+                                    <label class="pts-rule-check-label">
+                                        <input type="radio" name="cutoffAfter" value="stop" checked> 停止下单快递
+                                    </label>
+                                    <label class="pts-rule-check-label">
+                                        <input type="radio" name="cutoffAfter" value="nextday"> 仍可下单，预计送达改为次日及以后
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field" id="cutoffDescRow">
+                            <label class="pts-rule-field__label" for="cutoffDesc">用户端说明</label>
+                            <div class="pts-rule-field__control">
+                                <textarea class="erp-input" id="cutoffDesc" placeholder="选填，截单后展示给用户（如「今日快递已截单，请明日再下单」）"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-actions mdm-edit-page__footer">
+                    <button type="button" class="btn btn-secondary" id="btnCutoffReset">重置</button>
+                    <button type="button" class="btn btn-primary" id="btnCutoffSave">保存</button>
+                </div>
+            </form>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-order-express-cutoff.js"></script>
+</body>
+</html>

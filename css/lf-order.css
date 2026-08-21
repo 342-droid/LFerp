@@ -1037,20 +1037,23 @@ body[data-order-page="retail"] .order-live-table__action:hover {
   border-color: #ffd591;
 }
 
-.order-tag--created {
+.order-tag--created,
+.order-tag--pending-pay {
   color: #909399;
   background: #f4f4f5;
   border-color: #e9e9eb;
 }
 
 .order-tag--cancelled,
-.order-tag--closed {
+.order-tag--closed,
+.order-tag--failed {
   color: #f56c6c;
   background: #fef0f0;
   border-color: #fbc4c4;
 }
 
-.order-tag--completed {
+.order-tag--completed,
+.order-tag--success {
   color: #389e0d;
   background: #f6ffed;
   border-color: #b7eb8f;

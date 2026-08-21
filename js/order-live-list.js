@@ -320,7 +320,11 @@
           return label !== RETURN_REFUND_FILTER_LABEL;
         });
         var wantAftersale = statusLabels.indexOf(RETURN_REFUND_FILTER_LABEL) >= 0;
-        var matchOrder = orderStatuses.length > 0 && orderStatuses.indexOf(getRowOrderStatus(row)) >= 0;
+        var matchOrder = orderStatuses.length > 0 && (
+          window.OrderRetailStatus
+            ? window.OrderRetailStatus.matchesFilter(getRowOrderStatus(row), orderStatuses)
+            : orderStatuses.indexOf(getRowOrderStatus(row)) >= 0
+        );
         var matchAftersale = wantAftersale && rowHasReturnRefundAftersale(row);
         show = matchOrder || matchAftersale;
       }
@@ -415,8 +419,8 @@
       row.querySelector('.order-status-cell .order-tag') ||
       row.querySelector('td:nth-last-child(2) .order-tag');
     if (statusCell) {
-      statusCell.className = 'order-tag order-tag--completed';
-      statusCell.textContent = '已完成';
+      statusCell.className = 'order-tag order-tag--success';
+      statusCell.textContent = '交易成功';
     }
     var verifyBtn = row.querySelector('.js-order-verify');
     if (verifyBtn) verifyBtn.remove();
@@ -470,7 +474,7 @@
           if (verified && closedCount > 0) {
             showToast('整单核销成功，已自动关闭 ' + closedCount + ' 笔退款售后（订单核销，自动关闭）', 'success');
           } else if (verified) {
-            showToast('整单核销成功，订单已完成', 'success');
+            showToast('整单核销成功，订单交易成功', 'success');
           } else {
             showToast('整单核销成功（演示）', 'success');
           }
@@ -503,6 +507,7 @@
     if (window.OrderProxyExpress && typeof window.OrderProxyExpress.canUploadExpressStatus === 'function') {
       return window.OrderProxyExpress.canUploadExpressStatus(status, 'retail');
     }
+    if (window.OrderRetailStatus && window.OrderRetailStatus.isTerminal(status)) return false;
     return !!status && status !== '已完成' && status !== '已关闭' && status !== '已取消';
   }
 
@@ -528,14 +533,21 @@
     if (window.OrderPlatformAftersale && typeof window.OrderPlatformAftersale.canOpenAftersaleDrawer === 'function') {
       return window.OrderPlatformAftersale.canOpenAftersaleDrawer(row);
     }
-    return canRetailPlatformRefund(row) || getRowOrderStatus(row) === '已完成';
+    return canRetailPlatformRefund(row) || (
+      window.OrderRetailStatus
+        ? window.OrderRetailStatus.isSuccess(getRowOrderStatus(row))
+        : getRowOrderStatus(row) === '已完成'
+    );
   }
 
   function retailAftersaleActionLabel(row) {
     if (window.OrderPlatformAftersale && typeof window.OrderPlatformAftersale.aftersaleActionLabel === 'function') {
       return window.OrderPlatformAftersale.aftersaleActionLabel(row);
     }
-    return getRowOrderStatus(row) === '已完成' ? '发起售后' : '申请售后';
+    var done = window.OrderRetailStatus
+      ? window.OrderRetailStatus.isSuccess(getRowOrderStatus(row))
+      : getRowOrderStatus(row) === '已完成';
+    return done ? '发起售后' : '申请售后';
   }
 
   function createRetailActionButton(className, orderId, label) {
@@ -719,15 +731,15 @@
           message:
             '确认取消订单 <strong>' +
             orderId +
-            '</strong> 吗？<br>取消后订单将关闭，此操作不可撤销。',
+            '</strong> 吗？<br>取消后订单将变为交易失败，此操作不可撤销。',
           okLabel: '确认取消',
           onConfirm: function () {
             var statusCell =
               row.querySelector('.order-status-cell .order-tag') ||
               row.querySelector('td:nth-last-child(2) .order-tag');
             if (statusCell) {
-              statusCell.className = 'order-tag order-tag--closed';
-              statusCell.textContent = '已关闭';
+              statusCell.className = 'order-tag order-tag--failed';
+              statusCell.textContent = '交易失败';
             }
             refreshRetailActionRow(row);
             if (typeof showToast === 'function') showToast('订单已取消', 'success');
