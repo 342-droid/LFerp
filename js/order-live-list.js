@@ -315,6 +315,7 @@
         var rowStore = (row.getAttribute('data-store') || '').trim();
         show = rowStore === store;
       }
+      /* 发起退货/退款：只看售后状态，不改订单状态列；与履约态同时勾选时为或关系 */
       if (show && statusLabels.length) {
         var orderStatuses = statusLabels.filter(function (label) {
           return label !== RETURN_REFUND_FILTER_LABEL;
@@ -516,7 +517,7 @@
     var status = getRowOrderStatus(row);
     var mode = (row.getAttribute('data-delivery-mode') || '') === 'express' ? 'express' : 'pickup';
     if (mode === 'pickup') {
-      return ['待支付', '已创建', '待发货', '待收货', '待提货'].indexOf(status) >= 0;
+      return ['待支付', '已创建', '已支付', '待发货', '待收货', '待提货'].indexOf(status) >= 0;
     }
     return ['待支付', '已创建', '已支付', '待发货'].indexOf(status) >= 0;
   }
