@@ -1116,9 +1116,9 @@
     }
     if (p.status === '待收货') {
       p.completedSteps = 2;
-    } else if (p.status === '已完成' || p.outcome === 'success') {
+    } else     if (p.status === '已完成' || p.status === '交易成功' || p.outcome === 'success') {
       p.completedSteps = PROXY_MID_STEPS.length;
-    } else if (p.status === '已关闭' || p.outcome === 'failed') {
+    } else if (p.status === '已关闭' || p.status === '交易失败' || p.outcome === 'failed') {
       p.completedSteps = Math.min(p.completedSteps || 1, PROXY_MID_STEPS.length);
     }
     return p;
@@ -1148,22 +1148,38 @@
       submitTime: submitTime
     };
 
-    if (statusText === '已关闭' || statusText === '已取消') {
+    if (statusText === '已关闭' || statusText === '已取消' || statusText === '交易失败') {
       return {
         completedSteps: 1,
         outcome: 'failed',
-        status: '已关闭',
+        status: statusText === '交易失败' ? '交易失败' : '已关闭',
         submitTime: submitTime,
         finishTime: submitTime
       };
     }
-    if (statusText === '已完成') {
+    if (statusText === '已完成' || statusText === '交易成功') {
       return {
         completedSteps: 4,
         outcome: 'success',
-        status: '已完成',
+        status: statusText === '交易成功' ? '交易成功' : '已完成',
         submitTime: submitTime,
         finishTime: submitTime
+      };
+    }
+    if (statusText === '待支付' || statusText === '已创建') {
+      return {
+        completedSteps: 0,
+        outcome: null,
+        status: statusText === '待支付' ? '待支付' : '已创建',
+        submitTime: submitTime
+      };
+    }
+    if (statusText === '待发货' || statusText === '已支付') {
+      return {
+        completedSteps: 1,
+        outcome: null,
+        status: statusText === '已支付' ? '已支付' : '待发货',
+        submitTime: submitTime
       };
     }
     if (statusText === '待提货') {
@@ -1232,14 +1248,20 @@
   }
 
   function getProgressStatusClass(status) {
-    if (status === '已完成') return 'order-detail-status--completed';
-    if (status === '已关闭') return 'order-detail-status--closed';
+    if (window.OrderRetailStatus && window.OrderRetailStatus.isSuccess(status)) return 'order-detail-status--completed';
+    if (window.OrderRetailStatus && window.OrderRetailStatus.isFailed(status)) return 'order-detail-status--closed';
+    if (status === '已完成' || status === '交易成功') return 'order-detail-status--completed';
+    if (status === '已关闭' || status === '交易失败') return 'order-detail-status--closed';
     if (status === '部分提货') return 'order-detail-status--partial';
     return 'order-detail-status--progress';
   }
 
   function buildProgressStatusTag(status) {
-    return el('span', 'order-detail-status ' + getProgressStatusClass(status), status);
+    var label = status;
+    if (window.OrderRetailStatus) {
+      label = window.OrderRetailStatus.display(status);
+    }
+    return el('span', 'order-detail-status ' + getProgressStatusClass(status), label);
   }
 
   function parsePrice(str) {
@@ -2206,7 +2228,7 @@
       }));
     } else {
       state.logs.unshift(buildPickupLogEntry(applied[0].good, applied[0].qty));
-      if (progress.outcome === 'success' && prevStatus !== '已完成') {
+      if (progress.outcome === 'success' && prevStatus !== '已完成' && prevStatus !== '交易成功') {
         state.logs.unshift({
           time: state.progress.finishTime || formatNow(),
           type: 'success',

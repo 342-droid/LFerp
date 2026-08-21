@@ -505,7 +505,9 @@
     // 代采快递由采购单回传，订单侧不再上传；仅零售快递可上传。售后态不写进订单状态。
     if (context === 'retail') {
       if (!status) return false;
-      return status !== '已完成' && status !== '已关闭' && status !== '已取消';
+      if (window.OrderRetailStatus && window.OrderRetailStatus.isTerminal(status)) return false;
+      return status !== '已完成' && status !== '已关闭' && status !== '已取消' &&
+        status !== '交易成功' && status !== '交易失败';
     }
     return false;
   }
