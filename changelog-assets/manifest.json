@@ -995,6 +995,21 @@
     "status": "diff",
     "date": "2026-08-18"
   },
+  "694ce6d|MDM/mdm_order_live.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-21"
+  },
+  "694ce6d|MDM/mdm_order_proxy.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-21"
+  },
+  "694ce6d|MDM/mdm_order_retail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-21"
+  },
   "6a143d3|SCM/purchase_demand_summary.html": {
     "before": "changelog-assets/6a143d3/SCM__purchase_demand_summary.html.before.jpg",
     "after": "changelog-assets/6a143d3/SCM__purchase_demand_summary.html.after.jpg",
