@@ -201,6 +201,29 @@
   var LIVE_PREVIEW_PRICE_KEY = 'ua_live_preview_price_v1';
   var LIVE_EXPLAIN_KEY = 'ua_live_explain_v1';
   var LIVE_C_STATE_KEY = 'lf_live_c_state_v1';
+  var LIVE_QC_KEY = 'lf_live_quick_comments_by_session_v1';
+  var LIVE_QC_LEGACY_KEY = 'lf_live_quick_comments_v1';
+  var LIVE_QC_DEMO_KEY = 'ua_live_qc_demo_v1';
+  var LIVE_QC_MAX = 10;
+  var LIVE_QC_MAX_LEN = 20;
+  var LIVE_QC_DEFAULTS = [
+    { id: 'qc-1', text: '已拍已拍' },
+    { id: 'qc-2', text: '给力给力' },
+    { id: 'qc-3', text: '满意满意' },
+    { id: 'qc-4', text: '爱了爱了' }
+  ];
+  var LIVE_QC_TEN = [
+    '已拍已拍',
+    '给力给力',
+    '满意满意',
+    '爱了爱了',
+    '冲冲冲',
+    '支持支持',
+    '主播好棒',
+    '买它买它',
+    '真香真香',
+    '再来一波'
+  ];
   var LIVE_VIEWER_KEY = 'ua_live_viewer_v1';
   var LIVE_VIEWER_OPTIONS = [
     { id: 'u-guozi', name: '果子狸' },
@@ -211,7 +234,7 @@
   ];
   var liveLocalComments = [];
   var LIVE_DANMU_FALLBACK = [
-    { id: 'c1', userId: 'u-guozi', user: '果子狸', text: '西红柿还有吗？' },
+    { id: 'c1', userId: 'u-guozi', user: '果子狸', text: '西红柿还有吗？', pinned: true },
     { id: 'c2', userId: 'u-anchor', user: '主播小丰', text: '有的，讲解中这款还有库存～', isAnchor: true },
     { id: 'c3', userId: 'u-anan', user: '阿南', text: '五花肉包邮吗' },
     { id: 'c4', userId: 'u-xiaoman', user: '小满', text: '来个福袋！' },
@@ -226,6 +249,168 @@
     } catch (e) {
       return {};
     }
+  }
+
+  function patchLiveCState(patch) {
+    var st = readLiveCState();
+    Object.keys(patch || {}).forEach(function (k) {
+      st[k] = patch[k];
+    });
+    try {
+      localStorage.setItem(LIVE_C_STATE_KEY, JSON.stringify(st));
+    } catch (e) {}
+    return st;
+  }
+
+  function liveQuickCommentSessionId() {
+    return String(readLiveCState().sessionId || '').trim() || '_demo';
+  }
+
+  function readLiveQuickCommentMap() {
+    try {
+      var raw = localStorage.getItem(LIVE_QC_KEY);
+      var data = raw ? JSON.parse(raw) : null;
+      if (data && typeof data === 'object' && !Array.isArray(data)) return data;
+    } catch (e) {}
+    return {};
+  }
+
+  function parseLiveQuickCommentState(data) {
+    if (!data || !Array.isArray(data.items)) return { items: [], selectedIds: [] };
+    var items = data.items
+      .filter(function (it) {
+        return it && String(it.text || '').trim();
+      })
+      .slice(0, LIVE_QC_MAX)
+      .map(function (it, i) {
+        return {
+          id: String(it.id || 'qc-' + (i + 1)),
+          text: String(it.text || '')
+            .trim()
+            .slice(0, LIVE_QC_MAX_LEN)
+        };
+      });
+    var idMap = {};
+    items.forEach(function (it) {
+      idMap[it.id] = true;
+    });
+    var selectedIds = (Array.isArray(data.selectedIds) ? data.selectedIds : [])
+      .map(String)
+      .filter(function (id) {
+        return !!idMap[id];
+      });
+    return { items: items, selectedIds: selectedIds };
+  }
+
+  function readLiveQuickCommentStore() {
+    var sid = liveQuickCommentSessionId();
+    var parsed = parseLiveQuickCommentState(readLiveQuickCommentMap()[sid]);
+    if (parsed.items.length) return parsed;
+    if (sid === '_demo') {
+      try {
+        var raw = localStorage.getItem(LIVE_QC_LEGACY_KEY);
+        return parseLiveQuickCommentState(raw ? JSON.parse(raw) : null);
+      } catch (e) {}
+    }
+    return { items: [], selectedIds: [] };
+  }
+
+  function writeLiveQuickCommentStore(state) {
+    var map = readLiveQuickCommentMap();
+    map[liveQuickCommentSessionId()] = {
+      items: (state.items || []).map(function (it) {
+        return { id: it.id, text: it.text };
+      }),
+      selectedIds: (state.selectedIds || []).slice()
+    };
+    try {
+      localStorage.setItem(LIVE_QC_KEY, JSON.stringify(map));
+    } catch (e) {}
+  }
+
+  function liveQuickCommentTexts() {
+    var st = readLiveCState();
+    if (Array.isArray(st.quickComments)) {
+      return st.quickComments
+        .map(function (t) {
+          return String(t || '').trim();
+        })
+        .filter(Boolean)
+        .slice(0, LIVE_QC_MAX);
+    }
+    var store = readLiveQuickCommentStore();
+    var map = {};
+    store.items.forEach(function (it) {
+      map[it.id] = it.text;
+    });
+    return store.selectedIds
+      .map(function (id) {
+        return map[id];
+      })
+      .filter(Boolean);
+  }
+
+  function applyLiveQuickCommentPreset(mode) {
+    var items;
+    var selectedIds;
+    if (mode === 'none') {
+      items = LIVE_QC_DEFAULTS.map(function (it) {
+        return { id: it.id, text: it.text };
+      });
+      selectedIds = [];
+    } else if (mode === 'ten') {
+      items = LIVE_QC_TEN.map(function (text, i) {
+        return { id: 'qc-' + (i + 1), text: text };
+      });
+      selectedIds = items.map(function (it) {
+        return it.id;
+      });
+    } else {
+      items = LIVE_QC_DEFAULTS.map(function (it) {
+        return { id: it.id, text: it.text };
+      });
+      selectedIds = items.map(function (it) {
+        return it.id;
+      });
+    }
+    writeLiveQuickCommentStore({ items: items, selectedIds: selectedIds });
+    var texts = items
+      .filter(function (it) {
+        return selectedIds.indexOf(it.id) >= 0;
+      })
+      .map(function (it) {
+        return it.text;
+      });
+    patchLiveCState({ quickComments: texts });
+    try {
+      localStorage.setItem(LIVE_QC_DEMO_KEY, mode);
+    } catch (e) {}
+  }
+
+  function renderLiveQuickComments() {
+    var box = document.getElementById('liveQuickComments');
+    var room = document.querySelector('.ua-live-room');
+    if (!box) return;
+    var list = liveQuickCommentTexts();
+    if (!list.length) {
+      box.hidden = true;
+      box.innerHTML = '';
+      if (room) room.classList.remove('has-quick-comments');
+      return;
+    }
+    box.hidden = false;
+    box.innerHTML = list
+      .map(function (text) {
+        return (
+          '<button type="button" class="ua-live-quick-comments__item" data-qc-text="' +
+          escapeLiveText(text) +
+          '">' +
+          escapeLiveText(text) +
+          '</button>'
+        );
+      })
+      .join('');
+    if (room) room.classList.add('has-quick-comments');
   }
 
   function readLiveViewer() {
@@ -272,6 +457,29 @@
         );
       })
       .join('');
+    renderLiveDanmuPin();
+  }
+
+  function renderLiveDanmuPin() {
+    var box = document.getElementById('liveDanmuPin');
+    if (!box) return;
+    var msgs = liveDanmuList();
+    var pin = null;
+    msgs.forEach(function (m) {
+      if (m && m.pinned) pin = m;
+    });
+    if (!pin) {
+      box.hidden = true;
+      box.innerHTML = '';
+      return;
+    }
+    box.hidden = false;
+    box.innerHTML =
+      '<span class="ua-live-danmu-pin__bar"></span><span class="ua-live-danmu-pin__body"><span class="ua-live-danmu-pin__user">@' +
+      escapeLiveText(pin.user || '观众') +
+      '</span><span class="ua-live-danmu-pin__text">' +
+      escapeLiveText(pin.text || '') +
+      '</span></span>';
   }
 
   function renderLiveViewerCount() {
@@ -316,6 +524,7 @@
     renderLiveDanmu();
     renderLiveViewerCount();
     renderLiveExplainCard();
+    renderLiveQuickComments();
     if (typeof liveGoodsListRenderer === 'function') liveGoodsListRenderer();
     var demo = document.getElementById('uaLiveGoodsDemo');
     if (demo) demo.hidden = hasBLiveCart();
@@ -363,6 +572,87 @@
           return o.id === id;
         })[0];
         writeLiveViewer(id, found ? found.name : '果子狸');
+        window.location.reload();
+      });
+    }
+  }
+
+  function mountLiveQuickCommentDemo() {
+    if (document.getElementById('uaLiveQcDemo')) return;
+    var mode = 'none';
+    try {
+      var saved = localStorage.getItem(LIVE_QC_DEMO_KEY);
+      if (saved === 'none' || saved === 'four' || saved === 'ten') mode = saved;
+      else {
+        var n = liveQuickCommentTexts().length;
+        if (n >= 10) mode = 'ten';
+        else if (n > 0) mode = 'four';
+      }
+    } catch (e) {}
+    var panel = document.createElement('div');
+    panel.id = 'uaLiveQcDemo';
+    panel.className = 'ua-live-qc-demo';
+    panel.innerHTML =
+      '<div class="ua-live-qc-demo__title">一键评论验收开关</div>' +
+      '<label class="ua-live-goods-demo__row">展示条数' +
+      '<select id="uaLiveQcDemoMode">' +
+      '<option value="none"' +
+      (mode === 'none' ? ' selected' : '') +
+      '>不展示</option>' +
+      '<option value="four"' +
+      (mode === 'four' ? ' selected' : '') +
+      '>4条</option>' +
+      '<option value="ten"' +
+      (mode === 'ten' ? ' selected' : '') +
+      '>10条可滑动</option>' +
+      '</select></label>' +
+      '<button type="button" class="ua-live-goods-demo__apply" id="uaLiveQcDemoApply">应用并刷新</button>';
+    document.body.appendChild(panel);
+    var apply = document.getElementById('uaLiveQcDemoApply');
+    if (apply) {
+      apply.addEventListener('click', function () {
+        var sel = document.getElementById('uaLiveQcDemoMode');
+        applyLiveQuickCommentPreset(sel ? sel.value : 'four');
+        window.location.reload();
+      });
+    }
+  }
+
+  function mountLiveSensitiveDemo() {
+    if (document.getElementById('uaLiveSwDemo')) return;
+    var api = global.MdmLiveSensitiveWords;
+    var mode = 'lexicon';
+    try {
+      var saved = localStorage.getItem(api && api.demoKey ? api.demoKey : 'ua_live_sw_demo_v1');
+      if (saved === 'hit' || saved === 'pass' || saved === 'lexicon') mode = saved;
+    } catch (e) {}
+    var panel = document.createElement('div');
+    panel.id = 'uaLiveSwDemo';
+    panel.className = 'ua-live-sw-demo';
+    panel.innerHTML =
+      '<div class="ua-live-sw-demo__title">敏感词验收开关</div>' +
+      '<label class="ua-live-goods-demo__row">风控结果' +
+      '<select id="uaLiveSwDemoMode">' +
+      '<option value="lexicon"' +
+      (mode === 'lexicon' ? ' selected' : '') +
+      '>按词库拦截</option>' +
+      '<option value="hit"' +
+      (mode === 'hit' ? ' selected' : '') +
+      '>强制命中</option>' +
+      '<option value="pass"' +
+      (mode === 'pass' ? ' selected' : '') +
+      '>强制放行</option>' +
+      '</select></label>' +
+      '<button type="button" class="ua-live-goods-demo__apply" id="uaLiveSwDemoApply">应用并刷新</button>';
+    document.body.appendChild(panel);
+    var apply = document.getElementById('uaLiveSwDemoApply');
+    if (apply) {
+      apply.addEventListener('click', function () {
+        var sel = document.getElementById('uaLiveSwDemoMode');
+        var next = sel ? sel.value : 'lexicon';
+        try {
+          localStorage.setItem(api && api.demoKey ? api.demoKey : 'ua_live_sw_demo_v1', next);
+        } catch (e) {}
         window.location.reload();
       });
     }
@@ -3892,6 +4182,42 @@
       confirmItems: null
     };
 
+    function sendLiveComment(text) {
+      if (global.UaBlacklistGuard && global.UaBlacklistGuard.guardLiveComment()) return false;
+      var mute = liveMuteReason();
+      if (mute === 'room') {
+        showToast('主播已开启全员禁言');
+        return false;
+      }
+      if (mute === 'user') {
+        showToast('本场直播你已被禁言');
+        return false;
+      }
+      text = String(text || '').trim();
+      if (!text) {
+        showToast('请输入内容');
+        return false;
+      }
+      var sw = global.MdmLiveSensitiveWords;
+      if (sw && typeof sw.check === 'function') {
+        var swHit = sw.check(text);
+        if (swHit && swHit.blocked) {
+          showToast(swHit.message || '内容包含敏感词，请修改后再试');
+          return false;
+        }
+      }
+      var me = readLiveViewer();
+      liveLocalComments.push({
+        id: 'lc-' + Date.now(),
+        userId: me.id,
+        user: me.name,
+        text: text
+      });
+      renderLiveDanmu();
+      showToast('发送成功');
+      return true;
+    }
+
     function openSheet(name) {
       var map = {
         goods: 'liveGoodsSheet',
@@ -4453,6 +4779,10 @@
 
     document.getElementById('liveReportBtn') &&
       document.getElementById('liveReportBtn').addEventListener('click', function () {
+        if (global.UaLiveReport && typeof global.UaLiveReport.open === 'function') {
+          global.UaLiveReport.open();
+          return;
+        }
         showToast('已提交举报（演示）');
       });
     document.getElementById('liveLikeBtn') &&
@@ -4465,34 +4795,18 @@
       });
     document.getElementById('liveSendBtn') &&
       document.getElementById('liveSendBtn').addEventListener('click', function () {
-        /* 黑名单禁用「禁止直播评论」：发评论弹窗拦截 */
-        if (global.UaBlacklistGuard && global.UaBlacklistGuard.guardLiveComment()) return;
-        var mute = liveMuteReason();
-        if (mute === 'room') {
-          showToast('主播已开启全员禁言');
-          return;
-        }
-        if (mute === 'user') {
-          showToast('本场直播你已被禁言');
-          return;
-        }
         var input = document.getElementById('liveCommentInput');
         var text = input && String(input.value || '').trim();
-        if (!text) {
-          showToast('请输入内容');
-          return;
-        }
-        if (input) input.value = '';
-        var me = readLiveViewer();
-        liveLocalComments.push({
-          id: 'lc-' + Date.now(),
-          userId: me.id,
-          user: me.name,
-          text: text
-        });
-        renderLiveDanmu();
-        showToast('发送成功');
+        if (sendLiveComment(text) && input) input.value = '';
       });
+    var qcBox = document.getElementById('liveQuickComments');
+    if (qcBox) {
+      qcBox.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('[data-qc-text]');
+        if (!btn) return;
+        sendLiveComment(btn.getAttribute('data-qc-text') || '');
+      });
+    }
 
     liveGoodsListRenderer = renderLiveGoodsList;
 
@@ -4526,12 +4840,14 @@
 
     mountLiveGoodsDemo();
     mountLiveDanmuDemo();
+    mountLiveQuickCommentDemo();
+    mountLiveSensitiveDemo();
     if (global.UaProductSaleTime && global.UaProductSaleTime.mountDemoPanel) {
       global.UaProductSaleTime.mountDemoPanel({ className: 'ua-sale-time-demo--live' });
     }
     refreshLiveRoomOverlay();
     window.addEventListener('storage', function (ev) {
-      if (ev.key === LIVE_C_STATE_KEY) refreshLiveRoomOverlay();
+      if (ev.key === LIVE_C_STATE_KEY || ev.key === LIVE_QC_KEY || ev.key === LIVE_QC_LEGACY_KEY) refreshLiveRoomOverlay();
     });
     window.setInterval(refreshLiveRoomOverlay, 2000);
 

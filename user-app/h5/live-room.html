@@ -6,8 +6,9 @@
   <title>黑灯直播间 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
-  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260818-zzmerge">
+  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260823-task-add">
   <link rel="stylesheet" href="../css/user-app-live-entry-fx.css">
+  <link rel="stylesheet" href="../css/user-app-feedback.css">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-live-room-page">
@@ -66,11 +67,15 @@
         <button type="button" class="ua-live-explain__buy" id="liveExplainBuy">去抢购</button>
       </div>
 
+      <div class="ua-live-danmu-pin" id="liveDanmuPin" hidden></div>
+
       <div class="ua-live-danmu" id="liveDanmuList" aria-live="polite"></div>
 
       <div class="ua-live-fx-host" id="liveEntryFxHost" hidden aria-hidden="true"></div>
 
       <footer class="ua-live-room__bar">
+        <div class="ua-live-quick-comments" id="liveQuickComments" hidden></div>
+        <div class="ua-live-room__bar-row">
         <button type="button" class="ua-live-room__like" id="liveLikeBtn" aria-label="点赞">
           <svg viewBox="0 0 24 24" fill="#ff4da6"><path d="M2 12.5V21h4.5V12.5H2zm5.5-.3l3.2-6.5c.4-.8 1.4-1.2 2.3-.9.7.3 1.1 1 1.1 1.8V10H20c1.3 0 2.3 1.2 2.1 2.5l-1.1 6C20.7 20 19.5 21 18.1 21H7.5V12.2z"/></svg>
         </button>
@@ -84,6 +89,7 @@
         <button type="button" class="ua-live-room__cart" id="liveCartBtn" aria-label="购物车">
           <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4h2l2.1 10.5h9.8L19 8H7"/></svg>
         </button>
+        </div>
       </footer>
     </div>
 
@@ -330,9 +336,19 @@
   <script src="../../js/mdm-marketing-points-mall-config.js"></script>
   <script src="../js/user-app-orders-store.js?v=20260728-status-sync2"></script>
   <script src="../js/user-app-profile.js"></script>
+  <script src="../../js/mdm-aftersale-feedback-store.js"></script>
+  <script src="../js/user-app-fb-media.js"></script>
+  <script src="../js/user-app-live-report.js"></script>
   <script src="../js/user-app-live-entry-fx.js"></script>
   <script src="../js/user-app-product-sale-time.js?v=20260818-store-rest-sale"></script>
-  <script src="../js/user-app-shop.js?v=20260818-store-rest-sale"></script>
-  <script>UAShop.initLiveRoomPage();</script>
+  <script src="../../js/mdm-live-sensitive-words.js"></script>
+  <script src="../../js/mdm-live-demo-data.js?v=20260823-task-add"></script>
+  <script src="../js/user-app-shop.js?v=20260821-qc2"></script>
+  <script src="../js/user-app-live-watch-reward.js?v=20260823-task-add"></script>
+  <script src="../../js/pg-prd-float.js?v=20260820-prd3"></script>
+  <script>
+    UAShop.initLiveRoomPage();
+    if (window.UaLiveWatchReward) window.UaLiveWatchReward.init();
+  </script>
 </body>
 </html>

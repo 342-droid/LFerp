@@ -218,7 +218,7 @@
       '.ua-bl-modal__actions{display:flex;border-top:1px solid #eee;}' +
       '.ua-bl-modal__btn{flex:1;height:48px;border:none;background:#fff;font-size:15px;color:#ff6a00;font-weight:600;cursor:pointer;}' +
       'body.ua-bl-locked .ua-mobile-shell{pointer-events:none;user-select:none;}' +
-      'body.ua-bl-locked .ua-bl-modal,body.ua-bl-locked .ua-bl-access-block,body.ua-bl-locked .ua-bl-demo,body.ua-bl-locked .ua-pwd-demo{pointer-events:auto;}' +
+      'body.ua-bl-locked .ua-bl-modal,body.ua-bl-locked .ua-bl-access-block,body.ua-bl-locked .ua-bl-demo,body.ua-bl-locked .ua-pwd-demo,body.ua-bl-locked .ua-watch-reward-demo{pointer-events:auto;}' +
       '.ua-bl-access-block{position:fixed;inset:0;z-index:3100;display:flex;align-items:center;justify-content:center;padding:28px;background:rgba(255,255,255,.72);backdrop-filter:blur(2px);}' +
       '.ua-bl-access-block__card{max-width:300px;padding:22px 18px;border-radius:12px;background:#fff;box-shadow:0 8px 28px rgba(0,0,0,.12);font-size:15px;line-height:1.65;color:#333;text-align:center;}' +
       '.ua-live-room--bl-ban .ua-live-room__stage{background:#1a1a1a!important;}' +

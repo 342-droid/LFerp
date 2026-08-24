@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰售后 - 意见反馈</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-aftersale.css">
+    <link rel="stylesheet" href="../css/mdm-member360-list.css">
+    <link rel="stylesheet" href="../css/lf-aftersale-feedback.css">
+</head>
+<body data-as-fb-kind="feedback">
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/aftersale-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="aftersale-page">
+                <div class="aftersale-page-tabs" id="aftersalePageTabs"></div>
+                <div class="aftersale-page-body">
+                    <div class="aftersale-fb-inner-tabs" role="tablist">
+                        <button type="button" class="is-active" data-as-fb-tab="list">意见反馈</button>
+                        <button type="button" data-as-fb-tab="types">反馈类型</button>
+                    </div>
+
+                    <div class="aftersale-fb-panel" data-as-fb-panel="list">
+                        <section class="search-section">
+                            <form class="search-form" id="asFbFilterForm" onsubmit="return false;">
+                                <div class="form-group">
+                                    <label>反馈内容:</label>
+                                    <div class="input-wrapper">
+                                        <input id="qContent" placeholder="请输入反馈内容" autocomplete="off">
+                                        <span class="clear-btn">×</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>类型:</label>
+                                    <select id="qType"></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>反馈用户:</label>
+                                    <div class="input-wrapper">
+                                        <input id="qUser" placeholder="用户ID / 昵称 / 手机号" autocomplete="off">
+                                        <span class="clear-btn">×</span>
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-secondary" id="asFbFilterReset">重置</button>
+                                    <button type="button" class="btn btn-primary" id="asFbFilterQuery">查询</button>
+                                </div>
+                            </form>
+                        </section>
+                        <section class="table-section">
+                            <div class="table-scroll-container">
+                                <table class="table aftersale-fb-table aftersale-fb-table--feedback" id="asFbListTable">
+                                    <colgroup>
+                                        <col class="aftersale-fb-col aftersale-fb-col--seq">
+                                        <col class="aftersale-fb-col aftersale-fb-col--user">
+                                        <col class="aftersale-fb-col aftersale-fb-col--type">
+                                        <col class="aftersale-fb-col aftersale-fb-col--content">
+                                        <col class="aftersale-fb-col aftersale-fb-col--media">
+                                        <col class="aftersale-fb-col aftersale-fb-col--time">
+                                        <col class="aftersale-fb-col aftersale-fb-col--status">
+                                        <col class="aftersale-fb-col aftersale-fb-col--reply">
+                                        <col class="aftersale-fb-col aftersale-fb-col--remark">
+                                        <col class="aftersale-fb-col aftersale-fb-col--act">
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th>序号</th>
+                                            <th>反馈人</th>
+                                            <th>反馈类型</th>
+                                            <th>反馈内容</th>
+                                            <th>图片/视频</th>
+                                            <th>反馈时间</th>
+                                            <th>处理状态</th>
+                                            <th>回复内容</th>
+                                            <th>备注</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="asFbListBody"></tbody>
+                                </table>
+                            </div>
+                            <div class="aftersale-fb-empty" id="asFbListEmpty" hidden>暂无意见反馈</div>
+                            <div id="pagination-container"></div>
+                        </section>
+                    </div>
+
+                    <div class="aftersale-fb-panel" data-as-fb-panel="types" hidden>
+                        <div class="aftersale-fb-toolbar">
+                            <button type="button" class="btn btn-primary" id="asFbAddType">新增类型</button>
+                        </div>
+                        <section class="table-section">
+                            <div class="table-scroll-container">
+                                <table class="table aftersale-fb-table aftersale-fb-table--types" id="asFbTypeTable">
+                                    <colgroup>
+                                        <col class="aftersale-fb-col aftersale-fb-col--seq">
+                                        <col>
+                                        <col class="aftersale-fb-col aftersale-fb-col--creator">
+                                        <col class="aftersale-fb-col aftersale-fb-col--type-act">
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th>序号</th>
+                                            <th>反馈类型</th>
+                                            <th>添加人</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="asFbTypeBody"></tbody>
+                                </table>
+                            </div>
+                            <div class="aftersale-fb-empty" id="asFbTypeEmpty" hidden>暂无反馈类型</div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/mdm-aftersale-feedback-store.js"></script>
+    <script src="../js/mdm-aftersale-feedback-page.js"></script>
+</body>
+</html>

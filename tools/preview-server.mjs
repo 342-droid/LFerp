@@ -181,6 +181,7 @@ async function main() {
     console.log('LFerp preview ready');
     console.log('  root: http://' + HOST + ':' + PORT + '/');
     console.log('  page: http://' + HOST + ':' + PORT + '/MDM/mdm_member_level_rule');
+    console.log('  原型生成清单: http://' + HOST + ':' + PORT + '/prototype-gen');
     console.log('  stop: Ctrl+C');
   });
 

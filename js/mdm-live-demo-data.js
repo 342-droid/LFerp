@@ -83,6 +83,8 @@
       status: 'live',
       startAt: '2026-08-11 19:00:00',
       endAt: '2026-08-11 21:30:00',
+      actualStartAt: '2026-08-11 19:02:18',
+      actualEndAt: '',
       anchorUserId: '10086001',
       anchorName: '小丰主播',
       cover: '',
@@ -93,9 +95,182 @@
       pushUrl: 'rtmp://push.demo.lengfeng.com/live/sess-001?txSecret=****',
       playUrl: 'https://play.demo.lengfeng.com/live/sess-001.m3u8',
       templates: [
-        { id: 'tpl-c1', type: 'COUPON', typeName: '优惠券', name: '晚间满减券', stock: 500 },
-        { id: 'tpl-b1', type: 'FORTUNE_BAG', typeName: '福袋', name: '开播福袋', stock: 200 }
+        {
+          id: 'tpl-c1',
+          type: 'COUPON',
+          typeName: '优惠券',
+          planId: 'tpl-c1',
+          activityId: 'act-c1',
+          templateId: 'CT10001',
+          deliveredCount: 2,
+          issuedQty: 8,
+          roundCount: 2,
+          quotaTotal: 500,
+          released: false,
+          releasedQty: null,
+          activeWindowId: 'win-c1-2',
+          stock: 500
+        },
+        {
+          id: 'tpl-c2',
+          type: 'COUPON',
+          typeName: '优惠券',
+          planId: 'tpl-c2',
+          activityId: 'act-c2',
+          templateId: 'CT10002',
+          deliveredCount: 0,
+          issuedQty: 0,
+          roundCount: 0,
+          quotaTotal: 200,
+          released: false,
+          releasedQty: null,
+          stock: 200
+        },
+        {
+          id: 'tpl-c1b',
+          type: 'COUPON',
+          typeName: '优惠券',
+          planId: 'tpl-c1b',
+          activityId: 'act-c1b',
+          templateId: 'CT10001',
+          deliveredCount: 1,
+          issuedQty: 100,
+          roundCount: 1,
+          quotaTotal: 100,
+          released: false,
+          releasedQty: null,
+          stock: 100
+        },
+        {
+          id: 'tpl-c-off',
+          type: 'COUPON',
+          typeName: '优惠券',
+          planId: 'tpl-c-off',
+          activityId: 'act-c-off',
+          templateId: 'CT10004',
+          deliveredCount: 0,
+          issuedQty: 0,
+          roundCount: 0,
+          quotaTotal: 50,
+          released: false,
+          releasedQty: null,
+          stock: 50
+        },
+        {
+          id: 'tpl-b1',
+          type: 'FORTUNE_BAG',
+          typeName: '福袋',
+          planId: 'tpl-b1',
+          activityId: 'act-b1',
+          templateId: 'BT10003',
+          deliveredCount: 2,
+          issuedQty: 6,
+          roundCount: 2,
+          quotaTotal: 200,
+          released: false,
+          releasedQty: null,
+          activeWindowId: 'win-b1-2',
+          stock: 200
+        },
+        {
+          id: 'tpl-b1b',
+          type: 'FORTUNE_BAG',
+          typeName: '福袋',
+          planId: 'tpl-b1b',
+          activityId: 'act-b1b',
+          templateId: 'BT10003',
+          deliveredCount: 0,
+          issuedQty: 0,
+          roundCount: 0,
+          quotaTotal: 50,
+          released: false,
+          releasedQty: null,
+          stock: 50
+        },
+        {
+          id: 'tpl-b-pt',
+          type: 'FORTUNE_BAG',
+          typeName: '福袋',
+          planId: 'tpl-b-pt',
+          activityId: 'act-b-pt',
+          templateId: 'BT10002',
+          deliveredCount: 0,
+          issuedQty: 0,
+          roundCount: 0,
+          quotaTotal: 80,
+          released: false,
+          releasedQty: null,
+          stock: 80
+        },
+        {
+          id: 'tpl-b-cp',
+          type: 'FORTUNE_BAG',
+          typeName: '福袋',
+          planId: 'tpl-b-cp',
+          activityId: 'act-b-cp',
+          templateId: 'BT10001',
+          deliveredCount: 0,
+          issuedQty: 0,
+          roundCount: 0,
+          quotaTotal: 40,
+          released: false,
+          releasedQty: null,
+          stock: 40
+        },
+        {
+          id: 'tpl-s-live',
+          type: 'SIGN_IN',
+          typeName: '签到',
+          planId: 'tpl-s-live',
+          activityId: 'act-s-live',
+          templateId: 'ST10001',
+          deliveredCount: 186,
+          roundsUsed: 2,
+          interrupted: false,
+          activeWindowId: null,
+          stock: null
+        },
+        {
+          id: 'tpl-s-dup',
+          type: 'SIGN_IN',
+          typeName: '签到',
+          planId: 'tpl-s-dup',
+          activityId: 'act-s-dup',
+          templateId: 'ST10001',
+          deliveredCount: 0,
+          roundsUsed: 0,
+          interrupted: false,
+          activeWindowId: null,
+          stock: null
+        },
+        {
+          id: 'tpl-t-live',
+          type: 'TASK',
+          typeName: '观看奖励',
+          planId: 'tpl-t-live',
+          activityId: 'act-t-live',
+          templateId: 'WT10001',
+          delivered: true,
+          interrupted: false,
+          deliveredCount: 86,
+          activeWindowId: 'win-t-live',
+          stock: null
+        },
+        {
+          id: 'tpl-t-dup',
+          type: 'TASK',
+          typeName: '观看奖励',
+          planId: 'tpl-t-dup',
+          activityId: 'act-t-dup',
+          templateId: 'WT10001',
+          delivered: false,
+          interrupted: false,
+          deliveredCount: 0,
+          activeWindowId: null,
+          stock: null
+        }
       ],
+      bagWinRule: 'session',
       autoCloseEnabled: false,
       autoCloseAt: '',
       cViewerDisplay: 'online',
@@ -120,6 +295,8 @@
       status: 'upcoming',
       startAt: '2026-08-12 08:00:00',
       endAt: '2026-08-12 10:00:00',
+      actualStartAt: '',
+      actualEndAt: '',
       anchorUserId: '10086002',
       anchorName: '产地小哥',
       cover: '',
@@ -174,6 +351,8 @@
       status: 'ended',
       startAt: '2026-08-10 11:30:00',
       endAt: '2026-08-10 13:00:00',
+      actualStartAt: '2026-08-10 11:33:05',
+      actualEndAt: '2026-08-10 13:08:42',
       anchorUserId: '10086003',
       anchorName: '会员管家',
       cover: '',
@@ -188,7 +367,63 @@
       pushUrl: 'rtmp://push.demo.lengfeng.com/live/sess-003?txSecret=****',
       playUrl: 'https://play.demo.lengfeng.com/live/sess-003.m3u8',
       templates: [
-        { id: 'tpl-s1', type: 'SIGN_IN', typeName: '签到', name: '会员日签到', stock: null }
+        {
+          id: 'tpl-s1',
+          type: 'SIGN_IN',
+          typeName: '签到',
+          planId: 'tpl-s1',
+          activityId: 'act-s1',
+          templateId: 'ST10002',
+          deliveredCount: 412,
+          roundsUsed: 3,
+          interrupted: false,
+          activeWindowId: null,
+          stock: null
+        },
+        {
+          id: 'tpl-c3',
+          type: 'COUPON',
+          typeName: '优惠券',
+          planId: 'tpl-c3',
+          activityId: 'act-c3',
+          templateId: 'CT10003',
+          deliveredCount: 3,
+          issuedQty: 12,
+          roundCount: 3,
+          quotaTotal: 300,
+          released: true,
+          releasedQty: 288,
+          stock: 300
+        },
+        {
+          id: 'tpl-b3',
+          type: 'FORTUNE_BAG',
+          typeName: '福袋',
+          planId: 'tpl-b3',
+          activityId: 'act-b3',
+          templateId: 'BT10001',
+          deliveredCount: 2,
+          issuedQty: 6,
+          roundCount: 2,
+          quotaTotal: 80,
+          released: true,
+          releasedQty: 74,
+          activeWindowId: null,
+          stock: 80
+        },
+        {
+          id: 'tpl-t3',
+          type: 'TASK',
+          typeName: '观看奖励',
+          planId: 'tpl-t3',
+          activityId: 'act-t3',
+          templateId: 'WT10002',
+          delivered: true,
+          interrupted: false,
+          deliveredCount: 268,
+          activeWindowId: null,
+          stock: null
+        }
       ],
       autoCloseEnabled: false,
       autoCloseAt: '',
@@ -214,6 +449,8 @@
       status: 'upcoming',
       startAt: '2026-08-13 21:30:00',
       endAt: '2026-08-13 23:00:00',
+      actualStartAt: '',
+      actualEndAt: '',
       anchorUserId: '10086001',
       anchorName: '小丰主播',
       cover: '',
@@ -676,10 +913,10 @@
         price: 45.0,
         marketPrice: 58.0,
         stock: 80,
-        status: 'disabled',
-        liveStatus: 'off_shelf',
-        inCart: false,
-        saleMode: 'preview',
+        status: 'enabled',
+        liveStatus: 'selling',
+        inCart: true,
+        saleMode: 'selling',
         explaining: false,
         pinned: false,
         cartSort: 1,
@@ -703,6 +940,47 @@
             marketPrice: 58.0,
             stock: 80,
             unit: '盒'
+          })
+        ]
+      },
+      {
+        id: 'lp-006b',
+        sessionId: 'sess-003',
+        sku: 'LF-MT-20089',
+        name: '鲜牛奶礼盒',
+        category: '肉禽蛋奶',
+        categoryId: 'lcat-002',
+        spec: '12盒',
+        price: 59.9,
+        marketPrice: 72.0,
+        stock: 120,
+        status: 'enabled',
+        liveStatus: 'off_shelf',
+        inCart: false,
+        saleMode: 'preview',
+        explaining: false,
+        pinned: false,
+        cartSort: 2,
+        addedAt: '2026-08-09 16:10:00',
+        img: '',
+        desc: '低温鲜奶礼盒。',
+        arrivalTime: '1',
+        arrivalUnit: 'DAY',
+        deliveryMode: 'pickup',
+        images: [],
+        detailImages: [],
+        displaySalesMode: 'ACTUAL',
+        displaySales: '',
+        purchaseLimitType: 'NONE',
+        purchaseLimit: '',
+        skus: [
+          makeSku({
+            id: 'sku-006b',
+            specName: '12盒',
+            price: 59.9,
+            marketPrice: 72.0,
+            stock: 120,
+            unit: '箱'
           })
         ]
       }
@@ -853,6 +1131,8 @@
           spec: '白心',
           qty: 1,
           amount: 1,
+          payableAmount: 1,
+          paidAmount: 0,
           statusLabel: '交易失败',
           paid: false,
           time: '2026-08-14 23:37:42'
@@ -865,7 +1145,9 @@
           spec: '20kg',
           qty: 1,
           amount: 0.01,
-          statusLabel: '交易失败',
+          payableAmount: 0.01,
+          paidAmount: 0,
+          statusLabel: '待支付',
           paid: false,
           time: '2026-08-14 23:36:18'
         },
@@ -877,6 +1159,8 @@
           spec: '5斤装',
           qty: 2,
           amount: 39.8,
+          payableAmount: 0,
+          paidAmount: 39.8,
           statusLabel: '已支付',
           paid: true,
           time: '2026-08-14 23:32:05'
@@ -889,6 +1173,8 @@
           spec: '500g',
           qty: 1,
           amount: 28.8,
+          payableAmount: 0,
+          paidAmount: 28.8,
           statusLabel: '已支付',
           paid: true,
           time: '2026-08-14 23:28:51'
@@ -896,7 +1182,7 @@
       ],
       mutedUsers: { 'u-laozhang': true, 'u-xiaomei': true },
       chatMessages: [
-        { id: 'c1', userId: 'u-guozi', user: '果子狸', text: '西红柿还有吗？', time: '19:42:01' },
+        { id: 'c1', userId: 'u-guozi', user: '果子狸', text: '西红柿还有吗？', time: '19:42:01', pinned: true },
         { id: 'c2', userId: 'u-anchor', user: '主播小丰', text: '有的，讲解中这款还有库存～', time: '19:42:08', isAnchor: true },
         { id: 'c3', userId: 'u-anan', user: '阿南', text: '五花肉包邮吗', time: '19:41:50' },
         { id: 'c4', userId: 'u-xiaoman', user: '小满', text: '来个福袋！', time: '19:41:22' },
@@ -905,7 +1191,15 @@
         { id: 'c7', userId: 'u-amu', user: '阿木', text: '主播声音真好', time: '19:40:12' },
         { id: 'c8', userId: 'u-xiaoman', user: '小满', text: '求讲解基围虾', time: '19:39:50' },
         { id: 'c9', userId: 'u-guozi', user: '果子狸', text: '已下单，尽快发货', time: '19:39:28' },
-        { id: 'c10', userId: 'u-anchor', user: '主播小丰', text: '下单备注自提门店即可', time: '19:39:10', isAnchor: true }
+        { id: 'c10', userId: 'u-anchor', user: '主播小丰', text: '下单备注自提门店即可', time: '19:39:10', isAnchor: true },
+        { id: 'c11', userId: 'u-xiaozhou', user: '小周', text: '这个西红柿甜不甜', time: '19:38:48' },
+        { id: 'c12', userId: 'u-anan', user: '阿南', text: '有优惠券吗', time: '19:38:22' },
+        { id: 'c13', userId: 'u-xikui', user: '希奎', text: '基围虾还有货吗', time: '19:37:55' },
+        { id: 'c14', userId: 'u-guozi', user: '果子狸', text: '求讲解五花肉', time: '19:37:30' },
+        { id: 'c15', userId: 'u-xiaoman', user: '小满', text: '主播这个多少钱一斤', time: '19:37:08' },
+        { id: 'c16', userId: 'u-amu', user: '阿木', text: '能发个福袋吗', time: '19:36:41' },
+        { id: 'c17', userId: 'u-aijiaosha', user: '爱叫啥叫啥', text: '火龙果今晚讲不讲', time: '19:36:12' },
+        { id: 'c18', userId: 'u-xiaolin', user: '小林', text: '刚进来，现在讲哪款', time: '19:35:50' }
       ],
       watchViewers: [
         { id: 'wv1', userId: 'u-guozi', nickname: '果子狸', lastEnterTime: '19:12:08', enterCount: 3, totalDuration: '01:12:10', online: true, muted: false },
@@ -987,15 +1281,406 @@
     }
   };
 
+  (function hydrateEndedSessionReplay() {
+    var live = controlMetrics['sess-001'];
+    var ended = controlMetrics['sess-003'];
+    if (!live || !ended) return;
+    ended.chatMessages = (live.chatMessages || [])
+      .map(function (m) {
+        return Object.assign({}, m);
+      })
+      .concat([{ id: 'c-end', user: '系统', text: '本场直播已结束', time: '13:00:00', isSys: true }]);
+    ended.watchViewers = (live.watchViewers || []).map(function (w) {
+      return Object.assign({}, w, { online: false });
+    });
+    ended.watchVisits = (live.watchVisits || []).map(function (v) {
+      return Object.assign({}, v);
+    });
+    ended.watchRecords = (live.watchRecords || []).map(function (w) {
+      return Object.assign({}, w);
+    });
+    ended.recentOrders = (live.recentOrders || []).map(function (o) {
+      return Object.assign({}, o);
+    });
+    ended.mutedUsers = Object.assign({}, live.mutedUsers || {});
+  })();
+
   var marketingTemplatePool = [
     { id: 'tpl-pool-c1', type: 'COUPON', typeName: '优惠券', name: '满99减10券', stock: 1000 },
     { id: 'tpl-pool-c2', type: 'COUPON', typeName: '优惠券', name: '新人专享券', stock: 300 },
     { id: 'tpl-pool-b1', type: 'FORTUNE_BAG', typeName: '福袋', name: '开播福袋', stock: 200 },
     { id: 'tpl-pool-b2', type: 'FORTUNE_BAG', typeName: '福袋', name: '整点福袋', stock: 100 },
     { id: 'tpl-pool-s1', type: 'SIGN_IN', typeName: '签到', name: '直播签到有礼', stock: null },
-    { id: 'tpl-pool-t1', type: 'TASK', typeName: '观看任务', name: '观看满10分钟领积分', stock: null },
-    { id: 'tpl-pool-t2', type: 'TASK', typeName: '观看任务', name: '观看满30分钟领券', stock: null }
+    { id: 'tpl-pool-t1', type: 'TASK', typeName: '观看奖励', name: '观看满10分钟领积分', stock: null },
+    { id: 'tpl-pool-t2', type: 'TASK', typeName: '观看奖励', name: '观看满30分钟领券', stock: null }
   ];
+
+  var couponTemplates = [
+    {
+      id: 'CT10001',
+      name: '晚间满减券',
+      threshold: 99,
+      denomination: 20,
+      status: 'enabled',
+      stock: 4400,
+      channel: '全渠道',
+      validPeriod: '领取后7天有效',
+      collectLimit: '不限'
+    },
+    {
+      id: 'CT10002',
+      name: '果蔬专享券',
+      threshold: 0,
+      denomination: 5,
+      status: 'enabled',
+      stock: 2800,
+      channel: 'APP/小程序',
+      validPeriod: '领取后15天有效',
+      collectLimit: '每人3次'
+    },
+    {
+      id: 'CT10003',
+      name: '会员日满减券',
+      threshold: 59,
+      denomination: 10,
+      status: 'enabled',
+      stock: 4000,
+      channel: '全渠道',
+      validPeriod: '2026-03-01~09-30',
+      collectLimit: '每人2次'
+    },
+    {
+      id: 'CT10004',
+      name: '停用满减券',
+      threshold: 30,
+      denomination: 8,
+      status: 'disabled',
+      stock: 1200,
+      channel: '全渠道',
+      validPeriod: '领取后7天有效',
+      collectLimit: '每人1次'
+    },
+    {
+      id: 'CT10005',
+      name: '过期满减券',
+      threshold: 50,
+      denomination: 15,
+      status: 'expired',
+      stock: 0,
+      channel: '全渠道',
+      validPeriod: '2025-01-01~12-31',
+      collectLimit: '每人1次'
+    }
+  ];
+
+  function findCouponTemplate(id) {
+    var i;
+    for (i = 0; i < couponTemplates.length; i++) {
+      if (couponTemplates[i].id === id) return couponTemplates[i];
+    }
+    return null;
+  }
+
+  function couponTemplateStatusLabel(status) {
+    if (status === 'disabled') return '禁用';
+    if (status === 'expired') return '已过期';
+    return '启用';
+  }
+
+  function deductCouponStock(templateId, qty) {
+    var tpl = findCouponTemplate(templateId);
+    var n = Math.floor(Number(qty) || 0);
+    if (!tpl || n < 1) return false;
+    if (tpl.stock < n) return false;
+    tpl.stock -= n;
+    return true;
+  }
+
+  function releaseCouponStock(templateId, qty) {
+    var tpl = findCouponTemplate(templateId);
+    var n = Math.floor(Number(qty) || 0);
+    if (!tpl || n < 1) return false;
+    tpl.stock += n;
+    return true;
+  }
+
+  function nextCouponPlanId() {
+    return 'plan-c-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+  }
+
+  var bagTemplates = [
+    {
+      id: 'BT10001',
+      name: '开播券福袋',
+      status: 'enabled',
+      stock: 1760,
+      prizeType: 'COUPON',
+      prizeCouponId: 'CT10001'
+    },
+    {
+      id: 'BT10002',
+      name: '积分福袋',
+      status: 'enabled',
+      stock: 2120,
+      prizeType: 'POINTS',
+      pointsAmount: 50
+    },
+    {
+      id: 'BT10003',
+      name: '开播福袋',
+      status: 'enabled',
+      stock: 1750,
+      prizeType: 'PRODUCT',
+      productName: '进口车厘子礼盒',
+      productSpec: '2斤装 / 红色车厘子'
+    },
+    {
+      id: 'BT10004',
+      name: '停用福袋',
+      status: 'disabled',
+      stock: 80,
+      prizeType: 'POINTS',
+      pointsAmount: 10
+    }
+  ];
+
+  var liveAudience = [
+    { userId: '10086011', nickname: '果子狸', phone: '13812346521', aliases: ['u-guozi'] },
+    { userId: '10086012', nickname: '阿南', phone: '15988308830', aliases: ['u-anan'] },
+    { userId: '10086013', nickname: '小满', phone: '18622092209', aliases: ['u-xiaoman'] },
+    { userId: '10086014', nickname: '阿木', phone: '13744104410', aliases: ['u-amu'] },
+    { userId: '10086015', nickname: '希奎', phone: '13566778899', aliases: ['u-xikui'] },
+    { userId: '10086016', nickname: '爱叫啥叫啥', phone: '15011223344', aliases: ['u-aijiaosha'] },
+    { userId: '10086017', nickname: '小周', phone: '13900001111', aliases: ['u-xiaozhou'] },
+    { userId: '10086018', nickname: '老张', phone: '18866667777', aliases: ['u-laozhang'] },
+    { userId: '10086019', nickname: '阿北', phone: '13655554444', aliases: ['u-abei'] },
+    { userId: '10086020', nickname: '小林', phone: '13122223333', aliases: ['u-xiaolin'] },
+    { userId: '10086021', nickname: '小美', phone: '15900001234', aliases: ['u-xiaomei'] }
+  ];
+
+  /* 与 会员360-会员管理 列表种子一致；指定中奖搜索走这份 + localStorage 同步会员 */
+  var MEMBER360_LIST_KEY = 'mdm_member_c_list_v1';
+  var member360Seed = [
+    { userId: 'U10001', nickname: '小程序用户A', phone: '138****2211', status: '正常' },
+    { userId: 'U10002', nickname: 'APP会员B', phone: '139****9033', status: '正常' },
+    { userId: 'U10004', nickname: '演示会员4', phone: '137****1004', status: '正常' },
+    { userId: 'U10006', nickname: '演示会员6', phone: '136****6606', status: '正常' },
+    { userId: 'U10008', nickname: '黑名单用户E', phone: '139****5508', status: '黑名单' },
+    { userId: 'U10012', nickname: '待审用户甲', phone: '138****6612', status: '注销中' },
+    { userId: 'U10003', nickname: '访客C', phone: '—', status: '注销' },
+    { userId: 'U10005', nickname: '演示会员5', phone: '137****1005', status: '注销' },
+    { userId: 'U10007', nickname: '已注销用户D', phone: '135****7707', status: '注销' }
+  ];
+
+  function normalizeMember360(m) {
+    if (!m) return null;
+    var id = String(m.userId || m.id || m.memberId || '').trim();
+    if (!id) return null;
+    return {
+      userId: id,
+      nickname: String(m.nickname || '—'),
+      phone: String(m.phone || m.phoneMasked || '—'),
+      status: String(m.status || '正常')
+    };
+  }
+
+  function listMember360() {
+    var map = {};
+    member360Seed.forEach(function (m) {
+      var row = normalizeMember360(m);
+      if (row) map[row.userId] = row;
+    });
+    try {
+      var raw = localStorage.getItem(MEMBER360_LIST_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          parsed.forEach(function (item) {
+            var row = normalizeMember360(item);
+            if (!row) return;
+            map[row.userId] = Object.assign({}, map[row.userId] || {}, row);
+          });
+        }
+      }
+    } catch (e) { /* ignore */ }
+    return Object.keys(map).map(function (k) {
+      return map[k];
+    });
+  }
+
+  function findMember360(userId) {
+    var id = String(userId || '');
+    var list = listMember360();
+    var i;
+    for (i = 0; i < list.length; i++) {
+      if (String(list[i].userId) === id) return list[i];
+    }
+    return null;
+  }
+
+  function findBagTemplate(id) {
+    var i;
+    for (i = 0; i < bagTemplates.length; i++) {
+      if (bagTemplates[i].id === id) return bagTemplates[i];
+    }
+    return null;
+  }
+
+  function bagTemplateStatusLabel(status) {
+    if (status === 'disabled') return '停用';
+    if (status === 'expired') return '已过期';
+    return '启用';
+  }
+
+  function bagPrizeTypeLabel(type) {
+    if (type === 'COUPON') return '券';
+    if (type === 'POINTS') return '积分';
+    if (type === 'PRODUCT') return '商品';
+    return '—';
+  }
+
+  function deductBagStock(templateId, qty) {
+    var tpl = findBagTemplate(templateId);
+    var n = Math.floor(Number(qty) || 0);
+    if (!tpl || n < 1) return false;
+    if (tpl.stock < n) return false;
+    tpl.stock -= n;
+    return true;
+  }
+
+  function releaseBagStock(templateId, qty) {
+    var tpl = findBagTemplate(templateId);
+    var n = Math.floor(Number(qty) || 0);
+    if (!tpl || n < 1) return false;
+    tpl.stock += n;
+    return true;
+  }
+
+  function nextBagPlanId() {
+    return 'plan-b-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+  }
+
+  var signTemplates = [
+    {
+      id: 'ST10001',
+      name: '晚间签到有礼',
+      status: 'enabled',
+      totalRounds: 5,
+      rewards: [
+        { rewardType: 'POINTS', pointsAmount: 10 },
+        { rewardType: 'COUPON', prizeCouponId: 'CT10001' },
+        { rewardType: 'FORTUNE_BAG', prizeBagId: 'BT10002' },
+        { rewardType: 'POINTS', pointsAmount: 30 },
+        { rewardType: 'NONE' }
+      ]
+    },
+    {
+      id: 'ST10002',
+      name: '会员日签到',
+      status: 'enabled',
+      totalRounds: 3,
+      rewards: [
+        { rewardType: 'POINTS', pointsAmount: 5 },
+        { rewardType: 'COUPON', prizeCouponId: 'CT10003' },
+        { rewardType: 'POINTS', pointsAmount: 20 }
+      ]
+    },
+    {
+      id: 'ST10003',
+      name: '停用签到',
+      status: 'disabled',
+      totalRounds: 2,
+      rewards: [
+        { rewardType: 'POINTS', pointsAmount: 2 },
+        { rewardType: 'NONE' }
+      ]
+    }
+  ];
+
+  function findSignTemplate(id) {
+    var i;
+    for (i = 0; i < signTemplates.length; i++) {
+      if (signTemplates[i].id === id) return signTemplates[i];
+    }
+    return null;
+  }
+
+  function signTemplateStatusLabel(status) {
+    if (status === 'disabled') return '停用';
+    if (status === 'expired') return '已过期';
+    return '启用';
+  }
+
+  function nextSignPlanId() {
+    return 'plan-s-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+  }
+
+  var taskTemplates = [
+    {
+      id: 'WT10001',
+      name: '晚间观看有礼',
+      status: 'enabled',
+      milestones: [
+        { threshold: 3, rewardType: 'POINTS', pointsAmount: 10 },
+        { threshold: 10, rewardType: 'COUPON', prizeCouponId: 'CT10001' },
+        { threshold: 20, rewardType: 'POINTS', pointsAmount: 25 }
+      ]
+    },
+    {
+      id: 'WT10002',
+      name: '会员日观看',
+      status: 'enabled',
+      milestones: [
+        { threshold: 5, rewardType: 'POINTS', pointsAmount: 5 },
+        { threshold: 15, rewardType: 'POINTS', pointsAmount: 20 }
+      ]
+    },
+    {
+      id: 'WT10003',
+      name: '停用观看奖励',
+      status: 'disabled',
+      milestones: [
+        { threshold: 8, rewardType: 'POINTS', pointsAmount: 8 }
+      ]
+    }
+  ];
+
+  function findTaskTemplate(id) {
+    var i;
+    for (i = 0; i < taskTemplates.length; i++) {
+      if (taskTemplates[i].id === id) return taskTemplates[i];
+    }
+    return null;
+  }
+
+  function taskTemplateStatusLabel(status) {
+    if (status === 'disabled') return '停用';
+    if (status === 'expired') return '已过期';
+    return '启用';
+  }
+
+  function nextTaskPlanId() {
+    return 'plan-t-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+  }
+
+  var WATCH_REWARD_ISSUE_KEY = 'lf_live_watch_reward_issue_v1';
+
+  function publishWatchRewardIssue(payload) {
+    try {
+      if (!payload) localStorage.removeItem(WATCH_REWARD_ISSUE_KEY);
+      else localStorage.setItem(WATCH_REWARD_ISSUE_KEY, JSON.stringify(payload));
+    } catch (e) {}
+  }
+
+  function readWatchRewardIssue() {
+    try {
+      var raw = localStorage.getItem(WATCH_REWARD_ISSUE_KEY);
+      var data = raw ? JSON.parse(raw) : null;
+      return data && typeof data === 'object' ? data : null;
+    } catch (e) {
+      return null;
+    }
+  }
 
   function clampInt(val, min, max, fallback) {
     var n = Math.floor(Number(val));
@@ -1083,6 +1768,280 @@
     return boostedOnlineCount(real, cfg, sess && sess.id);
   }
 
+  function pad2(n) {
+    return (n < 10 ? '0' : '') + n;
+  }
+
+  function formatDemoTs(d) {
+    return (
+      d.getFullYear() +
+      '-' +
+      pad2(d.getMonth() + 1) +
+      '-' +
+      pad2(d.getDate()) +
+      ' ' +
+      pad2(d.getHours()) +
+      ':' +
+      pad2(d.getMinutes()) +
+      ':' +
+      pad2(d.getSeconds())
+    );
+  }
+
+  function tsFromNow(minOffset, secOffset) {
+    return formatDemoTs(new Date(Date.now() + (minOffset || 0) * 60000 + (secOffset || 0) * 1000));
+  }
+
+  function nextWindowId() {
+    return 'win-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+  }
+
+  var welfareWindows = {
+    'tpl-c1': [
+      {
+        id: 'win-c1-2',
+        roundIndex: 1,
+        roundNo: 2,
+        startedAt: tsFromNow(-1),
+        endedAt: tsFromNow(2),
+        durationSec: 180,
+        status: 'ACTIVE',
+        couponTotalStock: 4,
+        couponClaimedCount: 2,
+        couponUsedCount: 0,
+        participantCount: 2,
+        participateTimes: 2
+      },
+      {
+        id: 'win-c1-1',
+        roundIndex: 0,
+        roundNo: 1,
+        startedAt: tsFromNow(-28),
+        endedAt: tsFromNow(-25),
+        durationSec: 180,
+        status: 'CLOSED',
+        couponTotalStock: 4,
+        couponClaimedCount: 4,
+        couponUsedCount: 2,
+        participantCount: 4,
+        participateTimes: 4
+      }
+    ],
+    'tpl-c2': [],
+    'tpl-c1b': [
+      {
+        id: 'win-c1b-1',
+        roundIndex: 0,
+        roundNo: 1,
+        startedAt: tsFromNow(-40),
+        endedAt: tsFromNow(-37),
+        durationSec: 180,
+        status: 'CLOSED',
+        couponTotalStock: 100,
+        couponClaimedCount: 100,
+        couponUsedCount: 61,
+        participantCount: 86,
+        participateTimes: 100
+      }
+    ],
+    'tpl-c-off': [],
+    'tpl-b1b': [],
+    'tpl-b-pt': [],
+    'tpl-b-cp': [],
+    'tpl-b1': [
+      {
+        id: 'win-b1-2',
+        roundIndex: 1,
+        roundNo: 2,
+        startedAt: tsFromNow(-0.4),
+        endedAt: tsFromNow(1.6),
+        durationSec: 120,
+        status: 'ACTIVE',
+        prizeTitle: '进口车厘子礼盒',
+        participantCount: 86,
+        participateTimes: 112,
+        winnerCount: 0,
+        winnerTotal: 3,
+        drawType: 'RANDOM',
+        rewards: []
+      },
+      {
+        id: 'win-b1-1',
+        roundIndex: 0,
+        roundNo: 1,
+        startedAt: tsFromNow(-18),
+        endedAt: tsFromNow(-16),
+        durationSec: 120,
+        status: 'CLOSED',
+        prizeTitle: '进口车厘子礼盒',
+        participantCount: 124,
+        participateTimes: 168,
+        winnerCount: 3,
+        winnerTotal: 3,
+        drawType: 'RANDOM',
+        rewards: [
+          { nickMasked: '小**', prizeTitle: '进口车厘子礼盒' },
+          { nickMasked: '果**迷', prizeTitle: '进口车厘子礼盒' },
+          { nickMasked: '晚**购', prizeTitle: '进口车厘子礼盒' }
+        ]
+      }
+    ],
+    'tpl-s-live': [
+      {
+        id: 'win-sl-2',
+        roundIndex: 1,
+        roundNo: 2,
+        startedAt: tsFromNow(-12),
+        endedAt: tsFromNow(-9),
+        durationSec: 180,
+        status: 'CLOSED',
+        participantCount: 96,
+        participateTimes: 128
+      },
+      {
+        id: 'win-sl-1',
+        roundIndex: 0,
+        roundNo: 1,
+        startedAt: tsFromNow(-22),
+        endedAt: tsFromNow(-19),
+        durationSec: 180,
+        status: 'CLOSED',
+        participantCount: 74,
+        participateTimes: 90
+      }
+    ],
+    'tpl-s-dup': [],
+    'tpl-t-live': [
+      {
+        id: 'win-t-live',
+        roundIndex: 0,
+        roundNo: 1,
+        startedAt: tsFromNow(-8),
+        endedAt: tsFromNow(1440),
+        durationSec: 86400,
+        status: 'ACTIVE',
+        participantCount: 86,
+        participateTimes: 86
+      }
+    ],
+    'tpl-t-dup': [],
+    'tpl-c3': [
+      {
+        id: 'win-c3-3',
+        roundIndex: 2,
+        startedAt: '2026-08-10 12:40:00',
+        endedAt: '2026-08-10 12:43:00',
+        durationSec: 180,
+        status: 'CLOSED',
+        couponTotalStock: 4,
+        couponClaimedCount: 4,
+        couponUsedCount: 3
+      },
+      {
+        id: 'win-c3-2',
+        roundIndex: 1,
+        startedAt: '2026-08-10 12:10:00',
+        endedAt: '2026-08-10 12:13:00',
+        durationSec: 180,
+        status: 'CLOSED',
+        couponTotalStock: 4,
+        couponClaimedCount: 3,
+        couponUsedCount: 1
+      },
+      {
+        id: 'win-c3-1',
+        roundIndex: 0,
+        startedAt: '2026-08-10 11:35:00',
+        endedAt: '2026-08-10 11:38:00',
+        durationSec: 180,
+        status: 'CLOSED',
+        couponTotalStock: 4,
+        couponClaimedCount: 4,
+        couponUsedCount: 2
+      }
+    ],
+    'tpl-b3': [
+      {
+        id: 'win-b3-2',
+        roundIndex: 1,
+        startedAt: '2026-08-10 12:20:00',
+        endedAt: '2026-08-10 12:22:00',
+        durationSec: 120,
+        status: 'CLOSED',
+        prizeTitle: '会员日神秘礼',
+        participantCount: 67,
+        winnerCount: 3,
+        winnerTotal: 3,
+        drawType: 'RANDOM',
+        rewards: [
+          { nickMasked: '会**员', prizeTitle: '会员日神秘礼' },
+          { nickMasked: '闪**达', prizeTitle: '会员日神秘礼' },
+          { nickMasked: '冷**鲜', prizeTitle: '会员日神秘礼' }
+        ]
+      },
+      {
+        id: 'win-b3-1',
+        roundIndex: 0,
+        startedAt: '2026-08-10 11:40:00',
+        endedAt: '2026-08-10 11:42:00',
+        durationSec: 120,
+        status: 'CLOSED',
+        prizeTitle: '会员日神秘礼',
+        participantCount: 41,
+        winnerCount: 3,
+        winnerTotal: 3,
+        drawType: 'RANDOM',
+        rewards: [
+          { nickMasked: '阿**米', prizeTitle: '会员日神秘礼' },
+          { nickMasked: '小**桃', prizeTitle: '会员日神秘礼' },
+          { nickMasked: '滨**店', prizeTitle: '会员日神秘礼' }
+        ]
+      }
+    ],
+    'tpl-s1': [
+      {
+        id: 'win-s1-3',
+        roundIndex: 2,
+        startedAt: '2026-08-10 12:30:00',
+        endedAt: '2026-08-10 12:33:00',
+        durationSec: 180,
+        status: 'CLOSED'
+      },
+      {
+        id: 'win-s1-2',
+        roundIndex: 1,
+        startedAt: '2026-08-10 12:00:00',
+        endedAt: '2026-08-10 12:03:00',
+        durationSec: 180,
+        status: 'CLOSED'
+      },
+      {
+        id: 'win-s1-1',
+        roundIndex: 0,
+        startedAt: '2026-08-10 11:32:00',
+        endedAt: '2026-08-10 11:35:00',
+        durationSec: 180,
+        status: 'CLOSED'
+      }
+    ],
+    'tpl-t3': [
+      {
+        id: 'win-t3-1',
+        roundIndex: 0,
+        startedAt: '2026-08-10 11:31:00',
+        endedAt: '2026-08-10 13:00:00',
+        durationSec: 86400,
+        status: 'CLOSED'
+      }
+    ]
+  };
+
+  function welfareWindowsOf(planId) {
+    if (!planId) return [];
+    if (!welfareWindows[planId]) welfareWindows[planId] = [];
+    return welfareWindows[planId];
+  }
+
   window.MdmLiveDemo = {
     rooms: rooms,
     timeslots: timeslots,
@@ -1115,7 +2074,39 @@
       { value: 'COUPON', label: '优惠券' },
       { value: 'FORTUNE_BAG', label: '福袋' },
       { value: 'SIGN_IN', label: '签到' },
-      { value: 'TASK', label: '观看任务' }
-    ]
+      { value: 'TASK', label: '观看奖励' }
+    ],
+    welfareWindows: welfareWindows,
+    welfareWindowsOf: welfareWindowsOf,
+    formatDemoTs: formatDemoTs,
+    nextWindowId: nextWindowId,
+    couponTemplates: couponTemplates,
+    findCouponTemplate: findCouponTemplate,
+    couponTemplateStatusLabel: couponTemplateStatusLabel,
+    deductCouponStock: deductCouponStock,
+    releaseCouponStock: releaseCouponStock,
+    nextCouponPlanId: nextCouponPlanId,
+    bagTemplates: bagTemplates,
+    findBagTemplate: findBagTemplate,
+    bagTemplateStatusLabel: bagTemplateStatusLabel,
+    bagPrizeTypeLabel: bagPrizeTypeLabel,
+    deductBagStock: deductBagStock,
+    releaseBagStock: releaseBagStock,
+    nextBagPlanId: nextBagPlanId,
+    signTemplates: signTemplates,
+    findSignTemplate: findSignTemplate,
+    signTemplateStatusLabel: signTemplateStatusLabel,
+    nextSignPlanId: nextSignPlanId,
+    taskTemplates: taskTemplates,
+    findTaskTemplate: findTaskTemplate,
+    taskTemplateStatusLabel: taskTemplateStatusLabel,
+    nextTaskPlanId: nextTaskPlanId,
+    publishWatchRewardIssue: publishWatchRewardIssue,
+    readWatchRewardIssue: readWatchRewardIssue,
+    WATCH_REWARD_ISSUE_KEY: WATCH_REWARD_ISSUE_KEY,
+    liveAudience: liveAudience,
+    member360Seed: member360Seed,
+    listMember360: listMember360,
+    findMember360: findMember360
   };
 })();

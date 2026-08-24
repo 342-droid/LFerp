@@ -44,6 +44,8 @@
     if (doc.querySelector('.ua-poc-page') && doc.getElementById('pocSubmit')) return 'points-order-confirm.html';
     if (doc.querySelector('.ua-gd-page') && doc.getElementById('prContent')) return 'points-rule-desc.html';
     if (doc.querySelector('.ua-gd-page') && doc.getElementById('grContent')) return 'growth-rule-desc.html';
+    if (doc.querySelector('.ua-report-page')) return 'report-records.html';
+    if (doc.querySelector('.ua-fb-page')) return 'feedback.html';
     return fromPath;
   }
 
@@ -180,4 +182,12 @@
     rememberBack: rememberBack,
     rewriteLinksWithFrom: rewriteLinksWithFrom
   };
+
+  if (!document.getElementById('pg-prd-float-js')) {
+    var s = document.createElement('script');
+    s.id = 'pg-prd-float-js';
+    s.src = '../../js/pg-prd-float.js?v=20260820-prd3';
+    s.async = true;
+    (document.head || document.body).appendChild(s);
+  }
 })(window);
