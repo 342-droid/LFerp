@@ -7,13 +7,103 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
+    <link rel="stylesheet" href="../css/lf-settle-freight.css">
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
     <style>
-        .pts-rule-unit .erp-input[type="time"] {
-            width: 140px;
-            flex: 0 0 140px;
+        .cutoff-page-tip {
+            margin-bottom: 12px;
+        }
+        .sf-form-item--wide {
+            grid-column: 1 / -1;
+        }
+        .cutoff-radio-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px 24px;
+            min-height: 32px;
+            align-items: center;
+        }
+        .cutoff-radio-row label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #303133;
+            cursor: pointer;
+            user-select: none;
+        }
+        .cutoff-form-tip {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #909399;
+            line-height: 1.5;
+        }
+        .cutoff-cat-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 0 0 10px;
+        }
+        .cutoff-cat-list:empty {
+            margin-bottom: 0;
+        }
+        .cutoff-cat-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 8px 12px;
+            background: #fafafa;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #303133;
+        }
+        .cutoff-after-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .cutoff-after-list li {
+            position: relative;
+            padding: 4px 0 4px 14px;
+            font-size: 13px;
+            color: #303133;
+            line-height: 22px;
+        }
+        .cutoff-after-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 12px;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #ff7019;
+        }
+        .cutoff-status {
+            font-size: 13px;
+        }
+        .cutoff-status.is-on {
+            color: #67c23a;
+        }
+        .cutoff-status.is-draft {
+            color: #e6a23c;
+        }
+        .cutoff-status.is-off {
+            color: #909399;
+        }
+        .sf-form-item__control > .sf-input[type="time"] {
+            width: 180px;
+            max-width: 100%;
+        }
+        .sf-form-item__control textarea.sf-input {
+            width: 100%;
+            min-height: 80px;
+            height: auto;
+            padding: 8px 10px;
+            line-height: 1.5;
+            resize: vertical;
         }
     </style>
 </head>
@@ -23,80 +113,108 @@
     <script src="../js/order-sidebar.js"></script>
     <div id="header-container"></div>
     <div class="container">
-        <main class="main-content mdm-edit-page">
+        <main class="main-content">
             <div class="content-tabs"><button class="active">快递截单</button></div>
             <hr class="content-divider">
 
-            <div class="mdm-biz-tip" role="note">仅作用于全平台零售线<strong>快递到家</strong>（供应商直发，不进仓储、不走采购）。采购 / 门店订货截单仍在「采购 → 门店订货汇总」配置，本页不包含。</div>
+            <div class="mdm-biz-tip cutoff-page-tip" role="note">
+                仅作用于全平台零售线<strong>快递到家</strong>（供应商直发，不进仓储、不走采购）。适用场景可多选，同一场景下<strong>指定类目优先于全部类目</strong>。截单后：用户 APP「取消订单」隐藏，「申请退款」改走发货后售后审核流。采购 / 门店订货截单仍在「采购 → 门店订货汇总」配置，本页不包含。
+            </div>
 
-            <form id="expressCutoffForm">
-                <div class="pts-rule-card">
-                    <div class="pts-rule-card__title">截单规则</div>
-                    <div class="pts-rule-card__body">
-                        <div class="pts-rule-field">
-                            <label class="pts-rule-field__label">开关</label>
-                            <div class="pts-rule-field__control">
-                                <div class="pts-rule-check-row">
-                                    <label class="pts-rule-check-label">
-                                        <input type="checkbox" id="cutoffEnabled" checked> 启用零售快递截单
-                                    </label>
-                                </div>
-                                <div class="pts-rule-tip">关闭后，零售快递订单全天可下，不再按截单时间拦截。</div>
+            <div class="settle-freight-page">
+                <section class="erp-page__card">
+                    <form class="sf-filter-form" id="cutoffFilterForm" onsubmit="return false;">
+                        <div class="sf-filter-grid" id="cutoffFilterGrid">
+                            <div class="sf-filter-field">
+                                <label class="sf-filter-field__label" for="cutoffFilterName">策略名称</label>
+                                <input class="sf-filter-field__input" id="cutoffFilterName" type="text" placeholder="请输入策略名称" autocomplete="off">
+                            </div>
+                            <div class="sf-filter-field">
+                                <label class="sf-filter-field__label" for="cutoffFilterScene">适用场景</label>
+                                <select class="sf-filter-field__input" id="cutoffFilterScene" aria-label="适用场景">
+                                    <option value="">全部</option>
+                                    <option value="live">直播</option>
+                                    <option value="mall">商城</option>
+                                </select>
+                            </div>
+                            <div class="sf-filter-field">
+                                <label class="sf-filter-field__label" for="cutoffFilterStatus">状态</label>
+                                <select class="sf-filter-field__input" id="cutoffFilterStatus" aria-label="状态">
+                                    <option value="">全部</option>
+                                    <option value="draft">草稿</option>
+                                    <option value="active">启动</option>
+                                    <option value="stopped">停用</option>
+                                </select>
                             </div>
                         </div>
-                        <div class="pts-rule-field" id="cutoffSceneRow">
-                            <label class="pts-rule-field__label"><span class="erp-req">*</span>适用场景</label>
-                            <div class="pts-rule-field__control">
-                                <div class="pts-rule-check-row">
-                                    <label class="pts-rule-check-label">
-                                        <input type="checkbox" id="cutoffSceneLive" checked> 直播
-                                    </label>
-                                    <label class="pts-rule-check-label">
-                                        <input type="checkbox" id="cutoffSceneMall" checked> 商城
-                                    </label>
-                                </div>
-                                <div class="pts-rule-tip">未勾选的场景不截单。履约方式固定为快递，与采购侧「渠道 × 履约方式」截单相互独立。</div>
-                            </div>
+                        <div class="sf-filter-actions">
+                            <button type="button" class="sf-btn sf-btn--primary" id="cutoffFilterQuery">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                                查询
+                            </button>
+                            <button type="button" class="sf-btn sf-btn--default" id="cutoffFilterReset">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M5 19a9 9 0 0014-7"/><path d="M19 5a9 9 0 00-14 7"/></svg>
+                                重置
+                            </button>
+                            <button type="button" class="sf-btn sf-btn--text" id="cutoffFilterCollapse" aria-expanded="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+                                <span id="cutoffFilterCollapseLabel">收起</span>
+                            </button>
                         </div>
-                        <div class="pts-rule-field" id="cutoffTimeRow">
-                            <label class="pts-rule-field__label" for="cutoffTime"><span class="erp-req">*</span>每日截单时间</label>
-                            <div class="pts-rule-field__control">
-                                <div class="pts-rule-unit">
-                                    <input class="erp-input" id="cutoffTime" type="time" value="16:00">
-                                </div>
-                                <div class="pts-rule-tip">全平台统一。到达该时刻后，已勾选场景的零售快递按下方「截单后」规则处理。</div>
-                            </div>
+                    </form>
+                </section>
+
+                <section class="erp-page__card">
+                    <div class="sf-toolbar">
+                        <div class="sf-toolbar__left">
+                            <button type="button" class="sf-btn sf-btn--primary" id="cutoffAddBtn">+ 新增</button>
+                            <button type="button" class="sf-btn sf-btn--danger" id="cutoffDeleteBtn" disabled>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 7h14"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 14h10l1-14"/><path d="M9 7V5h6v2"/></svg>
+                                删除
+                            </button>
                         </div>
-                        <div class="pts-rule-field" id="cutoffAfterRow">
-                            <label class="pts-rule-field__label">截单后</label>
-                            <div class="pts-rule-field__control">
-                                <div class="pts-rule-check-row">
-                                    <label class="pts-rule-check-label">
-                                        <input type="radio" name="cutoffAfter" value="stop" checked> 停止下单快递
-                                    </label>
-                                    <label class="pts-rule-check-label">
-                                        <input type="radio" name="cutoffAfter" value="nextday"> 仍可下单，预计送达改为次日及以后
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="pts-rule-field" id="cutoffDescRow">
-                            <label class="pts-rule-field__label" for="cutoffDesc">用户端说明</label>
-                            <div class="pts-rule-field__control">
-                                <textarea class="erp-input" id="cutoffDesc" placeholder="选填，截单后展示给用户（如「今日快递已截单，请明日再下单」）"></textarea>
-                            </div>
+                        <div class="sf-toolbar__right">
+                            <button type="button" class="sf-toolbar__icon-btn" title="刷新" aria-label="刷新" id="cutoffRefreshBtn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                            </button>
                         </div>
                     </div>
-                </div>
 
-                <div class="pts-rule-actions mdm-edit-page__footer">
-                    <button type="button" class="btn btn-secondary" id="btnCutoffReset">重置</button>
-                    <button type="button" class="btn btn-primary" id="btnCutoffSave">保存</button>
-                </div>
-            </form>
+                    <div class="sf-table-wrap">
+                        <table class="sf-table" id="cutoffTable">
+                            <thead>
+                                <tr>
+                                    <th class="sf-table__check"><input type="checkbox" id="cutoffCheckAll" aria-label="全选"></th>
+                                    <th class="sf-table__index">序号</th>
+                                    <th>策略名称</th>
+                                    <th>适用场景</th>
+                                    <th>商品类目</th>
+                                    <th>截单时间</th>
+                                    <th>状态</th>
+                                    <th class="sf-table__action">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cutoffTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="sf-empty" id="cutoffEmpty" hidden>暂无截单策略</div>
+
+                    <div class="sf-pagination" id="cutoffPagination">
+                        <span id="cutoffPaginationTotal">共 0 条</span>
+                        <select class="sf-pagination__size" id="cutoffPageSize" aria-label="每页条数"></select>
+                        <div class="sf-pagination__pages" id="cutoffPaginationPages"></div>
+                        <div class="sf-pagination__jump">
+                            前往
+                            <input type="text" id="cutoffJumpPage" inputmode="numeric" aria-label="跳转页码">
+                            <button type="button" class="sf-page-btn" id="cutoffJumpGo">页</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
         </main>
     </div>
     <script src="../js/common.js"></script>
+    <script src="../js/mdm-product-catalog-store.js"></script>
     <script src="../js/mdm-order-express-cutoff.js"></script>
 </body>
 </html>
