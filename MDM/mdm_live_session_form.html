@@ -9,8 +9,9 @@
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
     <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <link rel="stylesheet" href="../css/lf-product.css">
-    <link rel="stylesheet" href="../css/lf-live.css">
+    <link rel="stylesheet" href="../css/lf-live.css?v=20260824-unlock-start">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -25,6 +26,8 @@
             <div class="lf-live-form-toolbar">
                 <a class="lf-live-form-back" id="sessionFormBack" href="mdm_live_session.html">← 返回直播场次</a>
             </div>
+
+            <div class="mdm-biz-tip" id="sessionLiveLockTip" hidden role="note">当前场次<strong>直播中</strong>，直播间、营销模板不可修改。</div>
 
             <form id="liveSessionForm" onsubmit="return false;">
                 <div class="pts-rule-card lf-live-card">
@@ -71,12 +74,28 @@
                             <label class="pts-rule-field__label"><span class="erp-req">*</span>开播时间</label>
                             <div class="pts-rule-field__control">
                                 <input class="erp-input" id="fStartAt" type="datetime-local">
+                                <p class="pts-rule-tip">创建场次时填写的计划开播时间。</p>
                             </div>
                         </div>
                         <div class="pts-rule-field">
                             <label class="pts-rule-field__label"><span class="erp-req">*</span>结束时间</label>
                             <div class="pts-rule-field__control">
                                 <input class="erp-input" id="fEndAt" type="datetime-local">
+                                <p class="pts-rule-tip">创建场次时填写的计划结束时间。</p>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">实际开播时间</label>
+                            <div class="pts-rule-field__control">
+                                <input class="erp-input" id="fActualStartAt" readonly disabled placeholder="开播后自动记录">
+                                <p class="pts-rule-tip">中控点开始直播时写入，只读，与上方计划开播时间不是同一字段。</p>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">实际结束时间</label>
+                            <div class="pts-rule-field__control">
+                                <input class="erp-input" id="fActualEndAt" readonly disabled placeholder="关播后自动记录">
+                                <p class="pts-rule-tip">中控点关闭直播或到点自动关播时写入，只读。</p>
                             </div>
                         </div>
                         <div class="pts-rule-field">
@@ -158,7 +177,7 @@
                             <div class="lf-live-template-bound__label">已绑定模板</div>
                             <div id="fTemplateList" class="lf-live-template-tags"></div>
                         </div>
-                        <div class="lf-live-template-form">
+                        <div class="lf-live-template-form" id="fTemplateForm">
                             <div class="pts-rule-field">
                                 <label class="pts-rule-field__label">模板类型</label>
                                 <div class="pts-rule-field__control">
@@ -201,7 +220,7 @@
     <script src="../js/common.js"></script>
     <script src="../js/mdm-product-proxy-region-picker.js"></script>
     <script src="../js/mdm-product-proxy-store-picker.js"></script>
-    <script src="../js/mdm-live-demo-data.js"></script>
-    <script src="../js/mdm-live-session-form.js"></script>
+    <script src="../js/mdm-live-demo-data.js?v=20260824-actual-time"></script>
+    <script src="../js/mdm-live-session-form.js?v=20260824-unlock-start"></script>
 </body>
 </html>

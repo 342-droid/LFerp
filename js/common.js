@@ -972,9 +972,20 @@ if (document.readyState === 'loading') {
         s.async = false;
         (document.body || document.head).appendChild(s);
     }
+    function loadPrdFloat() {
+        if (document.getElementById('pg-prd-float-js')) return;
+        if (/\/(shop-h5|user-app|store-app)\//i.test(window.location.pathname || '')) return;
+        var s = document.createElement('script');
+        s.id = 'pg-prd-float-js';
+        s.src = assetUrl('js/pg-prd-float.js') + '?v=20260820-prd3';
+        s.async = true;
+        s.onerror = function () {};
+        (document.body || document.head).appendChild(s);
+    }
     function boot() {
         loadRowNo();
         loadFabDock();
+        loadPrdFloat();
     }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', boot);

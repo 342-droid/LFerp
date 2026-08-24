@@ -15,3 +15,6 @@ docs/**/*PRD*.docx
 docs/**/*PRD*.pdf
 AGENTS.md
 .agents/skills/
+
+# 原型生成：版本清单与 PRD 仅本机，不入库、不推远端
+.local/

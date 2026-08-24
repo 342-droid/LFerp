@@ -1,0 +1,49 @@
+{
+  "prds": [
+    {
+      "id": "466-467-466-468-308-305-直播场次状态对应操作和中控台的活动发放优化",
+      "title": "【466】【467】【466】【468】【308】【305】直播场次状态对应操作和中控台的活动发放优化",
+      "file": "466-467-466-468-308-305-直播场次状态对应操作和中控台的活动发放优化.md",
+      "pages": [
+        "MDM/mdm_live_session.html",
+        "MDM/mdm_live_session_form.html",
+        "MDM/mdm_live_session_detail.html",
+        "MDM/mdm_live_control.html",
+        "user-app/h5/live-room.html"
+      ]
+    },
+    {
+      "id": "312-举报和意见反馈",
+      "title": "【312】举报和意见反馈",
+      "file": "312-举报和意见反馈.md",
+      "pages": [
+        "MDM/mdm_aftersale_report.html",
+        "MDM/mdm_aftersale_feedback.html",
+        "MDM/mdm_aftersale_ticket.html",
+        "MDM/mdm_aftersale_refund.html",
+        "user-app/h5/live-room.html",
+        "user-app/h5/profile.html",
+        "user-app/h5/feedback.html",
+        "user-app/h5/report-records.html"
+      ]
+    },
+    {
+      "id": "306-直播弹幕置顶",
+      "title": "【306】直播弹幕置顶",
+      "file": "306-直播弹幕置顶.md",
+      "pages": [
+        "MDM/mdm_live_control.html",
+        "user-app/h5/live-room.html"
+      ]
+    },
+    {
+      "id": "311-直播c端用户一键评论",
+      "title": "【311】直播c端用户一键评论",
+      "file": "311-直播c端用户一键评论.md",
+      "pages": [
+        "MDM/mdm_live_control.html",
+        "user-app/h5/live-room.html"
+      ]
+    }
+  ]
+}
