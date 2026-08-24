@@ -1,4 +1,166 @@
 {
+  "0535be7|MDM/mdm_live_control.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|MDM/mdm_live_data.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|MDM/mdm_live_product_category.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|MDM/mdm_live_product_sched.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|MDM/mdm_live_product_sched_edit.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|MDM/mdm_live_room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|MDM/mdm_live_session.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|MDM/mdm_live_session_detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|MDM/mdm_live_session_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|MDM/mdm_live_timeslot.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|prototype-prd/view.html": {
+    "before": "changelog-assets/0535be7/prototype-prd__view.html.before.jpg",
+    "after": "changelog-assets/0535be7/prototype-prd__view.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/account-cancel.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/change-password.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/feedback.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/growth-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/growth-rule-desc.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/live-room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/member-center.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/newcomer-zone.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/points-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/points-mall.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/points-order-confirm.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/points-product-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/points-rule-desc.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/profile-edit.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/profile.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/redpack-claim.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/redpack-records.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/report-records.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/set-password.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/settings-more.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
+  "0535be7|user-app/h5/settings.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-24"
+  },
   "0ef4fac|SCM/inventory_init_import.html": {
     "after": "changelog-assets/0ef4fac/SCM__inventory_init_import.html.after.jpg",
     "status": "added",

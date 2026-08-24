@@ -1,10 +1,194 @@
 {
-  "latestSha": "53b6debca5c2532d4bd3efb79b53675d4534ea26",
-  "total": 289,
+  "latestSha": "0535be740c9e9423ff793a0e832cfd6402d630c6",
+  "total": 290,
   "days": [
     {
       "date": "2026-08-24",
       "items": [
+        {
+          "sha": "0535be7",
+          "type": "feat",
+          "text": "覆盖直播场次中控发放 PRD，并支持查看链接打开",
+          "author": "zhangzheng",
+          "time": "20:39",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_control.html",
+              "module": "冷丰WMS",
+              "title": "直播中控"
+            },
+            {
+              "file": "MDM/mdm_live_data.html",
+              "module": "冷丰WMS",
+              "title": "直播数据"
+            },
+            {
+              "file": "MDM/mdm_live_product_category.html",
+              "module": "冷丰WMS",
+              "title": "直播类目"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched.html",
+              "module": "冷丰WMS",
+              "title": "直播排品"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "编辑直播商品"
+            },
+            {
+              "file": "MDM/mdm_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间"
+            },
+            {
+              "file": "MDM/mdm_live_session.html",
+              "module": "冷丰WMS",
+              "title": "直播场次"
+            },
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "module": "冷丰WMS",
+              "title": "直播场次详情"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "module": "冷丰WMS",
+              "title": "直播场次编辑"
+            },
+            {
+              "file": "MDM/mdm_live_timeslot.html",
+              "module": "冷丰WMS",
+              "title": "直播时段"
+            },
+            {
+              "file": "prototype-prd/view.html",
+              "module": "",
+              "title": "PRD"
+            },
+            {
+              "file": "user-app/h5/account-cancel.html",
+              "module": "",
+              "title": "账号注销 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/change-password.html",
+              "module": "",
+              "title": "修改密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/feedback.html",
+              "module": "",
+              "title": "意见反馈 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/growth-detail.html",
+              "module": "",
+              "title": "我的成长值 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/growth-rule-desc.html",
+              "module": "",
+              "title": "规则说明 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/member-center.html",
+              "module": "",
+              "title": "会员中心 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/newcomer-zone.html",
+              "module": "",
+              "title": "新人专区 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-detail.html",
+              "module": "",
+              "title": "积分明细 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-mall.html",
+              "module": "",
+              "title": "积分商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-order-confirm.html",
+              "module": "",
+              "title": "确认兑换 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-product-detail.html",
+              "module": "",
+              "title": "积分商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-rule-desc.html",
+              "module": "",
+              "title": "规则说明 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile-edit.html",
+              "module": "",
+              "title": "会员资料 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-claim.html",
+              "module": "",
+              "title": "领取红包 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-records.html",
+              "module": "",
+              "title": "红包领取记录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/report-records.html",
+              "module": "",
+              "title": "举报记录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/set-password.html",
+              "module": "",
+              "title": "设置密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/settings-more.html",
+              "module": "",
+              "title": "更多 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/settings.html",
+              "module": "",
+              "title": "设置 · 用户 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_live_control.html",
+              "text": "福袋开奖人数不足时补虚拟用户并标「虚」；浮窗 PRD 可点查看链接在浏览器打开"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "同步浮窗 PRD 脚本"
+            },
+            {
+              "file": null,
+              "text": "PRD 弹窗增加查看链接，复制后可在需求池关联"
+            }
+          ]
+        },
         {
           "sha": "53b6deb",
           "type": "feat",
