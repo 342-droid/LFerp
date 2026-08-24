@@ -1182,24 +1182,24 @@
       ],
       mutedUsers: { 'u-laozhang': true, 'u-xiaomei': true },
       chatMessages: [
-        { id: 'c1', userId: 'u-guozi', user: '果子狸', text: '西红柿还有吗？', time: '19:42:01', pinned: true },
-        { id: 'c2', userId: 'u-anchor', user: '主播小丰', text: '有的，讲解中这款还有库存～', time: '19:42:08', isAnchor: true },
-        { id: 'c3', userId: 'u-anan', user: '阿南', text: '五花肉包邮吗', time: '19:41:50' },
-        { id: 'c4', userId: 'u-xiaoman', user: '小满', text: '来个福袋！', time: '19:41:22' },
-        { id: 'c5', userId: 'u-xikui', user: '希奎', text: '火龙果什么时候讲', time: '19:40:58' },
-        { id: 'c6', userId: 'u-aijiaosha', user: '爱叫啥叫啥', text: '糙米有优惠吗', time: '19:40:41' },
-        { id: 'c7', userId: 'u-amu', user: '阿木', text: '主播声音真好', time: '19:40:12' },
-        { id: 'c8', userId: 'u-xiaoman', user: '小满', text: '求讲解基围虾', time: '19:39:50' },
-        { id: 'c9', userId: 'u-guozi', user: '果子狸', text: '已下单，尽快发货', time: '19:39:28' },
-        { id: 'c10', userId: 'u-anchor', user: '主播小丰', text: '下单备注自提门店即可', time: '19:39:10', isAnchor: true },
-        { id: 'c11', userId: 'u-xiaozhou', user: '小周', text: '这个西红柿甜不甜', time: '19:38:48' },
-        { id: 'c12', userId: 'u-anan', user: '阿南', text: '有优惠券吗', time: '19:38:22' },
-        { id: 'c13', userId: 'u-xikui', user: '希奎', text: '基围虾还有货吗', time: '19:37:55' },
-        { id: 'c14', userId: 'u-guozi', user: '果子狸', text: '求讲解五花肉', time: '19:37:30' },
-        { id: 'c15', userId: 'u-xiaoman', user: '小满', text: '主播这个多少钱一斤', time: '19:37:08' },
-        { id: 'c16', userId: 'u-amu', user: '阿木', text: '能发个福袋吗', time: '19:36:41' },
-        { id: 'c17', userId: 'u-aijiaosha', user: '爱叫啥叫啥', text: '火龙果今晚讲不讲', time: '19:36:12' },
-        { id: 'c18', userId: 'u-xiaolin', user: '小林', text: '刚进来，现在讲哪款', time: '19:35:50' }
+        { id: 'c1', userId: 'u-guozi', user: '果子狸', text: '西红柿还有吗？', time: '2026-08-11 19:42:01', pinned: true },
+        { id: 'c2', userId: 'u-anchor', user: '主播小丰', text: '有的，讲解中这款还有库存～', time: '2026-08-11 19:42:08', isAnchor: true },
+        { id: 'c3', userId: 'u-anan', user: '阿南', text: '五花肉包邮吗', time: '2026-08-11 19:41:50' },
+        { id: 'c4', userId: 'u-xiaoman', user: '小满', text: '来个福袋！', time: '2026-08-11 19:41:22' },
+        { id: 'c5', userId: 'u-xikui', user: '希奎', text: '火龙果什么时候讲', time: '2026-08-11 19:40:58' },
+        { id: 'c6', userId: 'u-aijiaosha', user: '爱叫啥叫啥', text: '糙米有优惠吗', time: '2026-08-11 19:40:41' },
+        { id: 'c7', userId: 'u-amu', user: '阿木', text: '主播声音真好', time: '2026-08-11 19:40:12' },
+        { id: 'c8', userId: 'u-xiaoman', user: '小满', text: '求讲解基围虾', time: '2026-08-11 19:39:50' },
+        { id: 'c9', userId: 'u-guozi', user: '果子狸', text: '已下单，尽快发货', time: '2026-08-11 19:39:28' },
+        { id: 'c10', userId: 'u-anchor', user: '主播小丰', text: '下单备注自提门店即可', time: '2026-08-11 19:39:10', isAnchor: true },
+        { id: 'c11', userId: 'u-xiaozhou', user: '小周', text: '这个西红柿甜不甜', time: '2026-08-11 19:38:48' },
+        { id: 'c12', userId: 'u-anan', user: '阿南', text: '有优惠券吗', time: '2026-08-11 19:38:22' },
+        { id: 'c13', userId: 'u-xikui', user: '希奎', text: '基围虾还有货吗', time: '2026-08-11 19:37:55' },
+        { id: 'c14', userId: 'u-guozi', user: '果子狸', text: '求讲解五花肉', time: '2026-08-11 19:37:30' },
+        { id: 'c15', userId: 'u-xiaoman', user: '小满', text: '主播这个多少钱一斤', time: '2026-08-11 19:37:08' },
+        { id: 'c16', userId: 'u-amu', user: '阿木', text: '能发个福袋吗', time: '2026-08-11 19:36:41' },
+        { id: 'c17', userId: 'u-aijiaosha', user: '爱叫啥叫啥', time: '2026-08-11 19:36:12' },
+        { id: 'c18', userId: 'u-xiaolin', user: '小林', text: '刚进来，现在讲哪款', time: '2026-08-11 19:35:50' }
       ],
       watchViewers: [
         { id: 'wv1', userId: 'u-guozi', nickname: '果子狸', lastEnterTime: '19:12:08', enterCount: 3, totalDuration: '01:12:10', online: true, muted: false },
@@ -1264,7 +1264,7 @@
       orderGmv: 72100.0,
       salesAmount: 68240.0,
       recentOrders: [],
-      chatMessages: [{ id: 'c9', user: '系统', text: '本场直播已结束', time: '13:00:00', isSys: true }],
+      chatMessages: [{ id: 'c9', user: '系统', text: '本场直播已结束', time: '2026-08-10 13:00:00', isSys: true }],
       watchRecords: []
     },
     'sess-004': {
@@ -1289,7 +1289,7 @@
       .map(function (m) {
         return Object.assign({}, m);
       })
-      .concat([{ id: 'c-end', user: '系统', text: '本场直播已结束', time: '13:00:00', isSys: true }]);
+      .concat([{ id: 'c-end', user: '系统', text: '本场直播已结束', time: '2026-08-10 13:00:00', isSys: true }]);
     ended.watchViewers = (live.watchViewers || []).map(function (w) {
       return Object.assign({}, w, { online: false });
     });

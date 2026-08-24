@@ -79,6 +79,8 @@
       '.pg-prd-modal__box{position:absolute;top:3vh;left:50%;transform:translateX(-50%);width:min(1180px,96vw);height:94vh;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.24);display:flex;flex-direction:column;}' +
       '.pg-prd-modal__bar{flex:none;display:flex;align-items:center;height:44px;padding:0 12px 0 16px;border-bottom:1px solid #eee;font-size:14px;font-weight:600;}' +
       '.pg-prd-modal__bar span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+      '.pg-prd-modal__open{flex:none;height:28px;margin-right:8px;padding:0 10px;border:1px solid #ff7019;border-radius:6px;background:#fff;color:#ff7019;font-size:12px;text-decoration:none;display:inline-flex;align-items:center;}' +
+      '.pg-prd-modal__open:hover{background:#fff7f0;}' +
       '.pg-prd-modal__close{border:0;background:transparent;font-size:22px;line-height:1;cursor:pointer;color:#666;padding:4px 8px;}' +
       '.pg-prd-modal__frame{flex:1;width:100%;border:0;background:#fff;}';
     var el = document.createElement('style');
@@ -188,21 +190,38 @@
     return siteRoot() + 'prototype-prd/view.html?file=' + encodeURIComponent(file);
   }
 
+  function absoluteViewUrl(file) {
+    return location.origin + viewUrl(file);
+  }
+
   function openModal(title, file) {
     closeModal();
+    var url = viewUrl(file);
+    var abs = absoluteViewUrl(file);
     var modal = document.createElement('div');
     modal.className = 'pg-prd-modal';
     modal.innerHTML =
       '<div class="pg-prd-modal__mask" data-pg-prd-close="1"></div>' +
       '<div class="pg-prd-modal__box">' +
       '<div class="pg-prd-modal__bar"><span>' + escapeHtml(title) + '</span>' +
+      '<a class="pg-prd-modal__open" href="' + escapeHtml(abs) + '" target="_blank" rel="noopener">查看链接</a>' +
       '<button type="button" class="pg-prd-modal__close" data-pg-prd-close="1" aria-label="关闭">×</button></div>' +
-      '<iframe class="pg-prd-modal__frame" title="PRD" src="' + escapeHtml(viewUrl(file)) + '"></iframe>' +
+      '<iframe class="pg-prd-modal__frame" title="PRD" src="' + escapeHtml(url) + '"></iframe>' +
       '</div>';
     modal.addEventListener('click', function (ev) {
       if (ev.target && ev.target.getAttribute('data-pg-prd-close')) closeModal();
     });
     document.body.appendChild(modal);
+    var open = modal.querySelector('.pg-prd-modal__open');
+    if (open) {
+      open.addEventListener('click', function () {
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(abs);
+          }
+        } catch (e) { /* ignore */ }
+      });
+    }
     document.addEventListener('keydown', onEsc);
   }
 

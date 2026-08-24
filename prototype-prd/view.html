@@ -45,6 +45,23 @@
     }
     .pv-export:hover { background: #f0630c; }
     .pv-export:disabled { opacity: .45; cursor: not-allowed; }
+    .pv-open {
+      flex: none;
+      height: 32px;
+      padding: 0 14px;
+      border: 1px solid var(--orange);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--orange);
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+    .pv-open:hover { background: #fff7f0; }
+    .pv-open.is-copied { background: #fff7f0; }
     .pv-wrap {
       display: grid;
       grid-template-columns: 240px minmax(0, 1fr);
@@ -153,13 +170,60 @@
     .pv-article th { background: #fafafa; font-weight: 600; }
     .pv-article .mermaid { background: #fafafa; border-radius: 8px; padding: 12px; margin: 12px 0 20px; }
     .pv-empty { padding: 48px; text-align: center; color: var(--muted); }
+    .pv-pages {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 10px;
+      padding: 10px 20px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 56px;
+      z-index: 19;
+    }
+    .pv-pages[hidden] { display: none !important; }
+    .pv-pages__label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-right: 4px;
+    }
+    .pv-pages__list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pv-pages a {
+      display: inline-block;
+      padding: 4px 12px;
+      border: 1px solid #ffd7b8;
+      border-radius: 999px;
+      background: #fff7f0;
+      color: var(--orange);
+      font-size: 13px;
+      text-decoration: none;
+    }
+    .pv-pages a:hover {
+      background: var(--orange);
+      color: #fff;
+      border-color: var(--orange);
+    }
+    .pv-article a { text-decoration: underline; text-underline-offset: 2px; }
+    body.has-pages .pv-toc { top: 118px; max-height: calc(100vh - 134px); }
+    body.has-pages .pv-article h1,
+    body.has-pages .pv-article h2,
+    body.has-pages .pv-article h3,
+    body.has-pages .pv-article h4,
+    body.has-pages .pv-article h5,
+    body.has-pages .pv-article h6 { scroll-margin-top: 118px; }
   </style>
 </head>
 <body>
   <header class="pv-head">
     <h1 id="pvTitle">PRD</h1>
+    <a class="pv-open" id="pvOpenLink" href="#" target="_blank" rel="noopener">查看链接</a>
     <button type="button" class="pv-export" id="pvExportWord" disabled>导出 Word</button>
   </header>
+  <div class="pv-pages" id="pvPages" hidden>
+    <span class="pv-pages__label">相关页面</span>
+    <div class="pv-pages__list" id="pvPagesList"></div>
+  </div>
   <div class="pv-wrap">
     <nav class="pv-toc" id="pvToc" aria-label="目录">
       <div class="pv-toc__title">目录</div>
@@ -169,7 +233,7 @@
       <article class="pv-article" id="pvHost"><div class="pv-empty">正在加载…</div></article>
     </div>
   </div>
-  <script src="../js/pg-prd-md.js?v=20260824-prd-fix"></script>
+  <script src="../js/pg-prd-md.js?v=20260824-pagelinks"></script>
   <script>
     function qs(name) {
       try { return new URLSearchParams(location.search).get(name) || ''; }
@@ -187,6 +251,47 @@
       if (path.charAt(path.length - 1) === '/') return path;
       var last = path.lastIndexOf('/');
       return last >= 0 ? path.slice(0, last + 1) : '/';
+    }
+    function canonicalPrdUrl(name) {
+      var fileName = name || qs('file');
+      if (!fileName) return '';
+      return location.origin + siteRoot() + 'prototype-prd/view.html?file=' + encodeURIComponent(fileName);
+    }
+    function copyText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text).catch(function () {});
+      }
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      } catch (e) { /* ignore */ }
+    }
+    function bindOpenLink(name) {
+      var a = document.getElementById('pvOpenLink');
+      if (!a) return;
+      var url = canonicalPrdUrl(name);
+      if (!url) {
+        a.hidden = true;
+        return;
+      }
+      a.hidden = false;
+      a.href = url;
+      a.onclick = function () {
+        copyText(url);
+        a.classList.add('is-copied');
+        a.textContent = '已复制链接';
+        setTimeout(function () {
+          a.classList.remove('is-copied');
+          a.textContent = '查看链接';
+        }, 1600);
+      };
     }
     function escapeHtml(str) {
       return String(str == null ? '' : str)
@@ -371,7 +476,69 @@
         .replace(/https?:\/\/127\.0\.0\.1:5173\//gi, prefix);
       /* 反引号里的原型地址改成可点击链接 */
       text = text.replace(/`(https?:\/\/[^`\s]+)`/g, '[$1]($1)');
+      text = text.replace(/`(MDM\/[^`\s]+|user-app\/[^`\s]+|SCM\/[^`\s]+|CRM\/[^`\s]+)`/g, function (_, p) {
+        return '[' + p + '](' + prefix + p.replace(/^\//, '') + ')';
+      });
       return text;
+    }
+    var PAGE_LABELS = {
+      'MDM/mdm_live_session.html': '直播场次',
+      'MDM/mdm_live_session_form.html': '编辑直播场次',
+      'MDM/mdm_live_session_detail.html': '直播场次详情',
+      'MDM/mdm_live_control.html': '直播中控',
+      'user-app/h5/live-room.html': '黑灯直播间 · 用户 APP',
+      'user-app/h5/profile.html': '个人中心 · 用户 APP',
+      'user-app/h5/feedback.html': '意见反馈 · 用户 APP',
+      'user-app/h5/report-records.html': '举报记录 · 用户 APP',
+      'MDM/mdm_aftersale_report.html': '举报管理',
+      'MDM/mdm_aftersale_feedback.html': '意见反馈',
+      'MDM/mdm_aftersale_ticket.html': '工单',
+      'MDM/mdm_aftersale_refund.html': '退款'
+    };
+    function pageHref(p) {
+      return location.origin + siteRoot() + String(p || '').replace(/^\//, '');
+    }
+    function pageLabel(p) {
+      var n = String(p || '').replace(/\\/g, '/');
+      if (PAGE_LABELS[n]) return PAGE_LABELS[n];
+      return n.split('/').pop().replace(/\.html$/i, '') || n;
+    }
+    function renderPageLinks(name) {
+      var bar = document.getElementById('pvPages');
+      var listEl = document.getElementById('pvPagesList');
+      if (!bar || !listEl) return Promise.resolve();
+      return fetch('index.json', { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : { prds: [] }; })
+        .then(function (data) {
+          var list = (data && data.prds) || [];
+          var stem = String(name || '').replace(/\.md$/i, '');
+          var hit = list.find(function (p) {
+            return p.file === name || p.id === stem || p.title === stem;
+          });
+          if (!hit && /直播场次状态对应操作和中控台的活动发放优化/.test(String(name || ''))) {
+            hit = list.find(function (p) {
+              return /直播场次状态对应操作和中控台的活动发放优化/.test(
+                String((p && (p.file || p.title || p.id)) || '')
+              );
+            });
+          }
+          var pages = (hit && hit.pages) || [];
+          if (!pages.length) {
+            bar.hidden = true;
+            document.body.classList.remove('has-pages');
+            return;
+          }
+          listEl.innerHTML = pages.map(function (p) {
+            return '<a href="' + escapeHtml(pageHref(p)) + '" target="_blank" rel="noopener">' +
+              escapeHtml(pageLabel(p)) + '</a>';
+          }).join('');
+          bar.hidden = false;
+          document.body.classList.add('has-pages');
+        })
+        .catch(function () {
+          bar.hidden = true;
+          document.body.classList.remove('has-pages');
+        });
     }
     function loadMermaid() {
       return new Promise(function (resolve) {
@@ -434,12 +601,13 @@
     }
     var file = qs('file');
     var host = document.getElementById('pvHost');
+    bindOpenLink(file);
     if (!file) {
       host.innerHTML = '<div class="pv-empty">未指定 PRD 文件。</div>';
     } else {
-      fetchPrdWithAlias(file)
-        .then(function (md) {
-          md = rewriteProtoLinks(md);
+      Promise.all([fetchPrdWithAlias(file), renderPageLinks(file)])
+        .then(function (pair) {
+          var md = rewriteProtoLinks(pair[0]);
           var first = String(md).split(/\n/).find(function (line) {
             return /^#\s+/.test(line);
           });

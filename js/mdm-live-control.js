@@ -10,6 +10,7 @@
  * 一键评论 / 快捷回复按当前场次分别存储，不在各场次间共享。
  * 新增一键评论 / 快捷回复、发送弹幕与回复均过敏感词风控，命中则拦截。
  * 观看记录：当前在线 / 累计观看 / 观看人次。
+ * 福袋开奖：符合条件人数不足时，按 min(中奖人数, 参与人数) 补虚拟用户进中奖名单。
  */
 (function () {
   'use strict';
@@ -597,7 +598,21 @@
   }
 
   function nowTime() {
-    return new Date().toTimeString().slice(0, 8);
+    return nowDateTime();
+  }
+
+  /** 全部弹幕发送时间：YYYY-MM-DD HH:mm:ss；仅有时分秒时补当前场次开播日期 */
+  function formatChatTime(t) {
+    var raw = String(t || '').trim();
+    if (!raw) return '';
+    if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw;
+    if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(raw)) {
+      var sess = findSession(sessionId);
+      var dateSrc = (sess && (sess.actualStartAt || sess.startAt)) || '';
+      var datePart = String(dateSrc).slice(0, 10);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return datePart + ' ' + raw;
+    }
+    return raw;
   }
 
   function fillSessionSelect(preset) {
@@ -1994,6 +2009,212 @@
     return s.charAt(0) + '**' + (s.length > 2 ? s.charAt(s.length - 1) : '');
   }
 
+  var BAG_VIRTUAL_SUR = ['林', '周', '吴', '郑', '冯', '陈', '黄', '赵', '钱', '孙', '王', '李'];
+  var BAG_VIRTUAL_GIVEN = ['小雨', '阿宁', '果果', '晚风', '星河', '北北', '安安', '小川', '乐乐', '清清', '柚子', '米粒', '小鱼', '阿白', '暖暖'];
+  var BAG_DEFAULT_AVATAR =
+    '<svg class="record-card__winner-face" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="16" fill="#dcdfe6"/><circle cx="16" cy="12" r="5" fill="#fff"/><path d="M6 27c1.6-6 5.2-9 10-9s8.4 3 10 9" fill="#fff"/></svg>';
+
+  function shuffleCopy(list) {
+    var arr = (list || []).slice();
+    var i;
+    var j;
+    var t;
+    for (i = arr.length - 1; i > 0; i--) {
+      j = Math.floor(Math.random() * (i + 1));
+      t = arr[i];
+      arr[i] = arr[j];
+      arr[j] = t;
+    }
+    return arr;
+  }
+
+  function bagAudiencePool() {
+    var seen = {};
+    var out = [];
+    function pushUser(userId, nickname) {
+      var id = String(userId || '').trim();
+      var name = String(nickname || '').trim();
+      if (!id && !name) return;
+      var key = id || name;
+      if (seen[key]) return;
+      seen[key] = true;
+      out.push({ userId: id || 'u-' + key, nickname: name || '观众' });
+    }
+    (Demo.liveAudience || []).forEach(function (u) {
+      pushUser(u.userId, u.nickname);
+    });
+    var m = sessionId ? metricsOf(sessionId) : null;
+    ((m && m.watchViewers) || []).forEach(function (v) {
+      pushUser(v.userId, v.nickname);
+    });
+    return out;
+  }
+
+  function sessionBagPlans() {
+    var sess = findSession(sessionId);
+    return ((sess && sess.templates) || []).filter(function (t) {
+      return t && t.type === 'FORTUNE_BAG';
+    });
+  }
+
+  function bagPastWinnerIdMap(plan, exceptWindowId) {
+    var rule = bagWinRuleOf();
+    var map = {};
+    if (rule === 'none') return map;
+    var tplId = plan && plan.templateId;
+    sessionBagPlans().forEach(function (p) {
+      if (rule === 'template' && String(p.templateId || '') !== String(tplId || '')) return;
+      (welfareWindowsOfPlan(welfarePlanIdOf(p)) || []).forEach(function (w) {
+        if (!w || String(w.id) === String(exceptWindowId)) return;
+        if (w.status === 'ACTIVE') return;
+        (w.rewards || []).forEach(function (r) {
+          if (!r || r.virtual) return;
+          if (r.userId) map[String(r.userId)] = true;
+        });
+      });
+    });
+    return map;
+  }
+
+  function nextBagVirtualName(used) {
+    var i;
+    var name;
+    for (i = 0; i < 80; i++) {
+      name =
+        BAG_VIRTUAL_SUR[Math.floor(Math.random() * BAG_VIRTUAL_SUR.length)] +
+        BAG_VIRTUAL_GIVEN[Math.floor(Math.random() * BAG_VIRTUAL_GIVEN.length)];
+      if (!used[name]) {
+        used[name] = true;
+        return name;
+      }
+    }
+    name = '观众' + String(Date.now()).slice(-4);
+    used[name] = true;
+    return name;
+  }
+
+  function ensureBagJoiners(w) {
+    if (!w) return [];
+    if (!Array.isArray(w.joinerIds)) w.joinerIds = [];
+    var have = {};
+    w.joinerIds.forEach(function (id) {
+      have[String(id)] = true;
+    });
+    (w.assignedUserIds || []).forEach(function (id) {
+      if (have[String(id)]) return;
+      w.joinerIds.push(String(id));
+      have[String(id)] = true;
+    });
+    w.participantCount = w.joinerIds.length;
+    w.participateTimes = Math.max(Number(w.participateTimes) || 0, w.participantCount);
+    w.participateTimes = w.participateTimes;
+    return w.joinerIds;
+  }
+
+  function growBagJoiners(w) {
+    if (!w || w.status !== 'ACTIVE') return false;
+    if (!Array.isArray(w.joinerIds)) w.joinerIds = [];
+    var pool = bagAudiencePool();
+    var have = {};
+    w.joinerIds.forEach(function (id) {
+      have[String(id)] = true;
+    });
+    var i;
+    for (i = 0; i < pool.length; i++) {
+      if (have[String(pool[i].userId)]) continue;
+      w.joinerIds.push(pool[i].userId);
+      w.participantCount = w.joinerIds.length;
+      w.participateTimes = Math.max(Number(w.participateTimes) || 0, w.participantCount);
+      return true;
+    }
+    return false;
+  }
+
+  function growActiveBagJoiners() {
+    sessionBagPlans().forEach(function (p) {
+      (welfareWindowsOfPlan(welfarePlanIdOf(p)) || []).forEach(function (w) {
+        if (w && w.status === 'ACTIVE') growBagJoiners(w);
+      });
+    });
+  }
+
+  function userByBagId(userId) {
+    var id = String(userId || '');
+    var found = findAudienceUser(id);
+    if (found) return { userId: found.userId, nickname: found.nickname };
+    var pool = bagAudiencePool();
+    var i;
+    for (i = 0; i < pool.length; i++) {
+      if (String(pool[i].userId) === id) return pool[i];
+    }
+    var mem = findAssignMember(id);
+    if (mem) return { userId: mem.userId, nickname: mem.nickname };
+    return { userId: id, nickname: '观众' };
+  }
+
+  function settleBagRound(plan, w) {
+    if (!w || w.winnersSettled) return;
+    w.winnersSettled = true;
+    var y = Number(w.winnerTotal != null ? w.winnerTotal : w.winnerCount) || 0;
+    var prize = (plan ? liveBagFields(plan).prizeTitle : '') || w.prizeTitle || '';
+    ensureBagJoiners(w);
+    var a = Number(w.participantCount) || (w.joinerIds || []).length;
+    var blocked = bagPastWinnerIdMap(plan, w.id);
+    var assignedIds = {};
+    (w.assignedUserIds || []).forEach(function (id) {
+      assignedIds[String(id)] = true;
+    });
+    var eligible = [];
+    (w.joinerIds || []).forEach(function (id) {
+      var sid = String(id);
+      if (assignedIds[sid]) return;
+      if (blocked[sid]) return;
+      eligible.push(sid);
+    });
+    var assignedList = (w.assignedUserIds || []).map(String);
+    var x = assignedList.length + eligible.length;
+    var target = y <= a ? y : a;
+    if (target < 0) target = 0;
+    var virtualNeed = Math.max(0, target - x);
+    var takeReal = Math.max(0, target - virtualNeed);
+    var rewards = [];
+    var usedNames = {};
+    function pushReal(userId) {
+      if (rewards.length >= takeReal) return;
+      var u = userByBagId(userId);
+      var name = u.nickname || '观众';
+      usedNames[name] = true;
+      rewards.push({
+        userId: u.userId,
+        nickname: name,
+        nickMasked: maskNick(name),
+        nickMasked: maskNick(name),
+        prizeTitle: prize,
+        prizeTitle: prize,
+        virtual: false
+      });
+    }
+    assignedList.forEach(pushReal);
+    shuffleCopy(eligible).forEach(pushReal);
+    var n;
+    for (n = 0; n < virtualNeed; n++) {
+      var vn = nextBagVirtualName(usedNames);
+      rewards.push({
+        userId: 'virtual-' + Date.now() + '-' + n,
+        nickname: vn,
+        nickMasked: maskNick(vn),
+        nickMasked: maskNick(vn),
+        prizeTitle: prize,
+        prizeTitle: prize,
+        virtual: true
+      });
+    }
+    w.rewards = rewards;
+    w.winnerCount = rewards.length;
+    w.eligibleCount = x;
+    w.virtualFillCount = virtualNeed;
+  }
+
   function findAudienceUser(userId) {
     var list = Demo.liveAudience || [];
     var i;
@@ -2032,10 +2253,11 @@
         if (w.status !== 'ACTIVE') return;
         var end = parseSessionTs(w.endedAt);
         if (isFinite(end) && now >= end) {
-          w.status = 'CLOSED';
-          changed = true;
           var plan = findTemplateByPlanId(planId);
           var kind = plan && plan.type === 'FORTUNE_BAG' ? 'bag' : plan && plan.type === 'COUPON' ? 'coupon' : '';
+          if (kind === 'bag') settleBagRound(plan, w);
+          w.status = 'CLOSED';
+          changed = true;
           rollbackWindowStock(plan, w, kind);
           clearPlanActiveWindow(planId, w.id);
         }
@@ -2057,8 +2279,9 @@
   }
 
   function tickWelfareProgress() {
-    if (!welfareUi.open) return;
+    growActiveBagJoiners();
     var expired = expireWelfareWindows();
+    if (!welfareUi.open) return;
     if (expired) {
       renderWelfareDrawer();
       return;
@@ -2082,7 +2305,6 @@
     var drawer = document.getElementById('welfareDrawer');
     if (drawer) drawer.hidden = true;
     welfareUi.open = false;
-    stopWelfareTick();
     if (mainTab !== 'product') {
       mainTab = 'product';
       renderMainTabs();
@@ -2915,11 +3137,24 @@
     var live = plan ? liveBagFields(plan) : { name: '—', prizeTitle: '' };
     var winners = (w.rewards || [])
       .map(function (r) {
+        var isVirtual = !!r.virtual;
+        var label = r.nickMasked || r.nickMasked || '匿名用户';
+        var prize = r.prizeTitle || r.prizeTitle || '';
+        var face = isVirtual
+          ? BAG_DEFAULT_AVATAR
+          : '<span class="record-card__winner-letter">' + escapeHtml(String(r.nickname || label).charAt(0) || '用') + '</span>';
         return (
-          '<span class="record-card__winner">' +
-          escapeHtml(r.nickMasked || '匿名用户') +
-          (r.prizeTitle ? ' · ' + escapeHtml(r.prizeTitle) : '') +
-          '</span>'
+          '<span class="record-card__winner' +
+          (isVirtual ? ' is-virtual' : '') +
+          '"' +
+          (isVirtual ? ' title="虚拟用户"' : '') +
+          '>' +
+          face +
+          '<em>' +
+          escapeHtml(label) +
+          (prize ? ' · ' + escapeHtml(prize) : '') +
+          (isVirtual ? '<i>虚</i>' : '') +
+          '</em></span>'
         );
       })
       .join('');
@@ -2946,7 +3181,7 @@
       '</div></div>' +
       recordJoinHtml(w) +
       '<div class="record-card__metric"><div class="record-card__metric-label">中奖人数</div><div class="record-card__metric-value">' +
-      escapeHtml(String(w.winnerCount || 0)) +
+      escapeHtml(String(w.status === 'ACTIVE' ? w.winnerTotal || w.winnerCount || 0 : w.winnerCount || 0)) +
       ' 人</div></div>' +
       (w.rolledBackQty
         ? '<div class="record-card__metric"><div class="record-card__metric-label">回滚库存</div><div class="record-card__metric-value">' +
@@ -3696,6 +3931,7 @@
     var i;
     for (i = 0; i < list.length; i++) {
       if (list[i].status === 'ACTIVE') {
+        if (p.type === 'FORTUNE_BAG') settleBagRound(p, list[i]);
         list[i].status = 'CLOSED';
         list[i].endedAt = nowWelfareTs();
         if (asInterrupted) list[i].interrupted = true;
@@ -3964,6 +4200,7 @@
 
   function stopRoundWindow(plan, w, kind) {
     if (!w) return 0;
+    if (kind === 'bag') settleBagRound(plan, w);
     w.status = 'CLOSED';
     w.endedAt = nowWelfareTs();
     w.interrupted = true;
@@ -4118,7 +4355,7 @@
       '<span class="lf-live-chat-item__side">' +
       pinAct +
       '<span class="lf-live-chat-item__time">' +
-      escapeHtml(m.time || '') +
+      escapeHtml(formatChatTime(m.time)) +
       '</span></span></div>'
     );
   }
@@ -6094,6 +6331,7 @@
     renderQuickReplies();
     bindEvents();
     render();
+    startWelfareTick();
     window.setInterval(function () {
       if (!sessionId) return;
       if (processScheduled()) {

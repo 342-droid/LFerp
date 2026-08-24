@@ -186,7 +186,7 @@
   if (!document.getElementById('pg-prd-float-js')) {
     var s = document.createElement('script');
     s.id = 'pg-prd-float-js';
-    s.src = '../../js/pg-prd-float.js?v=20260820-prd3';
+    s.src = '../../js/pg-prd-float.js?v=20260824-openlink';
     s.async = true;
     (document.head || document.body).appendChild(s);
   }

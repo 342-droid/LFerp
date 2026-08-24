@@ -8,9 +8,13 @@
 
   function inlineFmt(text) {
     var s = escapeHtml(text);
+    s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
     s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
     s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    s = s.replace(/(^|[^"'>=])(https?:\/\/[^\s<]+)/g, function (_, pre, url) {
+      var clean = url.replace(/[),.;!?]+$/, '');
+      return pre + '<a href="' + clean + '" target="_blank" rel="noopener">' + clean + '</a>' + url.slice(clean.length);
+    });
     return s;
   }
 

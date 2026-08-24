@@ -2352,6 +2352,8 @@
 
 .lf-live-chat-item__time {
   color: #bbb;
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .lf-live-empty-inline {
@@ -4117,11 +4119,47 @@
 }
 
 .record-card__winner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
   background: #f5f7fa;
   color: #606266;
-  padding: 2px 8px;
-  border-radius: 12px;
+  padding: 2px 8px 2px 4px;
+  border-radius: 14px;
+}
+
+.record-card__winner-face,
+.record-card__winner-letter {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.record-card__winner-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #c0c4cc;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.record-card__winner em {
+  font-style: normal;
+}
+
+.record-card__winner i {
+  font-style: normal;
+  margin-left: 4px;
+  font-size: 10px;
+  color: #909399;
+}
+
+.record-card__winner.is-virtual {
+  background: #f4f4f5;
 }
 
 .record-card__progress {
