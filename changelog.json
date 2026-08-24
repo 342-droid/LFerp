@@ -1,10 +1,30 @@
 {
-  "latestSha": "0535be740c9e9423ff793a0e832cfd6402d630c6",
-  "total": 290,
+  "latestSha": "37c9500041a718de34fa92264cf88dda504e5e2f",
+  "total": 291,
   "days": [
     {
       "date": "2026-08-24",
       "items": [
+        {
+          "sha": "37c9500",
+          "type": "feat",
+          "text": "零售快递截单改为多策略并按类目滚动截单",
+          "author": "sisi",
+          "time": "22:25",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "快递截单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "text": "改为多条策略列表配置，直播和商城可同策略多选；支持按选品库类目设截单时间，窗口为上次时刻到本次前一秒；保存后为草稿需手动启动，状态含草稿、启动、停用"
+            }
+          ]
+        },
         {
           "sha": "0535be7",
           "type": "feat",
@@ -13077,6 +13097,11 @@
           "time": "21:08",
           "pages": [
             {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "快递截单"
+            },
+            {
               "file": "MDM/mdm_order_freight_config.html",
               "module": "冷丰订单",
               "title": "运费配置"
@@ -14537,6 +14562,11 @@
           "time": "18:43",
           "pages": [
             {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "快递截单"
+            },
+            {
               "file": "MDM/mdm_order_freight_config.html",
               "module": "冷丰订单",
               "title": "运费配置"
@@ -14565,6 +14595,11 @@
           "author": "sisi",
           "time": "18:30",
           "pages": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "快递截单"
+            },
             {
               "file": "MDM/mdm_order_freight_config.html",
               "module": "冷丰订单",
@@ -15189,6 +15224,11 @@
               "file": "MDM/mdm_member_segment.html",
               "module": "冷丰WMS",
               "title": "会员分群"
+            },
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "快递截单"
             },
             {
               "file": "MDM/mdm_order_live.html",
@@ -15922,6 +15962,11 @@
               "file": "MDM/mdm_member_segment.html",
               "module": "冷丰WMS",
               "title": "会员分群"
+            },
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "快递截单"
             },
             {
               "file": "MDM/mdm_product_audit.html",
