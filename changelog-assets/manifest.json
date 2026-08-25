@@ -1958,6 +1958,78 @@
     "status": "diff",
     "date": "2026-08-20"
   },
+  "9d5665a|MDM/mdm_archive_carrier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
+  "9d5665a|MDM/mdm_archive_live_room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
+  "9d5665a|MDM/mdm_archive_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
+  "9d5665a|MDM/mdm_archive_supplier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
+  "9d5665a|MDM/mdm_archive_warehouse.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
+  "9d5665a|MDM/mdm_audit_store_registration.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
+  "9d5665a|MDM/mdm_bd_merchants.html": {
+    "before": "changelog-assets/9d5665a/MDM__mdm_bd_merchants.html.before.jpg",
+    "after": "changelog-assets/9d5665a/MDM__mdm_bd_merchants.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
+  "9d5665a|MDM/mdm_member_c.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
+  "9d5665a|MDM/mdm_party_all.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
+  "9d5665a|MDM/mdm_people_anchor.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
+  "9d5665a|MDM/mdm_people_bd.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
+  "9d5665a|MDM/mdm_people_driver.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
+  "9d5665a|MDM/mdm_resource_onboarding.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
+  "9d5665a|MDM/mdm_super_admin_accounts.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
   "a6d5981|MDM/mdm_settle_account_config.html": {
     "before": "changelog-assets/a6d5981/MDM__mdm_settle_account_config.html.before.jpg",
     "after": "changelog-assets/a6d5981/MDM__mdm_settle_account_config.html.after.jpg",

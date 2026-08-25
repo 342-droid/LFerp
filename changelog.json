@@ -1,10 +1,136 @@
 {
-  "latestSha": "3684adec5977a6a9d49c4da034b43d52274e4626",
-  "total": 292,
+  "latestSha": "9d5665a4d653bf340e491b59fb3f64b7873ecb0a",
+  "total": 293,
   "days": [
     {
       "date": "2026-08-25",
       "items": [
+        {
+          "sha": "9d5665a",
+          "type": "feat",
+          "text": "完善进件身份证有效期并统一审核中心文案",
+          "author": "sisi",
+          "time": "16:25",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_merchants.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 商户模块"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_resource_onboarding.html",
+              "module": "冷丰WMS",
+              "title": "支付进件"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "text": "驳回原因改为必填、通过原因选填；列表「提交时间」改为「创建时间」"
+            },
+            {
+              "file": null,
+              "text": "进件审核: 驳回原因必填、通过选填"
+            },
+            {
+              "file": null,
+              "text": "「进件流程信息」改为「进件信息」并去掉与审核记录重复的审核人"
+            },
+            {
+              "file": null,
+              "text": "证照编号不再展示"
+            },
+            {
+              "file": null,
+              "text": "列表「提交时间」改为「创建时间」"
+            },
+            {
+              "file": null,
+              "text": "BD 商户模块: 身份证有效期改为「长期有效」"
+            },
+            {
+              "file": null,
+              "text": "详情区块改为「进件信息」"
+            },
+            {
+              "file": null,
+              "text": "列表卡片展示当前环节"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "发起进件时身份证有效期可勾选「长期有效」"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "text": "发起进件时身份证有效期可勾选「长期有效」"
+            },
+            {
+              "file": "MDM/mdm_resource_onboarding.html",
+              "text": "发起进件时身份证有效期可勾选「长期有效」"
+            }
+          ]
+        },
         {
           "sha": "3684ade",
           "type": "feat",
