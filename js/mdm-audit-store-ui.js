@@ -475,8 +475,8 @@
 
     function appendOpinionBox(parent) {
         parent.appendChild(el('div', 'supplier-detail-section-title', '审核意见'));
-        parent.appendChild(el('p', 'audit-reason-hint', '通过原因 / 驳回原因，选填'));
-        var ta = textareaInput('选填，通过或驳回时可填写原因', '', 3);
+        parent.appendChild(el('p', 'audit-reason-hint', '驳回原因必填，通过原因选填'));
+        var ta = textareaInput('驳回时必填；通过时选填', '', 3);
         ta.setAttribute('data-audit-opinion', '1');
         parent.appendChild(ta);
         return ta;
@@ -1144,7 +1144,12 @@
                 }
                 var reject = mkBtn('驳回', false);
                 reject.addEventListener('click', function () {
-                    rejectAudit(row, readOpinion(body));
+                    var reason = readOpinion(body);
+                    if (!reason) {
+                        showToast('请填写驳回原因', 'error');
+                        return;
+                    }
+                    rejectAudit(row, reason);
                     backdrop.remove();
                     onDone();
                     showToast(isSup ? '财务已驳回申请（演示）' : '已驳回申请（演示）', 'info');
@@ -1164,7 +1169,12 @@
             } else if (!isSup && row.auditStatus === '待总监审核') {
                 var reject2 = mkBtn('驳回', false);
                 reject2.addEventListener('click', function () {
-                    rejectAudit(row, readOpinion(body));
+                    var reason = readOpinion(body);
+                    if (!reason) {
+                        showToast('请填写驳回原因', 'error');
+                        return;
+                    }
+                    rejectAudit(row, reason);
                     backdrop.remove();
                     onDone();
                     showToast('已驳回申请（演示）', 'info');
