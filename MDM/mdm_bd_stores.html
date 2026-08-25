@@ -18,8 +18,8 @@
     <div class="bd-modal" id="bdModalReject">
         <div class="bd-modal-box">
             <h3>驳回</h3>
-            <p style="margin:0;font-size:12px;color:var(--bd-muted)">请填写驳回说明（必填）。提交后门店状态将变为审核失败。</p>
-            <textarea id="bdRejectTa" placeholder="请输入驳回原因与修改建议…"></textarea>
+            <p style="margin:0;font-size:12px;color:var(--bd-muted)">请填写驳回说明（必填，最多100字）。提交后门店状态将变为审核失败。</p>
+            <textarea id="bdRejectTa" maxlength="100" placeholder="请输入驳回原因与修改建议…"></textarea>
             <div class="bd-modal-actions">
                 <button type="button" data-close>取消</button>
                 <button type="button" class="ok" id="bdConfirmReject">确定驳回</button>
@@ -29,8 +29,8 @@
     <div class="bd-modal" id="bdModalApprove">
         <div class="bd-modal-box">
             <h3>审核通过</h3>
-            <p style="margin:0;font-size:12px;color:var(--bd-muted)">请填写通过说明（选填）；不填则在档案中记为「—」。</p>
-            <textarea id="bdApproveTa" placeholder="请输入通过说明…"></textarea>
+            <p style="margin:0;font-size:12px;color:var(--bd-muted)">请填写通过说明（选填，最多100字）；不填则在档案中记为「—」。</p>
+            <textarea id="bdApproveTa" maxlength="100" placeholder="请输入通过说明…"></textarea>
             <div class="bd-modal-actions">
                 <button type="button" data-close>取消</button>
                 <button type="button" class="ok" id="bdConfirmApprove">确定通过</button>
@@ -42,6 +42,6 @@
     <script>window.bdPage = function (f) { return window.wmsPath && wmsPath.page ? wmsPath.page(f) : f; };</script>
     <script src="../js/mdm-bd-common.js"></script>
     <script src="../js/mdm-bd-store-audits-data.js"></script>
-    <script src="../js/mdm-bd-stores-app.js"></script>
+    <script src="../js/mdm-bd-stores-app.js?v=20260825-reason-100"></script>
 </body>
 </html>

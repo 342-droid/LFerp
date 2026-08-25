@@ -821,13 +821,14 @@
 
     function appendOnbOpinionBox(parent) {
         parent.appendChild(el('div', 'supplier-detail-section-title', '审核意见'));
-        parent.appendChild(el('p', 'audit-reason-hint', '驳回原因必填，通过原因选填'));
+        parent.appendChild(el('p', 'audit-reason-hint', '驳回原因必填，通过原因选填，最多100字'));
         var ta = document.createElement('textarea');
         ta.className = 'erp-textarea';
         ta.rows = 3;
         ta.style.width = '100%';
         ta.style.boxSizing = 'border-box';
-        ta.placeholder = '驳回时必填；通过时选填';
+        ta.placeholder = '驳回时必填；通过时选填，最多100字';
+        ta.maxLength = 100;
         ta.setAttribute('data-audit-opinion', '1');
         parent.appendChild(ta);
         return ta;
@@ -835,7 +836,7 @@
 
     function readOnbOpinion(root) {
         var ta = root && root.querySelector('[data-audit-opinion]');
-        return ta ? String(ta.value || '').trim() : '';
+        return ta ? String(ta.value || '').trim().slice(0, 100) : '';
     }
 
     function copyMerchantNo(text) {

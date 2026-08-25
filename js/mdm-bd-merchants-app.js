@@ -931,17 +931,35 @@
     var list = logs || [];
     if (!list.length) return '';
     return list
-      .map(function (log, idx) {
-        var block =
+      .map(function (log) {
+        return (
+          '<div class="bd-archive-card" style="margin-bottom:12px">' +
+          '<div style="padding:0 14px 6px">' +
           detailRow('审核环节', esc(log.node || '—')) +
           detailRow('审核人', esc(log.reviewer || '—')) +
           detailRow('审核时间', esc(log.time || '—')) +
           detailRow('审核结果', esc(log.result || '—')) +
-          detailRow('原因', esc(log.reason || '—'));
-        if (!idx) return block;
-        return '<div style="height:1px;background:var(--bd-border);margin:6px 0 2px"></div>' + block;
+          detailRow('原因', esc(log.reason || '—')) +
+          '</div></div>'
+        );
       })
       .join('');
+  }
+
+  function renderHistory(id) {
+    var m = merchantById(id);
+    if (!m)
+      return (
+        '<div class="bd-page-bar"><button type="button" class="bd-back" data-backdetail>‹</button><h1>资料审核记录</h1></div><div class="bd-empty">商户不存在</div>'
+      );
+    var inner = renderAuditLogCards(m.auditLogs);
+    if (!inner) inner = '<div class="bd-empty" style="margin:12px">暂无审核记录</div>';
+    return (
+      '<div class="bd-page-bar"><button type="button" class="bd-back" data-backdetail>‹</button><h1>资料审核记录</h1></div>' +
+      '<div style="padding:12px">' +
+      inner +
+      '</div>'
+    );
   }
 
   function openAuditReasonModal(mode) {
@@ -953,11 +971,11 @@
     if (ta) ta.value = '';
     if (auditModalMode === 'pass') {
       if (title) title.textContent = '通过原因（选填）';
-      if (hint) hint.textContent = '选填，通过原因将记入审核记录。';
+      if (hint) hint.textContent = '选填，通过原因将记入审核记录，最多100字。';
       if (ok) ok.textContent = '确认通过';
     } else {
       if (title) title.textContent = '驳回原因（选填）';
-      if (hint) hint.textContent = '选填，驳回原因将通知商户并记入审核记录。';
+      if (hint) hint.textContent = '选填，驳回原因将通知商户并记入审核记录，最多100字。';
       if (ok) ok.textContent = '确认驳回';
     }
     var modal = $('#bdMerRejectModal');
@@ -1129,11 +1147,9 @@
       detailRow('管理员手机号', esc(nz(ob.contact_mobile_no || m.phone))) +
       detailRow('管理员邮箱', esc(nz(ob.contact_email || m.email)));
 
-    var auditLogs = m.auditLogs || [];
-    var auditLogInner = renderAuditLogCards(auditLogs);
-
     var body =
-      '<div class="bd-page-bar"><button type="button" class="bd-back" data-backlist>‹</button><h1>商户详情</h1></div>' +
+      '<div class="bd-page-bar"><button type="button" class="bd-back" data-backlist>‹</button><h1>商户详情</h1>' +
+      '<button type="button" style="margin-left:auto;border:none;background:none;font-size:12px;color:var(--bd-muted);cursor:pointer" data-open-history>审核记录</button></div>' +
       '<div style="padding:12px;padding-bottom:' +
       bottomPad +
       '">' +
@@ -1144,7 +1160,6 @@
       sectionCard('商户信息', '', merchantInner) +
       renderOpenLicenseInfo(m, ob) +
       renderStoreVenueInfo(m, ob) +
-      (auditLogInner ? sectionCard('审核记录', '', auditLogInner) : '') +
       '</div>';
 
     var bar = '';
@@ -1524,6 +1539,7 @@
     var h = '';
     if (route.view === 'list') h = renderList();
     else if (route.view === 'detail') h = renderDetail(route.id);
+    else if (route.view === 'history') h = renderHistory(route.id);
     else if (route.view === 'onboard') h = renderOnboard();
     else if (route.view === 'my') h = renderMy();
     r.innerHTML = h;
@@ -1539,6 +1555,7 @@
       rejOk.onclick = function () {
         var ta = $('#bdMerRejectTa');
         var txt = (ta && ta.value && ta.value.trim()) || '';
+        if (txt.length > 100) txt = txt.slice(0, 100);
         var m = merchantById(route.id);
         var rejM = $('#bdMerRejectModal');
         if (!m || m.status !== '待审核') {
@@ -1598,6 +1615,18 @@
     r.querySelectorAll('[data-backlist]').forEach(function (b) {
       b.onclick = function () {
         route.view = 'list';
+        mount();
+      };
+    });
+    r.querySelectorAll('[data-backdetail]').forEach(function (b) {
+      b.onclick = function () {
+        route.view = 'detail';
+        mount();
+      };
+    });
+    r.querySelectorAll('[data-open-history]').forEach(function (b) {
+      b.onclick = function () {
+        route.view = 'history';
         mount();
       };
     });
