@@ -1853,6 +1853,21 @@
     "status": "diff",
     "date": "2026-08-17"
   },
+  "8a1b72b|MDM/mdm_audit_store_registration.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
+  "8a1b72b|MDM/mdm_bd_merchants.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
+  "8a1b72b|MDM/mdm_bd_stores.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
   "8b994bf|MDM/mdm_order_live.html": {
     "before": "changelog-assets/8b994bf/MDM__mdm_order_live.html.before.jpg",
     "after": "changelog-assets/8b994bf/MDM__mdm_order_live.html.after.jpg",

@@ -1,10 +1,64 @@
 {
-  "latestSha": "9d5665a4d653bf340e491b59fb3f64b7873ecb0a",
-  "total": 293,
+  "latestSha": "8a1b72ba629ebd24a868b5c4195f677337cefa97",
+  "total": 294,
   "days": [
     {
       "date": "2026-08-25",
       "items": [
+        {
+          "sha": "8a1b72b",
+          "type": "feat",
+          "text": "对齐BD审核记录交互并限制审核原因字数",
+          "author": "sisi",
+          "time": "17:48",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_merchants.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 商户模块"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "text": "审核意见最多100字"
+            },
+            {
+              "file": null,
+              "text": "进件审核: 审核意见最多100字"
+            },
+            {
+              "file": null,
+              "text": "BD 门店模块: 资料审核记录改为一次审核一张卡，字段与进件对齐"
+            },
+            {
+              "file": null,
+              "text": "驳回/通过原因最多100字"
+            },
+            {
+              "file": null,
+              "text": "BD 商户模块: 审核记录入口改到商户详情右侧"
+            },
+            {
+              "file": null,
+              "text": "资料审核记录一次审核一张卡"
+            },
+            {
+              "file": null,
+              "text": "通过/驳回原因最多100字"
+            }
+          ]
+        },
         {
           "sha": "9d5665a",
           "type": "feat",
