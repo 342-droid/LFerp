@@ -475,8 +475,9 @@
 
     function appendOpinionBox(parent) {
         parent.appendChild(el('div', 'supplier-detail-section-title', '审核意见'));
-        parent.appendChild(el('p', 'audit-reason-hint', '驳回原因必填，通过原因选填'));
-        var ta = textareaInput('驳回时必填；通过时选填', '', 3);
+        parent.appendChild(el('p', 'audit-reason-hint', '驳回原因必填，通过原因选填，最多100字'));
+        var ta = textareaInput('驳回时必填；通过时选填，最多100字', '', 3);
+        ta.maxLength = 100;
         ta.setAttribute('data-audit-opinion', '1');
         parent.appendChild(ta);
         return ta;
@@ -484,7 +485,7 @@
 
     function readOpinion(root) {
         var ta = root && root.querySelector('[data-audit-opinion]');
-        return ta ? String(ta.value || '').trim() : '';
+        return ta ? String(ta.value || '').trim().slice(0, 100) : '';
     }
 
     function approveAudit(row, reason) {
