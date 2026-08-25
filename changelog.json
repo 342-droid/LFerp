@@ -1,7 +1,143 @@
 {
-  "latestSha": "37c9500041a718de34fa92264cf88dda504e5e2f",
-  "total": 291,
+  "latestSha": "3684adec5977a6a9d49c4da034b43d52274e4626",
+  "total": 292,
   "days": [
+    {
+      "date": "2026-08-25",
+      "items": [
+        {
+          "sha": "3684ade",
+          "type": "feat",
+          "text": "对齐进件审核字段并完善 BD 门店进件审核",
+          "author": "sisi",
+          "time": "12:26",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_h5.html",
+              "module": "",
+              "title": "冷丰 MDM · 门店扫码 H5"
+            },
+            {
+              "file": "MDM/mdm_bd_merchants.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 商户模块"
+            },
+            {
+              "file": "MDM/mdm_bd_not_found.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 页面未找到"
+            },
+            {
+              "file": "MDM/mdm_bd_personal.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 我的"
+            },
+            {
+              "file": "MDM/mdm_bd_store_form.html",
+              "module": "",
+              "title": "冷丰 MDM · 添加 / 编辑门店"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "MDM/mdm_bd_workbench.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 工作台"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "module": "",
+              "title": "商户进件 · 门店APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "text": "入驻/进件列表补「创建人」列；进件详情按执照、法人、商户、结算、门店场地展示，审核通过/驳回可填原因并记入审核记录"
+            },
+            {
+              "file": null,
+              "text": "BD 商户模块: 门店进件审核字段与 PC 进件审核对齐"
+            },
+            {
+              "file": null,
+              "text": "无记录时隐藏审核记录卡片，通过/驳回弹窗填原因"
+            },
+            {
+              "file": null,
+              "text": "身份证有效期仅编辑时可勾选永久有效，审核页只读"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "账变记录账户类型只记余额账户和保证金账户"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-24",
       "items": [
