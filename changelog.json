@@ -1,10 +1,30 @@
 {
-  "latestSha": "0c7e24991667e079306c0fc707f42addc06b76ca",
-  "total": 296,
+  "latestSha": "a9981b57ba192b632990a8babeddfd1c549b78c8",
+  "total": 297,
   "days": [
     {
       "date": "2026-08-25",
       "items": [
+        {
+          "sha": "a9981b5",
+          "type": "feat",
+          "text": "增加仓库出库扫描参数",
+          "author": "342-droid",
+          "time": "19:58",
+          "pages": [
+            {
+              "file": "SCM/warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库管理"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/warehouse.html",
+              "text": "出库页签新增分拣扫储位和复核扫商品参数，并支持编辑保存与回显"
+            }
+          ]
+        },
         {
           "sha": "0c7e249",
           "type": "feat",

@@ -2304,6 +2304,11 @@
     "status": "diff",
     "date": "2026-08-19"
   },
+  "a9981b5|SCM/warehouse.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
   "ad944b6|MDM/mdm_order_live.html": {
     "before": "changelog-assets/ad944b6/MDM__mdm_order_live.html.before.jpg",
     "after": "changelog-assets/ad944b6/MDM__mdm_order_live.html.after.jpg",
