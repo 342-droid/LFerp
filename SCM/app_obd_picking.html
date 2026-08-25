@@ -778,7 +778,8 @@
         }
 
         .overview-top-card,
-        .overview-summary-card {
+        .overview-summary-card,
+        .overview-task-detail-card {
             background-color: #ffffff;
             border: 1px solid #e3e6ea;
             border-radius: 2px;
@@ -827,17 +828,14 @@
             color: #666666;
         }
 
-        .overview-detail-btn {
-            width: 120px;
-            height: 30px;
-            display: block;
-            margin: 0 auto;
-            border: 1px solid #9ed3ef;
-            border-radius: 2px;
-            background-color: #e9f7ff;
-            color: #2a8fce;
-            font-size: 13px;
-            cursor: pointer;
+        .overview-task-detail-card {
+            padding-bottom: 4px;
+        }
+
+        .overview-task-detail-title {
+            font-size: 14px;
+            color: #333333;
+            margin-bottom: 8px;
         }
 
         .overview-bottom {
@@ -984,7 +982,11 @@
                             <div class="overview-metric-label">体积(m³)</div>
                         </div>
                     </div>
-                    <button class="overview-detail-btn" onclick="viewTaskDetailFromOverview()">查看任务明细</button>
+                </div>
+
+                <div class="overview-task-detail-card">
+                    <div class="overview-task-detail-title">拣货任务明细</div>
+                    <div class="task-detail-list" id="overviewTaskDetailList"></div>
                 </div>
 
                 <div class="overview-bottom">
@@ -1023,9 +1025,9 @@
                         <div class="order-status">已释放</div>
                     </div>
                     <div class="order-info">
-                        <div data-label="波次单号:"><span>WV19090576DE1E20300</span></div>
-                        <div data-label="目的储位:"><span>A01</span></div>
                         <div data-label="任务组号:"><span>TG190905776F29E0400</span></div>
+                        <div data-label="波次单号:"><span>WV19090576DE1E20300</span></div>
+                        <div data-label="目的储位:"><span>A01-分拣区</span></div>
                     </div>
                 </div>
 
@@ -1035,9 +1037,9 @@
                         <div class="order-status">已指派</div>
                     </div>
                     <div class="order-info">
-                        <div data-label="波次单号:"><span>WV19090576DE1E20300</span></div>
-                        <div data-label="目的储位:"><span>A01</span></div>
                         <div data-label="任务组号:"><span>TG190905776F29E0400</span></div>
+                        <div data-label="波次单号:"><span>WV19090576DE1E20300</span></div>
+                        <div data-label="目的储位:"><span>A01-分拣区</span></div>
                     </div>
                 </div>
 
@@ -1047,9 +1049,9 @@
                         <div class="order-status">执行中</div>
                     </div>
                     <div class="order-info">
-                        <div data-label="波次单号:"><span>WV19090576DE1E20300</span></div>
-                        <div data-label="目的储位:"><span>A01</span></div>
                         <div data-label="任务组号:"><span>TG190905776F29E0400</span></div>
+                        <div data-label="波次单号:"><span>WV19090576DE1E20300</span></div>
+                        <div data-label="目的储位:"><span>A01-分拣区</span></div>
                     </div>
                 </div>
             </div>
@@ -1310,7 +1312,11 @@
         function fillOverviewData() {
             const data = window.currentTaskSummary;
             document.getElementById('overviewWaveNo').textContent = data.waveNo;
-            document.getElementById('overviewTargetLocation').textContent = data.targetLocation;
+            const targetLocation = data.targetLocation || '--';
+            const targetLocationName = data.targetLocationName || '';
+            document.getElementById('overviewTargetLocation').textContent = targetLocationName
+                ? `${targetLocation}-${targetLocationName}`
+                : targetLocation;
             document.getElementById('overviewTaskGroup').textContent = data.taskGroupNo;
             document.getElementById('overviewTaskCount').textContent = String(data.taskCount);
             document.getElementById('overviewPieces').textContent = String(data.pieces);
@@ -1328,10 +1334,7 @@
                 backBtn.setAttribute('onclick', 'showScanPage()');
             }
             fillOverviewData();
-        }
-
-        function viewTaskDetailFromOverview() {
-            showTaskDetailPage();
+            fillTaskDetailData('overviewTaskDetailList');
         }
 
         function startPickingFromOverview() {
@@ -1343,14 +1346,14 @@
             backBtn.setAttribute('onclick', 'showOverviewPage()');
         }
 
-        function fillTaskDetailData() {
+        function fillTaskDetailData(listId = 'taskDetailList') {
             const summary = window.currentTaskSummary;
             const tasks = window.currentTaskDetails || [];
 
             document.getElementById('detailTaskGroupNo').textContent = summary.taskGroupNo;
             document.getElementById('detailWaveNo').textContent = summary.waveNo;
 
-            const listNode = document.getElementById('taskDetailList');
+            const listNode = document.getElementById(listId);
             listNode.innerHTML = '';
             tasks.forEach((task, index) => {
                 const item = document.createElement('div');
