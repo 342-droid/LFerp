@@ -122,6 +122,12 @@
     });
   }
 
+  function normalizeMerchantStatus(st) {
+    if (st === '进件成功') return '审核成功';
+    if (st === '已驳回') return '审核失败';
+    return st || '';
+  }
+
   function merchantByShortName(shortName) {
     var q = String(shortName || '').trim();
     if (!q) return null;
@@ -153,14 +159,16 @@
       shortName: shortName || p.name || '—',
       businessLicense: '—',
       merchantNo: p.merchantNo || '—',
-      status:
-        p.onboardingAuditStatus === '审核成功' || p.status === '进件成功'
-          ? '进件成功'
-          : p.onboardingStatus === 'rejected' || p.onboardingAuditStatus === '审核失败'
-            ? '已驳回'
-            : p.onboardingStatus === 'submitted'
-              ? '审核中'
-              : '审核中',
+      status: normalizeMerchantStatus(
+        p.onboardingAuditStatus === '审核成功' || p.status === '进件成功' || p.status === '审核成功'
+          ? '审核成功'
+          : p.onboardingStatus === 'rejected' ||
+              p.onboardingAuditStatus === '审核失败' ||
+              p.status === '已驳回' ||
+              p.status === '审核失败'
+            ? '审核失败'
+            : '审核中'
+      ),
       rate: '—',
       paymentAuth: '—',
       channel: '汇付天下',
@@ -334,8 +342,9 @@
       var ok = !q || m.name.includes(q) || (m.shortName && m.shortName.includes(q)) || m.merchantNo.includes(q);
       if (!ok) return false;
       if (route.tab === 'pending') return m.status === '待审核';
-      if (route.tab === 'onboarding') return m.status === '审核中' || m.status === '已驳回';
-      if (route.tab === 'settled') return m.status === '进件成功';
+      if (route.tab === 'onboarding') return m.status === '审核中';
+      if (route.tab === 'settled') return m.status === '审核成功';
+      if (route.tab === 'rejected') return m.status === '审核失败';
       return true;
     });
   }
@@ -687,10 +696,13 @@
       return m.status === '待审核';
     }).length;
     var onboard = merchants.filter(function (m) {
-      return m.status === '审核中' || m.status === '已驳回';
+      return m.status === '审核中';
     }).length;
     var ok = merchants.filter(function (m) {
-      return m.status === '进件成功';
+      return m.status === '审核成功';
+    }).length;
+    var rejected = merchants.filter(function (m) {
+      return m.status === '审核失败';
     }).length;
     var rows = filteredList();
     var sorted = rows
@@ -705,8 +717,9 @@
     var tabs = [
       { k: 'all', l: '全部', n: merchants.length },
       { k: 'pending', l: '待审核', n: pend },
-      { k: 'onboarding', l: '进件中', n: onboard },
-      { k: 'settled', l: '进件成功', n: ok },
+      { k: 'onboarding', l: '审核中', n: onboard },
+      { k: 'settled', l: '审核成功', n: ok },
+      { k: 'rejected', l: '审核失败', n: rejected },
     ];
     var th = tabs
       .map(function (t) {
@@ -778,9 +791,9 @@
   }
 
   function statusStyle(st) {
-    if (st === '进件成功') return ';background:rgba(22,163,74,.12);color:#15803d';
+    if (st === '审核成功') return ';background:rgba(22,163,74,.12);color:#15803d';
     if (st === '待审核' || st === '审核中') return ';background:rgba(245,158,11,.15);color:#b45309';
-    if (st === '已驳回') return ';background:rgba(220,38,38,.12);color:#b91c1c';
+    if (st === '审核失败') return ';background:rgba(220,38,38,.12);color:#b91c1c';
     return '';
   }
 
@@ -844,7 +857,7 @@
         m.onboardingAuditStatus = '待总监审核';
         m.onboardingNextAuditNode = 'BD 总监审核';
       }
-      if (m.status === '进件成功') {
+      if (m.status === '审核成功') {
         m.onboardingAuditStatus = '审核成功';
         m.onboardingNextAuditNode = '审核完成';
         if (!m.reqSeqId) m.reqSeqId = 'HF' + String(m.merchantNo || m.id).replace(/\D/g, '') + '001';
@@ -868,7 +881,7 @@
             reason: '证照与结算信息齐全'
           }
         ];
-      } else if (m.status === '已驳回') {
+      } else if (m.status === '审核失败') {
         m.auditLogs = [
           {
             node: 'BD 预审',
@@ -878,7 +891,7 @@
             reason: m.rejectReason || '—'
           }
         ];
-      } else if (m.status === '进件成功') {
+      } else if (m.status === '审核成功') {
         var day = m.applicationDate || '2024-01-10';
         m.auditLogs = [
           {
@@ -969,13 +982,14 @@
     var ok = $('#bdMerRejectOk');
     var ta = $('#bdMerRejectTa');
     if (ta) ta.value = '';
+    if (ta) ta.placeholder = auditModalMode === 'pass' ? '请输入通过说明…' : '请输入驳回原因…';
     if (auditModalMode === 'pass') {
       if (title) title.textContent = '通过原因（选填）';
       if (hint) hint.textContent = '选填，通过原因将记入审核记录，最多100字。';
       if (ok) ok.textContent = '确认通过';
     } else {
-      if (title) title.textContent = '驳回原因（选填）';
-      if (hint) hint.textContent = '选填，驳回原因将通知商户并记入审核记录，最多100字。';
+      if (title) title.textContent = '驳回原因（必填）';
+      if (hint) hint.textContent = '必填，驳回原因将通知商户并记入审核记录，最多100字。';
       if (ok) ok.textContent = '确认驳回';
     }
     var modal = $('#bdMerRejectModal');
@@ -984,8 +998,8 @@
 
   function resolveReviewPhase(m, om) {
     var st = (om && om.auditStatus) || m.onboardingAuditStatus || '';
-    if (m.status === '已驳回' || st === '审核失败') return 'rejected';
-    if (m.status === '进件成功' || st === '审核成功') return 'done';
+    if (m.status === '审核失败' || st === '审核失败') return 'rejected';
+    if (m.status === '审核成功' || st === '审核成功') return 'done';
     if (m.reviewPhase) return m.reviewPhase;
     if (m.status === '待审核' || st === '待BD审核') return 'awaiting_bd';
     if (st === '待总监审核') return 'awaiting_leader';
@@ -998,8 +1012,8 @@
   function currentOnbNode(m, om) {
     var st = (om && om.auditStatus) || m.onboardingAuditStatus || '';
     var phase = resolveReviewPhase(m, om);
-    if (phase === 'rejected' || m.status === '已驳回') return '审核驳回';
-    if (phase === 'done' || m.status === '进件成功' || st === '审核成功') return '审核完成';
+    if (phase === 'rejected' || m.status === '审核失败') return '审核驳回';
+    if (phase === 'done' || m.status === '审核成功' || st === '审核成功') return '审核完成';
     if (phase === 'awaiting_bd' || st === '待BD审核') return 'BD 预审';
     if (phase === 'awaiting_leader' || st === '待总监审核') return 'BD 总监审核';
     if (phase === 'awaiting_finance' || st === '待财务审核') return '财务审核';
@@ -1058,7 +1072,7 @@
     var awaitingLeader = m.status === '审核中' && effPhase === 'awaiting_leader';
     var auditStepLabel = currentOnbNode(m, om);
     var bottomPad =
-      bdCanAct || awaitingLeader || m.status === '已驳回' ? 'calc(120px + env(safe-area-inset-bottom))' : '24px';
+      bdCanAct || awaitingLeader || m.status === '审核失败' ? 'calc(120px + env(safe-area-inset-bottom))' : '24px';
 
     var ob = resolveOnboardingFields(m);
     function nz(v) {
@@ -1111,7 +1125,7 @@
       '</span></div></div>';
 
     var reachedHuifu =
-      m.status === '进件成功' ||
+      m.status === '审核成功' ||
       om.auditStatus === '待汇付审核' ||
       om.auditStatus === '审核成功' ||
       auditStepLabel === '汇付审核' ||
@@ -1126,7 +1140,7 @@
       ) +
       detailRow(
         '汇付审核完成时间',
-        m.status === '进件成功' || om.auditStatus === '审核成功'
+        m.status === '审核成功' || om.auditStatus === '审核成功'
           ? esc(nz(formatTs(m.onboardingCompletedAt || m.huifuAuditCompletedAt || m.merchantDate)))
           : '—'
       ) +
@@ -1135,7 +1149,7 @@
       detailRow('外部商户号', reachedHuifu ? esc(nz(m.extMerId)) : '—') +
       detailRow('创建人', esc(nz(m.creator || m.createdBy || m.contact))) +
       detailRow('备注', esc(nz(m.remarks || m.remark)));
-    if (m.status === '已驳回' || m.rejectReason) {
+    if (m.status === '审核失败' || m.rejectReason) {
       onboardInfoInner += detailRow('驳回原因', esc(nz(m.rejectReason)));
     }
 
@@ -1176,7 +1190,7 @@
         '<button type="button" class="bd-btn bd-btn-outline" style="flex:1;border-radius:12px;box-shadow:none;opacity:.45" disabled>驳回</button>' +
         '<button type="button" class="bd-btn bd-btn-primary" style="flex:1;border-radius:12px;opacity:.45" disabled>审核通过</button>' +
         '</div>';
-    } else if (m.status === '已驳回') {
+    } else if (m.status === '审核失败') {
       bar =
         '<div style="position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:120;width:min(393px,100vw);border-top:1px solid var(--bd-border);background:rgba(255,255,255,.97);padding:12px;padding-bottom:max(12px,env(safe-area-inset-bottom));box-shadow:0 -6px 18px rgba(15,23,42,.08)">' +
         '<button type="button" class="bd-btn bd-btn-primary" style="width:100%;border-radius:12px" data-mer-resubmit>⟳ 重新提交</button></div>';
@@ -1562,6 +1576,10 @@
           if (rejM) rejM.classList.remove('bd-show');
           return;
         }
+        if (auditModalMode !== 'pass' && !txt) {
+          window.bdToast && window.bdToast('请填写驳回原因');
+          return;
+        }
         if (auditModalMode === 'pass') {
           pushBdAuditLog(m, 'BD 预审', '通过', txt);
           m.status = '审核中';
@@ -1574,7 +1592,7 @@
           return;
         }
         pushBdAuditLog(m, 'BD 预审', '驳回', txt);
-        m.status = '已驳回';
+        m.status = '审核失败';
         m.rejectReason = txt;
         delete m.reviewPhase;
         if (rejM) rejM.classList.remove('bd-show');
@@ -1997,6 +2015,9 @@
   function init() {
     function boot(d) {
       merchants = JSON.parse(JSON.stringify(Array.isArray(d) ? d : []));
+      merchants.forEach(function (m) {
+        if (m) m.status = normalizeMerchantStatus(m.status);
+      });
       seedOnboardingReviewFields(merchants);
       seedMerchantAuditLogs(merchants);
       parseHash();
