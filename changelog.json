@@ -1,7 +1,44 @@
 {
-  "latestSha": "a9981b57ba192b632990a8babeddfd1c549b78c8",
-  "total": 297,
+  "latestSha": "aee81247187ae1f495c756a9bfede8e79d802b1c",
+  "total": 298,
   "days": [
+    {
+      "date": "2026-08-26",
+      "items": [
+        {
+          "sha": "aee8124",
+          "type": "feat",
+          "text": "调整BD商户进件页签状态与审核原因规则",
+          "author": "sisi",
+          "time": "00:00",
+          "pages": [
+            {
+              "file": "MDM/mdm_bd_merchants.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 商户模块"
+            }
+          ],
+          "notes": [
+            {
+              "file": null,
+              "text": "BD 商户模块: 「进件中」改为「审核中」，「进件成功」右侧新增「审核失败」页签"
+            },
+            {
+              "file": null,
+              "text": "状态「进件成功/已驳回」改为「审核成功/审核失败」"
+            },
+            {
+              "file": null,
+              "text": "驳回原因必填、通过选填"
+            },
+            {
+              "file": null,
+              "text": "原因弹框按 App 尺寸"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-25",
       "items": [
