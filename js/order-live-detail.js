@@ -616,12 +616,13 @@
       amounts: {
         goods: '¥18.00',
         discount: '-¥3.00',
-        shipping: '¥0.00',
-        payable: '¥15.00',
-        paid: '¥15.00',
-        merchant: '¥15.00',
-        refund: '¥0.00'
+        shipping: '¥10.00',
+        payable: '¥25.00',
+        paid: '¥25.00',
+        merchant: '¥21.00',
+        refund: '¥4.00'
       },
+      freight: { original: 10, refunded: 4 },
       paymentCount: 1,
       aftersales: [{
         id: 'AS-0682-1',
@@ -1930,17 +1931,22 @@
   }
 
   /**
-   * 单据明细 · 售后明细：一条售后单一行；展示仅退款/退货退款/补货。
+   * 单据明细 · 售后明细：一条售后单一行；展示仅退款/退货退款/退运费/补货。
    * 代采：退款额一级下挂二级小计/支付宝/微信/钱包；零售：退款额单列，不受钱包字段影响。
    */
   function buildAftersalePanel(aftersales) {
     var list = (Array.isArray(aftersales) ? aftersales : []).filter(function (a) {
-      return a && (a.type === '仅退款' || a.type === '退货退款' || a.type === '补货');
+      return a && (
+        a.type === '仅退款' ||
+        a.type === '退货退款' ||
+        a.type === '退运费' ||
+        a.type === '补货'
+      );
     });
     if (!list.length) return buildEmptyState('暂无售后明细');
 
     var hasRefundType = list.some(function (a) {
-      return a.type === '仅退款' || a.type === '退货退款';
+      return a.type === '仅退款' || a.type === '退货退款' || a.type === '退运费';
     });
     var hasRestock = list.some(function (a) {
       return a.type === '补货';
@@ -2001,7 +2007,8 @@
       : [];
 
     function cellHtml(item, key) {
-      var isRefund = item.type === '仅退款' || item.type === '退货退款';
+      var isRefund =
+        item.type === '仅退款' || item.type === '退货退款' || item.type === '退运费';
       var isRestock = item.type === '补货';
       if (key === 'product') return aftersaleCellText(item.productName);
       if (key === 'type') return aftersaleTypeTagHtml(item.type);
@@ -2552,7 +2559,7 @@
     return wrap;
   }
 
-  function buildAmounts(amounts, payLegs) {
+  function buildAmounts(amounts, payLegs, freight) {
     var box = el('div', 'order-detail-amount-box');
     var legs = (payLegs || []).filter(function (leg) {
       return leg && leg.name && Number(leg.amount) > 0 && normalizeRetailPayMethod(leg.name);
@@ -2597,6 +2604,12 @@
         amounts.paid +
         '</span></div>';
     }
+    var freightRefunded = freight ? Number(freight.refunded) || 0 : 0;
+    var freightRefundHtml = freight
+      ? '<span class="order-detail-amount-foot__freight">累计退运费 ¥' +
+        freightRefunded.toFixed(2) +
+        '</span>'
+      : '';
     box.innerHTML =
       '<div class="order-detail-amount-row"><span>商品金额</span><span>' +
       amounts.goods +
@@ -2615,7 +2628,9 @@
       amounts.merchant +
       '</span><span>退款 ' +
       amounts.refund +
-      '</span></div>';
+      '</span>' +
+      freightRefundHtml +
+      '</div>';
 
     var toggle = box.querySelector('.order-detail-pay-legs-toggle');
     var legsEl = box.querySelector('.order-detail-pay-legs');
@@ -2929,7 +2944,7 @@
       if (tab.id === 'goods') {
         var goodsPanel = buildGoodsPanel(goods, pickupMode, detail.aftersales);
         panel.appendChild(goodsPanel);
-        panel.appendChild(buildAmounts(detail.amounts || {}, payLegs));
+        panel.appendChild(buildAmounts(detail.amounts || {}, payLegs, detail.freight));
         if (drawer && pickupMode) {
           drawer._pickupRefs = drawer._pickupRefs || {};
           drawer._pickupRefs.goodsPanel = goodsPanel;
