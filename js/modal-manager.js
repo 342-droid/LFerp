@@ -276,7 +276,8 @@ const CommonOptions = {
         { value: 'in_warehouse_reshelf', text: '库内返架' },
         { value: 'putaway_finish', text: '上架完成' },
         { value: 'count_surplus', text: '盘点盘盈' },
-        { value: 'count_shortage', text: '盘点盘亏' }
+        { value: 'count_shortage', text: '盘点盘亏' },
+        { value: 'inventory_init', text: '库存初始化' }
     ],
     // 库存来源类型选项
     inventorySourceType: [

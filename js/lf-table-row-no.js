@@ -210,6 +210,7 @@
   }
 
   function enhanceTable(table) {
+    if (!shouldEnablePage()) return;
     if (!isEligibleTable(table)) return;
     if (hasNativeSerialHeader(table) && !table.classList.contains('lf-row-no-on')) {
       table.classList.add('lf-row-no-native');
@@ -220,6 +221,7 @@
   }
 
   function enhanceAll(root) {
+    if (!shouldEnablePage()) return;
     var scope = root && root.querySelectorAll ? root : document;
     var tables = scope.querySelectorAll(TABLE_SEL);
     for (var i = 0; i < tables.length; i++) {
@@ -284,6 +286,7 @@
 
   var scheduled = false;
   function scheduleEnhance() {
+    if (!shouldEnablePage()) return;
     if (scheduled) return;
     scheduled = true;
     setTimeout(function () {

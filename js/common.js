@@ -959,7 +959,7 @@ if (document.readyState === 'loading') {
         if (window.LfTableRowNo || document.getElementById('lf-table-row-no-js')) return;
         var s = document.createElement('script');
         s.id = 'lf-table-row-no-js';
-        s.src = assetUrl('js/lf-table-row-no.js') + '?v=20260817-row-td';
+        s.src = assetUrl('js/lf-table-row-no.js') + '?v=20260825-wms-skip';
         s.async = false;
         (document.body || document.head).appendChild(s);
     }
