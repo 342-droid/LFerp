@@ -359,8 +359,20 @@
                                 </div>
                                 <div class="wh-param-field">
                                     <label class="param-checkbox-row">
+                                        <input type="checkbox" id="editParamSortingScanLocation">
+                                        <span>分拣是否扫储位</span>
+                                    </label>
+                                </div>
+                                <div class="wh-param-field">
+                                    <label class="param-checkbox-row">
                                         <input type="checkbox" id="editParamSortingScanSku">
                                         <span>分拣是否扫商品</span>
+                                    </label>
+                                </div>
+                                <div class="wh-param-field">
+                                    <label class="param-checkbox-row">
+                                        <input type="checkbox" id="editParamReviewScanSku">
+                                        <span>复核是否扫商品</span>
                                     </label>
                                 </div>
                             </div>
@@ -463,6 +475,16 @@
                             if (sortingScanSkuCb.checked) row.setAttribute('data-sorting-scan-sku', 'true');
                             else row.removeAttribute('data-sorting-scan-sku');
                         }
+                        const sortingScanLocationCb = document.getElementById('editParamSortingScanLocation');
+                        if (sortingScanLocationCb) {
+                            if (sortingScanLocationCb.checked) row.setAttribute('data-sorting-scan-location', 'true');
+                            else row.removeAttribute('data-sorting-scan-location');
+                        }
+                        const reviewScanSkuCb = document.getElementById('editParamReviewScanSku');
+                        if (reviewScanSkuCb) {
+                            if (reviewScanSkuCb.checked) row.setAttribute('data-review-scan-sku', 'true');
+                            else row.removeAttribute('data-review-scan-sku');
+                        }
                         const fullReceiptAutoCloseCb = document.getElementById('editParamFullReceiptAutoClose');
                         if (fullReceiptAutoCloseCb) {
                             if (fullReceiptAutoCloseCb.checked) row.setAttribute('data-full-receipt-auto-close', 'true');
@@ -550,6 +572,14 @@
                 const sortingScanSkuCb = document.getElementById('editParamSortingScanSku');
                 if (sortingScanSkuCb) {
                     sortingScanSkuCb.checked = !!(row && row.getAttribute('data-sorting-scan-sku') === 'true');
+                }
+                const sortingScanLocationCb = document.getElementById('editParamSortingScanLocation');
+                if (sortingScanLocationCb) {
+                    sortingScanLocationCb.checked = !!(row && row.getAttribute('data-sorting-scan-location') === 'true');
+                }
+                const reviewScanSkuCb = document.getElementById('editParamReviewScanSku');
+                if (reviewScanSkuCb) {
+                    reviewScanSkuCb.checked = !!(row && row.getAttribute('data-review-scan-sku') === 'true');
                 }
                 const fullReceiptAutoCloseCb = document.getElementById('editParamFullReceiptAutoClose');
                 if (fullReceiptAutoCloseCb) {
