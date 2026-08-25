@@ -1,6 +1,6 @@
 {
   "latestSha": "8a1b72ba629ebd24a868b5c4195f677337cefa97",
-  "total": 294,
+  "total": 295,
   "days": [
     {
       "date": "2026-08-25",
@@ -182,6 +182,31 @@
             {
               "file": "MDM/mdm_resource_onboarding.html",
               "text": "发起进件时身份证有效期可勾选「长期有效」"
+            }
+          ]
+        },
+        {
+          "sha": "d4b3701",
+          "type": "feat",
+          "text": "库存规则增加库存初始化触发并修好编辑详情",
+          "author": "342-droid",
+          "time": "16:09",
+          "pages": [
+            {
+              "file": "SCM/inventory_rule.html",
+              "module": "冷丰WMS",
+              "title": "库存规则"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/inventory_rule.html",
+              "text": "来源触发新增「库存初始化」；查询和下拉、新增编辑弹窗均可选；列表增加 W015 示例，明细为来源库存、库存量增加"
+            },
+            {
+              "file": null,
+              "text": "仓储列表不再误加序号列，编辑和详情可以正常打开"
             }
           ]
         },

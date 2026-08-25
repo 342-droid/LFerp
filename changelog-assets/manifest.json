@@ -2477,6 +2477,13 @@
     "status": "diff",
     "date": "2026-08-15"
   },
+  "d4b3701|SCM/inventory_rule.html": {
+    "before": "changelog-assets/d4b3701/SCM__inventory_rule.html.before.jpg",
+    "after": "changelog-assets/d4b3701/SCM__inventory_rule.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-08-25"
+  },
   "e01ee8a|MDM/mdm_archive_carrier.html": {
     "regions": 0,
     "status": "diff",
