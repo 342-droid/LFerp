@@ -9,6 +9,11 @@
         return n;
     }
 
+    function isLongTermIdValid(v) {
+        var s = String(v == null ? '' : v).trim();
+        return s === '长期' || s === '长期有效' || s === '永久有效';
+    }
+
     function textInput(placeholder, value) {
         var inp = document.createElement('input');
         inp.className = 'erp-input';
@@ -621,10 +626,51 @@
                 ocrFields.forEach(function (f) {
                     var wrap = el('div', 'unified-onboard-ocr-field');
                     wrap.appendChild(sfLabel(f.label, true));
+                    var uploaded = uploadState.legal_cert_front_pic || uploadState.legal_cert_back_pic;
+                    var existingVal = inputMap[f.key] ? String(inputMap[f.key].value || '').trim() : '';
                     var val =
-                        inputMap[f.key] && inputMap[f.key].value ?
-                            inputMap[f.key].value :
-                            f.value || ((uploadState.legal_cert_front_pic || uploadState.legal_cert_back_pic) ? ocrDemoValue(f.key) : '');
+                        existingVal ||
+                        f.value ||
+                        (uploaded ? ocrDemoValue(f.key) : '');
+                    if (f.key === 'legal_info.id_valid_date') {
+                        var foreverCb = inputMap['legal_info.id_valid_date_forever'];
+                        var longTerm =
+                            (foreverCb && foreverCb.checked) || isLongTermIdValid(existingVal) || isLongTermIdValid(val);
+                        var dateVal = longTerm ? '' : val;
+                        if (dateVal && !/^\d{4}-\d{2}-\d{2}/.test(dateVal)) dateVal = '';
+                        var dateInp = document.createElement('input');
+                        dateInp.className = 'erp-input';
+                        dateInp.type = 'date';
+                        dateInp.setAttribute('data-onboard-key', f.key);
+                        dateInp.disabled = !editMode || longTerm;
+                        if (dateVal) dateInp.value = dateVal.slice(0, 10);
+                        inputMap[f.key] = dateInp;
+                        var validCtrl = el('div', 'unified-onboard-id-valid-ctrl');
+                        validCtrl.appendChild(dateInp);
+                        var lab = document.createElement('label');
+                        lab.className = 'unified-onboard-id-valid-forever';
+                        var cb = document.createElement('input');
+                        cb.type = 'checkbox';
+                        cb.checked = !!longTerm;
+                        cb.disabled = !editMode;
+                        cb.setAttribute('data-onboard-key', 'legal_info.id_valid_date_forever');
+                        cb.addEventListener('change', function () {
+                            dateInp.disabled = !editMode || cb.checked;
+                            if (cb.checked) {
+                                if (dateInp.value) dateInp.setAttribute('data-prev-date', dateInp.value);
+                                dateInp.value = '';
+                            } else {
+                                dateInp.value = dateInp.getAttribute('data-prev-date') || '';
+                            }
+                        });
+                        inputMap['legal_info.id_valid_date_forever'] = cb;
+                        lab.appendChild(cb);
+                        lab.appendChild(document.createTextNode('长期有效'));
+                        validCtrl.appendChild(lab);
+                        wrap.appendChild(validCtrl);
+                        grid.appendChild(wrap);
+                        return;
+                    }
                     var inp = textInput(f.label, val);
                     inp.setAttribute('data-onboard-key', f.key);
                     inp.disabled = !editMode;
@@ -644,7 +690,7 @@
 
         var s0 = el('section', 'store-onboard-section store-onboard-section--white');
         s0.appendChild(sectionTitle('执照信息'));
-        uploadRow(s0, '营业执照', 'license_pic', 'F07', [
+        uploadRow(s0, '营业执照', 'license_pic', '上传营业执照', [
             { label: '营业执照名称', key: 'license_info.name', value: formFields.license_info.name },
             { label: '证件代码', key: 'license_info.code', value: formFields.license_info.code },
             { label: '执照起始日期', key: 'license_info.start_date', value: formFields.license_info.start_date },
@@ -710,18 +756,22 @@
         s4.appendChild(sectionTitle('门店场地'));
         /* 仅门店进件：门头/场地照必填；内景、收银台及供应商场地照均为选填 */
         var venueHeaderRequired = variant === 'store' || onboardingKind === 'store';
-        uploadRow(s4, '门头/场地照', 'store_header_pic', 'F22', null, {
+        uploadRow(s4, '门头/场地照', 'store_header_pic', '上传门头/场地照', null, {
             required: venueHeaderRequired
         });
-        uploadRow(s4, '内景/工作区域照', 'store_indoor_pic', 'F24', null, { required: false });
-        uploadRow(s4, '收银台/前台照', 'store_cashier_desk_pic', 'F105', null, {
+        uploadRow(s4, '内景/工作区域照', 'store_indoor_pic', '上传内景/工作区域照', null, { required: false });
+        uploadRow(s4, '收银台/前台照', 'store_cashier_desk_pic', '上传收银台/前台照', null, {
             required: false
         });
         body.appendChild(s4);
 
         function getInputVal(key) {
+            if (key === 'legal_info.id_valid_date') {
+                var forever = inputMap['legal_info.id_valid_date_forever'];
+                if (forever && forever.checked) return '长期有效';
+            }
             var inp = inputMap[key];
-            return inp ? inp.value.trim() : '';
+            return inp ? String(inp.value || '').trim() : '';
         }
 
         function collectFields() {
@@ -838,8 +888,13 @@
             if (status === 'submitted') {
                 payload.submittedAt = prev.submittedAt || now;
                 if (!payload.auditStatus) {
-                    payload.auditStatus = '待BD审核';
-                    payload.nextAuditNode = 'BD审核';
+                    if (isSupplierOnboarding) {
+                        payload.auditStatus = '待财务审核';
+                        payload.nextAuditNode = '财务审核';
+                    } else {
+                        payload.auditStatus = '待BD审核';
+                        payload.nextAuditNode = 'BD审核';
+                    }
                 }
             } else if (status === 'draft') {
                 payload.submittedAt = null;

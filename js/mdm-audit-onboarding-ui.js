@@ -37,8 +37,15 @@
         }
     }
 
+    function stripOnboardFileCodes(text) {
+        return String(text == null ? '' : text)
+            .replace(/\s*\(?F(?:02|03|07|22|24|105|107)\)?/gi, '')
+            .replace(/\s{2,}/g, ' ')
+            .trim();
+    }
+
     function demoImg(label) {
-        var text = String(label || '进件资料');
+        var text = stripOnboardFileCodes(label) || '进件资料';
         var svg =
             '<svg xmlns="http://www.w3.org/2000/svg" width="360" height="220" viewBox="0 0 360 220">' +
             '<defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1">' +
@@ -51,12 +58,23 @@
         return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
     }
 
+    function photoSrcHasVenueFileCode(src) {
+        var s = String(src || '');
+        if (!s) return false;
+        try {
+            s = decodeURIComponent(s);
+        } catch (e) {}
+        return /F(?:02|03|07|22|24|105|107)/i.test(s);
+    }
+
     function resolvePhotoSrc(v, label) {
+        var cleanLabel = stripOnboardFileCodes(label) || '进件资料';
         if (typeof v === 'string') {
             var s = v.trim();
+            if (s && photoSrcHasVenueFileCode(s)) return demoImg(cleanLabel);
             if (s) return s;
         }
-        if (v === true) return demoImg(label || '进件资料');
+        if (v === true) return demoImg(cleanLabel);
         return '';
     }
 
@@ -91,13 +109,13 @@
                 id_start_date: '2020-01-01',
                 id_valid_date: '2030-01-01'
             },
-            license_pic: demoImg('营业执照 F07'),
-            legal_cert_front_pic: demoImg('身份证人像面 F02'),
-            legal_cert_back_pic: demoImg('身份证国徽面 F03'),
+            license_pic: demoImg('营业执照'),
+            legal_cert_front_pic: demoImg('身份证人像面'),
+            legal_cert_back_pic: demoImg('身份证国徽面'),
             open_license_pic: demoImg('开户许可证'),
-            store_header_pic: demoImg('门头照 F22'),
-            store_indoor_pic: demoImg('内景照 F24'),
-            store_cashier_desk_pic: demoImg('收银台照 F105'),
+            store_header_pic: demoImg('门头/场地照'),
+            store_indoor_pic: demoImg('内景/工作区域照'),
+            store_cashier_desk_pic: demoImg('收银台/前台照'),
             payment_agreement_signed: true,
             payment_agreement: {
                 type: '挂网协议',
@@ -131,22 +149,357 @@
                 key: 'audit-demo::supplier::MCH-AUD-002',
                 merchantShortName: '鲜选供应链-滨江',
                 status: 'submitted',
-                auditStatus: '待总监审核',
-                nextAuditNode: 'BD总监审核',
+                auditStatus: '待财务审核',
+                nextAuditNode: '财务审核',
                 subjectName: '鲜选供应链集团',
                 settlementBodyType: '独立结算',
-                createdBy: 'BD 王磊',
-                channel: 'BD APP',
+                createdBy: '采购 周宁',
+                channel: '后台',
+                onboardingCreatedAt: '2026-08-20 09:10',
                 submittedAt: now - day * 3,
                 updatedAt: now - day * 2,
-                remarks: 'BD预审通过，待总监审核',
+                remarks: '供应商进件已提交，待财务审核',
+                mccIndustry: '批发',
+                merchantNo: 'MCH20260820002',
+                auditLogs: []
+            },
+            {
+                key: 'audit-demo::supplier::MCH-AUD-012',
+                merchantShortName: '鲜选冷链-嘉兴仓',
+                status: 'submitted',
+                auditStatus: '待汇付审核',
+                nextAuditNode: '汇付审核',
+                subjectName: '鲜选供应链集团',
+                settlementBodyType: '独立结算',
+                createdBy: '采购 周宁',
+                channel: '后台',
+                onboardingChannel: '汇付天下',
+                onboardingCreatedAt: '2026-08-16 10:00',
+                submittedAt: '2026-08-19 15:20',
+                huifuSubmittedAt: '2026-08-19 15:20',
+                updatedAt: now - day,
+                remarks: '财务已通过，已提交汇付审核',
+                mccIndustry: '批发',
+                merchantNo: 'MCH20260816012',
+                reqSeqId: 'HF202608191520012',
+                extMerId: 'EXTMCH20260816012',
+                fields: {
+                    short_name: '鲜选冷链-嘉兴仓',
+                    receipt_name: '鲜选冷链',
+                    detail_addr: '嘉兴市秀洲区物流园 12 号',
+                    legal_mobile_no: '13700137012',
+                    contact_mobile_no: '13700137012',
+                    contact_email: 'xianxuan-jx@lf-demo.com',
+                    license_info: {
+                        name: '嘉兴鲜选冷链有限公司',
+                        code: '91330402MA2EXXXX5F',
+                        start_date: '2021-09-01',
+                        valid_date: '2041-08-31',
+                        address: '嘉兴市秀洲区物流园 12 号'
+                    },
+                    legal_info: {
+                        cert_type: '身份证',
+                        legal_name: '吴敏',
+                        id_no: '330402198511203366',
+                        id_start_date: '2019-01-08',
+                        id_valid_date: '2039-01-07'
+                    },
+                    card_info: {
+                        account_name: '嘉兴鲜选冷链有限公司',
+                        card_no: '6222028899001122334',
+                        bank_name: '中国银行',
+                        bank_branch: '中国银行嘉兴秀洲支行'
+                    }
+                },
+                auditLogs: [
+                    {
+                        node: '财务审核',
+                        reviewer: '财务 赵敏',
+                        time: '2026-08-19 15:10',
+                        result: '通过',
+                        reason: '结算账户核验通过，已提交汇付'
+                    }
+                ]
+            },
+            {
+                key: 'audit-demo::store::MCH-AUD-007',
+                merchantShortName: '麦香面包坊',
+                status: 'submitted',
+                auditStatus: '待财务审核',
+                nextAuditNode: '财务审核',
+                subjectName: '杭州滨江麦香面包坊',
+                settlementBodyType: '独立结算',
+                createdBy: 'BD 李泽峰',
+                channel: 'BD APP',
+                onboardingChannel: '汇付天下',
+                merchantNo: 'MCH20240120004',
+                mccIndustry: '餐饮',
+                onboardingCreatedAt: '2026-08-18 09:30',
+                submittedAt: now - day * 4,
+                updatedAt: now - day,
+                remarks: '总监已通过，待财务复核结算账户',
+                reqSeqId: '',
+                extMerId: '',
+                fields: {
+                    short_name: '麦香面包坊',
+                    receipt_name: '麦香面包坊',
+                    detail_addr: '杭州市滨江区江南大道 500 号底商',
+                    legal_mobile_no: '13600136004',
+                    contact_mobile_no: '13600136004',
+                    contact_email: 'maixiang@lf-demo.com',
+                    license_info: {
+                        name: '杭州滨江麦香面包坊',
+                        code: '92330100MA2KXXXXAB',
+                        start_date: '2023-05-01',
+                        valid_date: '长期有效',
+                        address: '杭州市滨江区江南大道 500 号 3 幢 101'
+                    },
+                    legal_info: {
+                        cert_type: '身份证',
+                        legal_name: '赵大力',
+                        id_no: '330108198409233456',
+                        id_start_date: '2014-09-01',
+                        id_valid_date: '2034-09-01'
+                    },
+                    card_info: {
+                        account_name: '赵丽',
+                        card_no: '6222081234567890123',
+                        bank_name: '中国农业银行',
+                        bank_branch: '中国农业银行杭州滨江支行'
+                    }
+                },
                 auditLogs: [
                     {
                         node: 'BD 预审',
-                        reviewer: 'BD 王磊',
-                        time: '2026-08-22 11:20',
+                        reviewer: 'BD 李泽峰',
+                        time: '2026-08-18 16:20',
                         result: '通过',
-                        reason: '证照与结算信息齐全'
+                        reason: '证照清晰，经营地址已核验'
+                    },
+                    {
+                        node: 'BD 总监审核',
+                        reviewer: 'BD总监 李静',
+                        time: '2026-08-19 10:05',
+                        result: '通过',
+                        reason: '资料审核通过，转财务复核'
+                    }
+                ]
+            },
+            {
+                key: 'audit-demo::store::MCH-AUD-008',
+                merchantShortName: '星辰咖啡馆',
+                status: 'submitted',
+                auditStatus: '待汇付审核',
+                nextAuditNode: '汇付审核',
+                subjectName: '杭州星辰咖啡有限公司',
+                settlementBodyType: '独立结算',
+                createdBy: '王老板',
+                channel: '门店 APP',
+                onboardingChannel: '汇付天下',
+                merchantNo: 'MCH20240035002',
+                mccIndustry: '餐饮',
+                onboardingCreatedAt: '2026-08-15 08:40',
+                submittedAt: '2026-08-20 17:30',
+                huifuSubmittedAt: '2026-08-20 17:30',
+                updatedAt: now - day * 0.5,
+                remarks: '财务已通过，已提交汇付审核',
+                reqSeqId: 'HF202608201730001',
+                extMerId: 'EXTMCH20240035002',
+                fields: {
+                    short_name: '星辰咖啡馆',
+                    receipt_name: '星辰咖啡馆',
+                    detail_addr: '杭州市拱墅区莫干山路 166 号底商',
+                    legal_mobile_no: '13900139002',
+                    contact_mobile_no: '13900139002',
+                    contact_email: 'xingchen@lf-demo.com',
+                    license_info: {
+                        name: '杭州星辰咖啡有限公司',
+                        code: '91330105MA2BXXXX2C',
+                        start_date: '2021-04-12',
+                        valid_date: '2031-04-11',
+                        address: '杭州市拱墅区莫干山路 166 号'
+                    },
+                    legal_info: {
+                        cert_type: '身份证',
+                        legal_name: '王建国',
+                        id_no: '330105198805125678',
+                        id_start_date: '2018-06-01',
+                        id_valid_date: '2038-06-01'
+                    },
+                    card_info: {
+                        account_name: '杭州星辰咖啡有限公司',
+                        card_no: '6217001234567890123',
+                        bank_name: '中国建设银行',
+                        bank_branch: '中国建设银行杭州拱墅支行'
+                    }
+                },
+                auditLogs: [
+                    {
+                        node: 'BD 预审',
+                        reviewer: 'BD 李泽峰',
+                        time: '2026-08-16 11:10',
+                        result: '通过',
+                        reason: '门店资料齐全'
+                    },
+                    {
+                        node: 'BD 总监审核',
+                        reviewer: 'BD总监 李静',
+                        time: '2026-08-17 14:25',
+                        result: '通过',
+                        reason: '同意提交财务'
+                    },
+                    {
+                        node: '财务审核',
+                        reviewer: '财务 赵敏',
+                        time: '2026-08-20 16:50',
+                        result: '通过',
+                        reason: '结算信息复核通过，已提交汇付'
+                    }
+                ]
+            },
+            {
+                key: 'audit-demo::store::MCH-AUD-009',
+                merchantShortName: '老王烧烤',
+                status: 'submitted',
+                auditStatus: '审核成功',
+                nextAuditNode: '审核完成',
+                subjectName: '杭州老王餐饮管理有限公司',
+                settlementBodyType: '集团结算',
+                createdBy: '王大叔',
+                channel: '门店 APP',
+                onboardingChannel: '汇付天下',
+                merchantNo: 'MCH20230188005',
+                mccIndustry: '餐饮',
+                onboardingCreatedAt: '2026-08-08 09:00',
+                submittedAt: '2026-08-11 15:40',
+                huifuSubmittedAt: '2026-08-11 15:40',
+                onboardingCompletedAt: '2026-08-12 10:18',
+                updatedAt: now - day * 6,
+                remarks: '汇付进件已完成，商户号已回写',
+                reqSeqId: 'HF202608111540009',
+                extMerId: 'EXTMCH20230188005',
+                fields: {
+                    short_name: '老王烧烤',
+                    receipt_name: '老王烧烤',
+                    detail_addr: '杭州市余杭区文一西路 800 号 1 层',
+                    legal_mobile_no: '13500135005',
+                    contact_mobile_no: '13500135005',
+                    contact_email: 'laowang@lf-demo.com',
+                    license_info: {
+                        name: '杭州老王餐饮管理有限公司',
+                        code: '91330110MA2CXXXX3D',
+                        start_date: '2018-11-20',
+                        valid_date: '长期有效',
+                        address: '杭州市余杭区文一西路 800 号'
+                    },
+                    legal_info: {
+                        cert_type: '身份证',
+                        legal_name: '王大伟',
+                        id_no: '330110197811067890',
+                        id_start_date: '2016-03-12',
+                        id_valid_date: '长期有效'
+                    },
+                    card_info: {
+                        account_name: '杭州老王餐饮管理有限公司',
+                        card_no: '6216009988776655443',
+                        bank_name: '招商银行',
+                        bank_branch: '招商银行杭州余杭支行'
+                    }
+                },
+                auditLogs: [
+                    {
+                        node: 'BD 预审',
+                        reviewer: 'BD 李泽峰',
+                        time: '2026-08-08 14:20',
+                        result: '通过',
+                        reason: '证照与场地照齐全'
+                    },
+                    {
+                        node: 'BD 总监审核',
+                        reviewer: 'BD总监 李静',
+                        time: '2026-08-09 09:45',
+                        result: '通过',
+                        reason: '资料审核通过'
+                    },
+                    {
+                        node: '财务审核',
+                        reviewer: '财务 赵敏',
+                        time: '2026-08-11 15:20',
+                        result: '通过',
+                        reason: '对公账户核验通过，已提交汇付'
+                    },
+                    {
+                        node: '汇付审核',
+                        reviewer: '汇付天下',
+                        time: '2026-08-12 10:18',
+                        result: '通过',
+                        reason: '进件审核通过'
+                    }
+                ]
+            },
+            {
+                key: 'audit-demo::supplier::MCH-AUD-010',
+                merchantShortName: '鲜选供应链-华东',
+                status: 'submitted',
+                auditStatus: '审核成功',
+                nextAuditNode: '审核完成',
+                subjectName: '鲜选供应链集团',
+                settlementBodyType: '独立结算',
+                createdBy: '采购 周宁',
+                channel: '后台',
+                onboardingChannel: '汇付天下',
+                merchantNo: 'MCH20260810010',
+                mccIndustry: '批发',
+                onboardingCreatedAt: '2026-08-10 08:20',
+                submittedAt: '2026-08-13 11:05',
+                huifuSubmittedAt: '2026-08-13 11:05',
+                onboardingCompletedAt: '2026-08-14 09:36',
+                updatedAt: now - day * 5,
+                remarks: '供应商进件完成，协议已签署',
+                reqSeqId: 'HF202608131105010',
+                extMerId: 'EXTMCH20260810010',
+                fields: {
+                    short_name: '鲜选供应链-华东',
+                    receipt_name: '鲜选供应链',
+                    detail_addr: '杭州市滨江区网商路 699 号仓配中心',
+                    legal_mobile_no: '13700137010',
+                    contact_mobile_no: '13700137010',
+                    contact_email: 'xianxuan-hd@lf-demo.com',
+                    license_info: {
+                        name: '杭州鲜选供应链管理有限公司',
+                        code: '91330108MA2DXXXX4E',
+                        start_date: '2020-02-18',
+                        valid_date: '2040-02-17',
+                        address: '杭州市滨江区网商路 699 号'
+                    },
+                    legal_info: {
+                        cert_type: '身份证',
+                        legal_name: '陈思远',
+                        id_no: '330108198702141118',
+                        id_start_date: '2017-08-20',
+                        id_valid_date: '2037-08-19'
+                    },
+                    card_info: {
+                        account_name: '杭州鲜选供应链管理有限公司',
+                        card_no: '6225880011223344556',
+                        bank_name: '中国工商银行',
+                        bank_branch: '中国工商银行杭州滨江支行'
+                    }
+                },
+                auditLogs: [
+                    {
+                        node: '财务审核',
+                        reviewer: '财务 赵敏',
+                        time: '2026-08-13 10:40',
+                        result: '通过',
+                        reason: '开户名与执照一致，已提交汇付'
+                    },
+                    {
+                        node: '汇付审核',
+                        reviewer: '汇付天下',
+                        time: '2026-08-14 09:36',
+                        result: '通过',
+                        reason: '进件审核通过'
                     }
                 ]
             },
@@ -180,6 +533,16 @@
             if (all[r.key]) return;
             var seedFields = copy(baseFields);
             if (r.merchantShortName) seedFields.short_name = r.merchantShortName;
+            if (r.fields) {
+                Object.keys(r.fields).forEach(function (fk) {
+                    var fv = r.fields[fk];
+                    if (fv && typeof fv === 'object' && !Array.isArray(fv)) {
+                        seedFields[fk] = Object.assign({}, seedFields[fk] || {}, fv);
+                    } else {
+                        seedFields[fk] = fv;
+                    }
+                });
+            }
             all[r.key] = {
                 key: r.key,
                 title: '进件演示',
@@ -198,6 +561,7 @@
                 channel: r.channel,
                 onboardingChannel: r.onboardingChannel || '汇付天下',
                 onboardingCompletedAt: r.onboardingCompletedAt || '',
+                huifuSubmittedAt: r.huifuSubmittedAt || '',
                 rejectReason: r.rejectReason || '',
                 remarks: r.remarks || '',
                 mccIndustry: r.mccIndustry || '餐饮',
@@ -219,13 +583,34 @@
                 licenseEndDate: '2033-06-01',
                 regDetail: '杭州市西湖区文三路 88 号'
             };
+            var seedLegal = seedFields.legal_info || {};
+            var seedLic = seedFields.license_info || {};
+            if (seedLegal.legal_name) all[r.key].legalName = seedLegal.legal_name;
+            if (seedLegal.id_no) all[r.key].idNumber = seedLegal.id_no;
+            if (seedLic.name) all[r.key].regName = seedLic.name;
+            if (seedLic.code) all[r.key].licenseCode = seedLic.code;
+            if (seedLic.address) all[r.key].regDetail = seedLic.address;
             changed = true;
         });
         Object.keys(all).forEach(function (k) {
-            if (String(k).indexOf('audit-demo::') !== 0) return;
             var rec = all[k];
             if (!rec || !rec.fields) return;
             var f = rec.fields;
+            [
+                ['license_pic', '营业执照'],
+                ['legal_cert_front_pic', '法人身份证人像面'],
+                ['legal_cert_back_pic', '法人身份证国徽面'],
+                ['store_header_pic', '门头/场地照'],
+                ['store_indoor_pic', '内景/工作区域照'],
+                ['store_cashier_desk_pic', '收银台/前台照']
+            ].forEach(function (item) {
+                var src = f[item[0]];
+                if (typeof src === 'string' && photoSrcHasVenueFileCode(src)) {
+                    f[item[0]] = demoImg(item[1]);
+                    changed = true;
+                }
+            });
+            if (String(k).indexOf('audit-demo::') !== 0) return;
             if (!f.license_info) {
                 f.license_info = copy(baseFields.license_info);
                 changed = true;
@@ -270,19 +655,30 @@
                 f.short_name = '悦享轻食-城西银泰店';
                 changed = true;
             }
-            if (!Array.isArray(rec.auditLogs) || !rec.auditLogs.length) {
+            if (String(k).indexOf('::supplier::') >= 0) {
+                var hasBdLog =
+                    Array.isArray(rec.auditLogs) &&
+                    rec.auditLogs.some(function (log) {
+                        return log && String(log.node || '').indexOf('BD') === 0;
+                    });
                 if (k === 'audit-demo::supplier::MCH-AUD-002') {
-                    rec.auditLogs = [
-                        {
-                            node: 'BD 预审',
-                            reviewer: 'BD 王磊',
-                            time: '2026-08-22 11:20',
-                            result: '通过',
-                            reason: '证照与结算信息齐全'
-                        }
-                    ];
+                    if (rec.auditStatus !== '待财务审核' || hasBdLog) {
+                        rec.auditStatus = '待财务审核';
+                        rec.nextAuditNode = '财务审核';
+                        rec.remarks = '供应商进件已提交，待财务审核';
+                        rec.auditLogs = [];
+                        changed = true;
+                    }
+                }
+                if (k === 'audit-demo::supplier::MCH-AUD-010' && hasBdLog) {
+                    rec.auditLogs = rec.auditLogs.filter(function (log) {
+                        return log && String(log.node || '').indexOf('BD') !== 0;
+                    });
                     changed = true;
-                } else if (k === 'audit-demo::store::MCH-AUD-006') {
+                }
+            }
+            if (!Array.isArray(rec.auditLogs) || !rec.auditLogs.length) {
+                if (k === 'audit-demo::store::MCH-AUD-006') {
                     rec.auditLogs = [
                         {
                             node: 'BD 预审',
@@ -425,13 +821,13 @@
 
     function appendOnbOpinionBox(parent) {
         parent.appendChild(el('div', 'supplier-detail-section-title', '审核意见'));
-        parent.appendChild(el('p', 'audit-reason-hint', '通过原因 / 驳回原因，选填'));
+        parent.appendChild(el('p', 'audit-reason-hint', '驳回原因必填，通过原因选填'));
         var ta = document.createElement('textarea');
         ta.className = 'erp-textarea';
         ta.rows = 3;
         ta.style.width = '100%';
         ta.style.boxSizing = 'border-box';
-        ta.placeholder = '选填，通过或驳回时可填写原因';
+        ta.placeholder = '驳回时必填；通过时选填';
         ta.setAttribute('data-audit-opinion', '1');
         parent.appendChild(ta);
         return ta;
@@ -480,7 +876,11 @@
         var auditStatus =
             r.auditStatus ||
             (r.status === 'submitted'
-                ? (fromBdApp ? '待总监审核' : '待BD审核')
+                ? kind === 'supplier'
+                    ? '待财务审核'
+                    : fromBdApp
+                      ? '待总监审核'
+                      : '待BD审核'
                 : r.status === 'rejected'
                   ? '审核失败'
                   : r.status === 'approved'
@@ -506,6 +906,7 @@
                 onboardingChannel: r.onboardingChannel || '汇付天下',
                 onboardingCreatedAt: r.onboardingCreatedAt || r.createdAt || '',
                 completedAt: r.onboardingCompletedAt || r.completedAt || '',
+                huifuSubmittedAt: r.huifuSubmittedAt || '',
                 mccIndustry: r.mccIndustry || '',
                 reqSeqId: r.reqSeqId || '',
                 extMerId: r.extMerId || '',
@@ -620,7 +1021,7 @@
             (item.ext.creator || '—') +
             '</td>' +
             '<td>' +
-            toTimeText(item.submittedAt) +
+            toTimeText(item.ext.onboardingCreatedAt || item.submittedAt) +
             '</td>' +
             '<td>' +
             toTimeText(item.updatedAt) +
@@ -790,7 +1191,12 @@
             ['审核环节', auditStepText(item)],
             ['进件渠道', pickText(ext.onboardingChannel, '汇付天下')],
             ['创建时间', toTimeText(ext.onboardingCreatedAt || item.submittedAt)],
-            ['提交汇付时间', reachedHuifu(item.auditStatus) ? toTimeText(item.submittedAt) : '—'],
+            [
+                '提交汇付时间',
+                reachedHuifu(item.auditStatus)
+                    ? toTimeText(ext.huifuSubmittedAt || item.submittedAt)
+                    : '—'
+            ],
             [
                 '汇付审核完成时间',
                 item.auditStatus === '审核成功' ? toTimeText(ext.completedAt) : '—'
@@ -804,14 +1210,14 @@
         if (item.auditStatus === '审核失败' || ext.rejectReason) {
             flowRows.push(['驳回原因', pickText(ext.rejectReason)]);
         }
-        addSection('进件流程信息', flowRows);
+        addSection('进件信息', flowRows);
         var firstTitle = body.querySelector('.supplier-detail-section-title');
         if (firstTitle) {
-            var desc = el('div', 'onb-audit-section-desc', '审核流转与关键时间');
+            var desc = el('div', 'onb-audit-section-desc', '进件基础信息与关键时间');
             firstTitle.insertAdjacentElement('afterend', desc);
         }
         addSection('执照信息', [
-            ['营业执照(F07)', fields.license_pic, 'image'],
+            ['营业执照', fields.license_pic, 'image'],
             ['营业执照名称', pickText(lic.name, ext.regName)],
             ['证件代码', pickText(lic.code, ext.licenseCode)],
             ['执照起始日期', pickText(lic.start_date, ext.licenseBeginDate)],
@@ -819,11 +1225,11 @@
             ['注册地址', pickText(lic.address, ext.regDetail)]
         ]);
         addSection('法人信息', [
-            ['法人身份证人像面(F02)', fields.legal_cert_front_pic, 'image'],
-            ['法人身份证国徽面(F03)', fields.legal_cert_back_pic, 'image'],
+            ['法人身份证人像面', fields.legal_cert_front_pic, 'image'],
+            ['法人身份证国徽面', fields.legal_cert_back_pic, 'image'],
             ['证件类型', pickText(legal.cert_type, ext.legalCertType, '身份证')],
             ['法人姓名', pickText(legal.legal_name, ext.legalName)],
-            ['身份证号', pickText(legal.id_no, ext.idMasked)],
+            ['身份证号', pickText(legal.id_no, ext.legalCertNo, ext.idNumber)],
             ['身份证起始日期', pickText(legal.id_start_date, ext.legalCertBeginDate)],
             ['身份证有效期', pickText(legal.id_valid_date, ext.legalCertEndDate)]
         ]);
@@ -843,9 +1249,9 @@
             ['开户支行', fieldText(card.bank_branch)]
         ]);
         addSection('门店场地', [
-            ['门头/场地照(F22)', fields.store_header_pic, 'image'],
-            ['内景/工作区域照(F24)', fields.store_indoor_pic, 'image'],
-            ['收银台/前台照(F105)', fields.store_cashier_desk_pic, 'image']
+            ['门头/场地照', fields.store_header_pic, 'image'],
+            ['内景/工作区域照', fields.store_indoor_pic, 'image'],
+            ['收银台/前台照', fields.store_cashier_desk_pic, 'image']
         ]);
         if (item.kind === 'supplier') {
             var signed = !!(agreement && agreement.signed) || !!fields.payment_agreement_signed;
@@ -906,7 +1312,14 @@
         document.body.appendChild(backdrop);
     }
 
-    function nextStatusByApprove(status) {
+    function nextStatusByApprove(status, kind) {
+        if (kind === 'supplier') {
+            if (status === '待BD审核' || status === '待总监审核' || status === '待财务审核') {
+                return '待汇付审核';
+            }
+            if (status === '待汇付审核') return '审核成功';
+            return status;
+        }
         if (status === '待BD审核') return '待总监审核';
         if (status === '待总监审核') return '待财务审核';
         if (status === '待财务审核') return '待汇付审核';
@@ -978,7 +1391,12 @@
         var reject = el('button', 'erp-btn', '驳回');
         reject.type = 'button';
         reject.addEventListener('click', function () {
-            pushOnbAuditLog(item, '驳回', readOnbOpinion(body));
+            var reason = readOnbOpinion(body);
+            if (!reason) {
+                showToast('请填写驳回原因', 'error');
+                return;
+            }
+            pushOnbAuditLog(item, '驳回', reason);
             item.auditStatus = '审核失败';
             item.node = nodeByStatus(item.auditStatus);
             saveNormalized(item);
@@ -990,7 +1408,7 @@
         approve.type = 'button';
         approve.addEventListener('click', function () {
             pushOnbAuditLog(item, '通过', readOnbOpinion(body));
-            item.auditStatus = nextStatusByApprove(item.auditStatus);
+            item.auditStatus = nextStatusByApprove(item.auditStatus, item.kind);
             item.node = nodeByStatus(item.auditStatus);
             saveNormalized(item);
             backdrop.remove();

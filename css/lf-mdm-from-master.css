@@ -2946,6 +2946,33 @@ select.store-ledger-filter__control {
   box-sizing: border-box;
 }
 
+.unified-onboard-id-valid-ctrl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  min-width: 0;
+}
+
+.unified-onboard-id-valid-ctrl .erp-input {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.unified-onboard-id-valid-forever {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #475569;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.unified-onboard-id-valid-forever input {
+  margin: 0;
+}
+
 .unified-onboard-ocr-wrap + .store-form__upload-hint {
   margin-left: 2px;
 }
