@@ -3799,7 +3799,7 @@
                 };
                 tbody.querySelectorAll('tr').forEach(function (tr) {
                     var cells = tr.querySelectorAll('td');
-                    if (cells.length < 12) return;
+                    if (cells.length < 13) return;
                     var ok = true;
                     if (qS && cells[2].textContent.trim().indexOf(qS) === -1) ok = false;
                     if (qType && cells[3].textContent.trim() !== qType) ok = false;
