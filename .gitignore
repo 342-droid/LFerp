@@ -10,8 +10,11 @@ docs/异常订单结算流程图/
 docs/结算规则总概述.md
 
 # PRD 文档：仅本地查阅，一律不纳入版本库、不推远端
-docs/PRD*.md
-docs/PRD*.docx
-docs/PRD*.pdf
+docs/**/*PRD*.md
+docs/**/*PRD*.docx
+docs/**/*PRD*.pdf
 AGENTS.md
 .agents/skills/
+
+# 原型生成：版本清单与 PRD 仅本机，不入库、不推远端
+.local/

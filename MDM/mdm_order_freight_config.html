@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰订单 - 运费配置</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-settle-freight.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/order-sidebar.js"></script>
+
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="settle-freight-page">
+                <section class="erp-page__card">
+                    <form class="sf-filter-form" id="sfFilterForm" onsubmit="return false;">
+                        <div class="sf-filter-grid" id="sfFilterGrid">
+                            <div class="sf-filter-field">
+                                <label class="sf-filter-field__label" for="sfCode">费用模板编码</label>
+                                <input class="sf-filter-field__input" id="sfCode" type="text" placeholder="请输入费用模板编码" autocomplete="off">
+                            </div>
+                            <div class="sf-filter-field">
+                                <label class="sf-filter-field__label" for="sfName">费用模板名称</label>
+                                <input class="sf-filter-field__input" id="sfName" type="text" placeholder="请输入模板名称" autocomplete="off">
+                            </div>
+                            <div class="sf-filter-field">
+                                <label class="sf-filter-field__label" for="sfAppPort">应用端口</label>
+                                <select class="sf-filter-field__input" id="sfAppPort" aria-label="应用端口">
+                                    <option value="">全部</option>
+                                    <option value="代采端">代采端</option>
+                                    <option value="c端">c端</option>
+                                </select>
+                            </div>
+                            <div class="sf-filter-field">
+                                <label class="sf-filter-field__label" for="sfFulfillment">履约方式</label>
+                                <select class="sf-filter-field__input" id="sfFulfillment" aria-label="履约方式">
+                                    <option value="">全部</option>
+                                    <option value="配送">配送</option>
+                                    <option value="自提">自提</option>
+                                    <option value="快递">快递</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="sf-filter-actions">
+                            <button type="button" class="sf-btn sf-btn--primary" id="sfFilterQuery">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                                查询
+                            </button>
+                            <button type="button" class="sf-btn sf-btn--default" id="sfFilterReset">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M5 19a9 9 0 0014-7"/><path d="M19 5a9 9 0 00-14 7"/></svg>
+                                重置
+                            </button>
+                            <button type="button" class="sf-btn sf-btn--text" id="sfFilterCollapse" aria-expanded="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+                                <span id="sfFilterCollapseLabel">收起</span>
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="erp-page__card">
+                    <div class="sf-toolbar">
+                        <div class="sf-toolbar__left">
+                            <button type="button" class="sf-btn sf-btn--primary" id="sfAddBtn">+ 新增</button>
+                            <button type="button" class="sf-btn sf-btn--danger" id="sfDeleteBtn" disabled>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 7h14"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 14h10l1-14"/><path d="M9 7V5h6v2"/></svg>
+                                删除
+                            </button>
+                        </div>
+                        <div class="sf-toolbar__right">
+                            <button type="button" class="sf-toolbar__icon-btn" title="刷新" aria-label="刷新" id="sfRefreshBtn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                            </button>
+                            <button type="button" class="sf-toolbar__icon-btn" title="列设置" aria-label="列设置">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="sf-table-wrap">
+                        <table class="sf-table" id="sfTable">
+                            <thead>
+                                <tr>
+                                    <th class="sf-table__check"><input type="checkbox" id="sfCheckAll" aria-label="全选"></th>
+                                    <th class="sf-table__index">序号</th>
+                                    <th class="sf-table__code">费用模板编码</th>
+                                    <th class="sf-table__name">费用模板名称</th>
+                                    <th class="sf-table__port">应用端口</th>
+                                    <th class="sf-table__fulfillment">履约方式</th>
+                                    <th class="sf-table__valid">有效期</th>
+                                    <th class="sf-table__billing-method">计费方式</th>
+                                    <th class="sf-table__action">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sfTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="sf-empty" id="sfEmpty" hidden>暂无费用模板数据</div>
+
+                    <div class="sf-pagination" id="sfPagination">
+                        <span id="sfPaginationTotal">共 0 条</span>
+                        <select class="sf-pagination__size" id="sfPageSize" aria-label="每页条数"></select>
+                        <div class="sf-pagination__pages" id="sfPaginationPages"></div>
+                        <div class="sf-pagination__jump">
+                            前往
+                            <input type="text" id="sfJumpPage" inputmode="numeric" aria-label="跳转页码">
+                            <button type="button" class="sf-page-btn" id="sfJumpGo">页</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-settle-freight-config.js"></script>
+</body>
+</html>

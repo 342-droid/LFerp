@@ -401,7 +401,95 @@
         }
     }
 
-    function approveAudit(row) {
+    function formatAuditNow() {
+        var d = new Date();
+        var p = function (n) {
+            return String(n).padStart(2, '0');
+        };
+        return (
+            d.getFullYear() +
+            '-' +
+            p(d.getMonth() + 1) +
+            '-' +
+            p(d.getDate()) +
+            ' ' +
+            p(d.getHours()) +
+            ':' +
+            p(d.getMinutes())
+        );
+    }
+
+    function currentRegNodeLabel(row) {
+        if (isSupplierAuditRow(row)) return '财务审核';
+        if (row.auditStatus === '待审核') return 'BD 审核';
+        if (row.auditStatus === '待总监审核') return 'BD 总监终审';
+        return row.auditStatus || '审核';
+    }
+
+    function currentRegReviewer(row) {
+        if (isSupplierAuditRow(row)) return '财务总监 赵敏';
+        if (row.auditStatus === '待总监审核') return 'BD总监 李静';
+        if (row.bd && row.bd !== '—') return row.bd;
+        return 'BD 王强';
+    }
+
+    function pushAuditLog(row, result, reason) {
+        if (!row.auditLogs) row.auditLogs = [];
+        row.auditLogs.push({
+            node: currentRegNodeLabel(row),
+            reviewer: currentRegReviewer(row),
+            time: formatAuditNow(),
+            result: result,
+            reason: String(reason || '').trim()
+        });
+    }
+
+    function appendAuditLogTable(parent, logs) {
+        parent.appendChild(el('div', 'supplier-detail-section-title', '审核记录'));
+        var list = logs || [];
+        if (!list.length) {
+            parent.appendChild(el('div', 'audit-empty-note', '暂无审核记录'));
+            return;
+        }
+        var table = el('table', 'audit-log-table');
+        var thead = el('thead');
+        var hr = el('tr');
+        ['审核环节', '审核人', '审核时间', '审核结果', '原因'].forEach(function (h) {
+            hr.appendChild(el('th', '', h));
+        });
+        thead.appendChild(hr);
+        table.appendChild(thead);
+        var tbody = el('tbody');
+        list.forEach(function (log) {
+            var tr = el('tr');
+            tr.appendChild(el('td', '', log.node || '—'));
+            tr.appendChild(el('td', '', log.reviewer || '—'));
+            tr.appendChild(el('td', '', log.time || '—'));
+            tr.appendChild(el('td', '', log.result || '—'));
+            tr.appendChild(el('td', '', log.reason || '—'));
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        parent.appendChild(table);
+    }
+
+    function appendOpinionBox(parent) {
+        parent.appendChild(el('div', 'supplier-detail-section-title', '审核意见'));
+        parent.appendChild(el('p', 'audit-reason-hint', '驳回原因必填，通过原因选填，最多100字'));
+        var ta = textareaInput('驳回时必填；通过时选填，最多100字', '', 3);
+        ta.maxLength = 100;
+        ta.setAttribute('data-audit-opinion', '1');
+        parent.appendChild(ta);
+        return ta;
+    }
+
+    function readOpinion(root) {
+        var ta = root && root.querySelector('[data-audit-opinion]');
+        return ta ? String(ta.value || '').trim().slice(0, 100) : '';
+    }
+
+    function approveAudit(row, reason) {
+        pushAuditLog(row, '通过', reason);
         /* 供应商：财务总监一道审核，待审核直接 → 审核成功 */
         if (isSupplierAuditRow(row)) {
             if (row.auditStatus === '待审核') {
@@ -421,7 +509,9 @@
         }
     }
 
-    function rejectAudit(row) {
+    function rejectAudit(row, reason) {
+        pushAuditLog(row, '驳回', reason);
+        row.rejectReason = String(reason || '').trim();
         row.auditStatus = '审核失败';
         row.mdmStatus = '未生成';
     }
@@ -610,7 +700,9 @@
             verifyCode: '123456',
             auditStatus: '待审核',
             mdmStatus: '未生成',
+            createdBy: '周经理',
             submittedAt: '2026-05-07 15:20',
+            auditLogs: [],
             storeType: '社区生鲜店',
             partnerDivision: '加盟店',
             warehouse: '华东 RDC-杭州',
@@ -654,7 +746,17 @@
             verifyCode: '123456',
             auditStatus: '待总监审核',
             mdmStatus: '未生成',
+            createdBy: '李四',
             submittedAt: '2026-05-07 14:58',
+            auditLogs: [
+                {
+                    node: 'BD 审核',
+                    reviewer: '李四',
+                    time: '2026-05-07 15:10',
+                    result: '通过',
+                    reason: '门店资料齐全'
+                }
+            ],
             storeType: '团购自提点',
             partnerDivision: '合作店',
             warehouse: '沪东前置仓',
@@ -698,7 +800,18 @@
             verifyCode: '123456',
             auditStatus: '审核失败',
             mdmStatus: '未生成',
+            createdBy: '王强',
             submittedAt: '2026-05-06 09:12',
+            rejectReason: '需补充门头清晰照与视频',
+            auditLogs: [
+                {
+                    node: 'BD 审核',
+                    reviewer: '王强',
+                    time: '2026-05-06 10:20',
+                    result: '驳回',
+                    reason: '需补充门头清晰照与视频'
+                }
+            ],
             storeType: '社区便利店',
             partnerDivision: '加盟店',
             warehouse: '华东 RDC-杭州',
@@ -739,7 +852,24 @@
             verifyCode: '123456',
             auditStatus: '审核成功',
             mdmStatus: '已生成主体与门店档案',
+            createdBy: '赵小九',
             submittedAt: '2026-05-06 18:36',
+            auditLogs: [
+                {
+                    node: 'BD 审核',
+                    reviewer: '赵小九',
+                    time: '2026-05-06 16:40',
+                    result: '通过',
+                    reason: ''
+                },
+                {
+                    node: 'BD 总监终审',
+                    reviewer: 'BD总监 李静',
+                    time: '2026-05-06 18:20',
+                    result: '通过',
+                    reason: '区域保护边界已确认'
+                }
+            ],
             storeType: '快闪零售',
             partnerDivision: '同行店',
             warehouse: '沪东前置仓',
@@ -770,7 +900,9 @@
             phone: '13800132210',
             auditStatus: '待审核',
             mdmStatus: '未生成',
-            submittedAt: '2026-05-08 10:15'
+            createdBy: '王敏',
+            submittedAt: '2026-05-08 10:15',
+            auditLogs: []
         },
         {
             id: 'WF-SUP-20260507010',
@@ -783,7 +915,18 @@
             phone: '15912347788',
             auditStatus: '审核失败',
             mdmStatus: '未生成',
-            submittedAt: '2026-05-07 11:40'
+            createdBy: '钱多多',
+            submittedAt: '2026-05-07 11:40',
+            rejectReason: '结算信息不完整',
+            auditLogs: [
+                {
+                    node: '财务审核',
+                    reviewer: '财务总监 赵敏',
+                    time: '2026-05-07 14:05',
+                    result: '驳回',
+                    reason: '结算信息不完整'
+                }
+            ]
         },
         {
             id: 'WF-SUP-20260506020',
@@ -796,7 +939,17 @@
             phone: '15912347788',
             auditStatus: '审核成功',
             mdmStatus: '已生成主体与供应商档案',
-            submittedAt: '2026-05-06 16:08'
+            createdBy: '牛强',
+            submittedAt: '2026-05-06 16:08',
+            auditLogs: [
+                {
+                    node: '财务审核',
+                    reviewer: '财务总监 赵敏',
+                    time: '2026-05-06 15:50',
+                    result: '通过',
+                    reason: '资料审核通过'
+                }
+            ]
         }
     ];
 
@@ -833,7 +986,7 @@
 
     function applyRowToDom(tr, rec) {
         var cells = tr.querySelectorAll('td');
-        if (cells.length < 12) return;
+        if (cells.length < 13) return;
         cells[1].textContent = rec.source || '';
         cells[2].textContent = rec.subjectName || '';
         cells[3].textContent = rec.subjectType || '门店';
@@ -843,8 +996,10 @@
         cells[7].textContent = rec.phone || '';
         cells[8].innerHTML = statusCellHtml(rec.auditStatus);
         cells[9].innerHTML = statusCellHtml(rec.mdmStatus);
-        cells[11].className = 'action-links';
-        cells[11].innerHTML = renderActionHtml(rec);
+        cells[10].textContent = rec.createdBy || rec.creator || '—';
+        cells[11].textContent = rec.submittedAt || '';
+        cells[12].className = 'action-links';
+        cells[12].innerHTML = renderActionHtml(rec);
     }
 
     function openAuditDetail(row) {
@@ -869,6 +1024,7 @@
         body.appendChild(el('div', 'supplier-detail-section-title', '状态信息'));
         body.appendChild(detailRow('审核状态', row.auditStatus));
         body.appendChild(detailRow('MDM状态', row.mdmStatus));
+        appendAuditLogTable(body, row.auditLogs);
 
         var footer = el('div', 'erp-modal__footer');
         var ok = mkBtn('关闭', true);
@@ -970,6 +1126,10 @@
             body.appendChild(detailRow('当前环节', phaseLabel));
             body.appendChild(detailRow('审核状态', row.auditStatus));
             appendRegistrationFields(body, row);
+            appendAuditLogTable(body, row.auditLogs);
+            if (row.auditStatus === '待审核' || row.auditStatus === '待总监审核') {
+                appendOpinionBox(body);
+            }
 
             var cancel = mkBtn('取消', false);
             cancel.addEventListener('click', function () {
@@ -985,14 +1145,19 @@
                 }
                 var reject = mkBtn('驳回', false);
                 reject.addEventListener('click', function () {
-                    rejectAudit(row);
+                    var reason = readOpinion(body);
+                    if (!reason) {
+                        showToast('请填写驳回原因', 'error');
+                        return;
+                    }
+                    rejectAudit(row, reason);
                     backdrop.remove();
                     onDone();
                     showToast(isSup ? '财务已驳回申请（演示）' : '已驳回申请（演示）', 'info');
                 });
                 var approve = mkBtn('审核通过', true);
                 approve.addEventListener('click', function () {
-                    approveAudit(row);
+                    approveAudit(row, readOpinion(body));
                     backdrop.remove();
                     onDone();
                     showToast(
@@ -1005,14 +1170,19 @@
             } else if (!isSup && row.auditStatus === '待总监审核') {
                 var reject2 = mkBtn('驳回', false);
                 reject2.addEventListener('click', function () {
-                    rejectAudit(row);
+                    var reason = readOpinion(body);
+                    if (!reason) {
+                        showToast('请填写驳回原因', 'error');
+                        return;
+                    }
+                    rejectAudit(row, reason);
                     backdrop.remove();
                     onDone();
                     showToast('已驳回申请（演示）', 'info');
                 });
                 var approve2 = mkBtn('审核通过', true);
                 approve2.addEventListener('click', function () {
-                    approveAudit(row);
+                    approveAudit(row, readOpinion(body));
                     backdrop.remove();
                     onDone();
                     showToast('审核已处理（演示）', 'success');

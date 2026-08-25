@@ -79,6 +79,30 @@
     return true;
   }
 
+  function findCheckCol(row) {
+    return row ? row.querySelector('.order-live-table__check-col') : null;
+  }
+
+  function insertSerialAfterCheck(row, cell) {
+    var check = findCheckCol(row);
+    if (check) {
+      if (check.nextSibling) row.insertBefore(cell, check.nextSibling);
+      else row.appendChild(cell);
+      return;
+    }
+    row.insertBefore(cell, row.firstChild);
+  }
+
+  function placeSerialCell(row, cell) {
+    var check = findCheckCol(row);
+    var desiredPrev = check || null;
+    if (desiredPrev) {
+      if (cell.previousSibling !== desiredPrev) insertSerialAfterCheck(row, cell);
+      return;
+    }
+    if (row.firstChild !== cell) row.insertBefore(cell, row.firstChild);
+  }
+
   function ensureColForSerial(table) {
     var colgroup = table.querySelector('colgroup');
     if (!colgroup) return;
@@ -86,7 +110,10 @@
     var col = document.createElement('col');
     col.className = 'lf-row-no-col product-proxy-table__col';
     col.style.width = '56px';
-    colgroup.insertBefore(col, colgroup.firstChild);
+    var checkCol = colgroup.querySelector('.order-live-table__check-col, col.order-live-table__check-col');
+    if (checkCol && checkCol.nextSibling) colgroup.insertBefore(col, checkCol.nextSibling);
+    else if (checkCol) colgroup.appendChild(col);
+    else colgroup.insertBefore(col, colgroup.firstChild);
   }
 
   function ensureSerialHeader(table) {
@@ -103,8 +130,10 @@
       th.className = 'lf-row-no-th';
       th.textContent = '序号';
       th.scope = 'col';
-      headerRow.insertBefore(th, headerRow.firstChild);
+      insertSerialAfterCheck(headerRow, th);
       ensureColForSerial(table);
+    } else {
+      placeSerialCell(headerRow, existing);
     }
     table.classList.add('lf-row-no-on');
     table.classList.remove('lf-row-no-native');
@@ -131,8 +160,24 @@
     return rows;
   }
 
+  function parseTotalText(text) {
+    var m = String(text || '').match(/共\s*(\d+)\s*条/);
+    return m ? parseInt(m[1], 10) : NaN;
+  }
+
+  function closestListRoot(table) {
+    return (
+      table.closest('.table-section') ||
+      table.closest('.order-table-card') ||
+      table.closest('.aftersale-table-card') ||
+      table.closest('.member-tab-panel') ||
+      table.closest('.main-content') ||
+      document
+    );
+  }
+
   /**
-   * 跨页连续编号：根据分页文案推断起始序号（从 0 起的 reset 值）
+   * 跨页连续编号：根据分页文案推断起始偏移（从 0 起）
    */
   function inferCounterReset(table) {
     var explicit = table.getAttribute('data-lf-row-start');
@@ -141,11 +186,7 @@
       return isNaN(n) ? 0 : Math.max(0, n);
     }
 
-    var root =
-      table.closest('.table-section') ||
-      table.closest('.member-tab-panel') ||
-      table.closest('.main-content') ||
-      document;
+    var root = closestListRoot(table);
 
     var info = root.querySelector('.pagination-info');
     if (info) {
@@ -176,11 +217,34 @@
     return 0;
   }
 
+  /**
+   * 全量条数：优先 data-lf-row-total，其次分页「共 N 条」
+   */
+  function inferTotalCount(table, start, pageRowCount) {
+    var explicit = table.getAttribute('data-lf-row-total');
+    if (explicit != null && explicit !== '') {
+      var n = parseInt(explicit, 10);
+      if (!isNaN(n) && n >= 0) return n;
+    }
+
+    var root = closestListRoot(table);
+    var nodes = root.querySelectorAll(
+      '.pagination-info, .order-pagination, .aftersale-pagination, .erp-pagination__total, .queue-pagination__total, [class*="pagination__total"], [id$="PaginationTotal"], [id$="Total"]'
+    );
+    var i;
+    for (i = 0; i < nodes.length; i++) {
+      var total = parseTotalText(nodes[i].textContent);
+      if (!isNaN(total)) return total;
+    }
+    return Math.max(start + pageRowCount, pageRowCount);
+  }
+
   function syncRowNumbers(table) {
     var tbody = table.tBodies[0];
     if (!tbody) return;
     var rows = visibleDataRows(tbody);
     var start = inferCounterReset(table);
+    var total = inferTotalCount(table, start, rows.length);
     var i;
     for (i = 0; i < rows.length; i++) {
       var tr = rows[i];
@@ -188,12 +252,12 @@
       if (!td) {
         td = document.createElement('td');
         td.className = 'lf-row-no-td';
-        tr.insertBefore(td, tr.firstChild);
-      } else if (tr.firstChild !== td) {
-        tr.insertBefore(td, tr.firstChild);
+        insertSerialAfterCheck(tr, td);
+      } else {
+        placeSerialCell(tr, td);
       }
-      /* 自上而下 1、2、3…（列表本身按创建时间倒序时，视觉上仍从 1 起编） */
-      td.textContent = String(start + i + 1);
+      /* 序号倒序：全量结果从大到小编号，跨页连续 */
+      td.textContent = String(Math.max(1, total - start - i));
     }
 
     /* 隐藏行也补齐空序号格，避免列错位 */
@@ -205,7 +269,7 @@
       var empty = document.createElement('td');
       empty.className = 'lf-row-no-td';
       empty.textContent = '';
-      row.insertBefore(empty, row.firstChild);
+      insertSerialAfterCheck(row, empty);
     }
   }
 

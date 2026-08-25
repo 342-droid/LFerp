@@ -156,6 +156,160 @@
     return null;
   }
 
+  function saleApi() {
+    return window.UaProductSaleTime;
+  }
+
+  function restockSaleOpts() {
+    return saleApi() && saleApi().restockSaleOptions
+      ? saleApi().restockSaleOptions()
+      : { ignoreStoreHours: true };
+  }
+
+  function unsaleableLabel() {
+    return (saleApi() && saleApi().UNSALEABLE_LABEL) || '商品不可售';
+  }
+
+  function isCheckoutItemSaleable(item) {
+    if (!saleApi() || typeof saleApi().isSaleableNow !== 'function') return true;
+    return !!saleApi().isSaleableNow(item, restockSaleOpts());
+  }
+
+  function listCheckoutItems() {
+    var items = [];
+    (state.suppliers || []).forEach(function (sup) {
+      (sup.packages || []).forEach(function (pkg) {
+        (pkg.items || []).forEach(function (it) {
+          items.push(it);
+        });
+      });
+    });
+    return items;
+  }
+
+  function removeCheckoutItems(ids) {
+    var map = {};
+    (ids || []).forEach(function (id) {
+      map[String(id)] = true;
+    });
+    (state.suppliers || []).forEach(function (sup) {
+      (sup.packages || []).forEach(function (pkg) {
+        pkg.items = (pkg.items || []).filter(function (it) {
+          return !map[String(it.id)];
+        });
+      });
+      sup.packages = (sup.packages || []).filter(function (pkg) {
+        return pkg.items && pkg.items.length;
+      });
+    });
+    state.suppliers = (state.suppliers || []).filter(function (sup) {
+      return sup.packages && sup.packages.length;
+    });
+  }
+
+  function persistCheckoutPayload() {
+    try {
+      var payload = readCheckoutPayload() || {};
+      payload.items = listCheckoutItems();
+      payload.invalidItems = state.invalidItems || [];
+      sessionStorage.setItem(CHECKOUT_KEY, JSON.stringify(payload));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function cartBackHref() {
+    var params = new URLSearchParams(window.location.search);
+    var fromStore = params.get('port') === 'store-app' || params.get('from') === 'store-app';
+    return fromStore ? 'restock.html?from=store-app&tab=cart' : 'restock.html?tab=cart';
+  }
+
+  function renderCheckoutInvalid() {
+    var el = document.getElementById('checkoutInvalidWrap');
+    if (!el) return;
+    var items = state.invalidItems || [];
+    if (!items.length) {
+      el.innerHTML = '';
+      return;
+    }
+    el.innerHTML =
+      '<section class="ua-invalid-goods" id="checkoutInvalid">' +
+      '<div class="ua-invalid-goods__head">失效宝贝' +
+      items.length +
+      '件</div>' +
+      items
+        .map(function (item) {
+          return (
+            '<article class="ua-invalid-goods__item">' +
+            '<span class="ua-invalid-goods__mark">失效</span>' +
+            '<div class="ua-invalid-goods__thumb"><img src="' +
+            (item.img || '../assets/restock/product-leaf.svg') +
+            '" alt=""></div>' +
+            '<div class="ua-invalid-goods__body">' +
+            '<div class="ua-invalid-goods__name">' +
+            (item.title || '') +
+            (item.spec ? ' ' + item.spec : '') +
+            '</div>' +
+            '<div class="ua-invalid-goods__reason">' +
+            (item.reason || unsaleableLabel()) +
+            '</div></div></article>'
+          );
+        })
+        .join('') +
+      '</section>';
+  }
+
+  function applyCheckoutSaleableGuard() {
+    var items = listCheckoutItems();
+    var unsaleable = items.filter(function (it) {
+      return !isCheckoutItemSaleable(it);
+    });
+    if (!unsaleable.length) {
+      if (!items.length) {
+        if (saleApi() && saleApi().showSaleDialog) {
+          saleApi().showSaleDialog({
+            title: saleApi().SALE_DIALOG_ALL_TITLE,
+            text: saleApi().SALE_DIALOG_ALL,
+            okText: '确定',
+            onDone: function () {
+              window.location.href = cartBackHref();
+            }
+          });
+        }
+        return false;
+      }
+      return true;
+    }
+    state.invalidItems = (state.invalidItems || []).concat(unsaleable);
+    removeCheckoutItems(
+      unsaleable.map(function (it) {
+        return it.id;
+      })
+    );
+    persistCheckoutPayload();
+    renderAll();
+    if (!listCheckoutItems().length) {
+      if (saleApi() && saleApi().showSaleDialog) {
+        saleApi().showSaleDialog({
+          title: saleApi().SALE_DIALOG_ALL_TITLE,
+          text: saleApi().SALE_DIALOG_ALL,
+          okText: '确定',
+          onDone: function () {
+            window.location.href = cartBackHref();
+          }
+        });
+      }
+      return false;
+    }
+    if (saleApi() && saleApi().showSaleDialog) {
+      saleApi().showSaleDialog({
+        title: saleApi().SALE_DIALOG_PARTIAL_TITLE,
+        text: saleApi().SALE_DIALOG_PARTIAL_CONFIRM
+      });
+    }
+    return false;
+  }
+
   function getDefaultCheckoutState() {
     return {
       store: {
@@ -377,6 +531,7 @@
       state = getDefaultCheckoutState();
     }
     applyDefaultDeliveryTimes();
+    state.invalidItems = (payload && Array.isArray(payload.invalidItems) ? payload.invalidItems : []) || [];
     autoSelectCoupon();
   }
 
@@ -981,6 +1136,7 @@
   function renderAll() {
     renderStore();
     renderSuppliers();
+    renderCheckoutInvalid();
     renderSummary();
   }
 
@@ -1660,8 +1816,7 @@
    * 2) 余额不足 / 未用余额 → 须勾选支付宝/微信后跳三方收单
    */
   function onSubmitOrder() {
-    /* 黑名单禁用「下单」：确认/提交订单拦截 */
-    if (window.UaBlacklistGuard && window.UaBlacklistGuard.guardOrderSubmit()) return;
+    if (!applyCheckoutSaleableGuard()) return;
     if (!validateBeforeSubmit()) return;
     var legs = getPayLegs();
     if (payState.useBalance && legs.balanceOnly) {
@@ -1820,7 +1975,7 @@
     var params = new URLSearchParams(window.location.search);
     var back = document.getElementById('checkoutBack');
     if (back && params.get('from') === 'restock.html') {
-      back.setAttribute('href', 'restock.html?tab=cart');
+      back.setAttribute('href', cartBackHref());
     }
   }
 
@@ -1829,4 +1984,10 @@
   initPayChannelSelection();
   renderAll();
   bindEvents();
+  if (saleApi() && saleApi().mountDemoPanel) {
+    saleApi().mountDemoPanel({
+      className: 'ua-sale-time-demo--confirm',
+      variant: 'checkout'
+    });
+  }
 })();

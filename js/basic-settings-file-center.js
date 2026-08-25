@@ -466,6 +466,7 @@
     var table = $('fcTable');
     if (table) {
       table.setAttribute('data-lf-row-start', String((state.page - 1) * state.pageSize));
+      table.setAttribute('data-lf-row-total', String(rows.length));
       table.classList.remove('lf-row-no-on', 'lf-row-no-native');
       var oldTh = table.querySelector('th.lf-row-no-th');
       if (oldTh) oldTh.remove();

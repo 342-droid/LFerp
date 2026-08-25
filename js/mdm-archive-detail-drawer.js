@@ -1034,7 +1034,7 @@
         var s = String(text || '');
         if (/正常|启用|已进件|进件成功|已开通|营业|审核/.test(s)) return 'success';
         if (/冻结|停用|已拒绝|进件失败/.test(s)) return 'danger';
-        if (/进件中|未进件|未提交|筹备|停业|打烊/.test(s)) return 'warning';
+        if (/进件中|未进件|未提交|筹备|停业|打烊|休息中/.test(s)) return 'warning';
         return 'neutral';
     }
 
@@ -3988,7 +3988,9 @@
 
     /**
      * 门店 APP 钱包·账户明细 → MDM 账变记录
-     * 账户类型 = C 端「账户」字段；支付/付款方式与 C 端同口径
+     * 账户类型只记本方【余额账户】【保证金账户】，按该账户增减落账。
+     * 资金方向 = 收入 / 支出 / 划拨；支付/付款方式 = 原枚举（渠道或出款钱包）。
+     * 资金划拨仍按原链路出双分录，不改生成规则。
      */
     function mapStoreLedgerCorpBank(item) {
         var bank = String((item && (item.bankName || item.settleBankName)) || '').trim();
@@ -4041,32 +4043,25 @@
         return '—';
     }
 
-    /** 与门店 APP「账户」字段一致 */
+    /** 本方记账主体：只落余额账户 / 保证金账户 */
     function mapStoreLedgerAccountType(item) {
-        var biz = mapStoreLedgerBizType(item && item.type);
         var a = String((item && item.account) || '').trim();
-        var sub = String((item && item.subAccount) || '');
-        if (biz === '提现') {
-            if (a && a.indexOf('资金到账') < 0 && a.indexOf('余额') < 0 && a.indexOf('保证金') < 0) {
-                return a;
-            }
-            var bank = mapStoreLedgerCorpBank(item);
-            if (bank) return bank;
-            if (a.indexOf('银行') >= 0) return a;
-            return a || '—';
+        var pay = String((item && (item.payMethod || item.channel)) || '').trim();
+        var type = String((item && item.type) || '');
+        var biz = mapStoreLedgerBizType(type);
+        if (a.indexOf('保证金') >= 0 && a.indexOf('余额') < 0) return '保证金账户';
+        if (a.indexOf('余额') >= 0) return '余额账户';
+        if (pay === '保证金账户' || (pay.indexOf('保证金') >= 0 && pay.indexOf('余额') < 0)) {
+            return '保证金账户';
         }
-        if (a === '平台') return '平台';
-        if (a.indexOf('资金到账') >= 0) return '资金到账账户';
-        if (a.indexOf('保证金') >= 0 && a.indexOf('余额') >= 0) return '保证金账户/余额账户';
-        if (a.indexOf('保证金') >= 0) return '保证金账户';
-        if (a.indexOf('余额') >= 0) {
-            if (sub.indexOf('货款') >= 0) return '余额账户-货款';
-            return '余额账户';
+        if (pay === '余额账户' || pay.indexOf('余额') >= 0) return '余额账户';
+        if (biz === '保证金入账' || type === '保证金划拨入账' || biz === '保证金补缴') {
+            return '保证金账户';
         }
-        return a || '—';
+        return '余额账户';
     }
 
-    /** 与门店 APP 支付方式 / 付款方式取值一致 */
+    /** 支付/付款方式：与门店 APP 原枚举一致 */
     function mapStoreLedgerPayWay(item) {
         var m = String((item && (item.payMethod || item.channel)) || '').trim();
         if (
@@ -4104,12 +4099,20 @@
         return '—';
     }
 
-    /** 变前/变后推算用：实际变动的钱包桶（余额账户 / 保证金账户） */
-    function mapStoreLedgerWalletBucket(accountShown, payWay) {
-        if (accountShown === '余额账户' || accountShown === '保证金账户') return accountShown;
-        if (payWay === '余额账户' || payWay === '保证金账户') return payWay;
-        if (payWay === '余额账户/保证金账户') return '余额账户';
-        return '';
+    /** 本方账户实际增减，仅用于推算变前 / 变后 */
+    function mapStoreLedgerChangeDir(item) {
+        var bizDir = mapStoreLedgerDirection(item);
+        if (bizDir === '支出') return '减少';
+        if (bizDir === '收入') return '增加';
+        var accountType = mapStoreLedgerAccountType(item);
+        if (item && item.dir === 'unlock') {
+            return accountType === '保证金账户' ? '减少' : '增加';
+        }
+        if (item && item.dir === 'lock') {
+            return accountType === '保证金账户' ? '增加' : '减少';
+        }
+        if (item && item.dir === 'out') return '减少';
+        return '增加';
     }
 
     function mapStoreLedgerOperator(item) {
@@ -4173,16 +4176,16 @@
         return list.map(function (item) {
             var accountType = mapStoreLedgerAccountType(item);
             var payWay = mapStoreLedgerPayWay(item);
-            var walletBucket = mapStoreLedgerWalletBucket(accountType, payWay);
             var bizType = mapStoreLedgerBizType(item.type);
             var dir = mapStoreLedgerDirection(item);
+            var changeDir = mapStoreLedgerChangeDir(item);
             var status = mapStoreLedgerStatus(item);
             var amt = Number(item.amount) || 0;
-            var before = walletBucket ? bal[walletBucket] || 0 : 0;
+            var before = bal[accountType] || 0;
             var after = before;
-            if (walletBucket && storeLedgerAffectsBalance(status)) {
-                after = dir === '支出' ? before - amt : before + amt;
-                bal[walletBucket] = after;
+            if (storeLedgerAffectsBalance(status)) {
+                after = changeDir === '减少' ? before - amt : before + amt;
+                bal[accountType] = after;
             }
             return {
                 accountType: accountType,
@@ -4190,9 +4193,9 @@
                 time: item.time || '—',
                 bizType: bizType,
                 direction: dir,
-                beforeText: walletBucket ? moneyFn(before) : '—',
+                beforeText: moneyFn(before),
                 amountText: formatStoreLedgerAmount(dir, amt, moneyFn),
-                afterText: walletBucket ? moneyFn(after) : '—',
+                afterText: moneyFn(after),
                 status: status,
                 bizNo: item.bizNo || '—',
                 channelNo: item.channelNo || '—',
@@ -4287,19 +4290,14 @@
         var filterPanel = el('div', 'store-ledger-filter');
         var filterRow = el('div', 'store-ledger-filter__row');
 
-        var acctOpts = [['', '全部']];
-        var acctSeen = {};
-        ['余额账户', '保证金账户', '平台'].forEach(function (name) {
-            acctSeen[name] = true;
-            acctOpts.push([name, name]);
-        });
-        enriched.forEach(function (row) {
-            var name = String(row.accountType || '').trim();
-            if (!name || name === '—' || acctSeen[name]) return;
-            acctSeen[name] = true;
-            acctOpts.push([name, name]);
-        });
-        var acctSelect = ledgerSelect(acctOpts, '160px');
+        var acctSelect = ledgerSelect(
+            [
+                ['', '全部'],
+                ['余额账户', '余额账户'],
+                ['保证金账户', '保证金账户']
+            ],
+            '160px'
+        );
         filterRow.appendChild(ledgerFilterField('账户类型', acctSelect));
 
         var dateRange = el('div', 'store-ledger-daterange');

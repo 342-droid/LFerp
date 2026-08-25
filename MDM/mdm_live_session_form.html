@@ -9,8 +9,9 @@
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
     <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <link rel="stylesheet" href="../css/lf-product.css">
-    <link rel="stylesheet" href="../css/lf-live.css">
+    <link rel="stylesheet" href="../css/lf-live.css?v=20260824-unlock-start">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -25,6 +26,8 @@
             <div class="lf-live-form-toolbar">
                 <a class="lf-live-form-back" id="sessionFormBack" href="mdm_live_session.html">← 返回直播场次</a>
             </div>
+
+            <div class="mdm-biz-tip" id="sessionLiveLockTip" hidden role="note">当前场次<strong>直播中</strong>，直播间、营销模板不可修改。</div>
 
             <form id="liveSessionForm" onsubmit="return false;">
                 <div class="pts-rule-card lf-live-card">
@@ -71,12 +74,28 @@
                             <label class="pts-rule-field__label"><span class="erp-req">*</span>开播时间</label>
                             <div class="pts-rule-field__control">
                                 <input class="erp-input" id="fStartAt" type="datetime-local">
+                                <p class="pts-rule-tip">创建场次时填写的计划开播时间。</p>
                             </div>
                         </div>
                         <div class="pts-rule-field">
                             <label class="pts-rule-field__label"><span class="erp-req">*</span>结束时间</label>
                             <div class="pts-rule-field__control">
                                 <input class="erp-input" id="fEndAt" type="datetime-local">
+                                <p class="pts-rule-tip">创建场次时填写的计划结束时间。</p>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">实际开播时间</label>
+                            <div class="pts-rule-field__control">
+                                <input class="erp-input" id="fActualStartAt" readonly disabled placeholder="开播后自动记录">
+                                <p class="pts-rule-tip">中控点开始直播时写入，只读，与上方计划开播时间不是同一字段。</p>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">实际结束时间</label>
+                            <div class="pts-rule-field__control">
+                                <input class="erp-input" id="fActualEndAt" readonly disabled placeholder="关播后自动记录">
+                                <p class="pts-rule-tip">中控点关闭直播或到点自动关播时写入，只读。</p>
                             </div>
                         </div>
                         <div class="pts-rule-field">
@@ -93,83 +112,6 @@
                             <label class="pts-rule-field__label">直播简介</label>
                             <div class="pts-rule-field__control">
                                 <textarea class="erp-input lf-live-textarea" id="fIntro" rows="3" placeholder="请输入直播简介"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="pts-rule-card lf-live-card">
-                    <div class="pts-rule-card__title">关播设置</div>
-                    <div class="pts-rule-card__body">
-                        <div class="pts-rule-field">
-                            <label class="pts-rule-field__label">直播自动关播</label>
-                            <div class="pts-rule-field__control">
-                                <div class="lf-live-field-switch-row">
-                                    <button type="button" class="lf-live-switch" id="fAutoCloseEnabled" aria-pressed="false"></button>
-                                </div>
-                                <p class="pts-rule-tip">开启后，断流达到设定时长将自动结束本场直播。</p>
-                            </div>
-                        </div>
-                        <div id="fAutoCloseExtra" hidden>
-                            <div class="pts-rule-field">
-                                <label class="pts-rule-field__label"><span class="erp-req">*</span>断流自动关播</label>
-                                <div class="pts-rule-field__control">
-                                    <div class="pts-rule-unit">
-                                        <span class="pts-rule-unit__text">直播断流</span>
-                                        <input class="erp-input" id="fAutoCloseMinutes" type="number" min="0" max="1440" step="1" placeholder="0-1440">
-                                        <span class="pts-rule-unit__text">分钟后自动关播</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="pts-rule-field">
-                                <label class="pts-rule-field__label">关播后同步下架直播商品</label>
-                                <div class="pts-rule-field__control">
-                                    <div class="lf-live-field-switch-row">
-                                        <button type="button" class="lf-live-switch" id="fRemoveOnClose" aria-pressed="false"></button>
-                                    </div>
-                                    <p class="pts-rule-tip">开启后，关播时将本场所有直播商品下架，不再展示于 C 端小黄车（不改直播排品上下架）。</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="pts-rule-card lf-live-card">
-                    <div class="pts-rule-card__title">C端人数展示</div>
-                    <div class="pts-rule-card__body">
-                        <div class="pts-rule-field">
-                            <label class="pts-rule-field__label">C端人数展示</label>
-                            <div class="pts-rule-field__control">
-                                <div class="lf-live-radio-row">
-                                    <label class="lf-live-radio"><input type="radio" name="fCViewerDisplay" value="online" checked> 实际在线人数</label>
-                                    <label class="lf-live-radio"><input type="radio" name="fCViewerDisplay" value="unique"> 累计观看人数</label>
-                                    <label class="lf-live-radio"><input type="radio" name="fCViewerDisplay" value="visits"> 累计观看人次</label>
-                                </div>
-                                <p class="pts-rule-tip">展示在直播间顶部的人数口径。三种口径均可叠加初始值，以及每真实增加 1 人/次时的随机跟随人数。</p>
-                            </div>
-                        </div>
-                        <div id="fCViewerBoost">
-                            <div class="pts-rule-field">
-                                <label class="pts-rule-field__label">初始值</label>
-                                <div class="pts-rule-field__control">
-                                    <div class="pts-rule-unit">
-                                        <input class="erp-input lf-live-num-lg" id="fCViewerInitial" type="number" min="0" max="999999" step="1" placeholder="0-999999">
-                                        <span class="pts-rule-unit__text">（0-999999）</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="pts-rule-field">
-                                <label class="pts-rule-field__label">额外跟随人数</label>
-                                <div class="pts-rule-field__control">
-                                    <div class="pts-rule-unit">
-                                        <span class="pts-rule-unit__text">每真实增加 1 人/次，额外跟随随机</span>
-                                        <input class="erp-input lf-live-num-sm" id="fCViewerExtraMin" type="number" min="0" max="100" step="1" placeholder="0">
-                                        <span class="pts-rule-unit__text">-</span>
-                                        <input class="erp-input lf-live-num-sm" id="fCViewerExtraMax" type="number" min="0" max="100" step="1" placeholder="0">
-                                        <span class="pts-rule-unit__text">人（0-100）</span>
-                                    </div>
-                                    <p class="pts-rule-tip">下限不能大于上限。C 端展示 = 初始值 + 真实数量 + 每次真实增加时随机跟随的人数之和。</p>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -235,7 +177,7 @@
                             <div class="lf-live-template-bound__label">已绑定模板</div>
                             <div id="fTemplateList" class="lf-live-template-tags"></div>
                         </div>
-                        <div class="lf-live-template-form">
+                        <div class="lf-live-template-form" id="fTemplateForm">
                             <div class="pts-rule-field">
                                 <label class="pts-rule-field__label">模板类型</label>
                                 <div class="pts-rule-field__control">
@@ -278,7 +220,7 @@
     <script src="../js/common.js"></script>
     <script src="../js/mdm-product-proxy-region-picker.js"></script>
     <script src="../js/mdm-product-proxy-store-picker.js"></script>
-    <script src="../js/mdm-live-demo-data.js"></script>
-    <script src="../js/mdm-live-session-form.js"></script>
+    <script src="../js/mdm-live-demo-data.js?v=20260824-actual-time"></script>
+    <script src="../js/mdm-live-session-form.js?v=20260824-unlock-start"></script>
 </body>
 </html>

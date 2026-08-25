@@ -1,16 +1,20 @@
 /**
  * C 端 — 商品可售时间
  * 优先级：商品自定义 > 快递24小时可售 > 商品类目可售时间 > 门店自定义营业时间 > 平台默认营业时间
- * 商品可售 = 当前处于门店营业时间 ∩ 商品可售时间
+ * 商品可售 = 当前处于该商品自己的可售时间（门店营业只作未配更具体窗口时的继承，不是总开关）
+ * 跟随门店/平台的商品：店休息则不可售；自定义 / 类目 / 快递24h：自身窗口有效则店休息仍可售
+ * 门店营业时间内，商品窗口更窄的仍可不可售
+ * 代采进货端 ignoreStoreHours：不跟门店/平台营业时间，只拦自定义 / 类目 / 快递24h 窗口
  * 超过可售时间：首页/分类下架不展示；搜索/详情/购物车打「商品不可售」
  *
  * 验收开关 localStorage：ua_product_sale_demo_v1
- *   force: auto | all | partial | none
- *   （按实际时间 / 全部可售 / 部分可售 / 全部不可售）
+ *   force: auto | all | partial | none | storeRest
+ *   （按实际时间 / 全部可售 / 部分可售 / 全部不可售 / 门店休息中）
  *   applied: all | partial | none
  *   购物车/确认订单列表按 applied 展示；
  *   点「应用」回到初始可售态（applied=all）并记住 force；
- *   部分/全部不可售点立即下单/确认订单才校验、弹提示并刷新
+ *   部分/全部不可售/门店休息中：点立即下单/确认订单才校验、弹提示并刷新
+ *   storeRest：假设全部商品跟随门店营业时间，店休息则全部不可售（进货端 ignoreStoreHours 不跟店）
  *   兼容旧值 on→all、off→none
  */
 (function (global) {
@@ -21,6 +25,14 @@
   var DEMO_KEY = 'ua_product_sale_demo_v1';
   var EXPRESS_24H_RANGE = { start: '00:00', end: '23:59' };
   var UNSALEABLE_LABEL = '商品不可售';
+  var SALE_DIALOG_PARTIAL_TITLE = '部分商品不可售';
+  var SALE_DIALOG_ALL_TITLE = '商品不可售';
+  var SALE_DIALOG_PARTIAL_CART =
+    '部分商品库存不足或已不可售，已为你剔除不可售商品，可继续下单';
+  var SALE_DIALOG_PARTIAL_CONFIRM =
+    '部分商品库存不足或已不可售，已为你剔除不可售商品，可继续支付';
+  var SALE_DIALOG_ALL = '商品库存不足或已不可售，需要重新挑选产品';
+  var SALE_DIALOG_MS = 2000;
 
   function readJson(key, fallback) {
     try {
@@ -44,7 +56,13 @@
   function normalizeForce(force) {
     if (force === 'on') return 'all';
     if (force === 'off') return 'none';
-    if (force === 'all' || force === 'partial' || force === 'none' || force === 'auto') {
+    if (
+      force === 'all' ||
+      force === 'partial' ||
+      force === 'none' ||
+      force === 'auto' ||
+      force === 'storeRest'
+    ) {
       return force;
     }
     return 'auto';
@@ -248,6 +266,7 @@
 
   function isStoreOpenNow(options) {
     var demo = readDemo();
+    if (demo.force === 'storeRest') return false;
     /* 验收强制态视为营业中，便于露出商品级不可售标识 */
     if (demo.force === 'none' || demo.force === 'all' || demo.force === 'partial') return true;
     return isStoreOpenNowRaw(options);
@@ -255,21 +274,114 @@
 
   function isSaleableNow(product, options) {
     var demo = readDemo();
+    var opts = options || {};
     if (demo.force === 'all' || demo.force === 'on') return true;
     if (demo.force === 'none' || demo.force === 'off') return false;
     if (demo.force === 'partial') return !isPartialDemoUnsaleable(product);
-    return isStoreOpenNowRaw(options) && isProductWindowOpenNow(product, options);
+    /* 代采进货：不跟门店营业时间，只拦自定义 / 类目 / 快递24h */
+    if (opts.ignoreStoreHours) {
+      if (dependsOnStoreHours(product, opts)) return true;
+      return isProductWindowOpenNow(product, opts);
+    }
+    /* 验收「门店休息中」：假设全部商品跟随门店营业时间，一律不可售 */
+    if (demo.force === 'storeRest') return false;
+    return isProductWindowOpenNow(product, opts);
+  }
+
+  function restockSaleOptions(extra) {
+    return Object.assign({ ignoreStoreHours: true }, extra || {});
+  }
+
+  function isRestockChannel() {
+    try {
+      var path = String((global.location && global.location.pathname) || '');
+      if (/\/(restock|product-detail|checkout)\.html$/i.test(path)) return true;
+      var search = String((global.location && global.location.search) || '');
+      if (/from=restock/i.test(search) || /from=store-app/i.test(search)) return true;
+    } catch (e) {
+      /* ignore */
+    }
+    return false;
+  }
+
+  function showToast(msg) {
+    if (!msg) return;
+    var el = document.getElementById('uaSaleToast');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'uaSaleToast';
+      el.className = 'ua-sale-toast';
+      (document.querySelector('.ua-mobile-shell') || document.body).appendChild(el);
+    }
+    el.textContent = msg;
+    el.hidden = false;
+    clearTimeout(showToast._timer);
+    showToast._timer = setTimeout(function () {
+      el.hidden = true;
+    }, 1600);
+  }
+
+  function showSaleDialog(opts) {
+    opts = opts || {};
+    var host = document.querySelector('.ua-mobile-shell') || document.body;
+    var wrap = document.getElementById('uaSaleDialog');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.id = 'uaSaleDialog';
+      wrap.className = 'ua-sale-dialog';
+      host.appendChild(wrap);
+    }
+    wrap.innerHTML =
+      '<div class="ua-sale-dialog__card" role="alertdialog" aria-modal="true">' +
+      '<div class="ua-sale-dialog__title">' +
+      (opts.title || '') +
+      '</div>' +
+      '<div class="ua-sale-dialog__text">' +
+      (opts.text || '') +
+      '</div>' +
+      (opts.okText
+        ? '<button type="button" class="ua-sale-dialog__ok" data-sale-dialog-ok>' +
+          opts.okText +
+          '</button>'
+        : '') +
+      '</div>';
+    wrap.hidden = false;
+    var done = false;
+    function finish() {
+      if (done) return;
+      done = true;
+      wrap.hidden = true;
+      if (typeof opts.onDone === 'function') opts.onDone();
+    }
+    var ok = wrap.querySelector('[data-sale-dialog-ok]');
+    if (ok) {
+      /* 有确定按钮：只能手点关闭；未传 onDone 则刷新当页 */
+      ok.addEventListener('click', function () {
+        finish();
+        if (typeof opts.onDone !== 'function') {
+          global.location.reload();
+        }
+      });
+      clearTimeout(showSaleDialog._t);
+      return;
+    }
+    clearTimeout(showSaleDialog._t);
+    showSaleDialog._t = setTimeout(finish, opts.duration || SALE_DIALOG_MS);
+  }
+
+  /** 可售窗口是否跟随门店/平台营业时间（店休息则这类商品不可售） */
+  function dependsOnStoreHours(product, options) {
+    var t = resolveEffectiveSaleTime(product, options);
+    return !t || t.source === 'store' || t.source === 'business';
   }
 
   /**
-   * 商品卡片「今日不可售」标识：
-   * 仅当门店营业时间内、且商品仍不可售时展示；
-   * 过了门店营业时间导致的不可售不展示标识。
+   * 商品卡片「商品不可售」标识：自身窗口未到即展示。
+   * 店休息时：跟随门店的商品打标；自定义/类目/快递24h 仍在窗口内则不打标。
    */
   function shouldShowUnsaleableBadge(product, options) {
     if (!product) return false;
-    if (isSaleableNow(product, options)) return false;
-    return isStoreOpenNow(options);
+    return !isSaleableNow(product, options);
   }
 
   function assertSaleable(product, options) {
@@ -299,7 +411,12 @@
       '>部分可售</option>' +
       '<option value="none"' +
       (selected === 'none' ? ' selected' : '') +
-      '>全部不可售</option>';
+      '>全部不可售</option>' +
+      (checkout
+        ? '<option value="storeRest"' +
+          (selected === 'storeRest' ? ' selected' : '') +
+          '>门店休息中</option>'
+        : '');
     var panel = document.createElement('div');
     panel.id = 'uaSaleTimeDemo';
     panel.className = 'ua-sale-time-demo' + (opts.className ? ' ' + opts.className : '');
@@ -312,7 +429,7 @@
       optionsHtml +
       '</select></label>' +
       (checkout
-        ? '<div class="ua-sale-time-demo__tip">点应用回到初始可售。部分/全部不可售：再点立即下单或确认订单才校验并刷新</div>'
+        ? '<div class="ua-sale-time-demo__tip">点应用回到初始可售。部分/全部不可售/门店休息中：再点立即下单或确认订单才校验。门店休息中按全部商品跟随门店营业时间处理</div>'
         : '') +
       '<button type="button" class="ua-sale-time-demo__apply" id="uaSaleTimeDemoApply">应用</button>';
     document.body.appendChild(panel);
@@ -369,7 +486,17 @@
     writeDemo: writeDemo,
     resolveStoreId: resolveStoreId,
     resolveStoreBusinessHours: resolveStoreBusinessHours,
+    dependsOnStoreHours: dependsOnStoreHours,
+    restockSaleOptions: restockSaleOptions,
+    isRestockChannel: isRestockChannel,
+    showToast: showToast,
+    showSaleDialog: showSaleDialog,
     UNSALEABLE_LABEL: UNSALEABLE_LABEL,
+    SALE_DIALOG_PARTIAL_TITLE: SALE_DIALOG_PARTIAL_TITLE,
+    SALE_DIALOG_ALL_TITLE: SALE_DIALOG_ALL_TITLE,
+    SALE_DIALOG_PARTIAL_CART: SALE_DIALOG_PARTIAL_CART,
+    SALE_DIALOG_PARTIAL_CONFIRM: SALE_DIALOG_PARTIAL_CONFIRM,
+    SALE_DIALOG_ALL: SALE_DIALOG_ALL,
     DEMO_KEY: DEMO_KEY
   };
 })(typeof window !== 'undefined' ? window : this);

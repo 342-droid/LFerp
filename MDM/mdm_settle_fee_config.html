@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰结算 - 费用配置</title>
-    <link rel="stylesheet" href="../css/common.css">
-    <link rel="stylesheet" href="../css/components.css">
+    <title>冷丰订单 - 运费配置</title>
+    <script src="../js/path-prefix.js"></script>
+    <script>
+      (function () {
+        var target = 'mdm_order_freight_config.html';
+        if (window.wmsPath && typeof window.wmsPath.page === 'function') {
+          target = window.wmsPath.page(target);
+        }
+        window.location.replace(target);
+      })();
+    </script>
 </head>
 <body>
-    <div id="sidebar-container"></div>
-    <script src="../js/path-prefix.js"></script>
-    <script src="../js/settle-sidebar.js"></script>
-    <div id="header-container"></div>
-    <script src="../js/common.js"></script>
+    <p style="padding:24px;font-size:14px;color:#666;">运费配置已迁至「订单 / 运费配置」，正在跳转…</p>
 </body>
 </html>

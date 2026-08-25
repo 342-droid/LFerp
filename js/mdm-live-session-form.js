@@ -14,6 +14,8 @@
   };
 
   var editingId = '';
+  var formMode = 'create';
+  var sessStatus = '';
   var boundTemplates = [];
   var coverDataUrl = '';
   var saleRegions = {};
@@ -34,6 +36,80 @@
 
   function qs(name) {
     return new URLSearchParams(window.location.search || '').get(name) || '';
+  }
+
+  function detectFormMode() {
+    var main = document.querySelector('[data-session-mode]');
+    if (main && main.getAttribute('data-session-mode') === 'detail') return 'detail';
+    var mode = (qs('mode') || '').toLowerCase();
+    if (mode === 'detail' || mode === 'view') return 'detail';
+    if (/mdm_live_session_detail/i.test(window.location.pathname || '')) return 'detail';
+    return qs('id') ? 'edit' : 'create';
+  }
+
+  function isDetailMode() {
+    return formMode === 'detail';
+  }
+
+  function isLiveLocked() {
+    return sessStatus === 'live' && !isDetailMode();
+  }
+
+  function templatesLocked() {
+    return isDetailMode() || isLiveLocked();
+  }
+
+  function setElDisabled(id, on) {
+    var el = document.getElementById(id);
+    if (el) el.disabled = !!on;
+  }
+
+  function applyFieldLocks() {
+    var form = document.getElementById('liveSessionForm');
+    var tip = document.getElementById('sessionLiveLockTip');
+    var tplForm = document.getElementById('fTemplateForm');
+    var saveBtn = document.getElementById('sessionFormSave');
+    var cancelBtn = document.getElementById('sessionFormCancel');
+    var footer = document.querySelector('.mdm-edit-page__footer');
+
+    if (form) {
+      form.classList.toggle('lf-live-form--readonly', isDetailMode());
+      form.classList.toggle('lf-live-form--live-lock', isLiveLocked());
+    }
+    if (tip) tip.hidden = !isLiveLocked();
+    if (tplForm) tplForm.hidden = templatesLocked();
+
+    if (isDetailMode()) {
+      if (form) {
+        form.querySelectorAll('input, select, textarea, button').forEach(function (el) {
+          if (el.type === 'hidden') return;
+          el.disabled = true;
+        });
+      }
+      setElDisabled('fRegionPickBtn', true);
+      setElDisabled('fStorePickBtn', true);
+      if (saveBtn) saveBtn.hidden = true;
+      if (cancelBtn) {
+        cancelBtn.disabled = false;
+        cancelBtn.textContent = '返回';
+      }
+      if (footer) footer.classList.add('lf-live-form-footer--detail');
+      var ph = document.getElementById('fCoverPlaceholder');
+      if (ph && !coverDataUrl) ph.innerHTML = '暂无封面';
+      return;
+    }
+
+    if (saveBtn) saveBtn.hidden = false;
+    if (cancelBtn) cancelBtn.textContent = '取消';
+    setElDisabled('fStartAt', false);
+    setElDisabled('fActualStartAt', true);
+    setElDisabled('fActualEndAt', true);
+    setElDisabled('fRoom', isLiveLocked());
+    setElDisabled('fAnchorUserId', isLiveLocked());
+    setElDisabled('fTplType', templatesLocked());
+    setElDisabled('fTplName', templatesLocked() || !(document.getElementById('fTplType') || {}).value);
+    setElDisabled('fTplStock', templatesLocked());
+    setElDisabled('fTplAddBtn', templatesLocked());
   }
 
   function findSession(id) {
@@ -58,74 +134,6 @@
   function fromLocalInput(str) {
     if (!str) return '';
     return String(str).replace('T', ' ') + (str.length === 16 ? ':00' : '');
-  }
-
-  function parseAutoCloseMinutes(val) {
-    var raw = String(val == null ? '' : val).trim();
-    if (!raw) return null;
-    var n = Math.floor(Number(raw));
-    if (!isFinite(n) || n < 0) return null;
-    return n > 1440 ? 1440 : n;
-  }
-
-  function setSwitchOn(el, on) {
-    if (!el) return;
-    el.classList.toggle('is-on', !!on);
-    el.setAttribute('aria-pressed', on ? 'true' : 'false');
-  }
-
-  function isSwitchOn(el) {
-    return !!(el && el.classList.contains('is-on'));
-  }
-
-  function syncAutoCloseExtra() {
-    var extra = document.getElementById('fAutoCloseExtra');
-    if (extra) extra.hidden = !isSwitchOn(document.getElementById('fAutoCloseEnabled'));
-  }
-
-  function getCViewerDisplay() {
-    var el = document.querySelector('input[name="fCViewerDisplay"]:checked');
-    var v = el ? el.value : 'online';
-    if (v !== 'unique' && v !== 'visits') return 'online';
-    return v;
-  }
-
-  function setCViewerDisplay(v) {
-    if (v !== 'unique' && v !== 'visits') v = 'online';
-    var el = document.querySelector('input[name="fCViewerDisplay"][value="' + v + '"]');
-    if (el) el.checked = true;
-  }
-
-  function readCViewerFields() {
-    var clamp = Demo.clampInt || function (val, min, max, fallback) {
-      var n = Math.floor(Number(val));
-      if (!isFinite(n)) return fallback;
-      if (n < min) return min;
-      if (n > max) return max;
-      return n;
-    };
-    var initialMax = Demo.C_VIEWER_INITIAL_MAX || 999999;
-    var extraMax = Demo.C_VIEWER_EXTRA_MAX || 100;
-    return {
-      display: getCViewerDisplay(),
-      initial: clamp((document.getElementById('fCViewerInitial') || {}).value, 0, initialMax, 0),
-      extraMin: clamp((document.getElementById('fCViewerExtraMin') || {}).value, 0, extraMax, 0),
-      extraMax: clamp((document.getElementById('fCViewerExtraMax') || {}).value, 0, extraMax, 0)
-    };
-  }
-
-  function fillCViewerFields(sess) {
-    var cfg =
-      typeof Demo.normalizeCViewerConfig === 'function'
-        ? Demo.normalizeCViewerConfig(sess)
-        : { display: 'online', initial: 0, extraMin: 0, extraMax: 0 };
-    setCViewerDisplay(cfg.display);
-    var initialEl = document.getElementById('fCViewerInitial');
-    var minEl = document.getElementById('fCViewerExtraMin');
-    var maxEl = document.getElementById('fCViewerExtraMax');
-    if (initialEl) initialEl.value = cfg.initial;
-    if (minEl) minEl.value = cfg.extraMin;
-    if (maxEl) maxEl.value = cfg.extraMax;
   }
 
   function liveTypeLabel(v) {
@@ -331,12 +339,16 @@
       box.innerHTML = '<div class="lf-live-template-empty">当前未绑定营销模板（可为空）</div>';
       return;
     }
+    var canUnbind = !templatesLocked();
     box.innerHTML = boundTemplates
       .map(function (t) {
         var meta =
           t.stock != null && t.stock !== ''
             ? '<span class="lf-live-template-tag__meta">发放 ' + escapeHtml(String(t.stock)) + '</span>'
             : '';
+        var removeBtn = canUnbind
+          ? '<button type="button" class="lf-live-template-tag__remove" data-act="unbind" aria-label="解绑">×</button>'
+          : '';
         return (
           '<div class="lf-live-template-tag" data-id="' +
           escapeHtml(t.id) +
@@ -348,7 +360,7 @@
           escapeHtml(t.name) +
           '</span>' +
           meta +
-          '<button type="button" class="lf-live-template-tag__remove" data-act="unbind" aria-label="解绑">×</button>' +
+          removeBtn +
           '</div>'
         );
       })
@@ -364,6 +376,7 @@
       nameEl.disabled = true;
       nameEl.innerHTML = '<option value="">请先选择模板类型</option>';
       if (stockRow) stockRow.hidden = true;
+      applyFieldLocks();
       return;
     }
     var list = (Demo.marketingTemplatePool || []).filter(function (t) {
@@ -385,6 +398,7 @@
         })
         .join('');
     if (stockRow) stockRow.hidden = !(type === 'COUPON' || type === 'FORTUNE_BAG');
+    applyFieldLocks();
   }
 
   function getViewPermission() {
@@ -399,26 +413,36 @@
 
   function loadForm() {
     editingId = qs('id');
+    formMode = detectFormMode();
+    sessStatus = '';
     var tab = document.getElementById('sessionFormTab');
     var tencentCard = document.getElementById('tencentCard');
     var sess = editingId ? findSession(editingId) : null;
+    sessStatus = sess ? sess.status || '' : '';
 
-    if (tab) tab.textContent = sess ? '编辑直播场次' : '新建直播场次';
-    document.title = sess ? '冷丰WMS - 编辑直播场次' : '冷丰WMS - 新建直播场次';
+    var titleMap = {
+      detail: '直播场次详情',
+      edit: '编辑直播场次',
+      create: '新建直播场次'
+    };
+    var title = titleMap[formMode] || titleMap.create;
+    if (tab) tab.textContent = title;
+    document.title = '冷丰WMS - ' + title;
+
+    if (isDetailMode() && !sess) {
+      toast('未找到该直播场次', 'warning');
+      window.location.href = wp.page('mdm_live_session.html');
+      return;
+    }
 
     if (!editingId) {
       if (tencentCard) tencentCard.hidden = true;
       boundTemplates = [];
       renderTemplates();
       syncScopeVisibility();
-      var minutesEl = document.getElementById('fAutoCloseMinutes');
-      if (minutesEl) minutesEl.value = '';
-      setSwitchOn(document.getElementById('fAutoCloseEnabled'), false);
-      setSwitchOn(document.getElementById('fRemoveOnClose'), false);
-      syncAutoCloseExtra();
-      fillCViewerFields(null);
       resetSaleScope();
       syncSaleScopeUi();
+      applyFieldLocks();
       return;
     }
 
@@ -437,16 +461,14 @@
     document.getElementById('fAnchorName').value = sess.anchorName || '';
     document.getElementById('fStartAt').value = toLocalInput(sess.startAt);
     document.getElementById('fEndAt').value = toLocalInput(sess.endAt);
+    var actualStartEl = document.getElementById('fActualStartAt');
+    var actualEndEl = document.getElementById('fActualEndAt');
+    if (actualStartEl) actualStartEl.value = sess.actualStartAt || '';
+    if (actualEndEl) actualEndEl.value = sess.actualEndAt || '';
     document.getElementById('fIntro').value = sess.intro || '';
     document.getElementById('fCover').value = sess.cover || '';
     coverDataUrl = sess.cover || '';
     if (coverDataUrl) showCoverPreview(coverDataUrl);
-    document.getElementById('fAutoCloseMinutes').value =
-      sess.autoCloseMinutes != null ? sess.autoCloseMinutes : '';
-    setSwitchOn(document.getElementById('fAutoCloseEnabled'), !!sess.autoCloseEnabled);
-    setSwitchOn(document.getElementById('fRemoveOnClose'), !!sess.removeProductsOnClose);
-    syncAutoCloseExtra();
-    fillCViewerFields(sess);
     document.getElementById('fPushUrl').value = sess.pushUrl || '';
     document.getElementById('fPlayUrl').value = sess.playUrl || '';
     setViewPermission(sess.viewPermission || 'ALL');
@@ -456,6 +478,7 @@
     });
     renderTemplates();
     syncScopeVisibility();
+    applyFieldLocks();
   }
 
   function showCoverPreview(url) {
@@ -482,14 +505,6 @@
     if (!liveType) return toast('请选择直播类型', 'warning'), false;
     if (!startAt) return toast('请选择开播时间', 'warning'), false;
     if (!endAt) return toast('请选择结束时间', 'warning'), false;
-    if (isSwitchOn(document.getElementById('fAutoCloseEnabled'))) {
-      var autoCloseMinutes = parseAutoCloseMinutes((document.getElementById('fAutoCloseMinutes') || {}).value);
-      if (autoCloseMinutes == null) return toast('请填写 0-1440 的断流关播分钟数', 'warning'), false;
-    }
-    var viewer = readCViewerFields();
-    if (viewer.extraMin > viewer.extraMax) {
-      return toast('额外跟随人数下限不能大于上限', 'warning'), false;
-    }
     if (new Date(endAt.replace(/-/g, '/')).getTime() <= new Date(startAt.replace(/-/g, '/')).getTime()) {
       return toast('结束时间必须晚于开播时间', 'warning'), false;
     }
@@ -512,7 +527,6 @@
     var room = findRoom(roomId);
     var regions = liveType === 'REGION' ? selectedRegionsForSave() : [];
     var stores = liveType === 'TARGETED' ? selectedStoresForSave() : [];
-    var viewer = readCViewerFields();
 
     return {
       name: document.getElementById('fName').value.trim(),
@@ -528,15 +542,6 @@
       endAt: fromLocalInput(document.getElementById('fEndAt').value),
       cover: document.getElementById('fCover').value || coverDataUrl || '',
       intro: document.getElementById('fIntro').value.trim(),
-      autoCloseEnabled: isSwitchOn(document.getElementById('fAutoCloseEnabled')),
-      autoCloseMinutes: parseAutoCloseMinutes((document.getElementById('fAutoCloseMinutes') || {}).value),
-      removeProductsOnClose:
-        isSwitchOn(document.getElementById('fAutoCloseEnabled')) &&
-        isSwitchOn(document.getElementById('fRemoveOnClose')),
-      cViewerDisplay: viewer.display,
-      cViewerInitial: viewer.initial,
-      cViewerExtraMin: viewer.extraMin,
-      cViewerExtraMax: viewer.extraMax,
       viewPermission: getViewPermission(),
       regions: regions,
       saleRegions: liveType === 'REGION' ? cloneMap(saleRegions) : {},
@@ -550,6 +555,7 @@
   }
 
   function save() {
+    if (isDetailMode()) return;
     if (!validate()) return;
     var payload = collectPayload();
     var now = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -560,6 +566,18 @@
         toast('未找到该直播场次', 'warning');
         return;
       }
+      // 直播中：直播间、营销模板保持原值；计划开播时间可改
+      if (sess.status === 'live') {
+        payload.roomId = sess.roomId;
+        payload.roomName = sess.roomName;
+        payload.anchorUserId = sess.anchorUserId;
+        payload.anchorName = sess.anchorName;
+        payload.templates = (sess.templates || []).map(function (t) {
+          return Object.assign({}, t);
+        });
+      }
+      payload.actualStartAt = sess.actualStartAt || '';
+      payload.actualEndAt = sess.actualEndAt || '';
       Object.assign(sess, payload);
       toast('保存成功');
     } else {
@@ -571,6 +589,14 @@
             type: 'regular',
             typeName: '常规场',
             status: 'upcoming',
+            actualStartAt: '',
+            actualEndAt: '',
+            autoCloseEnabled: false,
+            autoCloseAt: '',
+            cViewerDisplay: 'online',
+            cViewerInitial: 0,
+            cViewerExtraMin: 0,
+            cViewerExtraMax: 0,
             pushUrl: 'rtmp://push.demo.lengfeng.com/live/' + id + '?txSecret=****',
             playUrl: 'https://play.demo.lengfeng.com/live/' + id + '.m3u8',
             createStatus: 'ENABLED',
@@ -616,13 +642,19 @@
     if (saveBtn) saveBtn.addEventListener('click', save);
 
     var roomEl = document.getElementById('fRoom');
-    if (roomEl) roomEl.addEventListener('change', syncAnchorFromRoom);
+    if (roomEl) {
+      roomEl.addEventListener('change', function () {
+        if (isDetailMode() || isLiveLocked()) return;
+        syncAnchorFromRoom();
+      });
+    }
     var typeEl = document.getElementById('fLiveType');
     if (typeEl) typeEl.addEventListener('change', syncScopeVisibility);
 
     var regionPickBtn = document.getElementById('fRegionPickBtn');
     if (regionPickBtn) {
       regionPickBtn.addEventListener('click', function () {
+        if (isDetailMode()) return;
         if (!window.MdmProxyRegionPicker) {
           toast('区域选择组件未加载', 'warning');
           return;
@@ -644,6 +676,7 @@
     var storePickBtn = document.getElementById('fStorePickBtn');
     if (storePickBtn) {
       storePickBtn.addEventListener('click', function () {
+        if (isDetailMode()) return;
         if (!window.MdmProxyStorePicker) {
           toast('门店选择组件未加载', 'warning');
           return;
@@ -658,24 +691,11 @@
       });
     }
 
-    var autoCloseSw = document.getElementById('fAutoCloseEnabled');
-    if (autoCloseSw) {
-      autoCloseSw.addEventListener('click', function () {
-        setSwitchOn(autoCloseSw, !isSwitchOn(autoCloseSw));
-        syncAutoCloseExtra();
-      });
-    }
-    var removeSw = document.getElementById('fRemoveOnClose');
-    if (removeSw) {
-      removeSw.addEventListener('click', function () {
-        setSwitchOn(removeSw, !isSwitchOn(removeSw));
-      });
-    }
-
     var coverBox = document.getElementById('fCoverBox');
     var coverFile = document.getElementById('fCoverFile');
     if (coverBox && coverFile) {
       coverBox.addEventListener('click', function () {
+        if (isDetailMode()) return;
         coverFile.click();
       });
       coverFile.addEventListener('change', function () {
@@ -698,6 +718,7 @@
     var addBtn = document.getElementById('fTplAddBtn');
     if (addBtn) {
       addBtn.addEventListener('click', function () {
+        if (templatesLocked()) return;
         var type = (document.getElementById('fTplType') || {}).value || '';
         var tplId = (document.getElementById('fTplName') || {}).value || '';
         if (!type) return toast('请先选择模板类型', 'warning');
@@ -738,6 +759,7 @@
       tplList.addEventListener('click', function (ev) {
         var btn = ev.target.closest('[data-act="unbind"]');
         if (!btn) return;
+        if (templatesLocked()) return;
         var tag = btn.closest('[data-id]');
         if (!tag) return;
         var id = tag.getAttribute('data-id');

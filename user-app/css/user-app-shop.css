@@ -2026,9 +2026,54 @@
   position: relative;
   z-index: 2;
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 0 0 calc(14px + env(safe-area-inset-bottom, 0));
+}
+
+.ua-live-quick-comments {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 22px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 8px 14px;
+  background: rgba(236, 236, 238, 0.92);
+}
+
+.ua-live-quick-comments::-webkit-scrollbar {
+  display: none;
+}
+
+.ua-live-quick-comments[hidden] {
+  display: none !important;
+}
+
+.ua-live-quick-comments__item {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #333;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ua-live-room__bar-row {
+  display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 12px calc(14px + env(safe-area-inset-bottom, 0));
+  padding: 10px 12px 0;
+}
+
+.ua-live-room.has-quick-comments .ua-live-danmu,
+.ua-live-room.has-quick-comments .ua-live-explain {
+  bottom: 112px;
 }
 
 .ua-live-room__like {
@@ -2573,47 +2618,6 @@
   background: #fff;
 }
 
-.ua-live-goods__cart-btn {
-  position: relative;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1px solid #eee;
-  background: #fff;
-  color: #333;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
-  padding: 0;
-}
-
-.ua-live-goods__cart-btn svg {
-  width: 22px;
-  height: 22px;
-}
-
-.ua-live-goods__badge {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  border-radius: 8px;
-  background: #ff4d3a;
-  color: #fff;
-  font-size: 10px;
-  font-style: normal;
-  line-height: 16px;
-  text-align: center;
-}
-
-.ua-live-goods__badge[hidden] {
-  display: none !important;
-}
-
 .ua-live-goods__total {
   flex: 1;
   min-width: 0;
@@ -2660,6 +2664,25 @@
   font-size: 12px;
 }
 
+.ua-live-goods__thumb-ph {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3d2b8;
+  color: #c45a12;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.ua-live-goods__empty {
+  padding: 36px 16px;
+  text-align: center;
+  color: #999;
+  font-size: 13px;
+}
+
 .ua-live-explain {
   position: absolute;
   right: 12px;
@@ -2677,6 +2700,7 @@
   background: rgba(20, 20, 20, 0.78);
   color: #fff;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+  cursor: pointer;
 }
 
 .ua-live-explain[hidden] {
@@ -2696,6 +2720,7 @@
 }
 
 .ua-live-explain__thumb {
+  position: relative;
   width: 100%;
   height: 96px;
   border-radius: 0;
@@ -2715,6 +2740,10 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.ua-live-explain__thumb .ua-live-goods__preview-badge {
+  z-index: 2;
 }
 
 .ua-live-explain__body {
@@ -2740,11 +2769,32 @@
 }
 
 .ua-live-explain__price .ua-live-goods__price-q {
-  color: #fff;
+  color: inherit;
+  font-size: 16px;
+  letter-spacing: 0.5px;
 }
 
 .ua-live-explain__price .ua-live-goods__price--market {
   color: inherit;
+}
+
+.ua-live-explain__buy {
+  margin: 8px 8px 0;
+  height: 26px;
+  border: 0;
+  border-radius: 13px;
+  background: #ff7019;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ua-live-explain__buy.is-soon,
+.ua-live-explain__buy:disabled {
+  background: #8e8e8e;
+  color: #fff;
+  cursor: not-allowed;
 }
 
 .ua-live-goods-demo {
@@ -2813,6 +2863,62 @@
   pointer-events: none;
 }
 
+.ua-live-danmu-pin {
+  position: absolute;
+  left: 12px;
+  top: 58px;
+  z-index: 4;
+  width: 40%;
+  max-width: 168px;
+  display: flex;
+  align-items: stretch;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 8px 10px 8px 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  pointer-events: none;
+}
+
+.ua-live-danmu-pin[hidden] {
+  display: none !important;
+}
+
+.ua-live-danmu-pin__bar {
+  width: 3px;
+  margin: 2px 8px 2px 6px;
+  border-radius: 2px;
+  background: #ff7019;
+  flex-shrink: 0;
+}
+
+.ua-live-danmu-pin__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.ua-live-danmu-pin__user {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: #666;
+  line-height: 1.3;
+}
+
+.ua-live-danmu-pin__text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.35;
+}
+
 .ua-live-danmu__item {
   align-self: flex-start;
   max-width: 100%;
@@ -2851,6 +2957,48 @@
   font-size: 12px;
 }
 
+.ua-live-qc-demo {
+  position: fixed;
+  left: 8px;
+  bottom: 12px;
+  z-index: 2300;
+  width: 176px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #eee;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  font-size: 11px;
+  color: #333;
+}
+
+.ua-live-qc-demo__title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.ua-live-sw-demo {
+  position: fixed;
+  left: 8px;
+  bottom: 300px;
+  z-index: 2300;
+  width: 176px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #eee;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  font-size: 11px;
+  color: #333;
+}
+
+.ua-live-sw-demo__title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
 .ua-live-goods__checkout {
   height: 40px;
   padding: 0 22px;
@@ -2872,6 +3020,10 @@
   z-index: 50;
 }
 
+.ua-live-sheet--detail {
+  z-index: 45;
+}
+
 .ua-live-sheet--confirm {
   z-index: 60;
 }
@@ -2879,6 +3031,15 @@
 .ua-live-sheet--sku .ua-live-sheet__panel,
 .ua-live-sku {
   max-height: 68%;
+}
+
+.ua-live-sheet--detail .ua-live-sheet__panel,
+.ua-live-gd {
+  height: 86%;
+  max-height: 86%;
+  padding: 0;
+  background: #f5f5f5;
+  overflow: hidden;
 }
 
 .ua-live-sku {
@@ -3021,7 +3182,6 @@
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-.ua-live-sku__cart,
 .ua-live-sku__buy {
   flex: 1;
   height: 48px;
@@ -3029,16 +3189,17 @@
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-}
-
-.ua-live-sku__cart {
-  background: #ffe1d8;
-  color: #ff4d3a;
-}
-
-.ua-live-sku__buy {
   background: #ff4d3a;
   color: #fff;
+}
+
+.ua-live-gd .ua-gd-scroll {
+  padding-bottom: 0;
+}
+
+.ua-live-gd .ua-gd-footer__icon--cart,
+.ua-live-gd .ua-gd-footer__cart {
+  display: none !important;
 }
 
 .ua-live-sheet--confirm .ua-live-sheet__panel,
@@ -4525,4 +4686,103 @@
   color: #fff;
   font-size: 11px;
   cursor: pointer;
+}
+
+.ua-watch-reward-chip {
+  position: absolute;
+  left: 12px;
+  top: 108px;
+  z-index: 5;
+  max-width: 72%;
+  padding: 6px 10px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+.ua-watch-reward-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 3600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ua-watch-reward-modal[hidden] {
+  display: none !important;
+}
+
+.ua-watch-reward-modal__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.ua-watch-reward-modal__box {
+  position: relative;
+  z-index: 1;
+  width: 260px;
+  padding: 22px 18px 16px;
+  border-radius: 14px;
+  background: #fff;
+  text-align: center;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+
+.ua-watch-reward-modal__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #222;
+}
+
+.ua-watch-reward-modal__prize {
+  margin-top: 12px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #ff7019;
+}
+
+.ua-watch-reward-modal__desc {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.ua-watch-reward-modal__ok {
+  margin-top: 16px;
+  width: 100%;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: #ff7019;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ua-watch-reward-demo {
+  position: fixed;
+  left: 8px;
+  bottom: 168px;
+  z-index: 2300;
+  width: 176px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #eee;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  font-size: 11px;
+  color: #333;
+}
+
+.ua-watch-reward-demo__title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 12px;
 }

@@ -42,14 +42,14 @@
 
   /**
    * 取消订单可见性
-   * - 零售自提：待支付/已创建、待发货、待收货、待提货
-   * - 零售快递 / 代采快递 / 代采配送：待支付/已创建/已支付、待发货
+   * - 零售自提：待支付、已支付、待发货、待收货、待提货
+   * - 零售快递 / 代采快递 / 代采配送：待支付、已支付、待发货
    */
   function canCancelOrder(row) {
     var status = getRowOrderStatus(row);
     var kind = getFulfillmentKind(row);
     if (pageType() === 'retail' && kind === 'pickup') {
-      return ['待支付', '已创建', '待发货', '待收货', '待提货'].indexOf(status) >= 0;
+      return ['待支付', '已创建', '已支付', '待发货', '待收货', '待提货'].indexOf(status) >= 0;
     }
     return ['待支付', '已创建', '已支付', '待发货'].indexOf(status) >= 0;
   }
@@ -69,7 +69,9 @@
   }
 
   function canStartAftersale(row) {
-    return getRowOrderStatus(row) === '已完成';
+    var status = getRowOrderStatus(row);
+    if (global.OrderRetailStatus) return global.OrderRetailStatus.isSuccess(status);
+    return status === '已完成' || status === '交易成功';
   }
 
   function canOpenAftersaleDrawer(row) {
@@ -77,7 +79,7 @@
   }
 
   function aftersaleActionLabel(row) {
-    return canStartAftersale(row) ? '发起售后' : '平台退款';
+    return canStartAftersale(row) ? '发起售后' : '申请售后';
   }
 
   function parseMoney(val) {

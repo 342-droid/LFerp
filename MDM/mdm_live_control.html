@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
-    <link rel="stylesheet" href="../css/lf-live.css">
+    <link rel="stylesheet" href="../css/lf-live.css?v=20260824-bag-virtual">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -25,6 +25,7 @@
                 </div>
                 <div class="lf-live-control-topbar__right" id="controlTopActions" hidden>
                     <span class="lf-live-badge" id="controlStatusBadge">—</span>
+                    <span class="lf-live-control-ended-hint" id="controlEndedHint" hidden>已结束，操作提交已禁用</span>
                     <button type="button" class="erp-btn" id="btnPushUrl">推流地址</button>
                     <button type="button" class="erp-btn erp-btn--primary" id="btnStartLive">开始直播</button>
                     <button type="button" class="erp-btn erp-btn--danger" id="btnStopLive">关闭直播</button>
@@ -45,18 +46,45 @@
                     <div class="lf-live-panel lf-live-panel--fill">
                         <div class="lf-live-broadcast-preview" id="broadcastPreview">
                             <div class="lf-live-broadcast-preview__placeholder">直播画面</div>
+                            <div class="lf-live-danmu-pin" id="broadcastDanmuPin" hidden></div>
                             <div class="lf-live-danmu-overlay" id="broadcastDanmu"></div>
                         </div>
                         <div class="lf-live-interact">
                             <div class="lf-live-interact-tools">
                                 <button type="button" class="erp-btn" id="btnVirtualAccount">虚拟互动账号</button>
                                 <button type="button" class="erp-btn" id="btnQuickReply">快捷回复</button>
+                                <button type="button" class="erp-btn" id="btnQuickComment">一键评论</button>
                             </div>
-                            <div class="lf-live-quick-reply" id="quickReplyBox" hidden></div>
+                            <div class="lf-live-pick" id="quickReplyBox" hidden>
+                                <div class="lf-live-pick__list" id="quickReplyList"></div>
+                                <div class="lf-live-pick__add">
+                                    <label class="lf-live-pick__field">
+                                        <input id="quickReplyInput" maxlength="30" placeholder="请输入回复语" autocomplete="off">
+                                        <span id="quickReplyLen">0/30</span>
+                                    </label>
+                                    <button type="button" class="lf-live-pick__add-btn" id="quickReplyAddBtn">新增</button>
+                                </div>
+                            </div>
+                            <div class="lf-live-pick" id="quickCommentBox" hidden>
+                                <div class="lf-live-pick__list" id="quickCommentList"></div>
+                                <div class="lf-live-pick__add">
+                                    <label class="lf-live-pick__field">
+                                        <input id="quickCommentInput" maxlength="20" placeholder="请输入评论语" autocomplete="off">
+                                        <span id="quickCommentLen">0/20</span>
+                                    </label>
+                                    <button type="button" class="lf-live-pick__add-btn" id="quickCommentAddBtn">新增</button>
+                                </div>
+                            </div>
                             <div class="lf-live-danmu-send">
                                 <button type="button" class="erp-btn" id="btnMuteChat" aria-pressed="false">禁言</button>
                                 <textarea class="erp-input" id="controlDanmuInput" rows="2" placeholder="发送弹幕..." autocomplete="off"></textarea>
-                                <button type="button" class="erp-btn erp-btn--primary" id="btnSendDanmu">发送</button>
+                                <div class="lf-live-send-wrap">
+                                    <button type="button" class="erp-btn erp-btn--primary" id="btnSendDanmu">发送</button>
+                                    <div id="danmuSendMenu" class="lf-live-danmu-menu lf-live-send-menu" hidden>
+                                        <button type="button" data-send-mode="normal">发送</button>
+                                        <button type="button" data-send-mode="pin">置顶发送</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -69,7 +97,7 @@
                             <button type="button" data-main-tab="coupon">发券</button>
                             <button type="button" data-main-tab="bag">福袋</button>
                             <button type="button" data-main-tab="sign">签到</button>
-                            <button type="button" data-main-tab="task">观看任务</button>
+                            <button type="button" data-main-tab="task">观看奖励</button>
                         </div>
 
                         <div id="controlTabProduct" class="lf-live-ctab-pane">
@@ -125,13 +153,6 @@
                             </div>
                         </div>
 
-                        <div id="controlTabWelfare" class="lf-live-ctab-pane" hidden>
-                            <div class="lf-live-welfare-pane">
-                                <div class="lf-live-welfare-pane__title" id="welfarePaneTitle">发放优惠券</div>
-                                <p class="lf-live-welfare-pane__hint" id="welfarePaneHint">向当前直播间发放本场已绑定的营销活动。</p>
-                                <button type="button" class="erp-btn erp-btn--primary" id="btnDeliverWelfare">立即发放</button>
-                            </div>
-                        </div>
                     </div>
                 </section>
 
@@ -149,7 +170,18 @@
                             </div>
                             <div class="lf-live-monitor-grid" id="monitorMetrics"></div>
                         </div>
-                        <div id="sidePaneChat" class="lf-live-chat-list" hidden></div>
+                        <div id="sidePaneChat" class="lf-live-chat-pane" hidden>
+                            <div class="lf-live-chat-search">
+                                <input class="erp-input" id="chatKeywordInput" placeholder="搜索弹幕关键词" autocomplete="off">
+                                <button type="button" class="erp-btn erp-btn--primary" id="chatKeywordQuery">查询</button>
+                            </div>
+                            <div class="lf-live-chat-pinned" id="sidePaneChatPinned" hidden></div>
+                            <div class="lf-live-chat-list" id="sidePaneChatList"></div>
+                            <div class="lf-live-chat-foot">
+                                <div class="lf-live-chat-count" id="sidePaneChatCount">弹幕总数 0</div>
+                                <div class="lf-live-chat-pager" id="sidePaneChatPager"></div>
+                            </div>
+                        </div>
                         <div id="sidePaneWatch" class="lf-live-watch-pane" hidden>
                             <div class="lf-live-watch-subtabs" id="watchSubTabs">
                                 <button type="button" class="is-active" data-watch-tab="online" id="watchTabOnline">当前在线(0人)</button>
@@ -205,19 +237,12 @@
             </div>
             <div id="dlgAutoCloseExtra" hidden>
                 <div class="lf-live-set-row">
-                    <span class="lf-live-set-row__label"><span class="erp-req">*</span>断流自动关播</span>
-                    <div class="lf-live-set-row__ctrl lf-live-set-follow">
-                        <span>直播断流</span>
-                        <input class="erp-input" type="number" min="0" max="1440" step="1" id="dlgAutoCloseMinutes" placeholder="0-1440">
-                        <span>分钟后自动关播</span>
+                    <span class="lf-live-set-row__label"><span class="erp-req">*</span>关播时间</span>
+                    <div class="lf-live-set-row__ctrl lf-live-set-row__ctrl--inline">
+                        <input class="erp-input lf-live-datetime" type="datetime-local" id="dlgAutoCloseAt">
                     </div>
                 </div>
-                <div class="lf-live-set-row">
-                    <span class="lf-live-set-row__label">关播后同步下架所有直播商品</span>
-                    <div class="lf-live-set-row__ctrl">
-                        <button type="button" class="lf-live-switch" id="dlgRemoveOnClose" aria-pressed="false"></button>
-                    </div>
-                </div>
+                <p class="lf-live-dialog__hint">到达设定时间后自动结束本场直播，时间须晚于当前时间。</p>
             </div>
             <div class="lf-live-set-row">
                 <span class="lf-live-set-row__label">C端人数展示</span>
@@ -271,9 +296,22 @@
     </div>
 
     <div id="danmuActMenu" class="lf-live-danmu-menu" hidden>
+        <button type="button" data-danmu-act="pin" id="danmuActPin">置顶</button>
         <button type="button" data-danmu-act="mute" id="danmuActMute">禁言</button>
         <button type="button" data-danmu-act="reply">回复</button>
         <button type="button" data-danmu-act="block" id="danmuActBlock">屏蔽</button>
+    </div>
+
+    <div id="danmuConfirmDialog" class="lf-live-dialog" hidden>
+        <div class="lf-live-dialog__mask" data-close-dialog="danmuConfirmDialog"></div>
+        <div class="lf-live-dialog__box lf-live-dialog__box--sm lf-live-dialog__box--text" role="dialog" aria-labelledby="danmuConfirmTitle">
+            <div class="lf-live-dialog__title" id="danmuConfirmTitle">确认</div>
+            <p class="lf-live-dialog__hint" id="danmuConfirmHint"></p>
+            <div class="lf-live-dialog__footer">
+                <button type="button" class="erp-btn" data-close-dialog="danmuConfirmDialog">取消</button>
+                <button type="button" class="erp-btn erp-btn--primary" id="danmuConfirmOk">确定</button>
+            </div>
+        </div>
     </div>
 
     <div id="danmuReplyDialog" class="lf-live-dialog" hidden>
@@ -287,6 +325,7 @@
             </div>
             <div class="lf-live-dialog__footer">
                 <button type="button" class="erp-btn" data-close-dialog="danmuReplyDialog">取消</button>
+                <button type="button" class="erp-btn" id="danmuReplySendPin">置顶发送</button>
                 <button type="button" class="erp-btn erp-btn--primary" id="danmuReplySend">发送</button>
             </div>
         </div>
@@ -305,6 +344,80 @@
             <div class="lf-live-dialog__footer">
                 <button type="button" class="erp-btn" data-close-dialog="addCartDialog">取消</button>
                 <button type="button" class="erp-btn erp-btn--primary" id="addCartConfirm">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="welfareDrawer" class="lf-welfare-drawer" hidden>
+        <div class="lf-welfare-drawer__mask"></div>
+        <aside class="lf-welfare-drawer__panel" id="welfareDrawerPanel" role="dialog" aria-modal="true" aria-labelledby="welfareDrawerTitle">
+            <div class="lf-welfare-drawer__header">
+                <div class="lf-welfare-drawer__title" id="welfareDrawerTitle">发放优惠券</div>
+                <button type="button" class="lf-welfare-drawer__x" id="welfareDrawerClose" aria-label="关闭">×</button>
+            </div>
+            <div class="lf-welfare-drawer__tabs" id="welfareDrawerTabs"></div>
+            <div class="lf-welfare-drawer__body" id="welfareDrawerBody"></div>
+            <div class="lf-welfare-drawer__footer">
+                <button type="button" class="erp-btn" id="welfareDrawerCancel">取消</button>
+                <span class="lf-welfare-tipwrap" id="welfarePrimaryWrap" hidden>
+                    <button type="button" class="erp-btn erp-btn--primary" id="welfareDrawerPrimary">立即发放</button>
+                </span>
+            </div>
+        </aside>
+    </div>
+
+    <div id="addBagDialog" class="lf-live-dialog" hidden>
+        <div class="lf-live-dialog__mask" data-close-dialog="addBagDialog"></div>
+        <div class="lf-live-dialog__box lf-live-dialog__box--settings" role="dialog" aria-labelledby="addBagTitle">
+            <div class="lf-live-dialog__title" id="addBagTitle">添加福袋</div>
+            <p class="lf-live-dialog__hint">从福袋模板中选择并设置本次活动的福袋库存。添加后只保存福袋模板ID和本场库存，名称/奖品/状态始终取模板实时信息。同一福袋模板可多次关联，每次生成一条数据。直播结束后自动释放剩余库存。</p>
+            <div class="lf-live-dialog__field">
+                <span>搜索</span>
+                <input class="erp-input" id="addBagKeyword" placeholder="福袋名称 / 模板ID" autocomplete="off">
+            </div>
+            <div class="add-coupon-list add-bag-list" id="addBagList"></div>
+            <div class="lf-live-dialog__field">
+                <span><span class="erp-req">*</span>福袋库存</span>
+                <input class="erp-input" id="addBagStock" type="number" min="1" step="1" placeholder="请输入福袋库存">
+            </div>
+            <p class="lf-live-dialog__hint" id="addBagStockHint">将从所选福袋模板剩余库存中预扣。</p>
+            <div class="lf-live-dialog__footer">
+                <button type="button" class="erp-btn" data-close-dialog="addBagDialog">取消</button>
+                <button type="button" class="erp-btn erp-btn--primary" id="addBagConfirm">确定添加</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addSignDialog" class="lf-live-dialog" hidden>
+        <div class="lf-live-dialog__mask" data-close-dialog="addSignDialog"></div>
+        <div class="lf-live-dialog__box lf-live-dialog__box--settings" role="dialog" aria-labelledby="addSignTitle">
+            <div class="lf-live-dialog__title" id="addSignTitle">添加签到</div>
+            <p class="lf-live-dialog__hint">从签到活动模板中选择。添加后只保存签到模板ID和本场发放进度，名称、签到次数、奖励规则始终取模板实时信息。同一模板可多次关联，每次生成一条数据。</p>
+            <div class="lf-live-dialog__field">
+                <span>搜索</span>
+                <input class="erp-input" id="addSignKeyword" placeholder="活动名称 / 模板ID" autocomplete="off">
+            </div>
+            <div class="add-sign-list" id="addSignList"></div>
+            <div class="lf-live-dialog__footer">
+                <button type="button" class="erp-btn" data-close-dialog="addSignDialog">取消</button>
+                <button type="button" class="erp-btn erp-btn--primary" id="addSignConfirm">确定添加</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addTaskDialog" class="lf-live-dialog" hidden>
+        <div class="lf-live-dialog__mask" data-close-dialog="addTaskDialog"></div>
+        <div class="lf-live-dialog__box lf-live-dialog__box--settings" role="dialog" aria-labelledby="addTaskTitle">
+            <div class="lf-live-dialog__title" id="addTaskTitle">添加观看奖励</div>
+            <p class="lf-live-dialog__hint">从观看奖励活动模板中选择。添加后只保存模板ID和本场发放状态，名称、奖励规则始终取模板实时信息。同一模板可多次关联，每次生成一条数据。只有点立即发放后，C 端才会开始统计观看时长。</p>
+            <div class="lf-live-dialog__field">
+                <span>搜索</span>
+                <input class="erp-input" id="addTaskKeyword" placeholder="活动名称 / 模板ID" autocomplete="off">
+            </div>
+            <div class="add-sign-list" id="addTaskList"></div>
+            <div class="lf-live-dialog__footer">
+                <button type="button" class="erp-btn" data-close-dialog="addTaskDialog">取消</button>
+                <button type="button" class="erp-btn erp-btn--primary" id="addTaskConfirm">确定添加</button>
             </div>
         </div>
     </div>
@@ -337,7 +450,8 @@
     </div>
 
     <script src="../js/common.js"></script>
-    <script src="../js/mdm-live-demo-data.js"></script>
-    <script src="../js/mdm-live-control.js"></script>
+    <script src="../js/mdm-live-demo-data.js?v=20260824-chat-date"></script>
+    <script src="../js/mdm-live-sensitive-words.js"></script>
+    <script src="../js/mdm-live-control.js?v=20260824-bag-virtual"></script>
 </body>
 </html>

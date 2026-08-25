@@ -1,5 +1,5 @@
 /**
- * 结算 — 运费配置 / 费用模板列表 + 新增抽屉
+ * 订单 — 运费配置 / 费用模板列表 + 新增抽屉
  */
 (function () {
   var PAGE_SIZE_OPTIONS = [20, 50, 100];
@@ -276,7 +276,7 @@
       if (empty) empty.hidden = true;
       tbody.innerHTML = pageData.rows
         .map(function (row, idx) {
-          var index = (state.page - 1) * state.pageSize + idx + 1;
+          var index = pageData.total - (state.page - 1) * state.pageSize - idx;
           var checked = !!state.selected[row.code];
           var period = formatValidPeriod(row);
           return (

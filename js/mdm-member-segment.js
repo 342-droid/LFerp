@@ -291,7 +291,7 @@
           '&name=' + encodeURIComponent(item.name);
         return (
           '<tr data-id="' + item.id + '">' +
-          '  <td>' + (start + idx + 1) + '</td>' +
+          '  <td>' + (list.length - start - idx) + '</td>' +
           '  <td>' + escapeHtml(item.name) + '</td>' +
           '  <td><span class="member-segment-logic">' + (item.logic === 'or' ? '或' : '且') + '</span></td>' +
           '  <td>' + renderRuleHtml(item) + '</td>' +

@@ -1,9 +1,19 @@
-/* 订单专用侧栏：订单管理 / 排队记录 */
+/* 订单专用侧栏：订单管理 / 排队记录 / 运费配置 / 快递截单 */
 (function () {
   var wp = window.wmsPath || { page: function (f) { return f; }, asset: function (r) { return r; } };
   var pageHref = function (f) { return wp.page(f); };
   var assetHref = function (r) { return wp.asset(r); };
-  var currentPage = window.location.pathname.split('/').pop() || 'mdm_order_retail.html';
+
+  function pageBase(name) {
+    return String(name || '')
+      .split('?')[0]
+      .split('#')[0]
+      .replace(/\.html$/i, '')
+      .split('/')
+      .pop() || '';
+  }
+
+  var currentPage = pageBase(window.location.pathname.split('/').pop()) || 'mdm_order_retail';
 
   var orderManageGroup = {
     title: '订单管理',
@@ -13,9 +23,15 @@
     ]
   };
 
+  var topLevelItems = [
+    { href: 'mdm_order_queue.html', text: '排队记录' },
+    { href: 'mdm_order_freight_config.html', text: '运费配置' },
+    { href: 'mdm_order_express_cutoff.html', text: '快递截单' }
+  ];
+
   var legacyPages = {
-    'mdm_order_live.html': 'mdm_order_retail.html',
-    'mdm_order_mall.html': 'mdm_order_retail.html'
+    mdm_order_live: 'mdm_order_retail.html',
+    mdm_order_mall: 'mdm_order_retail.html'
   };
 
   if (legacyPages[currentPage]) {
@@ -24,7 +40,7 @@
   }
 
   function pageMatches(href) {
-    return currentPage === String(href || '');
+    return currentPage === pageBase(href);
   }
 
   function isGroupActive(group) {
@@ -38,8 +54,16 @@
     }).join('');
   }
 
+  function renderTopLevelItem(item) {
+    var active = pageMatches(item.href);
+    return '<li class="menu-item">' +
+      '<a href="' + pageHref(item.href) + '" class="menu-link' + (active ? ' active' : '') + '">' +
+      '<img src="' + assetHref('image/任务管理.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
+      '<span>' + item.text + '</span>' +
+      '</a></li>';
+  }
+
   var isOrderManageSection = isGroupActive(orderManageGroup);
-  var isQueuePage = pageMatches('mdm_order_queue.html');
 
   var sidebarContainer = document.getElementById('sidebar-container');
   if (!sidebarContainer) return;
@@ -60,10 +84,6 @@
     '<ul class="submenu order-side-submenu' + (isOrderManageSection ? ' expanded' : '') + '">' +
     renderSubmenuItems(orderManageGroup.items) +
     '</ul></li>' +
-    '<li class="menu-item">' +
-    '<a href="' + pageHref('mdm_order_queue.html') + '" class="menu-link' + (isQueuePage ? ' active' : '') + '">' +
-    '<img src="' + assetHref('image/任务管理.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
-    '<span>排队记录</span>' +
-    '</a></li>' +
+    topLevelItems.map(renderTopLevelItem).join('') +
     '</ul></aside>';
 })();

@@ -150,6 +150,18 @@
         var editHref = pageWithQuery('mdm_live_session_form.html', { id: s.id });
         var detailHref = pageWithQuery('mdm_live_session_detail.html', { id: s.id });
         var controlHref = pageWithQuery('mdm_live_control.html', { sessionId: s.id });
+        var actions =
+          '<a href="' +
+          escapeHtml(controlHref) +
+          '">中控台</a>';
+        // 未开始 / 直播中可编辑；已结束仅中控台+详情
+        if (s.status === 'upcoming' || s.status === 'live') {
+          actions += '<a href="' + escapeHtml(editHref) + '">编辑</a>';
+        }
+        actions += '<a href="' + escapeHtml(detailHref) + '">详情</a>';
+        if (s.status === 'upcoming') {
+          actions += '<a href="#" class="action-link-danger" data-act="delete">删除</a>';
+        }
         return (
           '<tr data-id="' +
           escapeHtml(s.id) +
@@ -177,17 +189,14 @@
           '<td>' +
           escapeHtml(s.endAt || '—') +
           '</td>' +
+          '<td>' +
+          escapeHtml(s.actualStartAt || '—') +
+          '</td>' +
+          '<td>' +
+          escapeHtml(s.actualEndAt || '—') +
+          '</td>' +
           '<td class="action-links">' +
-          '<a href="' +
-          escapeHtml(editHref) +
-          '">编辑</a>' +
-          '<a href="' +
-          escapeHtml(detailHref) +
-          '">详情</a>' +
-          '<a href="' +
-          escapeHtml(controlHref) +
-          '">进入中控</a>' +
-          '<a href="#" class="action-link-danger" data-act="delete">删除</a>' +
+          actions +
           '</td></tr>'
         );
       })

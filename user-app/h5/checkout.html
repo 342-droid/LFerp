@@ -6,6 +6,7 @@
   <title>确认订单 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-checkout.css?v=20260808-points-row-hide">
+  <link rel="stylesheet" href="../css/user-app-sale-time.css">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-checkout-page" id="checkoutShell">
@@ -46,6 +47,7 @@
 
         <!-- 供应商 + 包裹 -->
         <div id="checkoutSupplierList"></div>
+        <div id="checkoutInvalidWrap"></div>
 
         <!-- 优惠券 / 积分 / 发票 -->
         <section class="ua-co-card ua-co-options">
@@ -265,11 +267,11 @@
       <div class="ua-co-result__body" id="checkoutResultBody"></div>
     </div>
   </div>
-  <script src="../js/user-app-blacklist-guard.js"></script>
   <script src="../../js/mdm-supplier-archive-store.js"></script>
   <script src="../../js/store-wallet-demo.js?v=20260810-wallet-v24"></script>
   <script src="../../js/store-bind-card-demo.js"></script>
   <script src="../js/user-app-orders-store.js?v=20260808-item-paylegs"></script>
+  <script src="../js/user-app-product-sale-time.js?v=20260819-sale-dialog-ok"></script>
   <script src="../js/user-app-checkout.js?v=20260808-points-off"></script>
 
 </body>

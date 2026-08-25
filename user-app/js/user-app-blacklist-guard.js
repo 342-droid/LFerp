@@ -158,6 +158,31 @@
     return funcs.indexOf(funcName) >= 0;
   }
 
+  function isStoreAppChannel() {
+    try {
+      var path = String((global.location && global.location.pathname) || '');
+      if (/\/store-app\//i.test(path)) return true;
+      var page = (path.split('/').pop() || '').toLowerCase();
+      if (
+        page === 'restock.html' ||
+        page === 'product-detail.html' ||
+        page === 'checkout.html' ||
+        page.indexOf('store-wallet') === 0 ||
+        page.indexOf('store-recharge') === 0 ||
+        page.indexOf('store-withdraw') === 0 ||
+        page.indexOf('store-bind-card') === 0 ||
+        page.indexOf('store-pay-password') === 0
+      ) {
+        return true;
+      }
+      var search = String((global.location && global.location.search) || '');
+      if (/from=store-app|port=store-app/i.test(search)) return true;
+    } catch (e) {
+      /* ignore */
+    }
+    return false;
+  }
+
   function isLoginFlowPage() {
     if (document.querySelector('.ua-change-pwd-screen')) return false;
     if (document.getElementById('uaLoginScreen')) return true;
@@ -193,7 +218,7 @@
       '.ua-bl-modal__actions{display:flex;border-top:1px solid #eee;}' +
       '.ua-bl-modal__btn{flex:1;height:48px;border:none;background:#fff;font-size:15px;color:#ff6a00;font-weight:600;cursor:pointer;}' +
       'body.ua-bl-locked .ua-mobile-shell{pointer-events:none;user-select:none;}' +
-      'body.ua-bl-locked .ua-bl-modal,body.ua-bl-locked .ua-bl-access-block,body.ua-bl-locked .ua-bl-demo,body.ua-bl-locked .ua-pwd-demo{pointer-events:auto;}' +
+      'body.ua-bl-locked .ua-bl-modal,body.ua-bl-locked .ua-bl-access-block,body.ua-bl-locked .ua-bl-demo,body.ua-bl-locked .ua-pwd-demo,body.ua-bl-locked .ua-watch-reward-demo{pointer-events:auto;}' +
       '.ua-bl-access-block{position:fixed;inset:0;z-index:3100;display:flex;align-items:center;justify-content:center;padding:28px;background:rgba(255,255,255,.72);backdrop-filter:blur(2px);}' +
       '.ua-bl-access-block__card{max-width:300px;padding:22px 18px;border-radius:12px;background:#fff;box-shadow:0 8px 28px rgba(0,0,0,.12);font-size:15px;line-height:1.65;color:#333;text-align:center;}' +
       '.ua-live-room--bl-ban .ua-live-room__stage{background:#1a1a1a!important;}' +
@@ -253,7 +278,7 @@
   }
 
   function guardPageAccess() {
-    if (isLoginFlowPage()) return false;
+    if (isStoreAppChannel() || isLoginFlowPage()) return false;
     if (!isBanned(FUNC.ACCESS)) return false;
     document.body.classList.add('ua-bl-locked');
     ensureStyles();
@@ -266,6 +291,7 @@
   }
 
   function guardOrderSubmit() {
+    if (isStoreAppChannel()) return false;
     if (!isBanned(FUNC.ORDER)) return false;
     showBanModal(MSG.order);
     return true;
@@ -302,7 +328,7 @@
   }
 
   function renderDemoPanel() {
-    if (isLoginFlowPage()) return;
+    if (isLoginFlowPage() || isStoreAppChannel()) return;
     ensureStyles();
     var old = document.getElementById('uaBlDemo');
     if (old) old.remove();
@@ -376,6 +402,7 @@
   }
 
   function init() {
+    if (isStoreAppChannel()) return;
     ensureStyles();
     consumeUrlDemoOnce();
     renderDemoPanel();

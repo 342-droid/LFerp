@@ -1,4 +1,4 @@
-/* 结算专用侧栏：结算中心 / 费用配置（运费配置、账户配置） */
+/* 结算专用侧栏：仅结算中心。运费已迁至订单，账户配置已迁至基础设置 / 门店配置 */
 (function () {
     var wp = window.wmsPath || {
         page: function (f) {
@@ -14,42 +14,25 @@
     var assetHref = function (r) {
         return wp.asset(r);
     };
-    var currentPage = window.location.pathname.split('/').pop() || 'mdm_settle_index.html';
 
-    // 旧「费用配置」落地页 → 运费配置
-    if (currentPage === 'mdm_settle_fee_config.html') {
-        window.location.replace(pageHref('mdm_settle_freight_config.html'));
+    function pageBase(name) {
+        return String(name || '')
+            .split('?')[0]
+            .split('#')[0]
+            .replace(/\.html$/i, '')
+            .split('/')
+            .pop() || '';
+    }
+
+    var currentPage = pageBase(window.location.pathname.split('/').pop()) || 'mdm_settle_index';
+
+    /* 旧费用/运费入口 → 订单 / 运费配置 */
+    if (currentPage === 'mdm_settle_fee_config' || currentPage === 'mdm_settle_freight_config') {
+        window.location.replace(pageHref('mdm_order_freight_config.html'));
         return;
     }
 
-    /* 账户配置已迁至基础设置 / 门店配置；结算侧栏费用配置仅保留运费 */
-    var feeConfigItems = [{ href: 'mdm_settle_freight_config.html', text: '运费配置' }];
-
-    function pageMatches(href) {
-        return currentPage === String(href || '');
-    }
-
-    var isCenterActive = pageMatches('mdm_settle_index.html');
-    var isFeeSection = feeConfigItems.some(function (item) {
-        return pageMatches(item.href);
-    });
-    /* 旧账户配置页会跳转到门店配置；停留在结算域时仍高亮费用配置 */
-    if (pageMatches('mdm_settle_account_config.html')) isFeeSection = true;
-
-    var feeSubmenuHtml = feeConfigItems
-        .map(function (item) {
-            var active = pageMatches(item.href);
-            return (
-                '<li><a href="' +
-                pageHref(item.href) +
-                '"' +
-                (active ? ' class="active"' : '') +
-                '>' +
-                item.text +
-                '</a></li>'
-            );
-        })
-        .join('');
+    var isCenterActive = currentPage === 'mdm_settle_index';
 
     var sidebarContainer = document.getElementById('sidebar-container');
     if (!sidebarContainer) return;
@@ -74,22 +57,6 @@
         '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
         '<span>结算中心</span>' +
         '</a>' +
-        '</li>' +
-        '<li class="menu-item">' +
-        '<a href="#" class="menu-link" onclick="toggleSubmenu(this); return false;">' +
-        '<img src="' +
-        assetHref('image/基础信息.svg') +
-        '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
-        '<span>费用配置</span>' +
-        '<button type="button" class="menu-toggle" aria-label="展开">' +
-        (isFeeSection ? '▼' : '▶') +
-        '</button>' +
-        '</a>' +
-        '<ul class="submenu' +
-        (isFeeSection ? ' expanded' : '') +
-        '">' +
-        feeSubmenuHtml +
-        '</ul>' +
         '</li>' +
         '</ul>' +
         '</aside>';

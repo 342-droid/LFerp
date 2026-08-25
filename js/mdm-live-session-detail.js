@@ -127,18 +127,7 @@
 
     var closeItems = [descItem('直播自动关播', escapeHtml(sess.autoCloseEnabled ? '开启' : '关闭'))];
     if (sess.autoCloseEnabled) {
-      closeItems.push(
-        descItem(
-          '断流自动关播',
-          escapeHtml(
-            sess.autoCloseMinutes != null && sess.autoCloseMinutes !== ''
-              ? '直播断流 ' + sess.autoCloseMinutes + ' 分钟后自动关播'
-              : '—'
-          ),
-          true
-        )
-      );
-      closeItems.push(descItem('关播后同步下架直播商品', escapeHtml(sess.removeProductsOnClose ? '是' : '否')));
+      closeItems.push(descItem('关播时间', escapeHtml(sess.autoCloseAt || '—'), true));
     }
     document.getElementById('dCloseGrid').innerHTML = closeItems.join('');
 

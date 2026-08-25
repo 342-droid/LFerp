@@ -275,6 +275,31 @@
       .replace(/"/g, '&quot;');
   }
 
+  function detailRow(label, val) {
+    return (
+      '<div style="display:flex;gap:10px;padding:12px 0;border-bottom:1px solid rgba(229,231,235,.6)">' +
+      '<span style="width:6.8rem;flex-shrink:0;font-size:12px;color:var(--bd-muted);padding-top:2px">' +
+      escapeHtml(label) +
+      '</span>' +
+      '<div style="flex:1;text-align:right;font-size:13px;font-weight:600;line-height:1.4;word-break:break-word">' +
+      escapeHtml(val == null || val === '' ? '—' : val) +
+      '</div></div>'
+    );
+  }
+
+  function renderAuditRecordCard(fields) {
+    return (
+      '<div class="bd-archive-card" style="margin-bottom:12px">' +
+      '<div style="padding:0 14px 6px">' +
+      detailRow('审核环节', fields.node) +
+      detailRow('审核人', fields.reviewer) +
+      detailRow('审核时间', fields.time) +
+      detailRow('审核结果', fields.result) +
+      detailRow('原因', fields.reason) +
+      '</div></div>'
+    );
+  }
+
   function visibleList() {
     return stores.filter(canSee);
   }
@@ -936,31 +961,22 @@
   function renderHistory(id) {
     var store = getStore(id);
     if (!store) return '<p class="bd-empty">门店不存在</p>';
-    var rows = (store.auditHistory || [])
+    var cards = (store.auditHistory || [])
       .map(function (h) {
-        return (
-          '<div style="padding:12px;border-bottom:1px solid var(--bd-border)">' +
-          '<div style="display:flex;justify-content:space-between;font-size:12px"><strong>' +
-          escapeHtml(h.stage) +
-          '</strong><span style="color:var(--bd-muted);font-variant-numeric:tabular-nums">' +
-          escapeHtml(h.auditedAt) +
-          '</span></div>' +
-          '<div style="font-size:11px;color:var(--bd-muted);margin-top:4px">' +
-          escapeHtml(h.auditorLabel) +
-          ' · ' +
-          escapeHtml(h.result) +
-          '</div>' +
-          '<div style="font-size:13px;margin-top:8px">' +
-          escapeHtml(h.remark) +
-          '</div></div>'
-        );
+        return renderAuditRecordCard({
+          node: h.stage,
+          reviewer: h.auditorLabel,
+          time: h.auditedAt,
+          result: h.result,
+          reason: h.remark,
+        });
       })
       .join('');
-    if (!rows) rows = '<div class="bd-empty" style="margin:12px">暂无审核记录</div>';
+    if (!cards) cards = '<div class="bd-empty" style="margin:12px">暂无审核记录</div>';
     return (
       '<div class="bd-page-bar"><button type="button" class="bd-back" data-back-ws>‹</button><h1>资料审核记录</h1></div>' +
-      '<div style="margin:12px;border-radius:12px;border:1px solid var(--bd-border);background:#fff;overflow:hidden">' +
-      rows +
+      '<div style="padding:12px">' +
+      cards +
       '</div>'
     );
   }
@@ -1242,8 +1258,18 @@
       window.bdToast && window.bdToast('请填写驳回说明');
       return;
     }
+    var rejectRemark = ta.value.trim().slice(0, 100);
+    if (!store.auditHistory) store.auditHistory = [];
+    store.auditHistory.push({
+      id: 'h' + Date.now(),
+      stage: store.phase === 'awaiting_leader' ? 'BD总监终审' : 'BD初审',
+      auditorLabel: store.phase === 'awaiting_leader' ? 'BD 总监 · 李敏' : 'BD · ' + (store.boundBd || CURRENT_BD),
+      auditedAt: fmtTs(),
+      result: '驳回',
+      remark: rejectRemark,
+    });
     store.phase = 'rejected';
-    store.rejectReason = ta.value.trim();
+    store.rejectReason = rejectRemark;
     store.systemFailureDetail = undefined;
     openModalClose();
     try {
@@ -1258,7 +1284,7 @@
     var store = getStore(route.id);
     var ta = qs('#bdApproveTa');
     if (!store) return;
-    var remark = ta ? ta.value.trim() : '';
+    var remark = ta ? ta.value.trim().slice(0, 100) : '';
     var at = fmtTs();
     if (!store.auditHistory) store.auditHistory = [];
     if (store.phase === 'awaiting_bd') {

@@ -187,7 +187,7 @@
           escapeHtml(s.id) +
           '">' +
           '<td>' +
-          (idx + 1) +
+          (rows.length - idx) +
           '</td>' +
           '<td>' +
           escapeHtml(s.name) +
