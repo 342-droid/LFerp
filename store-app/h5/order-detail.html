@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>核销详情 · 门店APP</title>
+  <link rel="stylesheet" href="../css/store-app.css?v=20260826-orders">
+  <link rel="stylesheet" href="../css/store-app-orders.css?v=20260826-orders">
+  <link rel="stylesheet" href="../css/store-app-order-detail.css?v=20260826-orders">
+</head>
+<body class="store-app-body">
+  <div class="sa-shell sa-orders-shell">
+    <div class="sa-orders">
+      <header class="sa-orders-nav">
+        <a href="store-orders.html" class="sa-orders-nav__back" id="btn-back" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="sa-orders-nav__title">核销详情</h1>
+      </header>
+      <main class="subpage-body sa-orders-scroll" id="detail-content">
+        <div class="detail-loading">加载中...</div>
+      </main>
+    </div>
+  </div>
+
+  <div id="pickup-qty-modal" class="verify-confirm-modal pickup-qty-modal" aria-hidden="true" role="dialog" aria-labelledby="pickup-qty-title">
+    <div class="verify-confirm-modal__panel">
+      <h3 id="pickup-qty-title" class="verify-confirm-modal__title">确认提货</h3>
+      <p class="verify-confirm-modal__content" id="pickup-qty-desc">请确认本次提货数量</p>
+      <div class="pickup-qty-modal__item" id="pickup-qty-item-name"></div>
+      <div class="pickup-qty-modal__stepper">
+        <button type="button" class="pickup-qty-modal__btn" id="pickup-qty-minus" aria-label="减少">−</button>
+        <input type="number" class="pickup-qty-modal__input" id="pickup-qty-input" min="1" value="1" />
+        <button type="button" class="pickup-qty-modal__btn" id="pickup-qty-plus" aria-label="增加">+</button>
+      </div>
+      <p class="pickup-qty-modal__hint" id="pickup-qty-hint"></p>
+      <div class="verify-confirm-modal__actions">
+        <button type="button" class="verify-confirm-modal__btn verify-confirm-modal__btn--cancel" id="btn-pickup-qty-cancel">取消</button>
+        <button type="button" class="verify-confirm-modal__btn verify-confirm-modal__btn--confirm" id="btn-pickup-qty-confirm">确认提货</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="verify-confirm-modal" class="verify-confirm-modal" aria-hidden="true" role="dialog" aria-labelledby="verify-confirm-title">
+    <div class="verify-confirm-modal__panel">
+      <h3 id="verify-confirm-title" class="verify-confirm-modal__title">确认核销</h3>
+      <p class="verify-confirm-modal__content">当前商品存在退款申请，核销后将关闭退款，是否已与客户确认？</p>
+      <div class="verify-confirm-modal__actions">
+        <button type="button" class="verify-confirm-modal__btn verify-confirm-modal__btn--cancel" id="btn-verify-cancel">取消</button>
+        <button type="button" class="verify-confirm-modal__btn verify-confirm-modal__btn--confirm" id="btn-verify-confirm">确认核销</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/store-app-orders-mock.js?v=20260826-orders"></script>
+  <script src="../js/store-app-toast.js?v=20260826-orders"></script>
+  <script src="../js/store-app-order-detail.js?v=20260826-orders"></script>
+</body>
+</html>

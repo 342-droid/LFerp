@@ -1,0 +1,117 @@
+/**
+ * 扫码核销弹层 — 迁移自冷丰门店管理 APP
+ */
+:root {
+  --color-primary: #ff6b00;
+  --color-bg: #ffffff;
+  --color-text-secondary: #666666;
+  --radius-sm: 8px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.scan-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.scan-modal.is-open {
+  display: flex;
+}
+
+.scan-modal__panel {
+  width: 100%;
+  max-width: 430px;
+  background: var(--color-bg);
+  border-radius: 16px 16px 0 0;
+  padding: 20px 16px calc(20px + var(--safe-bottom));
+  animation: sa-scan-slide-up 0.25s ease-out;
+}
+
+@keyframes sa-scan-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.scan-modal__title {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 600;
+  text-align: center;
+  color: #1a1a1a;
+}
+
+.scan-modal__hint {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.scan-frame {
+  aspect-ratio: 1;
+  max-height: 220px;
+  margin: 0 auto 16px;
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  position: relative;
+  overflow: hidden;
+}
+
+.scan-frame__line {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+  animation: sa-scan-line 2s ease-in-out infinite;
+}
+
+@keyframes sa-scan-line {
+  0%,
+  100% {
+    top: 15%;
+  }
+  50% {
+    top: 85%;
+  }
+}
+
+.scan-modal__simulate {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.scan-modal__simulate:active {
+  opacity: 0.9;
+}
+
+.scan-modal__cancel {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}

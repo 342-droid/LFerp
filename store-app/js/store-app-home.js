@@ -34,8 +34,12 @@
     window.location.href = 'verify.html' + (qs.length ? '?' + qs.join('&') : '');
   }
 
+  function goOrders() {
+    window.location.href = 'store-orders.html';
+  }
+
   function bindActions() {
-    document.querySelectorAll('[data-sa-action]').forEach(function (btn) {
+    document.querySelectorAll('[data-sa-action]:not([data-sa-action="queueCode"])').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var action = btn.getAttribute('data-sa-action');
         if (action === 'restock') {
@@ -50,9 +54,10 @@
           goBizCenter();
           return;
         }
-        /* 核销入口：仅原订单核销（补货随原订单提货，不单独建补货单） */
         if (action === 'scan') {
-          goVerify('scan');
+          if (window.LFScan && window.LFScan.open) {
+            window.LFScan.open();
+          }
           return;
         }
         if (action === 'code' || action === 'pending') {
@@ -65,6 +70,10 @@
         }
         if (action === 'onboarding') {
           window.location.href = 'onboarding.html';
+          return;
+        }
+        if (action === 'orders') {
+          goOrders();
           return;
         }
         var labels = {
@@ -118,4 +127,31 @@
 
   bindActions();
   syncOnboardingDot();
+
+  if (window.LFScan && window.LFMockData) {
+    window.LFScan.init(window.LFMockData, {
+      openButton: document.querySelector('[data-sa-action="scan"]'),
+      modal: document.getElementById('scan-modal'),
+      simulateButton: document.getElementById('btn-scan-simulate'),
+      cancelButton: document.getElementById('btn-scan-cancel')
+    });
+  }
+
+  if (window.LFQRCode && window.LFMockData) {
+    var store = window.LFMockData.store || {};
+    window.LFQRCode.init(window.LFMockData, {
+      openButton: document.getElementById('btn-queue-qr-open'),
+      modal: document.getElementById('queue-qr-modal'),
+      closeButton: document.getElementById('btn-queue-qr-close'),
+      shareButton: document.getElementById('btn-queue-qr-share'),
+      saveButton: document.getElementById('btn-queue-qr-save'),
+      qrMount: document.getElementById('queue-qr-code-mount'),
+      avatarEl: document.getElementById('queue-qr-avatar'),
+      nameEl: document.getElementById('queue-qr-store-name'),
+      qrUrl: store.queueCodeUrl,
+      shareTitle: (store.companyName || '门店') + '排队码',
+      shareText: '扫码在' + (store.companyName || '门店') + '排队取号',
+      downloadSuffix: '_排队码'
+    });
+  }
 })();

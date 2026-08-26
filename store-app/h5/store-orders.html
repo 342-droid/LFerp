@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>门店订单 · 门店APP</title>
+  <link rel="stylesheet" href="../css/store-app.css?v=20260826-orders">
+  <link rel="stylesheet" href="../css/store-app-orders.css?v=20260826-orders">
+</head>
+<body class="store-app-body">
+  <div class="sa-shell sa-orders-shell">
+    <div class="sa-orders">
+      <header class="sa-orders-nav">
+        <a href="home.html" class="sa-orders-nav__back" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="sa-orders-nav__title">门店订单</h1>
+      </header>
+
+      <div class="sa-orders-scroll">
+        <div class="order-search-bar">
+          <svg class="order-search-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m16.65 16.65 4.35 4.35" />
+          </svg>
+          <input
+            type="search"
+            id="order-search-input"
+            class="order-search-input"
+            placeholder="输入手机号搜索订单"
+            autocomplete="off"
+          />
+        </div>
+        <div class="order-tabs" role="tablist" aria-label="订单状态">
+          <button type="button" class="order-tabs__btn is-active" data-status="全部" role="tab" aria-selected="true">全部</button>
+          <button type="button" class="order-tabs__btn" data-status="待收货" role="tab" aria-selected="false">待收货</button>
+          <button type="button" class="order-tabs__btn" data-status="待提货" role="tab" aria-selected="false">待提货</button>
+          <button type="button" class="order-tabs__btn" data-status="已完成" role="tab" aria-selected="false">已完成</button>
+          <button type="button" class="order-tabs__btn" data-status="排队中" role="tab" aria-selected="false">排队中</button>
+        </div>
+        <div id="queue-sub-tabs" class="queue-sub-tabs" role="tablist" aria-label="排队状态" hidden>
+          <button type="button" class="queue-sub-tabs__btn is-active" data-queue-filter="全部" role="tab" aria-selected="true">全部</button>
+          <button type="button" class="queue-sub-tabs__btn" data-queue-filter="已到店" role="tab" aria-selected="false">已到店</button>
+          <button type="button" class="queue-sub-tabs__btn" data-queue-filter="未到店" role="tab" aria-selected="false">未到店</button>
+        </div>
+        <main class="subpage-body">
+          <div id="order-list-empty" class="order-list-empty" style="display:none;">暂无此类订单</div>
+          <div id="order-list"></div>
+        </main>
+      </div>
+    </div>
+  </div>
+  <script src="../js/store-app-orders-mock.js?v=20260826-orders"></script>
+  <script src="../js/store-app-toast.js?v=20260826-orders"></script>
+  <script src="../js/store-app-orders.js?v=20260826-orders"></script>
+</body>
+</html>
