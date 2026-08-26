@@ -5,7 +5,7 @@
   var PAGE_SIZE_OPTIONS = [20, 50, 100];
 
   var SOURCES = ['用户自助发起', '运营代用户发起'];
-  var TYPES = ['仅退款', '退货退款', '补货', '换货'];
+  var TYPES = ['仅退款', '退货退款', '退运费', '补货', '换货'];
   var STATUSES = ['待审批', '退款中', '已拒绝', '待退货', '待收货', '退款异常', '已完成', '已取消'];
   /** 订单来源仅：零售、代采 */
   var ORDER_SOURCES = ['零售', '代采'];
@@ -48,9 +48,9 @@
   /** 结算状态：待结算 | 待结款 | 结款中 | 已结款（待结款由结算单生成触发，文案不再带说明） */
   var SETTLE_STATUSES = ['待结算', '待结款', '结款中', '已结款'];
 
-  /** 仅「仅退款 / 退货退款」会生成退款单；换货、补货不产生退款 */
+  /** 仅退款、退货退款、退运费会生成退款单；换货、补货不产生退款 */
   function createsRefundDoc(type) {
-    return type === '仅退款' || type === '退货退款';
+    return type === '仅退款' || type === '退货退款' || type === '退运费';
   }
 
   function settleStatusLabel(status) {
@@ -136,6 +136,10 @@
       var refundOnlyStatuses = ['待审批', '退款中', '已拒绝', '退款异常', '已完成', '已取消'];
       return i % 2 === 0 ? '已完成' : refundOnlyStatuses[Math.floor(i / 2) % refundOnlyStatuses.length];
     }
+    if (type === '退运费') {
+      var freightRefundStatuses = ['退款中', '退款异常', '已完成', '已取消'];
+      return i % 2 === 0 ? '已完成' : freightRefundStatuses[Math.floor(i / 2) % freightRefundStatuses.length];
+    }
     if (type === '退货退款') {
       var returnRefundStatuses = ['待审批', '已拒绝', '待退货', '待收货', '退款中', '退款异常', '已完成', '已取消'];
       return i % 2 === 0 ? '已完成' : returnRefundStatuses[Math.floor(i / 2) % returnRefundStatuses.length];
@@ -172,6 +176,9 @@
    * - 换货：无退款态
    */
   function statusListByType(type) {
+    if (type === '退运费') {
+      return ['退款中', '退款异常', '已完成', '已取消'];
+    }
     if (type === '仅退款') {
       return ['待审批', '已拒绝', '退款中', '退款异常', '已完成', '已取消'];
     }
@@ -210,7 +217,7 @@
                 fulfillment: fulfillment,
                 idPrefix: idPrefix,
                 applyAmt:
-                  type === '退货退款' || type === '仅退款'
+                  type === '退货退款' || type === '仅退款' || type === '退运费'
                     ? orderSource === '代采'
                       ? 12.5
                       : 9.9
@@ -296,14 +303,14 @@
   }
 
   /**
-   * 代采演示矩阵：仅退款/退货退款/补货/换货 × 快递/配送 × 各业务状态
+   * 代采演示矩阵：仅退款/退货退款/退运费/补货/换货 × 快递/配送 × 各业务状态
    * 筛「订单来源=代采」可覆盖配送、快递全状态
    */
   function buildProxyDemoRows(seqBase) {
     return buildMatrixRows({
       orderSource: '代采',
       fulfillments: ['快递', '配送'],
-      types: ['仅退款', '退货退款', '补货', '换货'],
+      types: ['仅退款', '退货退款', '退运费', '补货', '换货'],
       idPrefix: 'AS-PX',
       seqBase: seqBase || 0
     });
@@ -337,7 +344,12 @@
     return list;
   }
 
-  var ALL_ROWS = buildMockRows();
+  var persistedFreightRows =
+    window.FreightRefundAftersaleStore &&
+    typeof window.FreightRefundAftersaleStore.read === 'function'
+      ? window.FreightRefundAftersaleStore.read()
+      : [];
+  var ALL_ROWS = persistedFreightRows.concat(buildMockRows());
 
   var state = {
     page: 1,
@@ -567,6 +579,18 @@
         return (
           '<tr data-id="' +
           escapeHtml(row.id) +
+          '" data-order-no="' +
+          escapeHtml(row.orderNo) +
+          '" data-type="' +
+          escapeHtml(row.type) +
+          '" data-status="' +
+          escapeHtml(row.status) +
+          '" data-order-source="' +
+          escapeHtml(row.orderSource) +
+          '" data-apply-amount="' +
+          escapeHtml(row.applyAmount) +
+          '" data-refund-exec="' +
+          escapeHtml(row.refundExecStatus) +
           '">' +
           '<td class="aftersale-table__td aftersale-table__td--ticket"><a href="#"' +
           detailLinkAttrs(row) +

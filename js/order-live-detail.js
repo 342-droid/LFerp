@@ -652,7 +652,7 @@
         commissionStatus: '-'
       },
       logs: [
-        { time: '2026-06-02 18:03', type: 'create', title: '订单已创建', desc: '订单创建，金额 ¥15.00' },
+        { time: '2026-06-02 18:03', type: 'create', title: '订单已创建', desc: '订单创建，金额 ¥25.00' },
         { time: '2026-06-03 09:00', type: 'ship', title: '商家已发货', desc: '快递已发出，配送至用户收货地址' },
         { time: '2026-06-03 11:20', type: 'success', title: '交易成功', desc: '用户已签收，订单已完成' }
       ],
@@ -1676,6 +1676,7 @@
   var AFTERSALE_TYPE_MOD = {
     '仅退款': 'refund-only',
     '退货退款': 'return-refund',
+    '退运费': 'refund-only',
     '补货': 'restock'
   };
 

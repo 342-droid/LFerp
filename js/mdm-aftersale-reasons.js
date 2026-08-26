@@ -66,6 +66,7 @@
 
   /** 后台售后类型 → 用户 APP 原因清单 */
   function getReasonsByType(type) {
+    if (type === '退运费') return REASONS.received.slice();
     if (type === '退货退款') return REASONS.return_refund.slice();
     if (type === '补货') return REASONS.restock.slice();
     if (type === '换货') return REASONS.exchange.slice();
@@ -86,6 +87,7 @@
    * 按类型 / 货物状态 / 是否发货前，取与用户 APP 一致的原因列表
    */
   function getReasonList(type, goodsStatus, orderStatus) {
+    if (type === '退运费') return REASONS.received.slice();
     if (type === '退货退款') return REASONS.return_refund.slice();
     if (type === '补货') return REASONS.restock.slice();
     if (type === '换货') return REASONS.exchange.slice();
