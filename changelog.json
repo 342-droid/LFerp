@@ -1,10 +1,172 @@
 {
-  "latestSha": "b8b65361ded878325a59ab13f32e1a27344a571c",
-  "total": 302,
+  "latestSha": "8ea74f5dc5775e3d7662c683bd4f48b547496ad2",
+  "total": 303,
   "days": [
     {
       "date": "2026-08-26",
       "items": [
+        {
+          "sha": "8ea74f5",
+          "type": "feat",
+          "text": "按汇付口径统一进件字段名称与采集项",
+          "author": "sisi",
+          "time": "17:11",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_h5.html",
+              "module": "",
+              "title": "冷丰 MDM · 门店扫码 H5"
+            },
+            {
+              "file": "MDM/mdm_bd_merchants.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 商户模块"
+            },
+            {
+              "file": "MDM/mdm_bd_not_found.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 页面未找到"
+            },
+            {
+              "file": "MDM/mdm_bd_personal.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 我的"
+            },
+            {
+              "file": "MDM/mdm_bd_store_form.html",
+              "module": "",
+              "title": "冷丰 MDM · 添加 / 编辑门店"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "MDM/mdm_bd_workbench.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 工作台"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_resource_onboarding.html",
+              "module": "冷丰WMS",
+              "title": "支付进件"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "module": "",
+              "title": "商户进件 · 门店APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "进件信息按汇付改名，补成立日期、法人证件地址、管理员姓名；截止日期支持长期有效"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "text": "进件信息与校验文案同步汇付字段"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "text": "进件信息与去进件弹窗同步汇付字段"
+            },
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "text": "进件信息与去进件弹窗同步汇付字段"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "text": "进件详情去掉有效期类型，截止日期展示长期有效，并补采集字段"
+            },
+            {
+              "file": null,
+              "text": "BD 商户模块: 去进件与商户详情对齐汇付命名"
+            },
+            {
+              "file": null,
+              "text": "法人证件类型只读身份证"
+            },
+            {
+              "file": null,
+              "text": "截止日期可勾长期有效"
+            },
+            {
+              "file": "MDM/mdm_resource_onboarding.html",
+              "text": "统一去进件弹窗字段与交互"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "text": "填写页与详情同步汇付字段、商户名称说明和长期有效"
+            }
+          ]
+        },
         {
           "sha": "b8b6536",
           "type": "fix",
