@@ -16,6 +16,21 @@
   var currentStatus = "全部";
   var currentQueueFilter = "全部";
   var currentKeyword = "";
+  var batchMode = false;
+  var selectedItems = {};
+  var btnOrdersBack = document.getElementById("btn-orders-back");
+  var btnBatchCancel = document.getElementById("btn-batch-cancel");
+  var btnBatchEnter = document.getElementById("btn-batch-enter");
+  var btnBatchSelectAll = document.getElementById("btn-batch-select-all");
+  var ordersTitle = document.getElementById("orders-title");
+  var batchBar = document.getElementById("batch-bar");
+  var batchCountEl = document.getElementById("batch-count");
+  var btnBatchGo = document.getElementById("btn-batch-go");
+  var verifyConfirmModal = document.getElementById("verify-confirm-modal");
+  var verifyCancelBtn = document.getElementById("btn-verify-cancel");
+  var verifyConfirmBtn = document.getElementById("btn-verify-confirm");
+  var verifyBlockedModal = document.getElementById("verify-blocked-modal");
+  var verifyBlockedOkBtn = document.getElementById("btn-verify-blocked-ok");
 
   (function parseTabParam() {
     var params = new URLSearchParams(window.location.search);
@@ -38,6 +53,22 @@
     return currentStatus === "排队中";
   }
 
+  function textIncludes(hay, needle) {
+    return String(hay || "").toLowerCase().indexOf(String(needle || "").toLowerCase()) !== -1;
+  }
+
+  function getMatchedItemIndexes(o, keyword) {
+    var idxs = [];
+    (o.items || []).forEach(function (item, idx) {
+      if (textIncludes(item.name, keyword)) idxs.push(idx);
+    });
+    return idxs;
+  }
+
+  function isItemVisible(o, idx) {
+    return !o._visibleItemIdxs || o._visibleItemIdxs.indexOf(idx) !== -1;
+  }
+
   function getFilteredOrders(status, keyword) {
     var list = allOrders;
     if (status === "待提货") {
@@ -49,7 +80,15 @@
     }
     if (keyword) {
       list = list.filter(function (o) {
-        return o.customer.indexOf(keyword) !== -1 || o.phone.indexOf(keyword) !== -1;
+        var buyerHit = textIncludes(o.customer, keyword) || textIncludes(o.phone, keyword);
+        var itemHit = getMatchedItemIndexes(o, keyword).length > 0;
+        return buyerHit || itemHit;
+      }).map(function (o) {
+        var itemIdxs = getMatchedItemIndexes(o, keyword);
+        if (itemIdxs.length === 0) return o;
+        var copy = Object.assign({}, o);
+        copy._visibleItemIdxs = itemIdxs;
+        return copy;
       });
     }
     return list;
@@ -100,27 +139,56 @@
   function renderOrderCard(o) {
     var card = document.createElement("article");
     card.className = "order-card";
+    card.setAttribute("data-order-id", o.id);
+
+    if (batchMode) {
+      if (isVerifiableOrder(o)) {
+        card.classList.add("is-batch-selectable");
+        if (isOrderAnySelected(o)) card.classList.add("is-selected");
+      } else {
+        card.classList.add("is-batch-disabled");
+      }
+    }
 
     var tagClass = STATUS_TAG_CLASS[o.status] || "";
     var statusTag =
       '<span class="order-card__tag ' + tagClass + '">' + o.status + "</span>";
 
     var itemsHtml = "";
-    o.items.forEach(function (item) {
+    o.items.forEach(function (item, idx) {
+      if (!isItemVisible(o, idx)) return;
       var fullyPicked = isItemFullyPicked(item);
+      var selectable = batchMode && isVerifiableOrder(o) && isItemSelectable(item);
+      var selected = selectable && isItemSelected(o.id, idx);
+      var blocked = batchMode && isVerifiableOrder(o) && isApprovedAftersaleItem(item) && getItemSelectableQty(item) > 0;
       var doneClass = fullyPicked ? " order-card__item--done" : "";
+      var itemClass = "order-card__item" + doneClass +
+        (selectable ? " is-item-selectable" : "") +
+        (selected ? " is-item-selected" : "") +
+        (blocked ? " is-item-blocked" : "");
       var doneMark = fullyPicked ? " ✓" : "";
       var pickupTag = getItemPickupTag(item, o.status);
+      var aftersaleTag = getItemAftersaleTag(item);
+      var specText = formatItemSpec(item.spec);
+      var imgSrc = item.image || "https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=160&h=160&fit=crop";
+      var itemCb = selectable
+        ? '<input type="checkbox" class="order-card__item-cb" data-order-id="' + o.id + '" data-item-idx="' + idx + '" ' + (selected ? "checked" : "") + " />"
+        : "";
       itemsHtml +=
-        '<div class="order-card__item' + doneClass + '">' +
-        '<span class="order-card__item-name' + (fullyPicked ? " order-card__item-name--done" : "") + '">' + item.name + pickupTag + "</span>" +
+        '<div class="' + itemClass + '" data-order-id="' + o.id + '" data-item-idx="' + idx + '">' +
+        itemCb +
+        '<img class="order-card__item-img" src="' + escapeHtml(imgSrc) + '" alt="" />' +
+        '<div class="order-card__item-main">' +
+        '<div class="order-card__item-name' + (fullyPicked ? " order-card__item-name--done" : "") + '"><span class="order-card__item-name-text">' + escapeHtml(item.name) + "</span>" + pickupTag + aftersaleTag + "</div>" +
+        (specText ? '<div class="order-card__item-spec">' + escapeHtml(specText) + "</div>" : "") +
+        "</div>" +
         '<span class="order-card__item-qty">x' + item.qty + "</span>" +
         '<span class="order-card__item-price' + (fullyPicked ? " order-card__item-price--done" : "") + '">¥' + item.price + doneMark + "</span>" +
         "</div>";
     });
 
     var refundHtml = "";
-    if (o.status === "待提货" && o.refund) {
+    if (o.status === "待提货" && o.refund && !o._visibleItemIdxs) {
       refundHtml =
         '<div class="order-card__refund">' +
         "<span>退款数量：" + o.refund.returnQty + "</span>" +
@@ -130,7 +198,8 @@
 
     var extraHtml = "";
     if (o.status === "已完成") {
-      o.items.forEach(function (item) {
+      o.items.forEach(function (item, idx) {
+        if (!isItemVisible(o, idx)) return;
         var t = item._verifyTime || o.verifyTime || "—";
         extraHtml +=
           '<div class="order-card__item-verify">' +
@@ -142,7 +211,9 @@
     }
 
     if (o.status === "部分核销") {
-      var doneItems = o.items.filter(function (item) { return item._verified; });
+      var doneItems = o.items.filter(function (item, idx) {
+        return item._verified && isItemVisible(o, idx);
+      });
       doneItems.forEach(function (item) {
         var t = item._verifyTime || "—";
         extraHtml +=
@@ -155,7 +226,8 @@
     }
 
     if (o.status === "待提货") {
-      o.items.forEach(function (item) {
+      o.items.forEach(function (item, idx) {
+        if (!isItemVisible(o, idx)) return;
         var verifiedQty = getItemVerifiedQty(item);
         var pendingQty = getItemPendingQty(item);
         if (verifiedQty <= 0) return;
@@ -170,9 +242,21 @@
       });
     }
 
+    var checkHtml = "";
+    if (batchMode && isVerifiableOrder(o) && getOrderSelectableItems(o).length > 0) {
+      checkHtml =
+        '<label class="order-card__check">' +
+        '<input type="checkbox" class="order-card__cb" data-order-id="' + o.id + '" ' +
+        (isOrderAllSelected(o) ? "checked" : "") + " />" +
+        "</label>";
+    }
+
     card.innerHTML =
       '<div class="order-card__header">' +
+      '<div class="order-card__header-left">' +
+      checkHtml +
       '<span class="order-card__no">' + o.orderNo + "</span>" +
+      "</div>" +
       statusTag +
       "</div>" +
       '<div class="order-card__body">' +
@@ -205,7 +289,394 @@
       .replace(/"/g, "&quot;");
   }
 
+  function formatItemSpec(spec) {
+    var text = String(spec || "").trim();
+    if (!text) return "";
+    return /^规格[:：]/.test(text) ? text : "规格：" + text;
+  }
+
   var VERIFIABLE_STATUSES = ["待收货", "待提货", "部分核销"];
+
+  function isVerifiableOrder(o) {
+    return !!o && VERIFIABLE_STATUSES.indexOf(o.status) !== -1;
+  }
+
+  function itemKey(orderId, idx) {
+    return orderId + ":" + idx;
+  }
+
+  function getItemRefundQty(item) {
+    if (item && item.refund && item.refund.returnQty != null) return item.refund.returnQty;
+    if (item && item.refundQty != null) return item.refundQty;
+    return 0;
+  }
+
+  function getItemSelectableQty(item) {
+    return Math.max(0, item.qty - getItemRefundQty(item) - getItemVerifiedQty(item));
+  }
+
+  var APPROVED_AFTERSALE_STATUSES = ["退款中", "待退货", "待收货", "退款异常"];
+
+  function getItemAftersaleStatus(item) {
+    if (!item) return "";
+    if (item.refundStatus) return item.refundStatus;
+    if (item.aftersaleStatus) return item.aftersaleStatus;
+    if (item.refunding) return "退款中";
+    return "";
+  }
+
+  function isApprovedAftersaleItem(item) {
+    return APPROVED_AFTERSALE_STATUSES.indexOf(getItemAftersaleStatus(item)) !== -1;
+  }
+
+  function isPendingAftersaleItem(item) {
+    return getItemAftersaleStatus(item) === "待审批";
+  }
+
+  function isRefundingItem(item) {
+    return isApprovedAftersaleItem(item) || isPendingAftersaleItem(item);
+  }
+
+  function getItemAftersaleTag(item) {
+    var status = getItemAftersaleStatus(item);
+    if (!status) return "";
+    return '<span class="order-card__item-refunding-tag">' + escapeHtml(status) + "</span>";
+  }
+
+  function isItemSelectable(item) {
+    return getItemSelectableQty(item) > 0 && !isApprovedAftersaleItem(item);
+  }
+
+  function isItemSelected(orderId, idx) {
+    return !!selectedItems[itemKey(orderId, idx)];
+  }
+
+  function getOrderSelectableItems(o) {
+    var list = [];
+    (o.items || []).forEach(function (item, idx) {
+      if (!isItemVisible(o, idx)) return;
+      if (isItemSelectable(item)) list.push({ item: item, idx: idx });
+    });
+    return list;
+  }
+
+  function isOrderAllSelected(o) {
+    var selectable = getOrderSelectableItems(o);
+    return selectable.length > 0 && selectable.every(function (entry) {
+      return isItemSelected(o.id, entry.idx);
+    });
+  }
+
+  function isOrderAnySelected(o) {
+    return getOrderSelectableItems(o).some(function (entry) {
+      return isItemSelected(o.id, entry.idx);
+    });
+  }
+
+  function copyItemForVerify(item) {
+    var copy = {
+      name: item.name,
+      qty: item.qty,
+      price: item.price,
+      image: item.image || "https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=160&h=160&fit=crop",
+    };
+    if (item.spec) copy.spec = item.spec;
+    if (item.refund) copy.refund = JSON.parse(JSON.stringify(item.refund));
+    if (item.refunded) copy.refunded = item.refunded;
+    if (item.refundQty != null) copy.refundQty = item.refundQty;
+    if (item.refundAmount != null) copy.refundAmount = item.refundAmount;
+    if (item.refunding) copy.refunding = item.refunding;
+    if (item.refundStatus) copy.refundStatus = item.refundStatus;
+    if (item._verified) copy._verified = item._verified;
+    if (item._verifyTime) copy._verifyTime = item._verifyTime;
+    if (item._verifiedQty != null) copy._verifiedQty = item._verifiedQty;
+    if (item._lastVerifyTime) copy._lastVerifyTime = item._lastVerifyTime;
+    if (item._checked != null) copy._checked = item._checked;
+    return copy;
+  }
+
+  function copyOrderForVerify(o, selectedIdxs) {
+    return {
+      id: o.id,
+      orderNo: o.orderNo,
+      createdAt: o.createdAt,
+      status: o.status,
+      amount: o.amount,
+      customer: o.customer,
+      phone: o.phone,
+      items: (o.items || []).map(function (item, idx) {
+        var copy = copyItemForVerify(item);
+        if (selectedIdxs) copy._checked = selectedIdxs.indexOf(idx) !== -1 && isItemSelectable(item);
+        return copy;
+      }),
+    };
+  }
+
+  function getVisibleVerifiableOrders() {
+    return getFilteredOrders(currentStatus, currentKeyword).filter(function (o) {
+      return isVerifiableOrder(o) && getOrderSelectableItems(o).length > 0;
+    });
+  }
+
+  function getVisibleSelectableEntries() {
+    var list = [];
+    getVisibleVerifiableOrders().forEach(function (o) {
+      getOrderSelectableItems(o).forEach(function (entry) {
+        list.push({ order: o, idx: entry.idx, item: entry.item });
+      });
+    });
+    return list;
+  }
+
+  function getSelectedCount() {
+    return getVisibleSelectableEntries().filter(function (entry) {
+      return isItemSelected(entry.order.id, entry.idx);
+    }).length;
+  }
+
+  function getSelectedOrdersWithItems() {
+    var byId = {};
+    var list = [];
+    getVisibleSelectableEntries().forEach(function (entry) {
+      if (!isItemSelected(entry.order.id, entry.idx)) return;
+      var orderId = entry.order.id;
+      var idx = entry.idx;
+      var order = allOrders.find(function (o) { return o.id === orderId; });
+      if (!order || !isVerifiableOrder(order) || !order.items[idx] || !isItemSelectable(order.items[idx])) return;
+      if (!byId[orderId]) {
+        byId[orderId] = { order: order, idxs: [] };
+        list.push(byId[orderId]);
+      }
+      byId[orderId].idxs.push(idx);
+    });
+    return list;
+  }
+
+  function buildBatchVerifyPayload(selected) {
+    var groupsMap = {};
+    var keys = [];
+    selected.forEach(function (entry) {
+      var o = entry.order;
+      var key = o.phone || o.customer || o.id;
+      if (!groupsMap[key]) {
+        groupsMap[key] = {
+          shared: { customer: o.customer, phone: o.phone },
+          orders: [],
+        };
+        keys.push(key);
+      }
+      groupsMap[key].orders.push(copyOrderForVerify(o, entry.idxs));
+    });
+    return {
+      mode: "multi-user",
+      groups: keys.map(function (k) { return groupsMap[k]; }),
+    };
+  }
+
+  function updateBatchBar() {
+    var count = getSelectedCount();
+    if (batchCountEl) batchCountEl.textContent = String(count);
+    if (btnBatchGo) btnBatchGo.disabled = count === 0;
+    if (btnBatchSelectAll) {
+      var visible = getVisibleSelectableEntries();
+      var allSelected = visible.length > 0 && visible.every(function (entry) {
+        return isItemSelected(entry.order.id, entry.idx);
+      });
+      btnBatchSelectAll.textContent = allSelected ? "取消全选" : "全选";
+    }
+  }
+
+  function updateBatchUI() {
+    if (btnBatchCancel) btnBatchCancel.hidden = !batchMode;
+    if (btnBatchEnter) btnBatchEnter.hidden = batchMode || isQueueMode();
+    if (btnBatchSelectAll) btnBatchSelectAll.hidden = !batchMode;
+    if (batchBar) batchBar.hidden = !batchMode;
+    if (ordersTitle) ordersTitle.textContent = batchMode ? "选择商品" : "门店订单";
+    updateBatchBar();
+  }
+
+  function enterBatchMode() {
+    if (isQueueMode()) return;
+    if (getVisibleVerifiableOrders().length === 0) {
+      window.LFToast && window.LFToast.show("当前没有可核销商品");
+      return;
+    }
+    batchMode = true;
+    updateBatchUI();
+    doRender();
+  }
+
+  function exitBatchMode() {
+    batchMode = false;
+    selectedItems = {};
+    updateBatchUI();
+    doRender();
+  }
+
+  function setItemSelected(orderId, idx, next) {
+    var key = itemKey(orderId, idx);
+    if (next) selectedItems[key] = true;
+    else delete selectedItems[key];
+  }
+
+  function getFilteredOrderById(orderId) {
+    return getFilteredOrders(currentStatus, currentKeyword).find(function (o) {
+      return o.id === orderId;
+    });
+  }
+
+  function toggleSelectItem(orderId, idx, force) {
+    var order = getFilteredOrderById(orderId) || allOrders.find(function (o) { return o.id === orderId; });
+    if (!order || !isVerifiableOrder(order) || !order.items[idx] || !isItemVisible(order, idx) || !isItemSelectable(order.items[idx])) return;
+    var next = force !== undefined ? force : !isItemSelected(orderId, idx);
+    setItemSelected(orderId, idx, next);
+    updateBatchBar();
+    doRender();
+  }
+
+  function toggleSelectOrder(orderId, force) {
+    var order = getFilteredOrderById(orderId) || allOrders.find(function (o) { return o.id === orderId; });
+    if (!isVerifiableOrder(order)) return;
+    var selectable = getOrderSelectableItems(order);
+    if (selectable.length === 0) return;
+    var next = force !== undefined ? force : !isOrderAllSelected(order);
+    selectable.forEach(function (entry) {
+      setItemSelected(orderId, entry.idx, next);
+    });
+    updateBatchBar();
+    doRender();
+  }
+
+  function getTotalPickupQty(item) {
+    return Math.max(0, item.qty - getItemRefundQty(item));
+  }
+
+  function getPendingPickupQty(item) {
+    return getItemSelectableQty(item);
+  }
+
+  function isOrderFullyPickedUp(order) {
+    var pickable = (order.items || []).filter(function (item) {
+      return getTotalPickupQty(item) > 0;
+    });
+    if (pickable.length === 0) return true;
+    return pickable.every(function (item) {
+      return getPendingPickupQty(item) <= 0;
+    });
+  }
+
+  function getVerifyTime() {
+    var now = new Date();
+    var pad = function (n) { return String(n).padStart(2, "0"); };
+    return now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes());
+  }
+
+  function markItemVerified(item, qty, verifyTime) {
+    var totalQty = getTotalPickupQty(item);
+    item._verifiedQty = Math.min(getItemVerifiedQty(item) + qty, totalQty);
+    item._lastVerifyTime = verifyTime;
+    if (getPendingPickupQty(item) <= 0) {
+      item._verified = true;
+      item._verifyTime = verifyTime;
+    }
+    if (isRefundingItem(item)) {
+      item.refunding = false;
+      item.refundStatus = null;
+    }
+  }
+
+  function persistVerifiedOrder(order, verifyTime) {
+    if (isOrderFullyPickedUp(order)) {
+      order.status = "已完成";
+      order.verifyTime = verifyTime;
+    } else if ((order.items || []).some(function (item) {
+      return getItemVerifiedQty(item) > 0 || item._verified;
+    })) {
+      order.status = "部分核销";
+    }
+  }
+
+  function hasPendingAftersaleSelected() {
+    return getSelectedOrdersWithItems().some(function (entry) {
+      return entry.idxs.some(function (idx) {
+        return isPendingAftersaleItem(entry.order.items[idx]);
+      });
+    });
+  }
+
+  function hasApprovedAftersaleSelected() {
+    return getSelectedOrdersWithItems().some(function (entry) {
+      return entry.idxs.some(function (idx) {
+        return isApprovedAftersaleItem(entry.order.items[idx]);
+      });
+    });
+  }
+
+  function openVerifyConfirmModal() {
+    if (!verifyConfirmModal) return;
+    verifyConfirmModal.classList.add("is-open");
+    verifyConfirmModal.setAttribute("aria-hidden", "false");
+  }
+
+  function closeVerifyConfirmModal() {
+    if (!verifyConfirmModal) return;
+    verifyConfirmModal.classList.remove("is-open");
+    verifyConfirmModal.setAttribute("aria-hidden", "true");
+  }
+
+  function openVerifyBlockedModal() {
+    if (!verifyBlockedModal) return;
+    verifyBlockedModal.classList.add("is-open");
+    verifyBlockedModal.setAttribute("aria-hidden", "false");
+  }
+
+  function closeVerifyBlockedModal() {
+    if (!verifyBlockedModal) return;
+    verifyBlockedModal.classList.remove("is-open");
+    verifyBlockedModal.setAttribute("aria-hidden", "true");
+  }
+
+  function performBatchVerifySelected() {
+    var selected = getSelectedOrdersWithItems();
+    if (selected.length === 0) return;
+
+    var verifyTime = getVerifyTime();
+    selected.forEach(function (entry) {
+      entry.idxs.forEach(function (idx) {
+        var item = entry.order.items[idx];
+        if (!isItemSelectable(item)) return;
+        markItemVerified(item, getPendingPickupQty(item), verifyTime);
+      });
+      persistVerifiedOrder(entry.order, verifyTime);
+    });
+    if (typeof window.LFSaveStoreOrders === "function") window.LFSaveStoreOrders();
+
+    selectedItems = {};
+    window.LFToast && window.LFToast.show("核销成功");
+    if (getVisibleVerifiableOrders().length === 0) {
+      exitBatchMode();
+    } else {
+      updateBatchUI();
+      doRender();
+    }
+  }
+
+  function requestBatchVerify() {
+    var selected = getSelectedOrdersWithItems();
+    if (selected.length === 0) {
+      window.LFToast && window.LFToast.show("请先选择要核销的商品");
+      return;
+    }
+    if (hasApprovedAftersaleSelected()) {
+      openVerifyBlockedModal();
+      return;
+    }
+    if (hasPendingAftersaleSelected()) {
+      openVerifyConfirmModal();
+    } else {
+      performBatchVerifySelected();
+    }
+  }
 
   function buildVerifyOrderForMember(customer, phone) {
     if (data.verifyOrdersByPhone && data.verifyOrdersByPhone[phone]) {
@@ -227,30 +698,7 @@
     return {
       orderNo: verifiable[0].orderNo,
       shared: { customer: customer, phone: phone },
-      orders: verifiable.map(function (o) {
-        return {
-          id: o.id,
-          orderNo: o.orderNo,
-          createdAt: o.createdAt,
-          status: o.status,
-          amount: o.amount,
-          items: o.items.map(function (item) {
-            var copy = {
-              name: item.name,
-              qty: item.qty,
-              price: item.price,
-              image: item.image || "https://placehold.co/80x80/f5f5f5/999?text=商品",
-            };
-            if (item.refund) copy.refund = JSON.parse(JSON.stringify(item.refund));
-            if (item.refunding) copy.refunding = item.refunding;
-            if (item._verified) {
-              copy._verified = item._verified;
-              copy._verifyTime = item._verifyTime;
-            }
-            return copy;
-          }),
-        };
-      }),
+      orders: verifiable.map(copyOrderForVerify),
     };
   }
 
@@ -434,7 +882,7 @@
     if (isQueueMode()) {
       searchInput.placeholder = "输入手机号或姓名搜索";
     } else {
-      searchInput.placeholder = "输入手机号搜索订单";
+      searchInput.placeholder = "输入手机号或商品名称搜索";
     }
   }
 
@@ -451,6 +899,7 @@
     updateQueueTabCount();
     updateQueueSubTabsUI();
     updateSearchUI();
+    updateBatchUI();
     if (isQueueMode()) {
       renderList(getFilteredQueueRecords(currentQueueFilter, currentKeyword), true);
     } else {
@@ -460,6 +909,9 @@
 
   function switchTab(status) {
     currentStatus = status;
+    if (isQueueMode() && batchMode) {
+      exitBatchMode();
+    }
     if (!isQueueMode()) {
       currentQueueFilter = "全部";
     }
@@ -523,7 +975,84 @@
     true
   );
 
+  if (btnBatchEnter) {
+    btnBatchEnter.addEventListener("click", enterBatchMode);
+  }
+  if (btnBatchCancel) {
+    btnBatchCancel.addEventListener("click", exitBatchMode);
+  }
+  if (btnBatchSelectAll) {
+    btnBatchSelectAll.addEventListener("click", function () {
+      var visible = getVisibleSelectableEntries();
+      var allSelected = visible.length > 0 && visible.every(function (entry) {
+        return isItemSelected(entry.order.id, entry.idx);
+      });
+      visible.forEach(function (entry) {
+        setItemSelected(entry.order.id, entry.idx, !allSelected);
+      });
+      updateBatchBar();
+      doRender();
+    });
+  }
+  if (btnBatchGo) {
+    btnBatchGo.addEventListener("click", requestBatchVerify);
+  }
+
+  if (verifyCancelBtn) {
+    verifyCancelBtn.addEventListener("click", closeVerifyConfirmModal);
+  }
+  if (verifyConfirmBtn) {
+    verifyConfirmBtn.addEventListener("click", function () {
+      closeVerifyConfirmModal();
+      performBatchVerifySelected();
+    });
+  }
+  if (verifyConfirmModal) {
+    verifyConfirmModal.addEventListener("click", function (e) {
+      if (e.target === verifyConfirmModal) closeVerifyConfirmModal();
+    });
+  }
+  if (verifyBlockedOkBtn) {
+    verifyBlockedOkBtn.addEventListener("click", closeVerifyBlockedModal);
+  }
+  if (verifyBlockedModal) {
+    verifyBlockedModal.addEventListener("click", function (e) {
+      if (e.target === verifyBlockedModal) closeVerifyBlockedModal();
+    });
+  }
+
+  root.addEventListener("change", function (e) {
+    if (!batchMode) return;
+    var itemCb = e.target.closest(".order-card__item-cb");
+    if (itemCb) {
+      toggleSelectItem(itemCb.getAttribute("data-order-id"), parseInt(itemCb.getAttribute("data-item-idx"), 10), itemCb.checked);
+      return;
+    }
+    var cb = e.target.closest(".order-card__cb");
+    if (!cb) return;
+    toggleSelectOrder(cb.getAttribute("data-order-id"), cb.checked);
+  });
+
   root.addEventListener("click", function (e) {
+    if (batchMode) {
+      if (e.target.closest(".order-card__check") || e.target.closest(".order-card__item-cb")) return;
+      var itemRow = e.target.closest(".order-card__item");
+      if (itemRow && !e.target.closest(".order-card__call-btn")) {
+        var rowOrderId = itemRow.getAttribute("data-order-id");
+        var rowItemIdx = parseInt(itemRow.getAttribute("data-item-idx"), 10);
+        var rowOrder = getFilteredOrderById(rowOrderId) || allOrders.find(function (o) { return o.id === rowOrderId; });
+        var rowItem = rowOrder && rowOrder.items && rowOrder.items[rowItemIdx];
+        if (rowItem && isApprovedAftersaleItem(rowItem) && getItemSelectableQty(rowItem) > 0) {
+          openVerifyBlockedModal();
+          return;
+        }
+        if (itemRow.classList.contains("is-item-selectable")) {
+          toggleSelectItem(rowOrderId, rowItemIdx);
+        }
+        return;
+      }
+    }
+
     var avatarBtn = e.target.closest("[data-queue-verify]");
     if (avatarBtn) {
       goToVerifyPage(
@@ -577,5 +1106,30 @@
     }
   });
 
+  function mountVerifyDemoPanel() {
+    var api = window.LFStoreVerifyDemo;
+    if (!api || document.getElementById("sa-verify-demo")) return;
+    var current = api.getScene();
+    var panel = document.createElement("div");
+    panel.id = "sa-verify-demo";
+    panel.className = "sa-verify-demo";
+    panel.innerHTML =
+      '<div class="sa-verify-demo__title">核销验收开关</div>' +
+      '<label class="sa-verify-demo__row">场景' +
+      '<select id="sa-verify-demo-scene">' +
+      api.scenes.map(function (scene) {
+        return '<option value="' + scene.id + '"' + (scene.id === current ? " selected" : "") + ">" + scene.label + "</option>";
+      }).join("") +
+      "</select></label>" +
+      '<p class="sa-verify-demo__hint">切换场景或核销后点下方按钮即可复原</p>' +
+      '<button type="button" class="sa-verify-demo__apply" id="sa-verify-demo-apply">应用并刷新</button>';
+    document.body.appendChild(panel);
+    document.getElementById("sa-verify-demo-apply").addEventListener("click", function () {
+      var select = document.getElementById("sa-verify-demo-scene");
+      api.applyAndReload(select ? select.value : current);
+    });
+  }
+
+  mountVerifyDemoPanel();
   doRender();
 })();
