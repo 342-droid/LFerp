@@ -1009,6 +1009,11 @@
   border-radius: 20px;
 }
 
+.order-card__tag--ship {
+  background: rgba(155, 89, 182, 0.12);
+  color: #8e44ad;
+}
+
 .order-card__tag--pending {
   background: rgba(255, 152, 0, 0.12);
   color: #e67e00;
@@ -1386,7 +1391,7 @@
   right: 8px;
   bottom: 8px;
   z-index: 3300;
-  width: 178px;
+  width: 220px;
   padding: 10px;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid #eee;

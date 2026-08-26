@@ -1,7 +1,7 @@
 /**
  * 核销详情页：
  * 1. 一码多订单：支持勾选核销与单品核销；
- * 2. 扫码同时展示待收货、待提货订单，均可核销；
+ * 2. 扫码展示已截单且允许核销的待发货/待收货/待提货订单；
  * 3. 已全部完成时：显示"全部已完成"提示；
  * 4. 订单管理批量核销：多用户分组展示，核销规则与扫码一致；
  * 5. 移除预约收货时间字段。
@@ -121,9 +121,8 @@
   }
 
   function getItemAftersaleTag(item) {
-    var status = getItemAftersaleStatus(item);
-    if (!status) return "";
-    return '<span class="detail-item__status-tag detail-item__status-tag--refunding">' + status + "</span>";
+    if (!isRefundingItem(item)) return "";
+    return '<span class="detail-item__status-tag detail-item__status-tag--refunding">退款中</span>';
   }
 
   function getPickupAmount(item) {

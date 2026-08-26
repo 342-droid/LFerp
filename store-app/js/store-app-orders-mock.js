@@ -4,6 +4,7 @@
 (function (global) {
   const mockData = {
     store: {
+      storeId: "ONS303445581201",
       companyName: "冷丰生鲜超市",
       roleLabel: "根组织管理",
       avatarLetter: "y",
@@ -175,6 +176,7 @@
           orderNo: "WDJ20260331008",
           createdAt: "2026-03-31 08:42",
           status: "待收货",
+          cutoff: true,
           amount: 99,
           items: [
             { name: "新鲜牛奶 24盒装", qty: 1, price: 99, image: "https://placehold.co/80x80/f5f5f5/999?text=牛奶" },
@@ -206,6 +208,7 @@
           orderNo: "WDJ20260331020",
           createdAt: "2026-03-31 09:30",
           status: "待收货",
+          cutoff: true,
           amount: 198,
           items: [
             { name: "有机水果礼盒 A款", qty: 1, price: 198, image: "https://placehold.co/80x80/f5f5f5/999?text=水果A", refunding: true, refundStatus: "退款中" },
@@ -248,6 +251,7 @@
             orderNo: "WDJ20260107002",
             createdAt: "2026-01-07 18:40",
             status: "待收货",
+            cutoff: true,
             amount: 268,
             items: [
               { name: "有机苹果礼盒 3斤装", qty: 1, price: 168, image: "https://placehold.co/80x80/f5f5f5/999?text=苹果" },
@@ -396,6 +400,7 @@
         id: "o2e",
         orderNo: "WDJ20260331008",
         status: "待收货",
+        cutoff: true,
         amount: 99,
         createdAt: "2026-03-31 08:42",
         customer: "周文静",
@@ -435,12 +440,52 @@
         id: "o2h",
         orderNo: "WDJ20260331020",
         status: "待收货",
+        cutoff: true,
         amount: 198,
         createdAt: "2026-03-31 09:30",
         customer: "王小明",
         phone: "138****1024",
         items: [
           { name: "有机水果礼盒 A款", qty: 1, price: 198, refunding: true, refundStatus: "退款中" },
+        ],
+      },
+      {
+        id: "oShip1",
+        orderNo: "WDJ20260402001",
+        status: "待发货",
+        cutoff: true,
+        amount: 86,
+        createdAt: "2026-04-02 07:20",
+        customer: "李芳",
+        phone: "159****8891",
+        items: [
+          { name: "鲜切牛排 200g", qty: 1, price: 86 },
+        ],
+      },
+      {
+        id: "oShip2",
+        orderNo: "WDJ20260402002",
+        status: "待发货",
+        cutoff: false,
+        amount: 80,
+        createdAt: "2026-04-02 09:10",
+        customer: "陈晨",
+        phone: "186****2233",
+        items: [
+          { name: "有机西兰花 500g", qty: 1, price: 80 },
+        ],
+      },
+      {
+        id: "oRecvOpen",
+        orderNo: "WDJ20260402003",
+        status: "待收货",
+        cutoff: false,
+        amount: 99,
+        createdAt: "2026-04-02 08:05",
+        customer: "刘洋",
+        phone: "177****5566",
+        items: [
+          { name: "新鲜牛奶 24盒装", qty: 1, price: 99 },
         ],
       },
       {
@@ -544,8 +589,12 @@
   }
 
   var VERIFY_DEMO_KEY = "lf_store_verify_demo_v1";
+  var PLATFORM_ORDER_KEY = "lf_basic_settings_order_config";
+  var STORE_ORDER_KEY = "lf_store_order_config_" + (mockData.store && mockData.store.storeId ? mockData.store.storeId : "ONS303445581201");
   var VERIFY_DEMO_SCENES = [
     { id: "mixed", label: "默认混合列表" },
+    { id: "cutoff", label: "已截单可核三态" },
+    { id: "nocutoff", label: "未截单不可核" },
     { id: "multi", label: "多会员可核销" },
     { id: "pending", label: "售后待审批" },
     { id: "approved", label: "售后已过审" },
@@ -598,6 +647,10 @@
       list = pickOrders(["o1", "o2", "o5"]);
     } else if (scene === "done") {
       list = pickOrders(["o4"]);
+    } else if (scene === "cutoff") {
+      list = pickOrders(["oShip1", "o2e", "o2d"]);
+    } else if (scene === "nocutoff") {
+      list = pickOrders(["oShip2", "oRecvOpen", "o2d"]);
     } else {
       list = JSON.parse(JSON.stringify(DEFAULT_ORDERS));
     }
@@ -620,6 +673,47 @@
     /* ignore */
   }
 
+  function readJsonSetting(key, fallback) {
+    try {
+      var raw = localStorage.getItem(key);
+      if (!raw) return Object.assign({}, fallback);
+      return Object.assign({}, fallback, JSON.parse(raw));
+    } catch (e) {
+      return Object.assign({}, fallback);
+    }
+  }
+
+  function writePendingShipmentSwitch(key, enabled) {
+    var current = readJsonSetting(key, { storeQueue: "on", pendingShipmentVerify: "on" });
+    current.pendingShipmentVerify = enabled ? "on" : "off";
+    try {
+      localStorage.setItem(key, JSON.stringify(current));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function isPendingShipmentVerifyEnabled() {
+    var platform = readJsonSetting(PLATFORM_ORDER_KEY, { pendingShipmentVerify: "on" });
+    var store = readJsonSetting(STORE_ORDER_KEY, { pendingShipmentVerify: "on" });
+    return platform.pendingShipmentVerify !== "off" && store.pendingShipmentVerify !== "off";
+  }
+
+  function isOrderCutoff(order) {
+    if (!order) return false;
+    if (order.cutoff === true || order.cutoffPassed === true) return true;
+    if (order.cutoff === false || order.cutoffPassed === false) return false;
+    return order.status === "待提货" || order.status === "部分核销" || order.status === "已完成";
+  }
+
+  function isFulfillmentVerifiable(order) {
+    if (!order) return false;
+    var status = order.status;
+    if (status === "待提货" || status === "部分核销") return true;
+    if (status !== "待发货" && status !== "待收货") return false;
+    return isPendingShipmentVerifyEnabled() && isOrderCutoff(order);
+  }
+
   global.LFMockData = mockData;
   global.LFSaveStoreOrders = function () {
     try {
@@ -628,15 +722,33 @@
       /* ignore */
     }
   };
+  global.LFStoreVerifyPolicy = {
+    storeId: mockData.store.storeId,
+    isEnabled: isPendingShipmentVerifyEnabled,
+    isCutoff: isOrderCutoff,
+    isVerifiable: isFulfillmentVerifiable,
+    getSwitches: function () {
+      var platform = readJsonSetting(PLATFORM_ORDER_KEY, { pendingShipmentVerify: "on" });
+      var store = readJsonSetting(STORE_ORDER_KEY, { pendingShipmentVerify: "on" });
+      return {
+        platform: platform.pendingShipmentVerify !== "off",
+        store: store.pendingShipmentVerify !== "off",
+      };
+    },
+  };
   global.LFStoreVerifyDemo = {
     key: VERIFY_DEMO_KEY,
     scenes: VERIFY_DEMO_SCENES,
     getScene: getVerifyDemoScene,
-    applyAndReload: function (scene) {
+    applyAndReload: function (scene, switches) {
       try {
         localStorage.setItem(VERIFY_DEMO_KEY, scene);
       } catch (e) {
         /* ignore */
+      }
+      if (switches) {
+        writePendingShipmentSwitch(PLATFORM_ORDER_KEY, !!switches.platform);
+        writePendingShipmentSwitch(STORE_ORDER_KEY, !!switches.store);
       }
       try {
         sessionStorage.removeItem("lfStoreAppOrdersState");

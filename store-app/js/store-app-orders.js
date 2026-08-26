@@ -35,12 +35,13 @@
   (function parseTabParam() {
     var params = new URLSearchParams(window.location.search);
     var tab = params.get("tab");
-    if (tab && ["全部", "待收货", "待提货", "已完成", "排队中"].indexOf(tab) !== -1) {
+    if (tab && ["全部", "待发货", "待收货", "待提货", "已完成", "排队中"].indexOf(tab) !== -1) {
       currentStatus = tab;
     }
   })();
 
   var STATUS_TAG_CLASS = {
+    待发货: "order-card__tag--ship",
     待收货: "order-card__tag--pending",
     待提货: "order-card__tag--pickup",
     已完成: "order-card__tag--done",
@@ -295,10 +296,14 @@
     return /^规格[:：]/.test(text) ? text : "规格：" + text;
   }
 
-  var VERIFIABLE_STATUSES = ["待收货", "待提货", "部分核销"];
+  var VERIFIABLE_STATUSES = ["待发货", "待收货", "待提货", "部分核销"];
 
   function isVerifiableOrder(o) {
-    return !!o && VERIFIABLE_STATUSES.indexOf(o.status) !== -1;
+    if (!o || VERIFIABLE_STATUSES.indexOf(o.status) === -1) return false;
+    if (window.LFStoreVerifyPolicy && typeof window.LFStoreVerifyPolicy.isVerifiable === "function") {
+      return window.LFStoreVerifyPolicy.isVerifiable(o);
+    }
+    return o.status === "待提货" || o.status === "部分核销";
   }
 
   function itemKey(orderId, idx) {
@@ -338,9 +343,8 @@
   }
 
   function getItemAftersaleTag(item) {
-    var status = getItemAftersaleStatus(item);
-    if (!status) return "";
-    return '<span class="order-card__item-refunding-tag">' + escapeHtml(status) + "</span>";
+    if (!isRefundingItem(item)) return "";
+    return '<span class="order-card__item-refunding-tag">退款中</span>';
   }
 
   function isItemSelectable(item) {
@@ -401,6 +405,7 @@
       orderNo: o.orderNo,
       createdAt: o.createdAt,
       status: o.status,
+      cutoff: o.cutoff,
       amount: o.amount,
       customer: o.customer,
       phone: o.phone,
@@ -680,16 +685,18 @@
 
   function buildVerifyOrderForMember(customer, phone) {
     if (data.verifyOrdersByPhone && data.verifyOrdersByPhone[phone]) {
-      return JSON.parse(JSON.stringify(data.verifyOrdersByPhone[phone]));
+      var preset = JSON.parse(JSON.stringify(data.verifyOrdersByPhone[phone]));
+      preset.orders = (preset.orders || []).filter(isVerifiableOrder);
+      return preset.orders.length ? preset : null;
     }
 
     var verifiable = allOrders.filter(function (o) {
-      return o.phone === phone && VERIFIABLE_STATUSES.indexOf(o.status) !== -1;
+      return o.phone === phone && isVerifiableOrder(o);
     });
 
     if (verifiable.length === 0) {
       verifiable = allOrders.filter(function (o) {
-        return o.customer === customer && VERIFIABLE_STATUSES.indexOf(o.status) !== -1;
+        return o.customer === customer && isVerifiableOrder(o);
       });
     }
 
@@ -1110,6 +1117,7 @@
     var api = window.LFStoreVerifyDemo;
     if (!api || document.getElementById("sa-verify-demo")) return;
     var current = api.getScene();
+    var switches = (window.LFStoreVerifyPolicy && window.LFStoreVerifyPolicy.getSwitches && window.LFStoreVerifyPolicy.getSwitches()) || { platform: true, store: true };
     var panel = document.createElement("div");
     panel.id = "sa-verify-demo";
     panel.className = "sa-verify-demo";
@@ -1121,12 +1129,19 @@
         return '<option value="' + scene.id + '"' + (scene.id === current ? " selected" : "") + ">" + scene.label + "</option>";
       }).join("") +
       "</select></label>" +
-      '<p class="sa-verify-demo__hint">切换场景或核销后点下方按钮即可复原</p>' +
+      '<label class="sa-verify-demo__row"><input type="checkbox" id="sa-verify-demo-platform"' + (switches.platform ? " checked" : "") + "> 平台·待发货订单核销</label>" +
+      '<label class="sa-verify-demo__row"><input type="checkbox" id="sa-verify-demo-store"' + (switches.store ? " checked" : "") + "> 门店·待发货订单核销</label>" +
+      '<p class="sa-verify-demo__hint">两处都开且订单已截单时，待发货/待收货/待提货均可核销</p>' +
       '<button type="button" class="sa-verify-demo__apply" id="sa-verify-demo-apply">应用并刷新</button>';
     document.body.appendChild(panel);
     document.getElementById("sa-verify-demo-apply").addEventListener("click", function () {
       var select = document.getElementById("sa-verify-demo-scene");
-      api.applyAndReload(select ? select.value : current);
+      var platformEl = document.getElementById("sa-verify-demo-platform");
+      var storeEl = document.getElementById("sa-verify-demo-store");
+      api.applyAndReload(select ? select.value : current, {
+        platform: !!(platformEl && platformEl.checked),
+        store: !!(storeEl && storeEl.checked),
+      });
     });
   }
 

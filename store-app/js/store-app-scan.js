@@ -25,6 +25,15 @@
     }
     close();
     var o = JSON.parse(JSON.stringify(data.pendingVerifyOrder));
+    if (o && Array.isArray(o.orders) && global.LFStoreVerifyPolicy && typeof global.LFStoreVerifyPolicy.isVerifiable === "function") {
+      o.orders = o.orders.filter(function (order) {
+        return global.LFStoreVerifyPolicy.isVerifiable(order);
+      });
+    }
+    if (!o || !o.orders || !o.orders.length) {
+      global.LFToast && global.LFToast.show("该用户暂无可核销订单");
+      return;
+    }
     global.sessionStorage.setItem("pendingVerifyOrder", JSON.stringify(o));
     global.location.href = "order-detail.html";
   }
