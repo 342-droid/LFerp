@@ -376,6 +376,11 @@
   padding-right: 4px;
 }
 
+.detail-item--blocked {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
 .detail-item__status-tag {
   display: inline-block;
   margin-left: 4px;

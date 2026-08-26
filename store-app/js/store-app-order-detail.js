@@ -165,12 +165,6 @@
     });
   }
 
-  function hasApprovedAftersaleSelected() {
-    return getSelectedItems().some(function (entry) {
-      return isApprovedAftersaleItem(entry.item);
-    });
-  }
-
   function isOrderAllChecked(o) {
     var selectable = o.items.filter(isSelectableItem);
     if (selectable.length === 0) return false;
@@ -283,12 +277,13 @@
         "detail-item" +
         (itemDone ? " detail-item--done" : "") +
         (itemPartial ? " detail-item--partial" : "") +
-        (aftersale ? " detail-item--refunding" : "");
+        (aftersale ? " detail-item--refunding" : "") +
+        (approvedAftersale ? " detail-item--blocked" : "");
       var tagHtml = getItemPickupStatusTag(item);
       if (aftersale) tagHtml += getItemAftersaleTag(item);
       var metaHtml = "x" + totalQty + " · ¥" + item.price;
       var displayAmount = item.price * (itemDone ? totalQty : pendingQty);
-      var actionHtml = itemCanVerify || (approvedAftersale && pendingQty > 0)
+      var actionHtml = itemCanVerify
         ? '<button type="button" class="detail-item__verify-btn" data-order-id="' + o.id + '" data-item-idx="' + idx + '">核销</button>'
         : "";
 
@@ -422,8 +417,6 @@
   var verifyConfirmModal = document.getElementById("verify-confirm-modal");
   var verifyCancelBtn = document.getElementById("btn-verify-cancel");
   var verifyConfirmBtn = document.getElementById("btn-verify-confirm");
-  var verifyBlockedModal = document.getElementById("verify-blocked-modal");
-  var verifyBlockedOkBtn = document.getElementById("btn-verify-blocked-ok");
   var pickupQtyModal = document.getElementById("pickup-qty-modal");
   var pickupQtyInput = document.getElementById("pickup-qty-input");
   var pickupQtyHint = document.getElementById("pickup-qty-hint");
@@ -449,18 +442,6 @@
     pendingSingleVerify = null;
     pendingSelectedVerify = false;
     pendingPickupQty = 1;
-  }
-
-  function openVerifyBlockedModal() {
-    if (!verifyBlockedModal) return;
-    verifyBlockedModal.classList.add("is-open");
-    verifyBlockedModal.setAttribute("aria-hidden", "false");
-  }
-
-  function closeVerifyBlockedModal() {
-    if (!verifyBlockedModal) return;
-    verifyBlockedModal.classList.remove("is-open");
-    verifyBlockedModal.setAttribute("aria-hidden", "true");
   }
 
   function persistOrderToMock(order) {
@@ -638,10 +619,6 @@
     if (!order || order.items[itemIdx] === undefined) return;
 
     var item = order.items[itemIdx];
-    if (isApprovedAftersaleItem(item)) {
-      openVerifyBlockedModal();
-      return;
-    }
     if (!isSelectableItem(item)) return;
 
     var totalQty = getTotalPickupQty(item);
@@ -688,11 +665,6 @@
 
   function requestVerifySelected() {
     if (getSelectedItems().length === 0) return;
-
-    if (hasApprovedAftersaleSelected()) {
-      openVerifyBlockedModal();
-      return;
-    }
 
     if (hasPendingAftersaleSelected()) {
       pendingSingleVerify = null;
@@ -806,14 +778,5 @@
       if (e.target === verifyConfirmModal) closeVerifyConfirmModal();
     });
   }
-  if (verifyBlockedOkBtn) {
-    verifyBlockedOkBtn.addEventListener("click", closeVerifyBlockedModal);
-  }
-  if (verifyBlockedModal) {
-    verifyBlockedModal.addEventListener("click", function (e) {
-      if (e.target === verifyBlockedModal) closeVerifyBlockedModal();
-    });
-  }
-
   renderAll();
 })();

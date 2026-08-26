@@ -1122,7 +1122,9 @@
 }
 
 .order-card__item.is-item-blocked {
-  cursor: pointer;
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
 }
 
 .order-card__item-cb {
