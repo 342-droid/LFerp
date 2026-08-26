@@ -1,10 +1,124 @@
 {
-  "latestSha": "6a9a3704e96c07ffe2faddfa3c753cfee5bf8fd4",
-  "total": 304,
+  "latestSha": "061470f694f137e9c95a4a6dee868e2fd05946ea",
+  "total": 305,
   "days": [
     {
       "date": "2026-08-26",
       "items": [
+        {
+          "sha": "061470f",
+          "type": "style",
+          "text": "商户名称说明改到输入框下方并与输入框同宽",
+          "author": "sisi",
+          "time": "21:38",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_h5.html",
+              "module": "",
+              "title": "冷丰 MDM · 门店扫码 H5"
+            },
+            {
+              "file": "MDM/mdm_bd_merchants.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 商户模块"
+            },
+            {
+              "file": "MDM/mdm_bd_not_found.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 页面未找到"
+            },
+            {
+              "file": "MDM/mdm_bd_personal.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 我的"
+            },
+            {
+              "file": "MDM/mdm_bd_store_form.html",
+              "module": "",
+              "title": "冷丰 MDM · 添加 / 编辑门店"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "MDM/mdm_bd_workbench.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 工作台"
+            },
+            {
+              "file": "MDM/mdm_resource_onboarding.html",
+              "module": "冷丰WMS",
+              "title": "支付进件"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "module": "",
+              "title": "商户进件 · 门店APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "去进件商户名称说明贴在输入框正下方，宽度与输入框一致后换行"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "text": "去进件商户名称说明位置与宽度同步"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "text": "统一去进件弹窗商户名称说明同步"
+            },
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "text": "统一去进件弹窗商户名称说明同步"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "text": "进件编辑里商户名称说明贴在输入框下方同宽换行"
+            },
+            {
+              "file": null,
+              "text": "BD 商户模块: 商户名称说明改到输入框正下方，宽度与输入框一致"
+            },
+            {
+              "file": "MDM/mdm_resource_onboarding.html",
+              "text": "统一去进件弹窗商户名称说明同步"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "text": "商户名称说明贴在输入框下方同宽换行"
+            }
+          ]
+        },
         {
           "sha": "6a9a370",
           "type": "feat",
