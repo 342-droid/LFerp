@@ -29,8 +29,6 @@
   var verifyConfirmModal = document.getElementById("verify-confirm-modal");
   var verifyCancelBtn = document.getElementById("btn-verify-cancel");
   var verifyConfirmBtn = document.getElementById("btn-verify-confirm");
-  var verifyBlockedModal = document.getElementById("verify-blocked-modal");
-  var verifyBlockedOkBtn = document.getElementById("btn-verify-blocked-ok");
 
   (function parseTabParam() {
     var params = new URLSearchParams(window.location.search);
@@ -609,14 +607,6 @@
     });
   }
 
-  function hasApprovedAftersaleSelected() {
-    return getSelectedOrdersWithItems().some(function (entry) {
-      return entry.idxs.some(function (idx) {
-        return isApprovedAftersaleItem(entry.order.items[idx]);
-      });
-    });
-  }
-
   function openVerifyConfirmModal() {
     if (!verifyConfirmModal) return;
     verifyConfirmModal.classList.add("is-open");
@@ -627,18 +617,6 @@
     if (!verifyConfirmModal) return;
     verifyConfirmModal.classList.remove("is-open");
     verifyConfirmModal.setAttribute("aria-hidden", "true");
-  }
-
-  function openVerifyBlockedModal() {
-    if (!verifyBlockedModal) return;
-    verifyBlockedModal.classList.add("is-open");
-    verifyBlockedModal.setAttribute("aria-hidden", "false");
-  }
-
-  function closeVerifyBlockedModal() {
-    if (!verifyBlockedModal) return;
-    verifyBlockedModal.classList.remove("is-open");
-    verifyBlockedModal.setAttribute("aria-hidden", "true");
   }
 
   function performBatchVerifySelected() {
@@ -670,10 +648,6 @@
     var selected = getSelectedOrdersWithItems();
     if (selected.length === 0) {
       window.LFToast && window.LFToast.show("请先选择要核销的商品");
-      return;
-    }
-    if (hasApprovedAftersaleSelected()) {
-      openVerifyBlockedModal();
       return;
     }
     if (hasPendingAftersaleSelected()) {
@@ -1019,15 +993,6 @@
       if (e.target === verifyConfirmModal) closeVerifyConfirmModal();
     });
   }
-  if (verifyBlockedOkBtn) {
-    verifyBlockedOkBtn.addEventListener("click", closeVerifyBlockedModal);
-  }
-  if (verifyBlockedModal) {
-    verifyBlockedModal.addEventListener("click", function (e) {
-      if (e.target === verifyBlockedModal) closeVerifyBlockedModal();
-    });
-  }
-
   root.addEventListener("change", function (e) {
     if (!batchMode) return;
     var itemCb = e.target.closest(".order-card__item-cb");
@@ -1047,12 +1012,6 @@
       if (itemRow && !e.target.closest(".order-card__call-btn")) {
         var rowOrderId = itemRow.getAttribute("data-order-id");
         var rowItemIdx = parseInt(itemRow.getAttribute("data-item-idx"), 10);
-        var rowOrder = getFilteredOrderById(rowOrderId) || allOrders.find(function (o) { return o.id === rowOrderId; });
-        var rowItem = rowOrder && rowOrder.items && rowOrder.items[rowItemIdx];
-        if (rowItem && isApprovedAftersaleItem(rowItem) && getItemSelectableQty(rowItem) > 0) {
-          openVerifyBlockedModal();
-          return;
-        }
         if (itemRow.classList.contains("is-item-selectable")) {
           toggleSelectItem(rowOrderId, rowItemIdx);
         }
