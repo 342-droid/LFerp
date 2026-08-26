@@ -1,10 +1,48 @@
 {
-  "latestSha": "918ae5bb3c83e4f4facd66ee55c5ec9a98b605f4",
-  "total": 306,
+  "latestSha": "0080c8756d535c802d51c79a848c1db2ccbe10c3",
+  "total": 307,
   "days": [
     {
       "date": "2026-08-26",
       "items": [
+        {
+          "sha": "0080c87",
+          "type": "feat",
+          "text": "门店订单支持本页批量核销并补齐售后拦截",
+          "author": "sisi",
+          "time": "23:20",
+          "pages": [
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": null,
+              "text": "工作台: 扫码核销半遮罩收进手机壳内，不再铺满整屏"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "text": "批量勾选商品后本页确定核销，不再跳转；列表展示商品图和规格，支持按商品名搜索；售后已过审弹出无法核销，待审批需确认后关闭退款；右下角验收开关可切换场景并复原"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "text": "与门店订单同一套核销规则，售后已过审无法核销、待审批需确认"
+            }
+          ]
+        },
         {
           "sha": "918ae5b",
           "type": "feat",

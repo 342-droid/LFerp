@@ -1,4 +1,23 @@
 {
+  "0080c87|store-app/h5/home.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-26"
+  },
+  "0080c87|store-app/h5/order-detail.html": {
+    "before": "changelog-assets/0080c87/store-app__h5__order-detail.html.before.jpg",
+    "after": "changelog-assets/0080c87/store-app__h5__order-detail.html.after.jpg",
+    "regions": 5,
+    "status": "diff",
+    "date": "2026-08-26"
+  },
+  "0080c87|store-app/h5/store-orders.html": {
+    "before": "changelog-assets/0080c87/store-app__h5__store-orders.html.before.jpg",
+    "after": "changelog-assets/0080c87/store-app__h5__store-orders.html.after.jpg",
+    "regions": 4,
+    "status": "diff",
+    "date": "2026-08-26"
+  },
   "0535be7|MDM/mdm_live_control.html": {
     "regions": 0,
     "status": "diff",
