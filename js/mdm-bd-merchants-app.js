@@ -246,22 +246,40 @@
       bind_subject_id: '',
       bind_store_id: '',
       contact_name: src.contactName || src.legalPerson || src.legalName || '',
-      license_info: {
-        name: src.licenseName || src.regName || src.name || '',
-        code: src.registrationCode || src.licenseCode || src.businessLicense || '',
-        start_date: src.licenseValidFrom || src.licenseBeginDate || '',
-        valid_date: src.licenseValidTo || src.licenseEndDate || '',
-        found_date: src.foundDate || src.licenseValidFrom || src.licenseBeginDate || '',
-        address: src.registeredDetailAddress || src.regDetail || src.registeredRegion || '',
-      },
-      legal_info: {
-        cert_type: src.legalIdDocType || src.legalCertType || '身份证',
-        legal_name: src.legalPerson || src.legalName || '',
-        id_no: src.idNumber || src.legalCertNo || '',
-        id_start_date: src.idValidFrom || src.legalCertBeginDate || '',
-        id_valid_date: src.idValidTo || src.legalCertEndDate || '',
-        legal_addr: src.legalAddr || src.idAddress || '',
-      },
+      license_info: (function () {
+        var licAddr = splitOnboardAddress(
+          src.address || '',
+          src.registeredRegion || src.licenseRegion || '',
+          src.registeredDetailAddress || src.regDetail || ''
+        );
+        return {
+          name: src.licenseName || src.regName || src.name || '',
+          code: src.registrationCode || src.licenseCode || src.businessLicense || '',
+          start_date: src.licenseValidFrom || src.licenseBeginDate || '',
+          valid_date: src.licenseValidTo || src.licenseEndDate || '',
+          found_date: src.foundDate || src.licenseValidFrom || src.licenseBeginDate || '',
+          region: licAddr.region,
+          address_detail: licAddr.detail,
+          address: licAddr.full,
+        };
+      })(),
+      legal_info: (function () {
+        var legalAddr = splitOnboardAddress(
+          src.legalAddr || src.idAddress || '',
+          src.legalRegion || '',
+          src.legalAddrDetail || ''
+        );
+        return {
+          cert_type: src.legalIdDocType || src.legalCertType || '身份证',
+          legal_name: src.legalPerson || src.legalName || '',
+          id_no: src.idNumber || src.legalCertNo || '',
+          id_start_date: src.idValidFrom || src.legalCertBeginDate || '',
+          id_valid_date: src.idValidTo || src.legalCertEndDate || '',
+          legal_region: legalAddr.region,
+          legal_addr_detail: legalAddr.detail,
+          legal_addr: legalAddr.full,
+        };
+      })(),
     };
   }
 
@@ -315,6 +333,29 @@
         base = Object.assign({}, base, sum.fields);
         base.card_info = Object.assign({}, base.card_info || {}, sum.fields.card_info || {});
       }
+    }
+    if (base.license_info && !String(base.license_info.found_date || '').trim()) {
+      base.license_info.found_date = base.license_info.start_date || '';
+    }
+    if (base.license_info) {
+      var licAddr = splitOnboardAddress(
+        base.license_info.address,
+        base.license_info.region,
+        base.license_info.address_detail
+      );
+      base.license_info.region = licAddr.region;
+      base.license_info.address_detail = licAddr.detail;
+      base.license_info.address = licAddr.full;
+    }
+    if (base.legal_info) {
+      var legalAddr = splitOnboardAddress(
+        base.legal_info.legal_addr,
+        base.legal_info.legal_region,
+        base.legal_info.legal_addr_detail
+      );
+      base.legal_info.legal_region = legalAddr.region;
+      base.legal_info.legal_addr_detail = legalAddr.detail;
+      base.legal_info.legal_addr = legalAddr.full;
     }
     return base;
   }
@@ -425,6 +466,24 @@
   var MERCHANT_NAME_TIP =
     '必须与企业证照上的名称一致；个体工商户的营业执照如没有名称，名称为“*”或空，则商户名称应填 “个体户XXX”（XXX为营业执照上经营者姓名），如“个体户张三”';
 
+  function splitOnboardAddress(full, region, detail) {
+    if (window.MdmOnboardAddress && typeof window.MdmOnboardAddress.splitAddress === 'function') {
+      return window.MdmOnboardAddress.splitAddress(full, region, detail);
+    }
+    return {
+      region: String(region || '').trim(),
+      detail: String(detail || '').trim(),
+      full: String(full || region || detail || '').trim()
+    };
+  }
+
+  function joinOnboardAddress(region, detail) {
+    if (window.MdmOnboardAddress && typeof window.MdmOnboardAddress.joinAddress === 'function') {
+      return window.MdmOnboardAddress.joinAddress(region, detail);
+    }
+    return String(region || '').replace(/[\s\/]/g, '') + String(detail || '').trim();
+  }
+
   function businessLicenseData(m, fields) {
     m = m || {};
     fields = fields || {};
@@ -438,6 +497,11 @@
       rawValidDate: validTo || '长期有效',
       foundDate: lic.found_date || m.foundDate || lic.start_date || m.licenseValidFrom || m.licenseBeginDate || '2024-05-13',
       address: lic.address || m.registeredDetailAddress || m.regDetail || m.registeredRegion || '云南省昭通市昭阳区太平街道办事处昭通大道',
+      addressParts: splitOnboardAddress(
+        lic.address || m.registeredDetailAddress || m.regDetail || m.address || '云南省昭通市昭阳区太平街道办事处昭通大道',
+        lic.region || m.registeredRegion || '',
+        lic.address_detail || m.registeredDetailAddress || ''
+      ),
       image: BUSINESS_LICENSE_IMG,
     };
   }
@@ -497,22 +561,30 @@
   function renderBusinessLicenseInfo(m, editable) {
     var fields = editable && onboardDraft ? onboardDraft : resolveOnboardingFields(m);
     var data = businessLicenseData(m, fields);
+    var addr = data.addressParts || splitOnboardAddress(data.address, '', '');
     var params = editable
-      ? licenseParamInput('商户名称', 'on_reg_name', 'license_info.name', data.name) +
+      ? '<div class="bd-license-param-row bd-license-param-row--name">' +
+        '<span class="bd-license-param-label"><i>*</i>商户名称</span>' +
+        '<div class="bd-license-param-name-ctrl">' +
+        '<input class="bd-license-param-input" type="text" id="on_reg_name" data-on-field="license_info.name" value="' +
+        esc(data.name) +
+        '" />' +
         '<p class="bd-field-tip">' +
         esc(MERCHANT_NAME_TIP) +
-        '</p>' +
+        '</p></div></div>' +
         licenseParamInput('证照编号', 'on_license_code', 'license_info.code', data.code) +
         licenseParamInput('证照有效期开始日期', 'on_license_start', 'license_info.start_date', data.startDate, 'date') +
         validDateRow('证照有效期截止日期', 'on_license_valid_date', 'license_info.valid_date', data.rawValidDate, true) +
         licenseParamInput('成立日期', 'on_found_date', 'license_info.found_date', data.foundDate, 'date') +
-        licenseParamInput('注册地址', 'on_reg_addr', 'license_info.address', data.address)
+        licenseParamInput('省市区', 'on_reg_region', 'license_info.region', addr.region) +
+        licenseParamInput('详细地址', 'on_reg_addr_detail', 'license_info.address_detail', addr.detail)
       : licenseParamRow('商户名称', data.name, true) +
         licenseParamRow('证照编号', data.code, true) +
         licenseParamRow('证照有效期开始日期', data.startDate, true) +
         licenseParamRow('证照有效期截止日期', data.validDate, true) +
         licenseParamRow('成立日期', data.foundDate, true) +
-        licenseParamRow('注册地址', data.address, true);
+        licenseParamRow('省市区', addr.region, true) +
+        licenseParamRow('详细地址', addr.detail, true);
     return formModuleCard(
       '执照信息',
       businessLicensePhotoCard(data) +
@@ -546,6 +618,11 @@
       validDate: formatIdValidText(validTo),
       rawValidDate: validTo,
       legalAddr: legal.legal_addr || m.legalAddr || m.idAddress || '云南省昭通市昭阳区太平街道办事处昭通大道',
+      legalAddrParts: splitOnboardAddress(
+        legal.legal_addr || m.legalAddr || m.idAddress || '云南省昭通市昭阳区太平街道办事处昭通大道',
+        legal.legal_region || m.legalRegion || '',
+        legal.legal_addr_detail || m.legalAddrDetail || ''
+      ),
       frontImage: LEGAL_ID_FRONT_IMG,
       backImage: LEGAL_ID_BACK_IMG,
     };
@@ -559,6 +636,8 @@
     if (li.id_start_date) target.idValidFrom = li.id_start_date;
     if (li.id_valid_date) target.idValidTo = li.id_valid_date;
     if (li.legal_addr) target.legalAddr = li.legal_addr;
+    if (li.legal_region) target.legalRegion = li.legal_region;
+    if (li.legal_addr_detail) target.legalAddrDetail = li.legal_addr_detail;
   }
 
   function applyLicenseInfoToMerchant(target, draft) {
@@ -569,7 +648,9 @@
     if (li.start_date) target.licenseValidFrom = li.start_date;
     if (li.valid_date) target.licenseValidTo = li.valid_date;
     if (li.found_date) target.foundDate = li.found_date;
-    if (li.address) target.registeredDetailAddress = li.address;
+    if (li.region) target.registeredRegion = li.region;
+    if (li.address_detail) target.registeredDetailAddress = li.address_detail;
+    if (li.address) target.regDetail = li.address;
   }
 
   function applyValidDate(draftKey, value) {
@@ -665,12 +746,14 @@
           licenseParamInput('法人证件号码', 'on_id_no', 'legal_info.id_no', data.number) +
           licenseParamInput('法人证件开始日期', 'on_id_start_date', 'legal_info.id_start_date', data.startDate, 'date') +
           validDateRow('法人证件截止日期', 'on_id_valid_date', 'legal_info.id_valid_date', data.rawValidDate, true) +
-          licenseParamInput('法人证件地址', 'on_legal_addr', 'legal_info.legal_addr', data.legalAddr)
+          licenseParamInput('省市区', 'on_legal_region', 'legal_info.legal_region', (data.legalAddrParts || {}).region) +
+          licenseParamInput('详细地址', 'on_legal_addr_detail', 'legal_info.legal_addr_detail', (data.legalAddrParts || {}).detail)
         : licenseParamRow('法人姓名', data.name, true) +
           licenseParamRow('法人证件号码', data.number, true) +
           licenseParamRow('法人证件开始日期', data.startDate, true) +
           licenseParamRow('法人证件截止日期', data.validDate, true) +
-          licenseParamRow('法人证件地址', data.legalAddr, true)) +
+          licenseParamRow('省市区', (data.legalAddrParts || {}).region, true) +
+          licenseParamRow('详细地址', (data.legalAddrParts || {}).detail, true)) +
       '</div>'
     );
   }
@@ -1382,12 +1465,14 @@
         'license_info.start_date',
         'license_info.valid_date',
         'license_info.found_date',
-        'license_info.address',
+        'license_info.region',
+        'license_info.address_detail',
         'legal_info.legal_name',
         'legal_info.id_no',
         'legal_info.id_start_date',
         'legal_info.id_valid_date',
-        'legal_info.legal_addr',
+        'legal_info.legal_region',
+        'legal_info.legal_addr_detail',
       ];
     }
     if (step === 1) return ['short_name', 'receipt_name', 'detail_addr', 'legal_mobile_no', 'contact_name', 'contact_mobile_no', 'contact_email'];
@@ -1413,11 +1498,15 @@
       'license_info.start_date': '证照有效期开始日期',
       'license_info.valid_date': '证照有效期截止日期',
       'license_info.found_date': '成立日期',
+      'license_info.region': '省市区',
+      'license_info.address_detail': '详细地址',
       'license_info.address': '注册地址',
       'legal_info.legal_name': '法人姓名',
       'legal_info.id_no': '法人证件号码',
       'legal_info.id_start_date': '法人证件开始日期',
       'legal_info.id_valid_date': '法人证件截止日期',
+      'legal_info.legal_region': '省市区',
+      'legal_info.legal_addr_detail': '详细地址',
       'legal_info.legal_addr': '法人证件地址',
       'card_info.account_name': '开户名',
       'card_info.card_no': '银行卡号',
@@ -1435,6 +1524,12 @@
   }
 
   function validateStep(step) {
+    if (step === 0) {
+      var startDate = String(getDraftField('license_info.start_date') || '').trim();
+      if (startDate && !String(getDraftField('license_info.found_date') || '').trim()) {
+        setDraftField('license_info.found_date', startDate);
+      }
+    }
     var req = requiredStepFields(step);
     for (var i = 0; i < req.length; i++) {
       var k = req[i];
@@ -1934,7 +2029,28 @@
           var contact = getDraftField('contact_name');
           if (!contact || contact === prevLegal) setDraftField('contact_name', inp.value);
         }
+        if (key === 'license_info.start_date') {
+          var prevStart = getDraftField('license_info.start_date');
+          var found = getDraftField('license_info.found_date');
+          if (!found || found === prevStart) {
+            setDraftField('license_info.found_date', inp.value);
+            var foundInp = document.getElementById('on_found_date');
+            if (foundInp) foundInp.value = inp.value;
+          }
+        }
         setDraftField(key, inp.value);
+        if (key === 'license_info.region' || key === 'license_info.address_detail') {
+          setDraftField(
+            'license_info.address',
+            joinOnboardAddress(getDraftField('license_info.region'), getDraftField('license_info.address_detail'))
+          );
+        }
+        if (key === 'legal_info.legal_region' || key === 'legal_info.legal_addr_detail') {
+          setDraftField(
+            'legal_info.legal_addr',
+            joinOnboardAddress(getDraftField('legal_info.legal_region'), getDraftField('legal_info.legal_addr_detail'))
+          );
+        }
       };
       if (inp.tagName === 'SELECT') inp.onchange = handler;
       else inp.oninput = handler;

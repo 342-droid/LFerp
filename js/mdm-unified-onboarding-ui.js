@@ -17,6 +17,24 @@
     var MERCHANT_NAME_TIP =
         '必须与企业证照上的名称一致；个体工商户的营业执照如没有名称，名称为“*”或空，则商户名称应填 “个体户XXX”（XXX为营业执照上经营者姓名），如“个体户张三”';
 
+    function splitOnboardAddress(full, region, detail) {
+        if (window.MdmOnboardAddress && typeof window.MdmOnboardAddress.splitAddress === 'function') {
+            return window.MdmOnboardAddress.splitAddress(full, region, detail);
+        }
+        return {
+            region: String(region || '').trim(),
+            detail: String(detail || '').trim(),
+            full: String(full || region || detail || '').trim()
+        };
+    }
+
+    function joinOnboardAddress(region, detail) {
+        if (window.MdmOnboardAddress && typeof window.MdmOnboardAddress.joinAddress === 'function') {
+            return window.MdmOnboardAddress.joinAddress(region, detail);
+        }
+        return String(region || '').replace(/[\s\/]/g, '') + String(detail || '').trim();
+    }
+
     function textInput(placeholder, value) {
         var inp = document.createElement('input');
         inp.className = 'erp-input';
@@ -286,22 +304,46 @@
                     cardExisting.bank_branch || cardDef.bank_branch || ''
                 ).trim()
             },
-            license_info: {
-                name: String(licenseExisting.name || licenseDef.name || '').trim(),
-                code: String(licenseExisting.code || licenseDef.code || '').trim(),
-                start_date: String(licenseExisting.start_date || licenseDef.start_date || '').trim(),
-                valid_date: String(licenseExisting.valid_date || licenseDef.valid_date || '').trim(),
-                found_date: String(licenseExisting.found_date || licenseDef.found_date || '').trim(),
-                address: String(licenseExisting.address || licenseDef.address || '').trim()
-            },
-            legal_info: {
-                cert_type: String(legalExisting.cert_type || legalDef.cert_type || '身份证').trim(),
-                legal_name: String(legalExisting.legal_name || legalDef.legal_name || '').trim(),
-                id_no: String(legalExisting.id_no || legalDef.id_no || '').trim(),
-                id_start_date: String(legalExisting.id_start_date || legalDef.id_start_date || '').trim(),
-                id_valid_date: String(legalExisting.id_valid_date || legalDef.id_valid_date || '').trim(),
-                legal_addr: String(legalExisting.legal_addr || legalDef.legal_addr || '').trim()
-            },
+            license_info: (function () {
+                var licAddr = splitOnboardAddress(
+                    licenseExisting.address || licenseDef.address,
+                    licenseExisting.region || licenseDef.region,
+                    licenseExisting.address_detail || licenseDef.address_detail
+                );
+                return {
+                    name: String(licenseExisting.name || licenseDef.name || '').trim(),
+                    code: String(licenseExisting.code || licenseDef.code || '').trim(),
+                    start_date: String(licenseExisting.start_date || licenseDef.start_date || '').trim(),
+                    valid_date: String(licenseExisting.valid_date || licenseDef.valid_date || '').trim(),
+                    found_date: String(
+                        licenseExisting.found_date ||
+                            licenseDef.found_date ||
+                            licenseExisting.start_date ||
+                            licenseDef.start_date ||
+                            ''
+                    ).trim(),
+                    region: licAddr.region,
+                    address_detail: licAddr.detail,
+                    address: licAddr.full
+                };
+            })(),
+            legal_info: (function () {
+                var legalAddr = splitOnboardAddress(
+                    legalExisting.legal_addr || legalDef.legal_addr,
+                    legalExisting.legal_region || legalDef.legal_region,
+                    legalExisting.legal_addr_detail || legalDef.legal_addr_detail
+                );
+                return {
+                    cert_type: String(legalExisting.cert_type || legalDef.cert_type || '身份证').trim(),
+                    legal_name: String(legalExisting.legal_name || legalDef.legal_name || '').trim(),
+                    id_no: String(legalExisting.id_no || legalDef.id_no || '').trim(),
+                    id_start_date: String(legalExisting.id_start_date || legalDef.id_start_date || '').trim(),
+                    id_valid_date: String(legalExisting.id_valid_date || legalDef.id_valid_date || '').trim(),
+                    legal_region: legalAddr.region,
+                    legal_addr_detail: legalAddr.detail,
+                    legal_addr: legalAddr.full
+                };
+            })(),
             license_pic: uploadDefault('license_pic'),
             legal_cert_front_pic: uploadDefault('legal_cert_front_pic'),
             legal_cert_back_pic: uploadDefault('legal_cert_back_pic'),
@@ -437,19 +479,72 @@
                 'license_info.start_date': '2024-05-13',
                 'license_info.valid_date': '长期有效',
                 'license_info.found_date': '2024-05-13',
+                'license_info.region': '云南省 / 昭通市 / 昭阳区',
+                'license_info.address_detail': '太平街道办事处昭通大道',
                 'license_info.address': '云南省昭通市昭阳区太平街道办事处昭通大道',
                 'legal_info.legal_name': '陈大华',
                 'legal_info.cert_type': '身份证',
                 'legal_info.id_no': '532101199003145212',
                 'legal_info.id_start_date': '2022-03-07',
                 'legal_info.id_valid_date': '2042-03-07',
-                'legal_info.legal_addr': '云南省昭通市昭阳区太平街道办事处昭通大道',
+                'legal_info.legal_region': '云南省 / 昭通市 / 昭阳区',
+                'legal_info.legal_addr_detail': '田坝乡幸福村民委员会上马发山村18号',
+                'legal_info.legal_addr': '云南省昭通市昭阳区田坝乡幸福村民委员会上马发山村18号',
                 'card_info.account_name': '云南立扬后勤管理服务有限公司',
                 'card_info.card_no': '53050163613700000992',
                 'card_info.bank_name': '中国建设银行',
                 'card_info.bank_branch': '中国建设银行股份有限公司昭通珠泉支行'
             };
             return demo[key] || '';
+        }
+
+        function fieldValueOf(ref) {
+            if (!ref) return '';
+            if (typeof ref.getValue === 'function') return String(ref.getValue() || '').trim();
+            return String(ref.value || '').trim();
+        }
+
+        function setFieldValue(ref, val) {
+            if (!ref) return;
+            if (typeof ref.setValue === 'function') {
+                ref.setValue(val || '');
+                return;
+            }
+            ref.value = val || '';
+        }
+
+        function appendRegionInput(wrap, key, rawVal) {
+            var existingVal = fieldValueOf(inputMap[key]);
+            var val = existingVal || rawVal || '';
+            if (
+                window.MdmStoreRegionCascader &&
+                typeof window.MdmStoreRegionCascader.create === 'function'
+            ) {
+                var holder = el('div', 'unified-onboard-region-holder');
+                var cascader = window.MdmStoreRegionCascader.create(holder, val, { disabled: !editMode });
+                holder.appendChild(cascader.wrap);
+                wrap.appendChild(holder);
+                inputMap[key] = {
+                    getValue: function () {
+                        return cascader.getValue();
+                    },
+                    setValue: function (v) {
+                        cascader.setValue(v);
+                    },
+                    get value() {
+                        return cascader.getValue();
+                    },
+                    set value(v) {
+                        cascader.setValue(v);
+                    }
+                };
+                return;
+            }
+            var inp = textInput('省 / 市 / 区', val);
+            inp.setAttribute('data-onboard-key', key);
+            inp.disabled = !editMode;
+            inputMap[key] = inp;
+            wrap.appendChild(inp);
         }
 
         function appendDateInput(wrap, key, rawVal) {
@@ -510,12 +605,17 @@
         function seedOcrFields(fields) {
             (fields || []).forEach(function (f) {
                 var inp = inputMap[f.key];
-                if (inp && !String(inp.value || '').trim()) inp.value = f.value || ocrDemoValue(f.key);
+                if (inp && !fieldValueOf(inp)) setFieldValue(inp, f.value || ocrDemoValue(f.key));
             });
             var legalInp = inputMap['legal_info.legal_name'];
             var contactInp = inputMap['contact_name'];
             if (legalInp && contactInp && !String(contactInp.value || '').trim()) {
                 contactInp.value = String(legalInp.value || '').trim();
+            }
+            var startInp = inputMap['license_info.start_date'];
+            var foundInp = inputMap['license_info.found_date'];
+            if (startInp && foundInp && !fieldValueOf(foundInp)) {
+                setFieldValue(foundInp, fieldValueOf(startInp));
             }
         }
 
@@ -541,24 +641,28 @@
                 var grid = el('div', 'unified-onboard-ocr-grid');
                 if (opts.ocrColumns) grid.style.gridTemplateColumns = opts.ocrColumns;
                 ocrFields.forEach(function (f) {
-                    var wrap = el('div', 'unified-onboard-ocr-field');
+                    var wrap = el('div', 'unified-onboard-ocr-field' + (f.tip ? ' unified-onboard-ocr-field--name' : ''));
                     wrap.appendChild(sfLabel(f.label, true));
+                    var ctrl = el('div', f.tip ? 'unified-onboard-ocr-field-main' : 'unified-onboard-ocr-field-ctrl');
                     var val =
-                        inputMap[f.key] && inputMap[f.key].value ?
-                            inputMap[f.key].value :
-                            f.value || (uploadState[key] ? ocrDemoValue(f.key) : '');
+                        fieldValueOf(inputMap[f.key]) ||
+                        f.value ||
+                        (uploadState[key] ? ocrDemoValue(f.key) : '');
                     if (f.type === 'dateForever') {
-                        appendDateForever(wrap, f.key, val);
+                        appendDateForever(ctrl, f.key, val);
                     } else if (f.type === 'date') {
-                        appendDateInput(wrap, f.key, val);
+                        appendDateInput(ctrl, f.key, val);
+                    } else if (f.type === 'region') {
+                        appendRegionInput(ctrl, f.key, val);
                     } else {
                         var inp = textInput(f.placeholder || f.label, val);
                         inp.setAttribute('data-onboard-key', f.key);
                         inp.disabled = !editMode;
                         inputMap[f.key] = inp;
-                        wrap.appendChild(inp);
+                        ctrl.appendChild(inp);
                     }
-                    if (f.tip) wrap.appendChild(el('div', 'unified-onboard-field-tip', f.tip));
+                    if (f.tip) ctrl.appendChild(el('div', 'unified-onboard-field-tip', f.tip));
+                    wrap.appendChild(ctrl);
                     grid.appendChild(wrap);
                 });
                 parentNode.appendChild(grid);
@@ -651,7 +755,8 @@
                 { label: '法人证件号码', key: 'legal_info.id_no', value: formFields.legal_info.id_no },
                 { label: '法人证件开始日期', key: 'legal_info.id_start_date', value: formFields.legal_info.id_start_date, type: 'date' },
                 { label: '法人证件截止日期', key: 'legal_info.id_valid_date', value: formFields.legal_info.id_valid_date, type: 'dateForever' },
-                { label: '法人证件地址', key: 'legal_info.legal_addr', value: formFields.legal_info.legal_addr }
+                { label: '省市区', key: 'legal_info.legal_region', value: formFields.legal_info.legal_region, type: 'region' },
+                { label: '详细地址', key: 'legal_info.legal_addr_detail', value: formFields.legal_info.legal_addr_detail }
             ];
             var uploadKeys = [
                 { key: 'legal_cert_front_pic', caption: '上传法人身份证人像面' },
@@ -735,6 +840,11 @@
                         grid.appendChild(wrap);
                         return;
                     }
+                    if (f.type === 'region') {
+                        appendRegionInput(wrap, f.key, val);
+                        grid.appendChild(wrap);
+                        return;
+                    }
                     var inp = textInput(f.label, val);
                     inp.setAttribute('data-onboard-key', f.key);
                     inp.disabled = !editMode;
@@ -760,7 +870,8 @@
             { label: '证照有效期开始日期', key: 'license_info.start_date', value: formFields.license_info.start_date, type: 'date' },
             { label: '证照有效期截止日期', key: 'license_info.valid_date', value: formFields.license_info.valid_date, type: 'dateForever' },
             { label: '成立日期', key: 'license_info.found_date', value: formFields.license_info.found_date, type: 'date' },
-            { label: '注册地址', key: 'license_info.address', value: formFields.license_info.address }
+            { label: '省市区', key: 'license_info.region', value: formFields.license_info.region, type: 'region' },
+            { label: '详细地址', key: 'license_info.address_detail', value: formFields.license_info.address_detail }
         ], { mediaWidth: '260px', ocrColumns: '1fr' });
         idCardUploadRow(s0);
         body.appendChild(s0);
@@ -843,24 +954,61 @@
         ) {
             inputMap.contact_name.value = lastSyncedLegalName;
         }
-        body.addEventListener('input', function (ev) {
+        var lastSyncedStartDate = String(
+            (inputMap['license_info.start_date'] && inputMap['license_info.start_date'].value) ||
+                formFields.license_info.start_date ||
+                ''
+        ).trim();
+        if (
+            inputMap['license_info.found_date'] &&
+            !String(inputMap['license_info.found_date'].value || '').trim() &&
+            lastSyncedStartDate
+        ) {
+            inputMap['license_info.found_date'].value = lastSyncedStartDate;
+        }
+        function syncLinkedOnboardFields(ev) {
             var t = ev.target;
-            if (!t || t.getAttribute('data-onboard-key') !== 'legal_info.legal_name') return;
-            var contactInp = inputMap.contact_name;
-            if (!contactInp) return;
-            var next = String(t.value || '').trim();
-            var cur = String(contactInp.value || '').trim();
-            if (!cur || cur === lastSyncedLegalName) contactInp.value = next;
-            lastSyncedLegalName = next;
-        });
+            if (!t) return;
+            var key = t.getAttribute('data-onboard-key');
+            if (key === 'legal_info.legal_name') {
+                var contactInp = inputMap.contact_name;
+                if (!contactInp) return;
+                var nextLegal = String(t.value || '').trim();
+                var curContact = String(contactInp.value || '').trim();
+                if (!curContact || curContact === lastSyncedLegalName) contactInp.value = nextLegal;
+                lastSyncedLegalName = nextLegal;
+                return;
+            }
+            if (key === 'license_info.start_date') {
+                var foundInp = inputMap['license_info.found_date'];
+                if (!foundInp) return;
+                var nextStart = String(t.value || '').trim();
+                var curFound = String(foundInp.value || '').trim();
+                if (!curFound || curFound === lastSyncedStartDate) foundInp.value = nextStart;
+                lastSyncedStartDate = nextStart;
+            }
+        }
+        body.addEventListener('input', syncLinkedOnboardFields);
+        body.addEventListener('change', syncLinkedOnboardFields);
 
         function getInputVal(key) {
             if (key === 'legal_info.id_valid_date' || key === 'license_info.valid_date') {
                 var forever = inputMap[key + '_forever'];
                 if (forever && forever.checked) return '长期有效';
             }
-            var inp = inputMap[key];
-            return inp ? String(inp.value || '').trim() : '';
+            if (key === 'license_info.address') {
+                return joinOnboardAddress(
+                    fieldValueOf(inputMap['license_info.region']),
+                    fieldValueOf(inputMap['license_info.address_detail'])
+                );
+            }
+            if (key === 'legal_info.legal_addr') {
+                return joinOnboardAddress(
+                    fieldValueOf(inputMap['legal_info.legal_region']),
+                    fieldValueOf(inputMap['legal_info.legal_addr_detail'])
+                );
+            }
+            return fieldValueOf(inputMap[key]);
         }
 
         function collectFields() {
@@ -883,7 +1031,11 @@
                     code: getInputVal('license_info.code'),
                     start_date: getInputVal('license_info.start_date'),
                     valid_date: getInputVal('license_info.valid_date'),
-                    found_date: getInputVal('license_info.found_date'),
+                    found_date:
+                        getInputVal('license_info.found_date') ||
+                        getInputVal('license_info.start_date'),
+                    region: getInputVal('license_info.region'),
+                    address_detail: getInputVal('license_info.address_detail'),
                     address: getInputVal('license_info.address')
                 },
                 legal_info: {
@@ -892,6 +1044,8 @@
                     id_no: getInputVal('legal_info.id_no'),
                     id_start_date: getInputVal('legal_info.id_start_date'),
                     id_valid_date: getInputVal('legal_info.id_valid_date'),
+                    legal_region: getInputVal('legal_info.legal_region'),
+                    legal_addr_detail: getInputVal('legal_info.legal_addr_detail'),
                     legal_addr: getInputVal('legal_info.legal_addr')
                 },
                 license_pic: !!uploadState.license_pic,
@@ -943,12 +1097,14 @@
                 { key: 'license_info.start_date', label: '证照有效期开始日期' },
                 { key: 'license_info.valid_date', label: '证照有效期截止日期' },
                 { key: 'license_info.found_date', label: '成立日期' },
-                { key: 'license_info.address', label: '注册地址' },
+                { key: 'license_info.region', label: '注册省市区' },
+                { key: 'license_info.address_detail', label: '注册详细地址' },
                 { key: 'legal_info.legal_name', label: '法人姓名' },
                 { key: 'legal_info.id_no', label: '法人证件号码' },
                 { key: 'legal_info.id_start_date', label: '法人证件开始日期' },
                 { key: 'legal_info.id_valid_date', label: '法人证件截止日期' },
-                { key: 'legal_info.legal_addr', label: '法人证件地址' },
+                { key: 'legal_info.legal_region', label: '法人证件省市区' },
+                { key: 'legal_info.legal_addr_detail', label: '法人证件详细地址' },
                 { key: 'card_info.account_name', label: '开户名' },
                 { key: 'card_info.card_no', label: '银行卡号' },
                 { key: 'card_info.bank_name', label: '开户银行' },
@@ -1132,6 +1288,8 @@
     }
 
     window.MdmUnifiedOnboardingUi = {
+        splitAddress: splitOnboardAddress,
+        joinAddress: joinOnboardAddress,
         openModal: openUnifiedOnboardingModal,
         removeModals: removeUnifiedOnboardingModals,
         makeRecordKey: makeRecordKey,

@@ -152,6 +152,16 @@
 
   function makeDraft(fromRecord) {
     var fields = (fromRecord && fromRecord.fields) || {};
+    var licAddr = splitOnboardAddress(
+      (fields.license_info && fields.license_info.address) || STORE.registeredAddress,
+      fields.license_info && fields.license_info.region,
+      fields.license_info && fields.license_info.address_detail
+    );
+    var legalAddr = splitOnboardAddress(
+      (fields.legal_info && fields.legal_info.legal_addr) || STORE.legalAddr || STORE.registeredAddress,
+      fields.legal_info && fields.legal_info.legal_region,
+      fields.legal_info && fields.legal_info.legal_addr_detail
+    );
     var base = {
       bind_type: '门店',
       bind_subject_id: '',
@@ -168,8 +178,13 @@
         code: (fields.license_info && fields.license_info.code) || STORE.registrationCode,
         start_date: (fields.license_info && fields.license_info.start_date) || STORE.licenseValidFrom,
         valid_date: (fields.license_info && fields.license_info.valid_date) || STORE.licenseValidTo,
-        found_date: (fields.license_info && fields.license_info.found_date) || STORE.foundDate || STORE.licenseValidFrom,
-        address: (fields.license_info && fields.license_info.address) || STORE.registeredAddress
+        found_date:
+          (fields.license_info && fields.license_info.found_date) ||
+          (fields.license_info && fields.license_info.start_date) ||
+          STORE.licenseValidFrom,
+        region: licAddr.region,
+        address_detail: licAddr.detail,
+        address: licAddr.full
       },
       legal_info: {
         cert_type: '身份证',
@@ -177,7 +192,9 @@
         id_no: (fields.legal_info && fields.legal_info.id_no) || STORE.idNumber,
         id_start_date: (fields.legal_info && fields.legal_info.id_start_date) || STORE.idValidFrom,
         id_valid_date: (fields.legal_info && fields.legal_info.id_valid_date) || STORE.idValidTo,
-        legal_addr: (fields.legal_info && fields.legal_info.legal_addr) || STORE.legalAddr || STORE.registeredAddress
+        legal_region: legalAddr.region,
+        legal_addr_detail: legalAddr.detail,
+        legal_addr: legalAddr.full
       },
       card_info: {
         account_name: (fields.card_info && fields.card_info.account_name) || STORE.settlementAccountName,
@@ -377,6 +394,24 @@
   var MERCHANT_NAME_TIP =
     '必须与企业证照上的名称一致；个体工商户的营业执照如没有名称，名称为“*”或空，则商户名称应填 “个体户XXX”（XXX为营业执照上经营者姓名），如“个体户张三”';
 
+  function splitOnboardAddress(full, region, detail) {
+    if (window.MdmOnboardAddress && typeof window.MdmOnboardAddress.splitAddress === 'function') {
+      return window.MdmOnboardAddress.splitAddress(full, region, detail);
+    }
+    return {
+      region: String(region || '').trim(),
+      detail: String(detail || '').trim(),
+      full: String(full || region || detail || '').trim()
+    };
+  }
+
+  function joinOnboardAddress(region, detail) {
+    if (window.MdmOnboardAddress && typeof window.MdmOnboardAddress.joinAddress === 'function') {
+      return window.MdmOnboardAddress.joinAddress(region, detail);
+    }
+    return String(region || '').replace(/[\s\/]/g, '') + String(detail || '').trim();
+  }
+
   function isPermanentValid(v) {
     var s = String(v == null ? '' : v).trim();
     return s === '长期' || s === '长期有效' || s === '永久有效';
@@ -548,10 +583,15 @@
           '营业执照信息',
           photoCard('营业执照', '上传营业执照', BUSINESS_LICENSE_IMG) +
             '<div class="bd-license-param-card">' +
-            licenseParamInput('商户名称', 'on_reg_name', 'license_info.name', getDraftField('license_info.name')) +
+            '<div class="bd-license-param-row bd-license-param-row--name">' +
+            '<span class="bd-license-param-label"><i>*</i>商户名称</span>' +
+            '<div class="bd-license-param-name-ctrl">' +
+            '<input class="bd-license-param-input" type="text" id="on_reg_name" data-ob-field="license_info.name" value="' +
+            esc(getDraftField('license_info.name')) +
+            '" />' +
             '<p class="bd-field-tip">' +
             esc(MERCHANT_NAME_TIP) +
-            '</p>' +
+            '</p></div></div>' +
             licenseParamInput('证照编号', 'on_license_code', 'license_info.code', getDraftField('license_info.code')) +
             licenseParamInput(
               '证照有效期开始日期',
@@ -573,7 +613,8 @@
               getDraftField('license_info.found_date'),
               'date'
             ) +
-            licenseParamInput('注册地址', 'on_reg_addr', 'license_info.address', getDraftField('license_info.address')) +
+            licenseParamInput('省市区', 'on_reg_region', 'license_info.region', getDraftField('license_info.region')) +
+            licenseParamInput('详细地址', 'on_reg_addr_detail', 'license_info.address_detail', getDraftField('license_info.address_detail')) +
             '</div>'
         ) +
         formModuleCard(
@@ -609,7 +650,8 @@
               'legal_info.id_valid_date',
               getDraftField('legal_info.id_valid_date')
             ) +
-            licenseParamInput('法人证件地址', 'on_legal_addr', 'legal_info.legal_addr', getDraftField('legal_info.legal_addr')) +
+            licenseParamInput('省市区', 'on_legal_region', 'legal_info.legal_region', getDraftField('legal_info.legal_region')) +
+            licenseParamInput('详细地址', 'on_legal_addr_detail', 'legal_info.legal_addr_detail', getDraftField('legal_info.legal_addr_detail')) +
             '</div>'
         )
       );
@@ -717,11 +759,15 @@
       'license_info.start_date': '证照有效期开始日期',
       'license_info.valid_date': '证照有效期截止日期',
       'license_info.found_date': '成立日期',
+      'license_info.region': '省市区',
+      'license_info.address_detail': '详细地址',
       'license_info.address': '注册地址',
       'legal_info.legal_name': '法人姓名',
       'legal_info.id_no': '法人证件号码',
       'legal_info.id_start_date': '法人证件开始日期',
       'legal_info.id_valid_date': '法人证件截止日期',
+      'legal_info.legal_region': '省市区',
+      'legal_info.legal_addr_detail': '详细地址',
       'legal_info.legal_addr': '法人证件地址',
       'card_info.account_name': '开户名',
       'card_info.card_no': '银行卡号',
@@ -749,12 +795,14 @@
         'license_info.start_date',
         'license_info.valid_date',
         'license_info.found_date',
-        'license_info.address',
+        'license_info.region',
+        'license_info.address_detail',
         'legal_info.legal_name',
         'legal_info.id_no',
         'legal_info.id_start_date',
         'legal_info.id_valid_date',
-        'legal_info.legal_addr'
+        'legal_info.legal_region',
+        'legal_info.legal_addr_detail'
       ];
     }
     if (step === 1) {
@@ -782,6 +830,12 @@
   }
 
   function validateStep(step) {
+    if (step === 0) {
+      var startDate = String(getDraftField('license_info.start_date') || '').trim();
+      if (startDate && !String(getDraftField('license_info.found_date') || '').trim()) {
+        setDraftField('license_info.found_date', startDate);
+      }
+    }
     var req = requiredStepFields(step);
     for (var i = 0; i < req.length; i++) {
       var k = req[i];
@@ -888,7 +942,22 @@
             ob.license_info && ob.license_info.found_date ? ob.license_info.found_date : STORE.foundDate,
             true
           ) +
-          licenseParamRow('注册地址', ob.license_info && ob.license_info.address ? ob.license_info.address : STORE.registeredAddress, true) +
+          licenseParamRow('省市区', (function () {
+            var a = splitOnboardAddress(
+              (ob.license_info && ob.license_info.address) || STORE.registeredAddress,
+              ob.license_info && ob.license_info.region,
+              ob.license_info && ob.license_info.address_detail
+            );
+            return a.region;
+          })(), true) +
+          licenseParamRow('详细地址', (function () {
+            var a = splitOnboardAddress(
+              (ob.license_info && ob.license_info.address) || STORE.registeredAddress,
+              ob.license_info && ob.license_info.region,
+              ob.license_info && ob.license_info.address_detail
+            );
+            return a.detail;
+          })(), true) +
           '</div>'
       ) +
       formModuleCard(
@@ -922,8 +991,21 @@
             true
           ) +
           licenseParamRow(
-            '法人证件地址',
-            (ob.legal_info && ob.legal_info.legal_addr) || STORE.legalAddr,
+            '省市区',
+            splitOnboardAddress(
+              (ob.legal_info && ob.legal_info.legal_addr) || STORE.legalAddr,
+              ob.legal_info && ob.legal_info.legal_region,
+              ob.legal_info && ob.legal_info.legal_addr_detail
+            ).region,
+            true
+          ) +
+          licenseParamRow(
+            '详细地址',
+            splitOnboardAddress(
+              (ob.legal_info && ob.legal_info.legal_addr) || STORE.legalAddr,
+              ob.legal_info && ob.legal_info.legal_region,
+              ob.legal_info && ob.legal_info.legal_addr_detail
+            ).detail,
             true
           ) +
           '</div>'
@@ -1215,8 +1297,34 @@
           var contact = getDraftField('contact_name');
           if (!contact || contact === prevLegal) setDraftField('contact_name', inp.value);
         }
+        if (key === 'license_info.start_date') {
+          var prevStart = getDraftField('license_info.start_date');
+          var found = getDraftField('license_info.found_date');
+          if (!found || found === prevStart) {
+            setDraftField('license_info.found_date', inp.value);
+            var foundInp = document.getElementById('on_found_date');
+            if (foundInp) foundInp.value = inp.value;
+          }
+        }
         setDraftField(key, inp.value);
+        if (key === 'license_info.region' || key === 'license_info.address_detail') {
+          setDraftField(
+            'license_info.address',
+            joinOnboardAddress(getDraftField('license_info.region'), getDraftField('license_info.address_detail'))
+          );
+        }
+        if (key === 'legal_info.legal_region' || key === 'legal_info.legal_addr_detail') {
+          setDraftField(
+            'legal_info.legal_addr',
+            joinOnboardAddress(getDraftField('legal_info.legal_region'), getDraftField('legal_info.legal_addr_detail'))
+          );
+        }
       });
+      if (inp.type === 'date') {
+        inp.addEventListener('change', function () {
+          inp.dispatchEvent(new Event('input'));
+        });
+      }
     });
     document.querySelectorAll('[data-ob-valid-forever]').forEach(function (box) {
       box.addEventListener('change', function () {

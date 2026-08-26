@@ -2928,6 +2928,36 @@ select.store-ledger-filter__control {
   min-width: 0;
 }
 
+.unified-onboard-ocr-field--name {
+  align-items: flex-start;
+}
+
+.unified-onboard-ocr-field-ctrl,
+.unified-onboard-ocr-field-main {
+  min-width: 0;
+}
+
+.unified-onboard-ocr-field-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.unified-onboard-ocr-field-main .erp-input,
+.unified-onboard-ocr-field-main .unified-onboard-region-holder {
+  flex: 0 1 240px;
+  min-width: 160px;
+}
+
+.unified-onboard-region-holder {
+  min-width: 0;
+}
+
+.unified-onboard-region-holder .store-region,
+.unified-onboard-region-holder .store-region__trigger {
+  width: 100%;
+}
+
 .unified-onboard-ocr-field .store-form__label {
   margin: 0;
   min-height: 0;
@@ -2974,7 +3004,9 @@ select.store-ledger-filter__control {
 }
 
 .unified-onboard-field-tip {
-  margin-top: 6px;
+  flex: 1 1 180px;
+  min-width: 0;
+  margin: 0;
   font-size: 12px;
   color: #94a3b8;
   line-height: 1.55;

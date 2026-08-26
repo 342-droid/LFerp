@@ -37,6 +37,17 @@
         }
     }
 
+    function addrParts(full, region, detail) {
+        if (window.MdmOnboardAddress && typeof window.MdmOnboardAddress.splitAddress === 'function') {
+            return window.MdmOnboardAddress.splitAddress(full, region, detail);
+        }
+        return {
+            region: String(region || '').trim(),
+            detail: String(detail || '').trim(),
+            full: String(full || region || detail || '').trim()
+        };
+    }
+
     function stripOnboardFileCodes(text) {
         return String(text == null ? '' : text)
             .replace(/\s*\(?F(?:02|03|07|22|24|105|107)\)?/gi, '')
@@ -1316,7 +1327,8 @@
             ['证照有效期开始日期', pickText(lic.start_date, ext.licenseBeginDate)],
             ['证照有效期截止日期', endDateText(lic.valid_date, ext.licenseEndDate)],
             ['成立日期', pickText(lic.found_date, ext.foundDate)],
-            ['注册地址', pickText(lic.address, ext.regDetail)]
+            ['省市区', addrParts(lic.address || ext.regDetail, lic.region, lic.address_detail).region || '—'],
+            ['详细地址', addrParts(lic.address || ext.regDetail, lic.region, lic.address_detail).detail || '—']
         ]);
         addSection('法人信息', [
             ['法人身份证人像面', fields.legal_cert_front_pic, 'image'],
@@ -1326,7 +1338,8 @@
             ['法人证件号码', pickText(legal.id_no, ext.legalCertNo, ext.idNumber)],
             ['法人证件开始日期', pickText(legal.id_start_date, ext.legalCertBeginDate)],
             ['法人证件截止日期', endDateText(legal.id_valid_date, ext.legalCertEndDate)],
-            ['法人证件地址', pickText(legal.legal_addr, ext.legalAddr)]
+            ['省市区', addrParts(legal.legal_addr || ext.legalAddr, legal.legal_region, legal.legal_addr_detail).region || '—'],
+            ['详细地址', addrParts(legal.legal_addr || ext.legalAddr, legal.legal_region, legal.legal_addr_detail).detail || '—']
         ]);
         addSection('商户信息', [
             ['商户简称', fieldText(fields.short_name)],

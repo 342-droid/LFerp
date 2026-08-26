@@ -111,6 +111,17 @@
         return d.slice(0, 3) + '****' + d.slice(-4);
     }
 
+    function addrParts(full, region, detail) {
+        if (window.MdmOnboardAddress && typeof window.MdmOnboardAddress.splitAddress === 'function') {
+            return window.MdmOnboardAddress.splitAddress(full, region, detail);
+        }
+        return {
+            region: String(region || '').trim(),
+            detail: String(detail || '').trim(),
+            full: String(full || region || detail || '').trim()
+        };
+    }
+
     function subjectOnboardingTitle(pageLabel) {
         if (pageLabel === '门店') return '门店进件';
         if (pageLabel === '供应商') return '供应商进件';
@@ -667,7 +678,8 @@
                     : lic.valid_date || r.licenseEndDate || ext.licenseEndDate || '—'
             ],
             ['成立日期', lic.found_date || r.foundDate || ext.foundDate || lic.start_date || '—'],
-            ['注册地址', lic.address || r.regDetail || ext.regDetail || '—']
+            ['省市区', addrParts(lic.address || r.regDetail || ext.regDetail, lic.region, lic.address_detail).region || '—'],
+            ['详细地址', addrParts(lic.address || r.regDetail || ext.regDetail, lic.region, lic.address_detail).detail || '—']
         ]);
         section('法人基本信息', [
             ['法人身份证人像面', f.legal_cert_front_pic, 'image'],
@@ -682,7 +694,8 @@
                     ? '长期有效'
                     : legal.id_valid_date || r.legalCertEndDate || ext.legalCertEndDate || '—'
             ],
-            ['法人证件地址', legal.legal_addr || r.legalAddr || ext.legalAddr || '—']
+            ['省市区', addrParts(legal.legal_addr || r.legalAddr || ext.legalAddr, legal.legal_region, legal.legal_addr_detail).region || '—'],
+            ['详细地址', addrParts(legal.legal_addr || r.legalAddr || ext.legalAddr, legal.legal_region, legal.legal_addr_detail).detail || '—']
         ]);
         section('商户信息', [
             ['商户简称', f.short_name || '—'],
