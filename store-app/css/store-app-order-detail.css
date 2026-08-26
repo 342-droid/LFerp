@@ -27,6 +27,10 @@
   overflow: hidden;
 }
 
+.detail-buyer-group + .detail-buyer-group {
+  border-top: 8px solid var(--color-bg-page);
+}
+
 /* 买家信息卡片 */
 .detail-buyer-card {
   background: var(--color-bg-page);
@@ -555,7 +559,7 @@
 
 /* 退款中商品核销确认弹窗 */
 .verify-confirm-modal {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 300;
   display: none;
@@ -563,6 +567,8 @@
   justify-content: center;
   padding: 24px;
   background: rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  border-radius: inherit;
 }
 
 .verify-confirm-modal.is-open {
@@ -608,6 +614,10 @@
 .verify-confirm-modal__actions {
   display: flex;
   gap: 12px;
+}
+
+.verify-confirm-modal__actions--single {
+  justify-content: center;
 }
 
 .verify-confirm-modal__btn {

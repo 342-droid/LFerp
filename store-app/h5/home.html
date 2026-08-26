@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>门店APP · 工作台</title>
-  <link rel="stylesheet" href="../css/store-app.css?v=20260826-queue">
-  <link rel="stylesheet" href="../css/store-app-scan.css?v=20260826-queue">
-  <link rel="stylesheet" href="../css/store-app-qrcode.css?v=20260826-queue">
+  <link rel="stylesheet" href="../css/store-app.css?v=20260826-scan-fit">
+  <link rel="stylesheet" href="../css/store-app-scan.css?v=20260826-scan-fit">
+  <link rel="stylesheet" href="../css/store-app-qrcode.css?v=20260826-scan-fit">
 </head>
 <body class="store-app-body">
   <div class="sa-shell">
@@ -207,6 +207,18 @@
         </button>
       </nav>
     </div>
+
+    <div id="scan-modal" class="scan-modal" aria-hidden="true" role="dialog" aria-labelledby="scan-modal-title">
+      <div class="scan-modal__panel">
+        <h3 id="scan-modal-title" class="scan-modal__title">订单核销</h3>
+        <p class="scan-modal__hint">识别会员信息条码</p>
+        <div class="scan-frame" aria-hidden="true">
+          <div class="scan-frame__line"></div>
+        </div>
+        <button type="button" class="scan-modal__simulate" id="btn-scan-simulate">模拟扫描到会员条码</button>
+        <button type="button" class="scan-modal__cancel" id="btn-scan-cancel">取消</button>
+      </div>
+    </div>
   </div>
 
   <div id="queue-qr-modal" class="qr-modal" aria-hidden="true" role="dialog" aria-labelledby="queue-qr-modal-title">
@@ -249,18 +261,6 @@
           保存相册
         </button>
       </div>
-    </div>
-  </div>
-
-  <div id="scan-modal" class="scan-modal" aria-hidden="true" role="dialog" aria-labelledby="scan-modal-title">
-    <div class="scan-modal__panel">
-      <h3 id="scan-modal-title" class="scan-modal__title">订单核销</h3>
-      <p class="scan-modal__hint">识别会员信息条码</p>
-      <div class="scan-frame" aria-hidden="true">
-        <div class="scan-frame__line"></div>
-      </div>
-      <button type="button" class="scan-modal__simulate" id="btn-scan-simulate">模拟扫描到会员条码</button>
-      <button type="button" class="scan-modal__cancel" id="btn-scan-cancel">取消</button>
     </div>
   </div>
 

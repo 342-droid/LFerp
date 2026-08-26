@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>核销详情 · 门店APP</title>
-  <link rel="stylesheet" href="../css/store-app.css?v=20260826-orders">
-  <link rel="stylesheet" href="../css/store-app-orders.css?v=20260826-orders">
-  <link rel="stylesheet" href="../css/store-app-order-detail.css?v=20260826-orders">
+  <link rel="stylesheet" href="../css/store-app.css?v=20260826-asblock">
+  <link rel="stylesheet" href="../css/store-app-orders.css?v=20260826-asblock">
+  <link rel="stylesheet" href="../css/store-app-order-detail.css?v=20260826-asblock">
 </head>
 <body class="store-app-body">
   <div class="sa-shell sa-orders-shell">
@@ -15,13 +15,12 @@
         <a href="store-orders.html" class="sa-orders-nav__back" id="btn-back" aria-label="返回">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
         </a>
-        <h1 class="sa-orders-nav__title">核销详情</h1>
+        <h1 class="sa-orders-nav__title" id="detail-title">核销详情</h1>
       </header>
       <main class="subpage-body sa-orders-scroll" id="detail-content">
         <div class="detail-loading">加载中...</div>
       </main>
     </div>
-  </div>
 
   <div id="pickup-qty-modal" class="verify-confirm-modal pickup-qty-modal" aria-hidden="true" role="dialog" aria-labelledby="pickup-qty-title">
     <div class="verify-confirm-modal__panel">
@@ -52,8 +51,19 @@
     </div>
   </div>
 
-  <script src="../js/store-app-orders-mock.js?v=20260826-orders"></script>
-  <script src="../js/store-app-toast.js?v=20260826-orders"></script>
-  <script src="../js/store-app-order-detail.js?v=20260826-orders"></script>
+  <div id="verify-blocked-modal" class="verify-confirm-modal" aria-hidden="true" role="dialog" aria-labelledby="verify-blocked-title">
+    <div class="verify-confirm-modal__panel">
+      <h3 id="verify-blocked-title" class="verify-confirm-modal__title">提示</h3>
+      <p class="verify-confirm-modal__content">订单售后已通过审核，无法核销</p>
+      <div class="verify-confirm-modal__actions verify-confirm-modal__actions--single">
+        <button type="button" class="verify-confirm-modal__btn verify-confirm-modal__btn--confirm" id="btn-verify-blocked-ok">确定</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <script src="../js/store-app-orders-mock.js?v=20260826-asblock"></script>
+  <script src="../js/store-app-toast.js?v=20260826-asblock"></script>
+  <script src="../js/store-app-order-detail.js?v=20260826-asblock"></script>
 </body>
 </html>

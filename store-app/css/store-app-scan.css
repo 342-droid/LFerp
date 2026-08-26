@@ -10,13 +10,15 @@
 }
 
 .scan-modal {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 500;
   display: none;
   align-items: flex-end;
-  justify-content: center;
+  justify-content: stretch;
   background: rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  border-radius: inherit;
 }
 
 .scan-modal.is-open {
@@ -25,7 +27,7 @@
 
 .scan-modal__panel {
   width: 100%;
-  max-width: 430px;
+  max-width: 100%;
   background: var(--color-bg);
   border-radius: 16px 16px 0 0;
   padding: 20px 16px calc(20px + var(--safe-bottom));

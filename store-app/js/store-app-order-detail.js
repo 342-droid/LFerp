@@ -3,7 +3,8 @@
  * 1. 一码多订单：支持勾选核销与单品核销；
  * 2. 扫码同时展示待收货、待提货订单，均可核销；
  * 3. 已全部完成时：显示"全部已完成"提示；
- * 4. 移除预约收货时间字段。
+ * 4. 订单管理批量核销：多用户分组展示，核销规则与扫码一致；
+ * 5. 移除预约收货时间字段。
  */
 (function () {
   var content = document.getElementById("detail-content");
@@ -25,8 +26,27 @@
     return;
   }
 
-  var shared = orderData.shared || {};
-  var orders = (orderData.orders || []).slice();
+  var isMultiUser = orderData.mode === "multi-user";
+  var groups;
+  if (isMultiUser && Array.isArray(orderData.groups) && orderData.groups.length) {
+    groups = orderData.groups;
+  } else {
+    groups = [{
+      shared: orderData.shared || {},
+      orders: (orderData.orders || []).slice(),
+    }];
+  }
+  var shared = (groups[0] && groups[0].shared) || {};
+  var orders = [];
+  groups.forEach(function (g) {
+    (g.orders || []).forEach(function (o) {
+      orders.push(o);
+    });
+  });
+
+  var titleEl = document.getElementById("detail-title");
+  if (titleEl && isMultiUser) titleEl.textContent = "批量核销";
+  if (isMultiUser) document.title = "批量核销 · 门店APP";
 
   function getItemRefund(item) {
     if (!item) return null;
@@ -59,7 +79,7 @@
   }
 
   function isSelectableItem(item) {
-    return getPendingPickupQty(item) > 0;
+    return getPendingPickupQty(item) > 0 && !isApprovedAftersaleItem(item);
   }
 
   function getDisplayQty(item) {
@@ -78,8 +98,32 @@
     return getPendingPickupQty(item) <= 0;
   }
 
+  var APPROVED_AFTERSALE_STATUSES = ["退款中", "待退货", "待收货", "退款异常"];
+
+  function getItemAftersaleStatus(item) {
+    if (!item) return "";
+    if (item.refundStatus) return item.refundStatus;
+    if (item.aftersaleStatus) return item.aftersaleStatus;
+    if (item.refunding) return "退款中";
+    return "";
+  }
+
+  function isApprovedAftersaleItem(item) {
+    return APPROVED_AFTERSALE_STATUSES.indexOf(getItemAftersaleStatus(item)) !== -1;
+  }
+
+  function isPendingAftersaleItem(item) {
+    return getItemAftersaleStatus(item) === "待审批";
+  }
+
   function isRefundingItem(item) {
-    return !!(item && (item.refunding || item.refundStatus === "退款中"));
+    return isApprovedAftersaleItem(item) || isPendingAftersaleItem(item);
+  }
+
+  function getItemAftersaleTag(item) {
+    var status = getItemAftersaleStatus(item);
+    if (!status) return "";
+    return '<span class="detail-item__status-tag detail-item__status-tag--refunding">' + status + "</span>";
   }
 
   function getPickupAmount(item) {
@@ -116,9 +160,15 @@
     }, 0);
   }
 
-  function hasRefundingSelected() {
+  function hasPendingAftersaleSelected() {
     return getSelectedItems().some(function (entry) {
-      return isRefundingItem(entry.item);
+      return isPendingAftersaleItem(entry.item);
+    });
+  }
+
+  function hasApprovedAftersaleSelected() {
+    return getSelectedItems().some(function (entry) {
+      return isApprovedAftersaleItem(entry.item);
     });
   }
 
@@ -228,19 +278,18 @@
       var itemCb = itemCanVerify
         ? '<input type="checkbox" class="item-cb" data-order-id="' + o.id + '" data-item-idx="' + idx + '" ' + (item._checked ? "checked" : "") + ' />'
         : "";
-      var refunding = isRefundingItem(item);
+      var aftersale = isRefundingItem(item);
+      var approvedAftersale = isApprovedAftersaleItem(item);
       var itemClass =
         "detail-item" +
         (itemDone ? " detail-item--done" : "") +
         (itemPartial ? " detail-item--partial" : "") +
-        (refunding ? " detail-item--refunding" : "");
+        (aftersale ? " detail-item--refunding" : "");
       var tagHtml = getItemPickupStatusTag(item);
-      if (refunding) {
-        tagHtml += '<span class="detail-item__status-tag detail-item__status-tag--refunding">退款中</span>';
-      }
+      if (aftersale) tagHtml += getItemAftersaleTag(item);
       var metaHtml = "x" + totalQty + " · ¥" + item.price;
       var displayAmount = item.price * (itemDone ? totalQty : pendingQty);
-      var actionHtml = itemCanVerify
+      var actionHtml = itemCanVerify || (approvedAftersale && pendingQty > 0)
         ? '<button type="button" class="detail-item__verify-btn" data-order-id="' + o.id + '" data-item-idx="' + idx + '">核销</button>'
         : "";
 
@@ -296,59 +345,75 @@
     );
   }
 
-  function renderAll() {
-    var visibleOrders = getVisibleOrders();
-    var allOrdersDone = orders.length > 0 && orders.every(isOrderFullyPickedUp);
-
-    // 买家信息（顶部固定）
-    var buyerHtml =
+  function renderBuyerCard(buyer) {
+    buyer = buyer || {};
+    return (
       '<div class="detail-buyer-card">' +
       '<div class="detail-buyer-row">' +
       '<span class="detail-buyer-row__label">买家姓名</span>' +
-      '<span class="detail-buyer-row__value">' + shared.customer + "</span>" +
+      '<span class="detail-buyer-row__value">' + (buyer.customer || "—") + "</span>" +
       "</div>" +
       '<div class="detail-buyer-row">' +
       '<span class="detail-buyer-row__label">手机号码</span>' +
-      '<a href="tel:' + (shared.phone || "").replace(/\*+/g, "0") + '" class="detail-buyer-row__value detail-buyer-row__value--link">' + (shared.phone || "—") + "</a>" +
+      '<a href="tel:' + (buyer.phone || "").replace(/\*+/g, "0") + '" class="detail-buyer-row__value detail-buyer-row__value--link">' + (buyer.phone || "—") + "</a>" +
       "</div>" +
-      "</div>";
+      "</div>"
+    );
+  }
 
-    // 提示语
-    var pendingCount = getPendingItems().length;
+  function renderAll() {
+    var allOrdersDone = orders.length > 0 && orders.every(isOrderFullyPickedUp);
+    var doneHint = isMultiUser ? "所选订单已全部核销" : "该核销码下全部订单已完成";
+
+    var hasRemainingPickup = orders.some(function (o) {
+      return (o.items || []).some(function (item) {
+        return getPendingPickupQty(item) > 0;
+      });
+    });
     var selCount = getSelectedItems().length;
     var selAmount = getSelectedAmount();
-    // 多个订单卡片
     var ordersHtml = "";
-    visibleOrders.forEach(function (o) {
-      ordersHtml += renderOrderCard(o);
+
+    groups.forEach(function (g) {
+      var visible = (g.orders || []).filter(function (o) {
+        return !isOrderFullyPickedUp(o);
+      });
+      if (visible.length === 0 && !allOrdersDone) return;
+      if (visible.length === 0) return;
+      ordersHtml += '<div class="detail-buyer-group">';
+      ordersHtml += renderBuyerCard(g.shared);
+      ordersHtml += '<div class="detail-orders-list">';
+      visible.forEach(function (o) {
+        ordersHtml += renderOrderCard(o);
+      });
+      ordersHtml += "</div></div>";
     });
 
-    // 操作区
+    if (!isMultiUser && !ordersHtml) {
+      ordersHtml =
+        '<div class="detail-buyer-group">' +
+        renderBuyerCard(shared) +
+        '<div class="detail-orders-list"></div></div>';
+    }
+
     var actionHtml = "";
-    if (allOrdersDone) {
+    if (allOrdersDone || !hasRemainingPickup) {
       actionHtml =
         '<div class="detail-verified-hint">' +
         '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>' +
-        "<span>该核销码下全部订单已完成</span>" +
+        "<span>" + doneHint + "</span>" +
         "</div>";
-    } else if (pendingCount > 0) {
+    } else {
       actionHtml =
         '<div class="detail-action-bar">' +
         '<span class="detail-action-tip">已选 <strong id="sel-count">' + selCount + '</strong> 件商品，合计 ¥<strong id="sel-amount">' + selAmount.toFixed(2) + "</strong></span>" +
         '<button type="button" class="detail-verify-btn detail-verify-btn--small" id="btn-verify-selected"' + (selCount === 0 ? " disabled" : "") + ">确认核销</button>" +
         "</div>";
-    } else {
-      actionHtml =
-        '<div class="detail-verified-hint">' +
-        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>' +
-        "<span>该核销码下全部订单已完成</span>" +
-        "</div>";
     }
 
     content.innerHTML =
       '<div class="detail-card">' +
-      buyerHtml +
-      '<div class="detail-orders-list">' + ordersHtml + "</div>" +
+      ordersHtml +
       actionHtml +
       "</div>";
 
@@ -358,6 +423,8 @@
   var verifyConfirmModal = document.getElementById("verify-confirm-modal");
   var verifyCancelBtn = document.getElementById("btn-verify-cancel");
   var verifyConfirmBtn = document.getElementById("btn-verify-confirm");
+  var verifyBlockedModal = document.getElementById("verify-blocked-modal");
+  var verifyBlockedOkBtn = document.getElementById("btn-verify-blocked-ok");
   var pickupQtyModal = document.getElementById("pickup-qty-modal");
   var pickupQtyInput = document.getElementById("pickup-qty-input");
   var pickupQtyHint = document.getElementById("pickup-qty-hint");
@@ -385,10 +452,69 @@
     pendingPickupQty = 1;
   }
 
+  function openVerifyBlockedModal() {
+    if (!verifyBlockedModal) return;
+    verifyBlockedModal.classList.add("is-open");
+    verifyBlockedModal.setAttribute("aria-hidden", "false");
+  }
+
+  function closeVerifyBlockedModal() {
+    if (!verifyBlockedModal) return;
+    verifyBlockedModal.classList.remove("is-open");
+    verifyBlockedModal.setAttribute("aria-hidden", "true");
+  }
+
+  function persistOrderToMock(order) {
+    var mock = window.LFMockData && window.LFMockData.orders;
+    if (!mock) return;
+    var target = mock.find(function (m) {
+      return m.id === order.id || m.orderNo === order.orderNo;
+    });
+    if (!target) return;
+    (target.items || []).forEach(function (item, idx) {
+      var src = order.items[idx];
+      if (!src) return;
+      if (src._verifiedQty != null) item._verifiedQty = src._verifiedQty;
+      if (src._lastVerifyTime) item._lastVerifyTime = src._lastVerifyTime;
+      if (src._verified) item._verified = src._verified;
+      if (src._verifyTime) item._verifyTime = src._verifyTime;
+      if (src.refunding === false) {
+        item.refunding = false;
+        item.refundStatus = null;
+      }
+    });
+    if (isOrderFullyPickedUp(order)) {
+      target.status = "已完成";
+      target.verifyTime = order.verifyTime;
+    } else if (order.items.some(function (item) {
+      return getVerifiedQty(item) > 0 || item._verified;
+    })) {
+      target.status = "部分核销";
+    }
+    if (typeof window.LFSaveStoreOrders === "function") window.LFSaveStoreOrders();
+  }
+
+  function persistSession() {
+    if (!orderData) return;
+    if (isMultiUser) {
+      orderData.groups = groups;
+    } else {
+      orderData.orders = orders;
+      orderData.shared = shared;
+    }
+    try {
+      sessionStorage.setItem("pendingVerifyOrder", JSON.stringify(orderData));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
   function updateOrderStatus(order, verifyTime) {
     if (isOrderFullyPickedUp(order)) {
       order.verifyTime = verifyTime;
     }
+    persistOrderToMock(order);
+    persistSession();
   }
 
   function getVerifyTime() {
@@ -513,6 +639,10 @@
     if (!order || order.items[itemIdx] === undefined) return;
 
     var item = order.items[itemIdx];
+    if (isApprovedAftersaleItem(item)) {
+      openVerifyBlockedModal();
+      return;
+    }
     if (!isSelectableItem(item)) return;
 
     var totalQty = getTotalPickupQty(item);
@@ -521,7 +651,7 @@
       return;
     }
 
-    if (isRefundingItem(item)) {
+    if (isPendingAftersaleItem(item)) {
       pendingSelectedVerify = false;
       pendingPickupQty = 1;
       pendingSingleVerify = { orderId: orderId, itemIdx: itemIdx };
@@ -541,7 +671,7 @@
     var qty = getPickupQtyInputValue();
     var order = orders.find(function (o) { return o.id === target.orderId; });
     var item = order && order.items[target.itemIdx];
-    var needsRefundConfirm = item && isRefundingItem(item);
+    var needsRefundConfirm = item && isPendingAftersaleItem(item);
 
     closePickupQtyModal();
 
@@ -560,7 +690,12 @@
   function requestVerifySelected() {
     if (getSelectedItems().length === 0) return;
 
-    if (hasRefundingSelected()) {
+    if (hasApprovedAftersaleSelected()) {
+      openVerifyBlockedModal();
+      return;
+    }
+
+    if (hasPendingAftersaleSelected()) {
       pendingSingleVerify = null;
       pendingSelectedVerify = true;
       openVerifyConfirmModal();
@@ -670,6 +805,14 @@
   if (verifyConfirmModal) {
     verifyConfirmModal.addEventListener("click", function (e) {
       if (e.target === verifyConfirmModal) closeVerifyConfirmModal();
+    });
+  }
+  if (verifyBlockedOkBtn) {
+    verifyBlockedOkBtn.addEventListener("click", closeVerifyBlockedModal);
+  }
+  if (verifyBlockedModal) {
+    verifyBlockedModal.addEventListener("click", function (e) {
+      if (e.target === verifyBlockedModal) closeVerifyBlockedModal();
     });
   }
 
