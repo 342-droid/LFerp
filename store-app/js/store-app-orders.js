@@ -35,7 +35,7 @@
   (function parseTabParam() {
     var params = new URLSearchParams(window.location.search);
     var tab = params.get("tab");
-    if (tab && ["全部", "待发货", "待收货", "待提货", "已完成", "排队中"].indexOf(tab) !== -1) {
+    if (tab && ["全部", "待收货", "待提货", "已完成", "排队中"].indexOf(tab) !== -1) {
       currentStatus = tab;
     }
   })();
