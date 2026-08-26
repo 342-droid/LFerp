@@ -278,9 +278,17 @@ test('freight refund rejects overflow and creates a pending Alipay aftersale wit
   assert.match(await refundBreakdown.textContent(), /运费退还¥4\.00/);
   assert.match(await refundBreakdown.textContent(), /退款处理中¥2\.00/);
   assert.match(await refundBreakdown.textContent(), /处理中金额不计入退款合计/);
-  await detail.getByRole('button', { name: '售后明细' }).click();
+  const pendingRefundLink = refundBreakdown.getByRole('button', {
+    name: '查看退款处理中 ¥2.00'
+  });
+  assert.equal(await pendingRefundLink.count(), 1);
+  await pendingRefundLink.click();
+  assert.match(
+    await detail.locator('[data-doc-tab="aftersale"]').getAttribute('class'),
+    /is-active/
+  );
   const freightAftersale = detail.locator(
-    'tr[data-aftersale-type="仅退款"][data-refund-scene="ORDER_FREIGHT"]'
+    'tr[data-aftersale-type="仅退款"][data-refund-scene="ORDER_FREIGHT"].is-refund-target'
   );
   assert.equal(await freightAftersale.count(), 1);
   assert.match(await freightAftersale.textContent(), /订单运费/);

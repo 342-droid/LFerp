@@ -2116,6 +2116,7 @@
       var tr = document.createElement('tr');
       if (item.id) tr.setAttribute('data-aftersale-id', item.id);
       if (item.type) tr.setAttribute('data-aftersale-type', item.type);
+      if (item.status) tr.setAttribute('data-aftersale-status', item.status);
       if (item.refundScene) tr.setAttribute('data-refund-scene', item.refundScene);
       tr.innerHTML = bodyKeys
         .map(function (key) {
@@ -2588,7 +2589,7 @@
     return wrap;
   }
 
-  function buildAmounts(amounts, payLegs, freight, aftersales) {
+  function buildAmounts(amounts, payLegs, freight, aftersales, onOpenPendingRefund) {
     var box = el('div', 'order-detail-amount-box');
     var legs = (payLegs || []).filter(function (leg) {
       return leg && leg.name && Number(leg.amount) > 0 && normalizeRetailPayMethod(leg.name);
@@ -2648,6 +2649,16 @@
       0
     );
     freightPending = Math.max(0, Math.round(freightPending * 100) / 100);
+    var pendingAmountText = '¥' + freightPending.toFixed(2);
+    var pendingRowHtml = freightPending > 0
+      ? '<button type="button" class="order-detail-refund-breakdown__row is-pending is-link" aria-label="查看退款处理中 ' +
+        pendingAmountText +
+        '"><span>退款处理中</span><strong>' +
+        pendingAmountText +
+        '</strong></button>'
+      : '<span class="order-detail-refund-breakdown__row is-pending"><span>退款处理中</span><strong>' +
+        pendingAmountText +
+        '</strong></span>';
     var refundSummaryHtml =
       '<span class="order-detail-refund-wrap">' +
       '<span class="order-detail-refund-line"><span>退款</span><strong>¥' +
@@ -2662,9 +2673,7 @@
       '<span class="order-detail-refund-breakdown__row"><span>运费退还</span><strong>¥' +
       freightRefunded.toFixed(2) +
       '</strong></span>' +
-      '<span class="order-detail-refund-breakdown__row is-pending"><span>退款处理中</span><strong>¥' +
-      freightPending.toFixed(2) +
-      '</strong></span>' +
+      pendingRowHtml +
       '<small>处理中金额不计入退款合计</small>' +
       '</span></span>';
     box.innerHTML =
@@ -2710,6 +2719,10 @@
         refundToggle.classList.toggle('is-expanded', next);
         refundBreakdown.hidden = !next;
       });
+    }
+    var pendingRefundLink = box.querySelector('.order-detail-refund-breakdown__row.is-pending.is-link');
+    if (pendingRefundLink && typeof onOpenPendingRefund === 'function') {
+      pendingRefundLink.addEventListener('click', onOpenPendingRefund);
     }
     return box;
   }
@@ -3012,7 +3025,24 @@
         var goodsPanel = buildGoodsPanel(goods, pickupMode, detail.aftersales);
         panel.appendChild(goodsPanel);
         panel.appendChild(
-          buildAmounts(detail.amounts || {}, payLegs, detail.freight, detail.aftersales)
+          buildAmounts(
+            detail.amounts || {},
+            payLegs,
+            detail.freight,
+            detail.aftersales,
+            function () {
+              var aftersaleTab = tabs.querySelector('[data-doc-tab="aftersale"]');
+              if (aftersaleTab) aftersaleTab.click();
+              var target = panels.aftersale && panels.aftersale.querySelector(
+                'tr[data-refund-scene="ORDER_FREIGHT"][data-aftersale-status="退款中"]'
+              );
+              if (!target) return;
+              target.classList.add('is-refund-target');
+              if (typeof target.scrollIntoView === 'function') {
+                target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+              }
+            }
+          )
         );
         if (drawer && pickupMode) {
           drawer._pickupRefs = drawer._pickupRefs || {};

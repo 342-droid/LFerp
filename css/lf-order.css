@@ -2041,6 +2041,34 @@ body[data-order-page="retail"] .order-live-table__action:hover {
   color: #e6a23c;
 }
 
+button.order-detail-refund-breakdown__row.is-link {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.order-detail-refund-breakdown__row.is-link:hover span,
+button.order-detail-refund-breakdown__row.is-link:focus-visible span {
+  text-decoration: underline;
+}
+
+button.order-detail-refund-breakdown__row.is-link:focus-visible {
+  outline: 2px solid rgba(230, 162, 60, 0.35);
+  outline-offset: 2px;
+}
+
+.order-detail-aftersale-table tr.is-refund-target td {
+  background: #fff7e6;
+}
+
+.order-detail-aftersale-table tr.is-refund-target td:first-child {
+  box-shadow: inset 3px 0 0 #e6a23c;
+}
+
 .order-detail-refund-breakdown small {
   color: #a8abb2;
   font-size: 11px;
