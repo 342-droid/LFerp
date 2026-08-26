@@ -1,10 +1,172 @@
 {
-  "latestSha": "8ea74f5dc5775e3d7662c683bd4f48b547496ad2",
-  "total": 303,
+  "latestSha": "6a9a3704e96c07ffe2faddfa3c753cfee5bf8fd4",
+  "total": 304,
   "days": [
     {
       "date": "2026-08-26",
       "items": [
+        {
+          "sha": "6a9a370",
+          "type": "feat",
+          "text": "进件地址改为省市区加详细地址并默认带出成立日期",
+          "author": "sisi",
+          "time": "18:52",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_h5.html",
+              "module": "",
+              "title": "冷丰 MDM · 门店扫码 H5"
+            },
+            {
+              "file": "MDM/mdm_bd_merchants.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 商户模块"
+            },
+            {
+              "file": "MDM/mdm_bd_not_found.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 页面未找到"
+            },
+            {
+              "file": "MDM/mdm_bd_personal.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 我的"
+            },
+            {
+              "file": "MDM/mdm_bd_store_form.html",
+              "module": "",
+              "title": "冷丰 MDM · 添加 / 编辑门店"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "MDM/mdm_bd_workbench.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 工作台"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_resource_onboarding.html",
+              "module": "冷丰WMS",
+              "title": "支付进件"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "module": "",
+              "title": "商户进件 · 门店APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "去进件注册/法人地址拆成省市区与详细地址，OCR可回填可手改；成立日期默认带入证照开始日期"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "text": "去进件与进件详情同步省市区加详细地址；成立日期默认带入证照开始日期"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "text": "统一去进件弹窗地址与成立日期规则同步"
+            },
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "text": "统一去进件弹窗地址与成立日期规则同步"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "text": "进件详情执照/法人地址按省市区与详细地址展示"
+            },
+            {
+              "file": null,
+              "text": "BD 商户模块: 去进件与详情拆分地址"
+            },
+            {
+              "file": null,
+              "text": "商户名称说明改到输入框右侧换行"
+            },
+            {
+              "file": null,
+              "text": "成立日期默认带入开始日期"
+            },
+            {
+              "file": "MDM/mdm_resource_onboarding.html",
+              "text": "统一去进件弹窗同步地址拆分与成立日期默认值"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "text": "填写页与详情同步省市区加详细地址，商户名称说明在输入框右侧换行"
+            }
+          ]
+        },
         {
           "sha": "8ea74f5",
           "type": "feat",
@@ -15442,9 +15604,19 @@
               "title": "仓库档案"
             },
             {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
               "file": "MDM/mdm_product_proxy_list.html",
               "module": "冷丰WMS",
               "title": "代采商品列表"
+            },
+            {
+              "file": "MDM/mdm_resource_onboarding.html",
+              "module": "冷丰WMS",
+              "title": "支付进件"
             }
           ],
           "global": true,
