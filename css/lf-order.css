@@ -1955,11 +1955,125 @@ body[data-order-page="retail"] .order-live-table__action:hover {
 
 .order-detail-amount-foot {
   display: flex;
+  align-items: flex-start;
   justify-content: flex-end;
   gap: 16px;
   margin-top: 8px;
   font-size: 12px;
   color: #909399;
+}
+
+.order-detail-refund-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  min-width: 188px;
+}
+
+.order-detail-refund-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.order-detail-refund-line strong {
+  color: #606266;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.order-detail-refund-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #909399;
+  cursor: pointer;
+}
+
+.order-detail-refund-toggle svg {
+  width: 13px;
+  height: 13px;
+  transition: transform 0.2s ease;
+}
+
+.order-detail-refund-toggle.is-expanded svg {
+  transform: rotate(180deg);
+}
+
+.order-detail-refund-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  background: #fafafa;
+  box-sizing: border-box;
+}
+
+.order-detail-refund-breakdown[hidden] {
+  display: none !important;
+}
+
+.order-detail-refund-breakdown__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #606266;
+}
+
+.order-detail-refund-breakdown__row strong {
+  color: #303133;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.order-detail-refund-breakdown__row.is-pending,
+.order-detail-refund-breakdown__row.is-pending strong {
+  color: #e6a23c;
+}
+
+button.order-detail-refund-breakdown__row.is-link {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.order-detail-refund-breakdown__row.is-link:hover span,
+button.order-detail-refund-breakdown__row.is-link:focus-visible span {
+  text-decoration: underline;
+}
+
+button.order-detail-refund-breakdown__row.is-link:focus-visible {
+  outline: 2px solid rgba(230, 162, 60, 0.35);
+  outline-offset: 2px;
+}
+
+.order-detail-aftersale-table tr.is-refund-target td {
+  background: #fff7e6;
+}
+
+.order-detail-aftersale-table tr.is-refund-target td:first-child {
+  box-shadow: inset 3px 0 0 #e6a23c;
+}
+
+.order-detail-refund-breakdown small {
+  color: #a8abb2;
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: left;
 }
 
 /* 单据明细 · 收款明细 */
@@ -3724,6 +3838,12 @@ body[data-order-page="retail"] .order-live-table__action:hover {
   color: #666;
 }
 
+#orderFreightRefundDrawer .order-as-drawer__footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+}
+
 .order-as-drawer__footer {
   flex-shrink: 0;
   display: flex;
@@ -3898,6 +4018,85 @@ body[data-order-page="retail"] .order-live-table__action:hover {
 .order-export-modal input[type="radio"] {
   margin: 2px 0 0;
   accent-color: var(--color-primary, #ff7019);
+}
+
+/* 退运费复用发起售后的抽屉、字段与底部操作组件。 */
+.order-freight-refund-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border: 1px solid #b3d8ff;
+  border-radius: 4px;
+  background: #ecf5ff;
+  color: #606266;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.order-freight-refund-tip__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  border-radius: 50%;
+  background: #409eff;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  font-style: normal;
+  line-height: 1;
+}
+
+.order-freight-refund-confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  background: #fff;
+  color: #303133;
+  font-size: 13px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.order-freight-refund-confirm input {
+  flex: 0 0 auto;
+  margin: 3px 0 0;
+  accent-color: var(--color-primary, #ff7019);
+}
+
+#orderFreightRefundDrawer .order-as-drawer__actions .order-detail-btn--primary:disabled {
+  border-color: #f5b995;
+  background: #f5b995;
+  cursor: not-allowed;
+}
+
+.order-freight-refund-error {
+  min-height: 20px;
+  margin: 0;
+  color: #f56c6c;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.order-detail-aftersale-ref {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.order-detail-aftersale-ref .order-live-table__link {
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 @media (max-width: 720px) {

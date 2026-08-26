@@ -48,7 +48,7 @@
   /** 结算状态：待结算 | 待结款 | 结款中 | 已结款（待结款由结算单生成触发，文案不再带说明） */
   var SETTLE_STATUSES = ['待结算', '待结款', '结款中', '已结款'];
 
-  /** 仅「仅退款 / 退货退款」会生成退款单；换货、补货不产生退款 */
+  /** 仅退款、退货退款会生成退款单；换货、补货不产生退款 */
   function createsRefundDoc(type) {
     return type === '仅退款' || type === '退货退款';
   }
@@ -337,7 +337,12 @@
     return list;
   }
 
-  var ALL_ROWS = buildMockRows();
+  var persistedFreightRows =
+    window.FreightRefundAftersaleStore &&
+    typeof window.FreightRefundAftersaleStore.read === 'function'
+      ? window.FreightRefundAftersaleStore.read()
+      : [];
+  var ALL_ROWS = persistedFreightRows.concat(buildMockRows());
 
   var state = {
     page: 1,
@@ -442,6 +447,8 @@
       escapeHtml(row.refundExecStatus || '') +
       '" data-reason="' +
       escapeHtml(row.reason || '') +
+      '" data-refund-scene="' +
+      escapeHtml(row.refundScene || '') +
       '"'
     );
   }
@@ -567,6 +574,20 @@
         return (
           '<tr data-id="' +
           escapeHtml(row.id) +
+          '" data-order-no="' +
+          escapeHtml(row.orderNo) +
+          '" data-type="' +
+          escapeHtml(row.type) +
+          '" data-status="' +
+          escapeHtml(row.status) +
+          '" data-order-source="' +
+          escapeHtml(row.orderSource) +
+          '" data-apply-amount="' +
+          escapeHtml(row.applyAmount) +
+          '" data-refund-exec="' +
+          escapeHtml(row.refundExecStatus) +
+          '" data-refund-scene="' +
+          escapeHtml(row.refundScene || '') +
           '">' +
           '<td class="aftersale-table__td aftersale-table__td--ticket"><a href="#"' +
           detailLinkAttrs(row) +
@@ -814,6 +835,7 @@
         var settleStatus = link.getAttribute('data-settle-status') || '待结算';
         var refundExec = link.getAttribute('data-refund-exec') || '';
         var reason = link.getAttribute('data-reason') || '';
+        var refundScene = link.getAttribute('data-refund-scene') || '';
         var wp = window.wmsPath;
         var base =
           wp && typeof wp.page === 'function'
@@ -836,7 +858,8 @@
           (refundExec
             ? '&refundExec=' + encodeURIComponent(refundExec)
             : '') +
-          (reason ? '&reason=' + encodeURIComponent(reason) : '');
+          (reason ? '&reason=' + encodeURIComponent(reason) : '') +
+          (refundScene ? '&refundScene=' + encodeURIComponent(refundScene) : '');
       });
     }
 

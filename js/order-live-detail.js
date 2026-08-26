@@ -616,12 +616,13 @@
       amounts: {
         goods: '¥18.00',
         discount: '-¥3.00',
-        shipping: '¥0.00',
-        payable: '¥15.00',
-        paid: '¥15.00',
-        merchant: '¥15.00',
-        refund: '¥0.00'
+        shipping: '¥10.00',
+        payable: '¥25.00',
+        paid: '¥25.00',
+        merchant: '¥21.00',
+        refund: '¥4.00'
       },
+      freight: { original: 10, refunded: 4 },
       paymentCount: 1,
       aftersales: [{
         id: 'AS-0682-1',
@@ -651,7 +652,7 @@
         commissionStatus: '-'
       },
       logs: [
-        { time: '2026-06-02 18:03', type: 'create', title: '订单已创建', desc: '订单创建，金额 ¥15.00' },
+        { time: '2026-06-02 18:03', type: 'create', title: '订单已创建', desc: '订单创建，金额 ¥25.00' },
         { time: '2026-06-03 09:00', type: 'ship', title: '商家已发货', desc: '快递已发出，配送至用户收货地址' },
         { time: '2026-06-03 11:20', type: 'success', title: '交易成功', desc: '用户已签收，订单已完成' }
       ],
@@ -1268,6 +1269,13 @@
     if (typeof str === 'number') return str;
     if (!str) return 0;
     return parseFloat(String(str).replace(/[¥,\s]/g, '')) || 0;
+  }
+
+  function isFreightRefundAftersale(item) {
+    return !!(
+      item &&
+      (item.refundScene === 'ORDER_FREIGHT' || item.type === '退运费')
+    );
   }
 
   function formatMoney(n) {
@@ -1931,11 +1939,16 @@
 
   /**
    * 单据明细 · 售后明细：一条售后单一行；展示仅退款/退货退款/补货。
+   * 订单运费退款仍属于仅退款，通过订单运费场景标识展示关联售后单。
    * 代采：退款额一级下挂二级小计/支付宝/微信/钱包；零售：退款额单列，不受钱包字段影响。
    */
   function buildAftersalePanel(aftersales) {
     var list = (Array.isArray(aftersales) ? aftersales : []).filter(function (a) {
-      return a && (a.type === '仅退款' || a.type === '退货退款' || a.type === '补货');
+      return a && (
+        a.type === '仅退款' ||
+        a.type === '退货退款' ||
+        a.type === '补货'
+      );
     });
     if (!list.length) return buildEmptyState('暂无售后明细');
 
@@ -2003,7 +2016,29 @@
     function cellHtml(item, key) {
       var isRefund = item.type === '仅退款' || item.type === '退货退款';
       var isRestock = item.type === '补货';
-      if (key === 'product') return aftersaleCellText(item.productName);
+      if (key === 'product') {
+        if (isFreightRefundAftersale(item) && item.id) {
+          var freightHref =
+            'mdm_aftersale_ticket_detail.html?id=' +
+            encodeURIComponent(item.id) +
+            '&status=' +
+            encodeURIComponent(item.status || '退款中') +
+            '&type=' +
+            encodeURIComponent('仅退款') +
+            '&refundScene=' +
+            encodeURIComponent('ORDER_FREIGHT');
+          return (
+            '<span class="order-detail-aftersale-ref">' +
+            aftersaleCellText(item.productName) +
+            '<a class="order-live-table__link" data-freight-aftersale-link href="' +
+            freightHref +
+            '">关联售后单 ' +
+            escapeText(item.id) +
+            '</a></span>'
+          );
+        }
+        return aftersaleCellText(item.productName);
+      }
       if (key === 'type') return aftersaleTypeTagHtml(item.type);
       if (key === 'status') return aftersaleStatusTagHtml(item.status);
       if (key === 'returnQty') {
@@ -2081,6 +2116,8 @@
       var tr = document.createElement('tr');
       if (item.id) tr.setAttribute('data-aftersale-id', item.id);
       if (item.type) tr.setAttribute('data-aftersale-type', item.type);
+      if (item.status) tr.setAttribute('data-aftersale-status', item.status);
+      if (item.refundScene) tr.setAttribute('data-refund-scene', item.refundScene);
       tr.innerHTML = bodyKeys
         .map(function (key) {
           var align =
@@ -2552,7 +2589,7 @@
     return wrap;
   }
 
-  function buildAmounts(amounts, payLegs) {
+  function buildAmounts(amounts, payLegs, freight, aftersales, onOpenPendingRefund) {
     var box = el('div', 'order-detail-amount-box');
     var legs = (payLegs || []).filter(function (leg) {
       return leg && leg.name && Number(leg.amount) > 0 && normalizeRetailPayMethod(leg.name);
@@ -2597,6 +2634,48 @@
         amounts.paid +
         '</span></div>';
     }
+    var refundTotal = Math.max(0, parsePrice(amounts.refund));
+    var freightRefunded = freight ? Math.max(0, Number(freight.refunded) || 0) : 0;
+    freightRefunded = Math.min(refundTotal, freightRefunded);
+    var goodsRefunded = Math.max(
+      0,
+      Math.round((refundTotal - freightRefunded) * 100) / 100
+    );
+    var freightPending = (Array.isArray(aftersales) ? aftersales : []).reduce(
+      function (total, item) {
+        if (!isFreightRefundAftersale(item) || item.status !== '退款中') return total;
+        return total + parsePrice(item.refundSubtotal != null ? item.refundSubtotal : item.refundAmount);
+      },
+      0
+    );
+    freightPending = Math.max(0, Math.round(freightPending * 100) / 100);
+    var pendingAmountText = '¥' + freightPending.toFixed(2);
+    var pendingRowHtml = freightPending > 0
+      ? '<button type="button" class="order-detail-refund-breakdown__row is-pending is-link" aria-label="查看退款处理中 ' +
+        pendingAmountText +
+        '"><span>退款处理中</span><strong>' +
+        pendingAmountText +
+        '</strong></button>'
+      : '<span class="order-detail-refund-breakdown__row is-pending"><span>退款处理中</span><strong>' +
+        pendingAmountText +
+        '</strong></span>';
+    var refundSummaryHtml =
+      '<span class="order-detail-refund-wrap">' +
+      '<span class="order-detail-refund-line"><span>退款</span><strong>¥' +
+      refundTotal.toFixed(2) +
+      '</strong><button type="button" class="order-detail-refund-toggle" aria-expanded="false" aria-label="展开退款明细">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>' +
+      '</button></span>' +
+      '<span class="order-detail-refund-breakdown" hidden>' +
+      '<span class="order-detail-refund-breakdown__row"><span>商品退款</span><strong>¥' +
+      goodsRefunded.toFixed(2) +
+      '</strong></span>' +
+      '<span class="order-detail-refund-breakdown__row"><span>运费退还</span><strong>¥' +
+      freightRefunded.toFixed(2) +
+      '</strong></span>' +
+      pendingRowHtml +
+      '<small>处理中金额不计入退款合计</small>' +
+      '</span></span>';
     box.innerHTML =
       '<div class="order-detail-amount-row"><span>商品金额</span><span>' +
       amounts.goods +
@@ -2613,9 +2692,9 @@
       paidHtml +
       '<div class="order-detail-amount-foot"><span>商家实收 ' +
       amounts.merchant +
-      '</span><span>退款 ' +
-      amounts.refund +
-      '</span></div>';
+      '</span>' +
+      refundSummaryHtml +
+      '</div>';
 
     var toggle = box.querySelector('.order-detail-pay-legs-toggle');
     var legsEl = box.querySelector('.order-detail-pay-legs');
@@ -2628,6 +2707,22 @@
         toggle.classList.toggle('is-expanded', next);
         legsEl.hidden = !next;
       });
+    }
+    var refundToggle = box.querySelector('.order-detail-refund-toggle');
+    var refundBreakdown = box.querySelector('.order-detail-refund-breakdown');
+    if (refundToggle && refundBreakdown) {
+      refundToggle.addEventListener('click', function () {
+        var expanded = refundToggle.getAttribute('aria-expanded') === 'true';
+        var next = !expanded;
+        refundToggle.setAttribute('aria-expanded', next ? 'true' : 'false');
+        refundToggle.setAttribute('aria-label', next ? '收起退款明细' : '展开退款明细');
+        refundToggle.classList.toggle('is-expanded', next);
+        refundBreakdown.hidden = !next;
+      });
+    }
+    var pendingRefundLink = box.querySelector('.order-detail-refund-breakdown__row.is-pending.is-link');
+    if (pendingRefundLink && typeof onOpenPendingRefund === 'function') {
+      pendingRefundLink.addEventListener('click', onOpenPendingRefund);
     }
     return box;
   }
@@ -2929,7 +3024,26 @@
       if (tab.id === 'goods') {
         var goodsPanel = buildGoodsPanel(goods, pickupMode, detail.aftersales);
         panel.appendChild(goodsPanel);
-        panel.appendChild(buildAmounts(detail.amounts || {}, payLegs));
+        panel.appendChild(
+          buildAmounts(
+            detail.amounts || {},
+            payLegs,
+            detail.freight,
+            detail.aftersales,
+            function () {
+              var aftersaleTab = tabs.querySelector('[data-doc-tab="aftersale"]');
+              if (aftersaleTab) aftersaleTab.click();
+              var target = panels.aftersale && panels.aftersale.querySelector(
+                'tr[data-refund-scene="ORDER_FREIGHT"][data-aftersale-status="退款中"]'
+              );
+              if (!target) return;
+              target.classList.add('is-refund-target');
+              if (typeof target.scrollIntoView === 'function') {
+                target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+              }
+            }
+          )
+        );
         if (drawer && pickupMode) {
           drawer._pickupRefs = drawer._pickupRefs || {};
           drawer._pickupRefs.goodsPanel = goodsPanel;

@@ -29,6 +29,7 @@
     '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 3h7l5 5v13a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" stroke-width="1.6"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6"/></svg>';
 
   var ALL_TYPES = ['仅退款', '退货退款', '补货', '换货'];
+  var SUPPORTED_TYPES = ALL_TYPES.slice();
   var GOODS_STATUS_OPTIONS = ['已收到货', '未收到货'];
   var SUPPLIER_RECEIVE_ADDR_KEY = 'mdm_supplier_receive_addr_v1';
   var DEMO_SUPPLIER_ID = 'SUP-DEMO-001';
@@ -377,6 +378,13 @@
     return status === '已完成';
   }
 
+  function isFreightRefundDetail(detail) {
+    return !!(
+      detail &&
+      (detail.refundScene === 'ORDER_FREIGHT' || detail.type === '退运费')
+    );
+  }
+
   function typeActionLabel(type) {
     if (type === '补货') return '补货';
     if (type === '换货') return '换货';
@@ -384,7 +392,7 @@
     return '仅退款';
   }
 
-  /** 仅「仅退款 / 退货退款」会生成退款单；换货、补货不产生退款 */
+  /** 仅退款、退货退款会生成退款单；换货、补货不产生退款 */
   function createsRefundDoc(type) {
     return type === '仅退款' || type === '退货退款';
   }
@@ -432,7 +440,10 @@
    * - 待收货(待自提)/已完成 + 仅退款：可选已收到货/未收到货，待审批时可改
    * - 待收货(待自提)/已完成 + 退货退款：固定已收到货，不可改
    */
-  function resolveGoodsStatusMode(type, orderStatus) {
+  function resolveGoodsStatusMode(type, orderStatus, detail) {
+    if (isFreightRefundDetail(detail)) {
+      return { mode: 'na', value: '/' };
+    }
     if (type === '补货') {
       return { mode: 'na', value: '/' };
     }
@@ -490,7 +501,7 @@
 
   function syncGoodsStatusForType(detail, type) {
     if (!detail || !detail.apply) return;
-    var mode = resolveGoodsStatusMode(type, detail.orderApplyStatus);
+    var mode = resolveGoodsStatusMode(type, detail.orderApplyStatus, detail);
     if (mode.mode === 'fixed') {
       detail.apply.goodsStatus = mode.value;
     } else if (mode.mode === 'editable' && GOODS_STATUS_OPTIONS.indexOf(detail.apply.goodsStatus) < 0) {
@@ -721,6 +732,7 @@
   }
 
   function refundTicketTriggerLabel(trigger) {
+    if (trigger === 'order') return '运营提交后生成';
     if (trigger === 'receive') {
       if (state.detail && isPickupFulfillment(state.detail.deliveryMode)) {
         return '门店确认收货后生成';
@@ -887,7 +899,14 @@
         : '用户寄回商品至供应商地址';
     var returnTitle = isPickupFulfillment(deliveryMode) ? '退回门店' : '寄回商品';
     var steps = [];
-    if (type === '补货') {
+    if (isFreightRefundDetail(detailRef)) {
+      steps = [
+        { key: 'submit', title: '运营发起退运费', desc: '运营在订单页提交退运费申请' },
+        { key: 'audit', title: '系统校验退款金额', desc: '校验剩余可退运费与原支付渠道' },
+        { key: 'refund', title: '发起退款', desc: '已按原支付渠道发起退款' },
+        { key: 'done', title: '退款成功', desc: '运费退款完成' }
+      ];
+    } else if (type === '补货') {
       var noTrackRestock =
         isDeliveryFulfillment(deliveryMode) || isPickupFulfillment(deliveryMode);
       var withPurchaseOrder = hasPurchaseRestockOrder(detailRef);
@@ -1035,7 +1054,7 @@
         operator: done || current ? (idx === 0 ? applicant : '系统') : '',
         done: done,
         current: current,
-        hollow: current
+        hollow: current || (isFreightRefundDetail(detailRef) && !done)
       };
     });
   }
@@ -1333,7 +1352,10 @@
         (listRefundExec === '退款执行中' || listRefundExec === '待退款')
           ? listRefundExec
           : '';
-      if (type === '仅退款' && (status === '已完成' || status === '退款中' || status === '退款异常')) {
+      if (
+        type === '仅退款' &&
+        (status === '已完成' || status === '退款中' || status === '退款异常')
+      ) {
         var onlyStatus =
           status === '已完成'
             ? '退款成功'
@@ -1347,7 +1369,7 @@
         detail.refundTicket = {
           id: 'RF-' + String(detail.id).slice(-12),
           createdAt: detail.approval && detail.approval.time !== '-' ? detail.approval.time : nowText(),
-          trigger: 'approve',
+          trigger: isFreightRefundDetail(detail) ? 'order' : 'approve',
           status: onlyStatus,
           method: offlineSeed ? '线下付款' : '原路退回'
         };
@@ -1421,11 +1443,104 @@
     return detail;
   }
 
+  function buildPersistedFreightDetail(record) {
+    var amount = Number(record.applyAmount) || 0;
+    var payName = record.payChannel === '钱包' ? '钱包余额' : record.payChannel;
+    var detail = {
+      id: record.id,
+      status: record.status || '退款中',
+      type: '仅退款',
+      refundScene: 'ORDER_FREIGHT',
+      applyTime: record.applyTime || record.occurTime || nowText(),
+      applyAmount: amount,
+      waitTime: '-',
+      orderSource: record.orderSource || '代采',
+      deliveryMode: normalizeFulfillmentMode(record.fulfillment || '快递'),
+      settleStatus: record.settleStatus || '待结算',
+      orderApplyStatus: record.orderStatus || '已完成',
+      payChannel: record.payChannel || '-',
+      payLegs: payName && payName !== '-' ? [{ name: payName, amount: amount }] : [],
+      freight: {
+        original: Number(record.originalFreight) || 0,
+        refunded: Number(record.refundedFreight) || 0,
+        pending: Number(record.pendingFreight) || amount,
+        current: amount
+      },
+      apply: {
+        goodsStatus: '/',
+        refundReason: record.reason || '退运费',
+        ratio: '-',
+        desc: record.desc || '-',
+        proofCount: 0
+      },
+      goods: [],
+      summary: { refundAmount: amount, refundQty: '-', coupon: 0, points: 0, growth: '-' },
+      approval: {
+        result: '已通过',
+        refundAmount: amount,
+        refundQty: '-',
+        coupon: 0,
+        points: 0,
+        approver: record.approver || '超级管理员',
+        time: record.approveTime || record.applyTime || '-',
+        remark: '-'
+      },
+      reasons: { customer: [], store: [], delivery: [], warehouse: [], supplier: [] },
+      customer: {
+        level: '-',
+        purchaseCount: '-',
+        aftersaleCount: '-',
+        aftersaleAmount: '-',
+        aftersaleRatio: '-'
+      },
+      order: {
+        orderNo: record.orderNo || '-',
+        orderTime: record.orderTime || '-',
+        receiver: record.nickname || '-',
+        phone: record.phone || '-',
+        amount: Number(record.orderAmount) || 0,
+        status: record.orderStatus || '已完成',
+        source: record.orderSource || '代采',
+        store: record.store || '-'
+      },
+      supplier: { id: DEMO_SUPPLIER_ID, name: '-', buyer: '-' },
+      returnAddress: null,
+      refundTicket: {
+        id: record.refundNo || 'RF-' + String(record.id).slice(-12),
+        createdAt: record.approveTime || record.applyTime || nowText(),
+        trigger: 'order',
+        status: record.refundExecStatus || '待退款',
+        method: '原路退回'
+      },
+      userPickupActive: false,
+      shipCanceled: false,
+      showShipUploadForm: false,
+      userOps: { cancelPickup: null, closeReturn: null },
+      shipments: { returnShip: null, restockShip: null, exchangeOutShip: null },
+      progress: null
+    };
+    detail.progress = buildProgress(
+      detail.type,
+      detail.status,
+      detail.id,
+      detail.applyTime,
+      record.approver || '超级管理员',
+      detail
+    );
+    return detail;
+  }
+
   function buildDetail() {
     var id = queryParam('id') || 'AS-333524494855454720';
     var status = queryParam('status') || '待审批';
     var type = queryParam('type') || '仅退款';
-    if (ALL_TYPES.indexOf(type) < 0) type = '仅退款';
+    var persisted =
+      window.FreightRefundAftersaleStore &&
+      typeof window.FreightRefundAftersaleStore.find === 'function'
+        ? window.FreightRefundAftersaleStore.find(id)
+        : null;
+    if (isFreightRefundDetail(persisted)) return buildPersistedFreightDetail(persisted);
+    if (SUPPORTED_TYPES.indexOf(type) < 0) type = '仅退款';
 
     var isDone = status === '已完成';
     var applyTime = isDone ? '2026-07-11 17:06:01' : '2026-07-09 16:27:16';
@@ -1774,7 +1889,7 @@
 
   function renderGoodsStatusField(detail) {
     var type = applyInfoType(detail);
-    var mode = resolveGoodsStatusMode(type, detail.orderApplyStatus);
+    var mode = resolveGoodsStatusMode(type, detail.orderApplyStatus, detail);
     var pending = isPending(detail.status);
     var label = '<span class="aftersale-apply-field__label">货物状态</span>';
 
@@ -2034,6 +2149,29 @@
     );
   }
 
+  function renderFreightInfo(detail) {
+    var freight = detail.freight || {};
+    var original = freight.original != null ? freight.original : detail.applyAmount;
+    var refunded = freight.refunded != null ? freight.refunded : 0;
+    var current = freight.current != null ? freight.current : detail.applyAmount;
+    var pending = freight.pending != null ? freight.pending : current;
+    var channel = detail.payChannel || '-';
+    return (
+      '<section class="aftersale-detail-card">' +
+      '<h2 class="aftersale-detail-card__title">运费信息</h2>' +
+      renderInfoGrid(
+        field('原始运费', money(original)) +
+          field('累计成功退运费', money(refunded)) +
+          field('本次退运费', money(current)) +
+          field('退款中运费', money(pending)) +
+          field('退款渠道', channel) +
+          field('退款范围', '仅订单运费，不改变商品售后状态'),
+        4
+      ) +
+      '</section>'
+    );
+  }
+
   function needsReturnAddrTemplate(type) {
     /* 补货不展示收货地址；仅退货退款/换货需要 */
     return type === '退货退款' || type === '换货';
@@ -2225,7 +2363,7 @@
           '</span>'
       }) +
       field(isRefund ? '退款金额' : '申请金额', money(isRefund ? a.refundAmount : detail.applyAmount)) +
-      field(isRefund ? '退款数量' : '申请数量', a.refundQty) +
+      (isFreightRefundDetail(detail) ? '' : field(isRefund ? '退款数量' : '申请数量', a.refundQty)) +
       (isRefund ? field('退还优惠券', money(a.coupon)) + field('退还积分', a.points) : '') +
       field('审批人', a.approver) +
       field('审批时间', a.time) +
@@ -2976,6 +3114,13 @@
       })
       .join('');
 
+    var originalOrderBase =
+      window.wmsPath && typeof window.wmsPath.page === 'function'
+        ? window.wmsPath.page('mdm_order_proxy.html')
+        : 'mdm_order_proxy.html';
+    var originalOrderHref =
+      originalOrderBase + '?orderNo=' + encodeURIComponent((o && o.orderNo) || '');
+
     return (
       '<aside class="aftersale-detail-aside">' +
       '<div><h3 class="aftersale-aside-section__title">客户信息</h3>' +
@@ -2995,9 +3140,11 @@
       escapeHtml(c.aftersaleRatio) +
       '</span></div></div>' +
       '<div><h3 class="aftersale-aside-section__title">订单信息</h3>' +
-      '<div class="aftersale-aside-kv"><span>订单号</span><span>' +
+      '<div class="aftersale-aside-kv"><span>订单号</span><a class="aftersale-link" data-original-order-link href="' +
+      escapeHtml(originalOrderHref) +
+      '">' +
       escapeHtml(o.orderNo) +
-      '</span></div>' +
+      ' · 查看原订单</a></div>' +
       '<div class="aftersale-aside-kv"><span>下单时间</span><span>' +
       escapeHtml(o.orderTime) +
       '</span></div>' +
@@ -3312,16 +3459,17 @@
     }
     var pending = isPending(detail.status);
     var editable = pending;
+    var freightRefund = isFreightRefundDetail(detail);
     var main =
       '<div class="aftersale-detail-main">' +
       renderStatusBanner(detail) +
       renderApply(detail) +
-      renderGoods(detail, editable) +
-      (pending ? renderApproveOps(detail) : renderApprovalInfo(detail)) +
+      (freightRefund ? renderFreightInfo(detail) : renderGoods(detail, editable)) +
+      (freightRefund ? '' : pending ? renderApproveOps(detail) : renderApprovalInfo(detail)) +
       renderFlowPanel(detail) +
       renderRefundTicketCard(detail) +
       renderLogisticsSection(detail) +
-      renderReasons(detail, pending) +
+      (freightRefund ? '' : renderReasons(detail, pending)) +
       '</div>';
     body.innerHTML = main + renderAside(detail);
     renderFooter(detail);
