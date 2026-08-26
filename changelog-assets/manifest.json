@@ -2038,6 +2038,23 @@
     "status": "diff",
     "date": "2026-08-26"
   },
+  "918ae5b|store-app/h5/home.html": {
+    "before": "changelog-assets/918ae5b/store-app__h5__home.html.before.jpg",
+    "after": "changelog-assets/918ae5b/store-app__h5__home.html.after.jpg",
+    "regions": 12,
+    "status": "diff",
+    "date": "2026-08-26"
+  },
+  "918ae5b|store-app/h5/order-detail.html": {
+    "after": "changelog-assets/918ae5b/store-app__h5__order-detail.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-26"
+  },
+  "918ae5b|store-app/h5/store-orders.html": {
+    "after": "changelog-assets/918ae5b/store-app__h5__store-orders.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-26"
+  },
   "9773fc0|user-app/h5/cart.html": {
     "before": "changelog-assets/9773fc0/user-app__h5__cart.html.before.jpg",
     "after": "changelog-assets/9773fc0/user-app__h5__cart.html.after.jpg",

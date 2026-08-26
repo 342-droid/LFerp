@@ -1,10 +1,48 @@
 {
-  "latestSha": "061470f694f137e9c95a4a6dee868e2fd05946ea",
-  "total": 305,
+  "latestSha": "918ae5bb3c83e4f4facd66ee55c5ec9a98b605f4",
+  "total": 306,
   "days": [
     {
       "date": "2026-08-26",
       "items": [
+        {
+          "sha": "918ae5b",
+          "type": "feat",
+          "text": "门店APP接入订单列表、扫码核销与排队码",
+          "author": "sisi",
+          "time": "22:19",
+          "pages": [
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/home.html",
+              "text": "扫码核销打开扫码弹层并跳转核销详情；基础工具新增门店订单与排队码入口"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "text": "新增订单列表与排队中管理，支持过号、叫号、标记完成及头像跳转核销"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "text": "新增一码多订单勾选核销、部分提货数量确认与退款关闭确认弹窗"
+            }
+          ]
+        },
         {
           "sha": "061470f",
           "type": "style",
@@ -7592,6 +7630,11 @@
               "title": "商户进件 · 门店APP"
             },
             {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
               "file": "store-app/h5/password-edit.html",
               "module": "",
               "title": "密码管理 · 门店APP"
@@ -7605,6 +7648,11 @@
               "file": "store-app/h5/password.html",
               "module": "",
               "title": "密码管理 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
             },
             {
               "file": "store-app/h5/verify.html",
@@ -11323,6 +11371,11 @@
               "title": "商户进件 · 门店APP"
             },
             {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
               "file": "store-app/h5/password-edit.html",
               "module": "",
               "title": "密码管理 · 门店APP"
@@ -11336,6 +11389,11 @@
               "file": "store-app/h5/password.html",
               "module": "",
               "title": "密码管理 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
             },
             {
               "file": "store-app/h5/verify.html",
@@ -12518,6 +12576,11 @@
               "title": "商户进件 · 门店APP"
             },
             {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
               "file": "store-app/h5/password-edit.html",
               "module": "",
               "title": "密码管理 · 门店APP"
@@ -12531,6 +12594,11 @@
               "file": "store-app/h5/password.html",
               "module": "",
               "title": "密码管理 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
             },
             {
               "file": "store-app/h5/verify.html",
