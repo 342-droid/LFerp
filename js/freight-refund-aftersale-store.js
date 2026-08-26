@@ -6,10 +6,22 @@
   var KEY = 'lferp.freightRefundAftersales.v1';
   var MAX_RECORDS = 20;
 
+  function normalize(record) {
+    if (!record) return null;
+    if (record.refundScene === 'ORDER_FREIGHT' || record.type === '退运费') {
+      return Object.assign({}, record, {
+        type: '仅退款',
+        reason: '退运费',
+        refundScene: 'ORDER_FREIGHT'
+      });
+    }
+    return record;
+  }
+
   function read() {
     try {
       var parsed = JSON.parse(global.sessionStorage.getItem(KEY) || '[]');
-      return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+      return Array.isArray(parsed) ? parsed.map(normalize).filter(Boolean) : [];
     } catch (error) {
       return [];
     }
@@ -28,7 +40,7 @@
     var records = read().filter(function (item) {
       return item && item.id !== record.id;
     });
-    records.unshift(record);
+    records.unshift(normalize(record));
     write(records);
   }
 

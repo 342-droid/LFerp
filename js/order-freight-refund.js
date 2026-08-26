@@ -5,6 +5,16 @@
 (function (global) {
   var previousFocus = null;
   var keydownHandler = null;
+  var REFUND_TYPE = '仅退款';
+  var REFUND_REASON = '退运费';
+  var REFUND_SCENE = 'ORDER_FREIGHT';
+
+  function isFreightRefund(item) {
+    return !!(
+      item &&
+      (item.refundScene === REFUND_SCENE || item.type === '退运费')
+    );
+  }
 
   function escapeHtml(value) {
     return String(value == null ? '' : value)
@@ -48,14 +58,57 @@
     return global.OrderLiveDetail.resolveDetail(orderId, row || null);
   }
 
+  function hydratePersistedAftersales(orderId, detail) {
+    var store = global.FreightRefundAftersaleStore;
+    if (!detail || !store || typeof store.read !== 'function') return;
+    var records = store.read().filter(function (record) {
+      return isFreightRefund(record) && record.orderNo === orderId;
+    });
+    if (!records.length) return;
+
+    detail.aftersales = Array.isArray(detail.aftersales) ? detail.aftersales : [];
+    var existing = {};
+    detail.aftersales.forEach(function (item) {
+      if (item && item.id) existing[item.id] = true;
+    });
+    records
+      .slice()
+      .reverse()
+      .forEach(function (record) {
+        if (existing[record.id]) return;
+        var amount = parseMoney(record.applyAmount);
+        detail.aftersales.unshift({
+          id: record.id,
+          refundNo: record.refundNo,
+          productName: '订单运费',
+          type: REFUND_TYPE,
+          refundScene: REFUND_SCENE,
+          status: record.status || '退款中',
+          returnQty: '-',
+          refundAmount: '¥' + formatMoney(amount),
+          refundSubtotal: '¥' + formatMoney(amount),
+          refundAlipay: record.refundAlipay || '¥0.00',
+          refundWechat: record.refundWechat || '¥0.00',
+          refundWallet: record.refundWallet || '¥0.00',
+          refundCoupon: '¥0.00',
+          refundPoints: 0,
+          adjustAmount: '¥0.00',
+          reason: REFUND_REASON,
+          desc: record.desc || '-'
+        });
+        existing[record.id] = true;
+      });
+  }
+
   function getSummary(orderId, row) {
     var detail = resolveDetail(orderId, row);
+    hydratePersistedAftersales(orderId, detail);
     var freight = detail && detail.freight ? detail.freight : {};
     var original = parseMoney(freight.original);
     var refunded = Math.min(original, Math.max(0, parseMoney(freight.refunded)));
     var pending = (detail && Array.isArray(detail.aftersales) ? detail.aftersales : []).reduce(
       function (total, item) {
-        if (!item || item.type !== '退运费' || item.status !== '退款中') return total;
+        if (!isFreightRefund(item) || item.status !== '退款中') return total;
         return total + parseMoney(item.refundSubtotal != null ? item.refundSubtotal : item.refundAmount);
       },
       0
@@ -105,23 +158,6 @@
     if (shouldRestoreFocus) previousFocus = null;
   }
 
-  function reasonOptions() {
-    var reasons = [];
-    if (global.MdmAftersaleReasons) {
-      if (typeof global.MdmAftersaleReasons.getReasonList === 'function') {
-        reasons = global.MdmAftersaleReasons.getReasonList('退运费', '已收到货', '已完成');
-      } else if (typeof global.MdmAftersaleReasons.getReasonsByType === 'function') {
-        reasons = global.MdmAftersaleReasons.getReasonsByType('退运费');
-      }
-    }
-    return (
-      '<option value="">请选择售后原因</option>' +
-      reasons.map(function (reason) {
-        return '<option value="' + escapeHtml(reason) + '">' + escapeHtml(reason) + '</option>';
-      }).join('')
-    );
-  }
-
   function amountCard(label, amount, key, mod) {
     return (
       '<div class="order-as-kv' + (mod ? ' ' + mod : '') + '">' +
@@ -131,16 +167,19 @@
     );
   }
 
-  function appendFreightAftersale(detail, amount, reason, desc) {
+  function appendFreightAftersale(detail, amount, desc) {
     var payChannel = detail.tags && detail.tags.payChannel;
     var alipay = payChannel === '支付宝' ? amount : 0;
     var wechat = payChannel === '微信' ? amount : 0;
     var wallet = payChannel === '钱包' ? amount : 0;
     detail.aftersales = Array.isArray(detail.aftersales) ? detail.aftersales : [];
+    var aftersaleId = 'AS-FREIGHT-' + Date.now();
     var aftersale = {
-      id: 'AS-FREIGHT-' + Date.now(),
+      id: aftersaleId,
+      refundNo: 'RF-' + String(aftersaleId).slice(-12),
       productName: '订单运费',
-      type: '退运费',
+      type: REFUND_TYPE,
+      refundScene: REFUND_SCENE,
       status: '退款中',
       returnQty: '-',
       refundAmount: '¥' + formatMoney(amount),
@@ -151,24 +190,34 @@
       refundCoupon: '¥0.00',
       refundPoints: 0,
       adjustAmount: '¥0.00',
-      reason: reason,
+      reason: REFUND_REASON,
       desc: desc
     };
     detail.aftersales.unshift(aftersale);
     return aftersale;
   }
 
-  function applyPrototypeRefund(summary, amount, reason, desc) {
+  function applyPrototypeRefund(summary, amount, desc) {
     var detail = summary.detail;
-    var aftersale = appendFreightAftersale(detail, amount, reason, desc);
+    var aftersale = appendFreightAftersale(detail, amount, desc);
+    detail.freight = detail.freight || {};
+    detail.freight.original = summary.original;
+    detail.freight.refunded = summary.refunded;
+    detail.freight.pending = Math.round((summary.pending + amount) * 100) / 100;
+    detail.freight.remaining = Math.max(
+      0,
+      Math.round((summary.remaining - amount) * 100) / 100
+    );
     if (global.FreightRefundAftersaleStore) {
       var deliveryType = detail.delivery && detail.delivery.type;
       var fulfillment = deliveryType === 'PICKUP' ? '自提' : deliveryType === 'DELIVERY' ? '配送' : '快递';
       var createdAt = nowText();
       global.FreightRefundAftersaleStore.add({
         id: aftersale.id,
+        refundNo: aftersale.refundNo,
         source: '运营代用户发起',
-        type: '退运费',
+        type: REFUND_TYPE,
+        refundScene: REFUND_SCENE,
         status: '退款中',
         orderSource: '代采',
         liveSession: (detail.tags && detail.tags.livePeriod) || '-',
@@ -186,7 +235,7 @@
         actualAmount: '0.00',
         couponAmount: '0.00',
         pointsAmount: 0,
-        reason: reason,
+        reason: REFUND_REASON,
         desc: desc,
         approver: '超级管理员',
         settleStatus: '待结算',
@@ -230,6 +279,8 @@
       '<button type="button" class="store-drawer__close" data-freight-close aria-label="关闭">&times;</button>' +
       '</div>' +
       '<div class="store-drawer__body order-as-drawer__body">' +
+      '<div class="order-freight-refund-tip" role="note"><span class="order-freight-refund-tip__icon" aria-hidden="true">i</span>' +
+      '<span>退运费是售后补充能力。提交后将直接生成退款单并回写原订单，请谨慎操作。</span></div>' +
       '<div class="order-as-occur"><span class="order-as-occur__label">售后发生时间</span>' +
       '<div class="order-as-occur__value"><span class="order-as-occur__icon" aria-hidden="true">🕒</span>' +
       '<span>' + escapeHtml(nowText()) + '</span></div></div>' +
@@ -238,18 +289,21 @@
       '<div class="order-as-item__meta">' +
       '<div class="order-as-kv"><span class="order-as-kv__k">订单号</span><span class="order-as-kv__v">' + escapeHtml(orderId) + '</span></div>' +
       amountCard('原始运费', summary.original, 'original') +
-      amountCard('累计退运费', summary.refunded, 'refunded') +
+      amountCard('退款处理中', summary.pending, 'pending') +
+      amountCard('累计成功退运费', summary.refunded, 'refunded') +
       amountCard('剩余可退运费', summary.remaining, 'remaining') +
       '</div>' +
       '<div class="order-as-form">' +
-      '<div class="order-as-form__row order-as-form__row--3">' +
+      '<div class="order-as-form__row order-as-form__row--4">' +
       '<label class="order-as-field"><span class="order-as-field__label"><i>*</i>本次退运费</span>' +
       '<input class="order-as-field__control" id="orderFreightRefundAmount" name="freightRefundAmount" type="text" inputmode="decimal" value="' +
       formatMoney(summary.remaining) + '" autocomplete="off"></label>' +
-      '<label class="order-as-field"><span class="order-as-field__label"><i>*</i>售后原因</span>' +
-      '<select class="order-as-field__control" id="orderFreightRefundReason" name="freightRefundReason">' + reasonOptions() + '</select></label>' +
+      '<label class="order-as-field"><span class="order-as-field__label">申请类型</span>' +
+      '<input class="order-as-field__control" name="aftersaleType" type="text" value="' + REFUND_TYPE + '" readonly></label>' +
+      '<label class="order-as-field"><span class="order-as-field__label">退款原因</span>' +
+      '<input class="order-as-field__control" id="orderFreightRefundReason" name="freightRefundReason" type="text" value="' + REFUND_REASON + '" readonly></label>' +
       '<label class="order-as-field"><span class="order-as-field__label">退款渠道</span>' +
-      '<input class="order-as-field__control" type="text" value="' + escapeHtml(refundChannel) + '" readonly></label>' +
+      '<input class="order-as-field__control" name="refundChannel" type="text" value="' + escapeHtml(refundChannel) + '" readonly></label>' +
       '</div>' +
       '<div class="order-as-form__row">' +
       '<label class="order-as-field"><span class="order-as-field__label"><i>*</i>售后描述</span>' +
@@ -258,13 +312,17 @@
       '</div>' +
       '<p class="order-freight-refund-error" id="orderFreightRefundError" role="alert"></p>' +
       '</div>' +
-      '<div class="order-as-item__foot">仅生成订单级退运费售后，不改变商品售后状态及采购款分账。</div>' +
+      '<div class="order-as-item__foot">运费与采购款同时分账且全部分给平台；本操作仅退还订单运费，不改变商品售后状态及原采购款分账结果。</div>' +
       '</article>' +
+      '<label class="order-freight-refund-confirm" for="orderFreightRefundConfirm">' +
+      '<input type="checkbox" id="orderFreightRefundConfirm" data-freight-confirm>' +
+      '<span>我已确认以上退运费信息无误（提交后将生成退款单，退款成功后不可撤回）</span>' +
+      '</label>' +
       '</div>' +
       '<div class="order-as-drawer__footer">' +
       '<div class="order-as-drawer__summary">本次退运费 <em data-freight-submit-total>¥' + formatMoney(summary.remaining) + '</em></div>' +
       '<div class="order-as-drawer__actions"><button type="button" class="order-detail-btn" data-freight-close>取消</button>' +
-      '<button type="button" class="order-detail-btn order-detail-btn--primary" data-freight-submit>提交</button></div>' +
+      '<button type="button" class="order-detail-btn order-detail-btn--primary" data-freight-submit disabled>提交</button></div>' +
       '</div></aside>';
 
     document.body.appendChild(backdrop);
@@ -276,9 +334,31 @@
 
     var amountInput = document.getElementById('orderFreightRefundAmount');
     var descInput = document.getElementById('orderFreightRefundDesc');
+    var confirmInput = document.getElementById('orderFreightRefundConfirm');
+    var submitButton = backdrop.querySelector('[data-freight-submit]');
+    var error = document.getElementById('orderFreightRefundError');
+
+    function updateSubmitState() {
+      var amount = parseMoney(amountInput.value);
+      var validAmount = amount > 0 && amount <= summary.remaining + 0.0001;
+      if (!(amount > 0)) {
+        error.textContent = '本次退运费必须大于 ¥0.00';
+      } else if (amount > summary.remaining + 0.0001) {
+        error.textContent = '本次退运费不能超过剩余可退运费 ¥' + formatMoney(summary.remaining);
+      } else if (
+        error.textContent.indexOf('本次退运费必须') === 0 ||
+        error.textContent.indexOf('本次退运费不能超过') === 0
+      ) {
+        error.textContent = '';
+      }
+      submitButton.disabled = !validAmount || !confirmInput.checked;
+    }
+
     amountInput.addEventListener('input', function () {
       backdrop.querySelector('[data-freight-submit-total]').textContent = '¥' + formatMoney(parseMoney(amountInput.value));
+      updateSubmitState();
     });
+    confirmInput.addEventListener('change', updateSubmitState);
     descInput.addEventListener('input', function () {
       backdrop.querySelector('[data-freight-desc-count]').textContent = descInput.value.length + '/200';
     });
@@ -287,12 +367,10 @@
     };
     document.addEventListener('keydown', keydownHandler);
 
-    backdrop.querySelector('[data-freight-submit]').addEventListener('click', function () {
+    submitButton.addEventListener('click', function () {
       var latest = getSummary(orderId, row);
       var amount = parseMoney(document.getElementById('orderFreightRefundAmount').value);
-      var reason = document.getElementById('orderFreightRefundReason').value;
       var desc = document.getElementById('orderFreightRefundDesc').value.trim();
-      var error = document.getElementById('orderFreightRefundError');
       error.textContent = '';
       if (!(amount > 0)) {
         error.textContent = '本次退运费必须大于 ¥0.00';
@@ -302,16 +380,17 @@
         error.textContent = '本次退运费不能超过剩余可退运费 ¥' + formatMoney(latest.remaining);
         return;
       }
-      if (!reason) {
-        error.textContent = '请选择退款原因';
-        return;
-      }
       if (!desc) {
         error.textContent = '请填写退款说明';
         return;
       }
+      if (!confirmInput.checked) {
+        error.textContent = '请先确认退运费信息无误';
+        updateSubmitState();
+        return;
+      }
 
-      applyPrototypeRefund(latest, amount, reason, desc);
+      applyPrototypeRefund(latest, amount, desc);
       close();
       if (global.OrderProxyList && typeof global.OrderProxyList.refreshActionLayout === 'function') {
         global.OrderProxyList.refreshActionLayout();
