@@ -851,6 +851,10 @@
   font-weight: 800;
 }
 
+.bd-legal-cert-type-card--readonly {
+  cursor: default;
+}
+
 .bd-legal-cert-type-card b {
   color: #888;
   font-size: 28px;
@@ -946,6 +950,15 @@
   height: 14px;
   margin: 0;
   accent-color: #2563eb;
+}
+
+.bd-field-tip {
+  margin: -6px 0 12px;
+  padding: 0 2px;
+  font-size: 11px;
+  line-height: 1.55;
+  font-weight: 400;
+  color: var(--bd-muted, #94a3b8);
 }
 
 .bd-open-license-section {

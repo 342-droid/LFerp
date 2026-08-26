@@ -1373,6 +1373,12 @@
         return s.slice(0, 4) + ' **** **** ' + s.slice(-4);
     }
 
+    function endDateText(v) {
+        var t = String(v == null ? '' : v).trim();
+        if (!t) return '—';
+        return /长期/.test(t) ? '长期有效' : t;
+    }
+
     function auditStepText(node) {
         var n = String(node || '').trim();
         if (!n || n === '—') return '—';
@@ -1682,31 +1688,34 @@
             ['备注', rec.remarks || ext.remarks || '—']
         ]);
         appendSection('主体关系信息', [
-            ['上级汇付号', rec.headHuifuId || ext.headHuifuId || '—'],
+            ['上级汇付ID', rec.headHuifuId || ext.headHuifuId || '—'],
             ['结算主体类型', m.settlementSubject || rec.settlementBodyType || ext.settlementBodyType || '—']
         ]);
         appendSection('执照信息', [
             ['营业执照', f.license_pic, 'image'],
-            ['营业执照名称', lic.name || rec.regName || ext.regName || '—'],
-            ['证件代码', lic.code || rec.licenseCode || ext.licenseCode || '—'],
-            ['执照起始日期', lic.start_date || rec.licenseBeginDate || ext.licenseBeginDate || '—'],
-            ['执照有效期', lic.valid_date || rec.licenseEndDate || ext.licenseEndDate || '—'],
+            ['商户名称', lic.name || rec.regName || ext.regName || '—'],
+            ['证照编号', lic.code || rec.licenseCode || ext.licenseCode || '—'],
+            ['证照有效期开始日期', lic.start_date || rec.licenseBeginDate || ext.licenseBeginDate || '—'],
+            ['证照有效期截止日期', endDateText(lic.valid_date || rec.licenseEndDate || ext.licenseEndDate)],
+            ['成立日期', lic.found_date || rec.foundDate || ext.foundDate || lic.start_date || '—'],
             ['注册地址', lic.address || rec.regDetail || ext.regDetail || '—']
         ]);
         appendSection('法人基本信息', [
-            ['身份证人像面', f.legal_cert_front_pic, 'image'],
-            ['身份证国徽面', f.legal_cert_back_pic, 'image'],
-            ['证件类型', legal.cert_type || '身份证'],
+            ['法人身份证人像面', f.legal_cert_front_pic, 'image'],
+            ['法人身份证国徽面', f.legal_cert_back_pic, 'image'],
+            ['法人证件类型', legal.cert_type || '身份证'],
             ['法人姓名', legal.legal_name || rec.legalName || ext.legalName || '—'],
-            ['身份证号', legal.id_no || maskMiddle(rec.legalIdNo || ext.legalIdNo)],
-            ['身份证起始日期', legal.id_start_date || rec.legalCertBeginDate || ext.legalCertBeginDate || '—'],
-            ['身份证有效期', legal.id_valid_date || rec.legalCertEndDate || ext.legalCertEndDate || '—']
+            ['法人证件号码', legal.id_no || maskMiddle(rec.legalIdNo || ext.legalIdNo)],
+            ['法人证件开始日期', legal.id_start_date || rec.legalCertBeginDate || ext.legalCertBeginDate || '—'],
+            ['法人证件截止日期', endDateText(legal.id_valid_date || rec.legalCertEndDate || ext.legalCertEndDate)],
+            ['法人证件地址', legal.legal_addr || rec.legalAddr || ext.legalAddr || '—']
         ]);
         appendSection('商户信息', [
             ['商户简称', f.short_name || '—'],
             ['小票名称', f.receipt_name || '—'],
             ['实际经营地址', f.detail_addr || '—'],
             ['法人手机号', f.legal_mobile_no || '—'],
+            ['管理员姓名', f.contact_name || legal.legal_name || rec.legalName || '—'],
             ['管理员手机号', f.contact_mobile_no || m.contactMobile || '—'],
             ['管理员邮箱', f.contact_email || '—']
         ]);
@@ -2001,17 +2010,20 @@
             { key: 'contact_mobile_no', label: '管理员手机号' },
             { key: 'contact_email', label: '管理员邮箱' },
             { key: 'license_pic', label: '营业执照(F07)' },
-            { key: 'name', label: '营业执照名称', bucket: lic },
-            { key: 'code', label: '证件代码', bucket: lic },
-            { key: 'start_date', label: '执照起始日期', bucket: lic },
-            { key: 'valid_date', label: '执照有效期', bucket: lic },
+            { key: 'name', label: '商户名称', bucket: lic },
+            { key: 'code', label: '证照编号', bucket: lic },
+            { key: 'start_date', label: '证照有效期开始日期', bucket: lic },
+            { key: 'valid_date', label: '证照有效期截止日期', bucket: lic },
+            { key: 'found_date', label: '成立日期', bucket: lic },
             { key: 'address', label: '注册地址', bucket: lic },
             { key: 'legal_cert_front_pic', label: '法人身份证人像面(F02)' },
             { key: 'legal_cert_back_pic', label: '法人身份证国徽面(F03)' },
             { key: 'legal_name', label: '法人姓名', bucket: legal },
-            { key: 'id_no', label: '身份证号', bucket: legal },
-            { key: 'id_start_date', label: '身份证起始日期', bucket: legal },
-            { key: 'id_valid_date', label: '身份证有效期', bucket: legal },
+            { key: 'id_no', label: '法人证件号码', bucket: legal },
+            { key: 'id_start_date', label: '法人证件开始日期', bucket: legal },
+            { key: 'id_valid_date', label: '法人证件截止日期', bucket: legal },
+            { key: 'legal_addr', label: '法人证件地址', bucket: legal },
+            { key: 'contact_name', label: '管理员姓名' },
             { key: 'open_license_pic', label: '开户许可证' }
             /* 内景/收银台为选填；门头/场地照仅门店进件必填 */
         ];
@@ -2573,21 +2585,24 @@
             detailCell('小票名称', f.receipt_name || '—'),
             detailCell('实际经营地址', f.detail_addr || '—'),
             detailCell('法人手机号', f.legal_mobile_no || '—'),
+            detailCell('管理员姓名', f.contact_name || legal.legal_name || '—'),
             detailCell('管理员手机号', f.contact_mobile_no || '—'),
             detailCell('管理员邮箱', f.contact_email || '—'),
             detailCellPhoto('营业执照(F07)', f.license_pic),
-            detailCell('营业执照名称', lic.name || '—'),
-            detailCell('证件代码', lic.code || '—'),
-            detailCell('执照起始日期', lic.start_date || '—'),
-            detailCell('执照有效期', lic.valid_date || '—'),
+            detailCell('商户名称', lic.name || '—'),
+            detailCell('证照编号', lic.code || '—'),
+            detailCell('证照有效期开始日期', lic.start_date || '—'),
+            detailCell('证照有效期截止日期', endDateText(lic.valid_date)),
+            detailCell('成立日期', lic.found_date || lic.start_date || '—'),
             detailCell('注册地址', lic.address || '—'),
             detailCellPhoto('法人身份证人像面(F02)', f.legal_cert_front_pic),
             detailCellPhoto('法人身份证国徽面(F03)', f.legal_cert_back_pic),
-            detailCell('证件类型', legal.cert_type || '身份证'),
+            detailCell('法人证件类型', legal.cert_type || '身份证'),
             detailCell('法人姓名', legal.legal_name || '—'),
-            detailCell('身份证号', legal.id_no || '—'),
-            detailCell('身份证起始日期', legal.id_start_date || '—'),
-            detailCell('身份证有效期', legal.id_valid_date || '—'),
+            detailCell('法人证件号码', legal.id_no || '—'),
+            detailCell('法人证件开始日期', legal.id_start_date || '—'),
+            detailCell('法人证件截止日期', endDateText(legal.id_valid_date)),
+            detailCell('法人证件地址', legal.legal_addr || '—'),
             detailCellPhoto('开户许可证', f.open_license_pic),
             /* 与进件结算 OCR 字段对齐 */
             detailCell('开户名', card.account_name || '—'),
@@ -2640,20 +2655,22 @@
 
         addSection('执照信息', [
             detailCellPhoto('营业执照(F07)', f.license_pic),
-            detailCell('营业执照名称', lic.name || '—'),
-            detailCell('证件代码', lic.code || '—'),
-            detailCell('执照起始日期', lic.start_date || '—'),
-            detailCell('执照有效期', lic.valid_date || '—'),
+            detailCell('商户名称', lic.name || '—'),
+            detailCell('证照编号', lic.code || '—'),
+            detailCell('证照有效期开始日期', lic.start_date || '—'),
+            detailCell('证照有效期截止日期', endDateText(lic.valid_date)),
+            detailCell('成立日期', lic.found_date || lic.start_date || '—'),
             detailCell('注册地址', lic.address || '—')
         ]);
         addSection('法人信息', [
             detailCellPhoto('法人身份证人像面(F02)', f.legal_cert_front_pic),
             detailCellPhoto('法人身份证国徽面(F03)', f.legal_cert_back_pic),
-            detailCell('证件类型', legal.cert_type || '身份证'),
+            detailCell('法人证件类型', legal.cert_type || '身份证'),
             detailCell('法人姓名', legal.legal_name || '—'),
-            detailCell('身份证号', legal.id_no || '—'),
-            detailCell('身份证起始日期', legal.id_start_date || '—'),
-            detailCell('身份证有效期', legal.id_valid_date || '—')
+            detailCell('法人证件号码', legal.id_no || '—'),
+            detailCell('法人证件开始日期', legal.id_start_date || '—'),
+            detailCell('法人证件截止日期', endDateText(legal.id_valid_date)),
+            detailCell('法人证件地址', legal.legal_addr || '—')
         ]);
         addSection('商户信息', [
             detailCell('商户简称', shortName),
@@ -2666,6 +2683,7 @@
             detailCell('小票名称', f.receipt_name || '—'),
             detailCell('实际经营地址', f.detail_addr || '—'),
             detailCell('法人手机号', f.legal_mobile_no || '—'),
+            detailCell('管理员姓名', f.contact_name || legal.legal_name || '—'),
             detailCell('管理员手机号', f.contact_mobile_no || '—'),
             detailCell('管理员邮箱', f.contact_email || '—')
         ]);
@@ -5039,6 +5057,7 @@
         fillEmpty(f.license_info, 'code', '91310000MA1FLSUP01');
         fillEmpty(f.license_info, 'start_date', '2024-01-01');
         fillEmpty(f.license_info, 'valid_date', '长期有效');
+        fillEmpty(f.license_info, 'found_date', '2024-01-01');
         fillEmpty(f.license_info, 'address', (r && r.detailAddress) || '上海市浦东新区张江路');
 
         f.legal_info = f.legal_info || {};
@@ -5047,6 +5066,8 @@
         fillEmpty(f.legal_info, 'id_no', '310101199001011234');
         fillEmpty(f.legal_info, 'id_start_date', '2020-01-01');
         fillEmpty(f.legal_info, 'id_valid_date', '2040-01-01');
+        fillEmpty(f.legal_info, 'legal_addr', (r && r.detailAddress) || '上海市浦东新区张江路');
+        if (!f.contact_name) f.contact_name = f.legal_info.legal_name || '';
 
         f.card_info = f.card_info || {};
         fillEmpty(f.card_info, 'account_name', f.license_info.name || (r && r.name) || '');

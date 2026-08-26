@@ -100,6 +100,8 @@
                 code: '91330106MA2GXXXX1X',
                 start_date: '2023-06-01',
                 valid_date: '2033-06-01',
+                found_date: '2023-06-01',
+                validity_type: '非长期',
                 address: '杭州市西湖区文三路 88 号'
             },
             legal_info: {
@@ -107,8 +109,12 @@
                 legal_name: '张三',
                 id_no: '330102199001011234',
                 id_start_date: '2020-01-01',
-                id_valid_date: '2030-01-01'
+                id_valid_date: '2030-01-01',
+                cert_validity_type: '非长期',
+                legal_addr: '杭州市西湖区文三路 88 号'
             },
+            contact_name: '张三',
+            login_name: 'yuexiang_admin',
             license_pic: demoImg('营业执照'),
             legal_cert_front_pic: demoImg('身份证人像面'),
             legal_cert_back_pic: demoImg('身份证国徽面'),
@@ -619,6 +625,36 @@
                 f.legal_info = copy(baseFields.legal_info);
                 changed = true;
             }
+            if (f.license_info && !f.license_info.found_date) {
+                f.license_info.found_date = f.license_info.start_date || baseFields.license_info.found_date;
+                changed = true;
+            }
+            if (f.license_info && !f.license_info.validity_type) {
+                f.license_info.validity_type = validityTypeText('', f.license_info.valid_date) || '非长期';
+                changed = true;
+            }
+            if (f.legal_info && !f.legal_info.legal_addr) {
+                f.legal_info.legal_addr = baseFields.legal_info.legal_addr;
+                changed = true;
+            }
+            if (f.legal_info && !f.legal_info.cert_validity_type) {
+                f.legal_info.cert_validity_type =
+                    validityTypeText('', f.legal_info.id_valid_date) || '非长期';
+                changed = true;
+            }
+            if (!f.contact_name) {
+                f.contact_name =
+                    (f.legal_info && f.legal_info.legal_name) || baseFields.contact_name;
+                changed = true;
+            }
+            if (!f.login_name) {
+                f.login_name = rec.loginName || rec.loginAccount || baseFields.login_name;
+                changed = true;
+            }
+            if (!rec.headHuifuId) {
+                rec.headHuifuId = 'HUIFU-HEAD-001';
+                changed = true;
+            }
             if (f.open_license_pic == null) {
                 f.open_license_pic = baseFields.open_license_pic;
                 changed = true;
@@ -913,25 +949,62 @@
                 extMerId: r.extMerId || '',
                 creator: r.creator || r.createdBy || '',
                 remarks: r.remarks || '',
-                headHuifuId: r.headHuifuId || '',
+                headHuifuId: r.headHuifuId || r.head_huifu_id || '',
                 settlementBodyType: r.settlementBodyType || '',
-                regName: r.regName || r.licenseName || '',
-                licenseCode: r.licenseCode || r.registrationCode || '',
+                regName: r.regName || r.licenseName || (fields.license_info && fields.license_info.name) || '',
+                licenseCode: r.licenseCode || r.registrationCode || (fields.license_info && fields.license_info.code) || '',
                 entType: r.entType || '',
-                foundDate: r.foundDate || '',
-                licenseBeginDate: r.licenseBeginDate || r.licenseValidFrom || '',
-                licenseEndDate: r.licenseEndDate || r.licenseValidTo || '',
-                regDetail: r.regDetail || r.registeredDetailAddress || '',
-                legalName: r.legalName || r.legalPerson || '',
-                legalCertType: r.legalCertType || r.legalIdDocType || '',
+                foundDate:
+                    r.foundDate ||
+                    (fields.license_info && fields.license_info.found_date) ||
+                    (fields.license_info && fields.license_info.start_date) ||
+                    '',
+                licenseBeginDate:
+                    r.licenseBeginDate ||
+                    r.licenseValidFrom ||
+                    (fields.license_info && fields.license_info.start_date) ||
+                    '',
+                licenseEndDate:
+                    r.licenseEndDate ||
+                    r.licenseValidTo ||
+                    (fields.license_info && fields.license_info.valid_date) ||
+                    '',
+                licenseValidityType:
+                    r.licenseValidityType ||
+                    (fields.license_info && fields.license_info.validity_type) ||
+                    '',
+                regDetail: r.regDetail || r.registeredDetailAddress || (fields.license_info && fields.license_info.address) || '',
+                legalName: r.legalName || r.legalPerson || (fields.legal_info && fields.legal_info.legal_name) || '',
+                legalCertType: r.legalCertType || r.legalIdDocType || (fields.legal_info && fields.legal_info.cert_type) || '',
                 idMasked: r.idMasked || '',
-                legalCertBeginDate: r.legalCertBeginDate || r.idValidFrom || '',
-                legalCertEndDate: r.legalCertEndDate || r.idValidTo || '',
-                legalAddr: r.legalAddr || '',
+                legalCertBeginDate:
+                    r.legalCertBeginDate ||
+                    r.idValidFrom ||
+                    (fields.legal_info && fields.legal_info.id_start_date) ||
+                    '',
+                legalCertEndDate:
+                    r.legalCertEndDate ||
+                    r.idValidTo ||
+                    (fields.legal_info && fields.legal_info.id_valid_date) ||
+                    '',
+                legalCertValidityType:
+                    r.legalCertValidityType ||
+                    (fields.legal_info && fields.legal_info.cert_validity_type) ||
+                    '',
+                legalAddr:
+                    r.legalAddr ||
+                    (fields.legal_info && fields.legal_info.legal_addr) ||
+                    fields.legal_addr ||
+                    '',
                 sceneType: r.sceneType || '',
                 businessType: r.businessType || '',
-                contactName: r.contactName || r.contact || '',
-                loginName: r.loginName || r.loginAccount || '',
+                contactName:
+                    r.contactName ||
+                    r.contact ||
+                    fields.contact_name ||
+                    (fields.legal_info && fields.legal_info.legal_name) ||
+                    '',
+                loginName: r.loginName || r.loginAccount || fields.login_name || '',
                 bankMasked: r.bankMasked || '',
                 openLicencePic: r.openLicencePic || '',
                 openLicenceNo: r.openLicenceNo || '',
@@ -1098,6 +1171,24 @@
         return '—';
     }
 
+    function validityTypeText(explicit, endDate) {
+        var t = String(explicit == null ? '' : explicit).trim();
+        if (t) return t;
+        var end = String(endDate == null ? '' : endDate).trim();
+        if (!end) return '';
+        return /长期/.test(end) ? '长期' : '非长期';
+    }
+
+    function endDateText() {
+        var i;
+        for (i = 0; i < arguments.length; i++) {
+            var t = String(arguments[i] == null ? '' : arguments[i]).trim();
+            if (!t) continue;
+            return /长期/.test(t) ? '长期有效' : t;
+        }
+        return '—';
+    }
+
     function detailRows(body, item) {
         var fields = item.fields || {};
         var card = fields.card_info || {};
@@ -1217,30 +1308,35 @@
             var desc = el('div', 'onb-audit-section-desc', '进件基础信息与关键时间');
             firstTitle.insertAdjacentElement('afterend', desc);
         }
+        addSection('主体关系信息', [['上级汇付ID', pickText(ext.headHuifuId)]]);
         addSection('执照信息', [
             ['营业执照', fields.license_pic, 'image'],
-            ['营业执照名称', pickText(lic.name, ext.regName)],
-            ['证件代码', pickText(lic.code, ext.licenseCode)],
-            ['执照起始日期', pickText(lic.start_date, ext.licenseBeginDate)],
-            ['执照有效期', pickText(lic.valid_date, ext.licenseEndDate)],
+            ['商户名称', pickText(lic.name, ext.regName)],
+            ['证照编号', pickText(lic.code, ext.licenseCode)],
+            ['证照有效期开始日期', pickText(lic.start_date, ext.licenseBeginDate)],
+            ['证照有效期截止日期', endDateText(lic.valid_date, ext.licenseEndDate)],
+            ['成立日期', pickText(lic.found_date, ext.foundDate)],
             ['注册地址', pickText(lic.address, ext.regDetail)]
         ]);
         addSection('法人信息', [
             ['法人身份证人像面', fields.legal_cert_front_pic, 'image'],
             ['法人身份证国徽面', fields.legal_cert_back_pic, 'image'],
-            ['证件类型', pickText(legal.cert_type, ext.legalCertType, '身份证')],
+            ['法人证件类型', pickText(legal.cert_type, ext.legalCertType, '身份证')],
             ['法人姓名', pickText(legal.legal_name, ext.legalName)],
-            ['身份证号', pickText(legal.id_no, ext.legalCertNo, ext.idNumber)],
-            ['身份证起始日期', pickText(legal.id_start_date, ext.legalCertBeginDate)],
-            ['身份证有效期', pickText(legal.id_valid_date, ext.legalCertEndDate)]
+            ['法人证件号码', pickText(legal.id_no, ext.legalCertNo, ext.idNumber)],
+            ['法人证件开始日期', pickText(legal.id_start_date, ext.legalCertBeginDate)],
+            ['法人证件截止日期', endDateText(legal.id_valid_date, ext.legalCertEndDate)],
+            ['法人证件地址', pickText(legal.legal_addr, ext.legalAddr)]
         ]);
         addSection('商户信息', [
             ['商户简称', fieldText(fields.short_name)],
             ['小票名称', fieldText(fields.receipt_name)],
             ['实际经营地址', fieldText(fields.detail_addr)],
             ['法人手机号', fieldText(fields.legal_mobile_no)],
+            ['管理员姓名', pickText(fields.contact_name, ext.contactName)],
             ['管理员手机号', fieldText(fields.contact_mobile_no)],
-            ['管理员邮箱', fieldText(fields.contact_email)]
+            ['管理员邮箱', fieldText(fields.contact_email)],
+            ['管理员账号', pickText(fields.login_name, ext.loginName)]
         ]);
         addSection('结算信息', [
             ['开户许可证', fields.open_license_pic || ext.openLicencePic, 'image'],

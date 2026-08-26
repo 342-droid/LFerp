@@ -29,11 +29,13 @@
     registrationCode: '91330110MA2XXXXXX',
     licenseValidFrom: '2020-06-01',
     licenseValidTo: '长期',
+    foundDate: '2020-06-01',
     registeredAddress: '杭州市余杭区文一西路969号',
     legalPerson: '陈大华',
     idNumber: '532101199003145212',
     idValidFrom: '2022-03-07',
     idValidTo: '2042-03-07',
+    legalAddr: '杭州市余杭区文一西路969号',
     settlementAccountName: '杭州鲜丰水果有限公司',
     bankAccount: '6222020212345678888',
     bankName: '招商银行',
@@ -160,6 +162,23 @@
       legal_mobile_no: fields.legal_mobile_no || STORE.phone,
       contact_mobile_no: fields.contact_mobile_no || STORE.phone,
       contact_email: fields.contact_email || 'store@lf-demo.com',
+      contact_name: fields.contact_name || STORE.contactName || STORE.legalPerson,
+      license_info: {
+        name: (fields.license_info && fields.license_info.name) || STORE.licenseName,
+        code: (fields.license_info && fields.license_info.code) || STORE.registrationCode,
+        start_date: (fields.license_info && fields.license_info.start_date) || STORE.licenseValidFrom,
+        valid_date: (fields.license_info && fields.license_info.valid_date) || STORE.licenseValidTo,
+        found_date: (fields.license_info && fields.license_info.found_date) || STORE.foundDate || STORE.licenseValidFrom,
+        address: (fields.license_info && fields.license_info.address) || STORE.registeredAddress
+      },
+      legal_info: {
+        cert_type: '身份证',
+        legal_name: (fields.legal_info && fields.legal_info.legal_name) || STORE.legalPerson,
+        id_no: (fields.legal_info && fields.legal_info.id_no) || STORE.idNumber,
+        id_start_date: (fields.legal_info && fields.legal_info.id_start_date) || STORE.idValidFrom,
+        id_valid_date: (fields.legal_info && fields.legal_info.id_valid_date) || STORE.idValidTo,
+        legal_addr: (fields.legal_info && fields.legal_info.legal_addr) || STORE.legalAddr || STORE.registeredAddress
+      },
       card_info: {
         account_name: (fields.card_info && fields.card_info.account_name) || STORE.settlementAccountName,
         card_no: (fields.card_info && fields.card_info.card_no) || STORE.bankAccount,
@@ -355,6 +374,66 @@
     );
   }
 
+  var MERCHANT_NAME_TIP =
+    '必须与企业证照上的名称一致；个体工商户的营业执照如没有名称，名称为“*”或空，则商户名称应填 “个体户XXX”（XXX为营业执照上经营者姓名），如“个体户张三”';
+
+  function isPermanentValid(v) {
+    var s = String(v == null ? '' : v).trim();
+    return s === '长期' || s === '长期有效' || s === '永久有效';
+  }
+
+  function formatValidText(v) {
+    if (v == null || v === '') return '—';
+    if (isPermanentValid(v)) return '长期有效';
+    return String(v);
+  }
+
+  function licenseParamInput(label, id, draftKey, value, type) {
+    return (
+      '<div class="bd-license-param-row">' +
+      '<span class="bd-license-param-label"><i>*</i>' +
+      esc(label) +
+      '</span>' +
+      '<input class="bd-license-param-input" type="' +
+      esc(type || 'text') +
+      '" id="' +
+      id +
+      '" data-ob-field="' +
+      esc(draftKey) +
+      '" value="' +
+      esc(value || '') +
+      '" /></div>'
+    );
+  }
+
+  function validDateRow(label, inputId, draftKey, value) {
+    var permanent = isPermanentValid(value);
+    var dateVal = permanent ? '' : String(value || '').slice(0, 10);
+    return (
+      '<div class="bd-license-param-row bd-id-valid-row">' +
+      '<span class="bd-license-param-label"><i>*</i>' +
+      esc(label) +
+      '</span>' +
+      '<div class="bd-id-valid-ctrl">' +
+      '<div class="bd-id-valid-picker">' +
+      '<input type="date" id="' +
+      esc(inputId) +
+      '" data-ob-valid-date="' +
+      esc(draftKey) +
+      '" value="' +
+      esc(dateVal) +
+      '"' +
+      (permanent ? ' disabled' : '') +
+      ' />' +
+      '<label class="bd-id-valid-forever"><input type="checkbox" data-ob-valid-forever="' +
+      esc(draftKey) +
+      '"' +
+      (permanent ? ' checked' : '') +
+      ' />长期有效</label>' +
+      '</div></div></div>'
+    );
+  }
+
   function licenseParamRow(label, value, required) {
     return (
       '<div class="bd-license-param-row">' +
@@ -469,35 +548,68 @@
           '营业执照信息',
           photoCard('营业执照', '上传营业执照', BUSINESS_LICENSE_IMG) +
             '<div class="bd-license-param-card">' +
-            licenseParamRow('营业执照名称', STORE.licenseName, true) +
-            licenseParamRow('证件代码', STORE.registrationCode, true) +
-            licenseParamRow('执照起始日期', STORE.licenseValidFrom, true) +
-            licenseParamRow('执照有效期', STORE.licenseValidTo === '长期' ? '长期有效' : STORE.licenseValidTo, true) +
-            licenseParamRow('注册地址', STORE.registeredAddress, true) +
+            licenseParamInput('商户名称', 'on_reg_name', 'license_info.name', getDraftField('license_info.name')) +
+            '<p class="bd-field-tip">' +
+            esc(MERCHANT_NAME_TIP) +
+            '</p>' +
+            licenseParamInput('证照编号', 'on_license_code', 'license_info.code', getDraftField('license_info.code')) +
+            licenseParamInput(
+              '证照有效期开始日期',
+              'on_license_start',
+              'license_info.start_date',
+              getDraftField('license_info.start_date'),
+              'date'
+            ) +
+            validDateRow(
+              '证照有效期截止日期',
+              'on_license_valid_date',
+              'license_info.valid_date',
+              getDraftField('license_info.valid_date')
+            ) +
+            licenseParamInput(
+              '成立日期',
+              'on_found_date',
+              'license_info.found_date',
+              getDraftField('license_info.found_date'),
+              'date'
+            ) +
+            licenseParamInput('注册地址', 'on_reg_addr', 'license_info.address', getDraftField('license_info.address')) +
             '</div>'
         ) +
         formModuleCard(
           '法人基本信息',
-          '<div class="bd-legal-cert-type-card"><span><i>*</i>证件类型</span><strong>身份证</strong><b>›</b></div>' +
+          '<div class="bd-legal-cert-type-card bd-legal-cert-type-card--readonly"><span><i>*</i>法人证件类型</span><strong>身份证</strong></div>' +
             '<div class="bd-license-photo-card bd-id-photo-card">' +
-            '<div class="bd-license-photo-copy"><h3>人像面</h3><p><i>*</i> 上传身份证人像面</p></div>' +
+            '<div class="bd-license-photo-copy"><h3>人像面</h3><p><i>*</i> 上传法人身份证人像面</p></div>' +
             '<button type="button" class="bd-license-photo-frame bd-id-photo-frame" data-ob-preview="' +
             esc(LEGAL_ID_FRONT_IMG) +
             '"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span><img src="' +
             esc(LEGAL_ID_FRONT_IMG) +
             '" alt="人像面"><span class="bd-license-view">查看图片</span></button></div>' +
             '<div class="bd-license-photo-card bd-id-photo-card">' +
-            '<div class="bd-license-photo-copy"><h3>国徽面</h3><p><i>*</i> 上传身份证国徽面</p></div>' +
+            '<div class="bd-license-photo-copy"><h3>国徽面</h3><p><i>*</i> 上传法人身份证国徽面</p></div>' +
             '<button type="button" class="bd-license-photo-frame bd-id-photo-frame" data-ob-preview="' +
             esc(LEGAL_ID_BACK_IMG) +
             '"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span><img src="' +
             esc(LEGAL_ID_BACK_IMG) +
             '" alt="国徽面"><span class="bd-license-view">查看图片</span></button></div>' +
             '<div class="bd-license-param-card bd-id-param-card">' +
-            licenseParamRow('法人姓名', STORE.legalPerson, true) +
-            licenseParamRow('身份证号', STORE.idNumber, true) +
-            licenseParamRow('身份证起始日期', STORE.idValidFrom, true) +
-            licenseParamRow('身份证有效期', STORE.idValidTo, true) +
+            licenseParamInput('法人姓名', 'on_legal_name', 'legal_info.legal_name', getDraftField('legal_info.legal_name')) +
+            licenseParamInput('法人证件号码', 'on_id_no', 'legal_info.id_no', getDraftField('legal_info.id_no')) +
+            licenseParamInput(
+              '法人证件开始日期',
+              'on_id_start_date',
+              'legal_info.id_start_date',
+              getDraftField('legal_info.id_start_date'),
+              'date'
+            ) +
+            validDateRow(
+              '法人证件截止日期',
+              'on_id_valid_date',
+              'legal_info.id_valid_date',
+              getDraftField('legal_info.id_valid_date')
+            ) +
+            licenseParamInput('法人证件地址', 'on_legal_addr', 'legal_info.legal_addr', getDraftField('legal_info.legal_addr')) +
             '</div>'
         )
       );
@@ -522,12 +634,19 @@
         formModuleCard(
           '联系人信息',
           fieldFull(
-            '管理员手机号',
-            'on_contact_mobile_no',
-            '登录/通知手机号',
-            getDraftField('contact_mobile_no'),
-            'contact_mobile_no'
+            '管理员姓名',
+            'on_contact_name',
+            '默认带入法人姓名',
+            getDraftField('contact_name') || getDraftField('legal_info.legal_name'),
+            'contact_name'
           ) +
+            fieldFull(
+              '管理员手机号',
+              'on_contact_mobile_no',
+              '登录/通知手机号',
+              getDraftField('contact_mobile_no'),
+              'contact_mobile_no'
+            ) +
             fieldFull('管理员邮箱', 'on_contact_email', '汇付通知邮箱', getDraftField('contact_email'), 'contact_email')
         )
       );
@@ -592,6 +711,18 @@
       legal_mobile_no: '法人手机号',
       contact_mobile_no: '管理员手机号',
       contact_email: '管理员邮箱',
+      contact_name: '管理员姓名',
+      'license_info.name': '商户名称',
+      'license_info.code': '证照编号',
+      'license_info.start_date': '证照有效期开始日期',
+      'license_info.valid_date': '证照有效期截止日期',
+      'license_info.found_date': '成立日期',
+      'license_info.address': '注册地址',
+      'legal_info.legal_name': '法人姓名',
+      'legal_info.id_no': '法人证件号码',
+      'legal_info.id_start_date': '法人证件开始日期',
+      'legal_info.id_valid_date': '法人证件截止日期',
+      'legal_info.legal_addr': '法人证件地址',
       'card_info.account_name': '开户名',
       'card_info.card_no': '银行卡号',
       'card_info.bank_name': '开户银行',
@@ -608,9 +739,34 @@
   }
 
   function requiredStepFields(step) {
-    if (step === 0) return ['license_pic', 'legal_cert_front_pic', 'legal_cert_back_pic'];
+    if (step === 0) {
+      return [
+        'license_pic',
+        'legal_cert_front_pic',
+        'legal_cert_back_pic',
+        'license_info.name',
+        'license_info.code',
+        'license_info.start_date',
+        'license_info.valid_date',
+        'license_info.found_date',
+        'license_info.address',
+        'legal_info.legal_name',
+        'legal_info.id_no',
+        'legal_info.id_start_date',
+        'legal_info.id_valid_date',
+        'legal_info.legal_addr'
+      ];
+    }
     if (step === 1) {
-      return ['short_name', 'receipt_name', 'detail_addr', 'legal_mobile_no', 'contact_mobile_no', 'contact_email'];
+      return [
+        'short_name',
+        'receipt_name',
+        'detail_addr',
+        'legal_mobile_no',
+        'contact_name',
+        'contact_mobile_no',
+        'contact_email'
+      ];
     }
     if (step === 2) {
       return [
@@ -687,7 +843,7 @@
     var relationInner =
       detailRow('进件类型', esc(nz(ob.bind_type || '门店'))) +
       detailRow('绑定门店', esc(nz(STORE.name + ' · ' + STORE.id))) +
-      detailRow('上级汇付号', esc(nz(STORE.headHuifuId))) +
+      detailRow('上级汇付ID', esc(nz(STORE.headHuifuId))) +
       detailRow('结算主体类型', esc(nz(rec.settlementBodyType || STORE.settlementBodyType)));
 
     var opInner =
@@ -697,7 +853,7 @@
       detailRow('经营类型', esc(nz(STORE.businessType)));
 
     var contactInner =
-      detailRow('管理员姓名', esc(nz(STORE.contactName))) +
+      detailRow('管理员姓名', esc(nz(ob.contact_name || STORE.contactName || STORE.legalPerson))) +
       detailRow('管理员手机号', esc(nz(ob.contact_mobile_no || STORE.phone))) +
       detailRow('管理员邮箱', esc(nz(ob.contact_email))) +
       detailRow('登录账号', esc(nz(STORE.loginAccount)));
@@ -713,20 +869,31 @@
         '营业执照信息',
         photoCard('营业执照', '上传营业执照', BUSINESS_LICENSE_IMG) +
           '<div class="bd-license-param-card">' +
-          licenseParamRow('营业执照名称', STORE.licenseName, true) +
-          licenseParamRow('证件代码', STORE.registrationCode, true) +
-          licenseParamRow('执照起始日期', STORE.licenseValidFrom, true) +
+          licenseParamRow('商户名称', ob.license_info && ob.license_info.name ? ob.license_info.name : STORE.licenseName, true) +
+          licenseParamRow('证照编号', ob.license_info && ob.license_info.code ? ob.license_info.code : STORE.registrationCode, true) +
           licenseParamRow(
-            '执照有效期',
-            STORE.licenseValidTo === '长期' ? '长期有效' : STORE.licenseValidTo,
+            '证照有效期开始日期',
+            ob.license_info && ob.license_info.start_date ? ob.license_info.start_date : STORE.licenseValidFrom,
             true
           ) +
-          licenseParamRow('注册地址', STORE.registeredAddress, true) +
+          licenseParamRow(
+            '证照有效期截止日期',
+            formatValidText(
+              (ob.license_info && ob.license_info.valid_date) || STORE.licenseValidTo
+            ),
+            true
+          ) +
+          licenseParamRow(
+            '成立日期',
+            ob.license_info && ob.license_info.found_date ? ob.license_info.found_date : STORE.foundDate,
+            true
+          ) +
+          licenseParamRow('注册地址', ob.license_info && ob.license_info.address ? ob.license_info.address : STORE.registeredAddress, true) +
           '</div>'
       ) +
       formModuleCard(
         '法人基本信息',
-        '<div class="bd-legal-cert-type-card"><span><i>*</i>证件类型</span><strong>身份证</strong><b>›</b></div>' +
+        '<div class="bd-legal-cert-type-card bd-legal-cert-type-card--readonly"><span><i>*</i>法人证件类型</span><strong>身份证</strong></div>' +
           '<div class="bd-license-photo-card bd-id-photo-card">' +
           '<div class="bd-license-photo-copy"><h3>人像面</h3><p><i>*</i> 上传身份证人像面</p></div>' +
           '<button type="button" class="bd-license-photo-frame bd-id-photo-frame" data-ob-preview="' +
@@ -742,10 +909,23 @@
           esc(LEGAL_ID_BACK_IMG) +
           '" alt="国徽面"><span class="bd-license-view">查看图片</span></button></div>' +
           '<div class="bd-license-param-card bd-id-param-card">' +
-          licenseParamRow('法人姓名', STORE.legalPerson, true) +
-          licenseParamRow('身份证号', STORE.idNumber, true) +
-          licenseParamRow('身份证起始日期', STORE.idValidFrom, true) +
-          licenseParamRow('身份证有效期', STORE.idValidTo, true) +
+          licenseParamRow('法人姓名', (ob.legal_info && ob.legal_info.legal_name) || STORE.legalPerson, true) +
+          licenseParamRow('法人证件号码', (ob.legal_info && ob.legal_info.id_no) || STORE.idNumber, true) +
+          licenseParamRow(
+            '法人证件开始日期',
+            (ob.legal_info && ob.legal_info.id_start_date) || STORE.idValidFrom,
+            true
+          ) +
+          licenseParamRow(
+            '法人证件截止日期',
+            formatValidText((ob.legal_info && ob.legal_info.id_valid_date) || STORE.idValidTo),
+            true
+          ) +
+          licenseParamRow(
+            '法人证件地址',
+            (ob.legal_info && ob.legal_info.legal_addr) || STORE.legalAddr,
+            true
+          ) +
           '</div>'
       );
 
@@ -1029,7 +1209,32 @@
 
     document.querySelectorAll('[data-ob-field]').forEach(function (inp) {
       inp.addEventListener('input', function () {
-        setDraftField(inp.getAttribute('data-ob-field'), inp.value);
+        var key = inp.getAttribute('data-ob-field');
+        if (key === 'legal_info.legal_name') {
+          var prevLegal = getDraftField('legal_info.legal_name');
+          var contact = getDraftField('contact_name');
+          if (!contact || contact === prevLegal) setDraftField('contact_name', inp.value);
+        }
+        setDraftField(key, inp.value);
+      });
+    });
+    document.querySelectorAll('[data-ob-valid-forever]').forEach(function (box) {
+      box.addEventListener('change', function () {
+        var key = box.getAttribute('data-ob-valid-forever');
+        var prevKey = key + '_prev';
+        if (box.checked) {
+          var prev = getDraftField(key);
+          if (prev && !isPermanentValid(prev)) setDraftField(prevKey, prev);
+          setDraftField(key, '长期有效');
+        } else {
+          setDraftField(key, getDraftField(prevKey) || '');
+        }
+        mount();
+      });
+    });
+    document.querySelectorAll('[data-ob-valid-date]').forEach(function (inp) {
+      inp.addEventListener('change', function () {
+        setDraftField(inp.getAttribute('data-ob-valid-date'), inp.value);
       });
     });
 

@@ -14,6 +14,9 @@
         return s === '长期' || s === '长期有效' || s === '永久有效';
     }
 
+    var MERCHANT_NAME_TIP =
+        '必须与企业证照上的名称一致；个体工商户的营业执照如没有名称，名称为“*”或空，则商户名称应填 “个体户XXX”（XXX为营业执照上经营者姓名），如“个体户张三”';
+
     function textInput(placeholder, value) {
         var inp = document.createElement('input');
         inp.className = 'erp-input';
@@ -266,6 +269,13 @@
                 existing.contact_mobile_no || defaults.contact_mobile_no || ''
             ).trim(),
             contact_email: String(existing.contact_email || defaults.contact_email || '').trim(),
+            contact_name: String(
+                existing.contact_name ||
+                    defaults.contact_name ||
+                    legalExisting.legal_name ||
+                    legalDef.legal_name ||
+                    ''
+            ).trim(),
             card_info: {
                 account_name: String(
                     cardExisting.account_name || cardDef.account_name || ''
@@ -281,6 +291,7 @@
                 code: String(licenseExisting.code || licenseDef.code || '').trim(),
                 start_date: String(licenseExisting.start_date || licenseDef.start_date || '').trim(),
                 valid_date: String(licenseExisting.valid_date || licenseDef.valid_date || '').trim(),
+                found_date: String(licenseExisting.found_date || licenseDef.found_date || '').trim(),
                 address: String(licenseExisting.address || licenseDef.address || '').trim()
             },
             legal_info: {
@@ -288,7 +299,8 @@
                 legal_name: String(legalExisting.legal_name || legalDef.legal_name || '').trim(),
                 id_no: String(legalExisting.id_no || legalDef.id_no || '').trim(),
                 id_start_date: String(legalExisting.id_start_date || legalDef.id_start_date || '').trim(),
-                id_valid_date: String(legalExisting.id_valid_date || legalDef.id_valid_date || '').trim()
+                id_valid_date: String(legalExisting.id_valid_date || legalDef.id_valid_date || '').trim(),
+                legal_addr: String(legalExisting.legal_addr || legalDef.legal_addr || '').trim()
             },
             license_pic: uploadDefault('license_pic'),
             legal_cert_front_pic: uploadDefault('legal_cert_front_pic'),
@@ -424,12 +436,14 @@
                 'license_info.code': '91530602MADJAY451L',
                 'license_info.start_date': '2024-05-13',
                 'license_info.valid_date': '长期有效',
+                'license_info.found_date': '2024-05-13',
                 'license_info.address': '云南省昭通市昭阳区太平街道办事处昭通大道',
                 'legal_info.legal_name': '陈大华',
                 'legal_info.cert_type': '身份证',
                 'legal_info.id_no': '532101199003145212',
                 'legal_info.id_start_date': '2022-03-07',
                 'legal_info.id_valid_date': '2042-03-07',
+                'legal_info.legal_addr': '云南省昭通市昭阳区太平街道办事处昭通大道',
                 'card_info.account_name': '云南立扬后勤管理服务有限公司',
                 'card_info.card_no': '53050163613700000992',
                 'card_info.bank_name': '中国建设银行',
@@ -438,11 +452,71 @@
             return demo[key] || '';
         }
 
+        function appendDateInput(wrap, key, rawVal) {
+            var existingVal = inputMap[key] ? String(inputMap[key].value || '').trim() : '';
+            var val = existingVal || rawVal || '';
+            if (val && !/^\d{4}-\d{2}-\d{2}/.test(val)) val = '';
+            var dateInp = document.createElement('input');
+            dateInp.className = 'erp-input';
+            dateInp.type = 'date';
+            dateInp.setAttribute('data-onboard-key', key);
+            dateInp.disabled = !editMode;
+            if (val) dateInp.value = val.slice(0, 10);
+            inputMap[key] = dateInp;
+            wrap.appendChild(dateInp);
+            return dateInp;
+        }
+
+        function appendDateForever(wrap, key, rawVal) {
+            var foreverKey = key + '_forever';
+            var foreverCb = inputMap[foreverKey];
+            var existingVal = inputMap[key] ? String(inputMap[key].value || '').trim() : '';
+            var val = existingVal || rawVal || '';
+            var longTerm = (foreverCb && foreverCb.checked) || isLongTermIdValid(val);
+            var dateVal = longTerm ? '' : val;
+            if (dateVal && !/^\d{4}-\d{2}-\d{2}/.test(dateVal)) dateVal = '';
+            var dateInp = document.createElement('input');
+            dateInp.className = 'erp-input';
+            dateInp.type = 'date';
+            dateInp.setAttribute('data-onboard-key', key);
+            dateInp.disabled = !editMode || longTerm;
+            if (dateVal) dateInp.value = dateVal.slice(0, 10);
+            inputMap[key] = dateInp;
+            var validCtrl = el('div', 'unified-onboard-id-valid-ctrl');
+            validCtrl.appendChild(dateInp);
+            var lab = document.createElement('label');
+            lab.className = 'unified-onboard-id-valid-forever';
+            var cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.checked = !!longTerm;
+            cb.disabled = !editMode;
+            cb.setAttribute('data-onboard-key', foreverKey);
+            cb.addEventListener('change', function () {
+                dateInp.disabled = !editMode || cb.checked;
+                if (cb.checked) {
+                    if (dateInp.value) dateInp.setAttribute('data-prev-date', dateInp.value);
+                    dateInp.value = '';
+                } else {
+                    dateInp.value = dateInp.getAttribute('data-prev-date') || '';
+                }
+            });
+            inputMap[foreverKey] = cb;
+            lab.appendChild(cb);
+            lab.appendChild(document.createTextNode('长期有效'));
+            validCtrl.appendChild(lab);
+            wrap.appendChild(validCtrl);
+        }
+
         function seedOcrFields(fields) {
             (fields || []).forEach(function (f) {
                 var inp = inputMap[f.key];
-                if (inp && !inp.value.trim()) inp.value = f.value || ocrDemoValue(f.key);
+                if (inp && !String(inp.value || '').trim()) inp.value = f.value || ocrDemoValue(f.key);
             });
+            var legalInp = inputMap['legal_info.legal_name'];
+            var contactInp = inputMap['contact_name'];
+            if (legalInp && contactInp && !String(contactInp.value || '').trim()) {
+                contactInp.value = String(legalInp.value || '').trim();
+            }
         }
 
         function uploadRow(parent, label, key, caption, ocrFields, opts) {
@@ -473,11 +547,18 @@
                         inputMap[f.key] && inputMap[f.key].value ?
                             inputMap[f.key].value :
                             f.value || (uploadState[key] ? ocrDemoValue(f.key) : '');
-                    var inp = textInput(f.placeholder || f.label, val);
-                    inp.setAttribute('data-onboard-key', f.key);
-                    inp.disabled = !editMode;
-                    inputMap[f.key] = inp;
-                    wrap.appendChild(inp);
+                    if (f.type === 'dateForever') {
+                        appendDateForever(wrap, f.key, val);
+                    } else if (f.type === 'date') {
+                        appendDateInput(wrap, f.key, val);
+                    } else {
+                        var inp = textInput(f.placeholder || f.label, val);
+                        inp.setAttribute('data-onboard-key', f.key);
+                        inp.disabled = !editMode;
+                        inputMap[f.key] = inp;
+                        wrap.appendChild(inp);
+                    }
+                    if (f.tip) wrap.appendChild(el('div', 'unified-onboard-field-tip', f.tip));
                     grid.appendChild(wrap);
                 });
                 parentNode.appendChild(grid);
@@ -565,15 +646,16 @@
             row.appendChild(sfLabel('身份证上传', true));
             var ctrl = el('div', 'store-form__control');
             var ocrFields = [
-                { label: '证件类型', key: 'legal_info.cert_type', value: formFields.legal_info.cert_type || '身份证' },
+                { label: '法人证件类型', key: 'legal_info.cert_type', value: '身份证', type: 'display' },
                 { label: '法人姓名', key: 'legal_info.legal_name', value: formFields.legal_info.legal_name },
-                { label: '身份证号', key: 'legal_info.id_no', value: formFields.legal_info.id_no },
-                { label: '身份证起始日期', key: 'legal_info.id_start_date', value: formFields.legal_info.id_start_date },
-                { label: '身份证有效期', key: 'legal_info.id_valid_date', value: formFields.legal_info.id_valid_date }
+                { label: '法人证件号码', key: 'legal_info.id_no', value: formFields.legal_info.id_no },
+                { label: '法人证件开始日期', key: 'legal_info.id_start_date', value: formFields.legal_info.id_start_date, type: 'date' },
+                { label: '法人证件截止日期', key: 'legal_info.id_valid_date', value: formFields.legal_info.id_valid_date, type: 'dateForever' },
+                { label: '法人证件地址', key: 'legal_info.legal_addr', value: formFields.legal_info.legal_addr }
             ];
             var uploadKeys = [
-                { key: 'legal_cert_front_pic', caption: '上传身份证人像面' },
-                { key: 'legal_cert_back_pic', caption: '上传身份证国徽面' }
+                { key: 'legal_cert_front_pic', caption: '上传法人身份证人像面' },
+                { key: 'legal_cert_back_pic', caption: '上传法人身份证国徽面' }
             ];
 
             function markUploaded(key) {
@@ -632,42 +714,24 @@
                         existingVal ||
                         f.value ||
                         (uploaded ? ocrDemoValue(f.key) : '');
-                    if (f.key === 'legal_info.id_valid_date') {
-                        var foreverCb = inputMap['legal_info.id_valid_date_forever'];
-                        var longTerm =
-                            (foreverCb && foreverCb.checked) || isLongTermIdValid(existingVal) || isLongTermIdValid(val);
-                        var dateVal = longTerm ? '' : val;
-                        if (dateVal && !/^\d{4}-\d{2}-\d{2}/.test(dateVal)) dateVal = '';
-                        var dateInp = document.createElement('input');
-                        dateInp.className = 'erp-input';
-                        dateInp.type = 'date';
-                        dateInp.setAttribute('data-onboard-key', f.key);
-                        dateInp.disabled = !editMode || longTerm;
-                        if (dateVal) dateInp.value = dateVal.slice(0, 10);
-                        inputMap[f.key] = dateInp;
-                        var validCtrl = el('div', 'unified-onboard-id-valid-ctrl');
-                        validCtrl.appendChild(dateInp);
-                        var lab = document.createElement('label');
-                        lab.className = 'unified-onboard-id-valid-forever';
-                        var cb = document.createElement('input');
-                        cb.type = 'checkbox';
-                        cb.checked = !!longTerm;
-                        cb.disabled = !editMode;
-                        cb.setAttribute('data-onboard-key', 'legal_info.id_valid_date_forever');
-                        cb.addEventListener('change', function () {
-                            dateInp.disabled = !editMode || cb.checked;
-                            if (cb.checked) {
-                                if (dateInp.value) dateInp.setAttribute('data-prev-date', dateInp.value);
-                                dateInp.value = '';
-                            } else {
-                                dateInp.value = dateInp.getAttribute('data-prev-date') || '';
-                            }
-                        });
-                        inputMap['legal_info.id_valid_date_forever'] = cb;
-                        lab.appendChild(cb);
-                        lab.appendChild(document.createTextNode('长期有效'));
-                        validCtrl.appendChild(lab);
-                        wrap.appendChild(validCtrl);
+                    if (f.type === 'display') {
+                        wrap.appendChild(el('div', 'unified-onboard-readonly-value', '身份证'));
+                        var hidden = document.createElement('input');
+                        hidden.type = 'hidden';
+                        hidden.value = '身份证';
+                        hidden.setAttribute('data-onboard-key', f.key);
+                        inputMap[f.key] = hidden;
+                        wrap.appendChild(hidden);
+                        grid.appendChild(wrap);
+                        return;
+                    }
+                    if (f.type === 'dateForever') {
+                        appendDateForever(wrap, f.key, val);
+                        grid.appendChild(wrap);
+                        return;
+                    }
+                    if (f.type === 'date') {
+                        appendDateInput(wrap, f.key, val);
                         grid.appendChild(wrap);
                         return;
                     }
@@ -691,10 +755,11 @@
         var s0 = el('section', 'store-onboard-section store-onboard-section--white');
         s0.appendChild(sectionTitle('执照信息'));
         uploadRow(s0, '营业执照', 'license_pic', '上传营业执照', [
-            { label: '营业执照名称', key: 'license_info.name', value: formFields.license_info.name },
-            { label: '证件代码', key: 'license_info.code', value: formFields.license_info.code },
-            { label: '执照起始日期', key: 'license_info.start_date', value: formFields.license_info.start_date },
-            { label: '执照有效期', key: 'license_info.valid_date', value: formFields.license_info.valid_date },
+            { label: '商户名称', key: 'license_info.name', value: formFields.license_info.name, tip: MERCHANT_NAME_TIP },
+            { label: '证照编号', key: 'license_info.code', value: formFields.license_info.code },
+            { label: '证照有效期开始日期', key: 'license_info.start_date', value: formFields.license_info.start_date, type: 'date' },
+            { label: '证照有效期截止日期', key: 'license_info.valid_date', value: formFields.license_info.valid_date, type: 'dateForever' },
+            { label: '成立日期', key: 'license_info.found_date', value: formFields.license_info.found_date, type: 'date' },
             { label: '注册地址', key: 'license_info.address', value: formFields.license_info.address }
         ], { mediaWidth: '260px', ocrColumns: '1fr' });
         idCardUploadRow(s0);
@@ -726,6 +791,7 @@
             formFields.detail_addr
         );
         inputRow(gMer, '法人手机号', 'legal_mobile_no', '法人联系方式', formFields.legal_mobile_no);
+        inputRow(gMer, '管理员姓名', 'contact_name', '默认带入法人姓名', formFields.contact_name);
         inputRow(
             gMer,
             '管理员手机号',
@@ -765,9 +831,32 @@
         });
         body.appendChild(s4);
 
+        var lastSyncedLegalName = String(
+            (inputMap['legal_info.legal_name'] && inputMap['legal_info.legal_name'].value) ||
+                formFields.legal_info.legal_name ||
+                ''
+        ).trim();
+        if (
+            inputMap.contact_name &&
+            !String(inputMap.contact_name.value || '').trim() &&
+            lastSyncedLegalName
+        ) {
+            inputMap.contact_name.value = lastSyncedLegalName;
+        }
+        body.addEventListener('input', function (ev) {
+            var t = ev.target;
+            if (!t || t.getAttribute('data-onboard-key') !== 'legal_info.legal_name') return;
+            var contactInp = inputMap.contact_name;
+            if (!contactInp) return;
+            var next = String(t.value || '').trim();
+            var cur = String(contactInp.value || '').trim();
+            if (!cur || cur === lastSyncedLegalName) contactInp.value = next;
+            lastSyncedLegalName = next;
+        });
+
         function getInputVal(key) {
-            if (key === 'legal_info.id_valid_date') {
-                var forever = inputMap['legal_info.id_valid_date_forever'];
+            if (key === 'legal_info.id_valid_date' || key === 'license_info.valid_date') {
+                var forever = inputMap[key + '_forever'];
                 if (forever && forever.checked) return '长期有效';
             }
             var inp = inputMap[key];
@@ -782,6 +871,7 @@
                 legal_mobile_no: getInputVal('legal_mobile_no'),
                 contact_mobile_no: getInputVal('contact_mobile_no'),
                 contact_email: getInputVal('contact_email'),
+                contact_name: getInputVal('contact_name'),
                 card_info: {
                     account_name: getInputVal('card_info.account_name'),
                     card_no: getInputVal('card_info.card_no'),
@@ -793,14 +883,16 @@
                     code: getInputVal('license_info.code'),
                     start_date: getInputVal('license_info.start_date'),
                     valid_date: getInputVal('license_info.valid_date'),
+                    found_date: getInputVal('license_info.found_date'),
                     address: getInputVal('license_info.address')
                 },
                 legal_info: {
-                    cert_type: getInputVal('legal_info.cert_type') || '身份证',
+                    cert_type: '身份证',
                     legal_name: getInputVal('legal_info.legal_name'),
                     id_no: getInputVal('legal_info.id_no'),
                     id_start_date: getInputVal('legal_info.id_start_date'),
-                    id_valid_date: getInputVal('legal_info.id_valid_date')
+                    id_valid_date: getInputVal('legal_info.id_valid_date'),
+                    legal_addr: getInputVal('legal_info.legal_addr')
                 },
                 license_pic: !!uploadState.license_pic,
                 legal_cert_front_pic: !!uploadState.legal_cert_front_pic,
@@ -845,15 +937,18 @@
                 { key: 'legal_mobile_no', label: '法人手机号' },
                 { key: 'contact_mobile_no', label: '管理员手机号' },
                 { key: 'contact_email', label: '管理员邮箱' },
-                { key: 'license_info.name', label: '营业执照名称' },
-                { key: 'license_info.code', label: '证件代码' },
-                { key: 'license_info.start_date', label: '执照起始日期' },
-                { key: 'license_info.valid_date', label: '执照有效期' },
+                { key: 'contact_name', label: '管理员姓名' },
+                { key: 'license_info.name', label: '商户名称' },
+                { key: 'license_info.code', label: '证照编号' },
+                { key: 'license_info.start_date', label: '证照有效期开始日期' },
+                { key: 'license_info.valid_date', label: '证照有效期截止日期' },
+                { key: 'license_info.found_date', label: '成立日期' },
                 { key: 'license_info.address', label: '注册地址' },
                 { key: 'legal_info.legal_name', label: '法人姓名' },
-                { key: 'legal_info.id_no', label: '身份证号' },
-                { key: 'legal_info.id_start_date', label: '身份证起始日期' },
-                { key: 'legal_info.id_valid_date', label: '身份证有效期' },
+                { key: 'legal_info.id_no', label: '法人证件号码' },
+                { key: 'legal_info.id_start_date', label: '法人证件开始日期' },
+                { key: 'legal_info.id_valid_date', label: '法人证件截止日期' },
+                { key: 'legal_info.legal_addr', label: '法人证件地址' },
                 { key: 'card_info.account_name', label: '开户名' },
                 { key: 'card_info.card_no', label: '银行卡号' },
                 { key: 'card_info.bank_name', label: '开户银行' },
