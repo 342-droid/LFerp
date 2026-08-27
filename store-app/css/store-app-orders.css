@@ -562,16 +562,19 @@
 
 .order-tabs {
   display: flex;
+  align-items: stretch;
   gap: 0;
-  padding: 0 16px;
+  padding: 0 12px;
   background: var(--color-bg);
   border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .order-tabs__btn {
-  flex: 1;
-  padding: 12px 0;
-  font-size: 14px;
+  flex: 1 0 auto;
+  padding: 12px 6px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--color-text-secondary);
   background: none;
@@ -580,6 +583,7 @@
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s;
   margin-bottom: -1px;
+  white-space: nowrap;
 }
 
 .order-tabs__btn.is-active {
@@ -1001,6 +1005,65 @@
   font-family: monospace;
 }
 
+.order-card--express {
+  cursor: pointer;
+}
+
+.order-card__mode-tag {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  color: var(--color-primary);
+  background: rgba(255, 107, 0, 0.1);
+}
+
+.order-card__express-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.order-card__express-list .order-card__express {
+  margin-bottom: 0;
+}
+
+.order-card__express {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  background: var(--color-bg-page);
+  border-radius: 8px;
+}
+
+.order-card__express-pkg {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.order-card__express-text {
+  min-width: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-card__express-link {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
 .order-card__tag {
   display: inline-block;
   padding: 2px 10px;
@@ -1027,6 +1090,11 @@
 .order-card__tag--done {
   background: rgba(39, 174, 96, 0.12);
   color: #27ae60;
+}
+
+.order-card__tag--closed {
+  background: rgba(153, 153, 153, 0.14);
+  color: #888888;
 }
 
 .order-card__tag--partial {
@@ -1258,18 +1326,44 @@
   color: var(--color-text-secondary);
 }
 
-/* 待提货订单退款信息 */
-.order-card__refund {
+.order-card__item-block {
+  padding-bottom: 4px;
+}
+
+.order-card__item-refund {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-top: 10px;
-  padding: 8px 12px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #e67e00;
-  background: rgba(255, 152, 0, 0.1);
-  border-radius: 6px;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.order-card__item-refund-title {
+  flex-shrink: 0;
+  font-weight: 700;
+  color: #333;
+}
+
+.order-card__item-refund-split {
+  flex-shrink: 0;
+  width: 1px;
+  height: 12px;
+  background: #ddd;
+}
+
+.order-card__item-refund-desc {
+  min-width: 0;
+  color: #999;
+}
+
+.order-card__item-refund-desc em {
+  color: #ff4d30;
+  font-weight: 600;
+  font-style: normal;
 }
 
 /* 商品级核销信息区域 */

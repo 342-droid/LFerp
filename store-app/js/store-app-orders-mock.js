@@ -420,7 +420,7 @@
         pickupTime: "2026-03-31 10:00",
         items: [
           { name: "有机杂粮礼盒", qty: 1, price: 168 },
-          { name: "有机大米 5kg", qty: 1, price: 88 },
+          { name: "有机大米 5kg", qty: 1, price: 88, refund: { returnQty: 1, refundAmount: 88 } },
         ],
       },
       {
@@ -446,7 +446,7 @@
         customer: "王小明",
         phone: "138****1024",
         items: [
-          { name: "有机水果礼盒 A款", qty: 1, price: 198, refunding: true, refundStatus: "退款中" },
+          { name: "有机水果礼盒 A款", qty: 1, price: 198, refunding: true, refundStatus: "退款中", refund: { returnQty: 1, refundAmount: 198 } },
         ],
       },
       {
@@ -537,6 +537,201 @@
           },
         ],
       },
+      {
+        id: "oExp1",
+        orderNo: "WDJ20260405011",
+        shipMode: "快递",
+        status: "待收货",
+        amount: 168,
+        createdAt: "2026-04-05 09:20",
+        customer: "赵敏",
+        phone: "135****6618",
+        items: [
+          { name: "有机杂粮礼盒", qty: 1, price: 168 },
+        ],
+        express: {
+          courier: "申通快递",
+          trackingNo: "773075059702651",
+          logisticsStatus: "派送中",
+          address: {
+            name: "赵敏",
+            phone: "135****6618",
+            text: "四川省成都市武侯区天府大道中段666号天府软件园A区",
+          },
+          timeline: [
+            { type: "address", text: "【收货地址】四川省成都市武侯区天府大道中段666号天府软件园A区 赵敏 135****6618" },
+            { time: "04-06\n09:10", title: "派送中", desc: "【成都市】快件正在派送中，派送员：李师傅，请保持电话畅通", active: true },
+            { time: "04-06\n06:40", title: "运输中", desc: "【成都市】快件已到达 成都双流转运中心" },
+            { time: "04-05\n20:15", title: "运输中", desc: "【重庆市】快件离开 重庆转运中心，下一站 成都双流转运中心" },
+            { time: "04-05\n15:00", title: "已揽件", desc: "【重庆市】快件已在 重庆渝北营业部 揽收" },
+            { time: "04-05\n14:20", title: "已发货", desc: "包裹正在等待揽收" },
+            { time: "04-05\n09:20", title: "已下单", desc: "商品已经下单" },
+          ],
+        },
+      },
+      {
+        id: "oExp2",
+        orderNo: "WDJ20260405012",
+        shipMode: "快递",
+        status: "待发货",
+        amount: 266,
+        createdAt: "2026-04-05 11:06",
+        customer: "孙悦",
+        phone: "151****2290",
+        items: [
+          { name: "鲜切牛排 200g", qty: 2, price: 86 },
+          { name: "有机西兰花 500g", qty: 1, price: 94 },
+        ],
+        express: {
+          courier: "",
+          trackingNo: "",
+          logisticsStatus: "待发货",
+          address: {
+            name: "孙悦",
+            phone: "151****2290",
+            text: "浙江省杭州市西湖区文三路478号华星时代广场",
+          },
+          timeline: [
+            { type: "address", text: "【收货地址】浙江省杭州市西湖区文三路478号华星时代广场 孙悦 151****2290" },
+            { time: "04-05\n11:06", title: "已下单", desc: "商品已经下单，仓库备货中", active: true },
+          ],
+        },
+      },
+      {
+        id: "oExp3",
+        orderNo: "WDJ20260403008",
+        shipMode: "快递",
+        status: "已完成",
+        amount: 198,
+        createdAt: "2026-04-03 16:40",
+        customer: "周文静",
+        phone: "159****8832",
+        items: [
+          { name: "有机水果礼盒 A款", qty: 1, price: 198 },
+        ],
+        express: {
+          courier: "中通快递",
+          trackingNo: "788012345678901",
+          logisticsStatus: "已签收",
+          address: {
+            name: "周文静",
+            phone: "159****8832",
+            text: "广东省深圳市南山区科技园南路18号",
+          },
+          timeline: [
+            { type: "address", text: "【收货地址】广东省深圳市南山区科技园南路18号 周文静 159****8832" },
+            { time: "04-05\n12:00", title: "已签收", desc: "期待再次为您服务", active: true },
+            { time: "04-05\n08:20", title: "派送中", desc: "【深圳市】快件正在派送中，派送员：王师傅，请保持电话畅通" },
+            { time: "04-04\n22:15", title: "运输中", desc: "【深圳市】快件离开 深圳转运中心" },
+            { time: "04-04\n10:05", title: "已揽件", desc: "【广州市】快件已揽收" },
+            { time: "04-03\n16:40", title: "已下单", desc: "商品已经下单" },
+          ],
+        },
+      },
+      {
+        id: "oExpMulti",
+        orderNo: "WDJ20260406021",
+        shipMode: "快递",
+        status: "待收货",
+        amount: 434,
+        createdAt: "2026-04-06 10:18",
+        customer: "吴芳",
+        phone: "139****8800",
+        items: [
+          { name: "有机杂粮礼盒", qty: 1, price: 168 },
+          { name: "鲜切牛排 200g", qty: 2, price: 86 },
+          { name: "有机西兰花 500g", qty: 1, price: 94 },
+        ],
+        packages: [
+          {
+            courier: "申通快递",
+            trackingNo: "773075059702888",
+            logisticsStatus: "运输中",
+            items: [{ name: "有机杂粮礼盒", qty: 1, price: 168 }],
+            address: {
+              name: "吴芳",
+              phone: "139****8800",
+              text: "重庆市渝北区金开大道西段88号",
+            },
+            timeline: [
+              { type: "address", text: "【收货地址】重庆市渝北区金开大道西段88号 吴芳 139****8800" },
+              { time: "04-07\n08:20", title: "运输中", desc: "【重庆市】快件离开 重庆转运中心，下一站 渝北营业部", active: true },
+              { time: "04-06\n22:10", title: "运输中", desc: "【成都市】快件已到达 成都双流转运中心" },
+              { time: "04-06\n16:40", title: "已揽件", desc: "【成都市】快件已在 成都高新营业部 揽收" },
+              { time: "04-06\n15:10", title: "已发货", desc: "包裹正在等待揽收" },
+              { time: "04-06\n10:18", title: "已下单", desc: "商品已经下单" },
+            ],
+          },
+          {
+            courier: "中通快递",
+            trackingNo: "788012345678902",
+            logisticsStatus: "派送中",
+            items: [
+              { name: "鲜切牛排 200g", qty: 2, price: 86 },
+              { name: "有机西兰花 500g", qty: 1, price: 94 },
+            ],
+            address: {
+              name: "吴芳",
+              phone: "139****8800",
+              text: "重庆市渝北区金开大道西段88号",
+            },
+            timeline: [
+              { type: "address", text: "【收货地址】重庆市渝北区金开大道西段88号 吴芳 139****8800" },
+              { time: "04-07\n09:15", title: "派送中", desc: "【重庆市】快件正在派送中，派送员：周师傅，请保持电话畅通", active: true },
+              { time: "04-07\n06:50", title: "运输中", desc: "【重庆市】快件已到达 渝北转运中心" },
+              { time: "04-06\n20:05", title: "运输中", desc: "【成都市】快件离开 成都双流转运中心" },
+              { time: "04-06\n14:30", title: "已揽件", desc: "【成都市】快件已揽收" },
+              { time: "04-06\n13:40", title: "已发货", desc: "包裹正在等待揽收" },
+              { time: "04-06\n10:18", title: "已下单", desc: "商品已经下单" },
+            ],
+          },
+        ],
+        express: {
+          courier: "申通快递",
+          trackingNo: "773075059702888",
+          logisticsStatus: "运输中",
+        },
+      },
+      {
+        id: "oExp4",
+        orderNo: "WDJ20260401055",
+        shipMode: "快递",
+        status: "已关闭",
+        amount: 80,
+        createdAt: "2026-04-01 19:12",
+        customer: "陈晨",
+        phone: "186****2233",
+        items: [
+          { name: "有机西兰花 500g", qty: 1, price: 80 },
+        ],
+        express: {
+          courier: "",
+          trackingNo: "",
+          logisticsStatus: "已关闭",
+          address: {
+            name: "陈晨",
+            phone: "186****2233",
+            text: "上海市浦东新区张江路1200号",
+          },
+          timeline: [
+            { type: "address", text: "【收货地址】上海市浦东新区张江路1200号 陈晨 186****2233" },
+            { time: "04-01\n20:05", title: "已关闭", desc: "超时未支付，订单已关闭", active: true },
+            { time: "04-01\n19:12", title: "已下单", desc: "商品已经下单" },
+          ],
+        },
+      },
+      {
+        id: "oClose1",
+        orderNo: "WDJ20260401056",
+        status: "已关闭",
+        amount: 99,
+        createdAt: "2026-04-01 20:18",
+        customer: "刘洋",
+        phone: "177****5566",
+        items: [
+          { name: "新鲜牛奶 24盒装", qty: 1, price: 99 },
+        ],
+      },
     ],
   };
 
@@ -577,6 +772,9 @@
   function enrichOrderList(list) {
     (list || []).forEach(function (o) {
       enrichItems(o.items);
+      (o.packages || []).forEach(function (pkg) {
+        enrichItems(pkg.items);
+      });
     });
   }
 
@@ -619,6 +817,28 @@
     return ids.map(function (id) {
       return map[id] ? JSON.parse(JSON.stringify(map[id])) : null;
     }).filter(Boolean);
+  }
+
+  function mergeRefundFromSeed(list) {
+    var seedMap = {};
+    DEFAULT_ORDERS.forEach(function (o) {
+      if (o && o.id) seedMap[o.id] = o;
+    });
+    (list || []).forEach(function (o) {
+      var seed = seedMap[o.id];
+      if (!seed) return;
+      if (!o.refund && seed.refund) o.refund = JSON.parse(JSON.stringify(seed.refund));
+      (o.items || []).forEach(function (item, idx) {
+        var seedItem = seed.items && seed.items[idx];
+        if (!seedItem || seedItem.name !== item.name) {
+          seedItem = (seed.items || []).filter(function (it) { return it.name === item.name; })[0];
+        }
+        if (!seedItem) return;
+        if (!item.refund && seedItem.refund) item.refund = JSON.parse(JSON.stringify(seedItem.refund));
+        if (!item.refundStatus && seedItem.refundStatus) item.refundStatus = seedItem.refundStatus;
+        if (item.refunding == null && seedItem.refunding) item.refunding = seedItem.refunding;
+      });
+    });
   }
 
   function stripItemAftersale(item) {
@@ -665,6 +885,14 @@
     if (savedOrders) {
       var parsed = JSON.parse(savedOrders);
       if (Array.isArray(parsed) && parsed.length) {
+        var have = {};
+        parsed.forEach(function (o) { if (o && o.id) have[o.id] = true; });
+        DEFAULT_ORDERS.forEach(function (seed) {
+          if (!have[seed.id] && (isExpressOrder(seed) || seed.id === "oClose1")) {
+            parsed.push(JSON.parse(JSON.stringify(seed)));
+          }
+        });
+        mergeRefundFromSeed(parsed);
         enrichOrderList(parsed);
         mockData.orders = parsed;
       }
@@ -706,8 +934,12 @@
     return order.status === "待提货" || order.status === "部分核销" || order.status === "已完成";
   }
 
+  function isExpressOrder(order) {
+    return !!(order && (order.shipMode === "快递" || order.deliveryMode === "express"));
+  }
+
   function isFulfillmentVerifiable(order) {
-    if (!order) return false;
+    if (!order || isExpressOrder(order)) return false;
     var status = order.status;
     if (status === "待提货" || status === "部分核销") return true;
     if (status !== "待发货" && status !== "待收货") return false;
@@ -726,6 +958,7 @@
     storeId: mockData.store.storeId,
     isEnabled: isPendingShipmentVerifyEnabled,
     isCutoff: isOrderCutoff,
+    isExpress: isExpressOrder,
     isVerifiable: isFulfillmentVerifiable,
     getSwitches: function () {
       var platform = readJsonSetting(PLATFORM_ORDER_KEY, { pendingShipmentVerify: "on" });

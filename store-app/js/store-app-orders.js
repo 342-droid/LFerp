@@ -33,6 +33,7 @@
   (function parseTabParam() {
     var params = new URLSearchParams(window.location.search);
     var tab = params.get("tab");
+    if (tab === "待发货" || tab === "已关闭") tab = "全部";
     if (tab && ["全部", "待收货", "待提货", "已完成", "排队中"].indexOf(tab) !== -1) {
       currentStatus = tab;
     }
@@ -42,8 +43,11 @@
     待发货: "order-card__tag--ship",
     待收货: "order-card__tag--pending",
     待提货: "order-card__tag--pickup",
+    "待提货/待收货": "order-card__tag--pickup",
     已完成: "order-card__tag--done",
     部分核销: "order-card__tag--partial",
+    已关闭: "order-card__tag--closed",
+    已取消: "order-card__tag--closed",
   };
 
   var PICKUP_ORDER_STATUSES = ["待提货", "部分核销"];
@@ -70,8 +74,13 @@
 
   function getFilteredOrders(status, keyword) {
     var list = allOrders;
-    if (status === "待提货") {
+    if (status === "待收货") {
       list = list.filter(function (o) {
+        return o.status === "待收货" && !isExpressOrder(o);
+      });
+    } else if (status === "待提货") {
+      list = list.filter(function (o) {
+        if (isExpressOrder(o)) return o.status === "待收货";
         return o.status === "待提货" || o.status === "部分核销";
       });
     } else if (status !== "全部") {
@@ -81,7 +90,12 @@
       list = list.filter(function (o) {
         var buyerHit = textIncludes(o.customer, keyword) || textIncludes(o.phone, keyword);
         var itemHit = getMatchedItemIndexes(o, keyword).length > 0;
-        return buyerHit || itemHit;
+        var express = o.express || {};
+        var expressHit = textIncludes(express.trackingNo, keyword) || textIncludes(express.courier, keyword);
+        var pkgHit = (o.packages || []).some(function (pkg) {
+          return textIncludes(pkg.trackingNo, keyword) || textIncludes(pkg.courier, keyword);
+        });
+        return buyerHit || itemHit || expressHit || pkgHit;
       }).map(function (o) {
         var itemIdxs = getMatchedItemIndexes(o, keyword);
         if (itemIdxs.length === 0) return o;
@@ -149,9 +163,10 @@
       }
     }
 
-    var tagClass = STATUS_TAG_CLASS[o.status] || "";
+    var statusLabel = getCardStatusLabel(o);
+    var tagClass = STATUS_TAG_CLASS[statusLabel] || STATUS_TAG_CLASS[o.status] || "";
     var statusTag =
-      '<span class="order-card__tag ' + tagClass + '">' + o.status + "</span>";
+      '<span class="order-card__tag ' + tagClass + '">' + statusLabel + "</span>";
 
     var itemsHtml = "";
     o.items.forEach(function (item, idx) {
@@ -167,33 +182,26 @@
         (blocked ? " is-item-blocked" : "");
       var doneMark = fullyPicked ? " ✓" : "";
       var pickupTag = getItemPickupTag(item, o.status);
-      var aftersaleTag = getItemAftersaleTag(item);
       var specText = formatItemSpec(item.spec);
       var imgSrc = item.image || "https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=160&h=160&fit=crop";
       var itemCb = selectable
         ? '<input type="checkbox" class="order-card__item-cb" data-order-id="' + o.id + '" data-item-idx="' + idx + '" ' + (selected ? "checked" : "") + " />"
         : "";
       itemsHtml +=
+        '<div class="order-card__item-block">' +
         '<div class="' + itemClass + '" data-order-id="' + o.id + '" data-item-idx="' + idx + '">' +
         itemCb +
         '<img class="order-card__item-img" src="' + escapeHtml(imgSrc) + '" alt="" />' +
         '<div class="order-card__item-main">' +
-        '<div class="order-card__item-name' + (fullyPicked ? " order-card__item-name--done" : "") + '"><span class="order-card__item-name-text">' + escapeHtml(item.name) + "</span>" + pickupTag + aftersaleTag + "</div>" +
+        '<div class="order-card__item-name' + (fullyPicked ? " order-card__item-name--done" : "") + '"><span class="order-card__item-name-text">' + escapeHtml(item.name) + "</span>" + pickupTag + "</div>" +
         (specText ? '<div class="order-card__item-spec">' + escapeHtml(specText) + "</div>" : "") +
         "</div>" +
         '<span class="order-card__item-qty">x' + item.qty + "</span>" +
         '<span class="order-card__item-price' + (fullyPicked ? " order-card__item-price--done" : "") + '">¥' + item.price + doneMark + "</span>" +
+        "</div>" +
+        getItemRefundBarHtml(item, o, idx) +
         "</div>";
     });
-
-    var refundHtml = "";
-    if (o.status === "待提货" && o.refund && !o._visibleItemIdxs) {
-      refundHtml =
-        '<div class="order-card__refund">' +
-        "<span>退款数量：" + o.refund.returnQty + "</span>" +
-        "<span>退款金额：¥" + o.refund.refundAmount.toFixed(2) + "</span>" +
-        "</div>";
-    }
 
     var extraHtml = "";
     if (o.status === "已完成") {
@@ -255,6 +263,7 @@
       '<div class="order-card__header-left">' +
       checkHtml +
       '<span class="order-card__no">' + o.orderNo + "</span>" +
+      getShipModeTagHtml(o) +
       "</div>" +
       statusTag +
       "</div>" +
@@ -263,7 +272,6 @@
       '<span>下单时间：' + o.createdAt + "</span>" +
       '<span class="order-card__amount">¥' + o.amount.toFixed(2) + "</span>" +
       "</div>" +
-      refundHtml +
       '<div class="order-card__items">' + itemsHtml + "</div>" +
       '<div class="order-card__customer">' +
       '<span>买家：' + o.customer + "</span>" +
@@ -296,12 +304,140 @@
 
   var VERIFIABLE_STATUSES = ["待发货", "待收货", "待提货", "部分核销"];
 
+  function isExpressOrder(o) {
+    if (window.LFStoreVerifyPolicy && typeof window.LFStoreVerifyPolicy.isExpress === "function") {
+      return window.LFStoreVerifyPolicy.isExpress(o);
+    }
+    return !!(o && (o.shipMode === "快递" || o.deliveryMode === "express"));
+  }
+
+  function getShipModeLabel(o) {
+    return isExpressOrder(o) ? "快递" : "自提";
+  }
+
+  function getShipModeTagHtml(o) {
+    return '<span class="order-card__mode-tag">' + getShipModeLabel(o) + "</span>";
+  }
+
+  function getOrderPackages(o) {
+    if (o && Array.isArray(o.packages) && o.packages.length) return o.packages;
+    if (o && o.express) return [o.express];
+    return [];
+  }
+
+  function getCardStatusLabel(o) {
+    if (!o) return "";
+    if (o.status === "已取消") return "已关闭";
+    return o.status;
+  }
+
+  function getLatestExpressTrack(express) {
+    var list = ((express && express.timeline) || []).filter(function (node) {
+      return node && node.type !== "address";
+    });
+    var active = list.filter(function (node) { return node.active; })[0] || list[0];
+    if (!active) return "";
+    return String(active.title || "") + (active.desc ? " " + active.desc : "");
+  }
+
   function isVerifiableOrder(o) {
-    if (!o || VERIFIABLE_STATUSES.indexOf(o.status) === -1) return false;
+    if (!o || isExpressOrder(o) || VERIFIABLE_STATUSES.indexOf(o.status) === -1) return false;
     if (window.LFStoreVerifyPolicy && typeof window.LFStoreVerifyPolicy.isVerifiable === "function") {
       return window.LFStoreVerifyPolicy.isVerifiable(o);
     }
     return o.status === "待提货" || o.status === "部分核销";
+  }
+
+  function renderExpressTrackHtml(order, packages, shippedPkgs) {
+    if (!shippedPkgs || !shippedPkgs.length) return "";
+    var multi = shippedPkgs.length > 1;
+    var rows = shippedPkgs.map(function (pkg) {
+      var idx = packages.indexOf(pkg);
+      var trackLine = getLatestExpressTrack(pkg);
+      var label = multi ? '<span class="order-card__express-pkg">包裹' + (idx + 1) + "</span>" : "";
+      return (
+        '<div class="order-card__express" data-pkg-index="' + idx + '">' +
+        label +
+        '<span class="order-card__express-text">' +
+        escapeHtml(trackLine || (pkg.logisticsStatus || pkg.courier || "查看物流")) +
+        "</span>" +
+        '<span class="order-card__express-link">查看物流</span>' +
+        "</div>"
+      );
+    }).join("");
+    return multi ? '<div class="order-card__express-list">' + rows + "</div>" : rows;
+  }
+
+  function goToExpressLogistics(orderId, pkgIndex) {
+    var order = allOrders.find(function (o) { return o.id === orderId; });
+    if (!order || !isExpressOrder(order)) return;
+    try {
+      sessionStorage.setItem("pendingExpressOrder", JSON.stringify(order));
+    } catch (err) {
+      /* ignore */
+    }
+    var href = "order-logistics.html?id=" + encodeURIComponent(orderId);
+    if (pkgIndex != null && pkgIndex !== "") href += "&pkg=" + encodeURIComponent(pkgIndex);
+    window.location.href = href;
+  }
+
+  function renderExpressOrderCard(o) {
+    var card = document.createElement("article");
+    card.className = "order-card order-card--express" + (batchMode ? " is-batch-disabled" : "");
+    card.setAttribute("data-order-id", o.id);
+    card.setAttribute("data-express-order-id", o.id);
+
+    var statusLabel = getCardStatusLabel(o);
+    var tagClass = STATUS_TAG_CLASS[statusLabel] || STATUS_TAG_CLASS[o.status] || "";
+    var packages = getOrderPackages(o);
+    var shippedPkgs = packages.filter(function (pkg) { return pkg && pkg.trackingNo; });
+    var itemsHtml = "";
+    (o.items || []).forEach(function (item, idx) {
+      if (!isItemVisible(o, idx)) return;
+      var specText = formatItemSpec(item.spec);
+      var imgSrc = item.image || "https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=160&h=160&fit=crop";
+      itemsHtml +=
+        '<div class="order-card__item-block">' +
+        '<div class="order-card__item" data-order-id="' + o.id + '" data-item-idx="' + idx + '">' +
+        '<img class="order-card__item-img" src="' + escapeHtml(imgSrc) + '" alt="" />' +
+        '<div class="order-card__item-main">' +
+        '<div class="order-card__item-name"><span class="order-card__item-name-text">' + escapeHtml(item.name) + "</span></div>" +
+        (specText ? '<div class="order-card__item-spec">' + escapeHtml(specText) + "</div>" : "") +
+        "</div>" +
+        '<span class="order-card__item-qty">x' + item.qty + "</span>" +
+        '<span class="order-card__item-price">¥' + item.price + "</span>" +
+        "</div>" +
+        getItemRefundBarHtml(item, o, idx) +
+        "</div>";
+    });
+
+    card.innerHTML =
+      '<div class="order-card__header">' +
+      '<div class="order-card__header-left">' +
+      '<span class="order-card__no">' + o.orderNo + "</span>" +
+      getShipModeTagHtml(o) +
+      "</div>" +
+      '<span class="order-card__tag ' + tagClass + '">' + statusLabel + "</span>" +
+      "</div>" +
+      '<div class="order-card__body">' +
+      '<div class="order-card__meta">' +
+      "<span>下单时间：" + o.createdAt + "</span>" +
+      '<span class="order-card__amount">¥' + o.amount.toFixed(2) + "</span>" +
+      "</div>" +
+      '<div class="order-card__items">' + itemsHtml + "</div>" +
+      renderExpressTrackHtml(o, packages, shippedPkgs) +
+      '<div class="order-card__customer">' +
+      "<span>买家：" + o.customer + "</span>" +
+      '<button type="button" class="order-card__call-btn" data-phone="' + o.phone + '" aria-label="拨打 ' + o.phone + '">' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+      '<path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />' +
+      "</svg>" +
+      '<span class="order-card__phone">' + o.phone + "</span>" +
+      "</button>" +
+      "</div>" +
+      "</div>";
+
+    return card;
   }
 
   function itemKey(orderId, idx) {
@@ -312,6 +448,53 @@
     if (item && item.refund && item.refund.returnQty != null) return item.refund.returnQty;
     if (item && item.refundQty != null) return item.refundQty;
     return 0;
+  }
+
+  function getItemRefundAmount(item) {
+    if (item && item.refund && item.refund.refundAmount != null) return item.refund.refundAmount;
+    if (item && item.refundAmount != null) return item.refundAmount;
+    return null;
+  }
+
+  function isOrderRefundBoundToItem(order, item, idx) {
+    if (!order || !order.refund || !item) return false;
+    if (getItemRefundQty(item) > 0 || getItemRefundAmount(item) != null) return false;
+    var items = order.items || [];
+    var matchIdx = -1;
+    items.forEach(function (it, i) {
+      if (getItemRefundQty(it) > 0 || getItemRefundAmount(it) != null) return;
+      if (it.price === order.refund.refundAmount || it.price * it.qty === order.refund.refundAmount) {
+        if (matchIdx < 0) matchIdx = i;
+      }
+    });
+    if (matchIdx < 0) {
+      items.forEach(function (it, i) {
+        if (matchIdx < 0 && getItemRefundQty(it) <= 0 && getItemRefundAmount(it) == null) matchIdx = i;
+      });
+    }
+    return matchIdx === idx;
+  }
+
+  function getItemRefundBarHtml(item, order, idx) {
+    var qty = getItemRefundQty(item);
+    var amount = getItemRefundAmount(item);
+    if ((qty <= 0 && amount == null) && isOrderRefundBoundToItem(order, item, idx)) {
+      qty = order.refund.returnQty;
+      amount = order.refund.refundAmount;
+    }
+    if ((qty <= 0 && amount == null) && isRefundingItem(item)) {
+      qty = item.qty;
+      amount = Number(item.price || 0) * Number(item.qty || 0);
+    }
+    if (qty <= 0 && amount == null) return "";
+    return (
+      '<div class="order-card__item-refund">' +
+      '<span class="order-card__item-refund-title">退款中</span>' +
+      '<span class="order-card__item-refund-split" aria-hidden="true"></span>' +
+      '<span class="order-card__item-refund-desc">退款数量 ' + (qty || 0) +
+      '　退款金额 <em>¥' + Number(amount || 0).toFixed(2) + "</em></span>" +
+      "</div>"
+    );
   }
 
   function getItemSelectableQty(item) {
@@ -338,11 +521,6 @@
 
   function isRefundingItem(item) {
     return isApprovedAftersaleItem(item) || isPendingAftersaleItem(item);
-  }
-
-  function getItemAftersaleTag(item) {
-    if (!isRefundingItem(item)) return "";
-    return '<span class="order-card__item-refunding-tag">退款中</span>';
   }
 
   function isItemSelectable(item) {
@@ -376,18 +554,18 @@
   }
 
   function copyItemForVerify(item) {
-    var copy = {
-      name: item.name,
-      qty: item.qty,
-      price: item.price,
+            var copy = {
+              name: item.name,
+              qty: item.qty,
+              price: item.price,
       image: item.image || "https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=160&h=160&fit=crop",
-    };
+            };
     if (item.spec) copy.spec = item.spec;
-    if (item.refund) copy.refund = JSON.parse(JSON.stringify(item.refund));
+            if (item.refund) copy.refund = JSON.parse(JSON.stringify(item.refund));
     if (item.refunded) copy.refunded = item.refunded;
     if (item.refundQty != null) copy.refundQty = item.refundQty;
     if (item.refundAmount != null) copy.refundAmount = item.refundAmount;
-    if (item.refunding) copy.refunding = item.refunding;
+            if (item.refunding) copy.refunding = item.refunding;
     if (item.refundStatus) copy.refundStatus = item.refundStatus;
     if (item._verified) copy._verified = item._verified;
     if (item._verifyTime) copy._verifyTime = item._verifyTime;
@@ -410,9 +588,9 @@
       items: (o.items || []).map(function (item, idx) {
         var copy = copyItemForVerify(item);
         if (selectedIdxs) copy._checked = selectedIdxs.indexOf(idx) !== -1 && isItemSelectable(item);
-        return copy;
-      }),
-    };
+            return copy;
+          }),
+        };
   }
 
   function getVisibleVerifiableOrders() {
@@ -836,7 +1014,7 @@
       emptyEl.style.display = items.length === 0 ? "block" : "none";
     }
     items.forEach(function (item) {
-      root.appendChild(isQueue ? renderQueueCard(item) : renderOrderCard(item));
+      root.appendChild(isQueue ? renderQueueCard(item) : (isExpressOrder(item) ? renderExpressOrderCard(item) : renderOrderCard(item)));
     });
     if (isQueue) bindQueueNoteInputs();
   }
@@ -1032,6 +1210,16 @@
     if (callBtn) {
       window.LFToast && window.LFToast.show("拨打电话：" + callBtn.getAttribute("data-phone"));
       return;
+    }
+
+    if (!batchMode) {
+      var expressRow = e.target.closest("[data-pkg-index]");
+      var expressCard = e.target.closest("[data-express-order-id]");
+      if (expressCard) {
+        var pkgIndex = expressRow ? expressRow.getAttribute("data-pkg-index") : "";
+        goToExpressLogistics(expressCard.getAttribute("data-express-order-id"), pkgIndex);
+        return;
+      }
     }
 
     var cancelBtn = e.target.closest(".queue-card__cancel-btn");
