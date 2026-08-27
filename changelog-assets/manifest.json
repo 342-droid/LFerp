@@ -1406,6 +1406,28 @@
     "status": "diff",
     "date": "2026-08-26"
   },
+  "6c7759f|store-app/h5/home.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-27"
+  },
+  "6c7759f|store-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-27"
+  },
+  "6c7759f|store-app/h5/order-logistics.html": {
+    "after": "changelog-assets/6c7759f/store-app__h5__order-logistics.html.after.jpg",
+    "status": "added",
+    "date": "2026-08-27"
+  },
+  "6c7759f|store-app/h5/store-orders.html": {
+    "before": "changelog-assets/6c7759f/store-app__h5__store-orders.html.before.jpg",
+    "after": "changelog-assets/6c7759f/store-app__h5__store-orders.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-08-27"
+  },
   "72ead21|user-app/h5/cart.html": {
     "regions": 0,
     "status": "diff",
@@ -1966,6 +1988,16 @@
     "regions": 1,
     "status": "diff",
     "date": "2026-08-26"
+  },
+  "94b2f71|store-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-27"
+  },
+  "94b2f71|store-app/h5/store-orders.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-27"
   },
   "9773fc0|user-app/h5/cart.html": {
     "before": "changelog-assets/9773fc0/user-app__h5__cart.html.before.jpg",

@@ -1,7 +1,89 @@
 {
-  "latestSha": "94a7a936f47e49815e29ac5b48435a60cebaf35e",
-  "total": 309,
+  "latestSha": "6c7759fa7bc0b24ad2634eec538005cd95d8076e",
+  "total": 311,
   "days": [
+    {
+      "date": "2026-08-27",
+      "items": [
+        {
+          "sha": "6c7759f",
+          "type": "feat",
+          "text": "门店订单补齐快递履约、退款灰条与一单多包裹",
+          "author": "sisi",
+          "time": "09:32",
+          "pages": [
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/store-orders.html",
+              "text": "页签调整为全部/待收货/待提货待收货/已完成/排队中；订单号旁区分自提与快递；快递已发货露出最新物流；一单多快递分包裹查看；退款数量金额挂在对应商品下，全额退款商品仍展示"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "text": "新增快递物流跟踪页，一单多包裹可切换查看"
+            },
+            {
+              "file": null,
+              "text": "PRD 的 html 不纳入版本库"
+            }
+          ]
+        },
+        {
+          "sha": "94b2f71",
+          "type": "fix",
+          "text": "售后已过审商品改为置灰不可核销",
+          "author": "sisi",
+          "time": "00:40",
+          "pages": [
+            {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/store-orders.html",
+              "text": "售后已过审商品置灰不可勾选，不再弹出无法核销提示"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "text": "已过审商品置灰且不显示核销按钮"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-26",
       "items": [
@@ -43,6 +125,11 @@
               "title": "核销详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
               "file": "store-app/h5/store-orders.html",
               "module": "",
               "title": "门店订单 · 门店APP"
@@ -81,6 +168,11 @@
               "title": "核销详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
               "file": "store-app/h5/store-orders.html",
               "module": "",
               "title": "门店订单 · 门店APP"
@@ -117,6 +209,11 @@
               "file": "store-app/h5/order-detail.html",
               "module": "",
               "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
             },
             {
               "file": "store-app/h5/store-orders.html",
@@ -7731,6 +7828,11 @@
               "title": "核销详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
               "file": "store-app/h5/password-edit.html",
               "module": "",
               "title": "密码管理 · 门店APP"
@@ -11472,6 +11574,11 @@
               "title": "核销详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
               "file": "store-app/h5/password-edit.html",
               "module": "",
               "title": "密码管理 · 门店APP"
@@ -12675,6 +12782,11 @@
               "file": "store-app/h5/order-detail.html",
               "module": "",
               "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
             },
             {
               "file": "store-app/h5/password-edit.html",
@@ -14290,6 +14402,11 @@
               "file": "MDM/mdm_settle_freight_config.html",
               "module": "冷丰订单",
               "title": "运费配置"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -16810,6 +16927,11 @@
           "time": "14:16",
           "pages": [
             {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -16836,6 +16958,10 @@
             }
           ],
           "notes": [
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "text": "支持到店待收货独立展示快递信息与订单跟踪页，结算与订单列表按 delivery 参数区分仓配与到店配送"
+            },
             {
               "file": "user-app/h5/order-logistics.html",
               "text": "支持到店待收货独立展示快递信息与订单跟踪页，结算与订单列表按 delivery 参数区分仓配与到店配送"
