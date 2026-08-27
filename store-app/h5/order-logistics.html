@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>订单跟踪 · 门店APP</title>
+  <link rel="stylesheet" href="../css/store-app.css?v=20260826-cutoff">
+  <link rel="stylesheet" href="../css/store-app-orders.css?v=20260827-multipkg">
+  <link rel="stylesheet" href="../../user-app/css/user-app-order-logistics.css?v=20260726-return-logistics">
+  <link rel="stylesheet" href="../css/store-app-order-logistics.css?v=20260827-track">
+</head>
+<body class="store-app-body">
+  <div class="sa-shell sa-orders-shell ua-order-logistics-page">
+    <div class="sa-orders">
+      <header class="sa-orders-nav">
+        <a href="store-orders.html" class="sa-orders-nav__back" id="btn-back" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="sa-orders-nav__title">订单跟踪</h1>
+      </header>
+      <div class="sa-orders-scroll ua-ol-scroll">
+        <div class="ua-ol-body">
+          <div class="ua-ol-pkg-tabs" id="logisticsPkgTabs" hidden></div>
+          <div class="ua-ol-status-row">
+            <h2 class="ua-ol-status" id="logisticsMainStatus">—</h2>
+          </div>
+          <section class="ua-ol-card">
+            <div class="ua-ol-products" id="logisticsProducts">
+              <div class="ua-ol-products__scroll" id="logisticsProductsScroll"></div>
+              <div class="ua-ol-products__total" id="logisticsProductsTotal">共0件</div>
+            </div>
+            <div class="ua-ol-courier">
+              <span class="ua-ol-courier__name" id="logisticsCourierName">快递</span>
+              <span class="ua-ol-courier__no" id="logisticsTrackingNo">—</span>
+              <button type="button" class="ua-ol-courier__copy" id="logisticsCopyBtn" aria-label="复制运单号">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>
+              </button>
+            </div>
+            <div class="ua-ol-timeline" id="logisticsTimeline"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/store-app-orders-mock.js?v=20260827-multipkg"></script>
+  <script src="../js/store-app-toast.js?v=20260826-cutoff"></script>
+  <script src="../js/store-app-order-logistics.js?v=20260827-multipkg"></script>
+</body>
+</html>

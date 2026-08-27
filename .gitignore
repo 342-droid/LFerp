@@ -11,6 +11,7 @@ docs/结算规则总概述.md
 
 # PRD 文档：仅本地查阅，一律不纳入版本库、不推远端
 docs/**/*PRD*.md
+docs/**/*PRD*.html
 docs/**/*PRD*.docx
 docs/**/*PRD*.pdf
 AGENTS.md
