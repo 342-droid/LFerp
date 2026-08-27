@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>门店订单 · 门店APP</title>
   <link rel="stylesheet" href="../css/store-app.css?v=20260826-cutoff">
-  <link rel="stylesheet" href="../css/store-app-orders.css?v=20260827-multipkg">
+  <link rel="stylesheet" href="../css/store-app-orders.css?v=20260827-shipfilter-pad">
 </head>
 <body class="store-app-body">
   <div class="sa-shell sa-orders-shell">
@@ -43,10 +43,15 @@
           <button type="button" class="order-tabs__btn" data-status="已完成" role="tab" aria-selected="false">已完成</button>
           <button type="button" class="order-tabs__btn" data-status="排队中" role="tab" aria-selected="false">排队中</button>
         </div>
-        <div id="queue-sub-tabs" class="queue-sub-tabs" role="tablist" aria-label="排队状态" hidden>
-          <button type="button" class="queue-sub-tabs__btn is-active" data-queue-filter="全部" role="tab" aria-selected="true">全部</button>
-          <button type="button" class="queue-sub-tabs__btn" data-queue-filter="已到店" role="tab" aria-selected="false">已到店</button>
-          <button type="button" class="queue-sub-tabs__btn" data-queue-filter="未到店" role="tab" aria-selected="false">未到店</button>
+        <div id="ship-sub-tabs" class="order-sub-tabs" role="tablist" aria-label="履约方式" hidden>
+          <button type="button" class="order-sub-tabs__btn is-active" data-ship-filter="全部" role="tab" aria-selected="true">全部</button>
+          <button type="button" class="order-sub-tabs__btn" data-ship-filter="自提" role="tab" aria-selected="false">自提</button>
+          <button type="button" class="order-sub-tabs__btn" data-ship-filter="快递" role="tab" aria-selected="false">快递</button>
+        </div>
+        <div id="queue-sub-tabs" class="order-sub-tabs" role="tablist" aria-label="排队状态" hidden>
+          <button type="button" class="order-sub-tabs__btn is-active" data-queue-filter="全部" role="tab" aria-selected="true">全部</button>
+          <button type="button" class="order-sub-tabs__btn" data-queue-filter="已到店" role="tab" aria-selected="false">已到店</button>
+          <button type="button" class="order-sub-tabs__btn" data-queue-filter="未到店" role="tab" aria-selected="false">未到店</button>
         </div>
         <main class="subpage-body">
           <div id="order-list-empty" class="order-list-empty" style="display:none;">暂无此类订单</div>
@@ -73,6 +78,6 @@
   </div>
   <script src="../js/store-app-orders-mock.js?v=20260827-multipkg"></script>
   <script src="../js/store-app-toast.js?v=20260826-cutoff"></script>
-  <script src="../js/store-app-orders.js?v=20260827-multipkg"></script>
+  <script src="../js/store-app-orders.js?v=20260827-shipfilter"></script>
 </body>
 </html>

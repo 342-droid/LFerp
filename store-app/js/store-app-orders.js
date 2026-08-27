@@ -8,14 +8,18 @@
   var tabBtns = document.querySelectorAll(".order-tabs__btn");
   var searchInput = document.getElementById("order-search-input");
   var queueSubTabs = document.getElementById("queue-sub-tabs");
-  var queueSubBtns = queueSubTabs ? queueSubTabs.querySelectorAll(".queue-sub-tabs__btn") : [];
+  var queueSubBtns = queueSubTabs ? queueSubTabs.querySelectorAll(".order-sub-tabs__btn, .queue-sub-tabs__btn") : [];
+  var shipSubTabs = document.getElementById("ship-sub-tabs");
+  var shipSubBtns = shipSubTabs ? shipSubTabs.querySelectorAll(".order-sub-tabs__btn") : [];
   if (!data || !root) return;
 
   var allOrders = data.orders || [];
   var allQueueRecords = data.queueRecords || [];
   var currentStatus = "全部";
   var currentQueueFilter = "全部";
+  var currentShipFilter = "全部";
   var currentKeyword = "";
+  var SHIP_FILTER_TABS = ["全部", "待提货", "已完成"];
   var batchMode = false;
   var selectedItems = {};
   var btnOrdersBack = document.getElementById("btn-orders-back");
@@ -56,6 +60,10 @@
     return currentStatus === "排队中";
   }
 
+  function isShipFilterTab(status) {
+    return SHIP_FILTER_TABS.indexOf(status || currentStatus) !== -1;
+  }
+
   function textIncludes(hay, needle) {
     return String(hay || "").toLowerCase().indexOf(String(needle || "").toLowerCase()) !== -1;
   }
@@ -85,6 +93,11 @@
       });
     } else if (status !== "全部") {
       list = list.filter(function (o) { return o.status === status; });
+    }
+    if (isShipFilterTab(status) && currentShipFilter === "自提") {
+      list = list.filter(function (o) { return !isExpressOrder(o); });
+    } else if (isShipFilterTab(status) && currentShipFilter === "快递") {
+      list = list.filter(function (o) { return isExpressOrder(o); });
     }
     if (keyword) {
       list = list.filter(function (o) {
@@ -1036,6 +1049,16 @@
     });
   }
 
+  function updateShipSubTabsUI() {
+    if (!shipSubTabs) return;
+    shipSubTabs.hidden = !isShipFilterTab();
+    shipSubBtns.forEach(function (btn) {
+      var active = btn.getAttribute("data-ship-filter") === currentShipFilter;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-selected", active ? "true" : "false");
+    });
+  }
+
   function updateSearchUI() {
     if (!searchInput) return;
     if (isQueueMode()) {
@@ -1057,6 +1080,7 @@
   function doRender() {
     updateQueueTabCount();
     updateQueueSubTabsUI();
+    updateShipSubTabsUI();
     updateSearchUI();
     updateBatchUI();
     if (isQueueMode()) {
@@ -1073,6 +1097,9 @@
     }
     if (!isQueueMode()) {
       currentQueueFilter = "全部";
+    }
+    if (!isShipFilterTab(status)) {
+      currentShipFilter = "全部";
     }
     tabBtns.forEach(function (btn) {
       var active = btn.getAttribute("data-status") === status;
@@ -1092,6 +1119,16 @@
     doRender();
   }
 
+  function switchShipFilter(filter) {
+    currentShipFilter = filter;
+    shipSubBtns.forEach(function (btn) {
+      var active = btn.getAttribute("data-ship-filter") === filter;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    doRender();
+  }
+
   tabBtns.forEach(function (btn) {
     btn.addEventListener("click", function () {
       switchTab(btn.getAttribute("data-status"));
@@ -1101,6 +1138,12 @@
   queueSubBtns.forEach(function (btn) {
     btn.addEventListener("click", function () {
       switchQueueFilter(btn.getAttribute("data-queue-filter"));
+    });
+  });
+
+  shipSubBtns.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      switchShipFilter(btn.getAttribute("data-ship-filter"));
     });
   });
 

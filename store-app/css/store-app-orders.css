@@ -599,34 +599,45 @@
   color: var(--color-text-muted);
 }
 
-/* 排队中 - 子筛选（仅排队中 Tab 下显示） */
+/* 二级筛选：履约方式 / 排队状态 */
+.order-sub-tabs[hidden],
 .queue-sub-tabs[hidden] {
   display: none !important;
 }
 
+.order-sub-tabs,
 .queue-sub-tabs {
   display: flex;
-  gap: 10px;
-  padding: 12px 16px;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
   background: var(--color-bg-page);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
+.order-sub-tabs__btn,
 .queue-sub-tabs__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex: 0 0 auto;
-  min-width: 64px;
-  padding: 8px 14px;
-  font-size: 14px;
+  box-sizing: border-box;
+  height: 26px;
+  min-width: 0;
+  padding: 0 10px;
+  font-size: 12px;
   font-weight: 500;
+  line-height: 1;
   color: var(--color-text-secondary);
   background: var(--color-bg);
   border: 1px solid var(--color-border);
-  border-radius: 20px;
+  border-radius: 13px;
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
+.order-sub-tabs__btn.is-active,
 .queue-sub-tabs__btn.is-active {
   color: var(--color-primary);
   background: rgba(255, 107, 0, 0.08);
