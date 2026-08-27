@@ -1,10 +1,68 @@
 {
-  "latestSha": "0080c8756d535c802d51c79a848c1db2ccbe10c3",
-  "total": 307,
+  "latestSha": "94a7a936f47e49815e29ac5b48435a60cebaf35e",
+  "total": 309,
   "days": [
     {
       "date": "2026-08-26",
       "items": [
+        {
+          "sha": "94a7a93",
+          "type": "fix",
+          "text": "门店订单去掉待发货页签",
+          "author": "sisi",
+          "time": "23:51",
+          "pages": [
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/store-orders.html",
+              "text": "去掉「待发货」页签，待发货订单只在「全部」中展示"
+            }
+          ]
+        },
+        {
+          "sha": "e421cfb",
+          "type": "feat",
+          "text": "门店核销对齐待发货开关与截单规则",
+          "author": "sisi",
+          "time": "23:47",
+          "pages": [
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": null,
+              "text": "工作台: 扫码核销只带出已截单且允许核销的订单"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "text": "平台和门店「待发货订单核销」同时开启且已截单时，待发货/待收货/待提货均可核销；售后商品仍标「退款中」；验收开关可切换截单场景和两处配置"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "text": "扫码结果按同一套截单与开关规则过滤"
+            }
+          ]
+        },
         {
           "sha": "0080c87",
           "type": "feat",
