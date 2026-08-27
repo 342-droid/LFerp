@@ -1,10 +1,60 @@
 {
-  "latestSha": "6c7759fa7bc0b24ad2634eec538005cd95d8076e",
-  "total": 311,
+  "latestSha": "5f90efcf57c9179baf0001fa566750e8253a089a",
+  "total": 313,
   "days": [
     {
       "date": "2026-08-27",
       "items": [
+        {
+          "sha": "5f90efc",
+          "type": "style",
+          "text": "工作台门店订单入口改为客户订单",
+          "author": "sisi",
+          "time": "12:10",
+          "pages": [
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            }
+          ],
+          "notes": [
+            {
+              "file": null,
+              "text": "工作台: 基础工具「门店订单」改名为「客户订单」"
+            }
+          ]
+        },
+        {
+          "sha": "6e9e83f",
+          "type": "feat",
+          "text": "门店订单增加自提与快递二级筛选",
+          "author": "sisi",
+          "time": "10:30",
+          "pages": [
+            {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/store-orders.html",
+              "text": "全部、待提货/待收货、已完成下增加全部/自提/快递二级筛选，便于按履约方式快速过单"
+            }
+          ]
+        },
         {
           "sha": "6c7759f",
           "type": "feat",
