@@ -79,7 +79,7 @@
         var labels = {
           aftersaleQuick: '售后',
           memberCode: '门店会员码',
-          orders: '门店订单',
+          orders: '客户订单',
           receive: '收货',
           inventory: '库存查询',
           aftersale: '售后',
