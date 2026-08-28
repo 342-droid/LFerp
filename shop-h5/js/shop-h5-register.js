@@ -66,7 +66,7 @@
 
   function getRegionalProtectionHint(partnerDivision, regionCascade, detailAddress) {
     var div = (partnerDivision || '').trim();
-    if (!div || div === '同行店') return { showWarning: false, message: '' };
+    if (div !== '加盟店' && div !== '合作店') return { showWarning: false, message: '' };
     var text = (regionCascade || '') + (detailAddress || '');
     if (text.indexOf('西湖区') >= 0 && /文一西路|558/.test(text)) {
       return {
@@ -304,7 +304,7 @@
     $('policyPlaceholder').classList.toggle('shop-h5-hidden', policy);
     $('policyPanels').classList.toggle('shop-h5-hidden', !policy);
     $('storeTypeRow').classList.toggle('shop-h5-hidden', !policy);
-    var fr = v === '加盟店' || v === '合作店';
+    var fr = v === '加盟店' || v === '合作店' || v === '生鲜店';
     var peer = v === '同行店';
     $('blockFranchise').classList.toggle('shop-h5-hidden', !fr);
     $('blockPeer').classList.toggle('shop-h5-hidden', !peer);
@@ -413,7 +413,8 @@
 
   function collectPayloadFromForm() {
     var partnerDivision = $('partnerDivision').value;
-    var isFranchiseOrPartner = partnerDivision === '加盟店' || partnerDivision === '合作店';
+    var isFranchiseOrPartner =
+      partnerDivision === '加盟店' || partnerDivision === '合作店' || partnerDivision === '生鲜店';
     var isPeerStore = partnerDivision === '同行店';
     var nameOut = $('name').value.trim() || '未命名门店';
     var warehouse = $('warehouse').value.trim() || getDefaultWarehouseForBd($('boundBd').value);
@@ -462,7 +463,7 @@
       return toastLines('请填写绑定 BD', '', true), false;
     if (!f.warehouse || !String(f.warehouse).trim() || f.warehouse === '—')
       return toastLines('请选择配送仓库', '', true), false;
-    if (!f.partnerDivision) return toastLines('请选择门店合作类型（加盟店/合作店/同行店）', '', true), false;
+    if (!f.partnerDivision) return toastLines('请选择门店合作类型（加盟店/合作店/同行店/生鲜店）', '', true), false;
 
     var isCreate = state.mode === 'create';
     var mapOk = isCreate
