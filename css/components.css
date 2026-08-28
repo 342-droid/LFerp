@@ -698,6 +698,10 @@ input[type="number"] {
     display: flex;
     gap: 10px;
     justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+    min-width: 72px;
+    white-space: nowrap;
 }
 
 .table th:last-child,
@@ -708,10 +712,31 @@ input[type="number"] {
 .action-links a {
     color: #2196F3;
     text-decoration: none;
+    display: inline-block;
+    line-height: 1.5;
 }
 
 .action-links a:hover {
     text-decoration: underline;
+}
+
+/* 商品列表操作列跟随当前数据行，避免固定列造成视觉错位 */
+.table.sku-table th:last-child,
+.table.sku-table td:last-child {
+    position: static;
+    vertical-align: middle;
+    right: auto;
+    min-width: 100px;
+    box-shadow: none;
+}
+.table.sku-table td.action-links {
+    display: table-cell;
+    height: auto;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.table.sku-table td.action-links a {
+    display: inline-block;
 }
 
 /* 列表首列详情链接 */
@@ -1545,4 +1570,50 @@ input[type="number"] {
 .region-cascader-wrapper.is-disabled .region-cascader-clear,
 .region-cascader-wrapper.is-disabled .region-cascader-arrow {
     display: none;
+}
+.wms-sku-image {
+    display: block;
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #f8fafc;
+}
+.wms-sku-image-wrap {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #f8fafc;
+    color: #a0a8b3;
+    font-size: 11px;
+}
+.wms-sku-image-wrap .wms-sku-image {
+    border: 0;
+}
+.wms-sku-image-placeholder[hidden] {
+    display: none;
+}
+.wms-sku-image-preview-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    background: rgba(0, 0, 0, .68);
+}
+.wms-sku-image-preview-modal.is-open { display: flex; }
+.wms-sku-image-preview-modal img {
+    max-width: min(800px, 90vw);
+    max-height: 85vh;
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, .3);
 }

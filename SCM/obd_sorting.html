@@ -196,8 +196,11 @@
                                 <th>货主</th>
                                 <th>波次号</th>
                                 <th>出库单号</th>
+                                <th>商品图片</th>
                                 <th>商品编码</th>
                                 <th>商品名称</th>
+                                <th>商品规格</th>
+                                <th>商品单位</th>
                                 <th>已拣货量</th>
                                 <th>分拣量</th>
                                 <th>是否分拣</th>
@@ -236,6 +239,8 @@
                     <div class="modal-form-group"><label>出库单号</label><input type="text" id="detailOutboundNo" disabled></div>
                     <div class="modal-form-group"><label>商品编码</label><input type="text" id="detailSkuCode" disabled></div>
                     <div class="modal-form-group"><label>商品名称</label><input type="text" id="detailSkuName" disabled></div>
+                    <div class="modal-form-group"><label>商品规格</label><input type="text" id="detailSkuSpec" disabled></div>
+                    <div class="modal-form-group"><label>商品单位</label><input type="text" id="detailSkuUnit" disabled></div>
                     <div class="modal-form-group"><label>已拣货量</label><input type="text" id="detailPickedQty" disabled></div>
                     <div class="modal-form-group"><label>分拣量</label><input type="text" id="detailSortedQty" disabled></div>
                     <div class="modal-form-group"><label>是否分拣</label><input type="text" id="detailIsSorted" disabled></div>
@@ -278,6 +283,7 @@
                 outboundDetailId: 'OBD_D_20260401001',
                 skuCode: 'SKU1001',
                 skuName: '三文鱼切片 500g',
+                unit: '盒',
                 pickedQty: 80,
                 sortedQty: 0,
                 isSorted: '否',
@@ -309,6 +315,7 @@
                 outboundDetailId: 'OBD_D_20260401002',
                 skuCode: 'SKU1002',
                 skuName: '牛排 300g',
+                unit: '盒',
                 pickedQty: 120,
                 sortedQty: 45,
                 isSorted: '否',
@@ -340,6 +347,7 @@
                 outboundDetailId: 'OBD_D_20260401003',
                 skuCode: 'SKU2001',
                 skuName: '冻虾仁 1kg',
+                unit: '袋',
                 pickedQty: 60,
                 sortedQty: 60,
                 isSorted: '是',
@@ -406,8 +414,11 @@
                     <td>${escapeHtml(item.company || '-')}</td>
                     <td>${escapeHtml(item.waveNo)}</td>
                     <td>${escapeHtml(item.outboundNo)}</td>
+                    <td>${renderWmsSkuImage(item.skuCode, item.skuName)}</td>
                     <td>${escapeHtml(item.skuCode)}</td>
                     <td>${escapeHtml(item.skuName)}</td>
+                    <td>${escapeHtml(getWmsSkuSpec(item.skuCode, item.skuName))}</td>
+                    <td>${escapeHtml(item.unit || '-')}</td>
                     <td>${escapeHtml(item.pickedQty)}</td>
                     <td>${escapeHtml(item.sortedQty)}</td>
                     <td>${escapeHtml(item.isSorted)}</td>
@@ -436,6 +447,8 @@
             document.getElementById('detailOutboundNo').value = item.outboundNo || '';
             document.getElementById('detailSkuCode').value = item.skuCode || '';
             document.getElementById('detailSkuName').value = item.skuName || '';
+            document.getElementById('detailSkuSpec').value = getWmsSkuSpec(item.skuCode, item.skuName);
+            document.getElementById('detailSkuUnit').value = item.unit || '-';
             document.getElementById('detailPickedQty').value = item.pickedQty || 0;
             document.getElementById('detailSortedQty').value = item.sortedQty || 0;
             document.getElementById('detailIsSorted').value = item.isSorted || '';

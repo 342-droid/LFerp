@@ -23,6 +23,7 @@
     const dataImportMenuItems = [
         { href: 'location_import.html', text: '储位导入' },
         { href: 'inventory_init_import.html', text: '库存初始化导入' },
+        { href: 'warehouse_sku_config_import.html', text: '仓库商品配置导入' },
         { href: 'warehouse_company_import.html', text: '仓库-货主导入' },
         { href: 'user_company_import.html', text: '用户-货主导入' },
         { href: 'user_profile_import.html', text: '用户-作业档案导入' }
@@ -44,7 +45,8 @@
         { href: 'allocation_strategy.html', text: '分配策略' },
         { href: 'turn_strategy.html', text: '周转策略' },
         { href: 'task_engine.html', text: '任务引擎' },
-        { href: 'inventory_rule.html', text: '库存规则' }
+        { href: 'inventory_rule.html', text: '库存规则' },
+        { href: 'timer_management.html', text: '定时器管理' }
     ];
     
     // 库存管理菜单项
