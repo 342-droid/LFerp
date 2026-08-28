@@ -26,6 +26,7 @@
     if (doc.querySelector('.ua-set-pwd-screen')) return 'set-password.html';
     if (doc.querySelector('.ua-forgot-pwd-screen')) return 'forgot-password.html';
     if (doc.getElementById('setClearCache')) return 'settings.html';
+    if (doc.querySelector('.ua-mb-page') || doc.getElementById('uaMbDemo')) return 'member-bind-merge.html';
     if (doc.getElementById('moreAccountCancel')) return 'settings-more.html';
     if (doc.querySelector('.ua-set-page') && doc.querySelector('.ua-pe-nav__title')) {
       var t = (doc.querySelector('.ua-pe-nav__title').textContent || '').trim();
@@ -186,7 +187,7 @@
   if (!document.getElementById('pg-prd-float-js')) {
     var s = document.createElement('script');
     s.id = 'pg-prd-float-js';
-    s.src = '../../js/pg-prd-float.js?v=20260824-openlink';
+    s.src = '../../js/pg-prd-float.js?v=20260828-537';
     s.async = true;
     (document.head || document.body).appendChild(s);
   }

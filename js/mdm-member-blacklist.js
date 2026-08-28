@@ -230,8 +230,9 @@
         if (st === '注销' || st === '已注销' || st === '注销中' || st === '审核中') {
             return '<a href="#" class="mdm-mem-detail">查看详情</a>';
         }
-        var html =
+            var html =
             '<a href="#" class="mdm-mem-detail">查看详情</a>' +
+            '<a href="#" class="mdm-mem-change-store">变更绑定门店</a>' +
             '<a href="#" class="mdm-mem-coupon">发券</a>' +
             '<a href="#" class="mdm-mem-points">调整积分</a>' +
             '<a href="#" class="mdm-mem-growth">调整成长值</a>';
@@ -251,19 +252,19 @@
             if (!idCell || idCell.textContent.trim() !== String(memberId)) return;
             tr.setAttribute('data-member-status', displayStatus);
             var cells = tr.querySelectorAll('td');
-            if (cells.length < 20) return;
-            var st = cells[18].querySelector('.status') || document.createElement('span');
+            if (cells.length < 21) return;
+            var st = cells[19].querySelector('.status') || document.createElement('span');
             if (displayStatus === '黑名单') st.className = 'status blacklist';
             else if (displayStatus === '注销') st.className = 'status canceled';
             else if (displayStatus === '注销中') st.className = 'status cancel-pending';
             else st.className = 'status active';
             st.textContent = displayStatus;
             if (!st.parentNode) {
-                cells[18].innerHTML = '';
-                cells[18].appendChild(st);
+                cells[19].innerHTML = '';
+                cells[19].appendChild(st);
             }
-            cells[19].className = 'action-links';
-            cells[19].innerHTML = buildMemberListActions(displayStatus);
+            cells[20].className = 'action-links';
+            cells[20].innerHTML = buildMemberListActions(displayStatus);
         });
     }
 

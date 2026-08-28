@@ -170,6 +170,30 @@
             padding: 0 10px;
             white-space: nowrap;
         }
+        .mdm-sys-default-tag {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 0 6px;
+            border-radius: 2px;
+            background: #fff7f0;
+            color: #ff7019;
+            font-size: 12px;
+            line-height: 18px;
+            font-weight: 500;
+            vertical-align: middle;
+        }
+        .mdm-set-default-store { color: #2196F3; }
+        .mdm-set-default-store:hover { text-decoration: underline; color: #1976D2; }
+        .mdm-store-disable.is-locked { color: #bbb; cursor: not-allowed; }
+        .mdm-perm-check {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-right: 12px;
+            font-size: 13px;
+            color: #555;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -242,6 +266,10 @@
                         </select>
                     </div>
                     <div class="form-actions">
+                        <label class="mdm-perm-check" title="独立权限点：无权限时列表不展示该按钮">
+                            <input type="checkbox" id="qSetDefaultStorePerm">
+                            设为系统默认门店权限
+                        </label>
                         <button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button>
                         <button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button>
                         <button type="button" class="btn btn-primary" id="mdmArchiveStoreAddBtn">+ 新增门店</button>
@@ -273,6 +301,32 @@
                             </tr>
                         </thead>
                         <tbody id="tableBody">
+                            <tr
+                                data-region="浙江省/杭州市/西湖区"
+                                data-address="杭州市西湖区绿城西溪世纪中心1号楼"
+                                data-latlng="120.07,30.28"
+                                data-withdraw="153****9562"
+                                data-settle-cycle="自然周"
+                                data-split="已开通"
+                            >
+                                <td>ONS-CENTER-01</td>
+                                <td>冷丰</td>
+                                <td><a href="#" class="subject-name-link">中心店01</a></td>
+                                <td>直营店</td>
+                                <td>社区生鲜店</td>
+                                <td>—</td>
+                                <td>喻巧</td>
+                                <td>153****9562</td>
+                                <td>华东履约仓 / WH–SH–01</td>
+                                <td>营业中</td>
+                                <td class="mdm-store-hours-td" data-store-hours-col></td>
+                                <td>进件成功</td>
+                                <td>已开通</td>
+                                <td>对公</td>
+                                <td><span class="status active">正常</span></td>
+                                <td>2026-08-01 09:00:00</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
+                            </tr>
                             <tr
                                 data-region="北京市/市辖区/东城区"
                                 data-address="地下车库"
@@ -400,7 +454,8 @@
     <script src="../js/store-bind-card-demo.js?v=20260806-bank"></script>
     <script src="../store-app/js/store-app-biz-orders.js?v=20260811-pickup-dash"></script>
     <script src="../js/mdm-archive-detail-drawer.js?v=20260828-fresh-franchise"></script>
-    <script src="../js/mdm-erp-lists.js?v=20260815-store-hours-api"></script>
+    <script src="../js/mdm-system-default-store.js?v=20260827-sys-default"></script>
+    <script src="../js/mdm-erp-lists.js?v=20260828-sys-default"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         MdmErpLists.initArchiveStore();

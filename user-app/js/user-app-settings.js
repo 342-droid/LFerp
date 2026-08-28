@@ -23,7 +23,7 @@
   function init() {
     if (window.UaNav) {
       window.UaNav.applyBackLink('.ua-pe-nav__back', 'profile.html');
-      ['setMore'].forEach(function (id) {
+      ['setMore', 'setPhoneBind'].forEach(function (id) {
         var a = document.getElementById(id);
         if (a && a.tagName === 'A' && window.UaNav.withFrom) {
           a.href = window.UaNav.withFrom(a.getAttribute('href') || '');

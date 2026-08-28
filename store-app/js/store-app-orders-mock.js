@@ -10,6 +10,7 @@
       avatarLetter: "y",
       miniProgramUrl: "https://example.com/wandoujia/store?id=wdj001",
       queueCodeUrl: "https://example.com/wandoujia/queue?id=wdj001",
+      promoCodeUrl: "lengfeng-store:ONS303445581201",
     },
 
     overview: {

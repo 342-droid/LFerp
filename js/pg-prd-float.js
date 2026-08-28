@@ -25,7 +25,7 @@
   }
 
   function isCEnd() {
-    return /\/user-app\//i.test(location.pathname || '');
+    return /\/(user-app|store-app)\//i.test(location.pathname || '');
   }
 
   function escapeHtml(str) {
@@ -116,7 +116,7 @@
 
   function defaultPos(cend) {
     if (cend) {
-      var shell = document.querySelector('.ua-mobile-shell');
+      var shell = document.querySelector('.ua-mobile-shell, .sa-shell');
       if (shell) {
         var r = shell.getBoundingClientRect();
         var left = r.right + 12;
