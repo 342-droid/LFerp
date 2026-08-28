@@ -1,10 +1,61 @@
 {
-  "latestSha": "fedaa23c8bbcc54a1a40095b1003a4917c50d91b",
-  "total": 316,
+  "latestSha": "e693b1f88dcc4768e0fdb34c8f32798fe3b88cc7",
+  "total": 317,
   "days": [
     {
       "date": "2026-08-28",
       "items": [
+        {
+          "sha": "e693b1f",
+          "type": "feat",
+          "text": "H5和运营端同步增加生鲜店并套用加盟店资料",
+          "author": "sisi",
+          "time": "14:21",
+          "pages": [
+            {
+              "file": "MDM/mdm_bd_h5.html",
+              "module": "",
+              "title": "冷丰 MDM · 门店扫码 H5"
+            },
+            {
+              "file": "MDM/mdm_bd_store_form.html",
+              "module": "",
+              "title": "冷丰 MDM · 添加 / 编辑门店"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "shop-h5/h5/store/register.html",
+              "module": "",
+              "title": "门店注册 · Shop H5"
+            }
+          ],
+          "notes": [
+            {
+              "file": "shop-h5/h5/store/register.html",
+              "text": "合作类型增加「生鲜店」，选中后套用加盟店补充资料"
+            },
+            {
+              "file": null,
+              "text": "门店扫码 H5: 合作类型可选生鲜店，补充资料与加盟店一致"
+            },
+            {
+              "file": null,
+              "text": "添加 / 编辑门店: 合作类型增加生鲜店，并套用加盟店补充资料"
+            },
+            {
+              "file": null,
+              "text": "BD 门店模块: 档案对生鲜店展示加盟店资料"
+            },
+            {
+              "file": null,
+              "text": "演示店茶语小栈改为生鲜店"
+            }
+          ]
+        },
         {
           "sha": "fedaa23",
           "type": "feat",

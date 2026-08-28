@@ -2460,6 +2460,28 @@
     "status": "diff",
     "date": "2026-08-26"
   },
+  "e693b1f|MDM/mdm_bd_h5.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-28"
+  },
+  "e693b1f|MDM/mdm_bd_store_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-28"
+  },
+  "e693b1f|MDM/mdm_bd_stores.html": {
+    "before": "changelog-assets/e693b1f/MDM__mdm_bd_stores.html.before.jpg",
+    "after": "changelog-assets/e693b1f/MDM__mdm_bd_stores.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-08-28"
+  },
+  "e693b1f|shop-h5/h5/store/register.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-28"
+  },
   "e7d3b31|MDM/mdm_archive_carrier.html": {
     "regions": 0,
     "status": "diff",
