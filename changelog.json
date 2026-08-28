@@ -1,10 +1,30 @@
 {
-  "latestSha": "e942041de631268b3e44c821222f4b5805d79859",
-  "total": 318,
+  "latestSha": "10f2e6030eacc85d114ce5f5c248a80dd989c96a",
+  "total": 319,
   "days": [
     {
       "date": "2026-08-28",
       "items": [
+        {
+          "sha": "10f2e60",
+          "type": "feat",
+          "text": "出库单支持维护实发数量并打印三联单",
+          "author": "342-droid",
+          "time": "15:28",
+          "pages": [
+            {
+              "file": "SCM/obd_outbound.html",
+              "module": "冷丰WMS",
+              "title": "出库单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/obd_outbound.html",
+              "text": "商品明细支持维护实际出库量；操作列新增一键出库并收纳更多操作；支持勾选打印三联单"
+            }
+          ]
+        },
         {
           "sha": "e942041",
           "type": "feat",
