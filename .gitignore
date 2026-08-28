@@ -18,3 +18,9 @@ AGENTS.md
 
 # 原型生成：版本清单与 PRD 仅本机，不入库、不推远端
 .local/
+
+# 表格生成与检查产物，仅本地使用，不纳入版本库
+outputs/authz-capability-catalog/
+
+# Codex 本地配置与会话文件，不纳入版本库
+.codex/

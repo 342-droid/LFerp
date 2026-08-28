@@ -993,3 +993,49 @@ if (document.readyState === 'loading') {
         boot();
     }
 })();
+function getWmsSkuImage(skuCode) {
+    var images = ['order-product-1.svg', 'order-product-2.svg', 'order-product-3.svg', 'order-product-4.svg'];
+    var code = String(skuCode || '');
+    var total = 0;
+    for (var i = 0; i < code.length; i += 1) total += code.charCodeAt(i);
+    return '../user-app/assets/' + images[total % images.length];
+}
+
+function getWmsSkuSpec(skuCode, skuName) {
+    var matched = String(skuName || '').match(/\d+(?:\.\d+)?\s*(?:kg|g|ml|L)(?:\/\S+)?/i);
+    if (matched) return matched[0];
+    var specs = { SKU001: '500g/袋', SKU002: '1kg/盒', SKU003: '12盒/箱' };
+    return specs[String(skuCode || '')] || '标准规格';
+}
+
+function renderWmsSkuImage(skuCode, skuName) {
+    var alt = String(skuName || '商品图片').replace(/"/g, '&quot;');
+    return '<span class="wms-sku-image-wrap"><img class="wms-sku-image" src="' + getWmsSkuImage(skuCode) + '" alt="' + alt + '" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="wms-sku-image-placeholder" hidden>暂无图片</span></span>';
+}
+
+(function initWmsSkuImagePreview() {
+    function bind() {
+        var modal = document.createElement('div');
+        modal.className = 'wms-sku-image-preview-modal';
+        modal.innerHTML = '<img alt="商品图片">';
+        document.body.appendChild(modal);
+        var preview = modal.querySelector('img');
+        document.addEventListener('click', function (event) {
+            var image = event.target.closest('.wms-sku-image');
+            if (image && !image.hidden && image.src) {
+                event.stopPropagation();
+                preview.src = image.src;
+                preview.alt = image.alt || '商品图片';
+                modal.classList.add('is-open');
+            } else if (modal.classList.contains('is-open') && (event.target === modal || event.target === preview)) {
+                modal.classList.remove('is-open');
+                preview.removeAttribute('src');
+            }
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') modal.classList.remove('is-open');
+        });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
+    else bind();
+})();

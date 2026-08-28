@@ -298,9 +298,11 @@
                         <table class="table no-last-column-freeze">
                             <thead>
                                 <tr>
+                                    <th>商品图片</th>
                                     <th>商品编码</th>
                                     <th>商品名称</th>
-                                    <th>单位</th>
+                                    <th>商品规格</th>
+                                    <th>商品单位</th>
                                 <th>异常量</th>
                                 </tr>
                             </thead>
@@ -661,8 +663,10 @@
             lines.forEach((line, index) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
+                    <td>${renderWmsSkuImage(line.skuCode, line.skuName)}</td>
                     <td>${line.skuCode || ''}</td>
                     <td>${line.skuName || ''}</td>
+                    <td>${getWmsSkuSpec(line.skuCode, line.skuName)}</td>
                     <td>${line.unit || ''}</td>
                     <td>${line.abnormalQty ?? line.qty ?? ''}</td>
                 `;

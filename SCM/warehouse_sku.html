@@ -137,10 +137,11 @@
 
             <section class="table-section">
                 <div class="table-scroll-container">
-                    <table class="table">
+                    <table class="table sku-table">
                         <thead>
                             <tr>
                                 <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>商品图片</th>
                                 <th>商品编码</th>
                                 <th>商品条码</th>
                                 <th>商品名称</th>
@@ -163,6 +164,7 @@
                         <tbody id="tableBody">
                             <tr>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td><span class="wms-sku-image-wrap"><img class="wms-sku-image" src="../user-app/assets/order-product-1.svg" alt="冷冻牛肉卷" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="wms-sku-image-placeholder" hidden>暂无图片</span></span></td>
                                 <td>SKU001</td>
                                 <td>6901234567890</td>
                                 <td>冷冻牛肉卷</td>
@@ -185,6 +187,7 @@
                             </tr>
                             <tr>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td><span class="wms-sku-image-wrap"><img class="wms-sku-image" src="../user-app/assets/order-product-2.svg" alt="冷藏酸奶" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="wms-sku-image-placeholder" hidden>暂无图片</span></span></td>
                                 <td>SKU002</td>
                                 <td>6901234567891</td>
                                 <td>冷藏酸奶</td>
@@ -207,6 +210,7 @@
                             </tr>
                             <tr>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td><span class="wms-sku-image-wrap"><img class="wms-sku-image" src="../user-app/assets/order-product-3.svg" alt="速冻水饺" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="wms-sku-image-placeholder" hidden>暂无图片</span></span></td>
                                 <td>SKU003</td>
                                 <td>6901234567892</td>
                                 <td>速冻水饺</td>
@@ -229,6 +233,7 @@
                             </tr>
                             <tr>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td><span class="wms-sku-image-wrap"><img class="wms-sku-image" src="../user-app/assets/order-product-4.svg" alt="常温饼干" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="wms-sku-image-placeholder" hidden>暂无图片</span></span></td>
                                 <td>SKU004</td>
                                 <td>6901234567893</td>
                                 <td>常温饼干</td>
@@ -251,6 +256,7 @@
                             </tr>
                             <tr>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td><span class="wms-sku-image-wrap"><img class="wms-sku-image" src="../user-app/assets/order-product-1.svg" alt="冷藏鲜奶" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="wms-sku-image-placeholder" hidden>暂无图片</span></span></td>
                                 <td>SKU005</td>
                                 <td>6901234567894</td>
                                 <td>冷藏鲜奶</td>
@@ -510,8 +516,9 @@
                 statusColumnIndex: -1, // 商品页面没有状态列用于删除检查
                 detailView: {
                     enabled: true,
+                    columnIndex: 2,
                     onOpenDetail: (row) => {
-                        const skuCode = row.querySelectorAll('td')[1].textContent.trim();
+                        const skuCode = row.querySelectorAll('td')[2].textContent.trim();
                         openDetailModal(skuCode);
                     }
                 },
@@ -523,7 +530,7 @@
                 // 商品页面使用查看模态框而不是编辑/删除
                 onView: (element) => {
                     const row = element.closest('tr');
-                    const skuCode = row.querySelectorAll('td')[1].textContent;
+                    const skuCode = row.querySelectorAll('td')[2].textContent;
                     openDetailModal(skuCode);
                 }
             });
@@ -561,7 +568,7 @@
                 if (editBtn) {
                     e.preventDefault();
                     const row = editBtn.closest('tr');
-                    const skuCode = row.querySelectorAll('td')[1].textContent.trim();
+                    const skuCode = row.querySelectorAll('td')[2].textContent.trim();
                     openDetailModal(skuCode, 'rule');
                 }
             });
