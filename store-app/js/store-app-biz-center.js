@@ -1,6 +1,6 @@
 /**
  * 经营中心（原推客中心视觉）
- * 订单主 Tab：全部订单 / 待发货 / 待自提·待收货 / 已完成；无二级子菜单
+ * 订单主 Tab：全部订单 / 待发货 / 待提货/待收货 / 已完成；无二级子菜单
  */
 (function () {
   var state = {
@@ -20,18 +20,79 @@
     goods: '商品'
   };
 
-  var SUMMARY = {
-    totalAmt: 29.87,
-    totalCnt: 4,
-    todayAmt: 0,
-    todayCnt: 0,
-    yestAmt: 0,
-    yestCnt: 0,
-    weekAmt: 0,
-    weekCnt: 0,
-    monthAmt: 0,
-    monthCnt: 0
-  };
+  /* 演示「今天」对齐佣金明细样例日，避免真实日期把时段打成空 */
+  var DEMO_TODAY = '2026-08-03';
+
+  function earnedOf(o) {
+    if (window.StoreAppBizOrders && typeof StoreAppBizOrders.earnedCommission === 'function') {
+      return StoreAppBizOrders.earnedCommission(o);
+    }
+    return Number(o && o.commission) || 0;
+  }
+
+  function sumValid(list) {
+    if (window.StoreAppBizOrders && typeof StoreAppBizOrders.sumEarnedCommission === 'function') {
+      return StoreAppBizOrders.sumEarnedCommission(list);
+    }
+    var amt = 0;
+    var cnt = 0;
+    (list || []).forEach(function (o) {
+      amt += Number(o.commission) || 0;
+      cnt += 1;
+    });
+    return { amt: amt, cnt: cnt };
+  }
+
+  function buildSummary() {
+    var todayD = parseDay(DEMO_TODAY);
+    var yestD = todayD ? new Date(todayD.getTime() - 86400000) : null;
+    var weekStart = todayD ? new Date(todayD.getTime() - 6 * 86400000) : null;
+    var monthStart = todayD ? new Date(todayD.getFullYear(), todayD.getMonth(), 1) : null;
+    function dayOf(o) {
+      return parseDay(o.dayKey || o.date);
+    }
+    function inDay(o, d) {
+      var od = dayOf(o);
+      return od && d && od.getTime() === d.getTime();
+    }
+    function fromDay(o, start) {
+      var od = dayOf(o);
+      return od && start && od.getTime() >= start.getTime();
+    }
+    var total = sumValid(ORDERS);
+    var today = sumValid(
+      ORDERS.filter(function (o) {
+        return inDay(o, todayD);
+      })
+    );
+    var yest = sumValid(
+      ORDERS.filter(function (o) {
+        return inDay(o, yestD);
+      })
+    );
+    var week = sumValid(
+      ORDERS.filter(function (o) {
+        return fromDay(o, weekStart);
+      })
+    );
+    var month = sumValid(
+      ORDERS.filter(function (o) {
+        return fromDay(o, monthStart);
+      })
+    );
+    return {
+      totalAmt: total.amt,
+      totalCnt: total.cnt,
+      todayAmt: today.amt,
+      todayCnt: today.cnt,
+      yestAmt: yest.amt,
+      yestCnt: yest.cnt,
+      weekAmt: week.amt,
+      weekCnt: week.cnt,
+      monthAmt: month.amt,
+      monthCnt: month.cnt
+    };
+  }
 
   /**
    * 经营中心订单列表：含清分单 + 无清分单（结算未配门店佣金比例时结算状态展示 —）
@@ -95,7 +156,9 @@
     if (state.status === 'all') return true;
     if (state.status === 'pending_ship') return order.status === 'pending_ship';
     if (state.status === 'pending_pickup') {
-      return order.status === 'pending_pickup' || order.status === 'pending_receipt';
+      return window.StoreAppBizOrders && typeof StoreAppBizOrders.isUserFulfillOrder === 'function'
+        ? StoreAppBizOrders.isUserFulfillOrder(order)
+        : order.status === 'pending_pickup' || order.status === 'pending_receipt';
     }
     if (state.status === 'done') return order.status === 'done';
     return true;
@@ -124,7 +187,9 @@
 
   function statusClass(status) {
     if (status === 'pending_ship') return 'is-ship';
-    if (status === 'pending_pickup' || status === 'pending_receipt') return 'is-pending';
+    if (status === 'pending_pickup' || status === 'pending_receipt' || status === 'store_receive') {
+      return 'is-pending';
+    }
     if (status === 'failed') return 'is-failed';
     return '';
   }
@@ -149,12 +214,7 @@
   }
 
   function daySummary(orders) {
-    var cnt = orders.length;
-    var amt = 0;
-    orders.forEach(function (o) {
-      amt += Number(o.commission) || 0;
-    });
-    return { cnt: cnt, amt: amt };
+    return sumValid(orders);
   }
 
   function esc(s) {
@@ -220,7 +280,11 @@
       '<span class="sa-biz-order__status ' +
       statusClass(o.status) +
       '">' +
-      esc(o.statusText) +
+      esc(
+        window.StoreAppBizOrders && typeof StoreAppBizOrders.orderStatusText === 'function'
+          ? StoreAppBizOrders.orderStatusText(o)
+          : o.statusText
+      ) +
       '</span>' +
       '</div>' +
       '<div class="sa-biz-kv">' +
@@ -250,7 +314,7 @@
       ) +
       kvRow('实付金额', esc(money(o.paid)) + '元') +
       kvRow('退款金额', esc(money(o.refund)) + '元') +
-      kvRow('所得佣金', esc(money(o.commission)) + '元') +
+      kvRow('所得佣金', esc(money(earnedOf(o))) + '元') +
       kvRow(
         '结算状态',
         '<span class="sa-biz-settle ' +
@@ -301,6 +365,7 @@
   }
 
   function renderSummary() {
+    var SUMMARY = buildSummary();
     var line = $('bizTotalLine');
     if (line) {
       line.innerHTML =

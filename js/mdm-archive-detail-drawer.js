@@ -1897,7 +1897,7 @@
         '结算主体',
         '结算类型',
         '进件状态',
-        '余额支付状态',
+        '余额支付',
         '微信认证状态',
         '支付宝认证状态',
         '联系人手机号',
@@ -1924,22 +1924,10 @@
 
     /* 结算类型：对公 / 对私 */
     var ONBOARD_SETTLE_TYPES = ['对公', '对私'];
-    /* 余额支付状态：已开通 / 待开通 */
+    /* 余额支付：已开通 / 待开通 */
     var ONBOARD_BALANCE_PAY_STATUS = ['已开通', '待开通'];
-    /* 仅门店进件 / 门店钱包：微信 / 支付宝认证状态（列表展示 9 态） */
-    var ONBOARD_CHANNEL_AUTH_STATUS = [
-        '未认证',
-        '申请异常',
-        '审核中',
-        '待确认',
-        '已驳回',
-        '已冻结',
-        '已作废',
-        '未授权',
-        '认证成功'
-    ];
-    /* 需人工在微信 / 支付宝扫码推进 */
-    var ONBOARD_AUTH_NEED_QR = ['待确认', '未授权', '已冻结'];
+    /* 仅门店进件：微信 / 支付宝认证状态 */
+    var ONBOARD_CHANNEL_AUTH_STATUS = ['未认证', '待确认', '待签约', '认证成功', '已作废'];
 
     function normalizeOnboardSettleType(val) {
         var s = String(val || '').trim();
@@ -1965,244 +1953,30 @@
         return String(val || '').trim() === '已开通' ? '已开通' : '待开通';
     }
 
-    function onboardAuthReasonForStatus(status, channel, seed) {
-        var s = String(status || '').trim();
-        if (s === '未授权') return 'authorize';
-        if (s === '已冻结') return 'freeze';
-        if (s !== '待确认') return '';
-        var n = 0;
-        String(seed || '').split('').forEach(function (ch) {
-            n += ch.charCodeAt(0);
-        });
-        if (channel === 'ali') return n % 2 === 0 ? 'confirm_legal' : 'confirm_contact';
-        return n % 2 === 0 ? 'confirm_contact' : 'confirm_legal';
-    }
-
     /**
-     * 认证展示：优先用显式枚举；演示按进件阶段给可验收的 9 态
-     * 进件中→待确认（要扫码）；进件成功微信常停在未授权，支付宝已授权
+     * 认证展示：只认 5 态。未写入时按进件阶段给演示值
+     * 进件中→待确认；进件成功微信常停在待签约，支付宝认证成功；失败→已作废
      */
-    function resolveOnboardChannelAuth(channel, val, onboardStatus, seed) {
+    function resolveOnboardChannelAuth(channel, val, onboardStatus) {
         var s = String(val || '').trim();
-        if (ONBOARD_CHANNEL_AUTH_STATUS.indexOf(s) !== -1) {
-            return {
-                status: s,
-                reason: onboardAuthReasonForStatus(s, channel, seed)
-            };
-        }
+        if (ONBOARD_CHANNEL_AUTH_STATUS.indexOf(s) !== -1) return { status: s };
         var phase = onboardAuditPhase(onboardStatus);
         if (phase === 'success') {
-            if (channel === 'wx') return { status: '未授权', reason: 'authorize' };
-            return { status: '认证成功', reason: '' };
+            if (channel === 'wx') return { status: '待签约' };
+            return { status: '认证成功' };
         }
-        if (phase === 'fail') return { status: '已驳回', reason: '' };
-        if (phase === 'pending') {
-            var reason = onboardAuthReasonForStatus('待确认', channel, seed);
-            return { status: '待确认', reason: reason };
-        }
-        return { status: '未认证', reason: '' };
+        if (phase === 'fail') return { status: '已作废' };
+        if (phase === 'pending') return { status: '待确认' };
+        return { status: '未认证' };
     }
 
-    function resolveOnboardChannelAuthStatus(val, onboardStatus, channel, seed) {
-        return resolveOnboardChannelAuth(channel || 'wx', val, onboardStatus, seed).status;
-    }
-
-    function onboardAuthQrCopy(channel, reason) {
-        var isWx = channel === 'wx';
-        if (reason === 'confirm_contact') {
-            return isWx
-                ? '请使用微信扫描下方小程序码，确认联系信息（可修改超级管理员手机号）。'
-                : '请使用支付宝扫描下方二维码，完成联系人确认。';
-        }
-        if (reason === 'confirm_legal') {
-            return isWx
-                ? '请使用微信扫描下方小程序码，在小程序端完成账户验证。'
-                : '请使用支付宝扫描下方二维码，完成法人确认。';
-        }
-        if (reason === 'authorize') {
-            return isWx
-                ? '审核已通过。请使用微信扫描下方小程序码，完成授权。'
-                : '审核已通过。请使用支付宝扫描下方二维码，完成授权。';
-        }
-        if (reason === 'freeze') {
-            return isWx
-                ? '申请单已冻结。请通知指定联系人使用微信扫描下方小程序码完成授权。'
-                : '申请单已冻结。请使用支付宝扫描下方二维码完成授权（仍可能返回上次授权码）。';
-        }
-        return isWx
-            ? '请使用微信扫描下方小程序码，完成人工确认。'
-            : '请使用支付宝扫描下方二维码，完成人工确认。';
-    }
-
-    function onboardAuthQrTitle(channel, reason) {
-        var app = channel === 'wx' ? '微信认证' : '支付宝认证';
-        if (reason === 'confirm_contact') return app + ' · 待确认联系信息';
-        if (reason === 'confirm_legal') {
-            return channel === 'wx' ? app + ' · 待账户验证' : app + ' · 待法人确认';
-        }
-        if (reason === 'authorize') return app + ' · 待授权';
-        if (reason === 'freeze') return app + ' · 已冻结';
-        return app;
-    }
-
-    function ensureQrCodeLib(done) {
-        if (window.QRCode) {
-            done();
-            return;
-        }
-        var existing = document.querySelector('script[data-onboard-auth-qrcode="1"]');
-        if (existing) {
-            existing.addEventListener('load', function () {
-                done();
-            });
-            return;
-        }
-        var s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
-        s.setAttribute('data-onboard-auth-qrcode', '1');
-        s.onload = function () {
-            done();
-        };
-        s.onerror = function () {
-            done();
-        };
-        document.head.appendChild(s);
-    }
-
-    function renderOnboardAuthQr(mount, payload) {
-        empty(mount);
-        if (window.QRCode) {
-            try {
-                new window.QRCode(mount, {
-                    text: payload,
-                    width: 180,
-                    height: 180,
-                    correctLevel: window.QRCode.CorrectLevel.M
-                });
-                return;
-            } catch (e) {
-                /* fallback below */
-            }
-        }
-        var ph = el('div', 'mdm-onboard-auth-qr__ph', '演示码');
-        mount.appendChild(ph);
-    }
-
-    function closeOnboardAuthQrModal() {
-        document.querySelectorAll('[data-onboard-auth-qr="1"]').forEach(function (n) {
-            n.remove();
-        });
-    }
-
-    function openOnboardAuthQrModal(opts) {
-        opts = opts || {};
-        closeOnboardAuthQrModal();
-        var channel = opts.channel === 'ali' ? 'ali' : 'wx';
-        var status = opts.status || '待确认';
-        var reason = opts.reason || '';
-        var payload =
-            (channel === 'wx' ? 'wxpay://onboard-auth?' : 'alipays://onboard-auth?') +
-            'status=' +
-            encodeURIComponent(status) +
-            '&reason=' +
-            encodeURIComponent(reason) +
-            '&merchant=' +
-            encodeURIComponent(opts.merchantName || '') +
-            '&no=' +
-            encodeURIComponent(opts.merchantNo || '');
-
-        var backdrop = el(
-            'div',
-            'erp-modal-backdrop erp-modal-backdrop--over-drawer'
-        );
-        backdrop.setAttribute('data-onboard-auth-qr', '1');
-
-        var modal = el('div', 'erp-modal erp-modal--onboard-auth-qr');
-        var header = el('div', 'erp-modal__header');
-        header.appendChild(el('h2', 'erp-modal__title', onboardAuthQrTitle(channel, reason)));
-        var acts = el('div', 'erp-modal__header-actions');
-        var closeBtn = el('button', 'erp-modal__header-btn');
-        closeBtn.type = 'button';
-        closeBtn.setAttribute('aria-label', '关闭');
-        closeBtn.innerHTML = '&times;';
-        acts.appendChild(closeBtn);
-        header.appendChild(acts);
-
-        var body = el('div', 'erp-modal__body');
-        var box = el('div', 'mdm-onboard-auth-qr');
-        box.appendChild(el('p', 'mdm-onboard-auth-qr__status', '当前状态：' + status));
-        box.appendChild(el('p', 'mdm-onboard-auth-qr__hint', onboardAuthQrCopy(channel, reason)));
-        var code = el('div', 'mdm-onboard-auth-qr__code');
-        code.setAttribute('id', 'mdm-onboard-auth-qr-mount');
-        box.appendChild(code);
-        box.appendChild(
-            el(
-                'p',
-                'mdm-onboard-auth-qr__tip',
-                '接口无法代确认。可截图发给对应联系人 / 法人，用' +
-                    (channel === 'wx' ? '微信' : '支付宝') +
-                    '扫码完成。'
-            )
-        );
-        body.appendChild(box);
-
-        var footer = el('div', 'erp-modal__footer');
-        var okBtn = mkBtn('关闭', true);
-        footer.appendChild(okBtn);
-
-        modal.appendChild(header);
-        modal.appendChild(body);
-        modal.appendChild(footer);
-        backdrop.appendChild(modal);
-
-        function shut() {
-            closeOnboardAuthQrModal();
-        }
-        backdrop.addEventListener('click', function (ev) {
-            if (ev.target === backdrop) shut();
-        });
-        closeBtn.addEventListener('click', shut);
-        okBtn.addEventListener('click', shut);
-        document.body.appendChild(backdrop);
-
-        ensureQrCodeLib(function () {
-            if (!document.body.contains(code)) return;
-            renderOnboardAuthQr(code, payload);
-        });
+    function resolveOnboardChannelAuthStatus(val, onboardStatus, channel) {
+        return resolveOnboardChannelAuth(channel || 'wx', val, onboardStatus).status;
     }
 
     function makeOnboardAuthStatusCell(channel, auth, meta) {
-        var wrap = el('div', 'mdm-onboard-auth-cell');
-        if (!isStoreSelfOnboardAuth(meta)) {
-            wrap.appendChild(document.createTextNode('—'));
-            return { node: wrap };
-        }
-        var status = (auth && auth.status) || '未认证';
-        wrap.appendChild(document.createTextNode(status));
-        if (ONBOARD_AUTH_NEED_QR.indexOf(status) === -1) {
-            return { node: wrap };
-        }
-        var btn = el('button', 'erp-link-like-btn', '查看认证码');
-        btn.type = 'button';
-        btn.style.border = 'none';
-        btn.style.background = 'transparent';
-        btn.style.color = '#1677ff';
-        btn.style.cursor = 'pointer';
-        btn.style.padding = '0';
-        btn.style.marginLeft = '6px';
-        btn.style.fontSize = '12px';
-        btn.addEventListener('click', function (ev) {
-            ev.preventDefault();
-            openOnboardAuthQrModal({
-                channel: channel,
-                status: status,
-                reason: (auth && auth.reason) || '',
-                merchantName: meta && meta.merchantName,
-                merchantNo: meta && meta.huifuMerchantNo
-            });
-        });
-        wrap.appendChild(btn);
-        return { node: wrap };
+        if (!isStoreSelfOnboardAuth(meta)) return '—';
+        return (auth && auth.status) || '未认证';
     }
 
     /** 档案基础信息场地照（进件成功前可与进件互相同步） */
@@ -2823,13 +2597,12 @@
             ];
         }
         var selfOnboard = isStoreSelfOnboardAuth(m);
-        var authSeed = String(m.huifuMerchantNo || m.merchantName || '');
         var wxAuth = selfOnboard
-            ? resolveOnboardChannelAuth('wx', m.wxAuthStatus, m.onboardStatus, authSeed)
-            : { status: '', reason: '' };
+            ? resolveOnboardChannelAuth('wx', m.wxAuthStatus, m.onboardStatus)
+            : { status: '' };
         var aliAuth = selfOnboard
-            ? resolveOnboardChannelAuth('ali', m.aliAuthStatus, m.onboardStatus, authSeed)
-            : { status: '', reason: '' };
+            ? resolveOnboardChannelAuth('ali', m.aliAuthStatus, m.onboardStatus)
+            : { status: '' };
         return [
             nz(m.merchantName),
             nz(m.subjectType),
@@ -2947,7 +2720,7 @@
         var cells = [
             detailCell('商户简称', shortName),
             detailCell('汇付商户号', merchantNo),
-            detailCell('余额支付开通', payStatus),
+            detailCell('余额支付', payStatus),
             detailCell('进件状态', onboardStatus),
             detailCell('小票名称', f.receipt_name || '—'),
             detailCell('实际经营地址', f.detail_addr || '—'),
@@ -3046,7 +2819,7 @@
         addSection('商户信息', [
             detailCell('商户简称', shortName),
             detailCell('汇付商户号', m.merchantNo != null && m.merchantNo !== '' ? m.merchantNo : '—'),
-            detailCell('余额支付开通', m.payStatus != null && m.payStatus !== '' ? m.payStatus : '—'),
+            detailCell('余额支付', m.payStatus != null && m.payStatus !== '' ? m.payStatus : '—'),
             detailCell(
                 '进件状态',
                 m.onboardStatus != null && m.onboardStatus !== '' ? m.onboardStatus : '未进件'
@@ -3625,7 +3398,15 @@
         function dayKeyOf(o) {
             return o.dayKey || o.date || '';
         }
+        function earnedOf(o) {
+            return biz && typeof biz.earnedCommission === 'function'
+                ? biz.earnedCommission(o)
+                : Number(o.commission) || 0;
+        }
         function sumCommission(list) {
+            if (biz && typeof biz.sumEarnedCommission === 'function') {
+                return biz.sumEarnedCommission(list);
+            }
             var amt = 0;
             var cnt = 0;
             (list || []).forEach(function (o) {
@@ -3684,13 +3465,6 @@
                 ['本周佣金', money(weekSum.amt) + ' / ' + weekSum.cnt + '单'],
                 ['本月佣金', money(monthSum.amt) + ' / ' + monthSum.cnt + '单']
             ])
-        );
-        root.appendChild(
-            el(
-                'p',
-                'erp-page__note mdm-detail-note',
-                '清分口径：用户支付成功后生成门店清分明细（分佣信息）；结算未配置门店佣金比例时不生成清分，本列表不展示。'
-            )
         );
 
         /* 结算状态：待结算 | 结算中 | 已结算 | 结算失败 | 已取消；无清分展示 — */
@@ -3818,12 +3592,14 @@
 
         var statusSelect = ledgerSelect(
             [
-                ['all', '全部订单'],
+                ['all', '全部'],
                 ['pending_ship', '待发货'],
-                ['pending_pickup', '待自提/待收货'],
-                ['done', '已完成']
+                ['store_receive', '待收货'],
+                ['user_fulfill', '待提货/待收货'],
+                ['done', '已完成'],
+                ['failed', '已关闭']
             ],
-            '140px'
+            '160px'
         );
         filterRow.appendChild(ledgerFilterField('订单状态', statusSelect));
 
@@ -3948,13 +3724,19 @@
             return true;
         }
         function matchStatus(order) {
+            var api = window.StoreAppBizOrders || {};
             if (state.status === 'all') return true;
-            if (state.status === 'pending_ship') return order.status === 'pending_ship';
-            if (state.status === 'pending_pickup') {
-                return order.status === 'pending_pickup' || order.status === 'pending_receipt';
+            if (state.status === 'store_receive') {
+                return typeof api.isStoreReceiveOrder === 'function'
+                    ? api.isStoreReceiveOrder(order)
+                    : order.status === 'store_receive';
             }
-            if (state.status === 'done') return order.status === 'done';
-            return true;
+            if (state.status === 'user_fulfill') {
+                return typeof api.isUserFulfillOrder === 'function'
+                    ? api.isUserFulfillOrder(order)
+                    : order.status === 'pending_pickup' || order.status === 'pending_receipt';
+            }
+            return order.status === state.status;
         }
         function matchKeyword(order) {
             var kw = String(state.keyword || '').trim().toLowerCase();
@@ -3996,8 +3778,11 @@
                     o.goods || '—',
                     moneyPlain(o.paid),
                     moneyPlain(o.refund),
-                    moneyPlain(o.commission),
-                    o.statusText || '—',
+                    moneyPlain(earnedOf(o)),
+                    (window.StoreAppBizOrders &&
+                    typeof window.StoreAppBizOrders.orderStatusText === 'function'
+                        ? window.StoreAppBizOrders.orderStatusText(o)
+                        : o.statusText) || '—',
                     o.settleStatus || '—',
                     o.payTime || '—',
                     o.deliveryTime || '—',
@@ -4383,7 +4168,7 @@
     /**
      * 门店 APP 钱包·账户明细 → MDM 账变记录
      * 账户类型只记本方【余额账户】【保证金账户】，按该账户增减落账。
-     * 资金方向 = 收入 / 支出 / 划拨；支付/付款方式 = 原枚举（渠道或出款钱包）。
+     * 资金方向 = 收入 / 支出 / 划拨；资金来源/去向 = 门店 APP「交易方」（收入看来源，支出看去向）。
      * 资金划拨仍按原链路出双分录，不改生成规则。
      */
     function mapStoreLedgerCorpBank(item) {
@@ -4424,12 +4209,12 @@
 
     function mapStoreLedgerDirection(item) {
         var biz = mapStoreLedgerBizType(item && item.type);
-        if (
-            biz === '保证金补缴' ||
-            biz === '保证金解冻' ||
-            (item && item.dir === 'lock') ||
-            (item && item.dir === 'unlock')
-        ) {
+        if (biz === '保证金补缴' || (item && item.dir === 'lock')) {
+            /* 双分录：余额出账=支出，保证金进账=划拨 */
+            if (mapStoreLedgerAccountType(item) === '余额账户') return '支出';
+            return '划拨';
+        }
+        if (biz === '保证金解冻' || (item && item.dir === 'unlock')) {
             return '划拨';
         }
         if (item && item.dir === 'in') return '收入';
@@ -4455,8 +4240,8 @@
         return '余额账户';
     }
 
-    /** 支付/付款方式：与门店 APP 原枚举一致 */
-    function mapStoreLedgerPayWay(item) {
+    /** 资金来源（收入 / 划拨）：渠道、商户、本方划出钱包 */
+    function mapStoreLedgerFundSource(item) {
         var m = String((item && (item.payMethod || item.channel)) || '').trim();
         if (
             m === '平台' ||
@@ -4466,31 +4251,42 @@
         ) {
             return m;
         }
-        var type = String((item && item.type) || '');
-        var biz = mapStoreLedgerBizType(type);
-        if (biz === '提现' || type === '提现申请') {
-            if (m === '保证金账户' || m === '余额账户/保证金账户') return m;
-            return '余额账户';
-        }
         if (m) return m;
-        if (type === '保证金出账') return '保证金账户';
-        if (
-            biz === '进货支付' ||
-            biz === '售后/责任类扣款' ||
-            type === '余额支付' ||
-            type === '佣金回退' ||
-            type === '保证金补齐' ||
-            type === '保证金划拨出账' ||
-            type === '保证金划拨入账'
-        ) {
-            return '余额账户';
-        }
         var no = String((item && item.channelNo) || '');
         if (/^WX/i.test(no)) return '微信';
         if (/^ALI|ZFB/i.test(no)) return '支付宝';
         var corp = mapStoreLedgerCorpBank(item);
         if (corp) return corp;
         return '—';
+    }
+
+    /** 资金去向（支出）：平台 / 商户 / 到账银行 */
+    function mapStoreLedgerFundDest(item) {
+        var biz = mapStoreLedgerBizType(item && item.type);
+        if (biz === '提现' || biz === '提现回退') {
+            var bank = mapStoreLedgerCorpBank(item);
+            if (bank) return bank;
+            var wa = String((item && item.account) || '').trim();
+            if (wa && wa.indexOf('资金到账') < 0 && wa.indexOf('余额') < 0 && wa.indexOf('保证金') < 0) {
+                return wa;
+            }
+            return '—';
+        }
+        var a = String((item && item.account) || '').trim();
+        if (a && a.indexOf('余额') < 0 && a.indexOf('保证金') < 0 && a.indexOf('资金到账') < 0) {
+            return a;
+        }
+        if (biz === '佣金回退' && a) return a;
+        if (biz === '保证金补缴') return '保证金账户';
+        return '平台';
+    }
+
+    /** 资金来源/去向：与门店 APP「交易方」同值 */
+    function mapStoreLedgerPayWay(item) {
+        var biz = mapStoreLedgerBizType(item && item.type);
+        var dir = mapStoreLedgerDirection(item);
+        if (biz === '提现' || dir === '支出') return mapStoreLedgerFundDest(item);
+        return mapStoreLedgerFundSource(item);
     }
 
     /** 本方账户实际增减，仅用于推算变前 / 变后 */
@@ -4516,6 +4312,7 @@
         if (
             biz === '售后/责任类扣款' ||
             biz === '保证金入账' ||
+            biz === '保证金补缴' ||
             biz === '佣金结算' ||
             biz === '提现回退' ||
             biz === '退款'
@@ -4622,7 +4419,7 @@
         var LEDGER_HEADERS = [
             '账户类型',
             '资金方向',
-            '支付/付款方式',
+            '资金来源/去向',
             '账变类型',
             '变前金额',
             '变动金额',
@@ -4639,14 +4436,15 @@
         var LEDGER_BIZ_TYPES_BY_DIR = {
             /* 收入无「支付退回」：支付失败整笔状态为失败，未入账则无回退 */
             收入: ['首次充值', '保证金入账', '佣金结算', '充值', '提现回退', '退款'],
-            支出: ['提现', '进货支付', '售后/责任类扣款', '佣金回退'],
+            支出: ['提现', '进货支付', '售后/责任类扣款', '佣金回退', '保证金补缴'],
             划拨: ['保证金补缴', '保证金解冻']
         };
-        var LEDGER_BIZ_TYPES_ALL = [].concat(
-            LEDGER_BIZ_TYPES_BY_DIR['收入'],
-            LEDGER_BIZ_TYPES_BY_DIR['支出'],
-            LEDGER_BIZ_TYPES_BY_DIR['划拨']
-        );
+        var LEDGER_BIZ_TYPES_ALL = [];
+        ['收入', '支出', '划拨'].forEach(function (dirKey) {
+            LEDGER_BIZ_TYPES_BY_DIR[dirKey].forEach(function (name) {
+                if (LEDGER_BIZ_TYPES_ALL.indexOf(name) < 0) LEDGER_BIZ_TYPES_ALL.push(name);
+            });
+        });
 
         /* 筛选排版对齐参考图：标签+控件横排，日期区间带日历图标，查询/重置右下角带图标 */
         function ledgerFilterField(labelText, control) {
@@ -4738,7 +4536,7 @@
             payWayOpts.push([name, name]);
         });
         var payWaySelect = ledgerSelect(payWayOpts, '140px');
-        filterRow.appendChild(ledgerFilterField('支付/付款方式', payWaySelect));
+        filterRow.appendChild(ledgerFilterField('资金来源/去向', payWaySelect));
 
         var typeSelect = ledgerSelect([], '160px');
         filterRow.appendChild(ledgerFilterField('账变类型', typeSelect));

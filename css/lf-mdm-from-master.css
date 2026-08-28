@@ -2731,67 +2731,6 @@ select.store-ledger-filter__control {
   border: 1px solid var(--color-border);
 }
 
-.mdm-onboard-auth-cell {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  white-space: nowrap;
-}
-
-.erp-modal--onboard-auth-qr {
-  max-width: 400px;
-  width: 100%;
-}
-
-.mdm-onboard-auth-qr {
-  text-align: center;
-}
-
-.mdm-onboard-auth-qr__status {
-  margin: 0 0 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1a1a1a;
-}
-
-.mdm-onboard-auth-qr__hint {
-  margin: 0 0 16px;
-  font-size: 13px;
-  color: #555;
-  line-height: 1.65;
-  text-align: left;
-}
-
-.mdm-onboard-auth-qr__code {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 196px;
-  height: 196px;
-  margin: 0 auto 12px;
-  border: 1px solid #eee;
-  background: #fff;
-}
-
-.mdm-onboard-auth-qr__code img,
-.mdm-onboard-auth-qr__code canvas {
-  display: block;
-  width: 180px !important;
-  height: 180px !important;
-}
-
-.mdm-onboard-auth-qr__ph {
-  font-size: 13px;
-  color: #999;
-}
-
-.mdm-onboard-auth-qr__tip {
-  margin: 0;
-  font-size: 12px;
-  color: #999;
-  line-height: 1.5;
-}
-
 .store-onboard-section__title {
   margin: 0 0 var(--space-md);
   padding-left: 8px;
