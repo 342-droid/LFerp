@@ -216,7 +216,15 @@
     if (nick) nick.value = profile.nickname || '';
     var phone = profile.displayPhone || '';
     if (phoneHidden) phoneHidden.value = phone;
-    if (phoneText) phoneText.textContent = phone || '—';
+    if (phoneText) {
+      if (phone) {
+        phoneText.textContent = phone;
+        phoneText.classList.remove('ua-pe-value--placeholder');
+      } else {
+        phoneText.textContent = '去绑定';
+        phoneText.classList.add('ua-pe-value--placeholder');
+      }
+    }
     if (avatar && profile.avatar) avatar.src = profile.avatar;
 
     setGenderDisplay(profile.gender || '保密');
@@ -620,6 +628,11 @@
       /* applyBackLink 尽早执行，避免用户很快点返回仍是默认 profile.html */
     }
     bindBack();
+
+    var phoneBtn = document.getElementById('pePhoneBtn');
+    if (phoneBtn && window.UaNav && window.UaNav.withFrom) {
+      phoneBtn.setAttribute('href', window.UaNav.withFrom('member-bind-merge.html'));
+    }
 
     if (!window.UAProfile) return;
     var profile = window.UAProfile.load();

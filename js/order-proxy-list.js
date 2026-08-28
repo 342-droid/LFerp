@@ -33,6 +33,14 @@
     );
   }
 
+  function canRefundFreight(orderId, row) {
+    return !!(
+      window.OrderFreightRefund &&
+      typeof window.OrderFreightRefund.canRefund === 'function' &&
+      window.OrderFreightRefund.canRefund(orderId, row)
+    );
+  }
+
   function aftersaleActionLabel(row) {
     if (window.OrderPlatformAftersale && typeof window.OrderPlatformAftersale.aftersaleActionLabel === 'function') {
       return window.OrderPlatformAftersale.aftersaleActionLabel(row);
@@ -63,8 +71,10 @@
     var receiptBtn = cell.querySelector('.js-order-confirm-receipt');
     var cancelBtn = cell.querySelector('.js-proxy-cancel-order');
     var refundBtn = cell.querySelector('.js-proxy-platform-refund');
+    var freightRefundBtn = cell.querySelector('.js-proxy-freight-refund');
     var showCancel = canCancelOrder(row);
     var showRefund = canOpenAftersale(row);
+    var showFreightRefund = canRefundFreight(orderId, row);
     var aftersaleLabel = aftersaleActionLabel(row);
 
     if (trackBtn) trackBtn.remove();
@@ -112,6 +122,22 @@
       refundBtn.remove();
     }
 
+    if (showFreightRefund) {
+      var freightRefundSlot = document.createElement('span');
+      freightRefundSlot.className =
+        'order-live-table__actions-item order-live-table__actions-item--freight-refund';
+      if (freightRefundBtn) {
+        freightRefundSlot.appendChild(freightRefundBtn);
+      } else {
+        freightRefundSlot.appendChild(
+          createActionButton('js-proxy-freight-refund', orderId, '退运费')
+        );
+      }
+      actions.appendChild(freightRefundSlot);
+    } else if (freightRefundBtn) {
+      freightRefundBtn.remove();
+    }
+
     cell.innerHTML = '';
     cell.appendChild(actions);
     cell.dataset.actionsNormalized = '1';
@@ -139,7 +165,8 @@
       !document.getElementById('orderProxyCancelBackdrop') &&
       !document.getElementById('orderProxyRefundBackdrop') &&
       !document.getElementById('orderProxyBatchUploadBackdrop') &&
-      !document.getElementById('orderPlatformAsBackdrop')
+      !document.getElementById('orderPlatformAsBackdrop') &&
+      !document.getElementById('orderFreightRefundBackdrop')
     ) {
       document.body.style.overflow = '';
     }
@@ -327,6 +354,20 @@
           showToast('发起售后模块未加载', 'error');
         }
       }
+
+      var freightRefundBtn = e.target.closest('.js-proxy-freight-refund');
+      if (freightRefundBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var freightOrderId = freightRefundBtn.getAttribute('data-order-id');
+        var freightRow = freightRefundBtn.closest('tr');
+        if (!freightOrderId || !freightRow) return;
+        if (!canRefundFreight(freightOrderId, freightRow)) {
+          if (typeof showToast === 'function') showToast('当前订单暂无可退运费', 'error');
+          return;
+        }
+        window.OrderFreightRefund.open(freightOrderId, freightRow);
+      }
     });
   }
 
@@ -339,7 +380,8 @@
   window.OrderProxyList = {
     refreshActionLayout: initProxyActionLayout,
     canCancelOrder: canCancelOrder,
-    canPlatformRefund: canPlatformRefund
+    canPlatformRefund: canPlatformRefund,
+    canRefundFreight: canRefundFreight
   };
 
   if (document.readyState === 'loading') {

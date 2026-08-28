@@ -1373,6 +1373,23 @@
         return s.slice(0, 4) + ' **** **** ' + s.slice(-4);
     }
 
+    function endDateText(v) {
+        var t = String(v == null ? '' : v).trim();
+        if (!t) return '—';
+        return /长期/.test(t) ? '长期有效' : t;
+    }
+
+    function addrParts(full, region, detail) {
+        if (window.MdmOnboardAddress && typeof window.MdmOnboardAddress.splitAddress === 'function') {
+            return window.MdmOnboardAddress.splitAddress(full, region, detail);
+        }
+        return {
+            region: String(region || '').trim(),
+            detail: String(detail || '').trim(),
+            full: String(full || region || detail || '').trim()
+        };
+    }
+
     function auditStepText(node) {
         var n = String(node || '').trim();
         if (!n || n === '—') return '—';
@@ -1682,31 +1699,36 @@
             ['备注', rec.remarks || ext.remarks || '—']
         ]);
         appendSection('主体关系信息', [
-            ['上级汇付号', rec.headHuifuId || ext.headHuifuId || '—'],
+            ['上级汇付ID', rec.headHuifuId || ext.headHuifuId || '—'],
             ['结算主体类型', m.settlementSubject || rec.settlementBodyType || ext.settlementBodyType || '—']
         ]);
         appendSection('执照信息', [
             ['营业执照', f.license_pic, 'image'],
-            ['营业执照名称', lic.name || rec.regName || ext.regName || '—'],
-            ['证件代码', lic.code || rec.licenseCode || ext.licenseCode || '—'],
-            ['执照起始日期', lic.start_date || rec.licenseBeginDate || ext.licenseBeginDate || '—'],
-            ['执照有效期', lic.valid_date || rec.licenseEndDate || ext.licenseEndDate || '—'],
-            ['注册地址', lic.address || rec.regDetail || ext.regDetail || '—']
+            ['商户名称', lic.name || rec.regName || ext.regName || '—'],
+            ['证照编号', lic.code || rec.licenseCode || ext.licenseCode || '—'],
+            ['证照有效期开始日期', lic.start_date || rec.licenseBeginDate || ext.licenseBeginDate || '—'],
+            ['证照有效期截止日期', endDateText(lic.valid_date || rec.licenseEndDate || ext.licenseEndDate)],
+            ['成立日期', lic.found_date || rec.foundDate || ext.foundDate || lic.start_date || '—'],
+            ['省市区', addrParts(lic.address || rec.regDetail || ext.regDetail, lic.region, lic.address_detail).region || '—'],
+            ['详细地址', addrParts(lic.address || rec.regDetail || ext.regDetail, lic.region, lic.address_detail).detail || '—']
         ]);
         appendSection('法人基本信息', [
-            ['身份证人像面', f.legal_cert_front_pic, 'image'],
-            ['身份证国徽面', f.legal_cert_back_pic, 'image'],
-            ['证件类型', legal.cert_type || '身份证'],
+            ['法人身份证人像面', f.legal_cert_front_pic, 'image'],
+            ['法人身份证国徽面', f.legal_cert_back_pic, 'image'],
+            ['法人证件类型', legal.cert_type || '身份证'],
             ['法人姓名', legal.legal_name || rec.legalName || ext.legalName || '—'],
-            ['身份证号', legal.id_no || maskMiddle(rec.legalIdNo || ext.legalIdNo)],
-            ['身份证起始日期', legal.id_start_date || rec.legalCertBeginDate || ext.legalCertBeginDate || '—'],
-            ['身份证有效期', legal.id_valid_date || rec.legalCertEndDate || ext.legalCertEndDate || '—']
+            ['法人证件号码', legal.id_no || maskMiddle(rec.legalIdNo || ext.legalIdNo)],
+            ['法人证件开始日期', legal.id_start_date || rec.legalCertBeginDate || ext.legalCertBeginDate || '—'],
+            ['法人证件截止日期', endDateText(legal.id_valid_date || rec.legalCertEndDate || ext.legalCertEndDate)],
+            ['省市区', addrParts(legal.legal_addr || rec.legalAddr || ext.legalAddr, legal.legal_region, legal.legal_addr_detail).region || '—'],
+            ['详细地址', addrParts(legal.legal_addr || rec.legalAddr || ext.legalAddr, legal.legal_region, legal.legal_addr_detail).detail || '—']
         ]);
         appendSection('商户信息', [
             ['商户简称', f.short_name || '—'],
             ['小票名称', f.receipt_name || '—'],
             ['实际经营地址', f.detail_addr || '—'],
             ['法人手机号', f.legal_mobile_no || '—'],
+            ['管理员姓名', f.contact_name || legal.legal_name || rec.legalName || '—'],
             ['管理员手机号', f.contact_mobile_no || m.contactMobile || '—'],
             ['管理员邮箱', f.contact_email || '—']
         ]);
@@ -1850,6 +1872,7 @@
         }
     }
 
+    /* 供应商 / 直播间 / 承运商进件列表：保持原列，不套用门店钱包字段 */
     var ONBOARD_LIST_HEADERS = [
         '商户名称',
         '主体类型',
@@ -1863,6 +1886,324 @@
         '操作时间',
         '操作'
     ];
+
+    /* 仅门店进件（为门店钱包准备）：结算类型后接进件状态，再跟余额支付与渠道认证 */
+    var STORE_ONBOARD_LIST_HEADERS = [
+        '商户名称',
+        '主体类型',
+        '所属集团',
+        '汇付商户号',
+        '是否默认',
+        '结算主体',
+        '结算类型',
+        '进件状态',
+        '余额支付状态',
+        '微信认证状态',
+        '支付宝认证状态',
+        '联系人手机号',
+        '商户号来源',
+        '操作时间',
+        '操作'
+    ];
+
+    function isStoreOnboardList(meta) {
+        var m = meta || {};
+        return (
+            m.bindKind === 'store' ||
+            m.kind === 'store' ||
+            m.title === '门店进件' ||
+            m.subjectType === '门店'
+        );
+    }
+
+    /* 微信 / 支付宝认证申请仅自主进件；已有商户号不发起、不展示认证操作 */
+    function isStoreSelfOnboardAuth(meta) {
+        var src = String((meta && (meta.merchantNoSource || meta.source)) || '自主进件').trim();
+        return src === '自主进件';
+    }
+
+    /* 结算类型：对公 / 对私 */
+    var ONBOARD_SETTLE_TYPES = ['对公', '对私'];
+    /* 余额支付状态：已开通 / 待开通 */
+    var ONBOARD_BALANCE_PAY_STATUS = ['已开通', '待开通'];
+    /* 仅门店进件 / 门店钱包：微信 / 支付宝认证状态（列表展示 9 态） */
+    var ONBOARD_CHANNEL_AUTH_STATUS = [
+        '未认证',
+        '申请异常',
+        '审核中',
+        '待确认',
+        '已驳回',
+        '已冻结',
+        '已作废',
+        '未授权',
+        '认证成功'
+    ];
+    /* 需人工在微信 / 支付宝扫码推进 */
+    var ONBOARD_AUTH_NEED_QR = ['待确认', '未授权', '已冻结'];
+
+    function normalizeOnboardSettleType(val) {
+        var s = String(val || '').trim();
+        if (ONBOARD_SETTLE_TYPES.indexOf(s) !== -1) return s;
+        if (s.indexOf('对私') !== -1) return '对私';
+        if (s.indexOf('对公') !== -1) return '对公';
+        return '';
+    }
+
+    function onboardAuditPhase(status) {
+        var raw = String(status || '').trim();
+        if (raw === '进件成功' || raw === '审核成功') return 'success';
+        if (raw === '进件失败' || raw === '审核失败' || raw === 'rejected') return 'fail';
+        if (raw === '进件中' || raw === 'submitted' || raw.indexOf('待') === 0) return 'pending';
+        var t = onboardStatusText(status);
+        if (t === '审核成功' || t === '进件成功') return 'success';
+        if (t === '审核失败' || t === '进件失败') return 'fail';
+        if (t === '未发起' || t === '未提交' || t === '未进件') return 'none';
+        return 'pending';
+    }
+
+    function resolveOnboardBalancePayStatus(val) {
+        return String(val || '').trim() === '已开通' ? '已开通' : '待开通';
+    }
+
+    function onboardAuthReasonForStatus(status, channel, seed) {
+        var s = String(status || '').trim();
+        if (s === '未授权') return 'authorize';
+        if (s === '已冻结') return 'freeze';
+        if (s !== '待确认') return '';
+        var n = 0;
+        String(seed || '').split('').forEach(function (ch) {
+            n += ch.charCodeAt(0);
+        });
+        if (channel === 'ali') return n % 2 === 0 ? 'confirm_legal' : 'confirm_contact';
+        return n % 2 === 0 ? 'confirm_contact' : 'confirm_legal';
+    }
+
+    /**
+     * 认证展示：优先用显式枚举；演示按进件阶段给可验收的 9 态
+     * 进件中→待确认（要扫码）；进件成功微信常停在未授权，支付宝已授权
+     */
+    function resolveOnboardChannelAuth(channel, val, onboardStatus, seed) {
+        var s = String(val || '').trim();
+        if (ONBOARD_CHANNEL_AUTH_STATUS.indexOf(s) !== -1) {
+            return {
+                status: s,
+                reason: onboardAuthReasonForStatus(s, channel, seed)
+            };
+        }
+        var phase = onboardAuditPhase(onboardStatus);
+        if (phase === 'success') {
+            if (channel === 'wx') return { status: '未授权', reason: 'authorize' };
+            return { status: '认证成功', reason: '' };
+        }
+        if (phase === 'fail') return { status: '已驳回', reason: '' };
+        if (phase === 'pending') {
+            var reason = onboardAuthReasonForStatus('待确认', channel, seed);
+            return { status: '待确认', reason: reason };
+        }
+        return { status: '未认证', reason: '' };
+    }
+
+    function resolveOnboardChannelAuthStatus(val, onboardStatus, channel, seed) {
+        return resolveOnboardChannelAuth(channel || 'wx', val, onboardStatus, seed).status;
+    }
+
+    function onboardAuthQrCopy(channel, reason) {
+        var isWx = channel === 'wx';
+        if (reason === 'confirm_contact') {
+            return isWx
+                ? '请使用微信扫描下方小程序码，确认联系信息（可修改超级管理员手机号）。'
+                : '请使用支付宝扫描下方二维码，完成联系人确认。';
+        }
+        if (reason === 'confirm_legal') {
+            return isWx
+                ? '请使用微信扫描下方小程序码，在小程序端完成账户验证。'
+                : '请使用支付宝扫描下方二维码，完成法人确认。';
+        }
+        if (reason === 'authorize') {
+            return isWx
+                ? '审核已通过。请使用微信扫描下方小程序码，完成授权。'
+                : '审核已通过。请使用支付宝扫描下方二维码，完成授权。';
+        }
+        if (reason === 'freeze') {
+            return isWx
+                ? '申请单已冻结。请通知指定联系人使用微信扫描下方小程序码完成授权。'
+                : '申请单已冻结。请使用支付宝扫描下方二维码完成授权（仍可能返回上次授权码）。';
+        }
+        return isWx
+            ? '请使用微信扫描下方小程序码，完成人工确认。'
+            : '请使用支付宝扫描下方二维码，完成人工确认。';
+    }
+
+    function onboardAuthQrTitle(channel, reason) {
+        var app = channel === 'wx' ? '微信认证' : '支付宝认证';
+        if (reason === 'confirm_contact') return app + ' · 待确认联系信息';
+        if (reason === 'confirm_legal') {
+            return channel === 'wx' ? app + ' · 待账户验证' : app + ' · 待法人确认';
+        }
+        if (reason === 'authorize') return app + ' · 待授权';
+        if (reason === 'freeze') return app + ' · 已冻结';
+        return app;
+    }
+
+    function ensureQrCodeLib(done) {
+        if (window.QRCode) {
+            done();
+            return;
+        }
+        var existing = document.querySelector('script[data-onboard-auth-qrcode="1"]');
+        if (existing) {
+            existing.addEventListener('load', function () {
+                done();
+            });
+            return;
+        }
+        var s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
+        s.setAttribute('data-onboard-auth-qrcode', '1');
+        s.onload = function () {
+            done();
+        };
+        s.onerror = function () {
+            done();
+        };
+        document.head.appendChild(s);
+    }
+
+    function renderOnboardAuthQr(mount, payload) {
+        empty(mount);
+        if (window.QRCode) {
+            try {
+                new window.QRCode(mount, {
+                    text: payload,
+                    width: 180,
+                    height: 180,
+                    correctLevel: window.QRCode.CorrectLevel.M
+                });
+                return;
+            } catch (e) {
+                /* fallback below */
+            }
+        }
+        var ph = el('div', 'mdm-onboard-auth-qr__ph', '演示码');
+        mount.appendChild(ph);
+    }
+
+    function closeOnboardAuthQrModal() {
+        document.querySelectorAll('[data-onboard-auth-qr="1"]').forEach(function (n) {
+            n.remove();
+        });
+    }
+
+    function openOnboardAuthQrModal(opts) {
+        opts = opts || {};
+        closeOnboardAuthQrModal();
+        var channel = opts.channel === 'ali' ? 'ali' : 'wx';
+        var status = opts.status || '待确认';
+        var reason = opts.reason || '';
+        var payload =
+            (channel === 'wx' ? 'wxpay://onboard-auth?' : 'alipays://onboard-auth?') +
+            'status=' +
+            encodeURIComponent(status) +
+            '&reason=' +
+            encodeURIComponent(reason) +
+            '&merchant=' +
+            encodeURIComponent(opts.merchantName || '') +
+            '&no=' +
+            encodeURIComponent(opts.merchantNo || '');
+
+        var backdrop = el(
+            'div',
+            'erp-modal-backdrop erp-modal-backdrop--over-drawer'
+        );
+        backdrop.setAttribute('data-onboard-auth-qr', '1');
+
+        var modal = el('div', 'erp-modal erp-modal--onboard-auth-qr');
+        var header = el('div', 'erp-modal__header');
+        header.appendChild(el('h2', 'erp-modal__title', onboardAuthQrTitle(channel, reason)));
+        var acts = el('div', 'erp-modal__header-actions');
+        var closeBtn = el('button', 'erp-modal__header-btn');
+        closeBtn.type = 'button';
+        closeBtn.setAttribute('aria-label', '关闭');
+        closeBtn.innerHTML = '&times;';
+        acts.appendChild(closeBtn);
+        header.appendChild(acts);
+
+        var body = el('div', 'erp-modal__body');
+        var box = el('div', 'mdm-onboard-auth-qr');
+        box.appendChild(el('p', 'mdm-onboard-auth-qr__status', '当前状态：' + status));
+        box.appendChild(el('p', 'mdm-onboard-auth-qr__hint', onboardAuthQrCopy(channel, reason)));
+        var code = el('div', 'mdm-onboard-auth-qr__code');
+        code.setAttribute('id', 'mdm-onboard-auth-qr-mount');
+        box.appendChild(code);
+        box.appendChild(
+            el(
+                'p',
+                'mdm-onboard-auth-qr__tip',
+                '接口无法代确认。可截图发给对应联系人 / 法人，用' +
+                    (channel === 'wx' ? '微信' : '支付宝') +
+                    '扫码完成。'
+            )
+        );
+        body.appendChild(box);
+
+        var footer = el('div', 'erp-modal__footer');
+        var okBtn = mkBtn('关闭', true);
+        footer.appendChild(okBtn);
+
+        modal.appendChild(header);
+        modal.appendChild(body);
+        modal.appendChild(footer);
+        backdrop.appendChild(modal);
+
+        function shut() {
+            closeOnboardAuthQrModal();
+        }
+        backdrop.addEventListener('click', function (ev) {
+            if (ev.target === backdrop) shut();
+        });
+        closeBtn.addEventListener('click', shut);
+        okBtn.addEventListener('click', shut);
+        document.body.appendChild(backdrop);
+
+        ensureQrCodeLib(function () {
+            if (!document.body.contains(code)) return;
+            renderOnboardAuthQr(code, payload);
+        });
+    }
+
+    function makeOnboardAuthStatusCell(channel, auth, meta) {
+        var wrap = el('div', 'mdm-onboard-auth-cell');
+        if (!isStoreSelfOnboardAuth(meta)) {
+            wrap.appendChild(document.createTextNode('—'));
+            return { node: wrap };
+        }
+        var status = (auth && auth.status) || '未认证';
+        wrap.appendChild(document.createTextNode(status));
+        if (ONBOARD_AUTH_NEED_QR.indexOf(status) === -1) {
+            return { node: wrap };
+        }
+        var btn = el('button', 'erp-link-like-btn', '查看认证码');
+        btn.type = 'button';
+        btn.style.border = 'none';
+        btn.style.background = 'transparent';
+        btn.style.color = '#1677ff';
+        btn.style.cursor = 'pointer';
+        btn.style.padding = '0';
+        btn.style.marginLeft = '6px';
+        btn.style.fontSize = '12px';
+        btn.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            openOnboardAuthQrModal({
+                channel: channel,
+                status: status,
+                reason: (auth && auth.reason) || '',
+                merchantName: meta && meta.merchantName,
+                merchantNo: meta && meta.huifuMerchantNo
+            });
+        });
+        wrap.appendChild(btn);
+        return { node: wrap };
+    }
 
     /** 档案基础信息场地照（进件成功前可与进件互相同步） */
     function readArchiveVenuePhotos(kind, entityId, entityName) {
@@ -2001,17 +2342,20 @@
             { key: 'contact_mobile_no', label: '管理员手机号' },
             { key: 'contact_email', label: '管理员邮箱' },
             { key: 'license_pic', label: '营业执照(F07)' },
-            { key: 'name', label: '营业执照名称', bucket: lic },
-            { key: 'code', label: '证件代码', bucket: lic },
-            { key: 'start_date', label: '执照起始日期', bucket: lic },
-            { key: 'valid_date', label: '执照有效期', bucket: lic },
+            { key: 'name', label: '商户名称', bucket: lic },
+            { key: 'code', label: '证照编号', bucket: lic },
+            { key: 'start_date', label: '证照有效期开始日期', bucket: lic },
+            { key: 'valid_date', label: '证照有效期截止日期', bucket: lic },
+            { key: 'found_date', label: '成立日期', bucket: lic },
             { key: 'address', label: '注册地址', bucket: lic },
             { key: 'legal_cert_front_pic', label: '法人身份证人像面(F02)' },
             { key: 'legal_cert_back_pic', label: '法人身份证国徽面(F03)' },
             { key: 'legal_name', label: '法人姓名', bucket: legal },
-            { key: 'id_no', label: '身份证号', bucket: legal },
-            { key: 'id_start_date', label: '身份证起始日期', bucket: legal },
-            { key: 'id_valid_date', label: '身份证有效期', bucket: legal },
+            { key: 'id_no', label: '法人证件号码', bucket: legal },
+            { key: 'id_start_date', label: '法人证件开始日期', bucket: legal },
+            { key: 'id_valid_date', label: '法人证件截止日期', bucket: legal },
+            { key: 'legal_addr', label: '法人证件地址', bucket: legal },
+            { key: 'contact_name', label: '管理员姓名' },
             { key: 'open_license_pic', label: '开户许可证' }
             /* 内景/收银台为选填；门头/场地照仅门店进件必填 */
         ];
@@ -2462,18 +2806,46 @@
         var m = meta || {};
         var source = m.merchantNoSource || '自主进件';
         var defaultText = m.isDefault ? '是' : '否';
+        var actionCell = makeOnboardActionCell(m, refresh);
+        if (!isStoreOnboardList(m)) {
+            return [
+                nz(m.merchantName),
+                nz(m.subjectType),
+                nz(m.groupName),
+                onboardStatusText(m.onboardStatus),
+                nz(m.huifuMerchantNo),
+                nz(defaultText),
+                nz(m.settlementSubject),
+                nz(m.contactMobile),
+                nz(source),
+                nz(m.submitTime),
+                actionCell
+            ];
+        }
+        var selfOnboard = isStoreSelfOnboardAuth(m);
+        var authSeed = String(m.huifuMerchantNo || m.merchantName || '');
+        var wxAuth = selfOnboard
+            ? resolveOnboardChannelAuth('wx', m.wxAuthStatus, m.onboardStatus, authSeed)
+            : { status: '', reason: '' };
+        var aliAuth = selfOnboard
+            ? resolveOnboardChannelAuth('ali', m.aliAuthStatus, m.onboardStatus, authSeed)
+            : { status: '', reason: '' };
         return [
             nz(m.merchantName),
             nz(m.subjectType),
             nz(m.groupName),
-            onboardStatusText(m.onboardStatus),
             nz(m.huifuMerchantNo),
             nz(defaultText),
             nz(m.settlementSubject),
+            nz(m.settleType || normalizeOnboardSettleType(m.settlementSubject) || '—'),
+            onboardStatusText(m.onboardStatus),
+            resolveOnboardBalancePayStatus(m.balancePayStatus),
+            makeOnboardAuthStatusCell('wx', wxAuth, m),
+            makeOnboardAuthStatusCell('ali', aliAuth, m),
             nz(m.contactMobile),
             nz(source),
             nz(m.submitTime),
-            makeOnboardActionCell(m, refresh)
+            actionCell
         ];
     }
 
@@ -2524,6 +2896,13 @@
                     isDefault: !!it.isDefault,
                     multiMerchant: multi,
                     settlementSubject: opts.settlementSubject,
+                    settleType:
+                        kind === 'store'
+                            ? opts.settleType || normalizeOnboardSettleType(opts.settlementSubject)
+                            : '',
+                    balancePayStatus: kind === 'store' ? opts.balancePayStatus : '',
+                    wxAuthStatus: kind === 'store' ? opts.wxAuthStatus : '',
+                    aliAuthStatus: kind === 'store' ? opts.aliAuthStatus : '',
                     contactMobile: it.contactMobile,
                     merchantNoSource: it.source,
                     bindKind: kind,
@@ -2573,21 +2952,26 @@
             detailCell('小票名称', f.receipt_name || '—'),
             detailCell('实际经营地址', f.detail_addr || '—'),
             detailCell('法人手机号', f.legal_mobile_no || '—'),
+            detailCell('管理员姓名', f.contact_name || legal.legal_name || '—'),
             detailCell('管理员手机号', f.contact_mobile_no || '—'),
             detailCell('管理员邮箱', f.contact_email || '—'),
             detailCellPhoto('营业执照(F07)', f.license_pic),
-            detailCell('营业执照名称', lic.name || '—'),
-            detailCell('证件代码', lic.code || '—'),
-            detailCell('执照起始日期', lic.start_date || '—'),
-            detailCell('执照有效期', lic.valid_date || '—'),
-            detailCell('注册地址', lic.address || '—'),
+            detailCell('商户名称', lic.name || '—'),
+            detailCell('证照编号', lic.code || '—'),
+            detailCell('证照有效期开始日期', lic.start_date || '—'),
+            detailCell('证照有效期截止日期', endDateText(lic.valid_date)),
+            detailCell('成立日期', lic.found_date || lic.start_date || '—'),
+            detailCell('省市区', addrParts(lic.address, lic.region, lic.address_detail).region || '—'),
+            detailCell('详细地址', addrParts(lic.address, lic.region, lic.address_detail).detail || '—'),
             detailCellPhoto('法人身份证人像面(F02)', f.legal_cert_front_pic),
             detailCellPhoto('法人身份证国徽面(F03)', f.legal_cert_back_pic),
-            detailCell('证件类型', legal.cert_type || '身份证'),
+            detailCell('法人证件类型', legal.cert_type || '身份证'),
             detailCell('法人姓名', legal.legal_name || '—'),
-            detailCell('身份证号', legal.id_no || '—'),
-            detailCell('身份证起始日期', legal.id_start_date || '—'),
-            detailCell('身份证有效期', legal.id_valid_date || '—'),
+            detailCell('法人证件号码', legal.id_no || '—'),
+            detailCell('法人证件开始日期', legal.id_start_date || '—'),
+            detailCell('法人证件截止日期', endDateText(legal.id_valid_date)),
+            detailCell('省市区', addrParts(legal.legal_addr, legal.legal_region, legal.legal_addr_detail).region || '—'),
+            detailCell('详细地址', addrParts(legal.legal_addr, legal.legal_region, legal.legal_addr_detail).detail || '—'),
             detailCellPhoto('开户许可证', f.open_license_pic),
             /* 与进件结算 OCR 字段对齐 */
             detailCell('开户名', card.account_name || '—'),
@@ -2640,20 +3024,24 @@
 
         addSection('执照信息', [
             detailCellPhoto('营业执照(F07)', f.license_pic),
-            detailCell('营业执照名称', lic.name || '—'),
-            detailCell('证件代码', lic.code || '—'),
-            detailCell('执照起始日期', lic.start_date || '—'),
-            detailCell('执照有效期', lic.valid_date || '—'),
-            detailCell('注册地址', lic.address || '—')
+            detailCell('商户名称', lic.name || '—'),
+            detailCell('证照编号', lic.code || '—'),
+            detailCell('证照有效期开始日期', lic.start_date || '—'),
+            detailCell('证照有效期截止日期', endDateText(lic.valid_date)),
+            detailCell('成立日期', lic.found_date || lic.start_date || '—'),
+            detailCell('省市区', addrParts(lic.address, lic.region, lic.address_detail).region || '—'),
+            detailCell('详细地址', addrParts(lic.address, lic.region, lic.address_detail).detail || '—')
         ]);
         addSection('法人信息', [
             detailCellPhoto('法人身份证人像面(F02)', f.legal_cert_front_pic),
             detailCellPhoto('法人身份证国徽面(F03)', f.legal_cert_back_pic),
-            detailCell('证件类型', legal.cert_type || '身份证'),
+            detailCell('法人证件类型', legal.cert_type || '身份证'),
             detailCell('法人姓名', legal.legal_name || '—'),
-            detailCell('身份证号', legal.id_no || '—'),
-            detailCell('身份证起始日期', legal.id_start_date || '—'),
-            detailCell('身份证有效期', legal.id_valid_date || '—')
+            detailCell('法人证件号码', legal.id_no || '—'),
+            detailCell('法人证件开始日期', legal.id_start_date || '—'),
+            detailCell('法人证件截止日期', endDateText(legal.id_valid_date)),
+            detailCell('省市区', addrParts(legal.legal_addr, legal.legal_region, legal.legal_addr_detail).region || '—'),
+            detailCell('详细地址', addrParts(legal.legal_addr, legal.legal_region, legal.legal_addr_detail).detail || '—')
         ]);
         addSection('商户信息', [
             detailCell('商户简称', shortName),
@@ -2666,6 +3054,7 @@
             detailCell('小票名称', f.receipt_name || '—'),
             detailCell('实际经营地址', f.detail_addr || '—'),
             detailCell('法人手机号', f.legal_mobile_no || '—'),
+            detailCell('管理员姓名', f.contact_name || legal.legal_name || '—'),
             detailCell('管理员手机号', f.contact_mobile_no || '—'),
             detailCell('管理员邮箱', f.contact_email || '—')
         ]);
@@ -2690,7 +3079,7 @@
         if (c.length < 16) return null;
         var name = cellPlain(c[2]);
         var partner = cellPlain(c[3]);
-        var isFP = partner === '加盟店' || partner === '合作店';
+        var isFP = partner === '加盟店' || partner === '合作店' || partner === '生鲜店';
         var isPeer = partner === '同行店';
         var settleType = cellPlain(c[13]);
         function attr(key, fallback) {
@@ -3122,7 +3511,7 @@
             tableWrap.innerHTML = '';
             tableWrap.appendChild(
                 dataTable(
-                    ONBOARD_LIST_HEADERS,
+                    STORE_ONBOARD_LIST_HEADERS,
                     buildEntityOnboardListRows(
                         {
                             kind: 'store',
@@ -3130,9 +3519,14 @@
                             merchantName: store.name,
                             subjectType: '门店',
                             groupName: store.subjectName,
-                            onboardStatus: onboardingSummary.auditStatus || onboardingSummary.status,
+                            onboardStatus:
+                                onboardingSummary.auditStatus ||
+                                onboardingSummary.status ||
+                                store.onboardStatus,
                             fallbackMerchantNo: huifuMeta.merchantNo,
                             settlementSubject: store.settleType,
+                            settleType: normalizeOnboardSettleType(store.settleType),
+                            balancePayStatus: store.balancePay,
                             contactMobile: store.phone,
                             submitTime: formatTs(onboardingSummary.submittedAt),
                             recordKey: recordKey,
@@ -5039,6 +5433,7 @@
         fillEmpty(f.license_info, 'code', '91310000MA1FLSUP01');
         fillEmpty(f.license_info, 'start_date', '2024-01-01');
         fillEmpty(f.license_info, 'valid_date', '长期有效');
+        fillEmpty(f.license_info, 'found_date', '2024-01-01');
         fillEmpty(f.license_info, 'address', (r && r.detailAddress) || '上海市浦东新区张江路');
 
         f.legal_info = f.legal_info || {};
@@ -5047,6 +5442,8 @@
         fillEmpty(f.legal_info, 'id_no', '310101199001011234');
         fillEmpty(f.legal_info, 'id_start_date', '2020-01-01');
         fillEmpty(f.legal_info, 'id_valid_date', '2040-01-01');
+        fillEmpty(f.legal_info, 'legal_addr', (r && r.detailAddress) || '上海市浦东新区张江路');
+        if (!f.contact_name) f.contact_name = f.legal_info.legal_name || '';
 
         f.card_info = f.card_info || {};
         fillEmpty(f.card_info, 'account_name', f.license_info.name || (r && r.name) || '');

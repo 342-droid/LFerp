@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>门店订单 · 门店APP</title>
+  <link rel="stylesheet" href="../css/store-app.css?v=20260826-cutoff">
+  <link rel="stylesheet" href="../css/store-app-orders.css?v=20260827-shipfilter-pad">
+</head>
+<body class="store-app-body">
+  <div class="sa-shell sa-orders-shell">
+    <div class="sa-orders">
+      <header class="sa-orders-nav">
+        <a href="home.html" class="sa-orders-nav__back" id="btn-orders-back" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="sa-orders-nav__title" id="orders-title">门店订单</h1>
+        <div class="sa-orders-nav__actions">
+          <button type="button" class="sa-orders-nav__text-btn" id="btn-batch-enter">批量核销</button>
+          <button type="button" class="sa-orders-nav__text-btn" id="btn-batch-cancel" hidden>取消</button>
+          <button type="button" class="sa-orders-nav__text-btn" id="btn-batch-select-all" hidden>全选</button>
+        </div>
+      </header>
+
+      <div class="sa-orders-scroll">
+        <div class="order-search-bar">
+          <svg class="order-search-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m16.65 16.65 4.35 4.35" />
+          </svg>
+          <input
+            type="search"
+            id="order-search-input"
+            class="order-search-input"
+            placeholder="输入手机号或商品名称搜索"
+            autocomplete="off"
+          />
+        </div>
+        <div class="order-tabs" role="tablist" aria-label="订单状态">
+          <button type="button" class="order-tabs__btn is-active" data-status="全部" role="tab" aria-selected="true">全部</button>
+          <button type="button" class="order-tabs__btn" data-status="待收货" role="tab" aria-selected="false">待收货</button>
+          <button type="button" class="order-tabs__btn" data-status="待提货" role="tab" aria-selected="false">待提货/待收货</button>
+          <button type="button" class="order-tabs__btn" data-status="已完成" role="tab" aria-selected="false">已完成</button>
+          <button type="button" class="order-tabs__btn" data-status="排队中" role="tab" aria-selected="false">排队中</button>
+        </div>
+        <div id="ship-sub-tabs" class="order-sub-tabs" role="tablist" aria-label="履约方式" hidden>
+          <button type="button" class="order-sub-tabs__btn is-active" data-ship-filter="全部" role="tab" aria-selected="true">全部</button>
+          <button type="button" class="order-sub-tabs__btn" data-ship-filter="自提" role="tab" aria-selected="false">自提</button>
+          <button type="button" class="order-sub-tabs__btn" data-ship-filter="快递" role="tab" aria-selected="false">快递</button>
+        </div>
+        <div id="queue-sub-tabs" class="order-sub-tabs" role="tablist" aria-label="排队状态" hidden>
+          <button type="button" class="order-sub-tabs__btn is-active" data-queue-filter="全部" role="tab" aria-selected="true">全部</button>
+          <button type="button" class="order-sub-tabs__btn" data-queue-filter="已到店" role="tab" aria-selected="false">已到店</button>
+          <button type="button" class="order-sub-tabs__btn" data-queue-filter="未到店" role="tab" aria-selected="false">未到店</button>
+        </div>
+        <main class="subpage-body">
+          <div id="order-list-empty" class="order-list-empty" style="display:none;">暂无此类订单</div>
+          <div id="order-list"></div>
+        </main>
+      </div>
+      <div class="sa-orders-batch-bar" id="batch-bar" hidden>
+        <span class="sa-orders-batch-bar__tip">已选 <strong id="batch-count">0</strong> 件商品</span>
+        <button type="button" class="sa-orders-batch-bar__btn" id="btn-batch-go" disabled>确定核销</button>
+      </div>
+    </div>
+
+    <div id="verify-confirm-modal" class="verify-confirm-modal" aria-hidden="true" role="dialog" aria-labelledby="verify-confirm-title">
+      <div class="verify-confirm-modal__panel">
+        <h3 id="verify-confirm-title" class="verify-confirm-modal__title">确认核销</h3>
+        <p class="verify-confirm-modal__content">当前商品存在退款申请，核销后将关闭退款，是否已与客户确认？</p>
+        <div class="verify-confirm-modal__actions">
+          <button type="button" class="verify-confirm-modal__btn verify-confirm-modal__btn--cancel" id="btn-verify-cancel">取消</button>
+          <button type="button" class="verify-confirm-modal__btn verify-confirm-modal__btn--confirm" id="btn-verify-confirm">确认核销</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <script src="../js/store-app-orders-mock.js?v=20260827-multipkg"></script>
+  <script src="../js/store-app-toast.js?v=20260826-cutoff"></script>
+  <script src="../js/store-app-orders.js?v=20260827-shipfilter"></script>
+</body>
+</html>

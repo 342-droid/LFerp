@@ -111,6 +111,17 @@
         return d.slice(0, 3) + '****' + d.slice(-4);
     }
 
+    function addrParts(full, region, detail) {
+        if (window.MdmOnboardAddress && typeof window.MdmOnboardAddress.splitAddress === 'function') {
+            return window.MdmOnboardAddress.splitAddress(full, region, detail);
+        }
+        return {
+            region: String(region || '').trim(),
+            detail: String(detail || '').trim(),
+            full: String(full || region || detail || '').trim()
+        };
+    }
+
     function subjectOnboardingTitle(pageLabel) {
         if (pageLabel === '门店') return '门店进件';
         if (pageLabel === '供应商') return '供应商进件';
@@ -166,17 +177,20 @@
             { key: 'contact_mobile_no', label: '管理员手机号' },
             { key: 'contact_email', label: '管理员邮箱' },
             { key: 'license_pic', label: '营业执照(F07)' },
-            { key: 'license_info.name', label: '营业执照名称', bucket: lic },
-            { key: 'license_info.code', label: '证件代码', bucket: lic },
-            { key: 'license_info.start_date', label: '执照起始日期', bucket: lic },
-            { key: 'license_info.valid_date', label: '执照有效期', bucket: lic },
+            { key: 'license_info.name', label: '商户名称', bucket: lic },
+            { key: 'license_info.code', label: '证照编号', bucket: lic },
+            { key: 'license_info.start_date', label: '证照有效期开始日期', bucket: lic },
+            { key: 'license_info.valid_date', label: '证照有效期截止日期', bucket: lic },
+            { key: 'license_info.found_date', label: '成立日期', bucket: lic },
             { key: 'license_info.address', label: '注册地址', bucket: lic },
             { key: 'legal_cert_front_pic', label: '法人身份证人像面(F02)' },
             { key: 'legal_cert_back_pic', label: '法人身份证国徽面(F03)' },
             { key: 'legal_info.legal_name', label: '法人姓名', bucket: legal },
-            { key: 'legal_info.id_no', label: '身份证号', bucket: legal },
-            { key: 'legal_info.id_start_date', label: '身份证起始日期', bucket: legal },
-            { key: 'legal_info.id_valid_date', label: '身份证有效期', bucket: legal },
+            { key: 'legal_info.id_no', label: '法人证件号码', bucket: legal },
+            { key: 'legal_info.id_start_date', label: '法人证件开始日期', bucket: legal },
+            { key: 'legal_info.id_valid_date', label: '法人证件截止日期', bucket: legal },
+            { key: 'legal_info.legal_addr', label: '法人证件地址', bucket: legal },
+            { key: 'contact_name', label: '管理员姓名' },
             { key: 'open_license_pic', label: '开户许可证' }
             /* 内景/收银台为选填；门头/场地照仅门店必填 */
         ];
@@ -649,30 +663,46 @@
             ['备注', r.remarks || ext.remarks || '—']
         ]);
         section('主体关系信息', [
-            ['上级汇付号', r.headHuifuId || ext.headHuifuId || '—'],
+            ['上级汇付ID', r.headHuifuId || ext.headHuifuId || '—'],
             ['结算主体类型', rowInfo.subjectType || '—']
         ]);
         section('执照信息', [
             ['营业执照', f.license_pic, 'image'],
-            ['营业执照名称', lic.name || r.regName || ext.regName || '—'],
-            ['证件代码', lic.code || r.licenseCode || ext.licenseCode || '—'],
-            ['执照起始日期', lic.start_date || r.licenseBeginDate || ext.licenseBeginDate || '—'],
-            ['执照有效期', lic.valid_date || r.licenseEndDate || ext.licenseEndDate || '—'],
-            ['注册地址', lic.address || r.regDetail || ext.regDetail || '—']
+            ['商户名称', lic.name || r.regName || ext.regName || '—'],
+            ['证照编号', lic.code || r.licenseCode || ext.licenseCode || '—'],
+            ['证照有效期开始日期', lic.start_date || r.licenseBeginDate || ext.licenseBeginDate || '—'],
+            [
+                '证照有效期截止日期',
+                /长期/.test(String(lic.valid_date || r.licenseEndDate || ext.licenseEndDate || ''))
+                    ? '长期有效'
+                    : lic.valid_date || r.licenseEndDate || ext.licenseEndDate || '—'
+            ],
+            ['成立日期', lic.found_date || r.foundDate || ext.foundDate || lic.start_date || '—'],
+            ['省市区', addrParts(lic.address || r.regDetail || ext.regDetail, lic.region, lic.address_detail).region || '—'],
+            ['详细地址', addrParts(lic.address || r.regDetail || ext.regDetail, lic.region, lic.address_detail).detail || '—']
         ]);
         section('法人基本信息', [
-            ['身份证人像面', f.legal_cert_front_pic, 'image'],
-            ['身份证国徽面', f.legal_cert_back_pic, 'image'],
+            ['法人身份证人像面', f.legal_cert_front_pic, 'image'],
+            ['法人身份证国徽面', f.legal_cert_back_pic, 'image'],
+            ['法人证件类型', legal.cert_type || '身份证'],
             ['法人姓名', legal.legal_name || r.legalName || ext.legalName || '—'],
-            ['身份证号', legal.id_no || maskMiddle(r.legalIdNo || ext.legalIdNo)],
-            ['身份证起始日期', legal.id_start_date || r.legalCertBeginDate || ext.legalCertBeginDate || '—'],
-            ['身份证有效期', legal.id_valid_date || r.legalCertEndDate || ext.legalCertEndDate || '—']
+            ['法人证件号码', legal.id_no || maskMiddle(r.legalIdNo || ext.legalIdNo)],
+            ['法人证件开始日期', legal.id_start_date || r.legalCertBeginDate || ext.legalCertBeginDate || '—'],
+            [
+                '法人证件截止日期',
+                /长期/.test(String(legal.id_valid_date || r.legalCertEndDate || ext.legalCertEndDate || ''))
+                    ? '长期有效'
+                    : legal.id_valid_date || r.legalCertEndDate || ext.legalCertEndDate || '—'
+            ],
+            ['省市区', addrParts(legal.legal_addr || r.legalAddr || ext.legalAddr, legal.legal_region, legal.legal_addr_detail).region || '—'],
+            ['详细地址', addrParts(legal.legal_addr || r.legalAddr || ext.legalAddr, legal.legal_region, legal.legal_addr_detail).detail || '—']
         ]);
         section('商户信息', [
             ['商户简称', f.short_name || '—'],
             ['小票名称', f.receipt_name || '—'],
             ['实际经营地址', f.detail_addr || '—'],
             ['法人手机号', f.legal_mobile_no || '—'],
+            ['管理员姓名', f.contact_name || legal.legal_name || r.legalName || '—'],
             ['管理员手机号', f.contact_mobile_no || rowInfo.contactMobile || '—'],
             ['管理员邮箱', f.contact_email || '—']
         ]);

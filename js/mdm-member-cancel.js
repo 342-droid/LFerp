@@ -166,16 +166,16 @@
                 if (!idCell || idCell.textContent.trim() !== String(memberId)) return;
                 tr.setAttribute('data-member-status', mapStatus);
                 var cells = tr.querySelectorAll('td');
-                if (cells.length < 20) return;
-                var st = cells[18].querySelector('.status') || document.createElement('span');
+                if (cells.length < 21) return;
+                var st = cells[19].querySelector('.status') || document.createElement('span');
                 if (mapStatus === '注销' || mapStatus === '已注销') st.className = 'status canceled';
                 else if (mapStatus === '注销中' || mapStatus === '审核中') st.className = 'status cancel-pending';
                 else if (mapStatus === '黑名单') st.className = 'status blacklist';
                 else st.className = 'status active';
                 st.textContent = mapStatus === '已注销' ? '注销' : mapStatus;
                 if (!st.parentNode) {
-                    cells[18].innerHTML = '';
-                    cells[18].appendChild(st);
+                    cells[19].innerHTML = '';
+                    cells[19].appendChild(st);
                 }
             });
         }

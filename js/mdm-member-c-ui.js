@@ -93,6 +93,7 @@
             amount: String(z(m.amount, '—')),
             orderCount: String(z(m.orderCount, '—')),
             lastConsume: String(z(m.lastConsume, '—')),
+            registerTime: String(z(m.registerTime, z(m.firstLogin, '—'))),
             status: String(z(m.status, '—')),
             superiorReferrer: m.superiorReferrer != null ? String(m.superiorReferrer) : '—',
             grandReferrer: m.grandReferrer != null ? String(m.grandReferrer) : '—',
@@ -160,7 +161,8 @@
             amount: c[15].textContent.trim(),
             orderCount: c[16].textContent.trim(),
             lastConsume: c[17].textContent.trim(),
-            status: (c[18].querySelector('.status') || c[18]).textContent.trim()
+            registerTime: c.length >= 21 ? c[18].textContent.trim() : '—',
+            status: ((c.length >= 21 ? c[19] : c[18]).querySelector('.status') || (c.length >= 21 ? c[19] : c[18])).textContent.trim()
         };
         if (tr.getAttribute('data-birthday')) base.birthday = tr.getAttribute('data-birthday');
         if (tr.getAttribute('data-district')) base.district = tr.getAttribute('data-district');
@@ -246,6 +248,7 @@
             ['成交金额', '¥' + rec.amount],
             ['成交订单数', rec.orderCount],
             ['最近消费时间', rec.lastConsume],
+            ['注册时间', rec.registerTime || rec.firstLogin || '—'],
             ['第一次登录时间', rec.firstLogin],
             ['注册邀请人', rec.inviteMemberId + ' / ' + rec.inviteNickname],
             ['最近登录时间', rec.latestLogin],
@@ -1608,23 +1611,171 @@
         return root;
     }
 
-    function panelBindStores() {
+    var STORE_BIND_LOG_KEY = 'mdm_member_store_bind_log_v1';
+    var MEMBER_BIND_EXTRA_STORES = [
+        { id: 'ONS-CENTER-01', name: '中心店01', address: '杭州市西湖区绿城西溪世纪中心1号楼', regionId: '330000', regionText: '浙江省杭州市西湖区', customerCount: 0 },
+        { id: 'ONS-XIXI-SOUTH', name: '西溪湿地南门店', address: '杭州市西湖区天目山路旁西溪湿地南门', regionId: '330000', regionText: '浙江省杭州市西湖区', customerCount: 0 },
+        { id: 'ONS-JIANGCUN', name: '蒋村公交站店', address: '杭州市西湖区余杭塘路蒋村路口', regionId: '330000', regionText: '浙江省杭州市西湖区', customerCount: 0 },
+        { id: 'ONS303445581201', name: '冷丰生鲜超市', address: '天津市河东区长三角珠宝产业园A3栋', regionId: '120000', regionText: '天津市河东区', customerCount: 0 }
+    ];
+    var STORE_REGION_TEXT = {
+        '110000': '北京市',
+        '120000': '天津市',
+        '130000': '河北省',
+        '310000': '上海市',
+        '320000': '江苏省',
+        '330000': '浙江省',
+        '420000': '湖北省',
+        '440000': '广东省',
+        '510000': '四川省'
+    };
+
+    function formatNow() {
+        var d = new Date();
+        function p(n) {
+            return n < 10 ? '0' + n : String(n);
+        }
+        return (
+            d.getFullYear() +
+            '-' +
+            p(d.getMonth() + 1) +
+            '-' +
+            p(d.getDate()) +
+            ' ' +
+            p(d.getHours()) +
+            ':' +
+            p(d.getMinutes()) +
+            ':' +
+            p(d.getSeconds())
+        );
+    }
+
+    function loadStoreBindMap() {
+        try {
+            var raw = localStorage.getItem(STORE_BIND_LOG_KEY);
+            var data = raw ? JSON.parse(raw) : {};
+            return data && typeof data === 'object' ? data : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function saveStoreBindMap(map) {
+        try {
+            localStorage.setItem(STORE_BIND_LOG_KEY, JSON.stringify(map));
+        } catch (e) { /* ignore */ }
+    }
+
+    function defaultStoreBindLogs(memberId) {
+        var id = String(memberId || '');
+        if (id === 'U10001') {
+            return [
+                { type: '切换门店', storeName: '西溪湿地南门店', region: '浙江省杭州市西湖区', addr: '杭州市西湖区天目山路旁西溪湿地南门', way: '扫码', time: '2026-08-20 15:10:22', watch: '46min', amount: '¥268.00', orders: '3', refundAmt: '¥0.00', refundCnt: '0' },
+                { type: '绑定门店', storeName: '中心店01', region: '浙江省杭州市西湖区', addr: '杭州市西湖区绿城西溪世纪中心1号楼', way: '确认门店', time: '2026-08-01 09:20:11', watch: '120min', amount: '¥3688.00', orders: '12', refundAmt: '¥32.00', refundCnt: '1' },
+                { type: '切换门店', storeName: '蒋村公交站店', region: '浙江省杭州市西湖区', addr: '杭州市西湖区余杭塘路蒋村路口', way: '扫码', time: '2026-07-12 11:08:40', watch: '18min', amount: '¥86.00', orders: '1', refundAmt: '¥0.00', refundCnt: '0' }
+            ];
+        }
+        if (id === 'U10002') {
+            return [
+                { type: '切换门店', storeName: '西湖文三路店', region: '浙江省杭州市西湖区', addr: '文三路478号华星时代广场', way: '扫码', time: '2026-04-02 19:20:00', watch: '22min', amount: '¥199.00', orders: '1', refundAmt: '¥0.00', refundCnt: '0' },
+                { type: '绑定门店', storeName: '中心店01', region: '浙江省杭州市西湖区', addr: '杭州市西湖区绿城西溪世纪中心1号楼', way: '确认门店', time: '2025-11-03 18:42:11', watch: '45min', amount: '¥1299.50', orders: '5', refundAmt: '¥0.00', refundCnt: '0' }
+            ];
+        }
+        return [
+            { type: '绑定门店', storeName: '中心店01', region: '浙江省杭州市西湖区', addr: '杭州市西湖区绿城西溪世纪中心1号楼', way: '确认门店', time: '2026-01-12 09:20:11', watch: '—', amount: '—', orders: '—', refundAmt: '—', refundCnt: '—' }
+        ];
+    }
+
+    function listStoreBindLogs(memberId) {
+        var all = loadStoreBindMap();
+        var rows = all[memberId];
+        if (!rows || !rows.length) rows = defaultStoreBindLogs(memberId);
+        return rows.slice().sort(function (a, b) {
+            return String((b && b.time) || '').localeCompare(String((a && a.time) || ''));
+        });
+    }
+
+    function appendStoreBindLog(memberId, rec) {
+        var all = loadStoreBindMap();
+        var rows = all[memberId];
+        if (!rows || !rows.length) rows = defaultStoreBindLogs(memberId);
+        rows.unshift(rec);
+        all[memberId] = rows;
+        saveStoreBindMap(all);
+        return listStoreBindLogs(memberId);
+    }
+
+    function storeRegionText(store) {
+        if (!store) return '—';
+        if (store.regionText) return store.regionText;
+        return STORE_REGION_TEXT[store.regionId] || '—';
+    }
+
+    function openChangeStorePicker(member) {
+        if (!member || !window.MdmProxyStorePicker) {
+            showToast('门店选择器未加载', 'error');
+            return;
+        }
+        window.MdmProxyStorePicker.open({
+            single: true,
+            compactHeight: true,
+            extraStores: MEMBER_BIND_EXTRA_STORES,
+            onConfirm: function (_selected, stores) {
+                var store = stores && stores[0];
+                if (!store) return;
+                appendStoreBindLog(member.id, {
+                    type: '切换门店',
+                    storeName: store.name,
+                    region: storeRegionText(store),
+                    addr: store.address || '—',
+                    way: '后台变更',
+                    time: formatNow(),
+                    watch: '—',
+                    amount: '—',
+                    orders: '—',
+                    refundAmt: '—',
+                    refundCnt: '—'
+                });
+                showToast('已将绑定门店变更为「' + store.name + '」', 'success');
+            }
+        });
+    }
+
+    function panelBindStores(rec) {
         var root = el('div', 'member-drawer-panel');
         root.appendChild(el('div', 'supplier-detail-section-title', '绑定门店'));
         var headers = [
+            '类型',
             '门店名称',
             '省市区',
             '详细地址',
             '绑定方式',
-            '绑定时间',
+            '发生时间',
             '观看时长',
             '消费金额',
             '下单次数',
             '退款金额',
             '退款次数'
         ];
-        var rows = [['—', '—', '—', '—', '—', '—', '—', '—', '—', '—']];
-        root.appendChild(wrapTable(headers, rows, ''));
+        var logs = listStoreBindLogs(rec && rec.id);
+        var rows = logs.length
+            ? logs.map(function (item) {
+                return [
+                    item.type || '—',
+                    item.storeName || '—',
+                    item.region || '—',
+                    item.addr || '—',
+                    item.way || '—',
+                    item.time || '—',
+                    item.watch || '—',
+                    item.amount || '—',
+                    item.orders || '—',
+                    item.refundAmt || '—',
+                    item.refundCnt || '—'
+                ];
+            })
+            : [['暂无绑定/切换记录', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—']];
+        root.appendChild(wrapTable(headers, rows, 'member-drawer-table--wide'));
         root.appendChild(fakePaginationBar());
         return root;
     }
@@ -1717,7 +1868,7 @@
             growth: panelMemberGrowth(rec),
             points: panelMemberPoints(rec),
             assets: panelMemberAssets(rec),
-            stores: panelBindStores(),
+            stores: panelBindStores(rec),
             watch: panelWatchRecords(),
             orders: panelOrderRecords()
         };
@@ -2500,6 +2651,14 @@
                 return;
             }
             openGrowthAdjustModal(m);
+        },
+        openChangeStoreFromRow: function (tr) {
+            var m = rowToMember(tr);
+            if (!m) {
+                showToast('无法读取该行会员数据', 'error');
+                return;
+            }
+            openChangeStorePicker(m);
         },
         openGrowthAdjust: openGrowthAdjustModal
     };

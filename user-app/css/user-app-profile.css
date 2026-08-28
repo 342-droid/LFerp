@@ -497,6 +497,22 @@
   align-items: flex-start;
   gap: 12px;
   padding: 14px 15px 16px;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ua-default-pickup__body:active {
+  background: #fafafa;
+}
+
+.ua-default-pickup__chevron {
+  width: 14px;
+  height: 14px;
+  margin-top: 4px;
+  flex-shrink: 0;
+  color: #ccc;
+  stroke: #ccc;
 }
 
 .ua-default-pickup__avatar {

@@ -1,0 +1,23 @@
+/**
+ * 门店订单物流页：复用用户 APP 订单跟踪结构，仅适配 App 壳
+ */
+.ua-order-logistics-page.sa-orders-shell {
+  background: #f5f5f5;
+}
+
+.ua-order-logistics-page .sa-orders {
+  background: #f5f5f5;
+}
+
+.ua-order-logistics-page .sa-orders-nav {
+  background: #f5f5f5;
+  border-bottom: 0;
+}
+
+.ua-order-logistics-page .ua-ol-scroll {
+  padding-bottom: 24px;
+}
+
+.ua-order-logistics-page .ua-ol-body {
+  padding: 0 12px 16px;
+}

@@ -325,8 +325,8 @@
                                     <th>商品名称</th>
                                     <th>商品规格</th>
                                     <th>商品单位</th>
+                                    <th>订单量</th>
                                     <th>计划出库量</th>
-                                    <th>实际出库量</th>
                                     <th>已分配量</th>
                                     <th>已拣货量</th>
                                     <th>已分拣量</th>
@@ -1006,12 +1006,12 @@
             const value = Number(input.value);
             if (input.value === '' || value < 0 || value > Number(input.max)) {
                 input.value = product.actualOutboundQty;
-                if (typeof showToast === 'function') showToast('实际出库量须在 0 到计划出库量之间', 'warning');
+                if (typeof showToast === 'function') showToast('计划出库量须在 0 到订单量之间', 'warning');
                 return;
             }
             if (product.actualOutboundQty === value) return;
             product.actualOutboundQty = value;
-            if (typeof showToast === 'function') showToast('实际出库量已保存', 'success');
+            if (typeof showToast === 'function') showToast('计划出库量已保存', 'success');
         }
 
         function showOrderDetail(orderId) {

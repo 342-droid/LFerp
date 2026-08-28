@@ -1,6 +1,15 @@
 {
   "prds": [
     {
+      "id": "303-虚拟点赞数",
+      "title": "【303】虚拟点赞数",
+      "file": "303-虚拟点赞数.md",
+      "pages": [
+        "MDM/mdm_live_control.html",
+        "user-app/h5/live-room.html"
+      ]
+    },
+    {
       "id": "466-467-468-308-305-直播场次状态对应操作和中控台的活动发放优化",
       "title": "【466】【467】【468】【308】【305】直播场次状态对应操作和中控台的活动发放优化",
       "file": "466-467-468-308-305-直播场次状态对应操作和中控台的活动发放优化.md",
@@ -43,6 +52,20 @@
       "pages": [
         "MDM/mdm_live_control.html",
         "user-app/h5/live-room.html"
+      ]
+    },
+    {
+      "id": "537-门店绑定与切店",
+      "title": "【537】门店绑定与切店",
+      "file": "537-门店绑定与切店.md",
+      "pages": [
+        "MDM/mdm_archive_store.html",
+        "user-app/h5/home.html",
+        "user-app/h5/switch-address.html",
+        "user-app/h5/scan-store.html",
+        "user-app/h5/profile.html",
+        "store-app/h5/home.html",
+        "MDM/mdm_member_c.html"
       ]
     }
   ]

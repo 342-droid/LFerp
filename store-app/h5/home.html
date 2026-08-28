@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>门店APP · 工作台</title>
-  <link rel="stylesheet" href="../css/store-app.css?v=20260726-order-verify-only">
+  <link rel="stylesheet" href="../css/store-app.css?v=20260826-scan-fit">
+  <link rel="stylesheet" href="../css/store-app-scan.css?v=20260826-scan-fit">
+  <link rel="stylesheet" href="../css/store-app-qrcode.css?v=20260826-scan-fit">
 </head>
 <body class="store-app-body">
   <div class="sa-shell">
@@ -66,13 +68,13 @@
         <section class="sa-card">
           <h2 class="sa-card__title">基础工具</h2>
           <div class="sa-tools">
-            <button type="button" class="sa-tool" data-sa-action="memberCode">
+            <button type="button" class="sa-tool" data-sa-action="promoCode" id="btn-promo-qr-open">
               <span class="sa-tool__icon sa-tool__icon--yellow">
                 <svg viewBox="0 0 24 24" fill="currentColor">
                   <path d="M4 4h7v7H4V4zm2 2v3h3V6H6zm7-2h7v7h-7V4zm2 2v3h3V6h-3zM4 13h7v7H4v-7zm2 2v3h3v-3H6zm9.5-2h1.5v1.5H15.5V13zm3 0H20v1.5h-1.5V13zM13 16.5h1.5V18H13v-1.5zm0 3H14.5V21H13v-1.5zm3-3H17.5V18H16v-1.5zm3 0H20V18h-1.5v-1.5zm-3 3H17.5V21H16v-1.5zm3 0H20V21h-1.5v-1.5z"/>
                 </svg>
               </span>
-              <span class="sa-tool__label">门店会员码</span>
+              <span class="sa-tool__label">门店推广码</span>
             </button>
 
             <button type="button" class="sa-tool" data-sa-action="orders">
@@ -82,7 +84,25 @@
                   <path d="M9 10h6M9 14h6M9 18h4"/>
                 </svg>
               </span>
-              <span class="sa-tool__label">门店订单</span>
+              <span class="sa-tool__label">客户订单</span>
+            </button>
+
+            <button type="button" class="sa-tool" data-sa-action="queueCode" id="btn-queue-qr-open">
+              <span class="sa-tool__icon sa-tool__icon--yellow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <rect x="3" y="3" width="7" height="7" rx="1"/>
+                  <rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/>
+                  <rect x="14" y="3" width="7" height="7" rx="1"/>
+                  <rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/>
+                  <rect x="3" y="14" width="7" height="7" rx="1"/>
+                  <rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/>
+                  <rect x="14" y="14" width="3" height="3" fill="currentColor" stroke="none"/>
+                  <rect x="18" y="14" width="3" height="3" fill="currentColor" stroke="none"/>
+                  <rect x="14" y="18" width="3" height="3" fill="currentColor" stroke="none"/>
+                  <rect x="18" y="18" width="3" height="3" fill="currentColor" stroke="none"/>
+                </svg>
+              </span>
+              <span class="sa-tool__label">排队码</span>
             </button>
 
             <button type="button" class="sa-tool" data-sa-action="receive">
@@ -187,7 +207,112 @@
         </button>
       </nav>
     </div>
+
+    <div id="scan-modal" class="scan-modal" aria-hidden="true" role="dialog" aria-labelledby="scan-modal-title">
+      <div class="scan-modal__panel">
+        <h3 id="scan-modal-title" class="scan-modal__title">订单核销</h3>
+        <p class="scan-modal__hint">识别会员信息条码</p>
+        <div class="scan-frame" aria-hidden="true">
+          <div class="scan-frame__line"></div>
+        </div>
+        <button type="button" class="scan-modal__simulate" id="btn-scan-simulate">模拟扫描到会员条码</button>
+        <button type="button" class="scan-modal__cancel" id="btn-scan-cancel">取消</button>
+      </div>
+    </div>
   </div>
-  <script src="../js/store-app-home.js?v=20260805-ob"></script>
+
+  <div id="queue-qr-modal" class="qr-modal" aria-hidden="true" role="dialog" aria-labelledby="queue-qr-modal-title">
+    <div class="qr-modal__panel">
+      <button type="button" class="qr-modal__close" id="btn-queue-qr-close" aria-label="关闭">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <h3 id="queue-qr-modal-title" class="qr-modal__title">门店排队码</h3>
+      <div class="qr-modal__store">
+        <div class="qr-modal__avatar" id="queue-qr-avatar">店</div>
+        <div class="qr-modal__info">
+          <p class="qr-modal__name" id="queue-qr-store-name"></p>
+          <p class="qr-modal__sub">扫码取号排队</p>
+        </div>
+      </div>
+      <div class="qr-modal__qr-wrap" id="queue-qr-canvas-wrap">
+        <div id="queue-qr-code-mount" class="qr-modal__qr-mount"></div>
+      </div>
+      <p class="qr-modal__tip">截图保存后张贴于门店，供顾客扫码排队</p>
+      <div class="qr-modal__actions">
+        <button type="button" class="qr-modal__action qr-modal__action--share" id="btn-queue-qr-share">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="18" cy="5" r="3"/>
+            <circle cx="6" cy="12" r="3"/>
+            <circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          分享微信
+        </button>
+        <button type="button" class="qr-modal__action qr-modal__action--save" id="btn-queue-qr-save">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          保存相册
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="promo-qr-modal" class="qr-modal" aria-hidden="true" role="dialog" aria-labelledby="promo-qr-modal-title">
+    <div class="qr-modal__panel">
+      <button type="button" class="qr-modal__close" id="btn-promo-qr-close" aria-label="关闭">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <h3 id="promo-qr-modal-title" class="qr-modal__title">门店推广码</h3>
+      <div class="qr-modal__store">
+        <div class="qr-modal__avatar" id="promo-qr-avatar">店</div>
+        <div class="qr-modal__info">
+          <p class="qr-modal__name" id="promo-qr-store-name"></p>
+          <p class="qr-modal__sub">用户 APP / 小程序扫码进店</p>
+        </div>
+      </div>
+      <div class="qr-modal__qr-wrap" id="promo-qr-canvas-wrap">
+        <div id="promo-qr-code-mount" class="qr-modal__qr-mount"></div>
+      </div>
+      <p class="qr-modal__tip">二维码含门店标识，用户 APP 与小程序扫码后进入对应门店</p>
+      <div class="qr-modal__actions">
+        <button type="button" class="qr-modal__action qr-modal__action--share" id="btn-promo-qr-share">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="18" cy="5" r="3"/>
+            <circle cx="6" cy="12" r="3"/>
+            <circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          分享微信
+        </button>
+        <button type="button" class="qr-modal__action qr-modal__action--save" id="btn-promo-qr-save">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          保存相册
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="../js/store-app-orders-mock.js?v=20260827-promo-qr"></script>
+  <script src="../js/store-app-toast.js?v=20260826-cutoff"></script>
+  <script src="../js/store-app-qrcode.js?v=20260826-cutoff"></script>
+  <script src="../js/store-app-scan.js?v=20260826-cutoff"></script>
+  <script src="../js/store-app-home.js?v=20260827-promo-qr"></script>
+  <script src="../../js/pg-prd-float.js?v=20260828-537"></script>
 </body>
 </html>

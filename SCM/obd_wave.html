@@ -381,6 +381,7 @@
                                     <th>商品名称</th>
                                     <th>商品规格</th>
                                     <th>商品单位</th>
+                                    <th>订单量</th>
                                     <th>计划分配量</th>
                                     <th>已分配量</th>
                                     <th>已取消量</th>
@@ -531,11 +532,11 @@
         };
         const waveDetailLineDataByWaveNo = {
             WAVE202603240001: [
-                { outboundNo: 'OBD202603240001', skuCode: 'SKU1001', skuName: '三文鱼切片 500g', unit: '盒', planAllocateQty: 100, allocatedQty: 80, canceledQty: 0, replenishing: '是', allocateAbnormal: '否', closed: '否' },
-                { outboundNo: 'OBD202603240001', skuCode: 'SKU1002', skuName: '牛排 300g', unit: '盒', planAllocateQty: 60, allocatedQty: 20, canceledQty: 5, replenishing: '否', allocateAbnormal: '否', closed: '否' }
+                { outboundNo: 'OBD202603240001', skuCode: 'SKU1001', skuName: '三文鱼切片 500g', unit: '盒', plannedAllocateQty: 100, actualAllocateQty: 100, allocatedQty: 80, canceledQty: 0, replenishing: '是', allocateAbnormal: '否', closed: '否' },
+                { outboundNo: 'OBD202603240001', skuCode: 'SKU1002', skuName: '牛排 300g', unit: '盒', plannedAllocateQty: 60, actualAllocateQty: 60, allocatedQty: 20, canceledQty: 5, replenishing: '否', allocateAbnormal: '否', closed: '否' }
             ],
             WAVE202603240002: [
-                { outboundNo: 'OBD202603240002', skuCode: 'SKU2001', skuName: '冻虾仁 1kg', unit: '袋', planAllocateQty: 200, allocatedQty: 200, canceledQty: 0, replenishing: '否', allocateAbnormal: '是', closed: '否' }
+                { outboundNo: 'OBD202603240002', skuCode: 'SKU2001', skuName: '冻虾仁 1kg', unit: '袋', plannedAllocateQty: 200, actualAllocateQty: 200, allocatedQty: 200, canceledQty: 0, replenishing: '否', allocateAbnormal: '是', closed: '否' }
             ]
         };
         let currentAssignOrderId = '';
@@ -952,7 +953,8 @@
                     <td>${item.skuName || '-'}</td>
                     <td>${getWmsSkuSpec(item.skuCode, item.skuName)}</td>
                     <td>${item.unit || '-'}</td>
-                    <td>${item.planAllocateQty ?? '-'}</td>
+                    <td>${item.plannedAllocateQty ?? '-'}</td>
+                    <td>${item.actualAllocateQty ?? '-'}</td>
                     <td>${item.allocatedQty ?? '-'}</td>
                     <td>${item.canceledQty ?? '-'}</td>
                     <td>${item.replenishing || '-'}</td>

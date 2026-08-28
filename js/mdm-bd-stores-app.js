@@ -524,8 +524,8 @@
 
   function archiveBody(store, appendAgreement) {
     var div = store.partnerDivision;
-    var policy = div === '加盟店' || div === '合作店' || div === '同行店';
-    var fr = div === '加盟店' || div === '合作店';
+    var policy = div === '加盟店' || div === '合作店' || div === '同行店' || div === '生鲜店';
+    var fr = div === '加盟店' || div === '合作店' || div === '生鲜店';
     var peer = div === '同行店';
     var parts = [];
 
@@ -671,8 +671,8 @@
   /** 与 mdm-bd-h5-store-register validate() / field(, true) 对齐；审核档案不展示验证码 */
   function isBdArchiveFieldRequired(fieldKey, store) {
     var div = String((store && store.partnerDivision) || '').trim();
-    var policy = div === '加盟店' || div === '合作店' || div === '同行店';
-    var fr = div === '加盟店' || div === '合作店';
+    var policy = div === '加盟店' || div === '合作店' || div === '同行店' || div === '生鲜店';
+    var fr = div === '加盟店' || div === '合作店' || div === '生鲜店';
     var common = {
       storeSubject: true,
       name: true,

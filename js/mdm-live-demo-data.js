@@ -277,6 +277,10 @@
       cViewerInitial: 18,
       cViewerExtraMin: 1,
       cViewerExtraMax: 3,
+      cLikeInitial: 0,
+      cLikeIntervalMin: 0,
+      cLikeExtraMin: 0,
+      cLikeExtraMax: 0,
       createStatus: 'ENABLED',
       remark: '',
       createdAt: '2026-08-10 15:20:00'
@@ -333,6 +337,10 @@
       cViewerInitial: 0,
       cViewerExtraMin: 0,
       cViewerExtraMax: 0,
+      cLikeInitial: 0,
+      cLikeIntervalMin: 0,
+      cLikeExtraMin: 0,
+      cLikeExtraMax: 0,
       createStatus: 'ENABLED',
       remark: '区域试播',
       createdAt: '2026-08-11 09:40:00'
@@ -431,6 +439,10 @@
       cViewerInitial: 0,
       cViewerExtraMin: 0,
       cViewerExtraMax: 0,
+      cLikeInitial: 0,
+      cLikeIntervalMin: 0,
+      cLikeExtraMin: 0,
+      cLikeExtraMax: 0,
       createStatus: 'ENABLED',
       remark: '已结束归档',
       createdAt: '2026-08-09 10:00:00'
@@ -467,6 +479,10 @@
       cViewerInitial: 0,
       cViewerExtraMin: 0,
       cViewerExtraMax: 0,
+      cLikeInitial: 0,
+      cLikeIntervalMin: 0,
+      cLikeExtraMin: 0,
+      cLikeExtraMax: 0,
       createStatus: 'DRAFT',
       remark: '',
       createdAt: '2026-08-11 18:10:00'
@@ -1240,6 +1256,28 @@
         { id: 'w2', nickname: '阿南', phone: '159****8830', enterTime: '19:20:41', duration: '21:37' },
         { id: 'w3', nickname: '小满', phone: '186****2209', enterTime: '19:33:02', duration: '09:16' },
         { id: 'w4', nickname: '阿木', phone: '137****4410', enterTime: '19:38:55', duration: '03:23' }
+      ],
+      likeDetails: [
+        { id: 'ld1', userId: 'u-guozi', nickname: '果子狸', time: '2026-08-11 19:42:08', count: 6, totalCount: 128 },
+        { id: 'ld2', userId: 'u-anan', nickname: '阿南', time: '2026-08-11 19:41:55', count: 3, totalCount: 86 },
+        { id: 'ld3', userId: 'u-xiaoman', nickname: '小满', time: '2026-08-11 19:41:20', count: 8, totalCount: 42 },
+        { id: 'ld4', userId: 'u-xikui', nickname: '希奎', time: '2026-08-11 19:40:48', count: 2, totalCount: 57 },
+        { id: 'ld5', userId: 'u-guozi', nickname: '果子狸', time: '2026-08-11 19:39:12', count: 4, totalCount: 122 },
+        { id: 'ld6', userId: 'u-amu', nickname: '阿木', time: '2026-08-11 19:38:58', count: 5, totalCount: 19 },
+        { id: 'ld7', userId: 'u-xiaozhou', nickname: '小周', time: '2026-08-11 19:38:06', count: 1, totalCount: 7 },
+        { id: 'ld8', userId: 'u-aijiaosha', nickname: '爱叫啥叫啥', time: '2026-08-11 19:37:40', count: 7, totalCount: 31 },
+        { id: 'ld9', userId: 'u-anan', nickname: '阿南', time: '2026-08-11 19:36:22', count: 2, totalCount: 83 },
+        { id: 'ld10', userId: 'u-laozhang', nickname: '老张', time: '2026-08-11 19:35:11', count: 3, totalCount: 64 }
+      ],
+      likeUsers: [
+        { userId: 'u-guozi', nickname: '果子狸', totalCount: 128 },
+        { userId: 'u-anan', nickname: '阿南', totalCount: 86 },
+        { userId: 'u-laozhang', nickname: '老张', totalCount: 64 },
+        { userId: 'u-xikui', nickname: '希奎', totalCount: 57 },
+        { userId: 'u-xiaoman', nickname: '小满', totalCount: 42 },
+        { userId: 'u-aijiaosha', nickname: '爱叫啥叫啥', totalCount: 31 },
+        { userId: 'u-amu', nickname: '阿木', totalCount: 19 },
+        { userId: 'u-xiaozhou', nickname: '小周', totalCount: 7 }
       ]
     },
     'sess-002': {
@@ -1298,6 +1336,12 @@
     });
     ended.watchRecords = (live.watchRecords || []).map(function (w) {
       return Object.assign({}, w);
+    });
+    ended.likeDetails = (live.likeDetails || []).map(function (r) {
+      return Object.assign({}, r);
+    });
+    ended.likeUsers = (live.likeUsers || []).map(function (u) {
+      return Object.assign({}, u);
     });
     ended.recentOrders = (live.recentOrders || []).map(function (o) {
       return Object.assign({}, o);
@@ -1692,6 +1736,16 @@
 
   var C_VIEWER_INITIAL_MAX = 999999;
   var C_VIEWER_EXTRA_MAX = 100;
+  var C_LIKE_VALUE_MAX = 999999;
+
+  function parseDemoTs(str) {
+    if (str == null || str === '') return NaN;
+    var s = String(str).trim();
+    if (!s) return NaN;
+    var ts = new Date(s).getTime();
+    if (!isFinite(ts)) ts = new Date(s.replace('T', ' ').replace(/-/g, '/')).getTime();
+    return ts;
+  }
 
   function normalizeCViewerConfig(sess) {
     sess = sess || {};
@@ -1712,9 +1766,10 @@
     };
   }
 
-  function extraFollowAt(index, min, max, seed) {
-    var lo = clampInt(min, 0, C_VIEWER_EXTRA_MAX, 0);
-    var hi = clampInt(max, 0, C_VIEWER_EXTRA_MAX, 0);
+  function extraRangeAt(index, min, max, seed, cap) {
+    var limit = cap == null ? C_LIKE_VALUE_MAX : cap;
+    var lo = clampInt(min, 0, limit, 0);
+    var hi = clampInt(max, 0, limit, 0);
     if (lo > hi) {
       var t = lo;
       lo = hi;
@@ -1728,6 +1783,119 @@
       h = (h + (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24)) >>> 0;
     }
     return lo + (h % span);
+  }
+
+  function extraFollowAt(index, min, max, seed) {
+    return extraRangeAt(index, min, max, seed, C_VIEWER_EXTRA_MAX);
+  }
+
+  function normalizeCLikeConfig(sess) {
+    sess = sess || {};
+    var extraMin = clampInt(sess.cLikeExtraMin, 0, C_LIKE_VALUE_MAX, 0);
+    var extraMax = clampInt(sess.cLikeExtraMax, 0, C_LIKE_VALUE_MAX, 0);
+    if (extraMin > extraMax) {
+      var tmp = extraMin;
+      extraMin = extraMax;
+      extraMax = tmp;
+    }
+    return {
+      initial: clampInt(sess.cLikeInitial, 0, C_LIKE_VALUE_MAX, 0),
+      intervalMin: clampInt(sess.cLikeIntervalMin, 0, C_LIKE_VALUE_MAX, 0),
+      extraMin: extraMin,
+      extraMax: extraMax
+    };
+  }
+
+  function likeTickExtra(ticks, min, max, seed) {
+    var n = clampInt(ticks, 0, 99999999, 0);
+    if (n <= 0) return 0;
+    var lo = clampInt(min, 0, C_LIKE_VALUE_MAX, 0);
+    var hi = clampInt(max, 0, C_LIKE_VALUE_MAX, 0);
+    if (lo > hi) {
+      var t = lo;
+      lo = hi;
+      hi = t;
+    }
+    if (lo === 0 && hi === 0) return 0;
+    if (lo === hi) return n * lo;
+    var extra = 0;
+    var i;
+    for (i = 0; i < n; i++) {
+      extra += extraRangeAt(i, lo, hi, seed, C_LIKE_VALUE_MAX);
+    }
+    return extra;
+  }
+
+  function resolveCLikeCount(sess, metrics, nowMs) {
+    var cfg = normalizeCLikeConfig(sess);
+    var real = clampInt(metrics && metrics.likes, 0, 99999999, 0);
+    var extra = 0;
+    if (cfg.intervalMin > 0) {
+      var start = parseDemoTs(sess && sess.actualStartAt);
+      if (isFinite(start)) {
+        var endMs = nowMs != null ? Number(nowMs) : Date.now();
+        if (!isFinite(endMs)) endMs = Date.now();
+        if (sess && sess.status === 'ended') {
+          var endTs = parseDemoTs(sess.actualEndAt);
+          if (isFinite(endTs)) endMs = endTs;
+        }
+        if (endMs < start) endMs = start;
+        extra = likeTickExtra(
+          Math.floor((endMs - start) / (cfg.intervalMin * 60 * 1000)),
+          cfg.extraMin,
+          cfg.extraMax,
+          (sess && sess.id ? sess.id : 'live') + ':like'
+        );
+      }
+    }
+    return cfg.initial + real + extra;
+  }
+
+  function cLikePayloadOf(sess, metrics) {
+    var cfg = normalizeCLikeConfig(sess);
+    return {
+      initial: cfg.initial,
+      intervalMin: cfg.intervalMin,
+      extraMin: cfg.extraMin,
+      extraMax: cfg.extraMax,
+      startedAt: (sess && sess.actualStartAt) || '',
+      endedAt: (sess && sess.actualEndAt) || '',
+      status: (sess && sess.status) || '',
+      realLikes: clampInt(metrics && metrics.likes, 0, 99999999, 0),
+      seed: (sess && sess.id) || 'live'
+    };
+  }
+
+  function resolveCLikeFromPayload(payload, nowMs) {
+    payload = payload || {};
+    return resolveCLikeCount(
+      {
+        id: payload.seed,
+        actualStartAt: payload.startedAt,
+        actualEndAt: payload.endedAt,
+        status: payload.status,
+        cLikeInitial: payload.initial,
+        cLikeIntervalMin: payload.intervalMin,
+        cLikeExtraMin: payload.extraMin,
+        cLikeExtraMax: payload.extraMax
+      },
+      { likes: payload.realLikes },
+      nowMs
+    );
+  }
+
+  function formatCLikeText(count) {
+    return clampInt(count, 0, 99999999, 0) + '次点赞';
+  }
+
+  function formatCViewerLikeLine(viewerText, likeCount) {
+    return String(viewerText || '') + '·' + formatCLikeText(likeCount);
+  }
+
+  function formatSessionViewerLikeLine(sess, metrics) {
+    var cfg = normalizeCViewerConfig(sess);
+    var viewerText = formatCViewerText(resolveCViewerCount(sess, metrics), cfg.display);
+    return formatCViewerLikeLine(viewerText, resolveCLikeCount(sess, metrics));
   }
 
   function boostedOnlineCount(realCount, cfg, seed) {
@@ -1751,7 +1919,7 @@
     var n = clampInt(count, 0, 99999999, 0);
     if (display === 'unique') return n + '人看过';
     if (display === 'visits') return n + '人次观看';
-    return n + '人正在观看';
+    return n + '人观看';
   }
 
   function resolveCViewerCount(sess, metrics) {
@@ -2050,12 +2218,20 @@
     productsBySession: productsBySession,
     normalizeSchedStatus: normalizeSchedStatus,
     normalizeCViewerConfig: normalizeCViewerConfig,
+    normalizeCLikeConfig: normalizeCLikeConfig,
     resolveCViewerCount: resolveCViewerCount,
+    resolveCLikeCount: resolveCLikeCount,
+    resolveCLikeFromPayload: resolveCLikeFromPayload,
+    cLikePayloadOf: cLikePayloadOf,
     formatCViewerText: formatCViewerText,
+    formatCLikeText: formatCLikeText,
+    formatCViewerLikeLine: formatCViewerLikeLine,
+    formatSessionViewerLikeLine: formatSessionViewerLikeLine,
     cViewerDisplayLabel: cViewerDisplayLabel,
     clampInt: clampInt,
     C_VIEWER_INITIAL_MAX: C_VIEWER_INITIAL_MAX,
     C_VIEWER_EXTRA_MAX: C_VIEWER_EXTRA_MAX,
+    C_LIKE_VALUE_MAX: C_LIKE_VALUE_MAX,
     dataMetrics: dataMetrics,
     controlMetrics: controlMetrics,
     demoStores: demoStores,

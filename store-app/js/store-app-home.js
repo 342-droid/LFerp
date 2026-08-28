@@ -34,8 +34,12 @@
     window.location.href = 'verify.html' + (qs.length ? '?' + qs.join('&') : '');
   }
 
+  function goOrders() {
+    window.location.href = 'store-orders.html';
+  }
+
   function bindActions() {
-    document.querySelectorAll('[data-sa-action]').forEach(function (btn) {
+    document.querySelectorAll('[data-sa-action]:not([data-sa-action="queueCode"]):not([data-sa-action="promoCode"])').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var action = btn.getAttribute('data-sa-action');
         if (action === 'restock') {
@@ -50,9 +54,10 @@
           goBizCenter();
           return;
         }
-        /* 核销入口：仅原订单核销（补货随原订单提货，不单独建补货单） */
         if (action === 'scan') {
-          goVerify('scan');
+          if (window.LFScan && window.LFScan.open) {
+            window.LFScan.open();
+          }
           return;
         }
         if (action === 'code' || action === 'pending') {
@@ -67,10 +72,15 @@
           window.location.href = 'onboarding.html';
           return;
         }
+        if (action === 'orders') {
+          goOrders();
+          return;
+        }
         var labels = {
           aftersaleQuick: '售后',
           memberCode: '门店会员码',
-          orders: '门店订单',
+          promoCode: '门店推广码',
+          orders: '客户订单',
           receive: '收货',
           inventory: '库存查询',
           aftersale: '售后',
@@ -118,4 +128,45 @@
 
   bindActions();
   syncOnboardingDot();
+
+  if (window.LFScan && window.LFMockData) {
+    window.LFScan.init(window.LFMockData, {
+      openButton: document.querySelector('[data-sa-action="scan"]'),
+      modal: document.getElementById('scan-modal'),
+      simulateButton: document.getElementById('btn-scan-simulate'),
+      cancelButton: document.getElementById('btn-scan-cancel')
+    });
+  }
+
+  if (window.LFQRCode && window.LFMockData) {
+    var store = window.LFMockData.store || {};
+    window.LFQRCode.init(window.LFMockData, {
+      openButton: document.getElementById('btn-queue-qr-open'),
+      modal: document.getElementById('queue-qr-modal'),
+      closeButton: document.getElementById('btn-queue-qr-close'),
+      shareButton: document.getElementById('btn-queue-qr-share'),
+      saveButton: document.getElementById('btn-queue-qr-save'),
+      qrMount: document.getElementById('queue-qr-code-mount'),
+      avatarEl: document.getElementById('queue-qr-avatar'),
+      nameEl: document.getElementById('queue-qr-store-name'),
+      qrUrl: store.queueCodeUrl,
+      shareTitle: (store.companyName || '门店') + '排队码',
+      shareText: '扫码在' + (store.companyName || '门店') + '排队取号',
+      downloadSuffix: '_排队码'
+    });
+    window.LFQRCode.init(window.LFMockData, {
+      openButton: document.getElementById('btn-promo-qr-open'),
+      modal: document.getElementById('promo-qr-modal'),
+      closeButton: document.getElementById('btn-promo-qr-close'),
+      shareButton: document.getElementById('btn-promo-qr-share'),
+      saveButton: document.getElementById('btn-promo-qr-save'),
+      qrMount: document.getElementById('promo-qr-code-mount'),
+      avatarEl: document.getElementById('promo-qr-avatar'),
+      nameEl: document.getElementById('promo-qr-store-name'),
+      qrUrl: store.promoCodeUrl || ('lengfeng-store:' + (store.storeId || 'ONS-CENTER-01')),
+      shareTitle: (store.companyName || '门店') + '推广码',
+      shareText: '扫码进入' + (store.companyName || '门店'),
+      downloadSuffix: '_门店推广码'
+    });
+  }
 })();
