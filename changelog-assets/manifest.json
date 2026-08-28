@@ -255,6 +255,13 @@
     "status": "diff",
     "date": "2026-08-25"
   },
+  "10f2e60|SCM/obd_outbound.html": {
+    "before": "changelog-assets/10f2e60/SCM__obd_outbound.html.before.jpg",
+    "after": "changelog-assets/10f2e60/SCM__obd_outbound.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-08-28"
+  },
   "20f3485|SCM/ibd_receipt.html": {
     "before": "changelog-assets/20f3485/SCM__ibd_receipt.html.before.jpg",
     "after": "changelog-assets/20f3485/SCM__ibd_receipt.html.after.jpg",
