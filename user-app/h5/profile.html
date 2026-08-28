@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>我的 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
-  <link rel="stylesheet" href="../css/user-app-profile.css?v=20260817-hoursonly">
+  <link rel="stylesheet" href="../css/user-app-profile.css?v=20260828-pickup-switch">
   <link rel="stylesheet" href="../css/user-app-queue.css">
   <link rel="stylesheet" href="../css/user-app-login.css">
   <link rel="stylesheet" href="../css/user-app-shop.css?v=20260817-homebiz">
@@ -167,10 +167,10 @@
 
         <section class="ua-card ua-default-pickup" id="uaDefaultPickupCard">
           <div class="ua-default-pickup__head">
-            <h2 class="ua-default-pickup__title">我的默认门店</h2>
+            <h2 class="ua-default-pickup__title">自提门店</h2>
             <a href="switch-address.html?from=profile.html" class="ua-default-pickup__switch" id="uaDefaultPickupSwitch">切换门店</a>
           </div>
-          <div class="ua-default-pickup__body">
+          <a href="switch-address.html?from=profile.html" class="ua-default-pickup__body" id="uaDefaultPickupBody" aria-label="切换门店">
             <img class="ua-default-pickup__avatar" id="uaDefaultPickupAvatar" src="../assets/shop/review-avatar.svg" alt="">
             <div class="ua-default-pickup__info">
               <div class="ua-default-pickup__name-row">
@@ -183,7 +183,8 @@
                 <span class="ua-default-pickup__dist" id="uaDefaultPickupDist">距您：14.4km</span>
               </div>
             </div>
-          </div>
+            <svg class="ua-default-pickup__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+          </a>
         </section>
 
         <section class="ua-card ua-service-card">
@@ -298,13 +299,16 @@
   <script src="../js/user-app-blacklist-guard.js"></script>
   <script src="../js/user-app-queue.js"></script>
   <script src="../js/user-app-nav.js"></script>
+  <script src="../../js/pg-prd-float.js?v=20260828-537"></script>
   <script src="../js/user-app-auth.js"></script>
   <script src="../../js/mdm-supplier-archive-store.js"></script>
   <script src="../../js/mdm-marketing-register-gift-store.js"></script>
   <script src="../../js/mdm-marketing-cash-redpack-store.js"></script>
   <script src="../../js/mdm-marketing-newcomer-zone-config.js"></script>
   <script src="../js/user-app-shop.js?v=20260723-shop"></script>
-  <script src="../js/user-app-switch-address.js?v=20260818-op-rest"></script>
+  <script src="../js/user-app-switch-address.js?v=20260827-sys-default"></script>
+  <script src="../../js/mdm-system-default-store.js?v=20260827-sys-default"></script>
+  <script src="../js/user-app-store-switch.js?v=20260828-autobind"></script>
   <script src="../js/user-app-profile.js"></script>
   <script src="../js/user-app-register-gift.js"></script>
   <script src="../../js/mdm-aftersale-feedback-store.js"></script>
@@ -329,53 +333,54 @@
         }
       }
 
-      /* 我的默认门店：社区门店定位时展示；商城模式（快递）隐藏 */
+      /* 自提门店：展示当前绑定门店（扫码 / 系统默认）；整块可进切换门店 */
       function syncDefaultPickupCard() {
         var card = document.getElementById('uaDefaultPickupCard');
         if (!card) return;
+        var store = null;
+        if (window.UaStoreSwitch && typeof window.UaStoreSwitch.resolveCurrentStore === 'function') {
+          store = window.UaStoreSwitch.resolveCurrentStore(
+            window.UaStoreSwitch.readBind ? window.UaStoreSwitch.readBind() : {}
+          );
+        }
         var ctx =
           window.UaSwitchAddress && typeof window.UaSwitchAddress.readCtx === 'function'
             ? window.UaSwitchAddress.readCtx()
             : null;
-        var isMall = ctx && ctx.mode === 'mall' && ctx.picked;
-        card.hidden = !!isMall;
-        if (isMall) return;
+        card.hidden = false;
 
         var nameEl = document.getElementById('uaDefaultPickupName');
         var addrEl = document.getElementById('uaDefaultPickupAddr');
         var leaderEl = document.getElementById('uaDefaultPickupLeader');
         var distEl = document.getElementById('uaDefaultPickupDist');
         var avatarEl = document.getElementById('uaDefaultPickupAvatar');
-        if (ctx && ctx.mode === 'community' && ctx.displayName && nameEl) {
+        if (store) {
+          if (nameEl) nameEl.textContent = store.homeName || store.name;
+          if (addrEl) addrEl.textContent = store.addr || '';
+          if (leaderEl) leaderEl.textContent = store.leader || '';
+          if (distEl) distEl.textContent = store.dist || '';
+          if (avatarEl && store.avatar) avatarEl.src = store.avatar;
+        } else if (ctx && ctx.displayName && nameEl) {
           nameEl.textContent = ctx.displayName;
-        }
-        if (ctx && ctx.mode === 'community' && (ctx.storeAddr || ctx.locateAddr) && addrEl) {
-          addrEl.textContent = ctx.storeAddr || ctx.locateAddr;
-        }
-        if (ctx && ctx.mode === 'community' && ctx.storeLeader && leaderEl) {
-          leaderEl.textContent = ctx.storeLeader;
-        }
-        if (ctx && ctx.mode === 'community' && ctx.storeDist && distEl) {
-          distEl.textContent = ctx.storeDist;
-        }
-        if (ctx && ctx.mode === 'community' && ctx.storeAvatar && avatarEl) {
-          avatarEl.src = ctx.storeAvatar;
+          if (addrEl) addrEl.textContent = ctx.storeAddr || ctx.locateAddr || '';
+          if (leaderEl) leaderEl.textContent = ctx.storeLeader || '';
+          if (distEl) distEl.textContent = ctx.storeDist || '';
+          if (avatarEl && ctx.storeAvatar) avatarEl.src = ctx.storeAvatar;
         }
 
         var hoursEl = document.getElementById('uaDefaultPickupBizHours');
         if (hoursEl && window.UaSwitchAddress && typeof window.UaSwitchAddress.getStoreBizMeta === 'function') {
-          var storeId =
-            (ctx && ctx.storeId) ||
-            'store-prod-verify';
+          var storeId = (store && store.id) || (ctx && ctx.storeId) || 'ONS-CENTER-01';
           var biz = window.UaSwitchAddress.getStoreBizMeta(storeId);
           hoursEl.textContent = biz.hoursText;
           hoursEl.hidden = false;
         }
 
+        var switchHref = 'switch-address.html?from=' + encodeURIComponent('profile.html');
         var switchBtn = document.getElementById('uaDefaultPickupSwitch');
-        if (switchBtn) {
-          switchBtn.href = 'switch-address.html?from=' + encodeURIComponent('profile.html');
-        }
+        if (switchBtn) switchBtn.href = switchHref;
+        var bodyLink = document.getElementById('uaDefaultPickupBody');
+        if (bodyLink) bodyLink.href = switchHref;
       }
       syncDefaultPickupCard();
 

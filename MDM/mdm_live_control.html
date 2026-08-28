@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
-    <link rel="stylesheet" href="../css/lf-live.css?v=20260824-bag-virtual">
+    <link rel="stylesheet" href="../css/lf-live.css?v=20260827-like3">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -46,7 +46,10 @@
                     <div class="lf-live-panel lf-live-panel--fill">
                         <div class="lf-live-broadcast-preview" id="broadcastPreview">
                             <div class="lf-live-broadcast-preview__placeholder">直播画面</div>
-                            <div class="lf-live-danmu-pin" id="broadcastDanmuPin" hidden></div>
+                            <div class="lf-live-broadcast-preview__top">
+                                <div class="lf-live-broadcast-preview__stats" id="broadcastPreviewStats">0人观看·0次点赞</div>
+                                <div class="lf-live-danmu-pin" id="broadcastDanmuPin" hidden></div>
+                            </div>
                             <div class="lf-live-danmu-overlay" id="broadcastDanmu"></div>
                         </div>
                         <div class="lf-live-interact">
@@ -162,6 +165,7 @@
                             <button type="button" class="is-active" data-side-tab="metrics">实时数据</button>
                             <button type="button" data-side-tab="chat">全部弹幕</button>
                             <button type="button" data-side-tab="watch">观看记录</button>
+                            <button type="button" data-side-tab="like">点赞记录</button>
                         </div>
                         <div id="sidePaneMetrics">
                             <div class="lf-live-monitor-sales">
@@ -197,6 +201,16 @@
                                 </select>
                             </div>
                             <div class="lf-live-watch-list" id="watchListBody"></div>
+                        </div>
+                        <div id="sidePaneLike" class="lf-live-watch-pane" hidden>
+                            <div class="lf-live-watch-subtabs" id="likeSubTabs">
+                                <button type="button" class="is-active" data-like-tab="detail" id="likeTabDetail">点赞明细(0)</button>
+                                <button type="button" data-like-tab="users" id="likeTabUsers">点赞人数(0)</button>
+                            </div>
+                            <div class="lf-live-watch-toolbar">
+                                <button type="button" class="erp-btn" id="likeSortBtn">倒序</button>
+                            </div>
+                            <div class="lf-live-watch-list" id="likeListBody"></div>
                         </div>
                         <div id="monitorOrderWrap">
                             <div class="lf-live-panel__subheader">
@@ -268,6 +282,28 @@
                             <span>-</span>
                             <input class="erp-input" type="number" min="0" max="100" step="1" id="dlgCViewerExtraMax" placeholder="0">
                             <span>人</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div id="dlgCLikeBoost">
+                <div class="lf-live-set-row">
+                    <span class="lf-live-set-row__label">C端点赞初始值</span>
+                    <div class="lf-live-set-row__ctrl lf-live-set-row__ctrl--inline">
+                        <input class="erp-input lf-live-num-lg" type="number" min="0" max="999999" step="1" id="dlgCLikeInitial" placeholder="0-999999">
+                    </div>
+                </div>
+                <div class="lf-live-set-row">
+                    <span class="lf-live-set-row__label">点赞额外增长</span>
+                    <div class="lf-live-set-row__ctrl lf-live-set-follow lf-live-set-follow--wrap">
+                        <span class="lf-live-set-follow__text">每隔</span>
+                        <input class="erp-input lf-live-num-md" type="number" min="0" max="999999" step="1" id="dlgCLikeInterval" placeholder="0-999999">
+                        <span class="lf-live-set-follow__text">分钟，额外随机增加</span>
+                        <span class="lf-live-set-follow__range">
+                            <input class="erp-input lf-live-num-md" type="number" min="0" max="999999" step="1" id="dlgCLikeExtraMin" placeholder="0">
+                            <span>-</span>
+                            <input class="erp-input lf-live-num-md" type="number" min="0" max="999999" step="1" id="dlgCLikeExtraMax" placeholder="0">
+                            <span>次</span>
                         </span>
                     </div>
                 </div>
@@ -450,8 +486,8 @@
     </div>
 
     <script src="../js/common.js"></script>
-    <script src="../js/mdm-live-demo-data.js?v=20260824-chat-date"></script>
+    <script src="../js/mdm-live-demo-data.js?v=20260827-like2"></script>
     <script src="../js/mdm-live-sensitive-words.js"></script>
-    <script src="../js/mdm-live-control.js?v=20260824-bag-virtual"></script>
+    <script src="../js/mdm-live-control.js?v=20260827-like2"></script>
 </body>
 </html>

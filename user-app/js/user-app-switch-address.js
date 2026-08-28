@@ -467,6 +467,9 @@
   }
 
   function mountHomeDemoPanel() {
+    if (global.UaStoreSwitch && typeof global.UaStoreSwitch.mountDemoPanel === 'function') {
+      return;
+    }
     if (!document.querySelector('.ua-home-page')) return;
     if (document.getElementById('uaLocateDemo')) return;
     var demo = readDemo();
@@ -495,6 +498,10 @@
   }
 
   function initPage() {
+    if (global.UaStoreSwitch && typeof global.UaStoreSwitch.initSwitchPage === 'function') {
+      global.UaStoreSwitch.initSwitchPage();
+      return;
+    }
     var ctx = readCtx();
     var state = stateFromCtx(ctx);
 
@@ -891,6 +898,10 @@
   }
 
   function syncHomeLocate() {
+    if (global.UaStoreSwitch && typeof global.UaStoreSwitch.syncHomeHeader === 'function') {
+      global.UaStoreSwitch.syncHomeHeader();
+      return;
+    }
     var nameEl = document.getElementById('homeLocateName');
     var locate = document.getElementById('homeLocate');
     if (!nameEl && !locate) return;

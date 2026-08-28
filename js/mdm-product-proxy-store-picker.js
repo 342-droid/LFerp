@@ -108,15 +108,17 @@
     }).join('');
   }
 
-  function renderStoreRows(stores, selected) {
+  function renderStoreRows(stores, selected, single) {
     if (!stores.length) {
       return '<div class="proxy-store-picker__empty">暂无匹配门店</div>';
     }
+    var inputType = single ? 'radio' : 'checkbox';
+    var nameAttr = single ? ' name="proxyStorePickerSingle"' : '';
     return stores.map(function (store) {
       var checked = !!selected[store.id];
       return (
         '<label class="proxy-store-picker__row' + (checked ? ' is-checked' : '') + '" data-store-id="' + store.id + '">' +
-        '  <input type="checkbox" class="proxy-store-picker__check" data-store-id="' + store.id + '"' + (checked ? ' checked' : '') + '>' +
+        '  <input type="' + inputType + '" class="proxy-store-picker__check" data-store-id="' + store.id + '"' + nameAttr + (checked ? ' checked' : '') + '>' +
         '  <span class="proxy-store-picker__row-main">' +
         '    <span class="proxy-store-picker__store-name">' + escapeHtml(store.name) + '</span>' +
         '    <span class="proxy-store-picker__store-address">' + escapeHtml(store.address) + '</span>' +
@@ -155,10 +157,29 @@
     options = options || {};
     var selected = cloneSelected(options.selected || {});
     var flatFilter = !!options.flatFilter;
+    var single = !!options.single;
+    var catalog = (options.extraStores || []).concat(STORES);
     var state = {
       regionId: 'all',
       keyword: ''
     };
+
+    function getStoreFromCatalog(id) {
+      for (var i = 0; i < catalog.length; i++) {
+        if (catalog[i].id === id) return catalog[i];
+      }
+      return getStoreById(id);
+    }
+
+    function filterCatalog(regionId, keyword) {
+      var kw = String(keyword || '').trim().toLowerCase();
+      return catalog.filter(function (store) {
+        if (regionId && regionId !== 'all' && store.regionId !== regionId) return false;
+        if (!kw) return true;
+        return store.name.toLowerCase().indexOf(kw) >= 0 ||
+          store.address.toLowerCase().indexOf(kw) >= 0;
+      });
+    }
 
     var regionSelectHtml = REGIONS.map(function (region) {
       return '<option value="' + region.id + '">' + escapeHtml(region.name) + '</option>';
@@ -169,7 +190,7 @@
     backdrop.setAttribute('data-proxy-store-picker', '1');
     backdrop.innerHTML = flatFilter
       ? (
-        '<div class="erp-modal proxy-store-picker-modal proxy-store-picker-modal--compact">' +
+        '<div class="erp-modal proxy-store-picker-modal proxy-store-picker-modal--compact' + (single ? ' proxy-store-picker-modal--single' : '') + '">' +
         '  <div class="erp-modal__header">' +
         '    <h2 class="erp-modal__title">选择门店</h2>' +
         '    <div class="erp-modal__header-actions">' +
@@ -206,7 +227,7 @@
         '</div>'
       )
       : (
-        '<div class="erp-modal proxy-store-picker-modal' + (options.compactHeight ? ' proxy-store-picker-modal--compact' : '') + '">' +
+        '<div class="erp-modal proxy-store-picker-modal' + (options.compactHeight ? ' proxy-store-picker-modal--compact' : '') + (single ? ' proxy-store-picker-modal--single' : '') + '">' +
         '  <div class="erp-modal__header">' +
         '    <h2 class="erp-modal__title">选择门店</h2>' +
         '    <div class="erp-modal__header-actions">' +
@@ -252,7 +273,7 @@
     }
 
     function getVisibleStores() {
-      return filterStores(state.regionId, state.keyword);
+      return filterCatalog(state.regionId, state.keyword);
     }
 
     function refresh() {
@@ -260,7 +281,7 @@
       var listEl = backdrop.querySelector('#proxyStorePickerList');
       var visibleStores = getVisibleStores();
       if (regionsEl) regionsEl.innerHTML = renderRegionList(state.regionId);
-      if (listEl) listEl.innerHTML = renderStoreRows(visibleStores, selected);
+      if (listEl) listEl.innerHTML = renderStoreRows(visibleStores, selected, single);
       var regionSelect = backdrop.querySelector('#proxyStorePickerRegionSelect');
       if (regionSelect) regionSelect.value = state.regionId;
       updateSelectAllState(backdrop, visibleStores, selected);
@@ -268,6 +289,12 @@
     }
 
     function toggleStore(id, checked) {
+      if (single) {
+        selected = {};
+        if (checked) selected[id] = true;
+        refresh();
+        return;
+      }
       if (checked) selected[id] = true;
       else delete selected[id];
       refresh();
@@ -287,9 +314,13 @@
     backdrop.querySelector('[data-store-close]').addEventListener('click', close);
     backdrop.querySelector('[data-store-cancel]').addEventListener('click', close);
     backdrop.querySelector('[data-store-ok]').addEventListener('click', function () {
+      var ids = Object.keys(selected);
+      if (single && !ids.length) {
+        if (typeof showToast === 'function') showToast('请选择门店', 'error');
+        return;
+      }
       if (typeof options.onConfirm === 'function') {
-        var ids = Object.keys(selected);
-        var stores = ids.map(getStoreById).filter(Boolean);
+        var stores = ids.map(getStoreFromCatalog).filter(Boolean);
         options.onConfirm(cloneSelected(selected), stores);
       }
       close();

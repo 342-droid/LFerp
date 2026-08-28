@@ -3,7 +3,8 @@
     const wp = window.wmsPath || { page: function (f) { return f; }, asset: function (r) { return r; } };
     const pageHref = function (f) { return wp.page(f); };
     const assetHref = function (r) { return wp.asset(r); };
-    const currentPage = (window.location.pathname.split('/').pop() || 'basic_settings_miniprogram_agreement.html').toLowerCase();
+    let currentPage = (window.location.pathname.split('/').pop() || 'basic_settings_miniprogram_agreement.html').toLowerCase().split('?')[0];
+    if (currentPage && !currentPage.endsWith('.html')) currentPage += '.html';
 
     const agreementItems = [
         { href: 'basic_settings_miniprogram_agreement.html', text: '小程序协议' }
@@ -12,6 +13,21 @@
     const materialItems = [
         { href: 'basic_settings_material_type.html', text: '素材类型' },
         { href: 'basic_settings_material.html', text: '素材列表' }
+    ];
+
+    const contractItems = [
+        { href: 'basic_settings_contract_config.html', text: '接入配置' },
+        {
+            href: 'basic_settings_contract_template.html',
+            text: '合同模板',
+            match: ['basic_settings_contract_template_form.html']
+        },
+        { href: 'basic_settings_contract_party.html', text: '签署主体' },
+        {
+            href: 'basic_settings_contract_task.html',
+            text: '签署任务',
+            match: ['basic_settings_contract_task_form.html', 'basic_settings_contract_task_detail.html']
+        }
     ];
 
     const topLevelItems = [
@@ -31,16 +47,23 @@
         return currentPage === String(href || '').toLowerCase();
     }
 
+    function itemIsActive(item) {
+        if (pageMatches(item.href)) return true;
+        const extras = item.match || [];
+        return extras.some(function (href) { return pageMatches(href); });
+    }
+
     function groupHasActive(items) {
-        return items.some(function (item) { return pageMatches(item.href); });
+        return items.some(function (item) { return itemIsActive(item); });
     }
 
     const isAgreementSection = groupHasActive(agreementItems);
     const isMaterialSection = groupHasActive(materialItems);
+    const isContractSection = groupHasActive(contractItems);
 
     function renderCollapsibleGroup(label, iconRel, items, sectionActive) {
         const submenuHtml = items.map(function (item) {
-            const active = pageMatches(item.href);
+            const active = itemIsActive(item);
             return '<li><a href="' + pageHref(item.href) + '"' + (active ? ' class="active"' : '') + '>' + item.text + '</a></li>';
         }).join('');
         const iconHtml = iconRel
@@ -86,7 +109,9 @@
         topLevelItems.slice(0, 3).map(renderTopLevelItem).join('') +
         renderCollapsibleGroup('素材管理', '基础信息', materialItems, isMaterialSection) +
         renderTopLevelItem(fileCenterItem) +
-        topLevelItems.slice(3).map(renderTopLevelItem).join('') +
+        renderTopLevelItem(topLevelItems[3]) +
+        renderCollapsibleGroup('合同管理', null, contractItems, isContractSection) +
+        renderTopLevelItem(topLevelItems[4]) +
         '</ul>' +
         '</aside>';
 })();

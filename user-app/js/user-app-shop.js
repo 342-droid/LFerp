@@ -201,6 +201,7 @@
   var LIVE_PREVIEW_PRICE_KEY = 'ua_live_preview_price_v1';
   var LIVE_EXPLAIN_KEY = 'ua_live_explain_v1';
   var LIVE_C_STATE_KEY = 'lf_live_c_state_v1';
+  var LIVE_LIKE_REPORT_KEY = 'lf_live_like_reports_v1';
   var LIVE_QC_KEY = 'lf_live_quick_comments_by_session_v1';
   var LIVE_QC_LEGACY_KEY = 'lf_live_quick_comments_v1';
   var LIVE_QC_DEMO_KEY = 'ua_live_qc_demo_v1';
@@ -482,11 +483,125 @@
       '</span></span>';
   }
 
+  var pendingLiveLikes = 0;
+  var liveLikeFlushTimer = null;
+
+  function formatLiveNow() {
+    var d = new Date();
+    function pad(n) {
+      return n < 10 ? '0' + n : String(n);
+    }
+    return (
+      d.getFullYear() +
+      '-' +
+      pad(d.getMonth() + 1) +
+      '-' +
+      pad(d.getDate()) +
+      ' ' +
+      pad(d.getHours()) +
+      ':' +
+      pad(d.getMinutes()) +
+      ':' +
+      pad(d.getSeconds())
+    );
+  }
+
+  function readLiveLikeReports() {
+    try {
+      var raw = localStorage.getItem(LIVE_LIKE_REPORT_KEY);
+      var data = raw ? JSON.parse(raw) : null;
+      return Array.isArray(data) ? data : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function writeLiveLikeReports(list) {
+    try {
+      localStorage.setItem(LIVE_LIKE_REPORT_KEY, JSON.stringify(list || []));
+    } catch (e) {}
+  }
+
+  function queuedLiveLikeCount() {
+    var sid = liveQuickCommentSessionId();
+    var sum = 0;
+    readLiveLikeReports().forEach(function (r) {
+      if (!r) return;
+      if (r.sessionId && r.sessionId !== sid) return;
+      sum += Math.max(0, Math.floor(Number(r.count) || 0));
+    });
+    return sum;
+  }
+
+  function localLiveLikeExtra() {
+    return pendingLiveLikes + queuedLiveLikeCount();
+  }
+
+  function flushLiveLikes() {
+    liveLikeFlushTimer = null;
+    if (pendingLiveLikes <= 0) return;
+    var n = pendingLiveLikes;
+    pendingLiveLikes = 0;
+    var me = readLiveViewer();
+    var list = readLiveLikeReports();
+    list.push({
+      id: 'lr-' + Date.now(),
+      sessionId: liveQuickCommentSessionId(),
+      userId: me.id || '',
+      nickname: me.name || '匿名用户',
+      count: n,
+      time: formatLiveNow()
+    });
+    writeLiveLikeReports(list);
+    renderLiveViewerCount();
+  }
+
+  function queueLiveLike() {
+    pendingLiveLikes += 1;
+    renderLiveViewerCount();
+    if (liveLikeFlushTimer) return;
+    liveLikeFlushTimer = window.setTimeout(flushLiveLikes, 3000);
+  }
+
   function renderLiveViewerCount() {
     var el = document.getElementById('liveViewerCount');
     if (!el) return;
     var st = readLiveCState();
-    if (st.cViewerText) el.textContent = st.cViewerText;
+    var Demo = global.MdmLiveDemo;
+    var viewer = String(st.cViewerPart || st.cViewerText || '')
+      .replace(/·\d+次点赞$/, '')
+      .replace(/人正在观看/g, '人观看');
+    var likeCount = 0;
+    if (st.cLike && Demo && typeof Demo.resolveCLikeFromPayload === 'function') {
+      likeCount = Demo.resolveCLikeFromPayload(st.cLike);
+    } else if (st.cLike && st.cLike.realLikes != null) {
+      likeCount = Math.max(0, Math.floor(Number(st.cLike.realLikes) || 0) + Math.floor(Number(st.cLike.initial) || 0));
+    } else if (Demo && Array.isArray(Demo.sessions)) {
+      var sess = null;
+      var i;
+      for (i = 0; i < Demo.sessions.length; i++) {
+        if (Demo.sessions[i] && Demo.sessions[i].status === 'live') {
+          sess = Demo.sessions[i];
+          break;
+        }
+      }
+      if (!sess) sess = Demo.sessions[0];
+      if (sess) {
+        var metrics = (Demo.controlMetrics && Demo.controlMetrics[sess.id]) || {};
+        var cfg = Demo.normalizeCViewerConfig ? Demo.normalizeCViewerConfig(sess) : { display: 'online' };
+        if (!viewer && Demo.formatCViewerText && Demo.resolveCViewerCount) {
+          viewer = Demo.formatCViewerText(Demo.resolveCViewerCount(sess, metrics), cfg.display);
+        }
+        if (Demo.resolveCLikeCount) likeCount = Demo.resolveCLikeCount(sess, metrics);
+      }
+    }
+    if (!viewer) viewer = '1人观看';
+    likeCount += localLiveLikeExtra();
+    var likeText =
+      Demo && typeof Demo.formatCLikeText === 'function'
+        ? Demo.formatCLikeText(likeCount)
+        : likeCount + '次点赞';
+    el.textContent = viewer + '·' + likeText;
   }
 
   var liveGoodsListRenderer = null;
@@ -4787,6 +4902,7 @@
       });
     document.getElementById('liveLikeBtn') &&
       document.getElementById('liveLikeBtn').addEventListener('click', function () {
+        queueLiveLike();
         showToast('点赞成功');
       });
     document.getElementById('liveShareBtn') &&
@@ -4847,8 +4963,16 @@
     }
     refreshLiveRoomOverlay();
     window.addEventListener('storage', function (ev) {
-      if (ev.key === LIVE_C_STATE_KEY || ev.key === LIVE_QC_KEY || ev.key === LIVE_QC_LEGACY_KEY) refreshLiveRoomOverlay();
+      if (
+        ev.key === LIVE_C_STATE_KEY ||
+        ev.key === LIVE_QC_KEY ||
+        ev.key === LIVE_QC_LEGACY_KEY ||
+        ev.key === LIVE_LIKE_REPORT_KEY
+      ) {
+        refreshLiveRoomOverlay();
+      }
     });
+    window.addEventListener('pagehide', flushLiveLikes);
     window.setInterval(refreshLiveRoomOverlay, 2000);
 
     renderLiveExplainCard();

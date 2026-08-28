@@ -3,8 +3,43 @@
  * 图 2-1 附近有门店 / 图 2-2 商城模式 / 搜索结果列表
  */
 
-.ua-sa-page {
+.ua-sa-page.ua-mobile-shell,
+.ua-sa-page .ua-scroll {
   background: #fff;
+}
+
+.ua-sa-store-search {
+  display: flex;
+  align-items: center;
+  margin: 8px 16px 6px;
+  padding: 0 12px;
+  min-height: 36px;
+  background: #f5f5f5;
+  border-radius: 18px;
+  gap: 8px;
+}
+
+.ua-sa-store-search__icon {
+  width: 16px;
+  height: 16px;
+  color: #bbb;
+  flex-shrink: 0;
+}
+
+.ua-sa-store-search__input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  height: 36px;
+  font-size: 13px;
+  color: #333;
+  font-family: inherit;
+  outline: none;
+}
+
+.ua-sa-store-search__input::placeholder {
+  color: #b0b0b0;
 }
 
 .ua-sa-nav {
@@ -108,6 +143,43 @@
   margin-bottom: 10px;
 }
 
+.ua-sa-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ua-sa-section-head .ua-sa-section-title {
+  margin-bottom: 0;
+}
+
+.ua-sa-scan-switch {
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid #333;
+  border-radius: 14px;
+  background: #fff;
+  color: #222;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ua-store-online-tag {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: #1f9d55;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  vertical-align: middle;
+}
+
 .ua-sa-locate__row {
   display: flex;
   align-items: center;
@@ -176,6 +248,10 @@
 
 .ua-sa-pickup-card:last-child {
   border-bottom: 0;
+}
+
+.ua-sa-pickup-card--current {
+  cursor: default;
 }
 
 .ua-sa-pickup-card__avatar {
@@ -336,10 +412,11 @@
 }
 
 .ua-sa-empty {
-  padding: 24px 0;
-  text-align: center;
+  padding: 18px 4px 12px;
+  text-align: left;
   font-size: 13px;
-  color: #bbb;
+  color: #999;
+  line-height: 1.5;
 }
 
 .ua-sa-toast {

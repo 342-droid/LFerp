@@ -186,7 +186,7 @@
 .ua-home-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
   padding: 14px 16px 8px;
   flex-shrink: 0;
 }
@@ -199,7 +199,7 @@
   font-size: 15px;
   font-weight: 600;
   text-decoration: none;
-  max-width: calc(100% - 8px);
+  max-width: 100%;
   min-width: 0;
 }
 
@@ -1961,6 +1961,7 @@
   color: rgba(255, 255, 255, 0.7);
   font-size: 11px;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .ua-live-room__report {
@@ -4686,6 +4687,34 @@
   color: #fff;
   font-size: 11px;
   cursor: pointer;
+}
+
+.ua-store-demo {
+  right: 8px;
+  bottom: 278px;
+  left: auto;
+}
+
+.ua-store-demo .ua-rg-demo__row select {
+  max-width: 96px;
+}
+
+.ua-store-demo--switch,
+.ua-store-demo--scan {
+  bottom: 16px;
+}
+
+.ua-store-online-tag {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: #1f9d55;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  vertical-align: middle;
 }
 
 .ua-watch-reward-chip {

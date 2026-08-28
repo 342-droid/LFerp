@@ -977,7 +977,7 @@ if (document.readyState === 'loading') {
         if (/\/(shop-h5|user-app|store-app)\//i.test(window.location.pathname || '')) return;
         var s = document.createElement('script');
         s.id = 'pg-prd-float-js';
-        s.src = assetUrl('js/pg-prd-float.js') + '?v=20260824-openlink';
+        s.src = assetUrl('js/pg-prd-float.js') + '?v=20260828-537';
         s.async = true;
         s.onerror = function () {};
         (document.body || document.head).appendChild(s);

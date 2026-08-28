@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>扫一扫 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-register-gift.css">
+  <link rel="stylesheet" href="../css/user-app-scan-store.css?v=20260827-sys-default">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-scan-page">
+    <header class="ua-scan-nav">
+      <a href="home.html" class="ua-scan-nav__back" id="scanBack" aria-label="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+      </a>
+      <button type="button" class="ua-scan-nav__flash" id="scanFlashBtn" aria-label="手电筒">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M7 2h10l-2 8h4L9 22l2-9H7L7 2z"/>
+        </svg>
+      </button>
+      <button type="button" class="ua-scan-nav__album" id="scanAlbumBtn">相册</button>
+    </header>
+
+    <div class="ua-scan-stage">
+      <button type="button" class="ua-scan-frame" id="scanFrame" aria-label="对准门店推广码">
+        <span class="ua-scan-frame__corner ua-scan-frame__corner--tl"></span>
+        <span class="ua-scan-frame__corner ua-scan-frame__corner--tr"></span>
+        <span class="ua-scan-frame__corner ua-scan-frame__corner--bl"></span>
+        <span class="ua-scan-frame__corner ua-scan-frame__corner--br"></span>
+        <span class="ua-scan-frame__line"></span>
+      </button>
+      <p class="ua-scan-hint">扫一扫门店推广码</p>
+    </div>
+
+    <div class="ua-scan-toast" id="scanToast" hidden></div>
+  </div>
+
+  <script src="../js/user-app-blacklist-guard.js"></script>
+  <script src="../../js/mdm-system-default-store.js?v=20260827-sys-default"></script>
+  <script src="../js/user-app-switch-address.js?v=20260827-sys-default"></script>
+  <script src="../js/user-app-store-switch.js?v=20260828-autobind"></script>
+  <script src="../../js/pg-prd-float.js?v=20260828-537"></script>
+  <script>
+    if (window.UaStoreSwitch) UaStoreSwitch.initScanPage();
+  </script>
+</body>
+</html>
