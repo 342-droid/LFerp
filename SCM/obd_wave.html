@@ -375,9 +375,12 @@
                             <thead>
                                 <tr>
                                     <th>出库单号</th>
+                                    <th>目的站点</th>
+                                    <th>商品图片</th>
                                     <th>商品编码</th>
                                     <th>商品名称</th>
-                                    <th>单位</th>
+                                    <th>商品规格</th>
+                                    <th>商品单位</th>
                                     <th>计划分配量</th>
                                     <th>已分配量</th>
                                     <th>已取消量</th>
@@ -943,8 +946,11 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${item.outboundNo || '-'}</td>
+                    <td>${item.targetSite || 'S001-上海虹桥站'}</td>
+                    <td>${renderWmsSkuImage(item.skuCode, item.skuName)}</td>
                     <td>${item.skuCode || '-'}</td>
                     <td>${item.skuName || '-'}</td>
+                    <td>${getWmsSkuSpec(item.skuCode, item.skuName)}</td>
                     <td>${item.unit || '-'}</td>
                     <td>${item.planAllocateQty ?? '-'}</td>
                     <td>${item.allocatedQty ?? '-'}</td>

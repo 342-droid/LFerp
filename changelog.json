@@ -1,10 +1,389 @@
 {
-  "latestSha": "061470f694f137e9c95a4a6dee868e2fd05946ea",
-  "total": 305,
+  "latestSha": "20f34850434259ef2cf4bfdbb1d45d367cb6d15c",
+  "total": 314,
   "days": [
+    {
+      "date": "2026-08-28",
+      "items": [
+        {
+          "sha": "20f3485",
+          "type": "feat",
+          "text": "完善仓储页面并新增定时器管理",
+          "author": "342-droid",
+          "time": "11:52",
+          "pages": [
+            {
+              "file": "SCM/ibd_receipt.html",
+              "module": "冷丰WMS",
+              "title": "入库单"
+            },
+            {
+              "file": "SCM/inventory.html",
+              "module": "冷丰WMS",
+              "title": "库存查询"
+            },
+            {
+              "file": "SCM/inventory_adjustment.html",
+              "module": "冷丰WMS",
+              "title": "库存调整单"
+            },
+            {
+              "file": "SCM/negative_inventory.html",
+              "module": "冷丰WMS",
+              "title": "负库存"
+            },
+            {
+              "file": "SCM/obd_carton.html",
+              "module": "冷丰WMS",
+              "title": "包裹管理"
+            },
+            {
+              "file": "SCM/obd_outbound.html",
+              "module": "冷丰WMS",
+              "title": "出库单"
+            },
+            {
+              "file": "SCM/obd_outbound_exception.html",
+              "module": "冷丰WMS",
+              "title": "出库异常"
+            },
+            {
+              "file": "SCM/obd_sorting.html",
+              "module": "冷丰WMS",
+              "title": "分拣单"
+            },
+            {
+              "file": "SCM/obd_wave.html",
+              "module": "冷丰WMS",
+              "title": "波次管理"
+            },
+            {
+              "file": "SCM/task.html",
+              "module": "冷丰WMS",
+              "title": "任务"
+            },
+            {
+              "file": "SCM/timer_management.html",
+              "module": "冷丰WMS",
+              "title": "定时器管理"
+            },
+            {
+              "file": "SCM/warehouse_sku.html",
+              "module": "冷丰WMS",
+              "title": "商品"
+            },
+            {
+              "file": "SCM/warehouse_sku_config_import.html",
+              "module": "冷丰WMS",
+              "title": "仓库商品配置导入"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": null,
+              "text": "入库、库存与出库页面: 优化页面交互与展示"
+            },
+            {
+              "file": "SCM/timer_management.html",
+              "text": "新增定时任务列表入口与页面"
+            },
+            {
+              "file": null,
+              "text": "仓库 SKU 配置导入: 新增配置导入页面"
+            },
+            {
+              "file": null,
+              "text": "更新组件样式、公共脚本、侧栏菜单及 Git 忽略规则"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-08-27",
+      "items": [
+        {
+          "sha": "5f90efc",
+          "type": "style",
+          "text": "工作台门店订单入口改为客户订单",
+          "author": "sisi",
+          "time": "12:10",
+          "pages": [
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            }
+          ],
+          "notes": [
+            {
+              "file": null,
+              "text": "工作台: 基础工具「门店订单」改名为「客户订单」"
+            }
+          ]
+        },
+        {
+          "sha": "6e9e83f",
+          "type": "feat",
+          "text": "门店订单增加自提与快递二级筛选",
+          "author": "sisi",
+          "time": "10:30",
+          "pages": [
+            {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/store-orders.html",
+              "text": "全部、待提货/待收货、已完成下增加全部/自提/快递二级筛选，便于按履约方式快速过单"
+            }
+          ]
+        },
+        {
+          "sha": "6c7759f",
+          "type": "feat",
+          "text": "门店订单补齐快递履约、退款灰条与一单多包裹",
+          "author": "sisi",
+          "time": "09:32",
+          "pages": [
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/store-orders.html",
+              "text": "页签调整为全部/待收货/待提货待收货/已完成/排队中；订单号旁区分自提与快递；快递已发货露出最新物流；一单多快递分包裹查看；退款数量金额挂在对应商品下，全额退款商品仍展示"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "text": "新增快递物流跟踪页，一单多包裹可切换查看"
+            },
+            {
+              "file": null,
+              "text": "PRD 的 html 不纳入版本库"
+            }
+          ]
+        },
+        {
+          "sha": "94b2f71",
+          "type": "fix",
+          "text": "售后已过审商品改为置灰不可核销",
+          "author": "sisi",
+          "time": "00:40",
+          "pages": [
+            {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/store-orders.html",
+              "text": "售后已过审商品置灰不可勾选，不再弹出无法核销提示"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "text": "已过审商品置灰且不显示核销按钮"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-26",
       "items": [
+        {
+          "sha": "94a7a93",
+          "type": "fix",
+          "text": "门店订单去掉待发货页签",
+          "author": "sisi",
+          "time": "23:51",
+          "pages": [
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/store-orders.html",
+              "text": "去掉「待发货」页签，待发货订单只在「全部」中展示"
+            }
+          ]
+        },
+        {
+          "sha": "e421cfb",
+          "type": "feat",
+          "text": "门店核销对齐待发货开关与截单规则",
+          "author": "sisi",
+          "time": "23:47",
+          "pages": [
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": null,
+              "text": "工作台: 扫码核销只带出已截单且允许核销的订单"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "text": "平台和门店「待发货订单核销」同时开启且已截单时，待发货/待收货/待提货均可核销；售后商品仍标「退款中」；验收开关可切换截单场景和两处配置"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "text": "扫码结果按同一套截单与开关规则过滤"
+            }
+          ]
+        },
+        {
+          "sha": "0080c87",
+          "type": "feat",
+          "text": "门店订单支持本页批量核销并补齐售后拦截",
+          "author": "sisi",
+          "time": "23:20",
+          "pages": [
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": null,
+              "text": "工作台: 扫码核销半遮罩收进手机壳内，不再铺满整屏"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "text": "批量勾选商品后本页确定核销，不再跳转；列表展示商品图和规格，支持按商品名搜索；售后已过审弹出无法核销，待审批需确认后关闭退款；右下角验收开关可切换场景并复原"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "text": "与门店订单同一套核销规则，售后已过审无法核销、待审批需确认"
+            }
+          ]
+        },
+        {
+          "sha": "918ae5b",
+          "type": "feat",
+          "text": "门店APP接入订单列表、扫码核销与排队码",
+          "author": "sisi",
+          "time": "22:19",
+          "pages": [
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/home.html",
+              "text": "扫码核销打开扫码弹层并跳转核销详情；基础工具新增门店订单与排队码入口"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "text": "新增订单列表与排队中管理，支持过号、叫号、标记完成及头像跳转核销"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "text": "新增一码多订单勾选核销、部分提货数量确认与退款关闭确认弹窗"
+            }
+          ]
+        },
         {
           "sha": "061470f",
           "type": "style",
@@ -4270,6 +4649,11 @@
               "file": "SCM/warehouse_company_import.html",
               "module": "冷丰WMS",
               "title": "仓库-货主导入"
+            },
+            {
+              "file": "SCM/warehouse_sku_config_import.html",
+              "module": "冷丰WMS",
+              "title": "仓库商品配置导入"
             }
           ],
           "global": true,
@@ -7592,6 +7976,16 @@
               "title": "商户进件 · 门店APP"
             },
             {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
               "file": "store-app/h5/password-edit.html",
               "module": "",
               "title": "密码管理 · 门店APP"
@@ -7605,6 +7999,11 @@
               "file": "store-app/h5/password.html",
               "module": "",
               "title": "密码管理 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
             },
             {
               "file": "store-app/h5/verify.html",
@@ -11323,6 +11722,16 @@
               "title": "商户进件 · 门店APP"
             },
             {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
               "file": "store-app/h5/password-edit.html",
               "module": "",
               "title": "密码管理 · 门店APP"
@@ -11336,6 +11745,11 @@
               "file": "store-app/h5/password.html",
               "module": "",
               "title": "密码管理 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
             },
             {
               "file": "store-app/h5/verify.html",
@@ -12518,6 +12932,16 @@
               "title": "商户进件 · 门店APP"
             },
             {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
               "file": "store-app/h5/password-edit.html",
               "module": "",
               "title": "密码管理 · 门店APP"
@@ -12531,6 +12955,11 @@
               "file": "store-app/h5/password.html",
               "module": "",
               "title": "密码管理 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
             },
             {
               "file": "store-app/h5/verify.html",
@@ -14126,6 +14555,11 @@
               "file": "MDM/mdm_settle_freight_config.html",
               "module": "冷丰订单",
               "title": "运费配置"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -16646,6 +17080,11 @@
           "time": "14:16",
           "pages": [
             {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -16672,6 +17111,10 @@
             }
           ],
           "notes": [
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "text": "支持到店待收货独立展示快递信息与订单跟踪页，结算与订单列表按 delivery 参数区分仓配与到店配送"
+            },
             {
               "file": "user-app/h5/order-logistics.html",
               "text": "支持到店待收货独立展示快递信息与订单跟踪页，结算与订单列表按 delivery 参数区分仓配与到店配送"
