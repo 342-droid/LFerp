@@ -102,9 +102,11 @@
                                 <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
                                 <th>仓库</th>
                                 <th>货主</th>
+                                <th>商品图片</th>
                                 <th>商品编码</th>
                                 <th>商品名称</th>
-                                <th>单位</th>
+                                <th>商品规格</th>
+                                <th>商品单位</th>
                                 <th>库存量</th>
                                 <th>占用量</th>
                                 <th>储位</th>
@@ -147,6 +149,8 @@
                 company: 'C001 货主1',
                 skuCode: 'SKU001',
                 skuName: '商品A',
+                skuImage: '../user-app/assets/order-product-1.svg',
+                skuSpec: '500g/袋',
                 unit: '件',
                 inventoryStatus: '正常',
                 quantity: 100,
@@ -167,6 +171,8 @@
                 company: 'C002 货主2',
                 skuCode: 'SKU002',
                 skuName: '商品B',
+                skuImage: '../user-app/assets/order-product-2.svg',
+                skuSpec: '1kg/盒',
                 unit: '箱',
                 inventoryStatus: '正常',
                 quantity: 200,
@@ -187,6 +193,8 @@
                 company: 'C003 货主3',
                 skuCode: 'SKU003',
                 skuName: '商品C',
+                skuImage: '../user-app/assets/order-product-3.svg',
+                skuSpec: '12盒/箱',
                 unit: '个',
                 inventoryStatus: '异常',
                 quantity: 50,
@@ -234,8 +242,10 @@
                             <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                             <td>${item.warehouse}</td>
                             <td>${item.company}</td>
+                            <td><img class="wms-sku-image" src="${item.skuImage}" alt="${item.skuName}"></td>
                             <td>${item.skuCode}</td>
                             <td>${item.skuName}</td>
+                            <td>${item.skuSpec}</td>
                             <td>${item.unit || '-'}</td>
                             <td>${item.quantity}</td>
                             <td>${item.occupied}</td>

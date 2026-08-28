@@ -1,7 +1,105 @@
 {
-  "latestSha": "5f90efcf57c9179baf0001fa566750e8253a089a",
-  "total": 313,
+  "latestSha": "20f34850434259ef2cf4bfdbb1d45d367cb6d15c",
+  "total": 314,
   "days": [
+    {
+      "date": "2026-08-28",
+      "items": [
+        {
+          "sha": "20f3485",
+          "type": "feat",
+          "text": "完善仓储页面并新增定时器管理",
+          "author": "342-droid",
+          "time": "11:52",
+          "pages": [
+            {
+              "file": "SCM/ibd_receipt.html",
+              "module": "冷丰WMS",
+              "title": "入库单"
+            },
+            {
+              "file": "SCM/inventory.html",
+              "module": "冷丰WMS",
+              "title": "库存查询"
+            },
+            {
+              "file": "SCM/inventory_adjustment.html",
+              "module": "冷丰WMS",
+              "title": "库存调整单"
+            },
+            {
+              "file": "SCM/negative_inventory.html",
+              "module": "冷丰WMS",
+              "title": "负库存"
+            },
+            {
+              "file": "SCM/obd_carton.html",
+              "module": "冷丰WMS",
+              "title": "包裹管理"
+            },
+            {
+              "file": "SCM/obd_outbound.html",
+              "module": "冷丰WMS",
+              "title": "出库单"
+            },
+            {
+              "file": "SCM/obd_outbound_exception.html",
+              "module": "冷丰WMS",
+              "title": "出库异常"
+            },
+            {
+              "file": "SCM/obd_sorting.html",
+              "module": "冷丰WMS",
+              "title": "分拣单"
+            },
+            {
+              "file": "SCM/obd_wave.html",
+              "module": "冷丰WMS",
+              "title": "波次管理"
+            },
+            {
+              "file": "SCM/task.html",
+              "module": "冷丰WMS",
+              "title": "任务"
+            },
+            {
+              "file": "SCM/timer_management.html",
+              "module": "冷丰WMS",
+              "title": "定时器管理"
+            },
+            {
+              "file": "SCM/warehouse_sku.html",
+              "module": "冷丰WMS",
+              "title": "商品"
+            },
+            {
+              "file": "SCM/warehouse_sku_config_import.html",
+              "module": "冷丰WMS",
+              "title": "仓库商品配置导入"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": null,
+              "text": "入库、库存与出库页面: 优化页面交互与展示"
+            },
+            {
+              "file": "SCM/timer_management.html",
+              "text": "新增定时任务列表入口与页面"
+            },
+            {
+              "file": null,
+              "text": "仓库 SKU 配置导入: 新增配置导入页面"
+            },
+            {
+              "file": null,
+              "text": "更新组件样式、公共脚本、侧栏菜单及 Git 忽略规则"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-27",
       "items": [
@@ -4551,6 +4649,11 @@
               "file": "SCM/warehouse_company_import.html",
               "module": "冷丰WMS",
               "title": "仓库-货主导入"
+            },
+            {
+              "file": "SCM/warehouse_sku_config_import.html",
+              "module": "冷丰WMS",
+              "title": "仓库商品配置导入"
             }
           ],
           "global": true,

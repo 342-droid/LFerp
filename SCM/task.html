@@ -194,9 +194,11 @@
                                 <th>调用单号</th>
                                 <th>来源单号</th>
                                 <th>关联单号</th>
+                                <th>商品图片</th>
                                 <th>商品编码</th>
                                 <th>商品名称</th>
-                                <th>单位</th>
+                                <th>商品规格</th>
+                                <th>商品单位</th>
                                 <th>计划数量</th>
                                 <th>完成数量</th>
                                 <th>执行人</th>
@@ -242,6 +244,8 @@
                 priority: '高',
                 skuCode: 'SKU001',
                 skuName: '冷冻牛肉',
+                skuImage: '../user-app/assets/order-product-1.svg',
+                skuSpec: '10kg/箱',
                 uom: '箱',
                 planQty: '120',
                 doneQty: '60',
@@ -321,8 +325,10 @@
                     <td>${item.invokeNo}</td>
                     <td>${item.sourceNo}</td>
                     <td>${item.relatedNo}</td>
+                    <td><img class="wms-sku-image" src="${item.skuImage}" alt="${item.skuName}"></td>
                     <td>${item.skuCode}</td>
                     <td>${item.skuName}</td>
+                    <td>${item.skuSpec}</td>
                     <td>${item.uom}</td>
                     <td>${item.planQty}</td>
                     <td>${item.doneQty}</td>

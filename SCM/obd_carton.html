@@ -252,8 +252,11 @@
                                 <tr>
                                     <th>出库单号</th>
                                     <th>包裹明细状态</th>
+                                    <th>商品图片</th>
                                     <th>商品编码</th>
                                     <th>商品名称</th>
+                                    <th>商品规格</th>
+                                    <th>商品单位</th>
                                     <th>包裹数量</th>
                                     <th>复核数量</th>
                                     <th>备注</th>
@@ -312,8 +315,8 @@
                 updateTime: '2026-03-23 12:40:00',
                 updateUser: '赵六',
                 details: [
-                    { outboundNo: 'OBD202603230001', lineStatus: '复核完成', skuCode: 'SKU1001', skuName: '三文鱼切片 500g', cartonQty: 8, recheckQty: 8, remark: '' },
-                    { outboundNo: 'OBD202603230001', lineStatus: '复核完成', skuCode: 'SKU1002', skuName: '牛排 300g', cartonQty: 4, recheckQty: 4, remark: '' }
+                    { outboundNo: 'OBD202603230001', lineStatus: '复核完成', skuCode: 'SKU1001', skuName: '三文鱼切片 500g', unit: '盒', cartonQty: 8, recheckQty: 8, remark: '' },
+                    { outboundNo: 'OBD202603230001', lineStatus: '复核完成', skuCode: 'SKU1002', skuName: '牛排 300g', unit: '盒', cartonQty: 4, recheckQty: 4, remark: '' }
                 ]
             },
             {
@@ -351,7 +354,7 @@
                 updateTime: '2026-03-23 13:05:00',
                 updateUser: '周八',
                 details: [
-                    { outboundNo: 'OBD202603230002', lineStatus: '发货完成', skuCode: 'SKU2001', skuName: '冻虾仁 1kg', cartonQty: 200, recheckQty: 200, remark: '' }
+                    { outboundNo: 'OBD202603230002', lineStatus: '发货完成', skuCode: 'SKU2001', skuName: '冻虾仁 1kg', unit: '袋', cartonQty: 200, recheckQty: 200, remark: '' }
                 ]
             }
         ];
@@ -460,8 +463,11 @@
                 tr.innerHTML = `
                     <td>${line.outboundNo || ''}</td>
                     <td>${st ? `<span class="status-badge ${getCartonDetailLineStatusClass(st)}">${st}</span>` : ''}</td>
+                    <td>${renderWmsSkuImage(line.skuCode, line.skuName)}</td>
                     <td>${line.skuCode || ''}</td>
                     <td>${line.skuName || ''}</td>
+                    <td>${getWmsSkuSpec(line.skuCode, line.skuName)}</td>
+                    <td>${line.unit || ''}</td>
                     <td>${line.cartonQty ?? ''}</td>
                     <td>${line.recheckQty ?? ''}</td>
                     <td>${line.remark || ''}</td>

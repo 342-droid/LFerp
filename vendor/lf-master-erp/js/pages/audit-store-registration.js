@@ -250,7 +250,8 @@ function mediaGrid(files) {
 }
 
 function appendRegistrationFields(body, row) {
-  const isFranchiseOrPartner = row.partnerDivision === '加盟店' || row.partnerDivision === '合作店';
+  const isFranchiseOrPartner =
+    row.partnerDivision === '加盟店' || row.partnerDivision === '合作店' || row.partnerDivision === '生鲜店';
   const isPeerStore = row.partnerDivision === '同行店';
 
   body.appendChild(el('div', 'supplier-detail-section-title', '主体字段'));
@@ -351,6 +352,7 @@ function appendEditableFields(body, row) {
           { value: '加盟店', label: '加盟店' },
           { value: '合作店', label: '合作店' },
           { value: '同行店', label: '同行店' },
+          { value: '生鲜店', label: '生鲜店' },
         ],
         row.partnerDivision,
       ),

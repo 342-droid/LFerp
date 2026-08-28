@@ -135,6 +135,7 @@ function partnerDivisionSelect() {
       { value: 'franchise', label: '加盟店' },
       { value: 'partner', label: '合作店' },
       { value: 'peer', label: '同行店' },
+      { value: 'fresh', label: '生鲜店' },
     ],
     '',
   );
@@ -329,7 +330,7 @@ function buildStoreFormBody(store, mode) {
 
   const syncPartnerSections = () => {
     const v = partnerSel.value;
-    franchiseSection.style.display = v === 'franchise' || v === 'partner' ? '' : 'none';
+    franchiseSection.style.display = v === 'franchise' || v === 'partner' || v === 'fresh' ? '' : 'none';
     peerSection.style.display = v === 'peer' ? '' : 'none';
   };
   partnerSel.addEventListener('change', syncPartnerSections);
@@ -587,7 +588,8 @@ export function openStoreDetailDrawer(store) {
     const grid = el('div', 'supplier-detail-grid');
     const regionDisp = store.region ? store.region.replace(/\//g, ' / ') : '—';
     const partnerDivision = store.partnerDivision || '—';
-    const isFranchiseOrPartner = partnerDivision === '加盟店' || partnerDivision === '合作店';
+    const isFranchiseOrPartner =
+      partnerDivision === '加盟店' || partnerDivision === '合作店' || partnerDivision === '生鲜店';
     const isPeerStore = partnerDivision === '同行店';
 
     grid.appendChild(cellRo('门店ID', store.storeId));

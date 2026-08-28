@@ -267,9 +267,11 @@
                         <table class="table no-last-column-freeze" id="detailProductList">
                             <thead>
                                 <tr>
+                                    <th>商品图片</th>
                                     <th>商品编码</th>
                                     <th>商品名称</th>
-                                    <th>单位</th>
+                                    <th>商品规格</th>
+                                    <th>商品单位</th>
                                     <th>计划出库量</th>
                                     <th>已分配量</th>
                                     <th>已拣货量</th>
@@ -705,8 +707,10 @@
             (order.products || []).forEach(product => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
+                    <td>${renderWmsSkuImage(product.skuCode, product.skuName)}</td>
                     <td>${product.skuCode}</td>
                     <td>${product.skuName}</td>
+                    <td>${getWmsSkuSpec(product.skuCode, product.skuName)}</td>
                     <td>${product.unit}</td>
                     <td>${product.planQty}</td>
                     <td>${product.allocatedQty}</td>

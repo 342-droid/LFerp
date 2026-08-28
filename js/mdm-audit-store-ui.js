@@ -60,7 +60,11 @@
 
     /** 与 mdm_bd_store_form / mdm-bd-h5-store-register validate() 对齐的编辑必填项 */
     function isFranchiseOrPartnerRow(row) {
-        return row.partnerDivision === '加盟店' || row.partnerDivision === '合作店';
+        return (
+            row.partnerDivision === '加盟店' ||
+            row.partnerDivision === '合作店' ||
+            row.partnerDivision === '生鲜店'
+        );
     }
 
     function isSupplierAuditRow(row) {
@@ -350,7 +354,10 @@
             appendSupplierRegistrationFields(body, row);
             return;
         }
-        var isFranchiseOrPartner = row.partnerDivision === '加盟店' || row.partnerDivision === '合作店';
+        var isFranchiseOrPartner =
+            row.partnerDivision === '加盟店' ||
+            row.partnerDivision === '合作店' ||
+            row.partnerDivision === '生鲜店';
         var isPeerStore = row.partnerDivision === '同行店';
 
         body.appendChild(el('div', 'supplier-detail-section-title', '主体字段'));
@@ -546,7 +553,10 @@
             return;
         }
 
-        var isFranchiseOrPartner = row.partnerDivision === '加盟店' || row.partnerDivision === '合作店';
+        var isFranchiseOrPartner =
+            row.partnerDivision === '加盟店' ||
+            row.partnerDivision === '合作店' ||
+            row.partnerDivision === '生鲜店';
         var isPeerStore = row.partnerDivision === '同行店';
 
         body.appendChild(el('div', 'supplier-detail-section-title', '主体字段'));
@@ -561,7 +571,8 @@
             [
                 { value: '加盟店', label: '加盟店' },
                 { value: '合作店', label: '合作店' },
-                { value: '同行店', label: '同行店' }
+                { value: '同行店', label: '同行店' },
+                { value: '生鲜店', label: '生鲜店' }
             ],
             row.partnerDivision
         );
@@ -813,7 +824,7 @@
                 }
             ],
             storeType: '社区便利店',
-            partnerDivision: '加盟店',
+            partnerDivision: '生鲜店',
             warehouse: '华东 RDC-杭州',
             region: '浙江省 / 杭州市 / 滨江区',
             address: '春晓路 198 号',
