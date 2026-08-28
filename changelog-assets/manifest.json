@@ -3157,5 +3157,62 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-08-26"
+  },
+  "fdf52b6|MDM/mdm_archive_carrier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-28"
+  },
+  "fdf52b6|MDM/mdm_archive_live_room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-28"
+  },
+  "fdf52b6|MDM/mdm_archive_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-28"
+  },
+  "fdf52b6|MDM/mdm_archive_supplier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-28"
+  },
+  "fdf52b6|MDM/mdm_archive_warehouse.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-28"
+  },
+  "fedaa23|MDM/mdm_archive_carrier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-28"
+  },
+  "fedaa23|MDM/mdm_archive_live_room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-28"
+  },
+  "fedaa23|MDM/mdm_archive_store.html": {
+    "before": "changelog-assets/fedaa23/MDM__mdm_archive_store.html.before.jpg",
+    "after": "changelog-assets/fedaa23/MDM__mdm_archive_store.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-08-28"
+  },
+  "fedaa23|MDM/mdm_archive_supplier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-28"
+  },
+  "fedaa23|MDM/mdm_archive_warehouse.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-28"
+  },
+  "fedaa23|MDM/mdm_audit_store_registration.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-28"
   }
 }

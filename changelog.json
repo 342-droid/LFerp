@@ -1,10 +1,59 @@
 {
-  "latestSha": "20f34850434259ef2cf4bfdbb1d45d367cb6d15c",
-  "total": 314,
+  "latestSha": "fedaa23c8bbcc54a1a40095b1003a4917c50d91b",
+  "total": 316,
   "days": [
     {
       "date": "2026-08-28",
       "items": [
+        {
+          "sha": "fedaa23",
+          "type": "feat",
+          "text": "门店合作类型增加生鲜店并套用加盟店资料",
+          "author": "sisi",
+          "time": "13:53",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "添加、编辑、列表、详情的门店合作类型增加「生鲜店」，并套用加盟店补充资料"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "text": "合作类型可选生鲜店，补充资料与加盟店一致"
+            }
+          ]
+        },
         {
           "sha": "20f3485",
           "type": "feat",
@@ -95,6 +144,47 @@
             {
               "file": null,
               "text": "更新组件样式、公共脚本、侧栏菜单及 Git 忽略规则"
+            }
+          ]
+        },
+        {
+          "sha": "fdf52b6",
+          "type": "feat",
+          "text": "门店进件列表补齐结算与渠道认证状态",
+          "author": "sisi",
+          "time": "01:58",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "商户进件列表仅自主进件展示结算类型、余额支付和微信/支付宝认证九态；待确认、未授权、已冻结可查看认证码；进件状态移到结算类型右侧；已有商户号不做认证；其他渠道进件列不变"
             }
           ]
         }
