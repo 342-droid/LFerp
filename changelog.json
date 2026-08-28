@@ -1,10 +1,39 @@
 {
-  "latestSha": "10f2e6030eacc85d114ce5f5c248a80dd989c96a",
-  "total": 319,
+  "latestSha": "01e8ada8ae8f83a8e1f8a33081a41aa6cff99795",
+  "total": 320,
   "days": [
     {
       "date": "2026-08-28",
       "items": [
+        {
+          "sha": "01e8ada",
+          "type": "fix",
+          "text": "统一出库与波次详情数量字段",
+          "author": "342-droid",
+          "time": "18:49",
+          "pages": [
+            {
+              "file": "SCM/obd_outbound.html",
+              "module": "冷丰WMS",
+              "title": "出库单"
+            },
+            {
+              "file": "SCM/obd_wave.html",
+              "module": "冷丰WMS",
+              "title": "波次管理"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/obd_outbound.html",
+              "text": "详情明细将订单量与计划出库量作为数量字段展示，并同步校验提示"
+            },
+            {
+              "file": null,
+              "text": "波次单: 详情明细将订单量与计划分配量作为数量字段展示"
+            }
+          ]
+        },
         {
           "sha": "10f2e60",
           "type": "feat",
