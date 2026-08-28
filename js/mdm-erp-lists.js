@@ -818,6 +818,7 @@
     function seedStoreDemoBalancePayments() {
         var map = readStoreBalancePayments();
         if (!map.ONS303445581201) map.ONS303445581201 = '已开通';
+        if (!map['ONS-CENTER-01']) map['ONS-CENTER-01'] = '已开通';
         writeStoreBalancePayments(map);
     }
 
@@ -1090,10 +1091,10 @@
             if (qOp && opTxt !== opMap[qOp]) ok = false;
             if (qOnboard && onboardTxt !== qOnboard) ok = false;
             if (qBalance && balanceTxt !== qBalance) ok = false;
-            if (qSplit === 'on' && splitTxt !== '开启') ok = false;
+            if (qSplit === 'on' && splitTxt !== '开启' && splitTxt !== '已开通') ok = false;
             if (qSplit === 'off' && splitTxt !== '关闭' && splitTxt !== '未开通') ok = false;
-            if (qSt === 'normal' && stTxt !== '正常') ok = false;
-            if (qSt === 'stopped' && stTxt !== '停用') ok = false;
+            if (qSt === 'normal' && stTxt !== '正常' && stTxt !== '已启用') ok = false;
+            if (qSt === 'stopped' && stTxt !== '停用' && stTxt !== '已禁用') ok = false;
             tr.style.display = ok ? '' : 'none';
         });
         pm.refreshPagination();
@@ -1168,6 +1169,212 @@
             tr.style.display = ok ? '' : 'none';
         });
         pm.refreshPagination();
+    }
+
+    var DEFAULT_STORE_TIP =
+        (window.MdmSystemDefaultStore && window.MdmSystemDefaultStore.HOVER_TIP) ||
+        '系统默认门店会作为自然流量用户的默认门店，避免造成分佣资损，请设置冷丰主体下的门店';
+
+    function readSystemDefaultStore() {
+        return window.MdmSystemDefaultStore && typeof window.MdmSystemDefaultStore.readDefault === 'function'
+            ? window.MdmSystemDefaultStore.readDefault()
+            : null;
+    }
+
+    function writeSystemDefaultStore(store) {
+        if (window.MdmSystemDefaultStore && typeof window.MdmSystemDefaultStore.writeDefault === 'function') {
+            return window.MdmSystemDefaultStore.writeDefault(store);
+        }
+        return store || null;
+    }
+
+    function hasSetDefaultStorePermission() {
+        if (window.MdmSystemDefaultStore && typeof window.MdmSystemDefaultStore.hasPermission === 'function') {
+            return window.MdmSystemDefaultStore.hasPermission();
+        }
+        return true;
+    }
+
+    function setSetDefaultStorePermission(on) {
+        if (window.MdmSystemDefaultStore && typeof window.MdmSystemDefaultStore.setPermission === 'function') {
+            window.MdmSystemDefaultStore.setPermission(on);
+        }
+    }
+
+    function storeRowMeta(tr) {
+        var c = tr.querySelectorAll('td');
+        if (c.length < STORE_COL.status + 1) return null;
+        var stSpan = c[STORE_COL.status].querySelector('.status');
+        return {
+            storeId: c[0].textContent.trim(),
+            subjectName: c[1].textContent.trim(),
+            name: (c[2].querySelector('.subject-name-link') || c[2].querySelector('a') || c[2]).textContent.trim(),
+            contact: c[6].textContent.trim(),
+            phone: c[7].textContent.trim(),
+            addr: tr.getAttribute('data-address') || '',
+            region: tr.getAttribute('data-region') || '',
+            splitService: String(tr.getAttribute('data-split') || '').trim(),
+            onboardStatus: c[STORE_COL.onboard].textContent.trim(),
+            balancePay: c[STORE_COL.balancePay].textContent.trim(),
+            storeStatus: stSpan ? stSpan.textContent.trim() : '',
+            hoursText: (c[STORE_COL.hours].textContent || '').replace(/\s+/g, ' ').trim()
+        };
+    }
+
+    function canRowSetAsDefault(meta) {
+        if (window.MdmSystemDefaultStore && typeof window.MdmSystemDefaultStore.canSetAsDefault === 'function') {
+            return window.MdmSystemDefaultStore.canSetAsDefault(meta);
+        }
+        return false;
+    }
+
+    function isStoreDisabledStatus(txt) {
+        var s = String(txt || '').trim();
+        return s === '已禁用' || s === '停用' || s === '禁用';
+    }
+
+    function refreshStoreNameDefaultBadge(tr, isDefault) {
+        var nameTd = tr.querySelectorAll('td')[2];
+        if (!nameTd) return;
+        var old = nameTd.querySelector('.mdm-sys-default-tag');
+        if (old) old.remove();
+        if (!isDefault) return;
+        var tag = document.createElement('span');
+        tag.className = 'mdm-sys-default-tag';
+        tag.textContent = '系统默认';
+        nameTd.appendChild(tag);
+    }
+
+    function snapshotDefaultStore(meta) {
+        var hours = String(meta.hoursText || '').replace(/平台|自定义/g, '').trim();
+        if (!hours || hours === '—') hours = '08:00-22:00';
+        return {
+            storeId: meta.storeId,
+            name: meta.name,
+            homeName: meta.name,
+            subjectName: meta.subjectName,
+            addr: meta.addr || meta.region || '',
+            leader: '店长：' + (meta.contact || '—') + ' ' + (meta.phone || ''),
+            hoursText: hours,
+            avatar: '',
+            isSystemDefault: true
+        };
+    }
+
+    function refreshStoreArchiveActions() {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+        var perm = hasSetDefaultStorePermission();
+        var current = readSystemDefaultStore();
+        var defaultId = current && current.storeId ? String(current.storeId) : '';
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+            var meta = storeRowMeta(tr);
+            if (!meta) return;
+            var isDefault = defaultId && meta.storeId === defaultId;
+            refreshStoreNameDefaultBadge(tr, isDefault);
+            var actionTd = tr.querySelector('.action-links') || tr.querySelectorAll('td')[tr.querySelectorAll('td').length - 1];
+            if (!actionTd) return;
+            actionTd.classList.add('action-links');
+            var edit = actionTd.querySelector('.edit-btn');
+            var onboard = actionTd.querySelector('.mdm-onboard-btn');
+            var html = '';
+            if (edit) html += '<a href="#" class="edit-btn">编辑</a> ';
+            if (onboard) html += '<a href="#" class="mdm-onboard-btn">去进件</a> ';
+            if (perm && canRowSetAsDefault(meta) && !isDefault) {
+                html +=
+                    '<a href="#" class="mdm-set-default-store" title="' +
+                    DEFAULT_STORE_TIP.replace(/"/g, '&quot;') +
+                    '">设为系统默认门店</a> ';
+            }
+            if (isStoreDisabledStatus(meta.storeStatus)) {
+                html += '<a href="#" class="mdm-store-disable">启用</a>';
+            } else if (isDefault) {
+                html +=
+                    '<a href="#" class="mdm-store-disable is-locked" title="系统默认门店不允许禁用">禁用</a>';
+            } else {
+                html += '<a href="#" class="mdm-store-disable">禁用</a>';
+            }
+            actionTd.innerHTML = html.replace(/\s+$/, '');
+        });
+    }
+
+    function applySystemDefaultStore(tr, pm) {
+        var meta = storeRowMeta(tr);
+        if (!meta) return;
+        if (!hasSetDefaultStorePermission()) {
+            if (typeof showToast === 'function') showToast('无「设为系统默认门店」权限', 'error');
+            return;
+        }
+        if (!canRowSetAsDefault(meta)) {
+            if (typeof showToast === 'function') {
+                showToast('仅进件成功、余额支付已开通、分账服务已开通且门店已启用时可设为系统默认门店', 'error');
+            }
+            return;
+        }
+        var prev = readSystemDefaultStore();
+        function doSet() {
+            writeSystemDefaultStore(snapshotDefaultStore(meta));
+            refreshStoreArchiveActions();
+            if (typeof showToast === 'function') showToast('已设为系统默认门店', 'success');
+        }
+        if (prev && prev.storeId && prev.storeId !== meta.storeId) {
+            var msg = '已有系统默认门店「' + (prev.name || prev.storeId) + '」，确定改为当前门店？最多只能设置一个。';
+            if (window.MdmSubjectLf && typeof window.MdmSubjectLf.showLfWarmConfirm === 'function') {
+                window.MdmSubjectLf.showLfWarmConfirm(msg, doSet);
+            } else if (window.confirm(msg)) {
+                doSet();
+            }
+            return;
+        }
+        doSet();
+    }
+
+    function toggleStoreDisable(tr, pm) {
+        var meta = storeRowMeta(tr);
+        if (!meta) return;
+        var current = readSystemDefaultStore();
+        var isDefault = current && current.storeId === meta.storeId;
+        if (!isStoreDisabledStatus(meta.storeStatus) && isDefault) {
+            if (typeof showToast === 'function') showToast('系统默认门店不允许禁用', 'error');
+            return;
+        }
+        var next = isStoreDisabledStatus(meta.storeStatus) ? '正常' : '已禁用';
+        var patch = {};
+        patch[STORE_COL.status] = {
+            value: next,
+            isStatus: true,
+            statusClass: next === '正常' ? 'active' : 'inactive'
+        };
+        function apply() {
+            if (pm && typeof pm.updateTableRow === 'function') {
+                pm.updateTableRow(tr, patch);
+            } else {
+                var span = tr.querySelectorAll('td')[STORE_COL.status].querySelector('.status');
+                if (span) {
+                    span.textContent = next;
+                    span.className = 'status ' + (next === '正常' ? 'active' : 'inactive');
+                }
+            }
+            refreshStoreArchiveActions();
+            if (typeof showToast === 'function') {
+                showToast(next === '正常' ? '门店已启用' : '门店已禁用', 'success');
+            }
+        }
+        if (next === '已禁用' && window.MdmSubjectLf && typeof window.MdmSubjectLf.showLfWarmConfirm === 'function') {
+            window.MdmSubjectLf.showLfWarmConfirm('确定禁用该门店？', apply);
+            return;
+        }
+        apply();
+    }
+
+    function bindSetDefaultStorePermissionToggle() {
+        var el = document.getElementById('qSetDefaultStorePerm');
+        if (!el) return;
+        el.checked = hasSetDefaultStorePermission();
+        el.addEventListener('change', function () {
+            setSetDefaultStorePermission(!!el.checked);
+            refreshStoreArchiveActions();
+        });
     }
 
     function initArchiveStore() {
@@ -1247,6 +1454,20 @@
                         e.preventDefault();
                         openArchiveOnboardingFromRow(el.closest('tr'), 'store');
                     }
+                },
+                {
+                    selector: '.mdm-set-default-store',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        applySystemDefaultStore(el.closest('tr'), pm);
+                    }
+                },
+                {
+                    selector: '.mdm-store-disable',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        toggleStoreDisable(el.closest('tr'), pm);
+                    }
                 }
             ],
             editModal: {
@@ -1303,6 +1524,8 @@
         refreshAllStoreHoursCells();
         bindStoreHoursListEdit();
         syncAllStoreArchiveRows();
+        bindSetDefaultStorePermissionToggle();
+        refreshStoreArchiveActions();
         window.addEventListener('storage', function (e) {
             if (
                 e.key === 'mdm_unified_onboarding_records_v1' ||
@@ -1311,6 +1534,7 @@
             ) {
                 syncAllStoreArchiveRows();
                 refreshAllStoreHoursCells();
+                refreshStoreArchiveActions();
             }
         });
         bindSimpleFilter(pm, {
@@ -1339,6 +1563,7 @@
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
             syncAllStoreArchiveRows();
+            refreshStoreArchiveActions();
             cacheFirstResourceRows('store', {
                 subjectCol: 1,
                 resourceNameCol: 2,
@@ -3303,6 +3528,7 @@
                                 amount: '0.00',
                                 orderCount: '0',
                                 lastConsume: '—',
+                                registerTime: '—',
                                 status: '正常',
                                 birthday: profile.birthday || '',
                                 district: profile.district || ''
@@ -3345,6 +3571,7 @@
                 m.amount || '0.00',
                 m.orderCount || '0',
                 m.lastConsume || '—',
+                m.registerTime || '—',
                 null,
                 null
             ];
@@ -3355,7 +3582,7 @@
                     span.className = 'mdm-list-avatar';
                     span.textContent = avatarText;
                     td.appendChild(span);
-                } else if (idx === 18) {
+                } else if (idx === 19) {
                     var st = document.createElement('span');
                     var stTxt = m.status || '正常';
                     if (stTxt === '黑名单') st.className = 'status blacklist';
@@ -3364,7 +3591,7 @@
                     else st.className = 'status active';
                     st.textContent = stTxt === '已注销' ? '注销' : stTxt;
                     td.appendChild(st);
-                } else if (idx === 19) {
+                } else if (idx === 20) {
                     td.className = 'action-links';
                     if (window.MdmMemberBlacklist && window.MdmMemberBlacklist.buildMemberListActions) {
                         td.innerHTML = window.MdmMemberBlacklist.buildMemberListActions(m.status || '正常');
@@ -3375,6 +3602,7 @@
                         } else {
                             var actions =
                                 '<a href="#" class="mdm-mem-detail">查看详情</a>' +
+                                '<a href="#" class="mdm-mem-change-store">变更绑定门店</a>' +
                                 '<a href="#" class="mdm-mem-coupon">发券</a>' +
                                 '<a href="#" class="mdm-mem-points">调整积分</a>' +
                                 '<a href="#" class="mdm-mem-growth">调整成长值</a>';
@@ -3431,20 +3659,20 @@
 
         function applyActions(tr, status) {
             var cells = tr.querySelectorAll('td');
-            if (cells.length < 20) return;
-            cells[19].className = 'action-links';
+            if (cells.length < 21) return;
+            cells[20].className = 'action-links';
             if (window.MdmMemberBlacklist && window.MdmMemberBlacklist.buildMemberListActions) {
-                cells[19].innerHTML = window.MdmMemberBlacklist.buildMemberListActions(status);
+                cells[20].innerHTML = window.MdmMemberBlacklist.buildMemberListActions(status);
             } else if (status === '注销' || status === '注销中') {
-                cells[19].innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a>';
+                cells[20].innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a>';
             }
         }
 
         /* 校正现有行：注销 / 注销中仅保留查看详情 */
         tbody.querySelectorAll('tr').forEach(function (tr) {
             var cells = tr.querySelectorAll('td');
-            if (cells.length < 20) return;
-            var stEl = cells[18].querySelector('.status');
+            if (cells.length < 21) return;
+            var stEl = cells[19].querySelector('.status');
             var stTxt = stEl
                 ? stEl.textContent.trim()
                 : (tr.getAttribute('data-member-status') || '');
@@ -3480,13 +3708,13 @@
             if (existing) {
                 existing.setAttribute('data-member-status', status);
                 var cells = existing.querySelectorAll('td');
-                if (cells.length >= 20) {
-                    var st = cells[18].querySelector('.status') || document.createElement('span');
+                if (cells.length >= 21) {
+                    var st = cells[19].querySelector('.status') || document.createElement('span');
                     st.className = status === '注销中' ? 'status cancel-pending' : 'status canceled';
                     st.textContent = status;
                     if (!st.parentNode) {
-                        cells[18].innerHTML = '';
-                        cells[18].appendChild(st);
+                        cells[19].innerHTML = '';
+                        cells[19].appendChild(st);
                     }
                     applyActions(existing, status);
                 }
@@ -3512,6 +3740,7 @@
                 amount: '0.00',
                 orderCount: '0',
                 lastConsume: '—',
+                registerTime: '—',
                 status: status
             };
             var tr = document.createElement('tr');
@@ -3522,7 +3751,7 @@
             [
                 m.id, m.nickname, null, phoneShow, m.gender, m.isMember, m.level, m.tags,
                 m.source, m.bindMethod, m.channelCount, m.points, m.satisMinutes, m.satisFeedback,
-                m.growthScore, m.amount, m.orderCount, m.lastConsume, null, null
+                m.growthScore, m.amount, m.orderCount, m.lastConsume, m.registerTime, null, null
             ].forEach(function (val, idx) {
                 var td = document.createElement('td');
                 if (idx === 2) {
@@ -3530,12 +3759,12 @@
                     span.className = 'mdm-list-avatar';
                     span.textContent = avatarText;
                     td.appendChild(span);
-                } else if (idx === 18) {
+                } else if (idx === 19) {
                     var st2 = document.createElement('span');
                     st2.className = status === '注销中' ? 'status cancel-pending' : 'status canceled';
                     st2.textContent = status;
                     td.appendChild(st2);
-                } else if (idx === 19) {
+                } else if (idx === 20) {
                     td.className = 'action-links';
                     td.innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a>';
                 } else {
@@ -3569,6 +3798,15 @@
                     handler: function (e, el, page) {
                         e.preventDefault();
                         page.config.detailView.onOpenDetail(el.closest('tr'));
+                    }
+                },
+                {
+                    selector: '.mdm-mem-change-store',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (window.MdmMemberCUi && window.MdmMemberCUi.openChangeStoreFromRow) {
+                            window.MdmMemberCUi.openChangeStoreFromRow(el.closest('tr'));
+                        }
                     }
                 },
                 {
@@ -3625,7 +3863,7 @@
             window.MdmMemberBlacklist.init();
         }
         bindSimpleFilter(pm, {
-            resetFields: ['qMemberId', 'qNickname', 'qBindWay', 'qPhone', 'qMemberLevel', 'qMemberTag', 'qMemberStatus'],
+            resetFields: ['qMemberId', 'qNickname', 'qBindWay', 'qPhone', 'qMemberLevel', 'qMemberTag', 'qMemberStatus', 'qRegStart', 'qRegEnd'],
             filterFn: function (p) {
                 var tbody = document.getElementById(p.config.tableBodyId);
                 if (!tbody) return;
@@ -3636,9 +3874,19 @@
                 var qLevel = (document.getElementById('qMemberLevel') || {}).value.trim();
                 var qTag = (document.getElementById('qMemberTag') || {}).value.trim();
                 var qSt = (document.getElementById('qMemberStatus') || {}).value.trim();
+                var qRegStart = ((document.getElementById('qRegStart') || {}).value || '').trim();
+                var qRegEnd = ((document.getElementById('qRegEnd') || {}).value || '').trim();
+                function toTs(raw) {
+                    var s = String(raw || '').trim();
+                    if (!s || s === '—') return NaN;
+                    s = s.replace('T', ' ');
+                    return Date.parse(s.replace(/-/g, '/'));
+                }
+                var startTs = toTs(qRegStart);
+                var endTs = toTs(qRegEnd);
                 tbody.querySelectorAll('tr').forEach(function (tr) {
                     var c = tr.querySelectorAll('td');
-                    if (c.length < 18) return;
+                    if (c.length < 19) return;
                     var ok = true;
                     if (qId && c[0].textContent.trim().indexOf(qId) === -1) ok = false;
                     if (qNick && c[1].textContent.trim().indexOf(qNick) === -1) ok = false;
@@ -3646,16 +3894,45 @@
                     if (qP && c[3].textContent.replace(/\D/g, '').indexOf(qP) === -1) ok = false;
                     if (qLevel && c[6].textContent.trim() !== qLevel) ok = false;
                     if (qTag && c[7].textContent.trim().indexOf(qTag) === -1) ok = false;
+                    var stCell = c.length >= 21 ? c[19] : c[18];
                     if (qSt) {
-                        var stEl = c[18].querySelector('.status');
+                        var stEl = stCell.querySelector('.status');
                         var stTxt = stEl ? stEl.textContent.trim() : (tr.getAttribute('data-member-status') || '');
                         if (stTxt !== qSt) ok = false;
+                    }
+                    if (!isNaN(startTs) || !isNaN(endTs)) {
+                        var regTxt = c.length >= 21 ? c[18].textContent.trim() : '';
+                        var regTs = toTs(regTxt);
+                        if (isNaN(regTs)) ok = false;
+                        if (!isNaN(startTs) && regTs < startTs) ok = false;
+                        if (!isNaN(endTs) && regTs > endTs) ok = false;
                     }
                     tr.style.display = ok ? '' : 'none';
                 });
                 p.refreshPagination();
             }
         });
+        (function bindMemberRegDatetime() {
+            function sync() {
+                document.querySelectorAll('#memberCSearchForm [data-datetime-wrap]').forEach(function (wrap) {
+                    var input = wrap.querySelector('input');
+                    wrap.classList.toggle('has-value', !!(input && input.value));
+                });
+            }
+            document.querySelectorAll('#memberCSearchForm [data-clear-datetime]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var id = btn.getAttribute('data-clear-datetime');
+                    var input = document.getElementById(id);
+                    if (input) input.value = '';
+                    sync();
+                });
+            });
+            document.querySelectorAll('#memberCSearchForm input[type="datetime-local"]').forEach(function (input) {
+                input.addEventListener('input', sync);
+                input.addEventListener('change', sync);
+            });
+            sync();
+        })();
         /* 会员列表默认展示全部状态（含黑名单 / 注销中 / 注销） */
         try {
             ensureCanceledMembersInList();

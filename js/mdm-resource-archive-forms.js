@@ -706,7 +706,8 @@
                 { value: '', label: '请选择门店合作类型' },
                 { value: 'franchise', label: '加盟店' },
                 { value: 'partner', label: '合作店' },
-                { value: 'peer', label: '同行店' }
+                { value: 'peer', label: '同行店' },
+                { value: 'fresh', label: '生鲜店' }
             ],
             ''
         );
@@ -822,7 +823,7 @@
 
         function syncPartner() {
             var v = partnerSel.value;
-            franchise.style.display = v === 'franchise' || v === 'partner' ? '' : 'none';
+            franchise.style.display = v === 'franchise' || v === 'partner' || v === 'fresh' ? '' : 'none';
             peer.style.display = v === 'peer' ? '' : 'none';
         }
         partnerSel.addEventListener('change', syncPartner);
@@ -840,7 +841,7 @@
             var bindBdName = cellPlainText(c[5]);
             if (bindBdName === '—') bindBdName = '';
             hydrateBdSelectFromPeoplePage(refs.bindBdSel, bindBdName);
-            var pmap = { 加盟店: 'franchise', 合作店: 'partner', 同行店: 'peer' };
+            var pmap = { 加盟店: 'franchise', 合作店: 'partner', 同行店: 'peer', 生鲜店: 'fresh' };
             refs.partnerSel.value = pmap[cellPlainText(c[3])] || '';
             refs.storeTypeInp.value = cellPlainText(c[4]);
             refs.warehouseSel.value = guessWarehouseSelectValue(cellPlainText(c[8]));

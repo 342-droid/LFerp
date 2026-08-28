@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 合同模板配置</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/basic-settings.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
+    <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-contract.css">
+</head>
+<body data-ct-page="template-form">
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/basic-settings-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content mdm-edit-page">
+            <div class="content-title" id="ctFormTitle">新增合同模板绑定</div>
+            <hr class="content-divider">
+
+            <div class="mdm-biz-tip" role="note">
+                切换<strong>业务场景</strong>会带出对应的法大大模板、签署方角色和控件字段。平台方默认自动签，相对方手动签。
+            </div>
+
+            <section class="pts-rule-card">
+                <div class="pts-rule-card__title">基本信息</div>
+                <div class="pts-rule-card__body">
+                    <div class="pts-rule-field">
+                        <div class="pts-rule-field__label"><span class="erp-req">*</span>业务场景</div>
+                        <div class="pts-rule-field__control"><select class="erp-select" id="ctTplScene"></select></div>
+                    </div>
+                    <div class="pts-rule-field">
+                        <div class="pts-rule-field__label"><span class="erp-req">*</span>模板名称</div>
+                        <div class="pts-rule-field__control"><input class="erp-input" id="ctTplName" maxlength="40" placeholder="在本系统展示的名称"></div>
+                    </div>
+                    <div class="pts-rule-field">
+                        <div class="pts-rule-field__label"><span class="erp-req">*</span>法大大签署模板</div>
+                        <div class="pts-rule-field__control">
+                            <select class="erp-select" id="ctRemoteTpl"></select>
+                            <div class="ct-field-tip">来自法大大「签署模板」查询，请先在开放平台做好控件和签章关键字。</div>
+                        </div>
+                    </div>
+                    <div class="pts-rule-field">
+                        <div class="pts-rule-field__label">状态</div>
+                        <div class="pts-rule-field__control">
+                            <div class="ct-radio-row">
+                                <label><input type="radio" name="ctTplStatus" id="ctTplOn" value="on"> 启用</label>
+                                <label><input type="radio" name="ctTplStatus" id="ctTplOff" value="off"> 停用</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pts-rule-field">
+                        <div class="pts-rule-field__label">发起规则</div>
+                        <div class="pts-rule-field__control">
+                            <div class="ct-map-list">
+                                <label><input type="checkbox" id="ctAutoStart"> 创建后自动启动签署任务</label>
+                                <label><input type="checkbox" id="ctSignOrder"> 按签署方顺序签（先平台后相对方）</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="pts-rule-card">
+                <div class="pts-rule-card__title">签署方</div>
+                <div class="pts-rule-card__body">
+                    <table class="ct-actor-table">
+                        <thead>
+                            <tr>
+                                <th>角色</th>
+                                <th>主体类型</th>
+                                <th>签署方式</th>
+                                <th>签章关键字</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ctActorBody"></tbody>
+                    </table>
+                    <div class="ct-toolbar" style="margin-top:12px;">
+                        <button type="button" class="erp-btn" id="ctAddActor">添加签署方</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="pts-rule-card">
+                <div class="pts-rule-card__title">控件填充字段</div>
+                <div class="pts-rule-card__body">
+                    <div class="pts-rule-field">
+                        <div class="pts-rule-field__label">从档案带出</div>
+                        <div class="pts-rule-field__control">
+                            <div class="ct-map-list" id="ctFillList"></div>
+                            <div class="ct-field-tip">发起签署时按勾选项从门店 / 供应商 / 仓库 / 员工档案写入模板控件。</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="mdm-edit-page__footer">
+                <button type="button" class="erp-btn" id="ctTplCancel">取消</button>
+                <button type="button" class="erp-btn erp-btn--primary" id="ctTplSave">保存</button>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/basic-settings-contract.js"></script>
+</body>
+</html>

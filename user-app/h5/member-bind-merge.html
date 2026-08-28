@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>会员绑定和合并 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-profile-edit.css">
+  <link rel="stylesheet" href="../css/user-app-settings.css">
+  <link rel="stylesheet" href="../css/user-app-member-bind.css">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-pe-page ua-mb-page">
+    <div class="ua-mp-capsule" aria-hidden="true">
+      <span class="ua-mp-capsule__dots"><i></i><i></i><i></i></span>
+      <span class="ua-mp-capsule__ring"></span>
+    </div>
+
+    <div class="ua-scroll ua-pe-scroll">
+      <div class="ua-status-bar ua-pe-status">
+        <span>9:41</span>
+        <span class="ua-status-bar__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#111"><path d="M1 7h2v4H1V7zm4-2h2v6H5V5zm4-3h2v9H9V2zm4 5h2v4h-2V7z"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="#111"><path d="M8 2.4C10.8 2.4 13.2 3.6 15 5.6 15.2 5.8 15.5 5.8 15.7 5.6 15.9 5.4 15.9 5.1 15.7 4.9 13.6 2.6 10.9 1.2 8 1.2S2.4 2.6.3 4.9C.1 5.1.1 5.4.3 5.6.5 5.8.8 5.8 1 5.6 2.8 3.6 5.2 2.4 8 2.4zm0 3.6c1.8 0 3.4.8 4.5 2.1.2.2.5.2.7 0 .2-.2.2-.5 0-.7C11.9 5.4 10.1 4.4 8 4.4S4.1 5.4 2.8 6.9c-.2.2-.2.5 0 .7.2.2.5.2.7 0C4.6 6.8 6.2 6 8 6zm0 3c1 0 1.8.5 2.4 1.2.2.2.5.2.7 0 .2-.2.2-.5 0-.7C10.3 9.2 9.2 8.6 8 8.6S5.7 9.2 4.9 10.5c-.2.2-.2.5 0 .7.2.2.5.2.7 0 .6-.7 1.4-1.2 2.4-1.2z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="20" height="11" rx="2.5" stroke="#111" opacity=".35"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#111"/><path d="M22 4.5v3a1.5 1.5 0 000-3z" fill="#111" opacity=".4"/></svg>
+        </span>
+      </div>
+
+      <header class="ua-pe-nav">
+        <a href="settings.html" class="ua-pe-nav__back" id="mbBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="ua-pe-nav__title" id="mbTitle">绑定手机号</h1>
+      </header>
+
+      <!-- 绑定手机号：验证码 / 扫码 -->
+      <div class="ua-mb-view" data-mb-view="bind">
+        <div class="ua-mb-body">
+          <p class="ua-mb-lead">【上海中庚漫城】请绑定手机号，用于识别会员身份。</p>
+          <div class="ua-mb-methods" id="mbMethodBar">
+            <button type="button" class="ua-mb-method" data-mb-method="sms">验证码绑定</button>
+            <button type="button" class="ua-mb-method" data-mb-method="qr">扫码绑定</button>
+            <button type="button" class="ua-mb-method" data-mb-method="admin">后台一键</button>
+          </div>
+
+          <div class="ua-mb-card" id="mbBindSms">
+            <div class="ua-mb-fields">
+              <div class="ua-mb-field">
+                <input type="tel" id="mbBindPhone" inputmode="tel" maxlength="11" placeholder="请输入手机号" autocomplete="tel">
+              </div>
+              <div class="ua-mb-field">
+                <input type="text" id="mbBindCode" inputmode="numeric" maxlength="6" placeholder="验证码" autocomplete="one-time-code">
+                <button type="button" class="ua-mb-sms" data-mb-sms="bind">获取验证码</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="ua-mb-card" id="mbBindQr" hidden>
+            <div class="ua-mb-qr">
+              <div class="ua-mb-qr__frame" aria-hidden="true"><span></span></div>
+              <p class="ua-mb-qr__title">已扫描门店会员码</p>
+              <p class="ua-mb-qr__desc">将使用微信授权手机号 138****5678<br>绑定上海中庚漫城会员</p>
+            </div>
+          </div>
+
+          <p class="ua-mb-hint" id="mbBindHint">验证码绑定与后台一键绑定：若 UnionID 已匹配，仅展示会员信息，不可在此修改资料。</p>
+        </div>
+        <div class="ua-mb-footer">
+          <button type="button" class="ua-mb-btn ua-mb-btn--primary" id="mbBindSubmit">绑定</button>
+        </div>
+      </div>
+
+      <!-- UnionID 一致：会员信息只读 -->
+      <div class="ua-mb-view" data-mb-view="member-info" hidden>
+        <div class="ua-mb-body">
+          <div class="ua-mb-card">
+            <div class="ua-mb-member">
+              <div class="ua-mb-avatar">
+                <img src="../assets/profile-avatar.svg" alt="头像">
+              </div>
+              <p class="ua-mb-member__name">宁静致远</p>
+              <p class="ua-mb-member__id">会员 ID UC10001</p>
+            </div>
+            <div class="ua-mb-kv">
+              <div class="ua-mb-kv__row">
+                <span class="ua-mb-kv__label">手机号</span>
+                <span class="ua-mb-kv__value">138****5678</span>
+              </div>
+              <div class="ua-mb-kv__row">
+                <span class="ua-mb-kv__label">开卡来源</span>
+                <span class="ua-mb-kv__value" id="mbMemberSource">终端开卡</span>
+              </div>
+              <div class="ua-mb-kv__row">
+                <span class="ua-mb-kv__label">绑定时间</span>
+                <span class="ua-mb-kv__value">2024-03-12 14:22</span>
+              </div>
+              <div class="ua-mb-kv__row">
+                <span class="ua-mb-kv__label">UnionID</span>
+                <span class="ua-mb-kv__value">已与小程序匹配</span>
+              </div>
+            </div>
+            <p class="ua-mb-lock">小程序 UnionID 已与该会员一致，资料仅展示、不可在此修改，避免跨端数据不一致。</p>
+          </div>
+        </div>
+        <div class="ua-mb-footer">
+          <button type="button" class="ua-mb-btn ua-mb-btn--primary" id="mbInfoConfirm">确认绑定</button>
+        </div>
+      </div>
+
+      <!-- 多身份选择 -->
+      <div class="ua-mb-view" data-mb-view="identity-select" hidden>
+        <div class="ua-mb-body">
+          <p class="ua-mb-lead">【上海中庚漫城】手机号：<strong>138****5678</strong>，该手机号绑定了多个会员身份，请选择一个。</p>
+          <div class="ua-mb-card ua-mb-pick" id="mbIdentityList">
+            <button type="button" class="ua-mb-pick__item is-on" data-mb-identity="zg">
+              <span class="ua-mb-pick__radio" aria-hidden="true"></span>
+              <span class="ua-mb-pick__avatar" style="background:#0b5c3b">中</span>
+              <span class="ua-mb-pick__main">
+                <span class="ua-mb-pick__name">宁静致远 <span class="ua-mb-tag">中庚会员</span></span>
+                <span class="ua-mb-pick__meta">会员 ID UC10001 · 终端开卡<br>绑定时间 2024-03-12 · 积分 1280</span>
+              </span>
+            </button>
+            <button type="button" class="ua-mb-pick__item" data-mb-identity="mc">
+              <span class="ua-mb-pick__radio" aria-hidden="true"></span>
+              <span class="ua-mb-pick__avatar" style="background:#ff7019">漫</span>
+              <span class="ua-mb-pick__main">
+                <span class="ua-mb-pick__name">微信用户 <span class="ua-mb-tag ua-mb-tag--gray">漫城积分</span></span>
+                <span class="ua-mb-pick__meta">会员 ID MP20018 · 小程序<br>绑定时间 2025-06-02 · 积分 560</span>
+              </span>
+            </button>
+          </div>
+          <p class="ua-mb-hint">同一手机号对应多个身份时，需用户选定后继续；未选择不可绑定。</p>
+        </div>
+        <div class="ua-mb-footer">
+          <button type="button" class="ua-mb-btn ua-mb-btn--primary" id="mbIdentityConfirm">确认选择</button>
+        </div>
+      </div>
+
+      <!-- 新用户注册 -->
+      <div class="ua-mb-view" data-mb-view="register" hidden>
+        <div class="ua-mb-body">
+          <p class="ua-mb-lead">该手机号尚未注册，请完成新用户注册后绑定。</p>
+          <div class="ua-mb-card">
+            <div class="ua-mb-fields">
+              <div class="ua-mb-field">
+                <input type="tel" id="mbRegPhone" inputmode="tel" maxlength="11" placeholder="手机号" value="13812345678">
+              </div>
+              <div class="ua-mb-field">
+                <input type="text" id="mbRegCode" inputmode="numeric" maxlength="6" placeholder="验证码">
+                <button type="button" class="ua-mb-sms" data-mb-sms="reg">获取验证码</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ua-mb-footer">
+          <button type="button" class="ua-mb-btn ua-mb-btn--primary" id="mbRegSubmit">注册并绑定</button>
+        </div>
+      </div>
+
+      <!-- 绑定成功（首次成功无弹窗） -->
+      <div class="ua-mb-view" data-mb-view="success" hidden>
+        <div class="ua-mb-done">
+          <div class="ua-mb-done__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12l5 5L20 7"/></svg>
+          </div>
+          <h2 class="ua-mb-done__title" id="mbSuccessTitle">绑定成功</h2>
+          <p class="ua-mb-done__desc" id="mbSuccessDesc">首次绑定手机号已完成，无需额外弹窗提醒。</p>
+        </div>
+        <div class="ua-mb-footer">
+          <button type="button" class="ua-mb-btn ua-mb-btn--primary" id="mbSuccessOk">完成</button>
+        </div>
+      </div>
+
+      <!-- 旧手机号验证（换绑） -->
+      <div class="ua-mb-view" data-mb-view="verify-old" hidden>
+        <div class="ua-mb-body">
+          <p class="ua-mb-lead">更换绑定手机号前，请先验证当前手机号 <strong>155****9061</strong>。</p>
+          <div class="ua-mb-card">
+            <div class="ua-mb-fields">
+              <div class="ua-mb-field">
+                <input type="tel" value="155****9061" readonly>
+              </div>
+              <div class="ua-mb-field">
+                <input type="text" id="mbOldCode" inputmode="numeric" maxlength="6" placeholder="验证码">
+                <button type="button" class="ua-mb-sms" data-mb-sms="old">获取验证码</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ua-mb-footer">
+          <button type="button" class="ua-mb-btn ua-mb-btn--primary" id="mbOldSubmit">下一步</button>
+        </div>
+      </div>
+
+      <!-- 换绑新手机号 -->
+      <div class="ua-mb-view" data-mb-view="change-phone" hidden>
+        <div class="ua-mb-body">
+          <p class="ua-mb-lead">请输入要换绑的新手机号。</p>
+          <div class="ua-mb-card">
+            <div class="ua-mb-fields">
+              <div class="ua-mb-field">
+                <input type="tel" id="mbNewPhone" inputmode="tel" maxlength="11" placeholder="新手机号" value="13812345678">
+              </div>
+              <div class="ua-mb-field">
+                <input type="text" id="mbNewCode" inputmode="numeric" maxlength="6" placeholder="验证码">
+                <button type="button" class="ua-mb-sms" data-mb-sms="new">获取验证码</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ua-mb-footer">
+          <button type="button" class="ua-mb-btn ua-mb-btn--primary" id="mbNewSubmit">确认换绑</button>
+        </div>
+      </div>
+
+      <!-- 合并资产确认 -->
+      <div class="ua-mb-view" data-mb-view="merge-assets" hidden>
+        <div class="ua-mb-body">
+          <p class="ua-mb-lead">同意合并后，以下身份与资产将并入当前会员，合并后不可撤销。</p>
+          <div class="ua-mb-card ua-mb-asset">
+            <div class="ua-mb-asset__item">
+              <div class="ua-mb-asset__head">
+                <span class="ua-mb-asset__name">中庚会员</span>
+                <span class="ua-mb-asset__sum">保留当前身份</span>
+              </div>
+              <p class="ua-mb-asset__desc">终端开卡档案并入；等级与成长值按较高一侧保留。</p>
+            </div>
+            <div class="ua-mb-asset__item">
+              <div class="ua-mb-asset__head">
+                <span class="ua-mb-asset__name">三立福利</span>
+                <span class="ua-mb-asset__sum">券 3 张</span>
+              </div>
+              <p class="ua-mb-asset__desc">待核销优惠券、福利资格一并转入当前会员。</p>
+            </div>
+            <div class="ua-mb-asset__item">
+              <div class="ua-mb-asset__head">
+                <span class="ua-mb-asset__name">漫城积分</span>
+                <span class="ua-mb-asset__sum">1280 + 560 → 1840</span>
+              </div>
+              <p class="ua-mb-asset__desc">含申请中 1 项、待办任务 2 项，合并后继续跟进。</p>
+            </div>
+            <div class="ua-mb-asset__item">
+              <div class="ua-mb-asset__head">
+                <span class="ua-mb-asset__name">资产 · 福利金</span>
+                <span class="ua-mb-asset__sum">¥12.80 + ¥3.20</span>
+              </div>
+              <p class="ua-mb-asset__desc">福利金余额合计转入当前会员账户。</p>
+            </div>
+          </div>
+          <p class="ua-mb-warn">合并后原会员身份不再独立登录，资产无法拆回。</p>
+        </div>
+        <div class="ua-mb-footer ua-mb-btn-row">
+          <button type="button" class="ua-mb-btn ua-mb-btn--ghost" id="mbMergeCancel">取消</button>
+          <button type="button" class="ua-mb-btn ua-mb-btn--primary" id="mbMergeConfirm">确认合并</button>
+        </div>
+      </div>
+
+      <!-- 合并完成 -->
+      <div class="ua-mb-view" data-mb-view="merge-done" hidden>
+        <div class="ua-mb-done">
+          <div class="ua-mb-done__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12l5 5L20 7"/></svg>
+          </div>
+          <h2 class="ua-mb-done__title">合并完成</h2>
+          <p class="ua-mb-done__desc">中庚会员、三立福利、漫城积分与福利金已并入当前会员。</p>
+        </div>
+        <div class="ua-mb-body" style="padding-top:0">
+          <div class="ua-mb-card ua-mb-asset">
+            <div class="ua-mb-asset__item">
+              <div class="ua-mb-asset__head"><span class="ua-mb-asset__name">中庚会员</span><span class="ua-mb-asset__sum">已并入</span></div>
+            </div>
+            <div class="ua-mb-asset__item">
+              <div class="ua-mb-asset__head"><span class="ua-mb-asset__name">三立福利</span><span class="ua-mb-asset__sum">已并入</span></div>
+            </div>
+            <div class="ua-mb-asset__item">
+              <div class="ua-mb-asset__head"><span class="ua-mb-asset__name">漫城积分</span><span class="ua-mb-asset__sum">1840</span></div>
+            </div>
+            <div class="ua-mb-asset__item">
+              <div class="ua-mb-asset__head"><span class="ua-mb-asset__name">资产 · 福利金</span><span class="ua-mb-asset__sum">¥16.00</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="ua-mb-footer">
+          <button type="button" class="ua-mb-btn ua-mb-btn--primary" id="mbMergeDoneOk">完成</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 手机号已被他人绑定 -->
+    <div class="ua-mb-modal" id="mbOccupiedModal" hidden>
+      <div class="ua-mb-modal__mask" data-mb-close="occupied"></div>
+      <div class="ua-mb-modal__panel" role="dialog" aria-modal="true">
+        <p class="ua-mb-modal__title">提示</p>
+        <p class="ua-mb-modal__text">抱歉，该手机号已绑定其他用户身份，请更换手机号进行绑定。</p>
+        <div class="ua-mb-modal__actions">
+          <button type="button" class="ua-mb-modal__btn ua-mb-modal__btn--ok" data-mb-close="occupied">我知道了</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 新号已绑他人：确认是否本人 -->
+    <div class="ua-mb-modal" id="mbConflictModal" hidden>
+      <div class="ua-mb-modal__mask" data-mb-close="conflict"></div>
+      <div class="ua-mb-modal__panel" role="dialog" aria-modal="true">
+        <p class="ua-mb-modal__title">确认绑定</p>
+        <p class="ua-mb-modal__text">【上海中庚漫城】手机号：138****5678，该手机号已绑定其他会员，如果是您本人，请确认。</p>
+        <div class="ua-mb-modal__actions">
+          <button type="button" class="ua-mb-modal__btn ua-mb-modal__btn--cancel" data-mb-close="conflict">取消</button>
+          <button type="button" class="ua-mb-modal__btn ua-mb-modal__btn--ok" id="mbConflictOk">确认</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 是否合并会员 -->
+    <div class="ua-mb-modal" id="mbMergeAskModal" hidden>
+      <div class="ua-mb-modal__mask" data-mb-close="merge-ask"></div>
+      <div class="ua-mb-modal__panel" role="dialog" aria-modal="true">
+        <p class="ua-mb-modal__title">提示</p>
+        <p class="ua-mb-modal__text">绑定手机号已存在，是否合并会员？</p>
+        <div class="ua-mb-modal__actions">
+          <button type="button" class="ua-mb-modal__btn ua-mb-modal__btn--cancel" data-mb-close="merge-ask">暂不合并</button>
+          <button type="button" class="ua-mb-modal__btn ua-mb-modal__btn--ok" id="mbMergeAskOk">同意合并</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ua-mb-toast" id="mbToast" role="status" aria-live="polite"></div>
+  </div>
+<script src="../js/user-app-blacklist-guard.js"></script>
+<script src="../js/user-app-nav.js"></script>
+<script src="../js/user-app-member-bind.js"></script>
+</body>
+</html>

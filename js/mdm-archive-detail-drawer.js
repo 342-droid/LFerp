@@ -1872,6 +1872,7 @@
         }
     }
 
+    /* 供应商 / 直播间 / 承运商进件列表：保持原列，不套用门店钱包字段 */
     var ONBOARD_LIST_HEADERS = [
         '商户名称',
         '主体类型',
@@ -1885,6 +1886,324 @@
         '操作时间',
         '操作'
     ];
+
+    /* 仅门店进件（为门店钱包准备）：结算类型后接进件状态，再跟余额支付与渠道认证 */
+    var STORE_ONBOARD_LIST_HEADERS = [
+        '商户名称',
+        '主体类型',
+        '所属集团',
+        '汇付商户号',
+        '是否默认',
+        '结算主体',
+        '结算类型',
+        '进件状态',
+        '余额支付状态',
+        '微信认证状态',
+        '支付宝认证状态',
+        '联系人手机号',
+        '商户号来源',
+        '操作时间',
+        '操作'
+    ];
+
+    function isStoreOnboardList(meta) {
+        var m = meta || {};
+        return (
+            m.bindKind === 'store' ||
+            m.kind === 'store' ||
+            m.title === '门店进件' ||
+            m.subjectType === '门店'
+        );
+    }
+
+    /* 微信 / 支付宝认证申请仅自主进件；已有商户号不发起、不展示认证操作 */
+    function isStoreSelfOnboardAuth(meta) {
+        var src = String((meta && (meta.merchantNoSource || meta.source)) || '自主进件').trim();
+        return src === '自主进件';
+    }
+
+    /* 结算类型：对公 / 对私 */
+    var ONBOARD_SETTLE_TYPES = ['对公', '对私'];
+    /* 余额支付状态：已开通 / 待开通 */
+    var ONBOARD_BALANCE_PAY_STATUS = ['已开通', '待开通'];
+    /* 仅门店进件 / 门店钱包：微信 / 支付宝认证状态（列表展示 9 态） */
+    var ONBOARD_CHANNEL_AUTH_STATUS = [
+        '未认证',
+        '申请异常',
+        '审核中',
+        '待确认',
+        '已驳回',
+        '已冻结',
+        '已作废',
+        '未授权',
+        '认证成功'
+    ];
+    /* 需人工在微信 / 支付宝扫码推进 */
+    var ONBOARD_AUTH_NEED_QR = ['待确认', '未授权', '已冻结'];
+
+    function normalizeOnboardSettleType(val) {
+        var s = String(val || '').trim();
+        if (ONBOARD_SETTLE_TYPES.indexOf(s) !== -1) return s;
+        if (s.indexOf('对私') !== -1) return '对私';
+        if (s.indexOf('对公') !== -1) return '对公';
+        return '';
+    }
+
+    function onboardAuditPhase(status) {
+        var raw = String(status || '').trim();
+        if (raw === '进件成功' || raw === '审核成功') return 'success';
+        if (raw === '进件失败' || raw === '审核失败' || raw === 'rejected') return 'fail';
+        if (raw === '进件中' || raw === 'submitted' || raw.indexOf('待') === 0) return 'pending';
+        var t = onboardStatusText(status);
+        if (t === '审核成功' || t === '进件成功') return 'success';
+        if (t === '审核失败' || t === '进件失败') return 'fail';
+        if (t === '未发起' || t === '未提交' || t === '未进件') return 'none';
+        return 'pending';
+    }
+
+    function resolveOnboardBalancePayStatus(val) {
+        return String(val || '').trim() === '已开通' ? '已开通' : '待开通';
+    }
+
+    function onboardAuthReasonForStatus(status, channel, seed) {
+        var s = String(status || '').trim();
+        if (s === '未授权') return 'authorize';
+        if (s === '已冻结') return 'freeze';
+        if (s !== '待确认') return '';
+        var n = 0;
+        String(seed || '').split('').forEach(function (ch) {
+            n += ch.charCodeAt(0);
+        });
+        if (channel === 'ali') return n % 2 === 0 ? 'confirm_legal' : 'confirm_contact';
+        return n % 2 === 0 ? 'confirm_contact' : 'confirm_legal';
+    }
+
+    /**
+     * 认证展示：优先用显式枚举；演示按进件阶段给可验收的 9 态
+     * 进件中→待确认（要扫码）；进件成功微信常停在未授权，支付宝已授权
+     */
+    function resolveOnboardChannelAuth(channel, val, onboardStatus, seed) {
+        var s = String(val || '').trim();
+        if (ONBOARD_CHANNEL_AUTH_STATUS.indexOf(s) !== -1) {
+            return {
+                status: s,
+                reason: onboardAuthReasonForStatus(s, channel, seed)
+            };
+        }
+        var phase = onboardAuditPhase(onboardStatus);
+        if (phase === 'success') {
+            if (channel === 'wx') return { status: '未授权', reason: 'authorize' };
+            return { status: '认证成功', reason: '' };
+        }
+        if (phase === 'fail') return { status: '已驳回', reason: '' };
+        if (phase === 'pending') {
+            var reason = onboardAuthReasonForStatus('待确认', channel, seed);
+            return { status: '待确认', reason: reason };
+        }
+        return { status: '未认证', reason: '' };
+    }
+
+    function resolveOnboardChannelAuthStatus(val, onboardStatus, channel, seed) {
+        return resolveOnboardChannelAuth(channel || 'wx', val, onboardStatus, seed).status;
+    }
+
+    function onboardAuthQrCopy(channel, reason) {
+        var isWx = channel === 'wx';
+        if (reason === 'confirm_contact') {
+            return isWx
+                ? '请使用微信扫描下方小程序码，确认联系信息（可修改超级管理员手机号）。'
+                : '请使用支付宝扫描下方二维码，完成联系人确认。';
+        }
+        if (reason === 'confirm_legal') {
+            return isWx
+                ? '请使用微信扫描下方小程序码，在小程序端完成账户验证。'
+                : '请使用支付宝扫描下方二维码，完成法人确认。';
+        }
+        if (reason === 'authorize') {
+            return isWx
+                ? '审核已通过。请使用微信扫描下方小程序码，完成授权。'
+                : '审核已通过。请使用支付宝扫描下方二维码，完成授权。';
+        }
+        if (reason === 'freeze') {
+            return isWx
+                ? '申请单已冻结。请通知指定联系人使用微信扫描下方小程序码完成授权。'
+                : '申请单已冻结。请使用支付宝扫描下方二维码完成授权（仍可能返回上次授权码）。';
+        }
+        return isWx
+            ? '请使用微信扫描下方小程序码，完成人工确认。'
+            : '请使用支付宝扫描下方二维码，完成人工确认。';
+    }
+
+    function onboardAuthQrTitle(channel, reason) {
+        var app = channel === 'wx' ? '微信认证' : '支付宝认证';
+        if (reason === 'confirm_contact') return app + ' · 待确认联系信息';
+        if (reason === 'confirm_legal') {
+            return channel === 'wx' ? app + ' · 待账户验证' : app + ' · 待法人确认';
+        }
+        if (reason === 'authorize') return app + ' · 待授权';
+        if (reason === 'freeze') return app + ' · 已冻结';
+        return app;
+    }
+
+    function ensureQrCodeLib(done) {
+        if (window.QRCode) {
+            done();
+            return;
+        }
+        var existing = document.querySelector('script[data-onboard-auth-qrcode="1"]');
+        if (existing) {
+            existing.addEventListener('load', function () {
+                done();
+            });
+            return;
+        }
+        var s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
+        s.setAttribute('data-onboard-auth-qrcode', '1');
+        s.onload = function () {
+            done();
+        };
+        s.onerror = function () {
+            done();
+        };
+        document.head.appendChild(s);
+    }
+
+    function renderOnboardAuthQr(mount, payload) {
+        empty(mount);
+        if (window.QRCode) {
+            try {
+                new window.QRCode(mount, {
+                    text: payload,
+                    width: 180,
+                    height: 180,
+                    correctLevel: window.QRCode.CorrectLevel.M
+                });
+                return;
+            } catch (e) {
+                /* fallback below */
+            }
+        }
+        var ph = el('div', 'mdm-onboard-auth-qr__ph', '演示码');
+        mount.appendChild(ph);
+    }
+
+    function closeOnboardAuthQrModal() {
+        document.querySelectorAll('[data-onboard-auth-qr="1"]').forEach(function (n) {
+            n.remove();
+        });
+    }
+
+    function openOnboardAuthQrModal(opts) {
+        opts = opts || {};
+        closeOnboardAuthQrModal();
+        var channel = opts.channel === 'ali' ? 'ali' : 'wx';
+        var status = opts.status || '待确认';
+        var reason = opts.reason || '';
+        var payload =
+            (channel === 'wx' ? 'wxpay://onboard-auth?' : 'alipays://onboard-auth?') +
+            'status=' +
+            encodeURIComponent(status) +
+            '&reason=' +
+            encodeURIComponent(reason) +
+            '&merchant=' +
+            encodeURIComponent(opts.merchantName || '') +
+            '&no=' +
+            encodeURIComponent(opts.merchantNo || '');
+
+        var backdrop = el(
+            'div',
+            'erp-modal-backdrop erp-modal-backdrop--over-drawer'
+        );
+        backdrop.setAttribute('data-onboard-auth-qr', '1');
+
+        var modal = el('div', 'erp-modal erp-modal--onboard-auth-qr');
+        var header = el('div', 'erp-modal__header');
+        header.appendChild(el('h2', 'erp-modal__title', onboardAuthQrTitle(channel, reason)));
+        var acts = el('div', 'erp-modal__header-actions');
+        var closeBtn = el('button', 'erp-modal__header-btn');
+        closeBtn.type = 'button';
+        closeBtn.setAttribute('aria-label', '关闭');
+        closeBtn.innerHTML = '&times;';
+        acts.appendChild(closeBtn);
+        header.appendChild(acts);
+
+        var body = el('div', 'erp-modal__body');
+        var box = el('div', 'mdm-onboard-auth-qr');
+        box.appendChild(el('p', 'mdm-onboard-auth-qr__status', '当前状态：' + status));
+        box.appendChild(el('p', 'mdm-onboard-auth-qr__hint', onboardAuthQrCopy(channel, reason)));
+        var code = el('div', 'mdm-onboard-auth-qr__code');
+        code.setAttribute('id', 'mdm-onboard-auth-qr-mount');
+        box.appendChild(code);
+        box.appendChild(
+            el(
+                'p',
+                'mdm-onboard-auth-qr__tip',
+                '接口无法代确认。可截图发给对应联系人 / 法人，用' +
+                    (channel === 'wx' ? '微信' : '支付宝') +
+                    '扫码完成。'
+            )
+        );
+        body.appendChild(box);
+
+        var footer = el('div', 'erp-modal__footer');
+        var okBtn = mkBtn('关闭', true);
+        footer.appendChild(okBtn);
+
+        modal.appendChild(header);
+        modal.appendChild(body);
+        modal.appendChild(footer);
+        backdrop.appendChild(modal);
+
+        function shut() {
+            closeOnboardAuthQrModal();
+        }
+        backdrop.addEventListener('click', function (ev) {
+            if (ev.target === backdrop) shut();
+        });
+        closeBtn.addEventListener('click', shut);
+        okBtn.addEventListener('click', shut);
+        document.body.appendChild(backdrop);
+
+        ensureQrCodeLib(function () {
+            if (!document.body.contains(code)) return;
+            renderOnboardAuthQr(code, payload);
+        });
+    }
+
+    function makeOnboardAuthStatusCell(channel, auth, meta) {
+        var wrap = el('div', 'mdm-onboard-auth-cell');
+        if (!isStoreSelfOnboardAuth(meta)) {
+            wrap.appendChild(document.createTextNode('—'));
+            return { node: wrap };
+        }
+        var status = (auth && auth.status) || '未认证';
+        wrap.appendChild(document.createTextNode(status));
+        if (ONBOARD_AUTH_NEED_QR.indexOf(status) === -1) {
+            return { node: wrap };
+        }
+        var btn = el('button', 'erp-link-like-btn', '查看认证码');
+        btn.type = 'button';
+        btn.style.border = 'none';
+        btn.style.background = 'transparent';
+        btn.style.color = '#1677ff';
+        btn.style.cursor = 'pointer';
+        btn.style.padding = '0';
+        btn.style.marginLeft = '6px';
+        btn.style.fontSize = '12px';
+        btn.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            openOnboardAuthQrModal({
+                channel: channel,
+                status: status,
+                reason: (auth && auth.reason) || '',
+                merchantName: meta && meta.merchantName,
+                merchantNo: meta && meta.huifuMerchantNo
+            });
+        });
+        wrap.appendChild(btn);
+        return { node: wrap };
+    }
 
     /** 档案基础信息场地照（进件成功前可与进件互相同步） */
     function readArchiveVenuePhotos(kind, entityId, entityName) {
@@ -2487,18 +2806,46 @@
         var m = meta || {};
         var source = m.merchantNoSource || '自主进件';
         var defaultText = m.isDefault ? '是' : '否';
+        var actionCell = makeOnboardActionCell(m, refresh);
+        if (!isStoreOnboardList(m)) {
+            return [
+                nz(m.merchantName),
+                nz(m.subjectType),
+                nz(m.groupName),
+                onboardStatusText(m.onboardStatus),
+                nz(m.huifuMerchantNo),
+                nz(defaultText),
+                nz(m.settlementSubject),
+                nz(m.contactMobile),
+                nz(source),
+                nz(m.submitTime),
+                actionCell
+            ];
+        }
+        var selfOnboard = isStoreSelfOnboardAuth(m);
+        var authSeed = String(m.huifuMerchantNo || m.merchantName || '');
+        var wxAuth = selfOnboard
+            ? resolveOnboardChannelAuth('wx', m.wxAuthStatus, m.onboardStatus, authSeed)
+            : { status: '', reason: '' };
+        var aliAuth = selfOnboard
+            ? resolveOnboardChannelAuth('ali', m.aliAuthStatus, m.onboardStatus, authSeed)
+            : { status: '', reason: '' };
         return [
             nz(m.merchantName),
             nz(m.subjectType),
             nz(m.groupName),
-            onboardStatusText(m.onboardStatus),
             nz(m.huifuMerchantNo),
             nz(defaultText),
             nz(m.settlementSubject),
+            nz(m.settleType || normalizeOnboardSettleType(m.settlementSubject) || '—'),
+            onboardStatusText(m.onboardStatus),
+            resolveOnboardBalancePayStatus(m.balancePayStatus),
+            makeOnboardAuthStatusCell('wx', wxAuth, m),
+            makeOnboardAuthStatusCell('ali', aliAuth, m),
             nz(m.contactMobile),
             nz(source),
             nz(m.submitTime),
-            makeOnboardActionCell(m, refresh)
+            actionCell
         ];
     }
 
@@ -2549,6 +2896,13 @@
                     isDefault: !!it.isDefault,
                     multiMerchant: multi,
                     settlementSubject: opts.settlementSubject,
+                    settleType:
+                        kind === 'store'
+                            ? opts.settleType || normalizeOnboardSettleType(opts.settlementSubject)
+                            : '',
+                    balancePayStatus: kind === 'store' ? opts.balancePayStatus : '',
+                    wxAuthStatus: kind === 'store' ? opts.wxAuthStatus : '',
+                    aliAuthStatus: kind === 'store' ? opts.aliAuthStatus : '',
                     contactMobile: it.contactMobile,
                     merchantNoSource: it.source,
                     bindKind: kind,
@@ -2725,7 +3079,7 @@
         if (c.length < 16) return null;
         var name = cellPlain(c[2]);
         var partner = cellPlain(c[3]);
-        var isFP = partner === '加盟店' || partner === '合作店';
+        var isFP = partner === '加盟店' || partner === '合作店' || partner === '生鲜店';
         var isPeer = partner === '同行店';
         var settleType = cellPlain(c[13]);
         function attr(key, fallback) {
@@ -3157,7 +3511,7 @@
             tableWrap.innerHTML = '';
             tableWrap.appendChild(
                 dataTable(
-                    ONBOARD_LIST_HEADERS,
+                    STORE_ONBOARD_LIST_HEADERS,
                     buildEntityOnboardListRows(
                         {
                             kind: 'store',
@@ -3165,9 +3519,14 @@
                             merchantName: store.name,
                             subjectType: '门店',
                             groupName: store.subjectName,
-                            onboardStatus: onboardingSummary.auditStatus || onboardingSummary.status,
+                            onboardStatus:
+                                onboardingSummary.auditStatus ||
+                                onboardingSummary.status ||
+                                store.onboardStatus,
                             fallbackMerchantNo: huifuMeta.merchantNo,
                             settlementSubject: store.settleType,
+                            settleType: normalizeOnboardSettleType(store.settleType),
+                            balancePayStatus: store.balancePay,
                             contactMobile: store.phone,
                             submitTime: formatTs(onboardingSummary.submittedAt),
                             recordKey: recordKey,

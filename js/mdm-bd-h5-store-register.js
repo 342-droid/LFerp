@@ -47,7 +47,7 @@
   var BD_CODE_TO_NAME = { BD20240001: '李泽峰', BD2024LZF: '李泽峰' };
   /** 与人员中心 BD 列表 / 门店档案 boundBd 枚举一致 */
   var BD_NAME_OPTIONS = ['李泽峰', '李明', '赵丽', '王强', '周杰', '张芳'];
-  var PARTNER_DIVISIONS = ['加盟店', '合作店', '同行店'];
+  var PARTNER_DIVISIONS = ['加盟店', '合作店', '同行店', '生鲜店'];
   var MDM_BD_CURRENT_KEY = 'mdmBdCurrentBd';
   var MDM_BD_ROLE_KEY = 'mdmBdAccountRole';
 
@@ -123,7 +123,7 @@
 
   function protectionHint(partnerDivision, regionCascade, detailAddress) {
     var div = String(partnerDivision || '').trim();
-    if (!div || div === '同行店') return { show: false, msg: '' };
+    if (div !== '加盟店' && div !== '合作店') return { show: false, msg: '' };
     var text = String(regionCascade || '') + String(detailAddress || '');
     if (text.indexOf('西湖区') >= 0 && /文一西路|558/.test(text)) {
       return {
@@ -623,7 +623,11 @@
       return !!st.partnerDivision;
     }
     function isFP() {
-      return st.partnerDivision === '加盟店' || st.partnerDivision === '合作店';
+      return (
+        st.partnerDivision === '加盟店' ||
+        st.partnerDivision === '合作店' ||
+        st.partnerDivision === '生鲜店'
+      );
     }
     function isPeer() {
       return st.partnerDivision === '同行店';
@@ -815,7 +819,9 @@
           '门店合作类型',
           true,
           '<select class="h5-input" id="f_partner">' +
-          '<option value="加盟店">加盟店</option><option value="合作店">合作店</option><option value="同行店">同行店</option>' +
+          PARTNER_DIVISIONS.map(function (d) {
+            return '<option value="' + esc(d) + '">' + esc(d) + '</option>';
+          }).join('') +
           '</select>'
         ) +
         (policyOn()

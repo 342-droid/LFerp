@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 合同模板</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/basic-settings.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-contract.css">
+</head>
+<body data-ct-page="template">
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/basic-settings-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-title">基础设置 / 合同管理 / 合同模板</div>
+            <hr class="content-divider">
+
+            <div class="mdm-biz-tip" role="note">
+                合同文件在<strong>法大大控制台</strong>做成签署模板；本页只做场景绑定：门店入驻、供应商合作、仓库合作、员工入职各用哪套模板、谁自动签、填哪些控件。
+            </div>
+
+            <div class="ct-scene-grid" id="ctSceneCards"></div>
+
+            <section class="search-section">
+                <form class="search-form" id="ctTplFilter" onsubmit="return false;">
+                    <div class="form-group">
+                        <label>模板名称:</label>
+                        <input id="qTplName" placeholder="名称或法大大模板 ID" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label>业务场景:</label>
+                        <select id="qTplScene"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>状态:</label>
+                        <select id="qTplStatus">
+                            <option value="">全部</option>
+                            <option value="on">启用</option>
+                            <option value="off">停用</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" data-ct-reset>重置</button>
+                        <button type="button" class="btn btn-primary" data-ct-query>查询</button>
+                    </div>
+                </form>
+            </section>
+
+            <div class="ct-toolbar">
+                <button type="button" class="erp-btn erp-btn--primary" id="ctTplAddBtn">新增绑定</button>
+                <button type="button" class="erp-btn" id="ctTplSyncBtn">同步法大大模板</button>
+            </div>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>模板名称</th>
+                                <th>业务场景</th>
+                                <th>法大大签署模板</th>
+                                <th>签署方</th>
+                                <th>状态</th>
+                                <th>更新时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ctTplBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/basic-settings-contract.js"></script>
+</body>
+</html>
