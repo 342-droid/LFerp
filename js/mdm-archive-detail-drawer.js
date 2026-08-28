@@ -3079,7 +3079,7 @@
         if (c.length < 16) return null;
         var name = cellPlain(c[2]);
         var partner = cellPlain(c[3]);
-        var isFP = partner === '加盟店' || partner === '合作店';
+        var isFP = partner === '加盟店' || partner === '合作店' || partner === '生鲜店';
         var isPeer = partner === '同行店';
         var settleType = cellPlain(c[13]);
         function attr(key, fallback) {
