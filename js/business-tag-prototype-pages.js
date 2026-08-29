@@ -23,52 +23,53 @@
   function mountCapabilityPage() {
     var root = document.getElementById('businessTagCapabilityApp');
     if (!root) return;
-    var groups = [
+    var modules = [
       {
-        scene: 'STORE_MANAGEMENT',
+        code: 'STORE_TAG',
         title: '门店管理',
         desc: '门店业务维护门店标签库，并为门店打标。',
-        slots: [{ dimension: 'SELF', name: '门店标签', note: '门店列表、详情与筛选可用' }]
+        name: '门店标签',
+        note: '标签基建 · 门店列表、详情与筛选可用',
+        icon: '店'
       },
       {
-        scene: 'MEMBER_MANAGEMENT',
+        code: 'MEMBER_TAG',
         title: '会员管理',
         desc: '复用会员360现有会员标签库及会员打标结果，并向其他业务提供只读能力。',
-        slots: [{ dimension: 'SELF', name: '会员标签', note: '会员标签及跨模块只读能力可用' }]
+        name: '会员标签',
+        note: '现有业务体系 · 仅开通能力，不生成新的标签库和管理界面',
+        icon: '会'
       },
       {
-        scene: 'AFTER_SALE_MANAGEMENT',
+        code: 'AFTER_SALE_TAG',
         title: '售后管理',
-        desc: '售后管理自己的标签，同时可选择读取下单用户会员标签。',
-        slots: [
-          { dimension: 'SELF', name: '售后单标签', note: '售后可管理、筛选和批量设置' },
-          { dimension: 'ORDER_MEMBER', name: '下单用户会员标签', note: '依赖会员标签能力；按下单会员只读带入' }
-        ]
+        desc: '售后业务维护自己的标签库；会员标签由 MEMBER_TAG 能力直接提供。',
+        name: '售后标签',
+        note: '标签基建 · 售后可管理、筛选和批量设置',
+        icon: '售'
       }
     ];
-    root.innerHTML = groups.map(function (group) {
-      return '<section class="bt-capability-card" data-business-tag-scene="' + group.scene + '">' +
+    root.innerHTML = modules.map(function (module) {
+      return '<section class="bt-capability-card" data-business-tag-module="' + module.code + '">' +
         '<div class="bt-capability-card__intro"><div class="bt-capability-card__icon" aria-hidden="true">' +
-          (group.scene === 'STORE_MANAGEMENT' ? '店' : group.scene === 'MEMBER_MANAGEMENT' ? '会' : '售') +
-          '</div><div><h3>' + ui.escapeHtml(group.title) + '</h3><p>' + ui.escapeHtml(group.desc) + '</p></div></div>' +
-        '<div class="bt-capability-card__slots">' + group.slots.map(function (slot) {
-          var key = group.scene + ':' + slot.dimension;
-          return '<div class="bt-capability-slot"><div><strong>' + ui.escapeHtml(slot.name) + '</strong><p>' +
-            ui.escapeHtml(slot.note) + '</p></div><label class="bt-switch"><input type="checkbox" role="switch" ' +
-            'data-business-tag-capability="' + key + '"' +
-            (store.isEnabled(group.scene, slot.dimension) ? ' checked' : '') + '><span aria-hidden="true"></span>' +
-            '<em>已开通</em></label></div>';
-        }).join('') + '</div></section>';
+          module.icon + '</div><div><h3>' + ui.escapeHtml(module.title) + '</h3><p>' +
+          ui.escapeHtml(module.desc) + '</p></div></div>' +
+        '<div class="bt-capability-card__slots"><div class="bt-capability-slot"><div><strong>' +
+          ui.escapeHtml(module.name) + '</strong><p>' + ui.escapeHtml(module.note) +
+          '</p></div><label class="bt-switch"><input type="checkbox" role="switch" data-business-tag-toggle' +
+          (store.isModuleEnabled(module.code) ? ' checked' : '') + '><span aria-hidden="true"></span>' +
+          '<em>已开通</em></label></div></div></section>';
     }).join('');
 
-    root.querySelectorAll('[data-business-tag-capability]').forEach(function (input) {
+    root.querySelectorAll('[data-business-tag-toggle]').forEach(function (input) {
       function syncText() {
         var text = input.closest('.bt-switch').querySelector('em');
         if (text) text.textContent = input.checked ? '已开通' : '未开通';
       }
       syncText();
       input.addEventListener('change', function () {
-        store.setCapability(input.getAttribute('data-business-tag-capability'), input.checked);
+        var card = input.closest('[data-business-tag-module]');
+        store.setModuleEnabled(card.getAttribute('data-business-tag-module'), input.checked);
         syncText();
         ui.notify(input.checked ? '标签能力已开通' : '标签能力已关闭');
       });
@@ -89,9 +90,8 @@
   function mountAfterSaleList() {
     var tbody = document.getElementById('asTicketTableBody');
     if (!tbody) return;
-    var saleEnabled = store.isEnabled('AFTER_SALE_MANAGEMENT', 'SELF');
-    var memberEnabled = store.isEnabled('MEMBER_MANAGEMENT', 'SELF') &&
-      store.isEnabled('AFTER_SALE_MANAGEMENT', 'ORDER_MEMBER');
+    var saleEnabled = store.isModuleEnabled('AFTER_SALE_TAG');
+    var memberEnabled = store.isModuleEnabled('MEMBER_TAG');
     var grid = document.getElementById('asTicketFilterGrid');
     var toolbar = document.querySelector('.aftersale-table-toolbar');
     var headerRow = document.querySelector('#asTicketTable thead tr');
@@ -103,14 +103,14 @@
       saleFilter.id = 'asAfterSaleTagFilter';
       saleFilter.className = 'aftersale-filter-field bt-filter-host';
       grid.appendChild(saleFilter);
-      ui.mountFilter(saleFilter, 'AFTER_SALE', '售后单标签');
+      ui.mountFilter(saleFilter, 'AFTER_SALE', '售后标签');
     }
     if (memberEnabled && grid) {
       memberFilter = document.createElement('div');
       memberFilter.id = 'asMemberTagFilter';
       memberFilter.className = 'aftersale-filter-field bt-filter-host';
       grid.appendChild(memberFilter);
-      ui.mountFilter(memberFilter, 'MEMBER', '下单用户会员标签');
+      ui.mountFilter(memberFilter, 'MEMBER', '会员标签');
     }
 
     if (saleEnabled && toolbar) {
@@ -127,7 +127,7 @@
       batch.textContent = '批量设置标签';
       toolbar.insertBefore(batch, manage.nextSibling);
       manage.addEventListener('click', function () {
-        ui.openManager('AFTER_SALE', '售后单标签库');
+        ui.openManager('AFTER_SALE', '售后标签库');
       });
       batch.addEventListener('click', function () {
         var ids = Array.prototype.map.call(tbody.querySelectorAll('.bt-row-select:checked'), function (input) {
@@ -137,7 +137,7 @@
           ui.notify('请先选择售后单', 'error');
           return;
         }
-        ui.openBinding('AFTER_SALE', ids, '批量设置售后单标签');
+        ui.openBinding('AFTER_SALE', ids, '批量设置售后标签');
       });
     }
 
@@ -149,8 +149,8 @@
         selectTh.innerHTML = '<input type="checkbox" aria-label="全选售后单" data-bt-select-all>';
         headerRow.insertBefore(selectTh, headerRow.firstElementChild);
       }
-      if (saleEnabled) addHeaderAfterText(headerRow, '售后状态', 'after-sale', '售后单标签');
-      if (memberEnabled) addHeaderAfterText(headerRow, '售后单标签', 'order-member', '下单用户会员标签');
+      if (saleEnabled) addHeaderAfterText(headerRow, '售后状态', 'after-sale', '售后标签');
+      if (memberEnabled) addHeaderAfterText(headerRow, saleEnabled ? '售后标签' : '售后状态', 'member', '会员标签');
     }
 
     function memberIdFor(row, index) {
@@ -190,13 +190,13 @@
             '<button type="button" class="bt-inline-action" data-bt-bind-sale="' + ui.escapeHtml(resourceId) + '">设置</button>';
         }
         if (memberEnabled) {
-          var memberCell = row.querySelector('[data-bt-cell="order-member"]');
+          var memberCell = row.querySelector('[data-bt-cell="member"]');
           if (!memberCell) {
             memberCell = document.createElement('td');
-            memberCell.setAttribute('data-bt-cell', 'order-member');
+            memberCell.setAttribute('data-bt-cell', 'member');
             var memberIndex = Array.prototype.indexOf.call(
               headerRow.children,
-              headerRow.querySelector('[data-bt-header="order-member"]')
+              headerRow.querySelector('[data-bt-header="member"]')
             );
             row.insertBefore(memberCell, row.children[memberIndex] || row.lastElementChild || null);
           }
@@ -249,7 +249,7 @@
     tbody.addEventListener('click', function (event) {
       var button = event.target.closest('[data-bt-bind-sale]');
       if (!button) return;
-      ui.openBinding('AFTER_SALE', button.getAttribute('data-bt-bind-sale'), '设置售后单标签');
+      ui.openBinding('AFTER_SALE', button.getAttribute('data-bt-bind-sale'), '设置售后标签');
     });
     window.addEventListener('business-tags:changed', refreshDecorations);
   }
@@ -257,9 +257,8 @@
   function mountAfterSaleDetail() {
     var body = document.getElementById('asDetailBody');
     if (!body) return;
-    var saleEnabled = store.isEnabled('AFTER_SALE_MANAGEMENT', 'SELF');
-    var memberEnabled = store.isEnabled('MEMBER_MANAGEMENT', 'SELF') &&
-      store.isEnabled('AFTER_SALE_MANAGEMENT', 'ORDER_MEMBER');
+    var saleEnabled = store.isModuleEnabled('AFTER_SALE_TAG');
+    var memberEnabled = store.isModuleEnabled('MEMBER_TAG');
     if (!saleEnabled && !memberEnabled) return;
     var resourceId = queryParam('id') || 'AS-333524494855454720';
     var memberId = queryParam('memberId') || 'U10001';
@@ -282,11 +281,11 @@
       }
       card.innerHTML =
         '<div class="bt-detail-card__head"><h2 class="aftersale-detail-card__title">业务标签</h2>' +
-          (saleEnabled ? '<button type="button" class="aftersale-btn aftersale-btn--default" data-bt-detail-bind>管理售后单标签</button>' : '') +
+          (saleEnabled ? '<button type="button" class="aftersale-btn aftersale-btn--default" data-bt-detail-bind>管理售后标签</button>' : '') +
         '</div>' +
-        (saleEnabled ? '<div class="bt-detail-row"><span>售后单标签</span><div>' +
+        (saleEnabled ? '<div class="bt-detail-row"><span>售后标签</span><div>' +
           ui.chipsHtml('AFTER_SALE', resourceId, 'data-business-tag-detail') + '</div></div>' : '') +
-        (memberEnabled ? '<div class="bt-detail-row"><span>下单用户会员标签</span><div>' +
+        (memberEnabled ? '<div class="bt-detail-row"><span>会员标签</span><div>' +
           ui.chipsHtml('MEMBER', memberId, 'data-member-tag-detail') +
           '<small>只读 · 来自会员管理</small></div></div>' : '');
       if (observer) observer.observe(body, { childList: true, subtree: true });
@@ -294,7 +293,7 @@
 
     body.addEventListener('click', function (event) {
       if (!event.target.closest('[data-bt-detail-bind]')) return;
-      ui.openBinding('AFTER_SALE', resourceId, '设置售后单标签');
+      ui.openBinding('AFTER_SALE', resourceId, '设置售后标签');
     });
     observer = new MutationObserver(renderCard);
     renderCard();
@@ -303,7 +302,7 @@
   }
 
   function mountArchiveTags(config) {
-    if (!store.isEnabled(config.scene, 'SELF')) return;
+    if (!store.isModuleEnabled(config.moduleCode)) return;
     var tbody = document.getElementById('tableBody');
     var form = document.querySelector(config.formSelector || '.search-form');
     if (!tbody || !form) return;
@@ -391,7 +390,7 @@
     else if (page === 'mdm_aftersale_ticket_detail.html') mountAfterSaleDetail();
     else if (page === 'mdm_archive_store.html') {
       mountArchiveTags({
-        scene: 'STORE_MANAGEMENT', type: 'STORE', filterId: 'storeBusinessTagFilter',
+        moduleCode: 'STORE_TAG', type: 'STORE', filterId: 'storeBusinessTagFilter',
         filterLabel: '门店标签', managerLabel: '门店标签管理', libraryTitle: '门店标签库', columnLabel: '门店标签'
       });
     }

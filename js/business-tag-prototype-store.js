@@ -2,21 +2,20 @@
  * LFerp 业务标签原型数据层。
  *
  * 原型约束：
- * 1. 系统管理员只负责按业务槽位开通能力；
+ * 1. 系统管理员只负责按业务模块开通能力；
  * 2. 门店、售后分别维护自己的标签库；会员标签复用会员域现有能力；
  * 3. 颜色是可选展示属性，不参与标签身份；
- * 4. 售后只读展示下单用户会员标签，不修改会员标签。
+ * 4. 售后只读消费统一会员标签，不创建平行的会员标签模型。
  */
 (function () {
   'use strict';
 
   var STORAGE_KEY = 'lferp_business_tags_v1';
   var DEFAULTS = {
-    capabilities: {
-      'STORE_MANAGEMENT:SELF': true,
-      'MEMBER_MANAGEMENT:SELF': true,
-      'AFTER_SALE_MANAGEMENT:SELF': true,
-      'AFTER_SALE_MANAGEMENT:ORDER_MEMBER': true
+    modules: {
+      STORE_TAG: true,
+      MEMBER_TAG: true,
+      AFTER_SALE_TAG: true
     },
     catalogs: {
       STORE: [
@@ -58,18 +57,25 @@
 
   function normalize(data) {
     var next = data && typeof data === 'object' ? data : {};
-    var capabilities = next.capabilities && typeof next.capabilities === 'object' ? next.capabilities : {};
-    if (!Object.prototype.hasOwnProperty.call(capabilities, 'MEMBER_MANAGEMENT:SELF') &&
-        Object.prototype.hasOwnProperty.call(capabilities, 'CONSUMER_MANAGEMENT:SELF')) {
-      capabilities['MEMBER_MANAGEMENT:SELF'] = capabilities['CONSUMER_MANAGEMENT:SELF'];
+    var modules = next.modules && typeof next.modules === 'object' ? next.modules : {};
+    var legacy = next.capabilities && typeof next.capabilities === 'object' ? next.capabilities : {};
+    if (!Object.prototype.hasOwnProperty.call(modules, 'STORE_TAG') &&
+        Object.prototype.hasOwnProperty.call(legacy, 'STORE_MANAGEMENT:SELF')) {
+      modules.STORE_TAG = legacy['STORE_MANAGEMENT:SELF'];
     }
-    if (!Object.prototype.hasOwnProperty.call(capabilities, 'AFTER_SALE_MANAGEMENT:ORDER_MEMBER') &&
-        Object.prototype.hasOwnProperty.call(capabilities, 'AFTER_SALE_MANAGEMENT:ORDER_CONSUMER')) {
-      capabilities['AFTER_SALE_MANAGEMENT:ORDER_MEMBER'] = capabilities['AFTER_SALE_MANAGEMENT:ORDER_CONSUMER'];
+    if (!Object.prototype.hasOwnProperty.call(modules, 'MEMBER_TAG')) {
+      if (Object.prototype.hasOwnProperty.call(legacy, 'MEMBER_MANAGEMENT:SELF')) {
+        modules.MEMBER_TAG = legacy['MEMBER_MANAGEMENT:SELF'];
+      } else if (Object.prototype.hasOwnProperty.call(legacy, 'CONSUMER_MANAGEMENT:SELF')) {
+        modules.MEMBER_TAG = legacy['CONSUMER_MANAGEMENT:SELF'];
+      }
     }
-    delete capabilities['CONSUMER_MANAGEMENT:SELF'];
-    delete capabilities['AFTER_SALE_MANAGEMENT:ORDER_CONSUMER'];
-    next.capabilities = Object.assign({}, DEFAULTS.capabilities, capabilities);
+    if (!Object.prototype.hasOwnProperty.call(modules, 'AFTER_SALE_TAG') &&
+        Object.prototype.hasOwnProperty.call(legacy, 'AFTER_SALE_MANAGEMENT:SELF')) {
+      modules.AFTER_SALE_TAG = legacy['AFTER_SALE_MANAGEMENT:SELF'];
+    }
+    next.modules = Object.assign({}, DEFAULTS.modules, modules);
+    delete next.capabilities;
     next.catalogs = next.catalogs || {};
     next.bindings = next.bindings || {};
     delete next.catalogs.CONSUMER;
@@ -105,18 +111,14 @@
     return normalized;
   }
 
-  function capabilityKey(scene, dimension) {
-    return scene + ':' + dimension;
+  function isModuleEnabled(moduleCode) {
+    return read().modules[moduleCode] !== false;
   }
 
-  function isEnabled(scene, dimension) {
-    return read().capabilities[capabilityKey(scene, dimension)] !== false;
-  }
-
-  function setCapability(key, enabled) {
+  function setModuleEnabled(moduleCode, enabled) {
     var data = read();
-    data.capabilities[key] = !!enabled;
-    write(data, { scope: 'capability', key: key, enabled: !!enabled });
+    data.modules[moduleCode] = !!enabled;
+    write(data, { scope: 'module', moduleCode: moduleCode, enabled: !!enabled });
   }
 
   function listTags(type, includeDisabled) {
@@ -255,8 +257,8 @@
   window.BusinessTagPrototypeStore = {
     STORAGE_KEY: STORAGE_KEY,
     read: read,
-    isEnabled: isEnabled,
-    setCapability: setCapability,
+    isModuleEnabled: isModuleEnabled,
+    setModuleEnabled: setModuleEnabled,
     listTags: listTags,
     addTag: addTag,
     toggleTag: toggleTag,

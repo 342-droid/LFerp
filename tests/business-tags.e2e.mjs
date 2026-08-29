@@ -64,40 +64,41 @@ async function freshPage(pathname) {
   return { context, page };
 }
 
-test('system admin independently enables four tag slots while reusing the member-tag capability', async () => {
+test('system admin independently enables three tag modules and member capability drives after-sale usage', async () => {
   const { context, page } = await freshPage('/SCM/basic_settings_system.html');
 
   assert.equal(await page.getByRole('heading', { name: '标签能力配置', exact: true }).count(), 1);
-  assert.equal(await page.locator('[data-business-tag-scene]').count(), 3);
-  assert.equal(await page.locator('[data-business-tag-capability]').count(), 4);
-  for (const label of ['门店标签', '会员标签', '售后单标签', '下单用户会员标签']) {
+  assert.equal(await page.locator('[data-business-tag-module]').count(), 3);
+  for (const code of ['STORE_TAG', 'MEMBER_TAG', 'AFTER_SALE_TAG']) {
+    assert.equal(await page.locator(`[data-business-tag-module="${code}"]`).count(), 1);
+  }
+  for (const label of ['门店标签', '会员标签', '售后标签']) {
     assert.equal(await page.getByText(label, { exact: true }).count(), 1);
   }
+  assert.equal(await page.getByText('下单用户会员标签', { exact: true }).count(), 0);
 
-  const memberDimension = page.locator('[data-business-tag-capability="AFTER_SALE_MANAGEMENT:ORDER_MEMBER"]');
-  await memberDimension.uncheck();
+  await page.locator('[data-business-tag-module="MEMBER_TAG"] input[role="switch"]').uncheck();
   await page.goto(`${ORIGIN}/MDM/mdm_aftersale_ticket.html`);
-  assert.equal(await page.getByRole('columnheader', { name: '售后单标签', exact: true }).count(), 1);
-  assert.equal(await page.getByRole('columnheader', { name: '下单用户会员标签', exact: true }).count(), 0);
+  assert.equal(await page.getByRole('columnheader', { name: '售后标签', exact: true }).count(), 1);
+  assert.equal(await page.getByRole('columnheader', { name: '会员标签', exact: true }).count(), 0);
 
   await page.goto(`${ORIGIN}/SCM/basic_settings_system.html`);
-  await page.locator('[data-business-tag-capability="AFTER_SALE_MANAGEMENT:ORDER_MEMBER"]').check();
-  await page.locator('[data-business-tag-capability="MEMBER_MANAGEMENT:SELF"]').uncheck();
+  await page.locator('[data-business-tag-module="MEMBER_TAG"] input[role="switch"]').check();
   await page.goto(`${ORIGIN}/MDM/mdm_aftersale_ticket.html`);
-  assert.equal(await page.getByRole('columnheader', { name: '下单用户会员标签', exact: true }).count(), 0);
+  assert.equal(await page.getByRole('columnheader', { name: '会员标签', exact: true }).count(), 1);
 
   await context.close();
 });
 
-test('after-sale list filters its own tags and projects order-member tags read only', async () => {
+test('after-sale list filters its own tags and reads unified member tags without a parallel member model', async () => {
   const { context, page } = await freshPage('/MDM/mdm_aftersale_ticket.html');
 
   assert.equal(await page.getByRole('button', { name: '标签管理', exact: true }).count(), 1);
-  assert.equal(await page.getByRole('columnheader', { name: '售后单标签', exact: true }).count(), 1);
-  assert.equal(await page.getByRole('columnheader', { name: '下单用户会员标签', exact: true }).count(), 1);
+  assert.equal(await page.getByRole('columnheader', { name: '售后标签', exact: true }).count(), 1);
+  assert.equal(await page.getByRole('columnheader', { name: '会员标签', exact: true }).count(), 1);
   const headers = await page.locator('#asTicketTable thead th').allTextContents();
-  assert.ok(headers.indexOf('售后状态') < headers.indexOf('售后单标签'));
-  assert.ok(headers.indexOf('售后单标签') < headers.indexOf('下单用户会员标签'));
+  assert.ok(headers.indexOf('售后状态') < headers.indexOf('售后标签'));
+  assert.ok(headers.indexOf('售后标签') < headers.indexOf('会员标签'));
 
   const firstRow = page.locator('#asTicketTableBody tr').first();
   assert.match(await firstRow.locator('[data-business-tag-list="AFTER_SALE"]').textContent(), /优先处理/);
@@ -134,8 +135,8 @@ test('after-sale list filters its own tags and projects order-member tags read o
   assert.match(await page.locator('[data-business-tag-detail="AFTER_SALE"]').textContent(), /优先处理/);
   assert.match(await page.locator('[data-member-tag-detail="MEMBER"]').textContent(), /高活跃/);
   assert.equal(await page.getByText('只读 · 来自会员管理', { exact: true }).count(), 1);
-  assert.equal(await page.getByRole('button', { name: '管理售后单标签', exact: true }).count(), 1);
-  assert.equal(await page.getByRole('button', { name: '管理下单用户会员标签', exact: true }).count(), 0);
+  assert.equal(await page.getByRole('button', { name: '管理售后标签', exact: true }).count(), 1);
+  assert.equal(await page.getByRole('button', { name: '管理会员标签', exact: true }).count(), 0);
 
   await context.close();
 });
