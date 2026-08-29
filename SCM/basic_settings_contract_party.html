@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 签署主体</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/basic-settings.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-contract.css">
+</head>
+<body data-ct-page="party">
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/basic-settings-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-title">基础设置 / 合同管理 / 签署主体</div>
+            <hr class="content-divider">
+
+            <div class="mdm-biz-tip" role="note">
+                门店、供应商、仓库走<strong>企业授权</strong>；员工入职走<strong>个人授权</strong>。未授权的主体不能完成签署，发起任务后会停在「待对方授权」。
+            </div>
+
+            <div class="ct-tabs" role="tablist">
+                <button type="button" class="ct-tabs__item is-active" data-type="">全部</button>
+                <button type="button" class="ct-tabs__item" data-type="store">门店</button>
+                <button type="button" class="ct-tabs__item" data-type="supplier">供应商</button>
+                <button type="button" class="ct-tabs__item" data-type="warehouse">仓库</button>
+                <button type="button" class="ct-tabs__item" data-type="employee">员工</button>
+            </div>
+
+            <section class="search-section">
+                <form class="search-form" id="ctPartyFilter" onsubmit="return false;">
+                    <div class="form-group">
+                        <label>主体名称:</label>
+                        <input id="qPartyName" placeholder="名称或证件号" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label>授权状态:</label>
+                        <select id="qPartyAuth">
+                            <option value="">全部</option>
+                            <option value="none">未授权</option>
+                            <option value="pending">授权中</option>
+                            <option value="done">已授权</option>
+                            <option value="expired">已失效</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" data-ct-reset>重置</button>
+                        <button type="button" class="btn btn-primary" data-ct-query>查询</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>主体名称</th>
+                                <th>类型</th>
+                                <th>证件号</th>
+                                <th>联系人</th>
+                                <th>实名</th>
+                                <th>授权</th>
+                                <th>法大大 ID</th>
+                                <th>最近授权时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ctPartyBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/basic-settings-contract.js"></script>
+</body>
+</html>

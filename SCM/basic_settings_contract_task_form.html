@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 发起签署</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/basic-settings.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
+    <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-contract.css">
+</head>
+<body data-ct-page="task-form">
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/basic-settings-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content mdm-edit-page">
+            <div class="content-title">发起签署</div>
+            <hr class="content-divider">
+
+            <div class="mdm-biz-tip" role="note">
+                先选<strong>业务场景</strong>，再选已启用的合同模板和相对方。平台方使用接入配置里的企业与印章自动签；相对方未授权时任务会进入「待对方授权」。
+            </div>
+
+            <section class="pts-rule-card">
+                <div class="pts-rule-card__title">签署信息</div>
+                <div class="pts-rule-card__body">
+                    <div class="pts-rule-field">
+                        <div class="pts-rule-field__label"><span class="erp-req">*</span>业务场景</div>
+                        <div class="pts-rule-field__control"><select class="erp-select" id="ctTaskScene"></select></div>
+                    </div>
+                    <div class="pts-rule-field">
+                        <div class="pts-rule-field__label"><span class="erp-req">*</span>合同模板</div>
+                        <div class="pts-rule-field__control"><select class="erp-select" id="ctTaskTpl"></select></div>
+                    </div>
+                    <div class="pts-rule-field">
+                        <div class="pts-rule-field__label"><span class="erp-req">*</span>签署相对方</div>
+                        <div class="pts-rule-field__control">
+                            <select class="erp-select" id="ctTaskParty"></select>
+                            <div id="ctPartyHint" style="display:none;margin-top:10px;"></div>
+                        </div>
+                    </div>
+                    <div class="pts-rule-field">
+                        <div class="pts-rule-field__label"><span class="erp-req">*</span>合同名称</div>
+                        <div class="pts-rule-field__control"><input class="erp-input" id="ctTaskName" maxlength="80" placeholder="默认带出「主体 · 模板」"></div>
+                    </div>
+                    <div class="pts-rule-field">
+                        <div class="pts-rule-field__label">签署截止</div>
+                        <div class="pts-rule-field__control">
+                            <input class="erp-input" id="ctTaskDeadline" type="datetime-local">
+                            <div class="ct-field-tip">为空则按法大大模板默认有效期。</div>
+                        </div>
+                    </div>
+                    <div class="pts-rule-field">
+                        <div class="pts-rule-field__label">通知</div>
+                        <div class="pts-rule-field__control">
+                            <div class="ct-map-list">
+                                <label><input type="checkbox" id="ctTaskSms" checked> 向相对方发送签署短信</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="mdm-edit-page__footer">
+                <button type="button" class="erp-btn" id="ctTaskCancel">取消</button>
+                <button type="button" class="erp-btn erp-btn--primary" id="ctTaskSave">提交并发起</button>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/basic-settings-contract.js"></script>
+</body>
+</html>

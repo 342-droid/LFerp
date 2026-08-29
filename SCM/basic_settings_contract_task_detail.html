@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 签署任务详情</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/basic-settings.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
+    <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-contract.css">
+</head>
+<body data-ct-page="task-detail">
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/basic-settings-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content mdm-edit-page">
+            <div class="content-title" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                <span id="ctDetailTitle">签署任务详情</span>
+                <span id="ctDetailStatus"></span>
+            </div>
+            <hr class="content-divider">
+
+            <section class="pts-rule-card">
+                <div class="pts-rule-card__title">基本信息</div>
+                <div class="pts-rule-card__body">
+                    <div class="ct-detail-grid">
+                        <div class="ct-kv"><div class="ct-kv__k">任务号</div><div class="ct-kv__v" id="ctKvId">—</div></div>
+                        <div class="ct-kv"><div class="ct-kv__k">法大大任务号</div><div class="ct-kv__v" id="ctKvFdd">—</div></div>
+                        <div class="ct-kv"><div class="ct-kv__k">业务场景</div><div class="ct-kv__v" id="ctKvScene">—</div></div>
+                        <div class="ct-kv"><div class="ct-kv__k">合同模板</div><div class="ct-kv__v" id="ctKvTpl">—</div></div>
+                        <div class="ct-kv"><div class="ct-kv__k">签署主体</div><div class="ct-kv__v" id="ctKvParty">—</div></div>
+                        <div class="ct-kv"><div class="ct-kv__k">发起人</div><div class="ct-kv__v" id="ctKvInitiator">—</div></div>
+                        <div class="ct-kv"><div class="ct-kv__k">发起时间</div><div class="ct-kv__v" id="ctKvCreated">—</div></div>
+                        <div class="ct-kv"><div class="ct-kv__k">完成时间</div><div class="ct-kv__v" id="ctKvFinished">—</div></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="pts-rule-card">
+                <div class="pts-rule-card__title">签署方进度</div>
+                <div class="pts-rule-card__body">
+                    <table class="ct-actor-table">
+                        <thead>
+                            <tr>
+                                <th>角色</th>
+                                <th>签署人</th>
+                                <th>类型</th>
+                                <th>签署方式</th>
+                                <th>状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ctActorDetailBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="pts-rule-card">
+                <div class="pts-rule-card__title">合同文件</div>
+                <div class="pts-rule-card__body" id="ctFileList"></div>
+            </section>
+
+            <section class="pts-rule-card">
+                <div class="pts-rule-card__title">流转记录</div>
+                <div class="pts-rule-card__body">
+                    <ul class="ct-timeline" id="ctTimeline"></ul>
+                </div>
+            </section>
+
+            <div class="mdm-edit-page__footer" id="ctDetailOps">
+                <button type="button" class="erp-btn" id="ctDetailBack">返回</button>
+                <button type="button" class="erp-btn" data-act="urge">催签</button>
+                <button type="button" class="erp-btn" data-act="copy">复制签署链接</button>
+                <button type="button" class="erp-btn erp-btn--primary" data-act="download">下载已签文件</button>
+                <button type="button" class="erp-btn" data-act="cancel">撤销</button>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/basic-settings-contract.js"></script>
+</body>
+</html>

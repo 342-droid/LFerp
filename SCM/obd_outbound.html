@@ -56,6 +56,58 @@
             padding: 30px;
             color: #666;
         }
+        .actual-outbound-input {
+            width: 88px;
+            padding: 5px 8px;
+            border: 1px solid #d9d9d9;
+            border-radius: 3px;
+            text-align: right;
+        }
+        .actual-outbound-input:focus {
+            border-color: #2196f3;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.12);
+        }
+        .obd-action-more {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+        .obd-action-more-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            color: #2196f3;
+            text-decoration: none;
+        }
+        .obd-action-more-caret {
+            width: 10px;
+            height: 7px;
+            transition: transform 0.15s ease;
+        }
+        .obd-action-more.is-open .obd-action-more-caret { transform: rotate(180deg); }
+        .obd-action-more-menu {
+            display: none;
+            position: fixed;
+            z-index: 4000;
+            min-width: 96px;
+            padding: 4px 0;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            text-align: left;
+        }
+        .obd-action-more.is-open .obd-action-more-menu { display: block; }
+        .obd-action-more-menu.is-open { display: block; }
+        .obd-action-more-menu a {
+            display: block;
+            padding: 8px 14px;
+            color: #2196f3;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .obd-action-more-menu a:hover { background: #f5f5f5; }
     </style>
 </head>
 <body>
@@ -155,6 +207,7 @@
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary" id="searchBtn">查询</button>
+                        <button type="button" class="btn btn-secondary" id="printTriplicateBtn">打印三联单</button>
                     </div>
                 </form>
             </section>
@@ -272,6 +325,7 @@
                                     <th>商品名称</th>
                                     <th>商品规格</th>
                                     <th>商品单位</th>
+                                    <th>订单量</th>
                                     <th>计划出库量</th>
                                     <th>已分配量</th>
                                     <th>已拣货量</th>
@@ -402,10 +456,10 @@
                 address: '上海市闵行区申虹路100号',
                 contact: '张三',
                 phone: '13800138000',
-                waveNo: 'WAVE20260323001',
+                waveNo: '',
                 orderType: '销售出库',
                 businessType: '直播订单',
-                status: '开始拣货',
+                status: '初始',
                 requiredOutboundTime: '2026-03-23 10:30:00',
                 requiredDeliveryTime: '2026-03-23 18:00:00',
                 allocateAbnormal: '否',
@@ -421,11 +475,12 @@
                 createUser: '王五',
                 updateTime: '2026-03-23 09:45:00',
                 updateUser: '赵六',
+                triplicatePrintCount: 0,
                 isClosed: '否',
-                waveTime: '2026-03-23 09:35:00',
-                allocateStartTime: '2026-03-23 09:36:00',
-                allocateEndTime: '2026-03-23 09:40:00',
-                pickStartTime: '2026-03-23 09:42:00',
+                waveTime: '',
+                allocateStartTime: '',
+                allocateEndTime: '',
+                pickStartTime: '',
                 pickEndTime: '',
                 sortStartTime: '',
                 sortEndTime: '',
@@ -436,8 +491,8 @@
                 shipStartTime: '',
                 shipEndTime: '',
                 products: [
-                    { skuCode: 'SKU1001', skuName: '三文鱼切片 500g', unit: '盒', planQty: 100, allocatedQty: 100, pickedQty: 40, sortedQty: 0, reviewedQty: 0, loadedQty: 0, shippedQty: 0, canceledQty: 0 },
-                    { skuCode: 'SKU1002', skuName: '牛排 300g', unit: '盒', planQty: 60, allocatedQty: 60, pickedQty: 20, sortedQty: 0, reviewedQty: 0, loadedQty: 0, shippedQty: 0, canceledQty: 0 }
+                    { skuCode: 'SKU1001', skuName: '三文鱼切片 500g', unit: '盒', planQty: 100, actualOutboundQty: 100, allocatedQty: 0, pickedQty: 0, sortedQty: 0, reviewedQty: 0, loadedQty: 0, shippedQty: 0, canceledQty: 0 },
+                    { skuCode: 'SKU1002', skuName: '牛排 300g', unit: '盒', planQty: 60, actualOutboundQty: 60, allocatedQty: 0, pickedQty: 0, sortedQty: 0, reviewedQty: 0, loadedQty: 0, shippedQty: 0, canceledQty: 0 }
                 ]
             },
             {
@@ -474,6 +529,7 @@
                 createUser: '钱九',
                 updateTime: '2026-03-23 15:30:00',
                 updateUser: '钱九',
+                triplicatePrintCount: 1,
                 isClosed: '否',
                 waveTime: '2026-03-23 11:05:00',
                 allocateStartTime: '2026-03-23 11:06:00',
@@ -489,7 +545,7 @@
                 shipStartTime: '2026-03-23 13:00:00',
                 shipEndTime: '2026-03-23 13:05:00',
                 products: [
-                    { skuCode: 'SKU2001', skuName: '冻虾仁 1kg', unit: '袋', planQty: 200, allocatedQty: 200, pickedQty: 200, sortedQty: 200, reviewedQty: 200, loadedQty: 200, shippedQty: 200, canceledQty: 20 }
+                    { skuCode: 'SKU2001', skuName: '冻虾仁 1kg', unit: '袋', planQty: 200, actualOutboundQty: 200, allocatedQty: 200, pickedQty: 200, sortedQty: 200, reviewedQty: 200, loadedQty: 200, shippedQty: 200, canceledQty: 20 }
                 ]
             }
         ];
@@ -576,6 +632,147 @@
         };
         let currentAssignOrderId = '';
         let currentAssignRecords = [];
+        let currentDetailOrder = null;
+        const code128Patterns = [
+            '212222', '222122', '222221', '121223', '121322', '131222', '122213', '122312', '132212', '221213', '221312',
+            '231212', '112232', '122132', '122231', '113222', '123122', '123221', '223211', '221132', '221231', '213212',
+            '223112', '312131', '311222', '321122', '321221', '312212', '322112', '322211', '212123', '212321', '232121',
+            '111323', '131123', '131321', '112313', '132113', '132311', '211313', '231113', '231311', '112133', '112331',
+            '132131', '113123', '113321', '133121', '313121', '211331', '231131', '213113', '213311', '213131', '311123',
+            '311321', '331121', '312113', '312311', '332111', '314111', '221411', '431111', '111224', '111422', '121124',
+            '121421', '141122', '141221', '112214', '112412', '122114', '122411', '142112', '142211', '241211', '221114',
+            '413111', '241112', '134111', '111242', '121142', '121241', '114212', '124112', '124211', '411212', '421112',
+            '421211', '212141', '214121', '412121', '111143', '111341', '131141', '114113', '114311', '411113', '411311',
+            '113141', '114131', '311141', '411131', '211412', '211214', '211232', '2331112'
+        ];
+
+        function escapeHtml(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function formatPrintQty(value) {
+            const quantity = Number(value);
+            if (!Number.isFinite(quantity)) return '0';
+            return Number.isInteger(quantity) ? String(quantity) : String(Math.round(quantity * 1000) / 1000);
+        }
+
+        function getCode128Sequence(code) {
+            const values = [];
+            for (const char of String(code || '')) {
+                const charCode = char.charCodeAt(0);
+                if (charCode < 32 || charCode > 126) return null;
+                values.push(charCode - 32);
+            }
+            if (!values.length) return null;
+            let checksum = 104;
+            values.forEach((value, index) => { checksum += value * (index + 1); });
+            return [104, ...values, checksum % 103, 106];
+        }
+
+        function drawCode128ToCanvas(canvas, code) {
+            const sequence = getCode128Sequence(code);
+            if (!canvas || !sequence) return;
+            const patterns = sequence.map(value => code128Patterns[value]).filter(Boolean);
+            const moduleWidth = 2;
+            const quietZone = 10;
+            const totalModules = patterns.reduce((sum, pattern) => sum + [...pattern].reduce((count, width) => count + Number(width), 0), 0);
+            canvas.width = (totalModules + quietZone * 2) * moduleWidth;
+            canvas.height = 54;
+            const context = canvas.getContext('2d');
+            context.fillStyle = '#fff';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.fillStyle = '#000';
+            let x = quietZone * moduleWidth;
+            patterns.forEach(pattern => {
+                [...pattern].forEach((width, index) => {
+                    const barWidth = Number(width) * moduleWidth;
+                    if (index % 2 === 0) context.fillRect(x, 0, barWidth, canvas.height);
+                    x += barWidth;
+                });
+            });
+        }
+
+        function renderTriplicateBarcodes(doc) {
+            doc.querySelectorAll('.barcode-canvas').forEach(canvas => {
+                drawCode128ToCanvas(canvas, canvas.dataset.code || '');
+            });
+        }
+
+        function getSelectedOutboundOrders() {
+            return Array.from(document.querySelectorAll('#tableBody .checkbox-row:checked'))
+                .map(checkbox => checkbox.closest('tr')?.dataset.orderNo)
+                .map(orderNo => outboundData.find(item => item.orderNo === orderNo))
+                .filter(Boolean);
+        }
+
+        function buildTriplicatePrintDocument(orders) {
+            const now = new Date();
+            const printDate = `${now.getFullYear()}年${String(now.getMonth() + 1).padStart(2, '0')}月${String(now.getDate()).padStart(2, '0')}日`;
+            return `<!DOCTYPE html>
+                <html lang="zh-CN"><head><meta charset="UTF-8"><title>出库单</title>
+                <style>
+                    *,*::before,*::after{box-sizing:border-box} @page{size:A4 landscape;margin:8mm}
+                    body{margin:0;color:#333;font:14px/1.4 "Microsoft YaHei","PingFang SC",Arial,sans-serif}
+                    .print-sheet{page-break-after:always;padding:2mm}.print-sheet:last-child{page-break-after:auto}
+                    .header{display:grid;grid-template-columns:240px 1fr 220px;align-items:start;margin-bottom:8px}
+                    .barcode-wrap{text-align:center}.barcode-canvas{width:210px;height:48px;display:block;margin:0 auto}.barcode-tip{font-size:9px}
+                    h1{margin:0;text-align:center;font-size:38px;font-weight:600;letter-spacing:6px}.meta{line-height:1.7}
+                    .info{display:grid;grid-template-columns:1.3fr 1fr;gap:0 24px;margin:5px 2px 8px}.info div{min-width:0}
+                    table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #999;padding:8px 6px;text-align:center;word-break:break-word}
+                    th{font-weight:500}.summary td{font-weight:500}.signatures{display:grid;grid-template-columns:1.3fr 1fr 1fr;margin-top:8px;font-size:14px}
+                </style></head><body>
+                ${orders.map(order => {
+                    const products = order.products || [];
+                    const totalPlan = products.reduce((sum, product) => sum + Number(product.planQty || 0), 0);
+                    const totalActual = products.reduce((sum, product) => sum + Number(product.actualOutboundQty ?? product.planQty ?? 0), 0);
+                    const nextPrintCount = Number(order.triplicatePrintCount || 0) + 1;
+                    return `<section class="print-sheet">
+                        <div class="header">
+                            <div class="barcode-wrap"><canvas class="barcode-canvas" data-code="${escapeHtml(order.orderNo)}"></canvas><div class="barcode-tip">取值出库单号转换成条码</div></div>
+                            <h1>出库单</h1>
+                            <div class="meta"><div>打印日期：${escapeHtml(printDate)}</div><div>打印次数：${nextPrintCount}</div></div>
+                        </div>
+                        <div class="info">
+                            <div>出库单号：${escapeHtml(order.orderNo)}</div><div>出库地：${escapeHtml(order.warehouse)}</div>
+                            <div>入库地：${escapeHtml(order.targetWarehouse || order.targetSite)}</div><div>联系电话：${escapeHtml(order.phone)}</div>
+                            <div>入库地址：${escapeHtml(order.address || order.detailAddress)}</div><div></div>
+                        </div>
+                        <table><thead><tr><th style="width:7%">序号</th><th style="width:13%">商品编码</th><th style="width:18%">商品名称</th><th style="width:14%">规格</th><th style="width:9%">单位</th><th style="width:13%">计划出库量</th><th style="width:13%">实发数量</th><th style="width:13%">备注</th></tr></thead>
+                        <tbody>${products.map((product, index) => `<tr><td>${index + 1}</td><td>${escapeHtml(product.skuCode)}</td><td>${escapeHtml(product.skuName)}</td><td>${escapeHtml(getWmsSkuSpec(product.skuCode, product.skuName))}</td><td>${escapeHtml(product.unit)}</td><td>${formatPrintQty(product.planQty)}</td><td>${formatPrintQty(product.actualOutboundQty ?? product.planQty)}</td><td></td></tr>`).join('')}
+                        <tr class="summary"><td colspan="5">合计：</td><td>${formatPrintQty(totalPlan)}</td><td>${formatPrintQty(totalActual)}</td><td></td></tr></tbody></table>
+                        <div class="signatures"><div>制单人：${escapeHtml(order.creator)}</div><div>配送人：</div><div>签收人：</div></div>
+                    </section>`;
+                }).join('')}</body></html>`;
+        }
+
+        function printSelectedTriplicates() {
+            const orders = getSelectedOutboundOrders();
+            if (!orders.length) {
+                if (typeof showToast === 'function') showToast('请至少勾选一条出库单再打印', 'error');
+                return;
+            }
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                if (typeof showToast === 'function') showToast('浏览器拦截了打印窗口，请允许弹窗后重试', 'error');
+                return;
+            }
+            printWindow.document.open();
+            printWindow.document.write(buildTriplicatePrintDocument(orders));
+            printWindow.document.close();
+            const triggerPrint = () => {
+                renderTriplicateBarcodes(printWindow.document);
+                setTimeout(() => { printWindow.focus(); printWindow.print(); }, 80);
+            };
+            if (printWindow.document.readyState === 'complete') triggerPrint();
+            else printWindow.addEventListener('load', triggerPrint, { once: true });
+            printWindow.onafterprint = () => printWindow.close();
+            orders.forEach(order => { order.triplicatePrintCount = Number(order.triplicatePrintCount || 0) + 1; });
+        }
 
         function getStatusClass(status) {
             if (status === '初始' || status === '已集波') return 'status-initial';
@@ -590,6 +787,7 @@
             tbody.innerHTML = '';
             data.forEach(item => {
                 const row = document.createElement('tr');
+                row.dataset.orderNo = item.orderNo;
                 row.innerHTML = `
                     <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                     <td><a href="#" class="order-number-link" data-order-id="${item.orderNo}">${item.orderNo}</a></td>
@@ -624,8 +822,14 @@
                     <td>${item.updateTime}</td>
                     <td>${item.updateUser}</td>
                     <td class="action-links">
-                        <a href="#" class="assign-record-btn" data-order-id="${item.orderNo}">分配记录</a>
-                        <a href="#" class="close-order-btn" data-order-id="${item.orderNo}">关闭</a>
+                        <a href="#" class="one-click-outbound-btn" data-order-id="${item.orderNo}">一键出库</a>
+                        <span class="obd-action-more">
+                            <a href="#" class="obd-action-more-toggle">更多<svg class="obd-action-more-caret" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1.5L6 6.5L11 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+                            <span class="obd-action-more-menu">
+                                <a href="#" class="assign-record-btn" data-order-id="${item.orderNo}">分配记录</a>
+                                <a href="#" class="close-order-btn" data-order-id="${item.orderNo}">关闭</a>
+                            </span>
+                        </span>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -644,13 +848,41 @@
             document.querySelectorAll('.assign-record-btn').forEach(link => {
                 link.addEventListener('click', e => {
                     e.preventDefault();
+                    closeAllActionMoreMenus();
                     const orderId = link.getAttribute('data-order-id');
                     showAssignRecord(orderId);
+                });
+            });
+            document.querySelectorAll('.one-click-outbound-btn').forEach(link => {
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+                    closeAllActionMoreMenus();
+                    const order = outboundData.find(item => item.orderNo === link.getAttribute('data-order-id'));
+                    if (!order) return;
+                    order.status = '发货完成';
+                    order.shipStartTime = order.shipStartTime || new Date().toLocaleString('zh-CN', { hour12: false }).replaceAll('/', '-');
+                    order.shipEndTime = order.shipStartTime;
+                    (order.products || []).forEach(product => {
+                        product.shippedQty = product.actualOutboundQty ?? product.planQty;
+                    });
+                    renderTable(outboundData);
+                    if (typeof showToast === 'function') showToast(`${order.orderNo} 已完成一键出库`, 'success');
+                });
+            });
+            document.querySelectorAll('.obd-action-more-toggle').forEach(toggle => {
+                toggle.addEventListener('click', e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const wrap = toggle.closest('.obd-action-more');
+                    const shouldOpen = !wrap.classList.contains('is-open');
+                    closeAllActionMoreMenus();
+                    if (shouldOpen) openActionMoreMenu(wrap);
                 });
             });
             document.querySelectorAll('.close-order-btn').forEach(link => {
                 link.addEventListener('click', e => {
                     e.preventDefault();
+                    closeAllActionMoreMenus();
                     if (typeof showToast === 'function') {
                         showToast('关闭功能待接入', 'info');
                     }
@@ -658,7 +890,41 @@
             });
         }
 
+        function closeAllActionMoreMenus() {
+            document.querySelectorAll('.obd-action-more-menu.is-open').forEach(menu => {
+                const ownerWrap = menu._ownerWrap;
+                menu.classList.remove('is-open');
+                menu.style.top = '';
+                menu.style.left = '';
+                if (ownerWrap && ownerWrap.isConnected) {
+                    ownerWrap.classList.remove('is-open');
+                    ownerWrap.appendChild(menu);
+                }
+            });
+            document.querySelectorAll('.obd-action-more.is-open').forEach(wrap => wrap.classList.remove('is-open'));
+        }
+
+        function openActionMoreMenu(wrap) {
+            const toggle = wrap.querySelector('.obd-action-more-toggle');
+            const menu = wrap.querySelector('.obd-action-more-menu');
+            if (!toggle || !menu) return;
+            wrap.classList.add('is-open');
+            menu._ownerWrap = wrap;
+            document.body.appendChild(menu);
+            menu.classList.add('is-open');
+            const rect = toggle.getBoundingClientRect();
+            const menuWidth = Math.max(96, menu.offsetWidth || 96);
+            const menuHeight = menu.offsetHeight || 72;
+            const left = Math.min(Math.max(8, rect.right - menuWidth), window.innerWidth - menuWidth - 8);
+            const top = rect.bottom + menuHeight + 6 > window.innerHeight
+                ? Math.max(8, rect.top - menuHeight - 6)
+                : rect.bottom + 6;
+            menu.style.left = `${left}px`;
+            menu.style.top = `${top}px`;
+        }
+
         function fillDetail(order) {
+            currentDetailOrder = order;
             document.getElementById('detailOrderNo').value = order.orderNo || '';
             document.getElementById('detailSourceOrderNo').value = order.sourceOrderNo || '';
             document.getElementById('detailRelatedOrderNo').value = order.relatedOrderNo || '';
@@ -704,7 +970,9 @@
 
             const tbody = document.querySelector('#detailProductList tbody');
             tbody.innerHTML = '';
-            (order.products || []).forEach(product => {
+            const canEditActualQty = order.status === '初始';
+            (order.products || []).forEach((product, index) => {
+                if (product.actualOutboundQty == null) product.actualOutboundQty = product.planQty;
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${renderWmsSkuImage(product.skuCode, product.skuName)}</td>
@@ -713,6 +981,9 @@
                     <td>${getWmsSkuSpec(product.skuCode, product.skuName)}</td>
                     <td>${product.unit}</td>
                     <td>${product.planQty}</td>
+                    <td>${canEditActualQty
+                        ? `<input type="number" class="actual-outbound-input" data-product-index="${index}" min="0" max="${product.planQty}" step="1" value="${product.actualOutboundQty}">`
+                        : product.actualOutboundQty}</td>
                     <td>${product.allocatedQty}</td>
                     <td>${product.pickedQty}</td>
                     <td>${product.sortedQty}</td>
@@ -723,6 +994,24 @@
                 `;
                 tbody.appendChild(row);
             });
+            tbody.querySelectorAll('.actual-outbound-input').forEach(input => {
+                input.addEventListener('blur', () => saveActualOutboundQty(input));
+            });
+        }
+
+        function saveActualOutboundQty(input) {
+            if (!currentDetailOrder || currentDetailOrder.status !== '初始') return;
+            const product = currentDetailOrder.products[Number(input.dataset.productIndex)];
+            if (!product) return;
+            const value = Number(input.value);
+            if (input.value === '' || value < 0 || value > Number(input.max)) {
+                input.value = product.actualOutboundQty;
+                if (typeof showToast === 'function') showToast('计划出库量须在 0 到订单量之间', 'warning');
+                return;
+            }
+            if (product.actualOutboundQty === value) return;
+            product.actualOutboundQty = value;
+            if (typeof showToast === 'function') showToast('计划出库量已保存', 'success');
         }
 
         function showOrderDetail(orderId) {
@@ -887,6 +1176,12 @@
 
             renderTable(outboundData);
             document.getElementById('searchBtn').addEventListener('click', searchOrders);
+            document.getElementById('printTriplicateBtn').addEventListener('click', printSelectedTriplicates);
+            document.addEventListener('click', e => {
+                if (!e.target.closest('.obd-action-more') && !e.target.closest('.obd-action-more-menu')) closeAllActionMoreMenus();
+            });
+            document.querySelector('.table-scroll-container').addEventListener('scroll', closeAllActionMoreMenus);
+            window.addEventListener('resize', closeAllActionMoreMenus);
 
             const modal = document.getElementById('orderDetailModal');
             document.getElementById('closeDetailModal').addEventListener('click', () => { modal.style.display = 'none'; });

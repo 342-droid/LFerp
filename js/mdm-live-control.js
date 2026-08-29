@@ -47,6 +47,8 @@
   var watchTab = 'online';
   var watchSortDesc = true;
   var watchStatusFilter = '';
+  var likeTab = 'detail';
+  var likeSortDesc = true;
   var chatKeyword = '';
   var chatPage = 1;
   var chatPageSize = 50;
@@ -61,6 +63,7 @@
   var selectedSched = {};
   var pendingAddIds = [];
   var C_STATE_KEY = 'lf_live_c_state_v1';
+  var LIKE_REPORT_KEY = 'lf_live_like_reports_v1';
   var TASK_DURATION_SEC = 1440 * 60;
   var welfareUi = {
     open: false,
@@ -185,6 +188,8 @@
         watchViewers: [],
         watchVisits: [],
         watchRecords: [],
+        likeDetails: [],
+        likeUsers: [],
         visitCount: 0
       };
     }
@@ -195,6 +200,8 @@
     if (!m.mutedUsers) m.mutedUsers = {};
     if (!m.watchViewers) m.watchViewers = [];
     if (!m.watchVisits) m.watchVisits = [];
+    if (!m.likeDetails) m.likeDetails = [];
+    if (!m.likeUsers) m.likeUsers = [];
     if (!m.watchViewers.length && m.watchRecords.length) {
       m.watchViewers = m.watchRecords.map(function (w, i) {
         return {
@@ -994,6 +1001,12 @@
       });
     }
     try {
+      var prevCState = {};
+      try {
+        var prevRaw = localStorage.getItem(C_STATE_KEY);
+        var prevData = prevRaw ? JSON.parse(prevRaw) : null;
+        if (prevData && typeof prevData === 'object') prevCState = prevData;
+      } catch (e0) {}
       localStorage.setItem(
         C_STATE_KEY,
         JSON.stringify({
@@ -1019,12 +1032,23 @@
           muted: !!metricsOf(sessionId).muted,
           sessionId: sessionId,
           quickComments: selectedQuickCommentTextsForSync(),
-          cViewerText: (function () {
+          cViewerPart: (function () {
             var sess = findSession(sessionId);
             if (!sess || typeof Demo.formatCViewerText !== 'function') return '';
             var cfg = Demo.normalizeCViewerConfig(sess);
             return Demo.formatCViewerText(Demo.resolveCViewerCount(sess, metricsOf(sessionId)), cfg.display);
-          })()
+          })(),
+          cViewerText: (function () {
+            var sess = findSession(sessionId);
+            if (!sess || typeof Demo.formatCViewerText !== 'function') return '';
+            return viewerLikeLineOf(sess);
+          })(),
+          cLike: (function () {
+            var sess = findSession(sessionId);
+            if (!sess || typeof Demo.cLikePayloadOf !== 'function') return null;
+            return Demo.cLikePayloadOf(sess, metricsOf(sessionId));
+          })(),
+          cLikeUserExtra: Math.max(0, Math.floor(Number(prevCState.cLikeUserExtra) || 0))
         })
       );
     } catch (e) {}
@@ -1127,6 +1151,22 @@
     if (push) push.value = sess.pushUrl || '';
   }
 
+  function viewerLikeLineOf(sess) {
+    if (!sess || typeof Demo.formatCViewerText !== 'function') return '0人观看·0次点赞';
+    var metrics = metricsOf(sess.id);
+    var cfg = typeof Demo.normalizeCViewerConfig === 'function' ? Demo.normalizeCViewerConfig(sess) : { display: 'online' };
+    var viewerText = Demo.formatCViewerText(Demo.resolveCViewerCount(sess, metrics), cfg.display);
+    var likeCount = typeof Demo.resolveCLikeCount === 'function' ? Demo.resolveCLikeCount(sess, metrics) : (metrics.likes || 0);
+    if (typeof Demo.formatCViewerLikeLine === 'function') return Demo.formatCViewerLikeLine(viewerText, likeCount);
+    return viewerText + '·' + likeCount + '次点赞';
+  }
+
+  function renderBroadcastStats(sess) {
+    var el = document.getElementById('broadcastPreviewStats');
+    if (!el) return;
+    el.textContent = viewerLikeLineOf(sess);
+  }
+
   function renderBroadcast(sess) {
     var preview = document.getElementById('broadcastPreview');
     var live = sess && sess.status === 'live';
@@ -1135,6 +1175,7 @@
       var ph = preview.querySelector('.lf-live-broadcast-preview__placeholder');
       if (ph) ph.textContent = live ? '直播画面' : '直播画面';
     }
+    renderBroadcastStats(sess);
     var muteBtn = document.getElementById('btnMuteChat');
     var muted = !!(metricsOf(sess.id).muted);
     if (muteBtn) {
@@ -4543,19 +4584,172 @@
       .join('');
   }
 
+  function readLikeReportQueue() {
+    try {
+      var raw = localStorage.getItem(LIKE_REPORT_KEY);
+      var data = raw ? JSON.parse(raw) : null;
+      return Array.isArray(data) ? data : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function writeLikeReportQueue(list) {
+    try {
+      localStorage.setItem(LIKE_REPORT_KEY, JSON.stringify(list || []));
+    } catch (e) {}
+  }
+
+  function applyLikeReport(m, report) {
+    var count = Math.max(0, Math.floor(Number(report && report.count) || 0));
+    if (!count) return false;
+    var userId = String((report && report.userId) || '');
+    var nickname = String((report && (report.nickname || report.user)) || '匿名用户');
+    var time = String((report && report.time) || nowDateTime());
+    m.likes = Math.max(0, Math.floor(Number(m.likes) || 0)) + count;
+    var users = m.likeUsers;
+    var found = null;
+    var i;
+    for (i = 0; i < users.length; i++) {
+      if ((userId && users[i].userId === userId) || (!userId && users[i].nickname === nickname)) {
+        found = users[i];
+        break;
+      }
+    }
+    var total = (found ? Math.max(0, Math.floor(Number(found.totalCount) || 0)) : 0) + count;
+    if (found) {
+      found.totalCount = total;
+      if (nickname) found.nickname = nickname;
+    } else {
+      users.unshift({
+        userId: userId,
+        nickname: nickname,
+        totalCount: total
+      });
+    }
+    m.likeDetails.unshift({
+      id: (report && report.id) || 'ld-' + Date.now(),
+      userId: userId,
+      nickname: nickname,
+      time: time,
+      count: count,
+      totalCount: total
+    });
+    return true;
+  }
+
+  function ingestLikeReports() {
+    if (!sessionId) return false;
+    var queue = readLikeReportQueue();
+    if (!queue.length) return false;
+    var keep = [];
+    var changed = false;
+    var m = metricsOf(sessionId);
+    queue.forEach(function (r) {
+      if (!r) return;
+      if (r.sessionId && r.sessionId !== sessionId) {
+        keep.push(r);
+        return;
+      }
+      if (applyLikeReport(m, r)) changed = true;
+    });
+    if (keep.length !== queue.length) writeLikeReportQueue(keep);
+    return changed;
+  }
+
+  function renderLikeRecords(sess) {
+    var box = document.getElementById('likeListBody');
+    if (!box) return;
+    var m = metricsOf(sess.id);
+    var details = m.likeDetails || [];
+    var users = m.likeUsers || [];
+    var detailBtn = document.getElementById('likeTabDetail');
+    var userBtn = document.getElementById('likeTabUsers');
+    if (detailBtn) detailBtn.textContent = '点赞明细(' + details.length + ')';
+    if (userBtn) userBtn.textContent = '点赞人数(' + users.length + ')';
+    setActiveTab('likeSubTabs', 'data-like-tab', likeTab);
+    var sortBtn = document.getElementById('likeSortBtn');
+    if (sortBtn) sortBtn.textContent = likeSortDesc ? '倒序' : '正序';
+    var rows;
+    var emptyText;
+    if (likeTab === 'users') {
+      rows = users.slice();
+      emptyText = '暂无点赞人数';
+      rows.sort(function (a, b) {
+        var va = Math.max(0, Math.floor(Number(a.totalCount) || 0));
+        var vb = Math.max(0, Math.floor(Number(b.totalCount) || 0));
+        if (va === vb) return 0;
+        return likeSortDesc ? (va < vb ? 1 : -1) : va < vb ? -1 : 1;
+      });
+      if (!rows.length) {
+        box.innerHTML = '<div class="lf-live-empty-inline">' + emptyText + '</div>';
+        return;
+      }
+      box.innerHTML = rows
+        .map(function (u) {
+          return (
+            '<div class="lf-live-watch-item">' +
+            avatarHtml(u.nickname) +
+            '<div class="lf-live-watch-item__body">' +
+            '<div class="lf-live-watch-item__user">' +
+            escapeHtml(u.nickname || '匿名用户') +
+            '</div>' +
+            '<div class="lf-live-watch-item__meta">累计点赞次数 ' +
+            escapeHtml(String(u.totalCount || 0)) +
+            '</div></div></div>'
+          );
+        })
+        .join('');
+      return;
+    }
+    rows = details.slice();
+    emptyText = '暂无点赞明细';
+    rows.sort(function (a, b) {
+      var va = timeSortValue(a.time);
+      var vb = timeSortValue(b.time);
+      return likeSortDesc ? (va < vb ? 1 : va > vb ? -1 : 0) : va < vb ? -1 : va > vb ? 1 : 0;
+    });
+    if (!rows.length) {
+      box.innerHTML = '<div class="lf-live-empty-inline">' + emptyText + '</div>';
+      return;
+    }
+    box.innerHTML = rows
+      .map(function (r) {
+        return (
+          '<div class="lf-live-watch-item">' +
+          avatarHtml(r.nickname) +
+          '<div class="lf-live-watch-item__body">' +
+          '<div class="lf-live-watch-item__user">' +
+          escapeHtml(r.nickname || '匿名用户') +
+          '</div>' +
+          '<div class="lf-live-watch-item__meta">点赞时间 ' +
+          escapeHtml(r.time || '—') +
+          '<br>点赞次数 ' +
+          escapeHtml(String(r.count || 0)) +
+          ' · 累计点赞次数 ' +
+          escapeHtml(String(r.totalCount || 0)) +
+          '</div></div></div>'
+        );
+      })
+      .join('');
+  }
+
   function renderSidePanes(sess) {
     var metrics = document.getElementById('sidePaneMetrics');
     var chat = document.getElementById('sidePaneChat');
     var watch = document.getElementById('sidePaneWatch');
+    var like = document.getElementById('sidePaneLike');
     var orderWrap = document.getElementById('monitorOrderWrap');
     if (metrics) metrics.hidden = sideTab !== 'metrics';
     if (chat) chat.hidden = sideTab !== 'chat';
     if (watch) watch.hidden = sideTab !== 'watch';
+    if (like) like.hidden = sideTab !== 'like';
     if (orderWrap) orderWrap.hidden = sideTab !== 'metrics';
     setActiveTab('controlSideTabs', 'data-side-tab', sideTab);
     if (sideTab === 'metrics') renderMonitor(sess);
     if (sideTab === 'chat') renderChat(sess);
     if (sideTab === 'watch') renderWatch(sess);
+    if (sideTab === 'like') renderLikeRecords(sess);
   }
 
   function refreshInteractUi() {
@@ -4564,6 +4758,7 @@
     renderDanmuOverlay(sess);
     if (sideTab === 'chat') renderChat(sess);
     if (sideTab === 'watch') renderWatch(sess);
+    if (sideTab === 'like') renderLikeRecords(sess);
     syncCState();
     syncEndedLock();
   }
@@ -4953,6 +5148,7 @@
     if (picker) picker.hidden = true;
     if (workspace) workspace.hidden = false;
     processScheduled();
+    ingestLikeReports();
     renderHeader(sess);
     renderBroadcast(sess);
     renderMainTabs();
@@ -5059,12 +5255,37 @@
     };
   }
 
+  function readCLikeFromDialog() {
+    var clamp = Demo.clampInt || function (v, min, max, fb) {
+      var n = Math.floor(Number(v));
+      if (!isFinite(n)) return fb;
+      if (n < min) return min;
+      if (n > max) return max;
+      return n;
+    };
+    var likeMax = Demo.C_LIKE_VALUE_MAX || 999999;
+    var extraMin = clamp((document.getElementById('dlgCLikeExtraMin') || {}).value, 0, likeMax, 0);
+    var extraMaxVal = clamp((document.getElementById('dlgCLikeExtraMax') || {}).value, 0, likeMax, 0);
+    return {
+      initial: clamp((document.getElementById('dlgCLikeInitial') || {}).value, 0, likeMax, 0),
+      intervalMin: clamp((document.getElementById('dlgCLikeInterval') || {}).value, 0, likeMax, 0),
+      extraMin: extraMin,
+      extraMax: extraMaxVal
+    };
+  }
+
   function fillCloseSettingsDialog(sess) {
     var atEl = document.getElementById('dlgAutoCloseAt');
     var enabledSw = document.getElementById('dlgAutoCloseEnabled');
     var cfg = typeof Demo.normalizeCViewerConfig === 'function' ? Demo.normalizeCViewerConfig(sess) : {
       display: 'online',
       initial: 0,
+      extraMin: 0,
+      extraMax: 0
+    };
+    var likeCfg = typeof Demo.normalizeCLikeConfig === 'function' ? Demo.normalizeCLikeConfig(sess) : {
+      initial: 0,
+      intervalMin: 0,
       extraMin: 0,
       extraMax: 0
     };
@@ -5080,6 +5301,14 @@
     if (initialEl) initialEl.value = cfg.initial;
     if (extraMinEl) extraMinEl.value = cfg.extraMin;
     if (extraMaxEl) extraMaxEl.value = cfg.extraMax;
+    var likeInitialEl = document.getElementById('dlgCLikeInitial');
+    var likeIntervalEl = document.getElementById('dlgCLikeInterval');
+    var likeExtraMinEl = document.getElementById('dlgCLikeExtraMin');
+    var likeExtraMaxEl = document.getElementById('dlgCLikeExtraMax');
+    if (likeInitialEl) likeInitialEl.value = likeCfg.initial;
+    if (likeIntervalEl) likeIntervalEl.value = likeCfg.intervalMin;
+    if (likeExtraMinEl) likeExtraMinEl.value = likeCfg.extraMin;
+    if (likeExtraMaxEl) likeExtraMaxEl.value = likeCfg.extraMax;
     syncDlgAutoCloseExtra();
   }
 
@@ -5390,6 +5619,10 @@
         if (viewer.extraMin > viewer.extraMax) {
           return toast('额外跟随人数下限不能大于上限', 'warning');
         }
+        var likeCfg = readCLikeFromDialog();
+        if (likeCfg.extraMin > likeCfg.extraMax) {
+          return toast('点赞增长下限不能大于上限', 'warning');
+        }
         sess.autoCloseEnabled = enabled;
         if (enabled || closeTs != null) {
           sess.autoCloseAt = closeTs != null ? fromLocalInput(closeAtRaw) : '';
@@ -5398,6 +5631,10 @@
         sess.cViewerInitial = viewer.initial;
         sess.cViewerExtraMin = viewer.extraMin;
         sess.cViewerExtraMax = viewer.extraMax;
+        sess.cLikeInitial = likeCfg.initial;
+        sess.cLikeIntervalMin = likeCfg.intervalMin;
+        sess.cLikeExtraMin = likeCfg.extraMin;
+        sess.cLikeExtraMax = likeCfg.extraMax;
         closeDialog('cartSettingsDialog');
         toast('设置已保存');
         render();
@@ -5438,6 +5675,24 @@
         watchStatusFilter = watchFilter.value || '';
         var sess = findSession(sessionId);
         if (sess) renderWatch(sess);
+      });
+    }
+    var likeSubTabs = document.getElementById('likeSubTabs');
+    if (likeSubTabs) {
+      likeSubTabs.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('[data-like-tab]');
+        if (!btn) return;
+        likeTab = btn.getAttribute('data-like-tab');
+        var sess = findSession(sessionId);
+        if (sess) renderLikeRecords(sess);
+      });
+    }
+    var likeSortBtn = document.getElementById('likeSortBtn');
+    if (likeSortBtn) {
+      likeSortBtn.addEventListener('click', function () {
+        likeSortDesc = !likeSortDesc;
+        var sess = findSession(sessionId);
+        if (sess) renderLikeRecords(sess);
       });
     }
     var watchBody = document.getElementById('watchListBody');
@@ -6337,7 +6592,23 @@
       if (processScheduled()) {
         render();
         if (welfareUi.open) renderWelfareDrawer();
+      } else {
+        var sess = findSession(sessionId);
+        if (sess) {
+          renderBroadcastStats(sess);
+          syncCState();
+        }
       }
     }, 5000);
+    window.setInterval(function () {
+      if (!sessionId) return;
+      if (!ingestLikeReports()) return;
+      var sess = findSession(sessionId);
+      if (!sess) return;
+      renderBroadcastStats(sess);
+      if (sideTab === 'metrics') renderMonitor(sess);
+      if (sideTab === 'like') renderLikeRecords(sess);
+      syncCState();
+    }, 1000);
   });
 })();

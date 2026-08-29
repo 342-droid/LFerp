@@ -39,7 +39,7 @@
   }
 
   function bindActions() {
-    document.querySelectorAll('[data-sa-action]:not([data-sa-action="queueCode"])').forEach(function (btn) {
+    document.querySelectorAll('[data-sa-action]:not([data-sa-action="queueCode"]):not([data-sa-action="promoCode"])').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var action = btn.getAttribute('data-sa-action');
         if (action === 'restock') {
@@ -79,6 +79,7 @@
         var labels = {
           aftersaleQuick: '售后',
           memberCode: '门店会员码',
+          promoCode: '门店推广码',
           orders: '客户订单',
           receive: '收货',
           inventory: '库存查询',
@@ -152,6 +153,20 @@
       shareTitle: (store.companyName || '门店') + '排队码',
       shareText: '扫码在' + (store.companyName || '门店') + '排队取号',
       downloadSuffix: '_排队码'
+    });
+    window.LFQRCode.init(window.LFMockData, {
+      openButton: document.getElementById('btn-promo-qr-open'),
+      modal: document.getElementById('promo-qr-modal'),
+      closeButton: document.getElementById('btn-promo-qr-close'),
+      shareButton: document.getElementById('btn-promo-qr-share'),
+      saveButton: document.getElementById('btn-promo-qr-save'),
+      qrMount: document.getElementById('promo-qr-code-mount'),
+      avatarEl: document.getElementById('promo-qr-avatar'),
+      nameEl: document.getElementById('promo-qr-store-name'),
+      qrUrl: store.promoCodeUrl || ('lengfeng-store:' + (store.storeId || 'ONS-CENTER-01')),
+      shareTitle: (store.companyName || '门店') + '推广码',
+      shareText: '扫码进入' + (store.companyName || '门店'),
+      downloadSuffix: '_门店推广码'
     });
   }
 })();
