@@ -1,10 +1,332 @@
 {
-  "latestSha": "01e8ada8ae8f83a8e1f8a33081a41aa6cff99795",
-  "total": 320,
+  "latestSha": "1b0db57496869ff1e3f39a43989d804ed5e2242c",
+  "total": 323,
   "days": [
+    {
+      "date": "2026-08-29",
+      "items": [
+        {
+          "sha": "1b0db57",
+          "type": "feat",
+          "text": "BD可查看门店代采进货并完善直播排品配置",
+          "author": "sisi",
+          "time": "16:35",
+          "pages": [
+            {
+              "file": "MDM/mdm_bd_h5.html",
+              "module": "",
+              "title": "冷丰 MDM · 门店扫码 H5"
+            },
+            {
+              "file": "MDM/mdm_bd_merchants.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 商户模块"
+            },
+            {
+              "file": "MDM/mdm_bd_not_found.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 页面未找到"
+            },
+            {
+              "file": "MDM/mdm_bd_personal.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 我的"
+            },
+            {
+              "file": "MDM/mdm_bd_store_form.html",
+              "module": "",
+              "title": "冷丰 MDM · 添加 / 编辑门店"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "MDM/mdm_bd_workbench.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 工作台"
+            },
+            {
+              "file": "MDM/mdm_live_control.html",
+              "module": "冷丰WMS",
+              "title": "直播中控"
+            },
+            {
+              "file": "MDM/mdm_live_data.html",
+              "module": "冷丰WMS",
+              "title": "直播数据"
+            },
+            {
+              "file": "MDM/mdm_live_product_category.html",
+              "module": "冷丰WMS",
+              "title": "直播类目"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched.html",
+              "module": "冷丰WMS",
+              "title": "直播排品"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间"
+            },
+            {
+              "file": "MDM/mdm_live_session.html",
+              "module": "冷丰WMS",
+              "title": "直播场次"
+            },
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "module": "冷丰WMS",
+              "title": "直播场次详情"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "module": "冷丰WMS",
+              "title": "直播场次编辑"
+            },
+            {
+              "file": "MDM/mdm_live_timeslot.html",
+              "module": "冷丰WMS",
+              "title": "直播时段"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "module": "",
+              "title": "商户进件 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/product-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "user-app/h5/mall.html",
+              "text": "BD 工作台: 增加进货入口，进入门店代采商城仅查看不可下单"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "text": "BD 工作台: 增加进货入口，进入门店代采商城仅查看不可下单"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "text": "BD 可切换门店查看不同售卖范围的代采商城；门店 App 进货保持本店、不切店"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "text": "BD 提交下单提示「仅门店用户采购」"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "演示商品补齐售卖范围，供进货按店过滤"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched.html",
+              "text": "按场次选择并支持从商品库添加，表格与上架操作对齐运营后台"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "text": "按直播商品编辑页还原基础信息、规格库存与媒体详情"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-28",
       "items": [
+        {
+          "sha": "e1199ad",
+          "type": "feat",
+          "text": "完善门店账变佣金进件认证并补齐收银台混合支付验收",
+          "author": "sisi",
+          "time": "22:15",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "module": "",
+              "title": "经营中心 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/biz-order-goods.html",
+              "module": "",
+              "title": "订单商品明细 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/product-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/store-pay-password.html",
+              "module": "",
+              "title": "设置支付密码 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "module": "",
+              "title": "充值 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "module": "",
+              "title": "我的钱包 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw-records.html",
+              "module": "",
+              "title": "提现明细 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw.html",
+              "module": "",
+              "title": "提现 · 门店 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "账变「支付/付款方式」改为「资金来源/去向」；进件信息与商户进件「余额支付状态」改为「余额支付」；微信/支付宝认证改为未认证、待确认、待签约、认证成功、已作废，去掉查看认证码；佣金明细按所得佣金展示并去掉顶部说明"
+            },
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "text": "账户只显示余额账户/保证金账户；支付方式与付款方式统一为交易方；保证金补缴同时记余额支出和保证金划拨"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "text": "订单状态对齐客户订单，页签改为待提货/待收货；日预估佣金按所得佣金汇总"
+            },
+            {
+              "file": "store-app/h5/biz-order-goods.html",
+              "text": "本单佣金改为所得佣金"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "text": "商品可售开关下新增混合支付验收开关，可用场景切换钱包、微信、支付宝、积分组合"
+            }
+          ]
+        },
         {
           "sha": "01e8ada",
           "type": "fix",
@@ -51,6 +373,26 @@
             {
               "file": "SCM/obd_outbound.html",
               "text": "商品明细支持维护实际出库量；操作列新增一键出库并收纳更多操作；支持勾选打印三联单"
+            }
+          ]
+        },
+        {
+          "sha": "dd6eb9c",
+          "type": "style",
+          "text": "入驻审核流程图BD审核改为负责人审核",
+          "author": "sisi",
+          "time": "15:11",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "text": "页顶流程图第 3 步「BD 审核」改为「负责人审核」"
             }
           ]
         },
@@ -114,7 +456,7 @@
             {
               "file": "MDM/mdm_live_product_sched_edit.html",
               "module": "冷丰WMS",
-              "title": "编辑直播商品"
+              "title": "直播排品编辑"
             },
             {
               "file": "MDM/mdm_live_room.html",
@@ -2056,7 +2398,7 @@
             {
               "file": "MDM/mdm_live_product_sched_edit.html",
               "module": "冷丰WMS",
-              "title": "编辑直播商品"
+              "title": "直播排品编辑"
             },
             {
               "file": "MDM/mdm_live_room.html",
@@ -2190,7 +2532,7 @@
             {
               "file": "MDM/mdm_live_product_sched_edit.html",
               "module": "冷丰WMS",
-              "title": "编辑直播商品"
+              "title": "直播排品编辑"
             },
             {
               "file": "MDM/mdm_live_room.html",
@@ -3218,7 +3560,7 @@
             {
               "file": "MDM/mdm_live_product_sched_edit.html",
               "module": "冷丰WMS",
-              "title": "编辑直播商品"
+              "title": "直播排品编辑"
             },
             {
               "file": "MDM/mdm_live_room.html",
@@ -3733,7 +4075,7 @@
             {
               "file": "MDM/mdm_live_product_sched_edit.html",
               "module": "冷丰WMS",
-              "title": "编辑直播商品"
+              "title": "直播排品编辑"
             },
             {
               "file": "MDM/mdm_live_room.html",
@@ -4285,7 +4627,7 @@
             {
               "file": "MDM/mdm_live_product_sched_edit.html",
               "module": "冷丰WMS",
-              "title": "编辑直播商品"
+              "title": "直播排品编辑"
             },
             {
               "file": "MDM/mdm_live_room.html",
@@ -4419,8 +4761,8 @@
               "text": "状态改为草稿、上架、下架；提示说明上架后需中控加入直播商品用户才可见"
             },
             {
-              "file": "MDM/mdm_live_product_sched_edit.html",
-              "text": "底栏启用/禁用改为上架/下架"
+              "file": null,
+              "text": "编辑直播商品: 底栏启用/禁用改为上架/下架"
             },
             {
               "file": "MDM/mdm_live_control.html",
@@ -4671,7 +5013,7 @@
             {
               "file": "MDM/mdm_live_product_sched_edit.html",
               "module": "冷丰WMS",
-              "title": "编辑直播商品"
+              "title": "直播排品编辑"
             },
             {
               "file": "MDM/mdm_live_room.html",
@@ -4785,8 +5127,8 @@
               "text": "补充启用说明；列表改为序号与分页；隐藏上移下移"
             },
             {
-              "file": "MDM/mdm_live_product_sched_edit.html",
-              "text": "上架下架改为启用禁用"
+              "file": null,
+              "text": "编辑直播商品: 上架下架改为启用禁用"
             },
             {
               "file": "user-app/h5/live-room.html",
@@ -5441,7 +5783,7 @@
             {
               "file": "MDM/mdm_live_product_sched_edit.html",
               "module": "冷丰WMS",
-              "title": "编辑直播商品"
+              "title": "直播排品编辑"
             },
             {
               "file": "MDM/mdm_live_room.html",
@@ -6198,6 +6540,11 @@
               "file": "shop-h5/h5/store/register.html",
               "module": "",
               "title": "门店注册 · Shop H5"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
             }
           ],
           "global": true,
@@ -7400,7 +7747,7 @@
             {
               "file": "MDM/mdm_live_product_sched_edit.html",
               "module": "冷丰WMS",
-              "title": "编辑直播商品"
+              "title": "直播排品编辑"
             },
             {
               "file": "MDM/mdm_live_session_detail.html",
@@ -7635,7 +7982,7 @@
             {
               "file": "MDM/mdm_live_product_sched_edit.html",
               "module": "冷丰WMS",
-              "title": "编辑直播商品"
+              "title": "直播排品编辑"
             },
             {
               "file": "MDM/mdm_live_session_detail.html",
@@ -10978,7 +11325,7 @@
             {
               "file": "MDM/mdm_live_product_sched_edit.html",
               "module": "冷丰WMS",
-              "title": "编辑直播商品"
+              "title": "直播排品编辑"
             },
             {
               "file": "MDM/mdm_live_session_detail.html",
@@ -16949,6 +17296,11 @@
           "time": "11:32",
           "pages": [
             {
+              "file": "MDM/mdm_live_product_sched.html",
+              "module": "冷丰WMS",
+              "title": "直播排品"
+            },
+            {
               "file": "MDM/mdm_live_session_detail.html",
               "module": "冷丰WMS",
               "title": "直播场次详情"
@@ -17100,6 +17452,11 @@
           "author": "sisi",
           "time": "01:05",
           "pages": [
+            {
+              "file": "MDM/mdm_live_product_sched.html",
+              "module": "冷丰WMS",
+              "title": "直播排品"
+            },
             {
               "file": "MDM/mdm_marketing_newcomer_zone.html",
               "module": "冷丰WMS",
@@ -23061,6 +23418,11 @@
               "file": "store-app/h5/onboarding.html",
               "module": "",
               "title": "商户进件 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
             }
           ],
           "global": true
