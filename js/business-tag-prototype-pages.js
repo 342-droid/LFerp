@@ -33,8 +33,8 @@
       {
         scene: 'MEMBER_MANAGEMENT',
         title: '会员管理',
-        desc: '复用会员360现有会员标签库及会员打标结果。',
-        slots: [{ dimension: 'SELF', name: '会员标签', note: '标签库、会员列表与人群筛选可用' }]
+        desc: '复用会员360现有会员标签库及会员打标结果，并向其他业务提供只读能力。',
+        slots: [{ dimension: 'SELF', name: '会员标签', note: '会员标签及跨模块只读能力可用' }]
       },
       {
         scene: 'AFTER_SALE_MANAGEMENT',
@@ -42,7 +42,7 @@
         desc: '售后管理自己的标签，同时可选择读取下单用户会员标签。',
         slots: [
           { dimension: 'SELF', name: '售后单标签', note: '售后可管理、筛选和批量设置' },
-          { dimension: 'ORDER_MEMBER', name: '下单用户会员标签', note: '按下单会员只读带入，仍由会员管理维护' }
+          { dimension: 'ORDER_MEMBER', name: '下单用户会员标签', note: '依赖会员标签能力；按下单会员只读带入' }
         ]
       }
     ];
@@ -90,7 +90,8 @@
     var tbody = document.getElementById('asTicketTableBody');
     if (!tbody) return;
     var saleEnabled = store.isEnabled('AFTER_SALE_MANAGEMENT', 'SELF');
-    var memberEnabled = store.isEnabled('AFTER_SALE_MANAGEMENT', 'ORDER_MEMBER');
+    var memberEnabled = store.isEnabled('MEMBER_MANAGEMENT', 'SELF') &&
+      store.isEnabled('AFTER_SALE_MANAGEMENT', 'ORDER_MEMBER');
     var grid = document.getElementById('asTicketFilterGrid');
     var toolbar = document.querySelector('.aftersale-table-toolbar');
     var headerRow = document.querySelector('#asTicketTable thead tr');
@@ -257,7 +258,8 @@
     var body = document.getElementById('asDetailBody');
     if (!body) return;
     var saleEnabled = store.isEnabled('AFTER_SALE_MANAGEMENT', 'SELF');
-    var memberEnabled = store.isEnabled('AFTER_SALE_MANAGEMENT', 'ORDER_MEMBER');
+    var memberEnabled = store.isEnabled('MEMBER_MANAGEMENT', 'SELF') &&
+      store.isEnabled('AFTER_SALE_MANAGEMENT', 'ORDER_MEMBER');
     if (!saleEnabled && !memberEnabled) return;
     var resourceId = queryParam('id') || 'AS-333524494855454720';
     var memberId = queryParam('memberId') || 'U10001';

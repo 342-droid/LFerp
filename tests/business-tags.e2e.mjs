@@ -80,6 +80,12 @@ test('system admin independently enables four tag slots while reusing the member
   assert.equal(await page.getByRole('columnheader', { name: '售后单标签', exact: true }).count(), 1);
   assert.equal(await page.getByRole('columnheader', { name: '下单用户会员标签', exact: true }).count(), 0);
 
+  await page.goto(`${ORIGIN}/SCM/basic_settings_system.html`);
+  await page.locator('[data-business-tag-capability="AFTER_SALE_MANAGEMENT:ORDER_MEMBER"]').check();
+  await page.locator('[data-business-tag-capability="MEMBER_MANAGEMENT:SELF"]').uncheck();
+  await page.goto(`${ORIGIN}/MDM/mdm_aftersale_ticket.html`);
+  assert.equal(await page.getByRole('columnheader', { name: '下单用户会员标签', exact: true }).count(), 0);
+
   await context.close();
 });
 
