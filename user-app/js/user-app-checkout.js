@@ -364,8 +364,19 @@
     }
   }
 
+  function isBdAppBrowse() {
+    var params = new URLSearchParams(window.location.search);
+    return params.get('port') === 'bd-app' || params.get('from') === 'bd-app';
+  }
+
   function cartBackHref() {
     var params = new URLSearchParams(window.location.search);
+    if (isBdAppBrowse()) {
+      var sid = params.get('storeId') || '';
+      return (
+        'restock.html?from=bd-app&tab=cart' + (sid ? '&storeId=' + encodeURIComponent(sid) : '')
+      );
+    }
     var fromStore = params.get('port') === 'store-app' || params.get('from') === 'store-app';
     return fromStore ? 'restock.html?from=store-app&tab=cart' : 'restock.html?tab=cart';
   }
@@ -1972,6 +1983,12 @@
    * 2) 余额不足 / 未用余额 → 须勾选支付宝/微信后跳三方收单
    */
   function onSubmitOrder() {
+    if (isBdAppBrowse()) {
+      var tip = (window.UaProxySaleScope && window.UaProxySaleScope.BD_ONLY_ORDER_TIP) || '仅门店用户采购';
+      if (saleApi() && saleApi().showToast) saleApi().showToast(tip);
+      else window.alert(tip);
+      return;
+    }
     if (!applyCheckoutSaleableGuard()) return;
     if (!validateBeforeSubmit()) return;
     var legs = getPayLegs();
@@ -2132,6 +2149,17 @@
     var back = document.getElementById('checkoutBack');
     if (back && params.get('from') === 'restock.html') {
       back.setAttribute('href', cartBackHref());
+    }
+    if (isBdAppBrowse()) {
+      document.title = '确认订单 · BD APP';
+      var body = document.getElementById('checkoutBody');
+      if (body && !document.getElementById('checkoutBdTip')) {
+        var tip = document.createElement('p');
+        tip.id = 'checkoutBdTip';
+        tip.className = 'ua-co-bd-tip';
+        tip.textContent = 'BD 查看模式，提交订单将提示「仅门店用户采购」';
+        body.insertBefore(tip, body.firstChild);
+      }
     }
   }
 

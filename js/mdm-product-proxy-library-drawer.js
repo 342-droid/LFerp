@@ -161,12 +161,15 @@
     renderGrid(addedCodes);
   }
 
-  function buildDrawerHtml() {
+  function buildDrawerHtml(options) {
+    options = options || {};
+    var title = options.title || '从商品库添加';
+    var tip = options.footerTip || '此处仅将商品库中的商品加入商城售卖，不会修改商品库主数据';
     return (
       '<div class="store-drawer-backdrop proxy-library-drawer-backdrop" data-proxy-library-backdrop></div>' +
-      '<aside class="store-drawer store-drawer--proxy-library proxy-library-drawer" id="' + DRAWER_ID + '" aria-label="从商品库添加">' +
+      '<aside class="store-drawer store-drawer--proxy-library proxy-library-drawer" id="' + DRAWER_ID + '" aria-label="' + escapeHtml(title) + '">' +
       '  <header class="store-drawer__header proxy-library-drawer__header">' +
-      '    <h2 class="store-drawer__title">从商品库添加</h2>' +
+      '    <h2 class="store-drawer__title">' + escapeHtml(title) + '</h2>' +
       '    <button type="button" class="store-drawer__close" data-proxy-library-close aria-label="关闭">&times;</button>' +
       '  </header>' +
       '  <div class="proxy-library-drawer__body">' +
@@ -188,7 +191,7 @@
       '    </div>' +
       '  </div>' +
       '  <footer class="proxy-library-drawer__footer">' +
-      '    <p class="proxy-library-drawer__footer-tip">此处仅将商品库中的商品加入商城售卖，不会修改商品库主数据</p>' +
+      '    <p class="proxy-library-drawer__footer-tip">' + escapeHtml(tip) + '</p>' +
       '    <div class="proxy-library-drawer__footer-actions">' +
       '      <span class="proxy-library-drawer__selected" id="proxyLibrarySelectedCount">已选 0 件</span>' +
       '      <button type="button" class="erp-btn" data-proxy-library-cancel>取消</button>' +
@@ -280,7 +283,7 @@
     };
 
     var addedCodes = options.addedCodes || {};
-    document.body.insertAdjacentHTML('beforeend', buildDrawerHtml());
+    document.body.insertAdjacentHTML('beforeend', buildDrawerHtml(options));
     document.body.classList.add('proxy-library-drawer-open');
 
     bindDrawerEvents(addedCodes, options.onConfirm);

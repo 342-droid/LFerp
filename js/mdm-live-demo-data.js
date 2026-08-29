@@ -473,6 +473,77 @@
     }
   ];
 
+  function minimalSession(o) {
+    return Object.assign(
+      {
+        roomId: 'room-001',
+        slotId: 'slot-003',
+        slotName: '晚间黄金档（19:00-21:30）',
+        type: 'regular',
+        typeName: '常规场',
+        liveType: 'OFFICIAL',
+        liveTypeName: '官方直播',
+        actualStartAt: '',
+        actualEndAt: '',
+        anchorUserId: '10086005',
+        cover: '',
+        intro: '',
+        viewPermission: 'ALL',
+        regions: [],
+        stores: [],
+        pushUrl: '',
+        playUrl: '',
+        templates: defaultTemplates(),
+        autoCloseEnabled: false,
+        autoCloseAt: '',
+        cViewerDisplay: 'online',
+        cViewerInitial: 0,
+        cViewerExtraMin: 0,
+        cViewerExtraMax: 0,
+        createStatus: 'ENABLED',
+        remark: '',
+        createdAt: '2026-08-20 10:00:00'
+      },
+      o
+    );
+  }
+
+  sessions.push(
+    minimalSession({
+      id: 'sess-ert',
+      name: 'ERT',
+      roomId: 'room-ert',
+      roomName: 'ERT',
+      status: 'live',
+      startAt: '2026-08-23 06:55:00',
+      endAt: '2026-08-23 06:55:00',
+      actualStartAt: '2026-08-23 06:55:00',
+      anchorName: '陈洁'
+    }),
+    minimalSession({
+      id: 'sess-it',
+      name: 'IT 测试拉新',
+      roomId: 'room-it',
+      roomName: 'IT 测试拉新',
+      status: 'live',
+      startAt: '2026-08-28 06:00:00',
+      endAt: '2026-08-28 08:00:00',
+      actualStartAt: '2026-08-28 06:00:00',
+      anchorName: '测试主播'
+    }),
+    minimalSession({
+      id: 'sess-dark',
+      name: '黑灯直播间',
+      roomId: 'room-dark',
+      roomName: '黑灯直播间',
+      status: 'live',
+      startAt: '2026-08-27 20:00:00',
+      endAt: '2026-08-27 22:00:00',
+      actualStartAt: '2026-08-27 20:00:00',
+      anchorName: '夜场主播'
+    })
+  );
+
   var categories = [
     { id: 'lcat-001', name: '时令果蔬', sort: 1, enabled: true },
     { id: 'lcat-002', name: '肉禽蛋奶', sort: 2, enabled: true },
@@ -985,7 +1056,153 @@
         ]
       }
     ],
-    'sess-004': []
+    'sess-004': [],
+    'sess-ert': [
+      {
+        id: 'lp-ert-124',
+        sessionId: 'sess-ert',
+        sku: 'SPU00124',
+        goodsId: '349688244318765057',
+        name: 'UAT分佣10-分币商品',
+        category: '',
+        categoryId: '',
+        spec: 'LIVE_STORE_A',
+        price: 2,
+        marketPrice: 3,
+        stock: 49,
+        status: 'draft',
+        liveStatus: 'off_shelf',
+        inCart: false,
+        saleMode: 'preview',
+        explaining: false,
+        pinned: false,
+        addedAt: '2026-08-23 07:02:00',
+        deliveryMode: 'express',
+        displaySalesMode: 'ACTUAL',
+        img: '../user-app/assets/restock/product-tea.svg',
+        images: ['../user-app/assets/restock/product-tea.svg'],
+        desc: '',
+        skus: [
+          makeSku({ id: 'sku-ert-124a', specName: 'LIVE_STORE_A', displayName: 'LIVE_STORE_A', specValue: 'LIVE_STORE_A', barcode: '0000008124', price: 2, marketPrice: 3, stock: 11, unit: '份', baseUnit: '份', purchasePrice: 0.01, saleRatio: '1.000', pointExchange: 'cash', minQty: 1, liveStock: 11 }),
+          makeSku({ id: 'sku-ert-124b', specName: 'LIVE_STORE_B', displayName: 'LIVE_STORE_B', specValue: 'LIVE_STORE_B', barcode: '0000008125', price: 2.5, marketPrice: 3.5, stock: 8, unit: '份', baseUnit: '份', purchasePrice: 0.01, saleRatio: '1.000', pointExchange: 'cash', minQty: 1, liveStock: 8 }),
+          makeSku({ id: 'sku-ert-124c', specName: 'LIVE_STORE_C', displayName: 'LIVE_STORE_C', specValue: 'LIVE_STORE_C', barcode: '0000008126', price: 3, marketPrice: 4, stock: 6, unit: '份', baseUnit: '份', purchasePrice: 0.01, saleRatio: '1.000', pointExchange: 'cash', minQty: 1, liveStock: 6 }),
+          makeSku({ id: 'sku-ert-124d', specName: 'LIVE_STORE_D', displayName: 'LIVE_STORE_D', specValue: 'LIVE_STORE_D', barcode: '0000008127', price: 1.5, marketPrice: 2.5, stock: 20, unit: '份', baseUnit: '份', purchasePrice: 0.01, saleRatio: '1.000', pointExchange: 'cash', minQty: 1, liveStock: 20 }),
+          makeSku({ id: 'sku-ert-124e', specName: 'LIVE_STORE_E', displayName: 'LIVE_STORE_E', specValue: 'LIVE_STORE_E', barcode: '0000008128', price: 4, marketPrice: 5, stock: 4, unit: '份', baseUnit: '份', purchasePrice: 0.01, saleRatio: '1.000', pointExchange: 'cash', minQty: 1, liveStock: 4 })
+        ]
+      },
+      {
+        id: 'lp-ert-125',
+        sessionId: 'sess-ert',
+        sku: 'SPU00125',
+        goodsId: '349688244318765056',
+        name: '炭烧腰果',
+        category: '',
+        categoryId: '',
+        spec: '500g/袋',
+        price: 1,
+        marketPrice: 11,
+        stock: 12,
+        status: 'enabled',
+        liveStatus: 'off_shelf',
+        inCart: false,
+        saleMode: 'preview',
+        explaining: false,
+        pinned: false,
+        addedAt: '2026-08-23 07:08:00',
+        deliveryMode: 'express',
+        displaySalesMode: 'ACTUAL',
+        img: '../user-app/assets/restock/category-icon-grain.svg',
+        images: ['../user-app/assets/restock/category-icon-grain.svg'],
+        desc: '',
+        skus: [makeSku({ id: 'sku-ert-125a', specName: '500g/袋', displayName: '500g/袋', specValue: '500g/袋', barcode: '0000008190', price: 1, marketPrice: 11, stock: 12, unit: '袋', baseUnit: '袋', purchasePrice: 0.01, saleRatio: '1.000', pointExchange: 'cash', minQty: 1, liveStock: 12 })]
+      },
+      {
+        id: 'lp-ert-110',
+        sessionId: 'sess-ert',
+        sku: 'SPU00110',
+        name: '飞鹤奶粉',
+        category: '',
+        categoryId: '',
+        spec: '原味',
+        price: 1,
+        marketPrice: 11,
+        stock: 11,
+        status: 'enabled',
+        liveStatus: 'off_shelf',
+        inCart: false,
+        saleMode: 'preview',
+        explaining: false,
+        pinned: false,
+        addedAt: '2026-08-23 07:12:00',
+        img: '../user-app/assets/restock/category-icon-drink.svg',
+        skus: [makeSku({ id: 'sku-ert-110a', specName: '原味', price: 1, marketPrice: 11, stock: 11, unit: '罐' })]
+      },
+      {
+        id: 'lp-ert-109',
+        sessionId: 'sess-ert',
+        sku: 'SPU00109',
+        name: '奶粉',
+        category: '',
+        categoryId: '',
+        spec: '400g/罐',
+        price: 1,
+        marketPrice: 11,
+        stock: 11,
+        status: 'enabled',
+        liveStatus: 'off_shelf',
+        inCart: false,
+        saleMode: 'preview',
+        explaining: false,
+        pinned: false,
+        addedAt: '2026-08-23 07:16:00',
+        img: '../user-app/assets/restock/product-egg.svg',
+        skus: [makeSku({ id: 'sku-ert-109a', specName: '400g/罐', price: 1, marketPrice: 11, stock: 11, unit: '罐' })]
+      },
+      {
+        id: 'lp-ert-086',
+        sessionId: 'sess-ert',
+        sku: 'SPU00086',
+        name: '有机上海青',
+        category: '',
+        categoryId: '',
+        spec: '有机上海青500g',
+        price: 1,
+        marketPrice: 11,
+        stock: 11,
+        status: 'enabled',
+        liveStatus: 'off_shelf',
+        inCart: false,
+        saleMode: 'preview',
+        explaining: false,
+        pinned: false,
+        addedAt: '2026-08-23 07:20:00',
+        img: '../user-app/assets/restock/product-leaf.svg',
+        skus: [makeSku({ id: 'sku-ert-086a', specName: '有机上海青500g', price: 1, marketPrice: 11, stock: 11, unit: '袋' })]
+      },
+      {
+        id: 'lp-ert-080',
+        sessionId: 'sess-ert',
+        sku: 'SPU00080',
+        name: '油麦菜【菜鲜】',
+        category: '',
+        categoryId: '',
+        spec: '约300g',
+        price: 1,
+        marketPrice: 11,
+        stock: 11,
+        status: 'draft',
+        liveStatus: 'off_shelf',
+        inCart: false,
+        saleMode: 'preview',
+        explaining: false,
+        pinned: false,
+        addedAt: '2026-08-23 07:24:00',
+        img: '../user-app/assets/restock/product-leaf.svg',
+        skus: [makeSku({ id: 'sku-ert-080a', specName: '约300g', price: 1, marketPrice: 11, stock: 11, unit: '份' })]
+      }
+    ],
+    'sess-it': [],
+    'sess-dark': []
   };
 
   function buildMetrics(overrides) {

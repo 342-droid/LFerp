@@ -17,6 +17,9 @@
   var page = 1;
   var pageSize = 20;
   var expandedIds = {};
+  var pickerTab = 'all';
+  var pickerKeyword = '';
+  var extraSessions = [];
 
   function toast(msg, type) {
     if (typeof showToast === 'function') showToast(msg, type || 'success');
@@ -31,6 +34,7 @@
   }
 
   function formatPrice(n) {
+    if (n == null || n === '') return '—';
     var v = Number(n);
     if (isNaN(v)) return '—';
     return '¥' + v.toFixed(2);
@@ -42,11 +46,16 @@
   }
 
   function formatSessionTime(startAt, endAt) {
-    function short(t) {
+    function mdhm(t) {
       if (!t) return '—';
       return String(t).replace(/^\d{4}-/, '').slice(0, 11);
     }
-    return short(startAt) + ' - ' + short(endAt);
+    function hm(t) {
+      if (!t) return '—';
+      var m = String(t).match(/(\d{2}:\d{2})/);
+      return m ? m[1] : mdhm(t);
+    }
+    return mdhm(startAt) + ' - ' + hm(endAt);
   }
 
   function normalizeStatus(st) {
@@ -100,8 +109,12 @@
     return (document.getElementById('liveSchedSession') || {}).value || '';
   }
 
+  function allPickerSessions() {
+    return (Demo.sessions || []).concat(extraSessions);
+  }
+
   function findSession(id) {
-    var list = Demo.sessions || [];
+    var list = allPickerSessions();
     for (var i = 0; i < list.length; i++) {
       if (list[i].id === id) return list[i];
     }
@@ -127,26 +140,184 @@
     ];
   }
 
-  function fillSessionSelect() {
-    var sel = document.getElementById('liveSchedSession');
-    if (!sel) return;
-    var params = new URLSearchParams(window.location.search || '');
-    var preset = params.get('sessionId') || '';
-    sel.innerHTML =
-      '<option value="">请选择直播场次</option>' +
-      Demo.sessions
-        .map(function (s) {
-          return (
-            '<option value="' +
-            escapeHtml(s.id) +
-            '"' +
-            (s.id === preset ? ' selected' : '') +
-            '>' +
-            escapeHtml(s.name) +
-            '</option>'
-          );
-        })
-        .join('');
+  function padDate(n) {
+    return n < 10 ? '0' + n : String(n);
+  }
+
+  function buildExtraSessions() {
+    extraSessions = [];
+    var used = {};
+    (Demo.sessions || []).forEach(function (s) {
+      used[s.id] = true;
+    });
+    var names = [
+      '周末生鲜特卖',
+      '产地直采专场',
+      '会员日闪购',
+      '夜宵速达场',
+      '水果拼盘专场',
+      '肉禽蛋奶专场',
+      '粮油干货清仓',
+      '新店开业专场',
+      '社群团购场',
+      '午间快闪'
+    ];
+    var i = 0;
+    while (extraSessions.length < 52) {
+      var id = 'sess-pad-' + padDate(i + 1);
+      if (used[id]) {
+        i += 1;
+        continue;
+      }
+      var day = 20 - (i % 18);
+      extraSessions.push({
+        id: id,
+        name: names[i % names.length] + ' ' + padDate((i % 12) + 1) + '-' + padDate((i % 28) + 1),
+        roomId: 'room-pad-' + (i % 8),
+        roomName: names[i % names.length],
+        status: 'ended',
+        startAt: '2026-08-' + padDate(Math.max(1, day)) + ' 19:00:00',
+        endAt: '2026-08-' + padDate(Math.max(1, day)) + ' 21:00:00',
+        anchorName: '主播' + ((i % 6) + 1)
+      });
+      i += 1;
+    }
+  }
+
+  function sessionSearchText(s) {
+    return [s.name, s.roomName].join(' ');
+  }
+
+  function filteredPickerSessions() {
+    var kw = pickerKeyword.trim().toLowerCase();
+    return allPickerSessions().filter(function (s) {
+      if (pickerTab !== 'all' && s.status !== pickerTab) return false;
+      if (kw && sessionSearchText(s).toLowerCase().indexOf(kw) < 0) return false;
+      return true;
+    }).sort(function (a, b) {
+      var rank = { live: 0, upcoming: 1, ended: 2 };
+      var ra = rank[a.status] != null ? rank[a.status] : 9;
+      var rb = rank[b.status] != null ? rank[b.status] : 9;
+      if (ra !== rb) return ra - rb;
+      return String(b.startAt || '').localeCompare(String(a.startAt || ''));
+    });
+  }
+
+  function pickerCounts() {
+    var list = allPickerSessions();
+    var kw = pickerKeyword.trim().toLowerCase();
+    var counts = { all: 0, live: 0, upcoming: 0, ended: 0 };
+    list.forEach(function (s) {
+      if (kw && sessionSearchText(s).toLowerCase().indexOf(kw) < 0) return;
+      counts.all += 1;
+      if (counts[s.status] != null) counts[s.status] += 1;
+    });
+    return counts;
+  }
+
+  function setSessionValue(id, silent) {
+    var input = document.getElementById('liveSchedSession');
+    var label = document.getElementById('liveSchedSessionLabel');
+    if (input) input.value = id || '';
+    var sess = findSession(id);
+    if (label) {
+      label.textContent = sess ? sess.name || sess.roomName || '—' : '请选择直播场次';
+      label.classList.toggle('is-placeholder', !sess);
+    }
+    if (!silent) {
+      page = 1;
+      expandedIds = {};
+      render();
+    }
+  }
+
+  function closePicker() {
+    var dd = document.getElementById('liveSchedSessionDd');
+    var pop = document.getElementById('liveSchedSessionPop');
+    var trigger = document.getElementById('liveSchedSessionTrigger');
+    if (dd) dd.classList.remove('is-open');
+    if (pop) pop.hidden = true;
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+  }
+
+  function openPicker() {
+    var dd = document.getElementById('liveSchedSessionDd');
+    var pop = document.getElementById('liveSchedSessionPop');
+    var trigger = document.getElementById('liveSchedSessionTrigger');
+    var search = document.getElementById('liveSchedSessionSearch');
+    if (dd) dd.classList.add('is-open');
+    if (pop) pop.hidden = false;
+    if (trigger) trigger.setAttribute('aria-expanded', 'true');
+    renderPicker();
+    if (search) {
+      setTimeout(function () {
+        search.focus();
+      }, 0);
+    }
+  }
+
+  function togglePicker() {
+    var dd = document.getElementById('liveSchedSessionDd');
+    if (dd && dd.classList.contains('is-open')) closePicker();
+    else openPicker();
+  }
+
+  function renderPicker() {
+    var tabsEl = document.getElementById('liveSchedSessionTabs');
+    var listEl = document.getElementById('liveSchedSessionList');
+    if (!tabsEl || !listEl) return;
+    var counts = pickerCounts();
+    var tabs = [
+      { key: 'all', label: '全部' },
+      { key: 'live', label: '直播中' },
+      { key: 'upcoming', label: '未开始' },
+      { key: 'ended', label: '已结束' }
+    ];
+    tabsEl.innerHTML = tabs
+      .map(function (t) {
+        return (
+          '<button type="button" class="lf-live-sess-dd__tab' +
+          (pickerTab === t.key ? ' is-active' : '') +
+          '" data-tab="' +
+          t.key +
+          '">' +
+          escapeHtml(t.label) +
+          ' (' +
+          (counts[t.key] || 0) +
+          ')</button>'
+        );
+      })
+      .join('');
+
+    var rows = filteredPickerSessions();
+    var currentId = currentSessionId();
+    if (!rows.length) {
+      listEl.innerHTML = '<div class="lf-live-sess-dd__empty">没有匹配的直播场次</div>';
+      return;
+    }
+    listEl.innerHTML = rows
+      .map(function (s) {
+        return (
+          '<div class="lf-live-sess-dd__item' +
+          (s.id === currentId ? ' is-current' : '') +
+          '" data-id="' +
+          escapeHtml(s.id) +
+          '" role="option">' +
+          '<div class="lf-live-sess-dd__item-main">' +
+          '<div class="lf-live-sess-dd__item-name">' +
+          escapeHtml(s.name || s.roomName || '—') +
+          '</div>' +
+          '<div class="lf-live-sess-dd__item-time">' +
+          escapeHtml(s.startAt || '—') +
+          '</div></div>' +
+          '<span class="' +
+          sessionBadgeClass(s.status) +
+          '">' +
+          escapeHtml(sessionStatusLabel(s.status)) +
+          '</span></div>'
+        );
+      })
+      .join('');
   }
 
   function thumbHtml(item) {
@@ -252,8 +423,7 @@
 
     tbody.innerHTML = pageRows
       .map(function (p, idx) {
-        /* 序号倒序：全量排品从大到小编号 */
-        var serialNo = rows.length - start - idx;
+        var serialNo = start + idx + 1;
         var skus = skusOf(p);
         var first = skus[0];
         var expanded = !!expandedIds[p.id];
@@ -265,7 +435,14 @@
         var st = normalizeStatus(p.status);
         var canEnable = st === 'draft' || st === 'disabled';
         var canDisable = st === 'enabled';
+        var globalIndex = start + idx;
         var ops =
+          '<button type="button" class="lf-live-sort-btn" data-act="up" title="上移"' +
+          (globalIndex <= 0 ? ' disabled' : '') +
+          '>▲</button>' +
+          '<button type="button" class="lf-live-sort-btn" data-act="down" title="下移"' +
+          (globalIndex >= rows.length - 1 ? ' disabled' : '') +
+          '>▼</button>' +
           '<a href="' +
           escapeHtml(editHref) +
           '">编辑</a>' +
@@ -277,8 +454,11 @@
             '" title="' +
             (expanded ? '收起规格' : '展开规格') +
             '">' +
-            (expanded ? '▼' : '▶') +
+            (expanded ? '∧' : '∨') +
             '</button>'
+          : '';
+        var specCount = canExpand
+          ? '<span class="lf-live-sku-count">' + skus.length + ' 规格</span>'
           : '';
         var parent =
           '<tr data-id="' +
@@ -287,14 +467,13 @@
           '<td>' +
           serialNo +
           '</td>' +
-          '<td>' +
+          '<td class="lf-live-code-cell"><div class="lf-live-code-row">' +
           expandBtn +
           '<span class="lf-live-sku-id">' +
           escapeHtml(p.sku || '—') +
-          '</span>' +
-          '<span class="lf-live-sku-count">' +
-          skus.length +
-          '规格</span></td>' +
+          '</span></div>' +
+          specCount +
+          '</td>' +
           '<td>' +
           thumbHtml(p) +
           '</td>' +
@@ -302,7 +481,7 @@
           escapeHtml(p.name) +
           '</td>' +
           '<td>' +
-          escapeHtml(p.category || '—') +
+          escapeHtml(p.category || '') +
           '</td>' +
           skuCells(first) +
           '<td>' +
@@ -349,59 +528,161 @@
     list[j] = tmp;
   }
 
+  function nowStamp() {
+    var now = new Date();
+    return (
+      now.getFullYear() +
+      '-' +
+      padDate(now.getMonth() + 1) +
+      '-' +
+      padDate(now.getDate()) +
+      ' ' +
+      padDate(now.getHours()) +
+      ':' +
+      padDate(now.getMinutes()) +
+      ':' +
+      padDate(now.getSeconds())
+    );
+  }
+
+  function getAddedCodesMap() {
+    var map = {};
+    productsOf(currentSessionId()).forEach(function (p) {
+      if (p.sku) map[p.sku] = true;
+    });
+    return map;
+  }
+
+  function libraryItemToSchedProduct(item, sessionId) {
+    var price = Number(item.price);
+    if (isNaN(price) || price <= 0) price = 0.01;
+    return {
+      id: 'lp-' + Date.now().toString(36) + '-' + item.code,
+      sessionId: sessionId,
+      sku: item.code,
+      name: item.name || item.code,
+      category: '',
+      categoryId: '',
+      spec: '默认规格',
+      price: price,
+      marketPrice: null,
+      stock: 100,
+      status: 'draft',
+      liveStatus: 'off_shelf',
+      inCart: false,
+      saleMode: 'preview',
+      explaining: false,
+      pinned: false,
+      addedAt: nowStamp(),
+      img: item.img || '',
+      fromLibrary: true,
+      skus: [
+        {
+          id: item.code + '-sku',
+          specName: '默认规格',
+          price: price,
+          marketPrice: null,
+          stock: 100,
+          unit: '份',
+          enabled: true
+        }
+      ]
+    };
+  }
+
+  function addProductsFromLibrary(items) {
+    if (!items || !items.length) return 0;
+    var sessionId = currentSessionId();
+    var list = productsOf(sessionId);
+    var addedCodes = getAddedCodesMap();
+    var count = 0;
+    items.forEach(function (item) {
+      if (!item || !item.code || addedCodes[item.code]) return;
+      list.unshift(libraryItemToSchedProduct(item, sessionId));
+      addedCodes[item.code] = true;
+      count += 1;
+    });
+    if (count) {
+      page = 1;
+      render();
+    }
+    return count;
+  }
+
+  function openLibraryDrawer() {
+    if (!window.MdmProxyLibraryDrawer) {
+      toast('商品库组件未加载', 'warning');
+      return;
+    }
+    if (!window.MdmMallProductLibrary) {
+      toast('商品库数据未加载', 'warning');
+      return;
+    }
+    window.MdmProxyLibraryDrawer.open({
+      addedCodes: getAddedCodesMap(),
+      footerTip: '此处仅将商品库中的商品加入本场直播排品，不会修改商品库主数据',
+      onConfirm: function (picked) {
+        var count = addProductsFromLibrary(picked);
+        toast(count ? '已添加 ' + count + ' 件商品，请编辑完善后再上架' : '未添加新商品', count ? 'success' : 'info');
+      }
+    });
+  }
+
   function bindEvents() {
-    var sel = document.getElementById('liveSchedSession');
+    var trigger = document.getElementById('liveSchedSessionTrigger');
+    var pop = document.getElementById('liveSchedSessionPop');
+    var search = document.getElementById('liveSchedSessionSearch');
+    var tabs = document.getElementById('liveSchedSessionTabs');
+    var list = document.getElementById('liveSchedSessionList');
     var addBtn = document.getElementById('liveSchedAddBtn');
-    if (sel) {
-      sel.addEventListener('change', function () {
-        page = 1;
-        expandedIds = {};
-        render();
+
+    if (trigger) {
+      trigger.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        togglePicker();
       });
     }
+    if (search) {
+      search.addEventListener('input', function () {
+        pickerKeyword = search.value || '';
+        renderPicker();
+      });
+    }
+    if (tabs) {
+      tabs.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('[data-tab]');
+        if (!btn) return;
+        pickerTab = btn.getAttribute('data-tab') || 'all';
+        renderPicker();
+      });
+    }
+    if (list) {
+      list.addEventListener('click', function (ev) {
+        var item = ev.target.closest('[data-id]');
+        if (!item) return;
+        setSessionValue(item.getAttribute('data-id'));
+        closePicker();
+      });
+    }
+    document.addEventListener('click', function (ev) {
+      var dd = document.getElementById('liveSchedSessionDd');
+      if (!dd || !dd.classList.contains('is-open')) return;
+      if (dd.contains(ev.target)) return;
+      closePicker();
+    });
+    document.addEventListener('keydown', function (ev) {
+      if (ev.key !== 'Escape') return;
+      closePicker();
+      if (window.MdmProxyLibraryDrawer) window.MdmProxyLibraryDrawer.close();
+    });
+
     if (addBtn) {
       addBtn.addEventListener('click', function () {
-        var sessionId = currentSessionId();
-        if (!sessionId) {
+        if (!currentSessionId()) {
           toast('请先选择直播场次', 'warning');
           return;
         }
-        toast('演示：已添加示例商品（实际对接商品选择器）');
-        var list = productsOf(sessionId);
-        var n = list.length + 1;
-        list.push({
-          id: 'lp-' + Date.now().toString(36),
-          sessionId: sessionId,
-          sku: 'LF-DEMO-' + String(10000 + n),
-          name: '演示商品 ' + n,
-          category: (Demo.categories[0] && Demo.categories[0].name) || '时令果蔬',
-          categoryId: (Demo.categories[0] && Demo.categories[0].id) || 'lcat-001',
-          spec: '1份',
-          price: 9.9,
-          marketPrice: 19.9,
-          stock: 100,
-          status: 'draft',
-          liveStatus: 'off_shelf',
-          inCart: false,
-          saleMode: 'preview',
-          explaining: false,
-          pinned: false,
-          addedAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
-          img: '',
-          skus: [
-            {
-              id: 'sku-demo-' + Date.now().toString(36),
-              specName: '1份',
-              price: 9.9,
-              marketPrice: 19.9,
-              stock: 100,
-              unit: '份',
-              enabled: true
-            }
-          ]
-        });
-        page = Math.ceil(list.length / pageSize) || 1;
-        render();
+        openLibraryDrawer();
       });
     }
 
@@ -455,9 +736,24 @@
     });
   }
 
+  function initDefaultSession() {
+    var params = new URLSearchParams(window.location.search || '');
+    var preset = params.get('sessionId') || '';
+    if (preset && findSession(preset)) {
+      setSessionValue(preset, true);
+      return;
+    }
+    var prefer = findSession('sess-ert') || allPickerSessions().filter(function (s) {
+      return s.status === 'live';
+    })[0];
+    if (prefer) setSessionValue(prefer.id, true);
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
-    fillSessionSelect();
+    buildExtraSessions();
+    initDefaultSession();
     bindEvents();
     render();
+    renderPicker();
   });
 })();
