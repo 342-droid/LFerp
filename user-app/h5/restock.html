@@ -40,9 +40,10 @@
           <a href="profile.html" class="ua-restock-back" aria-label="返回我的">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
           </a>
-          <button type="button" class="ua-restock-store" aria-label="选择门店">
+          <button type="button" class="ua-restock-store" id="restockStoreBtn" aria-label="选择门店">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
-            门店
+            <span class="ua-restock-store__name" id="restockStoreName">门店</span>
+            <svg class="ua-restock-store__chev" id="restockStoreChev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" hidden><path d="M6 9l6 6 6-6"/></svg>
           </button>
           <form class="ua-restock-search" role="search" onsubmit="return false;">
             <input type="search" class="ua-restock-search__input" id="restockSearchInput" placeholder="搜索想要的商品" autocomplete="off">
@@ -68,6 +69,7 @@
         </div>
         <div class="ua-restock-cats-indicator"><div class="ua-restock-cats-indicator__bar"></div></div>
       </section>
+      <p class="ua-restock-bd-tip" id="restockBdTip" hidden>BD 查看模式，可浏览代采商城，下单仅门店用户采购</p>
 
       <section class="ua-restock-subtabs-wrap">
         <div class="ua-restock-subtabs" role="tablist">
@@ -557,7 +559,21 @@
         </div>
       </div>
     </div>
+
+    <div class="ua-restock-store-sheet" id="restockStoreSheet" hidden>
+      <div class="ua-restock-store-sheet__mask" data-store-sheet-close></div>
+      <div class="ua-restock-store-sheet__panel">
+        <div class="ua-restock-store-sheet__head">
+          <h3 class="ua-restock-store-sheet__title">切换门店</h3>
+          <button type="button" class="ua-restock-store-sheet__close" data-store-sheet-close aria-label="关闭">×</button>
+        </div>
+        <p class="ua-restock-store-sheet__hint">商品随代采售卖范围变化，仅查看不可下单</p>
+        <div class="ua-restock-store-sheet__list" id="restockStoreSheetList"></div>
+      </div>
+    </div>
   </div>
+  <script src="../../js/mdm-bd-data-stores.js"></script>
+  <script src="../js/ua-proxy-sale-scope.js"></script>
   <script src="../../js/mdm-supplier-archive-store.js"></script>
   <script src="../../js/store-wallet-demo.js?v=20260810-wallet-v24"></script>
   <script src="../js/user-app-product-catalog.js"></script>

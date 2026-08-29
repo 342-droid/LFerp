@@ -27,6 +27,46 @@
     { value: 'points', label: '纯积分兑换' },
     { value: 'points_cash', label: '积分+现金' }
   ];
+  /** 可售库存配置：取现货 / 按现货百分比溢出 / 按固定数量 */
+  var SELLABLE_STOCK_MODES = [
+    { value: 'follow', label: '取现货库存' },
+    { value: 'percent', label: '按现货百分比溢出' },
+    { value: 'fixed', label: '按具体数量' }
+  ];
+
+  function normalizeSellableMode(value) {
+    if (value === 'percent' || value === 'fixed' || value === 'follow') return value;
+    return 'follow';
+  }
+
+  function parseStockNum(value) {
+    var n = parseFloat(String(value == null ? '' : value).replace(/,/g, ''));
+    return isFinite(n) && n >= 0 ? n : 0;
+  }
+
+  function computeSellableStock(sku) {
+    var spot = parseStockNum(sku && sku.spotStock);
+    var mode = normalizeSellableMode(sku && sku.sellableMode);
+    if (mode === 'percent') {
+      return Math.round(spot * parseStockNum(sku.sellablePercent) / 100);
+    }
+    if (mode === 'fixed') {
+      return Math.round(parseStockNum(sku.sellableFixed));
+    }
+    return Math.round(spot);
+  }
+
+  function ensureSkuStockFields(sku) {
+    if (!sku) return sku;
+    sku.sellableMode = normalizeSellableMode(sku.sellableMode);
+    if (sku.spotStock == null || sku.spotStock === '') sku.spotStock = '0';
+    if (sku.reservedStock == null || sku.reservedStock === '') sku.reservedStock = '0';
+    if (sku.sellablePercent == null || sku.sellablePercent === '') sku.sellablePercent = '100';
+    if (sku.sellableFixed == null) sku.sellableFixed = '';
+    sku.sellableStock = String(computeSellableStock(sku));
+    return sku;
+  }
+
   var PROXY_DELIVERY_MODE_OPTIONS = [
     { value: 'express', label: '快递' },
     { value: 'platform', label: '配送' }
@@ -330,6 +370,12 @@
       salePrice: index === 0 ? String(product.priceMoney != null ? product.priceMoney : '0.00') : '0.01',
       linePrice: product.linePrice != null ? String(product.linePrice) : '',
       minQty: '1',
+      spotStock: index === 0 ? '120' : '80',
+      reservedStock: index === 0 ? '12' : '0',
+      sellableMode: 'follow',
+      sellablePercent: '100',
+      sellableFixed: '',
+      sellableStock: index === 0 ? '120' : '80',
       img: product.img || '../user-app/assets/restock/product-leaf.svg',
       isDefault: index === 0,
       onShelf: true
@@ -374,6 +420,7 @@
         s.displayNameManual = false;
         s.displayName = buildDefaultDisplayName(product.name, s.specValue, s.saleUnit);
       }
+      ensureSkuStockFields(s);
     });
 
     var selectedIds = Array.isArray(detail.selectedSkuIds) && detail.selectedSkuIds.length
@@ -642,6 +689,7 @@
       renderPointExchangeFields(sku) +
       renderPriceFieldsByExchange(sku) +
       renderSpecField('起售量', 'minQty', sku.minQty) +
+      renderSkuStockFields(sku) +
       '    </div>' +
       '  </div>' +
       '  <div class="product-proxy-spec__foot">' +
@@ -655,6 +703,61 @@
       '    </button>' +
       '  </div>' +
       '</article>'
+    );
+  }
+
+  function renderSkuStockFields(sku) {
+    if (formChannel !== 'proxy') return '';
+    sku = ensureSkuStockFields(sku || {});
+    var mode = sku.sellableMode;
+    var modeOptions = SELLABLE_STOCK_MODES.map(function (opt) {
+      return (
+        '<option value="' +
+        escapeHtml(opt.value) +
+        '"' +
+        (mode === opt.value ? ' selected' : '') +
+        '>' +
+        escapeHtml(opt.label) +
+        '</option>'
+      );
+    }).join('');
+    return (
+      renderSpecField('现货库存', 'spotStock', sku.spotStock) +
+      '<div class="product-proxy-spec__field product-proxy-spec__field--sellable" data-sellable-mode="' +
+      escapeHtml(mode) +
+      '">' +
+      '  <label class="product-proxy-spec__label">可售库存</label>' +
+      '  <div class="product-proxy-spec__stock-row">' +
+      '    <select class="product-proxy-spec__input product-proxy-spec__stock-mode" data-field="sellableMode" aria-label="可售库存配置方式">' +
+      modeOptions +
+      '</select>' +
+      '    <input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra" data-field="sellablePercent" inputmode="decimal" value="' +
+      escapeHtml(sku.sellablePercent) +
+      '" placeholder="如 120" aria-label="溢出百分比"' +
+      (mode === 'percent' ? '' : ' hidden') +
+      '>' +
+      '    <span class="product-proxy-spec__stock-suffix"' +
+      (mode === 'percent' ? '' : ' hidden') +
+      '>%</span>' +
+      '    <input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra" data-field="sellableFixed" inputmode="decimal" value="' +
+      escapeHtml(sku.sellableFixed) +
+      '" placeholder="可售件数" aria-label="固定可售数量"' +
+      (mode === 'fixed' ? '' : ' hidden') +
+      '>' +
+      '    <input type="text" class="product-proxy-spec__input product-proxy-spec__stock-result" data-sellable-result readonly tabindex="-1" value="' +
+      escapeHtml(sku.sellableStock) +
+      '" aria-label="可售库存结果"' +
+      (mode === 'fixed' ? ' hidden' : '') +
+      '>' +
+      '  </div>' +
+      '  <p class="product-proxy-spec__stock-tip">取现货：可售=现货。百分比：可售=现货×比例，大于 100% 即溢出。具体数量：直接填写可售件数。</p>' +
+      '</div>' +
+      '<div class="product-proxy-spec__field">' +
+      '  <label class="product-proxy-spec__label">预占库存</label>' +
+      '  <input type="text" class="product-proxy-spec__input" data-field="reservedStock" value="' +
+      escapeHtml(sku.reservedStock) +
+      '" readonly tabindex="-1" aria-label="预占库存">' +
+      '</div>'
     );
   }
 
@@ -891,8 +994,10 @@
       var sku = poolMap[id];
       if (!sku) return;
       panel.querySelectorAll('[data-field]').forEach(function (input) {
+        if (input.hidden) return;
         sku[input.getAttribute('data-field')] = input.value;
       });
+      if (formChannel === 'proxy') ensureSkuStockFields(sku);
     });
     formState.skuPool = formState.skuPool.map(function (s) { return poolMap[s.id] || s; });
   }
@@ -1004,6 +1109,29 @@
           readSpecPanelsFromDom(backdrop);
           sku.pointExchange = normalizePointExchange(exchangeSelect.value);
           refreshSpecList(backdrop);
+        });
+      }
+
+      var sellableWrap = panel.querySelector('[data-sellable-mode]');
+      if (sellableWrap) {
+        function syncSellableResult() {
+          ensureSkuStockFields(sku);
+          var resultEl = panel.querySelector('[data-sellable-result]');
+          if (resultEl) resultEl.value = sku.sellableStock;
+        }
+        var modeSelect = panel.querySelector('[data-field="sellableMode"]');
+        if (modeSelect) {
+          modeSelect.addEventListener('change', function () {
+            readSpecPanelsFromDom(backdrop);
+            sku.sellableMode = normalizeSellableMode(modeSelect.value);
+            refreshSpecList(backdrop);
+          });
+        }
+        panel.querySelectorAll('[data-field="spotStock"], [data-field="sellablePercent"], [data-field="sellableFixed"]').forEach(function (input) {
+          input.addEventListener('input', function () {
+            sku[input.getAttribute('data-field')] = input.value;
+            syncSellableResult();
+          });
         });
       }
     });

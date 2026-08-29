@@ -62,7 +62,10 @@
       priceMoney: 0.12,
       linePrice: null,
       sales: 0,
-      status: 'on_shelf'
+      status: 'on_shelf',
+      saleScope: 'region',
+      saleRegions: { '110000': 1 },
+      saleRegionSummary: ['北京市']
     },
     {
       code: 'SPU00101',
@@ -90,7 +93,10 @@
       priceMoney: 10,
       linePrice: null,
       sales: 0,
-      status: 'on_shelf'
+      status: 'on_shelf',
+      saleScope: 'region',
+      saleRegions: { '310000': 1 },
+      saleRegionSummary: ['上海市']
     },
     {
       code: 'SPU00090',
@@ -118,7 +124,10 @@
       priceMoney: 28.9,
       linePrice: null,
       sales: 0,
-      status: 'on_shelf'
+      status: 'on_shelf',
+      saleScope: 'region',
+      saleRegions: { '330000': 1 },
+      saleRegionSummary: ['浙江省']
     },
     {
       code: 'SPU00078',
@@ -132,7 +141,9 @@
       priceMoney: 11,
       linePrice: 15,
       sales: 0,
-      status: 'off_shelf'
+      status: 'off_shelf',
+      saleScope: 'store',
+      saleStores: { 'st-002': 1, xiaoshan: 1 }
     },
     {
       code: 'SPU00085',
@@ -146,7 +157,10 @@
       priceMoney: 0.01,
       linePrice: 5,
       sales: 0,
-      status: 'on_shelf'
+      status: 'on_shelf',
+      saleScope: 'region',
+      saleRegions: { '330000': 1 },
+      saleRegionSummary: ['浙江省']
     },
     {
       code: 'SPU00082',
@@ -160,7 +174,9 @@
       priceMoney: 0.02,
       linePrice: null,
       sales: 0,
-      status: 'on_shelf'
+      status: 'on_shelf',
+      saleScope: 'store',
+      saleStores: { 'st-003': 1, '1': 1 }
     },
     {
       code: 'SPU00067',
@@ -225,6 +241,15 @@
     return '¥' + s;
   }
 
+  var DEMO_SALE_SCOPE_BY_CODE = {
+    SPU00088: { saleScope: 'region', saleRegions: { '330000': 1 }, saleRegionSummary: ['浙江省'] },
+    SPU00085: { saleScope: 'region', saleRegions: { '330000': 1 }, saleRegionSummary: ['浙江省'] },
+    SPU00082: { saleScope: 'store', saleStores: { 'st-003': 1, '1': 1 } },
+    SPU00098: { saleScope: 'region', saleRegions: { '310000': 1 }, saleRegionSummary: ['上海市'] },
+    SPU00102: { saleScope: 'region', saleRegions: { '110000': 1 }, saleRegionSummary: ['北京市'] },
+    SPU00078: { saleScope: 'store', saleStores: { 'st-002': 1, xiaoshan: 1 } }
+  };
+
   function normalizeDeliveryMode(mode) {
     if (mode === 'platform' || mode === '平台配送' || mode === '配送' || mode === 'warehouse' || mode === 'delivery') {
       return 'platform';
@@ -263,6 +288,19 @@
     if (item.saleTimeMode !== 'custom') item.saleTimeMode = 'follow_category';
     if (!item.saleTimeStart) item.saleTimeStart = '08:00';
     if (!item.saleTimeEnd) item.saleTimeEnd = '22:00';
+    if (item.saleScope !== 'all' && item.saleScope !== 'region' && item.saleScope !== 'store') {
+      var demoScope = DEMO_SALE_SCOPE_BY_CODE[item.code];
+      if (demoScope) {
+        item.saleScope = demoScope.saleScope;
+        item.saleRegions = demoScope.saleRegions || {};
+        item.saleRegionSummary = demoScope.saleRegionSummary || [];
+        item.saleStores = demoScope.saleStores || {};
+      } else {
+        item.saleScope = 'all';
+        item.saleRegions = item.saleRegions || {};
+        item.saleStores = item.saleStores || {};
+      }
+    }
     return item;
   }
 

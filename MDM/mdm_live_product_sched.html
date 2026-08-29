@@ -9,7 +9,8 @@
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/mdm-member360-list.css">
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
-    <link rel="stylesheet" href="../css/lf-live.css">
+    <link rel="stylesheet" href="../css/lf-product.css">
+    <link rel="stylesheet" href="../css/lf-live.css?v=20260829-sched-2">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -21,21 +22,39 @@
             <div class="content-tabs"><button class="active">直播排品</button></div>
             <hr class="content-divider">
 
-            <div class="mdm-biz-tip" role="note">直播排品的商品<strong>上架</strong>代表直播间可以售卖该商品，并不会直接展示到直播间，需要直播场次的中控台添加到直播商品用户才可以看到。</div>
-
-            <section class="search-section lf-live-session-picker">
-                <form class="search-form" onsubmit="return false;">
-                    <div class="form-group lf-live-session-picker__field">
-                        <label for="liveSchedSession">选择直播场次</label>
-                        <select id="liveSchedSession"></select>
+            <section class="search-section lf-live-sched-picker-card">
+                <div class="lf-live-sess-dd" id="liveSchedSessionDd">
+                    <div class="lf-live-sess-dd__row">
+                        <label class="lf-live-sess-dd__label" for="liveSchedSessionTrigger">
+                            <svg class="lf-live-sess-dd__cam" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4z"></path>
+                            </svg>
+                            选择直播场次
+                        </label>
+                        <div class="lf-live-sess-dd__field">
+                            <button type="button" class="lf-live-sess-dd__trigger" id="liveSchedSessionTrigger" aria-haspopup="listbox" aria-expanded="false">
+                                <span class="lf-live-sess-dd__value" id="liveSchedSessionLabel">请选择直播场次</span>
+                                <span class="lf-live-sess-dd__chevron" aria-hidden="true"></span>
+                            </button>
+                            <input type="hidden" id="liveSchedSession" value="">
+                            <div class="lf-live-sess-dd__pop" id="liveSchedSessionPop" hidden>
+                                <div class="lf-live-sess-dd__search">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+                                    <input type="search" id="liveSchedSessionSearch" placeholder="搜索直播间名称" autocomplete="off">
+                                </div>
+                                <div class="lf-live-sess-dd__tabs" id="liveSchedSessionTabs" role="tablist"></div>
+                                <div class="lf-live-sess-dd__list" id="liveSchedSessionList" role="listbox"></div>
+                            </div>
+                        </div>
                     </div>
-                </form>
+                </div>
             </section>
 
             <div id="liveSchedEmpty" class="lf-live-empty-tip">选择一个直播场次后，可以管理该场次的直播排品</div>
 
             <div id="liveSchedPanel" hidden>
                 <div id="liveSchedMeta" class="lf-live-session-meta"></div>
+                <div class="mdm-biz-tip" role="note">直播排品的商品<strong>上架</strong>代表直播间可以售卖该商品，并不会直接展示到直播间。需要直播场次的中控台添加直播商品用户可以看到。</div>
                 <div class="lf-live-toolbar">
                     <button type="button" class="erp-btn erp-btn--primary" id="liveSchedAddBtn">+ 添加商品</button>
                 </div>
@@ -66,9 +85,12 @@
             </div>
         </main>
     </div>
+
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
+    <script src="../js/mdm-product-mall-library.js"></script>
+    <script src="../js/mdm-product-proxy-library-drawer.js"></script>
     <script src="../js/mdm-live-demo-data.js"></script>
-    <script src="../js/mdm-live-product-sched.js"></script>
+    <script src="../js/mdm-live-product-sched.js?v=20260829-sched-2"></script>
 </body>
 </html>

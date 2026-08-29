@@ -225,22 +225,245 @@
   background: #fff;
 }
 
-/* 直播排品列表 */
-.lf-live-sched-page .search-section.lf-live-session-picker {
+/* 直播排品 — 场次自定义下拉 */
+.lf-live-sched-page .search-section.lf-live-sched-picker-card {
+  position: relative;
   display: block;
   margin-bottom: 12px;
+  padding: 16px 20px;
+  overflow: visible;
+  z-index: 8;
 }
 
-.lf-live-sched-page .search-form > .form-group.lf-live-session-picker__field {
-  flex: 1 1 420px;
-  max-width: 640px;
+.lf-live-sess-dd {
+  position: relative;
 }
 
-.lf-live-sched-page .lf-live-session-picker__field select {
-  flex: 1;
+.lf-live-sess-dd__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.lf-live-sess-dd__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #666;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.lf-live-sess-dd__cam {
+  width: 16px;
+  height: 16px;
+  fill: #ff7019;
+  flex-shrink: 0;
+}
+
+.lf-live-sess-dd__field {
+  position: relative;
+  flex: 0 1 420px;
+  min-width: 280px;
+}
+
+.lf-live-sess-dd__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
   width: 100%;
-  min-width: 240px;
+  min-width: 360px;
+  max-width: 100%;
   height: 36px;
+  padding: 0 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  background: #fff;
+  color: #333;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.lf-live-sess-dd__trigger:hover {
+  border-color: #ff7019;
+}
+
+.lf-live-sess-dd.is-open .lf-live-sess-dd__trigger {
+  border-color: #ff7019;
+  box-shadow: 0 0 0 2px rgba(255, 112, 25, 0.12);
+}
+
+.lf-live-sess-dd__value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  flex: 1;
+}
+
+.lf-live-sess-dd__value.is-placeholder {
+  color: #bfbfbf;
+}
+
+.lf-live-sess-dd__chevron {
+  width: 0;
+  height: 0;
+  margin-left: 8px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #999;
+  flex-shrink: 0;
+}
+
+.lf-live-sess-dd.is-open .lf-live-sess-dd__chevron {
+  transform: rotate(180deg);
+  border-top-color: #ff7019;
+}
+
+.lf-live-sess-dd__pop {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  width: 420px;
+  max-width: calc(100vw - 48px);
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 30;
+  padding: 10px 12px 6px;
+  box-sizing: border-box;
+}
+
+.lf-live-sess-dd__pop::before {
+  content: '';
+  position: absolute;
+  left: 28px;
+  top: -7px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-left: 1px solid #eee;
+  border-top: 1px solid #eee;
+  transform: rotate(45deg);
+}
+
+.lf-live-sess-dd__search {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.lf-live-sess-dd__search svg {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  fill: #bbb;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.lf-live-sess-dd__search input {
+  width: 100%;
+  height: 34px;
+  padding: 0 10px 0 30px;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  font-size: 13px;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.lf-live-sess-dd__search input:focus {
+  border-color: #ff7019;
+}
+
+.lf-live-sess-dd__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.lf-live-sess-dd__tab {
+  height: 26px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #333;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  line-height: 26px;
+}
+
+.lf-live-sess-dd__tab.is-active {
+  background: #ff7019;
+  color: #fff;
+}
+
+.lf-live-sess-dd__list {
+  max-height: 280px;
+  overflow: auto;
+}
+
+.lf-live-sess-dd__item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 4px;
+  border-top: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+
+.lf-live-sess-dd__item:first-child {
+  border-top: none;
+}
+
+.lf-live-sess-dd__item:hover,
+.lf-live-sess-dd__item.is-current {
+  background: #fff7f0;
+}
+
+.lf-live-sess-dd__item-main {
+  min-width: 0;
+}
+
+.lf-live-sess-dd__item-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.4;
+}
+
+.lf-live-sess-dd__item-time {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #999;
+}
+
+.lf-live-sess-dd__empty {
+  padding: 24px 8px;
+  text-align: center;
+  color: #999;
+  font-size: 13px;
+}
+
+.lf-live-sched-page .table td.lf-live-code-cell {
+  white-space: nowrap;
+}
+
+.lf-live-code-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .lf-live-session-meta {
@@ -332,8 +555,20 @@
   cursor: not-allowed;
 }
 
+.lf-live-sess-dd__item .lf-live-badge {
+  border-radius: 10px;
+  padding: 1px 8px;
+  flex-shrink: 0;
+}
+
 .lf-live-sched-page .table td.action-links {
   text-align: left;
+  white-space: nowrap;
+}
+
+.lf-live-sched-page .table td.action-links .lf-live-sort-btn + a,
+.lf-live-sched-page .table td.action-links a + a {
+  margin-left: 8px;
 }
 
 .lf-live-sched-page .table td.action-links a[href]:not([data-act]) {
@@ -2501,6 +2736,31 @@
   justify-content: space-between;
 }
 
+.lf-live-edit-page .pts-rule-card__title {
+  justify-content: flex-start;
+}
+
+.lf-live-edit-page .pts-rule-card__title::before {
+  content: '';
+  width: 3px;
+  height: 14px;
+  margin-right: 2px;
+  background: #ff7019;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.lf-live-edit-page .product-proxy-spec__exchange-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lf-live-edit-page .product-proxy-spec__exchange-select {
+  flex: 1;
+  min-width: 0;
+}
+
 .lf-live-card .product-proxy-sale-scope__region,
 .lf-live-card .product-proxy-sale-scope__store {
   margin-top: 0;
@@ -2726,13 +2986,151 @@
   display: block;
 }
 
+.lf-live-edit-page .lf-live-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 24px;
+}
+
+.lf-live-edit-page .lf-live-edit-grid__full {
+  grid-column: 1 / -1;
+}
+
+.lf-live-edit-page .lf-live-edit-sales-input {
+  margin-top: 8px;
+  max-width: 240px;
+}
+
+.lf-live-reset-spec {
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: #ff7019;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.lf-live-reset-spec:hover {
+  text-decoration: underline;
+}
+
+.lf-live-sku-pick {
+  margin-bottom: 16px;
+}
+
+.lf-live-sku-pick__label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #333;
+  font-weight: 500;
+}
+
+.lf-live-sku-pick__box {
+  width: 100%;
+  min-width: 0;
+}
+
+.lf-live-sku-pick__box .product-proxy-form__sku-trigger {
+  width: 100%;
+  min-width: 0;
+  justify-content: space-between;
+}
+
+.lf-live-sku-pick__box .product-proxy-form__sku-dropdown {
+  width: 100%;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.lf-live-edit-page .product-proxy-spec__input[readonly] {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.lf-live-edit-page .product-proxy-spec__label.is-req {
+  color: #ff4d4f;
+}
+
+.lf-live-edit-page .product-proxy-spec__btn-off {
+  color: #ff7019;
+}
+
+.lf-live-edit-page .product-proxy-spec__btn-del {
+  border: none;
+  background: none;
+  color: #ff4d4f;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+  font-family: inherit;
+}
+
+.lf-live-edit-page .product-proxy-spec__btn-del:hover {
+  text-decoration: underline;
+}
+
+.lf-live-edit-page .product-proxy-form__img-item.is-cover::after {
+  content: '封面';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding: 1px 6px;
+  background: #ff7019;
+  color: #fff;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.lf-live-edit-page .product-proxy-form__img-item.is-video::after {
+  content: '视频';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding: 1px 6px;
+  background: #333;
+  color: #fff;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.lf-live-edit-footer {
+  justify-content: space-between !important;
+}
+
+.lf-live-edit-footer__tip {
+  margin: 0;
+  font-size: 13px;
+  color: #999;
+}
+
+.lf-live-edit-footer__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lf-live-edit-footer__actions .erp-btn--primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 960px) {
+  .lf-live-edit-page .lf-live-edit-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .lf-live-edit-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 4px;
+  margin-bottom: 16px;
 }
 
 .lf-live-edit-header__left {
