@@ -1,10 +1,79 @@
 {
-  "latestSha": "fae3a2d1b60b28cdae2c5af5090ed5b6f1180ac0",
-  "total": 325,
+  "latestSha": "51ca6446bc6121f17f22d7b0517ec24a5e4d0d80",
+  "total": 326,
   "days": [
     {
       "date": "2026-08-31",
       "items": [
+        {
+          "sha": "51ca644",
+          "type": "feat",
+          "text": "订单详情补支付流水并完善截单策略状态规则",
+          "author": "sisi",
+          "time": "16:06",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "快递截单"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/newcomer-zone.html",
+              "module": "",
+              "title": "新人专区 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-order-confirm.html",
+              "module": "",
+              "title": "确认兑换 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "支付方式下新增支付流水；自提详情补配送方式和支付流水，金额明细独立成卡片放在订单编号上方"
+            },
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "text": "默认通用策略仅可修改；启用中不可删除，修改后自动停用需手动启用"
+            }
+          ]
+        },
         {
           "sha": "fae3a2d",
           "type": "feat",

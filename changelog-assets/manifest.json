@@ -834,6 +834,60 @@
     "status": "diff",
     "date": "2026-08-18"
   },
+  "51ca644|MDM/mdm_order_express_cutoff.html": {
+    "before": "changelog-assets/51ca644/MDM__mdm_order_express_cutoff.html.before.jpg",
+    "after": "changelog-assets/51ca644/MDM__mdm_order_express_cutoff.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-08-31"
+  },
+  "51ca644|user-app/h5/checkout.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-31"
+  },
+  "51ca644|user-app/h5/live-room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-31"
+  },
+  "51ca644|user-app/h5/newcomer-zone.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-31"
+  },
+  "51ca644|user-app/h5/order-confirm.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-31"
+  },
+  "51ca644|user-app/h5/order-detail-pickup.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-31"
+  },
+  "51ca644|user-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-31"
+  },
+  "51ca644|user-app/h5/order-refund-detail.html": {
+    "before": "changelog-assets/51ca644/user-app__h5__order-refund-detail.html.before.jpg",
+    "after": "changelog-assets/51ca644/user-app__h5__order-refund-detail.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-08-31"
+  },
+  "51ca644|user-app/h5/orders.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-31"
+  },
+  "51ca644|user-app/h5/points-order-confirm.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-31"
+  },
   "530ca8d|MDM/mdm_order_proxy.html": {
     "regions": 0,
     "status": "diff",
