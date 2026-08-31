@@ -791,8 +791,9 @@
             '        </div>' +
             '        <div class="cutoff-form-tip">同一场景下指定类目优先于「全部类目」。未单独配置的类目走该场景的全部类目策略。</div>' +
             '      </div></div>' +
-            '    <div class="sf-form-item sf-form-item--wide"><div class="sf-form-item__label">用户端说明</div>' +
-            '      <div class="sf-form-item__control"><textarea class="sf-input" id="cutoffFormDesc" placeholder="选填，截单后展示给用户（如「商家已截单备货，如需退款请申请售后」）"></textarea></div></div>' +
+            '    <div class="sf-form-item sf-form-item--wide"><div class="sf-form-item__label">备注</div>' +
+            '      <div class="sf-form-item__control"><textarea class="sf-input" id="cutoffFormDesc" placeholder="选填，对该策略的说明解释"></textarea>' +
+            '      <div class="cutoff-form-tip">非必填，仅后台查看，不会展示给用户。</div></div></div>' +
             '  </div></div>' +
             '</section>' +
             '<section class="sf-section">' +
@@ -800,7 +801,7 @@
             '  <div class="sf-section__body">' +
             '    <ul class="cutoff-after-list">' +
             '      <li>用户 APP「取消订单」隐藏</li>' +
-            '      <li>「申请退款」截断免审直退，改为走发货后售后审核流</li>' +
+            '      <li>「申请退款」截断免审直退，改为售后审核流</li>' +
             '    </ul>' +
             '    <div class="cutoff-form-tip">各策略统一，相当于把发货后的售后方式提前到截单时刻。供应商已填写快递单的订单按发货后规则，不受本页影响。</div>' +
             '  </div>' +
@@ -847,7 +848,7 @@
             );
             if (sceneTip) {
                 sceneTip.textContent =
-                    '通用策略覆盖全部类目、所有场景，仅可修改名称、截单时间和说明，不支持停用或删除。';
+                    '通用策略覆盖全部类目、所有场景，仅可修改名称、截单时间和备注，不支持停用或删除。';
             }
         } else if (sceneTip) {
             sceneTip.textContent = isCreate
