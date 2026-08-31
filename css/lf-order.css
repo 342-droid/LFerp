@@ -653,6 +653,11 @@ body[data-order-page="proxy"] .order-live-table__check-col .table-checkbox {
   cursor: help;
 }
 
+.order-live-table .order-pay-no {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
 .order-live-table__link {
   color: var(--color-primary, #ff7019);
   text-decoration: none;
