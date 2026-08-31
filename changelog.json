@@ -1,10 +1,49 @@
 {
-  "latestSha": "7fba2a92eed792bf2242572f2d49ef3164b85197",
-  "total": 324,
+  "latestSha": "fae3a2d1b60b28cdae2c5af5090ed5b6f1180ac0",
+  "total": 325,
   "days": [
     {
       "date": "2026-08-31",
       "items": [
+        {
+          "sha": "fae3a2d",
+          "type": "feat",
+          "text": "零售和代采订单列表增加支付流水",
+          "author": "sisi",
+          "time": "15:02",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "module": "冷丰WMS",
+              "title": "排队记录"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "下单门店右侧新增支付流水列；展开筛选可按流水号查询；导出字段同步增加支付流水"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "下单门店右侧新增支付流水列；展开筛选可按流水号查询；导出字段同步增加支付流水"
+            }
+          ]
+        },
         {
           "sha": "7fba2a9",
           "type": "feat",

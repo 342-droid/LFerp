@@ -2887,6 +2887,30 @@
     "status": "diff",
     "date": "2026-08-26"
   },
+  "fae3a2d|MDM/mdm_order_live.html": {
+    "before": "changelog-assets/fae3a2d/MDM__mdm_order_live.html.before.jpg",
+    "after": "changelog-assets/fae3a2d/MDM__mdm_order_live.html.after.jpg",
+    "regions": 35,
+    "status": "diff",
+    "date": "2026-08-31"
+  },
+  "fae3a2d|MDM/mdm_order_proxy.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-31"
+  },
+  "fae3a2d|MDM/mdm_order_queue.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-08-31"
+  },
+  "fae3a2d|MDM/mdm_order_retail.html": {
+    "before": "changelog-assets/fae3a2d/MDM__mdm_order_retail.html.before.jpg",
+    "after": "changelog-assets/fae3a2d/MDM__mdm_order_retail.html.after.jpg",
+    "regions": 35,
+    "status": "diff",
+    "date": "2026-08-31"
+  },
   "fdf52b6|MDM/mdm_archive_carrier.html": {
     "regions": 0,
     "status": "diff",
