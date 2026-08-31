@@ -274,7 +274,7 @@
     syncOrderStatusMulti();
   }
 
-  /** 零售/代采共用：支付渠道、下单门店；零售另支持履约方式 */
+  /** 零售/代采共用：支付渠道、下单门店、支付流水；零售另支持履约方式 */
   function applyOrderListFilters() {
     var page = document.body ? document.body.getAttribute('data-order-page') : '';
     var isProxy = page === 'proxy';
@@ -289,6 +289,8 @@
     var scene = isRetail && sceneSel ? (sceneSel.value || '').trim() : '';
     var storeSel = document.getElementById('qStore');
     var store = storeSel ? (storeSel.value || '').trim() : '';
+    var payNoInput = document.getElementById('qPayNo');
+    var payNo = payNoInput ? (payNoInput.value || '').trim() : '';
     var statusLabels = getSelectedOrderStatusLabels();
 
     var tbody = document.querySelector('.order-live-table tbody');
@@ -315,6 +317,15 @@
         var rowStore = (row.getAttribute('data-store') || '').trim();
         show = rowStore === store;
       }
+      if (show && payNo) {
+        var needle = payNo.toLowerCase();
+        var rowPayNo = (row.getAttribute('data-pay-no') || '').trim().toLowerCase();
+        var payNoCell = row.querySelector('.order-pay-no');
+        var cellPayNo = payNoCell
+          ? payNoCell.textContent.replace(/\s+/g, '').toLowerCase()
+          : '';
+        show = rowPayNo.indexOf(needle) >= 0 || cellPayNo.indexOf(needle) >= 0;
+      }
       /* 发起退货/退款：只看售后状态，不改订单状态列；与履约态同时勾选时为或关系 */
       if (show && statusLabels.length) {
         var orderStatuses = statusLabels.filter(function (label) {
@@ -337,7 +348,14 @@
       if (show) visible += 1;
     });
     var totalEl = document.querySelector('.order-pagination__total');
-    var hasFilter = !!(payChannel || (isRetail && delivery) || scene || store || statusLabels.length);
+    var hasFilter = !!(
+      payChannel ||
+      (isRetail && delivery) ||
+      scene ||
+      store ||
+      payNo ||
+      statusLabels.length
+    );
     if (totalEl && hasFilter) {
       totalEl.textContent = '共 ' + visible + ' 条';
     } else if (totalEl && !hasFilter) {
@@ -818,6 +836,7 @@
     { key: 'deliveryMode', label: '履约方式' },
     { key: 'payChannel', label: '支付渠道' },
     { key: 'store', label: '下单门店' },
+    { key: 'payNo', label: '支付流水' },
     { key: 'orderStatus', label: '订单状态' },
     { key: 'address', label: '收货地址', extra: true },
     { key: 'aftersaleStatus', label: '售后状态', extra: true }
@@ -839,6 +858,7 @@
     { key: 'payChannel', label: '支付渠道' },
     { key: 'deliveryMode', label: '履约方式' },
     { key: 'store', label: '下单门店' },
+    { key: 'payNo', label: '支付流水' },
     { key: 'orderStatus', label: '订单状态' },
     { key: 'address', label: '收货地址', extra: true },
     { key: 'aftersaleStatus', label: '售后状态', extra: true }
@@ -935,13 +955,25 @@
       var raw = localStorage.getItem(spec.storageKey);
       var list = raw ? JSON.parse(raw) : null;
       if (!Array.isArray(list) || !list.length) return defaults;
-      return spec.fields
+      var selected = spec.fields
         .map(function (f) {
           return f.key;
         })
         .filter(function (key) {
           return list.indexOf(key) >= 0;
         });
+      var seenKey = spec.storageKey + ':payNo';
+      var seenPayNo = false;
+      try {
+        seenPayNo = !!localStorage.getItem(seenKey);
+      } catch (eSeen) {
+        seenPayNo = true;
+      }
+      if (!seenPayNo && selected.indexOf('payNo') < 0 && defaults.indexOf('payNo') >= 0) {
+        var storeIdx = selected.indexOf('store');
+        selected.splice(storeIdx >= 0 ? storeIdx + 1 : selected.length, 0, 'payNo');
+      }
+      return selected;
     } catch (e) {
       return defaults;
     }
@@ -950,6 +982,7 @@
   function writeOrderExportFields(spec, keys) {
     try {
       localStorage.setItem(spec.storageKey, JSON.stringify(keys || []));
+      localStorage.setItem(spec.storageKey + ':payNo', '1');
     } catch (e) {
       /* ignore */
     }
