@@ -694,6 +694,18 @@
       if (methodNames) methodEl.textContent = methodNames;
     }
 
+    var payNoEl = document.getElementById('orderPayNoValue');
+    if (payNoEl) {
+      var payNo = (order && order.payNo) || '';
+      if (!payNo && window.UaOrdersStore && typeof window.UaOrdersStore.demoPayNo === 'function') {
+        payNo = window.UaOrdersStore.demoPayNo(
+          (order && order.orderNo) || (document.getElementById('orderNoText') || {}).textContent,
+          methodNames || (order && order.payMethod)
+        );
+      }
+      if (payNo) payNoEl.textContent = payNo;
+    }
+
     if (!legsEl) return;
     if (legs.length >= 2) {
       legsEl.hidden = true;
@@ -1492,6 +1504,8 @@
 
     var payMethodRow = document.getElementById('orderPayMethodRow');
     if (payMethodRow) payMethodRow.hidden = !config.showPayMethod;
+    var payNoRow = document.getElementById('orderPayNoRow');
+    if (payNoRow) payNoRow.hidden = !config.showPayMethod;
 
     renderItemActions(canShowItemAftersale(status) ? config.itemActions : 'none');
     renderItemAftersaleBars();

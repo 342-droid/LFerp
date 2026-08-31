@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
   <link rel="stylesheet" href="../css/user-app-orders.css">
-  <link rel="stylesheet" href="../css/user-app-order-detail.css?v=20260725-member-verify">
+  <link rel="stylesheet" href="../css/user-app-order-detail.css?v=20260831-pickup-price">
   <link rel="stylesheet" href="../css/user-app-queue.css">
 </head>
 <body class="user-app-body">
@@ -134,6 +134,15 @@
           </div>
         </article>
 
+        <section class="ua-od-card ua-od-price">
+          <div class="ua-od-price__row"><span>商品总价</span><span>¥137.80</span></div>
+          <div class="ua-od-price__row ua-od-price__row--discount"><span>订单优惠</span><span>-¥10</span></div>
+          <div class="ua-od-price__row ua-od-price__row--total">
+            <span>实付金额</span>
+            <span class="ua-od-price__paid">¥127.80</span>
+          </div>
+        </section>
+
         <section class="ua-od-card ua-od-summary">
           <div class="ua-od-summary-row">
             <span class="ua-od-summary-label">订单编号</span>
@@ -141,6 +150,10 @@
               <span id="pickupOrderNoText">1089765423471123</span>
               <a href="#" class="ua-od-copy">复制</a>
             </span>
+          </div>
+          <div class="ua-od-summary-row">
+            <span class="ua-od-summary-label">配送方式</span>
+            <span class="ua-od-summary-value" id="pickupDeliveryModeValue">门店提货</span>
           </div>
           <div class="ua-od-summary-row">
             <span class="ua-od-summary-label">下单时间</span>
@@ -151,16 +164,12 @@
             <span class="ua-od-summary-value">2026.03.05 15:56:10</span>
           </div>
           <div class="ua-od-summary-row">
-            <span class="ua-od-summary-label">商品总价</span>
-            <span class="ua-od-summary-value">¥137.80</span>
+            <span class="ua-od-summary-label">支付方式</span>
+            <span class="ua-od-summary-value" id="pickupPayMethodValue">微信支付</span>
           </div>
           <div class="ua-od-summary-row">
-            <span class="ua-od-summary-label">订单优惠</span>
-            <span class="ua-od-summary-value">-¥10</span>
-          </div>
-          <div class="ua-od-summary-row ua-od-summary-row--total">
-            <span class="ua-od-summary-label">实付金额</span>
-            <span class="ua-od-summary-value">¥127.80</span>
+            <span class="ua-od-summary-label">支付流水</span>
+            <span class="ua-od-summary-value" id="pickupPayNoValue">4200001089765423</span>
           </div>
         </section>
       </div>
@@ -170,7 +179,7 @@
   <script src="../js/user-app-auth.js"></script>
   <script src="../js/user-app-queue.js"></script>
   <script src="../js/user-app-order-refund.js?v=20260809-refund-amount-fix"></script>
-  <script src="../js/user-app-order-detail-pickup.js?v=20260730-qty-pool"></script>
+  <script src="../js/user-app-order-detail-pickup.js?v=20260831-pay-no"></script>
 
 </body>
 </html>
