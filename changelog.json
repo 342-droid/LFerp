@@ -1,7 +1,136 @@
 {
-  "latestSha": "1b0db57496869ff1e3f39a43989d804ed5e2242c",
-  "total": 323,
+  "latestSha": "7fba2a92eed792bf2242572f2d49ef3164b85197",
+  "total": 324,
   "days": [
+    {
+      "date": "2026-08-31",
+      "items": [
+        {
+          "sha": "7fba2a9",
+          "type": "feat",
+          "text": "零售收款明细补支付流水并新增选品库库存统计",
+          "author": "sisi",
+          "time": "14:34",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "module": "冷丰WMS",
+              "title": "排队记录"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "MDM/mdm_product_audit.html",
+              "module": "冷丰WMS",
+              "title": "商品详情"
+            },
+            {
+              "file": "MDM/mdm_product_brand.html",
+              "module": "冷丰WMS",
+              "title": "商品品牌"
+            },
+            {
+              "file": "MDM/mdm_product_category.html",
+              "module": "冷丰WMS",
+              "title": "商品类目"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_mall_category.html",
+              "module": "冷丰WMS",
+              "title": "商城类目"
+            },
+            {
+              "file": "MDM/mdm_product_mall_tag.html",
+              "module": "冷丰WMS",
+              "title": "商城标签"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_category.html",
+              "module": "冷丰WMS",
+              "title": "类目管理"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_tag.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "MDM/mdm_product_stock.html",
+              "module": "冷丰WMS",
+              "title": "库存统计"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "已支付订单详情收款明细按单据还原，通道为 APP收银台，并在通道流水旁增加支付流水"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "收款明细同步增加支付流水列"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "text": "收款明细同步增加支付流水列"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "售卖规格配置只展示共享现货库存和可售库存"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "售卖规格配置只展示共享现货库存和可售库存"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "text": "规格配置只展示共享现货和可售，本场配额仍保留"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "text": "侧栏增加库存统计入口"
+            },
+            {
+              "file": "MDM/mdm_product_stock.html",
+              "text": "新增现货、可售、总预占、现货预占、预售预占总表，支持分仓明细和按配送仓导出"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-29",
       "items": [
@@ -7860,6 +7989,11 @@
               "title": "选品库"
             },
             {
+              "file": "MDM/mdm_product_stock.html",
+              "module": "冷丰WMS",
+              "title": "库存统计"
+            },
+            {
               "file": "SCM/basic_settings_contract_config.html",
               "module": "冷丰WMS",
               "title": "接入配置"
@@ -11054,6 +11188,11 @@
               "title": "选品库"
             },
             {
+              "file": "MDM/mdm_product_stock.html",
+              "module": "冷丰WMS",
+              "title": "库存统计"
+            },
+            {
               "file": "MDM/mdm_super_admin_accounts.html",
               "module": "冷丰WMS",
               "title": "商户主体建档"
@@ -11531,6 +11670,11 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
+            },
+            {
+              "file": "MDM/mdm_product_stock.html",
+              "module": "冷丰WMS",
+              "title": "库存统计"
             },
             {
               "file": "MDM/mdm_super_admin_accounts.html",
@@ -17233,6 +17377,11 @@
               "title": "选品库"
             },
             {
+              "file": "MDM/mdm_product_stock.html",
+              "module": "冷丰WMS",
+              "title": "库存统计"
+            },
+            {
               "file": "SCM/basic_settings_order.html",
               "module": "冷丰WMS",
               "title": "门店配置"
@@ -17419,6 +17568,11 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
+            },
+            {
+              "file": "MDM/mdm_product_stock.html",
+              "module": "冷丰WMS",
+              "title": "库存统计"
             }
           ],
           "global": true,
@@ -17596,6 +17750,11 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
+            },
+            {
+              "file": "MDM/mdm_product_stock.html",
+              "module": "冷丰WMS",
+              "title": "库存统计"
             },
             {
               "file": "SCM/basic_settings_order.html",
@@ -18065,6 +18224,11 @@
               "title": "选品库"
             },
             {
+              "file": "MDM/mdm_product_stock.html",
+              "module": "冷丰WMS",
+              "title": "库存统计"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -18323,6 +18487,11 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
+            },
+            {
+              "file": "MDM/mdm_product_stock.html",
+              "module": "冷丰WMS",
+              "title": "库存统计"
             },
             {
               "file": "SCM/basic_settings_order.html",
