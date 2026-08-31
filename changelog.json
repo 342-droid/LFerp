@@ -1,10 +1,30 @@
 {
-  "latestSha": "51ca6446bc6121f17f22d7b0517ec24a5e4d0d80",
-  "total": 326,
+  "latestSha": "8042dac310c49d4db989a1dbda5b1fba2db7c7dd",
+  "total": 327,
   "days": [
     {
       "date": "2026-08-31",
       "items": [
+        {
+          "sha": "8042dac",
+          "type": "style",
+          "text": "快递截单策略说明改为备注并调整售后文案",
+          "author": "sisi",
+          "time": "16:32",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "快递截单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "text": "「用户端说明」改为选填备注，仅后台查看；截单后申请退款文案改为走售后审核流"
+            }
+          ]
+        },
         {
           "sha": "51ca644",
           "type": "feat",

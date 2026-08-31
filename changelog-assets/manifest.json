@@ -1669,6 +1669,13 @@
     "status": "added",
     "date": "2026-08-31"
   },
+  "8042dac|MDM/mdm_order_express_cutoff.html": {
+    "before": "changelog-assets/8042dac/MDM__mdm_order_express_cutoff.html.before.jpg",
+    "after": "changelog-assets/8042dac/MDM__mdm_order_express_cutoff.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-08-31"
+  },
   "8a1b72b|MDM/mdm_audit_store_registration.html": {
     "regions": 0,
     "status": "diff",
