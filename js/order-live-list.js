@@ -274,12 +274,13 @@
     syncOrderStatusMulti();
   }
 
-  /** 零售/代采共用：支付渠道、下单门店、支付流水；零售另支持履约方式 */
+  /** 零售/代采/直播：支付渠道、支付流水；零售/代采另支持下单门店，零售另支持履约方式 */
   function applyOrderListFilters() {
     var page = document.body ? document.body.getAttribute('data-order-page') : '';
     var isProxy = page === 'proxy';
     var isRetail = page === 'retail';
-    if (!isProxy && !isRetail) return;
+    var isLive = page === 'live';
+    if (!isProxy && !isRetail && !isLive) return;
 
     var paySel = document.getElementById('qPayChannel');
     var payChannel = paySel ? (paySel.value || '').trim() : '';
@@ -354,7 +355,7 @@
       scene ||
       store ||
       payNo ||
-      statusLabels.length
+      (!isLive && statusLabels.length)
     );
     if (totalEl && hasFilter) {
       totalEl.textContent = '共 ' + visible + ' 条';

@@ -63,6 +63,7 @@
         outcome: 'failed',
         status: '已关闭',
         submitTime: '2026-06-05 20:47',
+        payTime: '2026-06-05 20:47',
         finishTime: '2026-06-05 20:48'
       },
       goods: [{
@@ -87,7 +88,30 @@
         merchant: '¥0.00',
         refund: '¥0.01'
       },
-      paymentCount: 1,
+      paymentCount: 2,
+      listPayNo: '4200009201598341',
+      payments: [
+        {
+          flowNo: 'RF-83410119102',
+          direction: '退款',
+          channel: 'APP收银台',
+          status: '成功',
+          amount: '¥0.01',
+          channelNo: '',
+          payNo: '',
+          payTime: '2026-06-05 20:48'
+        },
+        {
+          flowNo: 'PAY-8341563657',
+          direction: '收款',
+          channel: 'APP收银台',
+          status: '成功',
+          amount: '¥0.01',
+          channelNo: '53209201598341',
+          payNo: '4200009201598341',
+          payTime: '2026-06-05 20:47'
+        }
+      ],
       /* 售后明细：一条售后单一行；状态与售后单一致 */
       aftersales: [{
         id: 'AS-8341-1',
@@ -129,8 +153,9 @@
       progress: {
         completedSteps: 1,
         outcome: null,
-        status: '已创建',
-        submitTime: '2026-06-05 20:46'
+        status: '待发货',
+        submitTime: '2026-06-05 20:46',
+        payTime: '2026-06-05 20:46'
       },
       goods: [{
         id: 'g1',
@@ -907,6 +932,19 @@
         refund: cfg.refundAmount || '¥0.00'
       },
       paymentCount: 1,
+      listPayNo: cfg.payNo || '',
+      payments: [
+        {
+          flowNo: 'PAY-' + String(cfg.id || '').replace(/\D/g, '').slice(-12) + '01',
+          direction: '收款',
+          channel: 'APP收银台',
+          status: '成功',
+          amount: subtotal,
+          channelNo: '5320' + String(cfg.id || '').replace(/\D/g, '').slice(-10),
+          payNo: cfg.payNo || '',
+          payTime: cfg.submitTime
+        }
+      ],
       aftersales: cfg.aftersales || [],
       customer: {
         nickname: cfg.nickname || '演示用户',
@@ -959,6 +997,7 @@
       nickname: '林小满',
       phone: '13700001101',
       payChannel: '微信',
+      payNo: '4200009201599101',
       aftersaleTag: '退款中',
       aftersales: [{
         id: 'AS-9101-1',
@@ -982,6 +1021,7 @@
       nickname: '周可欣',
       phone: '13700001102',
       payChannel: '支付宝',
+      payNo: '2026083101599102',
       aftersaleTag: '退款中',
       aftersales: [{
         id: 'AS-9102-1',
@@ -1005,6 +1045,7 @@
       nickname: '韩冬梅',
       phone: '13700001103',
       payChannel: '微信',
+      payNo: '4200009201599103',
       aftersaleTag: '退款中',
       aftersales: [{
         id: 'AS-9103-1',
@@ -1028,6 +1069,7 @@
       nickname: '陈晓东',
       phone: '13700001104',
       payChannel: '支付宝',
+      payNo: '2026083101599104',
       aftersaleTag: '退款中',
       aftersales: [{
         id: 'AS-9104-1',
@@ -1051,6 +1093,7 @@
       nickname: '顾清清',
       phone: '13700001105',
       payChannel: '微信',
+      payNo: '4200009201599105',
       aftersaleTag: '补发中',
       aftersales: [{
         id: 'AS-9105-1',
@@ -1071,6 +1114,7 @@
       nickname: '马文博',
       phone: '13700001106',
       payChannel: '支付宝',
+      payNo: '2026083101599106',
       aftersales: []
     },
     {
@@ -1086,6 +1130,7 @@
       nickname: '许念慈',
       phone: '13700001107',
       payChannel: '微信',
+      payNo: '4200009201599107',
       aftersaleTag: '部分退款',
       refundAmount: '¥19.90',
       aftersales: [{
@@ -1110,6 +1155,7 @@
       nickname: '沈若兰',
       phone: '13700001108',
       payChannel: '支付宝',
+      payNo: '2026083101599108',
       aftersales: [{
         id: 'AS-9108-1',
         productName: '甜玉米 2根',
@@ -2521,9 +2567,29 @@
     return Number(String(value == null ? '' : value).replace(/[¥,\s]/g, '')) || 0;
   }
 
+  function readListPayNo(row, detail) {
+    if (detail && detail.listPayNo) return String(detail.listPayNo).trim();
+    if (row) {
+      var attr = (row.getAttribute('data-pay-no') || '').trim();
+      if (attr && attr !== '-') return attr;
+      var cell = row.querySelector('.order-pay-no');
+      if (cell) {
+        var text = cell.textContent.replace(/\s+/g, '');
+        if (text && text !== '-') return text;
+      }
+    }
+    return '';
+  }
+
   function isRetailUnpaid(detail) {
     var st = (detail && detail.progress && detail.progress.status) || '';
-    return st === '已创建' || st === '待支付';
+    /* 仅待支付为空；已创建但已有实付/流水按已支付补收款明细 */
+    if (st === '待支付') return true;
+    if (st === '已创建') {
+      var paid = parseYuanAmount(detail.amounts && detail.amounts.paid);
+      return paid <= 0 && !readListPayNo(null, detail);
+    }
+    return false;
   }
 
   function payTagClass(kind, text) {
@@ -2569,20 +2635,28 @@
   }
 
   function buildRetailPayments(detail) {
+    var listPayNo = readListPayNo(null, detail);
     if (Array.isArray(detail.payments) && detail.payments.length) {
       return detail.payments.map(function (p) {
-        return normalizePaymentRow(p, true);
+        var row = normalizePaymentRow(p, true);
+        if (row.direction === '收款' && row.status === '成功' && !row.payNo && listPayNo) {
+          row.payNo = listPayNo;
+        }
+        return row;
       });
     }
     if (isRetailUnpaid(detail)) return [];
     var paid = parseYuanAmount(detail.amounts && detail.amounts.paid);
-    var closed = (detail.progress && detail.progress.status) === '已关闭';
-    if (paid <= 0 && closed && !(detail.aftersales && detail.aftersales.length)) return [];
+    var st = (detail.progress && detail.progress.status) || '';
+    var closed = st === '已关闭' || st === '交易失败';
     var payTime =
       (detail.progress && (detail.progress.payTime || detail.progress.submitTime)) || '-';
     var seed = String(detail.displayId || detail.id || '352630').replace(/\D/g, '').slice(-12);
+    if (!seed) seed = '352630563657';
+    var receiptPayNo = listPayNo || '42' + seed + '01';
     var list = [];
-    if (paid > 0 || !closed) {
+    /* 支付成功后收款明细必有一条成功收款，并带支付流水 */
+    if (paid > 0 || listPayNo || !closed) {
       list.push({
         flowNo: 'PAY-' + seed + '563657',
         direction: '收款',
@@ -2590,7 +2664,7 @@
         status: '成功',
         amount: formatMoneyYuan(paid || 0),
         channelNo: '5320' + seed.slice(-10),
-        payNo: '42' + seed + '01',
+        payNo: receiptPayNo,
         payTime: payTime
       });
     }
@@ -3407,6 +3481,7 @@
         refund: '¥0.00'
       },
       paymentCount: 1,
+      listPayNo: readListPayNo(row, null),
       aftersales: progress.outcome === 'failed' ? [{
         id: 'AS-fallback-1',
         productName: productName ? productName.textContent.trim() : '商品',
@@ -3460,6 +3535,7 @@
     closeDrawer();
     var detail = DETAILS[orderId] || fallbackDetail(orderId, row);
     if (row) {
+      detail.listPayNo = readListPayNo(row, detail);
       var sceneEl = row.querySelector('.order-scene');
       if (sceneEl) {
         detail.tags = detail.tags || {};

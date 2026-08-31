@@ -6,7 +6,7 @@
   <title>订单详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
-  <link rel="stylesheet" href="../css/user-app-order-detail.css?v=20260808-pay-legs-toggle">
+  <link rel="stylesheet" href="../css/user-app-order-detail.css?v=20260831-pay-card">
   <link rel="stylesheet" href="../css/user-app-order-refund.css">
 </head>
 <body class="user-app-body">
@@ -204,17 +204,22 @@
 
         <section class="ua-od-card ua-od-price">
           <div class="ua-od-price__row"><span>商品总价</span><span id="orderGoodsTotal">¥120.99</span></div>
-          <div class="ua-od-price__row"><span>运费</span><span id="orderFreight">¥15.00</span></div>
-          <div class="ua-od-price__row ua-od-price__row--discount"><span>优惠券</span><span>-¥10.00</span></div>
-          <div class="ua-od-price__row ua-od-price__row--discount"><span>免邮券</span><span>-¥15.00</span></div>
-          <div class="ua-od-price__row ua-od-price__row--discount"><span>活动优惠</span><span>-¥5.00</span></div>
-          <div class="ua-od-price__row ua-od-price__row--discount"><span>店铺优惠</span><span>-¥10.00</span></div>
-          <div class="ua-od-price__row ua-od-price__row--discount" id="orderPointsDeductRow"><span>积分抵扣</span><span id="orderPointsDeduct">-¥20.00</span></div>
+          <div class="ua-od-price__row ua-od-price__row--discount" id="orderDiscountRow" data-price-layout="user">
+            <span>订单优惠</span><span id="orderDiscount">-¥60.00</span>
+          </div>
+          <div class="ua-od-price__row" data-price-layout="restock" hidden><span>运费</span><span id="orderFreight">¥15.00</span></div>
+          <div class="ua-od-price__row ua-od-price__row--discount" data-price-layout="restock" hidden><span>优惠券</span><span>-¥10.00</span></div>
+          <div class="ua-od-price__row ua-od-price__row--discount" data-price-layout="restock" hidden><span>免邮券</span><span>-¥15.00</span></div>
+          <div class="ua-od-price__row ua-od-price__row--discount" data-price-layout="restock" hidden><span>活动优惠</span><span>-¥5.00</span></div>
+          <div class="ua-od-price__row ua-od-price__row--discount" data-price-layout="restock" hidden><span>店铺优惠</span><span>-¥10.00</span></div>
+          <div class="ua-od-price__row ua-od-price__row--discount" id="orderPointsDeductRow" data-price-layout="restock" hidden>
+            <span>积分抵扣</span><span id="orderPointsDeduct">-¥20.00</span>
+          </div>
           <div class="ua-od-price__row ua-od-price__row--total">
             <span>实付金额</span>
             <span class="ua-od-price__total-wrap">
               <span class="ua-od-price__total-line">
-                <span id="orderPayTotal">36元</span>
+                <span id="orderPayTotal">¥60.99</span>
                 <button type="button" class="ua-od-pay-legs-toggle" id="orderPayLegsToggle" hidden aria-expanded="false" aria-label="展开支付明细">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
                 </button>
@@ -241,7 +246,8 @@
               <button type="button" class="ua-od-info__copy" id="orderCopyBtn">复制</button>
             </span>
           </div>
-          <div class="ua-od-info__row"><span class="ua-od-info__label">下单时间</span><span class="ua-od-info__value">2026-03-05 15:56:10</span></div>
+          <div class="ua-od-info__row"><span class="ua-od-info__label">下单时间</span><span class="ua-od-info__value" id="orderCreatedAtValue">2026-03-05 15:56:10</span></div>
+          <div class="ua-od-info__row" id="orderPayTimeRow"><span class="ua-od-info__label">付款时间</span><span class="ua-od-info__value" id="orderPayTimeValue">2026-03-05 15:56:10</span></div>
           <div class="ua-od-info__row" id="orderPayMethodRow"><span class="ua-od-info__label">支付方式</span><span class="ua-od-info__value" id="orderPayMethodValue">微信支付</span></div>
           <div class="ua-od-info__row" id="orderPayNoRow"><span class="ua-od-info__label">支付流水</span><span class="ua-od-info__value" id="orderPayNoValue">4200001089765423</span></div>
         </section>
@@ -290,7 +296,7 @@
   <script src="../../js/mdm-marketing-points-mall-config.js"></script>
   <script src="../js/user-app-orders-store.js?v=20260831-pay-no"></script>
   <script src="../js/user-app-order-refund.js?v=20260809-apply-eq-cash"></script>
-  <script src="../js/user-app-order-detail.js?v=20260831-pay-no"></script>
+  <script src="../js/user-app-order-detail.js?v=20260901-restock-pay-no"></script>
   <script src="../js/user-app-auth.js"></script>
 
 </body>
