@@ -1,7 +1,59 @@
 {
-  "latestSha": "8042dac310c49d4db989a1dbda5b1fba2db7c7dd",
-  "total": 327,
+  "latestSha": "6c8bf1271556caa3d14896743b6cdf989625898d",
+  "total": 328,
   "days": [
+    {
+      "date": "2026-09-01",
+      "items": [
+        {
+          "sha": "6c8bf12",
+          "type": "feat",
+          "text": "完善订单支付流水并区分用户与进货详情布局",
+          "author": "sisi",
+          "time": "00:34",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "已支付单收款明细必有成功收款和支付流水"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "text": "列表增加支付流水列，展开筛选可按流水号查询"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "text": "快递详情金额改为三行独立卡并补付款时间；进货详情只加支付流水，金额区保持原样"
+            },
+            {
+              "file": null,
+              "text": "补充订单支付流水需求说明"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-31",
       "items": [
