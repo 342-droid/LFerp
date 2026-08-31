@@ -22,6 +22,17 @@
     } catch (e) { /* ignore */ }
   }
 
+  function demoPayNo(orderNo, method) {
+    var digits = String(orderNo || '').replace(/\D/g, '');
+    if (!digits) digits = String(Date.now());
+    digits = digits.slice(-10).padStart(10, '0');
+    var key = String(method || '');
+    if (key.indexOf('支付宝') >= 0 || /alipay/i.test(key)) {
+      return '20260831' + digits.slice(-8);
+    }
+    return '420000' + digits;
+  }
+
   function genOrderNo() {
     var t = Date.now().toString();
     return t.slice(-10) + String(Math.floor(Math.random() * 900) + 100);
@@ -77,6 +88,7 @@
       payLabel: order.payLabel || '',
       /* 混合支付：支付方式名（顿号拼接）+ 各腿金额明细 */
       payMethod: order.payMethod || '',
+      payNo: order.payNo || demoPayNo(order.orderNo, order.payMethod),
       payLegs: payLegs,
       from: order.from || '',
       items: Array.isArray(order.items) ? order.items : []
@@ -173,6 +185,7 @@
 
   global.UaOrdersStore = {
     genOrderNo: genOrderNo,
+    demoPayNo: demoPayNo,
     nowText: nowText,
     upsert: upsert,
     getByNo: getByNo,

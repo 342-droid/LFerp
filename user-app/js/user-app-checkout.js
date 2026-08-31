@@ -1646,8 +1646,10 @@
     var items = allocatePayLegsToItems(collectCheckoutOrderItems(), parts);
     var pointsAmt = state.pointsEnabled ? Number(state.pointsDeduct) || 0 : 0;
     var pointsCount = state.pointsEnabled ? Number(state.pointsAvailable) || 0 : 0;
+    var orderNo = window.UaOrdersStore ? window.UaOrdersStore.genOrderNo() : String(Date.now());
+    var payMethod = formatPayMethodNames(parts);
     var payload = {
-      orderNo: window.UaOrdersStore ? window.UaOrdersStore.genOrderNo() : String(Date.now()),
+      orderNo: orderNo,
       status: 'shipping',
       createdAt: window.UaOrdersStore ? window.UaOrdersStore.nowText() : '',
       paidAt: window.UaOrdersStore ? window.UaOrdersStore.nowText() : '',
@@ -1655,7 +1657,11 @@
       freight: calcFreight(),
       payable: legs.payable,
       payLabel: formatMoney(legs.payable),
-      payMethod: formatPayMethodNames(parts),
+      payMethod: payMethod,
+      payNo:
+        window.UaOrdersStore && typeof window.UaOrdersStore.demoPayNo === 'function'
+          ? window.UaOrdersStore.demoPayNo(orderNo, payMethod)
+          : '',
       payLegs: parts,
       deductPoints: pointsCount,
       deductAmount: pointsAmt,

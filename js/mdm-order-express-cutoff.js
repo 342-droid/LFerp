@@ -7,7 +7,7 @@
     var STORAGE_KEY = 'lf_order_express_cutoff_v4';
     var PAGE_SIZE_OPTIONS = [20, 50, 100];
     var SCENE_LABEL = { live: '直播', mall: '商城' };
-    var STATUS_LABEL = { draft: '草稿', active: '启动', stopped: '停用' };
+    var STATUS_LABEL = { draft: '草稿', active: '启用', stopped: '停用' };
     var STATUS_CLASS = { draft: 'is-draft', active: 'is-on', stopped: 'is-off' };
 
     function statusText(status) {
@@ -29,12 +29,13 @@
     var SEED_STRATEGIES = [
         {
             id: 's1',
-            name: '默认截单',
+            name: '通用截单策略',
             scenes: ['live', 'mall'],
             cutoffTime: '10:00:00',
             categoryScope: 'all',
             categories: [],
-            status: 'draft',
+            status: 'active',
+            isDefault: true,
             userDesc: ''
         },
         {
@@ -218,6 +219,7 @@
             categoryScope: scope,
             categories: cats,
             status: row.status === 'active' || row.status === 'stopped' ? row.status : 'draft',
+            isDefault: !!row.isDefault,
             userDesc: row.userDesc != null ? String(row.userDesc) : ''
         };
     }
@@ -235,7 +237,8 @@
                 cutoffTime: rule.cutoffTime || '10:00:00',
                 categoryScope: 'all',
                 categories: [],
-                status: 'draft',
+                status: 'active',
+                isDefault: true,
                 userDesc: rule.userDesc || ''
             }
         ];
@@ -264,7 +267,7 @@
                     : parsed && Array.isArray(parsed.strategies)
                       ? parsed.strategies
                       : [];
-                var normalized = list.map(normalizeStrategy).filter(Boolean);
+                var normalized = ensureDefaultStrategy(list.map(normalizeStrategy).filter(Boolean));
                 if (normalized.length) {
                     syncIdSeq(normalized);
                     return normalized;
@@ -286,6 +289,7 @@
                     ? fromList.map(normalizeStrategy).filter(Boolean)
                     : migrateLegacyRule(old || {});
                 if (migrated.length) {
+                    migrated = ensureDefaultStrategy(migrated);
                     syncIdSeq(migrated);
                     return migrated;
                 }
@@ -293,7 +297,7 @@
         } catch (e) {
             /* ignore */
         }
-        var seed = SEED_STRATEGIES.map(normalizeStrategy).filter(Boolean);
+        var seed = ensureDefaultStrategy(SEED_STRATEGIES.map(normalizeStrategy).filter(Boolean));
         syncIdSeq(seed);
         return seed;
     }
@@ -345,9 +349,69 @@
         return found;
     }
 
+    function isDefaultStrategy(row) {
+        return !!(row && row.isDefault);
+    }
+
+    function canDeleteStrategy(row) {
+        return !!row && !isDefaultStrategy(row) && row.status !== 'active';
+    }
+
+    function canStopStrategy(row) {
+        return !!row && !isDefaultStrategy(row);
+    }
+
+    function isAllSceneAllCategory(row) {
+        if (!row || row.categoryScope === 'specified') return false;
+        var scenes = normalizeScenes(row);
+        return scenes.indexOf('live') >= 0 && scenes.indexOf('mall') >= 0;
+    }
+
+    function ensureDefaultStrategy(list) {
+        var rows = (list || []).slice();
+        var def = null;
+        rows.forEach(function (row) {
+            if (!def && isDefaultStrategy(row)) def = row;
+        });
+        if (!def) {
+            rows.forEach(function (row) {
+                if (!def && isAllSceneAllCategory(row)) def = row;
+            });
+        }
+        if (def) {
+            def.isDefault = true;
+            def.scenes = ['live', 'mall'];
+            def.categoryScope = 'all';
+            def.categories = [];
+            def.status = 'active';
+            if (!String(def.name || '').trim()) def.name = '通用截单策略';
+        } else {
+            def = normalizeStrategy({
+                id: nextId(),
+                name: '通用截单策略',
+                scenes: ['live', 'mall'],
+                cutoffTime: '10:00:00',
+                categoryScope: 'all',
+                categories: [],
+                status: 'active',
+                isDefault: true,
+                userDesc: ''
+            });
+            if (def) rows.unshift(def);
+        }
+        rows.forEach(function (row) {
+            if (row !== def) row.isDefault = false;
+        });
+        return rows;
+    }
+
     function syncDeleteBtn() {
         var btn = $('cutoffDeleteBtn');
-        if (btn) btn.disabled = selectedCodes().length === 0;
+        if (!btn) return;
+        var canDelete = selectedCodes().some(function (id) {
+            return canDeleteStrategy(findRow(id));
+        });
+        btn.disabled = !canDelete;
     }
 
     function overlapError(candidate, ignoreId) {
@@ -376,6 +440,9 @@
     }
 
     function renderTable() {
+        Object.keys(state.selected).forEach(function (id) {
+            if (!canDeleteStrategy(findRow(id))) delete state.selected[id];
+        });
         var tbody = $('cutoffTableBody');
         var empty = $('cutoffEmpty');
         var pageData = pageRows();
@@ -390,6 +457,15 @@
                 .map(function (row, idx) {
                     var index = (state.page - 1) * state.pageSize + idx + 1;
                     var checked = !!state.selected[row.id];
+                    var deletable = canDeleteStrategy(row);
+                    var nameExtra = isDefaultStrategy(row)
+                        ? '<span class="cutoff-default-tag">通用</span>'
+                        : '';
+                    var toggleBtn = canStopStrategy(row)
+                        ? '<button type="button" class="sf-link js-cutoff-toggle">' +
+                          (row.status === 'active' ? '停用' : '启用') +
+                          '</button>'
+                        : '';
                     return (
                         '<tr class="' +
                         (checked ? 'is-selected' : '') +
@@ -400,13 +476,16 @@
                         escapeHtml(row.id) +
                         '"' +
                         (checked ? ' checked' : '') +
+                        (deletable ? '' : ' disabled') +
                         '></td>' +
                         '<td class="sf-table__index">' +
                         index +
                         '</td>' +
                         '<td><a href="#" class="sf-link js-cutoff-name">' +
                         escapeHtml(row.name) +
-                        '</a></td>' +
+                        '</a>' +
+                        nameExtra +
+                        '</td>' +
                         '<td>' +
                         escapeHtml(sceneText(row)) +
                         '</td>' +
@@ -425,9 +504,7 @@
                         '</span></td>' +
                         '<td class="sf-table__action"><div class="sf-action-cell">' +
                         '<button type="button" class="sf-link js-cutoff-edit">修改</button>' +
-                        '<button type="button" class="sf-link js-cutoff-toggle">' +
-                        (row.status === 'active' ? '停用' : '启动') +
-                        '</button>' +
+                        toggleBtn +
                         '</div></td>' +
                         '</tr>'
                     );
@@ -437,7 +514,7 @@
 
         var checkAll = $('cutoffCheckAll');
         if (checkAll) {
-            var ids = pageData.rows.map(function (r) {
+            var ids = pageData.rows.filter(canDeleteStrategy).map(function (r) {
                 return r.id;
             });
             var allChecked =
@@ -449,6 +526,7 @@
             checkAll.indeterminate = !allChecked && ids.some(function (id) {
                 return state.selected[id];
             });
+            checkAll.disabled = ids.length === 0;
         }
 
         renderPagination(pageData.total);
@@ -642,7 +720,6 @@
             cutoffTime: ($('cutoffFormTime') && $('cutoffFormTime').value) || '',
             categoryScope: scope,
             categories: scope === 'specified' ? normalizeCategories(state.formCategories) : [],
-            status: 'draft',
             userDesc: ($('cutoffFormDesc') && $('cutoffFormDesc').value) || ''
         };
     }
@@ -693,7 +770,7 @@
             '      <div class="sf-form-item__control"><div class="cutoff-radio-row">' +
             '        <label><input type="checkbox" name="cutoffFormScene" value="live"> 直播</label>' +
             '        <label><input type="checkbox" name="cutoffFormScene" value="mall"> 商城</label>' +
-            '      </div><div class="cutoff-form-tip">可同时勾选。同一场景 + 同类目不可与其它策略重叠。保存后为草稿，需在列表手动启动。</div></div></div>' +
+            '      </div><div class="cutoff-form-tip" id="cutoffFormSceneTip">可同时勾选。同一场景 + 同类目不可与其它策略重叠。</div></div></div>' +
             '  </div></div>' +
             '</section>' +
             '<section class="sf-section" id="cutoffRuleSection">' +
@@ -760,6 +837,24 @@
         syncCategoryScopeUi();
         updateTimeTip(time);
 
+        var sceneTip = $('cutoffFormSceneTip');
+        var editingDefault = !isCreate && isDefaultStrategy(row);
+        if (editingDefault) {
+            document.querySelectorAll('input[name="cutoffFormScene"], input[name="cutoffFormCatScope"]').forEach(
+                function (input) {
+                    input.disabled = true;
+                }
+            );
+            if (sceneTip) {
+                sceneTip.textContent =
+                    '通用策略覆盖全部类目、所有场景，仅可修改名称、截单时间和说明，不支持停用或删除。';
+            }
+        } else if (sceneTip) {
+            sceneTip.textContent = isCreate
+                ? '可同时勾选。同一场景 + 同类目不可与其它策略重叠。保存后为草稿，需在列表手动启用。'
+                : '可同时勾选。同一场景 + 同类目不可与其它策略重叠。启用中的策略保存后将停用，需在列表手动启用。';
+        }
+
         if (isView) {
             backdrop.querySelectorAll('input, textarea, button#cutoffFormCatAdd').forEach(function (input) {
                 if (input === closeBtn || input === backBtn) return;
@@ -811,6 +906,19 @@
                 toast('请完善策略信息', 'warning');
                 return;
             }
+            var prev = isEdit ? findRow(state.editId) : null;
+            if (prev && isDefaultStrategy(prev)) {
+                draft.isDefault = true;
+                draft.scenes = ['live', 'mall'];
+                draft.categoryScope = 'all';
+                draft.categories = [];
+                draft.status = 'active';
+            } else {
+                draft.isDefault = false;
+                if (prev && prev.status === 'active') draft.status = 'stopped';
+                else if (prev) draft.status = prev.status || 'draft';
+                else draft.status = 'draft';
+            }
             var err = validateStrategy(draft, isEdit ? state.editId : '');
             if (err) {
                 toast(err, 'warning');
@@ -820,10 +928,13 @@
                 state.strategies = state.strategies.map(function (item) {
                     return item.id === state.editId ? draft : item;
                 });
-                toast('已保存为草稿，请手动启动');
+                if (isDefaultStrategy(draft)) toast('通用策略已保存');
+                else if (prev && prev.status === 'active') toast('已保存并停用，请手动启用');
+                else if (draft.status === 'draft') toast('已保存为草稿，请手动启用');
+                else toast('已保存，请手动启用');
             } else {
                 state.strategies.unshift(draft);
-                toast('已保存为草稿，请手动启动');
+                toast('已保存为草稿，请手动启用');
             }
             saveStrategies();
             closeDrawer();
@@ -886,9 +997,25 @@
                     toast('请先勾选要删除的策略', 'warning');
                     return;
                 }
-                if (!window.confirm('确认删除选中的 ' + ids.length + ' 条截单策略吗？')) return;
+                var removable = ids.filter(function (id) {
+                    return canDeleteStrategy(findRow(id));
+                });
+                var blocked = ids.length - removable.length;
+                if (!removable.length) {
+                    toast('启用中的策略和通用策略不支持删除', 'warning');
+                    return;
+                }
+                if (
+                    !window.confirm(
+                        '确认删除选中的 ' +
+                            removable.length +
+                            ' 条截单策略吗？仅草稿、停用状态可删除。'
+                    )
+                ) {
+                    return;
+                }
                 state.strategies = state.strategies.filter(function (row) {
-                    if (ids.indexOf(row.id) >= 0) {
+                    if (removable.indexOf(row.id) >= 0) {
                         delete state.selected[row.id];
                         return false;
                     }
@@ -897,12 +1024,20 @@
                 saveStrategies();
                 state.page = 1;
                 renderTable();
-                toast('已删除选中策略');
+                toast(
+                    blocked
+                        ? '已删除 ' + removable.length + ' 条，其余不可删除已跳过'
+                        : '已删除选中策略'
+                );
             });
         }
         if (checkAll) {
             checkAll.addEventListener('change', function () {
                 pageRows().rows.forEach(function (row) {
+                    if (!canDeleteStrategy(row)) {
+                        delete state.selected[row.id];
+                        return;
+                    }
                     if (checkAll.checked) state.selected[row.id] = true;
                     else delete state.selected[row.id];
                 });
@@ -945,6 +1080,19 @@
                 var box = ev.target.closest('.cutoff-row-check');
                 if (!box) return;
                 var id = box.getAttribute('data-id');
+                var checkedRow = findRow(id);
+                if (!canDeleteStrategy(checkedRow)) {
+                    box.checked = false;
+                    delete state.selected[id];
+                    toast(
+                        isDefaultStrategy(checkedRow)
+                            ? '通用策略不支持删除'
+                            : '启用中的策略不支持删除',
+                        'warning'
+                    );
+                    renderTable();
+                    return;
+                }
                 if (box.checked) state.selected[id] = true;
                 else delete state.selected[id];
                 renderTable();
@@ -965,10 +1113,14 @@
                     return;
                 }
                 if (ev.target.closest('.js-cutoff-toggle')) {
+                    if (!canStopStrategy(row)) {
+                        toast('通用策略不支持停用', 'warning');
+                        return;
+                    }
                     row.status = row.status === 'active' ? 'stopped' : 'active';
                     saveStrategies();
                     renderTable();
-                    toast(row.status === 'active' ? '策略已启动' : '策略已停用');
+                    toast(row.status === 'active' ? '策略已启用' : '策略已停用');
                 }
             });
         }
@@ -976,6 +1128,7 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         state.strategies = loadStrategies();
+        saveStrategies();
         bindPage();
         renderTable();
     });
