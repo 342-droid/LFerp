@@ -2104,6 +2104,24 @@ button.order-detail-refund-breakdown__row.is-link:focus-visible {
   font-weight: 600;
 }
 
+.order-detail-payment-table th.is-dir,
+.order-detail-payment-table td.is-dir,
+.order-detail-payment-table th.is-status,
+.order-detail-payment-table td.is-status {
+  text-align: center;
+}
+
+.order-detail-payment-table th.is-amount,
+.order-detail-payment-table td.is-amount {
+  text-align: right;
+}
+
+.order-detail-payment-table td.is-flow {
+  max-width: 168px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .order-detail-pay-tag {
   display: inline-block;
   padding: 2px 8px;
@@ -2112,6 +2130,22 @@ button.order-detail-refund-breakdown__row.is-link:focus-visible {
   line-height: 18px;
   color: #1f9d55;
   background: #e8f8ef;
+}
+
+.order-detail-pay-tag--in,
+.order-detail-pay-tag--ok {
+  color: #1f9d55;
+  background: #e8f8ef;
+}
+
+.order-detail-pay-tag--refund {
+  color: #e67a17;
+  background: #fff4e8;
+}
+
+.order-detail-pay-tag--closed {
+  color: #606266;
+  background: #f0f2f5;
 }
 
 .order-detail-empty {

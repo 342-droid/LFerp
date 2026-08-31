@@ -137,6 +137,9 @@
       salePrice: price,
       linePrice: raw.linePrice != null ? raw.linePrice : raw.marketPrice,
       minQty: raw.minQty != null ? raw.minQty : 1,
+      sellableMode: raw.sellableMode || 'follow',
+      sellablePercent: raw.sellablePercent != null ? raw.sellablePercent : '100',
+      sellableFixed: raw.sellableFixed || '',
       liveStock: raw.liveStock != null ? raw.liveStock : raw.stock,
       onShelf: raw.onShelf !== false && raw.enabled !== false,
       img: raw.img || productImg || '../user-app/assets/restock/product-leaf.svg'
@@ -155,7 +158,15 @@
       }
     ];
     return list.map(function (s) {
-      return normalizeSku(s, p.img);
+      var sku = normalizeSku(s, p.img);
+      if (window.MdmSkuWhStock && window.MdmSkuWhStock.attachToSku) {
+        var sum = window.MdmSkuWhStock.attachToSku(sku, { sessionId: sessionId });
+        var cap = (sum.remainTotal || 0) + (sum.sessionReservedTotal || 0);
+        if (sku.liveStock === '' || sku.liveStock == null || Number(sku.liveStock) > cap) {
+          sku.liveStock = cap;
+        }
+      }
+      return sku;
     });
   }
 
@@ -367,7 +378,10 @@
       (normalizePoint(sku.pointExchange) === 'points' ? '' : moneyHtml('售价', 'salePrice', sku.salePrice)) +
       moneyHtml('划线价', 'linePrice', sku.linePrice) +
       fieldHtml('起售量', 'minQty', sku.minQty) +
-      fieldHtml('直播售卖库存', 'liveStock', sku.liveStock, false, 'is-live-stock') +
+      fieldHtml('现货库存', 'spotStock', sku.spotStock, true) +
+      fieldHtml('可售库存', 'sellableStock', sku.sellableStock, true) +
+      fieldHtml('本场售卖配额', 'liveStock', sku.liveStock, false, 'is-live-stock') +
+      '<p class="product-proxy-spec__stock-tip product-proxy-spec__stock-tip--span">现货/可售全网共享；本场配额不超过剩余可售（可售−现货预占）。分仓与现货/预售预占见选品库「库存统计」。</p>' +
       '</div></div>' +
       '<div class="product-proxy-spec__foot">' +
       '<button type="button" class="product-proxy-spec__btn-off' +
@@ -526,7 +540,17 @@
         return toast('请补充 ' + (s.displayName || s.id) + ' 的售价', 'warning'), false;
       }
       if (s.liveStock === '' || s.liveStock == null || isNaN(Number(s.liveStock))) {
-        return toast('请补充 ' + (s.displayName || s.id) + ' 的直播售卖库存', 'warning'), false;
+        return toast('请补充 ' + (s.displayName || s.id) + ' 的本场售卖配额', 'warning'), false;
+      }
+      if (window.MdmSkuWhStock && window.MdmSkuWhStock.summarize) {
+        var stockSum = window.MdmSkuWhStock.summarize(s, { sessionId: sessionId });
+        var cap = (stockSum.remainTotal || 0) + (stockSum.sessionReservedTotal || 0);
+        if (Number(s.liveStock) > cap) {
+          return toast(
+            (s.displayName || s.id) + ' 本场配额不能超过配送仓剩余可售（' + cap + '）',
+            'warning'
+          ), false;
+        }
       }
     }
     return true;

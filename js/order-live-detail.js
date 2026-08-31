@@ -718,7 +718,50 @@
         merchant: '¥0.40',
         refund: '¥0.00'
       },
-      paymentCount: 1,
+      paymentCount: 4,
+      /* 收款明细演示：已关闭收款 + 成功收款 + 两笔退款，通道为 APP 收银台 */
+      payments: [
+        {
+          flowNo: 'RF-3526313281910218',
+          direction: '退款',
+          channel: 'APP收银台',
+          status: '成功',
+          amount: '¥0.01',
+          channelNo: '',
+          payNo: '',
+          payTime: '2026-08-31 09:51'
+        },
+        {
+          flowNo: 'RF-3526312861011844',
+          direction: '退款',
+          channel: 'APP收银台',
+          status: '成功',
+          amount: '¥0.40',
+          channelNo: '',
+          payNo: '',
+          payTime: '2026-08-31 09:50'
+        },
+        {
+          flowNo: 'PAY-3526305636579021',
+          direction: '收款',
+          channel: 'APP收银台',
+          status: '成功',
+          amount: '¥0.62',
+          channelNo: '5320260831230456',
+          payNo: '4200003526305636',
+          payTime: '2026-08-31 09:48'
+        },
+        {
+          flowNo: 'PAY-3526303924791108',
+          direction: '收款',
+          channel: 'APP收银台',
+          status: '已关闭',
+          amount: '¥0.62',
+          channelNo: 'H2026083109478821',
+          payNo: '',
+          payTime: '-'
+        }
+      ],
       customer: { nickname: '赵金芝', phone: '13800009201', userId: '318605592681792201' },
       delivery: {
         type: 'SELF_PICKUP',
@@ -2461,7 +2504,7 @@
   }
 
   function cashPayLegsOf(detail) {
-    /* 零售订单不消费混合支付腿，避免串改买家实付/收款明细 */
+    /* 零售订单不消费混合支付腿，避免串改买家实付 */
     if (!isProxyWalletPayFeature()) return [];
     var legs = [];
     if (detail && Array.isArray(detail.payLegs)) legs = detail.payLegs;
@@ -2474,25 +2517,125 @@
     });
   }
 
+  function parseYuanAmount(value) {
+    return Number(String(value == null ? '' : value).replace(/[¥,\s]/g, '')) || 0;
+  }
+
+  function isRetailUnpaid(detail) {
+    var st = (detail && detail.progress && detail.progress.status) || '';
+    return st === '已创建' || st === '待支付';
+  }
+
+  function payTagClass(kind, text) {
+    var t = String(text || '');
+    if (kind === 'direction') {
+      if (t === '退款') return 'order-detail-pay-tag order-detail-pay-tag--refund';
+      return 'order-detail-pay-tag order-detail-pay-tag--in';
+    }
+    if (t === '已关闭' || t === '关闭') return 'order-detail-pay-tag order-detail-pay-tag--closed';
+    return 'order-detail-pay-tag order-detail-pay-tag--ok';
+  }
+
+  function flowCell(value, cls) {
+    var raw = value == null ? '' : String(value);
+    if (!raw || raw === '—') {
+      return '<td class="' + cls + '"></td>';
+    }
+    return (
+      '<td class="' +
+      cls +
+      '" title="' +
+      raw.replace(/"/g, '&quot;') +
+      '">' +
+      raw +
+      '</td>'
+    );
+  }
+
+  function normalizePaymentRow(p, isRetail) {
+    var amount = p.amount;
+    if (amount == null && p.amountNum != null) amount = formatMoneyYuan(p.amountNum);
+    return {
+      flowNo: p.flowNo || p.id || '',
+      direction: p.direction || '收款',
+      channel: p.channel || (isRetail ? 'APP收银台' : '汇付'),
+      payMethod: normalizeRetailPayMethod(p.payMethod || p.method) || p.payMethod || '',
+      status: p.status || '成功',
+      amount: amount || '¥0.00',
+      channelNo: p.channelNo != null ? p.channelNo : p.channelFlowNo || '',
+      payNo: p.payNo != null ? p.payNo : p.payFlowNo || p.paymentNo || '',
+      payTime: p.payTime != null ? p.payTime : p.time || '-'
+    };
+  }
+
+  function buildRetailPayments(detail) {
+    if (Array.isArray(detail.payments) && detail.payments.length) {
+      return detail.payments.map(function (p) {
+        return normalizePaymentRow(p, true);
+      });
+    }
+    if (isRetailUnpaid(detail)) return [];
+    var paid = parseYuanAmount(detail.amounts && detail.amounts.paid);
+    var closed = (detail.progress && detail.progress.status) === '已关闭';
+    if (paid <= 0 && closed && !(detail.aftersales && detail.aftersales.length)) return [];
+    var payTime =
+      (detail.progress && (detail.progress.payTime || detail.progress.submitTime)) || '-';
+    var seed = String(detail.displayId || detail.id || '352630').replace(/\D/g, '').slice(-12);
+    var list = [];
+    if (paid > 0 || !closed) {
+      list.push({
+        flowNo: 'PAY-' + seed + '563657',
+        direction: '收款',
+        channel: 'APP收银台',
+        status: '成功',
+        amount: formatMoneyYuan(paid || 0),
+        channelNo: '5320' + seed.slice(-10),
+        payNo: '42' + seed + '01',
+        payTime: payTime
+      });
+    }
+    (detail.aftersales || []).forEach(function (as, idx) {
+      var amt = parseYuanAmount(as.refundAmount);
+      if (!amt || as.type === '补货') return;
+      if (/待审批|已拒绝|已取消/.test(as.status || '')) return;
+      list.unshift({
+        flowNo: 'RF-' + seed + ('0' + (idx + 1)).slice(-2) + '19102',
+        direction: '退款',
+        channel: 'APP收银台',
+        status: '成功',
+        amount: formatMoneyYuan(amt),
+        channelNo: '',
+        payNo: '',
+        payTime: payTime
+      });
+    });
+    return list;
+  }
+
   /**
-   * 代采：生成收款明细（通道汇付 + 支付方式含钱包余额）
-   * 零售：不生成钱包/混合支付明细，保持空态
+   * 代采：通道汇付 + 支付方式（含钱包余额）
+   * 零售：通道 APP 收银台，无支付方式列；已支付单展示收款/退款流水
    */
   function ensureDetailPayments(detail) {
     if (!detail) return [];
-    if (!isProxyWalletPayFeature()) return [];
+    if (!isProxyWalletPayFeature()) return buildRetailPayments(detail);
     if (Array.isArray(detail.payments) && detail.payments.length) {
       return detail.payments.map(function (p) {
-        return {
-          flowNo: p.flowNo || p.id || '—',
-          direction: p.direction || '收款',
-          channel: '汇付',
-          payMethod: normalizeRetailPayMethod(p.payMethod || p.method) || p.payMethod || '微信',
-          status: p.status || '成功',
-          amount: p.amount || formatMoneyYuan(p.amountNum),
-          channelNo: p.channelNo || p.channelFlowNo || '—',
-          payTime: p.payTime || p.time || '—'
-        };
+        return normalizePaymentRow(
+          {
+            flowNo: p.flowNo || p.id,
+            direction: p.direction || '收款',
+            channel: p.channel || '汇付',
+            payMethod: p.payMethod || p.method,
+            status: p.status || '成功',
+            amount: p.amount,
+            amountNum: p.amountNum,
+            channelNo: p.channelNo || p.channelFlowNo || '—',
+            payNo: p.payNo || p.payFlowNo || '',
+            payTime: p.payTime || p.time || '—'
+          },
+          false
+        );
       });
     }
     var legs = cashPayLegsOf(detail);
@@ -2502,16 +2645,20 @@
     if (legs.length) {
       return legs.map(function (leg, idx) {
         var method = normalizeRetailPayMethod(leg.name) || '微信';
-        return {
-          flowNo: 'PAY-' + seed + ('0' + (idx + 1)).slice(-2) + '926528',
-          direction: '收款',
-          channel: '汇付',
-          payMethod: method,
-          status: '成功',
-          amount: formatMoneyYuan(leg.amount),
-          channelNo: '5620' + seed + String(idx + 3) + '230',
-          payTime: payTime
-        };
+        return normalizePaymentRow(
+          {
+            flowNo: 'PAY-' + seed + ('0' + (idx + 1)).slice(-2) + '926528',
+            direction: '收款',
+            channel: '汇付',
+            payMethod: method,
+            status: '成功',
+            amount: formatMoneyYuan(leg.amount),
+            channelNo: '5620' + seed + String(idx + 3) + '230',
+            payNo: '42' + seed + String(idx + 1),
+            payTime: payTime
+          },
+          false
+        );
       });
     }
     var tagPay = detail.tags && detail.tags.payChannel;
@@ -2521,66 +2668,67 @@
       '微信';
     if (!normalizeRetailPayMethod(method)) method = '微信';
     return [
-      {
-        flowNo: 'PAY-' + seed + '344719926528',
-        direction: '收款',
-        channel: '汇付',
-        payMethod: method,
-        status: '成功',
-        amount: (detail.amounts && detail.amounts.paid) || '¥0.00',
-        channelNo: '5620' + seed + '9230',
-        payTime: payTime
-      }
+      normalizePaymentRow(
+        {
+          flowNo: 'PAY-' + seed + '344719926528',
+          direction: '收款',
+          channel: '汇付',
+          payMethod: method,
+          status: '成功',
+          amount: (detail.amounts && detail.amounts.paid) || '¥0.00',
+          channelNo: '5620' + seed + '9230',
+          payNo: '42' + seed + '88',
+          payTime: payTime
+        },
+        false
+      )
     ];
   }
 
   function buildPaymentPanel(payments) {
     var list = payments || [];
     if (!list.length) return buildEmptyState('暂无收款明细');
+    var retail = !isProxyWalletPayFeature();
     var wrap = el('div', 'order-detail-payment');
     var table = el('table', 'order-detail-payment-table');
     table.innerHTML =
       '<thead><tr>' +
       '<th>流水号</th>' +
-      '<th>方向</th>' +
+      '<th class="is-dir">方向</th>' +
       '<th>通道</th>' +
-      '<th>支付方式</th>' +
-      '<th>状态</th>' +
-      '<th>金额</th>' +
+      (retail ? '' : '<th>支付方式</th>') +
+      '<th class="is-status">状态</th>' +
+      '<th class="is-amount">金额</th>' +
       '<th>通道流水</th>' +
+      '<th>支付流水</th>' +
       '<th>支付时间</th>' +
       '</tr></thead>';
     var tbody = document.createElement('tbody');
     list.forEach(function (p) {
       var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td title="' +
-        String(p.flowNo || '') +
+        flowCell(p.flowNo, 'is-flow') +
+        '<td class="is-dir"><span class="' +
+        payTagClass('direction', p.direction) +
         '">' +
-        shortFlowId(p.flowNo, 18) +
-        '</td>' +
-        '<td><span class="order-detail-pay-tag">' +
         (p.direction || '收款') +
         '</span></td>' +
         '<td>' +
-        (p.channel || '汇付') +
+        (p.channel || (retail ? 'APP收银台' : '汇付')) +
         '</td>' +
-        '<td>' +
-        (p.payMethod || '—') +
-        '</td>' +
-        '<td><span class="order-detail-pay-tag">' +
+        (retail ? '' : '<td>' + (p.payMethod || '—') + '</td>') +
+        '<td class="is-status"><span class="' +
+        payTagClass('status', p.status) +
+        '">' +
         (p.status || '成功') +
         '</span></td>' +
-        '<td>' +
+        '<td class="is-amount">' +
         (p.amount || '—') +
         '</td>' +
-        '<td title="' +
-        String(p.channelNo || '') +
-        '">' +
-        shortFlowId(p.channelNo, 16) +
-        '</td>' +
+        flowCell(p.channelNo, 'is-flow') +
+        flowCell(p.payNo, 'is-flow') +
         '<td>' +
-        (p.payTime || '—') +
+        (p.payTime || '-') +
         '</td>';
       tbody.appendChild(tr);
     });
@@ -3000,9 +3148,7 @@
 
     var payments = ensureDetailPayments(detail);
     var payLegs = cashPayLegsOf(detail);
-    var paymentCount = isProxyWalletPayFeature()
-      ? payments.length || Number(detail.paymentCount) || 0
-      : payments.length;
+    var paymentCount = payments.length || Number(detail.paymentCount) || 0;
     var docCard = el('div', 'order-detail-card');
     docCard.appendChild(el('h3', 'order-detail-card__title', '单据明细'));
     var tabs = el('div', 'order-detail-doc-tabs');

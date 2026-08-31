@@ -8,9 +8,10 @@
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
-    <link rel="stylesheet" href="../css/lf-product.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-product.css?v=20260831-stock-mdm">
     <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
-    <link rel="stylesheet" href="../css/lf-live.css?v=20260829-sched-edit-1">
+    <link rel="stylesheet" href="../css/lf-live.css?v=20260831-wh-stock">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -133,7 +134,7 @@
             </form>
 
             <div class="mdm-edit-page__footer lf-live-edit-footer" id="schedEditFooter" hidden>
-                <p class="lf-live-edit-footer__tip">编辑仅作用于本场直播排品，不会更新中央商品库</p>
+                <p class="lf-live-edit-footer__tip">编辑仅作用于本场直播排品，不会更新中央商品库；本场配额占用配送仓库存，与代采、商城、其他场次共享</p>
                 <div class="lf-live-edit-footer__actions">
                     <button type="button" class="erp-btn" id="pCancelBtn">取消</button>
                     <button type="button" class="erp-btn erp-btn--primary" id="pSaveBtn">
@@ -145,7 +146,8 @@
         </main>
     </div>
     <script src="../js/common.js"></script>
+    <script src="../js/mdm-sku-wh-stock.js?v=20260831-reserve-total"></script>
     <script src="../js/mdm-live-demo-data.js"></script>
-    <script src="../js/mdm-live-product-sched-edit.js?v=20260829-sched-edit-1"></script>
+    <script src="../js/mdm-live-product-sched-edit.js?v=20260831-stock-mdm"></script>
 </body>
 </html>
