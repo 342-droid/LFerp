@@ -1082,6 +1082,12 @@ body[data-order-page="retail"] .order-live-table__action:hover {
   border-color: #b3d8ff;
 }
 
+.order-tag--pending-accept {
+  color: #2f54eb;
+  background: #f0f5ff;
+  border-color: #adc6ff;
+}
+
 .order-tag--pending-ship {
   color: #e6a23c;
   background: #fdf6ec;

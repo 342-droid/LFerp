@@ -536,9 +536,9 @@
     var status = getRowOrderStatus(row);
     var mode = (row.getAttribute('data-delivery-mode') || '') === 'express' ? 'express' : 'pickup';
     if (mode === 'pickup') {
-      return ['待支付', '已创建', '已支付', '待发货', '待收货', '待提货'].indexOf(status) >= 0;
+      return ['待支付', '已创建', '已支付', '待接单', '待发货', '待收货', '待提货'].indexOf(status) >= 0;
     }
-    return ['待支付', '已创建', '已支付', '待发货'].indexOf(status) >= 0;
+    return ['待支付', '已创建', '已支付', '待接单', '待发货'].indexOf(status) >= 0;
   }
 
   function canRetailPlatformRefund(row) {

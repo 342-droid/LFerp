@@ -164,7 +164,7 @@
         order[k] = extra[k];
       });
     }
-    if (status === 'shipping' && !order.paidAt) order.paidAt = nowText();
+    if ((status === 'shipping' || status === 'pending_accept') && !order.paidAt) order.paidAt = nowText();
     return upsert(order);
   }
 
