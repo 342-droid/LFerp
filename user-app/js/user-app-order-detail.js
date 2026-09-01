@@ -12,6 +12,15 @@
         { label: '立即付款', type: 'primary', action: 'pay' }
       ]
     },
+    pending_accept: {
+      title: '待接单',
+      sub: '买家已付款，等待商家接单',
+      showLogistics: false,
+      showPoints: false,
+      showPayMethod: true,
+      itemActions: 'refund',
+      footer: [{ label: '取消订单', type: 'ghost', action: 'cancel', single: true }]
+    },
     shipping: {
       title: '待发货',
       sub: '买家已付款，商家正在备货',
@@ -101,6 +110,11 @@
     unpaid: {
       title: '等待付款',
       sub: '逾期未支付订单将自动关闭',
+      showStoreDelivery: false
+    },
+    pending_accept: {
+      title: '待接单',
+      sub: '已付款，等待供应商接单',
       showStoreDelivery: false
     },
     shipping: {
@@ -362,6 +376,8 @@
     if (status === 'receipt') {
       config.title = '商家已发货';
       config.sub = '快递配送到家，还剩14天23小时自动确认收货';
+    } else if (status === 'pending_accept') {
+      config.sub = '已付款，等待商家接单后发货';
     } else if (status === 'shipping') {
       config.sub = '供应商正在备货，将快递配送到家';
     }
@@ -441,7 +457,7 @@
 
   function getRefundScene() {
     var status = getStatus();
-    if (status === 'shipping') return 'pre_ship';
+    if (status === 'pending_accept' || status === 'shipping') return 'pre_ship';
     /* 零售发货后到门店待收货：仅退款 */
     if (status === 'to_store' && !isFromRestock()) return 'to_store';
     if (status === 'completed') return 'aftersale';
@@ -895,7 +911,7 @@
   function filterAftersaleBarsForStatus(bars, status) {
     var list = bars || [];
     /* 待发货 / 零售门店待收货：仅支持仅退款 */
-    if (status === 'shipping' || (status === 'to_store' && !isFromRestock())) {
+    if (status === 'pending_accept' || status === 'shipping' || (status === 'to_store' && !isFromRestock())) {
       return list.filter(function (bar) {
         return bar.group === 'refund' && (!bar.record || bar.record.type !== 'return');
       });

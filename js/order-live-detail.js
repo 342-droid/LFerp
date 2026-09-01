@@ -1227,7 +1227,10 @@
   }
 
   function inferProgressFromRow(row) {
-    var statusEl = row ? row.querySelector('.order-tag:not(.order-tag--sale)') : null;
+    var statusEl = row
+      ? row.querySelector('.order-status-cell .order-tag') ||
+        row.querySelector('.order-tag:not(.order-tag--sale):not(.order-tag--scene)')
+      : null;
     var statusText = statusEl ? statusEl.textContent.trim() : '';
     var cells = row ? row.querySelectorAll('td') : [];
     var submitTime = cells[1] ? cells[1].textContent.trim() : '';
@@ -1261,6 +1264,14 @@
         completedSteps: 0,
         outcome: null,
         status: statusText === '待支付' ? '待支付' : '已创建',
+        submitTime: submitTime
+      };
+    }
+    if (statusText === '待接单') {
+      return {
+        completedSteps: 1,
+        outcome: null,
+        status: '待接单',
         submitTime: submitTime
       };
     }

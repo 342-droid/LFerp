@@ -503,6 +503,7 @@
 
   function canUploadExpressStatus(status, context) {
     // 代采快递由采购单回传，订单侧不再上传；仅零售快递可上传。售后态不写进订单状态。
+    // 未截单提前发货：由发货事件当场补截单（不走配置时刻），底层一次完成接单+发货，状态变为待收货；页面不另呈现。
     if (context === 'retail') {
       if (!status) return false;
       if (window.OrderRetailStatus && window.OrderRetailStatus.isTerminal(status)) return false;

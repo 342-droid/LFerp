@@ -7,8 +7,8 @@
 
   function getAllowedTabs() {
     return isFromRestock()
-      ? ['all', 'unpaid', 'shipping', 'review']
-      : ['all', 'unpaid', 'shipping', 'pickup', 'review'];
+      ? ['all', 'unpaid', 'pending_accept', 'shipping', 'review']
+      : ['all', 'unpaid', 'pending_accept', 'shipping', 'pickup', 'review'];
   }
 
   function getActiveTab() {
@@ -204,6 +204,7 @@
         var href = window.UaOrdersStore.buildDetailHref(fresh);
         var statusMap = {
           unpaid: '待付款',
+          pending_accept: '待接单',
           shipping: '待发货',
           receipt: '待收货',
           completed: '已完成',
