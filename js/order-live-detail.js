@@ -1174,8 +1174,8 @@
     DETAILS[cfg.id] = buildPickupVerifyDemo(cfg);
   });
 
-  var MID_STEPS = ['提交订单', '运输中', '待收货', '待提货'];
-  var PROXY_MID_STEPS = ['提交订单', '运输中', '待收货'];
+  var MID_STEPS = ['提交订单', '待接单', '待发货', '待收货', '待提货'];
+  var PROXY_MID_STEPS = ['提交订单', '待接单', '待发货', '待收货'];
 
   function isRetailExpressDetail(detail, row) {
     if (isProxyOrderPage()) return false;
@@ -1198,20 +1198,33 @@
     return usesExpressProgress(detail, row) ? PROXY_MID_STEPS : MID_STEPS;
   }
 
-  function normalizeProxyProgress(progress) {
+  function normalizeProgressByMode(progress, isExpress) {
     if (!progress) return progress;
     var p = Object.assign({}, progress);
-    if (p.status === '待提货' || p.status === '部分提货') {
+    var midLen = isExpress ? PROXY_MID_STEPS.length : MID_STEPS.length;
+    if (isExpress && (p.status === '待提货' || p.status === '部分提货')) {
       p.status = '待收货';
     }
-    if (p.status === '待收货') {
+    /* 自提：提交订单 → 待接单 → 待发货 → 待收货 → 待提货 → 交易成功
+       快递：提交订单 → 待接单 → 待发货 → 待收货 → 交易成功 */
+    if (p.status === '待接单') {
+      p.completedSteps = 1;
+    } else if (p.status === '待发货' || p.status === '已支付') {
       p.completedSteps = 2;
-    } else     if (p.status === '已完成' || p.status === '交易成功' || p.outcome === 'success') {
-      p.completedSteps = PROXY_MID_STEPS.length;
+    } else if (p.status === '待收货') {
+      p.completedSteps = 3;
+    } else if (p.status === '待提货' || p.status === '部分提货') {
+      p.completedSteps = 4;
+    } else if (p.status === '已完成' || p.status === '交易成功' || p.outcome === 'success') {
+      p.completedSteps = midLen;
     } else if (p.status === '已关闭' || p.status === '交易失败' || p.outcome === 'failed') {
-      p.completedSteps = Math.min(p.completedSteps || 1, PROXY_MID_STEPS.length);
+      p.completedSteps = Math.min(p.completedSteps || 1, midLen);
     }
     return p;
+  }
+
+  function normalizeProxyProgress(progress) {
+    return normalizeProgressByMode(progress, true);
   }
 
   function el(tag, cls, html) {
@@ -1237,7 +1250,7 @@
     var base = {
       completedSteps: 1,
       outcome: null,
-      status: '运输中',
+      status: '待接单',
       submitTime: submitTime
     };
 
@@ -1252,7 +1265,7 @@
     }
     if (statusText === '已完成' || statusText === '交易成功') {
       return {
-        completedSteps: 4,
+        completedSteps: MID_STEPS.length,
         outcome: 'success',
         status: statusText === '交易成功' ? '交易成功' : '已完成',
         submitTime: submitTime,
@@ -1277,7 +1290,7 @@
     }
     if (statusText === '待发货' || statusText === '已支付') {
       return {
-        completedSteps: 1,
+        completedSteps: 2,
         outcome: null,
         status: statusText === '已支付' ? '已支付' : '待发货',
         submitTime: submitTime
@@ -1285,7 +1298,7 @@
     }
     if (statusText === '待提货') {
       return {
-        completedSteps: 3,
+        completedSteps: 4,
         outcome: null,
         status: '待提货',
         submitTime: submitTime
@@ -1293,7 +1306,7 @@
     }
     if (statusText === '部分提货') {
       return {
-        completedSteps: 3,
+        completedSteps: 4,
         outcome: null,
         status: '待提货',
         submitTime: submitTime
@@ -1301,7 +1314,7 @@
     }
     if (statusText === '待收货') {
       return {
-        completedSteps: 2,
+        completedSteps: 3,
         outcome: null,
         status: '待收货',
         submitTime: submitTime
@@ -1439,14 +1452,14 @@
       return {
         status: '已完成',
         outcome: 'success',
-        completedSteps: 4,
+        completedSteps: MID_STEPS.length,
         finishTime: formatNow()
       };
     }
     return {
       status: '待提货',
       outcome: null,
-      completedSteps: 3
+      completedSteps: 4
     };
   }
 
@@ -3221,7 +3234,7 @@
     var progressCard = el('div', 'order-detail-card');
     var progressHead = el('div', 'order-detail-progress-head');
     progressHead.appendChild(el('h3', 'order-detail-card__title', '订单进度'));
-    var statusTag = buildProgressStatusTag(progress.status || '运输中');
+    var statusTag = buildProgressStatusTag(progress.status || '待接单');
     progressHead.appendChild(statusTag);
     progressCard.appendChild(progressHead);
     var stepsEl = buildSteps({
@@ -3582,9 +3595,7 @@
       }
     }
     detail.progress = resolveProgress(detail.progress, row);
-    if (usesExpressProgress(detail, row)) {
-      detail.progress = normalizeProxyProgress(detail.progress);
-    }
+    detail.progress = normalizeProgressByMode(detail.progress, usesExpressProgress(detail, row));
 
     var backdrop = el('div', 'store-drawer-backdrop');
     backdrop.id = 'orderDetailBackdrop';
@@ -3759,7 +3770,7 @@
     detail.progress = Object.assign({}, detail.progress, {
       status: '已完成',
       outcome: 'success',
-      completedSteps: 4,
+      completedSteps: MID_STEPS.length,
       finishTime: formatNow()
     });
 
@@ -3872,9 +3883,7 @@
         }
       }
       detail.progress = resolveProgress(detail.progress, row);
-      if (usesExpressProgress(detail, row)) {
-        detail.progress = normalizeProxyProgress(detail.progress);
-      }
+      detail.progress = normalizeProgressByMode(detail.progress, usesExpressProgress(detail, row));
       return detail;
     },
     openDrawer: openDrawer,
