@@ -1,10 +1,66 @@
 {
-  "latestSha": "06f30905243781b913db932d61de4da1b222f1a5",
-  "total": 329,
+  "latestSha": "08d06f1ab1d8d6aa7c1da60432c569024be33d86",
+  "total": 330,
   "days": [
     {
       "date": "2026-09-01",
       "items": [
+        {
+          "sha": "08d06f1",
+          "type": "feat",
+          "text": "完善订单进度条并收起用户端待接单页签",
+          "author": "sisi",
+          "time": "11:40",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "详情进度条「运输中」改为「待接单」，快递和自提都在待接单后增加「待发货」"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "详情进度条同步为待接单、待发货"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "text": "去掉待接单页签，待接单只出现在全部里"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "text": "去掉待接单入口"
+            },
+            {
+              "file": null,
+              "text": "禅道需求稿写明已截单不可释放"
+            }
+          ]
+        },
         {
           "sha": "06f3090",
           "type": "feat",

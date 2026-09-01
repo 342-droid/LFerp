@@ -325,6 +325,31 @@
     "status": "diff",
     "date": "2026-09-01"
   },
+  "08d06f1|MDM/mdm_order_live.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-01"
+  },
+  "08d06f1|MDM/mdm_order_proxy.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-01"
+  },
+  "08d06f1|MDM/mdm_order_retail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-01"
+  },
+  "08d06f1|user-app/h5/orders.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-01"
+  },
+  "08d06f1|user-app/h5/profile.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-01"
+  },
   "0c7e249|SCM/app_obd_picking.html": {
     "regions": 0,
     "status": "diff",
