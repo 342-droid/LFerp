@@ -7,8 +7,8 @@
 
   function getAllowedTabs() {
     return isFromRestock()
-      ? ['all', 'unpaid', 'pending_accept', 'shipping', 'review']
-      : ['all', 'unpaid', 'pending_accept', 'shipping', 'pickup', 'review'];
+      ? ['all', 'unpaid', 'shipping', 'review']
+      : ['all', 'unpaid', 'shipping', 'pickup', 'review'];
   }
 
   function getActiveTab() {
