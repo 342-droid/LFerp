@@ -1,10 +1,30 @@
 {
-  "latestSha": "c8b0c976d9ea98718a7cf6f20dcc3fcf88c51055",
-  "total": 334,
+  "latestSha": "b9d0ca3d7c10cbc02efad0788e7467f5dc1344c4",
+  "total": 335,
   "days": [
     {
       "date": "2026-09-02",
       "items": [
+        {
+          "sha": "b9d0ca3",
+          "type": "feat",
+          "text": "订单截单改为只兜零售快递到家",
+          "author": "sisi",
+          "time": "22:23",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "订单截单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "text": "取消全渠道通用兜底，系统默认只保留零售快递到家（直播+商城、全部标签类目），名称改为「零售快递到家」；代采和仓配需单独配置或走订货汇总人工截单"
+            }
+          ]
+        },
         {
           "sha": "c8b0c97",
           "type": "feat",
