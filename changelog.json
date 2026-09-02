@@ -1,7 +1,42 @@
 {
-  "latestSha": "60b59cb7fb5345490933d232c819931d6f1cfebe",
-  "total": 336,
+  "latestSha": "74f837783f2d810be5b3c74e97414f2a01a2fd5f",
+  "total": 337,
   "days": [
+    {
+      "date": "2026-09-03",
+      "items": [
+        {
+          "sha": "74f8377",
+          "type": "feat",
+          "text": "选品库去掉系统标签「跳过自动截单」",
+          "author": "sisi",
+          "time": "01:30",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "订单截单"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "module": "冷丰采购",
+              "title": "门店订货汇总"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "text": "商品标签管理不再预置「跳过自动截单」，只保留系统标签「不走订货单」"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-09-02",
       "items": [

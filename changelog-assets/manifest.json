@@ -768,16 +768,6 @@
     "status": "diff",
     "date": "2026-08-31"
   },
-  "530ca8d|MDM/mdm_order_proxy.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-20"
-  },
-  "530ca8d|MDM/mdm_order_retail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-20"
-  },
   "53b6deb|MDM/mdm_aftersale_feedback.html": {
     "after": "changelog-assets/53b6deb/MDM__mdm_aftersale_feedback.html.after.jpg",
     "status": "added",
@@ -1233,6 +1223,21 @@
     "status": "diff",
     "date": "2026-08-27"
   },
+  "74f8377|MDM/mdm_order_express_cutoff.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-03"
+  },
+  "74f8377|MDM/mdm_product_selection.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-03"
+  },
+  "74f8377|SCM/purchase_store_demand_summary.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-03"
+  },
   "7fba2a9|MDM/mdm_live_product_sched_edit.html": {
     "before": "changelog-assets/7fba2a9/MDM__mdm_live_product_sched_edit.html.before.jpg",
     "after": "changelog-assets/7fba2a9/MDM__mdm_live_product_sched_edit.html.after.jpg",
@@ -1600,25 +1605,6 @@
     "status": "diff",
     "date": "2026-08-27"
   },
-  "9b0b6df|MDM/mdm_order_live.html": {
-    "before": "changelog-assets/9b0b6df/MDM__mdm_order_live.html.before.jpg",
-    "after": "changelog-assets/9b0b6df/MDM__mdm_order_live.html.after.jpg",
-    "regions": 38,
-    "status": "diff",
-    "date": "2026-08-20"
-  },
-  "9b0b6df|MDM/mdm_order_proxy.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-20"
-  },
-  "9b0b6df|MDM/mdm_order_retail.html": {
-    "before": "changelog-assets/9b0b6df/MDM__mdm_order_retail.html.before.jpg",
-    "after": "changelog-assets/9b0b6df/MDM__mdm_order_retail.html.after.jpg",
-    "regions": 38,
-    "status": "diff",
-    "date": "2026-08-20"
-  },
   "9d5665a|MDM/mdm_archive_carrier.html": {
     "regions": 0,
     "status": "diff",
@@ -1768,16 +1754,6 @@
     "regions": 3,
     "status": "diff",
     "date": "2026-08-26"
-  },
-  "b41cf64|MDM/mdm_order_proxy.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-20"
-  },
-  "b41cf64|MDM/mdm_order_retail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-20"
   },
   "b8b6536|MDM/mdm_order_live.html": {
     "regions": 0,
