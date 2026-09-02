@@ -13,18 +13,10 @@
     gray: { label: '灰色', text: '#8c8c8c', border: '#d9d9d9', bg: '#fafafa' }
   };
 
+  var RETIRED_TAG_IDS = ['sys_skip_auto_cutoff'];
+  var RETIRED_TAG_NAMES = ['跳过自动截单'];
+
   var SYSTEM_SEED = [
-    {
-      id: 'sys_skip_auto_cutoff',
-      name: '跳过自动截单',
-      color: 'orange',
-      source: 'system',
-      status: 'active',
-      isSystem: true,
-      maintainBiz: '截单链路',
-      maintainTip: '打上此标签的商品不参与订单自动截单（每日定时 / 支付后自动截单）。业务可正常绑定、移除和筛选；人工截单与提前发货补截单不受影响。',
-      created_at: '2026-09-01 10:00'
-    },
     {
       id: 'sys_skip_demand_summary',
       name: '不走订货单',
@@ -91,6 +83,12 @@
   }
 
   function ensureSystemTags(list) {
+    list = list.filter(function (row) {
+      return (
+        RETIRED_TAG_IDS.indexOf(row.id) < 0 &&
+        RETIRED_TAG_NAMES.indexOf(String(row.name || '').trim()) < 0
+      );
+    });
     var map = {};
     list.forEach(function (row) {
       map[row.id] = row;
@@ -152,10 +150,6 @@
     return getAll().filter(function (row) {
       return row.status === 'active';
     });
-  }
-
-  function isSkipAutoCutoff(name) {
-    return String(name || '').trim() === '跳过自动截单';
   }
 
   function isSkipDemandSummary(name) {
@@ -241,7 +235,6 @@
     getAll: getAll,
     getById: getById,
     getEnabled: getEnabled,
-    isSkipAutoCutoff: isSkipAutoCutoff,
     isSkipDemandSummary: isSkipDemandSummary,
     addTag: addTag,
     updateTag: updateTag,

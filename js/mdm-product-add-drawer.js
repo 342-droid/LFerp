@@ -234,7 +234,7 @@
         });
       }
     }
-    return ['爆款', '新品', '时令', '跳过自动截单', '不走订货单'];
+    return ['爆款', '新品', '时令', '不走订货单'];
   }
 
   function fieldSelect(id, label, required, placeholder, options) {

@@ -478,13 +478,6 @@
 
     function isSkipAutoCutoffTag(row) {
         if (!row) return false;
-        if (
-            window.MdmProductSelectionTagStore &&
-            typeof window.MdmProductSelectionTagStore.isSkipAutoCutoff === 'function' &&
-            window.MdmProductSelectionTagStore.isSkipAutoCutoff(row.name)
-        ) {
-            return true;
-        }
         return String(row.name || '').trim() === '跳过自动截单';
     }
 
