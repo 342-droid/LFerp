@@ -1794,6 +1794,21 @@
     "status": "diff",
     "date": "2026-09-02"
   },
+  "ce52424|MDM/mdm_live_product_sched_edit.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-03"
+  },
+  "ce52424|MDM/mdm_product_mall.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-03"
+  },
+  "ce52424|MDM/mdm_product_proxy_list.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-03"
+  },
   "d1b738c|SCM/inventory.html": {
     "before": "changelog-assets/d1b738c/SCM__inventory.html.before.jpg",
     "after": "changelog-assets/d1b738c/SCM__inventory.html.after.jpg",

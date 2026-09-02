@@ -1,10 +1,53 @@
 {
-  "latestSha": "e743e428e22c31712d760ab5ad57a433297283ce",
-  "total": 338,
+  "latestSha": "ce52424845955753646e90f5eb99cfe972034392",
+  "total": 339,
   "days": [
     {
       "date": "2026-09-03",
       "items": [
+        {
+          "sha": "ce52424",
+          "type": "feat",
+          "text": "仓店库存默认收起并输出库存管理正式 PRD",
+          "author": "sisi",
+          "time": "02:57",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "编辑商品里仓店库存默认收起，一行看现货和可售合计，可展开明细"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "编辑商品同样默认收起仓店库存，改可售后合计跟着变"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "text": "仓店库存同样默认收起，可展开查看"
+            },
+            {
+              "file": null,
+              "text": "库存管理正式 PRD 写清支付拆段、入库转化、核销扣实物，并配流程图"
+            }
+          ]
+        },
         {
           "sha": "e743e42",
           "type": "feat",
