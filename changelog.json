@@ -1,10 +1,39 @@
 {
-  "latestSha": "8c700c671b17a313e0f25e65a44449652583ef90",
-  "total": 333,
+  "latestSha": "c8b0c976d9ea98718a7cf6f20dcc3fcf88c51055",
+  "total": 334,
   "days": [
     {
       "date": "2026-09-02",
       "items": [
+        {
+          "sha": "c8b0c97",
+          "type": "feat",
+          "text": "支付后自动截单不进订货汇总且人工截单后到点不再重跑",
+          "author": "sisi",
+          "time": "22:14",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "订单截单"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "module": "冷丰采购",
+              "title": "门店订货汇总"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "text": "支付后自动截单的订单不再进入门店订货汇总，也不再走每日定时"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "text": "本页人工截单后，订单截单到点策略不再对该单重复执行"
+            }
+          ]
+        },
         {
           "sha": "8c700c6",
           "type": "feat",
