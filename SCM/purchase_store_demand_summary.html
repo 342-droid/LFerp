@@ -417,6 +417,7 @@
 
     <!-- 引入公共脚本（订货明细数据与门店订货单页共用，见 purchase-store-order-data.js） -->
     <script src="../js/purchase-store-order-data.js"></script>
+    <script src="../js/order-cutoff-runtime.js"></script>
     <script src="../js/modal-manager.js"></script>
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
@@ -427,13 +428,19 @@
     const resolvePurchaseStoreMarketingType = window.resolvePurchaseStoreMarketingType;
     const resolvePurchaseStoreSkuImage = window.resolvePurchaseStoreSkuImage;
 
-    const storeOrderLines = (window.PURCHASE_STORE_ORDER_LINES || []).map(function(row) {
-        return Object.assign({}, row, {
-            marketingType: typeof resolvePurchaseStoreMarketingType === 'function'
-                ? resolvePurchaseStoreMarketingType(row)
-                : ''
+    const storeOrderLines = (function() {
+        var lines = (window.PURCHASE_STORE_ORDER_LINES || []).map(function(row) {
+            return Object.assign({}, row, {
+                marketingType: typeof resolvePurchaseStoreMarketingType === 'function'
+                    ? resolvePurchaseStoreMarketingType(row)
+                    : ''
+            });
         });
-    });
+        if (window.OrderCutoffRuntime && typeof window.OrderCutoffRuntime.filterDemandSummaryLines === 'function') {
+            return window.OrderCutoffRuntime.filterDemandSummaryLines(lines);
+        }
+        return lines;
+    })();
 
     const hints = {
         product: '按商品维度汇总各门店的订货需求，数量已合并。',
@@ -924,6 +931,15 @@
         var ts = d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
         var rnd2 = String(Math.floor(Math.random() * 100)).padStart(2, '0');
         var mdh = 'MDH' + ts + rnd2;
+        if (window.OrderCutoffRuntime && typeof window.OrderCutoffRuntime.markManualDemandCutoff === 'function') {
+            var nos = [];
+            (filteredLines || []).forEach(function(row) {
+                window.OrderCutoffRuntime.orderNosOf(row).forEach(function(no) {
+                    if (nos.indexOf(no) < 0) nos.push(no);
+                });
+            });
+            window.OrderCutoffRuntime.markManualDemandCutoff(nos, mdh);
+        }
         if (typeof showToast === 'function') {
             showToast('截单成功，已根据门店订货汇总生成门店订货单，单号 ' + mdh, 'success');
         } else {
