@@ -1,10 +1,53 @@
 {
-  "latestSha": "b9d0ca3d7c10cbc02efad0788e7467f5dc1344c4",
-  "total": 335,
+  "latestSha": "60b59cb7fb5345490933d232c819931d6f1cfebe",
+  "total": 336,
   "days": [
     {
       "date": "2026-09-02",
       "items": [
+        {
+          "sha": "60b59cb",
+          "type": "feat",
+          "text": "不进订货汇总改为选品库系统标签控制",
+          "author": "sisi",
+          "time": "23:12",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "订单截单"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "module": "冷丰采购",
+              "title": "门店订货汇总"
+            },
+            {
+              "file": "SCM/purchase_store_order_sheet.html",
+              "module": "冷丰采购",
+              "title": "门店订货单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "text": "支付后自动截单不再等于不进订货汇总，只表示支付即截单"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "text": "标签管理新增系统标签「不走订货单」，打上后该商品不进门店订货汇总"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "text": "按商品标签「不走订货单」过滤明细行，不再按支付后截单整单排除"
+            }
+          ]
+        },
         {
           "sha": "b9d0ca3",
           "type": "feat",
