@@ -2,62 +2,14 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>库存管理规则（底层）</title>
+  <meta http-equiv="refresh" content="0; url=库存管理需求.html">
+  <title>库存管理规则 → 库存管理需求</title>
   <style>
-    body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; padding: 24px; max-width: 880px; color: #333; line-height: 1.65; }
-    h1 { font-size: 22px; margin: 0 0 12px; }
-    h2 { font-size: 17px; margin: 28px 0 8px; }
-    p, li { font-size: 14px; }
-    ul { margin: 8px 0 8px 22px; }
-    pre { background: #f7f7f7; border: 1px solid #e5e5e5; padding: 10px 12px; white-space: pre-wrap; font-size: 13px; }
-    .meta { color: #666; font-size: 13px; }
-    .tip { background: #fff7ef; border: 1px solid #ffd4b0; padding: 10px 14px; border-radius: 6px; margin: 12px 0 20px; font-size: 14px; }
+    body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; padding: 48px 24px; color: #333; }
+    a { color: #ff7019; }
   </style>
 </head>
 <body>
-  <h1>库存管理规则（底层逻辑）</h1>
-  <p class="meta">v1.0 · 2026-09-03 · 不在原型单独做库存台账 · 全文见 <code>docs/库存管理规则-v1.0-20260903.txt</code></p>
-  <div class="tip">预占只在<strong>支付成功</strong>增加，按仓拆成<strong>现货预占 / 预售预占</strong>。截单不碰库存。核销才扣仓实物。直发可以没有仓总库存。</div>
-
-  <h2>和原图的差异</h2>
-  <ul>
-    <li>账本在配送仓，不是单店池；代采 / 商城 / 直播共享。</li>
-    <li>先销后采为主，仓里可以还没有货。</li>
-    <li>同一 SKU 可同时现货 + 预售；可售按现货百分比溢出的部分走预售预占。</li>
-    <li>零售快递到家经常直发，不能套「总库存 − 预占 = 现货」。</li>
-    <li>待支付不加预占。</li>
-  </ul>
-
-  <h2>公式</h2>
-  <pre>仓可用现货 = max(0, 仓实物 − 现货预占)
-还能卖     = max(0, 仓可售 − 现货预占 − 预售预占)
-
-支付数量 Q：
-  走现货 = min(Q, 仓可用现货, 还能卖)
-  走预售 = Q − 走现货
-不足则拒单</pre>
-
-  <h2>预占增加</h2>
-  <p>支付成功是唯一正向入口。一笔单可同时拆出现货段和预售段，用户不用先选预售。</p>
-  <p>直播先扣本场配额，再按上面拆段。配额和其他渠道抢同一仓「还能卖」。</p>
-
-  <h2>履约</h2>
-  <ul>
-    <li>零售快递到家：仓发走现货段；直发 / 无实物 / 溢出走预售段。直发核销不扣仓实物。</li>
-    <li>零售自提、代采配送/快递：有仓可用现货走现货段，先销后采走预售段，到货后预售预占转现货预占。</li>
-    <li>直播快递/自提：先占场次配额，再拆段。</li>
-  </ul>
-
-  <h2>节点</h2>
-  <ul>
-    <li>支付：加预占</li>
-    <li>截单：不动库存</li>
-    <li>入库：实物 +N；预售预占转现货预占</li>
-    <li>取消（未到手）：原路退预占</li>
-    <li>出库：预占仍在（用户未到手）；本期出库不扣实物</li>
-    <li>核销：清预占；非直发扣仓实物</li>
-  </ul>
-
-  <p class="meta">实现：<code>js/order-stock-runtime.js</code></p>
+  <p>已并入正式 PRD：<a href="./库存管理需求.html">库存管理需求 v1.0</a>（2026-09-03）。</p>
 </body>
 </html>

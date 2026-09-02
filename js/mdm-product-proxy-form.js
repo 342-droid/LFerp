@@ -1026,6 +1026,10 @@
       sum = window.MdmSkuWhStock.applyStoreScope(sum, getSelectedStoreNames(formState));
     }
     box.innerHTML = window.MdmSkuWhStock.renderTable(sum);
+    var sumEl = panel.querySelector('[data-wh-stock-sum]');
+    if (sumEl && typeof window.MdmSkuWhStock.summaryText === 'function') {
+      sumEl.textContent = window.MdmSkuWhStock.summaryText(sum);
+    }
   }
 
   function refreshAllWhStock(backdrop) {
