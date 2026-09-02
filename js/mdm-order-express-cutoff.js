@@ -4,6 +4,7 @@
  * 零售履约：快递到家、门店自提；代采履约：平台配送、快递配送。
  * 适用场景（直播 / 商城）仅零售订单使用；支持每日定时 / 支付后自动截单。
  * 指定履约 / 指定标签 / 指定类目优先于「全部」；门店订货汇总自动截单已并入本页。
+ * 系统只兜零售 × 快递到家（直播+商城、全部标签类目），不做全渠道通用兜底。
  * 底层（见 order-cutoff-runtime.js，不改本页交互）：
  * - 支付后自动截单的订单不进入采购「门店订货汇总」，也不再走每日定时；
  * - 订货汇总已人工截单的订单，到点策略不再重复执行。
@@ -76,11 +77,11 @@
     var SEED_STRATEGIES = [
         {
             id: 's1',
-            name: '通用截单策略',
-            channels: ['retail', 'proxy'],
+            name: '零售快递到家',
+            channels: ['retail'],
             scenes: ['live', 'mall'],
-            fulfillmentScope: 'all',
-            fulfillments: [],
+            fulfillmentScope: 'specified',
+            fulfillments: ['express_home'],
             cutoffMode: 'time',
             cutoffTime: '10:00:00',
             tagScope: 'all',
@@ -773,7 +774,25 @@
         return !!row && !isDefaultStrategy(row);
     }
 
-    function isCatchAllStrategy(row) {
+    function isRetailHomeFallback(row) {
+        if (!row) return false;
+        var channels = inferChannels(row);
+        var scenes = normalizeScenes(row);
+        var fulfills = fulfillmentIdsOf(row);
+        return (
+            channels.length === 1 &&
+            channels[0] === 'retail' &&
+            !isAllFulfillment(row) &&
+            fulfills.length === 1 &&
+            fulfills[0] === 'express_home' &&
+            row.tagScope !== 'specified' &&
+            row.categoryScope !== 'specified' &&
+            scenes.indexOf('live') >= 0 &&
+            scenes.indexOf('mall') >= 0
+        );
+    }
+
+    function isLegacyCatchAllStrategy(row) {
         if (!row) return false;
         var channels = inferChannels(row);
         var scenes = normalizeScenes(row);
@@ -788,19 +807,24 @@
         );
     }
 
+    function isCatchAllStrategy(row) {
+        return isRetailHomeFallback(row) || isLegacyCatchAllStrategy(row);
+    }
+
     function applyDefaultLocks(row) {
         if (!row) return row;
         row.isDefault = true;
-        row.channels = ['retail', 'proxy'];
+        row.channels = ['retail'];
         row.scenes = ['live', 'mall'];
-        row.fulfillmentScope = 'all';
-        row.fulfillments = [];
+        row.fulfillmentScope = 'specified';
+        row.fulfillments = ['express_home'];
         row.tagScope = 'all';
         row.tags = [];
         row.categoryScope = 'all';
         row.categories = [];
         row.status = 'active';
-        if (!String(row.name || '').trim()) row.name = '通用截单策略';
+        var name = String(row.name || '').trim();
+        if (!name || name === '通用截单策略' || name === '零售快递到家兜底') row.name = '零售快递到家';
         return row;
     }
 
@@ -820,11 +844,11 @@
         } else {
             def = normalizeStrategy({
                 id: nextId(),
-                name: '通用截单策略',
-                channels: ['retail', 'proxy'],
+                name: '零售快递到家',
+                channels: ['retail'],
                 scenes: ['live', 'mall'],
-                fulfillmentScope: 'all',
-                fulfillments: [],
+                fulfillmentScope: 'specified',
+                fulfillments: ['express_home'],
                 cutoffMode: 'time',
                 cutoffTime: '10:00:00',
                 tagScope: 'all',
@@ -955,7 +979,7 @@
                     var checked = !!state.selected[row.id];
                     var deletable = canDeleteStrategy(row);
                     var nameExtra = isDefaultStrategy(row)
-                        ? '<span class="cutoff-default-tag">通用</span>'
+                        ? '<span class="cutoff-default-tag">兜底</span>'
                         : '';
                     var toggleBtn = canStopStrategy(row)
                         ? '<button type="button" class="sf-link js-cutoff-toggle">' +
@@ -1544,7 +1568,7 @@
             if (catAdd) catAdd.disabled = true;
             if (sceneTip) {
                 sceneTip.textContent =
-                    '通用策略覆盖零售和代采、全部履约、全部标签、全部类目和所有场景，仅可修改名称、截单方式、截单时间和备注，不支持停用或删除。';
+                    '系统只兜零售快递到家（直播+商城、全部标签、全部类目）。仅可修改名称、截单方式、截单时间和备注，不支持停用或删除。不做全渠道通用兜底。';
             }
         } else if (sceneTip) {
             sceneTip.textContent = isCreate
@@ -1653,7 +1677,7 @@
                 state.strategies = state.strategies.map(function (item) {
                     return item.id === state.editId ? draft : item;
                 });
-                if (isDefaultStrategy(draft)) toast('通用策略已保存');
+                if (isDefaultStrategy(draft)) toast('兜底策略已保存');
                 else if (prev && prev.status === 'active') toast('已保存并停用，请手动启用');
                 else if (draft.status === 'draft') toast('已保存为草稿，请手动启用');
                 else toast('已保存，请手动启用');
@@ -1733,7 +1757,7 @@
                 });
                 var blocked = ids.length - removable.length;
                 if (!removable.length) {
-                    toast('启用中的策略和通用策略不支持删除', 'warning');
+                    toast('启用中的策略和兜底策略不支持删除', 'warning');
                     return;
                 }
                 if (
@@ -1817,7 +1841,7 @@
                     delete state.selected[id];
                     toast(
                         isDefaultStrategy(checkedRow)
-                            ? '通用策略不支持删除'
+                            ? '兜底策略不支持删除'
                             : '启用中的策略不支持删除',
                         'warning'
                     );
@@ -1845,7 +1869,7 @@
                 }
                 if (ev.target.closest('.js-cutoff-toggle')) {
                     if (!canStopStrategy(row)) {
-                        toast('通用策略不支持停用', 'warning');
+                        toast('兜底策略不支持停用', 'warning');
                         return;
                     }
                     row.status = row.status === 'active' ? 'stopped' : 'active';
