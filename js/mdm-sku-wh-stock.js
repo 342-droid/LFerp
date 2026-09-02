@@ -351,6 +351,19 @@
     };
   }
 
+  function summaryText(sum) {
+    var n = (sum && sum.rows ? sum.rows.length : 0);
+    return (
+      '现货 ' +
+      ((sum && sum.spotTotal) || 0) +
+      ' · 可售 ' +
+      ((sum && sum.sellableTotal) || 0) +
+      ' · ' +
+      n +
+      ' 个仓'
+    );
+  }
+
   function renderPanel(sku, opts) {
     opts = opts || {};
     var sum = applyStoreScope(attachToSku(sku, opts), opts.storeNames);
@@ -362,15 +375,42 @@
           ? '下表仅展示<strong>售卖范围内门店</strong>对应的配送仓库存。现货由仓储按仓维护；可售按上方配置套在各仓现货上。'
           : '下表按<strong>配送仓 / 共享门店</strong>展示库存。现货由仓储按仓维护，商品现货=各仓之和；可售按上方配置计算。<strong>现货预占</strong>扣剩余可售，<strong>预售预占</strong>不扣当前现货。';
     return (
-      '<div class="product-proxy-spec__field product-proxy-spec__field--wh-stock">' +
+      '<div class="product-proxy-spec__field product-proxy-spec__field--wh-stock is-collapsed">' +
+      '<button type="button" class="product-proxy-wh-stock__toggle" data-wh-stock-toggle aria-expanded="false">' +
+      '<span class="product-proxy-wh-stock__toggle-title">仓店库存</span>' +
+      '<span class="product-proxy-wh-stock__toggle-sum" data-wh-stock-sum>' +
+      escapeHtml(summaryText(sum)) +
+      '</span>' +
+      '<span class="product-proxy-wh-stock__toggle-act" data-wh-stock-toggle-label>展开</span>' +
+      '</button>' +
+      '<div class="product-proxy-wh-stock__body" data-wh-stock-body hidden>' +
       '<div class="mdm-biz-tip mdm-biz-tip--flush" role="note">' +
       tip +
       '</div>' +
       '<div data-wh-stock>' +
       renderTable(sum) +
       '</div>' +
+      '</div>' +
       '</div>'
     );
+  }
+
+  if (typeof document !== 'undefined' && !document._whStockToggleBound) {
+    document._whStockToggleBound = true;
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-wh-stock-toggle]');
+      if (!btn) return;
+      var wrap = btn.closest('.product-proxy-spec__field--wh-stock');
+      if (!wrap) return;
+      var open = wrap.classList.contains('is-collapsed');
+      wrap.classList.toggle('is-collapsed', !open);
+      wrap.classList.toggle('is-open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      var label = btn.querySelector('[data-wh-stock-toggle-label]');
+      if (label) label.textContent = open ? '收起' : '展开';
+      var body = wrap.querySelector('[data-wh-stock-body]');
+      if (body) body.hidden = !open;
+    });
   }
 
   function addChannelParts(parts, proxy, mall, live) {
@@ -424,6 +464,7 @@
     applyStoreScope: applyStoreScope,
     renderTable: renderTable,
     renderPanel: renderPanel,
+    summaryText: summaryText,
     reservedChannelTotals: reservedChannelTotals,
     normalizeSellableMode: normalizeSellableMode,
     parseNum: parseNum
