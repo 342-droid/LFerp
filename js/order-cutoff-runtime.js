@@ -1,8 +1,9 @@
 /**
- * 订单截单运行时（底层规则，不改配置页 / 汇总页交互）
+ * 订单截单运行时（底层规则）
  *
- * 1. 支付后自动截单：支付成功即已截单，不进入采购「门店订货汇总」，也不再走每日定时。
- * 2. 采购侧人工截单（订货汇总「截单并生成门店订货单」）：订单已截单，到点策略不再重复执行。
+ * 1. 支付后自动截单：支付成功即已截单，不再走每日定时。是否进订货汇总由商品标签决定，不跟截单方式绑定。
+ * 2. 选品库系统标签「不走订货单」：该商品行不进入采购「门店订货汇总」，不生成门店订货单。
+ * 3. 采购侧人工截单后，到点策略不再重复执行。
  * 已截单不可释放；任一来源写入后，其它自动截单任务跳过该单。
  */
 (function (global) {
@@ -175,6 +176,44 @@
         return isMarkedAfterPay(row) || matchesAfterPayStrategy(row);
     }
 
+    function tagTokensOf(row) {
+        var tokens = [];
+        function push(item) {
+            if (item == null) return;
+            if (typeof item === 'string') {
+                var text = item.trim();
+                if (text) tokens.push(text);
+                return;
+            }
+            var id = String((item.id || '')).trim();
+            var name = String((item.name || '')).trim();
+            if (id) tokens.push(id);
+            if (name) tokens.push(name);
+        }
+        if (!row) return tokens;
+        (row.tags || []).forEach(push);
+        (row.productTags || []).forEach(push);
+        (row.skuTags || []).forEach(push);
+        var skuMap = global.PURCHASE_STORE_SKU_TAGS || {};
+        var skuCode = String((row.skuCode || '')).trim();
+        if (skuCode && skuMap[skuCode]) {
+            (skuMap[skuCode] || []).forEach(push);
+        }
+        return tokens;
+    }
+
+    function isSkipDemandSummaryToken(token) {
+        var text = String(token || '').trim();
+        if (!text) return false;
+        if (text === 'sys_skip_demand_summary' || text === '不走订货单') return true;
+        var store = global.MdmProductSelectionTagStore;
+        return !!(store && typeof store.isSkipDemandSummary === 'function' && store.isSkipDemandSummary(text));
+    }
+
+    function skipsDemandSummary(row) {
+        return tagTokensOf(row).some(isSkipDemandSummaryToken);
+    }
+
     function alreadyCommitted(row) {
         var fact = factOf(row);
         if (fact && fact.status === 'CUTOFF_COMMITTED') return true;
@@ -184,7 +223,7 @@
 
     function shouldAppearInDemandSummary(row) {
         if (!row) return false;
-        return !isAfterPayCutoffOrder(row);
+        return !skipsDemandSummary(row);
     }
 
     function filterDemandSummaryLines(lines) {
@@ -247,6 +286,7 @@
         orderNosOf: orderNosOf,
         factOf: factOf,
         isAfterPayCutoffOrder: isAfterPayCutoffOrder,
+        skipsDemandSummary: skipsDemandSummary,
         shouldAppearInDemandSummary: shouldAppearInDemandSummary,
         filterDemandSummaryLines: filterDemandSummaryLines,
         canApplyScheduleCutoff: canApplyScheduleCutoff,

@@ -51,6 +51,9 @@
      * @returns {string}
      */
     /** 商品编码 -> 商品图片（列表展示用；行上可写 skuImage 覆盖） */
+    /** 商品编码 -> 选品库标签名。含「不走订货单」的 SKU 不进门店订货汇总。 */
+    window.PURCHASE_STORE_SKU_TAGS = {};
+
     window.PURCHASE_STORE_SKU_IMAGES = {
         SKU001: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=64&h=64&fit=crop',
         SKU002: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=64&h=64&fit=crop',
