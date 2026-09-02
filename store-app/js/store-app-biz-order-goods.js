@@ -76,7 +76,11 @@
     var html =
       '<section class="sa-og-summary">' +
       '<div class="sa-og-summary__comm">本单佣金 <em>' +
-      money(order.commission) +
+      money(
+        window.StoreAppBizOrders && typeof StoreAppBizOrders.earnedCommission === 'function'
+          ? StoreAppBizOrders.earnedCommission(order)
+          : order.commission
+      ) +
       '元</em></div>' +
       '<div class="sa-og-summary__paid">订单实付 ' +
       money(order.paid) +

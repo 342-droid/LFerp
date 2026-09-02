@@ -297,7 +297,7 @@
       var path = String((global.location && global.location.pathname) || '');
       if (/\/(restock|product-detail|checkout)\.html$/i.test(path)) return true;
       var search = String((global.location && global.location.search) || '');
-      if (/from=restock/i.test(search) || /from=store-app/i.test(search)) return true;
+      if (/from=restock/i.test(search) || /from=store-app/i.test(search) || /from=bd-app/i.test(search) || /port=bd-app/i.test(search)) return true;
     } catch (e) {
       /* ignore */
     }

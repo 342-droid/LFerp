@@ -915,7 +915,8 @@
   gap: 4px;
 }
 
-.ua-od-price__total-wrap #orderPayTotal {
+.ua-od-price__total-wrap #orderPayTotal,
+.ua-od-price__paid {
   font-size: 18px;
   font-weight: 700;
   color: #333333;

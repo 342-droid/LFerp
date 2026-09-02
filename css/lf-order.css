@@ -653,6 +653,11 @@ body[data-order-page="proxy"] .order-live-table__check-col .table-checkbox {
   cursor: help;
 }
 
+.order-live-table .order-pay-no {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
 .order-live-table__link {
   color: var(--color-primary, #ff7019);
   text-decoration: none;
@@ -1075,6 +1080,12 @@ body[data-order-page="retail"] .order-live-table__action:hover {
   color: #409eff;
   background: #ecf5ff;
   border-color: #b3d8ff;
+}
+
+.order-tag--pending-accept {
+  color: #2f54eb;
+  background: #f0f5ff;
+  border-color: #adc6ff;
 }
 
 .order-tag--pending-ship {
@@ -2104,6 +2115,24 @@ button.order-detail-refund-breakdown__row.is-link:focus-visible {
   font-weight: 600;
 }
 
+.order-detail-payment-table th.is-dir,
+.order-detail-payment-table td.is-dir,
+.order-detail-payment-table th.is-status,
+.order-detail-payment-table td.is-status {
+  text-align: center;
+}
+
+.order-detail-payment-table th.is-amount,
+.order-detail-payment-table td.is-amount {
+  text-align: right;
+}
+
+.order-detail-payment-table td.is-flow {
+  max-width: 168px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .order-detail-pay-tag {
   display: inline-block;
   padding: 2px 8px;
@@ -2112,6 +2141,22 @@ button.order-detail-refund-breakdown__row.is-link:focus-visible {
   line-height: 18px;
   color: #1f9d55;
   background: #e8f8ef;
+}
+
+.order-detail-pay-tag--in,
+.order-detail-pay-tag--ok {
+  color: #1f9d55;
+  background: #e8f8ef;
+}
+
+.order-detail-pay-tag--refund {
+  color: #e67a17;
+  background: #fff4e8;
+}
+
+.order-detail-pay-tag--closed {
+  color: #606266;
+  background: #f0f2f5;
 }
 
 .order-detail-empty {

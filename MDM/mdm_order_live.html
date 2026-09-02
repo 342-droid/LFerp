@@ -7,9 +7,9 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <link rel="stylesheet" href="../css/lf-order.css">
+    <link rel="stylesheet" href="../css/lf-order.css?v=20260831-pay-no">
 </head>
-<body>
+<body data-order-page="live">
     <div id="sidebar-container"></div>
     <script src="../js/path-prefix.js"></script>
     <script src="../js/order-sidebar.js"></script>
@@ -51,6 +51,10 @@
                                         <option value="wechat">微信支付</option>
                                         <option value="alipay">支付宝</option>
                                     </select>
+                                </div>
+                                <div class="order-filter-field">
+                                    <label class="order-filter-field__label" for="qPayNo">支付流水</label>
+                                    <input class="order-filter-field__input" id="qPayNo" type="text" placeholder="请输入支付流水" aria-label="支付流水">
                                 </div>
                                 <div class="order-filter-field">
                                     <label class="order-filter-field__label" for="qOrderStatus">订单状态</label>
@@ -130,12 +134,13 @@
                                         <th><span class="order-th-label">积分抵扣金额 <i class="order-th-help" title="积分抵扣金额">?</i></span></th>
                                         <th><span class="order-th-label">实付金额 <i class="order-th-help" title="用户实付金额">?</i></span></th>
                                         <th>支付渠道</th>
+                                        <th>支付流水</th>
                                         <th>订单状态</th>
                                         <th class="order-live-table__sticky-col">操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr data-order-id="ORD-3212689201598341">
+                                    <tr data-order-id="ORD-3212689201598341" data-pay-no="">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201598341">ORD-3212689201598341</a></td>
                                         <td>2026-06-05 20:47</td>
                                         <td>赵金芝</td>
@@ -156,10 +161,11 @@
                                         <td>¥0.00</td>
                                         <td>¥0.01</td>
                                         <td>-</td>
+                                        <td class="order-pay-no">-</td>
                                         <td><span class="order-tag order-tag--closed">已关闭</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201598341">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201588561">
+                                    <tr data-order-id="ORD-3212689201588561" data-pay-no="">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561">ORD-3212689201588561</a></td>
                                         <td>2026-06-05 20:46</td>
                                         <td>赵金芝</td>
@@ -180,10 +186,11 @@
                                         <td>¥0.00</td>
                                         <td>¥0.90</td>
                                         <td>-</td>
+                                        <td class="order-pay-no">-</td>
                                         <td><span class="order-tag order-tag--created">已创建</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201588561-B">
+                                    <tr data-order-id="ORD-3212689201588561-B" data-pay-no="">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561-B">ORD-3212689201588561</a></td>
                                         <td>2026-06-03 09:36</td>
                                         <td>赵金芝</td>
@@ -204,10 +211,11 @@
                                         <td>¥0.00</td>
                                         <td>¥10.90</td>
                                         <td>-</td>
+                                        <td class="order-pay-no">-</td>
                                         <td><span class="order-tag order-tag--created">已创建</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561-B">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201584693">
+                                    <tr data-order-id="ORD-3212689201584693" data-pay-no="">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201584693">ORD-3212689201584693</a></td>
                                         <td>2026-06-02 18:07</td>
                                         <td>赵金芝</td>
@@ -228,10 +236,11 @@
                                         <td>¥0.00</td>
                                         <td>¥0.90</td>
                                         <td>-</td>
+                                        <td class="order-pay-no">-</td>
                                         <td><span class="order-tag order-tag--created">已创建</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201584693">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201562037-A">
+                                    <tr data-order-id="ORD-3212689201562037-A" data-pay-no="">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-A">ORD-3212689201562037</a></td>
                                         <td>2026-06-02 18:06</td>
                                         <td>赵金芝</td>
@@ -252,10 +261,11 @@
                                         <td>¥0.00</td>
                                         <td>¥8.80</td>
                                         <td>-</td>
+                                        <td class="order-pay-no">-</td>
                                         <td><span class="order-tag order-tag--created">已创建</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-A">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201562037-B">
+                                    <tr data-order-id="ORD-3212689201562037-B" data-pay-no="">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-B">ORD-3212689201562037</a></td>
                                         <td>2026-06-02 18:05</td>
                                         <td>赵金芝</td>
@@ -276,10 +286,11 @@
                                         <td>¥0.00</td>
                                         <td>¥10.50</td>
                                         <td>-</td>
+                                        <td class="order-pay-no">-</td>
                                         <td><span class="order-tag order-tag--created">已创建</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-B">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201560683">
+                                    <tr data-order-id="ORD-3212689201560683" data-pay-no="">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560683">ORD-3212689201560683</a></td>
                                         <td>2026-06-02 18:04</td>
                                         <td>赵金芝</td>
@@ -300,10 +311,11 @@
                                         <td>¥0.00</td>
                                         <td>¥6.60</td>
                                         <td>-</td>
+                                        <td class="order-pay-no">-</td>
                                         <td><span class="order-tag order-tag--created">已创建</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560683">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599001">
+                                    <tr data-order-id="ORD-3212689201599001" data-pay-channel="wechat" data-pay-no="4200009201599001">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599001">ORD-3212689201599001</a></td>
                                         <td>2026-06-04 14:20</td>
                                         <td>宁静致远</td>
@@ -323,7 +335,8 @@
                                         <td>-</td>
                                         <td>¥0.00</td>
                                         <td>¥118.18</td>
-                                        <td>-</td>
+                                        <td>微信</td>
+                                        <td class="order-pay-no">4200009201599001</td>
                                         <td><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
                                             <div class="order-live-table__actions">
@@ -332,7 +345,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599002">
+                                    <tr data-order-id="ORD-3212689201599002" data-pay-channel="alipay" data-pay-no="2026083101599002">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599002">ORD-3212689201599002</a></td>
                                         <td>2026-06-04 11:35</td>
                                         <td>宋雨琦</td>
@@ -352,7 +365,8 @@
                                         <td>-</td>
                                         <td>¥0.00</td>
                                         <td>¥54.18</td>
-                                        <td>-</td>
+                                        <td>支付宝</td>
+                                        <td class="order-pay-no">2026083101599002</td>
                                         <td><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
                                             <div class="order-live-table__actions">
@@ -361,7 +375,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599003">
+                                    <tr data-order-id="ORD-3212689201599003" data-pay-channel="wechat" data-pay-no="4200009201599003">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599003">ORD-3212689201599003</a></td>
                                         <td>2026-06-03 16:48</td>
                                         <td>赵金芝</td>
@@ -381,7 +395,8 @@
                                         <td>200</td>
                                         <td>¥0.00</td>
                                         <td>¥46.18</td>
-                                        <td>-</td>
+                                        <td>微信</td>
+                                        <td class="order-pay-no">4200009201599003</td>
                                         <td><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
                                             <div class="order-live-table__actions">
@@ -390,7 +405,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201560682">
+                                    <tr data-order-id="ORD-3212689201560682" data-pay-channel="alipay" data-pay-no="2026083101560682">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560682">ORD-3212689201560682</a></td>
                                         <td>2026-06-02 18:03</td>
                                         <td>赵金芝</td>
@@ -410,7 +425,8 @@
                                         <td>-</td>
                                         <td>¥0.00</td>
                                         <td>¥15.00</td>
-                                        <td>-</td>
+                                        <td>支付宝</td>
+                                        <td class="order-pay-no">2026083101560682</td>
                                         <td><span class="order-tag order-tag--completed">已完成</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560682">查看</a></td>
                                     </tr>
@@ -418,7 +434,7 @@
                             </table>
                         </div>
                         <div class="order-pagination">
-                            <span>共 11 条</span>
+                            <span class="order-pagination__total">共 11 条</span>
                             <select class="order-pagination__size" aria-label="每页条数">
                                 <option selected>20条/页</option>
                                 <option>50条/页</option>
@@ -441,7 +457,7 @@
         </main>
     </div>
     <script src="../js/common.js"></script>
-    <script src="../js/order-live-list.js"></script>
-    <script src="../js/order-live-detail.js"></script>
+    <script src="../js/order-live-list.js?v=20260831-live-pay-no"></script>
+    <script src="../js/order-live-detail.js?v=20260831-pay-flow"></script>
 </body>
 </html>

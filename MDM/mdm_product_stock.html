@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 库存统计</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-product.css?v=20260831-stock-export3">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/product-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="product-page">
+                <div class="product-page-tabs" id="productPageTabs" aria-label="页面页签"></div>
+
+                <div class="product-page-body">
+                    <section class="erp-page__card product-filter-card">
+                        <form class="product-filter-form" id="productStockFilterForm" onsubmit="return false;">
+                            <div class="product-filter-grid">
+                                <div class="product-filter-field">
+                                    <label class="product-filter-field__label" for="qStockCode">商品编码</label>
+                                    <input class="product-filter-field__input" id="qStockCode" type="text" placeholder="请输入商品编码">
+                                </div>
+                                <div class="product-filter-field">
+                                    <label class="product-filter-field__label" for="qStockName">商品名称</label>
+                                    <input class="product-filter-field__input" id="qStockName" type="text" placeholder="请输入商品名称">
+                                </div>
+                                <div class="product-filter-field">
+                                    <label class="product-filter-field__label" for="qStockCategory">商品类目</label>
+                                    <select class="product-filter-field__select" id="qStockCategory">
+                                        <option value="">请选择商品类目</option>
+                                    </select>
+                                </div>
+                                <div class="product-filter-field">
+                                    <label class="product-filter-field__label" for="qStockWarehouse">配送仓</label>
+                                    <select class="product-filter-field__select" id="qStockWarehouse">
+                                        <option value="">全部仓库</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="product-filter-actions">
+                                <button type="button" class="product-filter-btn product-filter-btn--primary" id="productStockQuery">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                                    查询
+                                </button>
+                                <button type="button" class="product-filter-btn product-filter-btn--default" id="productStockReset">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M5 19a9 9 0 0014-7"/><path d="M19 5a9 9 0 00-14 7"/></svg>
+                                    重置
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="erp-page__card product-table-card">
+                        <div class="mdm-biz-tip" role="note">选品库主数据库存：<strong>现货</strong>由仓储按配送仓维护，商品现货=各仓之和；<strong>可售</strong>按 SKU 配置套在各仓现货上；<strong>总预占</strong>=现货预占+预售预占。<strong>现货预占</strong>锁当前可售并扣减剩余可售；<strong>预售预占</strong>锁未来到货，不扣当前现货。代采 / 商城 / 直播共享按仓汇总。规格配置只展示共享现货与可售。</div>
+                        <div class="product-stock-summary" id="productStockSummary"></div>
+                        <div class="product-toolbar product-toolbar--stock">
+                            <div class="product-stock-export" id="productStockExport" data-lf-skip-export-notify>
+                                <button type="button" class="product-stock-export__btn" id="productStockExportBtn" aria-expanded="false" aria-haspopup="true" data-lf-skip-export-notify>
+                                    导出
+                                    <span class="product-stock-export__caret" aria-hidden="true"></span>
+                                </button>
+                                <div class="product-stock-export__menu" id="productStockExportMenu" hidden data-lf-skip-export-notify>
+                                    <button type="button" class="product-stock-export__item" data-export-scope="selected">导出勾选数据</button>
+                                    <button type="button" class="product-stock-export__item" data-export-scope="query">导出所有查询数据</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="product-table-wrap">
+                            <table class="product-table product-stock-table">
+                                <thead>
+                                    <tr>
+                                        <th class="product-stock-table__check">
+                                            <input type="checkbox" id="productStockCheckAll" aria-label="全选当前页">
+                                        </th>
+                                        <th>商品编码</th>
+                                        <th>商品名称</th>
+                                        <th>规格</th>
+                                        <th>SKU 编码</th>
+                                        <th class="product-stock-table__num">现货库存</th>
+                                        <th class="product-stock-table__num">可售库存</th>
+                                        <th class="product-stock-table__num">总预占</th>
+                                        <th class="product-stock-table__num">现货预占</th>
+                                        <th class="product-stock-table__num">预售预占</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productStockTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="product-empty" id="productStockEmpty" hidden>暂无符合条件的库存</div>
+                        <div class="product-pagination" id="productStockPagination">
+                            <span id="productStockPaginationTotal">共 0 条</span>
+                            <div class="product-pagination__right">
+                                <select class="product-pagination__size" id="productStockPageSize" aria-label="每页条数">
+                                    <option value="20" selected>20条/页</option>
+                                    <option value="50">50条/页</option>
+                                    <option value="100">100条/页</option>
+                                </select>
+                                <div class="product-pagination__pages" id="productStockPaginationPages"></div>
+                                <label class="product-pagination__goto">
+                                    前往
+                                    <input id="productStockPageGoto" type="text" value="1" inputmode="numeric">
+                                    页
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/product-page-tabs.js"></script>
+    <script src="../js/mdm-product-catalog-store.js"></script>
+    <script src="../js/mdm-sku-wh-stock.js?v=20260831-reserve-total"></script>
+    <script src="../js/mdm-product-stock.js?v=20260831-stock-export3"></script>
+</body>
+</html>

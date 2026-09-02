@@ -12,6 +12,15 @@
         { label: '立即付款', type: 'primary', action: 'pay' }
       ]
     },
+    pending_accept: {
+      title: '待接单',
+      sub: '买家已付款，等待商家接单',
+      showLogistics: false,
+      showPoints: false,
+      showPayMethod: true,
+      itemActions: 'refund',
+      footer: [{ label: '取消订单', type: 'ghost', action: 'cancel', single: true }]
+    },
     shipping: {
       title: '待发货',
       sub: '买家已付款，商家正在备货',
@@ -101,6 +110,11 @@
     unpaid: {
       title: '等待付款',
       sub: '逾期未支付订单将自动关闭',
+      showStoreDelivery: false
+    },
+    pending_accept: {
+      title: '待接单',
+      sub: '已付款，等待供应商接单',
       showStoreDelivery: false
     },
     shipping: {
@@ -362,6 +376,8 @@
     if (status === 'receipt') {
       config.title = '商家已发货';
       config.sub = '快递配送到家，还剩14天23小时自动确认收货';
+    } else if (status === 'pending_accept') {
+      config.sub = '已付款，等待商家接单后发货';
     } else if (status === 'shipping') {
       config.sub = '供应商正在备货，将快递配送到家';
     }
@@ -441,7 +457,7 @@
 
   function getRefundScene() {
     var status = getStatus();
-    if (status === 'shipping') return 'pre_ship';
+    if (status === 'pending_accept' || status === 'shipping') return 'pre_ship';
     /* 零售发货后到门店待收货：仅退款 */
     if (status === 'to_store' && !isFromRestock()) return 'to_store';
     if (status === 'completed') return 'aftersale';
@@ -606,6 +622,10 @@
 
     var noEl = document.getElementById('orderNoText');
     if (noEl) noEl.textContent = order.orderNo;
+    var createdAtEl = document.getElementById('orderCreatedAtValue');
+    if (createdAtEl && order.createdAt) createdAtEl.textContent = order.createdAt;
+    var payTimeEl = document.getElementById('orderPayTimeValue');
+    if (payTimeEl) payTimeEl.textContent = order.paidAt || '-';
 
     var items = order.items || [];
     document.querySelectorAll('.ua-od-item').forEach(function (el, idx) {
@@ -649,26 +669,43 @@
       }
     });
 
+    var goodsTotal = Number(order.goodsTotal || 0);
+    var freight = Number(order.freight || 0);
+    var payable = Number(order.payable || 0);
     var goodsTotalEl = document.getElementById('orderGoodsTotal');
-    if (goodsTotalEl) goodsTotalEl.textContent = '¥' + Number(order.goodsTotal || 0).toFixed(2);
-    var freightEl = document.getElementById('orderFreight');
-    if (freightEl) {
-      freightEl.textContent =
-        Number(order.freight || 0) > 0 ? '¥' + Number(order.freight).toFixed(2) : '免运费';
-    }
-    var deductRow = document.getElementById('orderPointsDeductRow');
-    var deductEl = document.getElementById('orderPointsDeduct');
-    if (deductRow && deductEl) {
-      if (Number(order.deductAmount) > 0) {
-        deductRow.hidden = false;
-        deductEl.textContent = '-¥' + Number(order.deductAmount).toFixed(2);
-      } else {
-        deductRow.hidden = true;
+    if (goodsTotalEl) goodsTotalEl.textContent = '¥' + goodsTotal.toFixed(2);
+    if (isFromRestock()) {
+      var freightEl = document.getElementById('orderFreight');
+      if (freightEl) {
+        freightEl.textContent = freight > 0 ? '¥' + freight.toFixed(2) : '免运费';
+      }
+      var deductRow = document.getElementById('orderPointsDeductRow');
+      var deductEl = document.getElementById('orderPointsDeduct');
+      if (deductRow && deductEl) {
+        if (Number(order.deductAmount) > 0) {
+          deductRow.hidden = false;
+          deductEl.textContent = '-¥' + Number(order.deductAmount).toFixed(2);
+        } else {
+          deductRow.hidden = true;
+        }
+      }
+    } else {
+      /* 用户 APP：订单优惠 = 商品总价 + 运费 − 实付 */
+      var discount = Math.round((goodsTotal + freight - payable) * 100) / 100;
+      var discountRow = document.getElementById('orderDiscountRow');
+      var discountEl = document.getElementById('orderDiscount');
+      if (discountRow && discountEl) {
+        if (discount > 0) {
+          discountRow.hidden = false;
+          discountEl.textContent = '-¥' + discount.toFixed(2);
+        } else {
+          discountRow.hidden = true;
+        }
       }
     }
     var payTotalEl = document.getElementById('orderPayTotal');
     if (payTotalEl) {
-      payTotalEl.textContent = order.payLabel || '¥' + Number(order.payable || 0).toFixed(2);
+      payTotalEl.textContent = order.payLabel || '¥' + payable.toFixed(2);
     }
     applyOrderPayDisplay(order);
     return order;
@@ -692,6 +729,18 @@
 
     if (methodEl) {
       if (methodNames) methodEl.textContent = methodNames;
+    }
+
+    var payNoEl = document.getElementById('orderPayNoValue');
+    if (payNoEl) {
+      var payNo = (order && order.payNo) || '';
+      if (!payNo && window.UaOrdersStore && typeof window.UaOrdersStore.demoPayNo === 'function') {
+        payNo = window.UaOrdersStore.demoPayNo(
+          (order && order.orderNo) || (document.getElementById('orderNoText') || {}).textContent,
+          methodNames || (order && order.payMethod)
+        );
+      }
+      if (payNo) payNoEl.textContent = payNo;
     }
 
     if (!legsEl) return;
@@ -862,7 +911,7 @@
   function filterAftersaleBarsForStatus(bars, status) {
     var list = bars || [];
     /* 待发货 / 零售门店待收货：仅支持仅退款 */
-    if (status === 'shipping' || (status === 'to_store' && !isFromRestock())) {
+    if (status === 'pending_accept' || status === 'shipping' || (status === 'to_store' && !isFromRestock())) {
       return list.filter(function (bar) {
         return bar.group === 'refund' && (!bar.record || bar.record.type !== 'return');
       });
@@ -1100,6 +1149,38 @@
       .join('');
   }
 
+  /** 进货详情维持原金额拆行；用户端才用「订单优惠」三行卡 */
+  function applyRestockPriceLayout() {
+    var restock = isFromRestock();
+    document.querySelectorAll('[data-price-layout="user"]').forEach(function (el) {
+      if (restock) {
+        el.hidden = true;
+        return;
+      }
+      if (el.id === 'orderDiscountRow') return;
+      el.hidden = false;
+    });
+    document.querySelectorAll('[data-price-layout="restock"]').forEach(function (el) {
+      el.hidden = !restock;
+    });
+    if (!restock) return;
+    var deductRow = document.getElementById('orderPointsDeductRow');
+    var deductEl = document.getElementById('orderPointsDeduct');
+    var orderNo = getParams().get('orderNo');
+    var order =
+      orderNo && window.UaOrdersStore && typeof window.UaOrdersStore.getByNo === 'function'
+        ? window.UaOrdersStore.getByNo(orderNo)
+        : null;
+    if (deductRow && deductEl && order) {
+      if (Number(order.deductAmount) > 0) {
+        deductRow.hidden = false;
+        deductEl.textContent = '-¥' + Number(order.deductAmount).toFixed(2);
+      } else {
+        deductRow.hidden = true;
+      }
+    }
+  }
+
   function applyRestockMode(status, config) {
     if (!isFromRestock()) return config;
 
@@ -1142,6 +1223,7 @@
     applyPendingLogisticsCard(status);
     renderReceiptLogisticsTrack(status);
     applyStoreExpressCard(status);
+    applyRestockPriceLayout();
 
     var backEl = document.getElementById('orderDetailBack');
     if (backEl) {
@@ -1490,8 +1572,16 @@
     var pointsCard = document.getElementById('orderPointsCard');
     if (pointsCard) pointsCard.hidden = !config.showPoints;
 
+    applyRestockPriceLayout();
+    var payTimeRow = document.getElementById('orderPayTimeRow');
+    if (payTimeRow) {
+      /* 进货详情不加付款时间；用户端待支付/已取消与支付方式一同隐藏 */
+      payTimeRow.hidden = isFromRestock() || !config.showPayMethod;
+    }
     var payMethodRow = document.getElementById('orderPayMethodRow');
     if (payMethodRow) payMethodRow.hidden = !config.showPayMethod;
+    var payNoRow = document.getElementById('orderPayNoRow');
+    if (payNoRow) payNoRow.hidden = !config.showPayMethod;
 
     renderItemActions(canShowItemAftersale(status) ? config.itemActions : 'none');
     renderItemAftersaleBars();

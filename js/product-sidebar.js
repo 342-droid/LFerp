@@ -1,4 +1,4 @@
-/* 商品专用侧栏：选品库 / 商品类目 / 商品品牌 / 商城商品 / 代采商品 */
+/* 商品专用侧栏：选品库 / 库存统计 / 商品类目 / 商品品牌 / 商城商品 / 代采商品 */
 (function () {
   var wp = window.wmsPath || { page: function (f) { return f; }, asset: function (r) { return r; } };
   var pageHref = function (f) { return wp.page(f); };
@@ -10,6 +10,7 @@
 
   var flatItems = [
     { href: 'mdm_product_selection.html', text: '选品库', alsoActive: ['mdm_product_audit.html'] },
+    { href: 'mdm_product_stock.html', text: '库存统计' },
     { href: 'mdm_product_category.html', text: '商品类目' },
     { href: 'mdm_product_brand.html', text: '商品品牌' }
   ];

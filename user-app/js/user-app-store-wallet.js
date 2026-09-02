@@ -51,9 +51,8 @@
 
   /**
    * 账变类型 / 状态：与 MDM 门店档案·账变记录枚举对齐
-   * 收入：账户=入账钱包；支付方式=来源（不可与账户同值）
-   * 支出：账户=对手方；付款方式=出款钱包/渠道（不可与账户同值）
-   * 售后/责任类扣款：账户=平台，付款方式=保证金账户；保证金不足则失败
+   * 账户：与后台「账户类型」一致，只记本方【余额账户】【保证金账户】
+   * 交易方：收入=资金来源，支出=资金去向（与后台「资金来源/去向」同值）
    */
   var BIZ_TYPE_MAP = {
     保证金划拨入账: '保证金入账',
@@ -122,6 +121,7 @@
       return item.dir === 'out' || EXPENSE_TYPES.indexOf(type) >= 0 || EXPENSE_TYPES.indexOf(mapped) >= 0;
     }
     if (tab === 'lock') {
+      if (item.dir === 'out') return false;
       return (
         item.dir === 'lock' ||
         item.dir === 'unlock' ||
@@ -360,31 +360,22 @@
     return '';
   }
 
-  function accountLabel(account, subAccount) {
-    var a = String(account || '').trim();
-    var sub = String(subAccount || '');
-    if (a === '平台') return '平台';
-    if (a.indexOf('资金到账') >= 0) return '资金到账账户';
-    if (a.indexOf('保证金') >= 0 && a.indexOf('余额') >= 0) return '保证金账户/余额账户';
-    if (a.indexOf('保证金') >= 0) return '保证金账户';
-    if (a.indexOf('余额') >= 0) {
-      if (sub.indexOf('货款') >= 0) return '余额账户-货款';
-      return '余额账户';
-    }
-    /* 提现账户 / 佣金回退商户简称等：原样展示 */
-    return a || '—';
-  }
-
-  /** 提现：账户=银行名称(卡号后四位)；其它走 accountLabel */
+  /** 账户：与 MDM 账变记录「账户类型」一致，只落余额账户 / 保证金账户 */
   function accountDisplay(item) {
-    if (isWithdrawLedger(item) && mapLedgerBizType(item && item.type) === '提现') {
-      var a = String((item && item.account) || '').trim();
-      if (a && a.indexOf('资金到账') < 0 && a.indexOf('余额') < 0 && a.indexOf('保证金') < 0) {
-        return a;
-      }
-      return withdrawBankLabel(item);
+    var a = String((item && item.account) || '').trim();
+    var pay = String((item && (item.payMethod || item.channel)) || '').trim();
+    var type = String((item && item.type) || '');
+    var biz = mapLedgerBizType(type);
+    if (a.indexOf('保证金') >= 0 && a.indexOf('余额') < 0) return '保证金账户';
+    if (a.indexOf('余额') >= 0) return '余额账户';
+    if (pay === '保证金账户' || (pay.indexOf('保证金') >= 0 && pay.indexOf('余额') < 0)) {
+      return '保证金账户';
     }
-    return accountLabel(item && item.account, item && item.subAccount);
+    if (pay === '余额账户' || pay.indexOf('余额') >= 0) return '余额账户';
+    if (biz === '保证金入账' || type === '保证金划拨入账' || biz === '保证金补缴') {
+      return '保证金账户';
+    }
+    return '余额账户';
   }
 
   function isExpenseLedger(item) {
@@ -397,13 +388,7 @@
     );
   }
 
-  /** 支出（含提现）：字段名「付款方式」；收入 / 锁定补齐：「支付方式」 */
-  function payWayFieldLabel(item) {
-    if (isExpenseLedger(item) || isWithdrawLedger(item)) return '付款方式';
-    return '支付方式';
-  }
-
-  /** 对公展示为「银行名称(卡号后四位)」；支付方式仅：银行卡 / 支付宝 / 微信 */
+  /** 对公展示为「银行名称(卡号后四位)」 */
   function corpBankLabel(item) {
     var bank = String((item && (item.bankName || item.settleBankName)) || '').trim();
     var tail = String((item && (item.bankTail || item.cardTail || item.settleCardTail)) || '').trim();
@@ -417,23 +402,8 @@
     return '';
   }
 
-  function isWithdrawLedger(item) {
-    var biz = mapLedgerBizType(item && item.type);
-    return biz === '提现' || biz === '提现回退';
-  }
-
-  /** 提现到账银行：银行名+卡号后四位（用于账户字段） */
-  function withdrawBankLabel(item) {
-    var corp = corpBankLabel(item);
-    if (corp) return corp;
-    var a = String((item && item.account) || '').trim();
-    if (a && a.indexOf('资金到账') < 0 && a.indexOf('银行') >= 0) return a;
-    var m = String((item && (item.payMethod || item.channel)) || '').trim();
-    if (m && m !== '对公账户' && m !== '对公' && m.indexOf('账户') < 0) return m;
-    return '—';
-  }
-
-  function payMethodLabel(item) {
+  /** 收入 / 划拨：资金来源（渠道、商户、本方划出钱包） */
+  function fundSourceLabel(item) {
     var m = String((item && (item.payMethod || item.channel)) || '').trim();
     if (
       m === '平台' ||
@@ -443,35 +413,41 @@
     ) {
       return m;
     }
-    var type = String((item && item.type) || '');
-    var mapped = mapLedgerBizType(type);
-    /* 提现：付款方式为出款钱包（余额/保证金），不再展示银行 */
-    if (mapped === '提现' || type === '提现申请') {
-      if (m === '保证金账户' || m === '余额账户/保证金账户') return m;
-      return '余额账户';
-    }
     if (m) return m;
-    /* 旧「保证金出账」默认保证金账户；其余售后/责任类扣款默认余额账户 */
-    if (type === '保证金出账') return '保证金账户';
-    if (
-      mapped === '进货支付' ||
-      mapped === '售后/责任类扣款' ||
-      type === '余额支付' ||
-      type === '佣金回退' ||
-      type === '保证金补齐' ||
-      type === '保证金划拨出账' ||
-      type === '保证金划拨入账'
-    ) {
-      return '余额账户';
-    }
     var no = String((item && item.channelNo) || '');
     if (/^WX/i.test(no)) return '微信';
     if (/^ALI|ZFB/i.test(no)) return '支付宝';
-    if (item && item.bankName) {
-      var corp = corpBankLabel(item);
-      if (corp) return corp;
-    }
+    var corp = corpBankLabel(item);
+    if (corp) return corp;
     return '—';
+  }
+
+  /** 支出：资金去向（平台 / 商户 / 到账银行） */
+  function fundDestLabel(item) {
+    var biz = mapLedgerBizType(item && item.type);
+    if (biz === '提现' || biz === '提现回退') {
+      var bank = corpBankLabel(item);
+      if (bank) return bank;
+      var wa = String((item && item.account) || '').trim();
+      if (wa && wa.indexOf('资金到账') < 0 && wa.indexOf('余额') < 0 && wa.indexOf('保证金') < 0) {
+        return wa;
+      }
+      return '—';
+    }
+    var a = String((item && item.account) || '').trim();
+    if (a && a.indexOf('余额') < 0 && a.indexOf('保证金') < 0 && a.indexOf('资金到账') < 0) {
+      return a;
+    }
+    if (biz === '佣金回退' && a) return a;
+    if (biz === '保证金补缴') return '保证金账户';
+    return '平台';
+  }
+
+  /** 交易方：收入=资金来源，支出=资金去向 */
+  function tradePartyLabel(item) {
+    var biz = mapLedgerBizType(item && item.type);
+    if (biz === '提现' || isExpenseLedger(item)) return fundDestLabel(item);
+    return fundSourceLabel(item);
   }
 
   /** 状态枚举与 MDM 一致：成功 / 处理中 / 失败；提现不可撤销 */
@@ -574,11 +550,9 @@
           '<span class="ua-sw-ledger__v">' +
           escHtml(accountDisplay(item)) +
           '</span></div>' +
-          '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">' +
-          payWayFieldLabel(item) +
-          '</span>' +
+          '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">交易方</span>' +
           '<span class="ua-sw-ledger__v">' +
-          escHtml(payMethodLabel(item)) +
+          escHtml(tradePartyLabel(item)) +
           '</span></div>' +
           '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">交易流水</span>' +
           '<span class="ua-sw-ledger__v">' +

@@ -204,6 +204,7 @@
         var href = window.UaOrdersStore.buildDetailHref(fresh);
         var statusMap = {
           unpaid: '待付款',
+          pending_accept: '待接单',
           shipping: '待发货',
           receipt: '待收货',
           completed: '已完成',

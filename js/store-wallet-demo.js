@@ -9,9 +9,10 @@
  * - 佣金回退 / 进货支付：付款方式=余额账户；不扣货款
  * - 进货支付底层扣款顺序：货款 → 余额(可提现+待解冻) → 支付宝/微信
  * - 混合支付：先冻结积分+余额，先验三方回调，再解冻划拨余额、扣减积分
+ * - 保证金补缴出双分录：余额账户支出 + 保证金账户划拨入账
  */
 (function (global) {
-  var STORAGE_KEY = 'lf_store_wallet_demo_v24';
+  var STORAGE_KEY = 'lf_store_wallet_demo_v25';
   /* 演示商户（供应商简称）：收入·佣金结算的支付方式 / 支出·佣金回退的账户 */
   var DEMO_MERCHANT_SHORT = '优鲜供应链';
   /* 零售：售后/责任类扣款（余额账户付款）/ 佣金回退 —— 不扣货款，扣余额剩余层 */
@@ -80,6 +81,40 @@
     if (bank) return bank;
     if (ch && ch !== '对公账户' && ch !== '对公') return ch;
     return '—';
+  }
+
+  /** 保证金补缴双分录：余额账户支出 + 保证金账户划拨入账 */
+  function pushDepositFillPair(d, spec) {
+    var amt = round2((spec && spec.amount) || 0);
+    if (!(amt > 0) || !d || !Array.isArray(d.ledgers)) return;
+    var now = (spec && spec.time) || formatNow();
+    var bizNo = (spec && spec.bizNo) || '';
+    var channelNo = (spec && spec.channelNo) || '';
+    var idBase = (spec && spec.idBase) || String(Date.now());
+    d.ledgers.unshift({
+      id: (spec && spec.idIn) || 'DF' + idBase + 'I',
+      time: now,
+      type: '保证金补齐',
+      dir: 'lock',
+      amount: amt,
+      account: '保证金',
+      bizNo: bizNo,
+      channelNo: channelNo,
+      payMethod: '余额账户',
+      remark: (spec && spec.remarkIn) || '从余额账户划入补缴保证金'
+    });
+    d.ledgers.unshift({
+      id: (spec && spec.idOut) || 'DF' + idBase + 'O',
+      time: now,
+      type: '保证金补齐',
+      dir: 'out',
+      amount: amt,
+      account: '余额',
+      bizNo: bizNo,
+      channelNo: channelNo,
+      payMethod: '保证金账户',
+      remark: (spec && spec.remarkOut) || '从余额账户划出补缴保证金'
+    });
   }
 
   function defaultLedgers() {
@@ -251,6 +286,18 @@
         channelNo: 'SPLIT-2201',
         payMethod: DEMO_MERCHANT_SHORT,
         remark: '佣金结算入账优先补齐保证金缺口 300，剩余进可提现'
+      },
+      {
+        id: 'L012-OUT',
+        time: '2026-08-02 18:40:00',
+        type: '保证金补齐',
+        dir: 'out',
+        amount: 300,
+        account: '余额',
+        bizNo: 'CM-20260802-2201',
+        channelNo: 'FILL-300',
+        payMethod: '保证金账户',
+        remark: '从余额账户划出补缴保证金缺口 300'
       },
       {
         id: 'L012',
@@ -583,28 +630,24 @@
     /* 后续充值：正常门店有缺口先补齐；已禁用已解冻则不补缺口，全额待解冻 */
     if (fill > 0) {
       d.depositActual = round2(d.depositActual + fill);
-      d.ledgers.unshift({
-        id: 'R' + Date.now() + 'D',
-        time: now,
-        type: '保证金补齐',
-        dir: 'lock',
+      pushDepositFillPair(d, {
         amount: fill,
-        account: '保证金',
+        time: now,
         bizNo: bizNo,
         channelNo: 'RC-FILL-' + Date.now().toString().slice(-4),
-        payMethod: '余额账户',
-        channel: channel,
-        remark: '充值优先从余额账户补齐保证金缺口'
+        idBase: String(Date.now()),
+        remarkIn: '充值优先从余额账户补齐保证金缺口',
+        remarkOut: '充值入账后从余额账户划出补缴保证金缺口'
       });
     }
-    if (rest > 0) {
-      d.pending = round2((d.pending || 0) + rest);
+    if (amt > 0 && (rest > 0 || fill > 0)) {
+      if (rest > 0) d.pending = round2((d.pending || 0) + rest);
       d.ledgers.unshift({
         id: 'R' + Date.now(),
         time: now,
         type: '充值',
         dir: 'in',
-        amount: rest,
+        amount: amt,
         account: '余额',
         bizNo: bizNo,
         channelNo: channelNo,
@@ -615,7 +658,9 @@
         thawStatus: 'pending',
         remark: gapSuppressed
           ? payMethod + '充值·已禁用已解冻不补保证金·未满 T+1，计入待解冻'
-          : payMethod + '充值·未满 T+1，计入待解冻'
+          : fill > 0
+            ? payMethod + '充值 ' + amt + '·其中补缴保证金 ' + fill + '·未满 T+1'
+            : payMethod + '充值·未满 T+1，计入待解冻'
       });
     }
     save(d);

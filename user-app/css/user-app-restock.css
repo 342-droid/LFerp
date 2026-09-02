@@ -104,6 +104,120 @@
   color: #333;
 }
 
+.ua-restock-store__name {
+  max-width: 88px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ua-restock-store__chev {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: #999;
+}
+
+.ua-restock-bd-tip {
+  margin: 0 12px 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #fff7ed;
+  color: #c2410c;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ua-restock-store-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-end;
+}
+
+.ua-restock-store-sheet[hidden] {
+  display: none !important;
+}
+
+.ua-restock-store-sheet__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.ua-restock-store-sheet__panel {
+  position: relative;
+  width: 100%;
+  max-height: 72%;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ua-restock-store-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 6px;
+}
+
+.ua-restock-store-sheet__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.ua-restock-store-sheet__close {
+  border: none;
+  background: none;
+  font-size: 22px;
+  line-height: 1;
+  color: #999;
+  cursor: pointer;
+}
+
+.ua-restock-store-sheet__hint {
+  margin: 0 16px 8px;
+  font-size: 12px;
+  color: #999;
+}
+
+.ua-restock-store-sheet__list {
+  overflow: auto;
+  padding: 0 8px 16px;
+}
+
+.ua-restock-store-sheet__item {
+  display: block;
+  width: 100%;
+  border: none;
+  background: #fff;
+  text-align: left;
+  padding: 12px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.ua-restock-store-sheet__item.is-active {
+  background: #fff7ed;
+}
+
+.ua-restock-store-sheet__item-name {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+}
+
+.ua-restock-store-sheet__item-meta {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #888;
+}
+
 .ua-restock-search {
   flex: 1;
   display: flex;

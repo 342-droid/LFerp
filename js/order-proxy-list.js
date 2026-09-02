@@ -14,7 +14,7 @@
   function canCancelOrder(row) {
     if (window.OrderPlatformAftersale) return window.OrderPlatformAftersale.canCancelOrder(row);
     var status = getRowOrderStatus(row);
-    return ['待支付', '已创建', '已支付', '待发货'].indexOf(status) >= 0;
+    return ['待支付', '已创建', '已支付', '待接单', '待发货'].indexOf(status) >= 0;
   }
 
   function canPlatformRefund(row) {

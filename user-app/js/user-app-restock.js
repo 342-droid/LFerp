@@ -21,12 +21,43 @@
   var memoryCartPage = null;
   var pageParams = new URLSearchParams(window.location.search);
   var fromStoreApp = pageParams.get('from') === 'store-app';
+  var fromBdApp = pageParams.get('from') === 'bd-app';
+
+  function scopeApi() {
+    return window.UaProxySaleScope;
+  }
 
   function restockPageHref(extra) {
     var q = [];
-    if (fromStoreApp) q.push('from=store-app');
+    if (fromBdApp) {
+      q.push('from=bd-app');
+      var sid = scopeApi() && scopeApi().readSelectedStoreId();
+      if (sid) q.push('storeId=' + encodeURIComponent(sid));
+    } else if (fromStoreApp) {
+      q.push('from=store-app');
+    }
     if (extra) q.push(extra.replace(/^\?/, ''));
     return 'restock.html' + (q.length ? '?' + q.join('&') : '');
+  }
+
+  function restockCheckoutPort() {
+    if (fromBdApp) {
+      var sid = scopeApi() && scopeApi().readSelectedStoreId();
+      return '&port=bd-app' + (sid ? '&storeId=' + encodeURIComponent(sid) : '');
+    }
+    if (fromStoreApp) return '&port=store-app';
+    return '';
+  }
+
+  function currentScopeStore() {
+    if (!fromBdApp || !scopeApi()) return null;
+    return scopeApi().getCurrentStore({ fromBd: true });
+  }
+
+  function isInSaleScope(productId) {
+    if (!fromBdApp) return true;
+    if (!scopeApi()) return true;
+    return scopeApi().isVisible(productId, currentScopeStore());
   }
 
   var homeSearchKeyword = '';
@@ -97,7 +128,12 @@
       var id = card.getAttribute('data-id') || '';
       var title = (card.getAttribute('data-title') || card.textContent || '').toLowerCase();
       var unsaleable = !isRestockSaleable({ id: id, title: card.getAttribute('data-title') });
+      var outOfScope = !isInSaleScope(id);
       var match = !searching || title.indexOf(q) !== -1;
+      if (outOfScope) {
+        card.hidden = true;
+        return;
+      }
       card.hidden = searching ? !match : unsaleable;
       card.classList.toggle('is-unsaleable', unsaleable);
       var wrap = card.querySelector('.ua-restock-product__img-wrap');
@@ -201,8 +237,106 @@
   }
 
   function goStoreWallet() {
-    var from = fromStoreApp ? 'store-app' : 'restock.html';
+    var from = fromBdApp ? 'bd-app' : fromStoreApp ? 'store-app' : 'restock.html';
     window.location.href = 'store-wallet.html?from=' + encodeURIComponent(from);
+  }
+
+  function escapeStoreHtml(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function syncRestockStoreUi() {
+    var store = currentScopeStore();
+    var nameEl = document.getElementById('restockStoreName');
+    var chevEl = document.getElementById('restockStoreChev');
+    var tipEl = document.getElementById('restockBdTip');
+    var btn = document.getElementById('restockStoreBtn');
+    if (nameEl) {
+      nameEl.textContent = fromBdApp && store ? store.shortName || store.name : '门店';
+    }
+    if (chevEl) chevEl.hidden = !fromBdApp;
+    if (btn) {
+      btn.setAttribute('aria-label', fromBdApp ? '切换门店' : '选择门店');
+    }
+    if (tipEl) {
+      tipEl.hidden = !fromBdApp;
+      if (fromBdApp && store) {
+        tipEl.textContent = '正在查看「' + store.name + '」代采商城，仅查看不可下单';
+      }
+    }
+  }
+
+  function closeStoreSheet() {
+    var sheet = document.getElementById('restockStoreSheet');
+    if (sheet) sheet.hidden = true;
+  }
+
+  function renderStoreSheet() {
+    var listEl = document.getElementById('restockStoreSheetList');
+    if (!listEl || !scopeApi()) return;
+    var current = currentScopeStore();
+    var currentId = current ? current.id : '';
+    listEl.innerHTML = scopeApi()
+      .listBdStores()
+      .map(function (store) {
+        var active = store.id === currentId ? ' is-active' : '';
+        return (
+          '<button type="button" class="ua-restock-store-sheet__item' +
+          active +
+          '" data-store-pick="' +
+          escapeStoreHtml(store.id) +
+          '">' +
+          '<span class="ua-restock-store-sheet__item-name">' +
+          escapeStoreHtml(store.name) +
+          '</span>' +
+          '<span class="ua-restock-store-sheet__item-meta">' +
+          escapeStoreHtml(store.regionCascade || store.address || '') +
+          '</span></button>'
+        );
+      })
+      .join('');
+  }
+
+  function openStoreSheet() {
+    if (!fromBdApp) return;
+    renderStoreSheet();
+    var sheet = document.getElementById('restockStoreSheet');
+    if (sheet) sheet.hidden = false;
+  }
+
+  function applyStoreChange(storeId) {
+    if (!scopeApi()) return;
+    scopeApi().writeSelectedStoreId(storeId);
+    closeStoreSheet();
+    syncRestockStoreUi();
+    applyHomeBrowseSaleable();
+    renderCategoryContent();
+    renderCart();
+    if (fromBdApp && window.history && window.history.replaceState) {
+      window.history.replaceState(null, '', restockPageHref(pageParams.get('tab') ? 'tab=' + pageParams.get('tab') : ''));
+    }
+  }
+
+  function bindBdStoreSwitcher() {
+    var btn = document.getElementById('restockStoreBtn');
+    if (btn) {
+      btn.addEventListener('click', function () {
+        if (fromBdApp) openStoreSheet();
+      });
+    }
+    var sheet = document.getElementById('restockStoreSheet');
+    if (!sheet) return;
+    sheet.addEventListener('click', function (e) {
+      if (e.target.closest('[data-store-sheet-close]')) {
+        closeStoreSheet();
+        return;
+      }
+      var pick = e.target.closest('[data-store-pick]');
+      if (pick) applyStoreChange(pick.getAttribute('data-store-pick'));
+    });
   }
 
   function handleMeAction(action) {
@@ -235,7 +369,8 @@
 
   function switchTab(tabId) {
     if (tabId === 'orders') {
-      window.location.href = 'orders.html?from=restock.html';
+      window.location.href =
+        'orders.html?from=restock.html' + (fromBdApp ? '&port=bd-app' : fromStoreApp ? '&port=store-app' : '');
       return;
     }
     var prevPanel = document.querySelector('.ua-restock-panel--active');
@@ -1417,7 +1552,7 @@
       encodeURIComponent(specId) +
       '&from=restock.html&tab=' +
       encodeURIComponent(tab) +
-      (fromStoreApp ? '&port=store-app' : '')
+      restockCheckoutPort()
     );
   }
 
@@ -3903,6 +4038,7 @@
     var searching = !!(catState && catState.keyword);
     var q = searching ? String(catState.keyword).toLowerCase() : '';
     var displayItems = (items || []).filter(function (item) {
+      if (!isInSaleScope(item && item.id)) return false;
       if (searching) {
         var title = String((item && item.title) || '').toLowerCase();
         return !q || title.indexOf(q) !== -1;
@@ -4509,7 +4645,7 @@
       }
       function goCheckout() {
         window.location.href =
-          'checkout.html?from=restock.html' + (fromStoreApp ? '&port=store-app' : '');
+          'checkout.html?from=restock.html' + restockCheckoutPort();
       }
       if (unsaleable.length) {
         showSaleDialog({
@@ -4522,9 +4658,9 @@
       goCheckout();
     });
 
-  var initialTab = pageParams.get('tab') || (fromStoreApp ? 'home' : 'cart');
+  var initialTab = pageParams.get('tab') || (fromStoreApp || fromBdApp ? 'home' : 'cart');
   if (['home', 'category', 'cart', 'me'].indexOf(initialTab) < 0) {
-    initialTab = fromStoreApp ? 'home' : 'cart';
+    initialTab = fromStoreApp || fromBdApp ? 'home' : 'cart';
   }
 
   if (fromStoreApp) {
@@ -4536,6 +4672,20 @@
     }
   }
 
+  if (fromBdApp) {
+    document.title = '进货 · BD APP';
+    var bdBackEl = document.querySelector('.ua-restock-back');
+    if (bdBackEl) {
+      bdBackEl.setAttribute('href', '../../MDM/mdm_bd_workbench.html');
+      bdBackEl.setAttribute('aria-label', '返回工作台');
+    }
+  }
+
+  if (fromBdApp && scopeApi() && pageParams.get('storeId')) {
+    scopeApi().writeSelectedStoreId(pageParams.get('storeId'));
+  }
+  syncRestockStoreUi();
+  bindBdStoreSwitcher();
   ensureDemoLoggedIn();
   bindCartPageEvents();
   bindMePageEvents();

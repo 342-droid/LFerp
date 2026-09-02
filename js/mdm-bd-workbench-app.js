@@ -10,7 +10,15 @@
     { id: 1, title: '新商户入驻推广海报', desc: '适用于地推和线上分享', tag: '热门', uses: '2.3k' },
     { id: 2, title: '商户收益对比图', desc: '展示合作前后收益变化', tag: '推荐', uses: '1.8k' },
   ];
+  var CART_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">' +
+    '<circle cx="9" cy="20" r="1.4"/>' +
+    '<circle cx="17" cy="20" r="1.4"/>' +
+    '<path d="M3 4h2l2.2 11h9.8L19 8H7"/>' +
+    '<path d="M12 7v5m0 0l-2-2m2 2l2-2" stroke-linecap="round"/>' +
+    '</svg>';
   var workbenchItems = [
+    { label: '进货', emoji: '', cls: 'wb10', hash: 'restock', svg: CART_SVG },
     { label: '门店管理', emoji: '🗺', cls: 'wb1', hash: 'stores' },
     { label: '协议管理', emoji: '📝', cls: 'wb2', hash: 'stores-agreements' },
     { label: '商户进件', emoji: '🏪', cls: 'wb3', hash: 'merchants' },
@@ -66,7 +74,7 @@
           '<div class="bd-wb-ico ' +
           it.cls +
           '">' +
-          it.emoji +
+          (it.svg || it.emoji) +
           '</div><span>' +
           escapeHtml(it.label) +
           '</span></button>'
@@ -540,7 +548,14 @@
     host.querySelectorAll('[data-hash]').forEach(function (btn) {
       btn.onclick = function () {
         var x = btn.getAttribute('data-hash');
-        if (x === 'stores') location.href = page('mdm_bd_stores.html');
+        if (x === 'restock') {
+          var restockHref =
+            window.wmsPath && typeof window.wmsPath.page === 'function'
+              ? window.wmsPath.page('user-app/h5/restock.html')
+              : '../user-app/h5/restock.html';
+          location.href = restockHref + '?from=bd-app';
+        }
+        else if (x === 'stores') location.href = page('mdm_bd_stores.html');
         else if (x === 'stores-agreements') location.href = page('mdm_bd_stores.html#agreements');
         else if (x === 'merchants') location.href = page('mdm_bd_merchants.html');
         else if (x === 'msgs') location.href = page('mdm_bd_personal.html#messages');

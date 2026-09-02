@@ -345,8 +345,28 @@
     }
   }
 
+  /** 自提单=门店提货；快递单=送货上门 */
+  function isPickupDelivery(delivery) {
+    return (delivery || 'pickup').trim() === 'pickup';
+  }
+
+  function applySummaryMeta() {
+    var delivery = (getParams().get('delivery') || 'pickup').trim();
+    var modeEl = document.getElementById('pickupDeliveryModeValue');
+    if (modeEl) modeEl.textContent = isPickupDelivery(delivery) ? '门店提货' : '送货上门';
+
+    var payMethodEl = document.getElementById('pickupPayMethodValue');
+    var payNoEl = document.getElementById('pickupPayNoValue');
+    var orderNo = getOrderNo();
+    var payMethod = (payMethodEl && payMethodEl.textContent) || '微信支付';
+    if (window.UaOrdersStore && typeof window.UaOrdersStore.demoPayNo === 'function' && payNoEl) {
+      payNoEl.textContent = window.UaOrdersStore.demoPayNo(orderNo, payMethod);
+    }
+  }
+
   function init() {
     ensureDeliveryParam();
+    applySummaryMeta();
     applyPickupQtyRules();
     bindEvents();
   }

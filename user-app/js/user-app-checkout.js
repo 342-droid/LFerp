@@ -2,6 +2,18 @@
   var CHECKOUT_KEY = 'ua_checkout_v1';
   /* 上次页内收单渠道：wechat | alipay；无记录则首次默认微信支付 */
   var CHANNEL_PREF_KEY = 'ua_checkout_channel_pref_v1';
+  /* 收银台混合支付验收：覆盖钱包可用额 / 默认勾选，不改真实演示钱包 */
+  var MIX_PAY_DEMO_KEY = 'ua_checkout_mix_pay_demo_v1';
+  var MIX_PAY_SCENES = [
+    { id: 'auto', label: '按实际钱包' },
+    { id: 'wallet', label: '余额充足·仅钱包' },
+    { id: 'mix_wechat', label: '余额不足·混微信' },
+    { id: 'mix_alipay', label: '余额不足·混支付宝' },
+    { id: 'wechat', label: '关闭余额·仅微信' },
+    { id: 'alipay', label: '关闭余额·仅支付宝' },
+    { id: 'wallet_zero', label: '余额为0·隐藏钱包' },
+    { id: 'points_mix_wechat', label: '积分+余额+微信' }
+  ];
   var CART_PAGE_KEY = 'ua_restock_cart_page_v2';
   var CHEVRON = '<svg class="ua-co-package__row-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>';
 
@@ -121,8 +133,142 @@
     }
   }
 
+  function readMixPayDemo() {
+    try {
+      var raw = localStorage.getItem(MIX_PAY_DEMO_KEY);
+      if (!raw) return { scene: 'auto' };
+      var data = JSON.parse(raw);
+      var scene = data && data.scene;
+      if (
+        MIX_PAY_SCENES.some(function (s) {
+          return s.id === scene;
+        })
+      ) {
+        return { scene: scene };
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return { scene: 'auto' };
+  }
+
+  function writeMixPayDemo(scene) {
+    try {
+      localStorage.setItem(MIX_PAY_DEMO_KEY, JSON.stringify({ scene: scene || 'auto' }));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function realWalletAvailable() {
+    if (window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function') {
+      return window.StoreWalletDemo.snapshot().available || 0;
+    }
+    return 0;
+  }
+
+  /** 验收场景：改余额开关、收单渠道、积分；返回 true 表示已接管默认勾选 */
+  function applyMixPayScene() {
+    var scene = readMixPayDemo().scene;
+    if (!scene || scene === 'auto') return false;
+    if (scene === 'points_mix_wechat') {
+      state.pointsEnabled = true;
+    }
+    if (scene === 'wallet') {
+      payState.useBalance = true;
+      clearChannelSelection();
+      return true;
+    }
+    if (scene === 'mix_wechat' || scene === 'points_mix_wechat') {
+      payState.useBalance = true;
+      applyChannelToPayState('wechat');
+      return true;
+    }
+    if (scene === 'mix_alipay') {
+      payState.useBalance = true;
+      applyChannelToPayState('alipay');
+      return true;
+    }
+    if (scene === 'wechat' || scene === 'wallet_zero') {
+      payState.useBalance = false;
+      applyChannelToPayState('wechat');
+      return true;
+    }
+    if (scene === 'alipay') {
+      payState.useBalance = false;
+      applyChannelToPayState('alipay');
+      return true;
+    }
+    return false;
+  }
+
+  function layoutMixPayPanel(panel) {
+    if (!panel) return;
+    var sale = document.getElementById('uaSaleTimeDemo');
+    if (!sale) {
+      panel.style.top = '50%';
+      panel.style.transform = 'translateY(-50%)';
+      return;
+    }
+    var gap = 8;
+    var saleRect = sale.getBoundingClientRect();
+    var top = saleRect.bottom + gap;
+    var maxTop = window.innerHeight - panel.offsetHeight - 12;
+    if (top > maxTop && maxTop > 12) {
+      var saleH = sale.offsetHeight;
+      var stackH = saleH + gap + panel.offsetHeight;
+      var stackTop = Math.max(12, window.innerHeight - stackH - 12);
+      sale.style.top = stackTop + 'px';
+      sale.style.transform = 'none';
+      top = stackTop + saleH + gap;
+    }
+    panel.style.top = Math.round(top) + 'px';
+    panel.style.transform = 'none';
+  }
+
+  function mountMixPayDemoPanel() {
+    if (document.getElementById('uaMixPayDemo')) return;
+    var current = readMixPayDemo().scene;
+    var options = MIX_PAY_SCENES.map(function (s) {
+      return (
+        '<option value="' +
+        s.id +
+        '"' +
+        (s.id === current ? ' selected' : '') +
+        '>' +
+        s.label +
+        '</option>'
+      );
+    }).join('');
+    var panel = document.createElement('div');
+    panel.id = 'uaMixPayDemo';
+    panel.className = 'ua-mix-pay-demo';
+    panel.innerHTML =
+      '<div class="ua-mix-pay-demo__title">混合支付验收开关</div>' +
+      '<label class="ua-mix-pay-demo__row">支付场景' +
+      '<select id="uaMixPayDemoScene">' +
+      options +
+      '</select></label>' +
+      '<div class="ua-mix-pay-demo__tip">选场景后点应用并刷新。余额不足会压低钱包可用额，用来走混合支付；不改真实钱包余额。</div>' +
+      '<button type="button" class="ua-mix-pay-demo__apply" id="uaMixPayDemoApply">应用并刷新</button>';
+    document.body.appendChild(panel);
+    var apply = document.getElementById('uaMixPayDemoApply');
+    if (apply) {
+      apply.addEventListener('click', function () {
+        var sel = document.getElementById('uaMixPayDemoScene');
+        writeMixPayDemo(sel ? sel.value : 'auto');
+        window.location.reload();
+      });
+    }
+    layoutMixPayPanel(panel);
+    window.addEventListener('resize', function () {
+      layoutMixPayPanel(panel);
+    });
+  }
+
   /** 余额足够：默认不勾选；仍需收单时：恢复上次选择，首次默认微信 */
   function initPayChannelSelection() {
+    if (applyMixPayScene()) return;
     var legs = getPayLegs();
     if (legs.channelLeg > 0.001) {
       applyChannelToPayState(readLastChannelPref() || 'wechat');
@@ -218,8 +364,19 @@
     }
   }
 
+  function isBdAppBrowse() {
+    var params = new URLSearchParams(window.location.search);
+    return params.get('port') === 'bd-app' || params.get('from') === 'bd-app';
+  }
+
   function cartBackHref() {
     var params = new URLSearchParams(window.location.search);
+    if (isBdAppBrowse()) {
+      var sid = params.get('storeId') || '';
+      return (
+        'restock.html?from=bd-app&tab=cart' + (sid ? '&storeId=' + encodeURIComponent(sid) : '')
+      );
+    }
     var fromStore = params.get('port') === 'store-app' || params.get('from') === 'store-app';
     return fromStore ? 'restock.html?from=store-app&tab=cart' : 'restock.html?tab=cart';
   }
@@ -669,10 +826,20 @@
   }
 
   function getWalletAvailable() {
-    if (window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function') {
-      return window.StoreWalletDemo.snapshot().available || 0;
+    var scene = readMixPayDemo().scene;
+    var real = realWalletAvailable();
+    if (!scene || scene === 'auto') return real;
+    if (scene === 'wallet_zero') return 0;
+    var payable = state ? getPayable() : 0;
+    if (scene === 'wallet' || scene === 'wechat' || scene === 'alipay') {
+      /* 仅钱包 / 关闭余额：保证钱包行可见，且余额足够盖住应付 */
+      return Math.max(real, Math.round((payable + 50) * 100) / 100);
     }
-    return 0;
+    if (scene === 'mix_wechat' || scene === 'mix_alipay' || scene === 'points_mix_wechat') {
+      var forced = Math.round(payable * 0.4 * 100) / 100;
+      return Math.max(0.01, forced);
+    }
+    return real;
   }
 
   /** 混合支付拆腿：余额腿 B + 收单腿 A = 应付 P */
@@ -1479,8 +1646,10 @@
     var items = allocatePayLegsToItems(collectCheckoutOrderItems(), parts);
     var pointsAmt = state.pointsEnabled ? Number(state.pointsDeduct) || 0 : 0;
     var pointsCount = state.pointsEnabled ? Number(state.pointsAvailable) || 0 : 0;
+    var orderNo = window.UaOrdersStore ? window.UaOrdersStore.genOrderNo() : String(Date.now());
+    var payMethod = formatPayMethodNames(parts);
     var payload = {
-      orderNo: window.UaOrdersStore ? window.UaOrdersStore.genOrderNo() : String(Date.now()),
+      orderNo: orderNo,
       status: 'shipping',
       createdAt: window.UaOrdersStore ? window.UaOrdersStore.nowText() : '',
       paidAt: window.UaOrdersStore ? window.UaOrdersStore.nowText() : '',
@@ -1488,7 +1657,11 @@
       freight: calcFreight(),
       payable: legs.payable,
       payLabel: formatMoney(legs.payable),
-      payMethod: formatPayMethodNames(parts),
+      payMethod: payMethod,
+      payNo:
+        window.UaOrdersStore && typeof window.UaOrdersStore.demoPayNo === 'function'
+          ? window.UaOrdersStore.demoPayNo(orderNo, payMethod)
+          : '',
       payLegs: parts,
       deductPoints: pointsCount,
       deductAmount: pointsAmt,
@@ -1816,6 +1989,12 @@
    * 2) 余额不足 / 未用余额 → 须勾选支付宝/微信后跳三方收单
    */
   function onSubmitOrder() {
+    if (isBdAppBrowse()) {
+      var tip = (window.UaProxySaleScope && window.UaProxySaleScope.BD_ONLY_ORDER_TIP) || '仅门店用户采购';
+      if (saleApi() && saleApi().showToast) saleApi().showToast(tip);
+      else window.alert(tip);
+      return;
+    }
     if (!applyCheckoutSaleableGuard()) return;
     if (!validateBeforeSubmit()) return;
     var legs = getPayLegs();
@@ -1977,6 +2156,17 @@
     if (back && params.get('from') === 'restock.html') {
       back.setAttribute('href', cartBackHref());
     }
+    if (isBdAppBrowse()) {
+      document.title = '确认订单 · BD APP';
+      var body = document.getElementById('checkoutBody');
+      if (body && !document.getElementById('checkoutBdTip')) {
+        var tip = document.createElement('p');
+        tip.id = 'checkoutBdTip';
+        tip.className = 'ua-co-bd-tip';
+        tip.textContent = 'BD 查看模式，提交订单将提示「仅门店用户采购」';
+        body.insertBefore(tip, body.firstChild);
+      }
+    }
   }
 
   initState();
@@ -1986,8 +2176,9 @@
   bindEvents();
   if (saleApi() && saleApi().mountDemoPanel) {
     saleApi().mountDemoPanel({
-      className: 'ua-sale-time-demo--confirm',
+      className: 'ua-sale-time-demo--confirm ua-sale-time-demo--mix-stack',
       variant: 'checkout'
     });
   }
+  mountMixPayDemoPanel();
 })();

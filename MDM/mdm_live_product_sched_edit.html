@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰WMS - 编辑直播商品</title>
+    <title>冷丰WMS - 直播排品编辑</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-product.css?v=20260831-stock-mdm">
     <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
-    <link rel="stylesheet" href="../css/lf-live.css">
+    <link rel="stylesheet" href="../css/lf-live.css?v=20260831-wh-stock">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -17,7 +19,10 @@
     <script src="../js/live-sidebar.js"></script>
     <div id="header-container"></div>
     <div class="container">
-        <main class="main-content mdm-edit-page">
+        <main class="main-content mdm-edit-page lf-live-edit-page">
+            <div class="content-tabs"><button class="active">直播排品编辑</button></div>
+            <hr class="content-divider">
+
             <div class="lf-live-edit-header">
                 <div class="lf-live-edit-header__left">
                     <a class="lf-live-form-back" id="schedEditBack" href="mdm_live_product_sched.html">← 返回直播排品</a>
@@ -26,77 +31,60 @@
                 </div>
                 <div class="lf-live-edit-header__right">商品 ID：<span id="schedProductId">-</span></div>
             </div>
-            <hr class="content-divider">
-            <div class="lf-live-edit-hint">编辑仅作用于本场直播排品，不会更新中央商品库</div>
 
             <div id="schedEditEmpty" class="lf-live-empty-tip" hidden>未找到该直播商品</div>
 
             <form id="schedEditForm" onsubmit="return false;" hidden>
                 <div class="pts-rule-card lf-live-card">
                     <div class="pts-rule-card__title">基础信息</div>
-                    <div class="pts-rule-card__body">
-                        <div class="pts-rule-field">
-                            <label class="pts-rule-field__label"><span class="erp-req">*</span>商品名称</label>
+                    <div class="pts-rule-card__body lf-live-edit-grid">
+                        <div class="pts-rule-field lf-live-edit-grid__full">
+                            <label class="pts-rule-field__label" for="pName"><span class="erp-req">*</span>商品名称</label>
                             <div class="pts-rule-field__control">
                                 <input class="erp-input" id="pName" placeholder="请输入商品名称">
                             </div>
                         </div>
                         <div class="pts-rule-field">
-                            <label class="pts-rule-field__label"><span class="erp-req">*</span>商品类目</label>
+                            <label class="pts-rule-field__label" for="pArrival">预计到店时间</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-unit">
+                                    <input class="erp-input" id="pArrival" placeholder="请输入预计到店时间">
+                                    <select class="erp-select" id="pArrivalUnit">
+                                        <option value="DAY">天</option>
+                                        <option value="HOUR">小时</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>配送方式</label>
+                            <div class="pts-rule-field__control">
+                                <div class="lf-live-radio-row">
+                                    <label class="lf-live-radio"><input type="radio" name="deliveryMode" value="express" checked> 快递配送</label>
+                                    <label class="lf-live-radio"><input type="radio" name="deliveryMode" value="pickup"> 自提</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label" for="pCategory">商品类目</label>
                             <div class="pts-rule-field__control">
                                 <select class="erp-select" id="pCategory"></select>
                             </div>
                         </div>
                         <div class="pts-rule-field">
-                            <label class="pts-rule-field__label">商品编码/ID</label>
-                            <div class="pts-rule-field__control">
-                                <input class="erp-input" id="pSku" readonly>
-                            </div>
-                        </div>
-                        <div class="pts-rule-field">
-                            <label class="pts-rule-field__label">文字描述</label>
-                            <div class="pts-rule-field__control">
-                                <textarea class="erp-input lf-live-textarea" id="pDesc" rows="3" placeholder="请输入商品文字描述"></textarea>
-                            </div>
-                        </div>
-                        <div class="pts-rule-field">
-                            <label class="pts-rule-field__label">预计到店时间</label>
-                            <div class="pts-rule-field__control lf-live-inline-fields">
-                                <input class="erp-input" id="pArrival" placeholder="请输入预计到店时间">
-                                <select class="erp-select" id="pArrivalUnit">
-                                    <option value="DAY">天</option>
-                                    <option value="HOUR">小时</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="pts-rule-field">
-                            <label class="pts-rule-field__label">配送方式</label>
+                            <label class="pts-rule-field__label">展示销量</label>
                             <div class="pts-rule-field__control">
                                 <div class="lf-live-radio-row">
-                                    <label class="lf-live-radio"><input type="radio" name="deliveryMode" value="pickup" checked> 自提</label>
-                                    <label class="lf-live-radio"><input type="radio" name="deliveryMode" value="mail"> 邮寄</label>
+                                    <label class="lf-live-radio"><input type="radio" name="displaySalesMode" value="ACTUAL" checked> 实际销量</label>
+                                    <label class="lf-live-radio"><input type="radio" name="displaySalesMode" value="CUSTOM"> 自定义销量</label>
                                 </div>
+                                <input class="erp-input lf-live-edit-sales-input" id="pDisplaySales" placeholder="请输入展示销量" hidden>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <div class="pts-rule-card lf-live-card">
-                    <div class="pts-rule-card__title">媒体与详情</div>
-                    <div class="pts-rule-card__body">
-                        <div class="pts-rule-field">
-                            <label class="pts-rule-field__label">商品图片</label>
+                        <div class="pts-rule-field lf-live-edit-grid__full">
+                            <label class="pts-rule-field__label" for="pDesc">文字描述</label>
                             <div class="pts-rule-field__control">
-                                <p class="lf-live-field-hint">支持一次上传多张图片，默认使用第一张图片作为封面图</p>
-                                <div class="lf-live-media-grid" id="pImages"></div>
-                                <button type="button" class="erp-btn" id="pAddImageBtn">添加图片占位</button>
-                            </div>
-                        </div>
-                        <div class="pts-rule-field">
-                            <label class="pts-rule-field__label">详情图</label>
-                            <div class="pts-rule-field__control">
-                                <div class="lf-live-media-grid" id="pDetailImages"></div>
-                                <button type="button" class="erp-btn" id="pAddDetailBtn">添加详情图占位</button>
+                                <textarea class="erp-input lf-live-textarea" id="pDesc" rows="4" placeholder="请输入商品文字描述"></textarea>
                             </div>
                         </div>
                     </div>
@@ -105,78 +93,61 @@
                 <div class="pts-rule-card lf-live-card">
                     <div class="pts-rule-card__title">
                         <span>售卖规格配置</span>
-                        <button type="button" class="erp-btn erp-btn--link" id="pResetSkuBtn">重置规格</button>
+                        <button type="button" class="lf-live-reset-spec" id="pResetSkuBtn">重置规格</button>
                     </div>
                     <div class="pts-rule-card__body">
-                        <div class="lf-live-sku-toolbar">
-                            <button type="button" class="erp-btn" id="pSelectAllSku">全选</button>
-                            <button type="button" class="erp-btn" id="pClearSku">取消全选</button>
-                            <button type="button" class="erp-btn" id="pPickSku">选择 SKU</button>
-                            <span class="lf-live-field-hint" id="pSkuSelectedHint">已选 0 个 SKU</span>
+                        <div class="lf-live-sku-pick">
+                            <label class="lf-live-sku-pick__label">选择 SKU</label>
+                            <div class="product-proxy-form__sku-picker lf-live-sku-pick__box" id="pSkuPicker">
+                                <button type="button" class="product-proxy-form__sku-trigger" id="pSkuTrigger">已选 0 个 SKU <span class="product-proxy-form__sku-caret">▼</span></button>
+                                <div class="product-proxy-form__sku-dropdown" id="pSkuDropdown" hidden></div>
+                            </div>
                         </div>
-                        <div class="table-scroll-container">
-                            <table class="table lf-live-sku-table">
-                                <thead>
-                                    <tr>
-                                        <th style="width:36px;"><input type="checkbox" id="pSkuCheckAll"></th>
-                                        <th>展示规格名称</th>
-                                        <th>售价*</th>
-                                        <th>划线价</th>
-                                        <th>直播售卖库存*</th>
-                                        <th>起售量</th>
-                                        <th>限购数量</th>
-                                        <th>积分兑换/现金补差</th>
-                                        <th>单位</th>
-                                        <th>售卖系数</th>
-                                        <th>操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="pSkuBody"></tbody>
-                            </table>
+                        <div class="product-proxy-form__spec-list" id="pSkuList"></div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-card lf-live-card">
+                    <div class="pts-rule-card__title">媒体与详情</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field lf-live-edit-media-field">
+                            <label class="pts-rule-field__label">商品图片</label>
+                            <div class="pts-rule-field__control">
+                                <p class="lf-live-field-hint">支持一次上传多张图片，默认使用第一张图片作为封面图；可另传 1 个 MP4 视频</p>
+                                <div class="product-proxy-form__images" id="pImages"></div>
+                                <input type="file" id="pImageInput" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4" multiple hidden>
+                                <p class="lf-live-field-hint">第 1 张图片作为封面图，最多上传 10 张图片，支持 JPG/PNG/GIF/WebP (≤5MB)；视频限 1 个 MP4 (≤10MB)</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="pts-rule-card lf-live-card">
-                    <div class="pts-rule-card__title">其它</div>
+                    <div class="pts-rule-card__title">商品详情</div>
                     <div class="pts-rule-card__body">
-                        <div class="pts-rule-field">
-                            <label class="pts-rule-field__label">展示销量</label>
-                            <div class="pts-rule-field__control lf-live-inline-fields">
-                                <select class="erp-select" id="pDisplaySalesMode">
-                                    <option value="ACTUAL">实际销量</option>
-                                    <option value="CUSTOM">自定义销量</option>
-                                </select>
-                                <input class="erp-input" id="pDisplaySales" placeholder="请输入展示销量" hidden>
-                            </div>
-                        </div>
-                        <div class="pts-rule-field">
-                            <label class="pts-rule-field__label">限购配置</label>
-                            <div class="pts-rule-field__control lf-live-inline-fields">
-                                <select class="erp-select" id="pLimitType">
-                                    <option value="NONE">不限购</option>
-                                    <option value="ORDER">每单限购</option>
-                                    <option value="DAY">每天限购</option>
-                                    <option value="TOTAL">累计限购</option>
-                                </select>
-                                <input class="erp-input" id="pLimitQty" type="number" min="1" step="1" placeholder="限购数量" hidden>
-                            </div>
+                        <div class="product-add-editor">
+                            <div class="product-add-editor__toolbar" id="pEditorToolbar"></div>
+                            <div class="product-add-editor__body" id="pDetailEditor" contenteditable="true" data-placeholder="请输入商品详情，支持图文、列表、表格等"></div>
                         </div>
                     </div>
                 </div>
             </form>
 
-            <div class="mdm-edit-page__footer" id="schedEditFooter" hidden>
-                <button type="button" class="erp-btn" id="pCancelBtn">取消</button>
-                <button type="button" class="erp-btn erp-btn--primary" id="pSaveBtn">保存</button>
-                <button type="button" class="erp-btn" id="pOnBtn">上架</button>
-                <button type="button" class="erp-btn" id="pOffBtn">下架</button>
-                <button type="button" class="erp-btn erp-btn--danger" id="pDeleteBtn">删除</button>
+            <div class="mdm-edit-page__footer lf-live-edit-footer" id="schedEditFooter" hidden>
+                <p class="lf-live-edit-footer__tip">编辑仅作用于本场直播排品，不会更新中央商品库；本场配额占用配送仓库存，与代采、商城、其他场次共享</p>
+                <div class="lf-live-edit-footer__actions">
+                    <button type="button" class="erp-btn" id="pCancelBtn">取消</button>
+                    <button type="button" class="erp-btn erp-btn--primary" id="pSaveBtn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
+                        保存
+                    </button>
+                </div>
             </div>
         </main>
     </div>
     <script src="../js/common.js"></script>
+    <script src="../js/mdm-sku-wh-stock.js?v=20260831-reserve-total"></script>
     <script src="../js/mdm-live-demo-data.js"></script>
-    <script src="../js/mdm-live-product-sched-edit.js"></script>
+    <script src="../js/mdm-live-product-sched-edit.js?v=20260831-stock-mdm"></script>
 </body>
 </html>
