@@ -6,6 +6,23 @@
     <title>冷丰WMS - 库存查询</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
+    <style>
+        /* 保持操作列为表格单元格，避免公共 flex 样式破坏行边框与高度 */
+        .inventory-table td.action-links {
+            display: table-cell;
+            vertical-align: middle;
+        }
+        #productionDateModal { align-items: flex-start; padding-top: 6vh; box-sizing: border-box; }
+        #productionDateModal .modal-content { width: 560px; max-width: calc(100% - 32px); height: auto; max-height: none; box-sizing: border-box; }
+        #productionDateModal .modal-form-group { width: 100%; margin-bottom: 16px; min-width: 0; }
+        #productionDateModal .modal-form-group label { width: 110px; }
+        #productionDateModal .modal-form-group > span { flex: 1; min-width: 0; color: #333; line-height: 1.5; }
+        #productionDateModal .modal-close { position: absolute; right: 0; top: 50%; transform: translateY(-50%); border: 0; background: transparent; color: #999; font-size: 24px; line-height: 1; cursor: pointer; padding: 4px 8px; }
+        #productionDateModal .production-date-product { display: flex; gap: 16px; align-items: center; }
+        #productionDateModal .production-date-product img { width: 56px; height: 56px; object-fit: cover; border: 1px solid #eee; border-radius: 4px; }
+        #productionDateModal .production-date-product img { cursor: zoom-in; }
+        #productionDateModal .production-date-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
+    </style>
 </head>
 <body>
     <!-- 侧边栏容器 -->
@@ -90,13 +107,14 @@
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary" onclick="searchInventory()">查询</button>
                         <button type="button" class="btn btn-secondary">导出</button>
+                        <button type="button" class="btn btn-secondary" id="correctProductionDateBtn">更正生产日期</button>
                     </div>
                 </form>
             </section>
 
             <section class="table-section">
                 <div class="table-scroll-container">
-                    <table class="table">
+                    <table class="table inventory-table">
                         <thead>
                             <tr>
                                 <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
@@ -133,6 +151,38 @@
                 <div id="pagination-container"></div>
             </section>
         </main>
+    </div>
+
+    <div id="productionDateModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">更正生产日期</h2>
+                <button type="button" class="modal-close" id="productionDateCloseBtn" aria-label="关闭">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="production-date-product modal-form-group">
+                    <img id="productionDateImage" alt="商品图片">
+                </div>
+                <div class="production-date-grid">
+                    <div class="modal-form-group"><label>商品编码:</label><span id="productionDateSkuCode"></span></div>
+                    <div class="modal-form-group"><label>商品名称:</label><span id="productionDateSkuName"></span></div>
+                    <div class="modal-form-group"><label>商品规格:</label><span id="productionDateSkuSpec"></span></div>
+                    <div class="modal-form-group"><label>商品单位:</label><span id="productionDateUnit"></span></div>
+                    <div class="modal-form-group"><label>生产日期:</label><span id="productionDateCurrent"></span></div>
+                    <div class="modal-form-group"><label>可用库存:</label><span id="productionDateAvailable"></span></div>
+                    <div class="modal-form-group"><label for="productionDateInput">新生产日期:</label><input type="text" id="productionDateInput" inputmode="numeric" maxlength="8" placeholder="如20260901" required></div>
+                    <div class="modal-form-group"><label for="productionDateQuantity">变更数量:</label><input type="number" id="productionDateQuantity" min="0.01" step="0.01" required placeholder="请输入变更数量"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="productionDateCancelBtn">取消</button>
+                <button type="button" class="btn btn-primary" id="productionDateSaveBtn">执行</button>
+            </div>
+        </div>
+    </div>
+    <div id="productionImagePreview" class="modal" style="display: none; align-items: center; justify-content: center; z-index: 2600;" aria-label="商品图片预览">
+        <button type="button" id="productionImagePreviewClose" aria-label="关闭图片预览" style="position:absolute; right:24px; top:18px; border:0; background:transparent; color:#fff; font-size:32px; cursor:pointer;">×</button>
+        <img id="productionImagePreviewImg" alt="商品图片大图" style="max-width:80vw; max-height:80vh; object-fit:contain; border-radius:6px; box-shadow:0 4px 18px rgba(0,0,0,.35);">
     </div>
 
     <!-- 引入公共脚本 -->
@@ -212,9 +262,10 @@
             }
         ];
 
-        // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', () => {
-            try {
+                // 页面加载完成后初始化
+                document.addEventListener('DOMContentLoaded', () => {
+                    try {
+                const formatCompactDate = (date) => String(date || '').replace(/-/g, '').slice(0, 8) || '-';
                 // 初始化下拉框数据
                 renderSelectOptions('searchSourceTypeDropdown', CommonOptions.inventorySourceType);
 
@@ -239,7 +290,7 @@
                         const batch = `${receiptDatePlain}-${String(index + 1).padStart(3, '0')}-${item.skuCode}`;
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                            <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                            <td><input type="checkbox" class="table-checkbox checkbox-row" data-index="${index}"></td>
                             <td>${item.warehouse}</td>
                             <td>${item.company}</td>
                             <td><img class="wms-sku-image" src="${item.skuImage}" alt="${item.skuName}"></td>
@@ -252,9 +303,9 @@
                             <td>${item.location}</td>
                             <td>${item.lpn}</td>
                             <td>${item.supplier}</td>
-                            <td>${item.inDate}</td>
+                            <td>${formatCompactDate(item.inDate)}</td>
                             <td>${batch}</td>
-                            <td>${item.productionDate}</td>
+                            <td>${formatCompactDate(item.productionDate)}</td>
                             <td>${item.sourceType}</td>
                             <td>${item.sourceOrder}</td>
                             <td><span class="status ${item.isFrozen === '否' ? 'active' : 'inactive'}">${item.isFrozen}</span></td>
@@ -336,7 +387,62 @@
                         e.preventDefault();
                         // 点击逻辑已移除
                     }
+                    if (e.target.id === 'correctProductionDateBtn') {
+                        const selected = [...document.querySelectorAll('.checkbox-row:checked')];
+                        if (selected.length !== 1) {
+                            showToast('请选择一条库存记录进行更正', 'error');
+                            return;
+                        }
+                        const index = Number(selected[0].dataset.index);
+                        const item = inventoryData[index];
+                        if (!item) return;
+                        document.getElementById('productionDateImage').src = item.skuImage;
+                        document.getElementById('productionDateSkuCode').textContent = item.skuCode;
+                        document.getElementById('productionDateSkuName').textContent = item.skuName;
+                        document.getElementById('productionDateSkuSpec').textContent = item.skuSpec || '-';
+                        document.getElementById('productionDateUnit').textContent = item.unit || '-';
+                        document.getElementById('productionDateAvailable').textContent = Math.max(0, Number(item.quantity) - Number(item.occupied));
+                        document.getElementById('productionDateCurrent').textContent = formatCompactDate(item.productionDate);
+                        document.getElementById('productionDateInput').dataset.index = index;
+                        document.getElementById('productionDateInput').value = '';
+                        document.getElementById('productionDateQuantity').value = Math.max(0, Number(item.quantity) - Number(item.occupied));
+                        document.getElementById('productionDateModal').style.display = 'flex';
+                        document.getElementById('productionDateInput').focus();
+                    }
                 });
+
+                document.getElementById('productionDateCloseBtn').addEventListener('click', closeProductionDateModal);
+                document.getElementById('productionDateCancelBtn').addEventListener('click', closeProductionDateModal);
+                document.getElementById('productionDateImage').addEventListener('click', () => {
+                    const image = document.getElementById('productionDateImage');
+                    document.getElementById('productionImagePreviewImg').src = image.src;
+                    document.getElementById('productionImagePreview').style.display = 'flex';
+                });
+                document.getElementById('productionImagePreviewClose').addEventListener('click', closeProductionImagePreview);
+                document.getElementById('productionImagePreview').addEventListener('click', (event) => {
+                    if (event.target.id === 'productionImagePreview') closeProductionImagePreview();
+                });
+                document.getElementById('productionDateSaveBtn').addEventListener('click', () => {
+                    const index = Number(document.getElementById('productionDateInput').dataset.index);
+                    const value = document.getElementById('productionDateInput').value;
+                    const quantity = Number(document.getElementById('productionDateQuantity').value);
+                    if (!/^\d{8}$/.test(value)) { showToast('请输入8位生产日期，如20260901', 'error'); return; }
+                    const normalizedDate = `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;
+                    const available = Math.max(0, Number(inventoryData[index]?.quantity) - Number(inventoryData[index]?.occupied));
+                    if (!Number.isFinite(quantity) || quantity <= 0 || quantity > available || Math.round(quantity * 100) / 100 !== quantity) { showToast('变更数量须大于0且不超过可用库存', 'error'); return; }
+                    if (inventoryData[index]) {
+                        inventoryData[index].productionDate = normalizedDate;
+                        loadInventoryData();
+                        closeProductionDateModal();
+                        showToast('生产日期已更正', 'success');
+                    }
+                });
+                function closeProductionDateModal() {
+                    document.getElementById('productionDateModal').style.display = 'none';
+                }
+                function closeProductionImagePreview() {
+                    document.getElementById('productionImagePreview').style.display = 'none';
+                }
             } catch (error) {
                 console.error('初始化错误:', error);
                 // 避免showToast可能不存在的问题

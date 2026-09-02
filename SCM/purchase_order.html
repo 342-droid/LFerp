@@ -2199,7 +2199,7 @@
                 fulfillmentMethod: '平台配送',
                 warehouse: wh,
                 supplier: sp,
-                docStatus: '初始',
+                docStatus: '待审核',
                 docSource: '手动新增',
                 deliveryDate: nowDateText(),
                 remark: remark,
@@ -2221,7 +2221,7 @@
             if (savedMode === 'edit') {
                 showToast('采购单已编辑并重新提交审核，单号 ' + (savedPoNo || ''), 'success');
             } else {
-                showToast('采购单已新增，单号 ' + (savedAddPoNo || ''), 'success');
+                showToast('采购单已新增并提交审核，单号 ' + (savedAddPoNo || ''), 'success');
             }
         }
     }
