@@ -1,7 +1,52 @@
 {
-  "latestSha": "08d06f1ab1d8d6aa7c1da60432c569024be33d86",
-  "total": 330,
+  "latestSha": "54a693e5b43541f09866210045512b32da3f6390",
+  "total": 332,
   "days": [
+    {
+      "date": "2026-09-02",
+      "items": [
+        {
+          "sha": "54a693e",
+          "type": "fix",
+          "text": "新增采购单保存后进入待审核",
+          "author": "342-droid",
+          "time": "16:55",
+          "pages": [
+            {
+              "file": "SCM/purchase_order.html",
+              "module": "冷丰采购",
+              "title": "采购单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "采购单管理: 新增采购单保存后状态改为待审核并更新成功提示"
+            }
+          ]
+        },
+        {
+          "sha": "d1b738c",
+          "type": "fix",
+          "text": "完善库存生产日期更正操作",
+          "author": "342-droid",
+          "time": "16:50",
+          "pages": [
+            {
+              "file": "SCM/inventory.html",
+              "module": "冷丰WMS",
+              "title": "库存查询"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/inventory.html",
+              "text": "新增生产日期更正弹窗、图片预览及数量校验，优化操作列与日期展示"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-09-01",
       "items": [

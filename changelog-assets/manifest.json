@@ -1011,6 +1011,11 @@
     "status": "diff",
     "date": "2026-08-24"
   },
+  "54a693e|SCM/purchase_order.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-02"
+  },
   "5f90efc|store-app/h5/home.html": {
     "before": "changelog-assets/5f90efc/store-app__h5__home.html.before.jpg",
     "after": "changelog-assets/5f90efc/store-app__h5__home.html.after.jpg",
@@ -1706,6 +1711,13 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-08-26"
+  },
+  "d1b738c|SCM/inventory.html": {
+    "before": "changelog-assets/d1b738c/SCM__inventory.html.before.jpg",
+    "after": "changelog-assets/d1b738c/SCM__inventory.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-09-02"
   },
   "d4b3701|SCM/inventory_rule.html": {
     "before": "changelog-assets/d4b3701/SCM__inventory_rule.html.before.jpg",
