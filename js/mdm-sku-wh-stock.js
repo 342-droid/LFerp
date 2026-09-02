@@ -2,7 +2,8 @@
  * SKU 库存按配送仓独立维护，多门店 + 代采/商城/多场直播共享同一仓库存。
  *
  * 现货：仓储按仓维护；商品现货 = Σ 各仓现货；门店现货 = 所属仓现货（同仓门店同一数字）。
- * 可售：商品 SKU 配置（取现货 / 百分比 / 固定）套到各仓现货上。
+ * 可售：商品 SKU 配置（按现货库存×百分比 / 按具体数量）套到各仓现货上。
+ * 「按现货库存」100% = 取现货；>100% 为溢出。旧值 follow / percent 视为该模式。
  * 预占分两类，按仓汇总，不按门店拆分：
  *   现货预占：锁当前可售/现货，扣减剩余可售；
  *   预售预占：锁未来到货，不扣当前剩余可售。
@@ -10,9 +11,13 @@
  */
 (function (global) {
   var WAREHOUSES = [
-    { id: 'wh-hz', name: '杭州配送仓', stores: ['鲜丰水果文一西路店', '鲜丰水果萧山万达店'] },
-    { id: 'wh-bj', name: '北京配送仓', stores: ['鲜丰水果朝阳大悦城店'] },
-    { id: 'wh-sh', name: '上海配送仓', stores: ['鲜丰水果陆家嘴店'] }
+    { id: 'wh-hz', name: '杭州配送仓', regionIds: ['330000'], stores: ['振宁十足', '萧山万达店', '西湖文三路店', '滨江网商路店'] },
+    { id: 'wh-bj', name: '北京配送仓', regionIds: ['110000'], stores: ['朝阳大悦城店', '海淀中关村店'] },
+    { id: 'wh-sh', name: '上海配送仓', regionIds: ['310000'], stores: ['浦东陆家嘴店', '静安南京西路店'] },
+    { id: 'wh-nj', name: '南京配送仓', regionIds: ['320000'], stores: ['鼓楼湖南路店', '工业园金鸡湖店'] },
+    { id: 'wh-gz', name: '广州配送仓', regionIds: ['440000'], stores: ['天河城店', '南山科技园店'] },
+    { id: 'wh-cd', name: '成都配送仓', regionIds: ['510000', '420000'], stores: ['武侯祠店', '锦江春熙路店', '江汉路店', '洪山光谷店'] },
+    { id: 'wh-north', name: '华北配送仓', regionIds: ['120000', '130000'], stores: ['和平路店', '河西陈塘庄店', '裕华万达店', '长安勒泰店'] }
   ];
 
   function escapeHtml(str) {
@@ -43,31 +48,32 @@
     return n;
   }
 
+  function normalizeSellableMode(value) {
+    if (value === 'fixed') return 'fixed';
+    return 'spot';
+  }
+
+  function isFixedMode(sku) {
+    return normalizeSellableMode(sku && sku.sellableMode) === 'fixed';
+  }
+
   function demoRows(skuKey) {
     var h = hashSeed(skuKey);
-    return [
-      {
-        warehouseId: 'wh-hz',
-        spot: 60 + (h % 40),
-        reservedProxy: { spot: 3 + (h % 4), presale: 1 + (h % 2) },
-        reservedMall: { spot: 4 + (h % 3), presale: h % 2 },
-        reservedLive: [{ sessionId: 'sess-ert', sessionName: 'ERT', spot: 2 + (h % 5), presale: 1 }]
-      },
-      {
-        warehouseId: 'wh-bj',
-        spot: 18 + (h % 20),
-        reservedProxy: { spot: h % 3, presale: 0 },
-        reservedMall: { spot: 1 + (h % 2), presale: 1 },
-        reservedLive: []
-      },
-      {
-        warehouseId: 'wh-sh',
-        spot: 10 + (h % 16),
-        reservedProxy: { spot: 0, presale: h % 2 },
-        reservedMall: { spot: h % 2, presale: 0 },
-        reservedLive: [{ sessionId: 'sess-it', sessionName: 'IT专场', spot: 1, presale: 2 }]
-      }
-    ];
+    return WAREHOUSES.map(function (wh, idx) {
+      var live =
+        idx === 0
+          ? [{ sessionId: 'sess-ert', sessionName: 'ERT', spot: 2 + (h % 5), presale: 1 }]
+          : idx === 2
+            ? [{ sessionId: 'sess-it', sessionName: 'IT专场', spot: 1, presale: 2 }]
+            : [];
+      return {
+        warehouseId: wh.id,
+        spot: Math.max(6, 48 - idx * 7 + (h % 18)),
+        reservedProxy: { spot: idx % 3, presale: idx === 0 ? 1 : 0 },
+        reservedMall: { spot: 1 + (idx % 2), presale: idx % 2 },
+        reservedLive: live
+      };
+    });
   }
 
   /** 兼容旧数据：数字或 { qty } 视为现货预占 */
@@ -126,15 +132,15 @@
   }
 
   function sellableOf(row, sku, spotTotal) {
-    var mode = sku && sku.sellableMode;
     var spot = row.spot || 0;
-    if (mode === 'percent') return Math.round(spot * parseNum(sku.sellablePercent) / 100);
-    if (mode === 'fixed') {
+    if (isFixedMode(sku)) {
       var fixed = Math.round(parseNum(sku.sellableFixed));
       if (!spotTotal) return 0;
       return Math.round(fixed * spot / spotTotal);
     }
-    return Math.round(spot);
+    var percent = parseNum(sku && sku.sellablePercent);
+    if (!percent) percent = 100;
+    return Math.round((spot * percent) / 100);
   }
 
   function reservedKindParts(row, kind) {
@@ -158,7 +164,7 @@
 
   function ensureRows(sku) {
     if (!sku) return demoRows('sku');
-    if (!sku.warehouseStocks || !sku.warehouseStocks.length) {
+    if (!sku.warehouseStocks || sku.warehouseStocks.length !== WAREHOUSES.length) {
       sku.warehouseStocks = demoRows(sku.id || sku.barcode || sku.specValue);
     }
     return sku.warehouseStocks;
@@ -185,7 +191,7 @@
       var kinds = reservedKindsOf(row);
       var reserved = kinds.spot + kinds.presale;
       var sellable = sellableOf(row, sku, spotTotal);
-      if (sku && sku.sellableMode === 'fixed' && i === rows.length - 1) {
+      if (isFixedMode(sku) && i === rows.length - 1) {
         sellable = Math.max(0, Math.round(parseNum(sku.sellableFixed)) - allocated);
       }
       allocated += sellable;
@@ -230,9 +236,7 @@
 
   function attachToSku(sku, opts) {
     if (!sku) return null;
-    if (sku.sellableMode !== 'percent' && sku.sellableMode !== 'fixed' && sku.sellableMode !== 'follow') {
-      sku.sellableMode = 'follow';
-    }
+    sku.sellableMode = normalizeSellableMode(sku.sellableMode);
     if (sku.sellablePercent == null || sku.sellablePercent === '') sku.sellablePercent = '100';
     if (sku.sellableFixed == null) sku.sellableFixed = '';
     var sum = summarize(sku, opts);
@@ -322,19 +326,49 @@
     );
   }
 
+  function applyStoreScope(sum, storeNames) {
+    var names = (storeNames || []).filter(Boolean);
+    if (!sum) return { rows: [], spotTotal: 0, reservedTotal: 0, reservedSpotTotal: 0, reservedPresaleTotal: 0, sellableTotal: 0, remainTotal: 0, sessionReservedTotal: 0 };
+    if (!names.length) return sum;
+    var rows = (sum.rows || [])
+      .map(function (row) {
+        var stores = (row.stores || []).filter(function (name) {
+          return names.indexOf(name) >= 0;
+        });
+        if (!stores.length) return null;
+        return Object.assign({}, row, { stores: stores });
+      })
+      .filter(Boolean);
+    return {
+      rows: rows,
+      spotTotal: rows.reduce(function (n, r) { return n + (r.spot || 0); }, 0),
+      reservedTotal: rows.reduce(function (n, r) { return n + (r.reserved || 0); }, 0),
+      reservedSpotTotal: rows.reduce(function (n, r) { return n + (r.reservedSpot || 0); }, 0),
+      reservedPresaleTotal: rows.reduce(function (n, r) { return n + (r.reservedPresale || 0); }, 0),
+      sellableTotal: rows.reduce(function (n, r) { return n + (r.sellable || 0); }, 0),
+      remainTotal: rows.reduce(function (n, r) { return n + (r.remain || 0); }, 0),
+      sessionReservedTotal: rows.reduce(function (n, r) { return n + (r.sessionReserved || 0); }, 0)
+    };
+  }
+
   function renderPanel(sku, opts) {
     opts = opts || {};
-    var sum = attachToSku(sku, opts);
+    var sum = applyStoreScope(attachToSku(sku, opts), opts.storeNames);
+    var scoped = opts.storeNames && opts.storeNames.length;
     var tip =
       opts.variant === 'live'
-        ? '现货按<strong>配送仓</strong>独立维护。本场配额从仓剩余可售中占用（剩余可售=可售−现货预占）。<strong>代采、商城、其他场次直播</strong>与同仓多家门店共享该仓库存。'
-        : '现货由仓储按<strong>配送仓</strong>独立维护，商品现货=各仓现货之和。同仓多家门店看到同一仓现货；<strong>代采、商城、各场直播</strong>共享该仓。<strong>现货预占</strong>扣剩余可售，<strong>预售预占</strong>不扣当前现货。';
+        ? '下表按<strong>配送仓 / 共享门店</strong>展示现货与可售。本场配额从仓剩余可售中占用（剩余可售=可售−现货预占）。代采、商城、其他场次直播与同仓门店共享该仓库存。'
+        : scoped
+          ? '下表仅展示<strong>售卖范围内门店</strong>对应的配送仓库存。现货由仓储按仓维护；可售按上方配置套在各仓现货上。'
+          : '下表按<strong>配送仓 / 共享门店</strong>展示库存。现货由仓储按仓维护，商品现货=各仓之和；可售按上方配置计算。<strong>现货预占</strong>扣剩余可售，<strong>预售预占</strong>不扣当前现货。';
     return (
       '<div class="product-proxy-spec__field product-proxy-spec__field--wh-stock">' +
       '<div class="mdm-biz-tip mdm-biz-tip--flush" role="note">' +
       tip +
       '</div>' +
+      '<div data-wh-stock>' +
       renderTable(sum) +
+      '</div>' +
       '</div>'
     );
   }
@@ -387,9 +421,11 @@
     demoRows: demoRows,
     summarize: summarize,
     attachToSku: attachToSku,
+    applyStoreScope: applyStoreScope,
     renderTable: renderTable,
     renderPanel: renderPanel,
     reservedChannelTotals: reservedChannelTotals,
+    normalizeSellableMode: normalizeSellableMode,
     parseNum: parseNum
   };
 })(window);

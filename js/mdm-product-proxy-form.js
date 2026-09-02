@@ -1,6 +1,7 @@
 /**
  * 代采 / 商城商品列表 — 添加/编辑商品（完整表单）
  * channel: 'proxy'（快递/配送）| 'mall'（快递/自提）
+ * 售卖规格含可售库存（按现货百分比 / 按具体数量）及配送仓+门店库存表。
  */
 (function () {
   var pickerInstance = null;
@@ -27,16 +28,17 @@
     { value: 'points', label: '纯积分兑换' },
     { value: 'points_cash', label: '积分+现金' }
   ];
-  /** 可售库存配置：取现货 / 按现货百分比溢出 / 按固定数量 */
+  /** 可售库存：按现货库存（百分比，100%=取现货，>100% 溢出）/ 按具体数量 */
   var SELLABLE_STOCK_MODES = [
-    { value: 'follow', label: '取现货库存' },
-    { value: 'percent', label: '按现货百分比溢出' },
+    { value: 'spot', label: '按现货库存' },
     { value: 'fixed', label: '按具体数量' }
   ];
 
   function normalizeSellableMode(value) {
-    if (value === 'percent' || value === 'fixed' || value === 'follow') return value;
-    return 'follow';
+    if (window.MdmSkuWhStock && typeof window.MdmSkuWhStock.normalizeSellableMode === 'function') {
+      return window.MdmSkuWhStock.normalizeSellableMode(value);
+    }
+    return value === 'fixed' ? 'fixed' : 'spot';
   }
 
   function parseStockNum(value) {
@@ -51,13 +53,12 @@
     }
     var spot = parseStockNum(sku && sku.spotStock);
     var mode = normalizeSellableMode(sku && sku.sellableMode);
-    if (mode === 'percent') {
-      return Math.round(spot * parseStockNum(sku.sellablePercent) / 100);
-    }
     if (mode === 'fixed') {
       return Math.round(parseStockNum(sku.sellableFixed));
     }
-    return Math.round(spot);
+    var percent = parseStockNum(sku && sku.sellablePercent);
+    if (!percent) percent = 100;
+    return Math.round((spot * percent) / 100);
   }
 
   function ensureSkuStockFields(sku) {
@@ -378,7 +379,7 @@
       salePrice: index === 0 ? String(product.priceMoney != null ? product.priceMoney : '0.00') : '0.01',
       linePrice: product.linePrice != null ? String(product.linePrice) : '',
       minQty: '1',
-      sellableMode: 'follow',
+      sellableMode: 'spot',
       sellablePercent: '100',
       sellableFixed: '',
       img: product.img || '../user-app/assets/restock/product-leaf.svg',
@@ -711,6 +712,29 @@
     );
   }
 
+  function getSelectedStoreNames(state) {
+    if (!state || state.saleScope !== 'store') return [];
+    var map = state.saleStores || {};
+    var names = [];
+    Object.keys(map).forEach(function (id) {
+      if (!map[id]) return;
+      var store = window.MdmProxyStorePicker && window.MdmProxyStorePicker.getStoreById(id);
+      if (store && store.name) names.push(store.name);
+    });
+    return names;
+  }
+
+  function stockPanelOpts() {
+    return { storeNames: getSelectedStoreNames(formState) };
+  }
+
+  function renderWhStockPanel(sku) {
+    if (window.MdmSkuWhStock && typeof window.MdmSkuWhStock.renderPanel === 'function') {
+      return window.MdmSkuWhStock.renderPanel(sku, stockPanelOpts());
+    }
+    return '';
+  }
+
   function renderSkuStockFields(sku) {
     sku = ensureSkuStockFields(sku || {});
     var mode = sku.sellableMode;
@@ -725,13 +749,14 @@
         '</option>'
       );
     }).join('');
+    var percentTip = parseStockNum(sku.sellablePercent) > 100 ? '当前按现货溢出可售。' : parseStockNum(sku.sellablePercent) < 100 ? '当前按现货打折可售。' : '100% 即取现货库存。';
     return (
       '<div class="product-proxy-spec__field">' +
       '  <label class="product-proxy-spec__label">现货库存</label>' +
       '  <input type="text" class="product-proxy-spec__input" data-field="spotStock" value="' +
       escapeHtml(sku.spotStock) +
       '" readonly tabindex="-1" aria-label="现货库存">' +
-      '  <p class="product-proxy-spec__stock-tip">全网共享，等于各配送仓现货之和，由仓储维护。</p>' +
+      '  <p class="product-proxy-spec__stock-tip">各配送仓现货之和，由仓储维护。</p>' +
       '</div>' +
       '<div class="product-proxy-spec__field product-proxy-spec__field--sellable" data-sellable-mode="' +
       escapeHtml(mode) +
@@ -741,15 +766,15 @@
       '    <select class="product-proxy-spec__input product-proxy-spec__stock-mode" data-field="sellableMode" aria-label="可售库存配置方式">' +
       modeOptions +
       '</select>' +
-      '    <input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra" data-field="sellablePercent" inputmode="decimal" value="' +
+      '    <input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--percent" data-field="sellablePercent" inputmode="decimal" value="' +
       escapeHtml(sku.sellablePercent) +
-      '" placeholder="如 120" aria-label="溢出百分比"' +
-      (mode === 'percent' ? '' : ' hidden') +
+      '" placeholder="100" aria-label="现货百分比"' +
+      (mode === 'spot' ? '' : ' hidden') +
       '>' +
       '    <span class="product-proxy-spec__stock-suffix"' +
-      (mode === 'percent' ? '' : ' hidden') +
+      (mode === 'spot' ? '' : ' hidden') +
       '>%</span>' +
-      '    <input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra" data-field="sellableFixed" inputmode="decimal" value="' +
+      '    <input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--fixed" data-field="sellableFixed" inputmode="decimal" value="' +
       escapeHtml(sku.sellableFixed) +
       '" placeholder="全网可售件数" aria-label="固定可售数量"' +
       (mode === 'fixed' ? '' : ' hidden') +
@@ -760,8 +785,11 @@
       (mode === 'fixed' ? ' hidden' : '') +
       '>' +
       '  </div>' +
-      '  <p class="product-proxy-spec__stock-tip">取现货/百分比按各仓现货计算；固定数量为全网上限。分仓与现货/预售预占见选品库「库存统计」。</p>' +
-      '</div>'
+      '  <p class="product-proxy-spec__stock-tip">' +
+      (mode === 'fixed' ? '按具体数量作为全网上限，再按各仓现货占比分摊。' : '填写现货百分比，100% 取现货，大于 100% 按现货溢出。' + percentTip) +
+      '</p>' +
+      '</div>' +
+      renderWhStockPanel(sku)
     );
   }
 
@@ -989,6 +1017,27 @@
     bindImageEvents(backdrop);
   }
 
+  function refreshPanelWhStock(panel, sku) {
+    if (!panel || !window.MdmSkuWhStock) return;
+    var box = panel.querySelector('[data-wh-stock]');
+    if (!box) return;
+    var sum = window.MdmSkuWhStock.attachToSku(sku);
+    if (typeof window.MdmSkuWhStock.applyStoreScope === 'function') {
+      sum = window.MdmSkuWhStock.applyStoreScope(sum, getSelectedStoreNames(formState));
+    }
+    box.innerHTML = window.MdmSkuWhStock.renderTable(sum);
+  }
+
+  function refreshAllWhStock(backdrop) {
+    if (!backdrop || !formState) return;
+    backdrop.querySelectorAll('.product-proxy-spec').forEach(function (panel) {
+      var sku = formState.skuPool.find(function (s) {
+        return s.id === panel.getAttribute('data-sku-id');
+      });
+      if (sku) refreshPanelWhStock(panel, sku);
+    });
+  }
+
   function readSpecPanelsFromDom(backdrop) {
     var poolMap = {};
     formState.skuPool.forEach(function (s) { poolMap[s.id] = s; });
@@ -1122,6 +1171,9 @@
           ensureSkuStockFields(sku);
           var resultEl = panel.querySelector('[data-sellable-result]');
           if (resultEl) resultEl.value = sku.sellableStock;
+          var spotEl = panel.querySelector('[data-field="spotStock"]');
+          if (spotEl) spotEl.value = sku.spotStock;
+          refreshPanelWhStock(panel, sku);
         }
         var modeSelect = panel.querySelector('[data-field="sellableMode"]');
         if (modeSelect) {
@@ -1282,7 +1334,10 @@
     }
 
     backdrop.querySelectorAll('input[name="proxySaleScope"]').forEach(function (radio) {
-      radio.addEventListener('change', syncScopePanelsVisible);
+      radio.addEventListener('change', function () {
+        syncScopePanelsVisible();
+        refreshAllWhStock(backdrop);
+      });
     });
 
     if (pickBtn) {
@@ -1313,6 +1368,7 @@
           onConfirm: function (selected) {
             formState.saleStores = selected;
             refreshStoreCount();
+            refreshAllWhStock(backdrop);
           }
         });
       });

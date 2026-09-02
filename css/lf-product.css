@@ -3867,8 +3867,8 @@ body.product-add-drawer-open {
 }
 
 .product-proxy-spec__stock-mode {
-  flex: 0 0 148px;
-  max-width: 148px;
+  flex: 0 0 132px;
+  max-width: 132px;
 }
 
 .product-proxy-spec__stock-extra {
@@ -3876,7 +3876,7 @@ body.product-add-drawer-open {
   max-width: 72px;
 }
 
-.product-proxy-spec__field--sellable[data-sellable-mode="fixed"] .product-proxy-spec__stock-extra {
+.product-proxy-spec__field--sellable[data-sellable-mode="fixed"] .product-proxy-spec__stock-extra--fixed {
   flex: 1;
   max-width: none;
 }
