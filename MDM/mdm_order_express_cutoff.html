@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰订单 - 快递截单</title>
+    <title>冷丰订单 - 订单截单</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
@@ -116,6 +116,33 @@
             line-height: 1.5;
             resize: vertical;
         }
+        .cutoff-rule-text {
+            color: #303133;
+        }
+        .cutoff-rule-text.is-pay {
+            color: #ff7019;
+        }
+        .sf-form-item--nested {
+            padding-left: 12px;
+            border-left: 2px solid #ffe4cc;
+        }
+        .cutoff-fulfill-group + .cutoff-fulfill-group {
+            margin-top: 10px;
+        }
+        .cutoff-fulfill-group__label {
+            margin-bottom: 6px;
+            font-size: 12px;
+            color: #909399;
+        }
+        .sf-form-item[hidden],
+        .cutoff-form-tip[hidden] {
+            display: none !important;
+        }
+        /* 选标签 / 选类目弹框叠在截单策略抽屉之上 */
+        .pts-rule-pick-backdrop,
+        .pts-rule-pick-backdrop.cutoff-pick-backdrop {
+            z-index: 2300;
+        }
     </style>
 </head>
 <body>
@@ -125,11 +152,11 @@
     <div id="header-container"></div>
     <div class="container">
         <main class="main-content">
-            <div class="content-tabs"><button class="active">快递截单</button></div>
+            <div class="content-tabs"><button class="active">订单截单</button></div>
             <hr class="content-divider">
 
             <div class="mdm-biz-tip cutoff-page-tip" role="note">
-                仅作用于全平台零售线<strong>快递到家</strong>（供应商直发，不进仓储、不走采购）。系统默认一条<strong>全部类目、所有场景</strong>的通用策略，仅支持修改，不支持停用和删除。启用中的策略不可删除（仅草稿、停用可删）；其余策略启用时仍可修改，保存后默认停用，需手动启用。同一场景下<strong>指定类目优先于全部类目</strong>。截单后：用户 APP「取消订单」隐藏，「申请退款」改为售后审核流。采购 / 门店订货截单仍在「采购 → 门店订货汇总」配置，本页不包含。
+                统一配置<strong>零售 / 代采</strong>订单截单，支持按<strong>订单渠道 + 履约方式 + 商品标签 + 类目</strong>组合。零售履约仅<strong>快递到家、门店自提</strong>，代采履约仅<strong>平台配送、快递配送</strong>。零售订单再分<strong>直播 / 商城</strong>，代采不区分场景。同一履约下<strong>指定标签优先于全部标签</strong>，<strong>指定类目优先于全部类目</strong>；未单独配置的走该履约的兜底，再没有则走通用策略。截单方式支持<strong>每日定时</strong>，或<strong>支付后自动截单</strong>（支付成功即截单，不再停留待接单）。系统默认一条覆盖零售和代采、全部履约、全部标签、全部类目的通用策略，仅可改名称、截单方式和时间，不支持停用和删除。仓配类到点或支付后截单仍会生成门店订货单；人工截单入口仍在「采购 → 门店订货汇总」。
             </div>
 
             <div class="settle-freight-page">
@@ -141,11 +168,33 @@
                                 <input class="sf-filter-field__input" id="cutoffFilterName" type="text" placeholder="请输入策略名称" autocomplete="off">
                             </div>
                             <div class="sf-filter-field">
-                                <label class="sf-filter-field__label" for="cutoffFilterScene">适用场景</label>
-                                <select class="sf-filter-field__input" id="cutoffFilterScene" aria-label="适用场景">
+                                <label class="sf-filter-field__label" for="cutoffFilterChannel">订单渠道</label>
+                                <select class="sf-filter-field__input" id="cutoffFilterChannel" aria-label="订单渠道">
                                     <option value="">全部</option>
-                                    <option value="live">直播</option>
-                                    <option value="mall">商城</option>
+                                    <option value="retail">零售</option>
+                                    <option value="proxy">代采</option>
+                                </select>
+                            </div>
+                            <div class="sf-filter-field">
+                                <label class="sf-filter-field__label" for="cutoffFilterFulfillment">履约方式</label>
+                                <select class="sf-filter-field__input" id="cutoffFilterFulfillment" aria-label="履约方式">
+                                    <option value="">全部</option>
+                                    <optgroup label="零售">
+                                        <option value="express_home">快递到家</option>
+                                        <option value="pickup">门店自提</option>
+                                    </optgroup>
+                                    <optgroup label="代采">
+                                        <option value="platform">平台配送</option>
+                                        <option value="express_proxy">快递配送</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div class="sf-filter-field">
+                                <label class="sf-filter-field__label" for="cutoffFilterMode">截单方式</label>
+                                <select class="sf-filter-field__input" id="cutoffFilterMode" aria-label="截单方式">
+                                    <option value="">全部</option>
+                                    <option value="time">每日定时</option>
+                                    <option value="after_pay">支付后自动截单</option>
                                 </select>
                             </div>
                             <div class="sf-filter-field">
@@ -198,9 +247,11 @@
                                     <th class="sf-table__check"><input type="checkbox" id="cutoffCheckAll" aria-label="全选"></th>
                                     <th class="sf-table__index">序号</th>
                                     <th>策略名称</th>
-                                    <th>适用场景</th>
+                                    <th>订单渠道</th>
+                                    <th>履约方式</th>
+                                    <th>商品标签</th>
                                     <th>商品类目</th>
-                                    <th>截单时间</th>
+                                    <th>截单规则</th>
                                     <th>状态</th>
                                     <th class="sf-table__action">操作</th>
                                 </tr>
@@ -226,6 +277,9 @@
     </div>
     <script src="../js/common.js"></script>
     <script src="../js/mdm-product-catalog-store.js"></script>
-    <script src="../js/mdm-order-express-cutoff.js?v=20260831-as-copy"></script>
+    <script src="../js/mdm-product-selection-tag-store.js"></script>
+    <script src="../js/mdm-product-mall-tag-store.js"></script>
+    <script src="../js/mdm-product-proxy-tag-store.js"></script>
+    <script src="../js/mdm-order-express-cutoff.js?v=20260902-cutoff-fulfill-by-channel"></script>
 </body>
 </html>

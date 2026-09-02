@@ -1,4 +1,4 @@
-/* 订单专用侧栏：订单管理 / 排队记录 / 运费配置 / 快递截单 */
+/* 订单专用侧栏：订单管理 / 排队记录 / 运费配置 / 订单截单 */
 (function () {
   var wp = window.wmsPath || { page: function (f) { return f; }, asset: function (r) { return r; } };
   var pageHref = function (f) { return wp.page(f); };
@@ -26,7 +26,7 @@
   var topLevelItems = [
     { href: 'mdm_order_queue.html', text: '排队记录' },
     { href: 'mdm_order_freight_config.html', text: '运费配置' },
-    { href: 'mdm_order_express_cutoff.html', text: '快递截单' }
+    { href: 'mdm_order_express_cutoff.html', text: '订单截单' }
   ];
 
   var legacyPages = {

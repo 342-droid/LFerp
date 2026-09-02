@@ -56,7 +56,7 @@
         '<p class="product-add-field__hint">实物商品一般由物流发货，请选择发货与收货信息的城市。</p>'
       ) +
       fieldInput('productName', '商品名称', true, '请输入商品名称', 'text', '', '', true) +
-      fieldSelect('productLabel', '请选择标签', false, '请选择标签', ['爆款', '新品', '时令']) +
+      fieldSelect('productLabel', '请选择标签', false, '请选择标签', getSelectionTagNames()) +
       fieldSelect(
         'productCategory',
         '商品类目',
@@ -223,6 +223,18 @@
       '<span class="product-add-field__unit">' + unit + '</span>' +
       '</div>';
     return fieldWrap(id, label, required, inner);
+  }
+
+  function getSelectionTagNames() {
+    if (window.MdmProductSelectionTagStore && typeof window.MdmProductSelectionTagStore.getEnabled === 'function') {
+      var list = window.MdmProductSelectionTagStore.getEnabled() || [];
+      if (list.length) {
+        return list.map(function (row) {
+          return row.name;
+        });
+      }
+    }
+    return ['爆款', '新品', '时令', '跳过自动截单'];
   }
 
   function fieldSelect(id, label, required, placeholder, options) {
