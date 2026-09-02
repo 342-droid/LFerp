@@ -24,6 +24,17 @@
       maintainBiz: '截单链路',
       maintainTip: '打上此标签的商品不参与订单自动截单（每日定时 / 支付后自动截单）。业务可正常绑定、移除和筛选；人工截单与提前发货补截单不受影响。',
       created_at: '2026-09-01 10:00'
+    },
+    {
+      id: 'sys_skip_demand_summary',
+      name: '不走订货单',
+      color: 'orange',
+      source: 'system',
+      status: 'active',
+      isSystem: true,
+      maintainBiz: '订货汇总',
+      maintainTip: '打上此标签的商品不进入采购「门店订货汇总」，不生成门店订货单。适用于已采购到店、不走先销后采的商品（如拉新已铺货）。截单策略仍按原规则执行。',
+      created_at: '2026-09-02 22:00'
     }
   ];
 
@@ -147,6 +158,10 @@
     return String(name || '').trim() === '跳过自动截单';
   }
 
+  function isSkipDemandSummary(name) {
+    return String(name || '').trim() === '不走订货单';
+  }
+
   function findByName(name, ignoreId) {
     var target = String(name || '').trim();
     var hit = null;
@@ -227,6 +242,7 @@
     getById: getById,
     getEnabled: getEnabled,
     isSkipAutoCutoff: isSkipAutoCutoff,
+    isSkipDemandSummary: isSkipDemandSummary,
     addTag: addTag,
     updateTag: updateTag,
     setStatus: setStatus,
