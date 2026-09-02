@@ -1,10 +1,102 @@
 {
-  "latestSha": "74f837783f2d810be5b3c74e97414f2a01a2fd5f",
-  "total": 337,
+  "latestSha": "e743e428e22c31712d760ab5ad57a433297283ce",
+  "total": 338,
   "days": [
     {
       "date": "2026-09-03",
       "items": [
+        {
+          "sha": "e743e42",
+          "type": "feat",
+          "text": "库存统计并入编辑规格并写清预占底层规则",
+          "author": "sisi",
+          "time": "02:24",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_product_audit.html",
+              "module": "冷丰WMS",
+              "title": "商品详情"
+            },
+            {
+              "file": "MDM/mdm_product_brand.html",
+              "module": "冷丰WMS",
+              "title": "商品品牌"
+            },
+            {
+              "file": "MDM/mdm_product_category.html",
+              "module": "冷丰WMS",
+              "title": "商品类目"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_mall_category.html",
+              "module": "冷丰WMS",
+              "title": "商城类目"
+            },
+            {
+              "file": "MDM/mdm_product_mall_tag.html",
+              "module": "冷丰WMS",
+              "title": "商城标签"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_category.html",
+              "module": "冷丰WMS",
+              "title": "类目管理"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_tag.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "MDM/mdm_product_stock.html",
+              "module": "冷丰WMS",
+              "title": "库存统计"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "编辑商品售卖规格可售改为按现货百分比或固定数量，并展示配送仓与门店库存"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "编辑商品售卖规格同样展示仓店库存，可售两项合并"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "text": "售卖规格补配送仓与门店库存表"
+            },
+            {
+              "file": "MDM/mdm_product_stock.html",
+              "text": "侧栏入口撤下，旧页改为引导去各渠道编辑商品"
+            },
+            {
+              "file": null,
+              "text": "订单截单 PRD 升为 v1.2；补充库存预占底层规则（支付加预占、现货/预售拆段）"
+            }
+          ]
+        },
         {
           "sha": "74f8377",
           "type": "feat",
@@ -8584,11 +8676,6 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
-            },
-            {
-              "file": "MDM/mdm_product_stock.html",
-              "module": "冷丰WMS",
-              "title": "库存统计"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -17977,11 +18064,6 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
-            },
-            {
-              "file": "MDM/mdm_product_stock.html",
-              "module": "冷丰WMS",
-              "title": "库存统计"
             },
             {
               "file": "SCM/basic_settings_order.html",
