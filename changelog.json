@@ -1,10 +1,44 @@
 {
-  "latestSha": "ce52424845955753646e90f5eb99cfe972034392",
-  "total": 339,
+  "latestSha": "efd6b4424935b6a0553c13307f8f7215bac1f2d1",
+  "total": 340,
   "days": [
     {
       "date": "2026-09-03",
       "items": [
+        {
+          "sha": "efd6b44",
+          "type": "feat",
+          "text": "完善库存查询与生产日期变更规则",
+          "author": "342-droid",
+          "time": "15:00",
+          "pages": [
+            {
+              "file": "SCM/app_inventory_query.html",
+              "module": "冷丰WMS",
+              "title": "库存查询"
+            },
+            {
+              "file": "SCM/inventory_rule.html",
+              "module": "冷丰WMS",
+              "title": "库存规则"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/app_inventory_query.html",
+              "text": "增加商品和储位搜索示例、商品规格展示及批次纠正入口"
+            },
+            {
+              "file": "SCM/inventory_rule.html",
+              "text": "新增变更生产日期规则示例及规则明细"
+            },
+            {
+              "file": null,
+              "text": "增加变更生产日期库存变更类型选项"
+            }
+          ]
+        },
         {
           "sha": "ce52424",
           "type": "feat",
