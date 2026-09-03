@@ -112,6 +112,13 @@
             color: #999999;
         }
 
+        .search-example {
+            margin-top: 5px;
+            color: #999999;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
         .search-btn {
             width: 100%;
             padding: 12px 20px;
@@ -250,12 +257,38 @@
 
         .product-name-bar {
             background-color: #ffffff;
-            padding: 14px 16px;
+            padding: 14px 0 14px 16px;
             font-size: 15px;
             font-weight: 600;
             color: #333333;
+            border-bottom: 0;
+        }
+
+        .product-spec-bar {
+            background-color: #ffffff;
+            padding: 14px 16px 14px 8px;
+            font-size: 13px;
+            color: #777777;
+        }
+
+        .product-heading {
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
             border-bottom: 1px solid #eaeaea;
             flex-shrink: 0;
+        }
+
+        .product-heading .product-name-bar,
+        .product-heading .product-spec-bar {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .product-heading .product-spec-bar {
+            padding-top: 0;
+            padding-bottom: 12px;
+            padding-left: 16px;
         }
 
         .summary-bar {
@@ -384,6 +417,10 @@
             opacity: 0.92;
         }
 
+        .correction-card { margin: 12px; padding: 16px 14px; background: #ffffff; border: 1px solid #e6e6e6; border-radius: 10px; }
+        .correction-input { width: 100%; box-sizing: border-box; height: 44px; margin-top: 12px; padding: 0 12px; border: 1px solid #d9d9d9; border-radius: 8px; font-size: 14px; outline: none; }
+        #correctionPage .adjust-submit-bar { margin-top: auto; }
+
         /* 批次详情页 */
         .sub-page-content {
             flex: 1;
@@ -405,6 +442,21 @@
             border-radius: 10px;
             padding: 14px 12px;
             margin-bottom: 12px;
+        }
+
+        .batch-card-header {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 8px;
+        }
+
+        .batch-correct-btn {
+            border: 0;
+            padding: 0;
+            background: transparent;
+            color: #2196f3;
+            font-size: 13px;
+            cursor: pointer;
         }
 
         .batch-card:last-child {
@@ -485,6 +537,7 @@
                             placeholder="请输入商品编码/条码/名称"
                             autocomplete="off"
                         >
+                        <div class="search-example">示例：进口金钻凤梨200g (盒)、进口牛油果300g (盒)、有机香蕉500g (袋)</div>
                     </div>
                     <div class="search-field">
                         <input
@@ -494,6 +547,7 @@
                             placeholder="请输入储位编码/名称"
                             autocomplete="off"
                         >
+                        <div class="search-example">示例：PK001、A-01-01、B-02-03</div>
                     </div>
                     <button type="button" class="search-btn" id="searchBtn">查询</button>
                 </div>
@@ -506,7 +560,10 @@
         <!-- 批次详情 -->
         <div class="page" id="batchPage">
             <div class="sub-page-content">
-                <div class="product-name-bar" id="batchProductName"></div>
+                <div class="product-heading">
+                    <div class="product-name-bar" id="batchProductName"></div>
+                    <div class="product-spec-bar" id="batchProductSpec"></div>
+                </div>
                 <div class="summary-bar">
                     <div class="summary-col">
                         <div class="summary-value" id="batchLocation"></div>
@@ -524,7 +581,10 @@
         <!-- 盘点调整 -->
         <div class="page" id="adjustPage">
             <div class="sub-page-content">
-                <div class="product-name-bar" id="adjustProductName"></div>
+                <div class="product-heading">
+                    <div class="product-name-bar" id="adjustProductName"></div>
+                    <div class="product-spec-bar" id="adjustProductSpec"></div>
+                </div>
                 <div class="summary-bar">
                     <div class="summary-col">
                         <div class="summary-value" id="adjustLocation"></div>
@@ -562,6 +622,22 @@
             </div>
         </div>
 
+        <div class="page" id="correctionPage">
+            <div class="sub-page-content">
+                <div class="product-heading"><div class="product-name-bar" id="correctionProductName"></div><div class="product-spec-bar" id="correctionProductSpec"></div></div>
+                <div class="summary-bar"><div class="summary-col"><div class="summary-value" id="correctionLocation"></div><div class="summary-label">储位</div></div><div class="summary-col"><div class="summary-value" id="correctionTotalQty"></div><div class="summary-label">总库存</div></div></div>
+                <div class="correction-card">
+                    <div class="adjust-info-line">生产日期 <span class="value" id="correctionCurrentDate"></span></div>
+                    <div class="adjust-info-line">可用库存 <span class="value" id="correctionAvailableQty"></span></div>
+                    <div class="adjust-info-line">新生产日期</div>
+                    <input class="correction-input" id="correctionNewDate" inputmode="numeric" maxlength="8" placeholder="新生产日期，如20260901" autocomplete="off">
+                    <div class="adjust-info-line">变更数量</div>
+                    <input class="correction-input" id="correctionQuantity" type="number" min="0.01" step="0.01" placeholder="变更数量" autocomplete="off">
+                </div>
+                <div class="adjust-submit-bar"><button type="button" class="adjust-submit-btn" id="correctionSubmitBtn" disabled>执行更正</button></div>
+            </div>
+        </div>
+
         <div class="global-toast" id="globalToast"></div>
     </div>
 
@@ -575,6 +651,7 @@
             {
                 code: '1000426',
                 name: '进口金钻凤梨200g (盒)',
+                spec: '200g/盒',
                 shortName: '进口金钻凤梨200g',
                 barcode: '210000045577',
                 barcodeSuffix: '5XXX',
@@ -593,6 +670,7 @@
             {
                 code: '1000427',
                 name: '进口牛油果300g (盒)',
+                spec: '300g/盒',
                 shortName: '进口牛油果300g',
                 barcode: '210000045588',
                 barcodeSuffix: '6XXX',
@@ -610,6 +688,7 @@
             {
                 code: '1000428',
                 name: '有机香蕉500g (袋)',
+                spec: '500g/袋',
                 shortName: '有机香蕉500g',
                 barcode: '210000045599',
                 barcodeSuffix: '7XXX',
@@ -631,6 +710,7 @@
         const queryPage = document.getElementById('queryPage');
         const batchPage = document.getElementById('batchPage');
         const adjustPage = document.getElementById('adjustPage');
+        const correctionPage = document.getElementById('correctionPage');
         const productInput = document.getElementById('productInput');
         const locationInput = document.getElementById('locationInput');
         const searchBtn = document.getElementById('searchBtn');
@@ -641,6 +721,15 @@
         const adjustSubmitBtn = document.getElementById('adjustSubmitBtn');
         const batchListWrapper = document.getElementById('batchListWrapper');
         const globalToast = document.getElementById('globalToast');
+        const correctionProductName = document.getElementById('correctionProductName');
+        const correctionProductSpec = document.getElementById('correctionProductSpec');
+        const correctionLocation = document.getElementById('correctionLocation');
+        const correctionTotalQty = document.getElementById('correctionTotalQty');
+        const correctionCurrentDate = document.getElementById('correctionCurrentDate');
+        const correctionAvailableQty = document.getElementById('correctionAvailableQty');
+        const correctionNewDate = document.getElementById('correctionNewDate');
+        const correctionQuantity = document.getElementById('correctionQuantity');
+        const correctionSubmitBtn = document.getElementById('correctionSubmitBtn');
 
         let currentItem = null;
         let currentBatch = null;
@@ -682,6 +771,7 @@
                 }
                 return;
             }
+            if (correctionPage.classList.contains('active')) { showBatchPage(currentItem); return; }
             if (batchPage.classList.contains('active')) {
                 showQueryPage();
                 return;
@@ -693,6 +783,7 @@
             queryPage.classList.remove('active');
             batchPage.classList.remove('active');
             adjustPage.classList.remove('active');
+            correctionPage.classList.remove('active');
         }
 
         function showQueryPage() {
@@ -705,6 +796,9 @@
         function renderBatchList(item) {
             batchListWrapper.innerHTML = item.batches.map((batch, index) => `
                 <div class="batch-card">
+                    <div class="batch-card-header">
+                        <button type="button" class="batch-correct-btn" data-action="correct-production-date" data-batch-index="${index}">更正生产日期 &gt;</button>
+                    </div>
                     <div class="batch-card-body">
                         <div class="batch-info">
                             <div class="batch-line">生产日期 <span class="value">${batch.productionDate}</span></div>
@@ -728,6 +822,7 @@
             headerTitle.textContent = '批次详情';
 
             document.getElementById('batchProductName').textContent = item.name;
+            document.getElementById('batchProductSpec').textContent = `规格：${item.spec}`;
             document.getElementById('batchLocation').textContent = formatLocation(item.locationCode, item.locationName);
             document.getElementById('batchTotalQty').textContent = item.totalQty;
             renderBatchList(item);
@@ -743,6 +838,7 @@
             headerTitle.textContent = '盘点调整';
 
             document.getElementById('adjustProductName').textContent = item.name;
+            document.getElementById('adjustProductSpec').textContent = `规格：${item.spec}`;
             document.getElementById('adjustLocation').textContent = formatLocation(item.locationCode, item.locationName);
             document.getElementById('adjustTotalQty').textContent = adjustMode === 'batch' ? batch.batchQty : item.totalQty;
 
@@ -761,6 +857,20 @@
             actualQtyInput.value = '';
             remarkInput.value = '';
             updateAdjustSubmitState();
+        }
+
+        function showCorrectionPage(item, batch) {
+            currentItem = item; currentBatch = batch; hideAllPages(); correctionPage.classList.add('active');
+            headerTitle.textContent = '更正生产日期';
+            correctionProductName.textContent = item.name; correctionProductSpec.textContent = `规格：${item.spec}`;
+            correctionLocation.textContent = formatLocation(item.locationCode, item.locationName); correctionTotalQty.textContent = item.totalQty;
+            correctionCurrentDate.textContent = batch.productionDate; correctionAvailableQty.textContent = batch.availableQty;
+            correctionNewDate.value = ''; correctionQuantity.value = batch.availableQty; updateCorrectionState();
+        }
+
+        function updateCorrectionState() {
+            const qty = Number(correctionQuantity.value), valid = /^\d{8}$/.test(correctionNewDate.value.trim()) && Number.isFinite(qty) && qty > 0 && qty <= Number(correctionAvailableQty.textContent);
+            correctionSubmitBtn.disabled = !valid; correctionSubmitBtn.classList.toggle('enabled', valid);
         }
 
         function updateAdjustSubmitState() {
@@ -848,6 +958,10 @@
                                 <span class="inventory-value">${item.barcode}<span class="barcode-suffix">${item.barcodeSuffix}</span></span>
                             </div>
                             <div class="inventory-line">
+                                <span class="inventory-label">规格:</span>
+                                <span class="inventory-value">${item.spec}</span>
+                            </div>
+                            <div class="inventory-line">
                                 <span class="inventory-label">拣选面:</span>
                                 <span class="inventory-value">${formatLocation(item.pickingFaceCode, item.pickingFaceName)}</span>
                             </div>
@@ -893,6 +1007,12 @@
         });
 
         batchListWrapper.addEventListener('click', (e) => {
+            const correctBtn = e.target.closest('[data-action="correct-production-date"]');
+            if (correctBtn && currentItem) {
+                const batch = currentItem.batches[Number(correctBtn.dataset.batchIndex)];
+                if (batch) showCorrectionPage(currentItem, batch);
+                return;
+            }
             const countBtn = e.target.closest('[data-action="batch-count"]');
             if (countBtn && currentItem) {
                 const batch = currentItem.batches[Number(countBtn.dataset.batchIndex)];
@@ -901,6 +1021,8 @@
         });
 
         actualQtyInput.addEventListener('input', updateAdjustSubmitState);
+        correctionNewDate.addEventListener('input', updateCorrectionState); correctionQuantity.addEventListener('input', updateCorrectionState);
+        correctionSubmitBtn.addEventListener('click', () => { if (correctionSubmitBtn.disabled) return; currentBatch.productionDate = correctionNewDate.value.trim(); showBatchPage(currentItem); showToast('生产日期已更正'); });
 
         adjustSubmitBtn.addEventListener('click', () => {
             if (adjustSubmitBtn.disabled || !currentItem) return;
