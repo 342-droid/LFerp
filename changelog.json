@@ -1,7 +1,386 @@
 {
-  "latestSha": "08d06f1ab1d8d6aa7c1da60432c569024be33d86",
-  "total": 330,
+  "latestSha": "ce52424845955753646e90f5eb99cfe972034392",
+  "total": 339,
   "days": [
+    {
+      "date": "2026-09-03",
+      "items": [
+        {
+          "sha": "ce52424",
+          "type": "feat",
+          "text": "仓店库存默认收起并输出库存管理正式 PRD",
+          "author": "sisi",
+          "time": "02:57",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "编辑商品里仓店库存默认收起，一行看现货和可售合计，可展开明细"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "编辑商品同样默认收起仓店库存，改可售后合计跟着变"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "text": "仓店库存同样默认收起，可展开查看"
+            },
+            {
+              "file": null,
+              "text": "库存管理正式 PRD 写清支付拆段、入库转化、核销扣实物，并配流程图"
+            }
+          ]
+        },
+        {
+          "sha": "e743e42",
+          "type": "feat",
+          "text": "库存统计并入编辑规格并写清预占底层规则",
+          "author": "sisi",
+          "time": "02:24",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_product_audit.html",
+              "module": "冷丰WMS",
+              "title": "商品详情"
+            },
+            {
+              "file": "MDM/mdm_product_brand.html",
+              "module": "冷丰WMS",
+              "title": "商品品牌"
+            },
+            {
+              "file": "MDM/mdm_product_category.html",
+              "module": "冷丰WMS",
+              "title": "商品类目"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_mall_category.html",
+              "module": "冷丰WMS",
+              "title": "商城类目"
+            },
+            {
+              "file": "MDM/mdm_product_mall_tag.html",
+              "module": "冷丰WMS",
+              "title": "商城标签"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_category.html",
+              "module": "冷丰WMS",
+              "title": "类目管理"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_tag.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "MDM/mdm_product_stock.html",
+              "module": "冷丰WMS",
+              "title": "库存统计"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "编辑商品售卖规格可售改为按现货百分比或固定数量，并展示配送仓与门店库存"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "编辑商品售卖规格同样展示仓店库存，可售两项合并"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "text": "售卖规格补配送仓与门店库存表"
+            },
+            {
+              "file": "MDM/mdm_product_stock.html",
+              "text": "侧栏入口撤下，旧页改为引导去各渠道编辑商品"
+            },
+            {
+              "file": null,
+              "text": "订单截单 PRD 升为 v1.2；补充库存预占底层规则（支付加预占、现货/预售拆段）"
+            }
+          ]
+        },
+        {
+          "sha": "74f8377",
+          "type": "feat",
+          "text": "选品库去掉系统标签「跳过自动截单」",
+          "author": "sisi",
+          "time": "01:30",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "订单截单"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "module": "冷丰采购",
+              "title": "门店订货汇总"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "text": "商品标签管理不再预置「跳过自动截单」，只保留系统标签「不走订货单」"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-09-02",
+      "items": [
+        {
+          "sha": "60b59cb",
+          "type": "feat",
+          "text": "不进订货汇总改为选品库系统标签控制",
+          "author": "sisi",
+          "time": "23:12",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "订单截单"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "module": "冷丰采购",
+              "title": "门店订货汇总"
+            },
+            {
+              "file": "SCM/purchase_store_order_sheet.html",
+              "module": "冷丰采购",
+              "title": "门店订货单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "text": "支付后自动截单不再等于不进订货汇总，只表示支付即截单"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "text": "标签管理新增系统标签「不走订货单」，打上后该商品不进门店订货汇总"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "text": "按商品标签「不走订货单」过滤明细行，不再按支付后截单整单排除"
+            }
+          ]
+        },
+        {
+          "sha": "b9d0ca3",
+          "type": "feat",
+          "text": "订单截单改为只兜零售快递到家",
+          "author": "sisi",
+          "time": "22:23",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "订单截单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "text": "取消全渠道通用兜底，系统默认只保留零售快递到家（直播+商城、全部标签类目），名称改为「零售快递到家」；代采和仓配需单独配置或走订货汇总人工截单"
+            }
+          ]
+        },
+        {
+          "sha": "c8b0c97",
+          "type": "feat",
+          "text": "支付后自动截单不进订货汇总且人工截单后到点不再重跑",
+          "author": "sisi",
+          "time": "22:14",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "订单截单"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "module": "冷丰采购",
+              "title": "门店订货汇总"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "text": "支付后自动截单的订单不再进入门店订货汇总，也不再走每日定时"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "text": "本页人工截单后，订单截单到点策略不再对该单重复执行"
+            }
+          ]
+        },
+        {
+          "sha": "8c700c6",
+          "type": "feat",
+          "text": "订单截单按渠道配置并支持选品库标签管理",
+          "author": "sisi",
+          "time": "22:01",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "订单截单"
+            },
+            {
+              "file": "MDM/mdm_order_freight_config.html",
+              "module": "冷丰订单",
+              "title": "运费配置"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "module": "冷丰WMS",
+              "title": "排队记录"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "MDM/mdm_order_sales.html",
+              "module": "冷丰WMS",
+              "title": "销售订单"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "module": "冷丰采购",
+              "title": "门店订货汇总"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "text": "由快递截单升级为订单截单，按订单渠道、履约方式、商品标签、类目配置；零售可分直播/商城，代采不区分场景；零售履约为快递到家、门店自提，代采为平台配送、快递配送；支持每日定时和支付后自动截单"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "text": "新增商品标签管理抽屉，含系统标签「跳过自动截单」"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "text": "自动截单配置收口到订单截单页，本页只保留人工截单"
+            },
+            {
+              "file": null,
+              "text": "同步订单截单需求文档"
+            }
+          ]
+        },
+        {
+          "sha": "54a693e",
+          "type": "fix",
+          "text": "新增采购单保存后进入待审核",
+          "author": "342-droid",
+          "time": "16:55",
+          "pages": [
+            {
+              "file": "SCM/purchase_order.html",
+              "module": "冷丰采购",
+              "title": "采购单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "采购单管理: 新增采购单保存后状态改为待审核并更新成功提示"
+            }
+          ]
+        },
+        {
+          "sha": "d1b738c",
+          "type": "fix",
+          "text": "完善库存生产日期更正操作",
+          "author": "342-droid",
+          "time": "16:50",
+          "pages": [
+            {
+              "file": "SCM/inventory.html",
+              "module": "冷丰WMS",
+              "title": "库存查询"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/inventory.html",
+              "text": "新增生产日期更正弹窗、图片预览及数量校验，优化操作列与日期展示"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-09-01",
       "items": [
@@ -224,13 +603,17 @@
             {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
-              "title": "快递截单"
+              "title": "订单截单"
             }
           ],
           "notes": [
             {
-              "file": "MDM/mdm_order_express_cutoff.html",
-              "text": "「用户端说明」改为选填备注，仅后台查看；截单后申请退款文案改为走售后审核流"
+              "file": null,
+              "text": "快递截单: 「用户端说明」改为选填备注，仅后台查看"
+            },
+            {
+              "file": null,
+              "text": "截单后申请退款文案改为走售后审核流"
             }
           ]
         },
@@ -244,7 +627,7 @@
             {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
-              "title": "快递截单"
+              "title": "订单截单"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -298,8 +681,12 @@
               "text": "支付方式下新增支付流水；自提详情补配送方式和支付流水，金额明细独立成卡片放在订单编号上方"
             },
             {
-              "file": "MDM/mdm_order_express_cutoff.html",
-              "text": "默认通用策略仅可修改；启用中不可删除，修改后自动停用需手动启用"
+              "file": null,
+              "text": "快递截单: 默认通用策略仅可修改"
+            },
+            {
+              "file": null,
+              "text": "启用中不可删除，修改后自动停用需手动启用"
             }
           ]
         },
@@ -2824,13 +3211,21 @@
             {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
-              "title": "快递截单"
+              "title": "订单截单"
             }
           ],
           "notes": [
             {
-              "file": "MDM/mdm_order_express_cutoff.html",
-              "text": "改为多条策略列表配置，直播和商城可同策略多选；支持按选品库类目设截单时间，窗口为上次时刻到本次前一秒；保存后为草稿需手动启动，状态含草稿、启动、停用"
+              "file": null,
+              "text": "快递截单: 改为多条策略列表配置，直播和商城可同策略多选"
+            },
+            {
+              "file": null,
+              "text": "支持按选品库类目设截单时间，窗口为上次时刻到本次前一秒"
+            },
+            {
+              "file": null,
+              "text": "保存后为草稿需手动启动，状态含草稿、启动、停用"
             }
           ]
         },
@@ -3205,7 +3600,7 @@
             {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
-              "title": "快递截单"
+              "title": "订单截单"
             },
             {
               "file": "MDM/mdm_order_freight_config.html",
@@ -3259,8 +3654,8 @@
               "text": "从财务迁到订单侧栏，旧财务入口自动跳转"
             },
             {
-              "file": "MDM/mdm_order_express_cutoff.html",
-              "text": "订单侧栏新增零售快递到家截单配置，与采购截单分开"
+              "file": null,
+              "text": "快递截单: 订单侧栏新增零售快递到家截单配置，与采购截单分开"
             },
             {
               "file": "MDM/mdm_settle_index.html",
@@ -5153,7 +5548,7 @@
             {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
-              "title": "快递截单"
+              "title": "订单截单"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -8303,7 +8698,7 @@
             {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
-              "title": "快递截单"
+              "title": "订单截单"
             },
             {
               "file": "MDM/mdm_product_audit.html",
@@ -8324,11 +8719,6 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
-            },
-            {
-              "file": "MDM/mdm_product_stock.html",
-              "module": "冷丰WMS",
-              "title": "库存统计"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -11435,6 +11825,11 @@
               "title": "会员管理"
             },
             {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "订单截单"
+            },
+            {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
               "title": "直播订单"
@@ -11936,7 +12331,7 @@
             {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
-              "title": "快递截单"
+              "title": "订单截单"
             },
             {
               "file": "MDM/mdm_people_anchor.html",
@@ -15847,7 +16242,7 @@
             {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
-              "title": "快递截单"
+              "title": "订单截单"
             },
             {
               "file": "MDM/mdm_order_freight_config.html",
@@ -17317,7 +17712,7 @@
             {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
-              "title": "快递截单"
+              "title": "订单截单"
             },
             {
               "file": "MDM/mdm_order_freight_config.html",
@@ -17351,7 +17746,7 @@
             {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
-              "title": "快递截单"
+              "title": "订单截单"
             },
             {
               "file": "MDM/mdm_order_freight_config.html",
@@ -17656,7 +18051,7 @@
             {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
-              "title": "快递截单"
+              "title": "订单截单"
             },
             {
               "file": "MDM/mdm_order_freight_config.html",
@@ -17712,11 +18107,6 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
-            },
-            {
-              "file": "MDM/mdm_product_stock.html",
-              "module": "冷丰WMS",
-              "title": "库存统计"
             },
             {
               "file": "SCM/basic_settings_order.html",
@@ -17855,6 +18245,11 @@
               "file": "MDM/mdm_member_segment.html",
               "module": "冷丰WMS",
               "title": "会员分群"
+            },
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "订单截单"
             },
             {
               "file": "MDM/mdm_product_audit.html",
@@ -18016,7 +18411,7 @@
             {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
-              "title": "快递截单"
+              "title": "订单截单"
             },
             {
               "file": "MDM/mdm_order_live.html",
@@ -18773,7 +19168,7 @@
             {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
-              "title": "快递截单"
+              "title": "订单截单"
             },
             {
               "file": "MDM/mdm_product_audit.html",
@@ -19967,7 +20362,7 @@
             {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
-              "title": "快递截单"
+              "title": "订单截单"
             },
             {
               "file": "MDM/mdm_order_freight_config.html",
@@ -20036,7 +20431,7 @@
             {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
-              "title": "快递截单"
+              "title": "订单截单"
             },
             {
               "file": "MDM/mdm_order_freight_config.html",

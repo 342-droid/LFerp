@@ -137,7 +137,9 @@
       salePrice: price,
       linePrice: raw.linePrice != null ? raw.linePrice : raw.marketPrice,
       minQty: raw.minQty != null ? raw.minQty : 1,
-      sellableMode: raw.sellableMode || 'follow',
+      sellableMode: window.MdmSkuWhStock && window.MdmSkuWhStock.normalizeSellableMode
+        ? window.MdmSkuWhStock.normalizeSellableMode(raw.sellableMode)
+        : raw.sellableMode === 'fixed' ? 'fixed' : 'spot',
       sellablePercent: raw.sellablePercent != null ? raw.sellablePercent : '100',
       sellableFixed: raw.sellableFixed || '',
       liveStock: raw.liveStock != null ? raw.liveStock : raw.stock,
@@ -381,7 +383,9 @@
       fieldHtml('现货库存', 'spotStock', sku.spotStock, true) +
       fieldHtml('可售库存', 'sellableStock', sku.sellableStock, true) +
       fieldHtml('本场售卖配额', 'liveStock', sku.liveStock, false, 'is-live-stock') +
-      '<p class="product-proxy-spec__stock-tip product-proxy-spec__stock-tip--span">现货/可售全网共享；本场配额不超过剩余可售（可售−现货预占）。分仓与现货/预售预占见选品库「库存统计」。</p>' +
+      (window.MdmSkuWhStock && typeof window.MdmSkuWhStock.renderPanel === 'function'
+        ? window.MdmSkuWhStock.renderPanel(sku, { variant: 'live', sessionId: sessionId })
+        : '<p class="product-proxy-spec__stock-tip product-proxy-spec__stock-tip--span">本场配额不超过剩余可售（可售−现货预占）。</p>') +
       '</div></div>' +
       '<div class="product-proxy-spec__foot">' +
       '<button type="button" class="product-proxy-spec__btn-off' +
