@@ -1,7 +1,7 @@
 /**
  * 代采 / 商城商品列表 — 添加/编辑商品（完整表单）
  * channel: 'proxy'（快递/配送）| 'mall'（快递/自提）
- * 售卖规格含可售库存（按现货百分比 / 按具体数量）及配送仓+门店库存表。
+ * 售卖规格：可售 / 预占同在放单渠道；仓店表现货按配送仓。
  */
 (function () {
   var pickerInstance = null;
@@ -46,9 +46,13 @@
     return isFinite(n) && n >= 0 ? n : 0;
   }
 
+  function stockOpts(extra) {
+    return Object.assign({ channel: formChannel }, extra || {});
+  }
+
   function computeSellableStock(sku) {
     if (window.MdmSkuWhStock && typeof window.MdmSkuWhStock.attachToSku === 'function') {
-      var sum = window.MdmSkuWhStock.attachToSku(sku);
+      var sum = window.MdmSkuWhStock.attachToSku(sku, stockOpts());
       return sum ? sum.sellableTotal : 0;
     }
     var spot = parseStockNum(sku && sku.spotStock);
@@ -67,11 +71,13 @@
     if (sku.sellablePercent == null || sku.sellablePercent === '') sku.sellablePercent = '100';
     if (sku.sellableFixed == null) sku.sellableFixed = '';
     if (window.MdmSkuWhStock && typeof window.MdmSkuWhStock.attachToSku === 'function') {
-      window.MdmSkuWhStock.attachToSku(sku);
+      window.MdmSkuWhStock.attachToSku(sku, stockOpts());
     } else {
       if (sku.spotStock == null || sku.spotStock === '') sku.spotStock = '0';
       if (sku.reservedStock == null || sku.reservedStock === '') sku.reservedStock = '0';
       sku.sellableStock = String(computeSellableStock(sku));
+      var remain = Math.max(0, parseStockNum(sku.sellableStock) - parseStockNum(sku.reservedStock));
+      sku.remainStock = String(remain);
     }
     return sku;
   }
@@ -725,7 +731,7 @@
   }
 
   function stockPanelOpts() {
-    return { storeNames: getSelectedStoreNames(formState) };
+    return stockOpts({ storeNames: getSelectedStoreNames(formState) });
   }
 
   function renderWhStockPanel(sku) {
@@ -776,7 +782,7 @@
       '>%</span>' +
       '    <input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--fixed" data-field="sellableFixed" inputmode="decimal" value="' +
       escapeHtml(sku.sellableFixed) +
-      '" placeholder="全网可售件数" aria-label="固定可售数量"' +
+      '" placeholder="本渠道可售件数" aria-label="固定可售数量"' +
       (mode === 'fixed' ? '' : ' hidden') +
       '>' +
       '    <input type="text" class="product-proxy-spec__input product-proxy-spec__stock-result" data-sellable-result readonly tabindex="-1" value="' +
@@ -786,8 +792,25 @@
       '>' +
       '  </div>' +
       '  <p class="product-proxy-spec__stock-tip">' +
-      (mode === 'fixed' ? '按具体数量作为全网上限，再按各仓现货占比分摊。' : '填写现货百分比，100% 取现货，大于 100% 按现货溢出。' + percentTip) +
+      (mode === 'fixed'
+        ? '可售与预占都在<strong>放单渠道</strong>：本页只看本渠道该 SKU，不是仓字段，也不是多渠道加总。'
+        : '可售与预占都在<strong>放单渠道</strong>：本页只看本渠道该 SKU，不是仓字段。100% 取现货合计，大于 100% 按现货溢出。' +
+          percentTip) +
       '</p>' +
+      '</div>' +
+      '<div class="product-proxy-spec__field">' +
+      '  <label class="product-proxy-spec__label">预占库存</label>' +
+      '  <input type="text" class="product-proxy-spec__input" data-field="reservedStock" data-reserved-result value="' +
+      escapeHtml(sku.reservedStock) +
+      '" readonly tabindex="-1" aria-label="预占库存">' +
+      '  <p class="product-proxy-spec__stock-tip">本渠道已支付、尚未按履约节点释放的数量。</p>' +
+      '</div>' +
+      '<div class="product-proxy-spec__field">' +
+      '  <label class="product-proxy-spec__label">剩余可售</label>' +
+      '  <input type="text" class="product-proxy-spec__input" data-remain-result value="' +
+      escapeHtml(sku.remainStock) +
+      '" readonly tabindex="-1" aria-label="剩余可售">' +
+      '  <p class="product-proxy-spec__stock-tip">本渠道可售 − 本渠道预占。</p>' +
       '</div>' +
       renderWhStockPanel(sku)
     );
@@ -1021,7 +1044,7 @@
     if (!panel || !window.MdmSkuWhStock) return;
     var box = panel.querySelector('[data-wh-stock]');
     if (!box) return;
-    var sum = window.MdmSkuWhStock.attachToSku(sku);
+    var sum = window.MdmSkuWhStock.attachToSku(sku, stockOpts());
     if (typeof window.MdmSkuWhStock.applyStoreScope === 'function') {
       sum = window.MdmSkuWhStock.applyStoreScope(sum, getSelectedStoreNames(formState));
     }
@@ -1177,6 +1200,10 @@
           if (resultEl) resultEl.value = sku.sellableStock;
           var spotEl = panel.querySelector('[data-field="spotStock"]');
           if (spotEl) spotEl.value = sku.spotStock;
+          var reservedEl = panel.querySelector('[data-reserved-result]');
+          if (reservedEl) reservedEl.value = sku.reservedStock;
+          var remainEl = panel.querySelector('[data-remain-result]');
+          if (remainEl) remainEl.value = sku.remainStock;
           refreshPanelWhStock(panel, sku);
         }
         var modeSelect = panel.querySelector('[data-field="sellableMode"]');
