@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
   <link rel="stylesheet" href="../css/user-app-shop.css?v=20260818-zzmerge">
+  <link rel="stylesheet" href="../css/user-app-seckill.css?v=20260902-sk-style">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-gd-page">
@@ -33,15 +34,33 @@
         </div>
       </section>
 
-      <section class="ua-gd-info">
-        <div class="ua-gd-info__price-row">
+      <section class="ua-gd-info" id="goodsDetailInfo">
+        <div class="ua-sk-band" id="goodsDetailSeckillBand" hidden>
+          <div class="ua-sk-band__head">
+            <span class="ua-sk-band__title">限时秒杀</span>
+            <span class="ua-sk-band__cd" id="goodsDetailSeckillCountdownWrap">距结束 <em id="goodsDetailSeckillCountdown">--:--:--</em></span>
+          </div>
+          <div class="ua-sk-band__body">
+            <div class="ua-sk-band__left">
+              <span class="ua-sk-band__price" id="goodsDetailSeckillPrice"><small>¥</small>88</span>
+              <span class="ua-sk-band__origin" id="goodsDetailSeckillOrigin">¥96.8</span>
+            </div>
+            <div class="ua-sk-band__right">
+              <span class="ua-sk-band__stock" id="goodsDetailSeckillStock">可购15</span>
+              <span class="ua-sk-band__sold" id="goodsDetailSeckillSold">已售888</span>
+            </div>
+          </div>
+          <p class="ua-sk-band__note" id="goodsDetailSeckillNote" hidden></p>
+          <div class="ua-sk-chips" id="goodsDetailSeckillMeta" hidden></div>
+        </div>
+        <div class="ua-gd-info__price-row" id="goodsDetailPriceRow">
           <div class="ua-gd-info__prices">
             <span class="ua-gd-info__price" id="goodsDetailPrice"><small>¥</small>96.8</span>
             <span class="ua-gd-info__origin" id="goodsDetailOrigin">¥196.8</span>
           </div>
           <span class="ua-gd-info__sold" id="goodsDetailSold">已售888</span>
         </div>
-        <h1 class="ua-gd-info__title" id="goodsDetailTitle">精选金钱牛腱子肉 软嫩弹牙</h1>
+        <h1 class="ua-gd-info__title"><span class="ua-sk-title-tag" id="goodsDetailSeckillTag" hidden>秒杀</span><span id="goodsDetailTitle">精选金钱牛腱子肉 软嫩弹牙</span></h1>
         <p class="ua-gd-info__service" id="goodsDetailService">坏了包退 三天内到货</p>
       </section>
 
@@ -154,7 +173,10 @@
 <script src="../js/user-app-blacklist-guard.js"></script>
 <script src="../../js/mdm-supplier-archive-store.js"></script>
 <script src="../js/user-app-product-sale-time.js?v=20260818-store-rest-sale"></script>
+<script src="../../js/mdm-marketing-seckill-store.js"></script>
+<script src="../js/user-app-seckill.js?v=20260902-sk-style"></script>
 <script src="../js/user-app-shop.js?v=20260818-store-rest-sale"></script>
+<script src="../../js/pg-prd-float.js?v=20260902-605"></script>
 <script>UAShop.initGoodsDetailPage();</script>
 </body>
 </html>

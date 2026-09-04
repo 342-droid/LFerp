@@ -1055,7 +1055,7 @@
     }
     var p = PRODUCTS[item && item.id];
     var fulfillType =
-      (item && item.fulfillType) || (p && getProductFulfillType(p)) || 'pickup';
+      (p && getProductFulfillType(p)) || (item && item.fulfillType) || 'pickup';
     if (fulfillType === 'express') {
       var supplier = (item && item.merchantId && p && p.supplier && p.supplier.id === item.merchantId
         ? p.supplier
@@ -1151,9 +1151,15 @@
 
   function itemUnitPrice(item) {
     if (isPointsExchangeItem(item)) return Number(item.money) || 0;
-    if (item && item.price != null) return Number(item.price);
+    if (item && item.source !== 'live' && global.UaSeckill && typeof global.UaSeckill.unitPrice === 'function') {
+      var skPrice = global.UaSeckill.unitPrice(item);
+      if (skPrice != null) return Number(skPrice);
+    }
+    if (item && item.source === 'live' && item.price != null) return Number(item.price);
     var p = PRODUCTS[item && item.id];
-    return p ? Number(p.price) : 0;
+    if (p) return Number(p.price) || 0;
+    if (item && item.price != null) return Number(item.price);
+    return 0;
   }
 
   function itemSpecText(item) {
@@ -3077,7 +3083,22 @@
   }
 
   function getProductFulfillType(product) {
+    if (!fromLiveSafe() && product && global.UaSeckill && typeof global.UaSeckill.resolve === 'function') {
+      var hit = global.UaSeckill.resolve(product, { spec: product.defaultSpec || product.spec });
+      if (hit && hit.showSeckill && hit.deliveryMode === 'express') return 'express';
+      if (hit && hit.showSeckill && hit.deliveryMode === 'pickup') return 'pickup';
+    }
     return product && product.fulfillType === 'express' ? 'express' : 'pickup';
+  }
+
+  function fromLiveSafe() {
+    try {
+      if (String(window.location.pathname || '').indexOf('live-room') >= 0) return true;
+      var from = new URLSearchParams(window.location.search || '').get('from') || '';
+      return from.indexOf('live-room') >= 0;
+    } catch (e) {
+      return false;
+    }
   }
 
   function getProductMerchant(product) {
@@ -3279,13 +3300,29 @@
       }
       var previewBadge = document.getElementById('goodsDetailPreviewBadge');
       if (previewBadge) previewBadge.hidden = !livePreview;
+      var seckillHit =
+        !fromLive && global.UaSeckill && typeof global.UaSeckill.resolve === 'function'
+          ? global.UaSeckill.resolve(product, { spec: selectedSpec })
+          : null;
+      if (seckillHit && seckillHit.showSeckill && seckillHit.specs && seckillHit.specs.length) {
+        if (seckillHit.specs.indexOf(selectedSpec) < 0) selectedSpec = seckillHit.specs[0];
+        if (seckillHit.deliveryMode === 'express' || seckillHit.deliveryMode === 'pickup') {
+          fulfillType = seckillHit.deliveryMode;
+          merchant = getProductMerchant(Object.assign({}, product, { fulfillType: fulfillType }));
+        }
+      }
+      var seckillDeny = !!(seckillHit && seckillHit.deny);
       var soldOut = fromLive && product.liveStatus === 'sold_out';
       var unsaleable = !livePreview && !soldOut && !isProductSaleableNow(product);
-      var blocked = livePreview || soldOut || unsaleable;
+      var blocked = livePreview || soldOut || unsaleable || seckillDeny;
       var unsaleableBadge = document.getElementById('goodsDetailUnsaleableBadge');
       if (unsaleableBadge) {
-        unsaleableBadge.hidden = !unsaleable && !soldOut;
-        unsaleableBadge.textContent = soldOut ? '已售罄' : unsaleableLabel();
+        unsaleableBadge.hidden = !unsaleable && !soldOut && !seckillDeny;
+        unsaleableBadge.textContent = soldOut
+          ? '已售罄'
+          : seckillDeny
+            ? '不支持购买'
+            : unsaleableLabel();
       }
       var hero = document.querySelector('.ua-gd-hero');
       if (hero) hero.classList.toggle('is-unsaleable', unsaleable || soldOut);
@@ -3305,6 +3342,9 @@
         } else if (soldOut) {
           soonBtn.hidden = false;
           soonBtn.textContent = '已售罄';
+        } else if (seckillDeny) {
+          soonBtn.hidden = false;
+          soonBtn.textContent = '不支持购买';
         } else if (unsaleable) {
           soonBtn.hidden = false;
           soonBtn.textContent = unsaleableLabel();
@@ -3315,17 +3355,32 @@
       setText('goodsDetailSold', '已售' + (product.sold || 0));
       setText('goodsDetailTitle', product.name);
       setText('goodsDetailService', product.serviceText || '坏了包退 三天内到货');
+      if (!fromLive && global.UaSeckill && typeof global.UaSeckill.applyGoodsDetail === 'function') {
+        global.UaSeckill.applyGoodsDetail(product, selectedSpec);
+      }
+      var specList =
+        seckillHit && seckillHit.showSeckill && seckillHit.specs && seckillHit.specs.length
+          ? seckillHit.specs
+          : product.specs || [];
       setText('goodsDetailSpecValue', selectedSpec);
-      setText('goodsDetailSpecCount', String((product.specs || []).length || 1));
+      setText('goodsDetailSpecCount', String(specList.length || 1));
       setText('goodsDetailReviewCount', String(product.reviewCount || 0));
       renderFulfillBlocks();
+    }
+
+    function visibleSpecs() {
+      if (!fromLive && global.UaSeckill && typeof global.UaSeckill.resolve === 'function') {
+        var hit = global.UaSeckill.resolve(product, { spec: selectedSpec });
+        if (hit && hit.showSeckill && hit.specs && hit.specs.length) return hit.specs;
+      }
+      return product.specs || [selectedSpec];
     }
 
     function openSpecSheet(intent) {
       sheetIntent = intent || 'pick';
       var list = document.getElementById('goodsDetailSpecList');
       if (list) {
-        list.innerHTML = (product.specs || [selectedSpec])
+        list.innerHTML = visibleSpecs()
           .map(function (spec) {
             return (
               '<button type="button" class="ua-gd-sheet__chip' +
@@ -3358,7 +3413,8 @@
 
     function addCurrentToCart() {
       if (!guardProductSaleable(product)) return;
-      addToCart(product.id, 1);
+      if (global.UaSeckill && !global.UaSeckill.guardPurchase(product, selectedSpec)) return;
+      addToCart(product.id, 1, { spec: selectedSpec });
       syncBadges();
       showToast('已加入购物车');
     }
@@ -3409,13 +3465,14 @@
           closeSheet('spec');
           if (livePreview) return;
           if (!guardProductSaleable(product)) return;
+          if (global.UaSeckill && !global.UaSeckill.guardPurchase(product, selectedSpec)) return;
           if (intent === 'cart') addCurrentToCart();
           else if (intent === 'buy') {
             if (typeof options.onBuy === 'function') {
               options.onBuy(product, selectedSpec);
               return;
             }
-            var cart = addToCart(product.id, 1);
+            var cart = addToCart(product.id, 1, { spec: selectedSpec });
             (cart.items || []).forEach(function (it) {
               it.checked = it.id === product.id;
             });
@@ -3433,6 +3490,7 @@
         document.getElementById('goodsDetailAddCart').addEventListener('click', function () {
           if (fromLive || livePreview) return;
           if (!guardProductSaleable(product)) return;
+          if (global.UaSeckill && !global.UaSeckill.guardPurchase(product, selectedSpec)) return;
           openSpecSheet('cart');
         });
 
@@ -3444,6 +3502,7 @@
             return;
           }
           if (!guardProductSaleable(product)) return;
+          if (global.UaSeckill && !global.UaSeckill.guardPurchase(product, selectedSpec)) return;
           openSpecSheet('buy');
         });
 
@@ -3477,6 +3536,9 @@
       global.UaProductSaleTime.mountDemoPanel({
         className: fromLive ? 'ua-sale-time-demo--gd-live' : 'ua-sale-time-demo--gd'
       });
+    }
+    if (!fromLive && global.UaSeckill && typeof global.UaSeckill.mountDemoPanel === 'function') {
+      global.UaSeckill.mountDemoPanel({ className: 'ua-sk-demo--gd' });
     }
   }
 
@@ -3533,6 +3595,9 @@
         className: 'ua-sale-time-demo--cart',
         variant: 'checkout'
       });
+    }
+    if (global.UaSeckill && typeof global.UaSeckill.mountDemoPanel === 'function') {
+      global.UaSeckill.mountDemoPanel({ className: 'ua-sk-demo--cart' });
     }
 
     document.getElementById('cartClearBtn') &&
@@ -3758,6 +3823,7 @@
               '<a class="ua-cart-item__name" href="goods-detail.html?id=' +
               encodeURIComponent(p.id) +
               '&from=cart.html">' +
+              (global.UaSeckill && global.UaSeckill.cartTagHtml ? global.UaSeckill.cartTagHtml(item) : '') +
               (p.shortName || p.name) +
               '</a>' +
               cartItemSpecRowHtml(item) +
@@ -5022,6 +5088,7 @@
     initOrderConfirmPage: initOrderConfirmPage,
     initGoodsDetailPage: initGoodsDetailPage,
     formatMoney: formatMoney,
-    getCheckedSummary: getCheckedSummary
+    getCheckedSummary: getCheckedSummary,
+    showToast: showToast
   };
 })(window);

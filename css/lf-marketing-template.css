@@ -1,0 +1,721 @@
+/* 营销模版 — 模版配置（对齐 UAT 列表 + 编辑弹窗） */
+
+/* .erp-modal-backdrop { display:flex } 会盖掉 HTML hidden，进页空弹窗挡死整页 */
+.erp-modal-backdrop[hidden],
+.mkt-tpl-log-drawer[hidden] {
+  display: none !important;
+}
+
+.mkt-tpl-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+}
+
+.mkt-tpl-toolbar .erp-btn {
+  text-decoration: none !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  line-height: 1;
+}
+
+.mkt-tpl-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.mkt-tpl-tag--primary {
+  color: #409eff;
+  background: #ecf5ff;
+  border-color: #d9ecff;
+}
+
+.mkt-tpl-tag--warning {
+  color: #e6a23c;
+  background: #fdf6ec;
+  border-color: #faecd8;
+}
+
+.mkt-tpl-tag--success {
+  color: #67c23a;
+  background: #f0f9eb;
+  border-color: #e1f3d8;
+}
+
+.mkt-tpl-tag--info {
+  color: #909399;
+  background: #f4f4f5;
+  border-color: #e9e9eb;
+}
+
+.main-content .table td.mkt-tpl-ops {
+  white-space: nowrap;
+}
+
+.main-content .table td.mkt-tpl-ops a,
+.main-content .table td.mkt-tpl-ops button.mkt-tpl-link {
+  display: inline;
+  margin-right: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  cursor: pointer;
+  color: #2196f3 !important;
+  text-decoration: none !important;
+}
+
+.main-content .table td.mkt-tpl-ops .mkt-tpl-link--warn {
+  color: #e6a23c !important;
+}
+
+.main-content .table td.mkt-tpl-ops .mkt-tpl-link--ok {
+  color: #67c23a !important;
+}
+
+.mkt-tpl-more {
+  position: relative;
+  display: inline-block;
+}
+
+.mkt-tpl-more__btn {
+  color: #909399 !important;
+}
+
+.mkt-tpl-more__menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 120px;
+  background: #fff;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  z-index: 20;
+  padding: 6px 0;
+}
+
+.mkt-tpl-more.is-open .mkt-tpl-more__menu {
+  display: block;
+}
+
+.mkt-tpl-more__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: #606266;
+  cursor: pointer;
+}
+
+.mkt-tpl-more__item:hover {
+  background: #f5f7fa;
+  color: #ff7019;
+}
+
+.mkt-tpl-name {
+  color: #2196f3;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+}
+
+.mkt-tpl-name:hover {
+  color: #1976d2;
+}
+
+/* —— 编辑弹窗 —— */
+.mkt-tpl-edit-backdrop .erp-modal {
+  width: 820px;
+  max-width: 92vw;
+  height: 600px;
+  max-height: calc(100vh - 48px);
+}
+
+.mkt-tpl-edit-backdrop .erp-modal__body {
+  background: #f5f7fa;
+  padding: 8px 16px 16px;
+  overflow-y: auto;
+}
+
+.mkt-tpl-section {
+  padding: 16px;
+  margin-bottom: 16px;
+  background: #fff;
+  border-radius: 4px;
+}
+
+.mkt-tpl-section__title {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.mkt-tpl-section__icon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background: #ff7019;
+  border-radius: 3px;
+}
+
+.mkt-tpl-sub-title {
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #606266;
+}
+
+.mkt-tpl-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  min-height: 32px;
+}
+
+.mkt-tpl-row__label {
+  box-sizing: border-box;
+  flex: 0 0 120px;
+  padding-top: 6px;
+  text-align: right;
+  padding-right: 12px;
+  color: #606266;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.mkt-tpl-row__label::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  margin-right: 4px;
+}
+
+.mkt-tpl-row__label.is-req::before {
+  content: '*';
+  color: #f56c6c;
+}
+
+.mkt-tpl-row__ctrl {
+  flex: 1;
+  min-width: 0;
+}
+
+.mkt-tpl-edit-backdrop .erp-modal__body input[type='text'],
+.mkt-tpl-edit-backdrop .erp-modal__body input[type='number'],
+.mkt-tpl-edit-backdrop .erp-modal__body input[type='datetime-local'],
+.mkt-tpl-edit-backdrop .erp-modal__body select {
+  box-sizing: border-box;
+  height: 32px;
+  line-height: 30px;
+  padding: 0 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #606266;
+  background: #fff;
+  vertical-align: middle;
+}
+
+.mkt-tpl-edit-backdrop .erp-modal__body input[type='radio'],
+.mkt-tpl-edit-backdrop .erp-modal__body input[type='checkbox'] {
+  box-sizing: border-box;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  padding: 0;
+  flex: none;
+  accent-color: #ff7019;
+}
+
+.mkt-tpl-row__ctrl > select {
+  width: 240px;
+  max-width: 100%;
+}
+
+.mkt-tpl-row__ctrl input:disabled,
+.mkt-tpl-row__ctrl select:disabled,
+.mkt-tpl-row__ctrl textarea:disabled,
+.mkt-tpl-edit-backdrop .erp-modal__body input:disabled,
+.mkt-tpl-edit-backdrop .erp-modal__body select:disabled {
+  background: #f5f7fa;
+  color: #c0c4cc;
+  cursor: not-allowed;
+}
+
+.mkt-tpl-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-height: 32px;
+}
+
+.mkt-tpl-inline--nowrap {
+  flex-wrap: nowrap;
+}
+
+.mkt-tpl-inline__text {
+  white-space: nowrap;
+  color: #606266;
+  font-size: 14px;
+  line-height: 32px;
+}
+
+.mkt-tpl-inline input,
+.mkt-tpl-inline select {
+  width: 180px;
+}
+
+.mkt-tpl-inline select.mkt-tpl-w160,
+select.mkt-tpl-w160 {
+  width: 160px;
+}
+
+.mkt-tpl-w240,
+select.mkt-tpl-w240 {
+  width: 240px;
+  max-width: 100%;
+}
+
+.mkt-tpl-num {
+  width: 104px !important;
+}
+
+.mkt-tpl-radios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 20px;
+  align-items: center;
+  min-height: 32px;
+}
+
+.mkt-tpl-radios label {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 14px;
+  line-height: 32px;
+  color: #606266;
+  cursor: pointer;
+}
+
+.mkt-tpl-check {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 32px;
+  font-size: 14px;
+  color: #606266;
+  cursor: pointer;
+}
+
+.mkt-tpl-check-tip {
+  margin-left: 12px;
+  color: #909399;
+  font-size: 12px;
+  line-height: 32px;
+}
+
+.mkt-tpl-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  min-height: 32px;
+}
+
+.mkt-tpl-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 4px;
+  background: #f4f4f5;
+  color: #909399;
+  border: 1px solid #e9e9eb;
+  font-size: 12px;
+}
+
+.mkt-tpl-chip__x {
+  margin-left: 6px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #909399;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.mkt-tpl-add-link {
+  background: none;
+  border: none;
+  color: #ff7019;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 32px;
+  padding: 0;
+}
+
+.mkt-tpl-add-link:disabled {
+  color: #c0c4cc;
+  cursor: not-allowed;
+}
+
+.mkt-tpl-rule {
+  margin-bottom: 16px;
+}
+
+.mkt-tpl-rule:last-child {
+  margin-bottom: 0;
+}
+
+.mkt-tpl-rule__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-height: 32px;
+}
+
+.mkt-tpl-rule__extra {
+  margin-top: 8px;
+}
+
+.mkt-tpl-add-rule {
+  padding: 8px;
+  margin-top: 8px;
+  margin-left: 120px;
+  text-align: center;
+  border: 1px dashed #dcdfe6;
+  border-radius: 4px;
+}
+
+.mkt-tpl-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  min-height: 32px;
+  align-items: center;
+}
+
+.mkt-tpl-cats label {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 13px;
+  line-height: 32px;
+  color: #606266;
+}
+
+.mkt-tpl-claim {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+  width: 100%;
+}
+
+.mkt-tpl-claim__row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 8px;
+  align-items: center;
+  min-height: 32px;
+  width: 100%;
+  white-space: nowrap;
+  cursor: pointer;
+  font-size: 14px;
+  color: #606266;
+}
+
+.mkt-tpl-claim__row > input[type='radio'] {
+  flex: 0 0 14px;
+  width: 14px !important;
+  min-width: 14px;
+  max-width: 14px;
+  height: 14px !important;
+  margin: 0;
+  padding: 0;
+}
+
+.mkt-tpl-claim__custom {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 8px;
+  align-items: center;
+  min-height: 32px;
+}
+
+.mkt-tpl-claim__custom input[type='text'] {
+  width: 104px;
+}
+
+.mkt-tpl-claim__custom select {
+  width: 88px;
+}
+
+.mkt-tpl-field-tip {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #909399;
+}
+
+.mkt-tpl-field-tip strong {
+  color: #ff7019;
+  font-weight: 600;
+}
+
+.mkt-tpl-wordlimit {
+  position: relative;
+  display: inline-block;
+}
+
+.mkt-tpl-wordlimit input {
+  width: 320px;
+  max-width: 100%;
+  padding-right: 64px;
+}
+
+.mkt-tpl-wordlimit__n {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  line-height: 1;
+  color: #909399;
+  pointer-events: none;
+}
+
+/* —— 选商品弹窗 —— */
+.mkt-tpl-sku-backdrop .erp-modal {
+  width: 520px;
+  max-width: 92vw;
+}
+
+.mkt-tpl-sku-tree {
+  max-height: min(360px, 50vh);
+  margin-top: 12px;
+  overflow: auto;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.mkt-tpl-sku-node {
+  padding: 4px 0;
+}
+
+.mkt-tpl-sku-node--child {
+  padding-left: 22px;
+}
+
+.mkt-tpl-sku-node label {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 13px;
+  color: #606266;
+  cursor: pointer;
+}
+
+.mkt-tpl-sku-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.mkt-tpl-sku-footer__hint {
+  font-size: 13px;
+  color: #909399;
+}
+
+.mkt-tpl-sku-footer__actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* —— 操作日志抽屉 —— */
+.mkt-tpl-log-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+}
+
+.mkt-tpl-log-detail-backdrop {
+  z-index: 5000;
+}
+
+.mkt-tpl-log-drawer[hidden] {
+  display: none !important;
+}
+
+.mkt-tpl-log-drawer__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.mkt-tpl-log-drawer__panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 70%;
+  max-width: 1040px;
+  height: 100%;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+}
+
+.mkt-tpl-log-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid #ebeef5;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.mkt-tpl-log-drawer__x {
+  border: none;
+  background: none;
+  font-size: 22px;
+  color: #909399;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.mkt-tpl-log-drawer__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px 20px;
+}
+
+.mkt-tpl-log-method {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: #606266;
+}
+
+.mkt-tpl-log-detail-backdrop .erp-modal {
+  width: 760px;
+  max-width: 92vw;
+  height: 600px;
+}
+
+.mkt-tpl-log-detail__head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.mkt-tpl-log-detail__action {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mkt-tpl-log-detail__meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.mkt-tpl-log-detail__meta div {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #ebeef5;
+  font-size: 13px;
+}
+
+.mkt-tpl-log-detail__meta div:nth-child(odd) {
+  border-right: 1px solid #ebeef5;
+}
+
+.mkt-tpl-log-detail__meta dt {
+  color: #909399;
+  min-width: 72px;
+}
+
+.mkt-tpl-log-detail__section-title {
+  margin: 20px 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mkt-tpl-log-detail__count {
+  font-size: 12px;
+  font-weight: 400;
+  color: #909399;
+}
+
+.mkt-tpl-log-old {
+  color: #f56c6c;
+}
+
+.mkt-tpl-log-new {
+  color: #67c23a;
+}
+
+.mkt-tpl-log-params {
+  max-height: 240px;
+  padding: 16px;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  background: #f5f7fa;
+  border-radius: 4px;
+}
+
+.mkt-tpl-log-uri {
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #606266;
+}
+
+.mkt-tpl-empty {
+  text-align: center;
+  color: #999;
+  padding: 24px;
+}

@@ -67,6 +67,18 @@
         "store-app/h5/home.html",
         "MDM/mdm_member_c.html"
       ]
+    },
+    {
+      "id": "605-秒杀（商品限购）",
+      "title": "【605】秒杀（商品限购）",
+      "file": "605-秒杀（商品限购）.md",
+      "pages": [
+        "MDM/mdm_marketing_seckill.html",
+        "MDM/mdm_marketing_seckill_form.html",
+        "MDM/mdm_marketing_seckill_product.html",
+        "user-app/h5/goods-detail.html",
+        "user-app/h5/cart.html"
+      ]
     }
   ]
 }
