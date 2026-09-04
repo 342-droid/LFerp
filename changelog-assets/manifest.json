@@ -1356,6 +1356,23 @@
     "status": "diff",
     "date": "2026-08-27"
   },
+  "7149e1a|MDM/mdm_order_express_cutoff.html": {
+    "before": "changelog-assets/7149e1a/MDM__mdm_order_express_cutoff.html.before.jpg",
+    "after": "changelog-assets/7149e1a/MDM__mdm_order_express_cutoff.html.after.jpg",
+    "regions": 4,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "7149e1a|MDM/mdm_product_selection.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "7149e1a|SCM/purchase_store_demand_summary.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
   "74f8377|MDM/mdm_order_express_cutoff.html": {
     "regions": 0,
     "status": "diff",

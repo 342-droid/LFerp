@@ -1,10 +1,44 @@
 {
-  "latestSha": "e4352d265044af3fe204865ef45b5782fcbd494b",
-  "total": 348,
+  "latestSha": "7149e1a197d82f60dda68e35f5e465215efcf54b",
+  "total": 349,
   "days": [
     {
       "date": "2026-09-04",
       "items": [
+        {
+          "sha": "7149e1a",
+          "type": "feat",
+          "text": "订单截单新增不走订货单兜底并区分标签范围",
+          "author": "sisi",
+          "time": "17:28",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "订单截单"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "module": "冷丰采购",
+              "title": "门店订货汇总"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "text": "新增「不走订货单」系统兜底，覆盖代采配送与零售自提，默认支付后截单且可改每日定时；商品标签改为不限标签、全部标签、指定商品标签，指定优先于全部标签再优先于不限标签"
+            },
+            {
+              "file": null,
+              "text": "选品库「不走订货单」说明改为由订单截单兜底支付后截单"
+            }
+          ]
+        },
         {
           "sha": "e4352d2",
           "type": "feat",
