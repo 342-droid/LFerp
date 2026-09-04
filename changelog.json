@@ -1,10 +1,71 @@
 {
-  "latestSha": "01063b86680e6bf7d11ccb8b3c921f43004ecf56",
-  "total": 352,
+  "latestSha": "cdf4ba2964448e7b63054752bf43c656e26375a4",
+  "total": 353,
   "days": [
     {
       "date": "2026-09-05",
       "items": [
+        {
+          "sha": "cdf4ba2",
+          "type": "feat",
+          "text": "明确选品库删除与下游关联并补充商品变更说明",
+          "author": "sisi",
+          "time": "00:50",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_product_sched.html",
+              "module": "冷丰WMS",
+              "title": "直播排品"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "text": "待售卖删除不再查下游；已停售后删除仍拦截已关联的商城、代采、直播"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "从商品库添加仅可选选品库「售卖中」商品"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "从商品库添加仅可选选品库「售卖中」商品"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched.html",
+              "text": "从商品库添加仅可选选品库「售卖中」商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "text": "从商品库添加同样只收「售卖中」选品库商品"
+            },
+            {
+              "file": null,
+              "text": "补充商品变更说明（同步SKU、批量上架、保存并上架、选品库删除）"
+            }
+          ]
+        },
         {
           "sha": "01063b8",
           "type": "feat",
@@ -103,11 +164,6 @@
               "title": "新人专区"
             },
             {
-              "file": "MDM/mdm_marketing_newcomer_zone_form.html",
-              "module": "冷丰WMS",
-              "title": "编辑新人专区商品"
-            },
-            {
               "file": "MDM/mdm_marketing_points_mall.html",
               "module": "冷丰WMS",
               "title": "积分商城"
@@ -128,59 +184,9 @@
               "title": "编辑秒杀商品"
             },
             {
-              "file": "MDM/mdm_member_batch_tag.html",
-              "module": "冷丰WMS",
-              "title": "批量打标签"
-            },
-            {
-              "file": "MDM/mdm_member_batch_tag_form.html",
-              "module": "冷丰WMS",
-              "title": "批量打标签"
-            },
-            {
               "file": "MDM/mdm_member_c.html",
               "module": "冷丰WMS",
               "title": "会员管理"
-            },
-            {
-              "file": "MDM/mdm_member_level.html",
-              "module": "冷丰WMS",
-              "title": "会员等级"
-            },
-            {
-              "file": "MDM/mdm_member_level_form.html",
-              "module": "冷丰WMS",
-              "title": "会员等级配置"
-            },
-            {
-              "file": "MDM/mdm_member_points_cash.html",
-              "module": "冷丰WMS",
-              "title": "积分抵现"
-            },
-            {
-              "file": "MDM/mdm_member_points_cash_form.html",
-              "module": "冷丰WMS",
-              "title": "积分抵现"
-            },
-            {
-              "file": "MDM/mdm_member_points_consume.html",
-              "module": "冷丰WMS",
-              "title": "消费送积分"
-            },
-            {
-              "file": "MDM/mdm_member_points_consume_form.html",
-              "module": "冷丰WMS",
-              "title": "消费送积分"
-            },
-            {
-              "file": "MDM/mdm_member_segment.html",
-              "module": "冷丰WMS",
-              "title": "会员分群"
-            },
-            {
-              "file": "MDM/mdm_order_express_cutoff.html",
-              "module": "冷丰订单",
-              "title": "订单截单"
             },
             {
               "file": "MDM/mdm_people_anchor.html",
@@ -203,11 +209,6 @@
               "title": "采购员"
             },
             {
-              "file": "MDM/mdm_product_audit.html",
-              "module": "冷丰WMS",
-              "title": "商品详情"
-            },
-            {
               "file": "MDM/mdm_product_mall.html",
               "module": "冷丰WMS",
               "title": "商品列表"
@@ -226,11 +227,6 @@
               "file": "MDM/mdm_super_admin_accounts.html",
               "module": "冷丰WMS",
               "title": "商户主体建档"
-            },
-            {
-              "file": "SCM/basic_settings_order.html",
-              "module": "冷丰WMS",
-              "title": "门店配置"
             },
             {
               "file": "user-app/h5/points-mall.html",
@@ -10102,11 +10098,6 @@
               "title": "订单截单"
             },
             {
-              "file": "MDM/mdm_product_audit.html",
-              "module": "冷丰WMS",
-              "title": "商品详情"
-            },
-            {
               "file": "MDM/mdm_product_mall.html",
               "module": "冷丰WMS",
               "title": "商品列表"
@@ -10115,11 +10106,6 @@
               "file": "MDM/mdm_product_proxy_list.html",
               "module": "冷丰WMS",
               "title": "代采商品列表"
-            },
-            {
-              "file": "MDM/mdm_product_selection.html",
-              "module": "冷丰WMS",
-              "title": "选品库"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -13715,11 +13701,6 @@
               "title": "模版配置"
             },
             {
-              "file": "MDM/mdm_member_batch_tag.html",
-              "module": "冷丰WMS",
-              "title": "批量打标签"
-            },
-            {
               "file": "MDM/mdm_member_batch_tag_form.html",
               "module": "冷丰WMS",
               "title": "批量打标签"
@@ -13730,29 +13711,14 @@
               "title": "会员管理"
             },
             {
-              "file": "MDM/mdm_member_level.html",
-              "module": "冷丰WMS",
-              "title": "会员等级"
-            },
-            {
               "file": "MDM/mdm_member_level_form.html",
               "module": "冷丰WMS",
               "title": "会员等级配置"
             },
             {
-              "file": "MDM/mdm_member_points_cash.html",
-              "module": "冷丰WMS",
-              "title": "积分抵现"
-            },
-            {
               "file": "MDM/mdm_member_points_cash_form.html",
               "module": "冷丰WMS",
               "title": "积分抵现"
-            },
-            {
-              "file": "MDM/mdm_member_points_consume.html",
-              "module": "冷丰WMS",
-              "title": "消费送积分"
             },
             {
               "file": "MDM/mdm_member_points_consume_form.html",
@@ -13768,16 +13734,6 @@
               "file": "MDM/mdm_member_points_rule.html",
               "module": "冷丰WMS",
               "title": "积分规则"
-            },
-            {
-              "file": "MDM/mdm_member_segment.html",
-              "module": "冷丰WMS",
-              "title": "会员分群"
-            },
-            {
-              "file": "MDM/mdm_order_express_cutoff.html",
-              "module": "冷丰订单",
-              "title": "订单截单"
             },
             {
               "file": "MDM/mdm_people_anchor.html",
@@ -13878,11 +13834,6 @@
               "file": "SCM/basic_settings_contract_template_form.html",
               "module": "冷丰WMS",
               "title": "合同模板配置"
-            },
-            {
-              "file": "SCM/basic_settings_order.html",
-              "module": "冷丰WMS",
-              "title": "门店配置"
             },
             {
               "file": "user-app/h5/account-cancel.html",
@@ -14121,7 +14072,7 @@
               "text": "编辑页统一为底栏悬浮布局规范"
             },
             {
-              "file": "MDM/mdm_member_batch_tag.html",
+              "file": "MDM/mdm_member_batch_tag_form.html",
               "text": "编辑页对齐统一布局规范"
             },
             {
@@ -19445,71 +19396,6 @@
           "time": "17:51",
           "pages": [
             {
-              "file": "MDM/mdm_marketing_newcomer_zone.html",
-              "module": "冷丰WMS",
-              "title": "新人专区"
-            },
-            {
-              "file": "MDM/mdm_marketing_newcomer_zone_form.html",
-              "module": "冷丰WMS",
-              "title": "编辑新人专区商品"
-            },
-            {
-              "file": "MDM/mdm_marketing_points_mall.html",
-              "module": "冷丰WMS",
-              "title": "积分商城"
-            },
-            {
-              "file": "MDM/mdm_marketing_points_mall_form.html",
-              "module": "冷丰WMS",
-              "title": "编辑积分商品"
-            },
-            {
-              "file": "MDM/mdm_member_batch_tag.html",
-              "module": "冷丰WMS",
-              "title": "批量打标签"
-            },
-            {
-              "file": "MDM/mdm_member_batch_tag_form.html",
-              "module": "冷丰WMS",
-              "title": "批量打标签"
-            },
-            {
-              "file": "MDM/mdm_member_level.html",
-              "module": "冷丰WMS",
-              "title": "会员等级"
-            },
-            {
-              "file": "MDM/mdm_member_level_form.html",
-              "module": "冷丰WMS",
-              "title": "会员等级配置"
-            },
-            {
-              "file": "MDM/mdm_member_points_cash.html",
-              "module": "冷丰WMS",
-              "title": "积分抵现"
-            },
-            {
-              "file": "MDM/mdm_member_points_cash_form.html",
-              "module": "冷丰WMS",
-              "title": "积分抵现"
-            },
-            {
-              "file": "MDM/mdm_member_points_consume.html",
-              "module": "冷丰WMS",
-              "title": "消费送积分"
-            },
-            {
-              "file": "MDM/mdm_member_points_consume_form.html",
-              "module": "冷丰WMS",
-              "title": "消费送积分"
-            },
-            {
-              "file": "MDM/mdm_member_segment.html",
-              "module": "冷丰WMS",
-              "title": "会员分群"
-            },
-            {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
               "title": "订单截单"
@@ -19555,24 +19441,9 @@
               "title": "商品详情"
             },
             {
-              "file": "MDM/mdm_product_mall.html",
-              "module": "冷丰WMS",
-              "title": "商品列表"
-            },
-            {
-              "file": "MDM/mdm_product_proxy_list.html",
-              "module": "冷丰WMS",
-              "title": "代采商品列表"
-            },
-            {
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
-            },
-            {
-              "file": "SCM/basic_settings_order.html",
-              "module": "冷丰WMS",
-              "title": "门店配置"
             }
           ],
           "global": true,
@@ -19810,79 +19681,9 @@
               "title": "直播排品"
             },
             {
-              "file": "MDM/mdm_marketing_newcomer_zone.html",
-              "module": "冷丰WMS",
-              "title": "新人专区"
-            },
-            {
-              "file": "MDM/mdm_marketing_newcomer_zone_form.html",
-              "module": "冷丰WMS",
-              "title": "编辑新人专区商品"
-            },
-            {
-              "file": "MDM/mdm_marketing_points_mall.html",
-              "module": "冷丰WMS",
-              "title": "积分商城"
-            },
-            {
-              "file": "MDM/mdm_marketing_points_mall_form.html",
-              "module": "冷丰WMS",
-              "title": "编辑积分商品"
-            },
-            {
               "file": "MDM/mdm_marketing_seckill_form.html",
               "module": "冷丰WMS",
               "title": "秒杀活动"
-            },
-            {
-              "file": "MDM/mdm_member_batch_tag.html",
-              "module": "冷丰WMS",
-              "title": "批量打标签"
-            },
-            {
-              "file": "MDM/mdm_member_batch_tag_form.html",
-              "module": "冷丰WMS",
-              "title": "批量打标签"
-            },
-            {
-              "file": "MDM/mdm_member_level.html",
-              "module": "冷丰WMS",
-              "title": "会员等级"
-            },
-            {
-              "file": "MDM/mdm_member_level_form.html",
-              "module": "冷丰WMS",
-              "title": "会员等级配置"
-            },
-            {
-              "file": "MDM/mdm_member_points_cash.html",
-              "module": "冷丰WMS",
-              "title": "积分抵现"
-            },
-            {
-              "file": "MDM/mdm_member_points_cash_form.html",
-              "module": "冷丰WMS",
-              "title": "积分抵现"
-            },
-            {
-              "file": "MDM/mdm_member_points_consume.html",
-              "module": "冷丰WMS",
-              "title": "消费送积分"
-            },
-            {
-              "file": "MDM/mdm_member_points_consume_form.html",
-              "module": "冷丰WMS",
-              "title": "消费送积分"
-            },
-            {
-              "file": "MDM/mdm_member_segment.html",
-              "module": "冷丰WMS",
-              "title": "会员分群"
-            },
-            {
-              "file": "MDM/mdm_order_express_cutoff.html",
-              "module": "冷丰订单",
-              "title": "订单截单"
             },
             {
               "file": "MDM/mdm_order_live.html",
@@ -19958,11 +19759,6 @@
               "file": "MDM/mdm_product_stock.html",
               "module": "冷丰WMS",
               "title": "库存统计"
-            },
-            {
-              "file": "SCM/basic_settings_order.html",
-              "module": "冷丰WMS",
-              "title": "门店配置"
             }
           ],
           "global": true,
@@ -20612,56 +20408,6 @@
               "title": "模版配置"
             },
             {
-              "file": "MDM/mdm_member_batch_tag.html",
-              "module": "冷丰WMS",
-              "title": "批量打标签"
-            },
-            {
-              "file": "MDM/mdm_member_batch_tag_form.html",
-              "module": "冷丰WMS",
-              "title": "批量打标签"
-            },
-            {
-              "file": "MDM/mdm_member_level.html",
-              "module": "冷丰WMS",
-              "title": "会员等级"
-            },
-            {
-              "file": "MDM/mdm_member_level_form.html",
-              "module": "冷丰WMS",
-              "title": "会员等级配置"
-            },
-            {
-              "file": "MDM/mdm_member_points_cash.html",
-              "module": "冷丰WMS",
-              "title": "积分抵现"
-            },
-            {
-              "file": "MDM/mdm_member_points_cash_form.html",
-              "module": "冷丰WMS",
-              "title": "积分抵现"
-            },
-            {
-              "file": "MDM/mdm_member_points_consume.html",
-              "module": "冷丰WMS",
-              "title": "消费送积分"
-            },
-            {
-              "file": "MDM/mdm_member_points_consume_form.html",
-              "module": "冷丰WMS",
-              "title": "消费送积分"
-            },
-            {
-              "file": "MDM/mdm_member_segment.html",
-              "module": "冷丰WMS",
-              "title": "会员分群"
-            },
-            {
-              "file": "MDM/mdm_order_express_cutoff.html",
-              "module": "冷丰订单",
-              "title": "订单截单"
-            },
-            {
               "file": "MDM/mdm_product_audit.html",
               "module": "冷丰WMS",
               "title": "商品详情"
@@ -20715,11 +20461,6 @@
               "file": "MDM/mdm_product_stock.html",
               "module": "冷丰WMS",
               "title": "库存统计"
-            },
-            {
-              "file": "SCM/basic_settings_order.html",
-              "module": "冷丰WMS",
-              "title": "门店配置"
             },
             {
               "file": "user-app/h5/forgot-password.html",
