@@ -1,10 +1,121 @@
 {
-  "latestSha": "7149e1a197d82f60dda68e35f5e465215efcf54b",
-  "total": 349,
+  "latestSha": "9eedbdc454a34f4f7afd3e822d094b62a1fd8293",
+  "total": 350,
   "days": [
     {
       "date": "2026-09-04",
       "items": [
+        {
+          "sha": "9eedbdc",
+          "type": "feat",
+          "text": "明确直播封面裁剪并支持先逛后登录仍绑店",
+          "author": "zhangzheng",
+          "time": "19:05",
+          "pages": [
+            {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/forgot-password.html",
+              "module": "",
+              "title": "找回密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "module": "",
+              "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-wechat.html",
+              "module": "",
+              "title": "微信授权登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "module": "",
+              "title": "登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/set-password.html",
+              "module": "",
+              "title": "设置密码 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/live-promo.html",
+              "text": "列表封面宽对齐后超出裁下方、高度不够上下居中；海报限高用实际高度；分享卡片 5:4 同样裁切；PRD 写清列表封面规则"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "带参写入本地缓存，未登录可先逛其他页再登录仍绑定分享门店"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "text": "跳过登录进入首页仍保留参数；稍后登录绑店并回到该场直播"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "text": "先逛后登录仍读取缓存绑店"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "text": "挂本期 PRD 浮窗"
+            }
+          ]
+        },
         {
           "sha": "7149e1a",
           "type": "feat",
@@ -95,6 +206,11 @@
               "file": "store-app/h5/store-orders.html",
               "module": "",
               "title": "门店订单 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
             },
             {
               "file": "user-app/h5/forgot-password.html",
@@ -2236,6 +2352,11 @@
               "title": "黑灯直播间 · 用户 APP"
             },
             {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/login-phone.html",
               "module": "",
               "title": "手机快速登录 · 用户 APP"
@@ -2269,6 +2390,11 @@
               "file": "user-app/h5/order-confirm.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/profile-edit.html",
@@ -4041,6 +4167,11 @@
               "title": "黑灯直播间 · 用户 APP"
             },
             {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/login-phone.html",
               "module": "",
               "title": "手机快速登录 · 用户 APP"
@@ -4059,6 +4190,11 @@
               "file": "user-app/h5/login.html",
               "module": "",
               "title": "登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/profile.html",
@@ -4230,6 +4366,11 @@
               "title": "黑灯直播间 · 用户 APP"
             },
             {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/login-phone.html",
               "module": "",
               "title": "手机快速登录 · 用户 APP"
@@ -4258,6 +4399,11 @@
               "file": "user-app/h5/order-confirm.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/profile.html",

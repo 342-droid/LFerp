@@ -1852,6 +1852,92 @@
     "status": "diff",
     "date": "2026-08-25"
   },
+  "9eedbdc|store-app/h5/live-promo.html": {
+    "before": "changelog-assets/9eedbdc/store-app__h5__live-promo.html.before.jpg",
+    "after": "changelog-assets/9eedbdc/store-app__h5__live-promo.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "9eedbdc|user-app/h5/cart.html": {
+    "before": "changelog-assets/9eedbdc/user-app__h5__cart.html.before.jpg",
+    "after": "changelog-assets/9eedbdc/user-app__h5__cart.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "9eedbdc|user-app/h5/forgot-password.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "9eedbdc|user-app/h5/home.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "9eedbdc|user-app/h5/live-room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "9eedbdc|user-app/h5/login-password.html": {
+    "before": "changelog-assets/9eedbdc/user-app__h5__login-password.html.before.jpg",
+    "after": "changelog-assets/9eedbdc/user-app__h5__login-password.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "9eedbdc|user-app/h5/login-phone.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "9eedbdc|user-app/h5/login-register.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "9eedbdc|user-app/h5/login-wechat.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "9eedbdc|user-app/h5/login.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "9eedbdc|user-app/h5/order-detail-pickup.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "9eedbdc|user-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "9eedbdc|user-app/h5/order-logistics.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "9eedbdc|user-app/h5/orders.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "9eedbdc|user-app/h5/profile.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "9eedbdc|user-app/h5/set-password.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
   "9fb6c51|MDM/mdm_member_c.html": {
     "regions": 0,
     "status": "diff",
@@ -1880,6 +1966,11 @@
     "date": "2026-09-04"
   },
   "9fb6c51|store-app/h5/store-orders.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "9fb6c51|user-app/h5/cart.html": {
     "regions": 0,
     "status": "diff",
     "date": "2026-09-04"
