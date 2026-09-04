@@ -3585,9 +3585,12 @@
                 } else if (idx === 19) {
                     var st = document.createElement('span');
                     var stTxt = m.status || '正常';
-                    if (stTxt === '黑名单') st.className = 'status blacklist';
+                    if (window.MdmMemberBlacklist && window.MdmMemberBlacklist.statusClass) {
+                        st.className = window.MdmMemberBlacklist.statusClass(stTxt);
+                    } else if (stTxt === '黑名单') st.className = 'status blacklist';
                     else if (stTxt === '注销' || stTxt === '已注销') st.className = 'status canceled';
                     else if (stTxt === '注销中' || stTxt === '审核中') st.className = 'status cancel-pending';
+                    else if (stTxt === '冻结') st.className = 'status frozen';
                     else st.className = 'status active';
                     st.textContent = stTxt === '已注销' ? '注销' : stTxt;
                     td.appendChild(st);
@@ -3599,6 +3602,8 @@
                         var stNow = m.status || '正常';
                         if (stNow === '注销' || stNow === '已注销' || stNow === '注销中' || stNow === '审核中') {
                             td.innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a>';
+                        } else if (stNow === '冻结') {
+                            td.innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-unfreeze">解冻</a>';
                         } else {
                             var actions =
                                 '<a href="#" class="mdm-mem-detail">查看详情</a>' +
@@ -3606,8 +3611,12 @@
                                 '<a href="#" class="mdm-mem-coupon">发券</a>' +
                                 '<a href="#" class="mdm-mem-points">调整积分</a>' +
                                 '<a href="#" class="mdm-mem-growth">调整成长值</a>';
-                            if (stNow === '正常') actions += '<a href="#" class="mdm-mem-blacklist">拉黑</a>';
-                            else if (stNow === '黑名单') actions += '<a href="#" class="mdm-mem-restore">恢复</a>';
+                            if (stNow === '正常') {
+                                actions += '<a href="#" class="mdm-mem-blacklist">拉黑</a>';
+                                actions += '<a href="#" class="mdm-mem-freeze">冻结</a>';
+                            } else if (stNow === '黑名单') {
+                                actions += '<a href="#" class="mdm-mem-restore">恢复</a>';
+                            }
                             td.innerHTML = actions;
                         }
                     }
@@ -3853,6 +3862,24 @@
                             window.MdmMemberBlacklist.openRestoreFromMember(el.closest('tr'));
                         }
                     }
+                },
+                {
+                    selector: '.mdm-mem-freeze',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (window.MdmMemberBlacklist && window.MdmMemberBlacklist.openFreezeFromMember) {
+                            window.MdmMemberBlacklist.openFreezeFromMember(el.closest('tr'));
+                        }
+                    }
+                },
+                {
+                    selector: '.mdm-mem-unfreeze',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (window.MdmMemberBlacklist && window.MdmMemberBlacklist.openUnfreezeFromMember) {
+                            window.MdmMemberBlacklist.openUnfreezeFromMember(el.closest('tr'));
+                        }
+                    }
                 }
             ]
         });
@@ -3933,9 +3960,12 @@
             });
             sync();
         })();
-        /* 会员列表默认展示全部状态（含黑名单 / 注销中 / 注销） */
+        /* 会员列表默认展示全部状态（含冻结 / 黑名单 / 注销中 / 注销） */
         try {
             ensureCanceledMembersInList();
+            if (window.MdmMemberBlacklist && typeof window.MdmMemberBlacklist.applyFrozenStatuses === 'function') {
+                window.MdmMemberBlacklist.applyFrozenStatuses();
+            }
             var qBtn0 = document.getElementById('btnFilterQuery');
             if (qBtn0) qBtn0.click();
         } catch (eSt0) { /* ignore */ }

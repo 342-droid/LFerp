@@ -188,6 +188,10 @@
   color: var(--mdm360-warn);
 }
 
+.main-content .table .status.frozen {
+  color: var(--mdm360-text-muted);
+}
+
 /* —— 详情 / 人数等链接 —— */
 .main-content .table .subject-name-link,
 .main-content .table .table-detail-link,

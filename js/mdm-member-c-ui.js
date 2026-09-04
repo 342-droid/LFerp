@@ -232,6 +232,7 @@
             ['会员性别', rec.gender],
             ['手机号码', rec.phone],
             ['是否会员', rec.isMember],
+            ['会员状态', rec.status],
             ['会员等级', rec.level || '—'],
             ['会员标签', rec.tags],
             ['会员来源', rec.source],
