@@ -660,7 +660,7 @@
                             <span class="recheck-product-info-value" id="recheckBarcodeMain"></span>
                         </div>
                         <div class="recheck-product-info-row">
-                            <span class="recheck-product-info-label">规格:</span>
+                            <span class="recheck-product-info-label emphasis">商品规格:</span>
                             <span class="recheck-product-info-value" id="recheckSpec"></span>
                         </div>
                     </div>
@@ -827,10 +827,12 @@
                 const barcode = String((line && line.barcode) || '--');
                 const qty = Number((line && line.expectedQty) || 0);
                 const unit = String((line && line.unit) || '');
+                const spec = String((line && line.spec) || '-');
                 const qtyText = qty + (unit ? ' ' + unit : '');
                 return '<div class="overview-product-card">'
                     + '<div class="overview-product-row"><span class="overview-product-label">商品名称</span><span class="overview-product-value">' + escapeHtml(productName) + '</span></div>'
                     + '<div class="overview-product-row"><span class="overview-product-label">商品条码</span><span class="overview-product-value">' + escapeHtml(barcode) + '</span></div>'
+                    + '<div class="overview-product-row"><span class="overview-product-label">商品规格</span><span class="overview-product-value">' + escapeHtml(spec) + '</span></div>'
                     + '<div class="overview-product-row"><span class="overview-product-label">应复核数量</span><span class="overview-product-value">' + escapeHtml(qtyText) + '</span></div>'
                     + '</div>';
             }).join('');

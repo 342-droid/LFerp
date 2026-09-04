@@ -1020,13 +1020,13 @@
 
         const productsByReceipt = {
             "IB020260228112499": [
-                { id: "p1", name: "苹果", code: "SP001", barcode: "6912345678901", image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=128&h=128&fit=crop", location: "SH01", planQty: "10", receivedQty: "0", receiptQty: "", productionDate: "", unit: "斤" },
-                { id: "p2", name: "香蕉", code: "SP002", barcode: "6912345678902", image: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=128&h=128&fit=crop", location: "SH01", planQty: "10", receivedQty: "0", receiptQty: "", productionDate: "", unit: "斤" },
-                { id: "p3", name: "橙子", code: "SP003", barcode: "6912345678903", image: "https://images.unsplash.com/photo-1547514704-2294156771-558342564e4e?w=128&h=128&fit=crop", location: "SH01", planQty: "10", receivedQty: "0", receiptQty: "", productionDate: "", unit: "斤" }
+                { id: "p1", name: "苹果", code: "SP001", barcode: "6912345678901", spec: "5kg/箱", image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=128&h=128&fit=crop", location: "SH01", planQty: "10", receivedQty: "0", receiptQty: "", productionDate: "", unit: "斤" },
+                { id: "p2", name: "香蕉", code: "SP002", barcode: "6912345678902", spec: "10kg/箱", image: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=128&h=128&fit=crop", location: "SH01", planQty: "10", receivedQty: "0", receiptQty: "", productionDate: "", unit: "斤" },
+                { id: "p3", name: "橙子", code: "SP003", barcode: "6912345678903", spec: "8kg/箱", image: "https://images.unsplash.com/photo-1547514704-2294156771-558342564e4e?w=128&h=128&fit=crop", location: "SH01", planQty: "10", receivedQty: "0", receiptQty: "", productionDate: "", unit: "斤" }
             ],
             "IB020260228112401": [
-                { id: "p4", name: "葡萄", code: "SP004", barcode: "6912345678904", image: "https://images.unsplash.com/photo-1599599810769-2c7f15354374?w=128&h=128&fit=crop", location: "SH01", planQty: "8", receivedQty: "3", receiptQty: "", unit: "斤" },
-                { id: "p5", name: "草莓", code: "SP005", barcode: "6912345678905", image: "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=128&h=128&fit=crop", location: "SH01", planQty: "12", receivedQty: "5", receiptQty: "", unit: "斤" }
+                { id: "p4", name: "葡萄", code: "SP004", barcode: "6912345678904", spec: "5kg/箱", image: "https://images.unsplash.com/photo-1599599810769-2c7f15354374?w=128&h=128&fit=crop", location: "SH01", planQty: "8", receivedQty: "3", receiptQty: "", unit: "斤" },
+                { id: "p5", name: "草莓", code: "SP005", barcode: "6912345678905", spec: "2.5kg/箱", image: "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=128&h=128&fit=crop", location: "SH01", planQty: "12", receivedQty: "5", receiptQty: "", unit: "斤" }
             ],
             "IB020260228113002": [
                 { id: "p6", name: "梨", code: "SP006", barcode: "6912345678906", image: "https://images.unsplash.com/photo-1635151227785-f8703e6bd857?w=128&h=128&fit=crop", location: "SH01", planQty: "10", receivedQty: "10", receiptQty: "", unit: "斤" }
@@ -1705,6 +1705,10 @@
                             <div class="product-card-row">
                                 <span class="product-card-label">商品条码</span>
                                 <span class="product-card-value">${product.barcode}</span>
+                            </div>
+                            <div class="product-card-row">
+                                <span class="product-card-label">商品规格</span>
+                                <span class="product-card-value">${product.spec || "-"}</span>
                             </div>
                             <div class="product-card-row">
                                 <span class="product-card-label">收货储位</span>

@@ -808,6 +808,10 @@
                             <span class="sort-product-info-value" id="sortBarcodeMain"></span>
                         </div>
                         <div class="sort-product-info-row">
+                            <span class="sort-product-info-label emphasis">商品规格:</span>
+                            <span class="sort-product-info-value" id="sortSpec"></span>
+                        </div>
+                        <div class="sort-product-info-row">
                             <span class="sort-product-info-label emphasis">目的站点:</span>
                             <span class="sort-product-info-value" id="sortTargetStore"></span>
                         </div>
@@ -921,9 +925,9 @@
         ];
 
         window.sortingLines = [
-            { slot: 'G01-01', productName: '可口可乐600ml', barcode: '6901939651605', expectedQty: 12, unit: '件' },
-            { slot: 'G01-02', productName: '香蕉（把）', barcode: '6912345678902', expectedQty: 12, unit: '件' },
-            { slot: 'G01-03', productName: '橙子500g', barcode: '6912345678903', expectedQty: 12, unit: '件' }
+            { slot: 'G01-01', productName: '可口可乐600ml', barcode: '6901939651605', expectedQty: 12, unit: '件', spec: '600ml*24' },
+            { slot: 'G01-02', productName: '香蕉（把）', barcode: '6912345678902', expectedQty: 12, unit: '件', spec: '约500g/把' },
+            { slot: 'G01-03', productName: '橙子500g', barcode: '6912345678903', expectedQty: 12, unit: '件', spec: '500g/袋' }
         ];
 
         window.sortingLineIndex = 0;
@@ -987,12 +991,14 @@
                 const barcode = String((line && line.barcode) || '--');
                 const qty = Number((line && (line.expectedQty ?? line.total ?? line.qty)) || 0);
                 const unit = String((line && line.unit) || '');
+                const spec = String((line && line.spec) || '');
                 const key = productName + '__' + barcode;
 
                 if (!productMap.has(key)) {
                     productMap.set(key, {
                         productName,
                         barcode,
+                        spec,
                         qty: 0,
                         unit
                     });
@@ -1003,6 +1009,9 @@
                 }
                 if (!item.unit && unit) {
                     item.unit = unit;
+                }
+                if (!item.spec && spec) {
+                    item.spec = spec;
                 }
             });
 
@@ -1017,6 +1026,7 @@
                 return '<div class="overview-product-card">'
                     + '<div class="overview-product-row"><span class="overview-product-label">商品名称</span><span class="overview-product-value">' + escapeHtml(item.productName) + '</span></div>'
                     + '<div class="overview-product-row"><span class="overview-product-label">商品条码</span><span class="overview-product-value">' + escapeHtml(item.barcode) + '</span></div>'
+                    + '<div class="overview-product-row"><span class="overview-product-label">商品规格</span><span class="overview-product-value">' + escapeHtml(item.spec || '-') + '</span></div>'
                     + '<div class="overview-product-row"><span class="overview-product-label">分拣数量</span><span class="overview-product-value">' + escapeHtml(qtyText) + '</span></div>'
                     + '</div>';
             }).join('');
@@ -1100,6 +1110,7 @@
             const summary = window.currentTaskSummary || {};
             document.getElementById('sortProductName').textContent = row.productName;
             setSortBarcodeDisplay(row.barcode);
+            document.getElementById('sortSpec').textContent = row.spec || '-';
             document.getElementById('sortTargetStore').textContent = summary.targetStation || '--';
             document.getElementById('sortTargetLocation').textContent = summary.targetLocation || '--';
             document.getElementById('sortOutboundNo').textContent = summary.outboundNo || '--';

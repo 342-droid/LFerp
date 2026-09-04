@@ -20,6 +20,22 @@
         .status-receiving { background-color: #f6ffed; color: #52c41a; }
         .status-closed { background-color: #f0f0f0; color: #666; }
         .status-canceled { background-color: #fff2e8; color: #fa8c16; }
+
+        /* 操作列更多菜单，样式与出库单保持一致 */
+        .obd-action-more { position: relative; display: inline-flex; align-items: center; }
+        .obd-action-more-toggle { display: inline-flex; align-items: center; gap: 2px; color: #2196f3; text-decoration: none; }
+        .obd-action-more-caret { width: 10px; height: 7px; transition: transform 0.15s ease; }
+        .obd-action-more.is-open .obd-action-more-caret { transform: rotate(180deg); }
+        .obd-action-more-menu { display: none; position: fixed; z-index: 4000; min-width: 96px; padding: 4px 0; background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,.12); text-align: left; }
+        .obd-action-more.is-open .obd-action-more-menu, .obd-action-more-menu.is-open { display: block; }
+        .obd-action-more-menu a { display: block; padding: 8px 14px; color: #2196f3; text-decoration: none; white-space: nowrap; }
+        .obd-action-more-menu a:hover { background: #f5f5f5; }
+        .receipt-entry-info { display:grid; grid-template-columns:repeat(3,1fr); gap:10px 24px; padding:4px 0 16px; }
+        .receipt-entry-field { display:flex; align-items:center; gap:8px; color:#666; }
+        .receipt-entry-field label { width:72px; text-align:right; }
+        .receipt-entry-field input, .receipt-entry-field select { flex:1; min-width:0; padding:6px 8px; border:1px solid #d9d9d9; border-radius:3px; background:#fff; color:#333; }
+        .receipt-entry-field input[readonly] { background:#f5f5f5; color:#999; border-color:#e5e5e5; cursor:not-allowed; }
+        .receipt-entry-table input { width:72px; padding:5px 6px; border:1px solid #ff4d4f; border-radius:2px; }
         
         /* 入库单号链接样式 */
         .order-number-link {
@@ -489,8 +505,8 @@
                                 <td>2026-02-27 09:30:00</td>
                                 <td>赵六</td>
                                 <td class="action-links">
-                                    <a href="#" class="receipt-record-btn" data-order-id="IBD2026022712345678">收货记录</a>
-                                    <a href="#" class="close-order-btn">关闭</a>
+                                    <a href="#" class="receive-order-btn" data-order-id="IBD2026022712345678">收货</a>
+                                    <span class="obd-action-more"><a href="#" class="obd-action-more-toggle">更多<svg class="obd-action-more-caret" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1.5L6 6.5L11 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><span class="obd-action-more-menu"><a href="#" class="receipt-record-btn" data-order-id="IBD2026022712345678">收货记录</a><a href="#" class="close-order-btn">关闭</a></span></span>
                                 </td>
                             </tr>
                             <tr>
@@ -519,8 +535,8 @@
                                 <td>2026-02-27 08:00:00</td>
                                 <td>郑一</td>
                                 <td class="action-links">
-                                    <a href="#" class="receipt-record-btn" data-order-id="IBD2026022787654321">收货记录</a>
-                                    <a href="#" class="close-order-btn">关闭</a>
+                                    <a href="#" class="receive-order-btn" data-order-id="IBD2026022787654321">收货</a>
+                                    <span class="obd-action-more"><a href="#" class="obd-action-more-toggle">更多<svg class="obd-action-more-caret" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1.5L6 6.5L11 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><span class="obd-action-more-menu"><a href="#" class="receipt-record-btn" data-order-id="IBD2026022787654321">收货记录</a><a href="#" class="close-order-btn">关闭</a></span></span>
                                 </td>
                             </tr>
                         </tbody>
@@ -531,6 +547,24 @@
                 <div id="pagination-container"></div>
             </section>
         </main>
+    </div>
+
+    <div id="receiptEntryModal" class="modal">
+        <div class="modal-content" style="width: 1100px; max-width: calc(100vw - 40px);">
+            <div class="modal-header"><div class="modal-title">按商品收货录入</div><span class="close" id="receiptEntryCloseBtn">&times;</span></div>
+            <div class="modal-body">
+                <div class="receipt-entry-info">
+                    <div class="receipt-entry-field"><label>收货单号:</label><input id="receiptEntryNo" readonly></div>
+                    <div class="receipt-entry-field"><label>来源单号:</label><input id="receiptEntrySource" readonly></div>
+                    <div class="receipt-entry-field"><label>关联单号:</label><input id="receiptEntryRelated" readonly></div>
+                    <div class="receipt-entry-field"><label>仓库:</label><input id="receiptEntryWarehouse" readonly></div>
+                    <div class="receipt-entry-field"><label>货主:</label><input id="receiptEntryOwner" readonly></div>
+                    <div class="receipt-entry-field"><label>单据类型:</label><input id="receiptEntryType" readonly></div>
+                </div>
+                <div class="table-scroll-container"><table class="table receipt-entry-table"><thead><tr><th>商品编码</th><th>商品条码</th><th>商品名称</th><th>商品单位</th><th>计划数量</th><th>收货数量</th><th>收货储位</th><th>操作</th></tr></thead><tbody id="receiptEntryTableBody"></tbody></table></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-primary" id="saveReceiptEntryBtn">保存</button><button type="button" class="btn btn-secondary" id="closeReceiptEntryModal">关闭</button></div>
+        </div>
     </div>
 
     <!-- 入库单详情模态框 -->
@@ -812,6 +846,7 @@
 
             // 初始化关闭入库单 / 缺量凭证
             initCloseOrderFlow();
+            initActionMoreMenus();
         });
 
         const RECEIPT_PRODUCT_DATA = {
@@ -1389,6 +1424,66 @@
                 tbody.appendChild(row);
             });
             }
+        }
+
+        function initActionMoreMenus() {
+            document.querySelectorAll('.receive-order-btn').forEach(btn => btn.addEventListener('click', e => {
+                e.preventDefault();
+                closeAllActionMoreMenus();
+                showReceiptEntry(btn.getAttribute('data-order-id'));
+            }));
+            document.querySelectorAll('.obd-action-more-toggle').forEach(toggle => toggle.addEventListener('click', e => {
+                e.preventDefault();
+                e.stopPropagation();
+                const wrap = toggle.closest('.obd-action-more');
+                const open = !wrap.classList.contains('is-open');
+                closeAllActionMoreMenus();
+                if (open) openActionMoreMenu(wrap);
+            }));
+            document.addEventListener('click', e => { if (!e.target.closest('.obd-action-more') && !e.target.closest('.obd-action-more-menu')) closeAllActionMoreMenus(); });
+        }
+
+        function showReceiptEntry(orderId) {
+            const modal = document.getElementById('receiptEntryModal');
+            const products = RECEIPT_PRODUCT_DATA[orderId] || [];
+            document.getElementById('receiptEntryNo').value = orderId || '';
+            document.getElementById('receiptEntrySource').value = orderId === 'IBD2026022712345678' ? 'PO20260227001' : 'TR20260227001';
+            document.getElementById('receiptEntryRelated').value = orderId === 'IBD2026022712345678' ? 'SO20260227001' : 'TR20260227001';
+            document.getElementById('receiptEntryWarehouse').value = 'W001-南京仓库';
+            document.getElementById('receiptEntryOwner').value = orderId === 'IBD2026022712345678' ? 'Y001-南京货主' : 'Y002-北京货主';
+            document.getElementById('receiptEntryType').value = orderId === 'IBD2026022712345678' ? '采购入库' : '调拨入库';
+            document.getElementById('receiptEntryTableBody').innerHTML = products.map(product => `<tr><td>${product.skuCode}</td><td>${product.skuCode}</td><td>${product.skuName}</td><td>${product.unit}</td><td>${product.planQty}</td><td><input type="number" min="0" max="${product.planQty}" value="${product.actualQty || 0}"></td><td>RC01</td><td><a href="#" class="save-receipt-row">保存</a></td></tr>`).join('');
+            modal.style.display = 'block';
+            document.getElementById('receiptEntryCloseBtn').onclick = () => modal.style.display = 'none';
+            document.getElementById('closeReceiptEntryModal').onclick = () => modal.style.display = 'none';
+            document.getElementById('saveReceiptEntryBtn').onclick = () => { modal.style.display = 'none'; if (typeof showToast === 'function') showToast('收货信息已保存', 'success'); };
+        }
+
+        function closeAllActionMoreMenus() {
+            document.querySelectorAll('.obd-action-more-menu.is-open').forEach(menu => {
+                const wrap = menu._ownerWrap;
+                menu.classList.remove('is-open');
+                menu.style.left = ''; menu.style.top = '';
+                if (wrap && wrap.isConnected) { wrap.classList.remove('is-open'); wrap.appendChild(menu); }
+            });
+            document.querySelectorAll('.obd-action-more.is-open').forEach(wrap => {
+                wrap.classList.remove('is-open');
+            });
+        }
+
+        function openActionMoreMenu(wrap) {
+            const toggle = wrap.querySelector('.obd-action-more-toggle');
+            const menu = wrap.querySelector('.obd-action-more-menu');
+            if (!toggle || !menu) return;
+            wrap.classList.add('is-open');
+            menu._ownerWrap = wrap;
+            document.body.appendChild(menu);
+            menu.classList.add('is-open');
+            const rect = toggle.getBoundingClientRect();
+            const menuWidth = Math.max(96, menu.offsetWidth || 96);
+            const menuHeight = menu.offsetHeight || 72;
+            menu.style.left = `${Math.min(Math.max(8, rect.right - menuWidth), window.innerWidth - menuWidth - 8)}px`;
+            menu.style.top = `${rect.bottom + menuHeight + 6 > window.innerHeight ? Math.max(8, rect.top - menuHeight - 6) : rect.bottom + 6}px`;
         }
     </script>
 </body>
