@@ -495,7 +495,9 @@
     var addedCodes = getAddedCodesMap();
     var count = 0;
     items.forEach(function (item) {
-      if (addedCodes[item.code]) return;
+      if (!item || !item.code || addedCodes[item.code]) return;
+      if (window.MdmProductCatalog && typeof window.MdmProductCatalog.isSellableForDownstream === 'function'
+        && !window.MdmProductCatalog.isSellableForDownstream(item.code)) return;
       var product = catalogItemToMallProduct(item);
       ALL_PRODUCTS.unshift(product);
       addedCodes[item.code] = true;

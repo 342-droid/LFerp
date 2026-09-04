@@ -44,6 +44,18 @@
     document.body.classList.remove('proxy-library-drawer-open');
   }
 
+  function isCatalogSellable(code) {
+    var catalog = window.MdmProductCatalog;
+    if (!catalog || typeof catalog.isSellableForDownstream !== 'function') return true;
+    return catalog.isSellableForDownstream(code);
+  }
+
+  function canPickLibraryItem(item, addedCodes) {
+    if (!item) return false;
+    if (addedCodes[item.code]) return true;
+    return !!item.onSale && isCatalogSellable(item.code);
+  }
+
   function getVisibleProducts(addedCodes) {
     var lib = getLibrary();
     if (!lib) return [];
@@ -52,7 +64,7 @@
       keyword: drawerState.keyword
     });
     return list.filter(function (item) {
-      return item.onSale || !!addedCodes[item.code];
+      return canPickLibraryItem(item, addedCodes);
     });
   }
 
@@ -65,15 +77,25 @@
     var lib = getLibrary();
     if (!listEl || !lib) return;
 
+    var visibleAll = (lib.getAll() || []).filter(function (item) {
+      return canPickLibraryItem(item, addedCodes);
+    });
+    var counts = { all: visibleAll.length };
+    visibleAll.forEach(function (item) {
+      var name = item.category || '其他';
+      counts[name] = (counts[name] || 0) + 1;
+    });
+
     var categories = lib.getCategories();
     listEl.innerHTML = categories.map(function (cat) {
       var active = (drawerState.category === 'all' && cat.name === '全部') ||
         drawerState.category === cat.name;
       var dataCat = cat.name === '全部' ? 'all' : cat.name;
+      var count = dataCat === 'all' ? (counts.all || 0) : (counts[cat.name] || 0);
       return (
         '<li class="proxy-library-cat' + (active ? ' is-active' : '') + '" data-cat="' + escapeHtml(dataCat) + '">' +
         '  <span class="proxy-library-cat__name">' + escapeHtml(cat.name) + '</span>' +
-        '  <span class="proxy-library-cat__count">' + cat.count + '</span>' +
+        '  <span class="proxy-library-cat__count">' + count + '</span>' +
         '</li>'
       );
     }).join('');
@@ -81,7 +103,7 @@
 
   function renderCard(item, addedCodes) {
     var added = !!addedCodes[item.code];
-    var selectable = item.onSale && !added;
+    var selectable = item.onSale && !added && isCatalogSellable(item.code);
     var selected = !!drawerState.selected[item.code];
     var cls = 'proxy-library-card';
     if (added) cls += ' is-added';
@@ -155,7 +177,7 @@
         break;
       }
     }
-    if (!item || !item.onSale || addedCodes[code]) return;
+    if (!item || !item.onSale || addedCodes[code] || !isCatalogSellable(code)) return;
     if (drawerState.selected[code]) delete drawerState.selected[code];
     else drawerState.selected[code] = true;
     renderGrid(addedCodes);
@@ -164,7 +186,7 @@
   function buildDrawerHtml(options) {
     options = options || {};
     var title = options.title || '从商品库添加';
-    var tip = options.footerTip || '此处仅将商品库中的商品加入商城售卖，不会修改商品库主数据';
+    var tip = options.footerTip || '仅「售卖中」的选品库商品可加入；待售卖需审核通过后才能被关联';
     return (
       '<div class="store-drawer-backdrop proxy-library-drawer-backdrop" data-proxy-library-backdrop></div>' +
       '<aside class="store-drawer store-drawer--proxy-library proxy-library-drawer" id="' + DRAWER_ID + '" aria-label="' + escapeHtml(title) + '">' +
@@ -254,6 +276,7 @@
         var all = getLibrary() ? getLibrary().getAll() : [];
         var picked = [];
         codes.forEach(function (code) {
+          if (addedCodes[code] || !isCatalogSellable(code)) return;
           for (var i = 0; i < all.length; i++) {
             if (all[i].code === code) {
               picked.push(all[i]);

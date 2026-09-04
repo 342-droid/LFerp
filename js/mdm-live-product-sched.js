@@ -655,6 +655,8 @@
     var count = 0;
     items.forEach(function (item) {
       if (!item || !item.code || addedCodes[item.code]) return;
+      if (window.MdmProductCatalog && typeof window.MdmProductCatalog.isSellableForDownstream === 'function'
+        && !window.MdmProductCatalog.isSellableForDownstream(item.code)) return;
       list.unshift(libraryItemToSchedProduct(item, sessionId));
       addedCodes[item.code] = true;
       count += 1;
@@ -678,7 +680,7 @@
     }
     window.MdmProxyLibraryDrawer.open({
       addedCodes: getAddedCodesMap(),
-      footerTip: '此处仅将商品库中的商品加入本场直播排品，不会修改商品库主数据',
+      footerTip: '仅「售卖中」的选品库商品可加入本场排品；待售卖需审核通过后才能被关联',
       onConfirm: function (picked) {
         var count = addProductsFromLibrary(picked);
         toast(count ? '已添加 ' + count + ' 件商品，请编辑完善后再上架' : '未添加新商品', count ? 'success' : 'info');

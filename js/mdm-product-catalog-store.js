@@ -385,7 +385,25 @@
     });
   }
 
-  /** 下游售卖：商城 / 代采 / 直播排品。有关联则选品库不可删 */
+  /**
+   * 选品库 SPU 能否被下游（商城 / 代采 / 直播）新关联。
+   * 待售卖不能被关联；须审核通过变为「售卖中」后才能加入下游。
+   * 商品库里没有对应选品库编码的演示品不拦截。
+   */
+  function isSellableForDownstream(code) {
+    if (!catalog.length) load();
+    var item = null;
+    for (var i = 0; i < catalog.length; i++) {
+      if (catalog[i] && catalog[i].code === code) {
+        item = catalog[i];
+        break;
+      }
+    }
+    if (!item) return true;
+    return item.status === 'selling';
+  }
+
+  /** 下游售卖：商城 / 代采 / 直播排品。停售后删除仍按此判断，待售卖按规则不会有下游 */
   function getDownstreamUsage(code) {
     var channels = [];
     if (listHasCode(readStoreList(sessionStorage, 'mdm_mall_product_list_v1'), code)) {
@@ -460,6 +478,7 @@
     resubmitAudit: resubmitAudit,
     addProduct: addProduct,
     removeProduct: removeProduct,
+    isSellableForDownstream: isSellableForDownstream,
     getDownstreamUsage: getDownstreamUsage,
     getMarketingUsage: getMarketingUsage,
     reload: load

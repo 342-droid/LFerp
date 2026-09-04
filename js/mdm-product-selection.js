@@ -487,10 +487,11 @@
             if (typeof showToast === 'function') showToast('仅待售卖、已停售商品可删除', 'warning');
             return;
           }
-          var downstream =
-            catalog && typeof catalog.getDownstreamUsage === 'function'
-              ? catalog.getDownstreamUsage(code)
-              : [];
+          /* 待售卖尚未审核通过，按规则不会被下游关联；停售后才查商城/代采/直播占用 */
+          var downstream = [];
+          if (target.status === 'stopped' && catalog && typeof catalog.getDownstreamUsage === 'function') {
+            downstream = catalog.getDownstreamUsage(code);
+          }
           if (downstream.length) {
             if (typeof showToast === 'function') {
               showToast('下游已关联（' + downstream.join('、') + '），无法删除', 'warning');
