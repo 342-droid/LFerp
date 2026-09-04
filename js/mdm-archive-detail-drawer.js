@@ -825,8 +825,7 @@
         return list[0] || {
             receiverName: '',
             receiverPhone: '',
-            /* 仓库表仅提供一列位置，先作为省市区初始值带入，用户可在编辑时细化。 */
-            region: warehouse && warehouse.location,
+            region: '',
             detailAddress: '',
             isDefault: false
         };
@@ -6030,7 +6029,8 @@
             name: warehouse && warehouse.name,
             contactName: warehouse && warehouse.admin,
             phone: warehouse && warehouse.phone,
-            region: '',
+            /* 仓库表仅提供一列位置，先作为初始区域值带入，用户可在编辑时细化。 */
+            region: warehouse && warehouse.location,
             detailAddress: warehouse && warehouse.location
         };
         appendSupplierReceiveSection(panel, receiveModel);
