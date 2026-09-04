@@ -49,7 +49,7 @@
       startAt: '2026-09-04 15:00:00',
       actualStartAt: '2026-09-04 15:10:02',
       anchorName: '会员管家',
-      cover: ASSET + 'beef-hero.svg',
+      cover: ASSET + 'banner-featured.svg',
       liveType: 'TARGETED',
       createStatus: 'ENABLED',
       stores: [{ id: CURRENT_STORE_ID, name: '冷丰生鲜超市' }],
@@ -190,6 +190,28 @@
     }, 1600);
   }
 
+  function applyCoverFit(box) {
+    if (!box) return;
+    var img = box.querySelector('img');
+    if (!img) return;
+    function measure() {
+      var nw = img.naturalWidth;
+      var nh = img.naturalHeight;
+      var bw = box.clientWidth;
+      var bh = box.clientHeight;
+      if (!nw || !nh || !bw || !bh) return;
+      var scaledH = (bw * nh) / nw;
+      if (scaledH + 0.5 < bh) box.classList.add('is-short');
+      else box.classList.remove('is-short');
+    }
+    img.onload = measure;
+    if (img.complete && img.naturalWidth) measure();
+  }
+
+  function applyCoverFitAll(root) {
+    (root || document).querySelectorAll('.sa-cover-fit').forEach(applyCoverFit);
+  }
+
   function canStoreSee(sess, storeId) {
     if (!sess || sess.createStatus === 'DRAFT') return false;
     if (sess.liveType === 'TARGETED') {
@@ -294,7 +316,7 @@
           '<article class="sa-live-card" data-id="' +
           escapeHtml(s.id) +
           '">' +
-          '<div class="sa-live-card__cover">' +
+          '<div class="sa-live-card__cover sa-cover-fit">' +
           '<img src="' +
           escapeHtml(s.cover) +
           '" alt="">' +
@@ -325,6 +347,7 @@
       })
       .join('');
     if (empty) empty.hidden = rows.length > 0;
+    applyCoverFitAll(host);
   }
 
   function setTab(tab) {
@@ -405,6 +428,9 @@
       el.hidden = false;
       el.setAttribute('aria-hidden', 'false');
     }
+    requestAnimationFrame(function () {
+      applyCoverFit(document.querySelector('.sa-mpcard__cover'));
+    });
   }
 
   function closeShare() {

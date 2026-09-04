@@ -216,6 +216,16 @@
     if (session && session.loggedIn && window.UaLiveInvite && typeof window.UaLiveInvite.promotedPage === 'function') {
       var promo = window.UaLiveInvite.promotedPage();
       if (promo) next = promo;
+    } else if (
+      session &&
+      !session.loggedIn &&
+      window.UaLiveInvite &&
+      typeof window.UaLiveInvite.hasInvite === 'function' &&
+      window.UaLiveInvite.hasInvite() &&
+      typeof window.UaLiveInvite.guestLandingPage === 'function'
+    ) {
+      /* 未登录先逛：不强制回直播页，参数缓存在本地，稍后登录仍绑店 */
+      next = window.UaLiveInvite.guestLandingPage() || 'home.html';
     }
     var params = new URLSearchParams(window.location.search);
     /* 注册有礼：登录成功后带回发放标记 */
@@ -234,7 +244,11 @@
   }
 
   function redirectToLogin() {
-    window.location.replace('login.html?next=' + encodeURIComponent(page || 'profile.html'));
+    var url = 'login.html?next=' + encodeURIComponent(page || 'profile.html');
+    if (window.UaLiveInvite && typeof window.UaLiveInvite.appendToUrl === 'function') {
+      url = window.UaLiveInvite.appendToUrl(url);
+    }
+    window.location.replace(url);
   }
 
   function guardAppInterior() {

@@ -93,6 +93,9 @@
         "user-app/h5/login-register.html",
         "user-app/h5/login-phone.html",
         "user-app/h5/login-wechat.html",
+        "user-app/h5/login-password.html",
+        "user-app/h5/profile.html",
+        "user-app/h5/orders.html",
         "MDM/mdm_member_c.html"
       ]
     }

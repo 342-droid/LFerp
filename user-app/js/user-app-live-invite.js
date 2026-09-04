@@ -1,7 +1,7 @@
 /**
  * C 端 · 丰银宝直播分享带参
  * - 海报 / 小程序链接携带 storeId + staffId（邀请人）
- * - 访问后参数写入会话并随页内跳转一直带上
+ * - 打开后参数写入本地缓存，页内跳转、先逛后登录均保留
  * - 注册登录后自动绑定该门店并进入该场直播页；门店停业则绑系统默认店并提示
  */
 (function (global) {
@@ -64,14 +64,21 @@
   }
 
   function readSessionPayload() {
+    var fromLs = readJson(PAYLOAD_KEY, null);
+    var fromSs = null;
     try {
       var raw = sessionStorage.getItem(PAYLOAD_KEY);
-      if (!raw) return readJson(PAYLOAD_KEY, null);
-      var data = JSON.parse(raw);
-      return data && typeof data === 'object' ? data : null;
+      if (raw) {
+        var data = JSON.parse(raw);
+        if (data && typeof data === 'object') fromSs = data;
+      }
     } catch (e) {
-      return readJson(PAYLOAD_KEY, null);
+      fromSs = null;
     }
+    if (fromLs && fromSs) {
+      return (fromLs.capturedAt || 0) >= (fromSs.capturedAt || 0) ? fromLs : fromSs;
+    }
+    return fromLs || fromSs;
   }
 
   function writePayload(data) {
@@ -123,6 +130,31 @@
       ':' +
       pad(d.getSeconds())
     );
+  }
+
+  function syncUrlFromPayload() {
+    var payload = readSessionPayload();
+    if (!payload || !payload.storeId || !payload.staffId) return;
+    try {
+      var url = new URL(global.location.href);
+      var keys = ['storeId', 'staffId', 'inviteName', 'invitePhone', 'sessionId'];
+      var changed = false;
+      keys.forEach(function (key) {
+        if (payload[key] && !url.searchParams.get(key)) {
+          url.searchParams.set(key, payload[key]);
+          changed = true;
+        }
+      });
+      if (changed) {
+        global.history.replaceState(null, '', url.pathname + url.search + url.hash);
+      }
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function guestLandingPage() {
+    return appendToUrl('home.html');
   }
 
   function captureFromUrl() {
@@ -447,6 +479,7 @@
 
   function init() {
     captureFromUrl();
+    syncUrlFromPayload();
     interceptLinks();
     mountDemoPanel();
     gateLiveRoomIfNeeded();
@@ -460,6 +493,7 @@
     applyBindAfterLogin: applyBindAfterLogin,
     appendToUrl: appendToUrl,
     promotedPage: promotedPage,
+    guestLandingPage: guestLandingPage,
     hasInvite: hasInvite,
     shouldDeferBind: function () {
       return hasInvite() && !isLoggedIn();

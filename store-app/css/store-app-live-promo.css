@@ -181,11 +181,24 @@
   background: #f0f0f0;
 }
 
-.sa-live-card__cover img {
+/* 宽对齐：超出裁下方；高不够上下居中 */
+.sa-cover-fit {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: hidden;
+}
+
+.sa-cover-fit.is-short {
+  align-items: center;
+}
+
+.sa-cover-fit img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  max-width: 100%;
   display: block;
+  flex-shrink: 0;
 }
 
 .sa-live-card__badge {
@@ -398,8 +411,6 @@
   width: 100%;
   height: auto;
   display: block;
-  object-fit: cover;
-  object-position: center top;
 }
 
 .sa-poster-card__body {
@@ -543,12 +554,6 @@
   aspect-ratio: 5 / 4;
   overflow: hidden;
   background: #fff;
-}
-
-.sa-mpcard__cover img {
-  width: 100%;
-  height: auto;
-  display: block;
 }
 
 .sa-mpcard__foot {
