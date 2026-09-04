@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>直播推广 · 门店APP</title>
+  <link rel="stylesheet" href="../css/store-app.css?v=20260904-livepromo">
+  <link rel="stylesheet" href="../css/store-app-qrcode.css?v=20260904-livepromo">
+  <link rel="stylesheet" href="../css/store-app-live-promo.css?v=20260904-livepromo3">
+</head>
+<body class="store-app-body">
+  <div class="sa-shell sa-live-shell">
+    <div class="sa-live">
+      <header class="sa-live-nav">
+        <a href="home.html" class="sa-live-nav__back" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="sa-live-nav__title">直播推广</h1>
+      </header>
+
+      <div class="sa-live-tabs" role="tablist" aria-label="直播状态">
+        <button type="button" class="sa-live-tabs__btn" data-tab="live" role="tab" aria-selected="false">直播中</button>
+        <button type="button" class="sa-live-tabs__btn" data-tab="upcoming" role="tab" aria-selected="false">未开始</button>
+        <button type="button" class="sa-live-tabs__btn" data-tab="ended" role="tab" aria-selected="false">已结束</button>
+      </div>
+
+      <div class="sa-live-scroll">
+        <div class="sa-live-flow" role="note">
+          <div class="sa-live-flow__title">推广路径</div>
+          <ol class="sa-live-flow__steps">
+            <li>店长/员工分享指定场次到微信群<small>链接和海报均携带当前门店、店员</small></li>
+            <li>用户点击小程序链接或识别海报</li>
+            <li>进入冷丰鲜选小程序</li>
+            <li>注册登录后自动绑定分享门店<small>门店停业则绑定系统默认门店</small></li>
+            <li>进入该场直播页</li>
+          </ol>
+        </div>
+        <div id="livePromoEmpty" class="sa-live-empty" hidden>暂无本门店可看的直播场次</div>
+        <div id="livePromoList"></div>
+      </div>
+    </div>
+
+    <div id="livePoster" class="sa-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="posterTitle">
+      <div class="sa-overlay__mask" data-poster-close></div>
+      <div class="sa-overlay__stage">
+        <div class="sa-poster-card">
+          <div class="sa-poster-card__cover">
+            <img id="posterCover" alt="">
+          </div>
+          <div class="sa-poster-card__body">
+            <div class="sa-poster-card__head">
+              <span class="sa-poster-card__tag" id="posterLiveBadge">未开始</span>
+              <h2 class="sa-poster-card__title" id="posterTitle"></h2>
+            </div>
+            <div class="sa-poster-card__time" id="posterTime"></div>
+            <div class="sa-poster-card__brand">
+              <div class="sa-poster-card__logo">
+                <img src="../../user-app/assets/restock/tab-home-logo.svg" alt="">
+              </div>
+              <div class="sa-poster-card__brand-text">
+                <div class="sa-poster-card__brand-name">冷丰鲜选</div>
+                <div class="sa-poster-card__slogan">游九州风物，集万家鲜香，看冷丰直播</div>
+              </div>
+              <div class="sa-poster-card__qr" id="posterQr"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sa-sheet">
+        <h3 class="sa-sheet__title">分享海报</h3>
+        <div class="sa-sheet__row">
+          <button type="button" class="sa-sheet__item" data-poster-act="wx">
+            <span class="sa-sheet__ico sa-sheet__ico--wx" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="#fff"><path d="M9.5 7.2c-3.6 0-6.5 2.4-6.5 5.3 0 1.7 1 3.2 2.5 4.2l-.6 1.9 2.2-1.1c.7.2 1.5.3 2.3.3.2 0 .5 0 .7 0-.1-.4-.2-.8-.2-1.2 0-2.8 2.8-5.1 6.2-5.1.2 0 .4 0 .6 0C16.2 9.2 13.2 7.2 9.5 7.2zm-1.7 2.3a.9.9 0 110 1.8.9.9 0 010-1.8zm3.6 0a.9.9 0 110 1.8.9.9 0 010-1.8zM17.2 12c-3.1 0-5.6 2-5.6 4.5s2.5 4.5 5.6 4.5c.6 0 1.2-.1 1.8-.2l1.8.9-.5-1.6c1.2-.8 2-2 2-3.6 0-2.5-2.5-4.5-5.1-4.5zm-1.4 1.8a.7.7 0 110 1.4.7.7 0 010-1.4zm2.9 0a.7.7 0 110 1.4.7.7 0 010-1.4z"/></svg>
+            </span>
+            微信好友
+          </button>
+          <button type="button" class="sa-sheet__item" data-poster-act="moment">
+            <span class="sa-sheet__ico sa-sheet__ico--moment" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><circle cx="12" cy="12" r="3.2"/></svg>
+            </span>
+            朋友圈
+          </button>
+          <button type="button" class="sa-sheet__item" data-poster-act="download">
+            <span class="sa-sheet__ico sa-sheet__ico--down" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 19h14"/></svg>
+            </span>
+            下载海报
+          </button>
+        </div>
+        <button type="button" class="sa-sheet__cancel" data-poster-close>取消</button>
+      </div>
+    </div>
+
+    <div id="liveShare" class="sa-overlay" hidden aria-hidden="true" role="dialog" aria-label="分享直播">
+      <div class="sa-overlay__mask" data-share-close></div>
+      <div class="sa-overlay__stage">
+        <div class="sa-mpcard">
+          <div class="sa-mpcard__head">
+            <div class="sa-mpcard__logo">
+              <img src="../../user-app/assets/restock/tab-home-logo.svg" alt="">
+            </div>
+            <div class="sa-mpcard__app">冷丰鲜选</div>
+          </div>
+          <h2 class="sa-mpcard__title" id="shareTitle"></h2>
+          <div class="sa-mpcard__cover">
+            <img id="shareCover" alt="">
+          </div>
+          <div class="sa-mpcard__foot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path d="M10 13a5 5 0 007.07 0l1.41-1.41a5 5 0 00-7.07-7.07L10 5.93"/>
+              <path d="M14 11a5 5 0 00-7.07 0L5.52 12.41a5 5 0 007.07 7.07L14 18.07"/>
+            </svg>
+            小程序
+          </div>
+        </div>
+      </div>
+      <div class="sa-sheet">
+        <h3 class="sa-sheet__title">分享直播</h3>
+        <div class="sa-sheet__row sa-sheet__row--two">
+          <button type="button" class="sa-sheet__item" data-share-act="wx">
+            <span class="sa-sheet__ico sa-sheet__ico--wx" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="#fff"><path d="M9.5 7.2c-3.6 0-6.5 2.4-6.5 5.3 0 1.7 1 3.2 2.5 4.2l-.6 1.9 2.2-1.1c.7.2 1.5.3 2.3.3.2 0 .5 0 .7 0-.1-.4-.2-.8-.2-1.2 0-2.8 2.8-5.1 6.2-5.1.2 0 .4 0 .6 0C16.2 9.2 13.2 7.2 9.5 7.2zm-1.7 2.3a.9.9 0 110 1.8.9.9 0 010-1.8zm3.6 0a.9.9 0 110 1.8.9.9 0 010-1.8zM17.2 12c-3.1 0-5.6 2-5.6 4.5s2.5 4.5 5.6 4.5c.6 0 1.2-.1 1.8-.2l1.8.9-.5-1.6c1.2-.8 2-2 2-3.6 0-2.5-2.5-4.5-5.1-4.5zm-1.4 1.8a.7.7 0 110 1.4.7.7 0 010-1.4zm2.9 0a.7.7 0 110 1.4.7.7 0 010-1.4z"/></svg>
+            </span>
+            微信好友
+          </button>
+          <button type="button" class="sa-sheet__item" data-share-act="moment">
+            <span class="sa-sheet__ico sa-sheet__ico--moment" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><circle cx="12" cy="12" r="3.2"/></svg>
+            </span>
+            朋友圈
+          </button>
+        </div>
+        <button type="button" class="sa-sheet__cancel" data-share-close>取消</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="../js/store-app-orders-mock.js?v=20260904-livepromo"></script>
+  <script src="../js/store-app-toast.js?v=20260904-livepromo"></script>
+  <script src="../js/store-app-live-promo.js?v=20260904-livepromo3"></script>
+  <script src="../../js/pg-prd-float.js?v=20260904-livepromo"></script>
+</body>
+</html>

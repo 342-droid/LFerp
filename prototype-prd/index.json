@@ -79,6 +79,22 @@
         "user-app/h5/goods-detail.html",
         "user-app/h5/cart.html"
       ]
+    },
+    {
+      "id": "628-丰银宝支持通过分享冷丰鲜选直播场次链接绑定推广会员",
+      "title": "【628】丰银宝支持通过分享冷丰鲜选直播场次链接绑定推广会员",
+      "file": "628-丰银宝支持通过分享冷丰鲜选直播场次链接绑定推广会员.md",
+      "pages": [
+        "store-app/h5/home.html",
+        "store-app/h5/live-promo.html",
+        "user-app/h5/home.html",
+        "user-app/h5/live-room.html",
+        "user-app/h5/login.html",
+        "user-app/h5/login-register.html",
+        "user-app/h5/login-phone.html",
+        "user-app/h5/login-wechat.html",
+        "MDM/mdm_member_c.html"
+      ]
     }
   ]
 }

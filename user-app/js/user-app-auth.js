@@ -180,7 +180,8 @@
     var params = new URLSearchParams(window.location.search);
     var next = params.get('next') || 'profile.html';
     var base = (next.split('?')[0] || '').toLowerCase();
-    if (APP_PAGES.indexOf(base) < 0) next = 'profile.html';
+    var allowed = APP_PAGES.concat(['live-room.html']);
+    if (allowed.indexOf(base) < 0) next = 'profile.html';
     return next;
   }
 
@@ -208,11 +209,21 @@
   }
 
   function redirectAfterAuth(session) {
+    if (window.UaLiveInvite && session && session.loggedIn) {
+      window.UaLiveInvite.applyBindAfterLogin(session);
+    }
     var next = resolveNextPage();
+    if (session && session.loggedIn && window.UaLiveInvite && typeof window.UaLiveInvite.promotedPage === 'function') {
+      var promo = window.UaLiveInvite.promotedPage();
+      if (promo) next = promo;
+    }
     var params = new URLSearchParams(window.location.search);
     /* 注册有礼：登录成功后带回发放标记 */
     if (params.get('rg') === '1' && String(next).indexOf('rg=') < 0) {
       next += (next.indexOf('?') >= 0 ? '&' : '?') + 'rg=1';
+    }
+    if (window.UaLiveInvite && typeof window.UaLiveInvite.appendToUrl === 'function') {
+      next = window.UaLiveInvite.appendToUrl(next);
     }
     var data = session || readSession();
     if (data) {
