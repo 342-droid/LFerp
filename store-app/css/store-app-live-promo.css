@@ -1,0 +1,567 @@
+/* 门店 APP · 直播推广 */
+
+.sa-live-shell {
+  background: #f5f5f5;
+}
+
+.sa-live {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.sa-live-nav {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 46px;
+  padding: 0 12px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+
+.sa-live-nav__back {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a1a1a;
+  text-decoration: none;
+}
+
+.sa-live-nav__back svg {
+  width: 22px;
+  height: 22px;
+}
+
+.sa-live-nav__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.sa-live-tabs {
+  flex-shrink: 0;
+  display: flex;
+  align-items: stretch;
+  padding: 0 12px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+
+.sa-live-tabs__btn {
+  flex: 1;
+  padding: 12px 6px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #666;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  margin-bottom: -1px;
+}
+
+.sa-live-tabs__btn.is-active {
+  color: #ff6b00;
+  border-bottom-color: #ff6b00;
+  font-weight: 600;
+}
+
+.sa-live-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #f7f7f7;
+  padding: 12px;
+}
+
+.sa-live-flow {
+  margin-bottom: 10px;
+  padding: 12px 12px 10px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.sa-live-flow__title {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.sa-live-flow__steps {
+  counter-reset: flow;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sa-live-flow__steps li {
+  position: relative;
+  padding: 0 0 14px 28px;
+  font-size: 12px;
+  color: #333;
+  line-height: 1.45;
+}
+
+.sa-live-flow__steps li:last-child {
+  padding-bottom: 0;
+}
+
+.sa-live-flow__steps li::before {
+  content: counter(flow);
+  counter-increment: flow;
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ff6b00;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+.sa-live-flow__steps li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 20px;
+  bottom: 2px;
+  width: 2px;
+  background: #ffd4b0;
+}
+
+.sa-live-flow__steps li small {
+  display: block;
+  color: #999;
+  font-size: 11px;
+}
+
+.sa-live-empty {
+  padding: 56px 16px;
+  text-align: center;
+  font-size: 14px;
+  color: #999;
+}
+
+.sa-live-card {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.sa-live-card__cover {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.sa-live-card__cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sa-live-card__badge {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  background: #ff4d4f;
+}
+
+.sa-live-card__badge--upcoming {
+  background: #ff8a1a;
+}
+
+.sa-live-card__badge--ended {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.sa-live-card__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sa-live-card__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sa-live-card__meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #888;
+  line-height: 1.45;
+}
+
+.sa-live-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.sa-live-card__btn {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 14px;
+  border: 1px solid #ff6b00;
+  background: #fff;
+  color: #ff6b00;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sa-live-card__btn--primary {
+  background: #ff6b00;
+  color: #fff;
+}
+
+/* —— 生成海报 / 分享直播 遮罩层 —— */
+.sa-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+}
+
+.sa-overlay[hidden] {
+  display: none !important;
+}
+
+.sa-overlay__mask {
+  position: absolute;
+  inset: 0;
+  background: #8f8f8f;
+}
+
+.sa-overlay__stage {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 22px 8px;
+  overflow: auto;
+}
+
+.sa-sheet {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 12px 12px 0 0;
+  padding: 0 0 calc(8px + env(safe-area-inset-bottom, 0px));
+}
+
+.sa-sheet__title {
+  margin: 0;
+  padding: 16px 20px 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.sa-sheet__row {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  padding: 16px 28px 8px;
+}
+
+.sa-sheet__row--two {
+  justify-content: center;
+  gap: 56px;
+}
+
+.sa-sheet__item {
+  border: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #333;
+  font-size: 12px;
+  padding: 0;
+}
+
+.sa-sheet__ico {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.sa-sheet__ico--wx {
+  background: #07c160;
+}
+
+.sa-sheet__ico--moment {
+  background:
+    conic-gradient(
+      from 90deg,
+      #2aae67 0 60deg,
+      #f5c518 60deg 120deg,
+      #3b9bdb 120deg 180deg,
+      #e85d4c 180deg 240deg,
+      #7b5cff 240deg 300deg,
+      #2aae67 300deg 360deg
+    );
+}
+
+.sa-sheet__ico--down {
+  background: #e8e8e8;
+  color: #666;
+}
+
+.sa-sheet__cancel {
+  width: 100%;
+  margin-top: 6px;
+  padding: 14px 0 6px;
+  border: 0;
+  background: transparent;
+  font-size: 16px;
+  color: #1a1a1a;
+  cursor: pointer;
+}
+
+/* 图1 · 直播海报卡片 */
+.sa-poster-card {
+  width: 100%;
+  max-width: 300px;
+  background: #fff;
+  border: 1px solid #cfcfcf;
+  overflow: hidden;
+}
+
+.sa-poster-card__cover {
+  width: 100%;
+  max-height: 210px;
+  overflow: hidden;
+  background: #f3f3f3;
+}
+
+.sa-poster-card__cover img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.sa-poster-card__body {
+  padding: 12px 14px 14px;
+}
+
+.sa-poster-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.sa-poster-card__tag {
+  flex-shrink: 0;
+  margin-top: 2px;
+  padding: 1px 5px;
+  border: 1px solid #c8c8c8;
+  border-radius: 2px;
+  font-size: 11px;
+  color: #666;
+  line-height: 1.3;
+}
+
+.sa-poster-card__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.35;
+}
+
+.sa-poster-card__time {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #333;
+}
+
+.sa-poster-card__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.sa-poster-card__logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: #ff4d30;
+}
+
+.sa-poster-card__logo img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.sa-poster-card__brand-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.sa-poster-card__brand-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.sa-poster-card__slogan {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #888;
+  line-height: 1.4;
+}
+
+.sa-poster-card__qr {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.sa-poster-card__qr canvas,
+.sa-poster-card__qr img,
+.sa-poster-card__qr table {
+  width: 72px !important;
+  height: 72px !important;
+}
+
+/* 图2 · 小程序分享卡片 */
+.sa-mpcard {
+  width: 100%;
+  max-width: 300px;
+  background: #fff;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
+}
+
+.sa-mpcard__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 8px;
+}
+
+.sa-mpcard__logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #ff4d30;
+}
+
+.sa-mpcard__logo img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.sa-mpcard__app {
+  font-size: 13px;
+  color: #333;
+}
+
+.sa-mpcard__title {
+  margin: 0;
+  padding: 0 12px 10px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.4;
+}
+
+.sa-mpcard__cover {
+  width: 100%;
+  aspect-ratio: 5 / 4;
+  overflow: hidden;
+  background: #fff;
+}
+
+.sa-mpcard__cover img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.sa-mpcard__foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px 12px;
+  color: #999;
+  font-size: 12px;
+}
+
+.sa-mpcard__foot svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}

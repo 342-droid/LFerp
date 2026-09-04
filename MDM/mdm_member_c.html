@@ -186,10 +186,14 @@
             position: relative;
             display: inline-block;
             vertical-align: middle;
+            min-width: 0;
+            max-width: 100%;
         }
         .datetime-clear-wrap input[type="datetime-local"] {
             height: 32px;
-            width: 210px;
+            width: 190px;
+            max-width: 100%;
+            min-width: 0;
             padding: 0 28px 0 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
@@ -218,14 +222,22 @@
         .datetime-clear-wrap.has-value:focus-within .datetime-clear-btn { display: block; }
         .datetime-clear-btn:hover { background: #ccc; color: #333; }
         .member-reg-datetime-row {
-            display: inline-flex;
+            display: flex;
             align-items: center;
             gap: 6px;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
+            min-width: 0;
+            flex: 1 1 auto;
         }
         .member-reg-datetime-row .sep { color: #999; font-size: 12px; flex-shrink: 0; }
-        .form-group--datetime { flex: 0 0 auto; min-width: 0; }
+        #memberCSearchForm.search-form { min-width: 0; max-width: 100%; }
+        #memberCSearchForm.search-form > .form-group.form-group--datetime {
+            flex: 1 1 100%;
+            max-width: 100%;
+            min-width: 0;
+        }
         .form-group--datetime > label { white-space: nowrap; }
+        #panelMemberList .search-section { overflow-x: hidden; }
         .proxy-store-picker-modal--single .proxy-store-picker__select-all { display: none; }
     </style>
 </head>
@@ -300,6 +312,7 @@
                             <select id="qMemberStatus">
                                 <option value="" selected>全部</option>
                                 <option value="正常">正常</option>
+                                <option value="冻结">冻结</option>
                                 <option value="黑名单">黑名单</option>
                                 <option value="注销中">注销中</option>
                                 <option value="注销">注销</option>
@@ -376,7 +389,7 @@
                                     <td>2026-04-25 14:20:03</td>
                                     <td>2026-01-12 09:20:11</td>
                                     <td><span class="status active">正常</span></td>
-                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-change-store">变更绑定门店</a><a href="#" class="mdm-mem-coupon">发券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-change-store">变更绑定门店</a><a href="#" class="mdm-mem-coupon">发券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a><a href="#" class="mdm-mem-freeze">冻结</a></td>
                                 </tr>
                                 <tr data-member-status="正常">
                                     <td>U10002</td>
@@ -399,7 +412,7 @@
                                     <td>2026-04-22 09:15:44</td>
                                     <td>2025-11-03 18:42:11</td>
                                     <td><span class="status active">正常</span></td>
-                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-change-store">变更绑定门店</a><a href="#" class="mdm-mem-coupon">发券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-change-store">变更绑定门店</a><a href="#" class="mdm-mem-coupon">发券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a><a href="#" class="mdm-mem-freeze">冻结</a></td>
                                 </tr>
                                 <tr data-member-status="正常">
                                     <td>U10004</td>
@@ -422,7 +435,7 @@
                                     <td>2026-04-20 14:11:03</td>
                                     <td>2026-02-08 10:00:00</td>
                                     <td><span class="status active">正常</span></td>
-                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-change-store">变更绑定门店</a><a href="#" class="mdm-mem-coupon">发券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-change-store">变更绑定门店</a><a href="#" class="mdm-mem-coupon">发券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a><a href="#" class="mdm-mem-freeze">冻结</a></td>
                                 </tr>
                                 <tr data-member-status="正常">
                                     <td>U10006</td>
@@ -445,7 +458,30 @@
                                     <td>2026-04-18 11:22:08</td>
                                     <td>2026-03-15 14:33:00</td>
                                     <td><span class="status active">正常</span></td>
-                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-change-store">变更绑定门店</a><a href="#" class="mdm-mem-coupon">发券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-change-store">变更绑定门店</a><a href="#" class="mdm-mem-coupon">发券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a><a href="#" class="mdm-mem-freeze">冻结</a></td>
+                                </tr>
+                                <tr data-member-status="冻结">
+                                    <td>U10010</td>
+                                    <td>冻结用户G</td>
+                                    <td><span class="mdm-list-avatar">G</span></td>
+                                    <td>135****1010</td>
+                                    <td>男</td>
+                                    <td>是</td>
+                                    <td>银牌会员</td>
+                                    <td>—</td>
+                                    <td>APP</td>
+                                    <td>手机</td>
+                                    <td>1</td>
+                                    <td>880</td>
+                                    <td>20</td>
+                                    <td>1</td>
+                                    <td>640</td>
+                                    <td>256.00</td>
+                                    <td>2</td>
+                                    <td>2026-03-12 16:08:00</td>
+                                    <td>2025-12-08 11:20:00</td>
+                                    <td><span class="status frozen">冻结</span></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-unfreeze">解冻</a></td>
                                 </tr>
                                 <tr data-member-status="黑名单">
                                     <td>U10008</td>
@@ -715,7 +751,7 @@
     <script src="../js/mdm-member-growth-acquire.js"></script>
     <script src="../js/mdm-marketing-mall-record-store.js"></script>
     <script src="../js/mdm-product-proxy-store-picker.js"></script>
-    <script src="../js/mdm-member-c-ui.js"></script>
+    <script src="../js/mdm-member-c-ui.js?v=20260904-livepromo"></script>
     <script src="../js/mdm-member-blacklist.js"></script>
     <script src="../js/mdm-member-cancel.js"></script>
     <script src="../js/mdm-erp-lists.js"></script>

@@ -26,6 +26,10 @@
         { href: 'mdm_marketing_mall_record.html', text: '领券记录' }
     ];
 
+    const templateItems = [
+        { href: 'mdm_marketing_template.html', text: '模版配置' }
+    ];
+
     const activityItems = [
         {
             href: 'mdm_marketing_points_mall.html',
@@ -33,6 +37,14 @@
             alsoActive: [
                 'mdm_marketing_points_mall_form.html',
                 'mdm_marketing_points_rule_desc.html'
+            ]
+        },
+        {
+            href: 'mdm_marketing_seckill.html',
+            text: '秒杀',
+            alsoActive: [
+                'mdm_marketing_seckill_form.html',
+                'mdm_marketing_seckill_product.html'
             ]
         },
         {
@@ -103,6 +115,7 @@
         '<ul class="sidebar-menu">' +
         renderCollapsibleGroup('积分管理', '策略管理', pointsItems) +
         renderCollapsibleGroup('营销活动', '策略管理', activityItems) +
+        renderCollapsibleGroup('营销模版', '策略管理', templateItems) +
         renderCollapsibleGroup('营销记录', '策略管理', recordItems) +
         '</ul>' +
         '</aside>';

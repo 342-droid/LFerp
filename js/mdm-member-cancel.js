@@ -171,6 +171,7 @@
                 if (mapStatus === '注销' || mapStatus === '已注销') st.className = 'status canceled';
                 else if (mapStatus === '注销中' || mapStatus === '审核中') st.className = 'status cancel-pending';
                 else if (mapStatus === '黑名单') st.className = 'status blacklist';
+                else if (mapStatus === '冻结') st.className = 'status frozen';
                 else st.className = 'status active';
                 st.textContent = mapStatus === '已注销' ? '注销' : mapStatus;
                 if (!st.parentNode) {

@@ -4,7 +4,7 @@
     {
       "label": "LFerp: 本地预览 (5173)",
       "type": "shell",
-      "command": "node tools/preview-server.mjs",
+      "command": "node tools/preview-server.mjs --watch",
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {

@@ -1,0 +1,281 @@
+/* 营销活动 — 秒杀 */
+
+.mkt-sk-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  flex-wrap: wrap;
+}
+
+.mkt-sk-toolbar .erp-btn {
+  text-decoration: none !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  line-height: 1;
+}
+
+#skFilterForm.search-form {
+  gap: 16px 20px;
+  align-items: center;
+}
+
+#skFilterForm.search-form > .form-group {
+  flex: 0 0 auto;
+  max-width: none;
+  width: auto;
+  align-items: center;
+}
+
+#skFilterForm.search-form > .form-group.form-group--rg-time {
+  flex: 0 0 auto;
+  max-width: none;
+}
+
+#skFilterForm .form-group > input,
+#skFilterForm .form-group > select,
+#skFilterForm .form-group > .input-wrapper > input {
+  width: 180px;
+}
+
+#skFilterForm .mkt-rg-datetime-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+#skFilterForm .mkt-rg-datetime-wrap input[type='datetime-local'] {
+  width: 190px;
+  height: 32px;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0 28px 0 8px;
+  line-height: 1.2;
+}
+
+.mkt-sk-goods-link {
+  color: #2196f3;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.mkt-sk-goods-link:hover {
+  text-decoration: underline;
+}
+
+.mkt-sk-goods-modal .erp-modal {
+  width: 880px;
+  max-width: 94vw;
+  max-height: 82vh;
+}
+
+.mkt-sk-goods-modal .erp-modal__body {
+  max-height: 60vh;
+  overflow: auto;
+}
+
+.mkt-sk-sku-count {
+  color: #2196f3;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.mkt-sk-sku-count:hover {
+  text-decoration: underline;
+}
+
+.mkt-sk-sku-child td {
+  background: #fafafa;
+  color: #666;
+}
+
+.mkt-sk-thumb {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #f5f5f5;
+  align-items: center;
+  justify-content: center;
+}
+
+.mkt-sk-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mkt-sk-form-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 12px;
+}
+
+.mkt-sk-form-back {
+  color: #2196f3;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.mkt-sk-form-back:hover {
+  text-decoration: underline;
+}
+
+.mkt-sk-steps {
+  display: flex;
+  gap: 0;
+  margin: 0 0 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.mkt-sk-steps button {
+  height: 40px;
+  padding: 0 20px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.mkt-sk-steps button.active {
+  color: #ff7019;
+  font-weight: 600;
+  border-bottom-color: #ff7019;
+}
+
+.mkt-sk-steps button:disabled {
+  cursor: default;
+  color: #bbb;
+}
+
+.mkt-sk-tab[hidden] {
+  display: none !important;
+}
+
+.mkt-sk-limit-qty[hidden],
+.mkt-sk-port-list[hidden],
+#skUnqualifiedRow[hidden],
+#skTabInfo [hidden],
+#skTabProducts [hidden] {
+  display: none !important;
+}
+
+.mkt-sk-limit-qty {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+}
+
+.mkt-sk-limit-qty input {
+  width: 120px;
+  height: 32px;
+}
+
+.mkt-sk-char-count {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #999;
+}
+
+#skTabProducts .search-section {
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+
+.mkt-sk-prod-filter.search-form {
+  margin-bottom: 0;
+  gap: 12px 16px;
+  align-items: center;
+}
+
+.mkt-sk-prod-filter .form-actions {
+  margin-top: 0;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+#skTabProducts .table td.action-links {
+  display: table-cell !important;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+#skTabProducts .table td.action-links a {
+  display: inline;
+  margin-right: 8px;
+  color: #2196f3;
+  text-decoration: none;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+#skTabProducts .table td.action-links a:last-child {
+  margin-right: 0;
+}
+
+#skTabProducts .table td.action-links a:hover {
+  text-decoration: underline;
+}
+
+#skTabProducts .table td.action-links a.action-link-danger {
+  color: #f56c6c !important;
+}
+
+.mdm-edit-page.is-readonly input,
+.mdm-edit-page.is-readonly select,
+.mdm-edit-page.is-readonly textarea,
+.mdm-edit-page.is-readonly button.product-proxy-sale-scope__pick {
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.mdm-edit-page.is-readonly .mkt-sk-steps button,
+.mdm-edit-page.is-readonly .mkt-sk-form-back,
+.mdm-edit-page.is-readonly .mdm-edit-page__footer button {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.mkt-sk-datetime-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mkt-sk-port-list {
+  margin-top: 10px;
+}
+
+.mkt-sk-empty {
+  text-align: center;
+  color: #999;
+  padding: 24px;
+}
+
+.erp-modal-backdrop[hidden],
+.mkt-tpl-log-drawer[hidden] {
+  display: none !important;
+}

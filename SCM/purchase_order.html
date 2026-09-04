@@ -148,6 +148,10 @@
             color: #2e7d32;
         }
 
+        .add-po-receive-title { display: flex; align-items: center; justify-content: flex-start; }
+        .add-po-receive-title .add-po-receive-address-select { margin-left: 10px; }
+        .add-po-receive-address-select { min-width: 420px; height: 36px; border: 1px solid #ddd; border-radius: 3px; padding: 0 34px 0 12px; background: #fff; color: #303133; font-size: 13px; }
+
         .add-po-form-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(220px, 1fr));
@@ -813,7 +817,7 @@
                 </div>
 
                 <div class="detail-section">
-                    <div class="detail-section-title">收货信息</div>
+                    <div class="detail-section-title add-po-receive-title"><span>收货信息</span><select id="addPoReceiveAddress" class="add-po-receive-address-select" aria-label="收货地址选择" disabled><option value="">请先选择收货地名称</option></select></div>
                     <div class="detail-info-grid" id="addPoReceiveInfo"></div>
                 </div>
 
@@ -1042,6 +1046,22 @@
     var addPoLines = [];
     var addPoBuyerOptions = [];
     var addPoReceiveContext = null;
+    var addPoReceiveAddressOptions = {
+        'W001 南京仓': [
+            { receiveAddress: '江苏省南京市江宁区禄口街道冷丰物流园A区', receivePhone: '025-88886666', receiver: '周仓管', isDefault: true },
+            { receiveAddress: '江苏省南京市江宁区双龙大道88号2号库', receivePhone: '025-88886666', receiver: '周仓管' }
+        ],
+        'W002 嘉兴仓': [
+            { receiveAddress: '浙江省嘉兴市南湖区大桥镇冷链仓储中心3号库', receivePhone: '0573-66668888', receiver: '吴收货', isDefault: true },
+            { receiveAddress: '浙江省嘉兴市秀洲区王店镇物流园B座', receivePhone: '0573-66668888', receiver: '吴收货' }
+        ],
+        'W003 上海仓': [
+            { receiveAddress: '上海市嘉定区马陆镇丰茂路88号', receivePhone: '021-55667788', receiver: '孙主管', isDefault: true }
+        ],
+        'W004 北京仓': [
+            { receiveAddress: '北京市大兴区亦庄经济开发区物流基地B座', receivePhone: '010-66554433', receiver: '郑库管', isDefault: true }
+        ]
+    };
     var currentAddPoNo = '';
     var addPoMode = 'add';
     var editingPoNo = '';
@@ -1091,6 +1111,21 @@
             ? Object.assign({}, addPoReceiveContext, { warehouse: warehouse || addPoReceiveContext.warehouse })
             : { warehouse: warehouse };
         var receiveInfo = getPoReceiveInfo(row);
+        var options = addPoReceiveAddressOptions[warehouse] || [{ receiveAddress: receiveInfo.receiveAddress, receivePhone: receiveInfo.receivePhone, receiver: receiveInfo.receiver, isDefault: true }];
+        var addressSelect = document.getElementById('addPoReceiveAddress');
+        if (addressSelect) {
+            if (!warehouse) {
+                addressSelect.disabled = true;
+                addressSelect.innerHTML = '<option value="">请先选择收货地名称</option>';
+            } else {
+                addressSelect.disabled = false;
+            addressSelect.innerHTML = options.map(function(item, idx) {
+                return '<option value="' + idx + '">' + (item.isDefault ? '【默认】 ' : '') + item.receiver + ' ' + item.receivePhone + ' · ' + item.receiveAddress + '</option>';
+            }).join('');
+            var selectedIndex = options.findIndex(function(item) { return item.receiveAddress === receiveInfo.receiveAddress; });
+            addressSelect.value = String(selectedIndex >= 0 ? selectedIndex : 0);
+            }
+        }
         var box = document.getElementById('addPoReceiveInfo');
         if (!box) return;
         box.innerHTML = [
@@ -3080,6 +3115,14 @@
     });
 
     document.getElementById('addPoWarehouse').addEventListener('change', function() {
+        renderAddPoReceiveInfo();
+    });
+    document.getElementById('addPoReceiveAddress').addEventListener('change', function() {
+        var warehouse = getCustomSelectValue('addPoWarehouse');
+        var list = addPoReceiveAddressOptions[warehouse] || [];
+        var item = list[Number(this.value)];
+        if (!item) return;
+        addPoReceiveContext = Object.assign({}, addPoReceiveContext || {}, { receiveInfo: item });
         renderAddPoReceiveInfo();
     });
 

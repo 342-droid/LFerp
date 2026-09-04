@@ -1,7 +1,563 @@
 {
-  "latestSha": "efd6b4424935b6a0553c13307f8f7215bac1f2d1",
-  "total": 340,
+  "latestSha": "e4352d265044af3fe204865ef45b5782fcbd494b",
+  "total": 348,
   "days": [
+    {
+      "date": "2026-09-04",
+      "items": [
+        {
+          "sha": "e4352d2",
+          "type": "feat",
+          "text": "采购单支持收货地址选择",
+          "author": "342-droid",
+          "time": "16:47",
+          "pages": [
+            {
+              "file": "SCM/purchase_order.html",
+              "module": "冷丰采购",
+              "title": "采购单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "新增页按收货地联动默认收货地址并支持下拉切换"
+            }
+          ]
+        },
+        {
+          "sha": "9fb6c51",
+          "type": "feat",
+          "text": "丰银宝支持分享直播场次链接绑定推广会员",
+          "author": "zhangzheng",
+          "time": "16:19",
+          "pages": [
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/forgot-password.html",
+              "module": "",
+              "title": "找回密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "module": "",
+              "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-wechat.html",
+              "module": "",
+              "title": "微信授权登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "module": "",
+              "title": "登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/scan-store.html",
+              "module": "",
+              "title": "扫一扫 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/set-password.html",
+              "module": "",
+              "title": "设置密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/switch-address.html",
+              "module": "",
+              "title": "切换门店 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/live-promo.html",
+              "text": "工作台: 门店推广码右侧增加直播推广入口"
+            },
+            {
+              "file": "store-app/h5/live-promo.html",
+              "text": "新增本店可看场次列表、推广路径、生成海报和分享直播；已结束场次不展示分享按钮"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "text": "分享链接携带门店和店员参数，登录后自动绑店；门店停业则绑定默认门店"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "未登录先登录再进入该场直播"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "text": "登录成功后绑定分享门店并回到该场直播；相关登录页可打开本期 PRD 浮窗"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "text": "绑定门店明细增加邀请人列"
+            }
+          ]
+        },
+        {
+          "sha": "91aac09",
+          "type": "fix",
+          "text": "修正仓库收货地址初始区域",
+          "author": "342-droid",
+          "time": "15:00",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "text": "修正收货地址初始化字段，避免影响其他详情页"
+            }
+          ]
+        },
+        {
+          "sha": "a867d9c",
+          "type": "feat",
+          "text": "仓库详情支持收货地址维护",
+          "author": "342-droid",
+          "time": "14:59",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "text": "在仓库详情基础信息中增加收货地址新增、编辑、删除和默认地址维护"
+            }
+          ]
+        },
+        {
+          "sha": "c317b0b",
+          "type": "feat",
+          "text": "可售和预占统一按放单渠道记账",
+          "author": "sisi",
+          "time": "10:42",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_stock.html",
+              "module": "冷丰WMS",
+              "title": "库存统计"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "编辑规格并列展示本渠道可售、预占、剩余可售；仓店表只留现货"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "编辑规格按商城渠道展示可售与预占，仓店表不再挂预占"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "text": "规格卡补预占和剩余可售，本场配额仍卡本渠道剩余可售"
+            },
+            {
+              "file": "MDM/mdm_product_stock.html",
+              "text": "引导文案改为现货按仓、可售和预占按放单渠道"
+            },
+            {
+              "file": null,
+              "text": "库存 PRD 升为 v1.6，预占账本改为 SKU × 放单渠道"
+            }
+          ]
+        },
+        {
+          "sha": "954c7fe",
+          "type": "chore",
+          "text": "完善本地预览服务保活与登录自启",
+          "author": "zhangzheng",
+          "time": "10:38",
+          "pages": [],
+          "notes": [
+            {
+              "file": null,
+              "text": "预览服务支持 watch 保活、健康检查和登录自启，打开仓库即可维持 5173"
+            }
+          ]
+        },
+        {
+          "sha": "b4a0cfd",
+          "type": "feat",
+          "text": "会员管理支持冻结与解冻",
+          "author": "zhangzheng",
+          "time": "10:38",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_member_c.html",
+              "text": "状态增加冻结；正常会员可冻结，冻结后仅可查看详情，支持解冻恢复；筛选可查冻结；详情展示会员状态"
+            }
+          ]
+        },
+        {
+          "sha": "33f6d56",
+          "type": "feat",
+          "text": "营销活动增加秒杀商品限购和模版配置",
+          "author": "zhangzheng",
+          "time": "10:38",
+          "pages": [
+            {
+              "file": "MDM/mdm_marketing_cash_redpack.html",
+              "module": "冷丰WMS",
+              "title": "现金红包"
+            },
+            {
+              "file": "MDM/mdm_marketing_consume_points.html",
+              "module": "冷丰WMS",
+              "title": "消费赠积分"
+            },
+            {
+              "file": "MDM/mdm_marketing_mall_record.html",
+              "module": "冷丰WMS",
+              "title": "领券记录"
+            },
+            {
+              "file": "MDM/mdm_marketing_newcomer_zone.html",
+              "module": "冷丰WMS",
+              "title": "新人专区"
+            },
+            {
+              "file": "MDM/mdm_marketing_newcomer_zone_form.html",
+              "module": "冷丰WMS",
+              "title": "编辑新人专区商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_points.html",
+              "module": "冷丰WMS",
+              "title": "积分管理"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_home.html",
+              "module": "冷丰WMS",
+              "title": "积分首页"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall.html",
+              "module": "冷丰WMS",
+              "title": "积分商城"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall_form.html",
+              "module": "冷丰WMS",
+              "title": "编辑积分商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_rule_desc.html",
+              "module": "冷丰WMS",
+              "title": "积分规则说明"
+            },
+            {
+              "file": "MDM/mdm_marketing_register_gift.html",
+              "module": "冷丰WMS",
+              "title": "注册有礼"
+            },
+            {
+              "file": "MDM/mdm_marketing_register_gift_form.html",
+              "module": "冷丰WMS",
+              "title": "注册有礼"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill.html",
+              "module": "冷丰WMS",
+              "title": "秒杀"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_template.html",
+              "module": "冷丰WMS",
+              "title": "模版配置"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_marketing_seckill.html",
+              "text": "新增活动列表、筛选和操作日志，按活动ID倒序；可按状态编辑、启用、禁用"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "text": "两步创建；售卖范围、商品限购、不符合条件用户可配；活动商品展示秒杀价，至少上架一个才能保存"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "text": "复刻排品编辑，直播库存改为活动库存；新加商品配置默认空，划线价非必填"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "text": "命中进行中秒杀展示限时秒杀条和倒计时；结束或未命中回到普通价和规格"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "text": "可享受秒杀时展示秒杀标签和秒杀价"
+            },
+            {
+              "file": "MDM/mdm_marketing_template.html",
+              "text": "新增营销模版配置列表、编辑弹窗和操作日志"
+            },
+            {
+              "file": null,
+              "text": "对应页面挂上【605】秒杀（商品限购）PRD 浮窗"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-09-03",
       "items": [
@@ -52,6 +608,11 @@
               "title": "直播排品编辑"
             },
             {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
               "file": "MDM/mdm_product_mall.html",
               "module": "冷丰WMS",
               "title": "商品列表"
@@ -93,6 +654,11 @@
               "file": "MDM/mdm_live_product_sched_edit.html",
               "module": "冷丰WMS",
               "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
             },
             {
               "file": "MDM/mdm_product_audit.html",
@@ -776,6 +1342,11 @@
               "title": "直播排品编辑"
             },
             {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
               "title": "直播订单"
@@ -985,6 +1556,16 @@
               "title": "直播时段"
             },
             {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
               "file": "MDM/mdm_product_mall.html",
               "module": "冷丰WMS",
               "title": "商品列表"
@@ -1138,6 +1719,11 @@
               "file": "store-app/h5/home.html",
               "module": "",
               "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 门店APP"
             },
             {
               "file": "store-app/h5/order-detail.html",
@@ -1391,6 +1977,16 @@
               "title": "编辑积分商品"
             },
             {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
               "file": "MDM/mdm_member_batch_tag.html",
               "module": "冷丰WMS",
               "title": "批量打标签"
@@ -1556,6 +2152,11 @@
               "title": "门店APP · 工作台"
             },
             {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 门店APP"
+            },
+            {
               "file": "store-app/h5/order-detail.html",
               "module": "",
               "title": "核销详情 · 门店APP"
@@ -1599,6 +2200,26 @@
               "file": "user-app/h5/live-room.html",
               "module": "",
               "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "module": "",
+              "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-wechat.html",
+              "module": "",
+              "title": "微信授权登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "module": "",
+              "title": "登录 · 用户 APP"
             },
             {
               "file": "user-app/h5/mall.html",
@@ -2001,6 +2622,11 @@
               "title": "门店APP · 工作台"
             },
             {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 门店APP"
+            },
+            {
               "file": "store-app/h5/order-detail.html",
               "module": "",
               "title": "核销详情 · 门店APP"
@@ -2103,6 +2729,11 @@
               "title": "门店APP · 工作台"
             },
             {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 门店APP"
+            },
+            {
               "file": "store-app/h5/order-detail.html",
               "module": "",
               "title": "核销详情 · 门店APP"
@@ -2146,6 +2777,11 @@
               "title": "门店APP · 工作台"
             },
             {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 门店APP"
+            },
+            {
               "file": "store-app/h5/order-detail.html",
               "module": "",
               "title": "核销详情 · 门店APP"
@@ -2187,6 +2823,11 @@
               "file": "store-app/h5/home.html",
               "module": "",
               "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 门店APP"
             },
             {
               "file": "store-app/h5/order-detail.html",
@@ -3321,6 +3962,16 @@
               "title": "直播时段"
             },
             {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
               "file": "prototype-prd/view.html",
               "module": "",
               "title": "PRD"
@@ -3331,6 +3982,21 @@
               "title": "门店APP · 工作台"
             },
             {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/home.html",
               "module": "",
               "title": "首页 · 用户 APP"
@@ -3339,6 +4005,26 @@
               "file": "user-app/h5/live-room.html",
               "module": "",
               "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "module": "",
+              "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-wechat.html",
+              "module": "",
+              "title": "微信授权登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "module": "",
+              "title": "登录 · 用户 APP"
             },
             {
               "file": "user-app/h5/profile.html",
@@ -3455,6 +4141,16 @@
               "title": "直播时段"
             },
             {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
               "file": "prototype-prd/view.html",
               "module": "",
               "title": "PRD"
@@ -3463,6 +4159,11 @@
               "file": "store-app/h5/home.html",
               "module": "",
               "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 门店APP"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -3493,6 +4194,26 @@
               "file": "user-app/h5/live-room.html",
               "module": "",
               "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "module": "",
+              "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-wechat.html",
+              "module": "",
+              "title": "微信授权登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "module": "",
+              "title": "登录 · 用户 APP"
             },
             {
               "file": "user-app/h5/mall.html",
@@ -4483,6 +5204,16 @@
               "title": "直播时段"
             },
             {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
               "file": "user-app/h5/cart.html",
               "module": "",
               "title": "购物车 · 用户 APP"
@@ -4996,6 +5727,16 @@
               "file": "MDM/mdm_live_timeslot.html",
               "module": "冷丰WMS",
               "title": "直播时段"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
             },
             {
               "file": "user-app/h5/account-cancel.html",
@@ -5550,6 +6291,16 @@
               "title": "直播时段"
             },
             {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
               "file": "MDM/mdm_member_level_form.html",
               "module": "冷丰WMS",
               "title": "会员等级配置"
@@ -5939,6 +6690,16 @@
               "file": "MDM/mdm_marketing_mall_record.html",
               "module": "冷丰WMS",
               "title": "领券记录"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
             },
             {
               "file": "MDM/mdm_member_c.html",
@@ -6764,6 +7525,26 @@
               "file": "MDM/mdm_marketing_register_gift_form.html",
               "module": "冷丰WMS",
               "title": "注册有礼"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill.html",
+              "module": "冷丰WMS",
+              "title": "秒杀"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_template.html",
+              "module": "冷丰WMS",
+              "title": "模版配置"
             },
             {
               "file": "MDM/mdm_member_c.html",
@@ -8675,6 +9456,16 @@
               "title": "编辑积分商品"
             },
             {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
               "file": "MDM/mdm_member_batch_tag.html",
               "module": "冷丰WMS",
               "title": "批量打标签"
@@ -8948,6 +9739,26 @@
               "file": "MDM/mdm_marketing_register_gift_form.html",
               "module": "冷丰WMS",
               "title": "注册有礼"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill.html",
+              "module": "冷丰WMS",
+              "title": "秒杀"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_template.html",
+              "module": "冷丰WMS",
+              "title": "模版配置"
             },
             {
               "file": "MDM/mdm_member_batch_tag_form.html",
@@ -9726,6 +10537,11 @@
               "file": "store-app/h5/home.html",
               "module": "",
               "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 门店APP"
             },
             {
               "file": "store-app/h5/more.html",
@@ -12303,6 +13119,26 @@
               "title": "注册有礼"
             },
             {
+              "file": "MDM/mdm_marketing_seckill.html",
+              "module": "冷丰WMS",
+              "title": "秒杀"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_template.html",
+              "module": "冷丰WMS",
+              "title": "模版配置"
+            },
+            {
               "file": "MDM/mdm_member_batch_tag.html",
               "module": "冷丰WMS",
               "title": "批量打标签"
@@ -13467,6 +14303,11 @@
               "file": "store-app/h5/home.html",
               "module": "",
               "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 门店APP"
             },
             {
               "file": "store-app/h5/more.html",
@@ -14649,6 +15490,11 @@
               "title": "门店APP · 工作台"
             },
             {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 门店APP"
+            },
+            {
               "file": "store-app/h5/more.html",
               "module": "",
               "title": "更多 · 门店APP"
@@ -15441,6 +16287,11 @@
               "file": "MDM/mdm_marketing_points_mall_form.html",
               "module": "冷丰WMS",
               "title": "编辑积分商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
             },
             {
               "file": "MDM/mdm_member_batch_tag.html",
@@ -18241,6 +19092,11 @@
               "title": "编辑积分商品"
             },
             {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
               "file": "MDM/mdm_member_batch_tag.html",
               "module": "冷丰WMS",
               "title": "批量打标签"
@@ -18396,6 +19252,11 @@
               "file": "MDM/mdm_marketing_points_mall_form.html",
               "module": "冷丰WMS",
               "title": "编辑积分商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
             },
             {
               "file": "MDM/mdm_member_batch_tag.html",
@@ -19153,6 +20014,26 @@
               "file": "MDM/mdm_marketing_register_gift_form.html",
               "module": "冷丰WMS",
               "title": "注册有礼"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill.html",
+              "module": "冷丰WMS",
+              "title": "秒杀"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_template.html",
+              "module": "冷丰WMS",
+              "title": "模版配置"
             },
             {
               "file": "MDM/mdm_member_batch_tag.html",
