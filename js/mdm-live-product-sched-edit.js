@@ -162,7 +162,7 @@
     return list.map(function (s) {
       var sku = normalizeSku(s, p.img);
       if (window.MdmSkuWhStock && window.MdmSkuWhStock.attachToSku) {
-        var sum = window.MdmSkuWhStock.attachToSku(sku, { sessionId: sessionId });
+        var sum = window.MdmSkuWhStock.attachToSku(sku, { channel: 'live', sessionId: sessionId });
         var cap = (sum.remainTotal || 0) + (sum.sessionReservedTotal || 0);
         if (sku.liveStock === '' || sku.liveStock == null || Number(sku.liveStock) > cap) {
           sku.liveStock = cap;
@@ -382,10 +382,12 @@
       fieldHtml('起售量', 'minQty', sku.minQty) +
       fieldHtml('现货库存', 'spotStock', sku.spotStock, true) +
       fieldHtml('可售库存', 'sellableStock', sku.sellableStock, true) +
+      fieldHtml('预占库存', 'reservedStock', sku.reservedStock, true) +
+      fieldHtml('剩余可售', 'remainStock', sku.remainStock, true) +
       fieldHtml('本场售卖配额', 'liveStock', sku.liveStock, false, 'is-live-stock') +
       (window.MdmSkuWhStock && typeof window.MdmSkuWhStock.renderPanel === 'function'
-        ? window.MdmSkuWhStock.renderPanel(sku, { variant: 'live', sessionId: sessionId })
-        : '<p class="product-proxy-spec__stock-tip product-proxy-spec__stock-tip--span">本场配额不超过剩余可售（可售−现货预占）。</p>') +
+        ? window.MdmSkuWhStock.renderPanel(sku, { variant: 'live', channel: 'live', sessionId: sessionId })
+        : '<p class="product-proxy-spec__stock-tip product-proxy-spec__stock-tip--span">可售与预占都在放单渠道。本场配额不超过剩余可售（直播可售−直播预占，含本场已占）。</p>') +
       '</div></div>' +
       '<div class="product-proxy-spec__foot">' +
       '<button type="button" class="product-proxy-spec__btn-off' +
@@ -547,11 +549,11 @@
         return toast('请补充 ' + (s.displayName || s.id) + ' 的本场售卖配额', 'warning'), false;
       }
       if (window.MdmSkuWhStock && window.MdmSkuWhStock.summarize) {
-        var stockSum = window.MdmSkuWhStock.summarize(s, { sessionId: sessionId });
+        var stockSum = window.MdmSkuWhStock.summarize(s, { channel: 'live', sessionId: sessionId });
         var cap = (stockSum.remainTotal || 0) + (stockSum.sessionReservedTotal || 0);
         if (Number(s.liveStock) > cap) {
           return toast(
-            (s.displayName || s.id) + ' 本场配额不能超过配送仓剩余可售（' + cap + '）',
+            (s.displayName || s.id) + ' 本场配额不能超过剩余可售（' + cap + '）',
             'warning'
           ), false;
         }

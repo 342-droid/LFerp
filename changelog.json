@@ -1,7 +1,144 @@
 {
-  "latestSha": "efd6b4424935b6a0553c13307f8f7215bac1f2d1",
-  "total": 340,
+  "latestSha": "91aac0958f0b6b259bee4f3a17886600a1735d64",
+  "total": 343,
   "days": [
+    {
+      "date": "2026-09-04",
+      "items": [
+        {
+          "sha": "91aac09",
+          "type": "fix",
+          "text": "修正仓库收货地址初始区域",
+          "author": "342-droid",
+          "time": "15:00",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "text": "修正收货地址初始化字段，避免影响其他详情页"
+            }
+          ]
+        },
+        {
+          "sha": "a867d9c",
+          "type": "feat",
+          "text": "仓库详情支持收货地址维护",
+          "author": "342-droid",
+          "time": "14:59",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "text": "在仓库详情基础信息中增加收货地址新增、编辑、删除和默认地址维护"
+            }
+          ]
+        },
+        {
+          "sha": "c317b0b",
+          "type": "feat",
+          "text": "可售和预占统一按放单渠道记账",
+          "author": "sisi",
+          "time": "10:42",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_stock.html",
+              "module": "冷丰WMS",
+              "title": "库存统计"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "编辑规格并列展示本渠道可售、预占、剩余可售；仓店表只留现货"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "编辑规格按商城渠道展示可售与预占，仓店表不再挂预占"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "text": "规格卡补预占和剩余可售，本场配额仍卡本渠道剩余可售"
+            },
+            {
+              "file": "MDM/mdm_product_stock.html",
+              "text": "引导文案改为现货按仓、可售和预占按放单渠道"
+            },
+            {
+              "file": null,
+              "text": "库存 PRD 升为 v1.6，预占账本改为 SKU × 放单渠道"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-09-03",
       "items": [

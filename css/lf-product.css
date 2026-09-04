@@ -4212,6 +4212,16 @@ body.product-add-drawer-open {
   max-width: 220px;
 }
 
+.product-proxy-wh-stock__store-row td {
+  color: #666;
+  background: #fcfcfc;
+}
+
+.product-proxy-wh-stock__store-name {
+  padding-left: 20px;
+  color: #333;
+}
+
 .product-proxy-wh-stock__parts {
   display: block;
   margin-top: 2px;
