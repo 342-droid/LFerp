@@ -471,6 +471,12 @@
             margin-bottom: 10px;
         }
 
+        .pick-info-rows {
+            display: inline-block;
+            text-align: left;
+            max-width: 100%;
+        }
+
         .pick-barcode-tail {
             color: #e53935;
             font-weight: 600;
@@ -902,6 +908,12 @@
             margin-bottom: 4px;
         }
 
+        .task-detail-spec {
+            font-size: 13px;
+            color: #333333;
+            margin-bottom: 4px;
+        }
+
         .task-detail-location {
             font-size: 13px;
             color: #333333;
@@ -1063,7 +1075,10 @@
                     <div class="pick-location-label-row">储位: <span id="pickLocationDisplay" class="pick-location-strong"></span></div>
                     <div id="pickLocationInputContainer"></div>
                     <div id="pickProductName" class="pick-product-name"></div>
-                    <div class="pick-barcode-row">商品条码: <span id="pickBarcodeMain"></span></div>
+                    <div class="pick-info-rows">
+                        <div class="pick-barcode-row">商品条码: <span id="pickBarcodeMain"></span></div>
+                        <div class="pick-barcode-row">商品规格: <span id="pickSpec"></span></div>
+                    </div>
                     <div id="pickBarcodeInputContainer"></div>
                     <div id="pickExpectedBox" class="pick-expected-box" tabindex="0"></div>
                 </div>
@@ -1277,12 +1292,12 @@
             volume: '0.09'
         };
         window.currentTaskDetails = [
-            { name: '任务1: 可口可乐600ml', location: '1WK110532', done: 0, total: 21, unit: '箱' },
-            { name: '任务2: 李锦记财神蚝油510g', location: '1WK110552', done: 0, total: 21, unit: '瓶' }
+            { name: '任务1: 可口可乐600ml', spec: '600ml*24', location: '1WK110532', done: 0, total: 21, unit: '箱' },
+            { name: '任务2: 李锦记财神蚝油510g', spec: '510g/瓶', location: '1WK110552', done: 0, total: 21, unit: '瓶' }
         ];
         window.pickingLines = [
-            { location: '1WK110532', productName: '可口可乐600ml', barcode: '6901939651605', expectedQty: 21, unit: '箱' },
-            { location: '1WK110552', productName: '李锦记财神蚝油510g', barcode: '6912345678902', expectedQty: 21, unit: '瓶' }
+            { location: '1WK110532', productName: '可口可乐600ml', barcode: '6901939651605', expectedQty: 21, unit: '箱', spec: '600ml*24' },
+            { location: '1WK110552', productName: '李锦记财神蚝油510g', barcode: '6912345678902', expectedQty: 21, unit: '瓶', spec: '510g/瓶' }
         ];
         window.pickingLineIndex = 0;
 
@@ -1362,6 +1377,7 @@
                 const percent = task.total > 0 ? Math.min((task.done / task.total) * 100, 100) : 0;
                 item.innerHTML = `
                     <div class="task-detail-name">${task.name}</div>
+                    <div class="task-detail-spec">规格：${task.spec || '-'}</div>
                     <div class="task-detail-location">储位: ${task.location}</div>
                     <div class="task-progress-track">
                         <div class="task-progress-fill" style="width:${percent}%;"></div>
@@ -1628,6 +1644,7 @@
             document.getElementById('pickLocationDisplay').textContent = row.location;
             document.getElementById('pickProductName').textContent = row.productName;
             setPickBarcodeDisplay(row.barcode);
+            document.getElementById('pickSpec').textContent = row.spec || '-';
             document.getElementById('pickExpectedBox').textContent = '应拣数量 ' + row.expectedQty + ' (' + row.unit + ')';
             pickLocationInput.value = '';
             pickBarcodeOrQtyInput.value = '';

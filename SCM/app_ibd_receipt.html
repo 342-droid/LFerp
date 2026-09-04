@@ -23,6 +23,7 @@
 
         /* 移动端容器 */
         .mobile-container {
+            position: relative;
             width: 393px;
             height: 851px;
             background-color: #ffffff;
@@ -496,10 +497,23 @@
 
         /* 商品值显示 */
         .product-value {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+
+        .product-value.is-visible {
+            display: flex;
+        }
+
+        .product-value-name {
             font-size: 18px;
             font-weight: 500;
             color: #666666;
-            margin-bottom: 24px;
+            min-width: 0;
+            line-height: 1.3;
         }
 
         /* 商品信息 */
@@ -699,15 +713,26 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
             margin-bottom: 12px;
             padding-bottom: 12px;
             border-bottom: 1px solid #e0e0e0;
+        }
+
+        .details-item-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
         }
 
         .details-item-name {
             font-size: 16px;
             font-weight: 600;
             color: #333333;
+            min-width: 0;
+            line-height: 1.3;
         }
 
         .details-item-qty {
@@ -799,6 +824,8 @@
             font-size: 14px;
             cursor: pointer;
             transition: all 0.2s ease;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
 
         .receive-btn:hover {
@@ -865,6 +892,40 @@
             padding: 16px;
         }
 
+        .product-card-media {
+            flex-shrink: 0;
+            line-height: 0;
+        }
+
+        .product-card-media--clickable {
+            cursor: pointer;
+        }
+
+        .product-card-media--clickable:active {
+            opacity: 0.85;
+        }
+
+        .product-card-image {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid #e0e0e0;
+            background-color: #eeeeee;
+        }
+
+        .product-card-image--placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            line-height: 1.1;
+            color: #aaaaaa;
+            background-color: #f0f0f0;
+            text-align: center;
+        }
+
         .record-item-header {
             display: flex;
             justify-content: space-between;
@@ -874,11 +935,20 @@
             border-bottom: 1px solid #e0e0e0;
         }
 
+        .record-item-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+
         .record-item-container {
             font-size: 16px;
             font-weight: 600;
             color: #333333;
-            flex: 1;
+            min-width: 0;
+            line-height: 1.3;
         }
 
         .record-item-info {
@@ -928,7 +998,7 @@
             gap: 10px;
         }
 
-        .record-item-header--selectable .record-item-container {
+        .record-item-header--selectable .record-item-title {
             min-width: 0;
         }
 
@@ -1093,6 +1163,51 @@
         .barcode-link:hover,
         .record-item-info .record-item-value.barcode-link:hover {
             color: #1976d2;
+        }
+
+        .image-preview-modal {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.88);
+            z-index: 40;
+            padding: 24px 16px;
+        }
+
+        .image-preview-modal.active {
+            display: flex;
+        }
+
+        .image-preview-modal-title {
+            flex-shrink: 0;
+            margin-bottom: 16px;
+            font-size: 15px;
+            color: #ffffff;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .image-preview-modal-image {
+            flex: 1;
+            width: 100%;
+            max-height: calc(100% - 72px);
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .image-preview-modal-close {
+            flex-shrink: 0;
+            margin-top: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 8px;
+            background: transparent;
+            color: #ffffff;
+            font-size: 15px;
+            padding: 10px 28px;
+            cursor: pointer;
         }
 
         .shortage-modal {
@@ -1547,7 +1662,10 @@
                 <!-- 扫描区域 -->
                 <div class="scan-area">
                     <div id="containerValue" class="container-value"></div>
-                    <div id="productValue" class="product-value"></div>
+                    <div id="productValue" class="product-value">
+                        <div id="productImageMedia" class="product-card-media"></div>
+                        <div id="productValueName" class="product-value-name"></div>
+                    </div>
                     <div class="scan-title" id="scanTitle">扫描商品</div>
                     <div class="input-wrapper">
                         <div id="containerInputContainer"></div>
@@ -1560,6 +1678,10 @@
                         <div class="product-info-item">
                             <span class="product-info-label">商品条码</span>
                             <span class="product-info-value" id="productBarcode"></span>
+                        </div>
+                        <div class="product-info-item">
+                            <span class="product-info-label">商品规格</span>
+                            <span class="product-info-value" id="productSpec"></span>
                         </div>
                         <div class="product-info-item">
                             <span class="product-info-label">收货储位</span>
@@ -1636,7 +1758,12 @@
                     <!-- 商品1 -->
                     <div class="details-item">
                         <div class="details-item-header">
-                            <div class="details-item-name">苹果</div>
+                            <div class="details-item-title">
+                                <div class="product-card-media product-card-media--clickable" data-image-url="https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=128&h=128&fit=crop" data-product-name="苹果">
+                                    <img class="product-card-image" src="https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=128&h=128&fit=crop" alt="苹果">
+                                </div>
+                                <div class="details-item-name">苹果</div>
+                            </div>
                         </div>
                         <div class="details-item-info">
                             <div class="details-item-row">
@@ -1646,6 +1773,10 @@
                             <div class="details-item-row">
                                 <span class="details-item-label">商品条码:</span>
                                 <span class="details-item-value">6912345678901</span>
+                            </div>
+                            <div class="details-item-row">
+                                <span class="details-item-label">商品规格:</span>
+                                <span class="details-item-value">5kg/箱</span>
                             </div>
                             <div class="details-item-row">
                                 <div class="quantity-container">
@@ -1665,7 +1796,12 @@
                     <!-- 商品2 -->
                     <div class="details-item">
                         <div class="details-item-header">
-                            <div class="details-item-name">香蕉</div>
+                            <div class="details-item-title">
+                                <div class="product-card-media product-card-media--clickable" data-image-url="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=128&h=128&fit=crop" data-product-name="香蕉">
+                                    <img class="product-card-image" src="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=128&h=128&fit=crop" alt="香蕉">
+                                </div>
+                                <div class="details-item-name">香蕉</div>
+                            </div>
                         </div>
                         <div class="details-item-info">
                             <div class="details-item-row">
@@ -1675,6 +1811,10 @@
                             <div class="details-item-row">
                                 <span class="details-item-label">商品条码:</span>
                                 <span class="details-item-value">6912345678902</span>
+                            </div>
+                            <div class="details-item-row">
+                                <span class="details-item-label">商品规格:</span>
+                                <span class="details-item-value">10kg/箱</span>
                             </div>
                             <div class="details-item-row">
                                 <div class="quantity-container">
@@ -1694,7 +1834,12 @@
                     <!-- 商品3 -->
                     <div class="details-item">
                         <div class="details-item-header">
-                            <div class="details-item-name">橙子</div>
+                            <div class="details-item-title">
+                                <div class="product-card-media product-card-media--clickable" data-image-url="https://images.unsplash.com/photo-1547514704-2294156771-558342564e4e?w=128&h=128&fit=crop" data-product-name="橙子">
+                                    <img class="product-card-image" src="https://images.unsplash.com/photo-1547514704-2294156771-558342564e4e?w=128&h=128&fit=crop" alt="橙子">
+                                </div>
+                                <div class="details-item-name">橙子</div>
+                            </div>
                         </div>
                         <div class="details-item-info">
                             <div class="details-item-row">
@@ -1704,6 +1849,10 @@
                             <div class="details-item-row">
                                 <span class="details-item-label">商品条码:</span>
                                 <span class="details-item-value">6912345678903</span>
+                            </div>
+                            <div class="details-item-row">
+                                <span class="details-item-label">商品规格:</span>
+                                <span class="details-item-value">8kg/箱</span>
                             </div>
                             <div class="details-item-row">
                                 <div class="quantity-container">
@@ -1726,7 +1875,12 @@
                     <!-- 商品1 -->
                     <div class="details-item">
                         <div class="details-item-header">
-                            <div class="details-item-name">葡萄</div>
+                            <div class="details-item-title">
+                                <div class="product-card-media product-card-media--clickable" data-image-url="https://images.unsplash.com/photo-1599599810769-2c7f15354374?w=128&h=128&fit=crop" data-product-name="葡萄">
+                                    <img class="product-card-image" src="https://images.unsplash.com/photo-1599599810769-2c7f15354374?w=128&h=128&fit=crop" alt="葡萄">
+                                </div>
+                                <div class="details-item-name">葡萄</div>
+                            </div>
                         </div>
                         <div class="details-item-info">
                             <div class="details-item-row">
@@ -1736,6 +1890,10 @@
                             <div class="details-item-row">
                                 <span class="details-item-label">商品条码:</span>
                                 <span class="details-item-value">6912345678904</span>
+                            </div>
+                            <div class="details-item-row">
+                                <span class="details-item-label">商品规格:</span>
+                                <span class="details-item-value">5kg/箱</span>
                             </div>
                             <div class="details-item-row">
                                 <div class="quantity-container">
@@ -1758,7 +1916,12 @@
                     <!-- 商品1 -->
                     <div class="details-item">
                         <div class="details-item-header">
-                            <div class="details-item-name">苹果</div>
+                            <div class="details-item-title">
+                                <div class="product-card-media product-card-media--clickable" data-image-url="https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=128&h=128&fit=crop" data-product-name="苹果">
+                                    <img class="product-card-image" src="https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=128&h=128&fit=crop" alt="苹果">
+                                </div>
+                                <div class="details-item-name">苹果</div>
+                            </div>
                             <button class="receive-btn" onclick="goToScanContainerPageFromPending(this)">收货</button>
                         </div>
                         <div class="details-item-info">
@@ -1769,6 +1932,10 @@
                             <div class="details-item-row">
                                 <span class="details-item-label">商品条码:</span>
                                 <span class="details-item-value">6912345678901</span>
+                            </div>
+                            <div class="details-item-row">
+                                <span class="details-item-label">商品规格:</span>
+                                <span class="details-item-value">5kg/箱</span>
                             </div>
                             <div class="details-item-row">
                                 <div class="quantity-container">
@@ -1788,7 +1955,12 @@
                     <!-- 商品2 -->
                     <div class="details-item">
                         <div class="details-item-header">
-                            <div class="details-item-name">香蕉</div>
+                            <div class="details-item-title">
+                                <div class="product-card-media product-card-media--clickable" data-image-url="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=128&h=128&fit=crop" data-product-name="香蕉">
+                                    <img class="product-card-image" src="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=128&h=128&fit=crop" alt="香蕉">
+                                </div>
+                                <div class="details-item-name">香蕉</div>
+                            </div>
                             <button class="receive-btn" onclick="goToScanContainerPageFromPending(this)">收货</button>
                         </div>
                         <div class="details-item-info">
@@ -1799,6 +1971,10 @@
                             <div class="details-item-row">
                                 <span class="details-item-label">商品条码:</span>
                                 <span class="details-item-value">6912345678902</span>
+                            </div>
+                            <div class="details-item-row">
+                                <span class="details-item-label">商品规格:</span>
+                                <span class="details-item-value">10kg/箱</span>
                             </div>
                             <div class="details-item-row">
                                 <div class="quantity-container">
@@ -1818,7 +1994,12 @@
                     <!-- 商品3 -->
                     <div class="details-item">
                         <div class="details-item-header">
-                            <div class="details-item-name">橙子</div>
+                            <div class="details-item-title">
+                                <div class="product-card-media product-card-media--clickable" data-image-url="https://images.unsplash.com/photo-1547514704-2294156771-558342564e4e?w=128&h=128&fit=crop" data-product-name="橙子">
+                                    <img class="product-card-image" src="https://images.unsplash.com/photo-1547514704-2294156771-558342564e4e?w=128&h=128&fit=crop" alt="橙子">
+                                </div>
+                                <div class="details-item-name">橙子</div>
+                            </div>
                             <button class="receive-btn" onclick="goToScanContainerPageFromPending(this)">收货</button>
                         </div>
                         <div class="details-item-info">
@@ -1829,6 +2010,10 @@
                             <div class="details-item-row">
                                 <span class="details-item-label">商品条码:</span>
                                 <span class="details-item-value">6912345678903</span>
+                            </div>
+                            <div class="details-item-row">
+                                <span class="details-item-label">商品规格:</span>
+                                <span class="details-item-value">8kg/箱</span>
                             </div>
                             <div class="details-item-row">
                                 <div class="quantity-container">
@@ -2002,6 +2187,12 @@
                     <div class="record-detail-empty">没有更多数据了~</div>
                 </div>
             </div>
+        </div>
+
+        <div class="image-preview-modal" id="productImagePreviewModal">
+            <div class="image-preview-modal-title" id="productImagePreviewTitle"></div>
+            <img class="image-preview-modal-image" id="productImagePreviewImg" alt="">
+            <button type="button" class="image-preview-modal-close" id="productImagePreviewCloseBtn">关闭</button>
         </div>
     </div>
 
@@ -2401,6 +2592,8 @@
                         product: '苹果',
                         code: 'SP001',
                         barcode: '6912345678901',
+                        spec: '5kg/箱',
+                        image: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=128&h=128&fit=crop',
                         receiver: '张三',
                         quantity: '10斤'
                     },
@@ -2408,6 +2601,8 @@
                         product: '橙子',
                         code: 'SP003',
                         barcode: '6912345678903',
+                        spec: '8kg/箱',
+                        image: 'https://images.unsplash.com/photo-1547514704-2294156771-558342564e4e?w=128&h=128&fit=crop',
                         receiver: '王五',
                         quantity: '10斤'
                     }
@@ -2421,6 +2616,8 @@
                         product: '香蕉',
                         code: 'SP002',
                         barcode: '6912345678902',
+                        spec: '10kg/箱',
+                        image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=128&h=128&fit=crop',
                         receiver: '李四',
                         quantity: '10斤'
                     }
@@ -2435,6 +2632,8 @@
                 product: '葡萄',
                 code: 'SP004',
                 barcode: '6912345678904',
+                spec: '5kg/箱',
+                image: 'https://images.unsplash.com/photo-1599599810769-2c7f15354374?w=128&h=128&fit=crop',
                 receiver: '赵六',
                 quantity: '5斤'
             },
@@ -2444,6 +2643,8 @@
                 product: '草莓',
                 code: 'SP005',
                 barcode: '6912345678905',
+                spec: '2.5kg/箱',
+                image: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=128&h=128&fit=crop',
                 receiver: '孙七',
                 quantity: '8斤'
             }
@@ -2456,6 +2657,7 @@
                 product: '梨',
                 code: 'SP006',
                 barcode: '6912345678906',
+                image: 'https://images.unsplash.com/photo-1635151227785-f8703e6bd857?w=128&h=128&fit=crop',
                 receiver: '周八',
                 quantity: '12斤',
                 putawayQuantity: '12斤'
@@ -2602,6 +2804,8 @@
                                 product: product.product,
                                 code: product.code,
                                 barcode: product.barcode,
+                                spec: product.spec,
+                                image: product.image,
                                 receiver: product.receiver,
                                 quantity: product.quantity
                             });
@@ -2873,7 +3077,7 @@
             updateProductionDateVisibility(type);
             
             // 重置扫描区域（仅商品）
-            document.getElementById('productValue').textContent = '';
+            resetEntryProductDisplay();
             document.getElementById('scanTitle').textContent = '扫描商品';
             document.getElementById('scanTitle').style.display = 'block';
             document.getElementById('containerInput').placeholder = '请扫描/输入商品';
@@ -2910,7 +3114,6 @@
             const containerInput = document.getElementById('containerInput');
             const value = containerInput.value.trim();
             if (value) {
-                const productValue = document.getElementById('productValue');
                 const scanTitle = document.getElementById('scanTitle');
                 const scanHint = document.getElementById('scanHint');
                 // 始终按“扫描商品”处理
@@ -2919,10 +3122,6 @@
                 scanHint.textContent = '支持商品编码、商品条码';
                 scanHint.style.display = 'block';
 
-                // 显示商品值
-                productValue.textContent = value;
-                
-                // 加载并显示商品信息
                 loadProductInfo(value);
                 
                 // 清空输入框
@@ -2930,21 +3129,109 @@
             }
         }
 
+        const entryProductCatalog = [
+            { name: '苹果', code: 'SP001', barcode: '6912345678901', spec: '5kg/箱', image: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=128&h=128&fit=crop', location: 'SH01', planQty: '10', receivedQty: '0' },
+            { name: '香蕉', code: 'SP002', barcode: '6912345678902', spec: '10kg/箱', image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=128&h=128&fit=crop', location: 'SH01', planQty: '10', receivedQty: '0' },
+            { name: '橙子', code: 'SP003', barcode: '6912345678903', spec: '8kg/箱', image: 'https://images.unsplash.com/photo-1547514704-2294156771-558342564e4e?w=128&h=128&fit=crop', location: 'SH01', planQty: '10', receivedQty: '0' },
+            { name: '葡萄', code: 'SP004', barcode: '6912345678904', spec: '5kg/箱', image: 'https://images.unsplash.com/photo-1599599810769-2c7f15354374?w=128&h=128&fit=crop', location: 'SH01', planQty: '10', receivedQty: '10' },
+            { name: '草莓', code: 'SP005', barcode: '6912345678905', spec: '2.5kg/箱', image: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=128&h=128&fit=crop', location: 'SH01', planQty: '12', receivedQty: '5' },
+            { name: '梨', code: 'SP006', barcode: '6912345678906', spec: '', image: 'https://images.unsplash.com/photo-1635151227785-f8703e6bd857?w=128&h=128&fit=crop', location: 'SH01', planQty: '10', receivedQty: '10' }
+        ];
+
+        function findEntryProduct(keyword) {
+            const key = String(keyword || '').trim().toLowerCase();
+            if (!key) return null;
+            return entryProductCatalog.find((item) =>
+                [item.name, item.code, item.barcode].some((field) => String(field).toLowerCase() === key)
+            ) || null;
+        }
+
+        function resetEntryProductDisplay() {
+            const wrap = document.getElementById('productValue');
+            const media = document.getElementById('productImageMedia');
+            const nameEl = document.getElementById('productValueName');
+            if (nameEl) nameEl.textContent = '';
+            if (media) {
+                media.innerHTML = '';
+                media.classList.remove('product-card-media--clickable');
+                media.onclick = null;
+                delete media.dataset.imageUrl;
+                delete media.dataset.productName;
+            }
+            if (wrap) wrap.classList.remove('is-visible');
+        }
+
+        function renderEntryProductDisplay(name, imageUrl) {
+            const wrap = document.getElementById('productValue');
+            const media = document.getElementById('productImageMedia');
+            const nameEl = document.getElementById('productValueName');
+            if (!wrap || !media || !nameEl) return;
+
+            nameEl.textContent = name || '';
+            const url = String(imageUrl || '').trim();
+            media.innerHTML = renderProductImageHtml({ name: name || '', image: url });
+
+            if (url) {
+                media.classList.add('product-card-media--clickable');
+                media.dataset.imageUrl = url;
+                media.dataset.productName = name || '';
+                media.onclick = () => openProductImagePreview(url, name || '');
+            } else {
+                media.classList.remove('product-card-media--clickable');
+                media.onclick = null;
+                delete media.dataset.imageUrl;
+                delete media.dataset.productName;
+            }
+
+            wrap.classList.toggle('is-visible', Boolean(name));
+
+            const img = media.querySelector('.product-card-image:not(.product-card-image--placeholder)');
+            if (img) {
+                img.addEventListener('error', function onImageError() {
+                    img.removeEventListener('error', onImageError);
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'product-card-image product-card-image--placeholder';
+                    placeholder.textContent = '暂无图片';
+                    img.replaceWith(placeholder);
+                    media.classList.remove('product-card-media--clickable');
+                    media.onclick = null;
+                    delete media.dataset.imageUrl;
+                    delete media.dataset.productName;
+                }, { once: true });
+            }
+        }
+
         // 加载商品信息
         function loadProductInfo(productCode, presetData) {
-            // 模拟商品信息数据
+            const catalogItem = findEntryProduct(productCode)
+                || findEntryProduct(presetData && presetData.code)
+                || findEntryProduct(presetData && presetData.barcode)
+                || findEntryProduct(presetData && presetData.name)
+                || entryProductCatalog[0];
             const productInfo = {
-                code: 'SP001',
-                barcode: '6912345678901',
-                location: 'SH01',
-                planQty: '10',
-                receivedQty: '0',
+                name: catalogItem.name,
+                code: catalogItem.code,
+                barcode: catalogItem.barcode,
+                spec: catalogItem.spec || '-',
+                image: catalogItem.image,
+                location: catalogItem.location,
+                planQty: catalogItem.planQty,
+                receivedQty: catalogItem.receivedQty,
                 receiptQty: '请输入'
             };
             const finalProductInfo = {
                 ...productInfo,
                 ...(presetData || {})
             };
+            if (!String(finalProductInfo.name || '').trim()) {
+                finalProductInfo.name = productInfo.name;
+            }
+            if (!String(finalProductInfo.image || '').trim()) {
+                finalProductInfo.image = productInfo.image;
+            }
+            if (!String(finalProductInfo.spec || '').trim() || finalProductInfo.spec === '-') {
+                finalProductInfo.spec = productInfo.spec || '-';
+            }
             
             // 显示商品信息卡片
             const productInfoCard = document.getElementById('productInfoCard');
@@ -2975,8 +3262,10 @@
             
             
             // 填充商品信息
+            renderEntryProductDisplay(finalProductInfo.name, finalProductInfo.image);
             document.getElementById('productCode').textContent = finalProductInfo.code;
             document.getElementById('productBarcode').textContent = finalProductInfo.barcode;
+            document.getElementById('productSpec').textContent = finalProductInfo.spec || '-';
             document.getElementById('productLocation').textContent = finalProductInfo.location;
             document.getElementById('productPlanQty').textContent = finalProductInfo.planQty;
             document.getElementById('productReceivedQty').textContent = finalProductInfo.receivedQty;
@@ -3129,7 +3418,80 @@
             updateRecordsConfirmButtonVisibility(tabName);
         }
 
-        // 生成收货记录列表（按商品维度拆分卡片，卡片顶部展示商品名称）
+        function renderProductImageHtml(product) {
+            const imageUrl = String(product.image || '').trim();
+            if (!imageUrl) {
+                return '<div class="product-card-image product-card-image--placeholder">暂无图片</div>';
+            }
+            return `<img class="product-card-image" src="${imageUrl}" alt="${product.name}">`;
+        }
+
+        function getRecordProductMediaHtml(productName, imageUrl) {
+            const url = String(imageUrl || '').trim();
+            return `<div class="product-card-media${url ? ' product-card-media--clickable' : ''}" data-image-url="${url}" data-product-name="${productName}">
+                ${renderProductImageHtml({ name: productName, image: url })}
+            </div>`;
+        }
+
+        function getRecordSpecRowHtml(spec) {
+            return `<div class="record-item-row">
+                <span class="record-item-label">商品规格:</span>
+                <span class="record-item-value">${spec || '-'}</span>
+            </div>`;
+        }
+
+        function getLargeProductImageUrl(imageUrl) {
+            return String(imageUrl).replace(/\?w=\d+&h=\d+&fit=crop/, '?w=800&fit=crop');
+        }
+
+        function openProductImagePreview(imageUrl, productName) {
+            const url = String(imageUrl || '').trim();
+            if (!url) {
+                showToast('暂无图片');
+                return;
+            }
+            document.getElementById('productImagePreviewTitle').textContent = productName || '';
+            document.getElementById('productImagePreviewImg').src = getLargeProductImageUrl(url);
+            document.getElementById('productImagePreviewModal').classList.add('active');
+        }
+
+        function closeProductImagePreview() {
+            const modal = document.getElementById('productImagePreviewModal');
+            modal.classList.remove('active');
+            document.getElementById('productImagePreviewImg').src = '';
+        }
+
+        function bindProductImages(root) {
+            if (!root) return;
+
+            root.querySelectorAll('.product-card-image:not(.product-card-image--placeholder)').forEach((img) => {
+                img.addEventListener('error', function onImageError() {
+                    img.removeEventListener('error', onImageError);
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'product-card-image product-card-image--placeholder';
+                    placeholder.textContent = '暂无图片';
+                    img.replaceWith(placeholder);
+                    const media = placeholder.closest('.product-card-media');
+                    if (media) {
+                        media.classList.remove('product-card-media--clickable');
+                        delete media.dataset.imageUrl;
+                        delete media.dataset.productName;
+                    }
+                }, { once: true });
+            });
+
+            root.querySelectorAll('.product-card-media--clickable').forEach((media) => {
+                media.addEventListener('click', () => {
+                    openProductImagePreview(media.dataset.imageUrl, media.dataset.productName);
+                });
+            });
+        }
+
+        function bindRecordProductImages() {
+            bindProductImages(document.getElementById('receiptRecordsPage'));
+        }
+
+        // 生成收货记录列表（按商品维度拆分卡片，卡片顶部展示商品名称，名称左侧展示商品图片）
         function generateReceiptRecords() {
             // 清空所有页签内容
             const initialTab = document.getElementById('recordsInitialTab');
@@ -3150,7 +3512,10 @@
                     recordItem.innerHTML = `
                         <div class="record-item-header record-item-header--selectable">
                             <input type="checkbox" class="record-checkbox" data-key="${recordKey}" ${isChecked ? 'checked' : ''}>
-                            <div class="record-item-container">${product.product}</div>
+                            <div class="record-item-title">
+                                ${getRecordProductMediaHtml(product.product, product.image)}
+                                <div class="record-item-container">${product.product}</div>
+                            </div>
                             <button class="receive-btn cancel-receive-btn" onclick="cancelReceipt('${record.container}', '${product.barcode}', '${product.product}')">取消收货</button>
                         </div>
                         <div class="record-item-info">
@@ -3162,6 +3527,7 @@
                                 <span class="record-item-label">商品条码:</span>
                                 <span class="record-item-value barcode-link" onclick="showRecordDetail('${record.container}', '${record.time}', '${product.product}', '${product.code}', '${product.barcode}', '${product.receiver}', '${product.quantity}', '初始', '')">${product.barcode}</span>
                             </div>
+                            ${getRecordSpecRowHtml(product.spec)}
                             <div class="record-item-row flex-row">
                                 <div>
                                     <span class="record-item-label">收货人:</span>
@@ -3188,7 +3554,10 @@
                 recordItem.className = 'record-item';
                 recordItem.innerHTML = `
                     <div class="record-item-header">
-                        <div class="record-item-container">${record.product}</div>
+                        <div class="record-item-title">
+                            ${getRecordProductMediaHtml(record.product, record.image)}
+                            <div class="record-item-container">${record.product}</div>
+                        </div>
                     </div>
                     <div class="record-item-info">
                         <div class="record-item-row">
@@ -3199,6 +3568,7 @@
                             <span class="record-item-label">商品条码:</span>
                             <span class="record-item-value barcode-link" onclick="showRecordDetail('${record.container}', '${record.time}', '${record.product}', '${record.code}', '${record.barcode}', '${record.receiver}', '${record.quantity}', '待上架', '')">${record.barcode}</span>
                         </div>
+                        ${getRecordSpecRowHtml(record.spec)}
                         <div class="record-item-row flex-row">
                             <div>
                                 <span class="record-item-label">收货人:</span>
@@ -3220,7 +3590,10 @@
                 recordItem.className = 'record-item';
                 recordItem.innerHTML = `
                     <div class="record-item-header">
-                        <div class="record-item-container">${record.product}</div>
+                        <div class="record-item-title">
+                            ${getRecordProductMediaHtml(record.product, record.image)}
+                            <div class="record-item-container">${record.product}</div>
+                        </div>
                     </div>
                     <div class="record-item-info">
                         <div class="record-item-row">
@@ -3231,6 +3604,7 @@
                             <span class="record-item-label">商品条码:</span>
                             <span class="record-item-value barcode-link" onclick="showRecordDetail('${record.container}', '${record.time}', '${record.product}', '${record.code}', '${record.barcode}', '${record.receiver}', '${record.quantity}', '已上架', '${record.putawayQuantity}')">${record.barcode}</span>
                         </div>
+                        ${getRecordSpecRowHtml(record.spec)}
                         <div class="record-item-row flex-row">
                             <div>
                                 <span class="record-item-label">收货人:</span>
@@ -3257,6 +3631,7 @@
             }
 
             updateRecordsTabLabels();
+            bindRecordProductImages();
         }
 
         // 显示入库明细
@@ -3509,24 +3884,34 @@
 
             let productCodeValue = '';
             let barcode = '';
+            let spec = '';
             let planQty = '';
             let receivedQty = '';
+            const image = detailsItem ? (detailsItem.querySelector('.product-card-media')?.dataset.imageUrl || '') : '';
 
-            if (detailRows.length > 0) {
-                const codeNode = detailRows[0].querySelector('.details-item-value');
-                productCodeValue = codeNode ? codeNode.textContent.trim() : '';
-            }
-
-            if (detailRows.length > 1) {
-                const barcodeNode = detailRows[1].querySelector('.details-item-value');
-                barcode = barcodeNode ? barcodeNode.textContent.trim() : '';
-            }
-
-            if (detailRows.length > 2) {
-                const qtyValues = detailRows[2].querySelectorAll('.details-item-value');
-                planQty = qtyValues[0] ? qtyValues[0].textContent.trim().replace('斤', '') : '';
-                receivedQty = qtyValues[1] ? qtyValues[1].textContent.trim().replace('斤', '') : '';
-            }
+            detailRows.forEach((row) => {
+                const label = (row.querySelector('.details-item-label')?.textContent || '').trim();
+                if (label.startsWith('商品编码')) {
+                    const codeNode = row.querySelector('.details-item-value');
+                    productCodeValue = codeNode ? codeNode.textContent.trim() : '';
+                    return;
+                }
+                if (label.startsWith('商品条码')) {
+                    const barcodeNode = row.querySelector('.details-item-value');
+                    barcode = barcodeNode ? barcodeNode.textContent.trim() : '';
+                    return;
+                }
+                if (label.startsWith('商品规格')) {
+                    const specNode = row.querySelector('.details-item-value');
+                    spec = specNode ? specNode.textContent.trim() : '';
+                    return;
+                }
+                if (label.startsWith('计划量') || row.querySelector('.quantity-container')) {
+                    const qtyValues = row.querySelectorAll('.details-item-value');
+                    planQty = qtyValues[0] ? qtyValues[0].textContent.trim().replace('斤', '') : '';
+                    receivedQty = qtyValues[1] ? qtyValues[1].textContent.trim().replace('斤', '') : '';
+                }
+            });
 
             goToScanContainerPage();
 
@@ -3535,10 +3920,12 @@
             }
 
             const productCode = productCodeValue || productName || barcode;
-            document.getElementById('productValue').textContent = productCode;
             loadProductInfo(productCode, {
+                name: productName,
                 code: productCodeValue,
                 barcode,
+                spec,
+                image,
                 planQty: planQty || '0',
                 receivedQty: receivedQty || '0'
             });
@@ -3583,7 +3970,7 @@
         // 完成当前商品收货量填写，返回扫描商品
         function completeProductReceiptQty() {
             const scanContainerPage = document.getElementById('scanContainerPage');
-            document.getElementById('productValue').textContent = '';
+            resetEntryProductDisplay();
             const scanTitle = scanContainerPage.querySelector('#scanTitle');
             if (scanTitle) {
                 scanTitle.textContent = '扫描商品';
@@ -3640,6 +4027,17 @@
         });
 
         document.getElementById('shortageVoucherFileInput').addEventListener('change', handleShortageVoucherFilesSelected);
+
+        document.getElementById('productImagePreviewModal').addEventListener('click', closeProductImagePreview);
+        document.getElementById('productImagePreviewCloseBtn').addEventListener('click', (event) => {
+            event.stopPropagation();
+            closeProductImagePreview();
+        });
+        document.getElementById('productImagePreviewImg').addEventListener('click', (event) => {
+            event.stopPropagation();
+        });
+
+        bindProductImages(document.getElementById('receiptDetailsPage'));
 
         // 收货量输入框回车事件（与「完成」按钮一致）
         document.getElementById('productReceiptQty').addEventListener('keypress', (e) => {
