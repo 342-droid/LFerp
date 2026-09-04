@@ -1,10 +1,90 @@
 {
-  "latestSha": "c317b0b9307caab6a756993c0e2ebfed2970d106",
-  "total": 341,
+  "latestSha": "91aac0958f0b6b259bee4f3a17886600a1735d64",
+  "total": 343,
   "days": [
     {
       "date": "2026-09-04",
       "items": [
+        {
+          "sha": "91aac09",
+          "type": "fix",
+          "text": "修正仓库收货地址初始区域",
+          "author": "342-droid",
+          "time": "15:00",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "text": "修正收货地址初始化字段，避免影响其他详情页"
+            }
+          ]
+        },
+        {
+          "sha": "a867d9c",
+          "type": "feat",
+          "text": "仓库详情支持收货地址维护",
+          "author": "342-droid",
+          "time": "14:59",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "text": "在仓库详情基础信息中增加收货地址新增、编辑、删除和默认地址维护"
+            }
+          ]
+        },
         {
           "sha": "c317b0b",
           "type": "feat",
