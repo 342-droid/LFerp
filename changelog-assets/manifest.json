@@ -1701,6 +1701,28 @@
     "status": "diff",
     "date": "2026-09-02"
   },
+  "c317b0b|MDM/mdm_live_product_sched_edit.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "c317b0b|MDM/mdm_product_mall.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "c317b0b|MDM/mdm_product_proxy_list.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "c317b0b|MDM/mdm_product_stock.html": {
+    "before": "changelog-assets/c317b0b/MDM__mdm_product_stock.html.before.jpg",
+    "after": "changelog-assets/c317b0b/MDM__mdm_product_stock.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
   "c8b0c97|MDM/mdm_order_express_cutoff.html": {
     "regions": 0,
     "status": "diff",
