@@ -5816,7 +5816,22 @@
         grid.appendChild(detailCell('创建时间', r.createTime));
         grid.appendChild(detailCellTagged('状态', r.status, true));
         p.appendChild(grid);
+        appendWarehouseReceiveSection(p, r);
         return p;
+    }
+
+    /** 仓库收货地址维护：复用供应商详情的地址卡片交互，按仓库编号独立存储。 */
+    function appendWarehouseReceiveSection(panel, warehouse) {
+        var receiveModel = {
+            id: warehouse && warehouse.code,
+            name: warehouse && warehouse.name,
+            contactName: warehouse && warehouse.admin,
+            phone: warehouse && warehouse.phone,
+            /* 仓库表仅提供一列位置，先作为初始区域值带入，用户可在编辑时细化。 */
+            region: warehouse && warehouse.location,
+            detailAddress: warehouse && warehouse.location
+        };
+        appendSupplierReceiveSection(panel, receiveModel);
     }
 
     function panelWarehouseExtra(title, tableHeaders) {
