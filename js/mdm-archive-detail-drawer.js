@@ -782,12 +782,24 @@
     }
 
     function listStoreReceiveAddresses(store) {
+        if (window.MdmReceiveAddressStore) {
+            return window.MdmReceiveAddressStore.syncStoreFromArchive({
+                id: store && (store.storeId || store.id),
+                name: store && store.name,
+                contactName: store && store.contact,
+                phone: store && store.phone,
+                region: store && store.region,
+                detailAddress: store && store.address,
+                fulfillWarehouse: store && store.fulfillWarehouse
+            });
+        }
         var name = blankable(store && store.contact) || '—';
         var phone = blankable(store && store.phone) || '—';
         var region = blankable(store && store.region).replace(/\//g, ' / ') || '—';
         var detail = blankable(store && store.address) || '—';
-        var list = [
+        return [
             {
+                id: 'archive_default',
                 receiverName: name,
                 receiverPhone: phone,
                 region: region,
@@ -795,28 +807,13 @@
                 isDefault: true
             }
         ];
-        if (detail !== '—') {
-            list.push({
-                receiverName: name,
-                receiverPhone: phone,
-                region: region,
-                detailAddress: detail + '（备选收货点）',
-                isDefault: false
-            });
-        } else {
-            list.push({
-                receiverName: '仓库收货人',
-                receiverPhone: phone === '—' ? '—' : phone,
-                region: region,
-                detailAddress: '备用收货地址（演示）',
-                isDefault: false
-            });
-        }
-        return list;
     }
 
-    /** 代采业务读取默认收货地址 */
+    /** 业务侧读取门店默认收货地址（与档案门店地址同步） */
     function getStoreReceiveInfo(storeId, storeFallback) {
+        if (window.MdmReceiveAddressStore) {
+            return window.MdmReceiveAddressStore.getStoreReceiveInfo(storeId, storeFallback);
+        }
         var list = listStoreReceiveAddresses(storeFallback || {});
         var i;
         for (i = 0; i < list.length; i++) {
@@ -847,8 +844,26 @@
         ];
     }
 
+    function receiveLoad(kind, entityId, entity) {
+        if (window.MdmReceiveAddressStore) {
+            return window.MdmReceiveAddressStore.load(kind || 'supplier', entityId, entity);
+        }
+        return loadSupplierReceiveAddresses(entityId, entity);
+    }
+
+    function receiveSave(kind, entityId, list) {
+        if (window.MdmReceiveAddressStore) {
+            window.MdmReceiveAddressStore.save(kind || 'supplier', entityId, list);
+            return;
+        }
+        saveSupplierReceiveAddresses(entityId, list);
+    }
+
     function loadSupplierReceiveAddresses(supplierId, supplier) {
         var id = String(supplierId || '').trim();
+        if (window.MdmReceiveAddressStore) {
+            return window.MdmReceiveAddressStore.load('supplier', id, supplier);
+        }
         var map = readJsonStore(SUPPLIER_RECEIVE_ADDR_KEY);
         if (id && Object.prototype.hasOwnProperty.call(map, id)) {
             var list = map[id];
@@ -863,6 +878,10 @@
     function saveSupplierReceiveAddresses(supplierId, list) {
         var id = String(supplierId || '').trim();
         if (!id) return;
+        if (window.MdmReceiveAddressStore) {
+            window.MdmReceiveAddressStore.save('supplier', id, list);
+            return;
+        }
         var map = readJsonStore(SUPPLIER_RECEIVE_ADDR_KEY);
         map[id] = (list || []).map(function (it, idx) {
             return normalizeReceiveAddress(it, 'addr_' + idx);
@@ -882,12 +901,31 @@
     }
 
     function getSupplierReceiveInfo(supplierId, supplierFallback) {
+        if (window.MdmReceiveAddressStore) {
+            return (
+                window.MdmReceiveAddressStore.getDefault(
+                    'supplier',
+                    supplierId,
+                    supplierFallback || {}
+                ) || normalizeReceiveAddress({}, 'empty')
+            );
+        }
         var list = loadSupplierReceiveAddresses(supplierId, supplierFallback || {});
         var i;
         for (i = 0; i < list.length; i++) {
             if (list[i].isDefault) return list[i];
         }
         return list[0] || normalizeReceiveAddress({}, 'empty');
+    }
+
+    function getWarehouseReceiveInfo(warehouseId, warehouseFallback) {
+        if (window.MdmReceiveAddressStore) {
+            return window.MdmReceiveAddressStore.getWarehouseReceiveInfo(
+                warehouseId,
+                warehouseFallback
+            );
+        }
+        return getSupplierReceiveInfo(warehouseId, warehouseFallback);
     }
 
     function buildReceiveFormCell(label, value, opts) {
@@ -2992,7 +3030,8 @@
         panel.appendChild(wrap);
     }
 
-    function appendSupplierReceiveSection(panel, supplier) {
+    function appendSupplierReceiveSection(panel, supplier, kind) {
+        var receiveKind = kind || 'supplier';
         var supplierId = supplier.id || 'unknown';
         var addBtn = mkBtn('新增地址', true);
         panel.appendChild(sectionTitleWithAction('收货地址', addBtn));
@@ -3004,14 +3043,14 @@
 
         function persistAndRender(list) {
             ensureOneDefaultReceive(list);
-            saveSupplierReceiveAddresses(supplierId, list);
+            receiveSave(receiveKind, supplierId, list);
             editingId = null;
             draftItem = null;
             render();
         }
 
         function displayList() {
-            var list = loadSupplierReceiveAddresses(supplierId, supplier).slice();
+            var list = receiveLoad(receiveKind, supplierId, supplier).slice();
             if (draftItem) {
                 var exists = list.some(function (it) {
                     return it.id === draftItem.id;
@@ -3063,7 +3102,7 @@
             list.forEach(function (item, idx) {
                 var isDraft = !!(draftItem && draftItem.id === item.id);
                 var isEditing = editingId === item.id || isDraft;
-                var savedCount = loadSupplierReceiveAddresses(supplierId, supplier).length;
+                var savedCount = receiveLoad(receiveKind, supplierId, supplier).length;
                 var actions = el('div', 'store-receive-card__actions');
                 var editOrSave = el(
                     'button',
@@ -3087,7 +3126,7 @@
                         var setDefault = el('button', 'store-receive-card__link', '设为默认');
                         setDefault.type = 'button';
                         setDefault.addEventListener('click', function () {
-                            var next = loadSupplierReceiveAddresses(supplierId, supplier).map(function (it) {
+                            var next = receiveLoad(receiveKind, supplierId, supplier).map(function (it) {
                                 it.isDefault = it.id === item.id;
                                 return it;
                             });
@@ -3100,7 +3139,7 @@
                         var delLink = el('button', 'store-receive-card__link store-receive-card__link--danger', '删除');
                         delLink.type = 'button';
                         delLink.addEventListener('click', function () {
-                            var current = loadSupplierReceiveAddresses(supplierId, supplier);
+                            var current = receiveLoad(receiveKind, supplierId, supplier);
                             var target = null;
                             current.forEach(function (it) {
                                 if (it.id === item.id) target = it;
@@ -3139,7 +3178,7 @@
                     var data = readCardFields(card, item);
                     if (!validateReceiveFields(data)) return;
 
-                    var next = loadSupplierReceiveAddresses(supplierId, supplier);
+                    var next = receiveLoad(receiveKind, supplierId, supplier);
                     if (isDraft) {
                         if (data.isDefault || !next.length) {
                             next.forEach(function (it) {
@@ -3173,7 +3212,7 @@
                 if (typeof showToast === 'function') showToast('请先保存当前正在编辑的地址', 'error');
                 return;
             }
-            var saved = loadSupplierReceiveAddresses(supplierId, supplier);
+            var saved = receiveLoad(receiveKind, supplierId, supplier);
             draftItem = normalizeReceiveAddress(
                 {
                     id: 'draft_' + Date.now(),
@@ -5831,7 +5870,19 @@
             region: warehouse && warehouse.location,
             detailAddress: warehouse && warehouse.location
         };
-        appendSupplierReceiveSection(panel, receiveModel);
+        if (window.MdmReceiveAddressStore) {
+            window.MdmReceiveAddressStore.seedWarehouseFromArchive(
+                {
+                    id: warehouse && warehouse.code,
+                    name: warehouse && warehouse.name,
+                    admin: warehouse && warehouse.admin,
+                    phone: warehouse && warehouse.phone,
+                    location: warehouse && warehouse.location
+                },
+                { onlyIfEmpty: true }
+            );
+        }
+        appendSupplierReceiveSection(panel, receiveModel, 'warehouse');
     }
 
     function panelWarehouseExtra(title, tableHeaders) {
@@ -5879,6 +5930,7 @@
         openWarehouse: openWarehouse,
         openOnboardingDetail: openOnboardingDetailModal,
         getStoreReceiveInfo: getStoreReceiveInfo,
-        getSupplierReceiveInfo: getSupplierReceiveInfo
+        getSupplierReceiveInfo: getSupplierReceiveInfo,
+        getWarehouseReceiveInfo: getWarehouseReceiveInfo
     };
 })();

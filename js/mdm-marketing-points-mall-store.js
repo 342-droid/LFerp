@@ -119,6 +119,22 @@
       limitPerDay: null,
       limitTotal: 50,
       specs: makeSpecs('SPU00078', 4.2, 50, 2.5, 2, 2, '../user-app/assets/restock/product-eggplant-long.svg')
+    },
+    {
+      code: 'SPU00088',
+      name: '红壳黄心鲜鸡蛋',
+      img: '../user-app/assets/restock/product-egg.svg',
+      category: '肉禽蛋品',
+      status: 'off_shelf',
+      deliveryMode: 'platform',
+      exchangeType: 'points',
+      saleScope: 'all',
+      memberLevelIds: [],
+      limitType: 'order',
+      limitPerOrder: 1,
+      limitPerDay: null,
+      limitTotal: null,
+      specs: makeSpecs('SPU00088', 28.9, 200, 0, 1, 1, '../user-app/assets/restock/product-egg.svg')
     }
   ];
 

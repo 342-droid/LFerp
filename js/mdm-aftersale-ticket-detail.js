@@ -1088,16 +1088,31 @@
     }
   ];
 
-  function defaultWarehouseAddr() {
-    return {
-      id: 'wh-default',
-      source: 'warehouse',
-      receiverName: '杭州萧山仓 售后组',
-      receiverPhone: '0571-88887777',
-      region: '浙江省杭州市萧山区',
-      detailAddress: '宁围街道冷丰仓储物流中心 A区退货组',
-      isDefault: true
-    };
+  /** 只按订单配送仓取值，不回退门店仓 / 默认仓 */
+  function resolveAftersaleWarehouseId(detail) {
+    var order = (detail && detail.order) || {};
+    var hint =
+      order.deliveryWarehouse ||
+      order.warehouseId ||
+      order.warehouseName ||
+      '';
+    hint = String(hint || '').trim();
+    if (!hint) return '';
+    if (window.MdmReceiveAddressStore && typeof window.MdmReceiveAddressStore.findWarehouseId === 'function') {
+      return window.MdmReceiveAddressStore.findWarehouseId(hint) || '';
+    }
+    return hint;
+  }
+
+  /** 配送退回仓：只读订单配送仓在仓库档案中的默认收货地址 */
+  function defaultWarehouseAddr(detail) {
+    var id = resolveAftersaleWarehouseId(detail || state.detail);
+    if (!id || !window.MdmReceiveAddressStore) return null;
+    var info = window.MdmReceiveAddressStore.getWarehouseReceiveInfo(id);
+    if (info && (info.receiverName || info.detailAddress || info.region)) {
+      return Object.assign({}, info, { source: 'warehouse' });
+    }
+    return null;
   }
 
   function defaultSupplierReceiveAddr() {
@@ -1159,12 +1174,22 @@
     return '供应商收货地址';
   }
 
-  /** 零售自提退货/换货：退回提货门店 */
+  /** 零售自提退货/换货：退回提货门店，读取门店档案同步后的收货地址 */
   function defaultStoreAddr(detail) {
     var storeName =
       (detail && detail.order && detail.order.store) ||
       (state.detail && state.detail.order && state.detail.order.store) ||
       '提货门店';
+    var storeId = (detail && detail.order && detail.order.storeId) || storeName;
+    if (window.MdmReceiveAddressStore) {
+      var info = window.MdmReceiveAddressStore.getStoreReceiveInfo(storeId);
+      if (!info || (!info.detailAddress && !info.region)) {
+        info = window.MdmReceiveAddressStore.getStoreReceiveInfo(storeName);
+      }
+      if (info && (info.receiverName || info.detailAddress || info.region)) {
+        return Object.assign({}, info, { source: 'store' });
+      }
+    }
     return {
       id: 'store-default',
       source: 'store',
@@ -1196,7 +1221,7 @@
     if (isDeliveryFulfillment(detail.deliveryMode)) {
       return preferredAddr && preferredAddr.source === 'warehouse'
         ? preferredAddr
-        : defaultWarehouseAddr();
+        : defaultWarehouseAddr(detail);
     }
     if (preferredAddr && preferredAddr.source === 'supplier') {
       return Object.assign({}, preferredAddr, { source: 'supplier' });
@@ -1652,7 +1677,9 @@
         amount: isDone ? 17 : 0.6,
         status: isDone ? '已关闭' : orderApplyStatus,
         source: orderSource,
-        store: '德清乾元天恩冷丰店'
+        store: '德清乾元天恩冷丰店',
+        warehouseId: 'WH001',
+        deliveryWarehouse: 'WH001 主仓库'
       },
       supplier: {
         id: DEMO_SUPPLIER_ID,
@@ -2248,22 +2275,25 @@
       );
     }
     if (needsWarehouseAddrOnly(state.approveType, deliveryMode)) {
-      var wh = defaultWarehouseAddr();
+      var wh = defaultWarehouseAddr(state.detail);
+      var whPreview = wh
+        ? '<div class="aftersale-addr-template__preview">' +
+          '<div>收货人：' +
+          escapeHtml(wh.receiverName) +
+          '　' +
+          escapeHtml(wh.receiverPhone) +
+          '<span class="aftersale-addr-card__tag">仓库</span></div>' +
+          '<div>地址：' +
+          escapeHtml(wh.region) +
+          ' ' +
+          escapeHtml(wh.detailAddress) +
+          '</div></div>'
+        : '<div class="aftersale-addr-template__preview is-empty">暂未配置仓库收货地址</div>';
       return (
         '<div class="aftersale-approve-ops__row aftersale-approve-ops__row--top aftersale-addr-template">' +
         '<span class="aftersale-approve-ops__label">仓库收货地址</span>' +
         '<div class="aftersale-approve-ops__field">' +
-        '<div class="aftersale-addr-template__preview">' +
-        '<div>收货人：' +
-        escapeHtml(wh.receiverName) +
-        '　' +
-        escapeHtml(wh.receiverPhone) +
-        '<span class="aftersale-addr-card__tag">仓库</span></div>' +
-        '<div>地址：' +
-        escapeHtml(wh.region) +
-        ' ' +
-        escapeHtml(wh.detailAddress) +
-        '</div></div>' +
+        whPreview +
         '<div class="aftersale-addr-template__hint">配送订单审核通过后，门店退回仓库将使用仓库收货地址</div>' +
         '</div></div>'
       );
@@ -3728,7 +3758,7 @@
         return;
       }
       if (needsWarehouseAddrOnly(approveType, deliveryMode)) {
-        applyApprovePass(defaultWarehouseAddr());
+        applyApprovePass(defaultWarehouseAddr(state.detail));
         return;
       }
       if (needsExpressAddrPick(approveType, deliveryMode)) {

@@ -432,9 +432,6 @@
           id: p.id,
           sessionId: sessionId
         });
-        var st = normalizeStatus(p.status);
-        var canEnable = st === 'draft' || st === 'disabled';
-        var canDisable = st === 'enabled';
         var globalIndex = start + idx;
         var ops =
           '<button type="button" class="lf-live-sort-btn" data-act="up" title="上移"' +
@@ -443,11 +440,12 @@
           '<button type="button" class="lf-live-sort-btn" data-act="down" title="下移"' +
           (globalIndex >= rows.length - 1 ? ' disabled' : '') +
           '>▼</button>' +
-          '<a href="' +
+          '<div class="product-action">' +
+          '<a class="product-action__link" href="' +
           escapeHtml(editHref) +
           '">编辑</a>' +
-          (canEnable ? '<a href="#" data-act="on">上架</a>' : '') +
-          (canDisable ? '<a href="#" data-act="off">下架</a>' : '');
+          renderMoreMenu(p) +
+          '</div>';
         var expandBtn = canExpand
           ? '<button type="button" class="lf-live-expand-btn" data-act="expand" aria-expanded="' +
             (expanded ? 'true' : 'false') +
@@ -512,6 +510,48 @@
         return parent + children;
       })
       .join('');
+  }
+
+  function closeAllMoreMenus() {
+    document.querySelectorAll('.lf-live-sched-page .product-more.is-open').forEach(function (el) {
+      el.classList.remove('is-open');
+    });
+  }
+
+  /* 与代采/商城「更多」一致：草稿/下架可删 SPU；上架中只下架 */
+  function renderMoreMenu(p) {
+    var st = normalizeStatus(p.status);
+    var items = [];
+    if (st === 'draft') {
+      items.push({ act: 'on', label: '上架', danger: false });
+      items.push({ act: 'delete', label: '删除', danger: true });
+    } else if (st === 'enabled') {
+      items.push({ act: 'off', label: '下架', danger: false });
+    } else if (st === 'disabled') {
+      items.push({ act: 'on', label: '上架', danger: false });
+      items.push({ act: 'delete', label: '删除', danger: true });
+    }
+    var menuHtml = items
+      .map(function (entry) {
+        var cls = 'product-more__item' + (entry.danger ? ' product-more__item--danger' : ' product-more__item--primary');
+        return (
+          '<button type="button" class="' +
+          cls +
+          '" data-act="' +
+          entry.act +
+          '">' +
+          entry.label +
+          '</button>'
+        );
+      })
+      .join('');
+    return (
+      '<div class="product-more" data-more-wrap>' +
+      '<button type="button" class="product-more__btn" data-more-toggle>更多 <span class="product-more__caret">▼</span></button>' +
+      '<div class="product-more__menu">' +
+      menuHtml +
+      '</div></div>'
+    );
   }
 
   function findProduct(sessionId, id) {
@@ -590,6 +630,23 @@
     };
   }
 
+  function persistLiveCatalogCodes() {
+    var codes = [];
+    var seen = {};
+    var map = Demo.productsBySession || {};
+    Object.keys(map).forEach(function (sid) {
+      (map[sid] || []).forEach(function (p) {
+        var code = p && (p.sku || p.code || p.goodsId);
+        if (!code || seen[code]) return;
+        seen[code] = true;
+        codes.push(code);
+      });
+    });
+    try {
+      sessionStorage.setItem('mdm_live_sched_catalog_codes_v1', JSON.stringify(codes));
+    } catch (e) { /* ignore */ }
+  }
+
   function addProductsFromLibrary(items) {
     if (!items || !items.length) return 0;
     var sessionId = currentSessionId();
@@ -604,6 +661,7 @@
     });
     if (count) {
       page = 1;
+      persistLiveCatalogCodes();
       render();
     }
     return count;
@@ -686,6 +744,21 @@
       });
     }
 
+    document.addEventListener('click', function (ev) {
+      var toggle = ev.target.closest('.lf-live-sched-page [data-more-toggle]');
+      if (toggle) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var wrap = toggle.closest('.product-more');
+        if (!wrap) return;
+        var open = wrap.classList.contains('is-open');
+        closeAllMoreMenus();
+        if (!open) wrap.classList.add('is-open');
+        return;
+      }
+      if (!ev.target.closest('.lf-live-sched-page .product-more')) closeAllMoreMenus();
+    });
+
     var tbody = document.getElementById('liveSchedTableBody');
     if (!tbody) return;
     tbody.addEventListener('click', function (ev) {
@@ -706,12 +779,14 @@
       if (!found) return;
       var item = found.item;
       if (act === 'on') {
+        closeAllMoreMenus();
         item.status = 'enabled';
         toast('商品已上架，可在中控添加到直播商品');
         render();
         return;
       }
       if (act === 'off') {
+        closeAllMoreMenus();
         item.status = 'disabled';
         item.inCart = false;
         item.saleMode = 'preview';
@@ -719,6 +794,20 @@
         item.pinned = false;
         if (item.liveStatus && item.liveStatus !== 'off_shelf') item.liveStatus = 'off_shelf';
         toast('商品已下架');
+        render();
+        return;
+      }
+      if (act === 'delete') {
+        closeAllMoreMenus();
+        var st = normalizeStatus(item.status);
+        if (st !== 'draft' && st !== 'disabled') {
+          toast('上架中的商品请先下架再删除', 'warning');
+          return;
+        }
+        found.list.splice(found.index, 1);
+        delete expandedIds[id];
+        persistLiveCatalogCodes();
+        toast('已删除');
         render();
         return;
       }
@@ -753,6 +842,7 @@
     buildExtraSessions();
     initDefaultSession();
     bindEvents();
+    persistLiveCatalogCodes();
     render();
     renderPicker();
   });

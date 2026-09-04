@@ -194,7 +194,10 @@
   function renderMoreMenu(code, items) {
     var menuHtml = items
       .map(function (entry) {
-        var cls = 'product-more__item' + (entry.primary ? ' product-more__item--primary' : '');
+        var cls = 'product-more__item';
+        if (entry.danger) cls += ' product-more__item--danger';
+        else if (entry.primary) cls += ' product-more__item--primary';
+        if (entry.muted) cls += ' product-more__item--muted';
         return (
           '<button type="button" class="' + cls + '" data-action="' + entry.action + '" data-code="' + code + '">' + entry.label + '</button>'
         );
@@ -206,6 +209,24 @@
       '<button type="button" class="product-more__btn" data-more-toggle>更多 <span class="product-more__caret">▼</span></button>' +
       '<div class="product-more__menu">' + menuHtml + '</div></div>'
     );
+  }
+
+  function canDeleteStatus(item) {
+    return item && (item.status === 'pending_sale' || item.status === 'stopped');
+  }
+
+  function buildDeleteMoreItem(item) {
+    var catalog = window.MdmProductCatalog;
+    var marketing =
+      catalog && typeof catalog.getMarketingUsage === 'function'
+        ? catalog.getMarketingUsage(item.code)
+        : [];
+    return {
+      action: 'delete',
+      label: '删除',
+      danger: true,
+      muted: marketing.length > 0
+    };
   }
 
   function renderActions(item) {
@@ -221,9 +242,12 @@
         item.audit === 'rejected'
           ? { action: 'shelf', label: '上架', primary: true }
           : { action: 'audit', label: '审核', primary: true };
-      html += renderMoreMenu(item.code, [moreAction]);
+      html += renderMoreMenu(item.code, [moreAction, buildDeleteMoreItem(item)]);
     } else if (item.status === 'stopped') {
-      html += renderMoreMenu(item.code, [{ action: 'enable', label: '启用', primary: true }]);
+      html += renderMoreMenu(item.code, [
+        { action: 'enable', label: '启用', primary: true },
+        buildDeleteMoreItem(item)
+      ]);
     } else if (item.status === 'selling') {
       html += renderMoreMenu(item.code, [{ action: 'stop', label: '停用', primary: true }]);
     }
@@ -454,6 +478,37 @@
             }
           }
           return;
+        }
+
+        if (action === 'delete') {
+          var catalog = window.MdmProductCatalog;
+          var target = catalog ? catalog.getByCode(code) : null;
+          if (!target || !canDeleteStatus(target)) {
+            if (typeof showToast === 'function') showToast('仅待售卖、已停售商品可删除', 'warning');
+            return;
+          }
+          var downstream =
+            catalog && typeof catalog.getDownstreamUsage === 'function'
+              ? catalog.getDownstreamUsage(code)
+              : [];
+          if (downstream.length) {
+            if (typeof showToast === 'function') {
+              showToast('下游已关联（' + downstream.join('、') + '），无法删除', 'warning');
+            }
+            return;
+          }
+          var marketing =
+            catalog && typeof catalog.getMarketingUsage === 'function'
+              ? catalog.getMarketingUsage(code)
+              : [];
+          var msg = marketing.length
+            ? '确定删除该商品吗？营销板块已关联的商品将置灰，可在对应活动中删除。'
+            : '确定删除该商品吗？';
+          openWarmConfirmModal(msg, function () {
+            if (!catalog.removeProduct(code)) return;
+            refresh(false);
+            if (typeof showToast === 'function') showToast('已删除 ' + code, 'success');
+          });
         }
         return;
       }

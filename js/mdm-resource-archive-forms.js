@@ -80,6 +80,43 @@
         } catch (e) {}
     }
 
+    function selectedLabel(sel) {
+        if (!sel || sel.selectedIndex < 0) return '';
+        var opt = sel.options[sel.selectedIndex];
+        return opt ? String(opt.text || '').trim() : '';
+    }
+
+    function syncStoreReceiveFromForm(storeId, storeName, refs) {
+        if (!window.MdmReceiveAddressStore || !refs) return;
+        window.MdmReceiveAddressStore.syncStoreFromArchive({
+            id: storeId,
+            name: storeName || (refs.nameInp && refs.nameInp.value),
+            contactName: refs.contactInp && refs.contactInp.value,
+            phone: refs.phoneInp && refs.phoneInp.value,
+            region: refs.regionInp && refs.regionInp.value,
+            detailAddress: refs.addressTa && refs.addressTa.value,
+            fulfillWarehouse: selectedLabel(refs.warehouseSel)
+        });
+    }
+
+    function seedWarehouseReceiveFromForm(warehouseId, refs) {
+        if (!window.MdmReceiveAddressStore || !refs) return;
+        var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
+        var detail = refs.detailTa ? String(refs.detailTa.value || '').trim() : '';
+        window.MdmReceiveAddressStore.seedWarehouseFromArchive(
+            {
+                id: warehouseId,
+                name: refs.nameInp && refs.nameInp.value,
+                admin: refs.adminInp && refs.adminInp.value,
+                phone: refs.phoneInp && refs.phoneInp.value,
+                region: region,
+                detailAddress: detail,
+                location: [region, detail].filter(Boolean).join(' ')
+            },
+            { onlyIfEmpty: true }
+        );
+    }
+
     function saveSupplierInboundWarehouseBinding(supplierId, supplierName, warehouseName) {
         var id = String(supplierId || '').trim();
         var name = String(supplierName || '').trim();
@@ -1219,7 +1256,7 @@
             }
         }
 
-        return { body: body, fillFromArchiveRow: fillFromArchiveRow };
+        return { body: body, fillFromArchiveRow: fillFromArchiveRow, refs: refs };
     }
 
     function buildWarehouseAddBody() {
@@ -1241,6 +1278,7 @@
                 writeVenuePhotos('store', tempId, collectVenuePhotosFromRefs(bundle.refs));
                 /* 演示：亦按名称索引，便于列表尚未落库时进件带入 */
                 if (name) writeVenuePhotos('store', 'name:' + name, collectVenuePhotosFromRefs(bundle.refs));
+                syncStoreReceiveFromForm(tempId, name, bundle.refs);
             });
         },
         openStoreEdit: function (tr) {
@@ -1259,6 +1297,11 @@
                 if (storeName) {
                     writeVenuePhotos('store', 'name:' + storeName, collectVenuePhotosFromRefs(bundle.refs));
                 }
+                var nextName =
+                    bundle.refs && bundle.refs.nameInp
+                        ? String(bundle.refs.nameInp.value || '').trim()
+                        : storeName;
+                syncStoreReceiveFromForm(storeId, nextName || storeName, bundle.refs);
             });
         },
         openSupplierAdd: function () {
@@ -1340,13 +1383,24 @@
             attachWideModal('编辑承运商', bundle.body);
         },
         openWarehouseAdd: function () {
-            attachWideModal('新增仓库', buildWarehouseAddBody());
+            var bundle = createWarehouseFormBundle();
+            attachWideModal('新增仓库', bundle.body, function () {
+                var name =
+                    bundle.refs && bundle.refs.nameInp
+                        ? String(bundle.refs.nameInp.value || '').trim()
+                        : '';
+                seedWarehouseReceiveFromForm(name || 'NEW-WH-' + String(Date.now()).slice(-6), bundle.refs);
+            });
         },
         openWarehouseEdit: function (tr) {
             if (!tr) return;
+            var cells = tr.querySelectorAll('td');
+            var warehouseId = cells[0] ? cellPlainText(cells[0]) : '';
             var bundle = createWarehouseFormBundle();
             bundle.fillFromArchiveRow(tr);
-            attachWideModal('编辑仓库', bundle.body);
+            attachWideModal('编辑仓库', bundle.body, function () {
+                seedWarehouseReceiveFromForm(warehouseId, bundle.refs);
+            });
         },
         close: removeArchiveFormModals
     };
