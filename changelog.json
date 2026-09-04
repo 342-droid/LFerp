@@ -1,10 +1,30 @@
 {
-  "latestSha": "9fb6c511ed8399e520087ed2d4f3b5eb2bc20953",
-  "total": 347,
+  "latestSha": "e4352d265044af3fe204865ef45b5782fcbd494b",
+  "total": 348,
   "days": [
     {
       "date": "2026-09-04",
       "items": [
+        {
+          "sha": "e4352d2",
+          "type": "feat",
+          "text": "采购单支持收货地址选择",
+          "author": "342-droid",
+          "time": "16:47",
+          "pages": [
+            {
+              "file": "SCM/purchase_order.html",
+              "module": "冷丰采购",
+              "title": "采购单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "新增页按收货地联动默认收货地址并支持下拉切换"
+            }
+          ]
+        },
         {
           "sha": "9fb6c51",
           "type": "feat",
