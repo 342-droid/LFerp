@@ -1,10 +1,75 @@
 {
-  "latestSha": "9eedbdc454a34f4f7afd3e822d094b62a1fd8293",
-  "total": 350,
+  "latestSha": "5f0de05023ec8e1d75e45bbb4957c46c72225d53",
+  "total": 351,
   "days": [
     {
       "date": "2026-09-04",
       "items": [
+        {
+          "sha": "5f0de05",
+          "type": "feat",
+          "text": "完善入库及作业页面操作体验",
+          "author": "342-droid",
+          "time": "19:38",
+          "pages": [
+            {
+              "file": "SCM/app_ibd_receipt.html",
+              "module": "冷丰WMS",
+              "title": "查询入库单"
+            },
+            {
+              "file": "SCM/app_ibd_receipt_list.html",
+              "module": "冷丰WMS",
+              "title": "入库单查询"
+            },
+            {
+              "file": "SCM/app_obd_picking.html",
+              "module": "冷丰WMS",
+              "title": "拣货任务"
+            },
+            {
+              "file": "SCM/app_obd_recheck.html",
+              "module": "冷丰WMS",
+              "title": "复核任务"
+            },
+            {
+              "file": "SCM/app_obd_sorting.html",
+              "module": "冷丰WMS",
+              "title": "分拣任务"
+            },
+            {
+              "file": "SCM/ibd_receipt.html",
+              "module": "冷丰WMS",
+              "title": "入库单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/app_ibd_receipt.html",
+              "text": "优化商品卡片、收货信息和移动端布局交互"
+            },
+            {
+              "file": "SCM/app_ibd_receipt_list.html",
+              "text": "调整入库单列表操作展示"
+            },
+            {
+              "file": "SCM/app_obd_picking.html",
+              "text": "优化任务页面移动端样式与操作"
+            },
+            {
+              "file": "SCM/app_obd_recheck.html",
+              "text": "优化任务页面展示细节"
+            },
+            {
+              "file": "SCM/app_obd_sorting.html",
+              "text": "优化任务页面移动端样式与操作"
+            },
+            {
+              "file": "SCM/ibd_receipt.html",
+              "text": "增加入库收货录入和更多操作菜单"
+            }
+          ]
+        },
         {
           "sha": "9eedbdc",
           "type": "feat",

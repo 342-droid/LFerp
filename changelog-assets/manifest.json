@@ -1154,6 +1154,38 @@
     "status": "diff",
     "date": "2026-09-02"
   },
+  "5f0de05|SCM/app_ibd_receipt.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "5f0de05|SCM/app_ibd_receipt_list.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "5f0de05|SCM/app_obd_picking.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "5f0de05|SCM/app_obd_recheck.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "5f0de05|SCM/app_obd_sorting.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
+  "5f0de05|SCM/ibd_receipt.html": {
+    "before": "changelog-assets/5f0de05/SCM__ibd_receipt.html.before.jpg",
+    "after": "changelog-assets/5f0de05/SCM__ibd_receipt.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-09-04"
+  },
   "5f90efc|store-app/h5/home.html": {
     "before": "changelog-assets/5f90efc/store-app__h5__home.html.before.jpg",
     "after": "changelog-assets/5f90efc/store-app__h5__home.html.after.jpg",
