@@ -156,7 +156,7 @@
             <hr class="content-divider">
 
             <div class="mdm-biz-tip cutoff-page-tip" role="note">
-                统一配置<strong>零售 / 代采</strong>订单截单，支持按<strong>订单渠道 + 履约方式 + 商品标签 + 类目</strong>组合。零售履约仅<strong>快递到家、门店自提</strong>，代采履约仅<strong>平台配送、快递配送</strong>。零售订单再分<strong>直播 / 商城</strong>，代采不区分场景。同一履约下<strong>指定标签优先于全部标签</strong>，<strong>指定类目优先于全部类目</strong>。系统只兜<strong>零售 × 快递到家</strong>（直播+商城、全部标签类目），<strong>不做全渠道通用兜底</strong>；代采、仓配需单独配置，或走订货汇总人工截单。截单方式支持<strong>每日定时</strong>，或<strong>支付后自动截单</strong>（支付成功即截单，对客跳过待接单）。已到店、不走先销后采的商品请在选品库打系统标签<strong>不走订货单</strong>，不进门店订货汇总。人工截单入口仍在「采购 → 门店订货汇总」。
+                统一配置<strong>零售 / 代采</strong>订单截单，支持按<strong>订单渠道 + 履约方式 + 商品标签 + 类目</strong>组合。零售履约仅<strong>快递到家、门店自提</strong>，代采履约仅<strong>平台配送、快递配送</strong>。零售订单再分<strong>直播 / 商城</strong>，代采不区分场景。同一履约下<strong>指定标签优先于全部标签，全部标签优先于不限标签</strong>；<strong>没有标签的商品只走「不限标签」</strong>。<strong>指定类目优先于全部类目</strong>。系统两条兜底：<strong>零售 × 快递到家</strong>（直播+商城、不限标签、全部类目）；以及<strong>代采平台配送 / 代采快递配送 / 零售门店自提</strong>且商品标签为<strong>不走订货单</strong>（默认支付后自动截单，可改每日定时）。<strong>不做</strong>全部渠道×全部履约的通用兜底。截单方式支持<strong>每日定时</strong>，或<strong>支付后自动截单</strong>（支付成功即截单，对客跳过待接单）。已到店、不走先销后采的商品请在选品库打系统标签<strong>不走订货单</strong>，不进门店订货汇总，由上述兜底截单。人工截单入口仍在「采购 → 门店订货汇总」。
             </div>
 
             <div class="settle-freight-page">
@@ -277,10 +277,10 @@
     </div>
     <script src="../js/common.js"></script>
     <script src="../js/mdm-product-catalog-store.js"></script>
-    <script src="../js/mdm-product-selection-tag-store.js?v=20260902-no-skip-cutoff"></script>
+    <script src="../js/mdm-product-selection-tag-store.js?v=20260904-unlimited-tag"></script>
     <script src="../js/mdm-product-mall-tag-store.js"></script>
     <script src="../js/mdm-product-proxy-tag-store.js"></script>
-    <script src="../js/order-cutoff-runtime.js?v=20260902-tag-mdh"></script>
-    <script src="../js/mdm-order-express-cutoff.js?v=20260902-tag-mdh"></script>
+    <script src="../js/order-cutoff-runtime.js?v=20260904-unlimited-tag"></script>
+    <script src="../js/mdm-order-express-cutoff.js?v=20260904-skip-demand-name"></script>
 </body>
 </html>

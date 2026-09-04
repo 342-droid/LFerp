@@ -25,7 +25,7 @@
       status: 'active',
       isSystem: true,
       maintainBiz: '订货汇总',
-      maintainTip: '打上此标签的商品不进入采购「门店订货汇总」，不生成门店订货单。适用于已采购到店、不走先销后采的商品（如拉新已铺货）。截单策略仍按原规则执行。',
+      maintainTip: '打上此标签的商品不进入采购「门店订货汇总」，不生成门店订货单。适用于已采购到店、不走先销后采的商品（如拉新已铺货）。代采平台配送 / 代采快递配送 / 零售门店自提走订单截单页系统兜底「支付后自动截单」。',
       created_at: '2026-09-02 22:00'
     }
   ];
@@ -153,7 +153,8 @@
   }
 
   function isSkipDemandSummary(name) {
-    return String(name || '').trim() === '不走订货单';
+    var text = String(name || '').trim();
+    return text === '不走订货单' || text === 'sys_skip_demand_summary';
   }
 
   function findByName(name, ignoreId) {

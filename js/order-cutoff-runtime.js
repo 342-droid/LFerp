@@ -119,63 +119,6 @@
         return [];
     }
 
-    function matchesStrategy(row, strategy) {
-        if (!row || !strategy || strategy.status !== 'active') return false;
-        var channel = channelOf(row);
-        var channels = Array.isArray(strategy.channels) ? strategy.channels : [];
-        if (channel && channels.length && channels.indexOf(channel) < 0) return false;
-        if (channel === 'retail') {
-            var scenes = Array.isArray(strategy.scenes) ? strategy.scenes : [];
-            if (scenes.length && scenes.indexOf(sceneOf(row)) < 0) return false;
-        }
-        if (strategy.fulfillmentScope === 'specified') {
-            var fulfill = fulfillmentOf(row);
-            var ids = Array.isArray(strategy.fulfillments) ? strategy.fulfillments : [];
-            if (!fulfill || ids.indexOf(fulfill) < 0) return false;
-        }
-        if (strategy.tagScope === 'specified') {
-            var tags = Array.isArray(row.tags) ? row.tags : Array.isArray(row.productTags) ? row.productTags : [];
-            var need = (strategy.tags || []).map(function (item) {
-                return String((item && (item.id || item.name)) || item || '').trim();
-            });
-            if (!need.length) return false;
-            var hitTag = tags.some(function (tag) {
-                var id = String((tag && (tag.id || tag.name)) || tag || '').trim();
-                return need.indexOf(id) >= 0;
-            });
-            if (!hitTag) return false;
-        }
-        if (strategy.categoryScope === 'specified') {
-            var path = String((row && row.skuCategoryPath) || '');
-            var cats = strategy.categories || [];
-            var hitCat = cats.some(function (cat) {
-                var name = String((cat && (cat.name || cat.id)) || cat || '').trim();
-                return name && path.indexOf(name) >= 0;
-            });
-            if (!hitCat) return false;
-        }
-        return true;
-    }
-
-    function isMarkedAfterPay(row) {
-        var source = String((row && (row.cutoffSource || row.cutoffMode)) || '');
-        if (source === SOURCE.AFTER_PAY) return true;
-        var fact = factOf(row);
-        return !!(fact && fact.source === SOURCE.AFTER_PAY);
-    }
-
-    function matchesAfterPayStrategy(row) {
-        var list = loadStrategies();
-        for (var i = 0; i < list.length; i++) {
-            if (list[i].cutoffMode === SOURCE.AFTER_PAY && matchesStrategy(row, list[i])) return true;
-        }
-        return false;
-    }
-
-    function isAfterPayCutoffOrder(row) {
-        return isMarkedAfterPay(row) || matchesAfterPayStrategy(row);
-    }
-
     function tagTokensOf(row) {
         var tokens = [];
         function push(item) {
@@ -208,6 +151,79 @@
         if (text === 'sys_skip_demand_summary' || text === '不走订货单') return true;
         var store = global.MdmProductSelectionTagStore;
         return !!(store && typeof store.isSkipDemandSummary === 'function' && store.isSkipDemandSummary(text));
+    }
+
+    function strategyTagTokens(strategy) {
+        var tokens = [];
+        ((strategy && strategy.tags) || []).forEach(function (item) {
+            if (item == null) return;
+            if (typeof item === 'string') {
+                if (item.trim()) tokens.push(item.trim());
+                return;
+            }
+            var id = String((item.id || '')).trim();
+            var name = String((item.name || '')).trim();
+            if (id) tokens.push(id);
+            if (name) tokens.push(name);
+        });
+        return tokens;
+    }
+
+    function matchesStrategy(row, strategy) {
+        if (!row || !strategy || strategy.status !== 'active') return false;
+        var channel = channelOf(row);
+        var channels = Array.isArray(strategy.channels) ? strategy.channels : [];
+        if (channel && channels.length && channels.indexOf(channel) < 0) return false;
+        if (channel === 'retail') {
+            var scenes = Array.isArray(strategy.scenes) ? strategy.scenes : [];
+            if (scenes.length && scenes.indexOf(sceneOf(row)) < 0) return false;
+        }
+        if (strategy.fulfillmentScope === 'specified') {
+            var fulfill = fulfillmentOf(row);
+            var ids = Array.isArray(strategy.fulfillments) ? strategy.fulfillments : [];
+            if (!fulfill || ids.indexOf(fulfill) < 0) return false;
+        }
+        if (strategy.tagScope === 'specified') {
+            var have = tagTokensOf(row);
+            var need = strategyTagTokens(strategy);
+            if (!need.length) return false;
+            var hitTag = need.some(function (token) {
+                if (have.indexOf(token) >= 0) return true;
+                return isSkipDemandSummaryToken(token) && have.some(isSkipDemandSummaryToken);
+            });
+            if (!hitTag) return false;
+        } else if (strategy.tagScope === 'all_tags') {
+            if (!tagTokensOf(row).length) return false;
+        }
+        if (strategy.categoryScope === 'specified') {
+            var path = String((row && row.skuCategoryPath) || '');
+            var cats = strategy.categories || [];
+            var hitCat = cats.some(function (cat) {
+                var name = String((cat && (cat.name || cat.id)) || cat || '').trim();
+                return name && path.indexOf(name) >= 0;
+            });
+            if (!hitCat) return false;
+        }
+        return true;
+    }
+
+    function isMarkedAfterPay(row) {
+        var source = String((row && (row.cutoffSource || row.cutoffMode)) || '');
+        if (source === SOURCE.AFTER_PAY) return true;
+        var fact = factOf(row);
+        return !!(fact && fact.source === SOURCE.AFTER_PAY);
+    }
+
+    function matchesAfterPayStrategy(row) {
+        var list = loadStrategies();
+        for (var i = 0; i < list.length; i++) {
+            if (list[i].cutoffMode === SOURCE.AFTER_PAY && matchesStrategy(row, list[i])) return true;
+        }
+        return false;
+    }
+
+    function isAfterPayCutoffOrder(row) {
+        return isMarkedAfterPay(row) || matchesAfterPayStrategy(row);
     }
 
     function skipsDemandSummary(row) {

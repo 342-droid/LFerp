@@ -3,11 +3,14 @@
  * 按订单渠道（零售 / 代采）+ 履约方式 + 商品标签 + 类目组合配置。
  * 零售履约：快递到家、门店自提；代采履约：平台配送、快递配送。
  * 适用场景（直播 / 商城）仅零售订单使用；支持每日定时 / 支付后自动截单。
- * 指定履约 / 指定标签 / 指定类目优先于「全部」；门店订货汇总自动截单已并入本页。
- * 系统只兜零售 × 快递到家（直播+商城、全部标签类目），不做全渠道通用兜底。
+ * 指定履约 / 指定标签 / 指定类目优先于「全部」；标签再分指定 > 全部标签 > 不限标签（含无标签）。
+ * 系统两条兜底（均不可停用/删除）：
+ * - 零售 × 快递到家（直播+商城、不限标签、全部类目），默认每日定时；
+ * - 代采平台配送 / 代采快递配送 / 零售门店自提 × 标签「不走订货单」，默认支付后自动截单，可改每日定时。
+ * 不做「全部渠道 × 全部履约」的通用兜底。
  * 底层（见 order-cutoff-runtime.js）：
  * - 支付后自动截单只决定何时截单，不决定是否进订货汇总；
- * - 选品库系统标签「不走订货单」的商品不进门店订货汇总；
+ * - 选品库系统标签「不走订货单」的商品不进门店订货汇总，仓配/自提靠第二条兜底支付后截单；
  * - 订货汇总已人工截单的订单，到点策略不再重复执行。
  */
 (function () {
@@ -74,7 +77,15 @@
         { id: '天天平价', name: '天天平价' }
     ];
 
-    var idSeq = 6;
+    var FALLBACK_KIND = {
+        RETAIL_EXPRESS: 'retail_express',
+        SKIP_DEMAND_AFTER_PAY: 'skip_demand_after_pay'
+    };
+    var SKIP_DEMAND_TAG_ID = 'sys_skip_demand_summary';
+    var SKIP_DEMAND_TAG_NAME = '不走订货单';
+    var SKIP_DEMAND_FULFILLMENTS = ['pickup', 'platform', 'express_proxy'];
+
+    var idSeq = 7;
     var SEED_STRATEGIES = [
         {
             id: 's1',
@@ -91,7 +102,26 @@
             categories: [],
             status: 'active',
             isDefault: true,
+            fallbackKind: FALLBACK_KIND.RETAIL_EXPRESS,
             userDesc: ''
+        },
+        {
+            id: 's-skip-demand-pay',
+            name: '不走订货单',
+            channels: ['retail', 'proxy'],
+            scenes: ['live', 'mall'],
+            fulfillmentScope: 'specified',
+            fulfillments: SKIP_DEMAND_FULFILLMENTS.slice(),
+            cutoffMode: 'after_pay',
+            cutoffTime: '',
+            tagScope: 'specified',
+            tags: [{ id: SKIP_DEMAND_TAG_ID, name: SKIP_DEMAND_TAG_NAME }],
+            categoryScope: 'all',
+            categories: [],
+            status: 'active',
+            isDefault: true,
+            fallbackKind: FALLBACK_KIND.SKIP_DEMAND_AFTER_PAY,
+            userDesc: '系统兜底：代采平台配送、代采快递配送、零售门店自提中，商品带「不走订货单」的走本策略。默认支付后自动截单，可改每日定时。此类商品不进门店订货汇总。'
         },
         {
             id: 's2',
@@ -443,8 +473,18 @@
             .join('、');
     }
 
+    function tagScopeOf(row) {
+        if (!row) return 'all';
+        if (row.tagScope === 'specified') return 'specified';
+        if (row.tagScope === 'all_tags') return 'all_tags';
+        return 'all';
+    }
+
     function tagText(row) {
-        return namedListText(row && row.tagScope, row && row.tags, '全部标签');
+        var scope = tagScopeOf(row);
+        if (scope === 'specified') return namedListText('specified', row && row.tags, '不限标签');
+        if (scope === 'all_tags') return '全部标签';
+        return '不限标签';
     }
 
     function categoryText(row) {
@@ -506,11 +546,23 @@
         return list.length ? list : FALLBACK_TAGS.slice();
     }
 
+    function fallbackKindOf(row) {
+        if (!row) return '';
+        if (row.fallbackKind === FALLBACK_KIND.SKIP_DEMAND_AFTER_PAY) {
+            return FALLBACK_KIND.SKIP_DEMAND_AFTER_PAY;
+        }
+        if (row.fallbackKind === FALLBACK_KIND.RETAIL_EXPRESS) {
+            return FALLBACK_KIND.RETAIL_EXPRESS;
+        }
+        if (row.isDefault) return FALLBACK_KIND.RETAIL_EXPRESS;
+        return '';
+    }
+
     function normalizeStrategy(row) {
         if (!row) return null;
         var channels = inferChannels(row);
         var scenes = channels.indexOf('retail') >= 0 ? normalizeScenes(row) : [];
-        var tagScope = row.tagScope === 'specified' ? 'specified' : 'all';
+        var tagScope = tagScopeOf(row);
         var catScope = row.categoryScope === 'specified' ? 'specified' : 'all';
         var fulfillmentScope = row.fulfillmentScope === 'specified' ? 'specified' : 'all';
         var rawFulfill = fulfillmentScope === 'specified' ? normalizeFulfillments(row.fulfillments) : [];
@@ -544,7 +596,8 @@
             categoryScope: catScope,
             categories: catScope === 'specified' ? normalizeNamedList(row.categories) : [],
             status: row.status === 'active' || row.status === 'stopped' ? row.status : 'draft',
-            isDefault: !!row.isDefault,
+            isDefault: !!row.isDefault || !!fallbackKindOf(row),
+            fallbackKind: fallbackKindOf(row),
             userDesc: row.userDesc != null ? String(row.userDesc) : ''
         };
     }
@@ -585,6 +638,7 @@
                 categories: [],
                 status: 'active',
                 isDefault: true,
+                fallbackKind: FALLBACK_KIND.RETAIL_EXPRESS,
                 userDesc: rule.userDesc || ''
             }
         ];
@@ -757,7 +811,15 @@
     }
 
     function isDefaultStrategy(row) {
-        return !!(row && row.isDefault);
+        return !!(row && (row.isDefault || fallbackKindOf(row)));
+    }
+
+    function isRetailExpressFallback(row) {
+        return fallbackKindOf(row) === FALLBACK_KIND.RETAIL_EXPRESS;
+    }
+
+    function isSkipDemandAfterPayFallback(row) {
+        return fallbackKindOf(row) === FALLBACK_KIND.SKIP_DEMAND_AFTER_PAY;
     }
 
     function canDeleteStrategy(row) {
@@ -769,7 +831,7 @@
     }
 
     function isRetailHomeFallback(row) {
-        if (!row) return false;
+        if (!row || isSkipDemandAfterPayFallback(row)) return false;
         var channels = inferChannels(row);
         var scenes = normalizeScenes(row);
         var fulfills = fulfillmentIdsOf(row);
@@ -779,7 +841,7 @@
             !isAllFulfillment(row) &&
             fulfills.length === 1 &&
             fulfills[0] === 'express_home' &&
-            row.tagScope !== 'specified' &&
+            tagScopeOf(row) === 'all' &&
             row.categoryScope !== 'specified' &&
             scenes.indexOf('live') >= 0 &&
             scenes.indexOf('mall') >= 0
@@ -787,14 +849,14 @@
     }
 
     function isLegacyCatchAllStrategy(row) {
-        if (!row) return false;
+        if (!row || isSkipDemandAfterPayFallback(row)) return false;
         var channels = inferChannels(row);
         var scenes = normalizeScenes(row);
         return (
             channels.indexOf('retail') >= 0 &&
             channels.indexOf('proxy') >= 0 &&
             isAllFulfillment(row) &&
-            row.tagScope !== 'specified' &&
+            tagScopeOf(row) === 'all' &&
             row.categoryScope !== 'specified' &&
             scenes.indexOf('live') >= 0 &&
             scenes.indexOf('mall') >= 0
@@ -805,9 +867,18 @@
         return isRetailHomeFallback(row) || isLegacyCatchAllStrategy(row);
     }
 
-    function applyDefaultLocks(row) {
+    function findFallbackRow(rows, kind) {
+        var found = null;
+        (rows || []).forEach(function (row) {
+            if (!found && fallbackKindOf(row) === kind) found = row;
+        });
+        return found;
+    }
+
+    function applyRetailExpressLocks(row) {
         if (!row) return row;
         row.isDefault = true;
+        row.fallbackKind = FALLBACK_KIND.RETAIL_EXPRESS;
         row.channels = ['retail'];
         row.scenes = ['live', 'mall'];
         row.fulfillmentScope = 'specified';
@@ -822,41 +893,113 @@
         return row;
     }
 
+    function applySkipDemandAfterPayLocks(row) {
+        if (!row) return row;
+        row.isDefault = true;
+        row.fallbackKind = FALLBACK_KIND.SKIP_DEMAND_AFTER_PAY;
+        row.channels = ['retail', 'proxy'];
+        row.scenes = ['live', 'mall'];
+        row.fulfillmentScope = 'specified';
+        row.fulfillments = SKIP_DEMAND_FULFILLMENTS.slice();
+        row.tagScope = 'specified';
+        row.tags = [{ id: SKIP_DEMAND_TAG_ID, name: SKIP_DEMAND_TAG_NAME }];
+        row.categoryScope = 'all';
+        row.categories = [];
+        if (row.cutoffMode !== 'time' && row.cutoffMode !== 'after_pay') {
+            row.cutoffMode = 'after_pay';
+        }
+        if (row.cutoffMode === 'after_pay') {
+            row.cutoffTime = '';
+        } else if (!normalizeTime(row.cutoffTime)) {
+            row.cutoffTime = '10:00:00';
+        }
+        row.status = 'active';
+        var skipName = String(row.name || '').trim();
+        if (!skipName || skipName === '不走订货单支付即截') row.name = '不走订货单';
+        return row;
+    }
+
+    function applyFallbackLocks(row, kind) {
+        if (kind === FALLBACK_KIND.SKIP_DEMAND_AFTER_PAY) {
+            return applySkipDemandAfterPayLocks(row);
+        }
+        return applyRetailExpressLocks(row);
+    }
+
+    function buildRetailExpressFallback() {
+        return normalizeStrategy({
+            id: 's1',
+            name: '零售快递到家',
+            channels: ['retail'],
+            scenes: ['live', 'mall'],
+            fulfillmentScope: 'specified',
+            fulfillments: ['express_home'],
+            cutoffMode: 'time',
+            cutoffTime: '10:00:00',
+            tagScope: 'all',
+            tags: [],
+            categoryScope: 'all',
+            categories: [],
+            status: 'active',
+            isDefault: true,
+            fallbackKind: FALLBACK_KIND.RETAIL_EXPRESS,
+            userDesc: ''
+        });
+    }
+
+    function buildSkipDemandAfterPayFallback() {
+        return normalizeStrategy({
+            id: 's-skip-demand-pay',
+            name: '不走订货单',
+            channels: ['retail', 'proxy'],
+            scenes: ['live', 'mall'],
+            fulfillmentScope: 'specified',
+            fulfillments: SKIP_DEMAND_FULFILLMENTS.slice(),
+            cutoffMode: 'after_pay',
+            cutoffTime: '',
+            tagScope: 'specified',
+            tags: [{ id: SKIP_DEMAND_TAG_ID, name: SKIP_DEMAND_TAG_NAME }],
+            categoryScope: 'all',
+            categories: [],
+            status: 'active',
+            isDefault: true,
+            fallbackKind: FALLBACK_KIND.SKIP_DEMAND_AFTER_PAY,
+            userDesc:
+                '系统兜底：代采平台配送、代采快递配送、零售门店自提中，商品带「不走订货单」的走本策略。默认支付后自动截单，可改每日定时。此类商品不进门店订货汇总。'
+        });
+    }
+
     function ensureDefaultStrategy(list) {
         var rows = (list || []).slice();
-        var def = null;
-        rows.forEach(function (row) {
-            if (!def && isDefaultStrategy(row)) def = row;
-        });
-        if (!def) {
+        var retail = findFallbackRow(rows, FALLBACK_KIND.RETAIL_EXPRESS);
+        if (!retail) {
             rows.forEach(function (row) {
-                if (!def && isCatchAllStrategy(row)) def = row;
+                if (!retail && isCatchAllStrategy(row)) retail = row;
             });
         }
-        if (def) {
-            applyDefaultLocks(def);
+        if (retail) {
+            applyRetailExpressLocks(retail);
         } else {
-            def = normalizeStrategy({
-                id: nextId(),
-                name: '零售快递到家',
-                channels: ['retail'],
-                scenes: ['live', 'mall'],
-                fulfillmentScope: 'specified',
-                fulfillments: ['express_home'],
-                cutoffMode: 'time',
-                cutoffTime: '10:00:00',
-                tagScope: 'all',
-                tags: [],
-                categoryScope: 'all',
-                categories: [],
-                status: 'active',
-                isDefault: true,
-                userDesc: ''
-            });
-            if (def) rows.unshift(def);
+            retail = buildRetailExpressFallback();
+            if (retail) rows.unshift(retail);
         }
+
+        var skip = findFallbackRow(rows, FALLBACK_KIND.SKIP_DEMAND_AFTER_PAY);
+        if (skip) {
+            applySkipDemandAfterPayLocks(skip);
+        } else {
+            skip = buildSkipDemandAfterPayFallback();
+            if (skip) {
+                var retailIdx = rows.indexOf(retail);
+                rows.splice(retailIdx >= 0 ? retailIdx + 1 : 0, 0, skip);
+            }
+        }
+
         rows.forEach(function (row) {
-            if (row !== def) row.isDefault = false;
+            if (row !== retail && row !== skip) {
+                row.isDefault = false;
+                row.fallbackKind = '';
+            }
         });
         return rows;
     }
@@ -883,6 +1026,18 @@
                 var hit = seen[bItems[i].id];
                 if (hit) return { type: 'shared', name: hit };
             }
+        }
+        return null;
+    }
+
+    function tagScopeConflict(a, b) {
+        var left = tagScopeOf(a);
+        var right = tagScopeOf(b);
+        if (left === 'specified' && right === 'specified') {
+            return scopeConflict('specified', a.tags, 'specified', b.tags);
+        }
+        if (left === right && left !== 'specified') {
+            return { type: left === 'all_tags' ? 'both-all-tags' : 'both-all' };
         }
         return null;
     }
@@ -920,7 +1075,7 @@
             var shareProxy = hasProxy(row) && hasProxy(candidate);
             if (shareRetail && !shareProxy && !scenesOverlap(row, candidate)) continue;
             var fulfillHit = fulfillmentConflict(row, candidate);
-            var tagHit = scopeConflict(row.tagScope, row.tags, candidate.tagScope, candidate.tags);
+            var tagHit = tagScopeConflict(row, candidate);
             var catHit = scopeConflict(
                 row.categoryScope,
                 row.categories,
@@ -933,11 +1088,13 @@
                 shareRetail && scenesOverlap(row, candidate) ? overlapSceneLabels(row, candidate) : '';
             var scopeLabel = channelLabel + (sceneLabel ? '（' + sceneLabel + '）' : '');
             var fulfillLabel = isAllFulfillment(candidate) ? '全部履约方式' : fulfillmentText(candidate);
-            if (tagHit.type === 'both-all' && catHit.type === 'both-all') {
+            if ((tagHit.type === 'both-all' || tagHit.type === 'both-all-tags') && catHit.type === 'both-all') {
                 return (
                     scopeLabel +
                     fulfillLabel +
-                    '已有「全部标签、全部类目」策略「' +
+                    '已有「' +
+                    (tagHit.type === 'both-all-tags' ? '全部标签' : '不限标签') +
+                    '、全部类目」策略「' +
                     row.name +
                     '」'
                 );
@@ -1353,7 +1510,7 @@
         var catScopeEl = document.querySelector('input[name="cutoffFormCatScope"]:checked');
         var modeEl = document.querySelector('input[name="cutoffFormMode"]:checked');
         var fulfillScope = fulfillScopeEl && fulfillScopeEl.value === 'specified' ? 'specified' : 'all';
-        var tagScope = tagScopeEl && tagScopeEl.value === 'specified' ? 'specified' : 'all';
+        var tagScope = tagScopeOf({ tagScope: tagScopeEl && tagScopeEl.value });
         var catScope = catScopeEl && catScopeEl.value === 'specified' ? 'specified' : 'all';
         var channels = checkedValues('cutoffFormChannel', CHANNEL_IDS);
         return {
@@ -1412,7 +1569,7 @@
         var scenes = isCreate ? ['live', 'mall'] : normalizeScenes(row);
         var fulfillScope = isCreate ? 'specified' : isAllFulfillment(row) ? 'all' : 'specified';
         var fulfillments = isCreate ? ['express_home'] : fulfillmentIdsOf(row);
-        var tagScope = isCreate ? 'all' : row.tagScope;
+        var tagScope = isCreate ? 'all' : tagScopeOf(row);
         var catScope = isCreate ? 'all' : row.categoryScope;
         var cutoffMode = isCreate ? 'time' : cutoffModeOf(row);
         var time = isCreate ? '10:00:00' : row.cutoffTime || '10:00:00';
@@ -1454,7 +1611,7 @@
             '          <label><input type="radio" name="cutoffFormMode" value="time"> 每日定时</label>' +
             '          <label><input type="radio" name="cutoffFormMode" value="after_pay"> 支付后自动截单</label>' +
             '        </div>' +
-            '        <div class="cutoff-form-tip" id="cutoffFormPayTip" hidden>支付成功即写入已截单，对客直接进入「待发货」，不再停留待接单。仓配类仍会生成门店订货单。</div>' +
+            '        <div class="cutoff-form-tip" id="cutoffFormPayTip" hidden>支付成功即写入已截单，对客直接进入「待发货」，不再停留待接单。是否进门店订货汇总由商品标签决定：打了「不走订货单」的不进汇总、不生成门店订货单。</div>' +
             '      </div></div>' +
             '    <div class="sf-form-item" id="cutoffFormTimeItem"><div class="sf-form-item__label"><span class="sf-req">*</span>截单时间</div>' +
             '      <div class="sf-form-item__control"><input class="sf-input" id="cutoffFormTime" type="time" step="1">' +
@@ -1462,14 +1619,15 @@
             '    <div class="sf-form-item sf-form-item--wide"><div class="sf-form-item__label"><span class="sf-req">*</span>商品标签</div>' +
             '      <div class="sf-form-item__control">' +
             '        <div class="cutoff-radio-row">' +
-            '          <label><input type="radio" name="cutoffFormTagScope" value="all"> 全部标签</label>' +
+            '          <label><input type="radio" name="cutoffFormTagScope" value="all"> 不限标签</label>' +
+            '          <label><input type="radio" name="cutoffFormTagScope" value="all_tags"> 全部标签</label>' +
             '          <label><input type="radio" name="cutoffFormTagScope" value="specified"> 指定商品标签</label>' +
             '        </div>' +
             '        <div id="cutoffFormTagBox" hidden>' +
             '          <div class="cutoff-cat-list" id="cutoffFormTagList"></div>' +
             '          <button type="button" class="sf-btn" id="cutoffFormTagAdd">+ 添加商品标签</button>' +
             '        </div>' +
-            '        <div class="cutoff-form-tip">同一履约下指定标签优先于「全部标签」。</div>' +
+            '        <div class="cutoff-form-tip">指定标签优先于全部标签，全部标签优先于不限标签。没有标签的商品只走「不限标签」。</div>' +
             '      </div></div>' +
             '    <div class="sf-form-item sf-form-item--wide"><div class="sf-form-item__label"><span class="sf-req">*</span>商品类目</div>' +
             '      <div class="sf-form-item__control">' +
@@ -1560,9 +1718,18 @@
             var catAdd = $('cutoffFormCatAdd');
             if (tagAdd) tagAdd.disabled = true;
             if (catAdd) catAdd.disabled = true;
-            if (sceneTip) {
+            backdrop.querySelectorAll('[data-tag-remove], [data-cat-remove]').forEach(function (btn) {
+                btn.hidden = true;
+                btn.disabled = true;
+            });
+            if (isSkipDemandAfterPayFallback(row)) {
+                if (sceneTip) {
+                    sceneTip.textContent =
+                        '系统兜底：代采平台配送、代采快递配送、零售门店自提，且商品标签为「不走订货单」。默认支付后自动截单，可改每日定时。仅可修改名称、截单方式、截单时间和备注，不支持改范围、停用或删除。';
+                }
+            } else if (sceneTip) {
                 sceneTip.textContent =
-                    '系统只兜零售快递到家（直播+商城、全部标签、全部类目）。仅可修改名称、截单方式、截单时间和备注，不支持停用或删除。不做全渠道通用兜底。';
+                    '系统兜底：零售快递到家（直播+商城、不限标签、全部类目）。仅可修改名称、截单方式、截单时间和备注，不支持停用或删除。另有一条「不走订货单」兜底，覆盖代采配送与零售自提。';
             }
         } else if (sceneTip) {
             sceneTip.textContent = isCreate
@@ -1652,12 +1819,20 @@
             }
             var prev = isEdit ? findRow(state.editId) : null;
             if (prev && isDefaultStrategy(prev)) {
-                applyDefaultLocks(draft);
+                var kind = fallbackKindOf(prev);
+                applyFallbackLocks(draft, kind);
                 draft.cutoffMode = cutoffModeOf(draft);
-                draft.cutoffTime = draft.cutoffMode === 'after_pay' ? '' : normalizeTime(draft.cutoffTime) || '10:00:00';
+                draft.cutoffTime =
+                    draft.cutoffMode === 'after_pay'
+                        ? ''
+                        : normalizeTime(draft.cutoffTime) || '10:00:00';
+                draft.name =
+                    String(($('cutoffFormName') && $('cutoffFormName').value) || draft.name).trim() ||
+                    draft.name;
                 draft.userDesc = ($('cutoffFormDesc') && $('cutoffFormDesc').value) || '';
             } else {
                 draft.isDefault = false;
+                draft.fallbackKind = '';
                 if (prev && prev.status === 'active') draft.status = 'stopped';
                 else if (prev) draft.status = prev.status || 'draft';
                 else draft.status = 'draft';
