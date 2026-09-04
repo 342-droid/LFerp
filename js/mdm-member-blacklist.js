@@ -5,6 +5,9 @@
     'use strict';
 
     var STORAGE_KEY = 'mdm_member_blacklist_v1';
+    var FROZEN_KEY = 'mdm_member_frozen_ids_v1';
+    var MEMBER_LIST_KEY = 'mdm_member_c_list_v1';
+    var FROZEN_SEED = ['U10010'];
     var FUNC_OPTIONS = ['禁止直播评论', '观看直播', '下单', '访问页面'];
 
     var demoList = [
@@ -64,6 +67,52 @@
         } catch (e) { /* ignore */ }
     }
 
+    function loadFrozenIds() {
+        try {
+            var raw = localStorage.getItem(FROZEN_KEY);
+            if (raw) {
+                var parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) return parsed.map(String);
+            }
+        } catch (e) { /* ignore */ }
+        localStorage.setItem(FROZEN_KEY, JSON.stringify(FROZEN_SEED));
+        return FROZEN_SEED.slice();
+    }
+
+    function saveFrozenIds(ids) {
+        try {
+            localStorage.setItem(FROZEN_KEY, JSON.stringify(ids || []));
+        } catch (e) { /* ignore */ }
+    }
+
+    function setFrozenFlag(memberId, frozen) {
+        var id = String(memberId || '');
+        if (!id) return;
+        var ids = loadFrozenIds();
+        var idx = ids.indexOf(id);
+        if (frozen && idx === -1) ids.push(id);
+        if (!frozen && idx !== -1) ids.splice(idx, 1);
+        saveFrozenIds(ids);
+    }
+
+    function persistMemberListStatus(memberId, status) {
+        try {
+            var raw = localStorage.getItem(MEMBER_LIST_KEY);
+            if (!raw) return;
+            var list = JSON.parse(raw);
+            if (!Array.isArray(list)) return;
+            var changed = false;
+            for (var i = 0; i < list.length; i++) {
+                if (list[i] && list[i].id === String(memberId)) {
+                    list[i].status = status;
+                    changed = true;
+                    break;
+                }
+            }
+            if (changed) localStorage.setItem(MEMBER_LIST_KEY, JSON.stringify(list));
+        } catch (e) { /* ignore */ }
+    }
+
     function el(tag, cls, text) {
         var node = document.createElement(tag);
         if (cls) node.className = cls;
@@ -75,6 +124,7 @@
         if (status === '黑名单') return 'status blacklist';
         if (status === '注销' || status === '已注销') return 'status canceled';
         if (status === '注销中' || status === '审核中') return 'status cancel-pending';
+        if (status === '冻结') return 'status frozen';
         return 'status active';
     }
 
@@ -230,14 +280,22 @@
         if (st === '注销' || st === '已注销' || st === '注销中' || st === '审核中') {
             return '<a href="#" class="mdm-mem-detail">查看详情</a>';
         }
-            var html =
+        if (st === '冻结') {
+            return '<a href="#" class="mdm-mem-detail">查看详情</a>' +
+                '<a href="#" class="mdm-mem-unfreeze">解冻</a>';
+        }
+        var html =
             '<a href="#" class="mdm-mem-detail">查看详情</a>' +
             '<a href="#" class="mdm-mem-change-store">变更绑定门店</a>' +
             '<a href="#" class="mdm-mem-coupon">发券</a>' +
             '<a href="#" class="mdm-mem-points">调整积分</a>' +
             '<a href="#" class="mdm-mem-growth">调整成长值</a>';
-        if (st === '正常') html += '<a href="#" class="mdm-mem-blacklist">拉黑</a>';
-        else if (st === '黑名单') html += '<a href="#" class="mdm-mem-restore">恢复</a>';
+        if (st === '正常') {
+            html += '<a href="#" class="mdm-mem-blacklist">拉黑</a>';
+            html += '<a href="#" class="mdm-mem-freeze">冻结</a>';
+        } else if (st === '黑名单') {
+            html += '<a href="#" class="mdm-mem-restore">恢复</a>';
+        }
         return html;
     }
 
@@ -254,10 +312,7 @@
             var cells = tr.querySelectorAll('td');
             if (cells.length < 21) return;
             var st = cells[19].querySelector('.status') || document.createElement('span');
-            if (displayStatus === '黑名单') st.className = 'status blacklist';
-            else if (displayStatus === '注销') st.className = 'status canceled';
-            else if (displayStatus === '注销中') st.className = 'status cancel-pending';
-            else st.className = 'status active';
+            st.className = statusClass(displayStatus);
             st.textContent = displayStatus;
             if (!st.parentNode) {
                 cells[19].innerHTML = '';
@@ -323,7 +378,9 @@
             var list = loadList().filter(function (it) { return it.id !== item.id; });
             saveList(list);
             refreshBlacklist();
+            setFrozenFlag(item.id, false);
             syncMemberListRowStatus(item.id, '正常');
+            persistMemberListStatus(item.id, '正常');
             close();
             if (typeof onRestored === 'function') onRestored(item);
             if (typeof showToast === 'function') {
@@ -593,6 +650,8 @@
                 }
                 saveList(list);
                 refreshBlacklist();
+                setFrozenFlag(item.id, false);
+                persistMemberListStatus(item.id, '黑名单');
                 syncMemberListRowStatus(item.id, '黑名单');
                 closeBackdrop(backdrop);
                 if (typeof onSaved === 'function') onSaved(item);
@@ -691,6 +750,84 @@
         /* 注销表点击由 mdm-member-cancel.js 接管 */
     }
 
+    function openFreezeConfirm(item, action) {
+        var isFreeze = action === 'freeze';
+        var backdrop = el('div', 'erp-modal-backdrop');
+        var modal = el('div', 'erp-modal erp-modal--bl-restore');
+        var header = el('div', 'erp-modal__header');
+        header.appendChild(el('h2', 'erp-modal__title', isFreeze ? '冻结' : '解冻'));
+        var bx = el('button', 'erp-modal__header-btn', '×');
+        bx.type = 'button';
+        var ha = el('div', 'erp-modal__header-actions');
+        ha.appendChild(bx);
+        header.appendChild(ha);
+        modal.appendChild(header);
+
+        var body = el('div', 'erp-modal__body');
+        body.appendChild(buildMemberCard(item));
+        body.appendChild(el('p', '', isFreeze
+            ? '确定要冻结该会员吗？冻结后仅可查看详情，可通过解冻恢复。'
+            : '确定要解冻该会员吗？解冻后恢复为正常状态。'));
+        modal.appendChild(body);
+
+        var footer = el('div', 'erp-modal__footer');
+        var btnCancel = el('button', 'btn btn-secondary', '取消');
+        btnCancel.type = 'button';
+        var btnOk = el('button', 'btn btn-primary', '确定');
+        btnOk.type = 'button';
+        footer.appendChild(btnCancel);
+        footer.appendChild(btnOk);
+        modal.appendChild(footer);
+        backdrop.appendChild(modal);
+        document.body.appendChild(backdrop);
+
+        function close() { closeBackdrop(backdrop); }
+        bx.addEventListener('click', close);
+        btnCancel.addEventListener('click', close);
+        backdrop.addEventListener('click', function (e) {
+            if (e.target === backdrop) close();
+        });
+        btnOk.addEventListener('click', function () {
+            var next = isFreeze ? '冻结' : '正常';
+            setFrozenFlag(item.id, isFreeze);
+            persistMemberListStatus(item.id, next);
+            syncMemberListRowStatus(item.id, next);
+            close();
+            if (typeof showToast === 'function') {
+                showToast(isFreeze ? '已冻结该会员' : '已解冻该会员', 'success');
+            }
+        });
+    }
+
+    function applyFrozenStatuses() {
+        var frozenSet = {};
+        loadFrozenIds().forEach(function (id) {
+            frozenSet[String(id)] = true;
+        });
+        var tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+            var idCell = tr.querySelector('td');
+            if (!idCell) return;
+            var id = idCell.textContent.trim();
+            var current = tr.getAttribute('data-member-status') || '';
+            if (
+                current === '注销' ||
+                current === '已注销' ||
+                current === '注销中' ||
+                current === '审核中' ||
+                current === '黑名单'
+            ) {
+                return;
+            }
+            if (frozenSet[id]) {
+                if (current !== '冻结') syncMemberListRowStatus(id, '冻结');
+            } else if (current === '冻结') {
+                syncMemberListRowStatus(id, '正常');
+            }
+        });
+    }
+
     /** 从会员列表拉黑 */
     function openBlacklistFromMember(row) {
         var base = memberFromRow(row);
@@ -702,6 +839,8 @@
             media: []
         });
         openEditModal(existing, false, function () {
+            setFrozenFlag(base.id, false);
+            persistMemberListStatus(base.id, '黑名单');
             syncMemberListRowStatus(base.id, '黑名单');
             switchTab('blacklist');
         });
@@ -713,8 +852,21 @@
         if (!base) return;
         var item = findById(base.id) || base;
         openRestoreModal(item, function () {
+            persistMemberListStatus(base.id, '正常');
             syncMemberListRowStatus(base.id, '正常');
         });
+    }
+
+    function openFreezeFromMember(row) {
+        var base = memberFromRow(row);
+        if (!base) return;
+        openFreezeConfirm(base, 'freeze');
+    }
+
+    function openUnfreezeFromMember(row) {
+        var base = memberFromRow(row);
+        if (!base) return;
+        openFreezeConfirm(base, 'unfreeze');
     }
 
     function init() {
@@ -731,6 +883,9 @@
         refresh: refreshBlacklist,
         openBlacklistFromMember: openBlacklistFromMember,
         openRestoreFromMember: openRestoreFromMember,
+        openFreezeFromMember: openFreezeFromMember,
+        openUnfreezeFromMember: openUnfreezeFromMember,
+        applyFrozenStatuses: applyFrozenStatuses,
         openRestoreModal: openRestoreModal,
         openEditModal: openEditModal,
         statusClass: statusClass,

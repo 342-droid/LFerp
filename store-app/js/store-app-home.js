@@ -76,10 +76,15 @@
           goOrders();
           return;
         }
+        if (action === 'livePromo') {
+          window.location.href = 'live-promo.html';
+          return;
+        }
         var labels = {
           aftersaleQuick: '售后',
           memberCode: '门店会员码',
           promoCode: '门店推广码',
+          livePromo: '直播推广',
           orders: '客户订单',
           receive: '收货',
           inventory: '库存查询',

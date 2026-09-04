@@ -232,6 +232,7 @@
             ['会员性别', rec.gender],
             ['手机号码', rec.phone],
             ['是否会员', rec.isMember],
+            ['会员状态', rec.status],
             ['会员等级', rec.level || '—'],
             ['会员标签', rec.tags],
             ['会员来源', rec.source],
@@ -1670,6 +1671,7 @@
         var id = String(memberId || '');
         if (id === 'U10001') {
             return [
+                { type: '绑定门店', storeName: '冷丰生鲜超市', region: '天津市河东区', addr: '天津市河东区长三角珠宝产业园A3栋', way: '直播分享', time: '2026-09-04 15:20:11', watch: '—', amount: '—', orders: '—', refundAmt: '—', refundCnt: '—', inviter: '牛店长（138****8001）' },
                 { type: '切换门店', storeName: '西溪湿地南门店', region: '浙江省杭州市西湖区', addr: '杭州市西湖区天目山路旁西溪湿地南门', way: '扫码', time: '2026-08-20 15:10:22', watch: '46min', amount: '¥268.00', orders: '3', refundAmt: '¥0.00', refundCnt: '0' },
                 { type: '绑定门店', storeName: '中心店01', region: '浙江省杭州市西湖区', addr: '杭州市西湖区绿城西溪世纪中心1号楼', way: '确认门店', time: '2026-08-01 09:20:11', watch: '120min', amount: '¥3688.00', orders: '12', refundAmt: '¥32.00', refundCnt: '1' },
                 { type: '切换门店', storeName: '蒋村公交站店', region: '浙江省杭州市西湖区', addr: '杭州市西湖区余杭塘路蒋村路口', way: '扫码', time: '2026-07-12 11:08:40', watch: '18min', amount: '¥86.00', orders: '1', refundAmt: '¥0.00', refundCnt: '0' }
@@ -1734,7 +1736,8 @@
                     amount: '—',
                     orders: '—',
                     refundAmt: '—',
-                    refundCnt: '—'
+                    refundCnt: '—',
+                    inviter: '—'
                 });
                 showToast('已将绑定门店变更为「' + store.name + '」', 'success');
             }
@@ -1750,6 +1753,7 @@
             '省市区',
             '详细地址',
             '绑定方式',
+            '邀请人',
             '发生时间',
             '观看时长',
             '消费金额',
@@ -1766,6 +1770,7 @@
                     item.region || '—',
                     item.addr || '—',
                     item.way || '—',
+                    item.inviter || '—',
                     item.time || '—',
                     item.watch || '—',
                     item.amount || '—',
@@ -1774,7 +1779,7 @@
                     item.refundCnt || '—'
                 ];
             })
-            : [['暂无绑定/切换记录', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—']];
+            : [['暂无绑定/切换记录', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—']];
         root.appendChild(wrapTable(headers, rows, 'member-drawer-table--wide'));
         root.appendChild(fakePaginationBar());
         return root;

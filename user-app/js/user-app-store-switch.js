@@ -441,8 +441,16 @@
 
   function initHome() {
     ensureBindSeeded();
-    var fromUrl = applyUrlStoreParam();
-    if (!fromUrl) autoBindDefaultIfNeeded();
+    var inviteHandled =
+      window.UaLiveInvite && typeof window.UaLiveInvite.consumeLanding === 'function'
+        ? window.UaLiveInvite.consumeLanding()
+        : false;
+    if (!inviteHandled) {
+      var fromUrl = applyUrlStoreParam();
+      if (!fromUrl) autoBindDefaultIfNeeded();
+    } else if (window.UaLiveInvite.flushToast) {
+      window.UaLiveInvite.flushToast();
+    }
     var bind = readBind();
     syncHomeHeader();
     syncLocateCtx(bind);

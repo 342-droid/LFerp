@@ -6,7 +6,9 @@
   "scripts": {
     "preview": "node tools/preview-server.mjs",
     "preview:5173": "node tools/preview-server.mjs",
-    "preview:ensure": "node tools/preview-server.mjs --ensure"
+    "preview:ensure": "node tools/preview-server.mjs --ensure",
+    "preview:watch": "node tools/preview-server.mjs --watch",
+    "preview:autostart": "node tools/install-preview-autostart.mjs"
   },
   "devDependencies": {
     "jpeg-js": "^0.4.4",

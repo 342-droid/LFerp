@@ -11,6 +11,12 @@
       miniProgramUrl: "https://example.com/wandoujia/store?id=wdj001",
       queueCodeUrl: "https://example.com/wandoujia/queue?id=wdj001",
       promoCodeUrl: "lengfeng-store:ONS303445581201",
+      staff: {
+        id: "STAFF-001",
+        name: "牛店长",
+        phone: "13812348001",
+        role: "店长"
+      }
     },
 
     overview: {

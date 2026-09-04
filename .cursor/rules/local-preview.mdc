@@ -16,9 +16,9 @@ alwaysApply: true
 npm run preview
 ```
 
-等价于 `node tools/preview-server.mjs`（自研静态服务，无文件监听，避免 `serve` 的 EMFILE 崩溃）。
+等价于 `node tools/preview-server.mjs`（自研静态服务，无文件监听，避免 `serve` 的 EMFILE 崩溃）。打开仓库时 `.vscode/tasks.json` 会跑 `npm run preview:watch` 常驻保活。
 
-3. 仅确认是否已在跑：
+3. 仅确认是否已在跑（未在跑时会拉起**独立守护进程**后退出，不要把它当长期前台服务）：
 
 ```powershell
 npm run preview:ensure
@@ -26,3 +26,5 @@ npm run preview:ensure
 
 4. **不要**再推荐 `npx serve -l 5173` 或 `npm run dev`（本仓库没有 Vite）。
 5. 页面 URL 可带或不带 `.html`：`/MDM/mdm_member_level_rule` 与 `/MDM/mdm_member_level_rule.html` 均可。
+6. 服务同时监听 `127.0.0.1` 与 `::1`。健康检查用 `/__lferp_preview_health`；端口被僵死 node 占用时可回收后重绑。
+7. 预览不能只靠 Cursor 打开仓库。本机应登记登录自启：`npm run preview:autostart`（任务计划 `LFerpPreview5173`）。关机/重启后未开 Cursor 时链接也应能打开。

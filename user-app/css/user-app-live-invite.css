@@ -1,0 +1,55 @@
+/* C 端 · 直播分享带参验收开关 */
+.ua-rg-demo.ua-live-invite-demo,
+.ua-live-invite-demo {
+  position: fixed;
+  left: 8px;
+  right: auto;
+  bottom: 72px;
+  z-index: 2300;
+  width: 168px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #eee;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  font-size: 11px;
+  color: #333;
+}
+
+.ua-live-invite-demo .ua-rg-demo__title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.ua-live-invite-demo .ua-rg-demo__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.ua-live-invite-demo .ua-rg-demo__row select {
+  margin-left: auto;
+  max-width: 78px;
+  font-size: 11px;
+}
+
+.ua-live-invite-demo .ua-rg-demo__apply {
+  width: 100%;
+  margin-top: 4px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: #ff7019;
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.ua-live-invite-demo--login {
+  left: auto;
+  right: 8px;
+  bottom: 16px;
+}
