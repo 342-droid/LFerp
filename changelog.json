@@ -1,10 +1,103 @@
 {
-  "latestSha": "5ea31e564824d93ad7cc7cc3e42ff0c022c9a599",
-  "total": 355,
+  "latestSha": "771b96d6f84023923d150ada5e913cbca9be3ec4",
+  "total": 356,
   "days": [
     {
       "date": "2026-09-05",
       "items": [
+        {
+          "sha": "771b96d",
+          "type": "feat",
+          "text": "同步业务标签与表格个人视图",
+          "author": "weekwood",
+          "time": "12:30",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "订单截单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "SCM/basic_settings_system.html",
+              "module": "冷丰WMS",
+              "title": "系统管理"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "module": "冷丰采购",
+              "title": "采购单"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "module": "冷丰采购",
+              "title": "门店订货汇总"
+            },
+            {
+              "file": "SCM/purchase_store_order_sheet.html",
+              "module": "冷丰采购",
+              "title": "门店订货单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/basic_settings_system.html",
+              "text": "标签能力按门店、会员、商品、售后四个业务域独立开通"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "text": "商品标签只维护名称、颜色、来源和状态，移除业务用途并受商品标签能力开关控制"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "门店支持标签管理、标签筛选和记录打标"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "text": "售后标签和会员标签回到列表；支持个人管理筛选项及表格列的显隐、排序、列宽和固定"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "展示售后标签及会员域同步的只读会员标签"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "支持个人管理筛选项及表格列的显隐、排序、列宽和固定"
+            },
+            {
+              "file": "SCM/purchase_store_order_sheet.html",
+              "text": "支持个人管理筛选项及表格列的显隐、排序、列宽和固定"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "支持个人管理筛选项及表格列的显隐、排序、列宽和固定"
+            }
+          ]
+        },
         {
           "sha": "5ea31e5",
           "type": "feat",
