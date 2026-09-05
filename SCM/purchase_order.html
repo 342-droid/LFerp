@@ -6,6 +6,7 @@
     <title>冷丰采购 - 采购单</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-table-personal-view.css?v=20260905-sync">
     <style>
         .order-no-link {
             color: #2196F3;
@@ -701,23 +702,23 @@
                         <thead>
                             <tr>
                                 <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
-                                <th>采购单号</th>
-                                <th>来源单号</th>
-                                <th>关联单号</th>
-                                <th>供应商</th>
-                                <th>收货地名称</th>
-                                <th>订单渠道</th>
-                                <th>履约方式</th>
-                                <th>单据状态</th>
-                                <th>审批人</th>
-                                <th>审批时间</th>
-                                <th>审批原因</th>
-                                <th>单据来源</th>
-                                <th>备注</th>
-                                <th>创建时间</th>
-                                <th>创建人</th>
-                                <th>更新时间</th>
-                                <th>更新人</th>
+                                <th data-preference-key="purchaseOrderNo">采购单号</th>
+                                <th data-preference-key="sourceOrderNo">来源单号</th>
+                                <th data-preference-key="relatedOrderNo">关联单号</th>
+                                <th data-preference-key="supplier">供应商</th>
+                                <th data-preference-key="receivingLocation">收货地名称</th>
+                                <th data-preference-key="orderChannel">订单渠道</th>
+                                <th data-preference-key="fulfillmentMethod">履约方式</th>
+                                <th data-preference-key="documentStatus">单据状态</th>
+                                <th data-preference-key="approver">审批人</th>
+                                <th data-preference-key="approvedAt">审批时间</th>
+                                <th data-preference-key="approvalReason">审批原因</th>
+                                <th data-preference-key="documentSource">单据来源</th>
+                                <th data-preference-key="remark">备注</th>
+                                <th data-preference-key="createdAt">创建时间</th>
+                                <th data-preference-key="createdBy">创建人</th>
+                                <th data-preference-key="updatedAt">更新时间</th>
+                                <th data-preference-key="updatedBy">更新人</th>
                                 <th>操作</th>
                             </tr>
                         </thead>
@@ -3256,5 +3257,6 @@
     renderTable();
 })();
     </script>
+    <script src="../js/lf-table-personal-view.js?v=20260905-sync"></script>
 </body>
 </html>

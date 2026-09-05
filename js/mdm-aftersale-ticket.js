@@ -262,6 +262,7 @@
       liveSession: '-',
       fulfillment: fulfillment,
       nickname: NICKNAMES[i % NICKNAMES.length],
+      memberId: opts.memberId || 'U1000' + ((i % 6) + 1),
       phone: PHONES[i % PHONES.length],
       store: STORES[i % STORES.length],
       storeAddress: ADDRESSES[i % ADDRESSES.length],
@@ -433,6 +434,8 @@
     return (
       ' class="aftersale-link js-as-detail" data-id="' +
       escapeHtml(row.id) +
+      '" data-member-id="' +
+      escapeHtml(row.memberId || 'U10001') +
       '" data-status="' +
       escapeHtml(row.status) +
       '" data-type="' +
@@ -828,6 +831,7 @@
         if (!link) return;
         e.preventDefault();
         var id = link.getAttribute('data-id');
+        var memberId = link.getAttribute('data-member-id') || 'U10001';
         var status = link.getAttribute('data-status') || '';
         var type = link.getAttribute('data-type') || '';
         var orderSource = link.getAttribute('data-order-source') || '';
@@ -845,6 +849,8 @@
           base +
           '?id=' +
           encodeURIComponent(id || '') +
+          '&memberId=' +
+          encodeURIComponent(memberId) +
           '&status=' +
           encodeURIComponent(status) +
           '&type=' +

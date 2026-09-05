@@ -24,8 +24,6 @@
       source: 'system',
       status: 'active',
       isSystem: true,
-      maintainBiz: '订货汇总',
-      maintainTip: '打上此标签的商品不进入采购「门店订货汇总」，不生成门店订货单。适用于已采购到店、不走先销后采的商品（如拉新已铺货）。代采平台配送 / 代采快递配送 / 零售门店自提走订单截单页系统兜底「支付后自动截单」。',
       created_at: '2026-09-02 22:00'
     }
   ];
@@ -76,8 +74,6 @@
       source: isSystem ? 'system' : 'business',
       status: status,
       isSystem: isSystem,
-      maintainBiz: row.maintainBiz ? String(row.maintainBiz) : '',
-      maintainTip: row.maintainTip ? String(row.maintainTip) : '',
       created_at: row.created_at || nowStr()
     };
   }
@@ -104,8 +100,6 @@
       current.source = 'system';
       current.isSystem = true;
       current.status = 'active';
-      current.maintainBiz = seed.maintainBiz;
-      current.maintainTip = seed.maintainTip;
     });
     return list;
   }
@@ -191,7 +185,7 @@
       if (row.id === id) current = row;
     });
     if (!current) return { ok: false, message: '标签不存在' };
-    if (current.isSystem) return { ok: false, message: '系统标签不支持修改名称、颜色和业务语义' };
+    if (current.isSystem) return { ok: false, message: '系统标签不支持修改名称和颜色' };
     var name = String((payload && payload.name) || '').trim();
     if (!name) return { ok: false, message: '请输入标签名称' };
     if (name.length > 20) return { ok: false, message: '标签名称不超过20字' };
