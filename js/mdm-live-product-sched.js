@@ -512,10 +512,35 @@
       .join('');
   }
 
+  var FLOAT_MORE_ID = 'liveSchedMoreFloat';
+
+  function removeFloatingMoreMenu() {
+    var floatMenu = document.getElementById(FLOAT_MORE_ID);
+    if (floatMenu) floatMenu.remove();
+  }
+
   function closeAllMoreMenus() {
     document.querySelectorAll('.lf-live-sched-page .product-more.is-open').forEach(function (el) {
       el.classList.remove('is-open');
     });
+    removeFloatingMoreMenu();
+  }
+
+  function openMoreMenu(wrap) {
+    closeAllMoreMenus();
+    wrap.classList.add('is-open');
+    var menu = wrap.querySelector('.product-more__menu');
+    var btn = wrap.querySelector('[data-more-toggle]');
+    var tr = wrap.closest('tr[data-id]');
+    if (!menu || !btn || !tr) return;
+    var clone = menu.cloneNode(true);
+    clone.id = FLOAT_MORE_ID;
+    clone.classList.add('product-more__menu--float');
+    clone.setAttribute('data-product-id', tr.getAttribute('data-id'));
+    var rect = btn.getBoundingClientRect();
+    clone.style.top = Math.round(rect.bottom + 6) + 'px';
+    clone.style.right = Math.round(window.innerWidth - rect.right) + 'px';
+    document.body.appendChild(clone);
   }
 
   /* 与代采/商城「更多」一致：草稿/下架可删 SPU；上架中只下架 */
@@ -747,6 +772,17 @@
     }
 
     document.addEventListener('click', function (ev) {
+      var floatItem = ev.target.closest('#' + FLOAT_MORE_ID + ' [data-act]');
+      if (floatItem) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var floatMenu = document.getElementById(FLOAT_MORE_ID);
+        var pid = floatMenu ? floatMenu.getAttribute('data-product-id') : '';
+        var floatAct = floatItem.getAttribute('data-act');
+        closeAllMoreMenus();
+        runRowAction(floatAct, pid);
+        return;
+      }
       var toggle = ev.target.closest('.lf-live-sched-page [data-more-toggle]');
       if (toggle) {
         ev.preventDefault();
@@ -755,11 +791,15 @@
         if (!wrap) return;
         var open = wrap.classList.contains('is-open');
         closeAllMoreMenus();
-        if (!open) wrap.classList.add('is-open');
+        if (!open) openMoreMenu(wrap);
         return;
       }
-      if (!ev.target.closest('.lf-live-sched-page .product-more')) closeAllMoreMenus();
+      if (!ev.target.closest('.lf-live-sched-page .product-more') && !ev.target.closest('#' + FLOAT_MORE_ID)) {
+        closeAllMoreMenus();
+      }
     });
+    window.addEventListener('scroll', closeAllMoreMenus, true);
+    window.addEventListener('resize', closeAllMoreMenus);
 
     var tbody = document.getElementById('liveSchedTableBody');
     if (!tbody) return;
@@ -770,61 +810,65 @@
       var act = actEl.getAttribute('data-act');
       var tr = actEl.closest('tr[data-id]');
       if (!tr) return;
-      var sessionId = currentSessionId();
       var id = tr.getAttribute('data-id');
-      if (act === 'expand') {
-        expandedIds[id] = !expandedIds[id];
-        render();
-        return;
-      }
-      var found = findProduct(sessionId, id);
-      if (!found) return;
-      var item = found.item;
-      if (act === 'on') {
-        closeAllMoreMenus();
-        item.status = 'enabled';
-        toast('商品已上架，可在中控添加到直播商品');
-        render();
-        return;
-      }
-      if (act === 'off') {
-        closeAllMoreMenus();
-        item.status = 'disabled';
-        item.inCart = false;
-        item.saleMode = 'preview';
-        item.explaining = false;
-        item.pinned = false;
-        if (item.liveStatus && item.liveStatus !== 'off_shelf') item.liveStatus = 'off_shelf';
-        toast('商品已下架');
-        render();
-        return;
-      }
-      if (act === 'delete') {
-        closeAllMoreMenus();
-        var st = normalizeStatus(item.status);
-        if (st !== 'draft' && st !== 'disabled') {
-          toast('上架中的商品请先下架再删除', 'warning');
-          return;
-        }
-        found.list.splice(found.index, 1);
-        delete expandedIds[id];
-        persistLiveCatalogCodes();
-        toast('已删除');
-        render();
-        return;
-      }
-      if (act === 'up') {
-        if (found.index <= 0) return;
-        swap(found.list, found.index, found.index - 1);
-        render();
-        return;
-      }
-      if (act === 'down') {
-        if (found.index >= found.list.length - 1) return;
-        swap(found.list, found.index, found.index + 1);
-        render();
-      }
+      runRowAction(act, id);
     });
+  }
+
+  function runRowAction(act, id) {
+    var sessionId = currentSessionId();
+    if (act === 'expand') {
+      expandedIds[id] = !expandedIds[id];
+      render();
+      return;
+    }
+    var found = findProduct(sessionId, id);
+    if (!found) return;
+    var item = found.item;
+    if (act === 'on') {
+      closeAllMoreMenus();
+      item.status = 'enabled';
+      toast('商品已上架，可在中控添加到直播商品');
+      render();
+      return;
+    }
+    if (act === 'off') {
+      closeAllMoreMenus();
+      item.status = 'disabled';
+      item.inCart = false;
+      item.saleMode = 'preview';
+      item.explaining = false;
+      item.pinned = false;
+      if (item.liveStatus && item.liveStatus !== 'off_shelf') item.liveStatus = 'off_shelf';
+      toast('商品已下架');
+      render();
+      return;
+    }
+    if (act === 'delete') {
+      closeAllMoreMenus();
+      var st = normalizeStatus(item.status);
+      if (st !== 'draft' && st !== 'disabled') {
+        toast('上架中的商品请先下架再删除', 'warning');
+        return;
+      }
+      found.list.splice(found.index, 1);
+      delete expandedIds[id];
+      persistLiveCatalogCodes();
+      toast('已删除');
+      render();
+      return;
+    }
+    if (act === 'up') {
+      if (found.index <= 0) return;
+      swap(found.list, found.index, found.index - 1);
+      render();
+      return;
+    }
+    if (act === 'down') {
+      if (found.index >= found.list.length - 1) return;
+      swap(found.list, found.index, found.index + 1);
+      render();
+    }
   }
 
   function initDefaultSession() {

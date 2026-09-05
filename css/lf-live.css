@@ -571,6 +571,23 @@
   vertical-align: middle;
 }
 
+/* 表格滚动会裁切绝对定位菜单，打开时改挂到 body 上悬浮 */
+.lf-live-sched-page .product-more.is-open .product-more__menu {
+  display: none;
+}
+
+.product-more__menu--float {
+  position: fixed;
+  z-index: 5200;
+  display: block;
+  min-width: 100px;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 4px 0;
+}
+
 .lf-live-sched-page .table td.action-links .lf-live-sort-btn + a,
 .lf-live-sched-page .table td.action-links a + a {
   margin-left: 8px;
