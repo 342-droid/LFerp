@@ -1416,6 +1416,21 @@
     "status": "diff",
     "date": "2026-09-02"
   },
+  "5ea31e5|MDM/mdm_order_live.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "5ea31e5|MDM/mdm_order_proxy.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "5ea31e5|MDM/mdm_order_retail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
   "5f0de05|SCM/app_ibd_receipt.html": {
     "regions": 0,
     "status": "diff",
