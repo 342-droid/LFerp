@@ -818,8 +818,8 @@
 
   var RETAIL_EXPORT_FIELDS_KEY = 'lfRetailOrderExportFields';
   var PROXY_EXPORT_FIELDS_KEY = 'lfProxyOrderExportFields';
-  var RETAIL_CLEARING_EXPORT_FIELDS_KEY = 'lfRetailClearingExportFields';
-  var PROXY_CLEARING_EXPORT_FIELDS_KEY = 'lfProxyClearingExportFields';
+  var RETAIL_CLEARING_EXPORT_FIELDS_KEY = 'lfRetailClearingExportFieldsV3';
+  var PROXY_CLEARING_EXPORT_FIELDS_KEY = 'lfProxyClearingExportFieldsV3';
   var RETAIL_EXPORT_FIELDS = [
     { key: 'orderNo', label: '订单号' },
     { key: 'orderTime', label: '下单时间' },
@@ -866,11 +866,19 @@
     { key: 'address', label: '收货地址', extra: true },
     { key: 'aftersaleStatus', label: '售后状态', extra: true }
   ];
-  /** 清分明细导出：对齐订单详情 SKU 清分表，一行一个清分项 */
+  /** 清分明细导出：一行一个清分项；支付流水已去掉，对账用通道流水 */
   var CLEARING_EXPORT_FIELDS = [
     { key: 'orderNo', label: '订单号' },
+    { key: 'orderStatus', label: '订单状态' },
+    { key: 'orderScene', label: '订单场景' },
     { key: 'skuName', label: '商品名称' },
+    { key: 'spec', label: '商品规格' },
+    { key: 'skuCode', label: '商品编码' },
+    { key: 'qty', label: '商品数量' },
     { key: 'paid', label: '实付' },
+    { key: 'aftersaleAmount', label: '售后金额' },
+    { key: 'netPaid', label: '净实付金额' },
+    { key: 'aftersaleStatus', label: '售后状态' },
     { key: 'roleCommission', label: '角色分佣' },
     { key: 'supplierCost', label: '供应商采购成本' },
     { key: 'marginRate', label: '毛利率' },
@@ -884,8 +892,9 @@
     { key: 'clearStatus', label: '清分状态' },
     { key: 'settleStatus', label: '结算状态' },
     { key: 'bookStatus', label: '入账状态' },
+    { key: 'orderChannel', label: '订单渠道', extra: true },
     { key: 'store', label: '下单门店', extra: true },
-    { key: 'payNo', label: '支付流水', extra: true }
+    { key: 'channelNo', label: '通道流水', extra: true }
   ];
 
   function isRetailOrderPage() {
