@@ -257,15 +257,6 @@
                         </div>
                     </div>
                     <div class="form-group custom-select-wrapper">
-                        <label>订单渠道:</label>
-                        <div class="custom-select">
-                            <input type="text" id="searchOrderSource" placeholder="请选择" readonly>
-                            <span class="select-arrow">▼</span>
-                            <span class="clear-btn">×</span>
-                            <div class="select-dropdown" id="searchOrderSourceDropdown"></div>
-                        </div>
-                    </div>
-                    <div class="form-group custom-select-wrapper">
                         <label>履约方式:</label>
                         <div class="custom-select">
                             <input type="text" id="searchFulfillmentMethod" placeholder="请选择" readonly>
@@ -513,15 +504,7 @@
     }
 
     function getOrderSourceFilter() {
-        const el = document.getElementById('searchOrderSource');
-        if (!el) return '';
-        if (el.dataset.value !== undefined && el.dataset.value !== '') {
-            return el.dataset.value.trim();
-        }
-        if (el.dataset.value === '') {
-            return '';
-        }
-        return el.value.trim();
+        return new URLSearchParams(window.location.search).get('channel') || '';
     }
 
     function getFulfillmentMethodFilter() {
@@ -1171,13 +1154,11 @@
     initSkuCategoryOptions();
     initStoreOptions();
 
-    renderSelectOptions('searchOrderSourceDropdown', [{ value: '', text: '全部' }].concat(CommonOptions.orderSource || []));
     renderSelectOptions('searchFulfillmentMethodDropdown', [{ value: '', text: '全部' }].concat(CommonOptions.fulfillmentMethod || []));
     renderSelectOptions('searchMarketingTypeDropdown', CommonOptions.marketingType);
 
     if (typeof initCustomSelect === 'function') {
         initCustomSelect('searchLiveSession', 'searchLiveSessionDropdown');
-        initCustomSelect('searchOrderSource', 'searchOrderSourceDropdown');
         initCustomSelect('searchFulfillmentMethod', 'searchFulfillmentMethodDropdown');
         initCustomSelect('searchMarketingType', 'searchMarketingTypeDropdown');
         initCustomSelect('searchOrderStatus', 'searchOrderStatusDropdown');
