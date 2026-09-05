@@ -1,10 +1,39 @@
 {
-  "latestSha": "5a934c19c8f42b0bdf30d2cbfa897c6d63ec7c0e",
-  "total": 361,
+  "latestSha": "803d72cb7633aff24a1472dc9ccefaeb24cc0ebd",
+  "total": 362,
   "days": [
     {
       "date": "2026-09-05",
       "items": [
+        {
+          "sha": "803d72c",
+          "type": "fix",
+          "text": "保持筛选操作区右对齐",
+          "author": "Di Wu",
+          "time": "15:39",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "module": "冷丰采购",
+              "title": "采购单"
+            },
+            {
+              "file": "SCM/purchase_store_order_sheet.html",
+              "module": "冷丰采购",
+              "title": "门店订货单"
+            }
+          ]
+        },
         {
           "sha": "5a934c1",
           "type": "fix",
