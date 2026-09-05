@@ -836,7 +836,11 @@
                             <thead>
                                 <tr>
                                     <th>商品编码</th>
+                                    <th>商品条码</th>
                                     <th>商品名称</th>
+                                    <th>商品规格</th>
+                                    <th>单位</th>
+                                    <th>保质期</th>
                                     <th>商品分类</th>
                                     <th>采购员</th>
                                     <th>采购量</th>
@@ -1438,7 +1442,10 @@
                 if (!map[code]) {
                     map[code] = {
                         skuCode: code,
+                        barcode: String(l.barcode || l.skuBarcode || code).trim(),
                         skuName: name,
+                        spec: String(l.spec || '').trim(),
+                        shelfLife: String(l.shelfLife || '').trim(),
                         skuCategory: String(l.skuCategory || '').trim(),
                         suggestedUnitPrice: Number(l.suggestedUnitPrice) || 0,
                         saleUnitPrice: lineSalesUnitPrice(l),
@@ -1457,6 +1464,17 @@
         for (var i = 0; i < keys.length; i++) {
             var p = productMaster[keys[i]];
             if (p.skuName === target) return p;
+        }
+        return null;
+    }
+
+    function findProductByBarcode(barcode) {
+        var target = String(barcode || '').trim();
+        if (!target) return null;
+        var keys = Object.keys(productMaster);
+        for (var i = 0; i < keys.length; i++) {
+            var p = productMaster[keys[i]];
+            if (p.barcode && p.barcode === target) return p;
         }
         return null;
     }
@@ -1514,9 +1532,12 @@
     function newAddLine() {
         return {
             skuCode: '',
+            barcode: '',
             skuName: '',
+            spec: '',
+            shelfLife: '',
             skuCategory: '',
-            qtyUnit: '件',
+            qtyUnit: '',
             purchaseQty: 0,
             suggestedUnitPrice: 0,
             actualUnitPrice: 0,
@@ -1560,7 +1581,10 @@
         if (!addPoLines[idx] || !product) return;
         var line = addPoLines[idx];
         line.skuCode = product.skuCode;
+        line.barcode = product.barcode || product.skuCode || '';
         line.skuName = product.skuName;
+        line.spec = product.spec || getLineSpec(product);
+        line.shelfLife = product.shelfLife || '';
         line.skuCategory = product.skuCategory;
         line.qtyUnit = product.qtyUnit || '件';
         line.suggestedUnitPrice = toFixed2Number(product.suggestedUnitPrice);
@@ -1575,7 +1599,10 @@
         if (!addPoLines[idx]) return;
         var line = addPoLines[idx];
         line.skuCategory = '';
-        line.qtyUnit = '件';
+        line.barcode = '';
+        line.spec = '';
+        line.shelfLife = '';
+        line.qtyUnit = '';
         line.suggestedUnitPrice = 0;
         line.actualUnitPrice = 0;
         line.purchaseAmount = 0;
@@ -1587,7 +1614,7 @@
         var tbody = document.getElementById('addPoLinesTbody');
         if (!tbody) return;
         if (!addPoLines.length) {
-            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#999;">暂无明细，请新增明细行</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="16" style="text-align:center;color:#999;">暂无明细，请新增明细行</td></tr>';
             renderAddAmountInfo();
             return;
         }
@@ -1595,7 +1622,11 @@
             return (
                 '<tr data-line-index="' + idx + '">' +
                 '<td><input type="text" class="add-po-line-input" data-field="skuCode" value="' + escapeHtml(line.skuCode) + '" placeholder="请输入商品编码"></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="barcode" value="' + escapeHtml(line.barcode || '') + '" placeholder="请输入商品条码"></td>' +
                 '<td><input type="text" class="add-po-line-input" data-field="skuName" list="poProductNameList" value="' + escapeHtml(line.skuName) + '" placeholder="可模糊查询商品名称"></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="spec" value="' + escapeHtml(getLineSpec(line)) + '" readonly></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="qtyUnit" value="' + escapeHtml(line.qtyUnit || '—') + '" readonly></td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="shelfLife" value="' + escapeHtml(line.shelfLife || '—') + '" readonly></td>' +
                 '<td><input type="text" class="add-po-line-input" data-field="skuCategory" value="' + escapeHtml(line.skuCategory) + '" readonly></td>' +
                 '<td>' + renderLineBuyerSelect(line.buyer, addPoBuyerOptions) + '</td>' +
                 '<td><input type="number" class="add-po-line-input" data-field="purchaseQty" min="0" step="1" value="' + escapeHtml(String(line.purchaseQty)) + '"></td>' +
@@ -1638,7 +1669,10 @@
         return (lines || []).map(function(l) {
             var line = {
                 skuCode: l.skuCode || '',
+                barcode: l.barcode || l.skuBarcode || '',
                 skuName: l.skuName || '',
+                spec: l.spec || '',
+                shelfLife: l.shelfLife || '',
                 skuCategory: l.skuCategory || '',
                 qtyUnit: l.qtyUnit || '件',
                 purchaseQty: Number(l.purchaseQty) || 0,
@@ -2188,7 +2222,10 @@
             recalcLine(l);
             return {
                 skuCode: l.skuCode,
+                barcode: l.barcode || '',
                 skuName: l.skuName,
+                spec: l.spec || getLineSpec(l),
+                shelfLife: l.shelfLife || '',
                 skuCategory: l.skuCategory,
                 qtyUnit: l.qtyUnit || '件',
                 buyer: getLineBuyer(l),
@@ -3142,7 +3179,7 @@
             renderAddLinesTable();
             return;
         }
-        if (field === 'lineRemark' || field === 'skuCode' || field === 'skuName') {
+        if (field === 'lineRemark' || field === 'skuCode' || field === 'skuName' || field === 'barcode') {
             line[field] = v.trim();
         }
     });
@@ -3163,6 +3200,17 @@
                 if (line.skuCode && typeof showToast === 'function') showToast('商品编码不存在，请重新输入', 'error');
             } else {
                 applyProductToLine(idx, pByCode);
+            }
+            renderAddLinesTable();
+            return;
+        }
+        if (field === 'barcode') {
+            var pByBarcode = findProductByBarcode(line.barcode);
+            if (!pByBarcode) {
+                clearProductOnLine(idx);
+                if (line.barcode && typeof showToast === 'function') showToast('商品条码不存在，请重新输入', 'error');
+            } else {
+                applyProductToLine(idx, pByBarcode);
             }
             renderAddLinesTable();
             return;
