@@ -24,10 +24,6 @@
 .bt-capability-heading { margin: 0 0 6px; color: #20242c; font-size: 20px; }
 .bt-capability-subtitle { margin: 0 0 18px; color: #7c8798; font-size: 13px; }
 
-.bt-library-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-.bt-library-heading .bt-capability-heading { margin-bottom: 8px; }
-.bt-library-heading .bt-capability-subtitle { margin-bottom: 0; }
-
 .bt-capability-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .bt-capability-card { min-width: 0; padding: 18px; border: 1px solid var(--bt-border); border-radius: 8px; background: #fff; box-shadow: 0 1px 3px rgba(30, 41, 59, .04); }
 .bt-capability-card__intro { display: flex; align-items: flex-start; gap: 12px; min-height: 76px; }

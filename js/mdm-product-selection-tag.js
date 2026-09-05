@@ -439,6 +439,14 @@
   function bindEntry() {
     var btn = $('productTagManageBtn');
     if (!btn) return;
+    if (
+      window.BusinessTagPrototypeStore &&
+      !window.BusinessTagPrototypeStore.isModuleEnabled('MDM_PRODUCT_TAG')
+    ) {
+      btn.hidden = true;
+      btn.style.setProperty('display', 'none', 'important');
+      return;
+    }
     btn.addEventListener('click', function (e) {
       e.preventDefault();
       openDrawer();

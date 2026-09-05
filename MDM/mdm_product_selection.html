@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-product.css?v=20260905-sel-del">
+    <link rel="stylesheet" href="../css/lf-product-selection-tag.css?v=20260902-tag">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -67,6 +68,7 @@
                                     <option value="rejected">审核未通过</option>
                                     <option value="stopped">已停售</option>
                                 </select>
+                                <button type="button" class="product-toolbar__ghost" id="productTagManageBtn">标签管理</button>
                                 <button type="button" class="product-toolbar__add" id="productAddBtn">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
                                     添加商品
@@ -124,11 +126,111 @@
             </div>
         </main>
     </div>
+    <div id="selTagDrawerRoot" hidden>
+        <div class="sel-tag-drawer-backdrop" id="selTagDrawerBackdrop"></div>
+        <aside class="sel-tag-drawer" id="selTagDrawer" role="dialog" aria-modal="true" aria-labelledby="selTagDrawerTitle">
+            <header class="sel-tag-drawer__header">
+                <h2 class="sel-tag-drawer__title" id="selTagDrawerTitle">商品标签管理</h2>
+                <button type="button" class="sel-tag-drawer__close" id="selTagDrawerClose" aria-label="关闭">&times;</button>
+            </header>
+            <div class="sel-tag-drawer__body">
+                <div class="sel-tag-info" role="note">
+                    <span class="sel-tag-info__icon" aria-hidden="true">i</span>
+                    <div>
+                        <p class="sel-tag-info__title">系统标签使用说明</p>
+                        <p class="sel-tag-info__desc">系统标签由系统预置并维护，名称、颜色不可修改或删除；业务可正常绑定、移除和筛选。截单等规则请在对应业务配置中选择商品标签。</p>
+                    </div>
+                </div>
+
+                <form class="sel-tag-filter" id="selTagFilterForm" onsubmit="return false;">
+                    <div class="sel-tag-filter__grid" id="selTagFilterGrid">
+                        <div class="sel-tag-filter__field">
+                            <label class="sel-tag-filter__label" for="selTagFilterName">标签名称</label>
+                            <input class="sel-tag-filter__input" id="selTagFilterName" type="text" placeholder="请输入标签名称" autocomplete="off">
+                        </div>
+                        <div class="sel-tag-filter__field sel-tag-filter__extra" hidden>
+                            <label class="sel-tag-filter__label" for="selTagFilterSource">来源</label>
+                            <select class="sel-tag-filter__input" id="selTagFilterSource" aria-label="来源">
+                                <option value="">全部</option>
+                                <option value="system">系统管理</option>
+                                <option value="business">业务创建</option>
+                            </select>
+                        </div>
+                        <div class="sel-tag-filter__field sel-tag-filter__extra" hidden>
+                            <label class="sel-tag-filter__label" for="selTagFilterStatus">状态</label>
+                            <select class="sel-tag-filter__input" id="selTagFilterStatus" aria-label="状态">
+                                <option value="">全部</option>
+                                <option value="active">启用</option>
+                                <option value="stopped">停用</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="sel-tag-filter__actions">
+                        <button type="button" class="product-filter-btn product-filter-btn--primary" id="selTagFilterQuery">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                            查询
+                        </button>
+                        <button type="button" class="product-filter-btn product-filter-btn--default" id="selTagFilterReset">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M5 19a9 9 0 0014-7"/><path d="M19 5a9 9 0 00-14 7"/></svg>
+                            重置
+                        </button>
+                        <button type="button" class="product-filter-btn product-filter-btn--text" id="selTagFilterCollapse" aria-expanded="false">
+                            <span id="selTagFilterCollapseLabel">展开</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="sel-tag-toolbar">
+                    <button type="button" class="product-toolbar__add" id="selTagAddBtn">+ 新增标签</button>
+                </div>
+
+                <div class="sel-tag-table-wrap">
+                    <table class="sel-tag-table">
+                        <colgroup>
+                            <col style="width: 22%">
+                            <col style="width: 14%">
+                            <col style="width: 16%">
+                            <col style="width: 14%">
+                            <col>
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>标签名称</th>
+                                <th>颜色</th>
+                                <th>来源</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="selTagTableBody"></tbody>
+                    </table>
+                </div>
+                <div class="sel-tag-empty" id="selTagEmpty" hidden>暂无标签</div>
+                <div class="product-pagination" id="selTagPagination">
+                    <span id="selTagPaginationTotal">共 0 条</span>
+                    <div class="product-pagination__right">
+                        <select class="product-pagination__size" id="selTagPageSize" aria-label="每页条数"></select>
+                        <div class="product-pagination__pages" id="selTagPaginationPages"></div>
+                        <label class="product-pagination__goto">
+                            前往
+                            <input id="selTagPageGoto" type="text" value="1" inputmode="numeric">
+                            页
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
     <script src="../js/common.js"></script>
     <script src="../js/product-page-tabs.js"></script>
     <script src="../js/mdm-product-catalog-store.js?v=20260905-sellable"></script>
     <script src="../js/mdm-live-demo-data.js"></script>
+    <script src="../js/business-tag-prototype-store.js?v=20260905-product-tag-sync"></script>
+    <script src="../js/mdm-product-selection-tag-store.js?v=20260905-domain-owned-tag"></script>
     <script src="../js/mdm-product-add-drawer.js?v=20260902-no-skip-cutoff"></script>
     <script src="../js/mdm-product-selection.js?v=20260905-sellable"></script>
+    <script src="../js/mdm-product-selection-tag.js?v=20260905-domain-owned-tag"></script>
 </body>
 </html>
